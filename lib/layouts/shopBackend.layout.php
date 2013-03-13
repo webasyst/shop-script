@@ -3,7 +3,11 @@ class shopBackendLayout extends waLayout
 {
     public function execute()
     {
-        $default_page = 'orders';
+        if (wa()->getUser()->getRights('shop', 'orders')) {
+            $default_page = 'orders';
+        } else {
+            $default_page = 'products';
+        }
 
         $module = waRequest::get('module', 'backend');
         $this->assign('default_page', $default_page);

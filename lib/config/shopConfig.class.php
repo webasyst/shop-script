@@ -41,6 +41,15 @@ class shopConfig extends waAppConfig
         return $shop_last_datetime;
     }
 
+    public function onCount()
+    {
+        if (!wa()->getUser()->getRights('shop', 'orders')) {
+            return null;
+        }
+        $order_model = new shopOrderModel();
+        return $order_model->getStateCounters('new');
+    }
+
     public function getRouting($route = array())
     {
         $url_type = isset($route['url_type']) ? $route['url_type'] : 0;
