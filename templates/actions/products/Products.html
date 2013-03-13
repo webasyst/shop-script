@@ -1,0 +1,328 @@
+{* id of a set or category *}
+{if $collection_hash !== null}
+    {$id = ifset($collection_hash[1])}
+{else}
+    {$id = null}
+{/if}
+
+{if $info && (
+    ($info.hash == 'set' && $info.type == shopSetModel::TYPE_STATIC) ||
+    ($info.hash == 'category' && $info.type == shopCategoryModel::TYPE_STATIC)
+  )
+}
+    {$manual = true}
+{else}
+    {$manual = false}
+{/if}
+
+{if !$sort && $manual}
+    {$sortable = true}
+{else}
+    {$sortable = false}
+{/if}
+{$order = $wa->get("order", "desc")}
+<div class="sidebar right200px" id="s-product-list-toolbar">
+    <div class="block">
+        <h6 class="heading">
+            <span class="count indicator" style="display:none"></span>
+            [`Export`]
+        </h6>
+        <ul class="menu-v with-icons compact p-no-photo-selected123 thumbs-view-menu" id="share-menu">
+            <li><a href="#" style="color: #aaa;"><i class="icon16 ss excel"></i>[`CSV`]</a></li>
+            
+            <!-- plugin hook: 'backend_products.toolbar_export_li' -->
+            {* @event backend_products.%plugin_id%.toolbar_export_li *}
+            {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.toolbar_export_li)}{/foreach}{/if}
+            
+        </ul>
+    </div>
+    
+    <div class="block">
+        <h6 class="heading">
+            <span class="count indicator" style="display:none"></span>
+            [`Organize`]
+        </h6>
+        <ul class="menu-v with-icons compact p-no-photo-selected123 thumbs-view-menu" id="share-menu">
+        
+            <!-- plugin hook: 'backend_products.toolbar_organize_li' -->
+            {* @event backend_products.%plugin_id%.toolbar_organize_li *}
+            {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.toolbar_organize_li)}{/foreach}{/if}
+            
+            <li data-action="new-set"><a href="#"><i class="icon16 ss set"></i>[`Create new set`]</a></li>
+            <li data-action="category"><a href="#"><i class="icon16 folder"></i>[`Add to category`]</a></li>
+            <li data-action="type"><a href="#"><i class="icon16 box"></i>[`Change product type`]</a></li>
+            <li data-action="delete"><a href="#"><i class="icon16 delete"></i>[`Delete`]</a></li>
+            {if $info && $info.hash == 'set' && $info.type == shopSetModel::TYPE_STATIC && $info.count > 0}
+                <li data-action="delete-from-set"><a href="#"><i class="icon16 no-bw"></i>[`Delete from set`]</a></li>
+            {/if}
+            
+        </ul>
+    </div>
+    
+    <!-- plugin hook: 'backend_products.toolbar_section' -->
+    {* @event backend_products.%plugin_id%.toolbar_section *}
+    {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.toolbar_section)}{/foreach}{/if}
+    
+</div>
+<div class="content right200px">
+    <div class="block double-padded">
+        <h1>
+            <span {if $info.hash == 'category' || $info.hash == 'set'}class="editable"{/if} id="s-product-list-title">{if !empty($title)}{$title|escape}{else}[`Untitled`]{/if}</span>
+            
+            <!-- plugin hook: 'backend_products.title_suffix' -->
+            {* @event backend_products.%plugin_id%.title_suffix *}
+            {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.title_suffix)}{/foreach}{/if}
+            
+            {if $collection_hash && ($info.hash == 'category' || $info.hash == 'set')}
+                <span class="s-product-list-manage">
+                    <a href="#" id="s-product-list-settings" class="gray s-product-list-settings">
+                        <i class="icon16 settings"></i>{if $info.hash == 'category'}[`Category settings`]{else}[`Set settings`]{/if}
+                    </a>
+                    <a href="#" id="s-product-list-delete" class="gray">
+                        <i class="icon16 no-bw"></i>{if $info.hash == 'category'}[`Delete category`]{else}[`Delete set`]{/if}
+                    </a>
+                </span>
+            {/if}
+
+        </h1>
+        <ul class="menu-h small s-product-nav">
+            {if $view != 'table'}
+            <!-- order -->
+            <li class="s-inline-mixed-string float-right" id="s-sort-control">
+                <ul class="menu-v dropdown">
+                    <li>[`Order by`]:
+                        {strip}
+                        <a href="#" class="inline-link"><b><i>
+                            {if $sort=='name'}
+                                [`name`]<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>
+                            {else if $sort=='price'}
+                                [`price`]<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>
+                            {else if $sort=='stock'}
+                                [`in stock`]<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>
+                            {else if $sort=='rate'}
+                                [`rating`]<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>
+                            {else if $sort=='date'}
+                                [`date added`]<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>
+                            {else if $sort=='bestsellers'}
+                                [`top selling`]<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>
+                            {else if $manual}
+                                [`manual`]
+                            {else}
+                                [`default`]
+                            {/if}
+                        </i></b></a>
+                        {/strip}
+                        <ul class="menu-v with-icon">
+                            {strip}
+                            <li class="sort">
+                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}" class="no-underline {if !$sort}selected{/if}">{if $manual}[`manual`]{else}[`default`]{/if}</a>
+                            </li>
+                            <li class="sort">
+                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}" class="no-underline {if $sort=='name'}selected{/if}">[`name`]
+                                </a>{if $sort=='name'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                            </li>
+                            <li class="sort">
+                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=price&order={if $order == 'asc' && $sort=='price'}desc{else}asc{/if}" class="no-underline {if $sort=='price'}selected{/if}">[`price`]
+                                </a>{if $sort=='price'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                            </li>
+                            <li class="sort">
+                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=stock&order={if $order == 'asc' && $sort=='stock'}desc{else}asc{/if}" class="no-underline {if $sort=='stock'}selected{/if}">[`in stock`]
+                                </a>{if $sort=='stock'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                            </li>
+                            <li class="sort">
+                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=rate&order={if $order == 'asc' && $sort=='rate'}desc{else}asc{/if}" class="no-underline {if $sort=='rate'}selected{/if}">[`rating`]
+                                </a>{if $sort=='rate'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                            </li>
+                            <li class="sort">
+                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=date&order={if $order == 'asc' && $sort=='date'}desc{else}asc{/if}" class="no-underline {if $sort=='date'}selected{/if}">[`date added`]
+                                </a>{if $sort=='date'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                            </li>
+                            <li class="sort">
+                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=bestsellers&order={if $order == 'asc' && $sort=='bestsellers'}desc{else}asc{/if}" class="no-underline {if $sort=='bestsellers'}selected{/if}">[`top selling`]
+                                </a>{if $sort=='bestsellers'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                            </li>
+
+                            {/strip}
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            {/if}
+
+            <!-- view mode -->
+            <li{if $wa->get("view") != 'table'} class="selected"{/if}>
+                <a href="#/products/view=thumbs{if $collection_param}&{$collection_param}{/if}{if $sort}{/if}"><i class="icon16 view-thumbs"></i></a>
+            </li>
+            <li{if $wa->get("view") == 'table'} class="selected"{/if}>
+                <a href="#/products/view=table{if $collection_param}&{$collection_param}{/if}{if $sort}{/if}"><i class="icon16 view-table"></i></a>
+            </li>
+            
+            <!-- plugin hook: 'backend_products.viewmode_li' -->
+            {* @event backend_products.%plugin_id%.viewmode_li *}
+            {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.viewmode_li)}{/foreach}{/if}
+
+            <!-- frontend link -->
+            <li class="s-inline-mixed-string">
+            {if !empty($info.frontend_url)}
+                [`Storefront link`]: <a id="s-category-frontend-link" href="{$info.frontend_url}" target="_blank">{$info.frontend_url}</a> <i class="icon10 new-window"></i>
+            {elseif $info.hash == 'set'}
+                <span class="s-embed">[`Embed into template or page`]:
+                    <strong class="s-embed-code" id="s-embed-code">&#123;$wa-&gt;shop-&gt;productSet("{$id}")&#125;</strong>
+                    <input id="s-embed-code-input" value="&#123;$wa-&gt;shop-&gt;productSet("{$id}")&#125;" class="s-embed-code-input" readonly="readonly" style="display: none;">
+                </span>
+            {/if}
+            </li>
+
+        </ul>
+
+        {if $wa->get("view") == 'table'}
+        <table class="zebra" id="product-list">
+            <tr class="header">
+                {if $sortable}<th class="min-width"></th>{/if}
+                <th class="min-width"><input type="checkbox" class="s-select-all" data-count={$total_count}></th>
+                <th>
+                    <span class="sort">
+                        <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}" class="inline-link selected">
+                            [`Name`]
+                        </a>{if $sort=='name'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
+                    </span>
+                </th>
+                <th class="short align-right">
+                    <span class="sort">
+                        <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=price&order={if $order == 'asc' && $sort=='price'}desc{else}asc{/if}" class="inline-link selected">
+                            [`Price`]
+                        </a>{if $sort=='price'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
+                    </span>
+                </th>
+                <th class="short align-right">
+                    <span class="sort">
+                        <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=stock&order={if $order == 'asc' && $sort=='stock'}desc{else}asc{/if}" class="inline-link selected">
+                            [`In stock`]
+                        </a>{if $sort=='stock'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
+                    </span>
+                </th>
+            </tr>
+        </table>
+        <script id="template-product-list-table" type="text/html">
+            {literal}
+            {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
+            <tr class="product {% if (i == n-1) { %}last{% } %} {% if (o.check_all) { %}selected{% } %}" data-product-id="{%#p.id%}">
+                {/literal}
+                {if $sortable}<td class="min-width drag-handle"><i class="icon16 sort"></i></td>{/if}
+                {literal}
+                <td class="min-width">
+                    <input type="checkbox" {% if (o.check_all) { %}checked{% } %}>
+                </td>
+                <td class="drag-handle">
+                    <a href="#/product/{%#p.id%}/">{%#p.name%}</a>
+                </td>
+                <td class="short nowrap align-right">{%#p.price_range%}</td>
+                <td class="short nowrap align-right">
+                    {%#((p.count === null)?'<span class="gray">∞</span>':p.count)%}
+                </td>
+            </tr>
+            {% } %}
+            {/literal}
+        </script>
+        {else}
+        <ul class="thumbs li250px" id="product-list">
+            <script id="template-product-list-thumbs" type="text/html">
+            {literal}
+            {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
+            <li class="product {% if (i == n-1) { %}last{% } %}" data-product-id="{%#p.id%}">
+                <div class="s-product-image s-image">
+                    <a href="#/product/{%#p.id%}/">
+                        {% if (p.badge) { %}
+                            <div class="s-image-corner top right">{%#p.badge%}</div>
+                        {% } %}
+                        {% if (p.image) { %}
+                            <img src="{%#p.image.thumb_url%}" class="drag-handle">
+                        {% } else { %}
+                            <img src="{/literal}{$wa_app_static_url}{literal}img/image-dummy.png" class="drag-handle not-found">
+                        {% } %}
+                    </a>
+                </div>
+                <div class="s-product-details">
+                    <label>
+                        <input type="checkbox"><strong>{%#p.name%}</strong>
+                        <span class="small">{%#p.price_range%}</span>
+                    </label>
+                </div>
+            </li>
+            {% } %}
+            {/literal}
+            </script>
+        </ul>
+        {/if}
+
+        <div class="lazyloading-wrapper">
+            <div class="lazyloading-progress-string">{_w('%d product','%d products', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+             <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more products`]</a>
+            <span class="lazyloading-progress" style="display:none">
+                <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d product', '%d products', min($total_count - $count, $count))}...</span>
+            </span>
+        </div>
+    </div>
+
+
+    {* dialogs section *}
+    <div class="dialog width400px height200px" id="s-product-list-delete-dialog">
+        <div class="dialog-background"></div>
+        <form method="post" action="">
+        <div class="dialog-window">
+            <div class="dialog-content">
+                <div class="dialog-content-indent">
+                    <h1>{if $info.hash == 'category'}[`Delete category`]{elseif $info.hash == 'set'}[`Delete set`]{else}[`Delete list`]{/if}</h1>
+                    <ul class="menu-v">
+                        <li>
+                            <label>
+                            <input type="radio" name="s-delete-products" value="0" checked>
+                            [`Don't delete products`] <span class="hint">[`Products connected to this list will not be deleted`]</span>
+                            </label>
+                        </li>
+                        <li>
+                            <label>
+                            <input type="radio" name="s-delete-products" value="1" {if $info.hash == 'category' && $info.type == shopCategoryModel::TYPE_DYNAMIC}disabled{/if}>
+                            {assign var="del_products_text" value='[`Delete all products stored in this list (%d)`]'|sprintf:$total_count}
+                            {$del_products_text}{if $info.hash == 'category' && $info.type == shopCategoryModel::TYPE_DYNAMIC}<em class="hint"> [`Not available for smart categories.`]</em>{/if}
+                            </label>
+                        </li>
+                    </ul>
+                    {if $info.hash == 'set'}
+                        <p class="small black">
+                            <br />
+                            <i class="icon10 exclamation"></i> [`It is highly advisable to keep product sets with IDs <strong>promo</strong> and <strong>bestsellers</strong>, as these set IDs are used by most Shop-Script frontend design themes.`]</p>
+                    {/if}
+                </div>
+            </div>
+            <div class="dialog-buttons">
+                <div class="dialog-buttons-gradient">
+                    {$wa->csrf()}
+                    <input class="button red" type="submit" value="[`Delete`]">
+                    <i class="icon16 loading"></i>
+                    [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+                </div>
+            </div>
+        </div>
+        </form>
+    </div>
+</div>
+{$title = $title|cat:" — ":{$wa->accountName()}}
+<script type="text/javascript">
+    $.shop.setTitle('{$title|escape}');
+    $.product_list.init({
+        view: '{$view}',
+        collection_hash: {json_encode($collection_hash)},
+        collection_param: '{$collection_param}',
+        sort: '{$wa->get("sort")}',
+        order: '{$order}',
+        products: {json_encode($products)},
+        total_count: {$total_count},
+        edit: '{$wa->get("edit")}',
+        sortable: {if $sortable}true{else}false{/if},
+        lazy_loading: {
+            auto: true,
+            count: {$count}
+        }
+    });
+</script>

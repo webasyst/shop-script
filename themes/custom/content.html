@@ -1,0 +1,51 @@
+
+    <!-- plugin hook: 'frontend_header' -->
+    {* @event frontend_header.%plugin_id% *}
+    {foreach $frontend_header as $_}{$_}{/foreach}            
+        
+    <!-- navigation breadcrumbs -->
+    {if isset($breadcrumbs)}
+        <div class="breadcrumbs">
+            <a href="{$wa_app_url}">{$wa->accountName()}</a>
+            {if $breadcrumbs}
+                {foreach $breadcrumbs as $breadcrumb}
+                    » <a href="{$breadcrumb.url}">{$breadcrumb.name|escape}</a>
+                {/foreach}
+            {else} » {/if}
+        </div>
+    {/if}
+
+    <div {if $action == 'product'} itemscope itemtype="http://schema.org/Product"{/if}>
+    
+        <!-- current page core content -->
+        {$content}
+        
+    </div>
+
+    <div class="clear-both"></div>
+
+    <div class="currency-toggle">
+        {if count($currencies) > 1}
+            <select id="currency">
+                {$currency = $wa->shop->currency()}
+                {foreach $currencies as $c_code => $c}
+                    <option value="{$c_code}" {if $c_code == $currency} selected{/if}>{$c.title}</option>
+                {/foreach}
+            </select>
+            <script>
+                $("#currency").change(function () {
+                    var url = location.href;
+                    if (url.indexOf('?') == -1) {
+                        url += '?';
+                    } else {
+                        url += '&';
+                    }
+                    location.href = url + 'currency=' + $(this).val();
+                });
+            </script>
+        {/if}
+    </div>    
+
+    <!-- plugin hook: 'frontend_footer' -->
+    {* @event frontend_footer.%plugin_id% *}
+    {foreach $frontend_footer as $_}{$_}{/foreach}

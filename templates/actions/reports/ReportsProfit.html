@@ -1,0 +1,94 @@
+<!-- PROFIT & EXPENSES -->
+
+{* !!! Sales report sidebar temporarily commented out
+<div class="sidebar left200px">
+    <div class="block double-padded">
+        <ul class="menu-v">
+            <li class="selected bold"><a href="#">[`Overall sales`]</a></li>
+
+            <li class="top-padded"><a href="#">[`Storefronts`]</a></li>
+            <li><a href="#">[`Traffic sources`]</a></li>
+            <li><a href="#">[`Keywords`]</a></li>
+            <li><a href="#">[`Countries & regions`]</a></li>
+            <li><a href="#">[`Shipping types`]</a></li>
+            <li><a href="#">[`Payment types`]</a></li>
+        </ul>
+    </div>
+    <div class="block double-padded">
+        <h5 class="heading">[`Compare with past`]</h5>
+        <ul class="menu-v collapsible small">
+            <li><a href="#" class="inline-link"><b><i>[`Previous month`]</i></b></a></li>
+            <li><a href="#" class="inline-link"><b><i>[`Previous year`]</i></b></a></li>
+        </ul>
+    </div>
+</div>
+*}
+
+<div class="content{* left200px bordered-left*}">
+    <div id="reports-profit-graph" class="s-graph"></div>
+    <div class="block double-padded ">
+
+        <div class="sidebar right300px">
+            <div id="reports-profit-pie"></div>
+        </div>
+
+        <div class="content right300px">
+
+            <div class="fields">
+                <div class="field-group large">
+                    <div class="field">
+                        <div class="name"><span class="large">[`Total profit`]</span></div>
+                        <div class="value">
+                            <span class="bold large">{$total.profit|wa_format_amount_currency:$def_cur}</span>
+                        </div>
+                        <div class="value small">{sprintf_wp('≈ %d%% of total sales (%s)', round($total.profit * 100 / ifempty($total.sales, 1)), "{$total.sales|wa_format_amount_currency:$def_cur}")}</div>
+                    </div>
+                    <div class="field">
+                        <div class="name">[`Expenses`]</div>
+                        <div class="value">{$total.purchase|wa_format_amount_currency:$def_cur} <span class="small">[`Product purchase`]</span></div>
+                        <div class="value">{$total.shipping|wa_format_amount_currency:$def_cur} <span class="small">[`Shipping`]</span></div>
+                        <div class="value">{$total.tax|wa_format_amount_currency:$def_cur} <span class="small">[`Tax`]</span></div>
+                    </div>
+                    <div class="field">
+                        <div class="name">[`Average daily profit`]</div>
+                        <div class="value bold">{sprintf_wp('%s/day', "{$avg_profit|wa_format_amount_currency:$def_cur}")}</div>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">[`Profit by day`]</div>
+                        <div class="value">
+
+                            <table class="zebra">
+                                {foreach array_reverse($by_day) as $d}
+                                <tr>
+                                    <td>{$d.date|wa_date:'humandate'}</td>
+                                    <td class="align-right gray">{_ws(date('D', strtotime($d.date)))}</td>
+                                    <td class="align-right">{$d.total|wa_format_amount_currency:$def_cur}</td>
+                                    <td>
+                                        <div class="s-bar" style="width:{round($d.total_percent)}px;"></div>
+                                    </td>
+                                </tr>
+                                {/foreach}
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="clear-both"></div>
+    </div>
+</div>
+<hr>
+<div class="clear-both"></div>
+
+<script type="text/javascript">(function() { "use strict";
+    $.reports.graph('reports-profit-graph', {json_encode($profit_data)});
+    {if $pie_data}
+        $.reports.pie('reports-profit-pie', {json_encode($pie_data)});
+    {/if}
+})();</script>
+

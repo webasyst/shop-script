@@ -1,0 +1,185 @@
+{$title_text="[`New category`]"}
+{$name_text="[`Name`]"}
+{$type_text="[`Type`]"}
+{$static_type_text="[`Manually add and arrange products in this category and it's sub-categories`]"}
+{$dynamic_type_text="[`Smart category based on a search criteria, e.g. rating or tags`]"}
+
+{capture ext_fields}{/capture}
+
+{capture frontend_url}
+<div class="field">
+    <div class="name">
+        [`Frontend URL`]
+    </div>
+    <div class="value">
+        {if !empty($parent)}{$parent.full_url}/{/if}<input type="text" name="url" value="" id="s-product-list-url">/
+    </div>
+</div>
+{/capture}
+
+{capture custom_params}
+<div class="field-group">
+    <div class="field">
+        <div class="name">
+            <label for="custom-settings">
+            [`Custom parameters`]
+            </label>
+        </div>
+        <div class="value">
+            <textarea name="params" rows="10" cols="5"></textarea><br>
+            <span class="hint">[`Optional set of custom <em>key=value</em> parameters which can be used within a frontend's theme template as <em>&#123;$category.key&#125;</em>. Each key=value pair should be on a separate line.`]</span>
+        </div>
+    </div>
+</div>
+{/capture}
+
+{capture description}
+<div class="field-group">
+
+    <div class="field">
+        <div class="name">[`Title`]</div>
+        <div class="value">
+            <input value="" name="meta_title" placeholder="">
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">[`META Keywords`]</div>
+        <div class="value">
+            <textarea name="meta_keywords"></textarea>
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">[`META Description `]</div>
+        <div class="value">
+            <textarea name="meta_description"></textarea>
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">
+            <label for="description">
+            [`Description`]
+            </label>
+        </div>
+        <div class="value">
+            <textarea name="description"></textarea>
+        </div>
+    </div>
+</div>
+{/capture}
+
+{capture dynamic_settings}
+<script type="text/javascript" src="{$wa_app_static_url}js/rate.widget.js"></script>
+<div class="field">
+    <div class="name">
+        [`Product filtering`]
+    </div>
+    <div class="value">
+        <table class="zebra">
+            <tbody>
+                <tr>
+                    <td class="min-width">
+                        <input id="s-c-condition-rate" type="checkbox" name="condition[]" value="rating">
+                    </td>
+                    <td>
+                        <label for="s-c-condition-rate">[`Rating`]</label>
+                    </td>
+                    <td>
+                        <select name="rating[]">
+                            <option value=">=">[`is greater or equal`]</option>
+                            <option value="<=">[`is lesser or equal`]</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="hidden" name="rating[]" value="0" id="s-c-category-rate-value">
+                        <a href="javascript:void(0);" class="s-rate-photo" title="Rate photo" id="s-c-category-rate" class="s-rate-photo" data-rate="0">
+                            {$wa->shop->ratingHtml(0, 16, true)}
+                        </a>
+                    </td>
+                </tr>
+                {if !empty($cloud)}
+                <tr>
+                    <td class="min-width">
+                        <input id="s-c-condition-tag" type="checkbox" name="condition[]" value="tag">
+                    </td>
+                    <td>
+                        <label for="s-c-condition-tag">[`Tags`]</label>
+                    </td>
+                    <td colspan="2">
+                        <div class="block double-padded align-center">
+                        {foreach $cloud as $tag}
+                            <label><span class="s-tag nowrap" style="font-size: {$tag.size}%;" data-id="{$tag.id}"><input type="checkbox" name="tag[]" value="{$tag.name|escape}" {if isset($tag.checked)}checked{/if}> {$tag.name|escape}</span></label>
+                        {/foreach}
+                        </div>
+                    </td>
+                </tr>
+                {/if}
+            </tbody>
+        </table>
+    </div>
+</div>
+{/capture}
+
+{capture js}
+<script type="text/javascript">
+    $(function() {
+        var d = $('#s-product-list-create-dialog');
+
+        var product_list_name = $("#s-product-list-name");
+        var product_list_url  = $("#s-product-list-url");
+
+        var state = { name: '', url: '', timer_id: null };
+        product_list_name.unbind('.create_product_list').
+            bind('change.create_product_list, keyup.create_product_list', function() {
+                if (state.time_id) {
+                    clearTimeout(state.time_id);
+                }
+
+                if (product_list_url.val() != state.url) {
+                    product_list_name.unbind('.create_product_list');
+                    return;
+                }
+
+                var name = product_list_name.val();
+                if (name != state.name) {
+                    state.time_id = setTimeout(function() {
+                        $.getJSON('?action=transliterate', { str: name }, function(r) {
+                            if (r.status == 'ok') {
+                                product_list_url.val(r.data);
+                                state = { name: name, url: r.data, time_id: null }
+                            } else if (console) {
+                                if (r.errors) {
+                                    console.error(r.errors);
+                                } else if (r) {
+                                    console.error(r);
+                                }
+                            }
+                        });
+                    }, 500);
+                }
+            });
+
+        d.bind('dynamic_settings', function() {
+            $('#s-c-category-rate', $(this)).rateWidget({
+                withClearAction: false,
+                onUpdate: function(rate) {
+                    $('#s-c-category-rate-value').val(rate);
+                }
+            });
+        });
+
+        // check corresponding checkbox when change control
+        $('select[name^=rating]', d).change(function() {
+            $('#s-c-condition-rate').attr('checked', true);
+        });
+        $('#s-c-category-rate', d).click(function() {
+            $('#s-c-condition-rate').attr('checked', true);
+        });
+        d.on('change', 'input[name^=tag]', function() {
+            $('#s-c-condition-tag').attr('checked', true);
+        });
+    });
+</script>
+{/capture}
+
+{* extend base template *}
+{include file="./DialogProductListCreate.html"}

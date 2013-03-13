@@ -1,0 +1,15 @@
+<ul class="checkout-options">
+    {foreach $checkout_payment_methods as $m}
+    <li {if !empty($m.error)}class="gray"{/if}>
+        <h3>
+            <label>
+                <input {if !empty($m.error)}disabled="disabled"{/if} type="radio" name="payment_id" value="{$m.id}" {if $m.id == $payment_id}checked{/if}>
+                {$m.name|escape}
+            </label>
+
+        </h3>
+        {if $m.description}<p>{$m.description}</p>{/if}
+        {if !empty($m.error)}<p class="error"><em>{$m.error}</em></p>{/if}
+    </li>
+    {/foreach}
+</ul>

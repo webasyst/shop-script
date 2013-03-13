@@ -1,0 +1,37 @@
+<div class="dialog width650px {if $hash[0] == 'set'}height300px{else}height500px{/if}" id="s-product-list-settings-dialog">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=products&action=saveListSettings&{implode('_id=', $hash)}">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>{$title_text}</h1>
+                <div class="fields form s-dialog-form">
+                    <div class="field-group">
+                        <div class="field">
+                            <div class="name">{$name_text}</div>
+                            <div class="value">
+                                <input type="text" name="name" class="large long s-full-width-input" value="{$settings.name|escape}">
+                            </div>
+                        </div>
+                        {$smarty.capture.frontend_url}
+                        {$smarty.capture.frontend_display}
+                    </div>
+                    {$smarty.capture.ext_fields}
+                    {$smarty.capture.description}
+                    <input type="hidden" name="type" value="{$settings.type}">
+                    {$smarty.capture.dynamic_settings}
+                    {$smarty.capture.custom_params}
+                </div>
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                <input type="submit" value="[`Save`]" class="button green">
+                [`or`] <a class="cancel" href="#">[`cancel`]</a>
+            </div>
+        </div>
+        {$wa->csrf}
+    </div>
+    </form>
+</div>
+{$smarty.capture.js}

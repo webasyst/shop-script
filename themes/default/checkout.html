@@ -1,0 +1,58 @@
+<!-- following CSS hides top navigation menu; remove <style>…</style> to unhide -->
+<style>
+    #header { display: none; }    
+    .app-header { display: none; }
+</style>
+
+<div class="checkout">
+
+    <!-- checkout navigation -->
+    {if isset($checkout_steps) && count($checkout_steps) > 1}
+        <ul class="checkout-navigation menu-h">
+            <li>
+                <a href="{$wa->getUrl('/frontend/cart')}">[`Cart`]</a>
+            </li>
+            <li>&rarr;</li>
+            {foreach $checkout_steps as $step_id => $s}
+                <li class="{if isset($_upcoming_flag)} upcoming{/if}{if $step_id == $checkout_current_step} selected{$_upcoming_flag = 1}{/if}">
+                    <a href="{if $s@first}{$wa->getUrl('/frontend/checkout')}{else}{$wa->getUrl('/frontend/checkout', ['step' => $step_id])}{/if}">{$s.name}</a>
+                </li>
+                {if not $s@last}<li>&rarr;</li>{/if}
+            {/foreach}
+        </ul>
+        <br>
+    {/if}
+
+    {if isset($checkout_steps)}
+    <!-- checkout step content -->
+    {foreach $checkout_steps as $step_id => $s}
+        {if $checkout_current_step == $step_id}
+        <div class="checkout-step">
+        <form method="post" action="">
+            <h1>{$s.name}</h1>
+            {if in_array($step_id,['contactinfo', 'shipping', 'payment', 'confirmation'])}
+                {include file="checkout.`$step_id`.html"}
+            {else}
+                {$s.content}
+            {/if}
+            <div class="clear-both"></div>
+            {if $s@last}
+                {if empty($error)}
+                <div class="float-right">
+                    <input type="submit" class="large" value="[`Place order`]">
+                </div>
+                {/if}
+            {else}
+                <input type="submit" value="[`Next &rarr;`]">
+            {/if}
+        </form>
+        </div>
+        {/if}
+    {/foreach}
+    {else}
+        <div class="checkout-step">
+            {include file="checkout.`$checkout_current_step`.html"}
+        </div>
+    {/if}
+
+</div>

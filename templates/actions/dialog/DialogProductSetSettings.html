@@ -1,0 +1,54 @@
+{$title_text = $settings.name|escape}
+{$name_text = "[`Name`]"}
+{capture frontend_url}{/capture}
+{capture frontend_display}{/capture}
+{capture custom_params}{/capture}
+{capture description}{/capture}
+{capture js}{/capture}
+{capture ext_fields}
+<div class="field">
+    <div class="name">[`Set ID`]</div>
+    <div class="value no-shift">
+        &#123;$wa->shop->productSet("<input type="text" name="id" class="s-full-width-input" value="{$settings.id|escape}" id="s-product-set-id" style="margin-top: -3px;">")&#125;
+        <em class="errormsg"></em>
+        <p class="hint">[`Set ID is used in the code for embedding product set into frontend design templates and pages.`] [`Updating set ID <em>will not</em> automatically update templates and pages that this code is embedded into, so be sure to update those manually if you change the ID.`]</p>
+        {if $settings.id == 'promo' || $settings.id == 'bestsellers'}
+            <p class="small black"><i class="icon10 exclamation"></i> [`It is highly advisable to keep product sets with IDs <strong>promo</strong> and <strong>bestsellers</strong>, as these set IDs are used by most Shop-Script frontend design themes.`]</p>
+        {/if}
+    </div>
+</div>
+{/capture}
+
+{capture dynamic_settings}
+{if $settings.type == shopSetModel::TYPE_DYNAMIC}
+    <div class="field">
+        <div class="name">
+            [`Dynamic set rule`]
+        </div>
+        <div class="value no-shift">
+            <select name="rule">
+                <option value="price DESC"  {if $settings.rule == 'price DESC'}selected="selected"{/if}>[`Most expensive`]</option>
+                <option value="price ASC"   {if $settings.rule == 'price ASC'}selected="selected"{/if}>[`Least expensive`]</option>
+                <option value="rating DESC" {if $settings.rule == 'rating DESC'}selected="selected"{/if}>[`Highest rated`]</option>
+                <option value="rating ASC"  {if $settings.rule == 'rating ASC'}selected="selected"{/if}>[`Lowest rated`]</option>
+                <option value="total_sales DESC" {if $settings.rule == 'total_sales DESC'}selected="selected"{/if}>[`Best sellers`]</option>
+                <option value="total_sales ASC" {if $settings.rule == 'total_sales ASC'}selected="selected"{/if}>[`Worst sellers`]</option>
+                <option value="" {if empty($settings.rule)}selected="selected"{/if}>[`Date added`]</option>
+            </select>
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">
+            [`Max number of products`]
+        </div>
+        <div class="value">
+            <input type="text" name="count" value="{$settings.count}">
+            <p class="hint">[`Limit the maximum number of products in this set`]</p>
+        </div>
+    </div>
+{/if}
+{/capture}
+
+{$hash[1] = $hash[1]|escape}
+
+{include file="./DialogProductListSettings.html"}

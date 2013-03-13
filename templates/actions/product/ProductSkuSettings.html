@@ -1,0 +1,90 @@
+
+<script type="text/javascript" src="{$wa_app_static_url}js/jquery.iframe-transport.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/jquery.fileupload.js"></script>
+
+<div class="fields form">
+    {$custom_features = false}
+    {*
+    {foreach $features as $code => $feature}
+    {if $feature.multiple && !empty($product.features[$code])}
+    {$custom_features = true}
+    <div class="field">
+        <div class="name">{$feature.name|escape}<br><span class="hint">{$code|escape}</span></div>
+        <div class="value">
+        {foreach $product.features[$code] as $value}
+            <label>
+                <input type="radio" name="product[skus][{$sku_id}][features][{$code}]" value="{$value|escape}"{if !empty($sku_features[$code]) && ($value == (string)$sku_features[$code])} checked="checked"{/if}>
+                {$value|escape}
+            </label>
+            {if !$value@last}<br>{/if}
+        {/foreach}
+        </div>
+    </div>
+    {/if}
+    {/foreach}
+    *}
+    {*if !$custom_features}
+    <div class="field">
+        <div class="name"></div>
+        <div class="value">[`There no custom SKU features`]</div>
+    </div>
+    {/if*}
+    {if count($product->images)>1}
+    <div class="field">
+        <div class="name">[`SKU image`]</div>
+        <div class="value">
+        <input type="text" name="product[skus][{$sku_id}][image_id]" value="{$sku.image_id}" style="display:none;">
+        <ul class="s-product-image-crops">
+            {foreach $product->images as $image_id => $image}
+            <li data-image-id="{$image_id}"{if ($sku.image_id == $image_id)} class="selected"{/if}>
+                <a href="#/product/{$product.id}/edit/main/sku/image/select/{$sku_id}/{$image_id}/" class="js-action"><img src="{$image.url_crop}"></a>
+            </li>
+            {/foreach}
+        </ul>
+        </div>
+    </div>
+    {/if}
+    <div class="field">
+        <div class="name">[`Available for purchase`]</div>
+        <div class="value"><input type="checkbox" name="product[skus][{$sku_id}][available]" {if !empty($sku.available)} checked="checked"{/if} value="1"></div>
+    </div>
+    <div class="field">
+        <div class="name">[`Purchase price`]</div>
+        <div class="value">
+            <input type="text" name="product[skus][{$sku_id}][purchase_price]" value="{$sku.purchase_price|escape}" class="short numerical"><span class="s-product-currency-readonly">{$product.currency}</span>
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">[`Compare at price`]</div>
+        <div class="value">
+            <input type="text" name="product[skus][{$sku_id}][compare_price]" value="{$sku.compare_price|escape}" class="short numerical"><span class="s-product-currency-readonly">{$product.currency}</span>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">
+            [`Online delivery`]
+        </div>
+        <div class="value">
+            <input type="file" name="" class="fileupload" {if $sku_id < 0} disabled="disabled"{/if} {if !empty($sku.file_name)} style="display:none;"{/if}>
+            <div class="js-progressbar-container" style="display:none;">
+                <div class="progressbar blue float-left" style="width: 70%;">
+                    <div class="progressbar-outer">
+                        <div class="progressbar-inner" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <br clear="left">
+                <span class="small italic">[`Please do not close your browser window and do not leave this page until the entire upload process is finished.`]</span>
+            </div>
+            <span class="value"{if empty($sku.file_name)} style="display: none;"{/if}>
+                <input type="checkbox" name="product[skus][{$sku_id}][eproduct]" value="1" {if !empty($sku.file_name)} checked="checked"{/if}>
+                <span class="hint">{$sku.file_name|escape} {$sku.file_size|wa_format_file_size}</span>
+                <input type="hidden" name="product[skus][{$sku_id}][file_name]" value="{$sku.file_name|escape}">
+                <br>
+                <textarea rows="5" cols="40" name="product[skus][{$sku_id}][file_description]">{$sku.file_description|escape}</textarea>
+            </span>
+            <br>
+            <span class="error-message"></span>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,91 @@
+<h1>[`Add custom notification`]</h1>
+
+<form id="notification-form" method="post" action="?module=settings&action=notificationsSave">
+<div class="fields form">
+
+    <!-- hook -->
+    <div class="field-group">
+        <div class="field">
+            <div class="name">[`Event`]</div>
+            <div class="value no-shift">
+                <select id="n-events" name="data[event]">
+                    <option value="" selected></option>
+                    {foreach $events as $event_id => $event}
+                    <option value="{$event_id}">{$event.name}</option>
+                    {/foreach}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div id="notifications-settings-content" style="display:none">
+    <!-- basic notification info -->
+    <div class="field-group">
+        <div class="field">
+            <div class="name">[`Notification name`]</div>
+            <div class="value">
+                <input id="n-name" name="data[name]" type="text" class="bold" value="">
+                <br>
+                <span class="hint">[`Notification name is published in the order processing log.`]</span>
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">[`Transport`]</div>
+            {foreach $transports as $t_id => $t}
+            <div class="value no-shift">
+                <label>
+                    <input {if $t@first}checked{/if} type="radio" name="data[transport]" value="{$t_id}">
+                    <i class="icon16 {$t.icon}"></i>{$t.name}
+                </label>
+            </div>
+            {/foreach}
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $("#n-events").change(function () {
+            $("#n-name").val($(this).children(':selected').html());
+        }).change();
+    </script>
+
+    {foreach $transports as $t_id => $t}
+    <div id="{$t_id}-content" {if !$t@first}style="display:none"{/if} class="field-group">
+        {include file="templates/actions/settings/SettingsNotifications.`$t_id`.html" inline}
+    </div>
+    {/foreach}
+
+
+    <div class="field-group">
+        <div class="field">
+            <div class="value submit">
+                <input type="submit" value="[`Save`]" class="button green">
+            </div>
+        </div>
+    </div>
+    </div>
+
+</div>
+{$wa->csrf()}
+</form>
+<script type="text/javascript">
+    $(function () {
+        var notification_templates = [];
+        {foreach $templates as $event => $t}
+        notification_templates['{$event}'] = [{json_encode($t.subject)}, {json_encode($t.body)}];
+        {/foreach}
+        $("#n-events").change(function () {
+            var e = $(this).val();
+            if (e) {
+                $("#notifications-settings-content").show();
+                var t = notification_templates[e] || notification_templates['order'];
+                $("#email-content .subject").val(t[0]);
+                $("#email-content .body").val(t[1]);
+                codemirror.setValue(t[1]);
+            } else {
+                $("#notifications-settings-content").hide();
+            }
+        });
+    });
+</script>
+<div class="clear-left"></div>
+

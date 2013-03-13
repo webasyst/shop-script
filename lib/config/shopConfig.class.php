@@ -1,0 +1,241 @@
+<?php
+
+class shopConfig extends waAppConfig
+{
+    protected $image_sizes = array(
+        'big'        => '970',
+        'default'    => '750x0',
+        'thumb'      => '200x0',
+        'crop'       => '96x96',
+        'crop_small' => '48x48'
+    );
+
+    public function getImageSize($name)
+    {
+        return isset($this->image_sizes[$name]) ? $this->image_sizes[$name] : null;
+    }
+
+    public function getImageSizes($type = 'all')
+    {
+        if ($type == 'system') {
+            return $this->image_sizes;
+        }
+        $custom_sizes = $this->getOption('image_sizes');
+        if ($type == 'custom') {
+            return $custom_sizes;
+        }
+        $sizes = array_merge(array_values($this->image_sizes), array_values($custom_sizes));
+        return array_unique($sizes);
+    }
+
+    public function getLastDatetime()
+    {
+        $storage = wa()->getStorage();
+        $shop_last_datetime = $storage->get('shop_last_datetime');
+        if (!$shop_last_datetime) {
+            $shop_last_datetime = time();
+            $contact_model = new waContactSettingsModel();
+            $contact_model->set(wa()->getUser()->getId(), 'shop', 'shop_last_datetime', $shop_last_datetime);
+            $storage->set('shop_last_datetime', $shop_last_datetime);
+        }
+        return $shop_last_datetime;
+    }
+
+    public function getRouting($route = array())
+    {
+        $url_type = isset($route['url_type']) ? $route['url_type'] : 0;
+        $routes = parent::getRouting($route);
+        if ($routes) {
+            if (isset($routes[$url_type])) {
+                $routes = $routes[$url_type];
+            } else {
+                $routes = $routes[0];
+            }
+        }
+        // for URL <category_url>/<product_url>/
+        if ($url_type == 2) {
+            $category_model = new shopCategoryModel();
+            $categories = $category_model->getAll();
+            $categories_routes = array();
+            foreach ($categories as $c) {
+                $categories_routes[$c['full_url'].'/'] = array(
+                    'module'      => 'frontend',
+                    'action'      => 'category',
+                    'category_id' => $c['id']
+                );
+            }
+            $routes = array_merge($categories_routes, $routes);
+        }
+        /**
+         * Extend routing via plugin routes
+         * @event routing
+         * @param array $routes
+         * @return array routes collected for every plugin
+         */
+        $result = wa()->event(array($this->application, 'routing'), $routes);
+        $all_plugins_routes = array();
+        foreach ($result as $plugin_id => $routing_rules) {
+            if ($routing_rules) {
+                $plugin = str_replace('-plugin', '', $plugin_id);
+                /*
+                 if ($url_type == 0) {
+                 $routing_rules = $routing_rules[0];
+                 } else {
+                 $routing_rules = $routing_rules[1];
+                 }
+                 */
+                foreach ($routing_rules as $url => & $route) {
+                    if (!is_array($route)) {
+                        list($route_ar['module'], $route_ar['action']) = explode('/', $route);
+                        $route = $route_ar;
+                    }
+                    $route['plugin'] = $plugin;
+                    $all_plugins_routes[$url] = $route;
+                }
+                unset($route);
+            }
+        }
+        $routes = array_merge($all_plugins_routes, $routes);
+        return $routes;
+    }
+
+    public function getCurrency($settings_only = true)
+    {
+        $c = null;
+        if (!$settings_only) {
+            if ($this->environment == 'frontend') {
+                if (wa()->getStorage()->get('shop/currency')) {
+                    $c = wa()->getStorage()->get('shop/currency');
+                } elseif (waRequest::param('currency')) {
+                    $c = waRequest::param('currency');
+                }
+            }
+        }
+
+        if ($c && !$this->getCurrencies($c)) {
+            $c = wa()->getSetting('currency', 'USD', 'shop');
+            if ($this->getEnvironment() == 'frontend') {
+                wa()->getStorage()->remove('shop/currency');
+                wa()->getStorage()->remove('shop/cart');
+            }
+        } elseif (!$c) {
+            $c = wa()->getSetting('currency', 'USD', 'shop');
+        }
+        return $c;
+    }
+
+    public function getCurrencies($codes = null)
+    {
+        $model = new shopCurrencyModel();
+        return $model->getCurrencies($codes);
+    }
+
+    public function getOrderFormat()
+    {
+        return wa()->getSetting('order_format', '#100{$order.id}', 'shop');
+    }
+
+    public function setCurrency($currency)
+    {
+        $model = new waAppSettingsModel();
+        $model->set('shop', 'currency', $currency);
+    }
+
+    public function getGeneralSettings($field = null)
+    {
+        static $settings = array();
+        if (!$settings) {
+            $all_settings = wa()->getSetting(null, '', 'shop');
+            foreach (array(
+                'name'         => wa()->accountName(),
+                'email'        => wa()->getSetting('email', '', 'webasyst'),
+                'phone'        => '+1 (212) 555-1234',
+                'country'      => '',
+                'order_format' => $this->getOrderFormat()
+            ) as $k => $value) {
+                $settings[$k] = isset($all_settings[$k]) ? $all_settings[$k] : $value;
+            }
+        }
+        if ($field) {
+            if (isset($settings[$field])) {
+                return $settings[$field];
+            } else {
+                return wa()->getSetting($field, null, 'shop');
+            }
+        } else {
+            return $settings;
+        }
+    }
+
+    /**
+     * @param bool $all - return all available or only enabled steps
+     * @return array
+     */
+    public function getCheckoutSettings($all = false)
+    {
+        $all_steps = include(wa()->getConfig()->getAppPath('lib/config/data/checkout.php'));
+        // @todo: event to get all available steps from plugins
+        if ($all) {
+            return $all_steps;
+        }
+        $file = wa()->getConfig()->getConfigPath('checkout.php', true, 'shop');
+        if (file_exists($file) && is_array($steps = include($file))) {
+            foreach ($steps as $step_id => & $step) {
+                if (is_array($step)) {
+                    $step = $step + $all_steps[$step_id];
+                } elseif ($step) {
+                    $step = $all_steps[$step_id];
+                } else {
+                    unset($steps[$step_id]);
+                }
+            }
+        } else {
+            $steps = $all_steps;
+        }
+        $plugin_model = new shopPluginModel();
+        if (!$plugin_model->countByField('type', 'shipping') && isset($steps['shipping'])) {
+            unset($steps['shipping']);
+        }
+        if (!$plugin_model->countByField('type', 'payment') && isset($steps['payment'])) {
+            unset($steps['payment']);
+        }
+        reset($steps);
+        return $steps;
+    }
+
+}
+
+function shop_currency($n, $in_currency = null, $out_currency = null, $format = true)
+{
+    /**
+     * @var shopConfig $config
+     */
+    $config = wa('shop')->getConfig();
+    $primary = $config->getCurrency(true);
+    $currency = $config->getCurrency(false);
+    if (!$in_currency) {
+        $in_currency = $primary;
+    }
+    if ($in_currency === true || $in_currency === 1) {
+        $in_currency = $currency;
+    }
+    if (!$out_currency) {
+        $out_currency = $currency;
+    }
+
+    if ($in_currency != $out_currency) {
+        $currencies = wa('shop')->getConfig()->getCurrencies(array($in_currency, $out_currency));
+        if (isset($currencies[$in_currency]) && $in_currency != $primary) {
+            $n = $n * $currencies[$in_currency]['rate'];
+        }
+        if ($out_currency != $primary) {
+            $n = $n / $currencies[$out_currency]['rate'];
+        }
+    }
+    if ($format) {
+        return wa_currency($n, $out_currency);
+    } else {
+        return str_replace(',', '.', $n);
+    }
+
+}

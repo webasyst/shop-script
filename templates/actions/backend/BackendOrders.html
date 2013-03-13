@@ -1,0 +1,255 @@
+<script type="text/javascript" src="{$wa_app_static_url}js/tmpl.min.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/lazy.load.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/orders.js?v{$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/order/list.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/order/edit.js"></script>
+
+<div class="sidebar left200px s-inner-sidebar" id="s-sidebar">
+    <div class="block">
+        <ul class="menu-v with-icons">
+            <li class="bottom-padded">
+                <a href="#/orders/new/" class="bold"><i class="icon16 add"></i>[`New order`]</a>
+            </li>
+            {*<li id="s-pending-orders" class="list">
+                <span class="count">{if !empty($state_counters['new'])}{$state_counters['new']}{/if}</span>
+                <a href="#">
+                    <i class="icon16 ss orders-processing"></i>[`Processing`]
+                    <strong class="highlighted small">{if !empty($state_counters['new'])}+{$state_counters['new']}{/if}</strong>
+                </a>
+            </li>*}
+
+            <!-- plugin hook: 'backend_orders.sidebar_top_li' -->
+            {* @event backend_orders.%plugin_id%.sidebar_top_li *}
+            {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
+            
+            <li id="s-all-orders" class="list">
+                <span class="count">!!!</span>
+                <a href="#">
+                    <i class="icon16 ss orders-all"></i>[`All orders`]
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- plugin hook: 'backend_orders.sidebar_section' -->
+    {* @event backend_orders.%plugin_id%.sidebar_section *}
+    {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
+            
+    <div class="block">
+        <h5 class="heading">[`Order states`]</h5>
+        <ul class="menu-v with-icons collapsible">
+
+            {foreach $states as $id => $state}
+                <li data-state-id="{$id}" class="list">
+                    <span class="count">{if isset($state_counters[$id])}{$state_counters[$id]}{else}0{/if}</span>
+                    <a href="#/orders/state_id={$id}/" style="{$state->getStyle()}">
+                        <i class="{$state->getOption('icon')}"></i>{$state->getName()}
+                    </a>
+                </li>
+            {/foreach}
+    </div>
+
+    {if !empty($contacts)}
+    <div class="block">
+        <h5 class="heading collapse-handler">
+            [`Processed by`]
+        </h5>
+        <ul class="menu-v with-icons collapsible">
+            {foreach $contacts as $id => $contact}
+            <li data-contact-id="{$id}" class="list">
+                <span class="count">{if isset($contact_counters[$id])}{$contact_counters[$id]}{else}0{/if}</span>
+                <a href="#/orders/contact_id={$id}/">
+                    <i class="icon16 userpic20" style="background-image: url('{$contact.photo_20x20}');"></i>{if $id == $user_id}[`Me`]{else}{$contact.name}{/if}
+                    <strong class="small highlighted count-new"></strong>
+                </a>
+            </li>
+            {/foreach}
+        </ul>
+    </div>
+    {/if}
+
+    
+    <div class="block">
+        <ul class="menu-v with-icons">
+            <li>
+                <a href="#/coupons/"><i class="icon16 ss coupon"></i>[`Discount coupons`]</a>
+            </li>
+
+            <!-- plugin hook: 'backend_orders.sidebar_bottom_li' -->
+            {* @event backend_orders.%plugin_id%.sidebar_bottom_li *}
+            {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_bottom_li)}{/foreach}{/if}
+
+        </ul>
+    </div>
+
+</div>
+
+<div class="content left200px blank" id="s-content" style="padding-left: 10px;">
+    <div class="block double-padded">
+    [`Loading`] <i class="icon16 loading"></i>
+    </div>
+</div>
+
+{capture name="template-order-product-img"}
+{literal}
+{% if(o.url){ %}<img src="{%#o.url%}">{% } else { %}<img src="{/literal}{$wa_app_static_url}{literal}img/image-dummy-small.png" class="not-found" style="width: 48px; height: 48px;">{% } %}
+{/literal}
+{/capture}
+
+{capture name="template-order"}
+    {literal}
+    {% var options = o.options || {}; %}
+    {% var index = options.index || '0'; %}
+    {% var sku_count = $.shop.helper.size(o.data.skus); %}
+    {% var chosen_sku_id = o.data.sku_id; %}
+    {% var currency = options.currency; %}
+    {% var product_sku = null; %}
+    {% var stocks = o.options.stocks || {}; %}
+    <tr data-product-id="{%#o.data.id%}" data-index={%#index%} class="s-order-item">
+        <td class="min-width valign-top">{% include('template-order-product-img', { url: o.data.url_crop_small }); %}</td>
+        <td>
+            <strong class="large">{%=o.data.name%}</strong>
+            <span class="gray">{%#o.data.price_str%}</span>
+            {%#o.data.icon%}
+            {% if (sku_count > 1) { %}
+            <p>
+                <ul class="menu-v compact small s-orders-skus">
+                    {% for (var sku_id in o.data.skus) { %}
+                        {% if (o.data.skus[sku_id].checked) { %}
+                            {% product_sku = o.data.skus[sku_id]; %}
+                        {% } %}
+                        <li>
+                            <label>
+                                <input type="radio" name="sku[add][{%#index%}]" value="{%#sku_id%}"
+                                    {% if (o.data.skus[sku_id].checked) { %}
+                                        checked="checked" {% chosen_sku_id = sku_id; %}
+                                    {% } %}
+                                >{%=o.data.skus[sku_id].name%}
+                                <strong>{%#o.data.skus[sku_id].price_str%}</strong>
+                                {%#o.data.skus[sku_id].icon%}
+                            </label>
+                        </li>
+                    {% } %}
+                </ul>
+            </p>
+            {% } else { %}
+                {% product_sku = o.data.skus[o.data.sku_id]; %}
+                <input type="hidden" name="sku[add][{%#index%}]" value="{%#o.data.sku_id%}">
+            {% } %}
+
+            {% if (!$.isEmptyObject(o.data.services)) { %}
+            <p>{% include('template-order-services', { services: o.data.services, options: options }); %}</p>
+            {% } %}
+        </td>
+        <input type="hidden" name="product[add][{%#index%}]" value="{%#o.data.id%}">
+        <td class="valign-top">
+            <input type="text" name="quantity[add][{%#index%}][product]" class="s-orders-quantity short numerical" value="1" data-max-value="{% if (o.data.count !== null) { %}{%#o.data.count%}{% } %}">
+        </td>
+        {% include('template-order-stocks-add', { sku: product_sku, stocks: stocks, index: index }); %}
+        <td class="valign-top align-right s-orders-product-price">
+            {% if (!options.price_edit) { %}
+                <span>{%#o.data.skus[chosen_sku_id].price_str%}</span>
+                <input type="hidden" name="price[add][{%#index%}][product]" value="{%#''+o.data.skus[chosen_sku_id].price%}" class="short">
+            {% } else { %}
+                <input type="text" name="price[add][{%#index%}][product]" value="{%#''+o.data.skus[chosen_sku_id].price%}" class="short"><span style="padding-top: 2px;">{%#currency%}</span>
+            {% } %}
+        </td>
+        <td class="valign-top min-width"><a href="#" class="s-order-item-delete"><i class="icon16 delete"></i></a></td>
+    </tr>
+    {/literal}
+{/capture}
+{capture name="template-order-stocks-edit"}
+    {literal}
+        {% var sku = o.sku; %}
+        {% var stocks = o.stocks; %}
+        {% var item_id = o.item_id; %}
+        <td class="valign-top align-right nowrap s-orders-product-stocks">
+            {% if (sku && !$.isEmptyObject(sku.stock)) { %}
+                @ <select name="stock[edit][{%#item_id%}]">
+                    {% for (var stock_id in sku.stock) { %}
+                        <option value="{%#stock_id%}">
+                            {%#stocks[stock_id].name%}
+                        </option>
+                    {% } %}
+                </select>
+                <em class="errormsg s-error-item-stock_id"></em>
+            {% } else { %}
+                <input type="hidden" name="stock[edit][{%#item_id%}]" value="0">
+            {% } %}
+        </td>
+    {/literal}
+{/capture}
+{capture name="template-order-stocks-add"}
+    {literal}
+        {% var sku = o.sku; %}
+        {% var stocks = o.stocks; %}
+        {% var index = o.index; %}
+        <td class="valign-top align-right nowrap s-orders-product-stocks">
+            {% if (sku && !$.isEmptyObject(sku.stock)) { %}
+                @ <select name="stock[add][{%#index%}][product]">
+                    {% for (var stock_id in sku.stock) { %}
+                        <option value="{%#stock_id%}">
+                            {%#stocks[stock_id].name%}
+                        </option>
+                    {% } %}
+                </select>
+                <em class="errormsg s-error-item-stock_id"></em>
+            {% } else { %}
+                <input type="hidden" name="stock[add][{%#index%}][product]" value="0">
+            {% } %}
+        </td>
+    {/literal}
+{/capture}
+{capture name="template-order-services"}
+    {literal}
+    <ul class="menu-v compact small s-orders-services">
+        {% var options = o.options || {}; %}
+        {% var index = options.index || '0'; %}
+        {% var currency = options.currency; %}
+        {% for (var service_id in o.services) { %}
+            {% var service = o.services[service_id]; %}
+            {% var multi_variants = $.shop.helper.size(service.variants) > 1; %}
+            <li>
+                <label>
+                    <input type="checkbox" name="service[add][{%#index%}][]" value="{%#service_id%}" {% if (service.checked) { %}checked="checked"{% } %}>
+                    {%=service.name%}
+                    {% if (!multi_variants) { %}
+                        <strong>{%#service.variants[service.variant_id].price_str%}</strong>
+                    {% } %}
+                </label>
+                {% if (multi_variants) { %}
+                    <select name="variant[add][{%#index%}][{%#service_id%}]" class="s-orders-service-variant">
+                        {% for (var variant_id in service.variants) { %}
+                            {% var variant = service.variants[variant_id]; %}
+                            <option value="{%#variant.id%}" data-price="{%#''+variant.price%}" {% if (variant.status == {/literal}{shopProductServicesModel::STATUS_DEFAULT}{literal}) { %}selected="selected"{% } %}>
+                                {%=variant.name%} ({%#variant.price_str%})
+                            </option>
+                        {% } %}
+                    </select>
+                {% } else { %}
+                    <input type="hidden" name="variant[add][{%#index%}][{%#service_id%}]" value="{%#service.variant_id%}">
+                {% } %}
+                <input type="text" name="price[add][{%#index%}][service][{%#service_id%}]"
+                    value="{%#''+service.price%}" class="short s-orders-service-price" >{%#currency%}
+            </li>
+        {% } %}
+    </ul>
+    {/literal}
+{/capture}
+
+{* js templates block*}
+
+{foreach $smarty.capture as $template => $template_content}
+    {if $template_content && (strpos($template, 'template-')===0)}
+        <script id="{$template}" type="text/html">
+            {$template_content|replace:'</':'<\/'}
+        </script>
+        {capture name=$template}{/capture}
+    {/if}
+{/foreach}
+
+<script type="text/javascript">
+    $.orders.init({
+        view: '{$default_view}'
+    });
+</script>

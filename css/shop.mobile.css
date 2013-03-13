@@ -1,0 +1,165 @@
+
+.bottom-bordered.content { border-bottom: 1px solid #ccc; }
+.top-bordered.content { border-top: 1px solid #ccc; }
+.float-right { float: right; }
+.float-left { float: left; }
+.align-center { text-align: center; }
+.top-padded { padding-top: 30px !important; }
+.large { font-size: 1.2em; }
+
+.sm-order-comment { background: #eed; }
+.sm-order-log { background: transparent; border: none; }
+.sm-order-customer img { margin-right: 10px; margin-bottom: 10px; }
+.sm-order-customer h4 { margin-top: 0; }
+.sm-order-customer p { clear: both; }
+.sm-order-customer p img.overhanging { margin: 0; }
+.sm-order-action-button { background: transparent !important; border: none !important; }
+
+.button.red .ui-btn-text { color: red; }
+.workflow-content { margin: 10px 0 20px 0; }
+.workflow-content textarea { width: 100%; height: 100px; font-size: 1.2em; }
+.workflow-content input { font-size: 1.2em; width: 90%; }
+.workflow-content a.inline-link b i { font-style: normal; }
+
+/** 
+ * Copied from wa-1.0.css 
+ */
+i.icon16 { background-repeat:no-repeat; background-image: url(../../../wa-content/img/icon16.png); height:16px; width:16px; display:inline-block; text-indent:-9999px; text-decoration:none!important; }
+* i.icon16 { text-decoration:none!important; vertical-align:top; margin: 0em 0.25em 0 0; }
+.heading i.icon16 { vertical-align:top; margin:-0.1em 0.1em 0 -0.5em; }
+.hint i.icon10 { vertical-align:top; margin:0.15em 0.15em 0 0; }
+.count i.icon10, .count i.icon16 { margin-right: 0; }
+.button i.icon10, .button i.icon16 { vertical-align: middle; margin: 0; }
+h1 i.icon16,
+h2 i.icon16 { margin-top: 0.15em; }
+h1 span.hint i.icon16 { margin-top: 0.3em; }
+h5 i.icon10 { vertical-align:top; margin: 0.1em 0 0 0; }
+ul.tabs .icon10 { margin-top: 12px; }
+ul.tabs .icon16 { margin-top: 8px; }
+.dialog-buttons-gradient i.icon16 { margin-left: 4px; }
+.icon16.country { margin-top: 0.3em; }
+.fields .field .name i.icon10 { margin-top: 0.1em; }
+.fields .field .value .icon16.country { margin-top: 0.1em; margin-left: 0.3em; }
+
+
+/** 
+ * Copied from shop.css 
+ */
+
+/* settings */
+.icon16.ss { background-image: url(../img/ss-icon16.png); }
+.icon16.ss.star-bw { background-position:-16px 0; }
+.icon16.ss.shipping-bw { background-position:-32px 0; }
+.icon16.ss.camera-bw { background-position:-48px 0; }
+.icon16.ss.globe-bw { background-position:-64px 0; }
+.icon16.ss.cube-bw { background-position:-80px 0; }
+.icon16.ss.flag-bw { background-position:-96px 0; }
+.icon16.ss.currency-bw { background-position:-112px 0; }
+.icon16.ss.settings-bw { background-position:-128px 0; }
+.icon16.ss.features-bw { background-position:-144px 0; }
+.icon16.ss.payment-bw { background-position:-160px 0; }
+.icon16.ss.cart-bw { background-position:-176px 0; }
+.icon16.ss.percent-bw { background-position:-192px 0; }
+.icon16.ss.turbo-bw { background-position:-208px 0; }
+.icon16.ss.notification-bw { background-position:-224px 0; }
+.icon16.ss.reset-bw { background-position:-240px 0; }
+.icon16.ss.print-forms-bw { background-position:-256px 0; }
+.icon16.ss.search-bw { background-position:-272px 0; }
+.icon16.ss.discounts-bw { background-position:-288px 0; }
+.icon16.ss.affiliate-bw { background-position:-304px 0; }
+.icon16.ss.stopwatch-bw { background-position:-320px 0; }
+
+/* order statuses */
+.icon16.ss.new { background-position:0 -32px; }
+.icon16.ss.processing { background-position:-16px -32px; }
+.icon16.ss.paid { background-position:-32px -32px; }
+.icon16.ss.sent { background-position:-48px -32px; }
+.icon16.ss.completed { background-position:-64px -32px; }
+.icon16.ss.refunded { background-position:-80px -32px; }
+.icon16.ss.trash { background-position:-96px -32px; }
+.icon16.ss.flag-white { background-position:0 -16px; }
+.icon16.ss.flag-blue { background-position:-16px -16px; }
+.icon16.ss.flag-yellow { background-position:-32px -16px; }
+.icon16.ss.flag-green { background-position:-48px -16px; }
+.icon16.ss.flag-red { background-position:-64px -16px; }
+.icon16.ss.flag-purple { background-position:-80px -16px; }
+.icon16.ss.flag-black { background-position:-96px -16px; }
+.icon16.ss.flag-checkers { background-position:-112px -16px; }
+
+/* third-parties */
+.icon16.ss.russianpost { background-position:0 -48px; }
+.icon16.ss.yandexmarket { background-position:-16px -48px; }
+.icon16.ss.excel { background-position:-32px -48px; }
+.icon16.ss.quickbooks { background-position:-48px -48px; }
+.icon16.ss.odiness { background-position:-64px -48px; }
+.icon16.ss.paypal { background-position:-80px -48px; }
+.icon16.ss.google { background-position:-96px -48px; }
+.icon16.ss.ups { background-position:-112px -48px; }
+.icon16.ss.usps { background-position:-128px -48px; }
+.icon16.ss.fedex { background-position:-144px -48px; }
+.icon16.ss.dhl { background-position:-160px -48px; }
+
+
+/* product types */
+.icon16.ss.pt.sports { background-position:0 -64px; }
+.icon16.ss.pt.soccer { background-position:-16px -64px; }
+.icon16.ss.pt.cake { background-position:-32px -64px; }
+.icon16.ss.pt.music { background-position:-48px -64px; }
+.icon16.ss.pt.box { background-position:-64px -64px; }
+.icon16.ss.pt.car { background-position:-80px -64px; }
+.icon16.ss.pt.diamond { background-position:-96px -64px; }
+.icon16.ss.pt.audio { background-position:-112px -64px; }
+.icon16.ss.pt.globe { background-position:-128px -64px; }
+.icon16.ss.pt.mobile { background-position:-144px -64px; }
+.icon16.ss.pt.gingerbread-man { background-position:-160px -64px; }
+.icon16.ss.pt.camera { background-position:-176px -64px; }
+.icon16.ss.pt.rocket { background-position:-192px -64px; }
+.icon16.ss.pt.plane { background-position:-208px -64px; }
+.icon16.ss.pt.shoe { background-position:-224px -64px; }
+.icon16.ss.pt.gift { background-position:-240px -64px; }
+.icon16.ss.pt.nuclear { background-position:-256px -64px; }
+.icon16.ss.pt.map { background-position:-272px -64px; }
+.icon16.ss.pt.tv { background-position:0 -80px; }
+.icon16.ss.pt.t-shirt { background-position:-16px -80px; }
+.icon16.ss.pt.disc { background-position:-32px -80px; }
+.icon16.ss.pt.computer { background-position:-48px -80px; }
+.icon16.ss.pt.building { background-position:-64px -80px; }
+.icon16.ss.pt.toolbox { background-position:-80px -80px; }
+.icon16.ss.pt.hamburger { background-position:-96px -80px; }
+.icon16.ss.pt.cookie { background-position:-112px -80px; }
+.icon16.ss.pt.door { background-position:-128px -80px; }
+.icon16.ss.pt.clapperboard { background-position:-144px -80px; }
+.icon16.ss.pt.traffic-cone { background-position:-160px -80px; }
+.icon16.ss.pt.hammer { background-position:-176px -80px; }
+.icon16.ss.pt.guitar { background-position:-192px -80px; }
+.icon16.ss.pt.disk { background-position:-208px -80px; }
+.icon16.ss.pt.cup { background-position:-224px -80px; }
+.icon16.ss.pt.auction-hammer { background-position:-240px -80px; }
+.icon16.ss.pt.drawer { background-position:-256px -80px; }
+.icon16.ss.pt.traffic-light { background-position:-272px -80px; }
+.icon16.ss.pt.clock { background-position:0 -96px; }
+.icon16.ss.pt.chair { background-position:-16px -96px; }
+.icon16.ss.pt.downloadable { background-position:-32px -96px; }
+.icon16.ss.pt.sunglasses { background-position:-48px -96px; }
+.icon16.ss.pt.umbrella { background-position:-64px -96px; }
+.icon16.ss.pt.controller { background-position:-80px -96px; }
+.icon16.ss.pt.key { background-position:-96px -96px; }
+.icon16.ss.pt.sushi { background-position:-112px -96px; }
+.icon16.ss.pt.cat { background-position:-128px -96px; }
+.icon16.ss.pt.monkey { background-position:-144px -96px; }
+.icon16.ss.pt.books { background-position:-160px -96px; }
+.icon16.ss.pt.socket { background-position:-176px -96px; }
+.icon16.ss.pt.spray { background-position:-192px -96px; }
+
+/* misc */
+.icon16.ss.comments { background-position: 0 -112px; }
+.icon16.ss.service { background-position:-16px -112px; }
+.icon16.ss.coupon { background-position:-32px -112px; }
+.icon16.ss.bestseller { background-position:-48px -112px; }
+.icon16.ss.lowprice { background-position:-64px -112px; }
+.icon16.ss.div { background-position:-80px -112px; }
+.icon16.ss.affiliate { background-position:-96px -112px; }
+.icon16.ss.shop { background-position:-112px -112px; }
+.icon16.ss.set { background-position:-128px -112px; }
+.icon16.ss.chart-up { background-position:-144px -112px; }
+.icon16.ss.chart-down { background-position:-160px -112px; }

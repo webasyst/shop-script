@@ -1,0 +1,146 @@
+<script type="text/javascript" src="{$wa_app_static_url}js/product/stocks.js"></script>
+<div class="block double-padded">
+{if !empty($product_stocks)}
+<h1>[`Stock`]</h1>
+<br>
+<table class="zebra" id="s-product-stocks">
+    <tr class="header">
+        <th colspan=2>[`Product`]</th>
+        <th><a href="#/stocks/{if $order == 'desc'}asc{else}desc{/if}/" class="s-sort-handler">[`Total`] <i class="icon16 {if $order == 'desc'}darr{else}uarr{/if}"></i></a></th>
+        {foreach $stocks as $stock}
+            <th>@{$stock.name|escape}</th>
+        {/foreach}
+    </tr>
+</table>
+<div class="lazyloading-wrapper">
+    <div class="lazyloading-progress-string">{_w('%d product','%d products', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+     <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more products`]</a>
+    <span class="lazyloading-progress" style="display:none">
+        <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d product', '%d products', min($total_count - $count, $count))}...</span>
+    </span>
+</div>
+
+{* dialog section *}
+<div class="dialog width500px height200px" id="s-product-sku-transfer">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=product&action=skuTransfer">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Inventory transfer`]</h1>
+                <p>
+                    <span id="s-stock-name-editable" class="editable" href="javascript:void(0);">111111</span>
+                    <input id="s-stock-name-autocomplete" value="" style="display:none;">
+                    <input type="hidden" name="sku_id" value="">
+                </p>
+                @<select name="src_stock">
+                    {foreach $stocks as $i => $stock}
+                        <option value="{$stock.id}">{$stock.name|escape}</option>
+                    {/foreach}
+                </select>
+                &rarr;
+                <input type="text" name="count" value="1">
+                &rarr;
+                @<select name="dst_stock">
+                    {foreach $stocks as $i => $stock}
+                        <option value="{$stock.id}">{$stock.name|escape}</option>
+                    {/foreach}
+                </select>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button red" type="submit" value="[`Transfer`]"> [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+{else}
+    [`Please add at least one stock in your store settings.`]
+{/if}
+</div>
+
+{*
+  table of info
+  @see 'template-product-stocks-sku-list' template
+*}
+<script type="text/html" id="template-product-stocks">
+{literal}
+    {% var data = o.product_stocks; %}
+    {% for (var i = 0, n = data.length; i < n; i += 1) { %}
+        {% var product = data[i], skus = product.skus, stocks = product.stocks; %}
+        <tr>
+            {% var hash = "#/product/"+product.id+"/edit/"; %}
+            <td class="s-product min-width">
+                <a href="{%#hash%}">
+                {% if (product.url_crop_small) { %}
+                   <img src="{%#product.url_crop_small%}">
+                {% } else { %}
+                    <img src="{/literal}{$wa_app_static_url}{literal}img/image-dummy-small.png" class="not-found">
+                {% } %}
+                </a>
+            </td>
+            <td class="s-product"><span>{%=product.name%}</span></td>
+            <td><ul class="menu-v">
+            {% if (!skus.length) { %}
+                <li>{%#product.icon%}{%#product.total_count%}</li>
+            {% } else { %}
+                {% for (var j = 0, l = skus.length; j < l; j += 1) { %}
+                    <li>{%#skus[j].icon%}<a href="{%#hash+'focus=price&sku='+skus[j].id%}" class="small">{%=skus[j].name%}</a> <strong>{%#skus[j].count%}</strong></li>
+                {% } %}
+            {% } %}
+            </ul></td>
+            {% for (var j = 0; j < {/literal}{count($stocks)}{literal}; j += 1) { %}
+                {% var stock_id = o.stocks[j].id; %}
+                <td class="s-stock-cell" data-stock-id="{%#stock_id%}">
+                  {% skus = stocks[j]; %}
+                  {% if (!skus.length) { %}
+                      &mdash;
+                  {% } else { %}
+                      <ul class="menu-v">
+                      {% for (var k = 0, l = skus.length; k < l; k += 1) { %}
+                          <li id="s-item-{%#skus[k].id%}-{%#stock_id%}">{%#skus[k].icon%}<a href="{%#hash+'focus=stock&sku='+skus[k].id+'&stock='+o.stocks[j].id%}" class="small">{%=skus[k].name%}</a> <strong>{%#skus[k].count%}</strong></li>
+                      {% } %}
+                      </ul>
+                  {% } %}
+                </td>
+            {% } %}
+        </tr>
+    {% } %}
+{/literal}
+</script>
+{*
+  sku-list in one cell
+  @see 'template-product-stocks' template
+*}
+{literal}
+<script type="text/html" id="template-product-stocks-sku-list">
+    {% var skus = o.skus; %}
+    {% var hash = "#/product/"+o.product.id+"/edit/"; %}
+    {% if (!skus.length) { %}
+        &mdash;
+    {% } else { %}
+        <ul class="menu-v">
+        {% for (var k = 0, l = skus.length; k < l; k += 1) { %}
+            <li id="s-item-{%#skus[k].id%}-{%#o.stock.id%}">{%#skus[k].icon%}<a href="{%#hash+'focus=stock&sku='+skus[k].id+'&stock='+o.stock.id%}" class="small">{%=skus[k].name%}</a> <strong>{%#skus[k].count%}</strong></li>
+        {% } %}
+        </ul>
+    {% } %}
+</script>
+{/literal}
+{$title = '[`Stocks`]'|cat:" — ":{$wa->accountName()}}
+{if !empty($product_stocks)}
+<script type="text/javascript">
+    $.shop.setTitle('{$title}');
+    $.product_stocks.init({
+        product_stocks: {json_encode($product_stocks)},
+        stocks: {json_encode($stocks)},
+        lazy_loading: {
+            auto: true,
+            count: {$count},
+            total_count: {$total_count}
+        }
+    });
+</script>
+{/if}

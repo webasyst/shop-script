@@ -1,0 +1,57 @@
+<!-- top products -->
+<div class="hero promo">
+    {$promos = $wa->shop->productSet('promo')}
+    {if $promos && count($promos)}
+        <ul class="bxslider">
+        {foreach $promos as $p}
+        <li itemscope itemtype ="http://schema.org/Product">
+            <a href="{$p.frontend_url}" title="{$p.name|escape}{if $p.summary} &mdash; {strip_tags($p.summary)|escape}{/if}">
+                <div class="image">
+                        {$badge_html = $wa->shop->badgeHtml($p.badge)}
+                        {if $badge_html}
+                            <div class="corner top right">{$badge_html}</div>
+                        {/if}
+                        {$wa->shop->productImgHtml($p, '970', ['itemprop' => 'image', 'default' => "`$wa_theme_url`img/dummy200.png"])}
+
+                </div>
+                
+                <div class="info">
+                    <h2 itemprop="name">
+                        <span class="name">{$p.name}</span>
+                    </h2>
+                    <p>{if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency($p.compare_price)} </span>{/if}<span class="price nowrap">{shop_currency($p.price)}</span></p>
+                    {if $p.summary}<p itemprop="description">{$p.summary}</p>{/if}
+                    
+                </div>
+            </a>
+        </li>
+        {/foreach}
+        </ul>
+    {else}
+        <p class="hint align-center">{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','promo')}</p>
+    {/if}
+</div>
+
+<!-- plugin hook: 'frontend_homepage' -->
+{* @event frontend_homepage.%plugin_id% *}
+{foreach $frontend_homepage as $_}{$_}{/foreach}
+
+<div class="sidebar left300px">
+    <!-- storefront navigation -->
+    {include file="sidebar.html"}
+</div>
+
+<div class="content left300px">
+
+    <!-- general homepage welcome text -->
+    <h1>[`Welcome to Shop-Script!`]</h1>
+    <p>[`Use built-in design editor to edit this text and replace it with your general store information and contacts.`]</p>
+
+    {$bestsellers = $wa->shop->productSet('bestsellers')}
+    {if $bestsellers}
+        {include file="list-thumbs.html" products=$bestsellers}
+    {else}
+        <p class="hint align-center">{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','bestsellers')}</p>
+    {/if}
+    
+</div>

@@ -1,0 +1,70 @@
+{if !$lazy}
+    {if !empty($reviews)}
+        <ul class="menu-h small">
+            <li {if $order == 'default'}class="selected"{/if}><a class="s-reviews-order inline-link" href="#" data-order="default"><b><i>[`Newest`]</i></b></a></li>
+            <li {if $order == 'datetime'}class="selected"{/if}><a class="s-reviews-order inline-link" href="#" data-order="datetime"><b><i>[`Oldest`]</i></b></a></li>
+            <li {if $order == 'best_rated'}class="selected"{/if}><a class="s-reviews-order inline-link" href="#" data-order="best_rated"><b><i>[`Highest rated`]</i></b></a></li>
+            <li {if $order == 'worse_rated'}class="selected"{/if}><a class="s-reviews-order inline-link" href="#" data-order="worse_rated"><b><i>[`Lowest rated`]</i></b></a></li>
+        </ul>
+        <div class="s-reviews">
+            {include './include.reviews.html' inline}
+            <div id="s-review-add" style="display:none;">
+                {include './../product/include.addReview.html' inline}
+            </div>
+        </div>
+        <div class="lazyloading-wrapper">
+            <div class="lazyloading-progress-string">{_w('%d review','%d reviews', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+            <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more reviews`]</a>
+            <span class="lazyloading-progress" style="display:none">
+                <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d review', '%d reviews', min($total_count - $count, $count))}...</span>
+            </span>
+        </div>
+        <script>
+            $(function() {
+                var container = $('.s-product-form.reviews:first');
+                var sidebar = $('#s-all-reviews');
+                $.product_reviews.init({
+                    container: container,
+                    statuses: {
+                        deleted:  '{shopProductReviewsModel::STATUS_DELETED}',
+                        published:'{shopProductReviewsModel::STATUS_PUBLISHED}'
+                    },
+                    lazy_loading: {
+                        auto: true,
+                        total_count: {$total_count},
+                        count: {$count},
+                        url: '?module=product&action=reviews&id={$id}&order={$order}',
+                        target: '.s-product-form.reviews .s-reviews ul:first'
+                    }
+                });
+                container.find('.s-reviews-order').unbind('click').bind('click', function() {
+                    $.get('?module=product&action=reviews&id={$id}&order='+$(this).attr('data-order'), function(html) {
+                        container.html(html);
+                        var product_profiles_reviews = $('#s-product-profile-reviews ul:first').empty();
+                        container.find('.s-reviews ul:first').children().each(function() {
+                            var clone = $(this).clone();
+                            var review = clone.find('.s-review:first');
+                            review.find('.s-review-reply').attr('href', '#/product/{$id}/edit/reviews/'+clone.attr('data-id')+'/');
+                            product_profiles_reviews.append(clone.empty().append(review));
+                        });
+                    });
+                    return false;
+                });
+                sidebar.find('.count-new:first').text({if $sidebar_counters.new}'+{$sidebar_counters.new}'{else}''{/if});
+            });
+        </script>
+    {else}
+        [`None of your customers posted a review of this product yet.`]
+    {/if}
+{else}
+    <div class="s-reviews">
+        {include './include.reviews.html' inline}
+    </div>
+    <div class="lazyloading-progress-string">{_w('%d review','%d reviews', $offset + $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+    <span class="lazyloading-progress" style="display:none">
+        <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d review', '%d reviews', min($total_count - $offset - $count, $count))}...</span>
+    </span>
+    <script>
+        $('#s-all-reviews').find('.count-new:first').text({if $sidebar_counters.new}'+{$sidebar_counters.new}'{else}''{/if});
+    </script>
+{/if}

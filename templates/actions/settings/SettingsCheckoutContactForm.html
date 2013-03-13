@@ -1,0 +1,224 @@
+<div id="s-checkout-contact-form-wrapper">
+
+{*
+ * Non-address fields form
+ *}
+<div class="field">
+    <div class="name">[`Misc fields`]</div>
+    <div class="value no-shift">
+
+        <p>
+            <img src="{$wa_url}wa-apps/contacts/img/contacts.png" class="float-right">
+            {sprintf('[`Checkout form is based on your system contact field set configured in the <a href="%s">Contacts</a> app. The form below allows you to customize the list of fields prompted during checkout.`]',$wa_backend_url|cat:'contacts/')}
+        </p>
+
+        <table class="field-list zebra"><tbody>
+            {foreach $fields as $fid => $f}
+                {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid=$fid f=$f css_class='field-row editor-off'}
+            {/foreach}
+
+            {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid='%FID%' f=null css_class='hidden field-row template editor-on just-added'}
+
+            <tr class="white add-field">
+                <td class="min-width">&nbsp;</td>
+                <td class="min-width"><a class="add-field" href="#"><i class="icon16 add"></i></a></td>
+                <td>
+                    <a href="javascript:void(0)" class="add-field inline-link"><b><i>[`Add field`]</i></b></a>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+</div>
+
+{*
+ * Shipping address form
+ *}
+<div class="field">
+    <div class="name">[`Shipping address`]</div>
+    <div class="value no-shift s-ibutton-checkbox">
+        <input type="hidden" name="options[address.shipping][_disabled]" value="1">
+        <ul class="menu-h">
+            <li><span class="gray" id="s-ship-addr-disabled-label">[`Disabled`]</span></li>
+            <li>
+                <input type="checkbox" id="s-ship-addr-status" name="options[address.shipping][_disabled]" value=""{if !$shipping_address->getParameter('_disabled')} checked{/if}>
+            </li>
+            <li><span id="s-ship-addr-enabled-label">[`Enabled`]</span></li>
+        </ul>
+    </div>
+    <div class="value"{if $shipping_address->getParameter('_disabled')} style="display:none"{/if}>
+        <input type="text" name="options[address.shipping][localized_names]" value="{$shipping_address->getName()|escape}">
+    </div>
+    <div class="value no-shift"{if $shipping_address->getParameter('_disabled')} style="display:none"{/if}>
+        <table class="field-list zebra" data-field-parent="address" data-field-prefix="options[address.shipping][fields]">
+            {foreach $shipping_address->getParameter('fields') as $f}
+                {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid=$f->getId() f=$f parent='address.shipping' css_class='field-row editor-off'}
+            {/foreach}
+
+            {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid='%FID%' f=null parent='address.shipping' css_class='hidden field-row template editor-on just-added'}
+
+            <tr class="white add-field">
+                <td class="min-width">&nbsp;</td>
+                <td class="min-width"><a class="add-field" href="#"><i class="icon16 add"></i></a></td>
+                <td>
+                    <a href="javascript:void(0)" class="add-field inline-link"><b><i>[`Add field`]</i></b></a>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+{*
+ * Billing address form
+ *}
+<div class="field">
+    <div class="name">[`Billing address`]</div>
+    <div class="value no-shift s-ibutton-checkbox">
+        <input type="hidden" name="options[address.billing][_disabled]" value="1">
+        <ul class="menu-h">
+            <li><span class="gray" id="s-bill-addr-disabled-label">[`Disabled`]</span></li>
+            <li>
+                <input type="checkbox" id="s-bill-addr-status" name="options[address.billing][_disabled]" value=""{if !$billing_address->getParameter('_disabled')} checked{/if}>
+            </li>
+            <li><span id="s-bill-addr-enabled-label">[`Enabled`]</span></li>
+        </ul>
+    </div>
+    <div class="value"{if $billing_address->getParameter('_disabled')} style="display:none"{/if}>
+        <input type="text" name="options[address.billing][localized_names]" value="{$billing_address->getName()|escape}">
+    </div>
+    <div class="value no-shift"{if $billing_address->getParameter('_disabled')} style="display:none"{/if}>
+        <table class="field-list zebra" data-field-parent="address" data-field-prefix="options[address.billing][fields]">
+            {foreach $billing_address->getParameter('fields') as $f}
+                {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid=$f->getId() f=$f parent='address.billing' css_class='field-row editor-off'}
+            {/foreach}
+
+            {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid='%FID%' f=null parent='address.billing' css_class='hidden field-row template editor-on just-added'}
+
+            <tr class="white add-field">
+                <td class="min-width">&nbsp;</td>
+                <td class="min-width"><a class="add-field" href="#"><i class="icon16 add"></i></a></td>
+                <td>
+                    <a href="javascript:void(0)" class="add-field inline-link"><b><i>[`Add field`]</i></b></a>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+</div>{* #s-checkout-contact-form-wrapper *}
+
+<script>(function() { "use strict";
+    var form = $('#checkout-step-contactinfo-form');
+    var wrapper = $('#s-checkout-contact-form-wrapper');
+
+    var markAsChanged = function() {
+        form.find(':submit').removeClass('green').addClass('yellow');
+    };
+    wrapper.on('change', ':checkbox', markAsChanged);
+    form.off('keyup.name', ':text[name="name"]').on('keyup.name', ':text[name="name"]', markAsChanged);
+
+    // Form validation
+    form.off('submit.inner').on('submit.inner', function() {
+        form.find('.errormsg').remove();
+        form.find('.error').removeClass('error');
+        var valid = true;
+        $('[name$="[localized_names]"]').each(function() {
+            var self = $(this);
+            if (!self.val() && self.parents('.template').length <= 0) {
+                valid = false;
+                self.addClass('error').parent().append($('<em class="errormsg"></em>').text("[`This field is required.`]"));
+            }
+        });
+
+        if (!valid) {
+            form.find(':submit').before($('<p class="errormsg"></p>').text("[`Please correct errors.`]"));
+        }
+
+        return valid; // !!! FIXME: This actually does not cancel form submission...
+    });
+
+    //
+    // Controller for form fields editor
+    //
+    (function() {
+        var max_field = 1;
+
+        // Links to add new field
+        wrapper.on('click', 'table.field-list > tbody > tr.add-field a.add-field', function() {
+            // Clone row template
+            var table = $(this).closest('table');
+            var tmpl = table.find('tbody > .field-row.template');
+            var tr = tmpl.clone().insertBefore(tmpl).removeClass('template').removeClass('hidden');
+
+            // Replace field id placeholder with generated field id
+            var fid = '__'+max_field;
+            max_field++;
+            tr.find('[name]').each(function() {
+                var self = $(this);
+                self.attr('name', self.attr('name').replace(/%FID%/g, fid));
+            });
+            tr.data('fieldId', fid);
+            tr.find('select.type-selector').change();
+            markAsChanged();
+            return false;
+        });
+
+        // Load appropriate settings block when user stanges field type
+        wrapper.on('change', 'select.type-selector', function() {
+            var select = $(this);
+            var tr = select.closest('tr');
+            var table = tr.closest('table');
+            var adv_settings_block = tr.find('.field-advanced-settings').html('<i class="icon16 loading"></i>');
+            $.post('?module=settings&action=checkoutContactFormEditor', {
+                ftype: select.val(),
+                fid: tr.data('fieldId'),
+                parent: table.data('fieldParent') || '',
+                prefix: table.data('fieldPrefix')
+            }, function(r) {
+                adv_settings_block.html(r);
+            });
+        });
+
+        // Links to edit field
+        wrapper.on('click', 'table.field-list .edit', function() {
+            $(this).parents('tr').addClass('editor-on').removeClass('editor-off');
+            markAsChanged();
+            return false;
+        });
+
+        // Links to delete field
+        wrapper.on('click', '.delete-outer', function() {
+            var tr = $(this).closest('tr');
+            if (tr.hasClass('just-added')) {
+                tr.remove();
+                return false;
+            }
+            if (!confirm("[`This will remove field and all its data from all existing contacts. Are you sure?`]")) {
+                return false;
+            }
+
+            var name = tr.find('input:hidden[name$="[_disabled]"]').attr('name').replace("[_disabled]", "[_deleted]");
+            wrapper.append($('<input type="hidden" name="" value="1">').attr('name', name));
+            tr.children().children(':not(label)').remove();
+            tr.find('label').addClass('gray').addClass('strike');
+            markAsChanged();
+            return false;
+        });
+
+        // Drag-and-drop for form field rows
+        wrapper.find('table.field-list > tbody').sortable({
+            items : ".field-row",
+            handle : "i.sort-outer"
+        });
+    })();
+
+    // iButtons enable/disable corresponding addresses
+    $('#s-ship-addr-status, #s-bill-addr-status').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
+        markAsChanged();
+        var self = $(this);
+        if ($(this).is(':checked')) {
+            self.parents('.value').siblings('.value').show(200);
+        } else {
+            self.parents('.value').siblings('.value').hide(200);
+        }
+    });
+})();</script>

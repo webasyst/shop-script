@@ -1,0 +1,53 @@
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/notifications.js"></script>
+<div class="sidebar left200px s-settings-order-states">
+    <div class="s-inner-sidebar">
+        <ul class="menu-v stack with-icons" id="notifications">
+            {foreach $notifications as $n}
+            <li id="notification-{$n.id}">
+                <a href="#/notifications/{$n.id}/">
+                    <i class="icon16 {$transports[$n.transport].icon}"></i>{$n.name}
+                </a>
+            </li>
+            {/foreach}
+
+            <li class="top-padded small">
+                <a href="#/notifications/add/">
+                    <i class="icon10 add"></i>[`Add custom notification`]
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+</div>
+    
+<div class="content left200px s-settings-form blank bordered-left">
+    <div class="block double-padded" id="notifications-content">
+        <i class="icon16 loading"></i> [`Loading...`]
+    </div>
+</div>
+
+<div class="dialog width450px height150px" id="s-settings-confirm-delete">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=settings&action=NotificationsDelete">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Delete notification`]</h1>
+                <p>[`This will permanently delete this notification. Are you sure?`]</p>
+                <input type="hidden" name="id" value="0">
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button red" type="submit" value="Удалить"> <i class="icon16 loading" style="display:none;"></i>
+                или <a class="cancel" href="javascript:void(0);">отмена</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{$title = "[`Notifications`]"|cat:" — ":{$wa->accountName()}}
+<script>
+    $.shop.setTitle('{$title}');
+</script>

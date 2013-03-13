@@ -1,0 +1,95 @@
+<div class="block double-padded welcome">
+  <form method="POST" action="?action=welcome">
+    <h1>[`Welcome to Shop-Script!`]</h1>
+    <p>[`Using the quick-start form below you can easily prepare an initial setup of your online store depending on your region and what you are going to sell online. This won't add your stuff to your store automatically, but will prepare configuration lists such as currencies and taxes rates, so you don't add such data manually.`]</p>
+    <div class="form fields">
+     {* !!! import section commented out on welcome screen
+      <div class="field-group">
+        <div class="field">
+            <div class="name">[`Import`]</div>
+            <div class="value no-shift">
+                <label>
+                    <input type="radio" checked="checked" name="import" value="scratch">
+                    [`Don't import anything, start from scratch`]
+                </label>
+            </div>
+            {*
+                <div class="value no-shift">
+                    <label>
+                        <input type="radio" name="import" value="demo">
+                        [`Add few demo products`]
+                    </label>
+                </div>
+            * }
+            <div class="value no-shift">
+                <label>
+                    <input type="radio" name="import" value="migrate">
+                    [`Import my data to Shop-Script from my present online store`]
+                </label>
+                <p class="hint" style="display: none;">
+                    <br>
+                    [`You will be taken to the data import screen now.`]
+                </p>
+            </div>
+        </div>
+      </div>
+      *}
+
+      <div class="field-group">
+        <div class="field js-bold">
+            <div class="name">
+                [`Country`]
+            </div>
+            {foreach $countries as $country}
+            <div class="value no-shift">
+                <label>
+                    <input type="radio" name="country" value="{$country.iso3letter|escape}"{if $country.iso3letter == $country_iso} checked="checked"{/if}>
+                    <i class="icon16 country" style="background: url({$wa_url}wa-content/img/country/{$country.iso3letter|escape}.gif) no-repeat;"></i>
+                    {$country.name|escape}
+                </label>
+            </div>
+            {/foreach}
+
+            <div class="value no-shift">
+                <label>
+                    <input type="radio" name="country">
+                    <i class="icon16 globe"></i>
+                    [`Other`] <span class="hint">[`No default regional data will be added`]</span>
+                </label>
+            </div>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field js-bold">
+            <div class="name">[`Product types`]</div>
+            <div class="value">
+                <p>[`Select product types which you are going to sell online. Product types will automatically add a set of product custom features to your store, and will then allow you to manage product access level and publication based on product types.`]</p>
+            </div>
+            {foreach $types as $type_id => $type}
+            <div class="value no-shift">
+                <label>
+                    <input type="checkbox" name="types[]" value="{$type_id|escape}">
+                    {shopHelper::getIcon($type.icon)}{$type.name|escape}
+                    <span class="hint">{$type.description|escape}</span>
+                </label>
+            </div>
+            {/foreach}
+            <div class="value no-shift">
+                <p class="hint">[`If you don't see your product type here, you will be able to add it later.`]</p>
+            </div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field">
+            <div class="value submit">
+            {$wa->csrf()}
+            <input type="submit" class="button green" value="[`Setup my store`]"> [`or`] <a href="?action=products">[`skip the automated configuration setup`]</a>
+            </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script type="text/javascript" src="{$wa_app_static_url}js/backend/welcome.js?{$wa->version()}"></script>

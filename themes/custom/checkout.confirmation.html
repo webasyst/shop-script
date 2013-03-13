@@ -1,0 +1,62 @@
+{if !empty($error)}
+
+    <div class="checkout-result error">{$error}</div>
+
+{else}
+
+    <h3>[`Ship to`]</h3
+    <p>{$contact.name|escape}<br>
+    {$shipping_address.value}</p>
+    
+    <h3>[`Bill to`]</h3>
+    <p>{$contact.name|escape}<br>
+    {$billing_address.value}</p>
+
+    <table class="table">
+        <tr>
+            <th></th>
+            <th class="align-right">[`Quantity`]</th>
+            {if $tax > 0}
+                <th class="align-right">[`Tax`]</th>
+            {/if}
+            <th class="align-right">[`Total`]</th>
+        </tr>
+        {foreach $items as $item}
+        <tr{if $item.type == 'service'} class="service"{/if}>
+            <td>{if $item.type == 'service'}+ {/if}{$item.name|escape}</td>
+            <td class="align-right"><span class="gray">{shop_currency($item.price, $item.currency)} x</span> {$item.quantity}</td>
+            {if $tax > 0} 
+                <td class="align-right">{if isset($item.tax)}{shop_currency($item.tax, true)}{else}&ndash;{/if}</td>
+            {/if}
+            <td class="align-right">{shop_currency($item.price * $item.quantity, $item.currency)}</td>
+        </tr>
+        {/foreach}
+        {if $tax > 0}{$colspan=3}{else}{$colspan=2}{/if}
+        <tr class="no-border thin">
+            <td colspan="{$colspan}" class="align-right">[`Subtotal`]</td>
+            <td class="align-right">{shop_currency($subtotal, true)}</td>
+        </tr>
+        <tr class="no-border thin">
+            <td colspan="{$colspan}" class="align-right">[`Discount`]</td>
+            <td class="align-right">&minus; {shop_currency($discount, true)}</td>
+        </tr>
+        <tr class="no-border thin">
+            <td colspan="{$colspan}" class="align-right">[`Shipping`]</td>
+            <td class="align-right">{shop_currency($shipping, true)}</td>
+        </tr>
+        {if $tax > 0}
+        <tr class="no-border thin">
+            <td colspan="{$colspan}" class="align-right">[`Tax`]</td>
+            <td class="align-right">{shop_currency($tax, true)}</td>
+        </tr>
+        {/if}
+        <tr class="no-border thin large">
+            <td colspan="{$colspan}" class="align-right"><b>[`Total`]</b></td>
+            <td class="align-right bold">{shop_currency($total, true)}</td>
+        </tr>
+    </table>
+    
+    [`Comment`]<br>
+    <textarea class="comment" name="comment"></textarea>
+
+{/if}

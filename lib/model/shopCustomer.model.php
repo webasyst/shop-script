@@ -1,0 +1,138 @@
+<?php
+
+class shopCustomerModel extends waModel
+{
+    protected $table = 'shop_customer';
+    protected $id = 'contact_id';
+
+    public function createFromContact($contact_id, $customer=array())
+    {
+        if ($this->getById($contact_id)) {
+            return;
+        }
+
+        $customer['contact_id'] = $contact_id;
+        $this->insert($customer);
+    }
+
+    public function updateFromNewOrder($customer_id, $order_id)
+    {
+        $customer = $this->getById($customer_id);
+        if ($customer) {
+            $sql = "UPDATE {$this->table}
+                    SET number_of_orders = number_of_orders + 1,
+                        last_order_id = i:oid
+                    WHERE contact_id = i:cid";
+            $this->exec($sql, array(
+                'oid' => $order_id,
+                'cid' => $customer_id,
+            ));
+        } else {
+            $this->insert(array(
+                'contact_id' => $customer_id,
+                'last_order_id' => $order_id,
+                'number_of_orders' => 1,
+            ));
+        }
+    }
+
+    public function getList($category_id, $search, $start=0, $limit=50, $order='name')
+    {
+        $start = (int) $start;
+        $limit = (int) $limit;
+
+        $join = array();
+        $where = array();
+
+        if ($category_id) {
+            $join[] = 'JOIN wa_contact_categories AS cc ON cc.contact_id=c.id';
+            $where[] = 'cc.category_id='.((int)$category_id);
+        }
+        if ($search) {
+            $search_escaped = $this->escape($search, 'like');
+            $join[] = 'LEFT JOIN wa_contact_emails AS e ON e.contact_id=c.id';
+            $join[] = 'LEFT JOIN wa_contact_data AS p ON p.contact_id=c.id AND p.field="phone"';
+            $where[] = "CONCAT(c.name, ' ', IFNULL(e.email, ''), ' ', IFNULL(p.value, '')) LIKE '%{$search_escaped}%'";
+        }
+
+        if ($where) {
+            $where = 'WHERE ('.implode(') AND (', $where).')';
+        } else {
+            $where = '';
+        }
+
+        if ($join) {
+            $join = implode("\n", $join);
+        } else {
+            $join = '';
+        }
+
+        $possible_orders = array(
+            'name' => 'c.name',
+            '!name' => 'c.name DESC',
+            'total_spent' => 'sc.total_spent',
+            '!total_spent' => 'sc.total_spent DESC',
+            'affiliate_bonus' => 'sc.affiliate_bonus',
+            '!affiliate_bonus' => 'sc.affiliate_bonus DESC',
+            'number_of_orders' => 'sc.number_of_orders',
+            '!number_of_orders' => 'sc.number_of_orders DESC',
+            'last_order' => 'sc.last_order_id',
+            '!last_order' => 'sc.last_order_id DESC',
+            'registered' => 'c.create_datetime',
+            '!registered' => 'c.create_datetime DESC',
+        );
+
+        if (!$order || empty($possible_orders[$order])) {
+            $order = key($possible_orders);
+        }
+        $order = 'ORDER BY '.$possible_orders[$order];
+
+        // Fetch basic contact and customer info
+        $sql = "SELECT SQL_CALC_FOUND_ROWS sc.*, c.*, o.create_datetime AS last_order_datetime
+                FROM wa_contact AS c
+                    JOIN shop_customer AS sc
+                        ON c.id=sc.contact_id
+                    LEFT JOIN shop_order AS o
+                        ON o.id=sc.last_order_id
+                    $join
+                $where
+                GROUP BY c.id
+                $order
+                LIMIT {$start}, {$limit}";
+        $customers = $this->query($sql)->fetchAll('id');
+        $total = $this->query('SELECT FOUND_ROWS()')->fetchField();
+
+        if (!$customers) {
+            return array(array(), 0);
+        }
+
+        // Fetch addresses
+        foreach($customers as &$c) {
+            $c['address'] = array();
+        }
+        unset($c);
+
+        $sql = "SELECT *
+                FROM wa_contact_data
+                WHERE contact_id IN (i:ids)
+                    AND sort=0
+                    AND field LIKE 'address:%'
+                ORDER BY contact_id";
+        foreach ($this->query($sql, array('ids' => array_keys($customers))) as $row) {
+            $customers[$row['contact_id']]['address'][substr($row['field'], 8)] = $row['value'];
+        }
+
+        return array($customers, $total);
+    }
+
+    public function getCategoryCounts()
+    {
+        $sql = "SELECT cc.category_id, count(*)
+                FROM wa_contact_categories AS cc
+                    JOIN shop_customer AS sc
+                        ON cc.contact_id=sc.contact_id
+                GROUP BY cc.category_id";
+        return $this->query($sql)->fetchAll('category_id', true);
+    }
+}
+

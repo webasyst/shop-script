@@ -1,0 +1,42 @@
+{if !isset($base)}{$base = ''}{/if}
+{if !isset($available)}{$available = 2}{/if}
+{$variants = shopFeatureModel::getTypes()}
+{$subtype = null}
+<select{if !empty($link)} style="display:none;"{/if} class="js-feature-types-control">
+    {$group = false}
+    {foreach $variants as $v}
+    {if $group && (empty($v.group) || ($v.group != $group))}
+        </optgroup>
+        {$group = false}
+    {/if}
+    {if !empty($v.group) && !$group}
+        <optgroup label="{$v.group|escape}">
+        {$group = $v.group}
+    {/if}
+
+    <option{if $v.available lt $available} disabled="disabled"{/if} data-type="{$v.type}" data-multiple="{$v.multiple}" data-selectable="{$v.selectable}">{$v.name|escape}</option>
+    {if !empty($v.subtype)}{$subtype = $v.subtype}{/if}
+    {/foreach}
+    {if $group}
+        </optgroup>
+    {/if}
+</select>
+
+
+{$v = reset($variants)}
+{if !empty($link)}
+<a href="#{$base}"{if !empty($class)} class="{$class|escape}"{/if} title="{$v.name|escape}"><i class="icon16 settings"></i></a>
+{/if}
+
+{if $subtype}
+<select style="display:none;" class="js-feature-subtypes-control">
+{foreach $subtype as $s}
+<option{if $s.available lt $available} disabled="disabled"{/if} data-type="{$s.type|escape}">{$s.name}</option>
+{/foreach}
+</select>
+{/if}
+
+{if !empty($link)}
+<br>
+<span class="hint" style="display:none;">[`If the feature type you are going to add is disabled in the form above, add this feature in your store Settings first, and then provide this feature value for this particular product.`]</span>
+{/if}

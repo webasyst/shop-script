@@ -1,0 +1,32 @@
+
+<div class="block double-padded">
+    <h1>[`New customer`]</h1>
+
+    <form id="new-customer-form" action="?module=customers&action=add">
+        <div class="fields">
+            {$form->html()}
+
+            <div class="field">
+                <div class="value">
+                    <input type="submit" class="button green" value="[`Add`]">
+                </div>
+            </div>
+        </div>
+    </form>
+
+</div>
+
+<script>$(function() { "use strict";
+
+    var form = $('#new-customer-form');
+
+    // Form submit via XHR
+    form.submit(function() {
+        $.post(form.attr('action'), form.serialize(), function(r) {
+            $('#s-content').html(r);
+        });
+        return false;
+    });
+
+});</script>
+

@@ -1,0 +1,23 @@
+<form id="wf-ship-form" action="?module=workflow&action=perform" method="post">
+    <input type="hidden" name="id" value="{$order_id}">
+    <input type="hidden" name="action_id" value="{$action_id}">
+    [`Tracking number`]: <input name="tracking_number" placeholder="[`Optional`]">
+    <input type="submit" value="[`Save`]"> [`or`] <a class="cancel inline-link" href="#"><b><i>[`cancel`]</i></b></a>
+</form>
+
+<script type="text/javascript">
+    // cancel link
+    $('a.cancel').click(function() {
+        $('#workflow-content').empty().hide();
+        $('.workflow-actions').show();
+        return false;
+    });
+
+    $("#wf-ship-form").submit(function () {
+        var f = $(this);
+        $.post(f.attr('action'), f.serialize(), function () {
+            $.order.reload();
+        }, "json");
+        return false;
+    });
+</script>

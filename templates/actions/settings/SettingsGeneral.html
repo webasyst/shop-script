@@ -1,0 +1,81 @@
+<div class="blank block double-padded s-settings-form">
+    <h1>[`General settings`]</h1>
+    <form id="s-settings-general-form" action="?module=settings&action=general">
+        <div class="fields form">
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">[`Store name`]</div>
+                    <div class="value">
+                        <input type="text" class="large bold" name="name" value="{$name}">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Primary email`]</div>
+                    <div class="value">
+                        <input type="text" name="email" value="{$email}"><br />
+                        <span class="hint">[`Primary email address is used as a reply-to address in email notifications sent to your customers`]</span>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Phone number`]</div>
+                    <div class="value">
+                        <input type="text" name="phone" value="{$phone}"><br />
+                        <span class="hint">[`Phone number is published in the storefront and included in email notification`]</span>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Country`]</div>
+                    <div class="value">
+                        <select name="country">
+                            {if empty($country)}
+                                <option value=""></option>
+                            {/if}
+                            {foreach $countries as $c}
+                                <option value="{$c.iso3letter|escape}"{if $country == $c.iso3letter} selected{/if}>{$c.name|escape}</option>
+                            {/foreach}
+                        </select><br />
+                        <span class="hint">[`Your online store base country.`]</span>
+                    </div>
+                </div>
+            </div>
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">[`Order ID format`]</div>
+                    <div class="value">
+                        <input type="text" name="order_format" value="{$order_format}">
+                        <p class="hint">[`<strong>&#123;$order.id&#125;</strong> will be replaced with the actual order ID. Do not delete &#123;$order.id&#125; from this string.`]</p>
+                    </div>
+                </div>
+            </div>
+            <div class="field-group">
+                <div class="field">
+                    <div class="value submit">
+                        <input type="submit" class="button green" value="[`Save`]">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="clear"></div>
+</div>
+{$title = "[`General settings`]"|cat:" — ":{$wa->accountName()}}
+<script type="text/javascript">
+    var form = $('#s-settings-general-form');
+    $.shop.setTitle('{$title}');
+    form.submit(function() {
+        var self = $(this);
+        form.find(':submit').after('<span class="s-mgs-after-button"><i class="icon16 loading"></i></span>');
+        $.post(self.attr('action'), self.serialize(), function(r) {
+            $('#s-settings-content').html(r);
+        });
+        return false;
+    });
+
+    {if $wa->post('name')}
+        form.find(':submit').after(
+            $('<span class="s-mgs-after-button"><i class="icon16 yes"></i>'+"[`Saved`]"+'</span>').animate({ opacity: 0 }, 1500, function() {
+                $(this).remove();
+            })
+        );
+    {/if}
+</script>

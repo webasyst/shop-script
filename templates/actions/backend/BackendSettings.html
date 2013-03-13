@@ -1,0 +1,133 @@
+<div class="sidebar right15px">
+    <div class="block s-nolevel2-sidebar"></div>
+</div>
+
+<div class="sidebar left200px">
+    <div class="block s-nolevel2-sidebar s-inner-sidebar">
+        <ul class="menu-v with-icons stack" id="s-settings-menu">
+            <li>
+                <a href="?action=settings#/general/">
+                    <i class="icon16 ss settings-bw"></i>[`General settings`]
+                </a>
+            </li>
+            <!-- plugin hook: 'backend_settings.sidebar_top_li' -->
+            {* @event backend_settings.%plugin_id%.sidebar_top_li *}
+            {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
+
+
+            <li class="top-padded">
+                <a href="?action=settings#/features/">
+                    <i class="icon16 ss features-bw"></i>[`Product types & Features`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/recommendations/">
+                    <i class="icon16 ss star-bw"></i>[`Recommendations`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/images/">
+                    <i class="icon16 ss camera-bw"></i>[`Product images`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/stock/">
+                    <i class="icon16 ss cube-bw"></i>[`Stocking`]
+                </a>
+            </li>
+            <!-- plugin hook: 'backend_settings.sidebar_middle_li' -->
+            {* @event backend_settings.%plugin_id%.sidebar_middle_li *}
+            {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_middle_li)}{/foreach}{/if}
+
+            <li class="top-padded">
+                <a href="?action=settings#/checkout/">
+                    <i class="icon16 ss cart-bw"></i>[`Checkout`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/orderStates/">
+                    <i class="icon16 ss flag-bw"></i>[`Order states`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/shipping/">
+                    <i class="icon16 ss shipping-bw"></i>[`Shipping`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/payment/">
+                    <i class="icon16 ss payment-bw"></i>[`Payment`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/discounts/">
+                    <i class="icon16 ss discounts-bw"></i>[`Discounts`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/affiliate/">
+                    <i class="icon16 ss affiliate-bw"></i>[`Affiliate program`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/currencies/">
+                    <i class="icon16 ss currency-bw"></i>[`Currencies`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/regions/">
+                    <i class="icon16 ss globe-bw"></i>[`Countries & Regions`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/taxes/">
+                    <i class="icon16 ss percent-bw"></i>[`Taxes`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/printform/">
+                    <i class="icon16 ss print-forms-bw"></i>[`Printable forms`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/notifications/">
+                    <i class="icon16 ss notification-bw"></i>[`Notifications`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/followups/">
+                    <i class="icon16 ss stopwatch-bw"></i>[`Follow-ups`]
+                </a>
+            </li>
+
+
+            <li class="top-padded">
+                <a href="?action=settings#/reset/">
+                    <i class="icon16 ss reset-bw"></i>[`Reset`]
+                </a>
+            </li>
+            <!-- plugin hook: 'backend_settings.sidebar_bottom_li' -->
+            {* @event backend_settings.%plugin_id%.sidebar_bottom_li *}
+            {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_bottom_li)}{/foreach}{/if}
+
+        </ul>
+    </div>
+</div>
+
+<div class="content left200px right15px s-nolevel2-box" id="s-settings-content">
+    <div class="block double-padded s-settings-form">
+        [`Loading...`]
+        <i class="icon16 loading"></i>
+    </div>
+
+    <div class="clear"></div>
+    <!-- settings placeholder -->
+</div>
+
+    <div class="clear"></div>
+    <script type="text/javascript">
+    $.settings.init({
+        'debug':true,
+        'loading' : '[`Loading...`]<i class="icon16 loading"><'+'/i>',
+    });
+    </script>

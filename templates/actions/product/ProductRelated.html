@@ -1,0 +1,145 @@
+<div class="fields">
+    <div class="field-group">
+        <div class="field">
+            <div class="name">
+                [`Cross-selling`]
+            </div>
+            <div class="value">
+                <label><input type="radio" name="cross_selling" value="1" {if $product.cross_selling == 1}checked="true"{/if}> [`On`]
+                {if $type.cross_selling}
+                <em class="hint">[`Auto`] ({if $type.cross_selling == 'alsobought'}{sprintf('[`based on what other customers bought with %s`]',$product.name)}{else}[`products from category`] "{$type.category.name}"{/if})</em></label>
+                {/if}
+            </div>
+            <div class="value">
+                <label><input type="radio" name="cross_selling" value="0" {if !$product.cross_selling}checked="true"{/if}> [`Off`]</label>
+                {if !$type.cross_selling}
+                <em class="hint">[`Auto`]</em>
+                {/if}
+            </div>
+            <div class="value">
+                <label><input type="radio" name="cross_selling" value="2" {if $product.cross_selling == 2}checked="true"{/if}> [`Select manually`]</label>
+            </div>
+            <div class="value manually" {if $product.cross_selling != 2}style="display:none"{/if}>
+                <table class="related zebra">
+                    {if isset($related.cross_selling)}
+                    {foreach $related.cross_selling as $p}
+                    <tr class="p" data-product-id="{$p.id}">
+                        <td>{$p.name|escape}</td>
+                        <td>{shop_currency($p.price, $p.currency)}</td>
+                        <td class="min-width"><a href="#"><i class="icon16 delete"></i></a></td>
+                    </tr>
+                    {/foreach}
+                    {/if}
+                    <tr>
+                        <td colspan="3">
+                            <input data-type="cross_selling" class="product-autocomplete long" type="text" placeholder="[`Start typing product name or SKU`]">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="field-group">
+        <div class="field">
+            <div class="name">
+                [`Upselling & Similar`]
+            </div>
+            <div class="value">
+                <label><input {if !$type.upselling}disabled="disabled"{/if} type="radio" name="upselling" value="1" {if $product.upselling == 1}checked="true"{/if}> [`On`]
+                {if $type.upselling}
+                <em class="hint">[`Auto`]</em>
+                {/if}
+                </label>
+                {if $type.upselling}
+                <p class="hint">
+                    <br>
+                    {$type.upselling_html}
+                </p>
+                {/if}
+            </div>
+            <div class="value">
+                <label><input type="radio" name="upselling" value="0" {if !$product.upselling}checked="true"{/if}> [`Off`]</label>
+                {if !$type.upselling}
+                <em class="hint">[`Auto`]</em>
+                {/if}
+            </div>
+            <div class="value">
+                <label><input type="radio" name="upselling" value="2" {if $product.upselling == 2}checked="true"{/if}> [`Select manually`]</label>
+            </div>
+            <div class="value manually" {if $product.upselling != 2}style="display:none"{/if}>
+                <table class="related zebra">
+                    {if isset($related.upselling)}
+                    {foreach $related.upselling as $p}
+                    <tr class="p" data-product-id="{$p.id}">
+                        <td>{$p.name|escape}</td>
+                        <td>{shop_currency($p.price, $p.currency)}</td>
+                        <td class="min-width"><a class="delete" href="#"><i class="icon16 delete"></i></a></td>
+                    </tr>
+                    {/foreach}
+                    {/if}
+                    <tr>
+                        <td colspan="3">
+                            <input data-type="upselling" class="product-autocomplete long" type="text" placeholder="[`Start typing product name or SKU`]">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- plugin hook: 'backend_product_edit.related' -->
+    {* @event backend_product_edit.%plugin_id%.related *}
+    {if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.related)}{/foreach}{/if}
+
+</div>
+<script type="text/javascript">
+    $('#s-product-save > div.s-product-form.related').addClass('ajax');
+
+    $('.product-autocomplete').autocomplete({
+        source: '?action=autocomplete',
+        minLength: 3,
+        delay: 300,
+        select: function(event, ui) {
+            var tr = $('<tr class="p" data-product-id="' + ui.item.id + '"></tr>');
+            tr.append($('<td></td>').html(ui.item.value));
+            tr.append($('<td></td>').html(ui.item.price));
+            tr.append('<td class="min-width"><a class="delete" href="#"><i class="icon16 delete"></i></a></td>');
+            tr.insertBefore($(this).closest('tr'));
+            $(this).val('');
+            // save
+            $.post('?module=product&action=relatedSave&id={$product.id}', {
+                'type': $(this).data('type'),
+                'product_id': ui.item.id
+            }, function (response) {}, "json");
+            return false;
+        }
+    });
+    $('input[name="upselling"], input[name="cross_selling"]').click(function () {
+        if (this.value == 2) {
+            console.log($(this).closest('div.field'));
+            $(this).closest('div.field').find('.manually').show();
+        } else {
+            $(this).closest('div.field').find('.manually').hide().find('tr.p').remove();
+        }
+        var data = {}
+        data[this.name] = this.value;
+        $.post('?module=product&action=relatedSave&id={$product.id}', data, function (response) {
+
+        }, "json");
+    });
+
+    $("table.related").on('click', 'a.delete', function () {
+        var tr = $(this).closest('tr');
+        var type = tr.closest('table.related').find('input').data('type');
+        $.post('?module=product&action=relatedSave&id={$product.id}', {
+            'type': type,
+            'delete': 1,
+            'product_id': tr.data('product-id')
+        }, function (response) {
+            if (response.status == 'ok') {
+                tr.remove();
+            }
+        }, "json");
+        return false;
+    });
+</script>

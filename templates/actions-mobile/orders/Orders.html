@@ -1,0 +1,16 @@
+<div data-role="header" data-position="inline" data-backbtn="false" >
+    <a href="{$wa_backend_url}" rel="external"  data-role="button" data-iconpos="notext" data-icon="mobile-apps">[`Apps`]</a>
+    <h1>{$wa->title()}</h1>
+</div>
+
+<div data-role="content" class="content">
+    <ul data-role="listview">
+        {foreach $orders as $o}
+            <li><a href="?module=orders&action=infoMobile&id={$o.id}" style="{$o.style}">
+                <i class="{$o.icon}"></i>{$o.id_str}
+            </a></li>
+        {/foreach}
+    </ul>
+    {*  !!! TODO: Lazy Loading?.. *}
+</div>
+

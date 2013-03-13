@@ -1,0 +1,170 @@
+<div data-role="header" data-position="inline" data-backbtn="false" >
+    <a href="{$wa_app_url}" data-role="button" data-icon="arrow-l">
+        [`Orders`]
+    </a>
+    <h1>{$wa->title()}</h1>
+</div>
+
+{*
+ * Workflow state and actions
+ *}
+<div data-role="content" class="content" id="workflow-buttons-{$uniqid}">
+    <ul data-role="listview" class="workflow-actions">
+        <li style="{$order.style}" class="align-center sm-order-action-button top-padded"><i class="{$order.icon}"></i>{$workflow_state->getName()}</li>
+        {foreach $workflow_buttons as $b}
+            <li class="sm-order-action-button">{$b}</li>
+        {/foreach}
+    </ul>
+</div>
+<div data-role="content" class="hidden content workflow-content" id="workflow-content-{$uniqid}">
+    {* Block for HTML from workflow actions. *}
+</div>
+
+
+{*
+ * Customer info
+ *}
+<div data-role="content" class="content sm-order-customer">
+    <img src="{$customer->getPhoto(50)}" class="float-left ">
+    <h4>{$customer->getName()|escape}</h4>
+    {if $top}
+        {foreach from=$top item=top_field}
+            <p>{$top_field.name}: {$top_field.value}</p>
+        {/foreach}
+    {/if}
+</div>
+
+{*
+ * Order commment
+ *}
+{if $order_comment}
+    <div data-role="content" class="top-bordered content sm-order-comment">
+        <p>{$order_comment}</p>
+    </div>
+{/if}
+
+{*
+ * Shipping and payment info
+ *}
+<div data-role="content" class="top-bordered content">
+    {if !empty($order.params.shipping_name)}
+        <p>
+            [`Shipping`] — <strong>{$order.params.shipping_name}</strong>
+            {if $shipping_address}
+                <br>
+                {$shipping_address}
+            {/if}
+        </p>
+    {/if}
+    {if !empty($order.params.payment_name)}
+        <p>
+            [`Payment`] — <strong>{$order.params.payment_name}</strong>
+            {if $billing_address}
+                <br>
+                {$billing_address}
+            {/if}
+        </p>
+    {/if}
+</div>
+
+{*
+ * Order items
+ *}
+<div data-role="content" class="top-bordered content">
+    <ul style="list-style-type:none;margin:0;padding:0;">
+        {foreach $order.items as $i}
+            <li>
+                <span class="float-right">x {$i.quantity}</span>
+                {$i.name}
+            </li>
+        {/foreach}
+        <li style="border-top:1px solid #aaa;margin-top:10px;padding-top:10px">
+            <span class="float-right">{wa_currency($order_subtotal, $currency)}</span>
+            [`Subtotal`]
+        </li>
+        {if !empty($order.params.shipping_name)}
+            <li>
+                <span class="float-right">{wa_currency($order.shipping, $currency)}</span>
+                [`Shipping`]
+            </li>
+        {/if}
+        {if !empty($order.tax)}
+            <li>
+                <span class="float-right">{wa_currency($order.tax, $currency)}</span>
+                [`Tax`]
+            </li>
+        {/if}
+        {if !empty($order.discount)}
+            <li>
+                <span class="float-right">{wa_currency($order.discount, $currency)}</span>
+                [`Discount`]
+            </li>
+        {/if}
+        <li>
+            <span class="float-right"><strong class="large">{wa_currency($order.total, $currency)}</strong></span>
+            [`Total`]
+        </li>
+    </ul>
+</div>
+
+
+{*
+ * Order history
+ *}
+<div data-role="content" class="top-bordered content">
+    <ul data-role="listview">
+        {foreach $log as $row}
+        <li class="sm-order-log">
+            <div style="color:#aaa">{$row.datetime|wa_datetime:"humandatetime"}</div>
+            {if $row.action_id}
+                {$row.contact_name|escape} [`performed action`] {$row.action_id} {if $row.text}{$row.text|escape}{/if}
+            {else}
+                {if $row.text}{$row.text}{/if}
+            {/if}
+        </li>
+        {/foreach}
+    </ul>
+</div>
+
+<script>$(function($) {
+
+    // Stubs used by JS of workflow actions
+    $.order = {
+        reload: function() {
+            window.location.reload();
+        }
+    };
+    $.order_list = {
+        updateCounters: function() {}
+    };
+
+    var workflow_buttons = $('#workflow-buttons-{$uniqid}');
+    var workflow_content = $('#workflow-content-{$uniqid}');
+
+    // Workflow action buttons
+    workflow_buttons.on('click', '.wf-action', function() {
+        var self = $(this);
+        $.post('?module=workflow&action=prepare', { action_id: self.data('action-id'), id: '{$order.id}' }, function(response) {
+
+            // We have to hack into JS of workflow forms
+            // because it's basically NOT aware of mobile site.
+            // Sad, but true.
+
+            // Remove all possibly existing workflow forms out of paranoia
+            $("#wf-pay-form").remove();
+
+            workflow_buttons.hide();
+            workflow_content.empty().html(response).show();
+            setTimeout(function() {
+                // 'cancel' link
+                workflow_content.find('a.cancel').off('click').click(function() {
+                    workflow_content.empty().hide();
+                    workflow_buttons.show();
+                    return false;
+                });
+            }, 0);
+        });
+        return false;
+    });
+
+});</script>

@@ -1,0 +1,34 @@
+<div class="dialog width400px {if $types}height300px{else}height150px{/if}" id="s-types">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=products&action=setTypes">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Change product type`]</h1>
+                <p>[`Changing product type may affect products' publication status and access settings.`]</p>
+                <ul class="menu-v with-icons">
+                    {foreach $types as $type}
+                        <li>
+                            <label>
+                                {shopHelper::getIcon($type.icon)}<input type="radio" name="type_id" value="{$type.id}">
+                                <span class="name">{$type.name|escape}</span>
+                            </label>
+                        </li>
+                    {foreachelse}
+                        <li>[`You have no product types in your online store. Create one in the store settings.`]</li>
+                    {/foreach}
+                </ul>
+                
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                <input type="submit" value="[`Save`]" class="button green">
+                <i class="icon16 loading"></i>
+                [`or`] <a class="cancel" href="#">[`cancel`]</a>
+            </div>
+        </div>
+        {$wa->csrf()}
+    </div>
+    </form>
+</div>

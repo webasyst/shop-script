@@ -1,0 +1,162 @@
+<div class="block double-padded" id="customers-list-wrapper">
+    {if $category_id}
+        <div class="float-right">
+            <ul class="menu-h">
+                <li><a href="#/editcategory/{$category_id}"><i class="icon16 edit"></i>[`Edit category`]</a></li>
+                <li><a href="javascript:void(0)" id="delete-category"><i class="icon16 delete"></i>[`Delete`]</a></li>
+            </ul>
+        </div>
+    {/if}
+    <h1>
+        {$title|escape}
+        {if $discount !== null}
+            <span class="hint">{$discount|escape}
+                <a href="?action=settings#/discounts/category/" title="[`Configure`]"><i class="icon16 settings"></i></a>
+            </span>
+        {/if}
+    </h1>
+
+    {if empty($customers)}
+        <div class="block double-padded align-center">
+            <br><br>
+            <span class="gray">[`You don't have any customers here.`]</span>
+        </div>
+    {else}
+        <table class="zebra s-customers">
+            <thead><tr>
+                <th class="min-width"></th>
+                {foreach $cols as $col_id => $col_name}
+                    <th{if $col_id == 'name'} class="align-left"{/if}>
+                        <a href="javascript:void(0)" class="sort-link" rel="{$col_id}">{$col_name}</a>
+                    </th>
+                {/foreach}
+            </tr></thead>
+            <tbody>
+            {foreach $customers as $c}
+                <tr class="s-customer" data-customer-id="{$c.id}">
+                    <td class="min-width valign-top s-userpic">
+                        <img src="{$c.photo|escape}">
+                    </td>
+                    <td class="align-left">
+                        <h3 class="large"><a href="#/id/{$c.id}">{$c.name|escape}
+                            {foreach $c.categories as $cc}
+                                {if $cc.icon}
+                                    {$wa->shop->icon16($cc.icon)}
+                                {/if}
+                            {/foreach}
+                        </a></h3>
+                        <p>
+                            {if !empty($c.address.country)}
+                                <i class="icon16 country" style="{*/**}background-image: url('{$wa_url}wa-content/img/country/{strtolower($c.address.country)|escape}.gif');{**/*}"></i>
+                            {/if}
+                            {ifset($c.address.city)|escape}{if !empty($c.address.city) && !empty($c.address.region)},{/if}
+                            {ifset($c.address.region)|escape}
+                            <span class="hint">{ifset($c.address.zip)|escape} {ifset($c.address.street)|escape}</span>
+                        </p>
+                    </td>
+                    <td>{waCurrency::format('%0{s}', $c.total_spent, $wa->shop->currency())}</td>
+                    <td>{if $c.affiliate_bonus>=0}+{/if}{$c.affiliate_bonus}</td>
+                    <td>{$c.number_of_orders}</td>
+                    <td>
+                        {if $c.last_order_id}
+                            <a href="?action=orders#/order/{$c.last_order_id}/">{$wa->shop->orderId($c.last_order_id)}</a>
+                            <span class="hint">{$c.last_order_datetime|wa_datetime:"humandate"}</span>
+                        {else}
+                            <span class="hint">&mdash;</span>
+                        {/if}
+                    </td>
+                    <td>{$c.create_datetime|wa_date}</td>
+                </tr>
+            {/foreach}
+            </tbody>
+        </table>
+    {/if}
+
+    <p class="gray customer-list-footer">
+        <br>
+        {if $total_customers_number !== null}
+            {_w('%d contact', '%d contacts', $total_customers_number)}
+        {else}
+            <a href="javascript:void(0)" class="inline-link" rel="{$lazy_loading_params}"><b><i>[`Show more customers`]</i></b></a>
+        {/if}
+    </p>
+</div>
+
+
+<script>(function() { "use strict";
+
+    // Set up breadcrumbs
+    $.customers.lastView = {
+        title: "{$title|escape}",
+        hash: $.customers.getHash()
+    };
+    $.storage.set('shop/customers/lastview', $.customers.lastView);
+
+    // Sort links
+    (function() {
+        var a = $('.sort-link[rel="{trim($order, "!")|escape}"]');
+        if (!a.length) {
+            a = $('.sort-link[rel="name"]');
+        }
+        if ('{$order|escape}' === '!'+a.attr('rel')) {
+            a.append('<i class="icon10 darr-tiny"></i>');
+        } else {
+            a.append('<i class="icon10 uarr-tiny"></i>');
+        }
+        $('.sort-link').click(function() {
+            var order = $(this).attr('rel');
+            if (order == 'name') {
+                // First click sorts in ascending order
+                if (order == '{$order|escape}') {
+                    order = '!'+order;
+                }
+            } else {
+                // First click sorts in descending order
+                if ('!'+order != '{$order|escape}') {
+                    order = '!'+order;
+                }
+            }
+            $.storage.set('shop/customers/sort_order', order);
+            window.location.hash = '{$hash_start}'+order;
+        });
+    })();
+
+    // Drag-and-drop customers into categories
+    var draggable_params = {
+        distance: 5,
+        handle: '.s-userpic img',
+        helper: function(event) {
+            var cloned_tr = $(event.target).closest('tr').clone();
+            cloned_tr.children().each(function() { $(this).width($(this).width()); });
+            cloned_tr.children().slice(2).remove();
+            return $('<div><table></table></div>').find('table').append(cloned_tr).end();
+        }
+    };
+
+    $('#customers-list-wrapper table.s-customers tbody tr.s-customer').draggable(draggable_params);
+
+    // Lazy loading
+    $('#customers-list-wrapper').on('click', '.customer-list-footer a', function() {
+        $.get('?module=customers&action=list&'+$(this).attr('rel'), function(r) {
+            var dom = $('<div></div>').html(r.replace(/<script.*/, ''));
+            dom.find('table.s-customers > tbody > tr').appendTo($('table.s-customers tbody')).draggable(draggable_params);
+            $('.customer-list-footer').after(dom.find('.customer-list-footer')).remove();
+        });
+    });
+
+    {if $category_id}
+        // Update list count in sidebar
+        $('#s-sidebar li[data-category-id="{$category_id}"] .count').html('{$total}');
+
+        // Delete category link
+        $('#delete-category').click(function() {
+            if (!confirm("[`This will delete the entire customer category (customers will not be deleted). Are you sure?`]")) {
+                return;
+            }
+            $('#s-sidebar li[data-category-id="{$category_id}"]').remove();
+            $.post('?module=customers&action=categoryEditor', { id: '{$category_id}', 'delete': 1 });
+            $('#s-content').html('<div class="triple-padded block">'+"[`Category has beed deleted.`]"+'</div>');
+        });
+    {/if}
+})();</script>
+

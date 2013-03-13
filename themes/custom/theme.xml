@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
+<theme id="custom" system="1" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:custom" version="1.0.0">
+    <name locale="en_US">CUSTOM</name>
+    <name locale="ru_RU">CUSTOM</name>
+    <files>
+        <file path="index.html" custom="0" parent="1">
+        </file>
+        <file path="custom.css" custom="0" parent="1">
+        </file>
+        <file path="custom.mobile.css" custom="0" parent="1">
+        </file>
+        <file path="custom.shop.css" custom="0">
+            <description locale="en_US">Core storefront CSS</description>
+            <description locale="ru_RU">Основной CSS интернет-магазина</description>
+        </file>
+        <file path="custom.shop.mobile.css" custom="0">
+            <description locale="en_US">Additional storefront CSS for multi-touch mobile devices</description>
+            <description locale="ru_RU">Дополнительный CSS интернет-магазина для мобильных устройств</description>
+        </file>
+        <file path="content.html" custom="0">
+            <description locale="en_US">Main storefront layout and navigation</description>
+            <description locale="ru_RU">Основное макет вывода содержимого и навигации в интернет-магазине</description>
+        </file>
+        <file path="head.html" custom="0">
+            <description locale="en_US">Shop-Script's &lt;head&gt; instructions</description>
+            <description locale="en_US">Блок &lt;head&gt; приложения Shop-Script</description>
+        </file>
+        <file path="category.html" custom="0">
+            <description locale="en_US">Wrapper for a category page</description>
+            <description locale="ru_RU">Обертка для страницы категории</description>
+        </file>
+        <file path="list-thumbs.html" custom="0">
+            <description locale="en_US">Product list thumbnail view</description>
+            <description locale="ru_RU">Список товаров эскизами</description>
+        </file>
+        <file path="list-table.html" custom="0">
+            <description locale="en_US">Product list table view</description>
+            <description locale="ru_RU">Список товаров таблицей</description>
+        </file>
+        <file path="product.html" custom="0">
+            <description locale="en_US">Dedicated product page</description>
+            <description locale="ru_RU">Шаблон основной страницы продукта</description>
+        </file>
+        <file path="product.js" custom="0">
+            <description locale="en_US">Product page JS</description>
+            <description locale="ru_RU">JS-скрипты страницы продукта</description>
+        </file>
+        <file path="product.page.html" custom="0">
+            <description locale="en_US">Product static subpage content</description>
+            <description locale="ru_RU">Информационная подстраница продукта</description>
+        </file>
+        <file path="review.html" custom="0">
+            <description locale="en_US">A single product review template</description>
+            <description locale="ru_RU">Шаблон вывода одного отзыва о товаре</description>
+        </file>
+        <file path="reviews.html" custom="0">
+            <description locale="en_US">Product review list</description>
+            <description locale="ru_RU">Список отывов о товаре</description>
+        </file>
+        <file path="compare.html">
+            <description locale="en_US">Product comparison</description>
+            <description locale="ru_RU">Сравнение товаров</description>
+        </file>
+        <file path="cart.html" custom="0">
+            <description locale="en_US">Shopping cart page</description>
+            <description locale="ru_RU">Страница с товарами корзины</description>
+        </file>
+        <file path="cart.js" custom="0">
+            <description locale="en_US">Cart JS</description>
+            <description locale="ru_RU">JS-скрипты корзины</description>
+        </file>
+        <file path="checkout.html" custom="0">
+            <description locale="en_US">Checkout core wrapper</description>
+            <description locale="ru_RU">Единый шаблон страниц оформления заказа</description>
+        </file>
+        <file path="checkout.shipping.html" custom="0">
+            <description locale="en_US">Checkout: shipping method selection</description>
+            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+        </file>
+        <file path="checkout.payment.html" custom="0">
+            <description locale="en_US">Checkout: payment method selection</description>
+            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+        </file>
+        <file path="checkout.contactinfo.html" custom="0">
+            <description locale="en_US">Checkout: customer contact information form</description>
+            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+        </file>
+        <file path="checkout.confirmation.html" custom="0">
+            <description locale="en_US">Checkout: order confirmation</description>
+            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+        </file>
+        <file path="checkout.success.html" custom="0">
+            <description locale="en_US">Checkout: thank you page</description>
+            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+        </file>
+        <file path="checkout.error.html" custom="0">
+            <description locale="en_US">Checkout: error page</description>
+            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+        </file>
+        <file path="my.html" custom="0">
+            <description locale="en_US">Customer account interface layout</description>
+            <description locale="ru_RU">Личный кабинет покупателя</description>
+        </file>
+        <file path="my.affiliate.html" custom="0">
+            <description locale="en_US">Customer account interface: affiliate program</description>
+            <description locale="ru_RU">Личный кабинет покупателя: партнерская программа</description>
+        </file>
+        <file path="my.profile.html" custom="0">
+            <description locale="en_US">Customer account interface: contact info editing form</description>
+            <description locale="ru_RU">Личный кабинет покупателя: редактирование контактной информации</description>
+        </file>
+        <file path="my.orders.html" custom="0">
+            <description locale="en_US">Customer account interface: order list</description>
+            <description locale="ru_RU">Личный кабинет покупателя: список заказов</description>
+        </file>
+        <file path="my.order.html" custom="0">
+            <description locale="en_US">Customer account interface: single order information</description>
+            <description locale="ru_RU">Личный кабинет покупателя: информация о заказе</description>
+        </file>
+        <file path="home.html" custom="0">
+            <description locale="en_US">Storefront homepage</description>
+            <description locale="ru_RU">Главная витрина магазина</description>
+        </file>
+        <file path="search.html" custom="0">
+            <description locale="en_US">Wrapper for product search (filtering) results, e.g. by name, tag, or manufacturer</description>
+            <description locale="ru_RU">Обертка для страницы поиска (фильтрации) товаров, например, по тегу, ключевому слову или производителю</description>
+        </file>
+        <file path="page.html" custom="0">
+            <description locale="en_US">Static page content</description>
+            <description locale="ru_RU">Содержимое информационной страницы</description>
+        </file>
+        <file path="sidebar.html" custom="0">
+            <description locale="en_US">Navigation sidebar</description>
+            <description locale="ru_RU">Колонка навигации по магазину</description>
+        </file>
+        <file path="login.html">
+            <description locale="en_US">Login page</description>
+            <description locale="ru_RU">Страница входа для пользователей</description>
+        </file>
+        <file path="signup.html">
+            <description locale="en_US">Sign up page</description>
+            <description locale="ru_RU">Страница регистрации пользователей</description>
+        </file>
+        <file path="forgotpassword.html">
+            <description locale="en_US">Forgot password page</description>
+            <description locale="ru_RU">Страница сброса пароля</description>
+        </file>
+        <file path="error.html">
+            <description locale="en_US">404 and other errors</description>
+            <description locale="ru_RU">404 и другие ошибки</description>
+        </file>
+        <file path="custom.shop.js">
+            <description locale="en_US">CUSTOM theme JS</description>
+            <description locale="ru_RU">Скрипты темы CUSTOM</description>
+        </file>
+    </files>
+</theme>

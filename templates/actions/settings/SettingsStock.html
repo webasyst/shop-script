@@ -1,0 +1,164 @@
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/stocks.js?{$wa->version()}"></script>
+<div class="blank block double-padded s-settings-form">
+    <h1 style="margin-bottom: 1em;">[`Stocking`]</h1>
+    <p>[`Inventory tracking is performed by stocks (warehouses) listed below. Yellow and red indicators are used to visually display low and critical stock levels in both backend and storefront.`]</p>
+    <form action="?module=settings&action=saveStock" method="post" id="s-settings-stocks-form">
+        <div class="block bottom-padded">
+            <a href="#/stock/add/" class="inline-link" id="s-settings-add-stock">
+                <i class="icon16 add"></i><b><i>[`Add stock`]</i></b>
+            </a>
+        </div>
+        <table class="s-big-table" id="s-settings-stocks">
+            <tbody>
+
+            {foreach $stocks as $stock_id => $stock}
+            <tr data-id="{$stock_id}">
+                <td class="min-width valign-top">
+                    <a style="display: inline;" href="javascript: void(0)"><i class="icon16 sort"></i></a>
+                </td>
+                <td>
+                    <h3 class="value"><span class="hint">@</span> {$stock.name|escape}</h3>
+                    <input type="text" name="edit[name][]" class="large bold" value="{$stock.name|escape}" style="display: none;" disabled="disabled">
+                    <input type="hidden" name="edit[id][]" value="{$stock.id}" disabled="disabled">
+                </td>
+                <td class="short">
+                    <span class="value s-count"><i class="icon10 status-yellow"></i>≤<span>{$stock.low_count}</span></span>
+                    <input type="text" class="short" data-name="low_count" name="edit[low_count][]" value="{$stock.low_count}" style="display: none;" disabled="disabled">
+                    <span class="errormsg" style="display:none"></span>
+                </td>
+                <td class="short">
+                    <span class="value s-count"><i class="icon10 status-red"></i><span>≤{$stock.critical_count}</span></span>
+                    <input type="text" class="short" data-name="critical_count" name="edit[critical_count][]" value="{$stock.critical_count}" style="display: none;" disabled="disabled">
+                    <span class="errormsg" style="display:none"></span>
+                </td>
+                <td class="short">
+                    <a href="#/stock/edit/{$stock_id}/" title="[`Edit`]" class="inline inline-link nowrap s-edit-stock"><i class="icon16 edit"></i><b><i>[`Edit`]</i></b></a>
+                </td>
+                <td class="min-width">
+                    <a href="#/stock/delete/{$stock_id}/" title="[`Delete`]" class="inline nowrap no-underline s-delete-stock"><i class="icon16 delete"></i>[`Delete`]</a>
+                </td>
+            </tr>
+            {/foreach}
+            {capture "new_stock"}{strip}
+                <td class="min-width">
+                    <a style="display: inline;" href="javascript: void(0)"><i class="icon16 sort"></i></a>
+                </td>
+                <td class="nowrap bold smaller">
+                    <span class="gray">@</span> <input type="text" name="add[name][]" value="" class="bold large">
+                </td>
+                <td class="nowrap short">
+                    <i class="icon10 status-yellow"></i><span>≤<input class="short" data-name="low_count" type="text" name="add[low_count][]" value="{shopStockModel::LOW_DEFAULT}">
+                    <span class="errormsg" style="display:none"></span>
+                </td>
+                <td class="nowrap short">
+                    <i class="icon10 status-red"></i><span>≤<input class="short" data-name="critical_count" type="text" name="add[critical_count][]" value="{shopStockModel::CRITICAL_DEFAULT}">
+                    <span class="errormsg" style="display:none"></span>
+                </td>
+                <td class="short">
+                    {if count($stocks) < 1}
+                        <label class="s-inventory-stock">
+                            <input type="checkbox" name="add[inventory][]" value="1">[`Assign all inventory to this stock`]
+                        </label>
+                    {/if}
+                </td>
+                <td class="min-width">
+                </td>
+            {/strip}{/capture}
+            </tbody>
+            <!-- new stocks to appear here when "Add stock" is clicked -->
+        </table>
+
+        <div class="fields form">
+            <div class="field">
+                <div class="name">
+                    [`Update stock`]
+                </div>
+                <div class="value">
+                    <select name="update_stock_count_on_create_order">
+                        <option value="1" {if  $wa->shop->settings('update_stock_count_on_create_order')}selected="true"{/if}>[`Order was placed`]</option>
+                        <option value="0" {if !$wa->shop->settings('update_stock_count_on_create_order')}selected="true"{/if}>[`Order was confirmed and accepted for processing`]</option>
+                    </select>
+                    <p class="hint">[`Product stock levels will be updated (reduced) when this action is performed to the order.`]</p>
+                </div>
+            </div>
+            <div class="field">
+                <div class="name">
+                    [`Ordering`]
+                </div>
+                <div class="value no-shift">
+                    <label><input type="radio" name="ignore_stock_count" value="0"{if !$wa->shop->settings('ignore_stock_count')} checked="true"{/if}> [`Maximum number of items that can be added to shopping cart is limited by stock level`]</label>
+                </div>
+                <div class="value no-shift">
+                    <label><input type="radio" name="ignore_stock_count" value="1"{if $wa->shop->settings('ignore_stock_count')} checked="true"{/if}> [`Ordering is not limited by stock levels`]</label>
+                </div>
+            </div>
+            <div class="field">
+                <div class="value submit">
+                    <input type="submit" name="save" class="button green" value="[`Save`]">
+                    <span class="hidden s-mgs-after-button"><i class="icon16 yes after-submit"></i>[`Saved`]</span>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{* dialogs section *}
+{$stocks_count = count($stocks)}
+<div class="dialog {if $stocks_count > 1}width400px height200px{else}width400px height150px{/if}" id="s-settings-delete-stock">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=settings&action=stockDelete">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Delete stock`]</h1>
+                {if $stocks_count > 1}
+                    <ul class="menu-v">
+                        <li>
+                            <label>
+                            <input type="radio" name="delete_stock" value="0" checked>
+                            [`Delete stock and write off products`] <span class="hint">[`All rest products belonging to this stock will be written-off after stock deleting`]</span>
+                            </label>
+                        </li>
+                        <li>
+                            <label>
+                            <input type="radio" name="delete_stock" value="1">
+                            [`Delete stock and transfer products`] <span class="hint">[`All rest products belonging to this stock will be transfered to another stock`]</span>
+                            </label>
+                        </li>
+                        <li>
+                            <label>
+                                <select name="dst_stock" disabled="disabled">
+                                    {foreach $stocks as $stock}
+                                        <option value="{$stock.id}">{$stock.name|escape}</option>
+                                    {/foreach}
+                                </select>
+                            </label>
+                        </li>
+                    </ul>
+                {else}
+                    [`All rest products belonging to this stock will be saved on balance of corresponding skus`]
+                    <input type="hidden" name="delete_stock" value="0" checked>
+                {/if}
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button red" type="submit" value="[`Delete`]"> [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+{$title = "[`Stocking`]"|cat:" — ":{$wa->accountName()}}
+<script>
+$.shop.setTitle('{$title}');
+$.settings.stocksInit({
+    validate_errors: {
+        number: '[`Value must be a positive number`]',
+        no_less: '[`This value must be no less than next field count`]',
+        no_greater: '[`This value must be no greater than previous field count`]'
+    },
+    new_stock: '{$smarty.capture.new_stock}'
+});
+</script>

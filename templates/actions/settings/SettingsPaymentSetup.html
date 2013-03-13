@@ -1,0 +1,77 @@
+<form>
+	<!-- GENERAL PAYMENT OPTION PARAMS -->
+	<div class="field-group">
+
+		<div class="block half-padded float-right">
+			<ul class="menu-h with-icons">
+            {if isset($plugin.status)}
+				<li><a href="#/payment/plugin/delete/{$plugin_id}/" class="js-action js-confirm"><i class="icon16 delete"></i>[`Delete this payment option`]</a></li>
+            {/if}
+			</ul>
+		</div>
+
+        <h1 class="js-bread-crumbs"><a href="#/payment/" class="back">&larr; [`Payment`]</a>&nbsp;{$plugin.name|escape}</h1>
+
+		<div class="field">
+			<div class="name">
+			<label for="s-payment-plugin-status">[`Enabled`]</label>
+			</div>
+			<div class="value">
+                <input name="payment[id]" type="hidden" value="{$plugin_id|escape}">
+                <input name="payment[plugin]" type="hidden" value="{$plugin.plugin|escape}">
+				<input name="payment[status]" type="checkbox"{if !empty($plugin.status)} checked="checked"{/if} id="s-payment-plugin-status" value="1">
+			</div>
+		</div>
+		<div class="field">
+			<div class="name">
+				<label for="s-payment-plugin-name">[`Payment option name`]</label>
+			</div>
+			<div class="value">
+				<input name="payment[name]" type="text" value="{$plugin.name|escape}" class="bold" id="s-payment-plugin-name">
+			</div>
+		</div>
+		<div class="field">
+			<div class="name">
+				<label for="s-payment-plugin-logo">[`Logo URL`]</label>
+			</div>
+			<div class="value">
+				<input name="payment[logo]" type="text" class="long" value="{$plugin.logo|default:''|escape}" id="s-payment-plugin-logo">
+                {if !empty($plugin.logo)}<img src="{$plugin.logo}" style="float:right;">{/if}
+				<p class="hint">{sprintf('[`A collection of payment option icons is available for free: <a href="%s" target="_blank">%s</a> <i class="icon10 new-window"></i>`]','[`http://www.webasyst.net/support/help/payment-shipping-icons.html`]','[`http://www.webasyst.net/support/help/payment-shipping-icons.html`]')}</p>
+			</div>
+		</div>
+		<div class="field">
+			<div class="name">
+				[`Description`]
+			</div>
+			<div class="value">
+				<textarea name="payment[description]">{$plugin.description|escape}</textarea>
+				<p class="hint">[`HTML. Payment method description is shown to customer during the checkout.`]</p>
+			</div>
+		</div>
+        {*
+		<div class="field">
+			<div class="name">
+                [`Delivery info`]
+			</div>
+			<div class="value">
+				<textarea name="payment[email_description]">{$plugin.email_description|default:''|escape}</textarea>
+				<p class="hint">[`Optional text to be sent to customer with the order notification email. Plain text, no HTML allowed.`]</p>
+			</div>
+		</div>
+        *}
+	</div>
+
+	<!-- CUSTOM PAYMENT MODULE PARAMS -->
+	<div class="field-group">
+    	{$settings_html}
+    </div>
+
+	<div class="field-group">
+		<div class="field">
+			<div class="value submit">
+				<input type="submit" class="button green" value="[`Save`]"> [`or`] <a href="#/payment/" class="inline-link">[`cancel`]</a>
+			</div>
+		</div>
+	</div>
+</form>

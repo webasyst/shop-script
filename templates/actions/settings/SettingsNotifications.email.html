@@ -1,0 +1,47 @@
+<style type="text/css">
+#wa .CodeMirror{
+    border: 1px solid #eee;
+}
+.CodeMirror-scroll {
+    height: auto;
+    overflow-y: hidden;
+    overflow-x: auto;
+}
+</style>
+
+<div class="field">
+    <div class="name">[`Send to`]</div>
+    <div class="value no-shift">
+        <select id="notification-to" name="params[to]">
+            <option {if !empty($params.to) && $params.to == 'customer'}selected{/if} value="customer">[`Customer`]</option>
+            <option {if !empty($params.to) && $params.to == 'admin'}selected{/if} value="admin">[`Store admin`]</option>
+            <option {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin'}selected{/if} value="">[`Other...`]</option>
+        </select>
+        {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin'}
+            <input type="text" name="to" value="{$params.to}" placeholder="[`Enter email address`]">
+        {/if}
+    </div>
+</div>
+<div class="field">
+    <div class="name">[`Email subject`]</div>
+    <div class="value">
+        <input name="params[subject]" type="text" value="{if !empty($params.subject)}{$params.subject}{/if}" class="bold long subject">
+    </div>
+</div>
+<div class="field">
+    <div class="name">[`Email body`]<br><span class="hint">HTML + Smarty</span></div>
+    <div class="value no-shift">
+        <div class="s-editor-core-wrapper">
+            <textarea id="n-email-body" class="body" name="params[body]">{if !empty($params.body)}{$params.body}{/if}</textarea>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var codemirror = CodeMirror.fromTextArea(document.getElementById('n-email-body'), {
+        mode: "text/html",
+        tabMode: "indent",
+        height: "dynamic",
+        lineWrapping: true
+    });
+</script>

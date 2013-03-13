@@ -1,0 +1,33 @@
+<!-- top products -->
+{$promos = $wa->shop->productSet('promo')}
+{if $promos && count($promos)}
+    <div class="align-center">
+        {include file="list-thumbs.html" products=$promos}
+    </div>
+{else}
+    <p class="hint align-center">{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','promo')}</p>
+{/if}
+
+<!-- plugin hook: 'frontend_homepage' -->
+{* @event frontend_homepage.%plugin_id% *}
+{foreach $frontend_homepage as $_}{$_}{/foreach}
+
+<div class="sidebar left300px">
+    <!-- storefront navigation -->
+    {include file="sidebar.html"}
+</div>
+
+<div class="content left300px">
+
+    <!-- general homepage welcome text -->
+    <h1>[`Welcome to Shop-Script!`]</h1>
+    <p>[`Use built-in design editor to edit this text and replace it with your general store information and contacts.`]</p>
+
+    {$bestsellers = $wa->shop->productSet('bestsellers')}
+    {if $bestsellers}
+        {include file="list-table.html" products=$bestsellers}
+    {else}
+        <p class="hint align-center">{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','bestsellers')}</p>
+    {/if}
+    
+</div>

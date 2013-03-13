@@ -1,0 +1,257 @@
+{$title_text = "[`Settings`]"}
+{$name_text =  "[`Name`]"}
+
+{capture frontend_url}
+<div class="field">
+    <div class="name">
+        [`Frontend URL`]
+    </div>
+    <div class="value no-shift">
+    {strip}
+        <span class="s-frontend-base-url" style="display:none;">
+            {$settings.frontend_base_url}
+        </span>
+        <a href="{$settings.frontend_url}" class="s-frontend-base-url">
+            {$settings.frontend_base_url}
+            <span id="s-settings-frontend-url">{$settings.url}</span>
+            <span class="slash"></span>
+        </a>
+        <i class="icon10 new-window"></i>
+        <input type="text" id="s-settings-frontend-url-input" value="{$settings.url}" name="url" style="display:none;">
+        <a href="javascript:void(0);" class="small inline-link" id="s-settings-frontend-url-edit-link"><i class="icon10 edit"></i><b><i>edit</i></b></a>
+        <em class="errormsg"></em>
+    {/strip}
+    </div>
+</div>
+{/capture}
+
+{capture frontend_display}
+<div class="field">
+    <div class="name">
+        <label for="custom-settings">
+        [`Frontend display`]
+        </label>
+    </div>
+    <div class="value no-shift">
+        [`Product sort order`]:
+        <select name="sort_products">
+            {if $settings.type == shopCategoryModel::TYPE_STATIC}
+                <option value="" {if empty($settings.sort_products)}selected="selected"{/if}>[`As defined in backend`]</option>
+            {/if}
+            <option value="price DESC"  {if $settings.sort_products == 'price DESC'}selected="selected"{/if}>[`Most expensive`]</option>
+            <option value="price ASC"   {if $settings.sort_products == 'price ASC'}selected="selected"{/if}>[`Least expensive`]</option>
+            <option value="rating DESC" {if $settings.sort_products == 'rating DESC'}selected="selected"{/if}>[`Highest rated`]</option>
+            <option value="rating ASC"  {if $settings.sort_products == 'rating ASC'}selected="selected"{/if}>[`Lowest rated`]</option>
+            <option value="total_sales DESC" {if $settings.sort_products == 'total_sales DESC'}selected="selected"{/if}>[`Best sellers`]</option>
+            <option value="total_sales ASC" {if $settings.sort_products == 'total_sales ASC'}selected="selected"{/if}>[`Worst sellers`]</option>
+            {if $settings.type == shopCategoryModel::TYPE_DYNAMIC}
+                <option value="" {if empty($settings.sort_products)}selected="selected"{/if}>[`Date added`]</option>
+            {else}
+                <option value="create_datetime DESC" {if $settings.sort_products == 'id DESC'}selected="selected"{/if}>[`Date added`]</option>
+            {/if}
+        </select>
+    </div>
+    <div class="value no-shift">
+        <label>
+            <input type="checkbox" name="enable_sorting" {if $settings.enable_sorting}checked="checked"{/if} value="1"> [`Customer can select product sort order`]
+        </label>
+    </div>
+    <div class="value no-shift">
+        <label>
+            <input type="checkbox" name="include_sub_categories" {if $settings.include_sub_categories}checked="checked"{/if} value="1"> [`Include products from sub-categories`]
+            <span class="hint">[`When enabled, products will be fetched from both the current category and all its sub-categories (applicable to frontend only)`]</span>
+        </label>
+    </div>
+    <div class="value no-shift">
+        <label>
+            <input type="checkbox" name="allow_filter" value="1" id="s-category-allow-filter" {if $settings.allow_filter}checked{/if}> [`Allow product filtering`]
+            <span class="hint">[`Product filtering allows your customers to filter (search) products within this category by feature values, e.g. by color, manufacturer, price`]</span>
+        </label>
+        <div class="block" id="s-category-filter" {if !$settings.allow_filter}style="display:none;"{/if}>
+            <ul class="menu-v compact small">
+                {foreach $settings.filter as $feature}
+                    <li>
+                        <label><input type="checkbox" name="filter[]" value="{$feature.id}"
+                            {if !empty($feature.checked) || ($feature.id == 'price' && !$settings.allow_filter)}checked="checked"{/if}>
+                                [`{$feature.name|escape}`]
+                        </label>
+                    </li>
+                {/foreach}
+            </ul>
+        </div>
+    </div>
+</div>
+{/capture}
+
+{capture description}
+<div class="field-group">
+
+    <div class="field">
+        <div class="name">[`Title`]</div>
+        <div class="value">
+            <input value="{$settings.meta_title|escape}" name="meta_title" placeholder="{$settings.name|escape}">
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">[`META Keywords`]</div>
+        <div class="value">
+            <textarea name="meta_keywords">{$settings.meta_keywords|escape}</textarea>
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">[`META Description`]</div>
+        <div class="value">
+            <textarea name="meta_description">{$settings.meta_description|escape}</textarea>
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">
+            <label for="description">
+                [`Description`]<br><span class="hint">[`HTML`]</span>
+            </label>
+        </div>
+        <div class="value">
+            <textarea name="description">{if $settings.description}{$settings.description|escape}{/if}</textarea>
+        </div>
+    </div>
+</div>
+{/capture}
+
+{capture ext_fields}{/capture}
+
+{capture custom_params}
+<div class="field-group">
+    <div class="field">
+        <div class="name">
+            <label for="custom-settings">
+            [`Custom parameters`]
+            </label>
+        </div>
+        <div class="value">
+            <textarea name="params" rows="10" cols="5">{if $settings.params}{foreach $settings.params as $k=>$v}{if $k!='order'}{$k}={$v|escape|cat:"\n"}{/if}{/foreach}{/if}</textarea><br>
+            <span class="hint">[`Optional set of custom <em>key=value</em> parameters which can be used within a frontend's theme template as <em>&#123;$category.key&#125;</em>. Each key=value pair should be on a separate line.`]</span>
+        </div>
+    </div>
+</div>
+{/capture}
+
+{capture dynamic_settings}
+{if $settings.type == shopCategoryModel::TYPE_DYNAMIC}
+<div class="field-group" id="s-category-dynamic-settings">
+    <script type="text/javascript" src="{$wa_app_static_url}js/rate.widget.js"></script>
+    <div class="field">
+        <div class="name">
+            [`Product filtering options`]
+        </div>
+        <div class="value">
+            <table class="zebra">
+                <tbody>
+                    <tr>
+                        <td class="min-width">
+                            <input id="s-condition-rate" type="checkbox" name="condition[]" value="rating" {if isset($settings.conditions.rating)}checked{/if}>
+                        </td>
+                        <td>
+                            <label for="s-condition-rate">[`Rating`]</label>
+                        </td>
+                        <td>
+                            <select name="rating[]">
+                                <option value=">=" {if isset($settings.conditions.rating[0]) && $settings.conditions.rating[0] == '>='}selected{/if}>[`is greater or equal`]</option>
+                                <option value="<=" {if isset($settings.conditions.rating[0]) && $settings.conditions.rating[0] == '<='}selected{/if}>[`is lesser or equal`]</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="hidden" name="rating[]" id="s-c-category-rate-value" value="{if isset($settings.conditions.rating[1])}{$settings.conditions.rating[1]}{else}0{/if}">
+                            <a href="javascript:void(0);" class="s-rate-photo" title="Rate photo" id="s-category-rate" class="s-rate-photo" data-rate="{if isset($settings.conditions.rating[1])}{$settings.conditions.rating[1]}{else}0{/if}">
+                                {$wa->shop->ratingHtml(0, 16, true)}
+                            </a>
+                        </td>
+                    </tr>
+                    {if !empty($settings.cloud)}
+                    <tr>
+                        <td class="min-width">
+                            <input id="s-condition-tag" type="checkbox" name="condition[]" value="tag" {if isset($settings.conditions.tag)}checked{/if}>
+                        </td>
+                        <td>
+                            <label for="s-condition-tag">[`Tags`]</label>
+                        </td>
+                        <td colspan="2">
+                            <div class="block double-padded align-center">
+                            {foreach $settings.cloud as $tag}
+                                <label><span class="s-tag nowrap" style="font-size: {$tag.size}%;" data-id="{$tag.id}"><input type="checkbox" name="tag[]" value="{$tag.name|escape}" {if isset($tag.checked)}checked{/if}> {$tag.name|escape}</span></label>
+                            {/foreach}
+                            </div>
+                        </td>
+                    </tr>
+                    {/if}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{/if}
+{/capture}
+
+{capture js}
+<script type="text/javascript">
+    var d = $('#s-product-list-settings-dialog');
+    if ($('#s-category-dynamic-settings', d).length) {
+        $('#s-category-rate', d).rateWidget({
+            withClearAction: false,
+            onUpdate: function(rate) {
+                $('#s-c-category-rate-value').val(rate);
+            }
+        });
+        // check corresponding checkbox when change control
+        $('select[name^=rating]', d).change(function() {
+            $('#s-condition-rate').attr('checked', true);
+        });
+        $('#s-category-rate', d).click(function() {
+            $('#s-condition-rate').attr('checked', true);
+        });
+        d.on('change', 'input[name^=tag]', function() {
+            $('#s-condition-tag').attr('checked', true);
+        });
+    }
+    $('#s-category-allow-filter', d).click(function() {
+        if (this.checked) {
+            $('#s-category-filter').show();
+        } else {
+            $('#s-category-filter').hide();
+        }
+    });
+
+    var frontend_url = $('#s-settings-frontend-url');
+    frontend_url.inlineEditable({
+        editLink : '#s-settings-frontend-url-edit-link',
+        editOnItself : false,
+        minSize : {
+            width : 100
+        },
+        makeReadableBy : [],
+        beforeMakeEditable : function(input) {
+            var self = $(this);
+            var parent_div = self.parents('div:first');
+            var slash = parent_div.find('span.slash');
+            var new_window = parent_div.find('i.new-window');
+            $(input).after(slash);
+            new_window.hide();
+
+            parent_div.find('span.s-frontend-base-url').html(parent_div.find('a.s-frontend-base-url').hide().contents()).show();
+        },
+        beforeBackReadable : function(input, data) {
+            var self = $(this);
+            var parent_div = self.parents('div:first');
+            var slash = parent_div.find('span.slash');
+            var new_window = parent_div.find('i.new-window');
+            self.after(slash);
+            new_window.show();
+
+            parent_div.find('a.s-frontend-base-url').html(parent_div.find('span.s-frontend-base-url').hide().contents()).show();
+        }
+    });
+
+</script>
+{/capture}
+
+{* extend base template *}
+{include file="./DialogProductListSettings.html"}

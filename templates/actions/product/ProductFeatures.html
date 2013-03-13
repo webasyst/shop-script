@@ -1,0 +1,178 @@
+<div class="fields form">
+{$product_features = $product.features}
+
+{$feature_type=0}
+
+<div class="field">
+    <div class="name">[`Product type`]</div>
+    <div class="value no-shift">
+        <span class="js-type-icon">{shopHelper::getIcon($product.type.icon)}</span>
+        <strong>{$product.type.name|escape}</strong>&nbsp;
+        {if $type_id != $product.type_id}&nbsp;&rarr;&nbsp;{shopHelper::getIcon($product_types[$type_id]['icon'])}<strong>{$product_types[$type_id]['name']}</strong>{/if}
+        <a href="#/product/{$product.id}/edit/main/type/select/" class="inline-link js-action"><b><i>[`Change type`]</i></b></a>
+    </div>
+</div>
+
+
+{foreach $features as $code => $feature}
+<div class="field" data-type="{$feature.type}" data-multiple="{$feature.multiple}" data-selectable="{$feature.selectable}" data-code="{$code|escape}">
+    <div class="name">
+        {if empty($feature.internal)}<i class="icon10 exclamation" title="[`This feature is not listed for the product type this product belongs to`]"></i> {/if}{$feature.name|escape}
+    </div>
+    <div class="value">
+
+    {if $feature.selectable}
+    	{if $feature.multiple}
+    		{foreach $feature.values as $value_id => $value}
+                <label>
+                    <input type="checkbox" name="product[features][{$code}][]" value="{$value|escape}"{if !empty($product_features[$code]) && in_array($value, (array)$product_features[$code])} checked="checked"{/if}>
+                	{$value|escape}
+                    <br>
+                </label>
+    		{/foreach}
+
+            {if empty($smarty.capture) || empty($smarty.capture['feature-value-multiple-template-js'])}
+	        <!-- {capture name="feature-value-multiple-template-js"}{literal} edit feature jquery template -->
+
+            <label>
+                <input type="checkbox" checked="checked" disabled="disabled" name="product[features][{%=o.feature.input%}]" value="">
+                {% include (o.feature.value_template, {'feature': o.feature}); %}
+                <a href="#/product/{/literal}{$product.id}{literal}/edit/features/value/delete/" class="inline-link js-action" title="[`Cancel`]"><i class="icon10 delete"></i></a>
+                <br>
+            </label>
+            <!-- {/literal}{/capture} -->
+        	{/if}
+
+		{else}{* $feature.multiple*}
+            <select name="product[features][{$code}]">
+                <option value=""{if empty($product_features[$code])} selected="selected"{/if}></option>
+        		{foreach $feature.values as $value_id => $value}
+                    <option value="{$value|escape}"{if !empty($product_features[$code]) && ((string)$product_features[$code] == $value) } selected="selected"{/if}>{$value|escape}</option>
+        		{/foreach}
+                {if empty($smarty.capture) && empty($smarty.capture['feature-value-template-js'])}
+                <!-- {capture name="feature-value-template-js"}{literal} edit feature jquery template -->
+                    <option value="{%=o.value%}">{%=o.value%}</option>
+                <!-- {/literal}{/capture} -->
+        		{/if}
+            </select>
+    	{/if}
+
+        <a href="#/product/{$product.id}/edit/features/value/add/" class="inline-link hint js-action"><b><i>[`other`]</i></b></a>
+    {else}
+	{*$feature.selectable*}
+
+    	{if strpos($feature.type,'dimension') === 0}
+    	{$units = shopDimension::getUnits($feature.type)}
+            <input type="text" value="{if !empty($product_features[$code])}{$product_features[$code]->value}{/if}" name="product[features][{$code}][value]">
+            <select  name="product[features][{$code}][unit]">
+    			{foreach $units as $unit}
+                    <option value="{$unit.value|escape}" title="{$unit.title|escape}"{if !empty($product_features[$code]) && ($product_features[$code]->unit == $unit.value)} selected="selected"{/if}>{$unit.value|escape}</option>
+    			{/foreach}
+            </select>
+    	{elseif strpos($feature.type,'text') === 0}
+            <textarea name="product[features][{$code}]">{if !empty($product_features[$code])}{$product_features[$code]|escape}{/if}</textarea>
+        {else}
+            <input type="text" name="product[features][{$code}]" value="{if !empty($product_features[$code])}{$product_features[$code]|escape}{/if}">
+    	{/if}
+    {/if}
+
+    </div>
+</div>
+{foreachelse}
+[`Product features undefined`]
+{/foreach}
+
+{foreach $product_features as $code => $value}
+{if empty($features[$code])}
+    <div class="field">
+        <div class="name">{$code}</div>
+        <div class="value">{$value}</div>
+    </div>
+{/if}
+{/foreach}
+
+
+{* new feature templates namespace = product[features][{%=code}] *}
+<!-- {capture name="feature-add-template-js"} -->
+<div class="field" {literal} data-type="{%=o.feature.type%}" data-multiple="{%=o.feature.multiple%}" data-selectable="{%=o.feature.selectable%}" data-code="{%=o.feature.code%}"{/literal}>
+    <div class="name">
+    {literal}
+    <input type="text" placeholder="[`Feature name`]" name="product[features][{%=o.feature.input%}][name]" value="{%=o.feature.name%}">
+    <input type="hidden" value="{%=o.feature.type%}" name="product[features][{%=o.feature.input%}][type]">
+    <input type="hidden" value="{/literal}{$type_id}{literal}" name="product[features][{%=o.feature.input%}][types][]">
+    {/literal}
+    </div>
+
+    <div class="value no-shift">
+    {* value templates *}
+    {literal}
+    {% o.feature.input = o.feature.input +'][value'; %}
+    {% include (o.feature.value_template, {feature: o.feature}); %}
+    {/literal}
+    <!-- {capture name="feature-value-template-js"} -->
+    <input type="text" value="" placeholder="[`Feature value`]" name="{literal}product[features][{%=o.feature.input%}]{/literal}">
+    <!-- {/capture} values here -->
+    <!-- {capture name="feature-value-text-template-js"} -->
+    <textarea name="{literal}product[features][{%=o.feature.input%}]{/literal}"></textarea>
+    <!-- {/capture} values here -->
+
+    {$dimension = shopDimension::getInstance()}
+    {$dimensions = $dimension->getList()}
+    {foreach $dimensions as $code=>$unit}
+    <!-- {capture name="feature-value-dimension-`$code`-template-js"} -->
+    <input type="text" name="{literal}product[features][{%=o.feature.input%}][value]{/literal}" value="" placeholder="{$unit.name}">
+
+    {$units = shopDimension::getUnits($code)}
+    {if $units}
+        <select name="{literal}product[features][{%=o.feature.input%}][unit]{/literal}">
+        {foreach $units as $unit}
+            <option value="{$unit.value|escape}">{$unit.title|escape}</option>
+        {/foreach}
+        </select>
+    {/if}
+    <!-- {/capture} -->
+    {/foreach}
+
+    {include file="../../includes/featuresValuesTypes.html" inline base="/product/`$product.id`/edit/features/feature/type" class="js-action" link=true}
+   </div>
+</div>
+<!-- {/capture} -->
+
+<div class="field">
+    <div class="value">
+        <br>
+        <a href="#/product/{$product.id}/edit/features/add/" class="inline-link js-action"><i class="icon16 add"></i><b><i>[`New feature`]</i></b></a>
+    </div>
+</div>
+
+
+</div>
+<div class="clear"></div>
+{*
+<p><pre>{var_export($product_features,true)|escape}</pre></p>
+<p><pre>{var_export($changed_features,true)|escape}</pre></p>
+<p><pre>{var_export($features,true)|escape}</pre></p>
+*}
+
+<script src="{$wa_app_static_url}js/product/features.js?{$wa->version()}" type="text/javascript"></script>
+<script type="text/javascript">
+$.product = $.extend(true, $.product, {
+    'features_values':{$changed_features|json_encode}
+});
+{literal}
+$.product.init({
+    'value_templates':{{/literal}
+        {$dimensions = $dimension->getList()}
+        {foreach $dimensions as $code => $var}'dimension.{$code|escape}':'-dimension-{$code|escape}'{if !$var@last},{/if}
+
+        {/foreach}{literal}
+     }
+},'features');{/literal}
+</script>
+
+
+{foreach $smarty.capture as $name => $template} {if strpos($name,'template-js')}
+<script type="text/x-jquery-tmpl" id="{$name}">
+<!-- begin {$name} {$template|replace:'</':'<\\/'} end {$name} -->
+</script>
+{/if} {/foreach}

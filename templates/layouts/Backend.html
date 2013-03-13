@@ -1,0 +1,218 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"><html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    {$title=$wa->title()}
+    <title>{if $title}{$title|escape}{else}{$wa->appName()}{/if} &mdash; {$wa->accountName()}</title>
+
+    {$wa->css()}
+
+    <link href="{$wa_url}wa-content/css/jquery-ui/base/jquery.ui.autocomplete.css" rel="stylesheet" type="text/css" />
+    <link href="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/jquery.jqplot.min.css" rel="stylesheet" type="text/css" />
+    <link href="{$wa_url}wa-content/js/jquery-plugins/ibutton/jquery.ibutton.min.css" rel="stylesheet" type="text/css" />
+    <link href="{$wa_url}wa-content/js/codemirror/lib/codemirror.css" type="text/css" rel="stylesheet"/>
+    <link href="{$wa_app_static_url}css/shop.css?v{$wa->version()}" rel="stylesheet" type="text/css" />
+    <!-- link your CSS files here -->
+    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="{$wa_url}wa-content/js/codemirror/lib/codemirror.js"></script>
+    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/jquery.jqplot.min.js"></script>
+    <!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/excanvas.min.js"></script><![endif]-->
+    {wa_js file="js/shop-jquery.min.js"}
+        {$wa_url}wa-content/js/jquery-wa/wa.core.js
+        {$wa_url}wa-content/js/jquery-wa/wa.dialog.js
+        {$wa_url}wa-content/js/jquery-ui/jquery-ui.custom.min.js
+        {$wa_url}wa-content/js/jquery-plugins/ibutton/jquery.ibutton.min.js
+        {$wa_url}wa-content/js/jquery-plugins/jquery.history.js
+        {$wa_url}wa-content/js/jquery-plugins/jquery.store.js
+        {$wa_url}wa-content/js/jquery-ui/jquery.ui.core.min.js
+        {$wa_url}wa-content/js/jquery-ui/jquery.ui.widget.min.js
+        {$wa_url}wa-content/js/jquery-ui/jquery.ui.mouse.min.js
+        {$wa_url}wa-content/js/jquery-ui/jquery.ui.position.min.js
+        {$wa_url}wa-content/js/jquery-ui/jquery.ui.autocomplete.min.js
+        {$wa_url}wa-content/js/jquery-ui/jquery.ui.draggable.min.js
+        {$wa_url}wa-content/js/jquery-ui/jquery.ui.droppable.min.js
+        {$wa_url}wa-content/js/jquery-ui/jquery.ui.sortable.min.js
+        {$wa_url}wa-content/js/jquery-ui/jquery.ui.datepicker.min.js
+
+        {$wa_url}wa-content/js/jquery-plugins/jquery.tmpl.min.js
+
+        {$wa_url}wa-content/js/codemirror/mode/xml/xml.js
+        {$wa_url}wa-content/js/codemirror/mode/javascript/javascript.js
+        {$wa_url}wa-content/js/codemirror/mode/css/css.js
+        {$wa_url}wa-content/js/codemirror/mode/htmlmixed/htmlmixed.js
+        {$wa_url}wa-content/js/jquery-wa/wa.editor.js
+
+        {$wa_url}wa-content/js/jquery-plugins/jquery-plot/plugins/jqplot.highlighter.min.js
+        {$wa_url}wa-content/js/jquery-plugins/jquery-plot/plugins/jqplot.cursor.min.js
+        {$wa_url}wa-content/js/jquery-plugins/jquery-plot/plugins/jqplot.dateAxisRenderer.min.js
+        {$wa_url}wa-content/js/jquery-plugins/jquery-plot/plugins/jqplot.pieRenderer.min.js
+    {/wa_js}
+    <script type="text/javascript" src="{$wa_app_static_url}js/shop.js?{$wa->version()}"></script>
+    <script type="text/javascript" src="?action=loc&amp;v{$wa->version()}"></script>
+    {$wa->js()}
+    {block name="head"} {/block}
+
+    <!-- link your JS files here -->
+    <script type="text/javascript">
+        $(function() {
+            $.shop.init({
+                debug: true,
+                menu_floating: {if $page != 'settings'}true{else}false{/if}
+            });
+        });
+    </script>
+</head>
+<body>
+<div id="wa"{if isset($no_level2)} class="s-no-level2"{/if}>
+
+    {$wa->header()}
+
+    <div id="wa-app">
+
+        <div id="mainmenu">
+            <ul class="tabs">
+                {if $wa->userRights('settings')}
+                <li class="small float-right{if $page=='plugins'} selected{else} no-tab{/if}" style="margin-right: 30px;">
+                    <a href="?action=plugins">[`Plugins`]</a>
+                </li>
+                <li class="small float-right{if $page=='settings'} selected{else} no-tab{/if}">
+                    <a href="?action=settings">[`Settings`]</a>
+                </li>
+                {/if}
+                <li class="small float-right{if $page=='importexport'} selected{else} no-tab{/if}">
+                    <a href="?action=importexport">[`Import / Export`]</a>
+                </li>
+
+                <!-- plugin hook: 'backend_menu.aux_li' -->
+                {* @event backend_menu.%plugin_id%.aux_li *}
+                {foreach $backend_menu as $_}{ifset($_.aux_li)}{/foreach}
+
+                {if $wa->userRights('orders')}
+                    <li class="{if !$page || $page=='orders'}selected{else}no-tab{/if}">
+                        <a href="{$wa_app_url}?action=orders">
+                            [`Orders`]
+                        </a>
+                    </li>
+                    <li class="{if $page=='customers'}selected{else}no-tab{/if}">
+                        <a href="?action=customers">[`Customers`]</a>
+                    </li>
+                {/if}
+                <li class="{if $page=='products'}selected{else}no-tab{/if}">
+                    <a href="?action=products">[`Products`]</a>
+                </li>
+                {if $wa->userRights('reports')}
+                    <li class="{if $page=='reports'}selected{else}no-tab{/if}">
+                        <a href="?action=reports">[`Reports`]</a>
+                    </li>
+                {/if}
+                <li class="{if $page=='storefronts'}selected{else}no-tab{/if} s-storefronts-tab">
+                    <a href="?action=storefronts">[`Storefront`]</a>
+                </li>
+
+                <!-- plugin hook: 'backend_menu.core_li' -->
+                {* @event backend_menu.%plugin_id%.core_li *}
+                {foreach $backend_menu as $_}{ifset($_.core_li)}{/foreach}
+
+                <li class="no-tab s-openstorefront">
+                    <a href="{$frontend_url}" target="_blank">[`Open storefront`] <i class="icon10 new-window"></i></a>
+                </li>
+            </ul>
+            {if !isset($no_level2)}
+            <div class="s-level2">
+                <div class="block bordered-bottom">
+
+                    {if $page == 'products'}
+
+                        <div class="s-search-form">
+                            <i class="icon16 ss search-bw"></i>
+                            <input type="search" placeholder="[`Search products`]" id="s-products-search">
+                        </div>
+
+                    {elseif $page == 'customers'}
+
+                        <ul class="menu-h with-icons">
+                            <div class="s-search-form">
+                                <i class="icon16 ss search-bw"></i>
+                                <input type="search" placeholder="[`Search customers by name, email, or phone number`]" id="s-customers-search">
+                            </div>
+                        </ul>
+
+                    {elseif $page == 'reports'}
+
+                        <div class="float-right">
+                            <ul class="menu-h dropdown s-reports-timeframe">
+                                <li>
+                                    <a href="javascript:void(0)" class="inline-link float-right"><b><i>[`Last 30 days`]</i></b>
+                                        {* <i class="icon10 darr"></i> *}
+                                    </a>
+                                    {* !!! Reports period selector is not implemented
+                                    <ul class="menu-v">
+                                        <li class="selected"><a href="#" class="nowrap">[`Last 30 days`]</a></li>
+                                        <li><a href="#" class="nowrap">[`Last 90 days`]</a></li>
+                                        <li><a href="#" class="nowrap">[`All time`]</a></li>
+                                    </ul>
+                                    *}
+                                </li>
+                            </ul>
+                        </div>
+                        <ul class="menu-h s-reports">
+                            <li>
+                                <a href="#/sales/">[`Sales`]</a>
+                            </li>
+                            <li>
+                                <a href="#/profit/">[`Profit`]</a>
+                            </li>
+                            <li>
+                                <a href="#/top/">[`Top products`]</a>
+                            </li>
+                            {*
+                            <li>
+                                <span class="gray">[`Efficiency`]</span>
+                            </li>
+                            <li>
+                                <span class="gray">[`Promo campaigns`]</span>
+                            </li>
+                            *}
+
+                            <!-- plugin hook: 'backend_menu.reports_li' -->
+                            {* @event backend_menu.%plugin_id%.reports_li *}
+                            {foreach $backend_menu as $_}{ifset($_.reports_li)}{/foreach}
+
+                        </ul>
+
+                    {elseif $page == 'orders'}
+
+                        <ul class="menu-h with-icons float-right" id="s-orders-views">
+                            <li data-view="split">
+                                <a href="#"><i class="icon16 view-splitview"></i></a>
+                            </li>
+                            <li data-view="table">
+                                <a href="#"><i class="icon16 view-table"></i></a>
+                            </li>
+
+                            <!-- plugin hook: 'backend_menu.orders_viewmode_li' -->
+                            {* @event backend_menu.%plugin_id%.orders_viewmode_li *}
+                            {foreach $backend_menu as $_}{ifset($_.orders_viewmode_li)}{/foreach}
+
+                        </ul>
+                        <div class="s-search-form">
+                            <i class="icon16 ss search-bw"></i>
+                            <input type="search" placeholder="[`Search orders by ID`]" id="s-orders-search">
+                        </div>
+
+                    {/if}
+
+                </div>
+            </div>
+            {/if}
+        </div>
+        <div id="maincontent"{if isset($no_level2)} class="s-no-level2"{/if}>
+        {block name="content"}
+            {$content}
+        {/block}
+        </div>
+
+    </div><!-- #wa-app -->
+
+</div><!-- #wa -->
+</body>
+</html>

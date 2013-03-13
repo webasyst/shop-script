@@ -1,0 +1,32 @@
+<div class="block double-padded s-image-upload-dropbox">
+	<a href="#" id="s-upload-images-link"><i class="icon16 upload"></i>[`Select images`]</a>
+	<span class="gray">[`or drag them here to start upload`]</span>
+</div>
+
+<!-- plugin hook: 'backend_product_edit.images' -->
+{* @event backend_product_edit.%plugin_id%.images *}
+{if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.images)}{/foreach}{/if}
+
+{$placeholder = '[`add description`]'}
+<ul class="thumbs li250px" id="s-product-image-list">
+</ul>
+
+<script type="text/javascript">
+$.product_images.init({
+    product_id:   {$product_id},
+    placeholder: '{$placeholder}',
+    images: {json_encode(array_values($images))},
+    count: {count($images)},
+    onSort: function(id, before_id) {
+        var product_view_images_list = $('#s-product-view .s-product-image-crops');
+        var item = product_view_images_list.find('li[data-image-id='+id+']');
+        if (before_id) {
+            product_view_images_list.find('li[data-image-id='+before_id+']').before(item);
+        } else {
+            product_view_images_list.append(item);
+        }
+    }
+});
+</script>
+
+{include './include.imageUpload.html' inline}

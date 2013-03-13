@@ -1,0 +1,175 @@
+<script type="text/javascript" src="{$wa_app_static_url}js/tmpl.min.js?{$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/inline.editable.widget.js?{$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/currencies.js?{$wa->version()}"></script>
+<div class="blank s-settings-form" id="s-settings-currencies">
+    <div class="block double-padded">
+        <div class="float-right">
+            <ul class="menu-h with-icons">
+                <li><a href="#" id="s-settings-change-primary-currency"><i class="icon16 dollar"></i>[`Change primary currency`]</a></li>
+            </ul>
+        </div>
+        <h1>[`Currencies`]</h1>
+        <div class="fields form">
+              <form method="POST" action="?module=settings&action=currenciesSave">
+              <div class="field-group">
+                <div class="field">
+                    <div class="name">
+                        [`Primary currency`]
+                    </div>
+                    <div class="value no-shift">
+                        <h2>{$system_currencies[$primary].title} <span class="hint">{$primary}</span></h2>
+                    </div>
+                    <div class="value">
+                        <label>
+                            <input type="radio" name="use_product_currency" value="0" {if !$use_product_currency}checked{/if}> [`I will input all prices in the primary currency`]
+                        </label>
+                    </div>
+                    <div class="value">
+                        <label>
+                            <input type="radio" name="use_product_currency" value="1" {if $use_product_currency}checked{/if}> [`I will input prices in different currencies depending on product`]
+                        </label>
+                    </div>
+                    <div class="value no-shift submit" style="display:none;">
+                        {$wa->csrf()}
+                        <input type="submit" class="button green" value="[`Save`]">
+                    </div>
+                </div>
+              </div>
+              </form>
+              <div class="field-group">
+                <div class="field">
+                    <div class="name">
+                        [`Other currencies`]
+                    </div>
+                    <div class="value no-shift">
+                        <table class="zebra s-settings-currencies">
+                            {foreach $currencies as $currency}
+                            {if $currency.code != $primary}
+                                <tr data-code="{$currency.code}" class="s-settings-currency">
+                                    <td class="min-width">
+                                        <i class="icon16 sort"></i>
+                                        <input type="hidden" name="currency[]" value="{$currency.code}">
+                                    </td>
+                                    <td class="nowrap"><strong>{$currency.title}</strong> <span class="hint">{$currency.sign}</span></td>
+                                    <td class="s-rate {if $currency.code != $primary}editable{/if}">
+                                        1 {$currency.code} = <span id="s-rate-{$currency.code}">{(float)$currency.rate}</span>
+                                        <input type="text" name="rate[]" value="{(float)$currency.rate}" id="s-rate-{$currency.code}-input" style="display:none;" class="numerical short">
+                                        {$primary}
+                                    </td>
+                                    <td class="s-actions">
+                                        <a href="javascript:void(0);"><i class="icon16 settings"></i></a>                                    
+                                        <a href="javascript:void(0);"><i class="icon16 delete"></i></a>
+                                        <input type="button" class="save" value="[`Save`]">
+                                    </td>
+                                </tr>
+                            {/if}
+                            {/foreach}
+                            {capture "template-new-currency"}{literal}
+                            <tr data-code="{%#o.code%}" class="s-settings-currency new" style="display: none;">
+                                <td class="min-width">
+                                    <i class="icon16 sort"></i>
+                                    <input type="hidden" name="currency[]" value="{%#o.code%}">
+                                </td>
+                                <td width="26%"><strong class="s-settings-name">{%#o.title%}</strong> <span class="hint">{%#o.sign%}</span></td>
+                                <td class="s-rate editable">
+                                    1 {%#o.code%}  = <span id="s-rate-{%#o.code%}">1</span>
+                                    <input type="text" name="rate[]" value="1" id="s-rate-{%#o.code%}-input" style="display:none;" class="numerical short">
+                                    {/literal}{$primary}{literal}
+                                </td>
+                                <td class="s-actions">
+                                    <a href="javascript:void(0);"><i class="icon16 settings"></i></a>
+                                    <a href="javascript:void(0);"><i class="icon16 delete"></i></a>
+                                    <input type="button" class="save" value="[`Save`]">
+                                </td>
+                            </tr>
+                            {/literal}{/capture}
+                            {if !empty($rest_system_currencies)}
+                            <tr class="white">
+                                <td class="min-width"></td>
+                                <td colspan="4">
+                                    <select class="add-new-currency">
+                                        <option value="0">[`Add currency...`]</option>
+                                    {foreach $system_currencies as $code => $currency}
+                                        <option value="{$code}" {if !isset($rest_system_currencies[$code])}disabled="disabled" style="display:none;"{/if} data-sign="{$currency.sign}" data-title="{$currency.title}">{$code} - {$currency.title}</option>
+                                    {/foreach}
+                                    </select>
+                                </td>
+                            </tr>
+                            {/if}
+                        </table>
+                    </div>
+                </div>
+              </div>
+        </div>
+        <div class="clear-both"></div>
+</div>
+
+{* dialogs section *}
+
+{$convert_text = "[`Convert product prices (%d) to the new primary currency (%s) according to the current exchange rate (%s)`]"}
+{$convert_text = $convert_text|replace:"%d":$product_count}
+<div class="dialog width600px {if $product_count > 0}height200px{else}height150px{/if}" id="s-settings-change-primary-currency-dialog">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=settings&action=currencyChange">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Change primary currency`] <span>({$primary})</span></h1>
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">[`New primary currency`]</div>
+                        <div class="value">
+                            <select name="code" data-primary="{$primary}">
+                                {foreach $currencies as $currency}
+                                    {if $currency.code != $primary}
+                                        <option value="{$currency.code}" {if $currency.code == $primary}checked="checked"{/if} data-rate="{(float)$currency.rate}">{$currency.code}</option>
+                                    {/if}
+                                {/foreach}
+                            </select>
+                        </div>
+                    </div>
+                    {if $product_count > 0}
+                    <div class="field">
+                        <div class="name">[`Convert prices`]</div>
+                        <div class="value">
+                            <label><input type="radio" name="convert" value="1" checked="checked">
+                                <span class="s-convert-text">{$convert_text}</span>
+                            </label>
+                        </div>
+                        <div class="value">
+                            <label><input type="radio" name="convert" value="0"> [`Don't convert, leave all product prices as is`]</label>
+                        </div>
+                    </div>
+                    {/if}
+                </div> 
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button blue" type="submit" value="[`Change primary currency`]"> [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+
+{* js templates block*}
+{foreach $smarty.capture as $template => $template_content}
+{if $template_content && (strpos($template, 'template-')===0)}
+    <script id="{$template}" type="text/html">
+        {$template_content|replace:'</':'<\/'}
+    </script>
+{/if}
+{/foreach}
+
+{$title = "[`Currencies`]"|cat:" — ":{$wa->accountName()}}
+<script type="text/javascript">
+    $.shop.setTitle('{$title}');
+    $.settings.currenciesInit({
+        primary: '{$primary}',
+        remove_text: '[`Click “Save” button below to commit the delete.`]',
+        convert_text: '{$convert_text}',
+        system_currencies: {json_encode($system_currencies)}
+    });
+</script>

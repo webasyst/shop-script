@@ -1,0 +1,111 @@
+{$title_text="[`New set`]"}
+{$name_text="[`Name`]"}
+{$type_text="[`Type`]"}
+{$static_type_text="[`Manually add and arrange products in this set`]"}
+{$dynamic_type_text="[`Smart set based on a search criteria, e.g. rating or tags`]"}
+
+{capture frontend_url}{/capture}
+{capture custom_params}{/capture}
+{capture description}{/capture}
+
+{capture ext_fields}
+<div class="field-group">
+    <div class="field">
+        <div class="name">[`Set ID`]</div>
+        <div class="value no-shift">
+            &#123;$wa->shop->productSet("<input type="text" name="id" class="s-full-width-input" value="" id="s-product-set-id" style="margin-top: -3px;">")&#125;
+            <em class="errormsg"></em>
+            <p class="hint">[`Set ID is used in the code for embedding product set into frontend design templates and pages.`]</p>
+        </div>
+    </div>
+</div>
+{/capture}
+
+{capture dynamic_settings}
+<div class="field">
+    <div class="name">
+        [`Product filtering`]
+    </div>
+    <div class="value no-shift">
+        <select name="rule">
+            <option value="price DESC">[`Most expensive`]</option>
+            <option value="price ASC">[`Least expensive`]</option>
+            <option value="rating DESC">[`Highest rated`]</option>
+            <option value="rating ASC">[`Lowest rated`]</option>
+            <option value="total_sales DESC">[`Best sellers`]</option>
+            <option value="total_sales ASC">[`Worst sellers`]</option>
+            <option value="" selected="selected">[`Date added`]</option>
+        </select>
+    </div>
+</div>
+<div class="field">
+    <div class="name">
+        [`Max number of products`]
+    </div>
+    <div class="value">
+        <input type="text" name="count" value="{$default_count}">
+        <p class="hint">[`Limit the maximum number of products in this set`]</p>
+    </div>
+</div>
+{/capture}
+
+{capture js}
+<script type="text/javascript">
+    (function(){
+        var id_input   = $('#s-product-set-id');
+        var name_input = $('#s-product-list-name');
+        var state = { val: "", changed: false };
+        
+        var delay = 200;
+        var id_input_timer;
+        var name_input_timer;
+        
+        id_input.bind('keydown', function() {
+            var self = $(this);
+            if (id_input_timer !== null) {
+                clearTimeout(id_input_timer);
+                id_input_timer = null;
+            }
+            id_input_timer = setTimeout(function() {
+                var val = self.val();
+                if (state.val !== val) {
+                    state.changed = true;
+                    state.val = val;
+                    self.unbind('keydown');
+                }
+            }, delay);
+        });
+        
+        name_input.bind('keydown', function() {
+            var self = $(this);
+            if (state.changed) {
+                self.unbind('keydown');
+                return;
+            }
+            if (name_input_timer !== null) {
+                clearTimeout(name_input_timer);
+                name_input_timer = null;
+            }
+            name_input_timer = setTimeout(function() {
+                var val = self.val();
+                if (!val) {
+                    return;
+                }
+                $.getJSON('?action=transliterate&str='+val, function(r) {
+                    if (state.changed) {
+                        self.unbind('keydown');
+                        return;
+                    }
+                    if (r.status == 'ok') {
+                        state.val = r.data;
+                        id_input.val(state.val);
+                    }
+                });
+            }, delay);
+        });
+    })();
+</script>
+{/capture}
+
+{* extend base template *}
+{include file="./DialogProductListCreate.html"}

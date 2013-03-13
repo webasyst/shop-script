@@ -1,0 +1,86 @@
+<div class="block double-padded">
+
+    <h1>
+        [`Coupons`]
+    </h1>
+
+    <form action="?module=settings&action=discountsCoupons" id="s-discounts-coupons-form">
+        <div class="fields form">
+            <div class="field-group">
+                <input type="hidden" name="dummy" value="1">
+                <div class="field">
+                    <div class="name">[`Status`]</div>
+                    <div class="value no-shift s-ibutton-checkbox">
+                        <ul class="menu-h">
+                            <li><span class="gray" id="s-discount-type-disabled-label">[`Disabled`]</span></li>
+                            <li>
+                                <input type="checkbox" id="s-discount-type-status" name="enabled" value="1"{if $enabled} checked{/if}>
+                            </li>
+                            <li><span id="s-discount-type-enabled-label">[`Enabled`]</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field"{if !$enabled} style="display:none"{/if}>
+                <div class="value">
+                    <p class="hint">{sprintf('[`Coupons can be created on the <a href="%s">Discount coupons</a> screen.`]','?action=orders#/coupons/')}</p>
+                    <br>
+                </div>
+            </div>
+
+{* !!! coupons CSV import is not implemented yet.
+            <div class="field-group"{if !$enabled} style="display:none"{/if}>
+                <div class="field">
+                    <div class="name">[`Import coupons`]</div>
+                    <div class="value">
+                        <input type="file">
+                        <p class="hint">
+                            <br>
+                            {sprintf('[`Coupons can be either created manually on the <a href="%s">Discount coupons</a> screen, or imported from a CSV file using the button above.`]','?action=orders#/coupons/')}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field-group"{if !$enabled} style="display:none"{/if}>
+                <div class="field">
+                    <div class="value submit">
+                        <input type="submit" value="[`Save`]" class="button green">
+                    </div>
+                </div>
+            </div>
+*}
+
+        </div>
+    </form>
+
+    <div class="clear-left"></div>
+
+</div>
+
+<script>(function() { "use strict";
+    var form = $('#s-discounts-coupons-form');
+    var current_type = 'coupons';
+
+    var ibutton = $('#s-discount-type-status').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
+        var self = $(this);
+        var enabled = self.is(':checked');
+        if (enabled) {
+            self.closest('.field-group').siblings().show(200);
+            $('#discount-types a[rel="'+current_type+'"] i.icon16').attr('class', 'icon16 status-blue-tiny');
+        } else {
+            self.closest('.field-group').siblings().hide(200);
+            $('#discount-types a[rel="'+current_type+'"] i.icon16').attr('class', 'icon16 status-gray-tiny');
+        }
+        $.post('?module=settings&action=discountsEnable', { type: current_type, enable: enabled ? '1' : '0' });
+    });
+
+    form.submit(function() {
+        form.find(':submit').attr('disabled', true);
+        $.post(form.attr('action'), form.serialize(), function(r) {
+            $('#s-discounts-content').html(r);
+        });
+        return false;
+    });
+})();</script>

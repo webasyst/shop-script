@@ -1,0 +1,54 @@
+/*
+ * Webasyst CUSTOM theme family
+ *
+ * Shop-Script app CSS for mobiles
+ * (requires linking base custom.css and custom.mobile.css files from the Site app)
+ *
+ * @link http://www.webasyst.com/
+ * @author Webasyst LLC
+ * @copyright 2013 Webasyst LLC
+ * @package Webasyst
+ */
+ 
+.container { padding: 1px 15px 0; min-width: 0; }
+
+.sidebar { margin-bottom: 20px; }
+.sidebar.left, .sidebar.left300px { width: 100%; float: none; }
+.sidebar.right, .sidebar.right300px { width: 100%; float: none; }
+.content.left, .content.left300px { margin-left: 0; }
+.content.right, .content.right300px { margin-right: 0; }
+.app-header { min-height: 0; padding-top: 0; }
+.top-padded { padding-top: 0; }
+
+#header { margin-bottom: 20px; margin-top: -3px; }
+#header ul#wa-apps li.selected { background: none; }
+#footer { padding-bottom: 30px; }
+#footer .container { margin: 0 15px; }
+#footer #copyright { padding-left: 0; }
+#footer #sub-links { margin-left: 0; margin-top: 30px; }
+#footer #sub-links ul li { float: none; margin-bottom: 5px; }
+
+/* Shop-Script specific
+----------------------- */
+
+.breadcrumbs { margin-bottom: 15px; }
+.breadcrumbs a { color: #aaa; }
+
+div.cart { float: none !important; width: auto !important; }
+
+.search { margin-bottom: 20px; }
+.search.float-right { float: none !important; }
+.search input { width: auto; }
+
+.filters { float: none; width: auto; margin-bottom: 20px; }
+
+.currency-toggle { display: none; }
+.sidebar.hide-for-mobile { display: none; }
+
+.image img { height: auto !important; }
+
+.review-form-fields label { width: auto; float: none; }
+.review-form-fields input { width: 80%; }
+.review-form textarea { width: 100%; }
+.review-form .review-submit { padding-left: 0; }
+.review-form .wa-captcha img { margin-bottom: 10px; }

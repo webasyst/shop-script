@@ -1,0 +1,25 @@
+<form id="wf-comment-form" action="?module=workflow&action=perform" method="post">
+    <input type="hidden" name="id" value="{$order_id}">
+    <input type="hidden" name="action_id" value="{$action_id}">
+    <textarea name="text" placeholder="[`Comment`]"></textarea>
+    <br><br>
+    <input class="button green" type="submit" value="[`Save`]"> [`or`] <a class="cancel inline-link" href="#"><b><i>[`cancel`]</i></b></a>
+</form>
+
+<script type="text/javascript">
+    // cancel link
+    $('a.cancel').click(function() {
+        var el = $(this).closest('.workflow-content');
+        el.empty().hide();
+        el.prev().show();
+        return false;
+    });
+
+    $("#wf-comment-form").submit(function () {
+        var f = $(this);
+        $.post(f.attr('action'), f.serialize(), function () {
+            $.order.reload();
+        }, "json");
+        return false;
+    });
+</script>

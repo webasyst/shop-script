@@ -1,0 +1,298 @@
+<form id="order-edit-form" method="post" action="?module=order&action=save{if $order}&id={$order.id}{/if}">
+<div class="sidebar left400px">
+    <div class="block top-padded">
+        {if !$order && $wa->userRights('shop')}
+            <div class="float-right block half-padded small">
+                <a href="#" id="customer-search-activate" style="display:none;" class="inline-link"><b><i>[`New customer`]</i></b></a>
+            </div>
+        {/if}
+        <h2><a href="#" class="back">&larr; [`Back`]</a> <span>[`Customer`]</span></h2>
+        <em class="errormsg s-customer-errors" style="font-size: 1.1em;"></em>
+        {if !$order && $wa->userRights('shop')}
+            <input id="customer-autocomplete" type="search" class="search large long" placeholder="[`Type name, email or phone number`]">
+        {/if}
+    </div>
+    <div class="block">
+        <div class="fields form width100px" id="s-order-edit-customer">
+            <div class="field-group">
+                {if $form}
+                    {$form->html()}
+                {else}
+                    <div class="fields form width100px">
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="name">[`Name`]</div>
+                                <div class="value"><span>{$order.contact.name}</span></div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`Phone`]</div>
+                                <div class="value"><p><span>{$order.contact.phone}</span></p></div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`Email`]</div>
+                                <div class="value"><p><span>{$order.contact.email}</span></p></div>
+                            </div>
+                        </div>
+                    </div>
+                {/if}
+            </div>
+        </div>
+        {if $form}
+            <input type="hidden" value="{if $order}{$order.contact_id}{else}0{/if}" name="customer_id" id="s-customer-id" {if !$order}disabled="disabled"{/if}>
+        {/if}
+    </div>
+</div>
+
+{* Templates *}
+
+{function name="service_item"}
+    {$multi_variants = count($service.variants) > 1}
+    <li>
+        {if !empty($service.item)}
+            {if !empty($service.fake)}
+                <label>
+                    <input type="checkbox" disabled="disabled" checked="checked">
+                    <input type="text" name="name[edit][{$service.item.id}]" value="{$service.item.name}" class="small">
+                    <input type="hidden" name="service[edit][{$index}][item][{$service.item.id}]" value="{$service_id}">
+                    {if $service.item.service_variant_id !== null}
+                        <input type="hidden" name="variant[edit][{$index}][{$service_id}]" value="{$service.item.service_variant_id}">
+                    {/if}
+                </label>
+            {else}
+                <label>
+                    <input type="checkbox" name="service[edit][{$index}][item][{$service.item.id}]" value="{$service_id}" checked="checked">
+                    {$service.name}
+                </label>
+                {if !$multi_variants}
+                    <input type="hidden" name="variant[edit][{$index}][{$service_id}]" value="{$service.variant_id}">
+                {else}
+                    <select name="variant[edit][{$index}][{$service_id}]" class="s-orders-service-variant"
+                        {if $service.item.service_variant_id === null}disabled="disabled"{/if}>
+                        {foreach $service.variants as $variant_id => $variant}
+                            <option value="{$variant.id}" data-price="{$variant.price}"
+                                {if $service.item.service_variant_id == variant_id}selected="selected"{/if}>
+                                {$variant.name} ({$variant.price_str})
+                            </option>
+                        {/foreach}
+                    </select>
+               {/if}
+            {/if}
+            <input type="text" name="price[edit][item][{$service.item.id}]" value="{$service.item.price}" class="short numerical s-orders-service-price">{$currency}
+        {else}
+            <label>
+                <input type="checkbox" name="service[edit][{$index}][new][{$service_id}]" value="{$service_id}">
+                {$service.name}
+            </label>
+            {if !$multi_variants}
+                <strong>{$service.variants[$service.variant_id].price_str}</strong>
+                <input type="hidden" name="variant[edit][{$index}][{$service_id}]" value="{$service.variant_id}">
+            {else}
+                <select name="variant[edit][{$index}][{$service_id}]" class="s-orders-service-variant">
+                    {foreach $service.variants as $variant_id => $variant}
+                        <option value="{$variant.id}" data-price="{$variant.price}" 
+                            {if $service.variant_id == $variant_id}selected="selected"{/if}>
+                            {$variant.name} ({$variant.price_str})
+                        </option>
+                    {/foreach}
+                </select>
+            {/if}
+            <input type="text" name="price[edit][new][{$service_id}]" value="{$service.price}" class="short numerical s-orders-service-price">{$currency}
+        {/if}
+    </li>
+{/function}
+
+{function name="product_item"}
+    {$product_sku = null}
+    <tr data-product-id="{$product.id}" data-index="{$index}" class="s-order-item">
+        <td class="min-width valign-top">
+            {if $product.url_crop_small}
+                <img src="{$product.url_crop_small}">
+            {else}
+                <img src="{$wa_app_static_url}img/image-dummy-small.png" class="not-found" style="width: 48px; height: 48px;">
+            {/if}
+        </td>
+        <td>
+            <strong class="large">
+                {if empty($product.fake)}{$product.name}{else}{$product.item.name}{/if}
+            </strong>
+            <span class="gray">
+                {if empty($product.fake)}{$product.price_str}{/if}
+            </span>
+            {if empty($product.fake)}{$product.icon}{/if}
+            <p>
+                {if count($product.skus) > 1}
+                    <ul class="menu-v compact small s-orders-skus">
+                        {foreach $product.skus as $sku_id => $sku}
+                            {if $product.item.sku_id == $sku_id}{$product_sku = $sku}{/if}
+                            <li><label>
+                                <input type="radio" name="sku[edit][{$product.item.id}]" value="{$sku_id}" {if $product.item.sku_id == $sku_id}checked="checked"{/if}>
+                                {$sku.name}<strong>{$sku.price_str}</strong>{$sku.icon}
+                            </label></li>
+                        {/foreach}
+                    </ul>
+                {else}
+                    {$product_sku = $product.skus[$product.item.sku_id]}
+                    {if !empty($product.fake)}
+                        <p><input type="text" name="name[edit][{$product.item.id}]" value="{$product.item.name}" class="small"></p>
+                    {/if}
+                    <input type="hidden" name="sku[edit][{$product.item.id}]"   value="{$product.item.sku_id}">
+                {/if}
+            </p>
+
+            {if !empty($product.services)}
+                <ul class="menu-v compact small s-orders-services"><p>
+                    {foreach $product.services as $service_id => $service}
+                        {call service_item}
+                    {/foreach}
+                </p></ul>
+            {/if}
+        </td>
+
+        <td class="valign-top align-right nowrap">
+            <span style="padding-top: 2px;" class="gray">x</span>
+            <input type="text" name="quantity[edit][{$product.item.id}]" value="{$product.item.quantity}" data-max-value="{if $product.count !== null}{$product.count}{/if}" class="s-orders-quantity short numerical">
+        </td>
+        <td class="valign-top align-right nowrap s-orders-product-stocks">
+            {if $product_sku && !empty($product_sku.stock)}
+                @ <select name="stock[edit][{$product.item.id}]">
+                {if empty($product_sku.stock[$product.item.stock_id])}
+                    <option value="0"></option>
+                {/if}
+                {foreach $stocks as $stock_id => $stock}
+                    <option value="{$stock_id}" {if $stock_id == $product.item.stock_id}selected="selected"{/if}>
+                        {$stock.name|escape}
+                    </option>
+                {/foreach}
+                </select>
+                <em class="errormsg s-error-item-stock_id"></em>
+            {else}
+                <input type="hidden" name="stock[edit][{$product.item.id}]" value="0">
+            {/if}
+        </td>
+        <td class="valign-top s-orders-product-price nowrap align-right">
+            <input type="text" name="price[edit][{$product.item.id}]" value="{$product.item.price}" class="short numerical"><span style="padding-top: 2px;">{$currency}</span>
+        </td>
+        <td class="valign-top min-width"><a href="#" class="s-order-item-delete" title="[`Remove from the order`]"><i class="icon16 delete"></i></a></td>
+
+        <input type="hidden" name="item[edit][{$index}]" value="{$product.item.id}">
+        <input type="hidden" name="product[edit][{$product.item.id}]" value="{$product.id}">
+    </tr>
+{/function}
+
+<div class="content left400px bordered-left">
+    <div class="block double-padded">
+        <h2>{if !$order}[`Add products`]{else}{shopHelper::encodeOrderId({$order.id})}{/if}</h2>
+        <em class="errormsg s-order-errors" style="padding: 5px 0 10px;"></em>
+        <table id="order-items" class="zebra s-order-items-edit">
+            <tbody>
+                {if $order}
+                    {foreach $order.items as $product}
+                        {call product_item index = $product@index}
+                    {/foreach}
+                {/if}
+            </tbody>
+            <tbody>
+                <!-- add product -->
+                <tr class="white" id="s-orders-add-row">
+                    <td class="min-width align-center"><i class="icon16 add"></i></td>
+                    <td colspan="5">
+                        <input id="orders-add-autocomplete" type="search" class="search bold large long" placeholder="[`Type product or SKU name`]">
+                    </td>
+                </tr>
+                <!-- subtotal -->
+                <tr class="white large">
+                    <td class="min-width"></td>
+                    <td class="align-right" colspan="3">
+                        [`Subtotal`]
+                    </td>
+                    <td class="align-right nowrap">
+                        <span id="subtotal"></span>
+                        <span class="currency">{$currency}</span>
+                    </td>
+                    <td></td>
+                </tr>
+    
+                <!-- shipping -->
+                <tr class="white">
+                    <td class="min-width"></td>
+                    <td class="align-right" colspan="3">
+                        [`Shipping`]
+                        {$shipping_methods = shopHelper::getShippingMethods(array())}
+                        <select id="shipping_methods" name="shipping_id">
+                            <option value=""></option>
+                            {foreach $shipping_methods as $m_id => $m}
+                                <option {if !empty($order.shipping_id) && $order.shipping_id == $m_id}selected{/if} data-rate="{$m.rate}" value="{$m_id}">{$m.name}</option>
+                            {/foreach}
+                        </select>
+                    </td>
+                    <td class="align-right nowrap">
+                        <input type="text" name="shipping" class="numerical short" id="shipping-rate" {if $order}value="{(float)$order.shipping}"{/if}>
+                        <span class="currency">{$currency}</span>
+                    </td>
+                    <td></td>
+                </tr>
+                
+                <!-- payment -->
+                <tr class="white">
+                    <td class="min-width"></td>
+                    <td class="align-right nowrap" colspan="3">
+                        [`Payment`]
+                        {$payment_methods = shopHelper::getPaymentMethods()}
+                        <select name="payment_id">
+                            {foreach $payment_methods as $m}
+                            <option {if !empty($order.params.payment_id) && $order.params.payment_id == $m.id}selected="true"{/if} value="{$m.id}">{$m.name}</option>
+                            {/foreach}
+                        </select>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr class="white">
+                    <td class="min-width"></td>
+                    <td class="align-right" colspan="3">[`Discount`]</td>
+                    <td class="align-right nowrap">
+                        <input type="text" class="numerical short" id="discount" name="discount" {if $order}value="{(float)$order.discount}"{/if}>
+                        <span class="currency">{$currency}</span>
+                    </td>
+                    <td></td>
+                </tr>
+    
+                <!-- total -->
+                <tr class="white large">
+                    <td class="min-width"></td>
+                    <td class="align-right large" colspan="3">[`Total`]</td>
+                    <td class="align-right large bold nowrap">
+                        <span id="total"></span>
+                        <span class="currency">{$currency}</span>
+                    </td>
+                    <td></td>
+                </tr>
+                
+                <tr class="white large">
+                    <td colspan="3" class="align-right">
+                        {if !empty($taxes_count)}
+                        <em class="hint">[`Tax will be calculated after the order is saved.`]</em>
+                        {/if}
+                    </td>
+                    <td class="align-right" colspan="3">
+                        <input type="submit" class="button green large" value="[`Save order`]">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{$wa->csrf()}
+</form>
+
+<script type="text/javascript" src="{$wa_app_static_url}js/order/edit.js?v{$wa->version()}"></script>
+<script>
+    $.order_edit.init({
+        id: {if $order}{$order.id}{else}0{/if},
+        mode: '{if $order}edit{else}add{/if}',
+        container: '#s-content',
+        form: '#order-edit-form',
+        autocomplete_url: '{$wa_backend_url}contacts/?action=autocomplete&limit=5',
+        currency: '{$currency}',
+        stocks: {json_encode($stocks)},
+    });
+</script>

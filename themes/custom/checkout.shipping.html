@@ -1,0 +1,48 @@
+<ul class="checkout-options">
+    {foreach $checkout_shipping_methods as $m}
+        <li{if !empty($m.error)} class="gray"{/if}>
+            {if empty($m.error)}
+            <div class="rate">
+                <span class="price nowrap">
+                    {shop_currency($m.rate, $m.currency)}
+                </span>
+                {if isset($m.est_delivery)}
+                    <span class="hint">
+                        <br><br>
+                        [`Estimated delivery`]:<br>
+                        <strong class="est_delivery">{($m.est_delivery)}</strong>
+                    </span>
+                {/if}
+            </div>
+            {/if}
+            <h3>
+                <label>            
+                    <input {if !empty($m.error)}disabled="disabled"{/if} type="radio" name="shipping_id" value="{$m.id}" {if $m.id == $shipping.id}checked{/if}>
+                    {$m.name|escape}
+                </label> 
+                    
+                {if empty($m.error) && !empty($m.rates)}
+                    {if count($m.rates) > 1}
+                        <select class="shipping-rates" name="rate_id[{$m.id}]">
+                            {foreach $m.rates as $rate_id => $r}
+                                <option data-rate="{shop_currency($r.rate, $r.currency)}" data-est_delivery="{$r.est_delivery}" value="{$rate_id}"{if $rate_id == $shipping.rate_id} selected{/if}>{$r.name|escape} ({shop_currency($r.rate, $r.currency)})</option>
+                            {/foreach}
+                        </select>
+                    {else}
+                        <input type="hidden" name="rate_id[{$m.id}]" value="{key($m.rates)}">
+                    {/if}
+                {/if}
+            </h3>
+            {if $m.description}<p>{$m.description}</p>{/if}
+            {if !empty($m.error)}<p class="error"><em>{$m.error}</em></p>{/if}
+        </li>
+    {/foreach}
+</ul>
+<script type="text/javascript">
+    $("select.shipping-rates").change(function () {
+        var opt = $(this).children('option:selected');
+        var li = $(this).closest('li');
+        li.find('.price').html(opt.data('rate'));
+        li.find('.est-delivery').html(opt.data('est_delivery'));
+    });
+</script>

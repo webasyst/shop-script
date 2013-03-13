@@ -1,0 +1,90 @@
+<div class="s-review {if $review.status == shopProductReviewsModel::STATUS_DELETED}s-deleted{/if}">
+    <div class="profile image50px">
+        <div class="image">
+        
+            <!-- product thumbnail -->
+            <a href="#/product/{$review.product_id}/" title="{$product.name|escape}">
+                {if !empty($review.product_url_crop_small)}
+                    <img src="{$review.product_url_crop_small}">
+                {else}
+                    <img src="{$wa_app_static_url}img/image-dummy-small.png">
+                {/if}
+            </a>
+
+        </div>
+        <div class="details">
+            <!-- rating -->
+            {if !$review.parent_id && !empty($review.rate) && $review.title}
+                <h5>
+                    <span class="hint rate">
+                        {$rate = round($review.rate)}
+                        {$wa->shop->ratingHtml($rate, 10, true)}
+                    </span>
+                    {$review.title|escape|nl2br}
+                </h5>
+            {/if}
+            {*
+            <span class="s-review-auth-user">
+                {if isset($review.product) && $review.product && (!isset($single_view) || !$single_view)}
+                    <span class="hint">
+                      [`on`]
+                      {if isset($review.product) && $reivew.product && (true || $review.editable) || (isset($review.product) && $review.product)}
+                          {$review.product.title|escape}
+                      {else}
+                          [`unknown product`]
+                      {/if}
+                    </span>
+                {/if}
+            </span>
+            *}
+
+            <span class="hint">
+
+                <!-- author -->
+                {if $review.contact_id}
+                    <a href="{$wa_backend_url}contacts/#/contact/{$review.contact_id}" class="bold">{$review.author.name|escape}</a>
+                {elseif $review.site}
+                    <a href="{$review.site}" class="bold">{$review.author.name|escape}</a>
+                {else}
+                    <strong>{$review.author.name|escape}</strong>
+                    {if $review.email}{$review.email|escape}{/if}
+                {/if}
+
+                {if !empty($review.product_name)}
+                    {sprintf('[`on <a href="%s">%s</a>`]', "#/product/{$review.product_id}/", {$review.product_name|escape})}
+                {/if}
+
+                <!-- datetime -->
+                {$review.datetime|wa_datetime:"humandatetime"}
+
+            </span>
+
+            {if true || $review.editable}
+                <a href="#" class="small s-review-delete"  {if $review.status == shopProductReviewsModel::STATUS_DELETED}  style="display: none;"{/if} >[`delete`]</a>
+                <a href="#" class="small s-review-restore" {if $review.status == shopProductReviewsModel::STATUS_PUBLISHED}style="display: none;"{/if} >[`restore`]</a>
+            {/if}
+
+
+            {if $review.status == shopProductReviewsModel::STATUS_DELETED && !(true || $review.editable)}
+                <p class="s-review-text">[`Review deleted`]</p>
+            {else}
+                {if isset($review.product) && (!$review.product || (!(true || $review.editable) && ($review.product)))}
+                    <p class="s-review-text">[`Review for unknown product`]</p>
+                {else}
+                    <p class="s-review-text">
+                        <span{if isset($review.is_new)} class="highlighted"{/if}>{$review.text|escape|nl2br}</span>
+                    </p>
+                    {if $review.parent_id && isset($review.parent_text)}
+                        <span class="hint">[`in reply to`] <strong>{if $review.parent_status == shopProductReviewsModel::STATUS_DELETED && !(true || $review.editable)}<strike>[`Review deleted`]</strike>{else}{$review.parent_text|escape}{/if}</strong></span>
+                        <br>
+                    {/if}
+                    {if $reply_allowed}
+                        <a href="{if isset($reply_link)}{$reply_link}{else}#{/if}" class="s-review-reply small inline-link"><b><i>[`reply`]</i></b></a>
+                    {/if}
+                {/if}
+            {/if}
+
+        </div>
+    </div>
+
+</div>

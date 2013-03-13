@@ -1,0 +1,67 @@
+<div class="sidebar left200px s-settings-order-states">
+    <div class="s-inner-sidebar">
+
+        <ul class="menu-v stack with-icons"  id="s-printform-menu">
+                {foreach $plugins as $info}
+                <li>
+                    <a href="#/printform/{$info.id}/">
+                        {if empty($info.icon.16)}
+                            {shopHelper::getIcon('ss print-forms-bw')}
+                        {else}
+                            {shopHelper::getIcon($info.icon.16)}
+                        {/if}
+                        {$info.name|default:$info.id|escape}
+                        <span class="hint">{$info.description|default:''|escape}</span>
+                    </a>
+                </li>
+                {foreachelse}
+                <li>
+                    [`There no printforms`]
+                </li>
+                {/foreach}
+            </ul>
+            <div class="align-center hint hr block double-padded">
+                <p>
+                    {sprintf('[`<a href="%s">Browse for new plugins</a> and install them using the Installer app.`]', {$wa_backend_url}|cat:'installer/?module=plugins&slug=shop')}
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+<div class="content left200px s-settings-form blank bordered-left" id="s-printform-content">
+
+    <div class="block double-padded">
+        <h1>
+           [`Printable forms`]
+       </h1>
+
+        <div class="fields form">
+        </div>
+        <div class="clear-both"></div>
+        <!-- printform plugin placeholder -->
+    </div>
+
+</div>
+
+
+
+
+
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/printform.js?{$wa->version()}">
+</script>
+
+
+{$title = "[`Printable forms`]"|cat:" — ":{$wa->accountName()}}
+
+<script type="text/javascript">
+$.shop.setTitle('{$title}');
+{literal}
+$.settings.settingsOptions({
+    'loading' : '<div class="block double-padded">[`Loading...`]<i class="icon16 loading"><i></div>'
+})
+if(typeof($)!='undefined') {
+    $.settings.printformInit();
+}
+{/literal}
+</script>

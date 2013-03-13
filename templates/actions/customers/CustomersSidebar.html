@@ -1,0 +1,78 @@
+    <div class="block">
+        <ul class="menu-v with-icons">
+            <li class="bottom-padded">
+                <a href="#/add/" class="bold"><i class="icon16 add"></i>[`New customer`]</a>
+            </li>
+            <li>
+                <span class="count">{$all_customers_count}</span>
+                <a href="#/all/">
+                    <i class="icon16 ss shop"></i>[`All customers`]
+                </a>
+            </li>
+            
+            <!-- plugin hook: 'backend_customers.sidebar_top_li' -->
+            {* @event backend_customers.%plugin_id%.sidebar_top_li *}
+            {if !empty($backend_customers)}{foreach $backend_customers as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
+            
+        </ul>
+    </div>
+    
+    <!-- plugin hook: 'backend_customers.sidebar_section' -->
+    {* @event backend_customers.%plugin_id%.sidebar_section *}
+    {if !empty($backend_customers)}{foreach $backend_customers as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
+
+    <div class="block drop-target">
+        <h5 class="heading" style="cursor:default">
+            <span class="count"><a href="#/editcategory/" title="[`New category`]"><i class="icon16 add"></i></a></span>
+            [`Categories`]
+        </h5>
+        <ul class="menu-v with-icons collapsible" id="customer-categories">
+            {foreach $categories as $c}
+                <li data-category-id="{$c.id}">
+                    <span class="count">{$c.cnt}</span>
+                    <a href="#/category/{$c.id}">
+                        {$wa->shop->icon16($c.icon)}{$c.name|escape}
+                    </a>
+                </li>
+            {/foreach}
+        </ul>
+    </div>
+
+<script>$(function() { "use strict";
+
+    $('.link-to-contacts a').attr('href', "{$contacts_url}");
+
+    // Categories in sidebar accept drag-and-droppable customers
+    $('#customer-categories li').droppable({
+        accept: 'tr.s-customer',
+        tolerance: 'pointer',
+        over: function() {
+            $(this).addClass('drag-newparent');
+        },
+        out: function() {
+            $(this).removeClass('drag-newparent');
+        },
+        activate: function() {
+            $(this).parents('.block').addClass('drag-active');
+        },
+        deactivate: function() {
+            $(this).removeClass('drag-newparent').parents('.block').removeClass('drag-active');
+        },
+        drop: function(e, ui) {
+            var li = $(this);
+            var customer_id = ui.draggable.data('customerId');
+            var category_id = li.data('categoryId');
+            if (!customer_id || !category_id) {
+                return;
+            }
+            $.post('?module=customers&action=category', { customer_id: customer_id, category_id: category_id }, function() {
+                li.children('a').append(
+                    $('<span><i class="icon10 yes" style="margin-left:10px"></i>'+"[`added`]"+'</span>').animate({ 'opacity': 0 }, 1000, function() {
+                        $(this).remove();
+                    })
+                );
+            });
+        }
+    });
+});</script>
+

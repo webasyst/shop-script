@@ -1,0 +1,51 @@
+{capture name="review_list"}
+    {foreach $reviews as $id => $review}
+        <li data-id="{$review.id}">{include file="./../product/include.review.html" inline reply_allowed=$reply_allowed}</li>
+    {/foreach}
+{/capture}
+{if !$lazy}
+<script type="text/javascript" src="{$wa_app_static_url}js/rate.widget.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/product/reviews.js"></script>
+<div class="block double-padded">
+    <h1>[`Reviews`]</h1>
+    <div class="s-reviews">
+        <ul class="menu-v with-icons">{$smarty.capture.review_list}</ul>
+        <div id="s-review-add" style="display:none;">
+            {include './../product/include.addReview.html' inline}
+        </div>
+    </div>
+    <div class="lazyloading-wrapper">
+        <div class="lazyloading-progress-string">{_w('%d review','%d reviews', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+        <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more reviews`]</a>
+        <span class="lazyloading-progress" style="display:none">
+            <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d review', '%d reviews', min($total_count - $count, $count))}...</span>
+        </span>
+    </div>
+</div>
+{$title = '[`Reviews`]'|cat:" — ":{$wa->accountName()}}
+<script>
+    $.shop.setTitle('{$title}');
+    $.product_reviews.init({
+        statuses: {
+            deleted: '{shopProductReviewsModel::STATUS_DELETED}',
+            published: '{shopProductReviewsModel::STATUS_PUBLISHED}'
+        },
+        lazy_loading: {
+            auto: true,
+            total_count: {$total_count},
+            count: {$count}
+        },
+        container: '#s-content'
+    });
+    $('#s-all-reviews').find('.count-new:first').text({if $sidebar_counters.new}'+{$sidebar_counters.new}'{else}''{/if});
+</script>
+{else}
+    <ul class="s-reviews">{$smarty.capture.review_list}</ul>
+    <div class="lazyloading-progress-string">{_w('%d review','%d reviews', $offset + $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+    <span class="lazyloading-progress" style="display:none">
+        <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d review', '%d reviews', min($total_count - $offset - $count, $count))}...</span>
+    </span>
+    <script>
+        $('#s-all-reviews').find('.count-new:first').text({if $sidebar_counters.new}'+{$sidebar_counters.new}'{else}''{/if});
+    </script>
+{/if}

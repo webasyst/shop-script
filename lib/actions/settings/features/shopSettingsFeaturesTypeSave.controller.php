@@ -1,0 +1,28 @@
+<?php
+class shopSettingsFeaturesTypeSaveController extends waJsonController
+{
+    public function execute()
+    {
+        $data = array();
+
+        $data['id'] = waRequest::post('id', 0, waRequest::TYPE_INT);
+
+        $data['name'] = waRequest::post('name');
+        $data['icon'] = waRequest::post('icon_url', false, waRequest::TYPE_STRING_TRIM);
+        if (empty($data['icon'])) {
+            $data['icon'] = waRequest::post('icon', 'icon.box', waRequest::TYPE_STRING_TRIM);
+        }
+
+        $model = new shopTypeModel();
+        if (!empty($data['id'])) {
+            $res = $model->updateById($data['id'], $data);
+        } else {
+            $data['sort'] = $model->select('MAX(sort)+1 as max_sort')->fetchField('max_sort');
+            $data['id'] = $model->insert($data);
+        }
+        $data['icon_html'] = shopHelper::getIcon($data['icon'], 'icon.box');
+        $data['name_html'] = '<span class="js-type-icon">'.$data['icon_html'].'</span>
+                    <span class="js-type-name">'.htmlspecialchars($data['name'], ENT_QUOTES, 'utf-8').'</span>';
+        $this->response = $data;
+    }
+}

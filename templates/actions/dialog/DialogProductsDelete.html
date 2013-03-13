@@ -1,0 +1,21 @@
+<div class="dialog width400px height200px" id="s-product-list-delete-products-dialog">
+    <div class="dialog-background"></div>
+    <form method="post" action="">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Delete`] <span class="gray">({$count})</span></h1>
+                {_w('%d product will be deleted without the ability to restore.', '%d products will be deleted without the ability to restore.', $count)}
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button red" type="submit" value="[`Delete`]">
+                <i class="icon16 loading"></i> 
+                [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>

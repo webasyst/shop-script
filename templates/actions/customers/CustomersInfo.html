@@ -1,0 +1,287 @@
+
+<div class="block double-padded">
+    <div class="float-right">
+        <ul class="menu-h with-icons">
+            <!-- plugin hook: 'backend_customer.action_link' -->
+            {* @event backend_customer.%plugin_id%.action_link *}
+            {if !empty($backend_customer)}{foreach $backend_customer as $_}{if (!empty($_.action_link))}<li>{$_.action_link}</li>{/if}{/foreach}{/if}
+            <li><a href="{$contacts_url}#/contact/{$contact.id}/contact/edit"><i class="icon16 edit"></i>[`Edit contact`]</a></li>
+            <li><a href="{$contacts_url}#/contact/{$contact.id}/contact/delete"><i class="icon16 delete"></i>[`Delete contact`]</a></li>
+        </ul>
+    </div>
+
+    <h1>
+        <a href="?action=customers" class="back">&larr; <span></span></a> {* !!! *}
+        {$contact.name|escape}
+        {foreach $contact_categories as $c}
+            {if $c.icon}
+                {$wa->shop->icon16($c.icon)}
+            {/if}
+        {/foreach}
+        
+        <!-- plugin hook: 'backend_customer.name_suffix' -->
+        {* @event backend_customer.%plugin_id%.name_suffix *}
+        {if !empty($backend_customer)}{foreach $backend_customer as $_}{ifset($_.name_suffix)}{/foreach}{/if}
+    </h1>
+
+    <div class="profile image96px">
+        <div class="image">
+            <img src="{$contact->getPhoto(96, 96)}">
+        </div>
+        <div class="details">
+            <ul class="menu-v with-icons compact">
+                {if $top}
+                    {foreach from=$top item=top_field}
+                        <li>{if $top_field.id != 'im'}<i class="icon16 {$top_field.id}"></i>{/if}{$top_field.value}</li>
+                    {/foreach}
+                {/if}
+            </ul>
+            <p></p>
+        </div>
+    </div>
+
+    <br>
+    
+    <!-- plugin hook: 'backend_customer.header' -->
+    {* @event backend_customer.%plugin_id%.header *}
+    {if !empty($backend_customer)}{foreach $backend_customer as $_}{ifset($_.header)}{/foreach}{/if}
+
+    <h2>[`Contact info`]</h2>
+
+    <div class="fields">
+        {foreach $fields as $f}
+            {if $contact->get($f->getId())}
+                <div class="field">
+                    <div class="name">{$f->getName()}</div>
+                    {if $f instanceof waContactAddressField}
+                        {foreach $contact->get($f->getId(), 'js') as $a}
+                            <div class="value">
+                                {$a.value}
+                            </div>
+                        {/foreach}
+                    {else}
+                        <div class="value">
+                            {$contact->get($f->getId(), 'html')}
+                        </div>
+                    {/if}
+                </div>
+            {/if}
+        {/foreach}
+    </div>
+
+    <br class="clear-left"><br>
+
+    <h2>[`Orders`]</h2>
+    <table class="zebra double-padded">
+        {foreach $orders as $o}
+            <tr>
+                <td class="nowrap">
+                    <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/" style="{$o.style|escape}">
+                        <i class="{$o.icon}"></i>{$wa->shop->orderId($o.id)}
+                    </a>
+                </td>
+                <td>{$o.create_datetime|wa_date:'humandate'}</td>
+                <td>
+                    {foreach $o.items as $i}
+                        {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
+                    {/foreach}
+                </td>
+                <td>
+                    {* !!! TODO: shipping icon *}
+                    {if $o.shipping_name}
+                        {$o.shipping_name}
+                    {else}
+                        <span class="hint">[`Shipping method not specified`]</span>
+                    {/if}
+                </td>
+                <td>
+                    {* !!! TODO: payment icon *}
+                    {if $o.payment_name}
+                        {$o.payment_name}
+                    {else}
+                        <span class="hint">[`Payment method not specified`]</span>
+                    {/if}
+                </td>
+                <td class="bold nowrap align-right">{$o.total_formatted}</td>
+            </tr>
+        {foreachelse}
+            {sprintf('[`%s did not place orders yet.`]', {$contact.name|escape})}
+        {/foreach}
+    </table>
+
+    <br><br>
+
+    <h2>[`Affiliate bonus`]</h2>
+    <ul class="tabs">
+        <li class="s-aff-bonus-total"><strong class="large bold">{if $customer.affiliate_bonus>=0}+{/if}{$customer.affiliate_bonus|wa_format_number:false}</strong></li>
+        <li class="no-tab"><a href="javascript:void(0)" id="add-credit" class="inline-link"><i class="icon16 ss chart-up"></i><b><i>[`Add credit`]</i></b></a></li>
+        <li class="no-tab"><a href="javascript:void(0)" id="add-payment" class="inline-link"><i class="icon16 ss chart-down"></i><b><i>[`Add payout`]</i></b></a></li>
+    </ul>
+
+    <div id="affiliate-wrapper" class="tab-content s-aff-bonus-form" style="display:none;">
+        <div class="fields form">
+            <div class="field">
+                <div class="name header-name"></div>
+                <div class="value">
+                    <input type="text" class="numerical" placeholder="0" step="any"> [`points`]
+                    <span class="hidden hint">≈ {sprintf($def_cur_tmpl, '<span class="amount-hint"></span>')}</span>
+                </div>
+            </div>
+            <div class="field">
+                <div class="name">[`Comment`]</div>
+                <div class="value">
+                    <textarea></textarea>
+                    <p class="hint">[`Comment is <strong>public</strong>. Your customer will see it in his account in the storefront.`]</p>
+                </div>
+            </div>
+            <div class="field">
+                <div class="value">
+                    <input type="submit" class="button green" value="[`Submit`]">
+                </div>
+            </div>
+        </div>
+        <div class="clear-left"></div>
+    </div>
+
+    <table class="zebra">
+        <tr class="white">
+            <th></th>
+            <th></th>
+            <th class="align-right">[`Credit`]</th>
+            <th class="align-right">[`Debit`]</th>
+            <th class="align-right">[`Balance`]</th>
+        </tr>
+        {foreach $affiliate_history as $h}
+            <tr>
+                <td class="gray">{$h.create_datetime|wa_date:'humandatetime'}</td>
+                <td>
+                    {if $h.order_id}
+                        <a href="?action=orders#/orders/id=/{$h.order_id}">[`Order`] {$wa->shop->orderId($h.order_id)}</a>
+                    {/if}
+                    {if $h.order_id && $h.comment}
+                        <br>
+                    {/if}
+                    {if $h.comment}
+                        {$h.comment|escape}
+                    {/if}
+                </td>
+                <td class="align-right">
+                    {if $h.amount > 0}
+                        {$h.amount|wa_format_number:false}
+                    {/if}
+                </td>
+                <td class="align-right">
+                    {if $h.amount < 0}
+                        {abs($h.amount)|wa_format_number:false}
+                    {/if}
+                </td>
+                <td class="align-right">{$h.balance|wa_format_number:false}</td>
+            </tr>
+        {foreachelse}
+            <tr>
+                <td>[`This customer has no affiliate history yet.`]</td>
+            </tr>
+        {/foreach}
+    </table>
+
+    <br><br>
+
+    {*
+    <h2>[`Product reviews`]</h2>
+    <p>{sprintf('[`%s did not post any product reviews in your storefront yet.`]',$contact.name|escape)}</p>
+    *}
+    
+    <!-- plugin hook: 'backend_customer.footer' -->
+    {* @event backend_customer.%plugin_id%.footer *}
+    {if !empty($backend_customer)}{foreach $backend_customer as $_}{ifset($_.footer)}{/foreach}{/if}
+
+</div>
+<script>(function() { "use strict";
+
+    // Link back to last list view
+    var backlink = $('#s-content h1 a.back');
+    if ($.customers.lastView && $.customers.lastView.title) {
+        backlink.attr('href', $.customers.lastView.hash).children('span').text($.customers.lastView.title);
+    } else {
+        backlink.hide();
+    }
+
+    // Controller for affiliate editor
+    (function() {
+        var wrapper = $('#affiliate-wrapper');
+        var header = wrapper.find('.header-name');
+        var form_state = null;
+        var input = wrapper.find('input:not(:submit)');
+        var textarea = wrapper.find('textarea');
+        var submit = wrapper.find(':submit');
+        var point_rate = {$point_rate};
+        var add_credit_link = $('#add-credit');
+        var add_payment_link = $('#add-payment');
+        var amount_hint = wrapper.find('.amount-hint');
+
+        // Changing the field makes hint with amount in default currency appear
+        var h;
+        input.keyup(h = function() {
+            var amount = Math.round(((parseFloat(input.val().replace(',', '.'), 10)||0)*point_rate)*100)/100;
+            if (amount) {
+                amount_hint.text(amount).parent().show();
+            } else {
+                amount_hint.parent().hide();
+            }
+        }).change(h);
+
+        // "Add credit" link toggles the form
+        add_credit_link.click(function() {
+            if (form_state == 'credit') {
+                wrapper.hide();
+                form_state = null;
+                add_credit_link.find('b').removeClass('bold');
+                return;
+            }
+            add_credit_link.find('b').addClass('bold');
+            add_payment_link.find('b').removeClass('bold');
+            form_state = 'credit';
+            header.text("[`Credit amount`]");
+            submit.removeClass('blue').addClass('green');
+            wrapper.show();
+        });
+
+        // "Add payment" link toggles the form
+        add_payment_link.click(function() {
+            if (form_state == 'payment') {
+                wrapper.hide();
+                form_state = null;
+                add_payment_link.find('b').removeClass('bold');
+                return;
+            }
+            add_credit_link.find('b').removeClass('bold');
+            add_payment_link.find('b').addClass('bold');
+            form_state = 'payment';
+            header.text("[`Payment amount`]");
+            submit.removeClass('green').addClass('blue');
+            wrapper.show();
+        });
+
+        // Button to save the transaction record
+        submit.click(function() {
+
+            input.removeClass('error');
+            var amount = parseFloat(input.val().replace(',', '.'), 10);
+            if (!amount || amount <= 0) {
+                input.addClass('error');
+                return false;
+            }
+
+            $(this).after('<i class="icon16 loading"></i>');
+            $.post('?module=customers&action=affiliate', {
+                contact_id: '{$contact->getId()}',
+                amount: form_state == 'payment' ? -amount : amount,
+                comment: textarea.val()
+            }, function() {
+                $.customers.redispatch();
+            }, 'json');
+            return false;
+        });
+    })();
+})();</script>
+

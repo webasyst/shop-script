@@ -1,0 +1,184 @@
+<script type="text/javascript" src="{$wa_app_static_url}js/live.dragndrop.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/order_states.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/farbtastic/farbtastic.js"></script>
+<link rel="stylesheet" href="{$wa_app_static_url}js/farbtastic/farbtastic.css" type="text/css" />
+
+<div class="sidebar left200px s-settings-order-states">
+    <div class="s-inner-sidebar">
+        <ul class="menu-v stack with-icons">
+            {foreach $states as $id => $s}
+            <li class="dr {if $id == $info.id}selected{/if}" id="state-{$id}">
+                <a href="#/orderStates/{$id}/">
+                    <i class="{if !empty($s.options.icon)}{$s.options.icon}{/if}"></i>{$s.name}
+                </a>
+            </li>
+            {/foreach}
+            <li class="top-padded small {if $info.id == 'new_state'}selected{/if} s-add-state" id="state-new_state">
+                <a href="#/orderStates/new_state/">
+                    <i class="icon10 add"></i>[`New order state`]
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+</div>
+    
+<div class="content left200px s-settings-form blank bordered-left">
+    <div class="block double-padded">
+        {*
+        {if $info.id != 'new_state'}
+        <div class="float-right">
+            <ul class="menu-h">
+                <li><a href="?module=settings&action=orderStateDelete" id="s-delete-state"><i class="icon16 delete"></i>[`Delete order state`]</a></li>
+            </ul>
+        </div>
+        {/if}
+        *}
+        <h1>{$info.name}</h1>
+        <div class="fields form">
+            <form id="s-save-order-state" method="post" action="?module=settings&action=orderStateSave&id={$info.id}">
+              <div class="field-group">
+                {if $info.id == 'new_state'}
+                <div class="field">
+                    <div class="name">
+                        [`State ID`]:
+                    </div>
+                    <div class="value">
+                        <input type="text" name="id" class="bold" value="">
+                    </div>
+                </div>
+                {/if}
+                <div class="field">
+                    <div class="name">
+                        [`Order state name`]
+                    </div>
+                    <div class="value">
+                        <input type="text" name="name" class="bold" value="{if $info.id != 'new_state'}{$info.name}{else}{/if}">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Appearance`]
+                    </div>
+                    <div class="value">
+                        #<input type="text" name="style[color]" value="{if !empty($info.options.style.color)}{$info.options.style.color|substr:'1'|lower}{/if}" id="s-color" class="short">
+                        <span class="s-color-replacer">
+                            <i class="icon16" style="background: #{$info.options.style.color|substr:'1'|lower};"></i>
+                        </span>
+                        <div id="s-colorpicker" style="display:none;"></div>
+                        <br><br>
+                        
+                        <label><input type="checkbox" name="style[font-weight]" {if !empty($info.options.style['font-weight'])}checked="checked"{/if} value="bold"> <strong>[`Bold`]</strong></label>
+                        <label><input type="checkbox" name="style[font-style]"   {if !empty($info.options.style['font-style'])}checked="checked"{/if} value="italic"> <em>[`Italic`]</em></label>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Icon`]
+                    </div>
+                    <div class="value">
+                        <ul class="menu-h s-icons">
+                            {$state_icon = ''}
+                            {if isset($info.options.icon)}
+                                {$state_icon = str_replace('icon16 ss ', '', $info.options.icon)}
+                            {/if}
+                            {foreach $icons as $icon}
+                                <li data-icon="{$icon|escape}" {if $icon == $state_icon}class="selected"{/if}>
+                                    <a href="#"><i class="icon16 ss {$icon}"></i></a>
+                                </li>
+                            {/foreach}
+                        </ul>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Allowed actions`]
+                    </div>
+                    {foreach $actions as $id => $a}
+                        <div class="value no-shift">
+                            <label>
+                                <input type="checkbox" name="action[]" value="{$id}" {if in_array($id, $info.actions)}checked="checked"{/if} {if $id == 'create'}disabled="disabled"{/if}>
+                                {$a.name} <span class="hint">{$id|upper}</span>
+                            </label>
+                        </div>
+                    {/foreach}
+                    <br>
+                    {*
+                    <div class="value no-shift">
+                        <label>
+                            <input type="checkbox" checked="checked">
+                            [`Assign order a custom state`] <span class="hint">SET_state</span>
+                        </label>
+                        <div class="block">
+                          <ul class="menu-h small">
+                            <li>
+                                <label><input type="checkbox" checked="checked"> Awaiting confirmation</label>
+                            </li>
+                            <li>
+                                <label><input type="checkbox" checked="checked"> Pre-orders</label>
+                            </li>
+                          </ul>
+                        </div>
+                    </div>
+                    *}
+                    <div class="value no-shift s-new-action" style="display:none">
+                        <input type="checkbox" name="new_action[0]" checked="checked" disabled="disabled">
+                        <input type="text" name="new_action_name[0]" value="" placeholder="[`Action name`]" disabled="disabled">
+                        <input type="text" name="new_action_id[0]" value="" placeholder="[`Action ID`]" disabled="disabled">
+                        <p>
+                        [`Order status to be assigned after this action was performed`]:
+                        {if !empty($states)}
+                            <select name="new_action_state[0]" disabled="disabled">
+                                <option value="0">[`Don’t change order status`]</option>
+                                {foreach $states as $id => $s}
+                                    <option value="{$id}">{$s.name}</option>
+                                {/foreach}
+                            </select>
+                        {/if}
+                        </p>
+                    </div>
+                    <div class="value no-shift">
+                        <a href="#" class="inline-link" id="s-add-action">
+                            <i class="icon16 add"></i><b><i>[`Add custom action`]</i></b>
+                        </a>
+                    </div>
+                </div>
+              </div>
+              {*
+              <div class="field-group">
+                <!-- plugin hook -->
+                <div class="field">
+                    <div class="name">
+                        [`Assignment`] (PLUGIN)
+                    </div>
+                    <div class="value no-shift">
+                        [`Automatically assign all orders set to %s state to`]
+                        <select>
+                            <option>[`Don't change the assignment`]</option>
+                            <option>[`Whoever is more free (has less orders)`]</option>
+                        </select>
+                    </div>
+                    
+                </div>
+              </div>
+              *}
+              <div class="field-group">
+                <div class="field">
+                    <div class="value">
+                        <input type="submit" class="button green" value="[`Save`]">
+                    </div>
+                </div>
+              </div>
+              {$wa->csrf()}
+            </form>
+        </div>
+    </div>    
+    <div class="clear"></div>
+</div>
+{$title = "[`Order States`]"|cat:" — ":{$wa->accountName()}}
+<script type="text/javascript">
+    $.shop.setTitle('{$title}');
+    $.settings.orderStatesInit({
+        id: "{$info.id}"
+    });
+</script>

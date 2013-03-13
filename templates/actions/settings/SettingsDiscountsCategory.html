@@ -1,0 +1,84 @@
+<div class="block double-padded">
+    <h1>
+        [`By contact category`]
+    </h1>
+
+    <form action="?module=settings&action=discountsCategory" id="s-discounts-category-form">
+    <div class="fields form">
+        <div class="field-group">
+            <input type="hidden" name="dummy" value="1">
+            <div class="field">
+                <div class="name">[`Status`]</div>
+                <div class="value no-shift s-ibutton-checkbox">
+                    <ul class="menu-h">
+                        <li><span class="gray" id="s-discount-type-disabled-label">[`Disabled`]</span></li>
+                        <li>
+                            <input type="checkbox" id="s-discount-type-status" name="enabled" value"1"{if $enabled} checked{/if}>
+                        </li>
+                        <li><span id="s-discount-type-enabled-label">[`Enabled`]</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="field-group"{if !$enabled} style="display:none"{/if}>
+            <div class="field">
+                <div class="name">[`Discounts`]</div>
+                <div class="value">
+                    {if count($categories)}
+                        <table class="zebra full-width">
+                            {foreach $categories as $c}
+                            <tr>
+                                <td class="min-width">{$wa->shop->icon16($c.icon)}</td>
+                                <td>{$c.name|escape}</td>
+                                <td>
+                                    <input type="input" class="numerical short" name="categories[{$c.id}]" value="{$c.value}">%
+                                </td>
+                            </tr>
+                            {/foreach}
+                        </table>
+                    {else}
+                        <p>{sprintf('[`No customer categories are defined in your store. Define one using the main <a href="%s">Customers</a> screen.`]','?action=customers')}</p>
+                    {/if}
+                </div>
+            </div>
+        </div>
+
+        <div class="field-group"{if !$enabled} style="display:none"{/if}>
+            <div class="field">
+                <div class="value submit">
+                    <input type="submit" value="[`Save`]" class="button green">
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </form>
+    <div class="clear-left"></div>
+</div>
+
+<script>(function() { "use strict";
+    var form = $('#s-discounts-category-form');
+    var current_type = 'category';
+    var ibutton = $('#s-discount-type-status').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
+        var self = $(this);
+        var enabled = self.is(':checked');
+        if (enabled) {
+            self.closest('.field-group').siblings().show(200);
+            $('#discount-types a[rel="'+current_type+'"] i.icon16').attr('class', 'icon16 status-blue-tiny');
+        } else {
+            self.closest('.field-group').siblings().hide(200);
+            $('#discount-types a[rel="'+current_type+'"] i.icon16').attr('class', 'icon16 status-gray-tiny');
+        }
+        $.post('?module=settings&action=discountsEnable', { type: current_type, enable: enabled ? '1' : '0' });
+    });
+
+    form.submit(function() {
+        form.find(':submit').attr('disabled', true);
+        $.post(form.attr('action'), form.serialize(), function(r) {
+            $('#s-discounts-content').html(r);
+        });
+        return false;
+    });
+})();</script>
+

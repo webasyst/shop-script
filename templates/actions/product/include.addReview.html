@@ -1,0 +1,13 @@
+<form id="s-review-add-form" method="post">
+    <i class="icon16 userpic20" style="background-image: url('{$current_author.photo_url_20}');"></i>{$current_author.name|escape}
+    <p>
+        <textarea name="text"></textarea>
+    </p>
+    <input type="button" class="save" value="[`Add comment`]">
+    <span class="s-review-add-form-status s-ajax-status" style="display: none;">
+      <i class="s-ajax-status-loading icon16 loading"><!--icon --></i>
+    </span>
+    <em class="hint">Ctrl+Enter</em>
+    <input type="hidden" name="parent_id" value="0">
+    <input type="hidden" name="product_id" value="{if isset($product.id)}{$product.id}{else}0{/if}">
+</form>

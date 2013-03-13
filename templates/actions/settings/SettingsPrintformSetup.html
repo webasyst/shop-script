@@ -1,0 +1,57 @@
+{if !empty($saved)}
+    <div class="block double-padded s-message-success bordered-bottom">
+        <i class="icon16 yes"></i>[`Settings updated`]
+    </div>
+{/if}
+<div class="block double-padded">
+    {if isset($plugin_id)}
+        <div class="float-right block half-padded">
+        <ul class="menu-h">
+            <li>
+                <a href="?plugin={$plugin_id}&module=printform&action=display" target="_printform" class="bold">
+                    [`Preview`]
+                    <i class="icon16 new-window"></i>
+                </a>
+            </li>
+        </ul>
+        </div>
+        <h1>{$plugin_info.name|default:$plugin_id|string_format:'%s'}</h1>
+
+        {if !empty($settings_controls)}
+            <div class="fields form">
+                <form action="?module=settings&action=printformSetup&id={$plugin_id}" method="post" id="plugins-settings-form" enctype="multipart/form-data" target="plugins-settings-iframe">
+                    <input type="hidden" name="id" value="{$plugin_id}">
+                    {$wa->csrf()}
+                    {foreach $settings_controls as $name => $control}
+                    <div class="field">
+                        {$control}
+                    </div>
+                    {/foreach}
+
+                    <div class="field">
+                        <div class="value submit">
+                            <input type="submit" class="button green" value="[`Save`]">
+                            <span id="plugins-settings-form-status" style="display:none">
+                                <i style="vertical-align:middle" class="icon16 yes"></i>[`Saved`]
+                            </span>
+                        </div>
+                    </div>
+
+                </form>
+                <iframe style="display:none" name="plugins-settings-iframe" id="plugins-settings-iframe"></iframe>
+            </div>
+        {else}
+            <div class="block double-padded align-center gray">
+                <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin %s is installed and working.`]'}</strong>
+                <br>
+                <br>
+                [`No configuration options are available for this plugin.`]
+            </div>
+        {/if}
+
+    {else if $plugins_count > 0}
+        [`Unknown plugin`]
+    {/if}
+
+    <div class="clear-left"></div>
+</div>

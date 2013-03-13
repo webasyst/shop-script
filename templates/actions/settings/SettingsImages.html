@@ -1,0 +1,221 @@
+{if isset($saved) && $saved}
+    <div class="block double-padded s-message-success bordered-bottom">
+        <i class="icon16 yes"></i>[`Settings updated`]
+    </div>
+{/if}
+
+<div class="block double-padded blank s-settings-form">
+    <h1>[`Product images`]</h1>
+    <div id="s-settings-block">
+        <form action="?module=settings&action=images" method="post" id="s-settings-form">
+            <div class="fields form">
+                <h6 class="heading">[`Thumbnails`]</h6>
+                <div class="field-group">
+                    <div class="field" id="s-thumbnail-size">
+                        <div class="name">
+                            [`Thumbnails to be created when image is uploaded`]
+                        </div>
+                        <div class="value">
+                            {if !empty($settings.image_sizes)}
+                            <div id="s-saved-size">
+                                <ul class="zebra">
+                                {foreach $settings.image_sizes as $set_type => $sizes_set}
+                                    {foreach $sizes_set as $key => $size_item}
+                                        <li>
+                                            {foreach $size_item as $type => $size}
+                                                {if $type == 'crop'}
+                                                    [`Square crop`]: <strong>{$size}x{$size} [`px`]</strong>
+                                                {else if $type == 'max'}
+                                                    [`Max`] ( [`Width`], [`Height`] ) = <strong>{$size} [`px`]</strong>
+                                                {else if $type == 'width'}
+                                                    [`Width`] = <strong>{$size} [`px`]</strong>, [`Height`] = [`auto`]
+                                                {else if $type == 'height'}
+                                                    [`Width`] = [`auto`], [`Height`] = <strong>{$size} [`px`]</strong>
+                                                {else if $type == 'rectangle'}
+                                                    [`Width`] = <strong>{$size[0]} [`px`]</strong>, [`Height`] = <strong>{$size[1]} [`px`]</strong>
+                                                {/if}
+                                            {/foreach}
+                                            {if $set_type == 'custom'}
+                                                <a href="javascript:void(0)" class="s-delete-action hint inline-link" data-key="{$key}"><b><i>[`delete`]</i></b></a>
+                                            {/if}
+                                        </li>
+                                    {/foreach}
+                                {/foreach}
+                                </ul>
+                            </div>
+                            {/if}
+                        </div>
+                        <div class="s-size-set block" id="s-size-set" style="display:none">
+                            <div class="value no-shift">
+                                <label class="s-label-with-check">
+                                    <input type="radio" name="size_type[0]" value="max">
+                                    [`Max`] ( [`Width`], [`Height`] ) = <strong><span class="star">*</span></strong><input type="text" name="size[0]" value="" size="4" class="small-int short numerical" style="display:none;" disabled>[`px`]
+                                </label>
+                            </div>
+                            <div class="value">
+                                <label class="s-label-with-check">
+                                    <input type="radio" name="size_type[0]" value="width">
+                                    [`Width`] = <strong><span class="star">*</span></strong><input type="text" name="size[0]" value="" size="4" class="small-int short numerical" style="display:none;" disabled>[`px`], [`Height`] = <span class="gray">[`auto`]</span>
+                                </label>
+                            </div>
+                            <div class="value">
+                                <label class="s-label-with-check">
+                                    <input type="radio" name="size_type[0]" value="height">
+                                    [`Width`] = <span class="gray">[`auto`]</span>, [`Height`] = <strong><span class="star">*</span></strong><input type="text" name="size[0]" value="" size="4" class="small-int short numerical" style="display:none;" disabled>[`px`]
+                                </label>
+                            </div>
+                            <div class="value">
+                                <label class="s-label-with-check">
+                                    <input type="radio" name="size_type[0]" value="crop">
+                                    [`Square crop`]: [`Size`] = <strong><span class="star">*</span></strong><input type="text" name="size[0]" value="" size="4" class="small-int short numerical" style="display:none;" disabled>[`px`]
+                                </label>
+                            </div>
+                            <div class="value">
+                                <label class="s-label-with-check">
+                                    <input type="radio" name="size_type[0]" value="rectangle">
+                                    [`Rectangular crop`]: [`Width`] = <strong><span class="star">*</span></strong><input type="text" name="width[0]" value="" class="small-int short numerical" style="display:none;" disabled>[`px`], [`Height`] = <strong><span class="star">*</span></strong><input type="text" name="height[0]" value="" size="4" class="small-int short numerical" style="display:none;" disabled>[`px`]
+                                </label>
+                            </div>
+                        </div>
+                        <div class="value block">
+                            <a id="s-add-action" href="javascript:void(0);" class="small inline-link"><i class="icon10 add"></i><b><i>[`Add`]</i></b></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">
+                            [`Custom-sized thumbnails`]
+                        </div>
+                        <div class="value no-shift">
+                            <label>
+                                <input type="checkbox" name="image_thumbs_on_demand" id="s-thumbs_on_demand" value="1" {if !empty($settings.image_thumbs_on_demand)}checked{/if}> [`Allow on demand generation of custom-sized thumbnails`]<br>
+                                <span class="hint">[`If enabled, frontend design theme can request generation of custom-sized image thumbnails on fly (any custom size can be requested in addition to the listed above, including cropped versions)`]</span>
+                            </label>
+                        </div>
+                        <div class="value" id="s-max-size" {if !$settings.image_thumbs_on_demand}style="display:none;"{/if}>
+                            [`Max thumbnail size`]<br>
+                            <input type="text" name="image_max_size" value="{$settings.image_max_size}" size="4" class="small-int"> [`px`]<br>
+                            <span class="hint">[`Limits the maximum thumbnail size that can be created on demand. Must be no less than 970 px.`]</span>
+                        </div>
+                </div>
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">
+                            [`Sharpen`]
+                        </div>
+                        <div class="value no-shift">
+                            <label><input type="checkbox" name="image_sharpen" value="1" {if !empty($settings.image_sharpen)}checked{/if}> [`Apply sharpening filter when creating thumbnails (recommended)`]</label>
+                        </div>
+
+                    </div>
+                </div>
+                <h6 class="heading">[`Originals`]</h6>
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">
+                            [`Originals`]
+                        </div>
+                        <div class="value no-shift">
+                            <label><input type="checkbox" name="image_save_original" value="1" {if !empty($settings.image_save_original)}checked{/if}> [`Backup image originals`]</label>
+                            <br>
+                            <span class="hint">[`When enabled, every uploaded image file is automatically backed up and stored independently from image full size version, which is modified when you edit it, e.g. rotate, apply watermarks or image visual effects. Originals are never updated. Pros: you have backups of all uploaded images. Cons: almost twice more disk space is required for storing original images than for storing only full size versions and thumbnails.`]</span>
+                        </div>
+
+                    </div>
+                    <div class="field">
+                        <div class="value submit">
+                            <input type="submit" name="save" class="button green" value="[`Save`]">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {$wa->csrf()}
+        </form>
+    </div>
+</div>
+
+{$title = "[`Product images`]"|cat:" — ":{$wa->accountName()}}
+<script>
+    $.shop.setTitle('{$title}');
+</script>
+<script type="text/javascript">
+    $(function() {
+        var form = $('#s-settings-form');
+
+        form.off('click', '.s-size-set label').
+            on('click', '.s-size-set label', function(e) {
+                var self = $(this);
+                var target = self.find('input:radio:first');
+                var parent = self.parents('.s-size-set:first');
+                var prev = parent.find('input:radio:checked');
+
+                prev.nextAll().filter('span.star').show().end().
+                    filter('input').hide().
+                    attr('disabled', true);
+                prev.attr('checked', false);
+
+                target.nextAll().filter('span.star').hide().end().
+                    filter('input').show().
+                    attr('disabled', false);
+                target.attr('checked', true);
+
+                return false;
+            }
+        );
+
+        $('#s-add-action').click(function() {
+            var size_set = $('#s-size-set');
+            if (size_set.is(':hidden')) {
+                size_set.show()
+                if ($('#s-saved-size').length) {
+                    size_set.before('<br>');
+                }
+                return false;
+            }
+            var last_set = form.find('.s-size-set:last');
+            var new_set = last_set.clone();
+            new_set.attr('id', null);
+
+            new_set.find('input[type=radio], input[type=text]').each(function() {
+                this.name = this.name.replace(/(\d+)/, function(m) {
+                    return parseInt(m[0], 10) + 1;
+                });
+            });
+            last_set.after(new_set).after('<br>');
+            return false;
+        });
+
+        form.off('click', '.s-delete-action').
+            on('click', '.s-delete-action', function() {
+                var self = $(this),
+                    li = self.parents('li:first');
+                if (li.find('span.strike').length) {
+                    return;
+                }
+                form.append('<input type="hidden" name="delete[]" value="' + self.attr('data-key') + '">');
+
+                var inner_html = li.html();
+                li.html('<span class="strike gray">'+inner_html+'</span>').append('<em class="small">'+$_('Click “Save” button below to apply this change.')+'</em>');
+            }
+        );
+
+        $('#s-thumbs_on_demand').unbind('click').bind('click', function() {
+            if (this.checked) {
+                $('#s-max-size').show(200);
+            } else {
+                $('#s-max-size').hide(200);
+            }
+        });
+
+        form.unbind('submit').bind('submit', function() {
+            var self = $(this);
+            $.post(self.attr('action'), self.serialize(), function(html) {
+                $('#s-settings-content').html(html);
+            });
+            return false;
+        });
+    });
+</script>

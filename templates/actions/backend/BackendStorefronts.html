@@ -1,0 +1,49 @@
+<div class="sidebar right15px">
+    <div class="block s-nolevel2-sidebar"></div>
+</div>
+
+<div class="sidebar left200px">
+
+    <div class="block s-nolevel2-sidebar s-inner-sidebar s-storefronts">
+
+    	<ul class="menu-v s-links with-icons">
+	         <li id="s-link-pages" class="larger"><a href="#/pages/"><i class="icon16 notebook"></i>[`Pages`]</a></li>
+    	     <li id="s-link-design" class="larger"><a href="#/design/"><i class="icon16 palette"></i>[`Design`]</a></li>
+             {if $wa->user()->getRights('site', 'backend')}
+	         <li id="s-link-settings" class="top-padded">
+	             <a href="{$wa_backend_url}site/#/routing/">
+	                 <i class="icon16 settings"></i>[`Storefront settings`]
+	             </a>
+	         </li>
+	         <li id="s-link-upload">
+	             <a href="{$wa_backend_url}site/#/files/">
+	                 <i class="icon16 upload"></i>[`Upload files`]
+	             </a>
+	         </li>
+             {/if}
+    	</ul>
+	</div>
+    {* if $wa->user()->getRights('site', 'backend')}
+	<div class="block double-padded">
+		<ul class="menu-v with-icons s-links">
+			<li class="s-add-new-site top-padded"><a class="small" href="{$wa_backend_url}site/#/routing/"><i class="icon10 add"></i>[`New storefront`]</a></li>
+        </ul>
+	</div>
+    {/if *}
+</div>
+
+<div class="content left200px right15px s-nolevel2-box" id="s-storefronts-content">
+    <div class="block double-padded s-settings-form">
+        [`Loading...`]
+        <i class="icon16 loading"></i>
+    </div>
+
+    <div class="clear"></div>
+    <!-- settings placeholder -->
+</div>
+
+    <div class="clear"></div>
+    <script type="text/javascript" src="{$wa_app_static_url}js/storefronts.js?v{$wa->version()}"></script>
+    <script type="text/javascript">
+        $.storefronts.init();
+    </script>

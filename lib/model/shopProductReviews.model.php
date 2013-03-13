@@ -1,0 +1,387 @@
+<?php
+
+class shopProductReviewsModel extends waNestedSetModel
+{
+    const STATUS_DELETED   = 'deleted';
+    const STATUS_PUBLISHED = 'approved';
+    const AUTH_GUEST = 'guest';
+    const AUTH_USER = 'user';
+
+    protected $left = 'left_key';
+    protected $right = 'right_key';
+    protected $parent = 'parent_id';
+
+    protected $table = 'shop_product_reviews';
+
+    public function getFullTree($product_id, $offset = 0, $count = null, $order = null, array $options = array())
+    {
+        $reviews = $this->getReviews($product_id, $offset, $count, $order, $options);
+        if (!empty($reviews)) {
+            foreach (
+                $this->query("SELECT * FROM {$this->table} WHERE product_id = ".(int)$product_id.
+                    " AND review_id IN(".implode(',', array_keys($reviews)).")".
+                    " ORDER BY review_id, {$this->left}")
+                as $item)
+            {
+                $reviews[$item['review_id']]['comments'][$item['id']] = $item;
+            }
+            foreach ($reviews as &$review) {
+                if (!empty($review['comments'])) {
+                    $this->extendItems($review['comments'], $options);
+                }
+            }
+            unset($review);
+        }
+
+        return $reviews;
+    }
+
+    /**
+     * @param int $product_id
+     * @param int $offset
+     * @param int $count
+     * @param int $order
+     * @param array $options
+     * @return array
+     */
+    public function getReviews($product_id, $offset = 0, $count = null, $order = null, array $options = array())
+    {
+        if (!$product_id) {
+            return array();
+        }
+        $sql = "SELECT * FROM {$this->table} WHERE product_id = ".(int)$product_id." AND review_id = 0";
+        if (wa()->getEnv() == 'frontend') {
+            $sql .= " AND status = '".self::STATUS_PUBLISHED."'";
+        }
+        $sql .= " ORDER BY ".($order ? $order : $this->left);
+        if ($count !== null) {
+            $sql .= " LIMIT ".(int)$offset.", ".(int)$count;
+        }
+        $reviews = $this->query($sql)->fetchAll('id');
+        $this->extendItems($reviews, $options);
+        return $reviews;
+    }
+
+    public function getList($offset = 0, $count = null, array $options = array())
+    {
+        if (!empty($options['reply_to'])) {
+            $sql = "SELECT *, p.text AS parent_text, parent_datetime FROM {$this->table} r LEFT JOIN {$this->table} p ON r.parent_id = p.id";
+        } else {
+            $sql = "SELECT * FROM {$this->table} ";
+        }
+        $sql .= " ORDER BY datetime";
+        if ($count) {
+            $sql .= " DESC LIMIT ".(int)$offset.",".(int)$count;
+        }
+        $data =  $this->query($sql)->fetchAll('id');
+        $this->extendItems($data, $options);
+        return $data;
+    }
+
+    public function count($product_id = null, $reviews_only = true)
+    {
+        $sql = "SELECT COUNT(id) AS cnt FROM `{$this->table}` ";
+
+        $where = array();
+        if ($product_id) {
+            $where[] = "product_id = ".(int)$product_id;
+        }
+        if ($reviews_only) {
+            $where[] = "review_id = 0";
+        }
+        if (wa()->getEnv() == 'frontend') {
+            $where[] = "status = '".self::STATUS_PUBLISHED."'";
+        }
+        if ($where) {
+            $sql .= " WHERE ".implode(' AND ', $where);
+        }
+        return $this->query($sql)->fetchField('cnt');
+    }
+
+    public function countNew($recalc = false)
+    {
+        $datetime = wa()->getConfig()->getLastDatetime();
+        $contact_id = wa()->getUser()->getId();
+        $storage = wa()->getStorage();
+        $sql = "SELECT COUNT(id) AS cnt FROM `{$this->table}` WHERE datetime > '".date('Y-m-d H:i:s', $datetime)."' AND contact_id != $contact_id";
+        $cnt = $this->query($sql)->fetchField('cnt');
+        if (!$recalc) {
+            $shop_outdated_reviews_count = (int)$storage->get('shop_outdated_reviews_count');
+        } else {
+            $viewed_reviews = $storage->get('shop_viewed_reviews');
+            $shop_outdated_reviews_count = 0;
+            if (!empty($viewed_reviews)) {
+                $reviews = $this->getByField('id', array_keys($viewed_reviews), true);
+                $this->checkForNew($reviews);
+                $shop_outdated_reviews_count = (int)$storage->get('shop_outdated_reviews_count');
+            }
+        }
+        return $cnt - $shop_outdated_reviews_count;
+    }
+
+    private function recalcProductRating($product_id, $rate, $inc = true)
+    {
+        if ($rate <= 0) {
+            return;
+        }
+        $product_model = new shopProductModel();
+        $product = $product_model->getById($product_id);
+        if ($inc) {
+            $update = array(
+                'rating' => ($product['rating']*$product['rating_count'] + $rate)/($product['rating_count'] + 1),
+                'rating_count' => $product['rating_count'] + 1
+            );
+        } else {
+            $update = array(
+                'rating' => ($product['rating']*$product['rating_count'] - $rate)/($product['rating_count'] - 1),
+                'rating_count' => $product['rating_count'] - 1
+            );
+        }
+        $product_model->updateById($product_id, $update);
+    }
+
+    public function changeStatus($review_id, $status)
+    {
+        $review = $this->getById($review_id);
+        if (!$review) {
+            return false;
+        }
+        if ($status == $review['status']) {
+            return true;
+        }
+        if ($status != self::STATUS_DELETED && $status != self::STATUS_PUBLISHED) {
+            return false;
+        }
+        if ($status == self::STATUS_DELETED) {
+            $this->recalcProductRating($review['product_id'], $review['rate'], false);
+        } else {
+            $this->recalcProductRating($review['product_id'], $review['rate']);
+        }
+        $this->updateById($review_id, array('status' => $status));
+        return true;
+    }
+
+    public function add($review, $parent_id = null)
+    {
+        if (empty($review['product_id'])) {
+            return false;
+        }
+        if ($parent_id) {
+            $parent = $this->getById($parent_id);
+            if (!$parent) {
+                return false;
+            }
+            if ($parent['review_id']) {
+                $review['review_id'] = $parent['review_id'];
+            } else {
+                $review['review_id'] = $parent['id'];
+            }
+        }
+
+        if (!isset($review['ip']) && ($ip = waRequest::getIp())) {
+            $ip = ip2long($ip);
+            if ($ip > 2147483647) {
+                $ip -= 4294967296;
+            }
+            $review['ip'] = $ip;
+        }
+
+        if(!empty($review['contact_id'])) {
+            $user = wa()->getUser();
+            if ($user->getId() && !$user->get('is_user')) {
+                $user->addToCategory(wa()->getApp());
+            }
+        }
+
+        if (!isset($review['datetime'])) {
+            $review['datetime'] = date('Y-m-d H:i:s');
+        }
+        if (isset($review['site']) && $review['site']) {
+            if (!preg_match('@^https?://@',$review['site'])) {
+                $review['site'] = 'http://'.$review['site'];
+            }
+        }
+        $id = parent::add($review, $parent_id);
+        if (!$id) {
+            return false;
+        }
+
+        if (empty($review['review_id']) && !empty($review['rate'])) {
+            $this->recalcProductRating($review['product_id'], $review['rate']);
+        }
+
+        return $id;
+    }
+
+    /**
+     * @param int|array $contact_id
+     */
+    static public function getAuthorInfo($contact_id)
+    {
+        $fields = 'id,name,photo_url_50,photo_url_20';
+        $contact_ids = (array)$contact_id;
+        $collection = new waContactsCollection('id/'.implode(',', $contact_ids));
+        $contacts = $collection->getContacts($fields, 0, count($contact_ids));
+        if (is_numeric($contact_id)) {
+            if (isset($contacts[$contact_id])) {
+                return $contacts[$contact_id];
+            } else {
+                return array_fill_keys(explode(',', $fields), '');
+            }
+        } else {
+            return $contacts;
+        }
+    }
+
+    public function validate($review)
+    {
+        $errors = array();
+
+        if ($review['auth_provider'] == self::AUTH_GUEST) {
+
+            if (!empty($review['site']) && strpos($review['site'], '://')===false) {
+                $review['site'] = "http://" . $review['site'];
+            }
+            if (empty($review['name']) || mb_strlen($review['name']) == 0 ) {
+                $errors[]['name'] = _w('Name can not be left blank');
+            }
+            if (mb_strlen($review['name']) > 255) {
+                $errors[]['name'] = _w('Name length should not exceed 255 symbols');
+            }
+            if (empty($review['email']) || mb_strlen($review['email']) == 0) {
+                $errors[]['email'] = _w('Email can not be left blank');
+            }
+            $validator = new waEmailValidator();
+            if (!$validator->isValid($review['email'])) {
+                $errors[]['email'] = _w('Email is not valid');
+            }
+            $validator = new waUrlValidator();
+            if (!empty($review['site']) && !$validator->isValid($review['site'])) {
+                $errors[]['site'] = _w('Site URL is not valid');
+            }
+            if (!wa()->getCaptcha()->isValid()) {
+                $errors[] = array('captcha' => _w('Invalid captcha code'));
+            }
+        }
+
+        if (empty($review['parent_id'])) {    // review to product
+            if (empty($review['title'])) {
+                $errors[]['title'] = _w('Review title can not be left blank');
+            }
+        } else {                            // comment ot review
+            if (empty($review['text'])) {
+                $errors[]['text'] = _w('Review text can not be left blank');
+            }
+        }
+
+        if (mb_strlen($review['text']) > 4096) {
+            $errors[]['text'] = _w('Review length should not exceed 4096 symbols');
+        }
+        return $errors;
+    }
+
+    public function getReview($id, $escape = false)
+    {
+        $item = $this->getById($id);
+        $items = array($id => $item);
+        $this->extendItems($items, array('escape' => $escape));
+        return $items[$id];
+    }
+
+    private function extendItems(&$items, array $options = array())
+    {
+        $escape = !empty($options['escape']);
+
+        $contact_ids = array();
+        foreach ($items as $item) {
+            if ($item['contact_id']) {
+                $contact_ids[] = $item['contact_id'];
+            }
+        }
+        $contact_ids = array_unique($contact_ids);
+        $contacts = self::getAuthorInfo($contact_ids);
+
+        foreach ($items as &$item) {
+            $item['datetime_ts'] = strtotime($item['datetime']);
+            $author = array(
+                'name' =>  $item['name'],
+                'email' => $item['email'],
+                'site' =>  $item['site']
+            );
+            $item['author'] = array_merge(
+                $author,
+                isset($contacts[$item['contact_id']]) ? $contacts[$item['contact_id']] : array()
+            );
+            if ($escape) {
+                $item['author']['name'] = htmlspecialchars($item['author']['name']);
+                $item['text'] = nl2br(htmlspecialchars($item['text']));
+                $item['title'] = htmlspecialchars($item['title']);
+            }
+            // recursive workuping
+            if (!empty($item['comments'])) {
+                $this->extendItems($item['comments'], $options);
+            }
+        }
+        if (!empty($options['is_new'])) {
+            $this->checkForNew($items);
+        }
+        unset($item);
+    }
+
+    public function deleteByProducts(array $product_ids)
+    {
+        $this->deleteByField('product_id', $product_ids);
+    }
+
+    private function checkForNew(&$items) {
+        $config = wa()->getConfig();
+        $storage = wa()->getStorage();
+        $datetime = $config->getLastDatetime();
+        /**
+         * Viewed reviews arrays, where key is review_id and value may be timestamp (when has been viewed) or true (mean that view is outdated)
+         * @var array
+         */
+        $viewed_reviews = $storage->get('shop_viewed_reviews');
+        /**
+         * Count of outdated reviews
+         * @var int
+         */
+        $outdated_reviews_count = (int)$storage->get('shop_outdated_reviews_count');
+
+        $time = time();
+        $contact_id = wa()->getUser()->getId();
+        if (!$viewed_reviews) {
+            $viewed_reviews = array();
+            foreach ($items as &$item) {
+                $item['datetime_ts'] = isset($item['datetime_ts']) ? $item['datetime_ts'] : strtotime($item['datetime']);
+                if ($item['datetime_ts'] > $datetime && $item['contact_id'] != $contact_id) {
+                    $item['is_new'] = true;
+                    $viewed_reviews[$item['id']] = $time;
+                }
+            }
+            unset($item);
+        } else {
+            $review_highlight_time = $config->getOption('review_highlight_time');
+            foreach ($items as &$item) {
+                $item['datetime_ts'] = isset($item['datetime_ts']) ? $item['datetime_ts'] : strtotime($item['datetime']);
+                if ($item['datetime_ts'] > $datetime && $item['contact_id'] != $contact_id) {
+                    if (!isset($viewed_reviews[$item['id']])) {
+                        $item['is_new'] = true;
+                        $viewed_reviews[$item['id']] = $time;
+                    } else {
+                        if ($viewed_reviews[$item['id']] !== true && ($viewed_reviews[$item['id']] + $review_highlight_time >= $time)) {
+                            $item['is_new'] = true;
+                        } else if ($viewed_reviews[$item['id']] !== true) {
+                            $viewed_reviews[$item['id']] = true;
+                            $outdated_reviews_count += 1;
+                        }
+                    }
+                }
+            }
+            unset($item);
+        }
+        // save updated info
+        $storage->set('shop_viewed_reviews', $viewed_reviews);
+        $storage->set('shop_outdated_reviews_count', $outdated_reviews_count);
+    }
+}

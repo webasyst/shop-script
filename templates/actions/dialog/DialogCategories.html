@@ -1,0 +1,44 @@
+<div class="dialog width600px height500px" id="s-categories">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=products&action=addToCategories">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Categories`] <span class="gray" style="display:none;">(0)</span></h1>
+                <div class="hierarchical">
+                    {if !empty($categories)}
+                        {function category_tree parent_id=0}
+                            <ul class="menu-v with-icons">
+                                {foreach $categories as $category}
+                                {if $category.parent_id == $parent_id}
+                                <li>
+                                    <label>
+                                        <i class="icon16 folder"></i><input type="checkbox" name="category_id[]" value="{$category.id}">
+                                        <span class="name">{$category.name|escape}</span>
+                                    </label>
+                                    {if $category.children_count > 0}
+                                        {call category_tree parent_id=$category.id}
+                                    {/if}
+                                </li>
+                                {/if}
+                                {/foreach}
+                            </ul>
+                        {/function}
+                        {call category_tree}
+                    {else}
+                        [`No category exists`]
+                    {/if}
+                </div>
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                <input type="submit" value="[`Save`]" class="button green">
+                <i class="icon16 loading"></i>
+                [`or`] <a class="cancel" href="#">[`cancel`]</a>
+            </div>
+        </div>
+        {$wa->csrf()}
+    </div>
+    </form>
+</div>

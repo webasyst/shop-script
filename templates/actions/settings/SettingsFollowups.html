@@ -1,0 +1,313 @@
+<style type="text/css">
+#wa .CodeMirror{
+    border: 1px solid #eee;
+}
+.CodeMirror-scroll {
+    height: auto;
+    overflow-y: hidden;
+    overflow-x: auto;
+}
+</style>
+
+<div class="sidebar left200px">
+    <div class="s-inner-sidebar">
+        <ul class="menu-v stack with-icons">
+            {foreach $followups as $f}
+                <li><a href="#/followups/{$f.id}"><i class="icon16 clock"></i>{$f.name|escape}</a></li>
+            {/foreach}
+            <li class="top-padded">
+                <a href="#/followups/new" class="small">
+                    <i class="icon10 add"></i>[`New follow-up`]
+                </a>
+            </li>
+        </ul>
+        <div class="block double-padded hr align-center">
+
+            {if $cron_ok}
+                <p class="hint">
+                    <i class="icon10 yes"></i> {$last_cron|wa_datetime:'humandatetime'|string_format:"[`Follow-ups are configured properly. Latest Cron execution time: <strong>%s</strong>`]"}
+                </p>
+            {else}
+                <p class="red bold small">
+                    <i class="icon10 no"></i>
+                    [`Follow-ups will not be sent, because cron is not properly configured.`]
+                    <br>
+                    <a id="cron-message-link" href="javascript:void(0)">[`What is cron?`]</a>
+                </p>
+            {/if}
+            </p>
+        </div>
+    </div>
+</div>
+
+{if !$cron_ok}
+    <div id="cron-message-dialog" style="display:none">
+        <p>[`Follow-ups require CRON to be properly setup for the Shop-Script app, which is currently not the case.`]
+        {sprintf(
+            '[`Setup cron with the following command (<a href="%s" target="_blank">cron setup instructions</a>):`]',
+            '[`http://www.webasyst.com/framework/docs/server/cron/`]'
+        )}</p>
+        <p><strong class="highlighted">{$cron_command}</strong></p>
+    </div>
+{/if}
+
+<div class="content left200px s-settings-form blank bordered-left">
+    <div class="block double-padded">
+        <form id="s-followup-form" action="?module=settings&action=followups">{* Submitted via XHR *}
+            {if $followup.id}
+                <div class="float-right">
+                    <ul class="menu-h">
+                        <li><a href="javascript:void(0)" id="s-delete-followup-link"><i class="icon16 delete"></i>[`Delete`]</a></li>
+                    </ul>
+                </div>
+                <h1>{$followup.name|escape}</h1>
+                <input type="hidden" name="id" value="{$followup.id|escape}">
+            {else}
+                <h1>[`New follow-up`]</h1>
+                <input type="hidden" name="id" value="new">
+            {/if}
+
+            <div class="fields width100px form">
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">[`Follow-up name`]</div>
+                        <div class="value">
+                            <input type="text" name="followup[name]" value="{$followup.name|escape}">
+                            <br>
+                            <span class="hint">[`This name is for your convenience only. It will never be shown to customers.`]</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">[`Sending rules`]</div>
+                        <div class="value">
+                            [`Send in`]
+                            <input type="text" class="short numerical" name="followup[delay]" value="{(ifempty($followup.delay, 3*24*3600) / 24.0 / 3600.0)|wa_format_number:0}">
+                            [`days after the order was paid`]
+                        </div>
+                        <div class="value no-shift">
+                            <input type="hidden" name="followup[first_order_only]" value="1">
+                            <label>
+                                <input type="checkbox" name="followup[first_order_only]" value=""{if !$followup.first_order_only} checked{/if}>
+                                [`Send follow-up after recurrent orders too`]
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">[`Email subject`]</div>
+                        <div class="value">
+                            <input type="text" class="bold long subject" name="followup[subject]" value="{$followup.subject|escape}">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">[`Email body`]<br><span class="hint">[`HTML + Smarty`]</span></div>
+                        <div class="value no-shift">
+                            <div class="s-editor-core-wrapper">
+                                <textarea id="f-email-body" class="body" name="followup[body]">{$followup.body|escape}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="value">
+                        <input type="submit" class="button green" value="[`Save`]">
+                        {if $followup.id}
+                            <input type="button" id="send-test-button" class="button blue" value="[`Send test`]">
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div class="clear-both"></div>
+    </div>
+</div>
+
+<div id="send-test-dialog" style="display:none">
+    <h1>[`Test follow-up`]</h1>
+    {if empty($test_orders)}
+        <p>[`Follow-up testing requires at least one paid or complete order for sample data.`]</p>
+    {else}
+        <div class="fields form">
+            <div class="field">
+                <div class="name">[`Send to`]</div>
+                <div class="value">
+                    <input type="text" value="{$wa->user()->get('email', 'default')|escape}" class="bold">
+                </div>
+            </div>
+        </div>
+
+        <p class="clear-left select-order-message">[`Select an order to fetch sample data from`]</p>
+        <table class="zebra">
+        {foreach $test_orders as $o}
+            <tr>
+                <td>
+                    <input type="radio" name="order_selector" value="{$o.id|escape}">
+                </td>
+                <td class="nowrap">
+                    <span style="{$o.style|escape}">
+                        <i class="{$o.icon}"></i>{$o.id_str}
+                    </span>
+                </td>
+                <td>{$o.create_datetime|wa_date:'humandate'}</td>
+                <td>
+                    {foreach $o.items as $i}
+                        {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
+                    {/foreach}
+                </td>
+                <td class="bold nowrap align-right">{$o.total_formatted}</td>
+            </tr>
+        {/foreach}
+        </table>
+    {/if}
+</div>
+
+<script>(function() { "use strict";
+    $.shop.setTitle("[`Follow-ups`] — {$wa->accountName()}");
+    var settings_content = $('#s-settings-content');
+    var form = $('#s-followup-form');
+    var followup_id = "{$followup.id}" || null;
+    var submit = form.find('input:submit');
+    var send_test_button = $('#send-test-button');
+    var template_modified = false;
+
+    // Fix the hash. Needed when new follow-up is just created, or user clicks sidebar link with no id in URL.
+    if (followup_id && window.location.hash !== '#/followups/'+followup_id) {
+        $.settings.stopDispatch(1);
+        window.location.hash = '#/followups/'+followup_id;
+    }
+
+    // Highlight active row in inner sidebar
+    settings_content.find('.s-inner-sidebar a[href="#/followups/'+(followup_id||'new')+'"]').parent().addClass('selected');
+
+    {if $followup.id}
+        // Link to delete rule
+        $('#s-delete-followup-link').click(function() {
+            if (!confirm("[`Are you sure?`]")) {
+                return false;
+            }
+            settings_content.find('.s-inner-sidebar a[href="#/followups/{$followup.id}"]').parents('li').remove();
+            settings_content.find('.s-settings-form > .block').html('<p class="gray">'+"[`Follow-up has been deleted.`]"+'</p><div class="clear-both"></div>');
+            $.post(form.attr('action'), { 'delete': 1, 'id': '{$followup.id}' });
+            return false;
+        });
+
+        {if waRequest::post()}
+            submit.parent().append(
+                $('<span class="s-mgs-after-button"><i class="icon16 yes after-submit"></i>'+"[`Saved`]"+'</span>').animate({ opacity: 0 }, 2000, function() {
+                    $(this).remove();
+                })
+            );
+        {/if}
+
+        // Controller for sending tests
+        (function() {
+            var dialog = $('#send-test-dialog');
+
+            // Select row when user clicks on it
+            dialog.find('table').on('click', 'tr', function() {
+                var tr = $(this).addClass('selected');
+                tr.siblings('.selected').removeClass('selected');
+                tr.find(':radio').attr('checked', true);
+            });
+
+            // Actual send: called when user clicks "send test" button in dialog
+            var sendTest = function() {
+                dialog.find('.select-order-message').removeClass('errormsg');
+
+                var email_field = dialog.find('input:text').removeClass('error');
+                var email = email_field.val();
+                if (!email) {
+                    email_field.addClass('error');
+                    return false;
+                }
+
+                var order_id = dialog.find('input:radio:checked').val();
+                if (!order_id) {
+                    dialog.find('.select-order-message').addClass('errormsg');
+                    return false;
+                }
+
+                buttons.find(':submit').after('<span class="s-mgs-after-button"><i class="icon16 loading"></i></span>');
+                $.post('?module=settings&action=followupsTest', { order_id: order_id, followup_id: '{$followup.id}', email: email }, function(r) {
+                    buttons.find('.s-mgs-after-button').remove();
+                    dialog.trigger('close');
+                }, 'json');
+
+                return false;
+            };
+
+            // Dialog buttons block
+            var buttons = $('<div></div>');
+            buttons.append($('<button class="button green"></button>').text("[`Send test`]").click(sendTest));
+            buttons.append('<span> '+"[`or`]"+' </span>');
+            buttons.append(
+                $('<a href="#"></a>').text("[`cancel`]").click(function() {
+                    dialog.trigger('close');
+                    return false;
+                })
+            );
+
+            // Show dialog when user clicks "Send test" button in main form
+            send_test_button.click(function() {
+                if (template_modified) {
+                    alert("[`Please save changes to be able to send tests.`]");
+                    return false;
+                }
+                dialog.waDialog({
+                    //'height': '200px',
+                    //'width': '400px',
+                    'buttons': buttons
+                });
+                return false;
+            });
+        })();
+    {/if}
+
+    // Disallow sending tests when email template is modified
+    var formModified = function() {
+        template_modified = true;
+        send_test_button.removeClass('blue');
+    };
+    form.find('[name="followup[subject]"]').keyup(formModified);
+
+    // WYSIWYG
+    var codemirror = CodeMirror.fromTextArea(document.getElementById('f-email-body'), {
+        mode: "text/html",
+        tabMode: "indent",
+        height: "dynamic",
+        lineWrapping: true,
+        onKeyEvent: formModified
+    });
+
+    // Form submission via XHR
+    form.submit(function() {
+        // !!! Validation?..
+
+        // Submit
+        submit.parent().append('<span class="s-mgs-after-button"><i class="icon16 loading"></i></span>');
+        $.post(form.attr('action'), form.serialize(), function(r) {
+            settings_content.html(r);
+        });
+
+        return false;
+    });
+
+    {if !$cron_ok}
+        // Dialog with info how to set up cron
+        $('#cron-message-link').click(function() {
+            $('#cron-message-dialog').waDialog({
+                'height': '200px',
+                'width': '400px',
+                'buttons': $('<button class="button"></button>').text("[`Close`]").click(function() {
+                    $(this).trigger('close');
+                })
+            })
+        });
+    {/if}
+})();</script>

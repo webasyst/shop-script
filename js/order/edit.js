@@ -1,0 +1,548 @@
+$.order_edit = {
+
+    /**
+     * {Number}
+     */
+    id : 0,
+
+    /**
+     * {Jquery object}
+     */
+    container : null,
+
+    /**
+     * {Jquery object}
+     */
+    form : null,
+
+    customer_fields : null,
+    customer_inputs : null,
+
+    /**
+     * {Object}
+     */
+    stocks: {},
+
+    /**
+     * On/off edit mode
+     * {Boolen}
+     */
+    slide_on : false,
+
+    /**
+     * {Object}
+     */
+    options : {},
+
+    init : function(options) {
+        this.options = options;
+        if (options.id) {
+            this.id = options.id;
+        }
+        this.container = typeof options.container === 'string' ? $(options.container) : options.container;
+        this.form = typeof options.form === 'string' ? $(options.form) : options.form;
+        this.customer_fields = $('#s-order-edit-customer');
+        this.customer_inputs = this.customer_fields.find(':input');
+        this.stocks = options.stocks;
+        this.initView();
+    },
+
+    initView : function() {
+        var options = this.options;
+        this.initCustomerForm(this.id ? 'edit' : 'add');
+
+        $.order_edit.slide(true, options.mode == 'add');
+
+        this.container.find('.back').click(function() {
+            if ($.order_edit.id) {
+                $.order_edit.slide(false);
+            } else {
+                $.order_edit.slide(false, true);
+            }
+            $.orders.back();
+            return false;
+        });
+
+        this.updateTotal();
+
+        var price_edit = options.price_edit || false;
+
+        var add_order_input = $("#orders-add-autocomplete");
+        add_order_input.autocomplete({
+            source : '?action=autocomplete&with_counts=1',
+            minLength : 3,
+            delay : 300,
+            select : function(event, ui) {
+                var url = '?module=orders&action=getProduct&product_id=' + ui.item.id;
+                $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : ''), function(r) {
+                    var table = $('#order-items');
+                    var order_items_tr = table.find('.s-order-item');
+                    var product = r.data;
+                    product.skus[product.sku_id].checked = true;
+
+                    var add_row = $('#s-orders-add-row');
+                    add_row.before(tmpl('template-order', {
+                        data: r.data, options: {
+                            index: order_items_tr.length,
+                            currency: $.order_edit.options.currency,
+                            stocks: $.order_edit.stocks
+                        }
+                    }));
+                    add_row.prev().find('.s-orders-services .s-orders-service-variant').trigger('change');
+                    $.order_edit.updateTotal();
+                });
+                add_order_input.val('');
+                return false;
+            }
+        });
+
+        this.container.off('change', '.s-orders-skus input[type=radio]').on('change', '.s-orders-skus input[type=radio]',
+            function() {
+                var self = $(this);
+                var tr = self.parents('tr:first');
+                var sku_id = this.value;
+                var product_id = tr.attr('data-product-id');
+                var index = tr.attr('data-index');
+                var mode = $.order_edit.id ? 'edit' : 'add';
+                var item_id = null;
+                if (mode == 'edit') {
+                    item_id = parseInt(self.attr('name').replace('sku[edit][', ''), 10);
+                }
+
+                var url = '?module=orders&action=getProduct&product_id='+product_id+'&sku_id='+sku_id;
+                $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : ''), function(r) {
+                    tr.find('.s-orders-services').replaceWith(
+                        tmpl('template-order-services', {
+                            services: r.data.services,
+                            product_id: product_id,
+                            options: {
+                                price_edit: price_edit,
+                                index: index,
+                                currency: $.order_edit.options.currency,
+                                stocks: $.order_edit.stocks
+                            }
+                        })
+                    );
+                    tr.find('.s-orders-services .s-orders-service-variant').trigger('change');
+                    tr.find('.s-orders-product-price').
+                        find('span').text(r.data.price_str).end().
+                        find('input').val(r.data.price).trigger('change');
+
+                    tr.find('.s-orders-product-stocks').replaceWith(
+                        tmpl('template-order-stocks-' + mode, {
+                            sku:     r.data,
+                            index:   index,
+                            stocks:  $.order_edit.options.stocks,
+                            item_id: item_id   // use only in edit mode
+                        })
+                    );
+                });
+            }
+        );
+
+        this.container.off('change', '.s-orders-service-variant').on('change', '.s-orders-service-variant', function() {
+            var self = $(this);
+            var option = self.find('option:selected');
+            var li = self.parents('li:first');
+            li.find('.s-orders-service-price').val(option.attr('data-price'));
+        });
+
+        this.container.off('click', '.s-order-item-delete').on('click', '.s-order-item-delete', function() {
+            $(this).parents('tr:first').replaceWith($.order_edit.container.find('.template-deleted').clone().show());
+            $.order_edit.updateTotal();
+            return false;
+        });
+
+        // calculations
+        this.container.off('change', '.s-orders-services input').on('change', '.s-orders-services input', $.order_edit.updateTotal);
+        this.container.off('change', '.s-orders-product-price input').on('change', '.s-orders-product-price input', $.order_edit.updateTotal);
+        this.container.off('change', '.s-orders-services .s-orders-service-variant').on('change', '.s-orders-services .s-orders-service-variant',
+        $.order_edit.updateTotal);
+
+        $("#shipping_methods").change(function() {
+            var rate = $(this).children(':selected').data('rate');
+            $("#shipping-rate").val(rate);
+            $.order_edit.updateTotal();
+        });
+
+        $("#discount,#shipping-rate").change(function() {
+            $.order_edit.updateTotal();
+        });
+
+        var validate = function(item) {
+            var max_value = parseInt(item.attr('data-max-value'), 10);
+            var val = parseInt(item.val(), 10);
+            if (isNaN(max_value)) {
+                return true;
+            } else {
+                if (isNaN(val)) {
+                    return false;
+                } else {
+                    return val <= max_value;
+                }
+            }
+        };
+
+        this.container.off('keydown', '.s-orders-quantity').on('keydown', '.s-orders-quantity', function() {
+            var self = $(this);
+            var timer_id = self.data('timer_id');
+            if (timer_id) {
+                clearTimeout(timer_id);
+            }
+            self.data('timer_id', setTimeout(function() {
+                if (!validate(self)) {
+                    self.addClass('error');
+                } else {
+                    $.order_edit.updateTotal();
+                    self.removeClass('error');
+                }
+            }, 450));
+        });
+
+        if (this.form && this.form.length) {
+            this.form.unbind('sumbit').bind('submit', function() {
+                $.order_edit.showValidateErrors();
+                if (!$.order_edit.container.find('.error').length) {
+                    if ($.order_edit.id) {
+                        $.order_edit.editSubmit();
+                    } else {
+                        $.order_edit.addSubmit();
+                    }
+                }
+                return false;
+            });
+        }
+    },
+
+    updateTotal : function() {
+        var container = $.order_edit.container;
+        if (!container.find('.s-order-item').length) {
+            $("#subtotal").text(0);
+            $("#total").text(0);
+            return;
+        }
+        var extParseFloat = function(str) {
+            if (!str) {
+                return 0;
+            } else {
+                return parseFloat(('' + str).replace(',', '.'));
+            }
+        };
+        var subtotal = 0;
+
+        // Data for orderTotal controller
+        var data = {};
+        var customer = $("#s-order-edit-customer").find('[name^="customer["]').serializeArray();
+        for (var i = 0; i < customer.length; i++) {
+            data[customer[i].name] = customer[i].value;
+        }
+        data.items = [];
+
+        container.find('.s-order-item').each(function() {
+            var tr = $(this);
+            var product_id = tr.find('input[name^="product"]').val();
+            var price = extParseFloat(tr.find('.s-orders-product-price input').val());
+            var quantity = extParseFloat(tr.find('input.s-orders-quantity').val());
+            subtotal += price * quantity;
+            if (tr.find('.s-orders-services').length) {
+                tr.find('.s-orders-services input:checkbox:checked').each(function() {
+                    var li = $(this).closest('li');
+                    price = extParseFloat(li.find('input.s-orders-service-price').val());
+                    subtotal += price * quantity;
+                });
+            }
+            data.items.push({
+                product_id: product_id,
+                quantity: quantity,
+                price: price
+            });
+        });
+
+        // Fetch shipping methods and rates, and other info from orderTotal controller
+        $.post('?module=order&action=total', data, function(response) {
+            if (response.status == 'ok') {
+                for (var ship_id in response.data.shipping_methods) {
+                    var ship =  response.data.shipping_methods[ship_id];
+                    var o = $("#shipping_methods").find('option[value="' + ship_id + '"]');
+                    if (o.attr('selected') && o.data('rate') == $("#shipping-rate").val()) {
+                        $("#shipping-rate").val(ship.rate);
+                    }
+                    o.data('rate', ship.rate);
+                }
+            }
+        }, 'json');
+
+        $("#subtotal").text(Math.round(subtotal * 100) / 100);
+        var shipping = extParseFloat($("#shipping-rate").val().replace(',', '.')) || 0;
+        var discount = extParseFloat($("#discount").val() || 0);
+        var total = subtotal + shipping - discount;
+        $("#total").text(Math.round(total * 100) / 100);
+    },
+
+    editSubmit : function() {
+        var form = this.form;
+        $.shop.jsonPost(form.attr('action'), form.serialize(), function(r) {
+            $.order_edit.container.find('.back').click();
+        }, function(r) {
+            $.shop.trace('editSubmit', r);
+            if (r && r.errors && !$.isEmptyObject(r.errors)) {
+                $.order_edit.showValidateErrors(r.errors);
+                return false;
+            }
+        });
+    },
+
+    addSubmit : function() {
+        var form = this.form;
+        $.shop.trace('addSubmit', $(form));
+        $.shop.jsonPost(form.attr('action'), form.serialize(), function(r) {
+            if ($.order_edit.slide(false, true)) {
+                location.href = '#/orders/state_id=new&view=split&id=' + r.data.order.id + '/';
+            }
+        }, function(r) {
+            $.shop.trace('addSubmit', r);
+            if (r && r.errors && !$.isEmptyObject(r.errors)) {
+                $.order_edit.showValidateErrors(r.errors);
+                return false;
+            }
+        });
+    },
+
+    slideBack : function() {
+        this.slide(false, this.options.mode == 'add');
+    },
+
+    slide : function(on, add, done) {
+        if (arguments.length == 0) {
+            this.slide(true, this.options.mode == 'add');
+            return;
+        }
+        on = typeof on === 'undefined' ? true : on; // on/off
+        add = typeof add === 'undefined' ? false : add;
+        var duration = this.options.duration || 200;
+        var view = this.options.view;
+        var deferreds = [];
+
+        if (!this.slide_on && on) { // make editable
+            deferreds.push($('#s-sidebar').animate({
+                'width' : 0
+            }, duration, function() {
+                $(this).hide();
+            }));
+            $('.s-level2').hide();
+            deferreds.push($('#maincontent').animate({
+                'margin-top' : 45
+            }, duration));
+            deferreds.push($('#s-content').animate({
+                'margin-left' : 0
+            }, duration));
+            deferreds.push($('#s-orders').animate({
+                'width' : 0
+            }, duration, function() {
+                $(this).hide();
+            }));
+            deferreds.push($('#s-order').animate({
+                'margin-left' : 0
+            }, duration).find('>div:first').removeClass('double-padded, bordered-left').find('h1 .back.order-list').hide().end().find('h1 .back.read-mode')
+            .show());
+            this.slide_on = true;
+            $('.s-order-readable').hide();
+            $('.s-order-editable').show();
+
+            $.when(deferreds).done(function() {
+                if ($.order_list.lazy_load_win) {
+                    $.order_list.lazy_load_win.lazyLoad('sleep');
+                }
+                if (typeof done === 'function') {
+                    done.call(this);
+                }
+            });
+
+            return true;
+        } else if (this.slide_on && !on) { // make readable
+            deferreds
+            .push($('#s-order').animate({
+                'margin-left' : view != 'table' && !add ? 300 : 200
+            }, duration).find('>div:first').addClass('double-padded, bordered-left').find('h1 .back.order-list').show().end().find('h1 .back.read-mode').hide());
+            deferreds.push($('#s-orders').animate({
+                'width' : 300
+            }, duration).show());
+            deferreds.push($('#s-content').animate({
+                'margin-left' : 200
+            }, duration));
+            deferreds.push($('#maincontent').animate({
+                'margin-top' : 90
+            }, duration));
+            $('.s-level2').show();
+            deferreds.push($('#s-sidebar').animate({
+                'width' : 200
+            }, duration).show());
+            this.slide_on = false;
+            $('.s-order-editable').hide();
+            $('.s-order-readable').show();
+
+            $.when(deferreds).done(function() {
+                if ($.order_list.lazy_load_win) {
+                    $.order_list.lazy_load_win.lazyLoad('wake');
+                }
+                if (typeof done === 'function') {
+                    done.call(this);
+                }
+            });
+
+            return true;
+        }
+        return false;
+    },
+
+    showValidateErrors : function(validate_errors) {
+        $('#s-order-edit-customer .error').removeClass('error').empty();
+        $('#s-order-edit-customer .errormsg').empty();
+        if (validate_errors && validate_errors.customer) {
+            var errors = validate_errors.customer;
+            $.order_edit.customer_fields.find('.field-group:first').html(errors.html);
+            delete errors.html;
+            for (var name in errors) {
+                $.order_edit.customer_fields.find('.s-error-customer-' + name).each(function() {
+                    var item = $(this);
+                    if (this.tagName == 'EM') {
+                        item.text(errors[name]);
+                    } else {
+                        item.addClass('error');
+                    }
+                });
+            }
+        }
+        $('.s-order-errors').empty();
+        if (validate_errors && validate_errors.order) {
+            if (!$.isEmptyObject(validate_errors.order.items)) {
+                for (var index in validate_errors.order.items) {
+                    var tr = $('.s-order-item[data-index='+index+']');
+                    var errors = validate_errors.order.items[index];
+                    for (var name in errors) {
+                        tr.find('.s-error-item-' + name).text(errors[name]);
+                    }
+                    delete validate_errors.order.items[index];
+                }
+            }
+            if (validate_errors.order.common) {
+                $('.s-order-errors').html(validate_errors.order.common);
+            }
+        }
+    },
+
+    bindValidateErrorPlaceholders : function() {
+        // firstname, middlename, lastname mark as having one name of error
+        var names = ['firstname', 'middlename', 'lastname'];
+        for (var i = 0, n = names.length; i < n; i += 1) {
+            var name = names[i];
+            $.order_edit.customer_inputs.filter('[name=' + $.order_edit.inputName(name) + ']').addClass('s-error-customer-name');
+        }
+        $.order_edit.customer_fields.find('.s-error-customer-name:last').after('<em class="errormsg s-error-customer-name"></em>');
+    },
+
+    initCustomerForm : function(editing_mode) {
+        editing_mode = typeof editing_mode === 'undefined' ? 'add' : editing_mode;
+
+        // editing mode (no autocomplete)
+        if (editing_mode !== 'add') {
+            $.order_edit.bindValidateErrorPlaceholders();
+            return;
+        }
+
+        // adding mode (with autocomplete);
+        var autocompete_input = $("#customer-autocomplete");
+        var search_activate_button = $('#customer-search-activate');
+
+        // utility-functions
+        var disable = function(disabled) {
+            disabled = typeof disabled === 'undefined' ? true : disabled;
+            $('#s-customer-id').attr('disabled', disabled);
+            if (disabled) {
+                $('#s-order-edit-customer').addClass('s-opaque');
+            } else {
+                $('#s-order-edit-customer').removeClass('s-opaque');
+            }
+        };
+        var activate = function(activate) {
+            activate = typeof activate === 'undefined' ? true : activate;
+            if (activate) {
+                disable(false);
+                autocompete_input.val('').hide(200);
+                search_activate_button.show();
+            } else {
+                disable();
+                $.order_edit.customer_inputs.val('');
+                autocompete_input.val('').show();
+                search_activate_button.hide();
+            }
+        };
+        var testPhone = function(str) {
+            return parseInt(str, 10) || str.substr(0, 1) == '+' || str.indexOf('(') !== -1;
+        };
+
+        $.order_edit.bindValidateErrorPlaceholders();
+
+        // mark whole form as disabled (disactivated) to user want use autocomplete
+        activate(false);
+        $.order_edit.customer_fields.off('focus', ':input').on('focus', ':input', function() {
+            disable(false);
+            return false;
+        });
+        search_activate_button.click(function() {
+            activate(false);
+            return false;
+        });
+
+        // autocomplete
+        autocompete_input.autocomplete({
+            source : function(request, response) {
+                $.getJSON($.order_edit.options.autocomplete_url, request, function(r) {
+                    (r = r || []).push({
+                        label : $_('New customer'),
+                        value : 0
+                    });
+                    response(r);
+                });
+            },
+            minLength : 3,
+            select : function(event, ui) {
+                var value = autocompete_input.val();
+                var item = ui.item;
+                if (item.value) {
+                    $.get('?action=contactForm&id=' + item.value, function(html) {
+                        $.order_edit.customer_fields.find('.field-group:first').html(html);
+                        $.order_edit.customer_inputs = $.order_edit.customer_fields.find(':input');
+                        $('#s-customer-id').val(item.value);
+                        activate();
+                    });
+                } else {
+                    value = value.replace(/^\s*/, '').replace(/\s*$/, '');
+                    $.order_edit.customer_inputs.filter('[name=' + $.order_edit.inputName(testPhone(value) ? 'phone' : 'email') + ']').val(value);
+                    $('#s-customer-id').val(0);
+                    activate();
+                }
+                return false;
+            },
+            delay : 300
+        });
+
+        $('#order-add-form').submit(function() {
+            disable(false);
+        });
+    },
+
+    getWarnClass : function(count) {
+        if (count !== null && count <= 0) {
+            return 's-stock-warning-none';
+        } else if (count == 1) {
+            return 's-stock-warning-low';
+        } else {
+            return '';
+        }
+    },
+
+    inputName : function(name) {
+        return 'customer\\[' + name + '\\]' + (['email', 'phone'].indexOf(name) !== -1 ? '\\[value\\]' : '');
+    }
+};

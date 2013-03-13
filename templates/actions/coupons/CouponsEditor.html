@@ -1,0 +1,232 @@
+<div class="s-coupon s-coupon-margin">
+    {if !shopDiscounts::isEnabled('coupons')}
+        <div class="block double-padded red bold">
+            <i class="icon10 exclamation"></i>
+            {sprintf('[`Discounts by coupons are turned off. Enable discounts in your <a href="%s">store settings</a>.`]', '?action=settings#/discounts/coupons/')}
+        </div>
+    {/if}
+
+    <div class="block double-padded s-coupon-border">
+
+        {if $formatted_value}
+            <div class="float-right s-coupon-value">{$formatted_value}</div>
+        {/if}
+
+        <h1>
+            {$coupon.code|escape}
+            {if $coupon.id && !$is_enabled}<span class="hint">[`Expired`]</span>{/if}
+        </h1>
+
+        {if $coupon.id}
+            <p class="small">[`Created`] {$coupon.create_datetime|wa_date:"humandate"}</p>
+        {/if}
+
+        <form action="?module=coupons&action=editor&id={$coupon.id}" id="coupon-editor-form">
+            <div class="fields form">
+                <div class="field">
+                    <div class="name">
+                        [`Coupon code`]
+                    </div>
+                    <div class="value">
+                        <input type="text" class="large bold" name="coupon[code]" value="{$coupon.code|escape}">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Coupon type`]
+                    </div>
+                    <div class="value no-shift">
+                        <select name="coupon[type]">
+                            {foreach $types as $type_id => $type_name}
+                                <option value="{$type_id|escape}"{if $type_id == $coupon.type} selected{/if}>{$type_name|escape}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                    <div class="value bold" id="value-input-wrapper">
+                        <input type="text" class="numerical short bold" placeholder="0" name="coupon[value]" value="{$coupon.value|escape}">
+                        <span>%</span>
+                    </div>
+                    <div class="value" id="free-shipping-message">
+                        <p class="small">[`Discount will be calculated automatically to match the order shipping cost.`]</p>
+                    </div>
+<!--
+                    <div class="value bold">
+                        <input type="text" class="numerical short bold" placeholder="0" value=""> руб.
+                        (в дефолтной валюте)
+                    </div>
+-->
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Max number of usage`]
+                    </div>
+                    <div class="value">
+                        <input type="text" placeholder="&#8734;" class="numerical" name="coupon[limit]" value="{$coupon.limit}">
+                        <p class="hint">[`Enter the maximum number of times this coupon can be used. Leave empty for no limits.`]</p>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Expire date`]
+                    </div>
+                    <div class="value">
+                        <input type="text" class="numerical" name="coupon[expire_datetime]" value="{substr($coupon.expire_datetime, 0, 10)}">
+                        <a href="javascript:void(0)"><i class="icon16 calendar"></i></a>
+                        <p class="hint">[`Leave empty for no expiration date.`]</p>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Comment`]
+                    </div>
+                    <div class="value">
+                        <textarea name="coupon[comment]">{ifset($coupon.comment)|escape}</textarea>
+                        <p class="hint">[`Optional comment for your convenience. Will never be shown to customers.`]</p>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="value submit">
+                        {if $coupon.id}
+                            <div class="block float-right">
+                                <a href="javascript:void(0)" class="no-underline" id="delete-coupon-link"><i class="icon16 delete"></i>[`Delete this coupon`]</a>
+                            </div>
+                        {/if}
+
+                        <input type="submit" class="button green" value="[`Save`]">
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div class="clear-left"></div>
+    </div>
+</div>
+
+{if $coupon.id}
+    <div class="s-coupon-margin">
+        <div class="block double-padded">
+            <h2>[`Usage`]</h2>
+            {if $orders}
+                <p>{_w("[`This coupon was used for <strong>%d order</strong>.`]", "[`This coupon was used for <strong>%d orders</strong>.`]", count($orders))}</p>
+                <table class="zebra">
+                    {foreach $orders as $o}
+                        <tr>
+                            <td>
+                                <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/" style="{$o.style|escape}">
+                                    <i class="{$o.icon}"></i>
+                                    {$wa->shop->orderId($o.id)}
+                                </a>
+                            </td>
+                            <td>{ifset($o.coupon_discount_formatted)} <span class="hint">{$o.coupon_discount_percent}%</span></td>
+                            <td>
+                                <span class="float-right gray">{$o.create_datetime|wa_date:"humandate"}</span>
+                            </td>
+                        </tr>
+                    {/foreach}
+                    <tr>
+                        <td>
+                            <br>
+                            [`Overall discount`]
+                        </td>
+                        <td>
+                            <br>
+                            <strong>{$overall_discount_formatted}</strong>
+                        </td>
+                        <td></td>
+                    </tr>
+                </table>
+            {else}
+                 <p>[`This coupon was not used for any orders yet.`]</p>
+            {/if}
+        </div>
+    </div>
+{/if}
+
+<script>$(function() { "use strict";
+    var form = $('#coupon-editor-form');
+
+    {if $coupon.id}
+        // Deletion link
+        $('#delete-coupon-link').click(function() {
+            var code = $('[name="coupon[code]"]').val();
+            if (!confirm("[`This will permanently delete discount coupon %s. Are you sure?`]".replace('%s', code))) {
+                return;
+            }
+            $.post(form.attr('action'), { 'delete': 1 });
+            $('#s-content .sidebar li.selected').remove();
+            form.parents('.s-coupon-border').html("[`Coupon %s has been deleted.`]".replace('%s', code)).parent().siblings().remove();
+        });
+    {/if}
+
+    // When user types in code input, change the <h1> on the fly
+    form.find('[name="coupon[code]"]').keyup(function() {
+        form.siblings('h1').text($(this).val());
+    });
+
+    {if $duplicate_code_error}
+        // Error message when there was an error saving duplicate code
+        $('[name="coupon[code]"]').addClass('error').after($('<em class="errormsg"></em>').text("[`Codes must be unique.`]"));
+    {/if}
+
+    // When user changes type, change how value input looks
+    $('select[name="coupon[type]"]').change(function() {
+        var select = $(this);
+        var type = select.val();
+        if (type == '$FS') {
+            $('#value-input-wrapper').hide();
+            $('#free-shipping-message').show();
+        } else {
+            var wr = $('#value-input-wrapper').show();
+            $('#free-shipping-message').hide();
+            if (type == '%') {
+                wr.children('span').text('%');
+            } else {
+                var t = $.trim(select.children('[value="'+type+'"]').text());
+                wr.children('span').text(t.substr(0, t.length-3));
+            }
+        }
+    }).change();
+
+    // Datepicker
+    var datetime_input = $('input[name="coupon[expire_datetime]"]');
+    datetime_input.datepicker({
+        'dateFormat': 'yy-mm-dd'
+    });
+    datetime_input.next('a').click(function() {
+        $('input[name="coupon[expire_datetime]"]').datepicker('show');
+    });
+    // widget appears in bottom left corner for some reason, so we hide it
+    datetime_input.datepicker('widget').hide();
+
+    // Form validation
+    var isValid = function() {
+        form.find('.errormsg').remove();
+        form.find('.error').removeClass('error');
+
+        var valid = true;
+        var code_field = $('[name="coupon[code]"]');
+        if (!code_field.val()) {
+            valid = false;
+            code_field.addClass('error').after($('<em class="errormsg"></em>').text("[`This field is required.`]"));
+        }
+
+        return valid;
+    };
+
+    // Form submission
+    form.submit(function() {
+        var submit = form.find(':submit');
+        if (submit.attr('disabled')) {
+            return false;
+        }
+        if (!isValid()) {
+            return false;
+        }
+
+        submit.attr('disabled', true);
+        $.post(form.attr('action'), form.serialize(), function(r) {
+            $('#s-content .content').html(r);
+        });
+        return false;
+    });
+});</script>
+

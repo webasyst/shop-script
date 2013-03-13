@@ -1,0 +1,121 @@
+<div class="sidebar left200px s-settings-order-states">
+    <div class="s-inner-sidebar">
+
+        <ul id="discount-types" class="menu-v stack with-icons">
+            {foreach $types as $t}
+                <li><a href="javascript:void(0)" rel="{$t.id}">
+                    <i class="icon16 {if $t.enabled}status-blue-tiny{else}status-gray-tiny{/if}"></i>{$t.name}
+                    </a>
+                </li>
+            {/foreach}
+        </ul>
+
+        <div class="hr"></div>
+
+        <div class="block small">
+            <p>[`If more then one rule is applicable for the customer order, how the total discount should be calculated?`]</p>
+            <p>
+                <label><input type="radio" name="combiner" value="max"{if $combiner != 'sum'} checked{/if}> [`Maximum`]</label>
+                <br><br>
+                <label><input type="radio" name="combiner" value="sum"{if $combiner == 'sum'} checked{/if}> [`Sum`]</label>
+            </p>
+            <input type="button" id="combiner-save-button" value="[`Save`]" style="display:none">
+        </div>
+    </div>
+</div>
+
+<div id="s-discounts-content" class="content left200px s-settings-form blank bordered-left"></div>
+
+{* Allow plugins to insert their own content into types menu, and register for JS events. *}
+{foreach $plugin_html as $block}
+    {$block}
+{/foreach}
+
+<script>$(function() { "use strict";
+
+    var types_ul = $('#discount-types');
+    var discounts_content = $('#s-discounts-content');
+
+    //
+    // Controller for sub-pages.
+    // When user clicks a link in inner sidebar, or when changes an URL hash,
+    // this controller triggers event 'wa.dicount.<type>' on #discount-types.
+    // Plugins are expected to catch events of their types and load HTML into #s-discounts-content.
+    //
+    types_ul.on('click', 'a[rel]', function() {
+        var a = $(this);
+        var type = a.attr('rel');
+        if (!type) {
+            return;
+        }
+
+        if (window.location.hash.toString() != '#/discounts/'+type) {
+            $.settings.stopDispatch(1);
+            window.location.hash = '#/discounts/'+type+'/';
+        }
+        a.parent().addClass('selected').siblings('.selected').removeClass('selected');
+        discounts_content.html('<div class="block double-padded"><i class="icon16 loading"></i>'+"[`Loading...`]"+'</div><div class="clear-left"></div>');
+        types_ul.trigger('wa.discount.'+type);
+    });
+
+    // Implementation for 'coupons' discount type.
+    types_ul.bind('wa.discount.coupons', function() {
+        $.get('?module=settings&action=discountsCoupons', function(r) {
+            discounts_content.html(r);
+        });
+    });
+
+    // Implementation for 'category' discount type.
+    types_ul.bind('wa.discount.category', function() {
+        $.get('?module=settings&action=discountsCategory', function(r) {
+            discounts_content.html(r);
+        });
+    });
+
+    // Implementation for 'order_total' discount type.
+    types_ul.bind('wa.discount.order_total', function() {
+        $.get('?module=settings&action=discountsOrderTotal', function(r) {
+            discounts_content.html(r);
+        });
+    });
+
+    // Implementation for 'customer_total' discount type.
+    types_ul.bind('wa.discount.customer_total', function() {
+        $.get('?module=settings&action=discountsCustomerTotal', function(r) {
+            discounts_content.html(r);
+        });
+    });
+
+    // Open sub-page: either take id from hash, or use the first one in sidebar list (if exists)
+    (function() {
+        var a, hash = window.location.hash.toString().split('/');
+        while (hash.length && hash.shift() != 'discounts') {
+            ;
+        }
+        if (hash[0]) {
+            a = types_ul.find('a[rel="'+encodeURIComponent(hash[0])+'"]:first');
+        }
+        if (!a || !a.length) {
+            a = types_ul.find('a[rel]:first');
+        }
+        a.click();
+    })();
+
+    // Controller for combiner radio
+    (function() {
+        var radios = $('input:radio[name="combiner"]');
+        var button = $('#combiner-save-button');
+        radios.change(function() {
+            button.show();
+        });
+        button.click(function() {
+            button.hide();
+            radios.attr('disabled', true);
+            $.post('?module=settings&action=discountsCombineSave', { value: radios.filter(':checked').val() }, function() {
+                radios.attr('disabled', false);
+            });
+        });
+    })();
+
+    $.shop.setTitle("[`Discounts`] — {$wa->accountName()}");
+});</script>

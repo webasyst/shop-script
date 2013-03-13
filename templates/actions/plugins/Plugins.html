@@ -1,0 +1,49 @@
+<div class="sidebar right15px">
+	<div class="block s-nolevel2-sidebar"></div>
+</div>
+<div class="sidebar left15px">
+	<div class="block s-nolevel2-sidebar"></div>
+</div>
+
+<div class="content left15px right15px s-nolevel2-box">
+
+	<div class="sidebar left200px">
+		<div class="s-inner-sidebar">
+			<ul class="menu-v with-icons stack" id="plugin-list">
+			{foreach $plugins as $plugin}
+				<li id="plugin-{$plugin.id}" {if $plugin@first}class="selected"{/if} {if !empty($plugin.shop_settings)}data-settings="1"{/if}>
+					<a href="#/{$plugin.id}/">
+						<i class="icon16{if !isset($plugin.img)} plugins{else}" style="background-image: url('{wa_url()}{$plugin.img}');{/if}"></i>{$plugin.name|escape}
+						{if $plugin.description}
+							<span class="hint">{$plugin.description|escape}</span>
+						{/if}
+					</a>
+				</li>
+			{foreachelse}
+				<li>[`No plugins installed`]</li>
+			{/foreach}
+			</ul>
+			<div class="align-center hint hr block double-padded">
+	        	<p>
+    		        {sprintf('[`<a href="%s">Browse for new plugins</a> and install them using the Installer app.`]', {$wa_backend_url}|cat:'installer/?module=plugins&slug=shop')}
+            	</p>
+	        </div>
+
+	    </div>
+    </div>
+	<div class="content left200px blank bordered-left">
+		<div class="block double-padded" id="s-plugins-content">
+			<span>{if !empty($plugins)}[`Loading...`]<i class="icon16 loading"></i>{/if}</span>
+
+		</div>
+        <div class="clear-both"></div>
+	</div>
+</div>
+<script type="text/javascript" src="{$wa_app_static_url}js/backend/plugins.js{$wa->version}"></script>
+<script type="text/javascript">
+{$title = "[`Plugins`]"|cat:" — ":{$wa->accountName()}}
+$.shop.setTitle('{$title}');
+$.plugins.init({
+'loading': '[`Loading...`]<i class="icon16 loading"></i>'
+});
+</script>
