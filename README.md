@@ -1,7 +1,7 @@
-# Shop-Script #
+# Shop-Script 5 #
 
-Shop-Script is a robust PHP shopping cart software developed using the Webasyst Framework.
-Distributed under the terms of LGPL license.
+Shop-Script 5 is a robust PHP shopping cart software powered by Webasyst Framework.
+
 http://www.shop-script.com/
 http://www.webasyst.com/
 
@@ -23,23 +23,23 @@ http://www.webasyst.com/
 
 Install Webasyst Framework via http://github.com/webasyst/webasyst-framework/ or http://www.webasyst.com/framework/
 
-## Installing Shop-Script ##
+## Installing Shop-Script 5 ##
 
 1. Once Webasyst Framework is installed, get Shop-Script code into your /PATH_TO_WEBASYST/wa-apps/shop/ folder:
 
 	via GIT:
 
 		cd /PATH_TO_WEBASYST/wa-apps/shop/
-		git clone git://github.com/webasyst/webasyst-framework.git
+		git clone git://github.com/webasyst/shop-script.git
 
 	via SVN:
 	
 		cd /PATH_TO_WEBASYST/wa-apps/shop/
-		svn checkout http://svn.github.com/webasyst/webasyst-framework.git
+		svn checkout http://svn.github.com/webasyst/shop-script.git
 
 2. Add the following line into the /wa-config/apps.php file (this file lists all installed apps):
 
-		'shop' => true,
+	'shop' => true,
 		
 3. Done. Run Webasyst Framework in a web browser (e.g. http://localhost/webasyst/).
 
