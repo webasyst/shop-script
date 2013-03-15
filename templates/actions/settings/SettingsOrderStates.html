@@ -175,9 +175,8 @@
     </div>    
     <div class="clear"></div>
 </div>
-{$title = "[`Order States`]"|cat:" — ":{$wa->accountName()}}
 <script type="text/javascript">
-    $.shop.setTitle('{$title}');
+    document.title = '{"[`Order States`]"|cat:" — ":{$wa->accountName()}}'; 
     $.settings.orderStatesInit({
         id: "{$info.id}"
     });

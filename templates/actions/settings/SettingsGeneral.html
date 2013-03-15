@@ -58,10 +58,9 @@
     </form>
     <div class="clear"></div>
 </div>
-{$title = "[`General settings`]"|cat:" — ":{$wa->accountName()}}
 <script type="text/javascript">
     var form = $('#s-settings-general-form');
-    $.shop.setTitle('{$title}');
+    document.title = '{"[`General settings`]"|cat:" — ":{$wa->accountName()}}';
     form.submit(function() {
         var self = $(this);
         form.find(':submit').after('<span class="s-mgs-after-button"><i class="icon16 loading"></i></span>');

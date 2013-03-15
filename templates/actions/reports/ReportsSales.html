@@ -87,6 +87,7 @@
 <div class="clear-both"></div>
 
 <script type="text/javascript">(function() { "use strict";
+    document.title = '[`Sales`] — {$wa->accountName()}';
     $.reports.graph('reports-sales-graph', {json_encode($sales_data)});
     $.reports.pie('reports-customers-pie', [[
         ["[`New customers`] ({$stat.percent_new}%)", {ifempty($stat.percent_new, 0.01)|replace:',':'.'}],

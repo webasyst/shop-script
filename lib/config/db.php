@@ -240,6 +240,7 @@ return array(
         'name' => array('varchar', 255, 'null' => 0),
         'product_id' => array('int', 11, 'null' => 0),
         'sku_id' => array('int', 11, 'null' => 0),
+        'sku_code' => array('varchar', 255, 'null' => 0, 'default' => ''),
         'type' => array('enum', "'product','service'", 'null' => 0),
         'service_id' => array('int', 11),
         'service_variant_id' => array('int', 11),
@@ -367,6 +368,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
             'url' => 'url',
+            'total_sales' => 'total_sales',
         ),
     ),
     'shop_product_features' => array(
@@ -398,14 +400,6 @@ return array(
             'product_id' => 'product_id',
         ),
     ),
-    'shop_product_page_params' => array(
-        'page_id' => array('int', 11, 'null' => 0),
-        'name' => array('varchar', 255, 'null' => 0),
-        'value' => array('text', 'null' => 0),
-        ':keys' => array(
-            'PRIMARY' => array('page_id', 'name'),
-        ),
-    ),
     'shop_product_pages' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
         'product_id' => array('int', 11),
@@ -418,6 +412,8 @@ return array(
         'create_contact_id' => array('int', 11, 'null' => 0),
         'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         'status' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
+        'keywords' => array('text'),
+        'description' => array('text'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'product_id' => array('product_id', 'url'),

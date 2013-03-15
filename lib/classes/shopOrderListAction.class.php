@@ -53,7 +53,7 @@ class shopOrderListAction extends waViewAction
             if (isset($orders_per_page[$view])) {
                 $count = $orders_per_page[$view];
             } else {
-                $count = current($orders_per_page);
+                $count = reset($orders_per_page);
             }
         } else {
             $count = $orders_per_page;
@@ -67,7 +67,11 @@ class shopOrderListAction extends waViewAction
             $params = array();
             $state_id = waRequest::get('state_id');
             if ($state_id) {
-                $params['state_id'] = $state_id;
+                if (strstr($state_id, '|') !== false) {
+                    $params['state_id'] = explode('|', $state_id);
+                } else {
+                    $params['state_id'] = $state_id;
+                }
             }
             $contact_id = waRequest::get('contact_id', null, waRequest::TYPE_INT);
             if ($contact_id) {
@@ -80,7 +84,7 @@ class shopOrderListAction extends waViewAction
         }
         $params_str = '';
         foreach ($this->filter_params as $p => $v) {
-            $params_str .= '&'.$p.'='.$v;
+            $params_str .= '&'.$p.'='. (is_array($v) ? implode('|', $v) : $v);
         }
         return substr($params_str, 1);
     }

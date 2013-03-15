@@ -71,7 +71,6 @@ class shopProductPageSaveController extends waJsonController
             $data['name'] = '('._ws('no-title').')';
         }
         $data['status'] = isset($data['status']) ? 1 : 0;
-        $data['params'] = $this->getParams();
         return $data;
     }
 
@@ -84,16 +83,5 @@ class shopProductPageSaveController extends waJsonController
             }
         }
         return $this->product;
-    }
-
-    public function getParams()
-    {
-        $params = array();
-        foreach ((array)waRequest::post('params', array()) as $name => $value) {
-            if ($value && in_array($name, $this->param_names)) {
-                $params[$name] = $value;
-            }
-        }
-        return $params;
     }
 }

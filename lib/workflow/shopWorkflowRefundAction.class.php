@@ -21,6 +21,12 @@ class shopWorkflowRefundAction extends shopWorkflowAction
 
         if ($order_id != null) {
             $order_model = new shopOrderModel();
+            $order_model->updateById($order_id, array(
+                'paid_date' => null,
+                'paid_year' => null,
+                'paid_month' => null,
+                'paid_quarter' => null,
+            ));
             $order_model->returnProductsToStocks($order_id);
             shopAffiliate::cancelBonus($order_id);
         }

@@ -33,7 +33,6 @@ class shopSettingsResetAction extends waViewAction
         //XXX hardcode
         $tables = array(
             'shop_page',
-            'shop_page_params',
 
             'shop_category',
             'shop_category_params',
@@ -42,7 +41,6 @@ class shopSettingsResetAction extends waViewAction
             'shop_product_features',
             'shop_product_images',
             'shop_product_pages',
-            'shop_product_page_params',
             'shop_product_related',
             'shop_product_reviews',
             'shop_product_services',
@@ -87,7 +85,16 @@ class shopSettingsResetAction extends waViewAction
         );
         $model = new waModel();
         foreach ($tables as $table) {
-            $model->query(sprintf("TRUNCATE `%s`", $table));
+            $exist = false;
+            try {
+                $model->query(sprintf("SELECT * FROM `%s` WHERE 0", $table));
+                $exist = true;
+                $model->query(sprintf("TRUNCATE `%s`", $table));
+            } catch (waDbException $ex) {
+                if ($exist) {
+                    throw $ex;
+                }
+            }
         }
         $sqls = array();
         $sqls[] = 'UPDATE`shop_type` SET`count` = 0';
@@ -95,6 +102,10 @@ class shopSettingsResetAction extends waViewAction
         foreach ($sqls as $sql) {
             $model->query($sql);
         }
+
+        $ccm = new waContactCategoryModel();
+        $ccm->deleteByField('app_id', 'shop');
+
         $app_settings_model = new waAppSettingsModel();
 
         $currency_model = new shopCurrencyModel();
@@ -118,14 +129,15 @@ class shopSettingsResetAction extends waViewAction
 
         $path = wa()->getDataPath('products', true, 'shop');
         waFiles::write($path.'/thumb.php', '<?php
-    $file = realpath(dirname(__FILE__)."/../../../../")."/wa-apps/shop/lib/config/data/thumb.php";
+$file = realpath(dirname(__FILE__)."/../../../../")."/wa-apps/shop/lib/config/data/thumb.php";
 
-        if (file_exists($file)) {
-            include($file);
-        } else {
-            header("HTTP/1.0 404 Not Found");
-        }
-        ');
+if (file_exists($file)) {
+    include($file);
+} else {
+    header("HTTP/1.0 404 Not Found");
+}
+
+');
         waFiles::copy($this->getConfig()->getAppPath('lib/config/data/.htaccess'), $path.'/.htaccess');
         echo json_encode(array('result' => 'ok', 'redirect' => '?action=welcome'));
         exit;

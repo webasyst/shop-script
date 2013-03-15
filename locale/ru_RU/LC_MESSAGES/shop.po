@@ -2479,7 +2479,7 @@ msgstr "Название свойства"
 
 #: /wa-apps/shop/templates/actions/services/Services.html:67
 msgid "Multiple options"
-msgstr "Множественнвые свойства"
+msgstr "Варианты"
 
 #: /wa-apps/shop/templates/actions/services/Services.html:87
 msgid "Add option"
@@ -5122,3 +5122,45 @@ msgstr "Скачать"
 #: /wa-apps/shop/lib/workflow/shopWorkflowDeleteAction.class.php:33
 msgid "This order will be cancelled. Are you sure?"
 msgstr "Заказ будет отменен. Вы уверены?"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:36
+msgid "This will permanently delete this notification. Are you sure?"
+msgstr "Уведомление будет удалено без возможности восстановления. Вы уверены?"
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:16
+msgid ""
+"You are currently authorized as <strong>%s</strong>. Please verify or update "
+"your contact information using the form below. Your existing contact info "
+"will be automatically updated."
+msgstr ""
+"Вы авторизованы как <strong>%s</strong>. Пожалуйста, подтвердите или "
+"обновите вашу контактную информацию. Изменения будут автоматически сохранены "
+"в вашем профиле. "
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:17
+msgid ""
+"If you want to place an order on behalf of another customer, <a href=\"%s"
+"\">log out</a> from your current profile and proceed to checkout again."
+msgstr ""
+"Если вы хотите оформить заказ от имени другого пользователя, <a href=\"%s"
+"\">выйдите из сеанса</a> и перейдите к оформлению заказа заново."
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:68
+msgid "Email already registered"
+msgstr "Покупатель с таким email-адресом уже зарегистрирован"
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:12
+msgid ""
+"If you want to place an order on behalf of another customer, <a href=\"?"
+"logout\">log out</a> from your current profile and proceed to checkout again."
+msgstr ""
+"Если вы хотите оформить заказ от имени другого пользователя, <a href=\"?"
+"logout\">выйдите из сеанса</a> и перейдите к оформлению заказа заново."
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:23
+msgid "Create permanent user account"
+msgstr "Зарегистрироваться, как постоянный покупатель"
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:41
+msgid "Password"
+msgstr "Пароль"

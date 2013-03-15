@@ -134,13 +134,15 @@ class shopProduct implements ArrayAccess
         }
         if ($this->is_dirty) {
             $product = array();
+            $id_changed = !empty($this->is_dirty['id']);
             foreach ($this->is_dirty as $field => $v) {
                 if ($this->model->fieldExists($field)) {
                     $product[$field] = $this->data[$field];
                     unset($this->is_dirty[$field]);
                 }
             }
-            if ($id = $this->getId()) {
+            $id = $this->getId();
+            if ($id && !$id_changed) {
                 if (!isset($product['edit_datetime'])) {
                     $product['edit_datetime'] = date('Y-m-d H:i:s');
                 }

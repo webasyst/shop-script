@@ -60,11 +60,11 @@
                         </div>
                         <div class="field">
                             <div class="name">[`META Keywords`]</div>
-                            <div class="value"><textarea name="params[keywords]">{if !empty($page.params.keywords)}{$page.params.keywords|escape}{/if}</textarea></div>
+                            <div class="value"><textarea name="info[keywords]">{if !empty($page.keywords)}{$page.keywords|escape}{/if}</textarea></div>
                         </div>
                         <div class="field">
                             <div class="name">[`META Description`]</div>
-                            <div class="value"><textarea name="params[description]">{if !empty($page.params.description)}{$page.params.description|escape}{/if}</textarea></div>
+                            <div class="value"><textarea name="info[description]">{if !empty($page.description)}{$page.description|escape}{/if}</textarea></div>
                         </div>
                     </div>
                 {if !$page || !$page.id}

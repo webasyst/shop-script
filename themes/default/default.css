@@ -340,6 +340,8 @@ table.features .name { min-width: 95px; color: #777; font-size: 0.95em; padding-
 .checkout .checkout-result .wa-form { margin: 10px auto 20px; width: 400px; float: none; }
 .checkout .checkout-step {  }
 .checkout .comment { width: 100%; height: 100px; margin-bottom: 20px; }
+.checkout blockquote img { margin-right: 20px; float: left; }
+.checkout blockquote p { color: #000; margin-bottom: 0; }
 
 /* Product reviews */
 

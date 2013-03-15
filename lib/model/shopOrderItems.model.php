@@ -402,17 +402,19 @@ class shopOrderItemsModel extends waModel
 
             // correct product counters
             $product_ids = array_keys($product_skus_model->getByField('id', $sku_ids, 'product_id'));
-            $sql = "
-                UPDATE `shop_product` p JOIN (
-                    SELECT p.id, SUM(sk.count) AS count FROM `shop_product` p
-                    JOIN `shop_product_skus` sk ON p.id = sk.product_id
-                    WHERE p.id IN(".implode(',', $product_ids).")
-                    GROUP BY p.id
-                    ORDER BY p.id
-                ) r ON p.id = r.id
-                SET p.count = r.count
-                WHERE p.count IS NOT NULL";
-            $this->exec($sql);
+            if ($product_ids) {
+                $sql = "
+                    UPDATE `shop_product` p JOIN (
+                        SELECT p.id, SUM(sk.count) AS count FROM `shop_product` p
+                        JOIN `shop_product_skus` sk ON p.id = sk.product_id
+                        WHERE p.id IN(".implode(',', $product_ids).")
+                        GROUP BY p.id
+                        ORDER BY p.id
+                    ) r ON p.id = r.id
+                    SET p.count = r.count
+                    WHERE p.count IS NOT NULL";
+                $this->exec($sql);
+            }
         }
     }
 

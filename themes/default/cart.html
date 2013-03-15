@@ -60,17 +60,17 @@
                 {/foreach}
                 
                 <!-- discount coupon -->
-                {if 1}
                 <tr class="no-border">
                     <td colspan="2" class="no-border">
+                        {if shopDiscounts::isEnabled('coupons')}
                         [`Discount coupon (if you have one)`]:
                         <input type="text" name="coupon_code" value="{$coupon_code|escape}"> <input type="submit"  value="[`Apply`]">
+                        {/if}
                     </td>
                     <td class="align-center">[`Discount`]</td>
                     <td class="align-center cart-discount">&minus; {shop_currency($discount, true)}</td>
                     <td>&nbsp;</td>
                 </tr>
-                {/if}
 
                 {if shopAffiliate::isEnabled() && $affiliate_bonus}
                 <!-- affiliate bonus -->

@@ -10,21 +10,21 @@
             <li class="bottom-padded">
                 <a href="#/orders/new/" class="bold"><i class="icon16 add"></i>[`New order`]</a>
             </li>
-            {*<li id="s-pending-orders" class="list">
-                <span class="count">{if !empty($state_counters['new'])}{$state_counters['new']}{/if}</span>
-                <a href="#">
+            <li id="s-pending-orders">
+                <span class="count">{if !empty($pending_count)}{$pending_count}{/if}</span>
+                <a href="#/orders/state_id=new|processing|paid">
                     <i class="icon16 ss orders-processing"></i>[`Processing`]
                     <strong class="highlighted small">{if !empty($state_counters['new'])}+{$state_counters['new']}{/if}</strong>
                 </a>
-            </li>*}
+            </li>
 
             <!-- plugin hook: 'backend_orders.sidebar_top_li' -->
             {* @event backend_orders.%plugin_id%.sidebar_top_li *}
             {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
             
             <li id="s-all-orders" class="list">
-                <span class="count">!!!</span>
-                <a href="#">
+                <span class="count">{if !empty($all_count)}{$all_count}{/if}</span>
+                <a href="#/orders/all/">
                     <i class="icon16 ss orders-all"></i>[`All orders`]
                 </a>
             </li>

@@ -38,14 +38,15 @@ $.extend($.settings = $.settings || {}, {
             }
             $.wa.errorHandler = function(xhr) {
                 if ((xhr.status === 403) || (xhr.status === 404)) {
-                    var text = $(xhr.responseText);
-                    if (text.find('.dialog-content').length) {
-                        text = $('<div class="block double-padded"></div>').append(text.find('.dialog-content *'));
+                    var $text = $(xhr.responseText);
+                    var $message = $('<div class="block double-padded"></div>');
+                    if ($text.find('.dialog-content').length) {
+                        text = $message.append($text.find('.dialog-content *'));
 
                     } else {
-                        text = $('<div class="block double-padded"></div>').append(text.find(':not(style)'));
+                        $text = $message.append($text.find(':not(style)'));
                     }
-                    $("#s-settings-content").empty().append(text);
+                    $("#s-settings-content").empty().append($message).append('<div class="clear-both"></div>');
                     return false;
                 }
                 return true;

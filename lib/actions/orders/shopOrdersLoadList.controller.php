@@ -25,7 +25,6 @@ class shopOrdersLoadListController extends shopOrderListAction
 
         $total_count = $this->getTotalCount();
         $orders = $this->getOrders($offset, $count);
-        $current_offset = $this->getCurrentOffset();
 
         $count = count($orders);
 
@@ -35,12 +34,13 @@ class shopOrdersLoadListController extends shopOrderListAction
             array(
                 'orders' => array_values($orders),
                 'total_count' => $total_count,
-                'current_offset' => $current_offset,
+                'current_offset' => $offset,
                 'count' => $count,
+                'loaded' => $offset + $count,
                 'progress' => array(
-                    'loaded' => _w('%d order','%d orders', $current_offset + $count),
+                    'loaded' => _w('%d order','%d orders', $offset + $count),
                     'of' => sprintf(_w('of %d'), $total_count),
-                    'chunk' => _w('%d order','%d orders', max(0, min($total_count - ($current_offset + $count), $count))),
+                    'chunk' => _w('%d order','%d orders', max(0, min($total_count - ($offset + $count), $count))),
                 )
             )
             +
@@ -49,11 +49,6 @@ class shopOrdersLoadListController extends shopOrderListAction
                 waRequest::get('counters') ? array('counters' => $this->getListCounters()) : array()
             )
         );
-    }
-
-    public function getCurrentOffset()
-    {
-        return (int)waRequest::get('current_offset');
     }
 
     public function getCount()

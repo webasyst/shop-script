@@ -150,9 +150,8 @@
     </div>
     </form>
 </div>
-{$title = "[`Stocking`]"|cat:" — ":{$wa->accountName()}}
 <script>
-$.shop.setTitle('{$title}');
+document.title = '{"[`Stocking`]"|cat:" — ":{$wa->accountName()}}';
 $.settings.stocksInit({
     validate_errors: {
         number: '[`Value must be a positive number`]',

@@ -85,19 +85,9 @@
 </div>
 
 
-{if true}
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/shipping.js?{$wa->version()}"></script>
 <script type="text/javascript">
-{include file="../../../js/settings/shipping.js" inline}
-</script>
-{else}
-<script type="text/javascript" src="{$wa_app_static_url}js/settings/shipping.js?{$wa->version()}">
-</script>
-{/if}
-
-{$title = "[`Shipping`]"|cat:" — ":{$wa->accountName()}}
-
-<script type="text/javascript">
-$.shop.setTitle('{$title}');
+document.title = '{"[`Shipping`]"|cat:" — ":{$wa->accountName()}}';
 if(typeof($)!='undefined') {
 $.settings.shippingInit();
 }

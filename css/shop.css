@@ -23,6 +23,7 @@
 #mainmenu ul.tabs li.selected { padding-bottom: 3px; background: #fff !important; }
 #mainmenu ul.tabs li.selected.s-storefronts-tab { background-color: #f7f7f7 !important; }
 #mainmenu ul.tabs li.selected a { padding: 0 1em; }
+#mainmenu ul.tabs li a sup{ display: none; }
 #mainmenu ul.tabs li.selected a sup { display: none; }
 #mainmenu ul.tabs li.s-openstorefront a { border: 1px solid #ccc; border-radius: 12px; color: #444; font-size: 0.8em; height: 20px; line-height: 20px; margin-top: 0.6em; padding: 0 10px; font-weight: bold; margin-left: 10px; background: -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(221,221,221,1) 100%); background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(221,221,221,1))); background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%); background: -o-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%); background: -ms-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%); background: linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%); filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#dddddd',GradientType=0 ); }
 #mainmenu ul.tabs li.s-openstorefront a i.icon10 { margin-top: 5px; }
@@ -123,7 +124,7 @@ ul.tags { list-style-type: none; margin: 0; padding: 0; }
 .s-order { position: relative; box-shadow: 0 1px 15px #aaa; z-index: 83; background: #fff; margin-right: 7px; }
 .s-order .s-overhanging-plus { margin-left: -12px; }
 .s-order textarea { width: 90%; }
-.s-order .profile { margin-bottom: 25px; }
+.s-order .profile { margin-bottom: 25px; margin-right: 220px; }
 
 /* override paddings for .fields * because of complex composite fields */
 .fields .field .value p label { display: block; margin: 0; }
@@ -140,13 +141,15 @@ ul.tags { list-style-type: none; margin: 0; padding: 0; }
 #s-orders.sidebar .lazyloading-wrapper { text-align: center; padding-left: 0; }
 #s-orders table.zebra td { padding-left: 4px; padding-right: 4px; }
 #s-orders table.zebra td i.icon16 { margin-top: 0; }
+#s-orders table.zebra td a span.highlighted { background: #ff9; }
 #s-order #workflow-content { margin: 10px 250px 20px 0; }
 
 ul.s-orders li { width: 282px; }
 ul.s-orders li a { color: #555; line-height: 1em; }
 ul.s-orders li a p { line-height: 1em; margin: 3px 0 0; }
 ul.s-orders li a span.highlighted { background: #ff9; }
-ul.s-orders li.selected { box-shadow: -2px 0px 11px -4px #444; position: relative; z-index: 82; background: #ffc; }
+ul.s-orders li.selected { box-shadow: 0 0 8px -4px #444444; position: relative; z-index: 82; background: #ffc; }
+ul.s-orders li.selected a span.highlighted { background: #ff3; }
 ul.s-orders li .profile.image50px .details { min-height: 50px; padding-right: 5px; }
 
 ul.s-order-actions li { margin-right: 0; margin-left: -8px; }

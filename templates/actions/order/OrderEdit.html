@@ -286,13 +286,19 @@
 
 <script type="text/javascript" src="{$wa_app_static_url}js/order/edit.js?v{$wa->version()}"></script>
 <script>
+    var count_new = {if !empty($count_new)}{$count_new}{else}0{/if};
+    var title = {if !$order}'{"[`New order`]"|cat:' — ':$wa->accountName()}'{else}'{$wa->shop->orderId($order.id)|cat:' — ':$wa->accountName()}'{/if};
+    if (title && count_new) {
+        title = '(' + count_new + ') ' + title;
+    }
     $.order_edit.init({
-        id: {if $order}{$order.id}{else}0{/if},
+        id:    {if $order}{$order.id}{else}0{/if},
         mode: '{if $order}edit{else}add{/if}',
         container: '#s-content',
         form: '#order-edit-form',
         autocomplete_url: '{$wa_backend_url}contacts/?action=autocomplete&limit=5',
         currency: '{$currency}',
         stocks: {json_encode($stocks)},
+        title: title
     });
 </script>

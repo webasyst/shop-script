@@ -68,11 +68,10 @@
     <div class="clear"></div>
 
 </div>
-{$title = "[`Recommendations`]"|cat:" — ":{$wa->accountName()}}
 <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/recommendations.js"></script>
 <script type="text/javascript">
-    $.shop.setTitle('{$title}');
+    document.title = '{"[`Recommendations`]"|cat:" — ":{$wa->accountName()}}';
     $.settings.recommendationsInit({
         features: {json_encode($features)},
         data: {json_encode($data)}

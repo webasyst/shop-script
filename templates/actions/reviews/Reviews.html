@@ -22,9 +22,8 @@
         </span>
     </div>
 </div>
-{$title = '[`Reviews`]'|cat:" — ":{$wa->accountName()}}
 <script>
-    $.shop.setTitle('{$title}');
+    document.title = '{"[`Reviews`]"|cat:" — ":{$wa->accountName()}}';
     $.product_reviews.init({
         statuses: {
             deleted: '{shopProductReviewsModel::STATUS_DELETED}',

@@ -43,9 +43,7 @@ class shopServiceModel extends waModel
         }
         if ($id) {
             $this->updateVariants($id, $data['variants']);
-            if (!empty($data['types'])) {
-                $this->updateTypes($id, $data['types']);
-            }
+            $this->updateTypes($id, !empty($data['types']) ? $data['types'] : array());
             if (!empty($data['products'])) {
                 $this->updateProducts($id, $data['products']);
             }

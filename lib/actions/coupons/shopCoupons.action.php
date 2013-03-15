@@ -21,7 +21,13 @@ class shopCouponsAction extends waViewAction
         }
         unset($c);
 
-        $this->view->assign('coupons', $coupons);
+        $order_model = new shopOrderModel();
+        $count_new = $order_model->getStateCounters('new');
+
+        $this->view->assign(array(
+            'coupons' => $coupons,
+            'order_count_new' => $count_new
+        ));
     }
 
     public static function formatValue($c, $curr = null)

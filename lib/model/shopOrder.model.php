@@ -16,19 +16,14 @@ class shopOrderModel extends waModel
         );
     }
 
-    public function getOffset($order_id, $where, $consider_updated = false)
+    public function getOffset($order_id, $where)
     {
         $item = $this->getById($order_id);
         if (!$item) {
             return false;
         }
-        if ($consider_updated) {
-            $offset_where = "create_datetime > '{$item['create_datetime']}' OR (
-                create_datetime = '{$item['create_datetime']}' AND update_datetime > '{$item['update_datetime']}') OR (
-                create_datetime = '{$item['create_datetime']}' AND update_datetime = '{$item['update_datetime']}' AND id < '{$item['id']}')";
-        } else {
-            $offset_where = "create_datetime > '{$item['create_datetime']}' OR (create_datetime = '{$item['create_datetime']}' AND id < '{$item['id']}')";
-        }
+
+        $offset_where = "create_datetime > '{$item['create_datetime']}' OR (create_datetime = '{$item['create_datetime']}' AND id < '{$item['id']}')";
 
         $where = $this->getWhereByField($where);
         $sql = "SELECT COUNT(id) offset
@@ -64,7 +59,7 @@ class shopOrderModel extends waModel
 
         $sql = "SELECT $main_fields FROM `{$this->table}`".
             ($where ? " WHERE $where" : "").
-            " ORDER BY create_datetime DESC, update_datetime DESC, id".
+            " ORDER BY create_datetime DESC, id".
             " LIMIT ".($options['offset'] ? $options['offset'].',' : '').(int)$options['limit'];
         $data = $this->query($sql)->fetchAll('id');
 
@@ -142,12 +137,12 @@ class shopOrderModel extends waModel
     {
         $where = "";
         if ($state_id !== null) {
-            $where = "WHERE state_id = '".$this->escape($state_id)."'";
+            $where = "WHERE " . $this->getWhereByField('state_id', $state_id);
         }
-        $r = $this->query("
+        $sql = "
             SELECT state_id, COUNT(state_id) cnt FROM `{$this->table}`
-            $where
-            GROUP BY state_id");
+            {$where} GROUP BY state_id";
+        $r = $this->query($sql);
         if ($state_id !== null) {
             $cnt = $r->fetchField('cnt');
             return $cnt ? $cnt : 0;

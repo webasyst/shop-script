@@ -1,0 +1,32 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: shop/plugins/favorite\n"
+"POT-Creation-Date: 2012-04-17 16:32+0400\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Vladimir V. Tuporshin <vofka@webasyst.net>\n"
+"Language-Team: shop/plugins/favorite\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)"
+">=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: .\n"
+"X-Generator: Poedit 1.5.5\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+msgid "Favorites"
+msgstr "Избранное"
+
+msgid "Remove from favorites"
+msgstr "Удалить из избранных"
+
+msgid "Add to favorites"
+msgstr "Добавить в избранные"
+
+msgid "Favorite products"
+msgstr "Избранные товары"
+
+msgid "Backend favorite products filtering"
+msgstr "Возможность быстрого доступа к избранным товарам"

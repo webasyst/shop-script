@@ -1,0 +1,297 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: shop/plugins/migrate\n"
+"POT-Creation-Date: 2013-02-11 13:34+0400\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: shop/plugins/migrate\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: .\n"
+"X-Generator: Poedit 1.5.5\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+#: /wa-apps/shop/plugins/migrate/templates/actions/backend/BackendSetup.html:4
+msgid "Source"
+msgstr "Источник"
+
+#: /wa-apps/shop/plugins/migrate/templates/actions/backend/BackendSetup.html:7
+msgid "Platform"
+msgstr "Платформа"
+
+#: /wa-apps/shop/plugins/migrate/templates/actions/backend/BackendSetup.html:11
+msgid "Select platform"
+msgstr "Выберите платформу"
+
+#: /wa-apps/shop/plugins/migrate/templates/actions/backend/BackendSetup.html:42
+msgid "Import data"
+msgstr "Импортировать данные"
+
+#: /wa-apps/shop/plugins/migrate/templates/actions/backend/BackendSetup.html:55
+msgid "Please do not close your browser window and do not leave this page until the entire migration process is finished."
+msgstr "Пожалуйста, не закрывайте браузер и не покидайте эту страницу, пока процесс переноса данных не будет полностью завершен."
+
+#: /wa-apps/shop/plugins/migrate/js/migrate.js:11
+msgid "Loading..."
+msgstr "Загрузка..."
+
+#: /wa-apps/shop/plugins/migrate/lib/actions/backend/shopMigratePluginRun.controller.php:95
+msgid "Successfully imported"
+msgstr "Успешно импортировано"
+
+#: /wa-apps/shop/plugins/migrate/lib/actions/backend/shopMigratePluginRun.controller.php:109
+msgid "%02d hr %02d min %02d sec"
+msgstr "%02d ч %02d мин %02d сек"
+
+#: /wa-apps/shop/plugins/migrate/lib/actions/backend/shopMigratePluginRun.controller.php:110
+msgid "(total time: %s)"
+msgstr "(общее время: %s)"
+
+#: /wa-apps/shop/plugins/migrate/lib/config/plugin.php:4
+msgid "Migrate to Shop-Script"
+msgstr "Переход на Shop-Script"
+
+#: /wa-apps/shop/plugins/migrate/lib/config/plugin.php:5
+msgid "Transfer data from other ecommerce platforms to Shop-Script"
+msgstr "Перенос данных с других платформ электронной коммерции в Shop-Script"
+
+#: /wa-apps/shop/plugins/migrate/lib/shopMigrate.plugin.php:8
+msgid "WebAsyst Shop-Script (old version) on the same server"
+msgstr "WebAsyst Shop-Script (старая версия) на этом же сервере"
+
+#: /wa-apps/shop/plugins/migrate/lib/shopMigrate.plugin.php:13
+msgid "WebAsyst Shop-Script (old version) on a remote server"
+msgstr "WebAsyst Shop-Script (старая версия) на удаленном сервере"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateTransport.class.php:159
+msgid "Errors only"
+msgstr "Только ошибки"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateTransport.class.php:160
+msgid "Debug (detailed log)"
+msgstr "Отладка (подробное логирование)"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateTransport.class.php:165
+msgid "Log level"
+msgstr "Уровень логирования"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:146
+msgid "Invalid server response with code %d"
+msgstr "Неверный ответ сервера с кодом %d"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:11
+msgid "Data access URL"
+msgstr "URL доступа к данным"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:12
+msgid "For WebAsyst <strong>PHP software</strong> installed on your server:<br /> 1. Download data access script <a href=\"http://www.webasyst.com/wa-data/public/site/downloads/old-webasyst-export-php.zip\">export.php</a>, and upload it to your Webasyst published/ folder via FTP.<br /> 2. Enter the complete URL to this file, which should look like this: <strong>http://YOUR_WEBASYST_ROOT_URL/published/export.php</strong><br /><br /> For <strong>hosted accounts</strong>: get your Secure Data Access URL in your ACCOUNT.webasyst.net backend’s “Account (link in the top right corner) &gt; System Settings” page."
+msgstr "Для <strong>PHP-скриптов</strong> WebAsyst, установленных на вашем сервере:<br /> 1. Скачайте скрипт доступа к данным <a href=\"http://www.webasyst.com/wa-data/public/site/downloads/old-webasyst-export-php.zip\">export.php</a> и загрузите его по FTP на  сервер с установленными скриптами в директорию published/.<br /> 2. Введите полный URL к этому файлу, который должен иметь следующий вид: <strong>http://YOUR_WEBASYST_ROOT_URL/published/export.php</strong><br /><br /> Для аккаунтов <strong>веб-сервисов</strong>: защищенный URL доступа к данным вашего аккаунта вы можете получить в бекенде вашего аккаунта ACCOUNT.webasyst.net в разделе «Аккаунт (ссылка в верхнем правом углу) &gt; Системные настройки»."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:17
+msgid "Login"
+msgstr "Вход"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:19
+msgid "WebAsyst user login"
+msgstr "Логин пользователя WebAsyst"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:23
+msgid "Password"
+msgstr "Пароль"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:25
+msgid "WebAsyst user password"
+msgstr "Пароль пользователя WebAsyst"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:79
+msgid "Invalid URL, login or password"
+msgstr "Неверный URL, логин или пароль"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:72
+msgid "Invalid server response"
+msgstr "Неверный ответ сервера"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystsameTransport.class.php:18
+msgid "Path to folder"
+msgstr "Путь к папке"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystsameTransport.class.php:20
+msgid "Path to folder of the WebAsyst (old version) installation"
+msgstr "Путь к папке с установленными скриптами WebAsyst (старая версия)"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystsameTransport.class.php:64
+msgid "Invalid PATH %s"
+msgstr "Неверный PATH %s"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystsameTransport.class.php:77
+msgid "Invalid SQL server name"
+msgstr "Неверное имя SQL-сервера"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:286
+msgid "Unknown default currency %s"
+msgstr "Неизвестная основная валюта %s"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:260
+msgid "Undefined default langunage"
+msgstr "Неопределенный основной язык"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:274
+msgid "Undefined default currency"
+msgstr "Неопределенная основная валюта"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1333
+msgid "Don't import"
+msgstr "Не импортировать"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:21
+msgid "Importing categories..."
+msgstr "Импорт категорий..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:24
+msgid "Updating category hierarchy..."
+msgstr "Обновление иерархии категорий..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:27
+msgid "Importing products..."
+msgstr "Импорт товаров..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:30
+msgid "Importing customers..."
+msgstr "Импорт покупателей..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:33
+msgid "Importing product custom options..."
+msgstr "Импорт дополнительных характеристик товаров..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:36
+msgid "Importing product custom option values..."
+msgstr "Импорт значений дополнительных характеристик товаров..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:39
+msgid "Importing product downloadable files..."
+msgstr "Импорт файлов электронных товаров..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:42
+msgid "Importing product reviews..."
+msgstr "Импорт отзывов о товарах..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:45
+msgid "Importing product images (this is the longest part, please be patient)..."
+msgstr "Импорт изображений товаров (самая длинная часть, подождите, пожалуйста)..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:48
+msgid "Creating product thumbnails..."
+msgstr "Создание эскизов изображений товаров..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:51
+msgid "Creating product sets..."
+msgstr "Создание списков товаров..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:107
+msgid "Source lanuage"
+msgstr "Исходный язык"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:108
+msgid "Shop-Script 5 allows storing product info and database content in one language. Select primary language of your WebAsyst Shop-Script-based online store."
+msgstr "Shop-Script 5 позволяет хранить информацию о товарах и содержимое базы данных на одном языке. Выберите основной язык вашего магазина на базе WebAsyst Shop-Script."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:135
+msgid "Currency"
+msgstr "Валюта"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:196
+msgid "Product type"
+msgstr "Тип товаров"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:197
+msgid "Selected product type will be applied to all imported products"
+msgstr "Выбранный тип товаров будет применен ко всем импортированным товарам"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:217
+msgid "Custom parameters"
+msgstr "Дополнительные параметры"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:225
+msgid "Contact fields map"
+msgstr "Карта полей контактов"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1197
+msgid "There no options to import"
+msgstr "Нет характеристик для импорта"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1230
+msgid "Ignore this field"
+msgstr "Игнорировать это поле"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1287
+msgid "There no customer fields to import"
+msgstr "Нет полей с данными контактов для импорта"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1318
+msgid "Feature"
+msgstr "Характеристика"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1319
+msgid "Content will be imported as a fixed descriptive product field"
+msgstr "Содержимое будет импортировано в виде фиксированной строки текста"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1323
+msgid "Service"
+msgstr "Услуга"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1324
+msgid "Services feature allows customers to customize product when adding it to shopping cart (either select or unselect particular service with the product)"
+msgstr "Услуги позволяют покупателям изменять ценность приобретаемого товара при добавлении его в корзину (выбрав либо отменив выбор какой-либо услуги, предлагаемой вместе с товаром)"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1328
+msgid "SKU"
+msgstr "Артикул"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1329
+msgid "SKUs feature allows tracking inventory by multiple stocks. Multiple product SKUs (purchase options) will be created according to this custom option value set"
+msgstr "Артикулы (SKU, вариации товаров) позволяют отслеживать складские остатки по нескольким складам. В соответствии с этим набором значений дополнительных характеристик можно создавать множественные вариации товаров."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1410
+msgid "Add as new feature"
+msgstr "Добавить в качестве новой характеристики"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1479
+msgid "Add to existing"
+msgstr "Добавить к существующей"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1473
+msgid "Add as new service"
+msgstr "Добавить в качестве новой услуги"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:49
+msgid "Importing orders..."
+msgstr "Импорт заказов..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:241
+msgid "Status map"
+msgstr "Статусы заказов"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1830
+msgid "Select target order state"
+msgstr "Выберите соответствующий статус заказа"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:33
+msgid "Importing taxes..."
+msgstr "Импорт налогов..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:42
+msgid "Importing customer categories..."
+msgstr "Импорт категорий покупателей..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:128
+msgid "Preserve IDs"
+msgstr "Сохранять ID"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:129
+msgid "If product (or category) with a particular ID already exists in your new store, delete it and replace with the imported data."
+msgstr "Если товар (или категория) с заданным ID уже существует, удалить его (ее) и импортировать заново"
+

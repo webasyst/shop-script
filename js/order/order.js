@@ -35,6 +35,10 @@ $.order = {
             this.initDependencies(options.dependencies);
         }
 
+        if (options.title) {
+            document.title = options.title;
+        }
+
         this.initView();
 
         // workflow

@@ -9,6 +9,9 @@ class shopBackendLayout extends waLayout
             $default_page = 'products';
         }
 
+        $order_model = new shopOrderModel();
+        $this->assign('new_orders_count', $order_model->getStateCounters('new'));
+
         $module = waRequest::get('module', 'backend');
         $this->assign('default_page', $default_page);
         $page = waRequest::get('action', ($module == 'backend') ? $default_page : 'default');

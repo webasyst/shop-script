@@ -218,6 +218,8 @@
         var add_credit_link = $('#add-credit');
         var add_payment_link = $('#add-payment');
         var amount_hint = wrapper.find('.amount-hint');
+        
+        document.title = '{$contact.name|escape|cat:' — ':$wa->accountName()}';
 
         // Changing the field makes hint with amount in default currency appear
         var h;

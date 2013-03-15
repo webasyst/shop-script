@@ -20,13 +20,18 @@ class shopOrdersAction extends shopOrderListAction
             }
         }
 
+        $state_names = array();
+        foreach ($workflow->getAvailableStates() as $state_id => $state) {
+            $state_names[$state_id] = $state['name'];
+        }
+
         $this->assign(array(
             'orders' => array_values($orders),
             'total_count' => $this->getTotalCount(),
             'count' => count($orders),
             'order' => $this->getOrder($orders),
             'currency' => $this->getConfig()->getCurrency(),
-            'states' => array(),
+            'state_names' => $state_names,
             'params' => $this->getFilterParams(),
             'params_str' => $this->getFilterParams(true),
             'view' => $view,

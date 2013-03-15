@@ -23,14 +23,28 @@ class shopWorkflowPrepareController extends waController
             // display html
             echo $html;
         } else {
+
             // perform action and reload
             $result = $action->run($order_id);
+
+            // counters
+            $order_model = new shopOrderModel();
+            $state_counters = $order_model->getStateCounters();
+            $pending_counters =
+                (!empty($state_counters['new']) ? $state_counters['new'] : 0) +
+                (!empty($state_counters['processing']) ? $state_counters['processing'] : 0) +
+                (!empty($state_counters['paid']) ? $state_counters['paid'] : 0);
+
+            // update app coutner
+            wa('shop')->getConfig()->setCount($state_counters['new']);
+
             echo "<script>";
-            if ($result['before_state_id'] != $result['after_state_id']) {
-                echo "$.order_list.updateCounters({
-    state_counters: { '".$result['before_state_id']."' : '-1', '".$result['after_state_id']."': '+1'}
-});\n";
-            }
+            echo "$.order_list.updateCounters(".json_encode(array(
+                'state_counters'  => $state_counters,
+                'common_counters' => array(
+                    'pending_counters' => $pending_counters
+                )
+            )).");";
             echo "$.order.reload();</script>";
         }
     }

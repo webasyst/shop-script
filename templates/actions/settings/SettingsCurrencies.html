@@ -163,9 +163,8 @@
 {/if}
 {/foreach}
 
-{$title = "[`Currencies`]"|cat:" — ":{$wa->accountName()}}
 <script type="text/javascript">
-    $.shop.setTitle('{$title}');
+    document.title = '{"[`Currencies`]"|cat:" — ":{$wa->accountName()}}';
     $.settings.currenciesInit({
         primary: '{$primary}',
         remove_text: '[`Click “Save” button below to commit the delete.`]',

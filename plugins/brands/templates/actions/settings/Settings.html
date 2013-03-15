@@ -1,0 +1,38 @@
+<div class="fields form">
+    <form action="?module=plugins&id=brands&action=save" method="post" id="plugins-settings-form">
+    {$wa->csrf()}
+
+    <div class="field">
+        <div class="name">
+            [`Brand feature`]
+        </div>
+        <div class="value">
+            <select name="shop_brands[feature_id]">
+                {foreach $features as $f}
+                <option {if $f.id == $feature_id}selected="true"{/if} value="{$f.id}">{$f.name}</option>
+                {/foreach}
+            </select>
+            <p class="hint">[`Select the feature you want products to be filtered by`]</p>
+        </div>
+    <div class="field">
+        <div class="value submit">
+            <input type="submit" class="button green" value="Сохранить">
+            <span id="plugins-settings-form-status" style="display:none">
+                <i style="vertical-align:middle" class="icon16 yes"></i> [`Saved`]
+            </span>
+        </div>
+    </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    $("#plugins-settings-form").submit(function () {
+        var f = $(this);
+        $.post(f.attr('action'), f.serialize(), function (response) {
+            $("#plugins-settings-form-status").fadeIn('slow', function () {
+               $(this).fadeOut(1000);
+            });
+        }, "json")
+        return false;
+    });
+</script>

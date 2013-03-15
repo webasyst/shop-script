@@ -17,6 +17,11 @@ class shopFrontendMyAffiliateAction extends shopFrontendAction
         $atm = new shopAffiliateTransactionModel();
         $affiliate_history = $atm->getByContact(wa()->getUser()->getId());
 
+        $url_tmpl = wa()->getRouteUrl('/frontend/myOrder', array('id' => '%ID%'));
+        foreach ($affiliate_history as &$row) {
+            $row['order_url'] =  str_replace('%ID%', $row['order_id'], $url_tmpl);
+        }
+
         $this->view->assign('customer', $customer);
         $this->view->assign('affiliate_history', $affiliate_history);
 

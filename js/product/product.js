@@ -45,7 +45,7 @@
 
         /**
          * Setup options
-         * 
+         *
          * @param {} options
          * @param String tab
          */
@@ -77,7 +77,7 @@
         },
 
         /**
-         * 
+         *
          * @param String path
          * @return {'id':Int,'mode':String,'tab':String,'tail':String,'raw':String,'params':{}}
          */
@@ -104,7 +104,7 @@
         },
 
         /**
-         * 
+         *
          * @param String path
          */
         dispatch : function(path) {
@@ -391,6 +391,7 @@
             }
 
             $('#shop-productprofile h1 .s-product-name:first').text(data.name);
+            document.title = data.name + $.product.options.title_suffix;
 
             var $container = tab_content.find(':input[name="product\[type_id\]"]').parents('.value');
             $container.data('type', data.type_id);
@@ -560,8 +561,6 @@
         editTabFocus : function(path) {
             var $tab_link = $('#s-product-edit-menu li.' + path.tab);
             $tab_link.addClass('selected');
-            var title = $('#s-product-edit-menu').find('li.selected a').contents().first().text().replace(/^\s*/g, '').replace(/\s*$/g, '');
-            $.shop.setTitle(title + this.options.title_suffix);
             this.refresh();
         },
 
@@ -723,7 +722,7 @@
         },
 
         /**
-         * 
+         *
          * @param {'id':int,'mode':String,'tab':String} path
          */
         editAction : function(path) {
@@ -731,13 +730,13 @@
         },
 
         /**
-         * 
+         *
          * @method edit%Tab%Init after first loading or force reloaded content
          * @method edit%Tab%Focus Tab get focus
          * @method edit%Tab%Action Tab interactions (provide extra params into tab)
          * @method edit%Tab%Blur Tab leave focus
          * @method edit%Tab%* Tab "namespace" for internal purpose functions
-         * 
+         *
          */
 
         editTabMainData : {
@@ -928,7 +927,7 @@
 
             /**
              * Get current product type id
-             * 
+             *
              * @param {} type
              * @return {}
              */
@@ -1237,7 +1236,7 @@
         },
 
         /**
-         * 
+         *
          * @param {Integer} sku_id
          * @param {jQuery} $el
          * @todo real sku delete
@@ -1581,7 +1580,7 @@
                             name : $(input).val()
                         }
                     }, function() {
-                        $.shop.setTitle($(input).val());
+                        document.title = $(input).val() + $.product.options.title_suffix;
                     });
                 },
                 hold : function() {

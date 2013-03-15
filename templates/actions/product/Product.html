@@ -395,7 +395,7 @@ TODO
                 </tfoot>
                 <tbody>
                 {foreach $product.skus as $sku_id => $sku}
-                    <tr data-id="{$sku_id}"{if empty($sku.available)} class="grey"{/if}>
+                    <tr data-id="{$sku_id}">
                         <td class="s-sku-sort min-width" style="white-space: nowrap;{if $sku@total <= 1}display: none;{/if}">
                             <i class="icon16 sort"></i>
                             <input type="radio" name="product[sku_id]" value="{$sku_id}" {if $product.sku_id == $sku.id}checked="checked"{/if}>
@@ -405,10 +405,10 @@ TODO
                             <input type="text" name="product[skus][{$sku_id}][sku]" value="{$sku.sku|escape}" class="gray" placeholder="[`SKU code`]">
                         </td>
                         <td class="s-name"{if $sku@total <= 1} style="display: none;"{/if}>
-                            <input type="text" name="product[skus][{$sku_id}][name]" value="{$sku.name|escape}" class="bold long" placeholder="[`SKU name`]">
+                            <input type="text" name="product[skus][{$sku_id}][name]" value="{$sku.name|escape}" class="bold long{if empty($sku.available)} grey{/if}" placeholder="[`SKU name`]">
                         </td>
                         <td class="s-price">
-                            <input type="text" name="product[skus][{$sku_id}][price]" value="{$sku.price|escape}" class="bold numerical">
+                            <input type="text" name="product[skus][{$sku_id}][price]" value="{$sku.price|escape}" class="bold numerical{if empty($sku.available)} grey{/if}">
                             {if $use_product_currency}
                                 <select class="s-product-currency">
                                     {foreach $currencies as $code => $currency}
@@ -425,7 +425,7 @@ TODO
                                 <span data-stock="0" class="s-product-stock-icon">
                                 {shopHelper::getStockCountIcon($sku.count)}
                                 </span>
-                                <input class="small" type="text" name="product[skus][{$sku_id}][stock][0]"value="{if $sku.count !== null}{$sku.count}{/if}" placeholder="∞">
+                                <input class="small{if empty($sku.available)} grey{/if}" type="text" name="product[skus][{$sku_id}][stock][0]"value="{if $sku.count !== null}{$sku.count}{/if}" placeholder="∞">
                                 {if (count($stocks) >= 1)}
                                 <a href="#/product/{$product.id}/edit/main/sku/stock/{$sku_id}/" class="small inline-link js-action"><b><i>[`Multiple stocks`]</i></b></a>
                                 </div>
@@ -688,5 +688,7 @@ TODO
     $.product.setOptions({
         title_suffix: '{$title_suffix}'
     });
+    
+    document.title = '{$product.name|escape|cat:$title_suffix}';
 
 </script>

@@ -18,7 +18,7 @@ $.extend($.importexport = $.importexport || {}, {
     },
 
     ready : false,
-    menu : null,
+    menu   : null,
 
     /**
      * @param {} options
@@ -41,20 +41,14 @@ $.extend($.importexport = $.importexport || {}, {
             }
             $.wa.errorHandler = function(xhr) {
                 if ((xhr.status === 403) || (xhr.status === 404)) {
-                    if (xhr.responseText.indexOf('?plugin=csv&action=setup') >= 0) {
-                        // !!! FIXME: remove this evil hack!
-                        var text = $('<div class="triple-padded block"><a href="../installer/?module=plugins&slug=shop">Browse for new plugins</a> in the Installer app.<div class="clear-left"></div></div>');
-                        $("#s-importexport-content").empty().append(text);
-                        return false;
-                    }
                     var text = $(xhr.responseText);
+                    var message = $('<div class="block double-padded"></div>');
                     if (text.find('.dialog-content').length) {
-                        text = $('<div class="block double-padded"></div>').append(text.find('.dialog-content *'));
-
+                        text =message.append(text.find('.dialog-content *'));
                     } else {
-                        text = $('<div class="block double-padded"></div>').append(text.find(':not(style)'));
+                        text = message.append(text.find(':not(style)'));
                     }
-                    $("#s-importexport-content").empty().append(text);
+                    $("#s-importexport-content").empty().append(message).append('<div class="clear-both"></div>');
                     return false;
                 }
                 return true;
@@ -94,6 +88,12 @@ $.extend($.importexport = $.importexport || {}, {
         if (hash === undefined) {
             hash = window.location.hash;
         }
+        if (!hash) {
+            var $plugin = this.menu.find('li:first > a:first');
+            if ($plugin.length) {
+                window.location.hash = hash = $plugin.attr('href');
+            }
+        }
         if (load) {
             window.location.hash = hash;
         }
@@ -107,12 +107,16 @@ $.extend($.importexport = $.importexport || {}, {
             $.shop && $.shop.trace('$.importexport.dispatch (default) ' + this.path.plugin + ' -> ' + path.plugin);
             this.path.tail = null;
             if (!load) {
-                $content.html(this.options.loading);
+                $content.empty().html(this.options.loading);
             }
 
             var self = this;
             $content.load('?plugin=' + path.plugin+'&action=setup', function() {
                 self.path.plugin = path.plugin || self.path.plugin;
+
+                // update title
+                document.title = self.options.plugin_names[self.path.plugin] + self.options.title_suffix;
+
                 self.menu.find('a[href*="\\#\/' + self.path.plugin + '\/"]').parents('li').addClass('selected');
                 self.importexportAction(path.action, path.tail);
             });

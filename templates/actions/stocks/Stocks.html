@@ -129,10 +129,9 @@
     {% } %}
 </script>
 {/literal}
-{$title = '[`Stocks`]'|cat:" — ":{$wa->accountName()}}
 {if !empty($product_stocks)}
 <script type="text/javascript">
-    $.shop.setTitle('{$title}');
+    document.title = '{"[`Stocks`]"|cat:" — ":{$wa->accountName()}}';
     $.product_stocks.init({
         product_stocks: {json_encode($product_stocks)},
         stocks: {json_encode($stocks)},

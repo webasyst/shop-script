@@ -128,6 +128,8 @@ class shopCartItemsModel extends waModel
                 if ($item['type'] == 'product') {
                     $item['product'] = $products[$item['product_id']];
                     $sku = $skus[$item['sku_id']];
+                    $item['sku_code'] = $sku['sku'];
+                    $item['purchase_price'] = $sku['purchase_price'];
                     $item['sku_name'] = $sku['name'];
                     $item['currency'] = $item['product']['currency'];
                     $item['price'] = $sku['price'];

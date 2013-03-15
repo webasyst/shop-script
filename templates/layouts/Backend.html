@@ -56,7 +56,8 @@
         $(function() {
             $.shop.init({
                 debug: true,
-                menu_floating: {if $page != 'settings'}true{else}false{/if}
+                menu_floating: {if $page != 'settings'}true{else}false{/if},
+                page: '{if $page}{$page}{else}orders{/if}'
             });
         });
     </script>
@@ -87,9 +88,10 @@
                 {foreach $backend_menu as $_}{ifset($_.aux_li)}{/foreach}
 
                 {if $wa->userRights('orders')}
-                    <li class="{if !$page || $page=='orders'}selected{else}no-tab{/if}">
-                        <a href="{$wa_app_url}?action=orders">
+                    <li class="{if !$page || $page=='orders'}selected{else}no-tab{/if}" id="mainmenu-orders-tab">
+                        <a href="{$wa_app_url}?action=orders#/orders/">
                             [`Orders`]
+                            <sup class="red" {if $page != 'orders' && !empty($new_orders_count)}style="display:inline"{/if}>{if !empty($new_orders_count)}{$new_orders_count}{/if}</sup>
                         </a>
                     </li>
                     <li class="{if $page=='customers'}selected{else}no-tab{/if}">

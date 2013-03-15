@@ -274,14 +274,7 @@ action=''
 </div>
 
 <div class="clear"></div>
-{if false}
-<script type="text/javascript">
-{include file="../../../js/settings/features.js" inline}
-</script>
-{else}
-<script type="text/javascript" src="{$wa_app_static_url}js/settings/features.js?{$wa->version()}">
-</script>
-{/if}
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/features.js?{$wa->version()}"></script>
 <script type="text/javascript">{literal}
 if(typeof($)!='undefined') {
 
@@ -299,10 +292,7 @@ $.settings.featuresInit();
 {/literal}
 </script>
 
-{$title = "[`Product types & Features`]"|cat:" — ":{$wa->accountName()}}
-<script>
-$.shop.setTitle('{$title}');
-</script>
+<script>document.title = '{"[`Product types & Features`]"|cat:" — ":{$wa->accountName()}}';</script>
 
 {foreach $smarty.capture as $name => $template} {if strpos($name,'template-js')}
 <script type="text/x-jquery-tmpl" id="{$name}">

@@ -4939,3 +4939,31 @@ msgstr ""
 #: /wa-apps/shop/lib/workflow/shopWorkflowDeleteAction.class.php:33
 msgid "This order will be cancelled. Are you sure?"
 msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:36
+msgid "This will permanently delete this notification. Are you sure?"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:16
+msgid "You are currently authorized as <strong>%s</strong>. Please verify or update your contact information using the form below. Your existing contact info will be automatically updated."
+msgstr ""
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:17
+msgid "If you want to place an order on behalf of another customer, <a href=\"%s\">log out</a> from your current profile and proceed to checkout again."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:68
+msgid "Email already registered"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:12
+msgid "If you want to place an order on behalf of another customer, <a href=\"?logout\">log out</a> from your current profile and proceed to checkout again."
+msgstr ""
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:23
+msgid "Create permanent user account"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:41
+msgid "Password"
+msgstr ""

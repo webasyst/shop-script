@@ -27,7 +27,9 @@ class shopBackendLocAction extends waViewAction
             'all',
             'any',
             'is',
-            'Please select a category'
+            'Please select a category',
+            'Processing',
+            'All orders'
         ) as $s) {
             $strings[$s] = _w($s);
         }

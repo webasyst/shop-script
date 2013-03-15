@@ -1,0 +1,35 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: shop/plugins/brands\n"
+"POT-Creation-Date: 2013-03-10 12:19+0400\n"
+"PO-Revision-Date: \n"
+"Last-Translator:  shop/plugins/brands\n"
+"Language-Team:  shop/plugins/brands\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: en_US\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+#: /wa-apps/shop/plugins/brands/templates/actions/settings/Settings.html:7
+msgid "Brand feature"
+msgstr ""
+
+#: /wa-apps/shop/plugins/brands/templates/actions/settings/Settings.html:15
+msgid "Select the feature you want products to be filtered by"
+msgstr ""
+
+#: /wa-apps/shop/plugins/brands/templates/actions/settings/Settings.html:21
+msgid "Saved"
+msgstr ""
+
+#: /wa-apps/shop/plugins/brands/lib/config/plugin.php:4
+msgid "Brands"
+msgstr ""
+
+#: /wa-apps/shop/plugins/brands/lib/config/plugin.php:5
+msgid "Storefront’s product filtering by brand (manufacturer)"
+msgstr ""

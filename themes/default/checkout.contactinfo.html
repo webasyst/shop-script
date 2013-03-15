@@ -1,5 +1,75 @@
-{$wa->authAdapters()}
+{if !$wa->user()->isAuth()}
+    
+    <!-- not authorized customer -->
+    {$wa->authAdapters()}
+    
+{else}
+    <!-- authorized -->
+
+    <blockquote>
+        <img src="{$wa->user()->getPhoto(50)}">
+        <p class="black">{sprintf("[`You are currently authorized as <strong>%s</strong>. Please verify or update your contact information using the form below. Your existing contact info will be automatically updated.`]", $wa->user('name'))}</p>
+        <em>[`If you want to place an order on behalf of another customer, <a href="?logout">log out</a> from your current profile and proceed to checkout again.`]</em></p>
+    </blockquote>
+    <div class="clear-both"></div>
+    
+{/if}
 
 <div class="wa-form">
     {$checkout_contact_form->html()}
+    {if !$wa->user()->isAuth()}
+    <div class="wa-field">
+        <div class="wa-value">
+            <label><input type="checkbox" {if $wa->post('create_user')}checked{/if} id="create-user" name="create_user" value="1"> [`Create permanent user account`]</label>
+        </div>
+    </div>
+    <div id="create-user-div" style="display:none">
+        <div class="wa-field">
+            <div class="wa-name">
+                [`Email`]
+            </div>
+            <div class="wa-value">
+                {if !empty($errors.email)}<p>{/if}
+                <input {if !empty($errors.email)}class="error"{/if} name="login" type="text" value="{$wa->post('login', $customer->get('email', 'default'))|escape}">
+                {if !empty($errors.email)}</p>
+                    <em class="errormsg">{$errors.email}</em>
+                {/if}
+            </div>
+        </div>
+        <div class="wa-field">
+            <div class="wa-name">
+                [`Password`]
+            </div>
+            <div class="wa-value">
+                <input name="password" type="password" value="{$wa->post('password')}">
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(function () {
+            var e = $('form input[name="customer[email]"]');
+            if (e.length) {
+                e.on('keyup', function () {
+                    if ($("#create-user-div").is(':visible')) {
+                        $('#create-user-div input[name="login"]').val($(this).val());
+                    }
+                });
+                $('#create-user-div input[name="login"]').on('keyup', function () {
+                    e.val($(this).val());
+                })
+            }
+            $("#create-user").change(function () {
+                if ($(this).is(':checked')) {
+                    $("#create-user-div").show().find('input').removeAttr('disabled');
+                    var l = $(this).closest('form').find('input[name="customer[email]"]');
+                    if (l.length && l.val()) {
+                        $('#create-user-div input[name="login"]').val(l.val());
+                    }
+                } else {
+                    $("#create-user-div").hide().find('input').attr('disabled', 'disabled').val('');
+                }
+            }).change();
+        });
+    </script>
+    {/if}
 </div>

@@ -3,7 +3,7 @@
 
 <h1 itemprop="name">
     {$product.name|escape}
-    {if $product.rating}
+    {if !empty($product.rating) && $product.rating > 0}
     <span class="rating nowrap" itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating" title="{sprintf('[`Average user rating: %s / 5`]', $product.rating)}">
         {$wa->shop->ratingHtml($product.rating, 16)}
         <span itemprop="ratingValue" style="display: none;">{$product.rating}</span>
@@ -41,17 +41,17 @@
             <!-- sku -->
             <h4>{sprintf('[`Buy %s`]',$product.name|escape)}</h4>
             
+            {$product_available = false}
             {if count($product.skus) > 1}
             
                 {* SKU selector *}
                 
                 <ul class="skus" id="product-skus">
-                    {$product_available = false}
                     {foreach $product.skus as $sku}
-                        {$sku_available = ($sku.available && ($sku.count === null || $sku.count > 0))}
+                        {$sku_available = $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
                         <li itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                             <label{if !$sku.available} class="disabled"{/if}>
-                                <input name="sku_id" type="radio" value="{$sku.id}"{if !$sku.available} disabled="true"{/if}{if !$sku_available && !$wa->shop->settings('ignore_stock_count')}data-disabled="1"{/if}{if $sku.id == $product.sku_id} checked="checked"{/if} data-price="{shop_currency($sku.price, $product.currency, null, 0)}"{if $sku.image_id} data-image-id="{$sku.image_id}"{/if}> {$sku.name|escape}
+                                <input name="sku_id" type="radio" value="{$sku.id}"{if !$sku.available} disabled="true"{/if}{if !$sku_available}data-disabled="1"{/if}{if $sku.id == $product.sku_id} checked="checked"{/if} data-price="{shop_currency($sku.price, $product.currency, null, 0)}"{if $sku.image_id} data-image-id="{$sku.image_id}"{/if}> <span itemprop="name">{$sku.name|escape}</span>
                                 <meta itemprop="price" content="{shop_currency($sku.price, $product.currency)}">
                                 <span class="price tiny nowrap">{shop_currency($sku.price, $product.currency)}</span>
                                 {if (!($sku.count === null) && $sku.count <= 0)}
@@ -71,19 +71,23 @@
                 <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                     {$sku = $product.skus[$product.sku_id]}
                     <meta itemprop="price" content="{shop_currency($sku.price, $product.currency)}">
-                    {$product_available = ($sku.available and $sku.count !== 0)}
-                    {if !$product_available}
+                    {if !$sku.available}
+                         <link itemprop="availability" href="http://schema.org/Discontinued" />
+                         <p><em class="bold error">[`This product is not available for purchase`]</em></p>
+                    {elseif !$wa->shop->settings('ignore_stock_count') && $sku.count <= 0}
                          <link itemprop="availability" href="http://schema.org/OutOfStock" />
-                         <p><em class="bold out-of-stock nowrap">[`Out of stock`]</em></p>
+                         <div class="stocks"><strong class="stock-none"><i class="icon16 stock-transparent"></i>[`Out of stock`]</strong></div>
                     {else}
                          <link itemprop="availability" href="http://schema.org/InStock" />
-                         <input name="sku_id" type="hidden" value="{$product.sku_id}">
                     {/if}
+                    <input name="sku_id" type="hidden" value="{$product.sku_id}">
+                    {$product_available = $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
                 </div>
                 
             {/if}
 
             <!-- stock info -->
+            {if $product_available}            
             <div class="stocks">
                 {function name=in_stock n=0 low=5 critical=2}
                     {if $n > $low or $n === null}
@@ -111,8 +115,9 @@
                     {in_stock n=$sku.count}
                     {/if}
                     </div>
-                {/foreach}
+                {/foreach}                
             </div>
+            {/if}
 
             {if $services}
             <!-- services -->
@@ -213,7 +218,7 @@
                 <div class="gallery" id="product-gallery">
                     {foreach $product.images as $image}
                         <div class="image">                    
-                            <a id="product-image-{$image.id}" href="#">{$wa->shop->productImgHtml(['id'=> $product.id, 'image_id' => $image.id, 'ext' => $image.ext], '96x96', ['itemprop' => 'image'])}</a>
+                            <a id="product-image-{$image.id}" href="#">{$wa->shop->productImgHtml(['id'=> $product.id, 'image_id' => $image.id, 'ext' => $image.ext], '96x96')}</a>
                         </div>
                     {/foreach}
                 </div>

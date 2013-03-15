@@ -67,6 +67,12 @@ class shopFrontendAction extends waViewAction
         try {
             return parent::display($clear_assign);
         } catch (waException $e) {
+            if ($e->getCode() == 404) {
+                $url = $this->getConfig()->getRequestUrl(false, true);
+                if (substr($url, -1) !== '/') {
+                    $this->redirect($url.'/');
+                }
+            }
             wa()->event('frontend_error', $e);
             $this->view->assign('error_message', $e->getMessage());
             $code = $e->getCode();

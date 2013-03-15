@@ -185,11 +185,9 @@
     </div>
 </div>
 
-{$title = "[`Taxes`]"|cat:" — ":{$wa->accountName()}}
-
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/taxes.js?{$wa->version()}"></script>
 <script>(function() { "use strict";
-    $.shop.setTitle('{$title}');
+    document.title = '{"[`Taxes`]"|cat:" — ":{$wa->accountName()}}';
     $.settings.taxesInitForm({ifempty($tax.id, 'null')});
 
     {if $tax.id}

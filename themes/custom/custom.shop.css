@@ -180,6 +180,8 @@ table.features td.name { min-width: 145px; color: #777; vertical-align: top; }
 .checkout .checkout-result .back { margin-top: 50px; }
 .checkout .checkout-step {  }
 .checkout .comment { width: 100%; height: 100px; margin-bottom: 20px; }
+.checkout blockquote img { margin-right: 20px; float: left; }
+.checkout blockquote p { color: #000; margin-bottom: 0; }
 
 /* Product reviews */
 

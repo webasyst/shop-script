@@ -27,10 +27,9 @@
 	<div class="clear"></div>
 </div>
 
-{$title = "[`Reset`]"|cat:" — ":{$wa->accountName()}}
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/reset.js?{$wa->version()}"></script>
 <script type="text/javascript">
-$.shop.setTitle('{$title}');
+document.title = '{"[`Reset`]"|cat:" — ":{$wa->accountName()}}';
 if(typeof($)!='undefined') {
 $.settings.resetInit();
 }

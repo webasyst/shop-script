@@ -1,0 +1,21 @@
+{foreach $controls as $html}
+    {$html}
+{/foreach}
+<script type="text/javascript">
+<!--
+{if $validate}
+if($.importexport.plugins.migrate.validate) {
+    $("#s-plugin-migrate").submit();
+} else {
+    $.importexport.plugins.migrate.validate=true;
+}
+{else}
+$.importexport.plugins.migrate.validate=false;
+{/if}
+{if $errors}
+$('#plugin-migrate-transport-group :input').attr('disabled', false);
+{else}
+$('#plugin-migrate-transport-group :input').attr('disabled', true);
+{/if}
+//-->
+</script>

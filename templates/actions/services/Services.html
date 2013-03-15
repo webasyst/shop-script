@@ -220,9 +220,8 @@
     </script>
 {/if}
 {/foreach}
-{$title = '[`Services`]'|cat:" — ":{$wa->accountName()}}
 <script type="text/javascript">
-    $.shop.setTitle('{$title}');
+    document.title = '{$service.name|cat:" — ":{$wa->accountName()}}';
     $.product_services.init({
         container: '#s-content',
         service_id: {$service.id},

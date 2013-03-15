@@ -19,6 +19,7 @@ class shopCheckoutContactinfo extends shopCheckout
         }
         $view = wa()->getView();
         $view->assign('checkout_contact_form', $this->form);
+        $view->assign('customer', $contact ? $contact : new waContact());
     }
 
     public function validate()
@@ -54,6 +55,30 @@ class shopCheckoutContactinfo extends shopCheckout
         if (wa()->getUser()->isAuth()) {
             $contact->save();
         } else {
+            $errors = array();
+            if (waRequest::post('create_user')) {
+                $login = waRequest::post('login');
+                $email_validator = new waEmailValidator();
+                if (!$email_validator->isValid($login)) {
+                    $errors['email'] = $email_validator->getErrors();
+                }
+                if (!$errors) {
+                    $contact_model = new waContactModel();
+                    if ($contact_model->select('email = ? AND password IS NOT NULL')->limit(1)) {
+                        $errors['email'][] = _w('Email already registered');
+                    }
+                }
+                if (!$errors) {
+                    $contact->set('email', $login);
+                    $contact->set('password', waRequest::post('password'));
+                } else {
+                    if (isset($errors['email'])) {
+                        $errors['email'] = implode(', ', $errors['email']);
+                    }
+                    wa()->getView()->assign('errors', $errors);
+                    return false;
+                }
+            }
             $this->setSessionData('contact', $contact);
         }
 

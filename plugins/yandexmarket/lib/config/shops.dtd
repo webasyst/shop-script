@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!ELEMENT yml_catalog (shop)>
+<!ATTLIST yml_catalog
+    date CDATA #REQUIRED>
+
+<!ELEMENT shop (name, company, url, phone?, platform?, version?, agency?, email*, currencies, categories, store?, pickup?, delivery?, deliveryIncluded?, local_delivery_cost?, adult?, offers)>
+<!ELEMENT company (#PCDATA)>
+<!ELEMENT phone (#PCDATA)>
+
+<!ELEMENT currencies (currency+)>
+<!ELEMENT currency EMPTY>
+<!ATTLIST currency
+    id (RUR|RUB|USD|BYR|KZT|EUR|UAH) #REQUIRED
+    rate CDATA "1"
+    plus CDATA "0">
+
+
+<!ELEMENT categories (category+)>
+<!ELEMENT category (#PCDATA)>
+<!ATTLIST category
+    id CDATA #REQUIRED
+    parentId CDATA #IMPLIED
+    tid CDATA #IMPLIED
+    yid CDATA #IMPLIED>
+
+<!ELEMENT offers (offer+)>
+<!ELEMENT offer (url?, buyurl?, price, wprice?, currencyId, xCategory?, categoryId+, market_category?,
+                 picture*, store?, pickup?, delivery?, deliveryIncluded?, local_delivery_cost?, orderingTime?,
+                 ((typePrefix?, vendor, vendorCode?, model, (provider, tarifplan?)?) |
+                  (author?, name, publisher?, series?, year?, ISBN?, volume?, part?, language?, binding?, page_extent?, table_of_contents?) |
+                  (author?, name, publisher?, series?, year?, ISBN?, volume?, part?, language?, table_of_contents?, performed_by?, performance_type?, storage?, format?, recording_length?) |
+                  (artist?, title, year?, media?, starring?, director?, originalName?, country?) |
+                  (worldRegion?, country?, region?, days, dataTour*, name, hotel_stars?, room?, meal?, included, transport, price_min?, price_max?, options?) |
+                  (name, place, hall?, hall_part?, date, is_premiere?, is_kids?) |
+                  (name, vendor?, vendorCode?)
+                 ),
+                 aliases?, additional*, description?, sales_notes?, promo?,
+                 manufacturer_warranty?, country_of_origin?, downloadable?, adult?, age?,
+                 barcode*,
+                 param*,
+                 related_offer*
+                )>
+<!ATTLIST offer
+    id CDATA #IMPLIED
+    group_id CDATA #IMPLIED
+    type (vendor.model | book | audiobook | artist.title | tour | ticket | event-ticket) #IMPLIED
+    available (true | false) #IMPLIED
+    bid CDATA #IMPLIED
+    cbid CDATA #IMPLIED>
+
+<!ELEMENT url (#PCDATA)>
+<!ELEMENT store (#PCDATA)>
+<!ELEMENT email (#PCDATA)>
+<!ELEMENT platform (#PCDATA)>
+<!ELEMENT version (#PCDATA)>
+<!ELEMENT agency (#PCDATA)>
+<!ELEMENT buyurl (#PCDATA)>
+<!ELEMENT picture (#PCDATA)>
+<!ELEMENT pickup (#PCDATA)>
+<!ELEMENT delivery (#PCDATA)>
+<!ELEMENT deliveryIncluded EMPTY>
+<!ELEMENT local_delivery_cost (#PCDATA)>
+<!ELEMENT orderingTime (onstock?, ordering, deliveryTime?)>
+<!ELEMENT onstock EMPTY>
+<!ELEMENT ordering (#PCDATA)>
+<!ATTLIST ordering
+  hours CDATA #IMPLIED>
+
+<!ELEMENT deliveryTime EMPTY>
+<!ELEMENT price (#PCDATA)>
+<!ELEMENT wprice (#PCDATA)>
+<!ELEMENT currencyId (#PCDATA)>
+<!ELEMENT categoryId (#PCDATA)>
+<!ATTLIST categoryId
+    type (Yandex | Torg | Own) "Own" >
+
+<!ELEMENT market_category (#PCDATA)>
+<!ELEMENT typePrefix (#PCDATA)>
+<!ELEMENT vendor (#PCDATA)>
+<!ELEMENT vendorCode (#PCDATA)>
+<!ELEMENT model (#PCDATA)>
+<!ELEMENT author (#PCDATA)>
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT publisher (#PCDATA)>
+<!ELEMENT ISBN (#PCDATA)>
+<!ELEMENT volume (#PCDATA)>
+<!ELEMENT part (#PCDATA)>
+<!ELEMENT language (#PCDATA)>
+<!ELEMENT binding (#PCDATA)>
+<!ELEMENT page_extent (#PCDATA)>
+<!ELEMENT table_of_contents (#PCDATA)>
+<!ELEMENT performed_by (#PCDATA)>
+<!ELEMENT performance_type (#PCDATA)>
+<!ELEMENT storage (#PCDATA)>
+<!ELEMENT format (#PCDATA)>
+<!ELEMENT recording_length (#PCDATA)>
+<!ELEMENT series (#PCDATA)>
+<!ELEMENT year (#PCDATA)>
+<!ELEMENT artist (#PCDATA)>
+<!ELEMENT title (#PCDATA)>
+<!ELEMENT media (#PCDATA)>
+<!ELEMENT starring (#PCDATA)>
+<!ELEMENT director (#PCDATA)>
+<!ELEMENT originalName (#PCDATA)>
+<!ELEMENT country (#PCDATA)>
+<!ELEMENT description (#PCDATA)>
+<!ELEMENT sales_notes (#PCDATA)>
+<!ELEMENT promo (#PCDATA)>
+<!ELEMENT aliases (#PCDATA)>
+<!ELEMENT provider (#PCDATA)>
+<!ELEMENT tarifplan (#PCDATA)>
+<!ELEMENT xCategory (#PCDATA)>
+<!ELEMENT additional (#PCDATA)>
+<!ELEMENT worldRegion (#PCDATA)>
+<!ELEMENT region (#PCDATA)>
+<!ELEMENT days (#PCDATA)>
+<!ELEMENT dataTour (#PCDATA)>
+<!ELEMENT hotel_stars (#PCDATA)>
+<!ELEMENT room (#PCDATA)>
+<!ELEMENT meal (#PCDATA)>
+<!ELEMENT included (#PCDATA)>
+<!ELEMENT transport (#PCDATA)>
+<!ELEMENT price_min (#PCDATA)>
+<!ELEMENT price_max (#PCDATA)>
+<!ELEMENT options (#PCDATA)>
+<!ELEMENT manufacturer_warranty (#PCDATA)>
+<!ELEMENT country_of_origin (#PCDATA)>
+<!ELEMENT downloadable (#PCDATA)>
+<!ELEMENT adult (#PCDATA)>
+<!ELEMENT age (#PCDATA)>
+<!ELEMENT barcode (#PCDATA)>
+<!ELEMENT param (#PCDATA)>
+<!ATTLIST param
+    name CDATA #REQUIRED
+    unit CDATA #IMPLIED>
+<!ELEMENT related_offer (#PCDATA)>
+
+<!ELEMENT place (#PCDATA)>
+<!ELEMENT hall (#PCDATA)>
+<!ATTLIST hall
+    plan CDATA #IMPLIED>
+
+<!ELEMENT hall_part (#PCDATA)>
+<!ELEMENT is_premiere (#PCDATA)>
+<!ELEMENT is_kids (#PCDATA)>
+<!ELEMENT date (#PCDATA)>

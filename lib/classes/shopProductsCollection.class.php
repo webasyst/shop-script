@@ -124,10 +124,11 @@ class shopProductsCollection
             'on'    => "items1.order_id = items2.order_id AND items1.type = 'product'",
         );
 
+        $this->fields[] = "COUNT(*) orders_count";
         $this->where[] = "items1.product_id != ".(int) $id;
         $this->where[] = "items2.product_id = ".(int) $id;
         $this->group_by = 'p.id';
-        $this->order_by = 'COUNT(*) DESC';
+        $this->order_by = 'orders_count DESC';
     }
 
     public function filters($data)
@@ -421,7 +422,7 @@ class shopProductsCollection
                     break;
                 case 'is':
                     if ($model->fieldExists($row['feature'])) {
-                        $this->where[] = 'p.'.$row['feture']." = '".$model->escape($row['value'])."'";
+                        $this->where[] = 'p.'.$row['feature']." = '".$model->escape($row['value'])."'";
                     } else {
                         $feature_join_index++;
                         $this->joins[] = array(
@@ -436,14 +437,18 @@ class shopProductsCollection
                 case 'all':
                     if ($model->fieldExists($row['feature'])) {
                         //$this->where[] = 'p.'.$row['feture']." = '".$model->escape($row['value'])."'";
+                    } else {
+                        if ($row['value']) {
+                            $feature_join_index++;
+                            $this->joins[] = array(
+                                'table' => 'shop_product_features',
+                                'alias' => 'pf'.$feature_join_index
+                            );
+                            $this->where[] = 'pf'.$feature_join_index.".feature_value_id IN (".$row['value'].")";
+                            $this->group_by = 'p.id';
                         } else {
-                        $feature_join_index++;
-                        $this->joins[] = array(
-                            'table' => 'shop_product_features',
-                            'alias' => 'pf'.$feature_join_index
-                        );
-                        $this->where[] = 'pf'.$feature_join_index.".feature_value_id IN (".$row['value'].")";
-                        $this->group_by = 'p.id';
+                            $this->where[] = '0';
+                        }
                     }
                     break;
             }
@@ -767,19 +772,6 @@ class shopProductsCollection
         if (in_array('frontend_url', $split_fields) && !in_array('*', $split_fields)) {
             if ($dependent_fields = array_diff(array('url', 'category_id', ), $split_fields)) {
                 $fields .= ','.implode(',', $dependent_fields);
-            }
-        }
-
-        if (in_array('frontend_url', $split_fields)) {
-            // routing <category_url>/<product_url>
-            if (waRequest::param('url_type') == 2) {
-                $this->joins['shop_category'] = array(
-                    'table' => 'shop_category',
-                    'alias' => 'cat',
-                    'type'  => 'left',
-                    'on'    => 'p.category_id = cat.id',
-                );
-                $this->fields['category_url'] = 'cat.full_url category_url';
             }
         }
 

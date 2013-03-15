@@ -48,12 +48,6 @@ $.order_list = {
     params: null,
 
     /**
-     * Number of loaded orders
-     * {Number}
-     */
-    offset: 0,
-
-    /**
      * Id of timer
      * {Number}
      */
@@ -85,7 +79,6 @@ $.order_list = {
         }
         this.sidebar = $('#s-sidebar');
         this.id = options.id || 0;
-        this.offset = parseInt(options.count, 10) || 0;
 
         if (options.orders && options.orders.length && options.view) {
             try {
@@ -123,8 +116,8 @@ $.order_list = {
 
     initLazyLoad: function(options) {
         var self = this;
-        var count = self.offset;
-        var total_count = this.options.total_count;
+        var count = self.options.count;
+        var total_count = self.options.total_count;
 
         var win = $(window);
 
@@ -149,7 +142,6 @@ $.order_list = {
                         return $.getJSON(self.buildLoadListUrl(id),
                                 function (r) {
                                     if (r.status == 'ok') {
-                                        self.offset += r.data.count;
                                         try {
                                             self.container.append(
                                                 tmpl('template-order-list-' + self.options.view, {
@@ -174,7 +166,7 @@ $.order_list = {
                                         $('.lazyloading-progress').hide();
                                         $('.lazyloading-chunk').text(r.data.progress.chunk);
 
-                                        if (self.offset >= r.data.total_count) {
+                                        if (r.data.loaded >= r.data.total_count) {
                                             win.lazyLoad('stop');
                                             $('.lazyloading-link').hide();
                                         } else {
@@ -216,9 +208,11 @@ $.order_list = {
 
     initView: function() {
         this.initSidebar();
+        /*
         if (this.options.view == 'table') {
             this.initSelecting();
         }
+        */
         if (this.options.id) {
             this.container.find('.selected').removeClass('selected');
             this.container.find('[data-order-id='+this.options.id+']').addClass('selected');
@@ -233,6 +227,7 @@ $.order_list = {
             self.attr('href', '#/orders/view=' + li.attr('data-view') + ($.order_list.options.filter_params_str ? '&'+$.order_list.options.filter_params_str : '') + '/');
         });
 
+        /*
         $('#order-list').find('.wf-actions a').click(function() {
             var self = $(this);
             var id = self.attr('data-action-id');
@@ -241,9 +236,10 @@ $.order_list = {
             });
             return false;
         });
-
+        */
     },
 
+    /*
     getSelectedOrders: function(serialize) {
         serialize = serialize || false;
         var data = { count: 0 };
@@ -277,12 +273,17 @@ $.order_list = {
         }
         return data;
     },
+    */
 
     initSidebar: function() {
         var sidebar = this.sidebar;
         sidebar.find('li.selected').removeClass('selected');
         if (this.filter_params.state_id) {
-            sidebar.find('li[data-state-id='+this.filter_params.state_id+']').addClass('selected');
+            if ($.isArray(this.filter_params.state_id)) {
+                $('#s-pending-orders').addClass('selected');
+            } else {
+                sidebar.find('li[data-state-id="'+this.filter_params.state_id+'"]').addClass('selected');
+            }
         } else if (this.filter_params.contact_id) {
             sidebar.find('li[data-contact-id='+this.filter_params.contact_id+']').addClass('selected');
         } else {
@@ -311,6 +312,7 @@ $.order_list = {
         });
     },
 
+    /*
     initSelecting: function() {
         var container = this.container;
         var select_all_input = this.select_all_input;
@@ -427,46 +429,79 @@ $.order_list = {
         });
     },
 
-    updateTitle: function(title_suffix, count_new) {
-        count_new = parseInt(count_new, 10) || 0;
-        if (title_suffix) {
-            if (count_new) {
-                document.title = '(' + count_new + ') ' + title_suffix;
+*/
+
+    updateTitle: function(title_suffix, count) {
+        count = parseInt(count, 10) || 0;
+
+        // context is mentioned in title
+        var context = '';
+        if (this.options.state_names) {
+            if (this.filter_params.state_id) {
+                if (typeof this.filter_params.state_id === 'string') {
+                    var state_id = this.filter_params.state_id;
+                    context = this.options.state_names[state_id];
+                } else if ($.isArray(this.filter_params.state_id)) {
+                    context = $_('Processing');
+                }
             } else {
-                document.title = title_suffix;
+                context = $_('All orders');
             }
+        }
+
+        if (count) {
+            document.title = '(' + count + ') ' + context + (title_suffix || '');
+        } else {
+            document.title = context + title_suffix;
         }
     },
 
+    /**
+     * @param {Object} counters
+     *
+     * Format: {
+     *     state_counters: {
+     *         new: '10' // string. Support incrementing, i.e.: '+5', '-7',
+     *         processing: '10' // ....
+     *     },
+     *     common_counters: {
+     *         pending: '5' // pending counter
+     *     }
+     * }
+     *
+     */
     updateCounters: function(counters) {
         var sidebar = this.sidebar;
-        var all_counter = $('#s-all-orders .count');
+        var ext_new_counter = $('#s-pending-orders .small');
         for (var name in counters) {
             if (counters.hasOwnProperty(name)) {
                 var cntrs = counters[name];
                 for (var id in cntrs) {
                     if (cntrs.hasOwnProperty(id)) {
-                        var item = sidebar.find('li[data-'+name.replace('_counters', '')+'-id='+id+'] .count');
-                        var prev_cnt = parseInt(item.text(), 10) || 0;
-                        if (id == 'new') {
-                            item = item.add(all_counter);
+                        var item;
+                        if (name == 'common_counters') {
+                            item = $('#s-' + id + '-orders .count');
+                        } else {
+                            item = sidebar.find('li[data-'+name.replace('_counters', '')+'-id='+id+'] .count');
                         }
+                        var prev_cnt = parseInt(item.text(), 10) || 0;
+                        var cnt = 0;
                         cntrs[id] = '' + cntrs[id];
                         if (cntrs[id].substr(0, 1) == '+') {
-                            item.text(prev_cnt + (parseInt(cntrs[id].substr(1), 10) || 0));
+                            cnt = prev_cnt + (parseInt(cntrs[id].substr(1), 10) || 0);
+                            item.text(cnt);
                         } else if (cntrs[id].substr(0, 1) == '-') {
-                            var cnt = prev_cnt - (parseInt(cntrs[id].substr(1), 10) || 0);
-                            item.text(cnt < 0 ? 0 : cnt);
+                            cnt = prev_cnt - (parseInt(cntrs[id].substr(1), 10) || 0);
+                            cnt = cnt < 0 ? 0 : cnt;
+                            item.text(cnt);
                         } else {
-                            item.text(cntrs[id]);
+                            cnt = parseInt(cntrs[id], 10) || 0;
+                            item.text(cnt);
                         }
                         if (id == 'new') {
-                            if (parseInt(all_counter.text(), 10)) {
-                                all_counter.addClass('indicator red');
-                            } else {
-                                all_counter.removeClass('indicator red').text('');
-                            }
-                            this.updateTitle(this.options.title_suffix, parseInt(all_counter.text(), 10));
+                            ext_new_counter.text(cnt ? '+' + cnt : '');
+                            $.shop.updateAppCounter(cnt);
+                            this.updateTitle(this.options.title_suffix, parseInt(cnt, 10));
                         }
                     }
                 }
@@ -549,7 +584,7 @@ $.order_list = {
      * @returns {String}
      */
     buildLoadListUrl: function(id, lt, counters) {
-        return '?module=orders&action=loadList&id=' + id + '&current_offset=' + this.offset +
+        return '?module=orders&action=loadList&id=' + id +
             (this.filter_params_str ? '&' + this.filter_params_str : '') +
             (lt ? '&lt=1' : '') +
             (counters ? '&counters=1' : '') +
@@ -586,7 +621,6 @@ $.order_list = {
 
                                 if (r.data.count) {
                                     try {
-                                        self.offset += r.data.count;
                                         self.container.prepend(
                                             tmpl('template-order-list-' + self.options.view, {
                                                 orders: r.data.orders,

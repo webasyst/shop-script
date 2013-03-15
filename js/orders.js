@@ -38,6 +38,22 @@
 
             this.initSearch();
 
+            // sync with app counters
+            $(document).bind('wa.appcount', function(event, data) {
+                var cnt = parseInt(data.shop, 10);
+                $('#s-pending-orders .small').text(cnt ? '+' + cnt : '');
+
+                // update prefix of document.title. Prefix looks like: (\d+).
+                // Take into account extreme cases: cnt=0 or no prefix yet
+                var match = document.title.match(/\(\d+\) /);
+                if (match) {
+                    document.title = document.title.replace(match[0], cnt ? '(' + cnt + ') ' : '');
+                } else {
+                    if (cnt) {
+                        document.title = '(' + cnt + ') ' + document.title;
+                    }
+                }
+            });
         },
 
         // if this is > 0 then this.dispatch() decrements it and ignores a call
@@ -189,6 +205,12 @@
         },
 
         ordersAction: function(params) {
+            if (!params) {
+                // default params
+                params = "state_id=new|processing|paid";
+            } else if (params === 'all') {
+                params = '';
+            }
             params = $.shop.helper.parseParams(params || '');
             if (!params.view) {
                 params.view = $.storage.get('shop/orders/view') || this.options.view;

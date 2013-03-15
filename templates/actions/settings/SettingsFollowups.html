@@ -168,7 +168,7 @@
 </div>
 
 <script>(function() { "use strict";
-    $.shop.setTitle("[`Follow-ups`] — {$wa->accountName()}");
+    document.title = "[`Follow-ups`] — {$wa->accountName()}";
     var settings_content = $('#s-settings-content');
     var form = $('#s-followup-form');
     var followup_id = "{$followup.id}" || null;

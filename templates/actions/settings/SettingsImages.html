@@ -137,11 +137,8 @@
     </div>
 </div>
 
-{$title = "[`Product images`]"|cat:" — ":{$wa->accountName()}}
-<script>
-    $.shop.setTitle('{$title}');
-</script>
 <script type="text/javascript">
+    document.title = '{"[`Product images`]"|cat:" — ":{$wa->accountName()}}';
     $(function() {
         var form = $('#s-settings-form');
 

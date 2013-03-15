@@ -7,14 +7,14 @@ class shopProductPagesModel extends waModel
 
     protected $table = 'shop_product_pages';
 
+    /**
+     * Alias for getById
+     * @param int $id
+     * @return array|false
+     */
     public function get($id)
     {
-        $page = $this->getById($id);
-        if ($page) {
-            $params_model = new shopProductPageParamsModel();
-            $page['params'] = $params_model->getParams($id);
-        }
-        return $page;
+        return $this->getById($id);
     }
 
     public function getPages($product_id = null, $only_public = false)
@@ -37,10 +37,6 @@ class shopProductPagesModel extends waModel
     {
         $data['update_datetime'] = date('Y-m-d H:i:s');
         $result = $this->updateById($id, $data);
-        if ($result && !empty($data['params'])) {
-            $params_model = new shopProductPageParamsModel();
-            $params_model->setParams($id, $data['params']);
-        }
         return $result;
     }
 
@@ -54,21 +50,12 @@ class shopProductPagesModel extends waModel
         $sort = (int)$this->query("SELECT MAX(sort) sort FROM `{$this->table}` WHERE product_id = $product_id ")->fetchField('sort');
         $data['sort'] = $sort;
         $id = $this->insert($data);
-        if ($id && !empty($data['params'])) {
-            $params_model = new shopProductPageParamsModel();
-            $params_model->setParams($id, $data['params']);
-        }
         return $id;
     }
 
     public function delete($id)
     {
-        if ($this->deleteById($id)) {
-            $params_model = new shopProductPageParamsModel();
-            $params_model->deleteByField('page_id', $id);
-            return true;
-        }
-        return false;
+        return $this->deleteById($id);
     }
 
     public function move($id, $before_id = null)

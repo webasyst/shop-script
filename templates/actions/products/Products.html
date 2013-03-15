@@ -309,7 +309,7 @@
 </div>
 {$title = $title|cat:" — ":{$wa->accountName()}}
 <script type="text/javascript">
-    $.shop.setTitle('{$title|escape}');
+    document.title = '{$title|escape}';
     $.product_list.init({
         view: '{$view}',
         collection_hash: {json_encode($collection_hash)},

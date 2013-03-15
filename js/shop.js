@@ -53,10 +53,13 @@
                     });
                 });
             }
-        },
 
-        setTitle: function(title) {
-            document.title = title;
+            if (options.page != 'orders') {
+                // sync mainmenu orders count with app counter
+                $(document).bind('wa.appcount', function(event, data) {
+                    $.shop.updateOrdersCounter(parseInt(data.shop, 10) || 0);
+                });
+            }
         },
 
         /**
@@ -180,6 +183,28 @@
             }
         },
 
+        updateOrdersCounter: function(count) {
+            count = parseInt(count, 10) || '';
+            var counter = $('#mainmenu-orders-tab').find('sup');
+            counter.text(count);
+            if (count) {
+                counter.show();
+            } else {
+                counter.hide();
+            }
+        },
+
+        updateAppCounter: function(count) {
+            count = parseInt(count, 10) || '';
+            var counter = $('#wa-app-shop').find('.indicator');
+            counter.text(count);
+            if (count) {
+                counter.show();
+            } else {
+                counter.hide();
+            }
+        },
+
         helper : {
             /**
              * @param {String} params
@@ -213,5 +238,5 @@
             }
         }
     };
-})(jQuery);;
+})(jQuery);
 $.storage = new $.store();

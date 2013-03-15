@@ -2,6 +2,7 @@
 
 class shopConfig extends waAppConfig
 {
+    protected $_routes = array();
     protected $image_sizes = array(
         'big'        => '970',
         'default'    => '750x0',
@@ -50,62 +51,68 @@ class shopConfig extends waAppConfig
         return $order_model->getStateCounters('new');
     }
 
-    public function getRouting($route = array())
+    public function getRouting($route = array(), $dispatch = false)
     {
         $url_type = isset($route['url_type']) ? $route['url_type'] : 0;
-        $routes = parent::getRouting($route);
-        if ($routes) {
-            if (isset($routes[$url_type])) {
-                $routes = $routes[$url_type];
-            } else {
-                $routes = $routes[0];
-            }
-        }
-        // for URL <category_url>/<product_url>/
-        if ($url_type == 2) {
-            $category_model = new shopCategoryModel();
-            $categories = $category_model->getAll();
-            $categories_routes = array();
-            foreach ($categories as $c) {
-                $categories_routes[$c['full_url'].'/'] = array(
-                    'module'      => 'frontend',
-                    'action'      => 'category',
-                    'category_id' => $c['id']
-                );
-            }
-            $routes = array_merge($categories_routes, $routes);
-        }
-        /**
-         * Extend routing via plugin routes
-         * @event routing
-         * @param array $routes
-         * @return array routes collected for every plugin
-         */
-        $result = wa()->event(array($this->application, 'routing'), $routes);
-        $all_plugins_routes = array();
-        foreach ($result as $plugin_id => $routing_rules) {
-            if ($routing_rules) {
-                $plugin = str_replace('-plugin', '', $plugin_id);
-                /*
-                 if ($url_type == 0) {
-                 $routing_rules = $routing_rules[0];
-                 } else {
-                 $routing_rules = $routing_rules[1];
-                 }
-                 */
-                foreach ($routing_rules as $url => & $route) {
-                    if (!is_array($route)) {
-                        list($route_ar['module'], $route_ar['action']) = explode('/', $route);
-                        $route = $route_ar;
-                    }
-                    $route['plugin'] = $plugin;
-                    $all_plugins_routes[$url] = $route;
+        if (!isset($this->_routes[$url_type]) || $dispatch) {
+            $routes = parent::getRouting($route);
+            if ($routes) {
+                if (isset($routes[$url_type])) {
+                    $routes = $routes[$url_type];
+                } else {
+                    $routes = $routes[0];
                 }
-                unset($route);
             }
+            // for URL <category_url>/<product_url>/
+            if ($dispatch && $url_type == 2) {
+                $category_model = new shopCategoryModel();
+                $categories = $category_model->getAll();
+                $categories_routes = array();
+                foreach ($categories as $c) {
+                    $categories_routes[$c['full_url'].'/'] = array(
+                        'module'      => 'frontend',
+                        'action'      => 'category',
+                        'category_id' => $c['id'],
+                    );
+                }
+                $routes = array_merge($categories_routes, $routes);
+            }
+            /**
+             * Extend routing via plugin routes
+             * @event routing
+             * @param array $routes
+             * @return array routes collected for every plugin
+             */
+            $result = wa()->event(array($this->application, 'routing'), $routes);
+            $all_plugins_routes = array();
+            foreach ($result as $plugin_id => $routing_rules) {
+                if ($routing_rules) {
+                    $plugin = str_replace('-plugin', '', $plugin_id);
+                    /*
+                     if ($url_type == 0) {
+                     $routing_rules = $routing_rules[0];
+                     } else {
+                     $routing_rules = $routing_rules[1];
+                     }
+                     */
+                    foreach ($routing_rules as $url => & $route) {
+                        if (!is_array($route)) {
+                            list($route_ar['module'], $route_ar['action']) = explode('/', $route);
+                            $route = $route_ar;
+                        }
+                        $route['plugin'] = $plugin;
+                        $all_plugins_routes[$url] = $route;
+                    }
+                    unset($route);
+                }
+            }
+            $routes = array_merge($all_plugins_routes, $routes);
+            if ($dispatch) {
+                return $routes;
+            }
+            $this->_routes[$url_type] = $routes;
         }
-        $routes = array_merge($all_plugins_routes, $routes);
-        return $routes;
+        return $this->_routes[$url_type];
     }
 
     public function getCurrency($settings_only = true)

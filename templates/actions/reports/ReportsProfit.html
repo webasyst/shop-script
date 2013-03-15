@@ -86,6 +86,7 @@
 <div class="clear-both"></div>
 
 <script type="text/javascript">(function() { "use strict";
+    document.title = '[`Profit`] — {$wa->accountName()}';
     $.reports.graph('reports-profit-graph', {json_encode($profit_data)});
     {if $pie_data}
         $.reports.pie('reports-profit-pie', {json_encode($pie_data)});

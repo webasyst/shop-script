@@ -38,12 +38,15 @@ class shopOrderEditAction extends waViewAction
         $tax_model = new shopTaxModel();
         $taxes_count = $tax_model->countAll();
 
+        $count_new = $this->order_model->getStateCounters('new');
+
 
         $this->view->assign(array(
             'order'    => $order,
             'stocks'   => $stocks,
             'form'     => $form,
             'currency' => $currency,
+            'count_new' => $count_new,
             'taxes_count' => $taxes_count
         ));
     }

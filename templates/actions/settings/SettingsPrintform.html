@@ -44,18 +44,10 @@
 
 </div>
 
-
-
-
-
-<script type="text/javascript" src="{$wa_app_static_url}js/settings/printform.js?{$wa->version()}">
-</script>
-
-
-{$title = "[`Printable forms`]"|cat:" — ":{$wa->accountName()}}
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/printform.js?{$wa->version()}"></script>
 
 <script type="text/javascript">
-$.shop.setTitle('{$title}');
+document.title = '{"[`Printable forms`]"|cat:" — ":{$wa->accountName()}}';
 {literal}
 $.settings.settingsOptions({
     'loading' : '<div class="block double-padded">[`Loading...`]<i class="icon16 loading"><i></div>'

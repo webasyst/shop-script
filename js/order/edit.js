@@ -44,6 +44,11 @@ $.order_edit = {
         this.customer_fields = $('#s-order-edit-customer');
         this.customer_inputs = this.customer_fields.find(':input');
         this.stocks = options.stocks;
+
+        if (options.title) {
+            document.title = title;
+        }
+
         this.initView();
     },
 

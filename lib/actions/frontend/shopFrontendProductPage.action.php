@@ -29,8 +29,6 @@ class shopFrontendProductPageAction extends shopFrontendProductAction
         if (!$page) {
             throw new waException('Page not found', 404);
         }
-        $page_params_model = new shopProductPageParamsModel();
-        $page = $page + $page_params_model->getParams($page['id']);
         if (!$page['title']) {
             $page['title'] = $page['name'];
         }

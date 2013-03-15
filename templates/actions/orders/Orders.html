@@ -72,7 +72,7 @@
                         *}{literal}
                         <td style="{%#order.style%}" class="nowrap">
                             <div><a href="#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">
-                                <i class="{%#order.icon%}"></i>{%#order.id_str%}</a>
+                                <i class="{%#order.icon%}"></i><span{% if (order.state_id == 'new') { %} class="highlighted"{% } %}>{%#order.id_str%}</span></a>
                             </div>
                         </td>
                         <td style="{%#order.style%}">
@@ -149,6 +149,7 @@
             timeout: {$timeout}
         },
         count_new: {$count_new},
-        title_suffix: "{'[`Orders`]'|cat:' — ':$wa->accountName()}"
+        title_suffix: "{' — '|cat:$wa->accountName()}",
+        state_names: {json_encode($state_names)}
     });
 </script>

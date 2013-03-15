@@ -242,7 +242,7 @@ class shopOrderSaveController extends waJsonController
 
         if ($product_ids) {
             $products = $this->getFields($product_ids, 'product', 'name,tax_id');
-            $skus     = $this->getFields($sku_ids, 'product_skus');
+            $skus     = $this->getFields($sku_ids, 'product_skus', 'name, sku, purchase_price');
             $services = $this->getFields($service_ids, 'service', 'name,tax_id');
             $variants = $this->getFields($variant_ids, 'service_variants');
 
@@ -293,6 +293,9 @@ class shopOrderSaveController extends waJsonController
                         } else {
                             $item['tax_id'] = null;
                         }
+                    } else {
+                        $item['sku_code'] = $skus[$item['sku_id']]['sku'];
+                        $item['purchase_price'] = $skus[$item['sku_id']]['purchase_price'];
                     }
                 }
             }
@@ -375,7 +378,7 @@ class shopOrderSaveController extends waJsonController
         }
 
         $products = $this->getFields($product_ids, 'product', 'name, tax_id');
-        $skus = $this->getFields($sku_ids, 'product_skus');
+        $skus = $this->getFields($sku_ids, 'product_skus', 'name, sku, purchase_price');
         $services = $this->getFields($service_ids, 'service', 'name, tax_id');
         $variants = $this->getFields($variant_ids, 'service_variants');
 
@@ -395,6 +398,8 @@ class shopOrderSaveController extends waJsonController
                 if ($skus[$item['sku_id']]['name']) {
                     $name .= ' ('.$skus[$item['sku_id']]['name'].')';
                 }
+                $item['sku_code'] = $skus[$item['sku_id']]['sku'];
+                $item['purchase_price'] = $skus[$item['sku_id']]['purchase_price'];
                 $item['tax_id'] = $products[$item['product_id']]['tax_id'];
             }
             $item['name'] = $name;

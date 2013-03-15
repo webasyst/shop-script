@@ -17,7 +17,7 @@
             <td class="gray">{$h.create_datetime|wa_date:'humandatetime'}</td>
             <td>
                 {if $h.order_id}
-                    <a href="?action=orders#/orders/id=/{$h.order_id}">[`Order`] {$wa->shop->orderId($h.order_id)}</a>
+                    <a href="{$h.order_url}">[`Order`] {$wa->shop->orderId($h.order_id)}</a>
                 {/if}
                 {if $h.order_id && $h.comment}
                     <br>
