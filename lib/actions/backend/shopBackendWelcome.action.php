@@ -109,7 +109,9 @@ class shopBackendWelcomeAction extends waViewAction
 
                                 if ($feature['id'] && !empty($feature['selectable']) && !empty($feature['values'])) {
                                     foreach ($feature['values'] as & $value) {
-                                        $value = ifempty($this->translate[$value], $value);
+                                        if (is_string($value)) {
+                                            $value = ifempty($this->translate[$value], $value);
+                                        }
                                     }
                                     unset($value);
                                     $feature_model->setValues($feature, $feature['values'], false, true);
