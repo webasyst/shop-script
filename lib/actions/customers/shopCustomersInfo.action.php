@@ -37,6 +37,16 @@ class shopCustomersInfoAction extends waViewAction
             }
         }
 
+        // Get photo
+        $photo = $contact->get('photo');
+        $use_gravatar = $this->getConfig()->getGeneralSettings('use_gravatar');      
+        if (!$photo && $use_gravatar) {
+            $photo = shopHelper::getGravatar($contact->get('email', 'default'), 96);
+        } else {
+            $photo = $contact->getPhoto(96);
+        }
+        $contact['photo'] = $photo;
+
         // Customer orders
         $om = new shopOrderModel();
         $im = new shopOrderItemsModel();

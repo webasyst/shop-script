@@ -404,7 +404,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
         }
         return $counts;
     }
-    public function step(&$current, &$count, &$processed, $stage)
+    public function step(&$current, &$count, &$processed, $stage, &$error)
     {
         $method_name = 'step'.ucfirst($stage);
         $result = false;
@@ -418,9 +418,47 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
                 $this->log(sprintf("Unsupported stage [%s]", $stage), self::LOG_ERROR);
                 $current[$stage] = $count[$stage];
             }
-        } catch (Exception $ex) {
+        } catch (waDbException $ex) {
             sleep(5);
-            $this->log($stage.': '.$ex->getMessage()."\n".$ex->getTraceAsString(), self::LOG_ERROR);
+            $this->log($stage.': '.$ex->getMessage().(empty($error) ? 'first' : 'repeat')."\n".$ex->getTraceAsString(), self::LOG_ERROR);
+            if (!empty($error)) {
+                if (($error['stage'] == $stage) && ($error['iteration'] == $current[$stage]) && ($error['code'] == $ex->getCode()) && ($error['message'] == $ex->getMessage())) {
+                    $this->log('BREAK ON '.$ex->getMessage(), self::LOG_ERROR);
+                    throw $ex;
+                }
+            }
+            $error = array(
+                'stage'     => $stage,
+                'iteration' => $current[$stage],
+                'code'      => $ex->getCode(),
+                'message'   => $ex->getMessage(),
+                'counter'   => 0,
+
+            );
+        }
+        catch (Exception $ex) {
+            sleep(5);
+            $this->log($stage.': '.$ex->getMessage().(empty($error) ? 'first' : 'repeat')."\n".$ex->getTraceAsString(), self::LOG_ERROR);
+            if (!empty($error)) {
+                if (($error['stage'] == $stage) && ($error['iteration'] == $current[$stage]) && ($error['code'] == $ex->getCode()) && ($error['message'] == $ex->getMessage())) {
+                    if (++$error['counter'] > 5) {
+                        $this->log('BREAK ON '.$ex->getMessage(), self::LOG_ERROR);
+                        throw $ex;
+                    }
+                } else {
+                    $error = null;
+                }
+            }
+            if (empty($error)) {
+                $error = array(
+                    'stage'     => $stage,
+                    'iteration' => $current[$stage],
+                    'code'      => $ex->getCode(),
+                    'message'   => $ex->getMessage(),
+                    'counter'   => 0,
+
+                );
+            }
         }
         return $result;
     }
@@ -986,6 +1024,7 @@ LIMIT 100';
                 $this->log('Import product options', self::LOG_INFO, $options);
                 while ($option = array_shift($options)) {
                     $option_id = $option['optionID'];
+                    $option['value'] = trim($option['value']);
 
                     if (isset($this->map[self::STAGE_OPTIONS][$option_id])) {
                         $target = explode(':', $this->map[self::STAGE_OPTIONS][$option_id], 2);
@@ -1475,9 +1514,9 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                         if ($feature = $feature_model->getByField('code', $id)) {
                             $values = array();
                             while ($value = array_shift($raw_values)) {
-                                $values[] = $value['value'];
+                                $values[] = trim($value['value']);
                             }
-                            $feature_model->setValues($feature, $values, false, true);
+                            $feature_model->setValues($feature, array_unique($values), false, true);
                         } else {
                             $this->log("Feature not found by code ".$id);
                         }
@@ -1500,6 +1539,7 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                             $service['variants'] = array();
 
                             while ($values = array_shift($raw_values)) {
+                                $values['value'] = trim($values['value']);
                                 if ($variant = $service_variants_model->getByField(array('service_id' => $id, 'name' => $values['value']))) {
                                     if (empty($service['variant_id'])) {
                                         $variant['default'] = true;

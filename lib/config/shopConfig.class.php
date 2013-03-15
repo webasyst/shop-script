@@ -167,7 +167,8 @@ class shopConfig extends waAppConfig
                 'email'        => wa()->getSetting('email', '', 'webasyst'),
                 'phone'        => '+1 (212) 555-1234',
                 'country'      => '',
-                'order_format' => $this->getOrderFormat()
+                'order_format' => $this->getOrderFormat(),
+                'use_gravatar' => 1
             ) as $k => $value) {
                 $settings[$k] = isset($all_settings[$k]) ? $all_settings[$k] : $value;
             }

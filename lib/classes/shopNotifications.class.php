@@ -56,10 +56,10 @@ class shopNotifications
             if (!$email) {
                 return;
             }
-            $to = array($email => $customer->getName());
+            $to = array($email);
             $log = sprintf(_w("Notification <strong>%s</strong> sent to customer."), $n['name']);
         } elseif ($n['to'] == 'admin') {
-            $to = array($general['email'] => $general['name']);
+            $to = array($general['email']);
             $log = sprintf(_w("Notification <strong>%s</strong> sent to store admin."), $n['name']);
         } else {
             $to = explode(',', $n['to']);

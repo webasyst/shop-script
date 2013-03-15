@@ -30,12 +30,12 @@ Install Webasyst Framework via http://github.com/webasyst/webasyst-framework/ or
 	via GIT:
 
 		cd /PATH_TO_WEBASYST/wa-apps/shop/
-		git clone git://github.com/webasyst/shop-script.git
+		git clone git://github.com/webasyst/shop-script.git ./
 
 	via SVN:
 	
 		cd /PATH_TO_WEBASYST/wa-apps/shop/
-		svn checkout http://svn.github.com/webasyst/shop-script.git
+		svn checkout http://svn.github.com/webasyst/shop-script.git ./
 
 2. Add the following line into the /wa-config/apps.php file (this file lists all installed apps):
 

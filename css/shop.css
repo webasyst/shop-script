@@ -136,7 +136,7 @@ ul.tags { list-style-type: none; margin: 0; padding: 0; }
 .fields .field .value p input[type="checkbox"] { display: inline; }
 
 .s-order-add-customer .field .value textarea { min-width: 200px; }
-#s-orders { min-height: 500px; }
+#s-orders { margin-bottom: -32767px; padding-bottom: 32767px; }
 #s-orders .lazyloading-wrapper { color: #aaa; padding-left: 5px; }
 #s-orders.sidebar .lazyloading-wrapper { text-align: center; padding-left: 0; }
 #s-orders table.zebra td { padding-left: 4px; padding-right: 4px; }

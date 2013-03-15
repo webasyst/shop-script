@@ -13,13 +13,19 @@ class shopCustomersListAction extends waViewAction
         $limit = 50;
         $order = waRequest::request('order', '!last_order');
 
+        $use_gravatar = $this->getConfig()->getGeneralSettings('use_gravatar');
+
         // Get customers
         $scm = new shopCustomerModel();
         list ($customers, $total) = $scm->getList($category_id, $search, $start, $limit, $order);
         $has_more = $start + count($customers) < $total;
         foreach ($customers as &$c) {
             $c['affiliate_bonus'] = (float) $c['affiliate_bonus'];
-            $c['photo'] = waContact::getPhotoUrl($c['id'], $c['photo'], 50, 50);
+            if (!$c['photo'] && $use_gravatar) {
+                $c['photo'] = shopHelper::getGravatar(!empty($c['email']) ? $c['email'] : '');
+            } else {
+                $c['photo'] = waContact::getPhotoUrl($c['id'], $c['photo'], 50, 50);
+            }
             $c['categories'] = array();
         }
         unset($c);

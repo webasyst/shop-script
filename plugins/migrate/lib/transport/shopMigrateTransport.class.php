@@ -76,7 +76,7 @@ abstract class shopMigrateTransport implements Serializable
 
     }
 
-    abstract public function step(&$current, &$count, &$processed, $stage);
+    abstract public function step(&$current, &$count, &$processed, $stage, &$error);
 
     abstract public function count();
     abstract public function getStageName($stage);

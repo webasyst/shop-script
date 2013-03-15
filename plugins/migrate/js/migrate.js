@@ -9,7 +9,7 @@ $("#plugin-migrate-transport").change(function() {
         $('#s-plugin-migrate .plugin-migrate-transport-description:visible').hide();
         $("#plugin-migrate-transport-" + $(this).val()).show();
         $("#plugin-migrate-transport-fields").html($_('Loading...') + '<i class="icon16 loading"></i>').load("?plugin=migrate&action=transport", {
-            'transport' : $(this).val()
+            'transport': $(this).val()
         }, function() {
             $("#plugin-migrate-submit").show();
         });
@@ -21,17 +21,23 @@ $("#plugin-migrate-transport").change(function() {
 
 });
 
+// Set up AJAX to never use cache
+$.ajaxSetup({
+    cache: false
+});
+
 $.importexport.plugins.migrate = {
-    form : null,
-    ajax_pull : {},
-    progress : false,
-    id : null,
-    debug : {
-        'memory' : 0.0,
-        'memory_avg' : 0.0
+    form: null,
+    ajax_pull: {},
+    progress: false,
+    id: null,
+    debug: {
+        'memory': 0.0,
+        'memory_avg': 0.0
     },
-    validate : false,
-    migrateHandler : function(element) {
+    date: new Date(),
+    validate: false,
+    migrateHandler: function(element) {
         var self = this;
         self.progress = true;
         self.form = $(element);
@@ -44,11 +50,11 @@ $.importexport.plugins.migrate = {
         self.form.find('.progressbar').show();
         var url = $(element).attr('action');
         $.ajax({
-            url : url,
-            data : data,
-            dataType : 'json',
-            type : 'post',
-            success : function(response) {
+            url: url+'&t='+this.date.getTime(),
+            data: data,
+            dataType: 'json',
+            type: 'post',
+            success: function(response) {
                 if (response.error) {
                     self.form.find(':input').attr('disabled', false);
                     self.form.find(':submit').show();
@@ -76,7 +82,7 @@ $.importexport.plugins.migrate = {
                     }, 2000));
                 }
             },
-            error : function(jqXHR, textStatus, errorThrown) {
+            error: function(jqXHR, textStatus, errorThrown) {
                 self.form.find(':input').attr('disabled', false);
                 self.form.find(':submit').show();
                 self.form.find('.js-progressbar-container').hide();
@@ -86,7 +92,7 @@ $.importexport.plugins.migrate = {
         });
         return false;
     },
-    progressHandler : function(url, processId, response) {
+    progressHandler: function(url, processId, response) {
         // display progress
         // if not completed do next iteration
         var self = $.importexport.plugins.migrate;
@@ -103,21 +109,21 @@ $.importexport.plugins.migrate = {
             // self.form.find(':submit').show();
             var $bar = self.form.find('.progressbar .progressbar-inner');
             $bar.css({
-                'width' : '100%'
+                'width': '100%'
             });
             // self.form.find('.progressbar').hide();
             // self.form.find('.progressbar-description').hide();
             $.shop.trace('cleanup', response.processId);
 
             $.ajax({
-                url : url,
-                data : {
-                    'processId' : response.processId,
-                    'cleanup' : 1
+                url: url+'&t='+this.date.getTime(),
+                data: {
+                    'processId': response.processId,
+                    'cleanup': 1
                 },
-                dataType : 'json',
-                type : 'post',
-                success : function(response) {
+                dataType: 'json',
+                type: 'post',
+                success: function(response) {
                     // show statistic
                     $.shop.trace('report', response);
                     $("#plugin-migrate-submit").hide();
@@ -145,7 +151,7 @@ $.importexport.plugins.migrate = {
                 var $bar = self.form.find('.progressbar .progressbar-inner');
                 var progress = parseFloat(response.progress.replace(/,/, '.'));
                 $bar.animate({
-                    'width' : progress + '%'
+                    'width': progress + '%'
                 });;
                 self.debug.memory = Math.max(0.0, self.debug.memory, parseFloat(response.memory) || 0);
                 self.debug.memory_avg = Math.max(0.0, self.debug.memory_avg, parseFloat(response.memory_avg) || 0);
@@ -170,16 +176,16 @@ $.importexport.plugins.migrate = {
 
             self.ajax_pull[id].push(setTimeout(function() {
                 $.ajax({
-                    url : ajax_url,
-                    data : {
-                        'processId' : id
+                    url: ajax_url+'&t='+self.date.getTime(),
+                    data: {
+                        'processId': id
                     },
-                    dataType : 'json',
-                    type : 'post',
-                    success : function(response) {
+                    dataType: 'json',
+                    type: 'post',
+                    success: function(response) {
                         self.progressHandler(url, response ? response.processId || id : id, response);
                     },
-                    error : function(jqXHR, textStatus, errorThrown) {
+                    error: function(jqXHR, textStatus, errorThrown) {
                         self.progressHandler(url, id, null);
                     }
                 });

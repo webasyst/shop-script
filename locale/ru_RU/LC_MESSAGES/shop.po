@@ -5164,3 +5164,27 @@ msgstr "Зарегистрироваться, как постоянный пок
 #: /wa-apps/shop/themes/default/checkout.contactinfo.html:41
 msgid "Password"
 msgstr "Пароль"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:50
+msgid "Gravatar"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/product.html:76
+msgid "This product is not available for purchase"
+msgstr "Этот товар временно недоступен для заказа"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:54
+msgid "Display Gravatar userpics"
+msgstr "Показывать Gravatar-юзерпики"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:55
+msgid ""
+"Gravatar.com (Globally Recognized Avatars) is a web service that returns "
+"userpic (profile photo, avatar) by email address. In case userpic is not "
+"uploaded in the Contacts app for a particular customer, his Gravatar userpic "
+"will be displayed."
+msgstr ""
+"Gravatar.com (Globally Recognized Avatars) — это веб-сервис, который "
+"возвращает юзерпик пользователя (фотографию, аватар) по его email-адресу. "
+"Если фотография не загружена для покупателя в его профиле в приложении "
+"«Контакты», будет показан его юзерпик из сервиса Gravatar."

@@ -99,7 +99,22 @@ class shopCustomerModel extends waModel
                 GROUP BY c.id
                 $order
                 LIMIT {$start}, {$limit}";
+
         $customers = $this->query($sql)->fetchAll('id');
+
+        // get emails
+        $ids = array_keys($customers);
+        if ($ids) {
+            foreach ($this->query("
+                SELECT contact_id, email, MIN(sort)
+                FROM `wa_contact_emails`
+                WHERE contact_id IN (".implode(',', $ids).")
+                GROUP BY contact_id") as $item)
+            {
+                $customers[$item['contact_id']]['email'] = $item['email'];
+            }
+        }
+
         $total = $this->query('SELECT FOUND_ROWS()')->fetchField();
 
         if (!$customers) {

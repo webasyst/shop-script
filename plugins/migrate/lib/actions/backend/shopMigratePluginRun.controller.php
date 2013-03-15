@@ -30,6 +30,7 @@ class shopMigratePluginRunController extends waLongActionController
             $this->data['current'] = array_fill_keys($stages, 0);
             $this->data['processed_count'] = array_fill_keys($stages, 0);
             $this->data['stage'] = reset($stages);
+            $this->data['error'] = null;
             $this->data['stage_name'] = $this->transport->getStageName($this->data['stage']);
             $this->data['memory'] = memory_get_peak_usage();
             $this->data['memory_avg'] = memory_get_usage();
@@ -70,7 +71,7 @@ class shopMigratePluginRunController extends waLongActionController
 
     protected function step()
     {
-        $step = $this->transport->step($this->data['current'], $this->data['count'], $this->data['processed_count'], $this->data['stage']);
+        $step = $this->transport->step($this->data['current'], $this->data['count'], $this->data['processed_count'], $this->data['stage'], $this->data['error']);
         $this->data['memory'] = memory_get_peak_usage();
         $this->data['memory_avg'] = memory_get_usage();
         return !$this->isDone() && $step;

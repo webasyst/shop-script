@@ -134,6 +134,21 @@ class shopHelper
         return shopProductImagesModel::getBadgeCode($image['badge_type']);
     }
 
+    /**
+     * Get either a Gravatar URL or complete image tag for a specified email address.
+     *
+     * @param string $email The email address
+     * @param string $size Size in pixels, defaults to 50
+     * @param string $default Default imageset to use [ 404 | mm | identicon | monsterid | wavatar ]
+     * @param string $rating Maximum rating (inclusive) [ g | pg | r | x ]
+     * @return String containing either just a URL or a complete image tag
+     * @source http://gravatar.com/site/implement/images/php/
+     */
+    public static function getGravatar($email, $size = 50, $default = 'mm')
+    {
+        return 'http://www.gravatar.com/avatar/' . md5(strtolower(trim($email))) . "?size=$size&default=$default";
+    }
+
     public static function workupOrders(&$orders, $single = false)
     {
         if ($single) {
@@ -169,8 +184,8 @@ class shopHelper
                 $order['items_str'] = substr($items_str, 2);
             }
             if (!$single && isset($order['items'])) {
-                unset($order['items']); // !!! Why?..
-                }
+                unset($order['items']);
+            }
 
             $icon = '';
             $style = '';
