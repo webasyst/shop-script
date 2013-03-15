@@ -117,8 +117,11 @@ $(function () {
     $("#product-gallery a").click(function () {
         var img = $(this).find('img');
         var src = img.attr('src').replace(/96x96/, '750x0');
-        $('<img src="' + src + '">').load(function () {
+        $('<img>').attr('src', src).load(function () {
             $("#product-image").attr('src', src);
+        }).each(function() {
+            //ensure image load is fired. Fixes opera loading bug
+            if (this.complete) { $(this).trigger("load"); }
         });
         return false;
     });

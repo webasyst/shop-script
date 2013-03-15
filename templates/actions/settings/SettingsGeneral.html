@@ -55,7 +55,19 @@
                             <p class="hint">[`Gravatar.com (Globally Recognized Avatars) is a web service that returns userpic (profile photo, avatar) by email address. In case userpic is not uploaded in the Contacts app for a particular customer, his Gravatar userpic will be displayed.`]</p>
                         </label>
                     </div>
-                </div>                
+                    <div class="value no-shift">
+                        [`In case there were no Gravatar userpic uploaded`]:
+                            <select name="gravatar_default">
+                                <option value="custom" {if $gravatar_default == 'custom'}selected="selected""{/if}>[`Use default userpic`]</option>
+                                <option value="mm" {if $gravatar_default == 'mm'}selected="selected""{/if}>(mystery-man) a simple, cartoon-style silhouetted outline of a person (does not vary by email hash)</option>
+                                <option value="identicon" {if $gravatar_default == 'identicon'}selected="selected""{/if}>a geometric pattern based on an email hash</option>
+                                <option value="monsterid" {if $gravatar_default == 'monsterid'}selected="selected""{/if}>a generated 'monster' with different colors, faces, etc</option>
+                                <option value="wavatar" {if $gravatar_default == 'wavatar'}selected="selected""{/if}>generated faces with differing features and backgrounds</option>
+                                <option value="retro" {if $gravatar_default == 'retro'}selected="selected""{/if}>awesome generated, 8-bit arcade-style pixelated faces</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
             </div>
             <div class="field-group">
                 <div class="field">

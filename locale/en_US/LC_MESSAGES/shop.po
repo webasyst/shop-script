@@ -4987,3 +4987,11 @@ msgstr ""
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:55
 msgid "Gravatar.com (Globally Recognized Avatars) is a web service that returns userpic (profile photo, avatar) by email address. In case userpic is not uploaded in the Contacts app for a particular customer, his Gravatar userpic will be displayed."
 msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:59
+msgid "In case there were no Gravatar userpic uploaded"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:61
+msgid "Use default userpic"
+msgstr ""

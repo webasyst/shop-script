@@ -49,17 +49,17 @@ $(function () {
         return '<option data-price="' + price + '" id="service-variant-' + id + '" value="' + id + '">' + name + ' (+' + currency_format(price) + ')</option>';
     }
 
-    $("#product-skus input:radio").click(function () {
+    $("#product-skus input[type=radio]").click(function () {
         if ($(this).data('image-id')) {
             $("#product-image-" + $(this).data('image-id')).click();
         }
         if ($(this).data('disabled')) {
-            $(".add2cart input:submit").attr('disabled', 'disabled');
+            $(".add2cart input[type=submit]").attr('disabled', 'disabled');
         } else {
-            $(".add2cart input:submit").removeAttr('disabled');
+            $(".add2cart input[type=submit]").removeAttr('disabled');
         }
         var sku_id = $(this).val();
-        $("div.stocks div:visible").hide();
+        $("div.stocks div").hide();
         $("#sku-" + sku_id + "-stock").show();
         for (var service_id in sku_services[sku_id]) {
             var v = sku_services[sku_id][service_id];
@@ -89,7 +89,7 @@ $(function () {
         }
         update_price();
     });
-    $("#product-skus input:radio:checked").click();
+    $("#product-skus input[type=radio]:checked").click();
 
     function update_price()
     {
@@ -117,14 +117,17 @@ $(function () {
     $("#product-gallery a").click(function () {
         var img = $(this).find('img');
         var src = img.attr('src').replace(/96x96/, '750x0');
-        $('<img src="' + src + '">').load(function () {
+        $('<img>').attr('src', src).load(function () {
             $("#product-image").attr('src', src);
+        }).each(function() {
+            //ensure image load is fired. Fixes opera loading bug
+            if (this.complete) { $(this).trigger("load"); }
         });
         return false;
     });
 
     // add to cart block: services
-    $(".cart .services input:checkbox").click(function () {
+    $(".cart .services input[type=checkbox]").click(function () {
         var obj = $('select[name="service_variant[' + $(this).val() + ']"]');
         if (obj.length) {
             if ($(this).is(':checked')) {

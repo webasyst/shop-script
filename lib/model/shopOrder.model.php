@@ -186,8 +186,9 @@ class shopOrderModel extends waModel
         $info['name'] =  !empty($order_params_info['contact_name']) ? $order_params_info['contact_name'] : '';
         $info['email'] = !empty($order_params_info['contact_email']) ? $order_params_info['contact_email'] : '';
         $info['phone'] = !empty($order_params_info['contact_phone']) ? $order_params_info['contact_phone'] : '';
-        if (wa('shop')->getConfig()->getGeneralSettings('use_gravatar')) {
-            $info['photo_50x50'] = shopHelper::getGravatar($info['email']);
+        $config = wa('shop')->getConfig();
+        if ($config->getGeneralSettings('use_gravatar')) {
+            $info['photo_50x50'] = shopHelper::getGravatar($info['email'], 50, $config->getGeneralSettings('gravatar_default'));
         } else {
             $contact = new waContact();
             $info['photo_50x50'] = $contact->getPhoto(50);
@@ -202,7 +203,9 @@ class shopOrderModel extends waModel
         }
         $contact_model = new waContactModel();
         $contacts = $contact_model->getByField('id', $ids, 'id');
-        $use_gravatar = wa('shop')->getConfig()->getGeneralSettings('use_gravatar');
+        $config = wa('shop')->getConfig();
+        $use_gravatar     = $config->getGeneralSettings('use_gravatar');
+        $gravatar_default = $config->getGeneralSettings('gravatar_default');
 
         /*
         // Get addresses and other additonal fields
@@ -219,7 +222,7 @@ class shopOrderModel extends waModel
         foreach ($contacts as &$c) {
             $contact = new waContact($c['id']);
             if (!$contact->get('photo') && $use_gravatar) {
-                $c['photo_50x50'] = shopHelper::getGravatar($contact->get('email', 'default'));
+                $c['photo_50x50'] = shopHelper::getGravatar($contact->get('email', 'default'), 50, $gravatar_default);
             } else {
                 $c['photo_50x50'] = $contact->getPhoto(50);
             }
@@ -270,9 +273,11 @@ class shopOrderModel extends waModel
                 'email' => $contact->get('email', 'default'),
                 'phone' => $contact->get('phone', 'default')
             );
-            $use_gravatar = wa('shop')->getConfig()->getGeneralSettings('use_gravatar');
+            $config = wa('shop')->getConfig();
+            $use_gravatar     = $config->getGeneralSettings('use_gravatar');
+            $gravatar_default = $config->getGeneralSettings('gravatar_default');
             if (!$contact->get('photo') && $use_gravatar) {
-                $order['contact']['photo_50x50'] = shopHelper::getGravatar($order['contact']['email']);
+                $order['contact']['photo_50x50'] = shopHelper::getGravatar($order['contact']['email'], 50, $gravatar_default);
             } else {
                 $order['contact']['photo_50x50'] = $contact->getPhoto(50);
             }

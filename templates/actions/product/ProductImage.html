@@ -154,4 +154,9 @@ $.product_images.init({
 });
 </script>
 
-{include './include.imageUpload.html' inline}
+<form id="fileupload" action="?module=product&amp;action=imageUpload" method="POST" enctype="multipart/form-data">
+    <input type="file" name="files[]" multiple="" style="display: none;">
+    <input type="hidden" name="product_id" value="{$product_id}">
+    {$wa->csrf()}
+    {include './include.imageUpload.html' inline}
+</form>

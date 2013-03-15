@@ -1,13 +1,37 @@
+{$placeholder = '[`add description`]'}
+
+<form id="fileupload" action="?module=product&amp;action=imageUpload" method="POST" enctype="multipart/form-data">
 <div class="block double-padded s-image-upload-dropbox">
-	<a href="#" id="s-upload-images-link"><i class="icon16 upload"></i>[`Select images`]</a>
+	<a href="javascript:void(0);" id="s-upload-images-link" class="fileinput-button">
+        <i class="icon16 upload"></i>[`Select images`]
+        <input type="file" name="files[]" multiple="">
+    </a>
 	<span class="gray">[`or drag them here to start upload`]</span>
 </div>
+
+<input type="hidden" name="product_id" value="{$product_id}">
+{$wa->csrf()}
+
+{include './include.imageUpload.html' inline}
+
+</form>
+
+{*
+<div class="block double-padded s-image-upload-dropbox">
+<form id="fileupload" action="?module=product&amp;action=imageUpload" method="POST" enctype="multipart/form-data">
+    <a href="javascript:void(0);" id="s-upload-images-link">
+        <input type="file" name="files[]" multiple="">
+        <i class="icon16 upload"></i>[`Select images`]
+    </a>
+    <span class="gray">[`or drag them here to start upload`]</span>
+</form>
+</div>
+*}
 
 <!-- plugin hook: 'backend_product_edit.images' -->
 {* @event backend_product_edit.%plugin_id%.images *}
 {if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.images)}{/foreach}{/if}
 
-{$placeholder = '[`add description`]'}
 <ul class="thumbs li250px" id="s-product-image-list">
 </ul>
 
@@ -28,5 +52,3 @@ $.product_images.init({
     }
 });
 </script>
-
-{include './include.imageUpload.html' inline}

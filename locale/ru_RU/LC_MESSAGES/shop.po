@@ -5188,3 +5188,11 @@ msgstr ""
 "возвращает юзерпик пользователя (фотографию, аватар) по его email-адресу. "
 "Если фотография не загружена для покупателя в его профиле в приложении "
 "«Контакты», будет показан его юзерпик из сервиса Gravatar."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:59
+msgid "In case there were no Gravatar userpic uploaded"
+msgstr "Если у покупателя не загружен юзерпик в сервисе Gravatar"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:61
+msgid "Use default userpic"
+msgstr "Использовать дефолтную картинку из приложения «Контакты»"

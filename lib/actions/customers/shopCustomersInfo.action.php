@@ -39,9 +39,11 @@ class shopCustomersInfoAction extends waViewAction
 
         // Get photo
         $photo = $contact->get('photo');
-        $use_gravatar = $this->getConfig()->getGeneralSettings('use_gravatar');      
+        $config = $this->getConfig();
+        $use_gravatar     = $config->getGeneralSettings('use_gravatar');
+        $gravatar_default = $config->getGeneralSettings('gravatar_default');
         if (!$photo && $use_gravatar) {
-            $photo = shopHelper::getGravatar($contact->get('email', 'default'), 96);
+            $photo = shopHelper::getGravatar($contact->get('email', 'default'), 96, $gravatar_default);
         } else {
             $photo = $contact->getPhoto(96);
         }
