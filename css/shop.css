@@ -461,6 +461,8 @@ ul#s-settings-menu li a:hover i.icon16 { opacity: 0.8; }
 ul#s-settings-menu li.selected a i.icon16 { opacity: 1; }
 .wa-theme { min-height: 500px; }
 
+ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
+
 .s-settings-internal-sidebar { min-height: 400px; }
 .s-settings-internal-sidebar ul.menu-v.stack li a { padding-left: 28px; padding-right: 8px; }
 
