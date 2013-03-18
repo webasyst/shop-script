@@ -33,14 +33,18 @@ class shopFrontendCategoryAction extends shopFrontendAction
         }
 
         $category['subcategories'] = $category_model->getSubcategories($category);
-
+        $category_url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
+        foreach ($category['subcategories'] as &$sc) {
+            $sc['url'] = str_replace('%CATEGORY_URL%', waRequest::param('url_type') == 1 ? $sc['url'] : $sc['full_url'], $category_url);
+        }
+        unset($sc);
 
         if ($category['parent_id']) {
             $breadcrumbs = array();
-            $path = $category_model->getPath($category['id']);
+            $path = array_reverse($category_model->getPath($category['id']));
             foreach ($path as $row) {
                 $breadcrumbs[] = array(
-                    'url' => wa()->getRouteUrl('/frontend/category', array('category_url' => $row['full_url'])),
+                    'url' => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $row['url'] : $row['full_url'])),
                     'name' => $row['name']
                 );
             }

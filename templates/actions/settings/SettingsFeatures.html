@@ -94,7 +94,7 @@
                         {if $feature.selectable}
                         <div>
                         {if !empty($feature.values)}
-                            <ul class="menu-v compact with-icons small js-feature-values" style="max-width: 200px;">
+                            <ul class="menu-v compact with-icons small s-feature-values js-feature-values" style="max-width: 200px;">
                                 {$values_more = false}
                                 {foreach $feature.values as $value_id => $value}
                                     <li data-value-id="{$value_id}"{if $values_more} style="display: none;"{/if}>{$value|escape}</li>
@@ -135,7 +135,7 @@
                         {{if feature.selectable}}
                         <div>
                         {{if feature.values.length}}
-                            <ul class="menu-v compact with-icons small js-feature-values">
+                            <ul class="menu-v compact with-icons small s-feature-values js-feature-values">
                                 {{each(value_id, value_value) feature.values}}
                                     <li data-value-id="${value_value.id||value_id}">${(typeof(value_value) == 'object')?value_value.value:value_value}</li>
                                 {{/each}}
@@ -186,7 +186,7 @@ action=''
 
 
                         <div style="white-space: nowrap;">
-                            <ul class="menu-v compact with-icons small js-feature-values" data-values_template="${feature.values_template}">
+                            <ul class="menu-v compact with-icons small s-feature-values js-feature-values" data-values_template="${feature.values_template}">
                                 {{each(id, feature_value) feature.values}}
 {/literal}
 {$dimension = shopDimension::getInstance()}
@@ -237,7 +237,7 @@ action=''
                         </div>
                     </td>
                     <td>
-                        <ul class="menu-v compact collapsible small js-types">
+                        <ul class="menu-v compact collapsible small s-feature-values js-types">
                             <li data-type="0">
                                 <label>
                                 	<input type="checkbox" name="feature[${feature.id}][types][0]" value="0"{{if feature.types.length > 1 && feature.types.indexOf(parseInt(0)) >= 0}} checked="checked"{{/if}}>

@@ -46,10 +46,10 @@ class shopDiscounts
 
         // Discount based on affiliate bonus?
         if (shopAffiliate::isEnabled()) {
-            return $discount + (float) shopAffiliate::discount($order, $contact, $apply, $discount);
+            $discount = $discount + (float) shopAffiliate::discount($order, $contact, $apply, $discount);
         }
 
-        return $discount;
+        return min(max(0, $discount), ifset($order['total'], 0));
     }
 
     /**
@@ -118,11 +118,11 @@ class shopDiscounts
             default:
                 // Flat value in currency
                 $coupon['value'] = max(0.0, (float) $coupon['value']);
-                if (wa()->getConfig()->getCurrency() == $coupon['type']) {
+                if (wa()->getConfig()->getCurrency(false) == $coupon['type']) {
                     return $coupon['value'];
                 }
                 $crm = new shopCurrencyModel();
-                $result = (float) $crm->convert($coupon['value'], $coupon['type'], wa()->getConfig()->getCurrency());
+                $result = (float) $crm->convert($coupon['value'], $coupon['type'], wa()->getConfig()->getCurrency(false));
                 break;
         }
 

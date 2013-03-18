@@ -167,8 +167,11 @@
                 <td>
                     {if $item.type == 'service'}<span class="gray s-overhanging-plus">+</span> {/if}
                     <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name}</a>
+                    {if !empty($item.sku_code)}
+                        <span class="hint">{$item.sku_code|escape}</span>
+                    {/if}
                     {if !empty($item.stock)}
-                        <span class="hint">@{$item.stock.name|escape}</span>
+                        <span class="small">@{$item.stock.name|escape}</span>
                     {/if}
                 </td>
                 <td class="align-right nowrap"><span class="gray">{wa_currency($item.price, $order.currency)} x</span> {$item.quantity}</td>

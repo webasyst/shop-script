@@ -43,7 +43,7 @@
     {if $category.subcategories}
         <div class="sub-categories">
             {foreach $category.subcategories as $sc}
-                <a href="{$wa->getUrl('/frontend/category', ['category_url' => $sc.full_url])}">{$sc.name|escape}</a><br />
+                <a href="{$sc.url}">{$sc.name|escape}</a><br />
             {/foreach}
         </div>
     {/if}

@@ -201,6 +201,10 @@ class shopViewHelper extends waAppViewHelper
         return null;
     }
 
+    public function categoryUrl($c)
+    {
+        return $this->wa->getRouteUrl('shop/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url']));
+    }
 
     public function categories($id = 0, $depth = null)
     {

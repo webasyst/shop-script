@@ -126,12 +126,16 @@
                             {if $product.item.sku_id == $sku_id}{$product_sku = $sku}{/if}
                             <li><label>
                                 <input type="radio" name="sku[edit][{$product.item.id}]" value="{$sku_id}" {if $product.item.sku_id == $sku_id}checked="checked"{/if}>
-                                {$sku.name}<strong>{$sku.price_str}</strong>{$sku.icon}
+                                {$sku.name}
+                                {if $sku.sku}<span class="gray">{$sku.sku}</span>{/if}
+                                <strong>{$sku.price_str}</strong>
+                                {$sku.icon}
                             </label></li>
                         {/foreach}
                     </ul>
                 {else}
                     {$product_sku = $product.skus[$product.item.sku_id]}
+                    {if $product_sku.sku}<span class="hint">{$product_sku.sku}</span>{/if}
                     {if !empty($product.fake)}
                         <p><input type="text" name="name[edit][{$product.item.id}]" value="{$product.item.name}" class="small"></p>
                     {/if}

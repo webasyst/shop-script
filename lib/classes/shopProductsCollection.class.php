@@ -170,11 +170,15 @@ class shopProductsCollection
             }
         }
 
-        if ($type_id = waRequest::param('type_id')) {
+        if (($type_id = waRequest::param('type_id')) && is_array($type_id)) {
             foreach ($type_id as & $t) {
                 $t = (int) $t;
             }
-            $this->where[] = 'p.type_id IN ('.implode(',', $type_id).')';
+            if ($type_id) {
+                $this->where[] = 'p.type_id IN ('.implode(',', $type_id).')';
+            } else {
+                $this->where[] = '0';
+            }
         }
     }
 
