@@ -145,6 +145,7 @@
             } else {
                 xhr.error(default_error_handler);
             }
+            return xhr;
         },
 
         getJSON : function(url, data, success, error) {

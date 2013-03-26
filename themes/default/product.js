@@ -116,7 +116,8 @@ $(function () {
     // product images
     $("#product-gallery a").click(function () {
         var img = $(this).find('img');
-        var src = img.attr('src').replace(/96x96/, '750x0');
+        var size = $("#product-image").attr('src').replace(/^.*\/[0-9]+\.(.*)\..*$/, '$1');
+        var src = img.attr('src').replace(/^(.*\/[0-9]+\.)(.*)(\..*)$/, '$1' + size + '$3');
         $('<img>').attr('src', src).load(function () {
             $("#product-image").attr('src', src);
         }).each(function() {

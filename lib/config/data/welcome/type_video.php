@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Video',
-    'icon' => 'icon16 ss pt tv',
+    'icon' => 'ss pt tv',
     'features' => array(
         'display_type' => array(
             'name' => 'Display type',

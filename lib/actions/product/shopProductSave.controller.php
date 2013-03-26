@@ -20,6 +20,7 @@ class shopProductSaveController extends waJsonController
             if ($product->save($data, true, $this->errors)) {
                 $this->response['id'] = $product->getId();
                 $this->response['name'] = $product->name;
+                $this->response['url']  = $product->url;
                 $this->response['frontend_url'] = wa()->getRouteUrl('/frontend/product', array('product_url' => $product->url), true);
                 $this->response['raw'] = $this->workupData($product->getData());
             }

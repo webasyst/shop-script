@@ -51,10 +51,11 @@
             <li data-action="new-set"><a href="#"><i class="icon16 ss set"></i>[`Create new set`]</a></li>
             <li data-action="category"><a href="#"><i class="icon16 folder"></i>[`Add to category`]</a></li>
             <li data-action="type"><a href="#"><i class="icon16 box"></i>[`Change product type`]</a></li>
-            <li data-action="delete"><a href="#"><i class="icon16 delete"></i>[`Delete`]</a></li>
             {if $info && $info.hash == 'set' && $info.type == shopSetModel::TYPE_STATIC && $info.count > 0}
                 <li data-action="delete-from-set"><a href="#"><i class="icon16 no-bw"></i>[`Delete from set`]</a></li>
             {/if}
+            
+            <li data-action="delete" class="top-padded"><a href="#"><i class="icon16 delete"></i>[`Delete products`]</a></li>
             
         </ul>
     </div>
@@ -206,7 +207,7 @@
         <script id="template-product-list-table" type="text/html">
             {literal}
             {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
-            <tr class="product {% if (i == n-1) { %}last{% } %} {% if (o.check_all) { %}selected{% } %}" data-product-id="{%#p.id%}">
+            <tr class="product {% if (i == n-1) { %}last{% } %} {% if (p.status == '0') { %}gray{% } %} {% if (o.check_all) { %}selected{% } %}" data-product-id="{%#p.id%}">
                 {/literal}
                 {if $sortable}<td class="min-width drag-handle"><i class="icon16 sort"></i></td>{/if}
                 {literal}
@@ -229,7 +230,7 @@
             <script id="template-product-list-thumbs" type="text/html">
             {literal}
             {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
-            <li class="product {% if (i == n-1) { %}last{% } %}" data-product-id="{%#p.id%}">
+            <li class="product {% if (i == n-1) { %}last{% } %} {% if (p.status == '0') { %}gray{% } %}" data-product-id="{%#p.id%}">
                 <div class="s-product-image s-image">
                     <a href="#/product/{%#p.id%}/">
                         {% if (p.badge) { %}

@@ -47,6 +47,7 @@ $(function () {
 
     $(".cart .services input:checkbox").change(function () {
         var div = $(this).closest('div');
+        var tr = $(this).closest('tr');
         if ($(this).is(':checked')) {
            var parent_id = $(this).closest('tr').data('id')
            var data = {parent_id: parent_id, service_id: $(this).val()};
@@ -56,18 +57,22 @@ $(function () {
            }
            $.post('add/', data, function(response) {
                div.data('id', response.data.id);
+               tr.find('.item-total').html(response.data.item_total);
                updateCart(response.data);
            }, "json");
         } else {
            $.post('delete/', {id: div.data('id')}, function (response) {
                div.data('id', null);
+               tr.find('.item-total').html(response.data.item_total);
                updateCart(response.data);
            }, "json");
         }
     });
 
     $(".cart .services select").change(function () {
+        var tr = $(this).closest('tr');
         $.post('save/', {id: $(this).closest('div').data('id'), 'service_variant_id': $(this).val()}, function (response) {
+            tr.find('.item-total').html(response.data.item_total);
             updateCart(response.data);
         }, "json");
     });

@@ -2,7 +2,7 @@
 
 return array(
     'name'     => 'Jewelry',
-    'icon'     => 'icon16 ss pt diamond',
+    'icon'     => 'ss pt diamond',
     'features' => array(
         'metal' => array(
             'name'   => 'Metal',

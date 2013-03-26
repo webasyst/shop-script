@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Perfumes',
-    'icon' => 'icon16 ss pt spray',
+    'icon' => 'ss pt spray',
     'features' => array(
         'brand' => array(
             'name' => 'Brand',

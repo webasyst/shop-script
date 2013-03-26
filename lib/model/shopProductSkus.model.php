@@ -192,25 +192,26 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         $stocks_model = new shopProductStocksModel();
         $feature_model = new shopFeatureModel();
         $product_features_model = new shopProductFeaturesModel();
+
+        // aggragate count by stocks for product
+        // Invariant: if at least one sku.count IS NULL this aggragate count IS NULL
         $product_count = 0;
+
         $sort = 0;
         foreach ($data as $sku_id => $sku) {
             $sku['sort'] = ++$sort;
             if (empty($sku['available'])) {
                 $sku['available'] = 0;
             }
-            if (!empty($sku['price']) && $sku['available']) {
-                $price[] = $this->castValue('double', $sku['price']);
-            }
-            if (!empty($sku['purchase_price'])) {
+
+            $price[] = $this->castValue('double', $sku['price']);
+
+            if (isset($sku['purchase_price'])) {
                 $sku['purchase_price'] = $this->castValue('double', $sku['purchase_price']);
-            } else {
-                $sku['purchase_price'] = 0.0;
             }
-            if (!empty($sku['compare_price'])) {
+
+            if (isset($sku['compare_price'])) {
                 $sku['compare_price'] = $this->castValue('double', $sku['compare_price']);
-            } else {
-                $sku['compare_price'] = 0.0;
             }
 
             if ($product->currency == $primary_currency) {
@@ -243,11 +244,19 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                 }
             }
 
+            // aggregate count by stocks.
+            // In multistocking: if at least one stock-sku count doesn't exists this aggregate counter turn into NULL
             $sku_count = null;
-            if (isset($sku['stock'])) {
+
+            if (isset($sku['stock']) && count($sku['stock'])) {
+                $sku_count = 0;
+
+                // not multistocking
                 if (isset($sku['stock'][0])) {
                     $sku_count = self::castStock($sku['stock'][0]);
                     unset($sku['stock'][0]);
+
+                // multistocking
                 } else {
                     foreach ($sku['stock'] as $stock_id => $count) {
                         $field = array(
@@ -256,8 +265,16 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                             'product_id' => $product->id,
                         );
                         $count = self::castStock($count);
-                        if ($count !== null) {
-                            $sku_count += $count;
+                        if ($count === null) {
+                            // turn into NULL and is not longer changing
+                            $sku_count = null;
+                            $stocks_model->deleteByField($field);
+                        } else {
+                            // Once turned into NULL value is not changed
+                            if ($sku_count !== null) {
+                                $sku_count += $count;
+                            }
+
                             $stock = array('count' => $count);
                             try {
                                 $stocks_model->insert(array_merge($field, $stock));
@@ -268,15 +285,14 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                                     throw $ex;
                                 }
                             }
-                        } else {
-                            $stocks_model->deleteByField($field);
                         }
                         $sku['stock'][$stock_id] = $count;
                     }
                 }
+
+                // maintain product_count invariant. See above
                 if ($sku_count === null) {
                     $product_count = null;
-                    $stocks_model->deleteByField('sku_id', $sku_id);
                 } elseif ($product_count !== null) {
                     $product_count += $sku_count;
                 }
@@ -321,14 +337,39 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         if ($product->currency && $product->currency != $primary_currency) {
             $product->min_price = $this->convertPrice(min($price), $product->currency);
             $product->max_price = $this->convertPrice(max($price), $product->currency);
-            $product->price = $update_product_data['price'] = $this->convertPrice($result[$product->sku_id]['price'], $product->currency);
-            $product->compare_price = $update_product_data['compare_price'] = $this->convertPrice($result[$product->sku_id]['compare_price'], $product->currency);
+
+            $product->price = $update_product_data['price'] =
+                $this->convertPrice(
+                    $result[$product->sku_id]['price'],
+                    $product->currency
+                );
+
+            if (isset($result[$product->sku_id]['compare_price'])) {
+                $product->compare_price = $update_product_data['compare_price'] =
+                    $this->convertPrice(
+                        $result[$product->sku_id]['compare_price'],
+                        $product->currency
+                    );
+            }
+
         } else {
             $product->min_price = min($price);
             $product->max_price = max($price);
-            $product->price = $update_product_data['price'] = $this->castValue('double', $result[$product->sku_id]['price']);
-            $product->compare_price = $update_product_data['compare_price'] = $this->castValue('double', $result[$product->sku_id]['compare_price']);
+            $product->price = $update_product_data['price'] =
+                $this->castValue(
+                    'double',
+                    $result[$product->sku_id]['price']
+                );
+
+            if (isset($result[$product->sku_id]['compare_price'])) {
+                $product->compare_price = $update_product_data['compare_price'] =
+                    $this->castValue(
+                        'double',
+                        $result[$product->sku_id]['compare_price']
+                    );
+            }
         }
+
         $product->count = $product_count;
 
         if (!$product->currency) {

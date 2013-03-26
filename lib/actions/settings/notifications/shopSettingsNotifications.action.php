@@ -22,11 +22,21 @@ class shopSettingsNotificationsAction extends waViewAction
         return $events;
     }
 
+    public function getSmsFrom()
+    {
+        $sms_config = wa()->getConfig()->getConfigFile('sms');
+        $sms_from = array();
+        foreach ($sms_config as $from => $options) {
+            $sms_from[$from] = $from.' ('.$options['adapter'].')';
+        }
+        return $sms_from;
+    }
+
     public static function getTransports()
     {
         return array(
             'email' => array('name' => _w('Email'), 'icon' => 'email'),
-            //'sms' => array('name' => _w('SMS'), 'icon' => 'mobile'),
+            'sms' => array('name' => _w('SMS'), 'icon' => 'mobile'),
             //'http' => array('name' => _w('HTTP Request'), 'icon' => 'globe-small'),
             //'twitter' => array('name' => _w('Tweet'), 'icon' => 'twitter'),
         );

@@ -32,7 +32,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
             throw new waException('Category not found', 404);
         }
 
-        $category['subcategories'] = $category_model->getSubcategories($category);
+        $category['subcategories'] = $category_model->getSubcategories($category, true);
         $category_url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
         foreach ($category['subcategories'] as &$sc) {
             $sc['url'] = str_replace('%CATEGORY_URL%', waRequest::param('url_type') == 1 ? $sc['url'] : $sc['full_url'], $category_url);
@@ -83,6 +83,11 @@ class shopFrontendCategoryAction extends shopFrontendAction
         wa()->getResponse()->setMeta('keywords', $category['meta_keywords']);
         wa()->getResponse()->setMeta('description', $category['meta_description']);
 
+        /**
+         * @event frontend_category
+         * @return array[string]string $return[%plugin_id%] html output for category
+         */
+        $this->view->assign('frontend_category', wa()->event('frontend_category'));
         $this->setThemeTemplate('category.html');
     }
 }

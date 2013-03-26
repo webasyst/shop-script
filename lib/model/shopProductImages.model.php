@@ -124,9 +124,20 @@ class shopProductImagesModel extends waModel
         if (!$this->deleteById($id)) {
             return false;
         }
-        $main_image_id = $this->query("SELECT id FROM {$this->table} WHERE product_id = $product_id ORDER BY sort LIMIT 1")->fetchField('id');
+
+        // first image for this product is main image for this product
+        $main_image = $this->query("SELECT id AS image_id, ext FROM {$this->table} WHERE product_id = $product_id ORDER BY sort LIMIT 1")->fetchAssoc();
+        if (!$main_image) {
+            $main_image = array('image_id' => null, 'ext' => null);
+        }
         $product_model = new shopProductModel();
-        $product_model->updateById($product_id, array('image_id' => $main_image_id));
+        $product_model->updateById($product_id, $main_image);
+
+        // make NULL image_id for that skus of this product which have image_id equals this image ID
+        $this->exec("
+            UPDATE `shop_product_skus` SET image_id = NULL
+            WHERE product_id = $product_id AND image_id = $id
+        ");
 
         return true;
     }

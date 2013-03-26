@@ -1,5 +1,5 @@
 /**
- *
+ * 
  */
 (function($) {
     $.plugins = {
@@ -12,9 +12,15 @@
             'tail': null,
             'params': {}
         },
+        icon: {
+            'submit': '<i style="vertical-align:middle" class="icon16 loading"></i>',
+            'success': '<i style="vertical-align:middle" class="icon16 yes"></i>',
+            'error': '<i style="vertical-align:middle" class="icon16 no"></i>'
+        },
 
         ready: false,
         menu: null,
+        timer: null,
 
         /**
          * @param {} options
@@ -70,7 +76,7 @@
         },
 
         /**
-         *
+         * 
          * @param {String} path
          * @return { 'section':String, 'tail':String,'raw':String,'params':object }
          */
@@ -85,7 +91,7 @@
 
         /**
          * Dispatch location hash changes
-         *
+         * 
          * @param {String} hash
          * @param {Boolean} load Force reload if need
          * @return {Boolean}
@@ -130,8 +136,81 @@
 
                     self.menu.find('li.selected').removeClass('selected');
                     self.menu.find('a[href*="\\#\/' + self.path.plugin + '\/"]').parents('li').addClass('selected');
+                    $('#plugins-settings-form').submit(function() {
+                        self.saveHandler.apply(self, [this]);
+                        return false;
+                    })
                 });
                 return true;
+            }
+        },
+        saveHandler: function(form) {
+
+            var self = this;
+            this.message('submit');
+            var $form = $(form);
+            $.ajax({
+                type: 'POST',
+                url: $form.attr('action'),
+                data: $form.serialize(),
+                dataType: 'json',
+                success: function(data, textStatus, jqXHR) {
+                    if (data && (data.status == 'ok')) {
+                        var message = 'Saved';
+                        if (data.data && data.data.message) {
+                            message = data.data.message;
+                        }
+                        self.message('success', message);
+                    } else {
+                        self.message('error', data.errors || []);
+                    }
+                },
+                error: function(jqXHR, errorText) {
+                    self.message('error', [[errorText]]);
+                }
+            });
+        },
+
+        message: function(status, message) {
+            /* enable previos disabled inputs */
+
+            var $container = $('#plugins-settings-form-status');
+            $container.empty().show();
+            var $parent = $container.parents('div.value');
+            $parent.removeClass('errormsg successmsg status');
+
+            if (this.timer) {
+                clearTimeout(this.timer);
+            }
+            var timeout = null;
+            $container.append(this.icon[status] || '');
+            switch (status) {
+                case 'submit': {
+                    $parent.addClass('status');
+                    break;
+                }
+                case 'error': {
+                    $parent.addClass('errormsg');
+                    for (var i = 0; i < message.length; i++) {
+                        $container.append(message[i][0]);
+                    }
+                    timeout = 20000;
+                    break;
+                }
+                case 'success': {
+                    if (message) {
+                        $parent.addClass('successmsg');
+                        $container.append(message);
+                    }
+                    timeout = 3000;
+                    break;
+                }
+            }
+            if (timeout) {
+                this.timer = setTimeout(function() {
+                    $parent.removeClass('errormsg successmsg status');
+                    $container.empty().show();
+                }, timeout);
             }
         },
         sortHandler: function(event, ui) {

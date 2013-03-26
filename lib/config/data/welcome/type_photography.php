@@ -1,7 +1,7 @@
 <?php
 return array(
     'name'     => 'Photography',
-    'icon'     => 'icon16 ss pt camera',
+    'icon'     => 'ss pt camera',
     'features' => array(
 
         'brand' => array(

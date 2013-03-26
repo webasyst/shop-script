@@ -19,6 +19,7 @@ class shopBackendLocAction extends waViewAction
             'Close',
             'Saved',
             'Empty result',
+            'Please select at least one product',
             'Files with extensions *.gif, *.jpg, *.jpeg, *.png are allowed only.',
             'New customer',
             'contain',
@@ -27,6 +28,7 @@ class shopBackendLocAction extends waViewAction
             'all',
             'any',
             'is',
+            'Stop upload',
             'Please select a category',
             'Processing',
             'All orders'

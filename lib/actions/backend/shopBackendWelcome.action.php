@@ -49,6 +49,10 @@ class shopBackendWelcomeAction extends waViewAction
                     $currency_model = new shopCurrencyModel();
                     $sort = 0;
                     foreach ($country_data['currency'] as $code => $rate) {
+
+                        // delete old currency info is exists
+                        $currency_model->deleteById($code);
+
                         $currency_model->insert(array('code' => $code, 'rate' => $rate, 'sort' => $sort++), 2);
                         if ($sort == 1) {
                             $model->set('shop', 'currency', $code);

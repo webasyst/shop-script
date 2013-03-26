@@ -1,7 +1,9 @@
 {$wa->title('[`Compare products`]')}
+<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/jquery.cookie.js"></script>
 <h1>[`Compare products`]</h1>
 
 <script>
+    $(function () {
     $("#compare-all").click(function () {
         $("#compare-table tr.same").show();
         return false;
@@ -9,6 +11,24 @@
     $("#compare-diff").click(function () {
         $("#compare-table tr.same").hide();
         return false;
+    });
+    $(".compare-remove").on('click', function () {
+        var compare = $.cookie('shop_compare');
+        if (compare) {
+            compare = compare.split(',');
+        } else {
+            compare = [];
+        }
+        var i = $.inArray($(this).data('product') + '', compare);
+        if (i != -1) {
+            compare.splice(i, 1)
+        }
+        if (compare) {
+            $.cookie('shop_compare', compare.join(','), { expires: 30, path: '/'});
+        } else {
+            $.cookie('shop_compare', null);
+        }
+    });
     });
 </script>
 
@@ -27,9 +47,13 @@
         {foreach $products as $p}
             <td width="{$td_width}%">
                 <a href="{$wa->getUrl('/frontend/product/', ['product_url' => $p.url])}" class="no-underline">
-                    {$wa->shop->productImgHtml($p, '96x96', ['itemprop' => 'image', 'id' => 'product-image', 'default' => "`$wa_theme_url`img/dummy96.png", 'title' => $p.name|escape|cat:' ':strip_tags($p.summary)|escape])}
-                    <u>{$p.name}</u>
+                    {$wa->shop->productImgHtml($p, '96x96', ['itemprop' => 'image', 'id' => 'product-image', 'default' => "`$wa_theme_url`img/dummy96.png", 'title' => $p.name|cat:' ':strip_tags($p.summary)|escape])}
+                    <u>{$p.name|escape}</u>
                 </a>
+                {if count($products) > 2}
+                    <br><br>
+                    <a data-product="{$p.id}" class="compare-remove" href="{$p.delete_url}" title="[`Remove from comparison list`]"><i class="icon16 remove"></i></a>
+                {/if}
             </td>
         {/foreach}
     </tr>

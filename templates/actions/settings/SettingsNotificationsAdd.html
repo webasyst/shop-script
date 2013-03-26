@@ -26,7 +26,7 @@
             <div class="value">
                 <input id="n-name" name="data[name]" type="text" class="bold" value="">
                 <br>
-                <span class="hint">[`Notification name is published in the order processing log.`]</span>
+                <span class="hint">[`This name is for your convenience only. It will never be shown to customers.`]</span>
             </div>
         </div>
         <div class="field">
@@ -34,7 +34,7 @@
             {foreach $transports as $t_id => $t}
             <div class="value no-shift">
                 <label>
-                    <input {if $t@first}checked{/if} type="radio" name="data[transport]" value="{$t_id}">
+                    <input class="transport" {if $t@first}checked{/if} type="radio" name="data[transport]" value="{$t_id}">
                     <i class="icon16 {$t.icon}"></i>{$t.name}
                 </label>
             </div>
@@ -49,7 +49,7 @@
     </script>
 
     {foreach $transports as $t_id => $t}
-    <div id="{$t_id}-content" {if !$t@first}style="display:none"{/if} class="field-group">
+    <div id="{$t_id}-content" {if !$t@first}style="display:none"{/if} class="field-group transport-content">
         {include file="templates/actions/settings/SettingsNotifications.`$t_id`.html" inline}
     </div>
     {/foreach}
@@ -71,7 +71,7 @@
     $(function () {
         var notification_templates = [];
         {foreach $templates as $event => $t}
-        notification_templates['{$event}'] = [{json_encode($t.subject)}, {json_encode($t.body)}];
+        notification_templates['{$event}'] = [{json_encode($t.subject)}, {json_encode($t.body)}, {json_encode($t.sms)}];
         {/foreach}
         $("#n-events").change(function () {
             var e = $(this).val();
@@ -79,8 +79,8 @@
                 $("#notifications-settings-content").show();
                 var t = notification_templates[e] || notification_templates['order'];
                 $("#email-content .subject").val(t[0]);
-                $("#email-content .body").val(t[1]);
-                codemirror.setValue(t[1]);
+                $("#email-content .body").val(t[1]).change();
+                $("#n-sms-text").val(t[2]).change();
             } else {
                 $("#notifications-settings-content").hide();
             }

@@ -116,12 +116,13 @@
                                     {$wa->shop->orderId($o.id)}
                                 </a>
                             </td>
-                            <td>{ifset($o.coupon_discount_formatted)} <span class="hint">{$o.coupon_discount_percent}%</span></td>
+                            <td>{if $o.coupon_discount_percent > 0}{ifset($o.coupon_discount_formatted)} <span class="hint">{$o.coupon_discount_percent}%</span>{else}&nbsp;{/if}</td>
                             <td>
                                 <span class="float-right gray">{$o.create_datetime|wa_date:"humandate"}</span>
                             </td>
                         </tr>
                     {/foreach}
+                    {if $overall_discount>0}
                     <tr>
                         <td>
                             <br>
@@ -133,6 +134,7 @@
                         </td>
                         <td></td>
                     </tr>
+                    {/if}
                 </table>
             {else}
                  <p>[`This coupon was not used for any orders yet.`]</p>

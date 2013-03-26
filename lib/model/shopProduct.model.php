@@ -67,6 +67,7 @@ class shopProductModel extends waModel
 
     /**
      * Get aggregated data about placing products(skus) in stocks
+     *
      * @param int $offset
      * @param int $count
      * @return array multilevel array
@@ -74,26 +75,37 @@ class shopProductModel extends waModel
      * First level: products
      * Second level: skus and stocks (guarantee that count of subarray 'stocks' is count of stocks of shop
      * Third level: if 2d level is stocks than skus placed in this stock
+     *
      * @example array(
      *   array(
      *     'id' => 123
      *     'name' => 'Product123',
      *     'total_count' => 40,
      *     'skus' => array(
-     *         array( 'id' => 1, 'name' => 'Sku1OfProduct123', 'count' => 10 ),
-     *         array( 'id' => 2, 'name' => 'Sku2OfProduct123', 'count' => 15 ),
-     *         array( 'id' => 3, 'name' => 'Sku3OfProduct123', 'count' => 25 )
+     *         // all skus for product indexed by sku_id. Count is numeric or NULL
+     *         '1' => array( 'id' => '1', 'name' => 'Sku1OfProduct123', 'count' => 10 ),
+     *         '2' => array( 'id' => '2', 'name' => 'Sku2OfProduct123', 'count' => 15 ),
+     *         '3' => array( 'id' => '3', 'name' => 'Sku3OfProduct123', 'count' => 25 )
      *      ),
      *      'stocks' => array(
-     *          array()   // product width ID=123 is not in 1st stock
-     *          array(
-     *              array( 'id' => 1, 'name' => 'Sku1OfProduct123', 'count' => 3 ),
-     *              array( 'id' => 3, 'name' => 'Sku3OfProduct123', 'count' => 16 )
+     *          // indexed by stock_id. Info about all stocks.
+     *          '111' => array(
+     *              // all skus for product indexed by sku_id. Count is numeric or NULL
+     *              '1' => array( 'id' => '1', 'name' => 'Sku1OfProduct123', 'count' => null ),
+     *              '2' => array( 'id' => '2', 'name' => 'Sku2OfProduct123', 'count' => null ),
+     *              '3' => array( 'id' => '3', 'name' => 'Sku3OfProduct123', 'count' => null )
+     *          )
+     *          '222' => array(
+     *              // all skus for product indexed by sku_id. Count is numeric or NULL
+     *              '1' => array( 'id' => '1', 'name' => 'Sku1OfProduct123', 'count' => 3 ),
+     *              '2' => array( 'id' => '2', 'name' => 'Sku2OfProduct123', 'count' => null ),
+     *              '3' => array( 'id' => '3', 'name' => 'Sku3OfProduct123', 'count' => 16 )
      *          ),
-     *          array(
-     *              array( 'id' => 1, 'name' => 'Sku1OfProduct123', 'count' => 7 ),
-     *              array( 'id' => 2, 'name' => 'Sku2OfProduct123', 'count' => 15 ),
-     *              array( 'id' => 3, 'name' => 'Sku3OfProduct123', 'count' => 9 )
+     *          '333' => array(
+     *              // all skus for product indexed by sku_id. Count is numeric or NULL
+     *              '1' => array( 'id' => '1', 'name' => 'Sku1OfProduct123', 'count' => 7 ),
+     *              '2' => array( 'id' => '2', 'name' => 'Sku2OfProduct123', 'count' => 15 ),
+     *              '3' => array( 'id' => '3', 'name' => 'Sku3OfProduct123', 'count' => 9 )
      *          )
      *      )
      *   )
@@ -103,65 +115,112 @@ class shopProductModel extends waModel
     {
         $order = ($order == 'desc' || $order == 'DESC') ? 'DESC' : 'ASC';
 
-        $stock_model = new shopStockModel();
-        $stock_id_index = array_flip(array_keys($stock_model->getAll('id')));
+        // get products ids
+        $sql = "SELECT id FROM {$this->table} ORDER BY count $order LIMIT ".(int)$offset.", ".(int)$count;
+        $ids = array_keys($this->query($sql)->fetchAll('id'));
 
-        if ($stocks_count = count($stock_id_index)) {
-            $dummy = array_fill(0, $stocks_count, array());
-        } else {
-            $dummy = array();
+
+        return $this->getProductStocksByProductId($ids, $order);
+    }
+
+    /**
+     * Get aggregated data about placing products(skus) in stocks
+     *
+     * @see getProductStocks
+     *
+     * @param int|array $product_id
+     * @param string $order
+     * @return array
+     */
+    public function getProductStocksByProductId($product_id, $order = 'desc')
+    {
+        if (!$product_id) {
+            return array();
         }
+        $product_ids     = (array)$product_id;
+        $product_ids_str = implode(',', $product_ids);
 
+        $order = ($order == 'desc' || $order == 'DESC') ? 'DESC' : 'ASC';
 
+        // necessary models
+        $stock_model          = new shopStockModel();
         $product_images_model = new shopProductImagesModel();
 
-        $product_ids = array();
-        $image_ids = array();
-        $sql = "SELECT p.id, p.name, p.count, p.image_id
-                    FROM shop_product_skus sk
-                    JOIN {$this->table} p ON sk.product_id = p.id
-                    GROUP BY sk.product_id
-                    HAVING SUM( sk.count ) IS NOT NULL
-                    ORDER BY SUM( sk.count ) $order
-                    LIMIT ".(int)$offset.", ".(int)$count;
+        // stock ids of items ordered by sort
+        $stock_ids = array_keys($stock_model->getAll('id'));
 
-        $data = array();
+        // get products
+        $sql = "
+            SELECT id, name, count, image_id
+            FROM {$this->table}
+            WHERE id IN ( {$product_ids_str} )
+            ORDER BY count $order
+        ";
+
+        $data        = array();
+        $image_ids   = array();
         foreach ($this->query($sql) as $item) {
             $data[$item['id']] = array(
-                'id' => $item['id'],
-                'name' => $item['name'],
+                'id'          => $item['id'],
+                'name'        => $item['name'],
                 'url_crop_small' => null,
-                'total_count' => $item['count'],
-                'skus' => array(
-                ),
-                'stocks' => $dummy
+                'count'       => $item['count'],
+                'skus'        => array(),
+                'stocks'      => array()
             );
             if ($item['image_id'] != null) {
                 $image_ids[] = $item['image_id'];
             }
         }
-        if (empty($data)) {
+
+        if (!$data) {
             return array();
         }
+
+        $product_ids     = array_keys($data);
+        $product_ids_str = implode(',', $product_ids);
+
         $images = $product_images_model->getByField('id', $image_ids, 'product_id');
-        $size = wa()->getConfig()->getImageSize('crop_small');
+        $size   = wa()->getConfig()->getImageSize('crop_small');
 
-        if (!$stocks_count) {
-            return array_values($data);
-        }
+        // get for skus number of stocks in which it presents
+        $sql = "
+            SELECT sk.id, COUNT(sk.id) num_of_stocks
+            FROM shop_product_skus sk
+            JOIN shop_product_stocks st ON sk.id = st.sku_id
+            WHERE sk.product_id IN ( {$product_ids_str} )
+            GROUP BY sk.id
+        ";
+        $num_of_stocks = $this->query($sql)->fetchAll('id', true);
 
+        // get info about skus and stocks
         $sql = "SELECT
-                    sk.product_id, sk.id AS sku_id, sk.name AS sku_name, sk.count,
-                    pst.stock_id, pst.count AS stock_count
+                    sk.product_id,
+                    sk.id AS sku_id,
+                    sk.name AS sku_name,
+                    sk.count,
+
+                    pst.stock_id,
+                    pst.count AS stock_count
                 FROM shop_product_skus sk
                 LEFT JOIN shop_product_stocks pst ON pst.sku_id = sk.id
-                WHERE sk.product_id IN (".implode(',', array_keys($data)).") AND sk.count IS NOT NULL
+                WHERE sk.product_id IN ( {$product_ids_str} )
                 ORDER BY sk.product_id, sk.count $order, sk.id";
 
+        $stocks_count = count($stock_ids);
+
+
+        // temporary aggragating info about stocks
+        $sku_stocks = array();
+        if ($stocks_count) {
+            $sku_stocks = array_fill(0, $stocks_count, array());
+        }
+
+        $sku_id     = 0;
         $product_id = 0;
-        $sku_id = 0;
         $p_product = null;
         foreach ($this->query($sql) as $item) {
+            // another product
             if ($product_id != $item['product_id']) {
                 $product_id = $item['product_id'];
                 $p_product = &$data[$product_id];
@@ -169,24 +228,42 @@ class shopProductModel extends waModel
                     $p_product['url_crop_small'] = shopImage::getUrl($images[$product_id], $size);
                 }
             }
+            // another sku
             if ($sku_id != $item['sku_id']) {
-                $p_product['skus'][] = array(
-                    'id' => $item['sku_id'],
-                    'name' => $item['sku_name'],
-                    'count' => $item['count']
-                );
                 $sku_id = $item['sku_id'];
+                $p_product['skus'][$sku_id] =
+                    array(
+                        'id'    => $sku_id,
+                        'name'  => $item['sku_name'],
+                        'count' => $item['count'],
+                        'num_of_stocks' => isset($num_of_stocks[$sku_id]) ? $num_of_stocks[$sku_id] : 0
+                    );
             }
+
+            // aggregate info about stocks
             if ($item['stock_id'] !== null) {
-                $index = $stock_id_index[$item['stock_id']];
-                $p_product['stocks'][$index][] = array(
-                    'id' => $item['sku_id'],
-                    'name' => $item['sku_name'],
-                    'count' => $item['stock_count']
-                );
+                $sku_stocks[$item['stock_id']][$sku_id] = $item['stock_count'];
             }
         }
-        return array_values($data);
+
+        // lay out stocks info
+        if (!empty($sku_stocks)) {
+            foreach ($data as &$product) {
+                foreach ($stock_ids as $stock_id) {
+                    foreach ($product['skus'] as $sku_id => $sku) {
+                        $product['stocks'][$stock_id][$sku_id] = array(
+                            'id'    => $sku_id,
+                            'name'  => $sku['name'],
+                            'count' => isset($sku_stocks[$stock_id][$sku_id]) ? $sku_stocks[$stock_id][$sku_id] : null,
+                            'num_of_stocks' => $sku['num_of_stocks']
+                        );
+                    }
+                }
+            }
+            unset($product);
+        }
+
+        return $data;
     }
 
     public function correctMainCategory($product_ids = null, $category_ids = null)
@@ -215,8 +292,6 @@ class shopProductModel extends waModel
                 FROM shop_product_skus sk
                 JOIN {$this->table} p ON sk.product_id = p.id
                 GROUP BY sk.product_id
-                HAVING SUM( sk.count ) IS NOT NULL
-                ORDER BY SUM( sk.count )
         ) r")->fetchField('cnt');
     }
 

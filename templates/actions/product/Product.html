@@ -96,14 +96,31 @@
                             {% } %}
                         {% } else { %}
                             {% for (var i = 0, n = o.images.length, image = o.images[0]; i < n; image = o.images[++i]) { %}
-                            <li data-image-id="{%#image.id%}">{/literal}
-                                {if $edit_right}{literal}<a href="#product/{%#o.product_id%}/edit/images/{%#image.id%}/" class="s-product-edit-link">{/literal}{/if}
+                                <li data-image-id="{%#image.id%}">{/literal}
+                                    {if $edit_right}
+                                        {literal}<a href="#product/{%#o.product_id%}/edit/images/{%#image.id%}/" class="s-product-edit-link">{/literal}
+                                    {/if}
                                     {literal}<img src="{%#image.url_crop%}{%# image.edit_datetime_ts ? '?'+image.edit_datetime_ts : '' %}" alt="">{/literal}
-                                {if $edit_right}</a>{/if}
-                                {literal}
-                            </li>
+                                    {if $edit_right}
+                                        </a>
+                                    {/if}
+                                {literal}</li>
                             {% } %}
                         {% } %}
+                    {/literal}
+                {/capture}
+
+                {* @see ProductSkuSettings.html *}
+
+                {capture name='template-sku-image-list'}
+                    {literal}
+                    {% for (var i = 0, n = o.images.length, image = o.images[0]; i < n; image = o.images[++i]) { %}
+                        <li data-image-id="{%#image.id%}" {% if (o.sku.image_id == image.id) { %} class="selected"{% } %}>
+                            <a href="#/product/{%#o.sku.product_id%}/edit/main/sku/image/select/{%#o.sku.id%}/{%#image.id%}/" class="js-action">
+                                <img src="{%#image.url_crop%}{%# image.edit_datetime_ts ? '?'+image.edit_datetime_ts : '' %}" alt="">
+                            </a>
+                        </li>
+                    {% } %}
                     {/literal}
                 {/capture}
 
@@ -273,6 +290,36 @@
 
 {* PRODUCT EDIT MAIN TAB SECTION BEGIN *}
         <div class="s-product-form main fields form" style="display: none;">
+                <div class="field-group">        
+                    <div class="field">
+                        <div class="name">[`Product name`]</div>
+                        <div class="value"><input type="text" class="long bold s-product-name-input" value="{$product.name|escape}" name="product[name]"></div>
+                    </div>                      
+                    <div class="field">
+                        <div class="name">[`Storefront link`]</div>
+                        <div class="value no-shift">
+                            <div class="s-product-status">
+                                <i class="icon10 {if $product.status}yes{else}no-bw{/if}"></i>
+                                <select name="product[status]">
+                                    <option {if $product.status}selected{/if} value="1">[`Available for purchase`]</option>
+                                    <option {if !$product.status}selected{/if} value="0">[`Hidden`]</option>
+                                </select>
+                            </div>                            
+                            {strip}
+                                <span style="display:none" class="s-frontend-base-url">{$frontend_base_url}</span>
+                                <a href="{$frontend_url}"  class="s-frontend-base-url" target="_blank">
+                                    {$frontend_base_url}
+                                    <span id="s-product-frontend-url">{$product.url}</span>
+                                    <span class="slash">/</span>
+                                </a>
+                                <i class="icon10 new-window"></i>
+                                <input type="text" class="s-product-url-input" id="s-product-frontend-url-input" value="{$product.url}" name="product[url]" style="display:none;">
+                            {/strip}
+                            <a href="javascript:void(0);" class="small inline-link" id="s-product-frontend-url-edit-link"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="field-group">
                     <div class="field">
                         <div class="name">[`Product type`]</div>
                         <div class="value no-shift" data-type="{$product.type.id|escape}">
@@ -281,8 +328,8 @@
                             <a href="#/product/{$product.id}/edit/main/type/select/" class="js-action inline-link"><b><i>[`Change type`]</i></b></a>
 
                             <select name="product[type_id]" style="display:none;">
-                            {if !$product.type.id}
-                            <option data-icon="{shopHelper::getIcon($type.icon)|escape}" value="" selected="selected" disabled="disabled"></option>
+                            {if empty($product.type.id)}
+                            <option data-icon="{shopHelper::getIcon(null)|escape}" value="" selected="selected" disabled="disabled"></option>
                             {/if}
                             {foreach $product_types as $id=>$type}
                                 <option data-icon="{shopHelper::getIcon($type.icon)|escape}" value="{$id}"{if $product.type.id == $id} selected="selected"{/if}>
@@ -291,38 +338,16 @@
                             {/foreach}
                             </select>
                         </div>
-                    </div>
-                    <div class="field">
-                        <div class="name">[`Product name`]</div>
-                        <div class="value"><input type="text" class="large long" value="{$product.name|escape}" name="product[name]"></div>
-                    </div>
-                    <div class="field">
-                        <div class="name">[`Storefront link`]</div>
-                        <div class="value no-shift">
-                            {if $product.id == 'new' || empty($frontend_url)}
-                                <input type="text" value="{$product.url|escape}" name="product[url]">/
-                            {elseif !empty($frontend_url)}
-                                {strip}
-                                    <span style="display:none" class="s-frontend-base-url">{$frontend_base_url}</span>
-                                    <a href="{$frontend_url}"  class="s-frontend-base-url" target="_blank">
-                                        {$frontend_base_url}
-                                        <span id="s-product-frontend-url">{$product.url}</span>
-                                        <span class="slash">/</span>
-                                    </a>
-                                    <i class="icon10 new-window"></i>
-                                    <input type="text" id="s-product-frontend-url-input" value="{$product.url}" name="product[url]" style="display:none;">
-                                {/strip}
-                                <a href="javascript:void(0);" class="small inline-link" id="s-product-frontend-url-edit-link"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
-                            {/if}
-                        </div>
-                    </div>
+                    </div>                
                     <div class="field">
                         <div class="name">[`Categories`]</div>
                         <div class="value s-product-categories no-shift">
                             {function categories_select category_id=0}
                                 <select name="product[categories][]" class="s-product-categories">
                                     {if !empty($categories)}
-                                        <option value="select">[`Please select a category`]</option>
+                                        <option value="select" {if !$category_id}selected="selected"{/if}>
+                                            [`Please select a category`]
+                                        </option>
                                         <option value="create">[`Create new category...`]</option>
                                         <option class="separator" value="---" disabled="disabled">---</option>
                                         {foreach $categories as $category}
@@ -363,6 +388,8 @@
                         </div>
                     </div>
                     {/if}
+                </div>
+
 
                     <!-- plugin hook: 'backend_product_edit.basics' -->
                     {* @event backend_product_edit.%plugin_id%.basics *}
@@ -580,7 +607,7 @@ TODO
                 <div class="field">
                     <div class="name">[`Title`] <span class="hint">&lt;title&gt;</span></div>
                     <div class="value">
-                        <input value="{$product.meta_title|escape}" name="product[meta_title]" placeholder="{$product.name|escape}">
+                        <input value="{$product.meta_title|escape}" name="product[meta_title]" placeholder="{$product.name|escape}" class="long bold">
                     </div>
                 </div>
                 <div class="field">
@@ -598,8 +625,11 @@ TODO
               </div>
               <div class="field-group">
                 <div class="field description">
-                    <div class="name">[`Description`]<br><span class="hint">[`HTML`]</span></div>
+                    <div class="name">[`Description`]
+                        <br><span class="hint">[`HTML`]</span>
+                    </div>
                     <div class="value" id="s-product-description">
+                        <i class="icon16 loading"></i>
                         <textarea style="display:none" id="s-product-description-content" name="product[description]">{$product.description|escape}</textarea>
                         {capture name="template-product-description"}
                         {literal}
@@ -688,7 +718,11 @@ TODO
     $.product.setOptions({
         title_suffix: '{$title_suffix}'
     });
-    
-    document.title = '{$product.name|escape|cat:$title_suffix}';
+
+    {if $product.id > 0}
+        document.title = '{$product.name|escape|cat:$title_suffix}';
+    {else}
+        document.title = '[`New product`]{$title_suffix}';
+    {/if}
 
 </script>

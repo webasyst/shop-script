@@ -152,7 +152,9 @@ class shopFrontendProductAction extends shopFrontendAction
         }
 
         foreach ($services as $s_id => &$s) {
-            if (count($s['variants']) == 1) {
+            if (!$s['variants']) {
+                unset($services[$s_id]);
+            } elseif (count($s['variants']) == 1) {
                 $v = reset($s['variants']);
                 if ($v['name']) {
                     $s['name'] .= ' '.$v['name'];

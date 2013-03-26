@@ -167,7 +167,21 @@ class shopCurrencyModel extends waModel
                 throw new waException("Unknown currency: $new_code");
             }
 
+            $old_rate = $this->castValue('double', $currencies[$old_code]['rate']);
+            if (!$old_rate) {
+                throw new waException("Old primary currency have zero rate");
+            }
+
             $rate = $this->castValue('double', $currencies[$new_code]['rate']);
+            if (!$rate) {
+                throw new waException("New primary currency have zero rate");
+            }
+
+            // check invariant old primary currency rate == 1.0. If broken - repair before
+            $old_rate = $this->getById($old_code);
+            if ($old_rate != 1) {
+                $this->exec("UPDATE `{$this->table}` SET rate = 1 WHERE code = '$old_code'");
+            }
 
             if ($convert) {
                 $this->convertPrices($old_code, 1, $new_code, $rate);

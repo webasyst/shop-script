@@ -99,7 +99,52 @@ class shopNotifications
 
     protected static function sendSms($n, $data)
     {
+        $general = wa('shop')->getConfig()->getGeneralSettings();
+        /**
+         * @var waContact $customer
+         */
+        $customer = $data['customer'];
+        if ($n['to'] == 'customer') {
+            $to = $customer->get('phone', 'default');
+            $log = sprintf(_w("Notification <strong>%s</strong> sent to customer."), $n['name']);
+        } elseif ($n['to'] == 'admin') {
+            $to = $general['phone'];
+            $log = sprintf(_w("Notification <strong>%s</strong> sent to store admin."), $n['name']);
+        } else {
+            $to = $n['to'];
+            $log = sprintf(_w("Notification <strong>%s</strong> sent to %s."), $n['name'], $n['to']);
+        }
+        if (!$to) {
+            return;
+        }
 
+        $view = wa()->getView();
+
+        foreach (array('shipping', 'billing') as $k) {
+            $address = shopHelper::getOrderAddress($data['order']['params'], $k);
+            $formatter = new waContactAddressOneLineFormatter(array('image' => false));
+            $address = $formatter->format(array('data' => $address));
+            $view->assign($k.'_address', $address['value']);
+        }
+        $order_id = $data['order']['id'];
+        $data['order']['id'] = shopHelper::encodeOrderId($order_id);
+        $view->assign('order_url', wa()->getRouteUrl('/frontend/myOrderByCode', array('id' => $order_id, 'code' => $data['order']['params']['auth_code']), true));
+        $view->assign($data);
+        $text = $view->fetch('string:'.$n['text']);
+
+        $sms = new waSMS();
+        $sms->setFrom(isset($n['from']) ? $n['from'] : null);
+        if ($sms->send($to, $text)) {
+            $order_log_model = new shopOrderLogModel();
+            $order_log_model->add(array(
+                'order_id' => $order_id,
+                'contact_id' => null,
+                'action_id' => '',
+                'text' => $log,
+                'before_state_id' => $data['order']['state_id'],
+                'after_state_id' => $data['order']['state_id'],
+            ));
+        }
     }
 
     protected static function sendHttp($n, $data)

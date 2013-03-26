@@ -7,6 +7,10 @@
     <h1 class="category-name">
         {$category.name|escape}
     </h1>
+    
+    <!-- plugin hook: 'frontend_category' -->
+    {* @event frontend_category.%plugin_id% *}
+    {foreach $frontend_category as $_}{$_}{/foreach}
 
     <!-- filtering by product features -->    
     {if !empty($filters)}

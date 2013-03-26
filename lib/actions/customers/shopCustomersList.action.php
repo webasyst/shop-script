@@ -21,6 +21,7 @@ class shopCustomersListAction extends waViewAction
         $scm = new shopCustomerModel();
         list ($customers, $total) = $scm->getList($category_id, $search, $start, $limit, $order);
         $has_more = $start + count($customers) < $total;
+        $countries = array();
         foreach ($customers as &$c) {
             $c['affiliate_bonus'] = (float) $c['affiliate_bonus'];
             if (!$c['photo'] && $use_gravatar) {
@@ -29,8 +30,29 @@ class shopCustomersListAction extends waViewAction
                 $c['photo'] = waContact::getPhotoUrl($c['id'], $c['photo'], 50, 50);
             }
             $c['categories'] = array();
+            if (!empty($c['address']['region']) && !empty($c['address']['country'])) {
+                $countries[$c['address']['country']] = array();
+            }
         }
         unset($c);
+
+        // Add region names to addresses
+        if ($countries) {
+            $rm = new waRegionModel();
+            foreach($rm->where('country_iso3 IN (?)', array_keys($countries))->query() as $row) {
+                $countries[$row['country_iso3']][$row['code']] = $row['name'];
+            }
+            foreach ($customers as &$c) {
+                if (!empty($c['address']['region']) && !empty($c['address']['country'])) {
+                    $country = $c['address']['country'];
+                    $region = $c['address']['region'];
+                    if (!empty($countries[$country]) && !empty($countries[$country][$region])) {
+                        $c['address']['region_formatted'] = $countries[$country][$region];
+                    }
+                }
+            }
+            unset($c);
+        }
 
         // Contact categories
         $ccm = new waContactCategoryModel();

@@ -4,8 +4,11 @@
     <div class="dialog-window">
         <div class="dialog-content">
             <div class="dialog-content-indent">
-                <h1>[`Delete`] <span class="gray">({$count})</span></h1>
-                {_w('%d product will be deleted without the ability to restore.', '%d products will be deleted without the ability to restore.', $count)}
+                <h1>[`Delete`]</h1>
+                <p>
+                    <strong class="red">{_w('%d product will be deleted without the ability to restore.', '%d products will be deleted without the ability to restore.', $count)}</strong>
+                    [`After you delete a product, all it’s sales reports, cross-selling data, and connections to the orders made in the past will be impossible to restore.`]
+                </p>
             </div>
         </div>
         <div class="dialog-buttons">

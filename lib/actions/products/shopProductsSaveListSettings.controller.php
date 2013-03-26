@@ -241,7 +241,8 @@ class shopProductsSaveListSettingsController extends waJsonController
             'meta_description' => waRequest::post('meta_description', '', waRequest::TYPE_STRING_TRIM),
             'params' => waRequest::post('params', '', waRequest::TYPE_STRING_TRIM),
             'parent_id' => waRequest::get('parent_id', 0, waRequest::TYPE_INT),
-            'type' => $type
+            'type' => $type,
+            'status' => waRequest::post('hidden', 0) ? 0 : 1
         );
         $params = array();
         if (!empty($data['params'])) {

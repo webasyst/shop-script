@@ -130,6 +130,12 @@ class shopViewHelper extends waAppViewHelper
             }
             return '';
         }
+        if (!empty($product['image_desc']) && !isset($attributes['alt'])) {
+            $attributes['alt'] = htmlspecialchars($product['image_desc']);
+        }
+        if (!empty($product['image_desc']) && !isset($attributes['title'])) {
+            $attributes['title'] = htmlspecialchars($product['image_desc']);
+        }
         $html = '<img';
         foreach ($attributes as $k => $v) {
             if ($k != 'default') {
@@ -211,10 +217,15 @@ class shopViewHelper extends waAppViewHelper
         $category_model = new shopCategoryModel();
         $cats = $category_model->getTree($id, $depth);
         $url = $this->wa->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
-        foreach ($cats as &$c) {
-            $c['url'] = str_replace('%CATEGORY_URL%', waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url'], $url);
+        $hidden = array();
+        foreach ($cats as $c_id => $c) {
+            if ($c['status'] && !isset($hidden[$c['parent_id']])) {
+                $cats[$c_id]['url'] = str_replace('%CATEGORY_URL%', waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url'], $url);
+            } else {
+                $hidden[$c_id] = 1;
+                unset($cats[$c_id]);
+            }
         }
-        unset($c);
         return $cats;
     }
 

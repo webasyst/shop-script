@@ -48,7 +48,7 @@
                 
                 <ul class="skus" id="product-skus">
                     {foreach $product.skus as $sku}
-                        {$sku_available = $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
+                        {$sku_available = $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
                         <li itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                             <label{if !$sku.available} class="disabled"{/if}>
                                 <input name="sku_id" type="radio" value="{$sku.id}"{if !$sku.available} disabled="true"{/if}{if !$sku_available}data-disabled="1"{/if}{if $sku.id == $product.sku_id} checked="checked"{/if} data-price="{shop_currency($sku.price, $product.currency, null, 0)}"{if $sku.image_id} data-image-id="{$sku.image_id}"{/if}> <span itemprop="name">{$sku.name|escape}</span>
@@ -76,14 +76,14 @@
                     {if !$sku.available}
                          <link itemprop="availability" href="http://schema.org/Discontinued" />
                          <p><em class="bold error">[`This product is not available for purchase`]</em></p>
-                    {elseif !$wa->shop->settings('ignore_stock_count') && $sku.count <= 0}
+                    {elseif !$wa->shop->settings('ignore_stock_count') && !($sku.count === null || $sku.count > 0)}
                          <link itemprop="availability" href="http://schema.org/OutOfStock" />
                          <div class="stocks"><strong class="stock-none"><i class="icon16 stock-transparent"></i>[`Out of stock`]</strong></div>
                     {else}
                          <link itemprop="availability" href="http://schema.org/InStock" />
                     {/if}
                     <input name="sku_id" type="hidden" value="{$product.sku_id}">
-                    {$product_available = $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
+                    {$product_available = $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
                 </div>
                 
             {/if}
@@ -95,9 +95,9 @@
                     {if $n > $low or $n === null}
                     <strong class="stock-high"><i class="icon16 stock-green"></i>[`In stock`]</strong>
                     {elseif $n > $critical}
-                    <strong class="stock-low"><i class="icon16 stock-yellow"></i>{sprintf("[`Only %d left in stock`]", $n)}</strong>
+                    <strong class="stock-low"><i class="icon16 stock-yellow"></i>{_w("Only %d left in stock", "Only %d left in stock", $n)}</strong>
                     {elseif $n > 0}
-                    <strong class="stock-critical"><i class="icon16 stock-red"></i>{sprintf("[`Only %d left in stock`]", $n)}</strong>
+                    <strong class="stock-critical"><i class="icon16 stock-red"></i>{_w("Only %d left in stock", "Only %d left in stock", $n)}</strong>
                     {else}
                     <strong class="stock-none"><i class="icon16 stock-transparent"></i>[`Out of stock`]</strong>
                     {/if}
@@ -172,10 +172,10 @@
         {if $product.categories}
             <p id="product-categories">
             [`Categories`]:
-                {foreach $product.categories as $c}
+                {foreach $product.categories as $c}{if $c.status}
                     <br>
                     <span class="product-info"><a href="{$wa->getUrl('/frontend/category', ['category_url' => $c.full_url])}">{$c.name|escape}</a></span>
-                {/foreach}
+                {/if}{/foreach}
             </p>
         {/if}
 
@@ -240,7 +240,7 @@
                 <div class="gallery" id="product-gallery">
                     {foreach $product.images as $image}
                         <div class="image">                    
-                            <a id="product-image-{$image.id}" href="#">{$wa->shop->productImgHtml(['id'=> $product.id, 'image_id' => $image.id, 'ext' => $image.ext], '96x96')}</a>
+                            <a id="product-image-{$image.id}" href="#">{$wa->shop->productImgHtml(['id'=> $product.id, 'image_id' => $image.id, 'ext' => $image.ext, 'image_desc' => $image.description], '96x96')}</a>
                         </div>
                     {/foreach}
                 </div>
@@ -276,7 +276,12 @@
         {$upselling = $product->upSelling()}
         {if $upselling}
             <div class="related">
-                <h3>[`See also`]</h3>
+                <h3>
+                    [`See also`]
+                    {$compare_ids = array_merge(array($product.id), array_keys($upselling))}
+                    <input type="button" onClick="javascript:window.location='{$wa->getUrl('/frontend/compare', ['id' => implode(',', $compare_ids)])}';" value="[`Compare all`]" />
+                    
+                </h3>
                 {include file="list-table.html" products=$upselling}
             </div>
         {/if}

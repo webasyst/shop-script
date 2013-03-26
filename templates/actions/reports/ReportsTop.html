@@ -19,7 +19,7 @@
         <table class="zebra">
             {foreach $top_products as $p}
             <tr>
-                <td>{$p.name}</td>
+                <td><a href="?action=products#/product/{$p.id}/">{$p.name|escape}</a></td>
                 <td class="align-right">{$p.val|wa_format_amount_currency:$def_cur}</td>
                 <td>
                     <div class="s-bar" style="width:{$p.val_percent}px;"></div>
@@ -47,7 +47,7 @@
         <table class="zebra">
             {foreach $top_services as $s}
             <tr>
-                <td>{$s.name}</td>
+                <td><a href="?action=products#/services/{$s.id}/">{$s.name|escape}</a></td>
                 <td class="align-right">{$s.total|wa_format_amount_currency:$def_cur}</td>
                 <td>
                     <div class="s-bar" style="width:{$s.total_percent}px;"></div>

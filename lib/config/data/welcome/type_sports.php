@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Sports',
-    'icon' => 'icon16 ss pt sports',
+    'icon' => 'ss pt sports',
     'features' => array(
         'sex' => array(
             'name' => 'Sex',

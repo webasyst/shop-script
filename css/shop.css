@@ -214,6 +214,7 @@ ul.menu-v.with-icons a.rate-clear { margin: 0; padding: 0; }
 .s-collection-list { margin-left: 14px; }
 .s-collection-list .dr a .count .add { display: none; }
 .s-collection-list .dr a:hover .count .add { display: block; }
+.s-collection-list ul.menu-v li a.gray { color: #aaa !important; }
 
 .s-product-save-message { display: inline; margin-left: 10px; }
 .s-product-save-message i.icon16 { margin-top: 8px; }
@@ -253,6 +254,11 @@ table#product-list th span.sort a { display: inline; }
 .s-product-form.descriptions .field.description { padding: 10px 0; }
 .s-product-form.pages { margin-top: -8px; margin-left: -17px; margin-right: -5px; }
 .s-product-form.images .content.right200px { margin-right: 216px; }
+.s-product-form .s-product-status { display: inline; margin-right: 5px; vertical-align: top; }
+.s-product-form .s-product-status i.icon10 { margin-top: 2px; }
+.s-product-form .s-product-status select { margin-top: -2px; }
+.s-product-form input.s-product-name-input { font-size: 1.4em; margin-top: -3px !important; }
+.s-product-form input.s-product-url-input { margin-top: -3px !important; }
 
 ul.s-product-image-crops { margin: 0; padding: 0; }
 ul.s-product-image-crops li { display: inline-block; vertical-align: top; padding: 0; margin: 0 5px 5px 0px; position: relative; }
@@ -414,9 +420,12 @@ table#s-product-stocks.zebra td.drag-active.first{ border-left: 1px dashed #ccc;
 
 ul.menu-h.s-reports li.selected a { background: #fff; }
 
-ul.menu-h.s-reports-timeframe li ul.menu-v { min-width: 210px; margin-left: -50px; margin-top: 0; }
+ul.menu-h.s-reports-timeframe li ul.menu-v { min-width: 210px; margin-left: -100px; margin-top: 0; }
 ul.menu-h.s-reports-timeframe li ul.menu-v li { padding: 5px; }
 ul.menu-h.s-reports-timeframe li ul.menu-v li a { padding: 7px 10px; }
+ul.menu-h.s-reports-timeframe li.s-custom-timeframe { padding-top: 0; top: -6px; }
+ul.menu-h.s-reports-timeframe li.s-custom-timeframe:hover { background: #fff; }
+ul.menu-h.s-reports-timeframe li.s-custom-timeframe input { width: 100px; }
 
 .s-graph { margin: 20px; }
 
@@ -437,6 +446,13 @@ ul.menu-h.s-reports-timeframe li ul.menu-v li a { padding: 7px 10px; }
 .s-site-mgmt-tab ul.menu-v li a { padding: 7px 0 6px 30px; }
 .s-site-mgmt-tab ul.menu-v li.selected a { padding-left: 31px; background: rgba(0, 0, 0, 0.08); margin-left: -24px; }
 
+/* IMPORT & EXPORT
+------------------ */
+
+.s-csv-import table.zebra tr.selected td { background-color: #ffb !important; font-weight: bold; }
+.s-csv-import table.zebra tr.selected td select { font-weight: bold; }
+.s-csv-import table.zebra tr.gray td select { color: #aaa; }
+.s-csv-primary-column-helper { background: #ffa; width: 16px; height: 16px; border-radius: 100%; border: 1px solid #ee8; position: absolute; }
 
 /* SETTINGS & PLUGINS
 --------------------- */
@@ -652,3 +668,4 @@ ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
 
 .icon16.ss.orders-processing { background-position: 0px -128px; }
 .icon16.ss.orders-all { background-position: -16px -128px; }
+.icon16.ss.csv { background-position: -32px -128px; }

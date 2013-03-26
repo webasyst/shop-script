@@ -108,7 +108,7 @@ msgstr "Поиск заказов"
 
 #: /wa-apps/shop/templates/actions/coupons/CouponsEditor.html:10
 msgid "Expired"
-msgstr "Истекает"
+msgstr "Истек"
 
 #: /wa-apps/shop/templates/actions/coupons/CouponsEditor.html:14
 msgid "Created"
@@ -1063,11 +1063,11 @@ msgstr "Вычислять налоги на основании"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:129
 msgid "Shipping address"
-msgstr "Адреса доставки"
+msgstr "Адрес доставки"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:70
 msgid "Billing address"
-msgstr "Адреса плательщика"
+msgstr "Адрес плательщика"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:76
 msgid "Tax rates"
@@ -1733,7 +1733,7 @@ msgstr "или перетащите файлы сюда"
 
 #: /wa-apps/shop/templates/actions/product/include.imageUpload.html:37
 msgid "Stop upload"
-msgstr "Остановить загрузку"
+msgstr "Прервать"
 
 #: /wa-apps/shop/templates/actions/product/include.imageUpload.html:47
 msgid "Files uploaded with errors"
@@ -1892,7 +1892,7 @@ msgstr "Отмена"
 
 #: /wa-apps/shop/templates/actions/product/ProductFeatures.html:60
 msgid "other"
-msgstr "другое"
+msgstr "добавить значение"
 
 #: /wa-apps/shop/templates/actions/product/ProductFeatures.html:82
 msgid "Product features undefined"
@@ -2174,7 +2174,7 @@ msgstr "Выбрать вручную"
 
 #: /wa-apps/shop/templates/actions/product/ProductRelated.html:45
 msgid "Upselling & Similar"
-msgstr "Более дорогие и похожие"
+msgstr "Схожие и альтернативные товары"
 
 #: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateDelete.controller.php:9
 msgid "Unknown state"
@@ -2362,12 +2362,12 @@ msgstr "Дополнительные параметры"
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:96
 msgid ""
 "Optional set of custom <em>key=value</em> parameters which can be used "
-"within a frontend's theme template as <em>&#123;$category.key&#125;</em>. "
-"Each key=value pair should be on a separate line."
+"within a frontend's theme template as <em>&#123;$category.params.key&#125;</"
+"em>. Each key=value pair should be on a separate line."
 msgstr ""
 "Необязательный набор дополнительных параметров <em>key=value</em> "
 "(используются в шаблоне общедоступной части в виде <em>&#123;$category."
-"key&#125;</em>). Каждую пару key=value указывайте с новой строки."
+"params.key&#125;</em>). Каждую пару key=value указывайте с новой строки."
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:118
 msgid "Rating"
@@ -3313,7 +3313,7 @@ msgstr "мл"
 
 #: /wa-apps/shop/lib/config/data/dimension.php:76
 msgid "cl"
-msgstr ""
+msgstr "сл"
 
 #: /wa-apps/shop/lib/config/data/dimension.php:82
 msgid "Frequency"
@@ -3481,7 +3481,7 @@ msgstr "С тегом «%s»"
 
 #: /wa-apps/shop/lib/workflow/templates/ShipAction.html:4
 msgid "Tracking number"
-msgstr "Почтовый идентификатор"
+msgstr "Идентификатор отправления"
 
 #: /wa-apps/shop/lib/model/shopProductImages.model.php:160
 msgid "Bestseller!"
@@ -4892,7 +4892,10 @@ msgstr "Этот заказ добавит +%s баллов к вашему па
 
 #: /wa-apps/shop/themes/default/product.html:94
 msgid "Only %d left in stock"
-msgstr "Осталось %d штуки"
+msgid_plural "Only %d left in stock"
+msgstr[0] "Осталась %d штука"
+msgstr[1] "Осталось %d штуки"
+msgstr[2] "Осталось %d штук"
 
 #: /wa-apps/shop/templates/actions/backend/BackendSettings.html:49
 msgid "Order states"
@@ -4962,6 +4965,9 @@ msgstr "%s/день"
 msgid "Sales by day"
 msgstr "Продажи по дням"
 
+msgid "Sales by month"
+msgstr "Продажи по месяцам"
+
 #: /wa-apps/shop/templates/actions/backend/BackendReports.html:151
 msgid "Total profit"
 msgstr "Итоговая выручка"
@@ -4985,6 +4991,9 @@ msgstr "Средняя дневная выручка"
 #: /wa-apps/shop/templates/actions/backend/BackendReports.html:171
 msgid "Profit by day"
 msgstr "Выручка по дням"
+
+msgid "Profit by month"
+msgstr "Выручка по месяцам"
 
 #: /wa-apps/shop/templates/actions/backend/BackendReports.html:239
 msgid "Top 10 products"
@@ -5159,7 +5168,7 @@ msgstr ""
 
 #: /wa-apps/shop/themes/default/checkout.contactinfo.html:23
 msgid "Create permanent user account"
-msgstr "Зарегистрироваться, как постоянный покупатель"
+msgstr "Зарегистрироваться как постоянный покупатель"
 
 #: /wa-apps/shop/themes/default/checkout.contactinfo.html:41
 msgid "Password"
@@ -5196,3 +5205,325 @@ msgstr "Если у покупателя не загружен юзерпик в
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:61
 msgid "Use default userpic"
 msgstr "Использовать дефолтную картинку из приложения «Контакты»"
+
+#: /wa-apps/shop/templates/layouts/Backend.html:165
+msgid "by day"
+msgstr "по дням"
+
+#: /wa-apps/shop/templates/layouts/Backend.html:166
+msgid "by month"
+msgstr "по месяцам"
+
+msgid "Last %d day"
+msgid_plural "Last %d days"
+msgstr[0] "Последний %d день"
+msgstr[1] "Последние %d дня"
+msgstr[2] "Последние %d дней"
+
+#: /wa-apps/shop/templates/layouts/Backend.html:157
+msgid "Select dates..."
+msgstr "Выбрать даты…"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:79
+msgid "Protect product review form with CAPTCHA"
+msgstr ""
+"Защитить форму добавления отзыва на товар с помощью <em>капчи</em> (CAPTCHA)"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:88
+msgid "If enabled, user needs to sign in to post a review."
+msgstr ""
+"Пользователь должен авторизоваться на сайте для того, чтобы оставить отзыв."
+
+#: /wa-apps/shop/lib/model/shopProductReviews.model.php:244
+msgid "Only authorized users can post reviews"
+msgstr ""
+"Отзывы о товарах могут оставлять только зарегистрированные пользователи"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:89
+msgid ""
+"Make sure sign up and login forms are enabled in your <a href=\"%s\">Site "
+"app settings</a>."
+msgstr ""
+"Убедитесь в том, что формы регистрации и входа для пользователей включены <a "
+"href=\"%s\">в настройках приложения «Сайт»</a>."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotifications.sms.html:26
+msgid "From"
+msgstr "Из"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotifications.sms.html:40
+msgid ""
+"Max 300 chars. SMS is sent only if customer phone number was entered during "
+"the checkout."
+msgstr ""
+"Максимум 300 символов. SMS-сообщение будет отправлено, только если "
+"покупатель ввел номер телефона во время оформления заказа."
+
+#: /wa-apps/shop/themes/default/compare.html:56
+msgid "Remove from comparison list"
+msgstr "Удалить из списка сравнения"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:2
+msgid "CSV product import"
+msgstr "Импорт товаров из CSV-файла"
+
+#: /wa-apps/shop/templates/actions/backend/BackendImportexport.html:18
+msgid "Import and update products via CSV files"
+msgstr "Импорт и обновление информации о товарах с помощью CSV-файлов"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:4
+msgid ""
+"Import new products and update existing product information from a comma-"
+"separated values (CSV) file. CSV files can be created and managed using most "
+"modern spreadsheet applications such as Microsoft Excel, OpenOffice, and "
+"iWork. For detailed information about Shop-Script-supported CSV file "
+"structure, please <a href=\"%s\" target=\"_blank\">refer to the manual</a>."
+msgstr ""
+"Импорт новых и обновление информации о существующих товарах из CSV-файла. "
+"CSV-файлы можно создавать и редактировать с помощью электронных табличных "
+"редакторов, например, Microsoft Excel, OpenOffice и iWork. Подробное "
+"описание структуры CSV-файлов для импорта в Shop-Script читайте в <a href="
+"\"%s\" target=\"_blank\">руководстве</a>."
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:4
+msgid "http://www.shop-script.com/help/csv-file-structure/"
+msgstr "http://www.shop-script.ru/help/csv-file-structure/"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:13
+msgid "Upload CSV file"
+msgstr "Загрузка CSV-файла"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:16
+msgid "Encoding"
+msgstr "Кодировка"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:26
+msgid "Separator"
+msgstr "Разделитель данных"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:38
+msgid "File"
+msgstr "Файл"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:54
+msgid "Following columns were located in the uploaded file:"
+msgstr "В загруженном файле обнаружены следующие столбцы:"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:67
+msgid "Import options"
+msgstr "Параметры импорта"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:70
+msgid "Identification column"
+msgstr "Столбец идентификации"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:80
+msgid ""
+"Select the product identification column (property) which uniquely "
+"identifies each product. Based on the identification column value in the CSV "
+"file uploaded, the import routine will either update existing product info, "
+"or create a new product."
+msgstr ""
+"Выберите столбец (свойство), значения которого однозначно идентифицируют "
+"каждый товар. В зависимости от значений этого столбца процедура импорта либо "
+"обновит существующий товар, либо создаст новый."
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:91
+msgid "Start import"
+msgstr "Начать импорт"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:104
+msgid ""
+"Please do not close your browser window and do not leave this page until the "
+"entire import process is finished."
+msgstr ""
+"Не закрывайте браузер и не покидайте эту страницу до окончания импорта."
+
+#: /wa-apps/shop/templates/actions/product/Product.html:387
+msgid "Hidden"
+msgstr "Скрытый"
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductsDelete.html:10
+msgid ""
+"After you delete a product, all it’s sales reports, cross-selling data, and "
+"connections to the orders made in the past will be impossible to restore."
+msgstr ""
+"При удалении товара все отчеты о его продажах, его данные о перекрестных "
+"продажах и связи с ранее оформленными заказами будут также удалены без "
+"возможности восстановления."
+
+#: /wa-apps/shop/templates/actions/products/Products.html:58
+msgid "Delete products"
+msgstr "Удалить товары"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:104
+msgid "Sender ID"
+msgstr "Идентификатор отправителя"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:107
+msgid ""
+"Enter Sender ID to use with this SMS gateway (Sender ID is either your phone "
+"number or up-to-11-characters text label). Enter * to use default Sender ID "
+"issued for your account by the gateway."
+msgstr ""
+"Введите идентификатор отправителя для использования данного SMS-шлюза — ваш "
+"номер телефона либо текстовую строку длиной до 11 символов. Для "
+"использования идентификатора по умолчанию, выданного вашим SMS-шлюзом, "
+"введите звездочку (*)."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:124
+msgid ""
+"Once gateway is setup, add new and edit existing SMS notifications using the "
+"<a href=\"%s\">Notifications</a> settings screen."
+msgstr ""
+"После настройки SMS-шлюза можно добавлять и редактировать SMS-уведомления в "
+"разделе настроек «<a href=\"%s\">Уведомления</a>»."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:129
+msgid ""
+"To enable SMS message sending, install and configure sending module for your "
+"preferred SMS gateway.<br /> Browse for SMS gateway modules <a href=\"%s"
+"\">in the Installer app</a>."
+msgstr ""
+"Для отправки SMS-сообщений установите и настройте подключение к одному из "
+"SMS-шлюзов.<br />Модули интеграции с SMS-шлюзами доступны <a href=\"%s\">в "
+"«Инсталлере»</a>."
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:37
+msgid "Empty primary CSV column"
+msgstr "Столбец идентификации пуст"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:413
+msgid "Exported"
+msgstr "Экспортировано"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:425
+msgid "%02d hr %02d min %02d sec"
+msgstr "%02d ч %02d мин %02d сек"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:426
+msgid "(total time: %s)"
+msgstr "(общее время: %s)"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:14
+msgid "Basic fields"
+msgstr "Основные поля"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:15
+msgid "SKU fields"
+msgstr "Поля вариаций товаров"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:23
+msgid "META Keyword"
+msgstr "META Keywords"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:30
+msgid "Currency"
+msgstr "Валюта"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:85
+msgid "CSV column map"
+msgstr "Соответствие столбцов файла и свойств товаров"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:92
+msgid ""
+"No data columns were located in the uploaded file. Make sure right separator "
+"and encoding were chosen for this upload."
+msgstr ""
+"В загруженном файле столбцы с данными не обнаружены. Проверьте правильность "
+"выбора символа-разделителя и кодировки файла."
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:92
+msgid "Unsupported CSV file structure"
+msgstr "Неподдерживаемая структура CSV-файла"
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:91
+msgid "Your order number is %s. Order total: %s"
+msgstr "Ваш номер заказа: %s. Сумма заказа: %s."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:95
+msgid "Order %s has been confirmed"
+msgstr "Заказ %s подтвержден."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:106
+msgid "Your order %s has been confirmed and accepted for processing."
+msgstr "Ваш заказ %s подтвержден и принят в обработку."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:132
+msgid "Your order %s has been sent out!"
+msgstr "Ваш заказ %s отправлен!"
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:147
+msgid "Your order %s has been cancelled"
+msgstr "Ваш заказ %s отменен."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:163
+msgid "Your order %s status has been updated to “%s”"
+msgstr "Статус вашего заказа %s изменен на «%s»."
+
+#: /wa-apps/shop/lib/classes/shopCsvReader.class.php:406
+msgid "Column %s meets %d times"
+msgstr "Столбец %s обнаружен в %d экземплярах."
+
+#: /wa-apps/shop/lib/classes/shopCsvReader.class.php:409
+msgid "Warning"
+msgstr "Внимание"
+
+#: /wa-apps/shop/lib/classes/shopCsvReader.class.php:450
+msgid "CSV columns"
+msgstr "Столбцы"
+
+#: /wa-apps/shop/lib/classes/shopCsvReader.class.php:452
+msgid "Properties"
+msgstr "Свойства товаров"
+
+#: /wa-apps/shop/lib/classes/shopCsvReader.class.php:476
+msgid "Ignore CSV column"
+msgstr "Игнорировать столбец"
+
+#: /wa-apps/shop/lib/classes/shopShipping.class.php:103
+msgid "Shipping plugins not installed yet"
+msgstr "Плагины расчета стоимости доставки не установлены."
+
+#: /wa-apps/shop/themes/default/my.orders.html:41
+msgid "You have no order history yet."
+msgstr "Ваша история заказов пуста."
+
+#: /wa-apps/shop/themes/default/product.html:282
+msgid "Compare all"
+msgstr "Сравнить все"
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:29
+msgid "Hidden category"
+msgstr "Скрытая категория"
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:29
+msgid ""
+"When enabled, this category will be temporarily hidden from the storefront"
+msgstr ""
+"Включение этой настройки временно скроет категорию и все ее подкатегории на "
+"витрине магазина"
+
+#: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:71
+msgid "Attachment"
+msgstr "Прикрепленный файл"
+
+#: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:75
+msgid "Save product information to be able to upload an attachment"
+msgstr "Сохраните информацию о товаре, чтобы прикрепить файл"
+
+#: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:89
+msgid ""
+"A link to download attached file will be sent to customer in the order "
+"notification email. The link will be functional only when the order is paid."
+msgstr ""
+"Ссылка на загрузка файла будет отправлена покупателю в уведомлении о заказе "
+"и будет работать только в случае, если заказ был оплачен."
+
+#: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:90
+msgid "Optional file description"
+msgstr "Комментарий к прикрепленному файлу (не обязательно)"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:33
+msgid "Invalid primary field"
+msgstr "Неверно указан столбец идентификации"

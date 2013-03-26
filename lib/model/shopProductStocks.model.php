@@ -99,10 +99,57 @@ class shopProductStocksModel extends waModel
             return false;
         }
 
-        $data = $this->query("SELECT * FROM {$this->table} WHERE sku_id = $sku_id AND stock_id IN($src_id, $dst_id)")->fetchAll('stock_id');
-        if (empty($data[$src_id])) {
+        // count data
+        $data = $this->query("
+            SELECT stock_id, count
+            FROM {$this->table}
+            WHERE sku_id = $sku_id AND stock_id IN($src_id, $dst_id)"
+        )->fetchAll('stock_id', true);
+
+        $src_count = isset($data[$src_id]) ? $data[$src_id] : null;
+        $dst_count = isset($data[$dst_id]) ? $data[$dst_id] : null;
+        if ($dst_count === null) {
+            return true;
+        }
+
+        if ($count === null) {
+            // get all from src if src has numeric count
+            if ($src_count !== null) {
+                $count = $src_count;
+            }
+        } else {
+            if ($src_count !== null) {
+                if ($src_count <= 0) {
+                    $count = 0;
+                } else {
+                    $count = min((int)$count, $src_count);
+                }
+            } else {
+                $count = (int)$count;
+            }
+        }
+
+        if (!$count) {
+            return true;
+        }
+
+        if (!$this->updateByField(
+            array('sku_id' => $sku_id, 'stock_id' => $dst_id),
+            array('count' => $dst_count + $count)
+        ))
+        {
             return false;
         }
+
+        if (!$this->updateByField(
+            array('sku_id' => $sku_id, 'stock_id' => $src_id),
+            array('count' => $src_count - $count)
+        ))
+        {
+            return false;
+        }
+
+        /*
         $src = $data[$src_id];
         $dst = isset($data[$dst_id]) ? $data[$dst_id] : array();
         $count = $count === null ? $src['count'] : min((int)$count, $src['count']);
@@ -135,10 +182,12 @@ class shopProductStocksModel extends waModel
         {
             return false;
         }
+        */
 
         return true;
     }
 
+    /*
     public function getStocksOfProduct($product_id, $stock_ids = null, $sku_order = 'count DESC', $stock_order = false)
     {
         if (!$product_id) {
@@ -196,7 +245,7 @@ class shopProductStocksModel extends waModel
         }
         return $data;
     }
-
+*/
     public function filterSkusByNoStocks($sku_ids)
     {
         if (!$sku_ids) {

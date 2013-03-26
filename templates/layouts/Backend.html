@@ -46,6 +46,9 @@
         {$wa_url}wa-content/js/jquery-plugins/jquery-plot/plugins/jqplot.dateAxisRenderer.min.js
         {$wa_url}wa-content/js/jquery-plugins/jquery-plot/plugins/jqplot.pieRenderer.min.js
     {/wa_js}
+    {if is_readable("wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js")}
+        <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js"></script>
+    {/if}
     <script type="text/javascript" src="{$wa_app_static_url}js/shop.js?{$wa->version()}"></script>
     <script type="text/javascript" src="?action=loc&amp;v{$wa->version()}"></script>
     {$wa->js()}
@@ -143,16 +146,24 @@
                         <div class="float-right">
                             <ul class="menu-h dropdown s-reports-timeframe">
                                 <li>
-                                    <a href="javascript:void(0)" class="inline-link float-right"><b><i>[`Last 30 days`]</i></b>
-                                        {* <i class="icon10 darr"></i> *}
+                                    <a href="javascript:void(0)" class="inline-link float-right"><b><i>{* Changed by JS *}</i></b>
+                                        <i class="icon10 darr"></i>
                                     </a>
-                                    {* !!! Reports period selector is not implemented
                                     <ul class="menu-v">
-                                        <li class="selected"><a href="#" class="nowrap">[`Last 30 days`]</a></li>
-                                        <li><a href="#" class="nowrap">[`Last 90 days`]</a></li>
-                                        <li><a href="#" class="nowrap">[`All time`]</a></li>
+                                        <li data-timeframe="30" data-groupby="days" class="selected"><a href="javascript:void(0)" class="nowrap">{_w('Last %d day', 'Last %d days', 30)}</a></li>
+                                        <li data-timeframe="90" data-groupby="days"><a href="javascript:void(0)" class="nowrap">{_w('Last %d day', 'Last %d days', 90)}</a></li>
+                                        <li data-timeframe="365" data-groupby="days"><a href="javascript:void(0)" class="nowrap">{_w('Last %d day', 'Last %d days', 365)}</a></li>
+                                        <li data-timeframe="all" data-groupby="months"><a href="javascript:void(0)" class="nowrap">[`All time`]</a></li>
+                                        <li class="bordered-top" data-timeframe="custom"><a href="javascript:void(0)" class="nowrap">[`Select dates...`]</a></li>
                                     </ul>
-                                    *}
+                                </li>
+                                <li class="hidden s-custom-timeframe">
+                                    [`from`] <input type="text" name="from">
+                                    [`to`] <input type="text" name="to">
+                                    <select name="groupby">
+                                        <option value="days">[`by day`]</option>
+                                        <option value="months">[`by month`]</option>
+                                    </select>
                                 </li>
                             </ul>
                         </div>

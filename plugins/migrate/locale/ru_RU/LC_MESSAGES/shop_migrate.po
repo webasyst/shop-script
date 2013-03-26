@@ -295,3 +295,7 @@ msgstr "Сохранять ID"
 msgid "If product (or category) with a particular ID already exists in your new store, delete it and replace with the imported data."
 msgstr "Если товар (или категория) с заданным ID уже существует, удалить его (ее) и импортировать заново"
 
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:64
+msgid "Importing coupons..."
+msgstr "Импорт купонов..."
+

@@ -68,8 +68,9 @@
 <script type="text/html" id="template-product-stocks">
 {literal}
     {% var data = o.product_stocks; %}
-    {% for (var i = 0, n = data.length; i < n; i += 1) { %}
+    {% for (var i = 0, sz = data.length; i < sz; i += 1) { %}
         {% var product = data[i], skus = product.skus, stocks = product.stocks; %}
+        {% var sku_count = skus.length; %}
         <tr>
             {% var hash = "#/product/"+product.id+"/edit/"; %}
             <td class="s-product min-width">
@@ -81,29 +82,43 @@
                 {% } %}
                 </a>
             </td>
+
             <td class="s-product"><span>{%=product.name%}</span></td>
+
             <td><ul class="menu-v">
-            {% if (!skus.length) { %}
-                <li>{%#product.icon%}{%#product.total_count%}</li>
-            {% } else { %}
-                {% for (var j = 0, l = skus.length; j < l; j += 1) { %}
-                    <li>{%#skus[j].icon%}<a href="{%#hash+'focus=price&sku='+skus[j].id%}" class="small">{%=skus[j].name%}</a> <strong>{%#skus[j].count%}</strong></li>
-                {% } %}
+
+
+            {% for (var k = 0, l = skus.length; k < l; k += 1) { %}
+                <li>{%#skus[k].icon%}
+                    {% if (sku_count > 1) { %}
+                        <a href="{%#hash+'focus=price&sku='+skus[k].id%}" class="small">{%=skus[k].name%}</a>
+                    {% } %}
+                    <strong>{% if (skus[k].count !== null) { %}{%#skus[k].count%}{% } else { %}∞{% } %}</strong>
+                </li>
             {% } %}
+
             </ul></td>
-            {% for (var j = 0; j < {/literal}{count($stocks)}{literal}; j += 1) { %}
-                {% var stock_id = o.stocks[j].id; %}
+            
+            <!-- detailed by stocks -->
+            {% for (var k = 0, l = stocks.length; k < l; k += 1) { %}
+                {% var stock_id = o.stocks[k].id; %}
                 <td class="s-stock-cell" data-stock-id="{%#stock_id%}">
-                  {% skus = stocks[j]; %}
-                  {% if (!skus.length) { %}
-                      &mdash;
-                  {% } else { %}
-                      <ul class="menu-v">
-                      {% for (var k = 0, l = skus.length; k < l; k += 1) { %}
-                          <li id="s-item-{%#skus[k].id%}-{%#stock_id%}">{%#skus[k].icon%}<a href="{%#hash+'focus=stock&sku='+skus[k].id+'&stock='+o.stocks[j].id%}" class="small">{%=skus[k].name%}</a> <strong>{%#skus[k].count%}</strong></li>
+                  {% stock_skus = stocks[k]; %}
+                  <ul class="menu-v">
+                      {% for (var j = 0, n = stock_skus.length; j < n; j += 1) { %}
+                          {% var sku_id = stock_skus[j].id; %}
+                          {% if (stock_skus[j].num_of_stocks > 0) { %}
+                              <li id="s-item-{%#sku_id%}-{%#stock_id%}" class="item {% if (stock_skus[j].count === null) { %}infinity{% } %}">{%#stock_skus[j].icon%}
+                                  {% if (sku_count > 1) { %}
+                                      <a href="{%#hash+'focus=stock&sku='+sku_id+'&stock='+stock_id%}" class="small">{%=stock_skus[j].name%}</a>
+                                  {% } %}
+                                  <strong>{% if (stock_skus[j].count !== null) { %}{%#stock_skus[j].count%}{% } else { %}∞{% } %}</strong>
+                              </li>
+                          {% } else { %}
+                              <li>&mdash;</li>
+                          {% } %}
                       {% } %}
-                      </ul>
-                  {% } %}
+                  </ul>
                 </td>
             {% } %}
         </tr>
@@ -118,15 +133,21 @@
 <script type="text/html" id="template-product-stocks-sku-list">
     {% var skus = o.skus; %}
     {% var hash = "#/product/"+o.product.id+"/edit/"; %}
-    {% if (!skus.length) { %}
-        &mdash;
-    {% } else { %}
-        <ul class="menu-v">
-        {% for (var k = 0, l = skus.length; k < l; k += 1) { %}
-            <li id="s-item-{%#skus[k].id%}-{%#o.stock.id%}">{%#skus[k].icon%}<a href="{%#hash+'focus=stock&sku='+skus[k].id+'&stock='+o.stock.id%}" class="small">{%=skus[k].name%}</a> <strong>{%#skus[k].count%}</strong></li>
+    <ul class="menu-v">
+    {% for (var k = 0, sku_count = skus.length; k < sku_count; k += 1) { %}
+        {% var sku_id = skus[k].id; %}
+        {% if (skus[k].num_of_stocks > 0) { %}
+            <li id="s-item-{%#sku_id%}-{%#o.stock.id%}" class="item {% if (skus[k].count === null) { %}infinity{% } %}">{%#skus[k].icon%}
+                {% if (sku_count > 1) { %}
+                    <a href="{%#hash+'focus=stock&sku='+sku_id+'&stock='+o.stock.id%}" class="small">{%=skus[k].name%}</a>
+                {% } %}
+                <strong>{% if (skus[k].count !== null) { %}{%#skus[k].count%}{% } else { %}∞{% } %}</strong>
+            </li>
+        {% } else { %}
+            <li>&mdash;</li>
         {% } %}
-        </ul>
     {% } %}
+    </ul>
 </script>
 {/literal}
 {if !empty($product_stocks)}

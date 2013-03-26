@@ -1,29 +1,28 @@
-/**
- * @
- */
 
-$.extend($.importexport = $.importexport || {}, {
-    options : {
-        'loading' : '<i class="icon16 loading"></i>',
-        'path' : '#/'
+// $.extend($.importexport = $.importexport || {},
+$.importexport ={
+    options: {
+        'loading': '<i class="icon16 loading"></i>',
+        'path': '#/'
     },
-    path : {
-        'plugin' : false,
-        'action':'default',
-        'tail' : null,
-        'dispatch' : null
+    path: {
+        'plugin': false,
+        'module': false,
+        'prefix': null,
+        'action': 'default',
+        'tail': null,
+        'dispatch': null
     },
     plugins: {
-
     },
 
-    ready : false,
-    menu   : null,
+    ready: false,
+    menu: null,
 
     /**
      * @param {} options
      */
-    init : function(options) {
+    init: function(options) {
         this.options = $.extend(this.options, options || {});
         if (!this.ready) {
             this.ready = true;
@@ -34,7 +33,7 @@ $.extend($.importexport = $.importexport || {}, {
                 cache: false
             });
 
-            if (typeof($.History) != "undefined") {
+            if (typeof ($.History) != "undefined") {
                 $.History.bind(function() {
                     $.importexport.dispatch();
                 });
@@ -44,11 +43,12 @@ $.extend($.importexport = $.importexport || {}, {
                     var text = $(xhr.responseText);
                     var message = $('<div class="block double-padded"></div>');
                     if (text.find('.dialog-content').length) {
-                        text =message.append(text.find('.dialog-content *'));
+                        text = message.append(text.find('.dialog-content *'));
                     } else {
                         text = message.append(text.find(':not(style)'));
                     }
-                    $("#s-importexport-content").empty().append(message).append('<div class="clear-both"></div>');
+                    $("#s-importexport-content").empty().append(message).append(
+                            '<div class="clear-both"></div>');
                     return false;
                 }
                 return true;
@@ -63,28 +63,36 @@ $.extend($.importexport = $.importexport || {}, {
     },
 
     /**
-     *
      * @param {String} path
-     * @return { 'plugin':String, 'action':String, 'tail':String,'raw':String }
+     * @return { 'plugin':String, 'module':String, 'prefix':String, 'action':String, 'tail':String,'raw':String }
      */
-    parsePath : function(path) {
-        path = path.replace(/^.*#\//, '');
-        return {
-            'plugin' : path.replace(/\/.*$/, '') || '',
-            'action': path.replace(/^[^\/]+\//, '').replace(/\/.*$/, '') || 'setup',
-            'tail' : path.replace(/^([^\/]+\/){1,2}/, '').replace(/\/$/, ''),
-            'raw' : path
+    parsePath: function(path) {
+        path = (path || '').replace(/^.*#\//, '');
+        var parsed = {
+            'plugin': path.replace(/\/.*$/, '') || '',
+            'module': 'backend',
+            'prefix': null,
+            'action': path.replace(/^[^\/]+\//, '').replace(/\/.*$/, '') || '',
+            'tail': path.replace(/^([^\/]+\/){1,2}/, '').replace(/\/$/, ''),
+            'raw': path
         };
+        var matches = parsed.plugin.match(/(^[^:]+):(.+$)/);
+        if (matches) {
+            parsed.plugin = null;
+            parsed.module = matches[1];
+            parsed.prefix = matches[2];
+        }
+        return parsed;
     },
 
     /**
      * Dispatch location hash changes
-     *
+     * 
      * @param {String} hash
      * @param {Boolean} load Force reload if need
      * @return {Boolean}
      */
-    dispatch : function(hash, load) {
+    dispatch: function(hash, load) {
         if (hash === undefined) {
             hash = window.location.hash;
         }
@@ -101,7 +109,13 @@ $.extend($.importexport = $.importexport || {}, {
         this.path.dispatch = path;
 
         /* change importexport plugin */
-        if (load || (path.plugin && ( path.plugin != this.path.plugin))) {
+        if(path.plugin) {
+            load =load || (path.plugin != this.path.plugin);
+        } else if (path.module && (path.module != 'backend')){
+            load = load || ((path.plugin + path.module) != (this.path.plugin + this.path.module));
+        }
+
+        if (load) {
             var $content = $('#s-importexport-content');
             this.importexportBlur(this.path.plugin);
             $.shop && $.shop.trace('$.importexport.dispatch (default) ' + this.path.plugin + ' -> ' + path.plugin);
@@ -110,19 +124,32 @@ $.extend($.importexport = $.importexport || {}, {
                 $content.empty().html(this.options.loading);
             }
 
+            
+            var url = new Array();
+            if (path.plugin) {
+                url.push('plugin=' + path.plugin);
+            }
+            if (path.module && (path.module != 'backend')) {
+                url.push('module=' + path.module);
+            }
+                url.push('action=' + (path.prefix||'') + 'setup');
+                
             var self = this;
-            $content.load('?plugin=' + path.plugin+'&action=setup', function() {
-                self.path.plugin = path.plugin || self.path.plugin;
-
+            $content.load('?' + url.join('&'), function() {
+                self.path.plugin = path.plugin ;
+                self.path.module = path.module;
+                self.path.prefix = path.prefix;
+                
                 // update title
-                document.title = self.options.plugin_names[self.path.plugin] + self.options.title_suffix;
-
-                self.menu.find('a[href*="\\#\/' + self.path.plugin + '\/"]').parents('li').addClass('selected');
+                window.document.title = self.options.plugin_names[self.path.plugin]||$content.find('h1:first').text() + self.options.title_suffix;
+                self.menu.find('li.selected').removeClass('selected');
+                var href = self.path.plugin? self.path.plugin:(self.path.module+':'+self.path.prefix);
+                self.menu.find( 'a[href*="\\#\/' + href + '\/"]').parents('li').addClass('selected');
                 self.importexportAction(path.action, path.tail);
             });
 
             return true;
-        } else if(!path.plugin) {
+        } else if (!path.plugin) {
             // do nothing
         }
         /* update importexport plugin */
@@ -133,13 +160,13 @@ $.extend($.importexport = $.importexport || {}, {
 
     /**
      * Setup plugin options
-     *
+     * 
      * @param {} options
      */
-    importexportOptions : function(options) {
+    importexportOptions: function(options) {
         var plugin = this.path.dispatch.plugin || this.path.plugin;
         $.shop && $.shop.trace('$.importexport.importexportOptions', plugin);
-        if (typeof(this[plugin + '_options']) == 'undefined') {
+        if (typeof (this[plugin + '_options']) == 'undefined') {
             this[plugin + '_options'] = {};
         }
         this[plugin + '_options'] = $.extend(this[plugin + '_options'], options || {});
@@ -147,10 +174,10 @@ $.extend($.importexport = $.importexport || {}, {
 
     /**
      * Handler call focus out plugin
-     *
+     * 
      * @param {String} plugin
      */
-    importexportBlur : function(plugin) {
+    importexportBlur: function(plugin) {
         plugin = plugin || this.path.plugin;
         this.menu.find('li.selected').removeClass('selected');
         $.shop && $.shop.trace('$.importexport.importexportBlur', plugin);
@@ -163,49 +190,61 @@ $.extend($.importexport = $.importexport || {}, {
 
     /**
      * handle current plugin actions after HTML has beed loaded
-     *
+     * 
      * @param {String} plugin
      * @param {String} tail
      */
-    importexportAction : function(action, tail) {
-        $.shop && $.shop.trace('$.importexport.importexportAction', [this.path.plugin, action, tail]);
-        this.call(action + 'Action', [tail]);
+    importexportAction: function(action, tail) {
+        var method = '';
+        
+        if(action) {
+            method += action.substr(0, 1).toUpperCase() + action.substr(1);
+        }
+        method += 'Action';
+        $.shop && $.shop.trace('$.importexport.importexportAction', [action, tail]);
+        this.call(method, [tail]);
         this.path.tail = tail;
     },
 
     /**
-     * Handle current plugin actions before HTML has beed loaded.
-     *
-     * Calls this.<plugin>PreLoad(tail, load).
-     *
-     * If it returns false, this prevents HTML from loading, and both importexportAction() and importexportBlur() from being called. Correspinding PreLoad is
-     * responsible for calling importexportBlur(this.path.plugin).
-     *
-     * @param {String} plugin
-     * @param {String} tail
-     */
-    importexportPreLoad : function(plugin, action, tail, load) {
-        $.shop && $.shop.trace('$.importexport.importexportPreLoad', [plugin, tail, load]);
-        return this.call(plugin + 'PreLoad', [tail, load]);
-    },
-
-    /**
-     *
      * @param {String} name
      * @param [] args
      */
-    call : function(name, args) {
-        var callable = (typeof(this[name]) == 'function');
-        var start = $.shop && $.shop.trace('$.importexport.call', [name, args, callable]);
+    call: function(name, args) {
+        var plugin;
+        if(this.path.plugin) {
+            plugin = this.path.plugin;
+        }else {
+            plugin = this.path.module+'_'+this.path.prefix;
+        }
+        var action  = plugin + name.substr(0, 1).toUpperCase() + name.substr(1);
+        var callable = (typeof(this[action]) == 'function');
+        var start = $.shop && $.shop.trace('$.importexport.call', [action, args, callable]);
         var result = null;
         if (callable) {
             try {
-                result = this[name].apply(this, args);
+                result = this[action].apply(this, args);
             } catch (e) {
-                (($.shop && $.shop.error) || console.log)('Exception: ' + e.message, e);
+                (($.shop && $.shop.error) || console.log)('Exception at $.importexport.'+action+': ' + e.message, e);
             }
-            $.shop && $.shop.trace('$.importexport.call complete', [name, $.shop.time.interval(start) + 'ms', args, result]);
+            $.shop && $.shop.trace('$.settings.call complete', [action, $.shop.time.interval(start) + 'ms', args, result]);
+        } else {
+            action  = name.substr(0, 1).toUpperCase() + name.substr(1);
+            callable = (typeof(this.plugins[action]) == 'function');
+            start = $.shop && $.shop.trace('$.importexport.call', [plugin,action, args, callable]);
+            if (callable) {
+                try {
+                    result = this.plugins[action].apply(this, args);
+                } catch (e) {
+                    (($.shop && $.shop.error) || console.log)('Exception at $.importexport.'+action+': ' + e.message, e);
+                }
+                $.shop && $.shop.trace('$.settings.call complete', [action, $.shop.time.interval(start) + 'ms', args, result]);
+            }
         }
         return result;
+    },
+    getPlugin:function(){
+        
     }
-});
+}
+// );

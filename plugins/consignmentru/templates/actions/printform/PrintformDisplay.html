@@ -8,9 +8,24 @@
 <base href="{$smarty.const.CONF_FULL_SHOP_URL}" />
 <style type="text/css">
 {include file="../../../css/printform.css" inline}
-</style>
+</style>{if empty($strict)}
+{literal}
+<script type="text/javascript">
+var lang_strings = {
+	'edit_link':'Редактировать',
+	'field_title':'Корректировка перед печатью',
+	'save_link':'OK'
+	}
+{/literal}
+var page_url = '';
+</script>
+
+<script type="text/javascript">
+{include file="../../../../../js/plugins/printform.js" inline}
+</script>
+{/if}
 </head>
-<body>
+<body{if empty($strict)} onload="Printform.init('inline_edit');"{/if}>
 {*include file="print_button.html"*}
 {*relative path from frontend*}
 <table cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -54,13 +69,14 @@
                 <td class="reportSmallFont name_cell">Грузополучатель</td>
                 <td width="100%" class="reportSmallFont underlined"><b class="inline_edit">
                 {$company = $order->contact_company}
-                {$company = ifempty($company,$order.shipping_name)}
+                {$company = ifempty($company,$order.shipping_address.name)}
+                {$company = ifempty($company,$order.contact_name)}
 {if !empty($company)}
 {$company|escape},&nbsp;{/if}
-{if !empty($order.shipping_region)}{$order.shipping_region|escape},&nbsp;{/if}
-{if !empty($order.shipping_city)}{$order.shipping_city|escape},&nbsp;{/if}
-{if !empty($order.shipping_zip)}{$order.shipping_zip|escape},&nbsp;{/if}
-{if !empty($order.shipping_street)}{$order.shipping_street|escape},&nbsp;{/if}
+{if !empty($order.shipping_address.region_name)}{$order.shipping_address.region_name|escape},&nbsp;{/if}
+{if !empty($order.shipping_address.city)}{$order.shipping_address.city|escape},&nbsp;{/if}
+{if !empty($order.shipping_address.zip)}{$order.shipping_address.zip|escape},&nbsp;{/if}
+{if !empty($order.shipping_address.street)}{$order.shipping_address.street|escape},&nbsp;{/if}
 {if !empty($order->contact_phone)}тел.: {$order->contact_phone|escape}{/if}
                 </b></td>
             </tr>
@@ -77,13 +93,22 @@
                 <td width="100%" class="reportSmallFont underlined">
                 <b class="inline_edit">
 {$company = $order->contact_company}
-                {$company = ifempty($company,$order.billing_name)}
+                {$company = ifempty($company,$order.billing_address.name)}
+                {$company = ifempty($company,$order.contact_name)}
 {if !empty($company)}
 {$company|escape},&nbsp;{/if}
-{if !empty($order.billing_region)}{$order.billing_region|escape},&nbsp;{/if}
-{if !empty($order.billing_city)}{$order.billing_city|escape},&nbsp;{/if}
-{if !empty($order.billing_zip)}{$order.billing_zip|escape},&nbsp;{/if}
-{if !empty($order.billing_street)}{$order.billing_street|escape},&nbsp;{/if}
+{if !empty($order.billing_address.address)}
+{if !empty($order.billing_address.region_name)}{$order.billing_address.region_name|escape},&nbsp;{/if}
+{if !empty($order.billing_address.city)}{$order.billing_address.city|escape},&nbsp;{/if}
+{if !empty($order.billing_address.zip)}{$order.billing_address.zip|escape},&nbsp;{/if}
+{if !empty($order.billing_address.street)}{$order.billing_address.street|escape},&nbsp;{/if}
+{else}
+{$company = ifempty($company,$order.shipping_address.name)}
+{if !empty($order.shipping_address.region_name)}{$order.shipping_address.region_name|escape},&nbsp;{/if}
+{if !empty($order.shipping_address.city)}{$order.shipping_address.city|escape},&nbsp;{/if}
+{if !empty($order.shipping_address.zip)}{$order.shipping_address.zip|escape},&nbsp;{/if}
+{if !empty($order.shipping_address.street)}{$order.shipping_address.street|escape},&nbsp;{/if}
+{/if}
 {if !empty($order->contact_phone)}тел.: {$order->contact_phone|escape}{/if}
                 </b></td>
             </tr>
@@ -288,7 +313,7 @@
         {$total_amount=$total_amount+$item.total+$item.tax}
     <tr>
         <td class="b_left b_bottom">{$id+1}</td>
-        <td class="b_left b_bottom leftAlign inline_edit">{$item.name|escape|default:"&nbsp;"}</td>
+        <td class="b_left b_bottom leftAlign inline_edit">{$item.name|default:"&nbsp;"}</td>
         <td class="b_left b_bottom">&nbsp;</td>
         <td class="b_left b_bottom">шт.</td>
         <td class="b_left b_bottom">шт.</td>

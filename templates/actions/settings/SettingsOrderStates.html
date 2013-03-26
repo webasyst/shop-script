@@ -8,8 +8,8 @@
         <ul class="menu-v stack with-icons">
             {foreach $states as $id => $s}
             <li class="dr {if $id == $info.id}selected{/if}" id="state-{$id}">
-                <a href="#/orderStates/{$id}/">
-                    <i class="{if !empty($s.options.icon)}{$s.options.icon}{/if}"></i>{$s.name}
+                <a href="#/orderStates/{$id}/" style="{$s->getStyle()}">
+                    <i class="{$s->getOption('icon')}"></i>{$s->getName()}
                 </a>
             </li>
             {/foreach}
@@ -131,7 +131,7 @@
                             <select name="new_action_state[0]" disabled="disabled">
                                 <option value="0">[`Don’t change order status`]</option>
                                 {foreach $states as $id => $s}
-                                    <option value="{$id}">{$s.name}</option>
+                                    <option value="{$id}">{$s->getName()|escape}</option>
                                 {/foreach}
                             </select>
                         {/if}

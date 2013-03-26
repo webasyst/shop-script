@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Tours',
-    'icon' => 'icon16 ss pt sunglasses',
+    'icon' => 'ss pt sunglasses',
     'features' => array(
         'countries' => array(
             'name' => 'Countries',

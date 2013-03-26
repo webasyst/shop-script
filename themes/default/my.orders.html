@@ -14,9 +14,11 @@
             </span>
         </td>
         <td>
-            {foreach $o.items as $i}
-                {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
-            {/foreach}
+            {if !empty($o.items)}
+                {foreach $o.items as $i}
+                    {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
+                {/foreach}
+            {/if}
         </td>
         <td>
             {if $o.shipping_name}
@@ -35,6 +37,10 @@
         <td>
             <span class="gray">{$o.create_datetime|wa_date:'humandate'}</span>
         </td>
+    </tr>
+{foreachelse}
+    <tr class="no-border">
+        <td>[`You have no order history yet.`]</td>
     </tr>
 {/foreach}
 </table>

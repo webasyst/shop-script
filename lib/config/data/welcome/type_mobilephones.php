@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Mobile phones',
-    'icon' => 'icon16 ss pt mobile',
+    'icon' => 'ss pt mobile',
     'features' => array(
         'brand' => array(
             'name' => 'Brand',

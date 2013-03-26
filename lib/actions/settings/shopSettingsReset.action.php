@@ -46,9 +46,11 @@ class shopSettingsResetAction extends waViewAction
             'shop_product_services',
             'shop_product_skus',
             'shop_product_stocks',
-            'shop_product_tags',
             'shop_search_index',
             'shop_search_word',
+
+            'shop_tag',
+            'shop_product_tags',
 
             'shop_set',
             'shop_set_products',
@@ -78,6 +80,8 @@ class shopSettingsResetAction extends waViewAction
             'shop_order_log',
             'shop_order_log_params',
             'shop_order_params',
+
+            'shop_coupon',
 
             'shop_tax',
             'shop_tax_regions',

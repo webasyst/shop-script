@@ -63,6 +63,7 @@ class shopReviewsAddController extends waJsonController
             'text' => $text,
             'rate' => $rate,
             'contact_id' => $this->author->getId(),
+            'auth_provider' => shopProductReviewsModel::AUTH_USER,
             'datetime' => date('Y-m-d H:i:s'),
             'status' => shopProductReviewsModel::STATUS_PUBLISHED
         );

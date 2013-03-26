@@ -22,6 +22,11 @@
                 $("#notifications li.selected").removeClass('selected');
                 if (tail == 'add') {
                     $("#notifications li.small").addClass('selected');
+                    $("#notifications-settings-content input.transport").change(function () {
+                        $(".transport-content").hide().find('input,select,textarea').attr('disabled', 'disabled');
+                        $('#' + $(this).val() + '-content').show().find('input,select,textarea').removeAttr('disabled', 'disabled');
+                        $('#' + $(this).val() + '-content .body').change();
+                    });
                 } else {
                     $("#notification-" + tail).addClass('selected');
                 }
@@ -49,8 +54,8 @@
                     }, "json");
                     return false;
                 });
-                if ($("#notification-to").length) {
-                    $("#notification-to").change(function () {
+                if ($(".notification-to").length) {
+                    $(".notification-to").change(function () {
                         if (!$(this).val()) {
                             $('<input type="text" name="to" value="">').insertAfter(this).focus();
                         } else {

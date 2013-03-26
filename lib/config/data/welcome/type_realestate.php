@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Real estate',
-    'icon' => 'icon16 ss pt building',
+    'icon' => 'ss pt building',
     'features' => array(
         'bedrooms' => array(
             'name' => 'Bedrooms',

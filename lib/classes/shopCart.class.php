@@ -95,6 +95,40 @@ class shopCart
         return $this->model->getItem($this->code, $item_id);
     }
 
+    public function getItemTotal($item_id)
+    {
+        if (is_array($item_id)) {
+            $item = $item_id;
+        } else {
+            $item = $this->getItem($item_id);
+        }
+        $cart_items_model = new shopCartItemsModel();
+        $items = $cart_items_model->getByField('parent_id', $item['id'], true);
+        $price = shop_currency($item['price'] * $item['quantity'], $item['currency'], null, false);
+        if (!$items) {
+            return $price;
+        }
+
+        $variants = array();
+        foreach ($items as $s) {
+            $variants[] = $s['service_variant_id'];
+        }
+
+        $product_services_model = new shopProductServicesModel();
+        $sql = "SELECT v.id, s.currency, IFNULL(ps.price, v.price) price FROM shop_service_variants v
+                LEFT JOIN shop_product_services ps ON
+                v.id = ps.service_variant_id AND ps.product_id = i:0 AND (ps.sku_id = i:1 OR ps.sku_id IS NULL)
+                JOIN shop_service s ON v.service_id = s.id
+                WHERE v.id IN (i:2)
+                ORDER BY ps.sku_id";
+        $prices = $product_services_model->query($sql, $item['product_id'], $item['sku_id'], $variants)->fetchAll('id');
+
+        foreach ($items as $s) {
+            $price += shop_currency($prices[$s['service_variant_id']]['price'] * $item['quantity'], $prices[$s['service_variant_id']]['currency'], null, false);
+        }
+        return $price;
+    }
+
     public function clear()
     {
         $this->model->deleteByField('code', $this->code);
@@ -112,5 +146,6 @@ class shopCart
             $this->model->deleteByField(array('code' => $this->code, 'id' => $id));
             $this->setSessionData('total', null);
         }
+        return $item;
     }
 }

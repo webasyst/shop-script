@@ -18,5 +18,13 @@ class shopCouponModel extends waModel
         $sql = "UPDATE {$this->table} SET used = used + 1 WHERE id = :id";
         $this->exec($sql, array('id' => $id));
     }
+
+    public function countActive()
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->table}
+                WHERE ((`limit` IS NULL) OR (`used` < `limit`))
+                    AND ((`expire_datetime` IS NULL) OR (`expire_datetime` > ?))";
+        return (int) $this->query($sql, date('Y-m-d H:i:s'))->fetchField();
+    }
 }
 

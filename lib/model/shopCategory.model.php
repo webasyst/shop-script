@@ -72,14 +72,17 @@ class shopCategoryModel extends waNestedSetModel
      * @param  int|array $category
      * @return array|boolean
      */
-    public function getSubcategories($category)
+    public function getSubcategories($category, $public_only = false)
     {
         if (is_numeric($category)) {
             $category = $this->getById($category);
         }
         $sql = "SELECT * FROM `{$this->table}`
-                WHERE `{$this->left}` > i:left AND `{$this->right}` < i:right AND `{$this->depth}` = i:depth
-                ORDER BY `{$this->left}`";
+                WHERE `{$this->left}` > i:left AND `{$this->right}` < i:right AND `{$this->depth}` = i:depth";
+        if ($public_only) {
+            $sql .= " AND status = 1";
+        }
+        $sql .= " ORDER BY `{$this->left}`";
 
         return $this->query($sql, array(
                 'left' => $category[$this->left],

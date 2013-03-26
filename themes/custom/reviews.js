@@ -128,11 +128,8 @@ $(function() {
     };
 
     function showErrors(form, errors) {
-        for (var i = 0, n = errors.length, errs = errors[i]; i < n; errs = errors[++i]) {
-            for (var name in errs) {
-                $('[name='+name+']', form).after($('<em class="errormsg"></em>').
-                    text(errs[name])).addClass('error');
-            }
+        for (var name in errors) {
+            $('[name='+name+']', form).after($('<em class="errormsg"></em>').text(errors[name])).addClass('error');
         }
     };
 

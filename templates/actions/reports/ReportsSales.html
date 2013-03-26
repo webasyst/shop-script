@@ -57,12 +57,20 @@
                 </div>
                 <div class="field-group">
                     <div class="field">
-                        <div class="name">[`Sales by day`]</div>
+                        {if $group_by == 'days'}
+                            <div class="name">[`Sales by day`]</div>
+                        {else}
+                            <div class="name">[`Sales by month`]</div>
+                        {/if}
                         <div class="value">
                             <table class="zebra">
                                 {foreach array_reverse($sales_by_day) as $d}
                                 <tr>
-                                    <td>{$d.date|wa_date:'humandate'}</td>
+                                    {if $group_by == 'days'}
+                                        <td>{$d.date|wa_date:'humandate'}</td>
+                                    {else}
+                                        <td>{_ws(date('F', strtotime($d.date)), date('F', strtotime($d.date)), '1')} {$d.date|wa_date:'Y'}</td>
+                                    {/if}
                                     <td class="align-right gray">{_ws(date('D', strtotime($d.date)))}</td>
                                     <td class="align-right">{$d.total|wa_format_amount_currency:$def_cur}</td>
                                     <td>
@@ -88,7 +96,7 @@
 
 <script type="text/javascript">(function() { "use strict";
     document.title = '[`Sales`] — {$wa->accountName()}';
-    $.reports.graph('reports-sales-graph', {json_encode($sales_data)});
+    $.reports.graph('reports-sales-graph', {json_encode($sales_data)}, {if $group_by == 'days'}0{else}1{/if});
     $.reports.pie('reports-customers-pie', [[
         ["[`New customers`] ({$stat.percent_new}%)", {ifempty($stat.percent_new, 0.01)|replace:',':'.'}],
         ["[`Returning customers`] ({$stat.percent_returning}%)", {ifempty($stat.percent_returning, 0.01)|replace:',':'.'}]

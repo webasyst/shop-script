@@ -3,9 +3,7 @@
 <form id="fileupload" action="?module=product&amp;action=imageUpload" method="POST" enctype="multipart/form-data">
 <div class="block double-padded s-image-upload-dropbox">
 	<a href="javascript:void(0);" id="s-upload-images-link" class="fileinput-button">
-        <i class="icon16 upload"></i>[`Select images`]
-        <input type="file" name="files[]" multiple="">
-    </a>
+        <i class="icon16 upload"></i>[`Select images`]<input type="file" name="files[]" multiple=""></a>
 	<span class="gray">[`or drag them here to start upload`]</span>
 </div>
 
@@ -41,14 +39,34 @@ $.product_images.init({
     placeholder: '{$placeholder}',
     images: {json_encode(array_values($images))},
     count: {count($images)},
+    
+    // handler triggered after drag-n-drop sort
     onSort: function(id, before_id) {
+        
+        // update product profile image list
         var product_view_images_list = $('#s-product-view .s-product-image-crops');
-        var item = product_view_images_list.find('li[data-image-id='+id+']');
+        var item = product_view_images_list.find('li[data-image-id=' + id + ']');
         if (before_id) {
-            product_view_images_list.find('li[data-image-id='+before_id+']').before(item);
+            product_view_images_list.find('li[data-image-id=' + before_id + ']').before(item);
         } else {
             product_view_images_list.append(item);
         }
+        
+        // update images for sku settings blocks
+        var sku_settings_blocks = $('#shop-productprofile .js-sku-settings');
+        sku_settings_blocks.each(function() {
+            var self   = $(this);
+            var sku_id = self.attr('data-id');
+            
+            var image_crops = self.find('.s-product-image-crops');
+            var item = image_crops.find('li[data-image-id=' + id + ']');
+            if (before_id) {
+                image_crops.find('li[data-image-id=' + before_id + ']').before(item);
+            } else {
+                image_crops.append(item);
+            }
+        });
     }
+    
 });
 </script>

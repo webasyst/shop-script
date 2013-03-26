@@ -11,7 +11,7 @@ class shopSettingsOrderStatesAction extends waViewAction
     {
         $id = $this->getId();
         $workflow = $this->getWorkflow();
-        $states = $workflow->getAvailableStates();
+        $states = $workflow->getAllStates();
         $this->view->assign(array(
             'states'  => $states,
             'actions' => $workflow->getAvailableActions(),

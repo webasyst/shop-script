@@ -10,15 +10,18 @@ class shopFrontendCartAction extends waViewAction
 
 
         if (waRequest::method() == 'post') {
+            $data = wa()->getStorage()->get('shop/checkout', array());
             if ($coupon_code = waRequest::post('coupon_code')) {
-                $data = wa()->getStorage()->get('shop/checkout', array());
                 $data['coupon_code'] = $coupon_code;
+                wa()->getStorage()->set('shop/checkout', $data);
+                wa()->getStorage()->remove('shop/cart');
+            } elseif (isset($data['coupon_code'])) {
+                unset($data['coupon_code']);
                 wa()->getStorage()->set('shop/checkout', $data);
                 wa()->getStorage()->remove('shop/cart');
             }
 
             if (($use = waRequest::post('use_affiliate')) !== null) {
-                $data = wa()->getStorage()->get('shop/checkout', array());
                 if ($use) {
                     $data['use_affiliate'] = 1;
                 } elseif (isset($data['use_affiliate'])) {
@@ -176,6 +179,7 @@ class shopFrontendCartAction extends waViewAction
                         unset($s['variants']);
                     }
                 }
+                unset($s);
                 $items[$item_id]['services'] = $item_services;
             } else {
                 $items[$item['parent_id']]['services'][$item['service_id']]['id'] = $item['id'];
@@ -185,6 +189,25 @@ class shopFrontendCartAction extends waViewAction
                 unset($items[$item_id]);
             }
         }
+
+
+        foreach ($items as $item_id => $item) {
+            $price = shop_currency($item['price'] * $item['quantity'], $item['currency'], null, false);
+            if (isset($item['services'])) {
+                foreach ($item['services'] as $s) {
+                    if (!empty($s['id'])) {
+                        if (isset($s['variants'])) {
+                            $price += shop_currency($s['variants'][$s['variant_id']]['price'] * $item['quantity'], $s['currency'], null, false);
+                        } else {
+                            $price += shop_currency($s['price'] * $item['quantity'], $s['currency'], null, false);
+                        }
+                    }
+                }
+            }
+            $items[$item_id]['full_price'] = $price;
+        }
+
+
 
         $order = array('total' => $cart->total(false));
         $discount = shopDiscounts::calculate($order);

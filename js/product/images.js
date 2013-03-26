@@ -74,6 +74,10 @@
                 }
                 $.product_images.tail = path.tail;
             };
+
+            $.product.editTabImagesBlur = function(path) {
+                $('#fileupload').fileupload('destroy');
+            };
         },
 
         initImageList: function(options) {

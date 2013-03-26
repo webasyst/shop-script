@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Computers',
-    'icon' => 'icon16 ss pt computer',
+    'icon' => 'ss pt computer',
     'features' => array(
         'screen_size' => array(
             'name' => 'Screen size',

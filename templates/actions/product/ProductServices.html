@@ -56,8 +56,19 @@
                             {/if}
                         </td>
                     </tr>
+                    
+                    {$display = false}
                     {foreach $variant['skus'] as $variant_sku}
-                        <tr class="small s-services-variant-sku" data-variant-id="{$variant.id}" style="display: none;">
+                        {if (boolean)$variant_sku.status != (boolean)$variant.status}
+                            {$display = true}
+                            {break}
+                        {/if}
+                    {/foreach}
+                    
+                    {$multi_skus = count($variant['skus']) > 1}
+                    
+                    {foreach $variant['skus'] as $variant_sku}
+                        <tr class="small s-services-variant-sku" data-variant-id="{$variant.id}" {if !$multi_skus || !$display}style="display: none;"{/if}>
                             {if $multi_variants}<td class="min-width">&nbsp;</td>{/if}
                             <td class="min-width">&nbsp;</td>
                             <td>

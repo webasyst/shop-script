@@ -24,6 +24,7 @@
                 var container = $('.s-product-form.reviews:first');
                 var sidebar = $('#s-all-reviews');
                 $.product_reviews.init({
+                    product_id: {$id},
                     container: container,
                     statuses: {
                         deleted:  '{shopProductReviewsModel::STATUS_DELETED}',

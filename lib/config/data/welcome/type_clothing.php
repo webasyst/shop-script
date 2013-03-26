@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Clothing',
-    'icon' => 'icon16 ss pt t-shirt',
+    'icon' => 'ss pt t-shirt',
     'features' => array(
         'country' => array(
             'name' => 'Country of origin',

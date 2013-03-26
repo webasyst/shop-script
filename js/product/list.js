@@ -442,6 +442,11 @@
                                     var hash = location.hash.replace(collection_hash[0] + '_id=' + collection_hash[1], collection_hash[0] + '_id=' + r.data.id);
                                     var li = $('#' + collection_hash.join('-'));
                                     li.find('.name:first').html(r.data.name);
+                                    if (r.data.status == '0') {
+                                        li.children('a').addClass('gray');
+                                    } else if (r.data.status == '1') {
+                                        li.children('a').removeClass('gray');
+                                    }
                                     li.find('.id:first').html(r.data.id);
                                     li.attr('id', collection_hash[0] + '-' + r.data.id);
                                     li.find('a').attr('href', hash);

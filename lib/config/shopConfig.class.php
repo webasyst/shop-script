@@ -169,7 +169,9 @@ class shopConfig extends waAppConfig
                 'country'          => '',
                 'order_format'     => $this->getOrderFormat(),
                 'use_gravatar'     => 1,
-                'gravatar_default' => 'custom'
+                'gravatar_default' => 'custom',
+                'require_captcha' => 1,    // is captcha is required for add reviews
+                'require_authorization' => 0  // is authorization is required for add reviews
             ) as $k => $value) {
                 $settings[$k] = isset($all_settings[$k]) ? $all_settings[$k] : $value;
             }

@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Audio',
-    'icon' => 'icon16 ss pt audio',
+    'icon' => 'ss pt audio',
     'features' => array(
         'brand' => array(
             'name' => 'Brand',

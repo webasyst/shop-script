@@ -12,7 +12,7 @@
 <div class="field">
     <div class="name">[`Send to`]</div>
     <div class="value no-shift">
-        <select id="notification-to" name="params[to]">
+        <select class="notification-to" name="params[to]">
             <option {if !empty($params.to) && $params.to == 'customer'}selected{/if} value="customer">[`Customer`]</option>
             <option {if !empty($params.to) && $params.to == 'admin'}selected{/if} value="admin">[`Store admin`]</option>
             <option {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin'}selected{/if} value="">[`Other...`]</option>
@@ -38,10 +38,15 @@
 </div>
 
 <script type="text/javascript">
-    var codemirror = CodeMirror.fromTextArea(document.getElementById('n-email-body'), {
-        mode: "text/html",
-        tabMode: "indent",
-        height: "dynamic",
-        lineWrapping: true
+    $(function () {
+        var c = CodeMirror.fromTextArea(document.getElementById('n-email-body'), {
+            mode: "text/html",
+            tabMode: "indent",
+            height: "dynamic",
+            lineWrapping: true
+        });
+        $("#n-email-body").change(function() {
+            c.setValue($(this).val())
+        });
     });
 </script>

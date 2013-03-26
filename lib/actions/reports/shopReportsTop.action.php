@@ -4,7 +4,8 @@ class shopReportsTopAction extends waViewAction
 {
     public function execute()
     {
-        $start_time = date('Y-m-d', time() - 30*24*3600); // !!! TODO: use parameter for this
+        list($start_date, $end_date, $group_by) = shopReportsSalesAction::getTimeframeParams();
+
         $mode = waRequest::request('mode', 'sales');
         if ($mode !== 'sales') {
             $mode = 'profit';
@@ -12,7 +13,7 @@ class shopReportsTopAction extends waViewAction
 
         // Top products
         $pm = new shopProductModel();
-        $top_products = $pm->getTop(10, $mode, $start_time)->fetchAll('id');
+        $top_products = $pm->getTop(10, $mode, $start_date, $end_date)->fetchAll('id');
         $max_val = 0;
         $product_total_val = 0;
         foreach($top_products as &$p) {
@@ -22,13 +23,13 @@ class shopReportsTopAction extends waViewAction
             $product_total_val += $p['val'];
         }
         foreach($top_products as &$p) {
-            $p['val_percent'] = round($p['val'] * 100 / $max_val);
+            $p['val_percent'] = round($p['val'] * 100 / ifempty($max_val, 1));
         }
         unset($p);
 
         // Top services
-        $pm = new shopServiceModel();
-        $top_services = $pm->getTop(10, $start_time)->fetchAll('id');
+        $sm = new shopServiceModel();
+        $top_services = $sm->getTop(10, $start_date, $end_date)->fetchAll('id');
         $max_val = 0;
         $service_total_val = 0;
         foreach($top_services as $s) {
@@ -36,23 +37,23 @@ class shopReportsTopAction extends waViewAction
             $service_total_val += $s['total'];
         }
         foreach($top_services as &$s) {
-            $s['total_percent'] = round($s['total'] * 100 / $max_val);
+            $s['total_percent'] = round($s['total'] * 100 / ifempty($max_val, 1));
         }
         unset($s);
 
         // Total sales or pofit for the period
         $om = new shopOrderModel();
         if ($mode == 'sales') {
-            $total_val = $om->getTotalSales($start_time);
+            $total_val = $om->getTotalSales($start_date, $end_date);
         } else {
-            $total_val = $om->getTotalProfit($start_time);
+            $total_val = $om->getTotalProfit($start_date, $end_date);
         }
 
         // Total sales by product type
         $sales_by_type = array();
         $tm = new shopTypeModel();
         $pie_total = 0;
-        foreach($tm->getSales($start_time) as $row) {
+        foreach($tm->getSales($start_date, $end_date) as $row) {
             $sales_by_type[] = array(
                 $row['name'], (float) $row['sales']
             );
@@ -64,7 +65,7 @@ class shopReportsTopAction extends waViewAction
         $pie_total += $service_total_val;
         if ($pie_total) {
             foreach($sales_by_type as &$row) {
-                $row[0] .= ' ('.round($row[1] * 100 / $pie_total, 1).'%)';
+                $row[0] .= ' ('.round($row[1] * 100 / ifempty($pie_total, 1), 1).'%)';
             }
             unset($row);
         }

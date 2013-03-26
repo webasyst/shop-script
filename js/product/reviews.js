@@ -77,6 +77,11 @@
                         }
                     );
             }
+
+            if (this.product_id) {
+                this.container.addClass('ajax');
+            }
+
             var addReview = function() {
                 $.product_reviews.addReview('backend', options.afterAdd);
             };

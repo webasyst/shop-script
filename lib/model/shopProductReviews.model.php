@@ -236,46 +236,52 @@ class shopProductReviewsModel extends waNestedSetModel
     public function validate($review)
     {
         $errors = array();
+        $config = wa()->getConfig();
 
         if ($review['auth_provider'] == self::AUTH_GUEST) {
+
+            if ($config->getGeneralSettings('require_authorization', false)) {
+                return array('name' => _w('Only authorized users can post reviews'));
+            }
+
+            if ($config->getGeneralSettings('require_captcha') && !wa()->getCaptcha()->isValid()) {
+                return array('captcha' => _w('Invalid captcha code'));
+            }
 
             if (!empty($review['site']) && strpos($review['site'], '://')===false) {
                 $review['site'] = "http://" . $review['site'];
             }
             if (empty($review['name']) || mb_strlen($review['name']) == 0 ) {
-                $errors[]['name'] = _w('Name can not be left blank');
+                $errors['name'] = _w('Name can not be left blank');
             }
             if (mb_strlen($review['name']) > 255) {
-                $errors[]['name'] = _w('Name length should not exceed 255 symbols');
+                $errors['name'] = _w('Name length should not exceed 255 symbols');
             }
             if (empty($review['email']) || mb_strlen($review['email']) == 0) {
-                $errors[]['email'] = _w('Email can not be left blank');
+                $errors['email'] = _w('Email can not be left blank');
             }
             $validator = new waEmailValidator();
             if (!$validator->isValid($review['email'])) {
-                $errors[]['email'] = _w('Email is not valid');
+                $errors['email'] = _w('Email is not valid');
             }
             $validator = new waUrlValidator();
             if (!empty($review['site']) && !$validator->isValid($review['site'])) {
-                $errors[]['site'] = _w('Site URL is not valid');
-            }
-            if (!wa()->getCaptcha()->isValid()) {
-                $errors[] = array('captcha' => _w('Invalid captcha code'));
+                $errors['site'] = _w('Site URL is not valid');
             }
         }
 
         if (empty($review['parent_id'])) {    // review to product
             if (empty($review['title'])) {
-                $errors[]['title'] = _w('Review title can not be left blank');
+                $errors['title'] = _w('Review title can not be left blank');
             }
         } else {                            // comment ot review
             if (empty($review['text'])) {
-                $errors[]['text'] = _w('Review text can not be left blank');
+                $errors['text'] = _w('Review text can not be left blank');
             }
         }
 
         if (mb_strlen($review['text']) > 4096) {
-            $errors[]['text'] = _w('Review length should not exceed 4096 symbols');
+            $errors['text'] = _w('Review length should not exceed 4096 symbols');
         }
         return $errors;
     }

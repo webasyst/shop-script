@@ -15,9 +15,6 @@ class shopWorkflowRefundAction extends shopWorkflowAction
         }
 
         shopCustomers::recalculateTotalSpent($order['contact_id']);
-        if ($order_id !== null) {
-            $order_model->recalculateProductsTotalSales($order_id);
-        }
 
         if ($order_id != null) {
             $order_model = new shopOrderModel();
@@ -29,6 +26,7 @@ class shopWorkflowRefundAction extends shopWorkflowAction
             ));
             $order_model->returnProductsToStocks($order_id);
             shopAffiliate::cancelBonus($order_id);
+            $order_model->recalculateProductsTotalSales($order_id);
         }
     }
 }

@@ -73,6 +73,7 @@ ul.skus li { list-style: none; }
 .stocks .stock-low { color: #a80; }
 .stocks .stock-high { color: #0a0; }
 .stocks .stock-none { color: #aaa; }
+.stocks .icon16 { margin-top: 0.05em; }
 
 ul.menu-h.sorting { margin-left: 0; }
 ul.menu-h.sorting li { padding-right: 5px; }
@@ -127,6 +128,7 @@ table.table tr.thin td { padding-top: 13px; padding-bottom: 0; }
 table.table tr.service td { padding-top: 5px; padding-bottom: 5px; padding-left: 25px; font-size: 0.8em; color: #555; }
 .related table.table { margin-top: 10px; }
 .related table.table td { padding: 10px 7px 15px; border: none; }
+.related h3 input { font-size: 14px; }
 
 .image { position: relative; display: inline-block; max-width: 100%; display: block\9; /* IE8- hack */ }
 .image img { max-width: 100%; height: auto; }
@@ -212,7 +214,7 @@ table.features td.name { min-width: 145px; color: #777; vertical-align: top; }
 .review-form { padding: 0; margin-bottom: 30px; }
 .review-form h4 { margin: 0 0 20px; font-weight: normal; }
 .review-form-fields p { margin: 0 0 10px; }
-.review-form-fields p.review-field a { display: inline; }
+.review-form-fields p.review-field a { display: inline; padding: 0; }
 .review-form-fields label { width: 160px; display: block; clear: left; float: left; margin: 0 10px 0 0; color: #aaa;}
 .review-form-fields input[type="text"] { width: 20em;}
 .review-form textarea { min-width: 70%; min-height: 160px; }

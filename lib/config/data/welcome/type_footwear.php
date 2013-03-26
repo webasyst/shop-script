@@ -2,7 +2,7 @@
 
 return array (
     'name' => 'Footwear',
-    'icon' => 'icon16 ss pt shoe',
+    'icon' => 'ss pt shoe',
     'features' => array(
         'size' => array(
             'name' => 'Size',

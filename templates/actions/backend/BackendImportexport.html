@@ -12,6 +12,12 @@
     <div class="sidebar left200px">
         <div class="s-inner-sidebar">
             <ul class="menu-v with-icons stack" id="s-importexport-menu">
+                <li>
+                    <a href="#/csv:product/">
+                        <i class="icon16 ss csv"></i>[`CSV product import`]
+                        <span class="hint">[`Import and update products via CSV files`]</span>
+                    </a>
+                </li>
                 {foreach $plugins as $info}
                 {$plugin_names[$info.id] = $info.name|default:$info.id|escape}
                 <li>
@@ -20,8 +26,6 @@
                         <span class="hint">{$info.description|default:''|escape}</span>
                     </a>
                 </li>
-                {foreachelse}
-                <li>[`No plugins installed`]</li>
                 {/foreach}
             </ul>
             <div class="align-center hint hr block double-padded">

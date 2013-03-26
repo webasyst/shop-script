@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Auto parts',
-    'icon' => 'icon16 ss pt car',
+    'icon' => 'ss pt car',
     'features' => array(
         'manufacturer' => array(
             'name' => 'Manufacturer',

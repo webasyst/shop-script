@@ -6,6 +6,8 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
         $this->view->assign('events', $this->getEvents());
         $this->view->assign('transports', self::getTransports());
         $this->view->assign('templates', $this->getTemplates());
+
+        $this->view->assign('sms_from', $this->getSmsFrom());
     }
 
 
@@ -13,7 +15,7 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
     {
         $result = array();
 
-        /* new order email notification template */
+        /* NEW ORDER email notification template */
         $result['order.create']['subject'] = sprintf( _w('New order %s'), '{$order.id}');
         $result['order.create']['body'] = '<style>
 table.table { margin-top: 25px; margin-left: -10px; width: 100%; border-spacing:0; border-collapse:collapse; }
@@ -86,9 +88,25 @@ table.table tr.thin td { padding-top: 13px; padding-bottom: 0; }
 {$wa->shop->settings("name")|escape}<br>
 <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a><br>
 {$wa->shop->settings("phone")}<br></p>';
+        $result['order.create']['sms'] = _w('We successfully accepted your order, and will contact you asap.') . ' ' . sprintf( _w('Your order number is %s. Order total: %s'), '{$order.id}', '{wa_currency($order.total, $order.currency)}');
+        
+        
+        /* order was CONFIRMED (accepted for processing) */
+        $result['order.process']['subject'] = sprintf( _w('Order %s has been confirmed'), '{$order.id}');
+        $result['order.process']['body'] = '<p>'.sprintf( _w('Hi %s'), '{$customer->get("name", "html")}').'</p>
+
+<p>'.sprintf( _w('Your order %s has been confirmed and accepted for processing.'), '{$order.id}').'</p>
+
+<p>'.sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")|escape}').'</p>
+
+<p>--<br>
+{$wa->shop->settings("name")|escape}<br>
+<a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a><br>
+{$wa->shop->settings("phone")}<br></p>';
+        $result['order.process']['sms'] = sprintf( _w('Your order %s has been confirmed and accepted for processing.'), '{$order.id}');
 
 
-        /* order shipment (sending out) email notification template */
+        /* order SHIPMENT (sending out) email notification template */
         $result['order.ship']['subject'] = sprintf( _w('Order %s has been sent out!'), '{$order.id}');
         $result['order.ship']['body'] = '<p>'.sprintf( _w('Hi %s'), '{$customer->get("name", "html")}').'</p>
 
@@ -105,15 +123,16 @@ table.table tr.thin td { padding-top: 13px; padding-bottom: 0; }
     {/if}
 {/if}
 
-<p>'.sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")|escape}').'</p>
+<p>'.sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")|escape}' ).'</p>
 
 <p>--<br>
 {$wa->shop->settings("name")|escape}<br>
 <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a><br>
 {$wa->shop->settings("phone")}<br></p>';
+        $result['order.ship']['sms'] = sprintf( _w('Your order %s has been sent out!'), '{$order.id}' ) . '{if !empty($action_data.params.tracking_number)} '. _w('Tracking number').': {$action_data.params.tracking_number}' . '{/if}';
 
 
-        /* order cancellation email notification template */
+        /* order CANCELLATION email notification template */
         $result['order.delete']['subject'] = sprintf( _w('Order %s has been cancelled'), '{$order.id}');
         $result['order.delete']['body'] = '<p>'.sprintf( _w('Hi %s'), '{$customer->get("name", "html")}').'</p>
 
@@ -125,9 +144,10 @@ table.table tr.thin td { padding-top: 13px; padding-bottom: 0; }
 {$wa->shop->settings("name")|escape}<br>
 <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a><br>
 {$wa->shop->settings("phone")}<br></p>';
+        $result['order.delete']['sms'] = sprintf( _w('Your order %s has been cancelled'), '{$order.id}');
 
 
-        /* misc order status change email notification template */
+        /* MISC order status change email notification template */
         $result['order']['subject'] = sprintf( _w('Order %s has been updated'), '{$order.id}');
         $result['order']['body'] = '<p>'.sprintf( _w('Hi %s'), '{$customer->get("name", "html")}').'</p>
 
@@ -139,6 +159,8 @@ table.table tr.thin td { padding-top: 13px; padding-bottom: 0; }
 {$wa->shop->settings("name")|escape}<br>
 <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a><br>
 {$wa->shop->settings("phone")}<br></p>';
+
+        $result['order']['sms'] = sprintf( _w('Your order %s status has been updated to “%s”'), '{$order.id}', '{$status}');
 
         return $result;
 

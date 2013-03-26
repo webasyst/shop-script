@@ -14,6 +14,9 @@ class shopSearchWordModel extends waModel
         if (isset(self::$words_cache[$word])) {
             return self::$words_cache[$word];
         }
+        if (mb_strlen($word) > 255) {
+            $word = mb_strlen($word, 0, 255);
+        }
         $sql = "SELECT * FROM ".$this->table." WHERE name LIKE '".$this->escape($word, 'like')."'";
         $row = $this->query($sql)->fetch();
         if ($row) {

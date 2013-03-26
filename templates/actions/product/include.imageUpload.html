@@ -105,16 +105,41 @@ $(function() {
             counter.text(cnt + data.result.files.length);
 
             var files = data.result.files;
+            
+            // update images list for images tab
             $('#s-product-image-list').append(tmpl('template-product-image-list', {literal}{
                 images: files,
                 placeholder: '{/literal}{$placeholder}{literal}',
                 product_id: product_id
             }{/literal}));
+            
+            // update images list for product profile
             $('#s-product-view .s-product-image-crops').append(tmpl('template-product-image-list', {literal}{
                 images: files,
                 type: 'crop',
                 product_id: product_id
             }{/literal}));
+            
+            // update images for sku settings blocks
+            var sku_settings_blocks = $('#shop-productprofile .js-sku-settings');
+            sku_settings_blocks.each(function() {
+                var self   = $(this);
+                var sku_id = self.attr('data-id');
+                
+                var image_crops = self.find('.s-product-image-crops');
+                image_crops.append(tmpl('template-sku-image-list', {
+                    images: files,
+                    sku: {
+                        id: sku_id, product_id: product_id
+                    }
+                }));
+                
+                // wrapping container show if needed
+                var wrapper = self.find('.s-product-sku-images');
+                if (wrapper.is(':hidden') && image_crops.find('li').length + files.length > 1) {
+                    wrapper.show();
+                }
+            });
             
             
             // update photostream 

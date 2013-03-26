@@ -102,6 +102,7 @@ class shopCouponsEditorAction extends waViewAction
         $this->view->assign('orders', $orders);
         $this->view->assign('coupon', $coupon);
         $this->view->assign('duplicate_code_error', $duplicate_code_error);
+        $this->view->assign('overall_discount', $overall_discount);
         $this->view->assign('overall_discount_formatted', $overall_discount_formatted);
         $this->view->assign('formatted_value', shopCouponsAction::formatValue($coupon, $currencies));
         $this->view->assign('is_enabled', shopCouponsAction::isEnabled($coupon));

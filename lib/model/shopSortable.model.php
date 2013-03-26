@@ -69,7 +69,7 @@ class shopSortableModel extends waModel
      */
     public function getById($value)
     {
-        return self::getByField($this->remapId($value));
+        return self::getByField($this->remapId($value), !is_array($this->id) && is_array($value));
     }
 
     /**

@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Books',
-    'icon' => 'icon16 ss pt books',
+    'icon' => 'ss pt books',
     'features' => array(
         'author' => array(
             'name' => 'Author',

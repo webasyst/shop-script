@@ -20,4 +20,14 @@ class shopLoginAction extends waLoginAction
         }
     }
 
+    protected function afterAuth()
+    {
+        $url = $this->getStorage()->get('auth_referer');
+        if (!$url) {
+            $url = wa()->getRouteUrl('shop/frontend/my/');
+        }
+        $this->getStorage()->del('auth_referer');
+        $this->getStorage()->del('shop/cart');
+        $this->redirect($url);
+    }
 }

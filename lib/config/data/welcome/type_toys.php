@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Toys',
-    'icon' => 'icon16 ss pt cat',
+    'icon' => 'ss pt cat',
     'features' => array(
         'brand' => array(
             'name' => 'Brand',

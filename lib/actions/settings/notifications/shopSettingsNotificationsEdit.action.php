@@ -14,5 +14,7 @@ class shopSettingsNotificationsEditAction extends shopSettingsNotificationsActio
         $this->view->assign('params', $params);
         $this->view->assign('transports', self::getTransports());
         $this->view->assign('events', $this->getEvents());
+
+        $this->view->assign('sms_from', $this->getSmsFrom());
     }
 }

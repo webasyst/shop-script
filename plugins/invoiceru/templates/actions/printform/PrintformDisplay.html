@@ -74,12 +74,15 @@ var page_url = '';
 		<td class="leftAlign underlined"><b>{$settings.COMPANYNAME|default:"Продавец"|escape},&nbsp;{$settings.COMPANYADDRESS|default:"город, улица, дом"|escape},&nbsp;(тел.:{$settings.COMPANYPHONE|default:"-"|escape}){", р/счет №`$settings.BANK_ACCOUNT_NUMBER` в `$settings.BANKNAME`, кор/счет №`$settings.BANK_KOR_NUMBER`, БИК `$settings.BIK`"|escape}</b></td>
 		<td>(3)</td>
 	</tr>
+{$company = $order->contact_company}
+{$company = ifempty($company,$order.shipping_address.name)}
+{$company = ifempty($company,$order.contact_name)}
+{$company = ifempty($company,$order.billing_address.name)}
 	<tr>
 		<td class=leftAlign>Грузополучатель и его адрес:</td>
 		<td class="leftAlign underlined"><b class="inline_edit">
-{if $order.contact_company}{$order.contact_company|escape}&nbsp;{else}
-{$order.shipping_address.name|escape},&nbsp;{/if}
-{if $order.shipping_address.region}{$order.shipping_address.region|escape},&nbsp;{/if}
+{if $company}{$company},&nbsp;{/if}
+{if $order.shipping_address.region_name}{$order.shipping_address.region_name|escape},&nbsp;{/if}
 {if $order.shipping_address.city}{$order.shipping_address.city|escape},&nbsp;{/if}
 {if $order.shipping_address.zip}{$order.shipping_address.zip|escape},&nbsp;{/if}
 {if $order.shipping_address.street}{$order.shipping_address.street|escape},&nbsp;{/if}
@@ -104,19 +107,30 @@ var page_url = '';
 
 <table cellpadding="0" cellspacing="0" border="0" class="mainTable_normal">
 *}
+{$company = $order->contact_company}
+{$company = ifempty($company,$order.billing_address.name)}
+{$company = ifempty($company,$order.contact_name)}
+{$company = ifempty($company,$order.shipping_address.name)}
 	<tr>
 		<td class=leftAlign>Покупатель:</td>
-		<td class="leftAlign underlined"><b class="inline_edit">{$order.contact_company|default:$order.billing_name|escape|default:"&nbsp;"}</b></td>
+		<td class="leftAlign underlined"><b class="inline_edit">{$company|escape|default:"&nbsp;"}</b></td>
 		<td>(6)</td>
 	</tr>
 	<tr>
 		<td class=leftAlign>Адрес:</td>
 		<td class="leftAlign underlined"><b class="inline_edit">
-{if $order.shipping_address.region}{$order.shipping_address.region|escape},&nbsp;{/if}
+{if !empty($order.billing_address.address)}
+{if $order.billing_address.region_name}{$order.billing_address.region_name|escape},&nbsp;{/if}
+{if $order.billing_address.city}{$order.billing_address.city|escape},&nbsp;{/if}
+{if $order.billing_address.zip}{$order.billing_address.zip|escape},&nbsp;{/if}
+{if $order.billing_address.street}{$order.billing_address.street|escape},&nbsp;{/if}
+{else}
+{if $order.shipping_address.region_name}{$order.shipping_address.region_name|escape},&nbsp;{/if}
 {if $order.shipping_address.city}{$order.shipping_address.city|escape},&nbsp;{/if}
 {if $order.shipping_address.zip}{$order.shipping_address.zip|escape},&nbsp;{/if}
 {if $order.shipping_address.street}{$order.shipping_address.street|escape},&nbsp;{/if}
-{if $order['contact_phone']}тел.: {var_export($order['contact_phone'],true)|escape}{/if}&nbsp;</b></td>
+{/if}
+{if $order.contact_phone}тел.: {$order.contact_phone|escape}{/if}&nbsp;</b></td>
 		<td>(6а)</td>
 	</tr>
 	<tr>
@@ -203,7 +217,7 @@ var page_url = '';
         {$total_tax=$total_tax+$order_item.tax}
         {$total_amount=$total_amount+$order_item.total+$order_item.tax}
 	<tr>
-		<td class="b_left b_top leftAlign inline_edit">{$order_item.name|default:"&nbsp;"|escape}</td>
+		<td class="b_left b_top leftAlign inline_edit">{$order_item.name|default:"&nbsp;"}</td>
 		<td class="b_left b_top inline_edit">796</td>
 		<td class="b_left b_top inline_edit">шт</td>
 		<td class="b_left b_top">{$order_item.quantity|string_format:"%d"}</td>

@@ -21,7 +21,7 @@
             <!-- plugin hook: 'backend_orders.sidebar_top_li' -->
             {* @event backend_orders.%plugin_id%.sidebar_top_li *}
             {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
-            
+
             <li id="s-all-orders" class="list">
                 <span class="count">{if !empty($all_count)}{$all_count}{/if}</span>
                 <a href="#/orders/all/">
@@ -34,7 +34,7 @@
     <!-- plugin hook: 'backend_orders.sidebar_section' -->
     {* @event backend_orders.%plugin_id%.sidebar_section *}
     {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
-            
+
     <div class="block">
         <h5 class="heading">[`Order states`]</h5>
         <ul class="menu-v with-icons collapsible">
@@ -68,10 +68,11 @@
     </div>
     {/if}
 
-    
+
     <div class="block">
         <ul class="menu-v with-icons">
             <li>
+                <span class="count">{$coupons_count}</span>
                 <a href="#/coupons/"><i class="icon16 ss coupon"></i>[`Discount coupons`]</a>
             </li>
 

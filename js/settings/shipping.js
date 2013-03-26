@@ -1,6 +1,6 @@
 /**
  * {literal}
- * 
+ *
  * @names shipping*
  * @property {} shipping_options
  * @method shippingInit
@@ -18,7 +18,7 @@ if (typeof($) != 'undefined') {
         },
         /**
          * Init section
-         * 
+         *
          * @param string tail
          */
         shippingInit : function() {
@@ -37,12 +37,12 @@ if (typeof($) != 'undefined') {
                 'cursor' : 'move',
                 'tolerance' : 'pointer',
                 'update' : function(event, ui) {
-                    var id = parseInt($(ui.item).data('id'));
+                    var id = parseInt($(ui.item).data('id'), 10);
                     var after_id = $(ui.item).prev().data('id');
                     if (after_id === undefined) {
                         after_id = 0;
                     } else {
-                        after_id = parseInt(after_id);
+                        after_id = parseInt(after_id, 10);
                     }
                     self.shippingSort(id, after_id, $(this));
                 }
@@ -50,7 +50,7 @@ if (typeof($) != 'undefined') {
 
             $('#s-settings-shipping-setup').on('submit', 'form', function() {
                 return self.shippingPluginSave($(this));
-            })
+            });
 
         },
 
@@ -70,7 +70,7 @@ if (typeof($) != 'undefined') {
         },
 
         /**
-         * 
+         *
          * @param {String} tail
          */
         shippingAction : function(tail) {
@@ -121,7 +121,7 @@ if (typeof($) != 'undefined') {
 
         /**
          * Show plugin setup options
-         * 
+         *
          * @param {String} plugin_id
          * @param {JQuery} $el
          */
@@ -185,7 +185,7 @@ if (typeof($) != 'undefined') {
                                 var type = $(this).attr('type');
                                 var name = $(this).attr('name');
                                 if (matches = name.match(/\[(\d+)\]/)) {
-                                    var id = parseInt(matches[1]) + 1;
+                                    var id = parseInt(matches[1], 10) + 1;
                                     $(this).attr('name', name.replace(/\[(\d+)\]/, '[' + id + ']'));
                                 }
                                 if ((type != 'text') && (type != 'textarea')) {
@@ -202,12 +202,17 @@ if (typeof($) != 'undefined') {
         },
 
         shippingControlOptionRemove : function($el) {
-            var parent_selector;
-            var $parent;
-            if (parent_selector = $el.data('parent')) {
-
-                if (($parent = $el.parents(parent_selector)) && $parent.length) {
-                    $parent.remove();
+            var parent_selector = $el.data('parent');
+            if (parent_selector) {
+                var $parent = $el.parents(parent_selector);
+                if ($parent.parent().find(parent_selector).length > 1) {
+                    if ($parent.length) {
+                        $parent.remove();
+                    }
+                } else {
+                    if ($parent.length) {
+                        $parent.find('input').val(0);
+                    }
                 }
             }
         },

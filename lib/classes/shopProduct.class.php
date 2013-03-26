@@ -128,8 +128,20 @@ class shopProduct implements ArrayAccess
 
     public function save($data = array(), $validate = true, &$errors = array())
     {
+        $id = $this->getId();
         $search = new shopIndexSearch();
+
         foreach ($data as $name => $value) {
+            // name have to be not empty
+            if ($name == 'name' && !$value) {
+                $value = _w('New product');
+            }
+
+            // url have to be not empty
+            if ($name == 'url' && !$value && $id) {
+                $value = $id;
+            }
+
             $this->__set($name, $value);
         }
         if ($this->is_dirty) {
@@ -141,7 +153,7 @@ class shopProduct implements ArrayAccess
                     unset($this->is_dirty[$field]);
                 }
             }
-            $id = $this->getId();
+
             if ($id && !$id_changed) {
                 if (!isset($product['edit_datetime'])) {
                     $product['edit_datetime'] = date('Y-m-d H:i:s');
@@ -166,6 +178,13 @@ class shopProduct implements ArrayAccess
                 }
                 if ($id = $this->model->insert($product)) {
                     $this->data['id'] = $id;
+
+                    // update empty url by ID
+                    if (empty($product['url'])) {
+                        $this->data['url'] = $id;
+                        $this->model->updateById($id, array('url' => $this->data['url']));
+                    }
+
                     $this->saveData();
                     $search->onAdd($id);
                     $this->is_dirty = array();

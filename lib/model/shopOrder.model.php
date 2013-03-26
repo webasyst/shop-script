@@ -542,14 +542,29 @@ class shopOrderModel extends waModel
      */
     public function recalculateProductsTotalSales($order_id = null)
     {
+        $product_ids = array();
+        if ($order_id !== null) {
+            $order_id = (array)$order_id;
+            $product_ids =
+                array_keys($this->query("
+                    SELECT product_id FROM shop_order_items WHERE type = 'product' AND order_id IN (".implode(',', $order_id).")
+                ")->fetchAll('product_id')
+            );
+        }
         $product_model = new shopProductModel();
         $sql = "SELECT oi.product_id AS id, SUM(oi.price * o.rate * oi.quantity) total_sales FROM ".$this->table." o JOIN shop_order_items oi
                 ON o.id = oi.order_id AND oi.type = 'product'
-                WHERE paid_date IS NOT NULL ".($order_id !== null ? "AND o.id IN (i:order_id)" : "")."
-                GROUP BY oi.product_id";
-        foreach ($this->query($sql, array('order_id' => $order_id))->fetchAll('id', true) as $id => $total_sales) {
-            $product_model->updateById($id, array('total_sales' => $total_sales));
+                WHERE paid_date IS NOT NULL
+                GROUP BY oi.product_id
+                ORDER BY oi.product_id";
+        if ($order_id === null) {
+            $sql = "UPDATE `shop_product` p JOIN ($sql) r ON p.id = r.id SET p.total_sales = r.total_sales";
+        } else if ($product_ids) {
+            $sql = "UPDATE `shop_product` p JOIN ($sql) r ON p.id = r.id
+                SET p.total_sales = r.total_sales
+                WHERE p.id IN(".implode(',', $product_ids).")";
         }
+        $this->query($sql);
     }
 
     public function getTotalSalesByProduct($product_id)
@@ -574,23 +589,24 @@ class shopOrderModel extends waModel
     /** Data for profit report page */
     public function getProfit($start_date = null, $end_date = null, $group = null)
     {
-        if ($group !== null) {
-            throw new waException('!!! not implemented yet'); // TODO
-        }
-
+        $date_col = ($group == 'months') ? "DATE_FORMAT(o.paid_date, '%Y-%m-01')" : 'o.paid_date';
         $paid_date_sql = self::getDateSql('o.paid_date', $start_date, $end_date);
 
         // Total sales, shipping and taxes
         $sql = "SELECT
-                    o.paid_date,
+                    {$date_col} as `date`,
                     SUM(o.total*o.rate) AS sales,
                     SUM(o.shipping*o.rate) AS shipping,
                     SUM(o.tax*o.rate) AS tax
                 FROM ".$this->table." AS o
                 WHERE $paid_date_sql
-                GROUP BY o.paid_date";
-        $sales_by_date = $this->query($sql)->fetchAll('paid_date');
+                GROUP BY {$date_col}";
+        $min_date = null;
+        $sales_by_date = $this->query($sql)->fetchAll('date');
         foreach($sales_by_date as &$row) {
+            if (!$min_date || strcmp($min_date, $row['date']) > 0) {
+                $min_date = $row['date'];
+            }
             $row['purchase'] = 0;
             $row['profit'] = 0;
         }
@@ -598,7 +614,7 @@ class shopOrderModel extends waModel
 
         // Total purchases
         $sql = "SELECT
-                    o.paid_date,
+                    {$date_col} as `date`,
                     SUM(ps.purchase_price*pcur.rate*oi.quantity) AS purchase
                 FROM ".$this->table." AS o
                     JOIN shop_order_items AS oi
@@ -610,37 +626,92 @@ class shopOrderModel extends waModel
                     JOIN shop_currency AS pcur
                         ON pcur.code=p.currency
                 WHERE $paid_date_sql
-                GROUP BY o.paid_date";
-
+                GROUP BY {$date_col}";
         foreach($this->query($sql) as $row) {
-            $sales_by_date[$row['paid_date']]['purchase'] = $row['purchase'];
-            $row = &$sales_by_date[$row['paid_date']];
+            $sales_by_date[$row['date']]['purchase'] = $row['purchase'];
+            $row = &$sales_by_date[$row['date']];
             $row['profit'] = $row['sales'] - $row['purchase'] - $row['shipping'] - $row['tax'];
             unset($row);
         }
+
+        // Add empty rows
+        $empty_row = array(
+            'sales' => 0,
+            'shipping' => 0,
+            'tax' => 0,
+            'purchase' => 0,
+            'profit' => 0,
+        );
+        if ($start_date) {
+            $start_ts = strtotime($start_date);
+        } else if ($min_date) {
+            $start_ts = strtotime(ifempty($min_date, date('Y-m-d'))) - 48*3600;
+        }
+        $end_ts = strtotime(ifempty($end_date, date('Y-m-d')));
+        for ($t = $start_ts; $t <= $end_ts; $t += 3600*24) {
+            $date = date(($group == 'months') ? 'Y-m-01' : 'Y-m-d', $t);
+            if (empty($sales_by_date[$date])) {
+                $sales_by_date[$date] = array(
+                    'date' => $date,
+                ) + $empty_row;
+            }
+            foreach($empty_row as $k => $v) {
+                $sales_by_date[$date][$k] = (float) $sales_by_date[$date][$k];
+            }
+        }
+        ksort($sales_by_date);
+
         return $sales_by_date;
     }
 
     /** Data for sales report page */
     public function getSales($start_date = null, $end_date = null, $group = null)
     {
-        if ($group !== null) {
-            throw new waException('!!! not implemented yet'); // TODO
-        }
-
+        $date_col = ($group == 'months') ? "DATE_FORMAT(o.paid_date, '%Y-%m-01')" : 'o.paid_date';
         $paid_date_sql = self::getDateSql('o.paid_date', $start_date, $end_date);
-
         $sql = "SELECT
-                    o.paid_date,
+                    {$date_col} AS `date`,
                     SUM(o.total*o.rate) AS total,
                     COUNT(*) AS `count`,
                     SUM(IF(o.is_first, o.total*o.rate, 0)) AS customer_first_total,
                     SUM(IF(o.is_first, 1, 0)) AS customer_first_count
-                FROM ".$this->table." AS o
-                WHERE $paid_date_sql
-                GROUP BY o.paid_date";
+                FROM {$this->table} AS o
+                WHERE {$paid_date_sql}
+                GROUP BY {$date_col}";
 
-        return $this->query($sql);
+        // All rows from DB
+        $min_date = null;
+        $result = array(); // YYYY-MM-DD => array(...)
+        foreach($this->query($sql) as $row) {
+            if (!$min_date || strcmp($min_date, $row['date']) > 0) {
+                $min_date = $row['date'];
+            }
+            $result[$row['date']] = $row;
+        }
+
+        // Add empty rows
+        if ($start_date) {
+            $start_ts = strtotime($start_date);
+        } else if ($min_date) {
+            $start_ts = strtotime(ifempty($min_date, date('Y-m-d'))) - 48*3600;
+        }
+        $end_ts = strtotime(ifempty($end_date, date('Y-m-d')));
+        for ($t = $start_ts; $t <= $end_ts; $t += 3600*24) {
+            $date = date(($group == 'months') ? 'Y-m-01' : 'Y-m-d', $t);
+            if (empty($result[$date])) {
+                $result[$date] = array(
+                    'date' => $date,
+                    'total' => 0,
+                    'count' => 0,
+                    'customer_first_total' => 0,
+                    'customer_first_count' => 0,
+                );
+            }
+            $result[$date]['total'] = (float) $result[$date]['total'];
+        }
+        ksort($result);
+
+        return $result;
     }
 
     public function getTotalSales($start_date = null, $end_date = null)

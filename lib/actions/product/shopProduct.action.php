@@ -13,6 +13,7 @@ class shopProductAction extends waViewAction
             if (waRequest::get('id') == 'new') {
                 $product->name = '';
                 $product->id = 'new';
+                $product->status = 1;
             } else {
                 throw new waException("Product not found", 404);
             }
@@ -78,12 +79,12 @@ class shopProductAction extends waViewAction
             'taxes'                => $taxes_mode->getAll(),
         ));
 
-        $fontend_base_url = '';
-        $frontend_url = wa()->getRouteUrl('/frontend/product', array('product_url' => $product->url), true);
-        if ($frontend_url) {
-            $pos = strrpos($frontend_url, $product->url);
-            $fontend_base_url = $pos !== false ? rtrim(substr($frontend_url, 0, $pos), '/').'/' : '';
-        }
+        // %product_url% - stuff used only when creating new product
+        $stuff = $product->url ? $product->url : '%product_url%';
+        $frontend_url = wa()->getRouteUrl('/frontend/product', array('product_url' => $stuff), true);
+        $pos = strrpos($frontend_url, $stuff);
+        $fontend_base_url = $pos !== false ? rtrim(substr($frontend_url, 0, $pos), '/').'/' : $frontend_url;
+
 
         /**
          * !!! FIXME: update this description?.. E.g. include title_suffix. Or remove it...

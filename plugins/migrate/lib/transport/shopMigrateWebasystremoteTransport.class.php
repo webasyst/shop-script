@@ -70,7 +70,12 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
                 $debug['raw'] = $raw;
                 $debug['hint'] = 'Error jsone_decode';
                 throw new waException(_wp('Invalid server response'));
+            } elseif (!$one && !is_array($result)) {
+                $debug['decoded'] = $result;
+                $debug['hint'] = 'Unexpected jsone_decode result';
+                throw new waException(_wp('Invalid server response'));
             }
+
             $debug['result'] = $result;
             $this->log($debug, self::LOG_DEBUG);
         } catch (Exception $ex) {
@@ -127,6 +132,7 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
 
     private function downloadCurl($url, &$target_stream)
     {
+        $ch = null;
         try {
             $this->log(__METHOD__.' :download via cURL', self::LOG_DEBUG, array('source' => self::logURL($url), ));
             $content_length = 0;
@@ -157,7 +163,7 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
 
             return $content_length;
         } catch (waException $ex) {
-            if ($ch) {
+            if (!empty($ch)) {
                 curl_close($ch);
             }
             if ($target_stream && is_resource($target_stream)) {
@@ -207,14 +213,14 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
     {
         $ch = null;
         if (!extension_loaded('curl') || !function_exists('curl_init')) {
-            throw new waException(_w('err_curlinit'));
+            throw new waException(_wp('PHP extension curl not loaded'));
         }
         if (!($ch = curl_init())) {
-            throw new waException(_w('err_curlinit'));
+            throw new waException(_wp('Error while init Curl'));
         }
 
         if (curl_errno($ch) != 0) {
-            throw new waException(_w('err_curlinit').curl_errno($ch).' '.curl_error($ch));
+            throw new waException(sprintf(_wp('Curl error %d#:%s'), curl_errno($ch), curl_error($ch)));
         }
         if (!is_array($curl_options)) {
             $curl_options = array();

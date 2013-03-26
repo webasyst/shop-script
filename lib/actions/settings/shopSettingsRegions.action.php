@@ -15,6 +15,9 @@ class shopSettingsRegionsAction extends waViewAction
         $countries = $cm->all();
 
         if (!$country || empty($countries[$country])) {
+            $country = wa()->getSetting('country');
+        }
+        if (!$country || empty($countries[$country])) {
             // Show the first country with regions by default
             $region_countries = $rm->getCountries();
             $country = reset($region_countries);

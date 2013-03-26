@@ -2,25 +2,33 @@
 {$name_text =  "[`Name`]"}
 
 {capture frontend_url}
-<div class="field">
-    <div class="name">
-        [`Frontend URL`]
-    </div>
-    <div class="value no-shift">
-    {strip}
-        <span class="s-frontend-base-url" style="display:none;">
-            {$settings.frontend_base_url}
-        </span>
-        <a href="{$settings.frontend_url}" class="s-frontend-base-url">
-            {$settings.frontend_base_url}
-            <span id="s-settings-frontend-url">{$settings.url}</span>
-            <span class="slash"></span>
-        </a>
-        <i class="icon10 new-window"></i>
-        <input type="text" id="s-settings-frontend-url-input" value="{$settings.url}" name="url" style="display:none;">
-        <a href="javascript:void(0);" class="small inline-link" id="s-settings-frontend-url-edit-link"><i class="icon10 edit"></i><b><i>edit</i></b></a>
-        <em class="errormsg"></em>
-    {/strip}
+<div class="field-group">
+    <div class="field">
+        <div class="name">
+            [`Frontend URL`]
+        </div>
+        <div class="value no-shift">
+        {strip}
+            <span class="s-frontend-base-url" style="display:none;">
+                {$settings.frontend_base_url}
+            </span>
+            <a href="{$settings.frontend_url}" class="s-frontend-base-url" target="_blank">
+                {$settings.frontend_base_url}
+                <span id="s-settings-frontend-url">{$settings.url}</span>
+                <span class="slash"></span>
+            </a>
+            <i class="icon10 new-window"></i>
+            <input type="text" id="s-settings-frontend-url-input" value="{$settings.url}" name="url" style="display:none;">
+            <a href="javascript:void(0);" class="small inline-link" id="s-settings-frontend-url-edit-link"><i class="icon10 edit"></i><b><i>edit</i></b></a>
+            <em class="errormsg"></em>
+        {/strip}
+        </div>
+        <div class="value no-shift">
+            <label>
+                <input value="1" name="hidden" {if !$settings.status}checked{/if} type="checkbox" name="hidden">
+                [`Hidden category`] <span class="hint">[`When enabled, this category will be temporarily hidden from the storefront`]</span>
+            </label>
+        </div>
     </div>
 </div>
 {/capture}
@@ -85,11 +93,17 @@
 
 {capture description}
 <div class="field-group">
+    <div class="field">
+
+    </div>
+</div>
+
+<div class="field-group">
 
     <div class="field">
         <div class="name">[`Title`]</div>
         <div class="value">
-            <input value="{$settings.meta_title|escape}" name="meta_title" placeholder="{$settings.name|escape}">
+            <input value="{$settings.meta_title|escape}" name="meta_title" placeholder="{$settings.name|escape}" class="long bold">
         </div>
     </div>
     <div class="field">
@@ -129,7 +143,7 @@
         </div>
         <div class="value">
             <textarea name="params" rows="10" cols="5">{if $settings.params}{foreach $settings.params as $k=>$v}{if $k!='order'}{$k}={$v|escape|cat:"\n"}{/if}{/foreach}{/if}</textarea><br>
-            <span class="hint">[`Optional set of custom <em>key=value</em> parameters which can be used within a frontend's theme template as <em>&#123;$category.key&#125;</em>. Each key=value pair should be on a separate line.`]</span>
+            <span class="hint">[`Optional set of custom <em>key=value</em> parameters which can be used within a frontend's theme template as <em>&#123;$category.params.key&#125;</em>. Each key=value pair should be on a separate line.`]</span>
         </div>
     </div>
 </div>

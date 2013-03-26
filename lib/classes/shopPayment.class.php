@@ -181,7 +181,7 @@ class shopPayment extends waAppPayment
         if (isset($form_fields['address.billing'])) {
             $billing_address = array_merge($empty_address, shopHelper::getOrderAddress($order['params'], 'billing'));
         } else {
-            $billing_address = $shipping_address;
+            $billing_address = $empty_address;
         }
         ifset($order['shipping'], 0.0);
         ifset($order['discount'], 0.0);

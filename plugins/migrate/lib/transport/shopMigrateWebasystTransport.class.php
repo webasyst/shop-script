@@ -14,6 +14,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
     const STAGE_PRODUCT_IMAGE = 'productImage';
     const STAGE_PRODUCT_IMAGE_RESIZE = 'productImageResize';
     const STAGE_PRODUCT_SET = 'productSet';
+    const STAGE_COUPON = 'coupon';
     const STAGE_ORDER = 'order';
 
     public function getStageName($stage)
@@ -59,6 +60,9 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
             case self::STAGE_ORDER:
                 $name = _wp('Importing orders...');
                 break;
+            case self::STAGE_COUPON:
+                $name = _wp('Importing coupons...');
+                break;
             case self::STAGE_PRODUCT_IMAGE_RESIZE:
                 $name = _wp('Creating product thumbnails...');
                 break;
@@ -94,13 +98,16 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
                     $report = _wp('%d customer category', '%d customer categories', $count);
                     break;
                 case self::STAGE_PRODUCT_IMAGE:
-                    $report = _wp("%d image", "%d images", $count);
+                    $report = _wp('%d image', '%d images', $count);
                     break;
                 case self::STAGE_PRODUCT_FILE:
-                    $report = _wp("%d product file", "%d files", $count);
+                    $report = _wp('%d product file', '%d files', $count);
                     break;
                 case self::STAGE_ORDER:
-                    $report = _wp("%d order", "%d orders", $count);
+                    $report = _wp('%d order', '%d orders', $count);
+                    break;
+                case self::STAGE_COUPON:
+                    $report = _wp('%d coupon', '%d coupons', $count);
                     break;
             }
         }
@@ -129,11 +136,12 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
                 'description'  => _wp('If product (or category) with a particular ID already exists in your new store, delete it and replace with the imported data.'),
             );
             $this->addOption('preserve', $option);
-
-            $setting_rows = $this->query('SELECT `settings_constant_name` `name`,`settings_value` `value` FROM `SC_settings` WHERE (`settings_constant_name` LIKE "CONF\_DEFAULT%") OR (`settings_constant_name` = "CONF_SHOP_URL")', false);
             $settings = array();
-            foreach ($setting_rows as $row) {
-                $settings[strtolower(str_replace('CONF_SHOP_', '', str_replace('CONF_DEFAULT_', '', $row['name'])))] = $row['value'];
+
+            if ($setting_rows = $this->query('SELECT `settings_constant_name` `name`,`settings_value` `value` FROM `SC_settings` WHERE (`settings_constant_name` LIKE "CONF\_DEFAULT%") OR (`settings_constant_name` = "CONF_SHOP_URL")', false)) {
+                foreach ($setting_rows as $row) {
+                    $settings[strtolower(str_replace('CONF_SHOP_', '', str_replace('CONF_DEFAULT_', '', $row['name'])))] = $row['value'];
+                }
             }
 
             #default_language
@@ -380,6 +388,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
             self::STAGE_PRODUCT_SET => '`SC_product_list` WHERE `id`="specialoffers"',
             self::STAGE_PRODUCT_IMAGE => '`SC_product_pictures` `i` JOIN `SC_products` `p` ON (`p`.`productID` = `i`.`productID`)',
             self::STAGE_PRODUCT_FILE => '`SC_products` WHERE (`eproduct_filename` != "")',
+            self::STAGE_COUPON => '`SC_discount_coupons`',
             self::STAGE_ORDER => '`SC_orders`',
             self::STAGE_PRODUCT_IMAGE_RESIZE => 0,
         );
@@ -887,8 +896,9 @@ LIMIT 100';
             $customer['email'] = $data['Email'];
             $customer['create_datetime'] = $data['reg_datetime'];
             $customer['create_app_id'] = 'shop';
-            if (!empty($data['Login'])) {
-                /*TODO*/
+
+            if (!empty($data['Login']) && !empty($data['cust_password'])) {
+                $customer['password'] = waContact::getPasswordHash(base64_decode($data['cust_password']));
             }
             if (!empty($customer_fields_cache[$id])) {
                 foreach ($customer_fields_cache[$id] as $field => $value) {
@@ -992,7 +1002,7 @@ LIMIT 100';
             $product->meta_description = $data['meta_description_'.$locale];
 
             $product->description = $data['description_'.$locale];
-            $product->url = empty($data['slug']) ? $data['productID'] : $data['slug'];
+            $product->url = ifempty($data['slug'], $data['productID']);
             $product->create_datetime = $data['date_added'];
             $product->edit_datetime = $data['date_modified'];
             $categories = array_map('intval', explode(',', $data['extra_category']));
@@ -1085,11 +1095,12 @@ LIMIT 100';
 
             //skus
             $product->sku_id = -1;
+            $in_stock = sprintf('%d', intval($data['in_stock']));
             $skus = array(-1 => array(
                 'name'          => $data['name_'.$locale],
-                'code'          => ifempty($data['product_code'], $data['name_'.$locale]),
+                'sku'           => ifempty($data['product_code'], ''),
                 'stock'         => array(
-                    0 => sprintf('%d', intval($data['in_stock'])),
+                    0 => $in_stock,
                 ),
                 //TODO convert price and currency
                 'price'         => $data['Price'],
@@ -1125,9 +1136,17 @@ LIMIT 100';
                 }
             }
             if (count($skus) > 1) {
+
+                $sku_instock = floor($in_stock / count($skus));
                 foreach ($skus as $sku_id => & $sku) {
                     if ($product->sku_id != $sku_id) {
-                        $sku['stock'] = array(0);
+                        $sku['stock'] = array(
+                            0 => $sku_instock,
+                        );
+                    } else {
+                        $sku['stock'] = array(
+                            0 => ($in_stock - (count($skus)-1) * $sku_instock),
+                        );
                     }
                 }
                 unset($sku);
@@ -1191,12 +1210,14 @@ LIMIT 100';
                         $model = new shopProductReviewsModel();
                     }
                     $data = array(
-                        'rate'       => null,
-                        'product_id' => $product['id'],
-                        'text'       => $review['Topic']."\n".$review['Body'],
-                        'name'       => $review['Author'],
-                        'datetime'   => date('Y-m-d H:i:s', strtotime($review['add_time'])),
-                        'status'     => shopProductReviewsModel::STATUS_PUBLISHED,
+                        'rate'          => null,
+                        'product_id'    => $product['id'],
+                        'text'          => $review['Topic']."\n".$review['Body'],
+                        'name'          => $review['Author'],
+                        'datetime'      => date('Y-m-d H:i:s', strtotime($review['add_time'])),
+                        'status'        => shopProductReviewsModel::STATUS_PUBLISHED,
+                        'auth_provider' => shopProductReviewsModel::AUTH_GUEST,
+                        'contact_d'     => 0,
                     );
                     if ($model->add($data)) {
                         ++$processed;
@@ -1574,6 +1595,70 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
         return $result;
     }
 
+    private function stepCoupon(&$current_stage, &$count, &$processed)
+    {
+        static $cache;
+        static $model;
+        static $contact_id;
+        $result = false;
+        if (!$current_stage) {
+            $this->offset[self::STAGE_COUPON] = 0;
+            $this->map[self::STAGE_COUPON] = array();
+
+        }
+        $offset =& $this->offset[self::STAGE_COUPON];
+        if (!$cache) {
+            $sql = 'SELECT * FROM `SC_discount_coupons` WHERE (`coupon_id`> %d) ORDER BY `coupon_id` LIMIT 100';
+            $cache = $this->query(sprintf($sql, $offset), false);
+        }
+        if ($coupon_data = reset($cache)) {
+            $id = intval($coupon_data['coupon_id']);
+            if (!$model) {
+                $model = new shopCouponModel();
+            }
+            if (empty($contact_id)) {
+                $contact_id = wa()->getUser()->getId();
+            }
+
+            $coupon = array(
+                'code'              => $coupon_data['coupon_code'],
+                'used'              => 0,
+                'type'              => ($coupon_data['discount_type'] == 'P') ? '%' : $this->getOption('currency'),
+                'value'             => ($coupon_data['discount_type'] == 'P') ? $coupon_data['discount_percent'] : $coupon_data['discount_absolute'],
+                'comment'           => ifempty($coupon_data['comment']),
+                'create_datetime'   => date("Y-m-d H:i:s"),
+                'create_contact_id' => $contact_id,
+
+            );
+
+            switch ($coupon_data['coupon_type']) {
+                case 'SU':
+                    $coupon['limit'] = 1;
+                    break;
+                case 'MX':
+                    $coupon['expire_datetime'] = ifempty($coupon_data['expire_date']) ? date("Y-m-d H:i:s", $coupon_data['expire_date']) : null;
+                    break;
+                case 'MN':
+                    break;
+            }
+
+            if ($res = $model->insert($coupon, true)) {
+                if ($res !== true) {
+                    $this->map[self::STAGE_COUPON][$id] = $res;
+                }
+                ++$processed;
+            }
+
+            $offset = $id;
+            $result = true;
+            array_shift($cache);
+
+            ++$current_stage;
+        }
+
+        return $result;
+    }
+
     private function stepOrder(&$current_stage, &$count, &$processed)
     {
         static $order_data_cache = array();
@@ -1590,6 +1675,7 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                 'state'         => array(),
                 'currency_rate' => 1.0,
                 'currency_map'  => array(),
+                'address_map'   => array(),
             );
             $currency_model = new shopCurrencyModel();
             if (($rate = $currency_model->getById($currency_value = $this->getOption('currency'))) && ($rate['rate'])) {
@@ -1610,6 +1696,32 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
 
             $this->log('state_name_map', self::LOG_INFO, $state_map);
             unset($state_map);
+
+            $sql = 'SELECT
+            LOWER(`c`.`country_name_%1$s`) `country_name`, LOWER(`c`.`country_iso_3`) `country`,
+            LOWER(`z`.`zone_name_%1$s`) `region_name`, LOWER(`z`.`zone_code`) `region`
+            FROM  `SC_countries` `c`
+                LEFT JOIN `SC_zones` `z` ON (`z`.`countryID`= `c`.`countryID`)';
+            $address_map =& $this->map[self::STAGE_ORDER]['address_map'];
+            if ($address_names = $this->query(sprintf($sql, $this->getOption('locale')), false)) {
+                foreach ($address_names as $a) {
+                    if (!empty($a['country_name'])) {
+                        if (empty($address_map[$a['country_name']])) {
+                            $address_map[$a['country_name']] = array(
+                                'country' => $a['country'],
+                                'regions' => array(),
+                            );
+                        }
+                        if (!empty($a['region_name'])) {
+                            $address_map[$a['country_name']]['regions'][$a['region_name']] = $a['region'];
+                        }
+                    }
+
+                }
+            }
+
+            $this->log('addressname_map', self::LOG_INFO, $address_map);
+            unset($address_map);
 
             $currency_map =& $this->map[self::STAGE_ORDER]['currency_map'];
             $currency_map['*'] = $currency_value;
@@ -1650,8 +1762,9 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
         }
         if (!$order_data_cache) {
 
-            $sql = 'SELECT `o`.*
+            $sql = 'SELECT `o`.*,`c`.`coupon_id`
             FROM `SC_orders` `o`
+            LEFT JOIN `SC_orders_discount_coupons` `c` ON (`o`.`orderID` = `c`.`order_id`)
             WHERE (`o`.`orderID` > %d)
             ORDER BY `o`.`orderID`
             LIMIT 20';
@@ -1755,6 +1868,8 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                 'shippingServiceInfo'  => 'params:shipping_serice',
                 'google_order_number'  => '',
                 'source'               => '',
+
+                'coupon_id'            => 'params:coupon_id',
             );
 
             $order = array(
@@ -1846,21 +1961,51 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
 
             //order params
             if (!empty($order['params'])) {
-                $params = $order['params'];
-                $fields = array(
-                    'shipping_contact_name' => 'contact_name',
-                    'billing_contact_name'  => 'contact_name',
-                    'billing_country'       => 'shipping_country',
-                    'billing_region'        => 'shipping_region',
-                    'billing_zip'           => 'shipping_zip',
-                    'billing_city'          => 'shipping_city',
-                    'billing_address'       => 'shipping_address',
-                );
-                foreach ($fields as $copy => $original) {
-                    if (isset($params[$copy]) && isset($params[$original]) && ($params[$copy] == $params[$original])) {
-                        unset($params[$copy]);
+
+                $params = array_map('trim', $order['params']);
+
+                if (!empty($params['coupon_id'])) {
+                    if (!empty($this->map[self::STAGE_COUPON][$params['coupon_id']])) {
+                        $params['coupon_id'] = $this->map[self::STAGE_COUPON][$params['coupon_id']];
+                        $cm = new shopCouponModel();
+                        $cm->useOne($params['coupon_id']);
+                    } else {
+                        unset($params['coupon_id']);
                     }
                 }
+
+                $address_map = $this->map[self::STAGE_ORDER]['address_map'];
+                if (!empty($params['shipping_address.country'])) {
+                    $country = mb_strtolower($params['shipping_address.country'], 'utf-8');
+                    if (!empty($address_map[$country])) {
+                        $map = $address_map[$country];
+
+                        if (!empty($params['shipping_address.region'])) {
+                            $region = mb_strtolower($params['shipping_address.region'], 'utf-8');
+                            if (!empty($map['regions'][$region])) {
+                                $params['shipping_address.region'] = $map['regions'][$region];
+                            }
+                        }
+                        $params['shipping_address.country'] = $map['country'];
+                        ;
+                    }
+                }
+
+                if (!empty($params['billing_address.country'])) {
+                    $country = mb_strtolower($params['billing_address.country'], 'utf-8');
+                    if (!empty($address_map[$country])) {
+                        $map = $address_map[$country];
+
+                        if (!empty($params['billing_address.region'])) {
+                            $region = mb_strtolower($params['billing_address.region'], 'utf-8');
+                            if (!empty($map['regions'][$region])) {
+                                $params['billing_address.region'] = $map['regions'][$region];
+                            }
+                        }
+                        $params['billing_address.country'] = $map['country'];
+                    }
+                }
+
                 $params_model = new shopOrderParamsModel();
                 $params_model->set($order['id'], $params);
             }
@@ -1906,7 +2051,7 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                 $scm->updateFromNewOrder($customer_id, $order['id']);
                 shopCustomers::recalculateTotalSpent($customer_id);
             }
-            $model->recalculateProductsTotalSales($order['id']);
+            $model->recalculateProductsTotalSales();
             // update internal offset
             $this->offset[self::STAGE_ORDER] = $id;
             $result = true;
@@ -1914,6 +2059,7 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
             ++$current_stage;
             ++$processed;
             if ($current_stage == $count[self::STAGE_ORDER]) {
+                $model->recalculateProductsTotalSales();
                 $model->query('UPDATE shop_order o
         JOIN (SELECT contact_id, MIN(id) id FROM `shop_order` WHERE paid_date IS NOT NULL GROUP BY contact_id) as f
         ON o.id = f.id

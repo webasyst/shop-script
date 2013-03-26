@@ -1,18 +1,61 @@
+<style type="text/css">
+    #wa .CodeMirror{
+        border: 1px solid #eee;
+    }
+    .CodeMirror-scroll {
+        height: auto;
+        overflow-y: hidden;
+        overflow-x: auto;
+    }
+</style>
+
 <div class="field">
-    <div class="name">[`To`]</div>
+    <div class="name">[`Send to`]</div>
     <div class="value no-shift">
-        <select name="params[to]">
-            <option>[`Customer`]</option>
-            <option>[`Store admin`]</option>
-            <option>[`Other...`]</option>
+        <select class="notification-to" name="params[to]">
+            <option {if !empty($params.to) && $params.to == 'customer'}selected{/if} value="customer">[`Customer`]</option>
+            <option {if !empty($params.to) && $params.to == 'admin'}selected{/if} value="admin">[`Store admin`]</option>
+            <option {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin'}selected{/if} value="">[`Other...`]</option>
+        </select>
+        {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin'}
+        <input type="text" name="to" value="{$params.to}" placeholder="[`Enter email address`]">
+        {/if}
+    </div>
+</div>
+{*
+<div class="field">
+    <div class="name">[`From`]</div>
+    <div class="value no-shift">
+        <select name="params[from]">
+            {foreach $sms_from as $k => $v}
+            <option {if !empty($params.from) && $params.from == $k}selected{/if} value="{$k}">{$v}</option>
+            {/foreach}
         </select>
     </div>
 </div>
+*}
 <div class="field">
-    <div class="name">[`Content`]</div>
+    <div class="name">[`Content`]<br><span class="hint">HTML + Smarty</span></div>
     <div class="value no-shift">
-        <textarea name="params[body]"></textarea>
-        <br />
-        <span class="hint">[`Max 160 chars. SMS is sent only if customer phone number was entered during the checkout.`]</span>
+        <div class="s-editor-core-wrapper">
+            <textarea id="n-sms-text" class="body" name="params[text]">{if !empty($params.text)}{$params.text}{/if}</textarea>
+            <span class="hint">[`Max 300 chars. SMS is sent only if customer phone number was entered during the checkout.`]</span>
+        </div>
     </div>
 </div>
+
+<script type="text/javascript">
+    $(function () {
+        var c = CodeMirror.fromTextArea(document.getElementById('n-sms-text'), {
+            mode: "text/html",
+            tabMode: "indent",
+            height: "dynamic",
+            lineWrapping: true
+        });
+
+        $("#n-sms-text").change(function () {
+            c.setValue($(this).val());
+        });
+
+    });
+</script>

@@ -38,7 +38,7 @@
                                 <!-- one option -->
                                 <div {if !empty($s.id)}data-id="{$s.id}"{/if}>
                                 <label>
-                                    <input {if !empty($s.id)}checked{/if} type="checkbox" name="services[{$item.id}][]" value="{$service_id}"> {$s.name|escape} {if $s.price && !isset($s.variants)}(+{shop_currency($s.price, $s.currency)}){/if}
+                                    <input {if !empty($s.id)}checked{/if} type="checkbox" name="services[{$item.id}][]" value="{$service_id}"> {$s.name|escape} {if $s.price && !isset($s.variants)}(<span>+{shop_currency($s.price, $s.currency)}</span>){/if}
                                 </label>
                                 {if isset($s.variants)}
                                 <select name="service_variant[{$item.id}][{$service_id}]" {if empty($s.id)}disabled{/if}>
@@ -54,7 +54,7 @@
                             {/if}
                         </td>
                         <td class="align-center"><input type="text" name="quantity[{$item.id}]" value="{$item.quantity}" class="qty"></td>
-                        <td class="align-center item-total">{shop_currency($item.price * $item.quantity, $item.currency)}</td>
+                        <td class="align-center item-total">{shop_currency($item.full_price, true)}</td>
                         <td><a class="delete" href="#" title="[`Remove from cart`]"><i class="icon16 remove"></i></a></td>
                     </tr>
                 {/foreach}

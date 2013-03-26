@@ -17,6 +17,12 @@
         form: null,
 
         /**
+         * Keep track changing of form
+         * {String}
+         */
+        form_serialized_data: '',
+
+        /**
          * {Jquery object}
          */
         container: null,
@@ -50,58 +56,139 @@
             this.form = this.product_id ? this.container.find('form') : $('#s-services-save');
 
             if (this.product_id) {
-                $.product.editTabServicesAction = function(path) {
-                    var button = $('#s-product-save-button');
-                    if (!$.product_services.button_color) {
-                        $.product_services.button_color = button.hasClass('yellow') ? 'yellow' : 'green';
-                    }
-                    button.removeClass('yellow').addClass('green');
 
+                // maintain intaraction with $.product object
+
+                $.product.editTabServicesAction = function(path) {
+                    var that = $.product_services;
                     var param = '';
                     if (path.tail) {
                         param = '&param[]=' + path.tail;
-                        if (parseInt(path.tail, 10) != $.product_services.service_id) {
-                            $.get('?module=product&action=services&id=' + path.id + param, function(html) {
-                                var that = $.product_services;
-                                that.container.addClass('ajax').html(html);
-                                that.counter.text(that.options.count);
-                            });
+                        var service_id = parseInt(path.tail, 10);
+                        if (service_id != $.product_services.service_id) {
+
+                            // load another service info
+                            var load = function() {
+                                $.get('?module=product&action=services&id=' + path.id + param, function(html) {
+                                    that.container.html(html);
+                                });
+                            };
+
+                            // if needed save before load another service info
+                            if (that.form_serialized_data != that.form.serialize()) {
+                                $.product_services.save().done(load);
+                            } else {
+                                load();
+                            }
                         }
                     }
                 };
+
                 $.product.editTabServicesBlur = function() {
-                    var button = $('#s-product-save-button');
-                    button.removeClass('yellow green').addClass($.product_services.button_color);
-                    $.product_services.button_color = null;
+                    var that = $.product_services;
+
+                    if (that.form_serialized_data != that.form.serialize()) {
+                        $.product_services.save();
+                    }
                 };
 
                 $.product.editTabServicesSave = function() {
-                    var form = $.product_services.form;
-                    $.product.refresh('submit');
-                    $.shop.jsonPost(form.attr('action'), form.serialize(),
-                        function(r) {
-                            var that = $.product_services;
-                            var sidebar = that.container.find('.s-inner-sidebar');
-                            var li = sidebar.find('li[data-service-id='+that.service_id+']');
-                            var status = parseInt(r.data.status, 10);
-                            if (!status && !li.hasClass('gray')) {
-                                li.addClass('gray');
-                            } else if (status && li.hasClass('gray')) {
-                                li.removeClass('gray');
-                            }
-                            that.options.count = r.data.count;
-                            that.counter.text(r.data.count);
-
-                            $.product.refresh();
-                            $('#s-product-save-button').removeClass('yellow green').addClass('green');
-                            $.products.dispatch();
-                        }
-                    );
-                    return false;
+                    $.product_services.save();
                 };
+
+                var that = this;
+                var button = $('#s-product-save-button');
+
+                // some extra initializing
+                that.container.addClass('ajax');
+                that.form_serialized_data = that.form.serialize();
+                that.counter.text(that.options.count);
+
+                // keep track of changing checkboxes and radiobuttons
+                that.form.on(
+                    'change.product_services',
+                    'input[type=checkbox], input[type=radio]',
+                    function() {
+                        // it's needed when current handler triggered after all handlers.
+                        // Emulate this
+                        setTimeout(function() {
+                            if (that.form_serialized_data != that.form.serialize()) {
+                                button.removeClass('green').addClass('yellow');
+                            } else {
+                                button.removeClass('yellow').addClass('green');
+                            }
+
+                            var sidebar = that.container.find('.s-inner-sidebar');
+
+                            // if all unchecked then turn highlighting off on proper sidebar item
+                            var test = that.form.find('input:checked:first');
+                            if (test.length) {
+                                sidebar.find('li.selected').removeClass('gray');
+                            } else {
+                                sidebar.find('li.selected').addClass('gray');
+                            }
+
+                            // udpate counter
+                            var counter = $(that.options.counter);
+                            var count   = sidebar.find('li:not(.gray)').length;
+                            counter.text(count);
+                            that.options.count = count;
+
+                        }, 150);
+                    }
+                );
+
+                // keep track of chainging text inputs
+                var timer_id = null;
+                that.form.on('keyup.product_services', 'input[type=text]', function() {
+                    // kill previous process
+                    if (timer_id) {
+                        clearTimeout(timer_id);
+                    }
+                    // optimization: check changing only once at interval
+                    timer_id = setTimeout(function() {
+                        if (that.form_serialized_data != that.form.serialize()) {
+                            button.removeClass('green').addClass('yellow');
+                        } else {
+                            button.removeClass('yellow').addClass('green');
+                        }
+                    }, 150);
+                });
             }
 
             this.initView();
+        },
+
+        // save product-service info for services tab in product page
+        save: function() {
+
+            var form = $.product_services.form;
+            $.product.refresh('submit');
+
+            return $.shop.jsonPost(
+                form.attr('action'),
+                form.serialize(),
+                function(r) {
+                    var that = $.product_services;
+                    var sidebar = that.container.find('.s-inner-sidebar');
+                    var li = sidebar.find('li[data-service-id='+that.service_id+']');
+                    var status = parseInt(r.data.status, 10);
+                    if (!status && !li.hasClass('gray')) {
+                        li.addClass('gray');
+                    } else if (status && li.hasClass('gray')) {
+                        li.removeClass('gray');
+                    }
+                    that.options.count = r.data.count;
+                    that.counter.text(r.data.count);
+
+                    $.product.refresh();
+                    $('#s-product-save-button').removeClass('yellow green').addClass('green');
+
+                    that.form_serialized_data = form.serialize();
+
+                    $.products.dispatch();
+                }
+            );
         },
 
         initView: function() {
@@ -212,6 +299,8 @@
                         }
                     }
                 };
+
+                // helper that maintains: if there is no any checked radio makes checked first radio
                 var check_radio = function() {
                     var checked_radio = container.find('tr.s-services-variant-product input[type=radio]:checked:first');
                     if (!checked_radio.length) {
@@ -221,13 +310,17 @@
                         }
                     }
                 };
+
+                // service variant checkbox handler: if service variant is checked then all proper skus are checked
                 var check_checkbox_handler = function() {
                     var self = $(this);
                     var tr = self.parents('tr:first');
                     var variant_id = tr.attr('data-variant-id');
                     var tr_skus = container.find('tr.s-services-variant-sku[data-variant-id='+variant_id+']');
                     tr_skus.find('input[type=checkbox]').attr('checked', this.checked);
-                    if (tr_skus.length > 1) {
+
+                    // unfold
+                    if (this.checked && tr_skus.length > 1) {
                         tr_skus.show();
                     }
                     if (!this.checked) {
@@ -236,25 +329,43 @@
                         check_radio();
                     }
                 };
+
+                // unfold skus to this service variant
                 container.off('click', '.s-services-by-sku').
                     on('click', '.s-services-by-sku', function() {
                         var variant_id = $(this).attr('data-variant-id');
                         container.find('tr.s-services-variant-sku[data-variant-id='+variant_id+']').toggle();
                         return false;
                     });
+
+                // if check service variant then check all skus for it
                 container.off('click', 'tr.s-services-variant-product input[type=checkbox]').
                     on('click', 'tr.s-services-variant-product input[type=checkbox]', check_checkbox_handler);
+
+                // if check some sku then must be checked also service variant
                 container.off('click', 'tr.s-services-variant-sku input[type=checkbox]').
                     on('click', 'tr.s-services-variant-sku input[type=checkbox]', function() {
                         var self = $(this);
                         var tr = self.parents('tr:first');
                         var variant_id = tr.attr('data-variant-id');
-                        var tr_product = container.find('tr.s-services-variant-product[data-variant-id='+variant_id+']');
+                        var tr_variant = container.find('tr.s-services-variant-product[data-variant-id='+variant_id+']');
                         if (self.attr('checked')) {
-                            tr_product.find('input[type=checkbox]').attr('checked', true);
+                            tr_variant.find('input[type=checkbox]').attr('checked', true);
                             check_radio();
+                        } else {
+                            // if there is not any checked sku for this service variant then uncheck service variant checkbox and radio
+                            var any_checked =
+                                tr_variant.nextAll('.s-services-variant-sku[data-variant-id='+variant_id+']').
+                                find('input[type=checkbox]:checked:first');
+                            if (!any_checked.length) {
+                                tr_variant.find('input[type=checkbox]').attr('checked', false);
+                                tr_variant.find('input[type=radio]').attr('checked', false);
+                                check_radio();
+                            }
                         }
                     });
+
+                // when choose another service variant make proper checkbox checked
                 container.off('click', 'tr.s-services-variant-product input[type=radio]').
                     on('click', 'tr.s-services-variant-product input[type=radio]', function() {
                         var self = $(this);

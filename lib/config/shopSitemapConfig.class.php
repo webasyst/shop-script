@@ -22,7 +22,7 @@ class shopSitemapConfig extends waSitemapConfig
                     $url = $c['full_url'];
                 }
                 $this->addUrl($this->getUrl('category', array('category_url' => $url)),
-                    $c['edit_datetime'] ? $c['edit_datetime'] : $c['create_datetime'], self::CHANGE_WEEKLY, 0.8);
+                    $c['edit_datetime'] ? $c['edit_datetime'] : $c['create_datetime'], self::CHANGE_WEEKLY, 0.6);
             }
 
             // products
@@ -46,7 +46,7 @@ class shopSitemapConfig extends waSitemapConfig
             foreach ($products as $p) {
                 $category_url = isset($p['category_url']) ? $p['category_url'] : '';
                 $this->addUrl($this->getUrl('product', array('product_url' => $p['url'], 'category_url' => $category_url)),
-                    $p['edit_datetime'] ? $p['edit_datetime'] : $p['create_datetime'], self::CHANGE_MONTHLY, 0.6);
+                    $p['edit_datetime'] ? $p['edit_datetime'] : $p['create_datetime'], self::CHANGE_MONTHLY, 0.8);
             }
 
             // main page

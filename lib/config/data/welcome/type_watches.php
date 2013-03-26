@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Watches',
-    'icon' => 'icon16 ss pt clock',
+    'icon' => 'ss pt clock',
     'features' => array(
         'mechanism' => array(
             'name' => 'Mechanism',

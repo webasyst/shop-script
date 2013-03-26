@@ -58,14 +58,14 @@ class shopSettingsRecommendationsAction extends waViewAction
         $fids = array();
         foreach ($features as $f) {
             if ($f['selectable']) {
-                $fids[$f['id']] =& $f;
+                $fids[$f['id']] = $f;
             }
         }
 
         if ($fids) {
             $fids = $features_model->getValues($fids);
-            foreach ($fids as $feature_id => $values) {
-                foreach ($values as $value_id => $value) {
+            foreach ($fids as $feature_id => $f) {
+                foreach ($f['values'] as $value_id => $value) {
                     $features[$feature_id]['values'][] = array($value_id, $value);
                 }
             }

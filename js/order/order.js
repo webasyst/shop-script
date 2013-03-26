@@ -78,7 +78,7 @@ $.order = {
                 }
             });
             return false;
-        })
+        });
     },
 
     initView : function() {
@@ -89,6 +89,26 @@ $.order = {
         });
         if (this.options.order) {
             $.order_list.updateListItem(this.options.order, this.id);
+        }
+
+        // adjust order content height to height of view-port when 'split' order list
+        $(window).unbind('resize.order');
+        if ($.order_list && $.order_list.options.view == 'split') {
+            (function() {
+                var win       = $(window);
+                var container = $('#s-order').find('.s-order');
+                var top       = container.offset().top;
+                var height    = win.height() - top;   // height of view-port
+                if (height > container.height()) {
+                    container.height(height);
+                }
+                win.bind('resize.order', function() {
+                    var height    = $(this).height() - top;   // height of view-port
+                    if (height > container.height()) {
+                        container.height(height);
+                    }
+                });
+            })();
         }
     },
 

@@ -56,7 +56,29 @@ class shopStockModel extends waModel
             $data['critical_count'] = shopStockModel::CRITICAL_DEFAULT;
         }
         $data['sort'] = $sort;
-        return $this->insert($data);
+        $id = $this->insert($data);
+
+        // After insert new stock, that invariant may be broken:
+        // in multistocking if at least one stock is "infinity" for sku, sku count must be NULL
+        $sql = "
+            UPDATE `shop_product_skus` s JOIN (
+                SELECT sk.id FROM `shop_product_skus` sk JOIN `shop_product_stocks` st ON sk.id = st.sku_id
+            ) r ON s.id = r.id
+            SET s.count = NULL
+        ";
+        $this->exec($sql);
+
+        // Repair this invariant (if broken):
+        // If sku.count IS NULL proper product.count must be NULL
+        $sql = "
+            UPDATE `shop_product` p
+            JOIN `shop_product_skus` s ON s.product_id = p.id
+            SET p.count = NULL
+            WHERE s.count IS NULL
+        ";
+        $this->exec($sql);
+
+        return $id;
     }
 
     /*

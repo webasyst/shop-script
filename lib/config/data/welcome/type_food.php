@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Food & drinks',
-    'icon' => 'icon16 ss pt hamburger',
+    'icon' => 'ss pt hamburger',
     'features' => array(
         'country' => array(
             'name' => 'Country of origin',

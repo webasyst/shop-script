@@ -100,7 +100,7 @@ class shopShipping extends waAppShipping
     public static function getList()
     {
         if (!class_exists('waShipping')) {
-            throw new waException(_wp('Shipping plugins not installed yet'));
+            throw new waException(_w('Shipping plugins not installed yet'));
         }
         return waShipping::enumerate();
     }

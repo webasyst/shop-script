@@ -1,7 +1,7 @@
 <?php
 return array(
     'name'     => 'Software',
-    'icon'     => 'icon16 ss pt disc',
+    'icon'     => 'ss pt disc',
     'features' => array(
         'license' => array(
             'name'   => 'License',

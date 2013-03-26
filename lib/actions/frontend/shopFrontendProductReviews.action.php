@@ -21,14 +21,16 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
             $product['id'], 0, null, 'datetime DESC', array('escape' => true)
         );
 
+        $config = wa()->getConfig();
+
         $this->view->assign(array(
             'product' => $product,
             'reviews' => $reviews,
             'reviews_count' => $reviews_model->count($product['id'], false),
             'reply_allowed' => true,
             'auth_adapters' => $adapters = wa()->getAuthAdapters(),
-            'request_captcha' => true,
-            'require_authorization' => false,
+            'request_captcha' => $config->getGeneralSettings('require_captcha'),
+            'require_authorization' => $config->getGeneralSettings('require_authorization')
         ));
 
         $storage = wa()->getStorage();

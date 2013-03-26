@@ -88,6 +88,8 @@ class shopProductsCollection
                 // add filters
                 $this->filters(waRequest::get());
 
+                $this->where[] = 'p.status = 1';
+
                 if ($sort = waRequest::get('sort')) {
                     if ($sort == 'stock') {
                         $sort = 'count';
@@ -520,6 +522,9 @@ class shopProductsCollection
                     if (!$this->count()) {
                         $this->count = null;
                         $this->joins = $this->where = $this->fields = array();
+                        if (wa()->getEnv() == 'frontend') {
+                            $this->where[] = 'p.status = 1';
+                        }
                         $this->order_by = 'p.create_datetime DESC';
                         $this->group_by = null;
                         $q = $model->escape($parts[2], 'like');

@@ -54,7 +54,7 @@ class shopOrderSaveController extends waJsonController
         }
 
         $workflow = new shopWorkflow();
-        $this->getParams($data);
+        $this->getParams($data, $id);
 
         if (!$id) {
             $id = $workflow->getActionById('create')->run($data);
@@ -66,7 +66,7 @@ class shopOrderSaveController extends waJsonController
         $this->response['order'] = $this->workupOrder($this->getModel()->getOrder($id));
     }
 
-    private function getParams(&$data)
+    private function getParams(&$data, $id)
     {
         $model = new shopPluginModel();
         // shipping
@@ -94,8 +94,18 @@ class shopOrderSaveController extends waJsonController
             $data['params']['payment_name'] = $plugin_info['name'];
         }
 
+        // shipping and billing addreses
         if (!empty($data['contact'])) {
-            // shipping and billing addreses
+            // Make sure all old address data is removed
+            if ($id) {
+                $opm = new shopOrderParamsModel();
+                foreach($opm->get($id) as $k => $v) {
+                    if (preg_match('~^(billing|shipping)_address\.~', $k)) {
+                        $data['params'][$k] = '';
+                    }
+                }
+            }
+            // Save addresses from contact into params
             foreach (array('shipping', 'billing') as $ext) {
                 $address = $data['contact']->getFirst('address.'.$ext);
                 if (!$address) {

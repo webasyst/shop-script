@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Gifts & souvenirs',
-    'icon' => 'icon16 ss pt gift',
+    'icon' => 'ss pt gift',
     'features' => array(
         'for_whom' => array(
             'name' => 'For whom',

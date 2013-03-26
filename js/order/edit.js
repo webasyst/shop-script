@@ -376,7 +376,7 @@ $.order_edit = {
                 'margin-left' : 200
             }, duration));
             deferreds.push($('#maincontent').animate({
-                'margin-top' : 90
+                'margin-top' : 84
             }, duration));
             $('.s-level2').show();
             deferreds.push($('#s-sidebar').animate({

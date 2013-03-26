@@ -21,6 +21,131 @@
             } else {
                 $.wa.setHash(hash);
             }
+
+            $.reports.initTimeframeSelector();
+        },
+
+        // Timeframe selector logic
+        initTimeframeSelector: function() {
+            var wrapper = $('#mainmenu .s-reports-timeframe');
+            var visible_option = wrapper.children(':first').children('a');
+            var custom_wrapper = wrapper.children(':last').hide();
+
+            // Helper to get timeframe data from <li> element
+            var getTimeframeData = function(li) {
+                return {
+                    timeframe: (li && li.data('timeframe')) || 30,
+                    groupby: (li && li.data('groupby')) || 'days'
+                };
+            };
+
+            // Helper to set active timeframe <li>
+            var setActiveTimeframe = function(li) {
+                visible_option.find('b i').text(li.text());
+                li.addClass('selected').siblings('.selected').removeClass('selected');
+                var tf = getTimeframeData(li);
+                if (tf.timeframe != 'custom') {
+                    $.storage.set('shop/reports/timeframe', tf);
+                }
+            }
+
+            // Helper to set up custom period selector
+            var initCustomSelector = function() {
+
+                var inputs = custom_wrapper.find('input');
+                var from = inputs.filter('[name="from"]');
+                var to = inputs.filter('[name="to"]');
+                var groupby = custom_wrapper.find('select');
+
+                // One-time initialization
+                (function() {
+                    var updatePage = function() {
+                        var from_date = from.datepicker('getDate');
+                        var to_date = to.datepicker('getDate');
+                        if (!from_date || !to_date) {
+                            return false;
+                        }
+                        $.storage.set('shop/reports/timeframe', {
+                            timeframe: 'custom',
+                            groupby: groupby.val(),
+                            from: Math.floor(from_date.getTime() / 1000),
+                            to: Math.floor(to_date.getTime() / 1000)
+                        });
+                        $('#reportscontent').html('<div class="double-padded block"><i class="icon16 loading"></i></div>');
+                        $.reports.dispatch();
+                    };
+
+                    // Datepickers
+                    inputs.datepicker().change(updatePage).keyup(function(e) {
+                        if (e.which == 13 || e.which == 10) {
+                            updatePage();
+                        }
+                    });
+                    inputs.datepicker('widget').hide();
+                    groupby.change(updatePage);
+                })();
+
+                // Code to run each time 'Custom' is selected
+                initCustomSelector = function(){
+                    // Set datepicker values depending on previously selected options
+                    var tf = $.reports.getTimeframe();
+                    if (tf.timeframe == 'custom') {
+                        from.datepicker('setDate', tf.from ? new Date(tf.from*1000) : null);
+                        to.datepicker('setDate', tf.to ? new Date(tf.to*1000) : null);
+                    } else if (tf.timeframe == 'all') {
+                        from.datepicker('setDate', null);
+                        to.datepicker('setDate', null);
+                    } else {
+                        from.datepicker('setDate', '-'+parseInt(tf.timeframe, 10)+'d');
+                        to.datepicker('setDate', new Date());
+                    }
+                    groupby.val(tf.groupby);
+                };
+                initCustomSelector();
+            };
+
+            // Change selection when user clicks on dropdown list item
+            wrapper.children().first().on('click', 'ul li:not(.selected)', function() {
+                var li = $(this);
+                var tf = getTimeframeData(li);
+                if (tf.timeframe == 'custom') {
+                    custom_wrapper.show();
+                    initCustomSelector();
+                    setActiveTimeframe(li);
+                } else {
+                    custom_wrapper.hide();
+                    setActiveTimeframe(li);
+                    $('#reportscontent').html('<div class="double-padded block"><i class="icon16 loading"></i></div>');
+                    $.reports.dispatch();
+                }
+            });
+
+            // Initial selection in dropdown menu
+            var timeframe = $.storage.get('shop/reports/timeframe') || getTimeframeData(wrapper.find('ul li:first'));
+            if (timeframe.timeframe == 'custom') {
+                // Delay initialization to allow datepicker locale to set up properly.
+                // Kinda paranoid, but otherwise localization sometimes fail in FF.
+                $(function() {
+                    setTimeout(function() {
+                        custom_wrapper.show();
+                        initCustomSelector();
+                        setActiveTimeframe(wrapper.find('ul li[data-timeframe="custom"]'));
+                    }, 100);
+                });
+            } else {
+                wrapper.find('ul li').each(function() {
+                    var li = $(this);
+                    var tf = getTimeframeData(li);
+                    if (tf.timeframe == timeframe.timeframe && tf.groupby == timeframe.groupby) {
+                        setActiveTimeframe(li);
+                        timeframe = null;
+                        return false;
+                    }
+                });
+                if (timeframe) {
+                    setActiveTimeframe(wrapper.find('ul li:first'));
+                }
+            }
         },
 
         dispatch: function (hash) {
@@ -89,25 +214,38 @@
         },
 
         salesAction: function () {
-            $("#reportscontent").load('?module=reports&action=sales');
+            $("#reportscontent").load('?module=reports&action=sales'+this.getTimeframeParams());
         },
 
         profitAction: function () {
-            $("#reportscontent").load('?module=reports&action=profit');
+            $("#reportscontent").load('?module=reports&action=profit'+this.getTimeframeParams());
         },
 
         topAction: function () {
-            $("#reportscontent").load('?module=reports&action=top');
+            $("#reportscontent").load('?module=reports&action=top'+this.getTimeframeParams());
         },
         topSalesAction: function () {
             this.setActiveTop('top');
-            $("#reportscontent").load('?module=reports&action=top&mode=sales');
+            $("#reportscontent").load('?module=reports&action=top&mode=sales'+this.getTimeframeParams());
         },
         topProfitsAction: function () {
             this.setActiveTop('top');
-            $("#reportscontent").load('?module=reports&action=top&mode=profits');
+            $("#reportscontent").load('?module=reports&action=top&mode=profits'+this.getTimeframeParams());
         },
 
+        // Helper
+        getTimeframe: function() {
+            return $.storage.get('shop/reports/timeframe') || {
+                timeframe: 30,
+                groupby: 'days'
+            };
+        },
+        // Helper
+        getTimeframeParams: function() {
+            return '&' + $.param(this.getTimeframe());
+        },
+
+        // Helper to draw pie charts
         pie: function(id, data) {
             if (!data || !data.length) {
                 $('#'+id).remove();
@@ -137,7 +275,8 @@
             });
         },
 
-        graph: function (id, data) {
+        // Helper to draw line charts
+        graph: function (id, data, period_month) {
             $.jqplot(id, [data], {
                 seriesColors : ["#3b7dc0", "#129d0e", "#a38717", "#ac3562", "#1ba17a", "#87469f", "#6b6b6b", "#686190", "#b2b000", "#00b1ab", "#76b300"],
                 series : [{
@@ -163,8 +302,9 @@
                         renderer: $.jqplot.DateAxisRenderer,
                         showTickMarks: false,
                         tickOptions:{
-                            formatString:'%b %d'
+                            formatString: period_month ? '%b %Y' : '%b %d'
                         },
+                        tickInterval: period_month ? '1 month' : '1 day'
                     },
                     y2axis:{
                         min: 0,

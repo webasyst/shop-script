@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Appliances',
-    'icon' => 'icon16 ss pt socket',
+    'icon' => 'ss pt socket',
     'features' => array(
         'brand' => array(
             'name' => 'Brand',

@@ -45,26 +45,35 @@ class shopStocksAction extends waViewAction
 
     public function getProductStocks($offset, $count, $order_by)
     {
-        $stock_model = new shopStockModel();
-        $stocks = $stock_model->getAll();    // without indexing by ID
-
         $data = $this->product_model->getProductStocks($offset, $count, $order_by);
 
         foreach ($data as &$product) {
-            $product['icon'] = shopHelper::getStockCountIcon($product['total_count']);
+            $product['icon'] = shopHelper::getStockCountIcon($product['count']);
             foreach ($product['skus'] as &$sku) {
                 $sku['icon'] = shopHelper::getStockCountIcon($sku['count']);
             }
             unset($sku);
 
-            // Note: stocks array isn't indexed by it's ID
-            foreach ($product['stocks'] as $index => &$stock) {
+            foreach ($product['stocks'] as $stock_id => &$stock) {
                 foreach ($stock as &$sku) {
-                    $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], $stocks[$index]['id']);
+                    $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], $stock_id);
                 }
             }
-            unset($stock, $sku);
+            unset($product, $stock, $sku);
         }
+
+        // because javascript doesn't guarantee any particular order for the keys in object
+        // make hash-table to array converting
+        $data = array_values($data);
+        foreach ($data as &$product) {
+            $product['skus']   = array_values($product['skus']);
+            $product['stocks'] = array_values($product['stocks']);
+            foreach ($product['stocks'] as &$stock) {
+                $stock = array_values($stock);
+            }
+            unset($product, $stock);
+        }
+
         return $data;
     }
 

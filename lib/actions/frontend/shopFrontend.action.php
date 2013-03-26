@@ -65,7 +65,7 @@ class shopFrontendAction extends waViewAction
         $this->view->assign('frontend_nav', wa()->event('frontend_nav'));
 
         try {
-            return parent::display($clear_assign);
+            return parent::display(false);
         } catch (waException $e) {
             if ($e->getCode() == 404) {
                 $url = $this->getConfig()->getRequestUrl(false, true);

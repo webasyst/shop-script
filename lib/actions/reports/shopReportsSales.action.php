@@ -4,24 +4,7 @@ class shopReportsSalesAction extends waViewAction
 {
     public function execute()
     {
-        $start_time = date('Y-m-d', time() - 30*24*3600); // !!! TODO: use parameter for this
-
-        // Data for main graph: 'yyyy-mm-dd' => array(...).
-        // Init it with zeroes.
-        $sales_by_day = array();
-        $now = time();
-        for ($t = strtotime($start_time); $t < $now; $t += 3600*24) {
-            $date = date('Y-m-d', $t);
-            $sales_by_day[$date] = array(
-                'date' => $date,
-                'total_percent' => 0,
-                'total' => 0,
-            );
-        }
-
-        if (empty($sales_by_day)) {
-            throw new waException('Bad parameters');
-        }
+        list($start_date, $end_date, $group_by) = self::getTimeframeParams();
 
         // Total sales for period, in default currency
         $total_sales = array(
@@ -43,9 +26,9 @@ class shopReportsSalesAction extends waViewAction
         // Loop over all days of a period that had at least one order paid,
         // and gather data into vars listed above.
         $om = new shopOrderModel();
-        foreach ($om->getSales($start_time) as $row) {
+        $sales_by_day = $om->getSales($start_date, $end_date, $group_by);
+        foreach ($sales_by_day as $row) {
             $max_day_sales = max($max_day_sales, (float) $row['total']);
-            $sales_by_day[$row['paid_date']]['total'] = (float) $row['total'];
             $total_orders['new_customers'] += (int) $row['customer_first_count'];
             $total_sales['new_customers'] += (float) $row['customer_first_total'];
             $total_orders['total'] += (int) $row['count'];
@@ -57,7 +40,7 @@ class shopReportsSalesAction extends waViewAction
         // Data for main chart
         $sales_data = array();
         foreach($sales_by_day as &$d) {
-            $d['total_percent'] = $max_day_sales ? ($d['total']*100 / $max_day_sales) : 0;
+            $d['total_percent'] = $max_day_sales ? ($d['total']*100 / ifempty($max_day_sales, 1)) : 0;
             $sales_data[] = array($d['date'], $d['total']);
         }
         unset($d);
@@ -66,6 +49,7 @@ class shopReportsSalesAction extends waViewAction
 
         $this->view->assign('sales_by_day', $sales_by_day);
         $this->view->assign('sales_data', $sales_data);
+        $this->view->assign('group_by', $group_by);
         $this->view->assign('def_cur', $def_cur);
         $this->view->assign('stat', array(
             'total_formatted' => waCurrency::format('%{s}', $total_sales['total'], $def_cur),
@@ -74,7 +58,36 @@ class shopReportsSalesAction extends waViewAction
             'avg_total_formatted' => waCurrency::format('%{s}', round($total_sales['total'] / ifempty($total_orders['total'],1), 1), $def_cur),
             'avg_total_new_formatted' => waCurrency::format('%{s}', round($total_sales['new_customers'] / ifempty($total_orders['new_customers'],1), 2), $def_cur),
             'avg_total_returning_formatted' => waCurrency::format('%{s}', round($total_sales['returning_customers'] / ifempty($total_orders['returning_customers'],1), 2), $def_cur),
-            'avg_total_daily_formatted' => waCurrency::format('%{s}', round($total_sales['total'] / count($sales_by_day), 2), $def_cur),
+            'avg_total_daily_formatted' => waCurrency::format('%{s}', $sales_by_day ? round($total_sales['total'] / count($sales_by_day), 2) : 0, $def_cur),
         ));
     }
+
+    public static function getTimeframeParams()
+    {
+        $timeframe = waRequest::request('timeframe');
+        if ($timeframe === 'all') {
+            $start_date = null;
+            $end_date = null;
+        } else if ($timeframe == 'custom') {
+            $from = waRequest::request('from', 0, 'int');
+            $start_date = $from ? date('Y-m-d', $from) : null;
+
+            $to = waRequest::request('to', 0, 'int');
+            $end_date = $to ? date('Y-m-d', $to) : null;
+        } else {
+            if (!int_ok($timeframe)) {
+                $timeframe = 30;
+            }
+            $start_date = date('Y-m-d', time() - $timeframe*24*3600);
+            $end_date = null;
+        }
+
+        $group_by = waRequest::request('groupby', 'days');
+        if ($group_by !== 'months') {
+            $group_by = 'days';
+        }
+
+        return array($start_date, $end_date, $group_by);
+    }
 }
+

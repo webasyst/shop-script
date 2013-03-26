@@ -23,9 +23,16 @@ class shopProductServicesModel extends waModel
     /**
      * @param array $products
      */
-    public function deleteByProducts(array $products)
+    public function deleteByProducts(array $products, $service_id = null)
     {
-        $this->deleteByField('product_id', $products);
+        if (!$service_id) {
+            $this->deleteByField('product_id', $products);
+        } else {
+            $this->deleteByField(array(
+                'product_id' => $products,
+                'service_id' => $service_id
+            ));
+        }
     }
 
     public function deleteByVariants($variants)
@@ -212,13 +219,26 @@ class shopProductServicesModel extends waModel
         if (!$product) {
             return false;
         }
-        return "SELECT COUNT(s.id) AS cnt
-            FROM `shop_service` s
-                LEFT JOIN `{$this->table}` ps ON s.id = ps.service_id AND product_id = $product_id
-                LEFT JOIN `shop_type_services` ts ON s.id = ts.service_id AND type_id ".($product['type_id'] ? " = {$product['type_id']}" : " IS NULL")."
-            WHERE ps.service_variant_id IS NULL AND ps.sku_id IS NULL AND
-                (ps.product_id IS NOT NULL OR ts.type_id IS NOT NULL) AND
-                (ps.status IS NULL OR ps.status != ".self::STATUS_FORBIDDEN.")";
+        $type_id = $product['type_id'];
+
+        $sql = "
+            SELECT COUNT(r.id) cnt FROM (
+                SELECT s.id
+                FROM `shop_service` s
+                    LEFT JOIN `{$this->table}` ps ON
+                        s.id = ps.service_id AND ps.product_id = $product_id
+                    LEFT JOIN `shop_type_services` ts ON
+                        s.id = ts.service_id AND type_id ".($type_id ? " = $type_id" : " IS NULL")."
+                WHERE ps.sku_id IS NULL AND
+                    (
+                        (ps.status IS NULL AND (ps.product_id IS NOT NULL OR ts.type_id IS NOT NULL))
+                        OR
+                        ps.status != ".self::STATUS_FORBIDDEN."
+                    )
+                GROUP BY s.id
+            ) r
+        ";
+        return $sql;
     }
 
     public function getAvailableServicesFullInfo($product_id, $sku_id)

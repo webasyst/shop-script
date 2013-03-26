@@ -56,13 +56,21 @@
                 </div>
                 <div class="field-group">
                     <div class="field">
-                        <div class="name">[`Profit by day`]</div>
+                        {if $group_by == 'days'}
+                            <div class="name">[`Profit by day`]</div>
+                        {else}
+                            <div class="name">[`Profit by month`]</div>
+                        {/if}
                         <div class="value">
 
                             <table class="zebra">
                                 {foreach array_reverse($by_day) as $d}
                                 <tr>
-                                    <td>{$d.date|wa_date:'humandate'}</td>
+                                    {if $group_by == 'days'}
+                                        <td>{$d.date|wa_date:'humandate'}</td>
+                                    {else}
+                                        <td>{_ws(date('F', strtotime($d.date)), date('F', strtotime($d.date)), '1')} {$d.date|wa_date:'Y'}</td>
+                                    {/if}
                                     <td class="align-right gray">{_ws(date('D', strtotime($d.date)))}</td>
                                     <td class="align-right">{$d.total|wa_format_amount_currency:$def_cur}</td>
                                     <td>
@@ -87,7 +95,7 @@
 
 <script type="text/javascript">(function() { "use strict";
     document.title = '[`Profit`] — {$wa->accountName()}';
-    $.reports.graph('reports-profit-graph', {json_encode($profit_data)});
+    $.reports.graph('reports-profit-graph', {json_encode($profit_data)}, {if $group_by == 'days'}0{else}1{/if});
     {if $pie_data}
         $.reports.pie('reports-profit-pie', {json_encode($pie_data)});
     {/if}

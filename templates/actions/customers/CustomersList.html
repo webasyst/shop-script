@@ -50,7 +50,7 @@
                                 <i class="icon16 country" style="{*/**}background-image: url('{$wa_url}wa-content/img/country/{strtolower($c.address.country)|escape}.gif');{**/*}"></i>
                             {/if}
                             {ifset($c.address.city)|escape}{if !empty($c.address.city) && !empty($c.address.region)},{/if}
-                            {ifset($c.address.region)|escape}
+                            {ifset($c.address.region_formatted, ifset($c.address.region, ''))|escape}
                             <span class="hint">{ifset($c.address.zip)|escape} {ifset($c.address.street)|escape}</span>
                         </p>
                     </td>

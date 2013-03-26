@@ -61,7 +61,7 @@ class shopCartItemsModel extends waModel
                 }
             }
 
-            $services_total += $s['price'];
+            $services_total += $s['price'] * $s['quantity'];
         }
 
         $total = $products_total + $services_total;

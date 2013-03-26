@@ -2,7 +2,7 @@
 
 return array(
     'name' => 'Musical instruments',
-    'icon' => 'icon16 ss pt guitar',
+    'icon' => 'ss pt guitar',
     'features' => array(
         'country' => array(
             'name' => 'Country of origin',

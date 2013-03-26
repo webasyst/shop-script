@@ -31,6 +31,7 @@ class shopFrontendCartAddController extends waJsonController
             $this->response['total'] = shop_currency($cart->total(), true);
             $this->response['count'] = shop_currency($cart->count());
             $this->response['discount'] = shop_currency($cart->discount(), true);
+            $this->response['item_total'] = shop_currency($cart->getItemTotal($data['parent_id']), true);
             return;
         }
 

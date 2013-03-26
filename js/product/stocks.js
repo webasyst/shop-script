@@ -15,7 +15,9 @@
             this.container = $('#s-product-stocks');
 
             this.initView();
-            this.initDragndrop();
+            if (options.stocks && options.stocks.length > 1) {
+                this.initDragndrop();
+            }
             if (this.options.lazy_loading) {
                 this.initLazyLoad(this.options.lazy_loading);
             }
@@ -96,7 +98,7 @@
         },
 
         initDragndrop: function() {
-            this.container.find('td.s-stock-cell li').liveDraggable({
+            this.container.find('td.s-stock-cell li.item').liveDraggable({
                 containment: this.container,
                 distance: 5,
                 cursor: 'move',
@@ -133,23 +135,32 @@
                     if (self.get(0) == td.get(0)) {
                         return false;
                     }
-                    var item_id = dr.attr('id').replace('s-item-', '').split('-');
-                    var src_stock_id = item_id[1], dst_stock_id = self.attr('data-stock-id');
+                    var src_item_id = dr.attr('id').replace('s-item-', '').split('-');
+                    var src_stock_id = src_item_id[1];
+                    var dst_stock_id = self.attr('data-stock-id');
+                    var dst_item_id = [src_item_id[0], dst_stock_id];
+                    var dst_item = $('#s-item-' + dst_item_id.join('-'));
+
+                    // filter out item that marked as infinity
+                    if (dst_item.length && dst_item.hasClass('infinity')) {
+                        return false;
+                    }
+
                     $.product_stocks.transferDialog(
-                        { name: dr.find('a').text(), id: item_id[0] },
+                        { name: dr.find('a').text(), id: src_item_id[0] },
                         src_stock_id,
                         dst_stock_id,
                         function(r) {
                             td.html(
                                 tmpl('template-product-stocks-sku-list', {
-                                    stock: { id: src_stock_id },
+                                    stock:   { id: src_stock_id },
                                     product: { id: r.data.product_id },
                                     skus: r.data.stocks[src_stock_id] || []
                                 })
                             );
                             self.html(
                                 tmpl('template-product-stocks-sku-list', {
-                                    stock: { id: dst_stock_id },
+                                    stock:   { id: dst_stock_id },
                                     product: { id: r.data.product_id },
                                     skus: r.data.stocks[dst_stock_id] || []
                                 })
@@ -212,7 +223,7 @@
                 onSubmit: function() {
                     $('#s-stock-name-editable').trigger('editable', false);
                     var self = $(this);
-                    $.products.jsonPost(self.attr('action'), self.serializeArray(),
+                    $.shop.jsonPost(self.attr('action'), self.serializeArray(),
                         function(r) {
                             if (typeof success === 'function') {
                                 success(r);

@@ -9,7 +9,8 @@ class shopTypeFeaturesModel extends shopSortableModel
     {
         $sql = "SELECT * FROM ".$this->table." tf JOIN
                 shop_feature f ON tf.feature_id = f.id
-                WHERE tf.type_id = i:id";
+                WHERE tf.type_id = i:id
+                ORDER BY tf.sort";
         return $this->query($sql, array('id' => $type_id))->fetchAll();
     }
 

@@ -142,8 +142,10 @@ class shopFrontendCheckoutAction extends waViewAction
             if (!$address) {
                 $address = $contact->getFirst('address');
             }
-            foreach ($address['data'] as $k => $v) {
-                $order['params'][$ext.'_address.'.$k] = $v;
+            if ($address) {
+                foreach ($address['data'] as $k => $v) {
+                    $order['params'][$ext.'_address.'.$k] = $v;
+                }
             }
         }
 

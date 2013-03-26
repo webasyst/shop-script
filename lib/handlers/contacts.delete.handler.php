@@ -9,9 +9,11 @@ class shopContactsDeleteHandler extends waEventHandler
      */
     public function execute($params)
     {
-        // TODO: take a look to other models related with contacts
+        $contact_ids = $params;
 
-        $c = new waContactsCollection('id/'.implode(',', $params));
+        // We need some info about (not yet) deleted contacts to save into order params.
+        // The idea is to pretend that orders were created by guests with no auth.
+        $c = new waContactsCollection('id/'.implode(',', $contact_ids));
         $contacts = $c->getContacts('name,phone,email');
         foreach ($contacts as &$contact) {
             if (is_array($contact['phone'])) {
@@ -31,25 +33,37 @@ class shopContactsDeleteHandler extends waEventHandler
             }
         }
 
-        $product_reviews_model = new shopProductReviewsModel();
         $order_model = new shopOrderModel();
         $order_params_model = new shopOrderParamsModel();
+        $product_reviews_model = new shopProductReviewsModel();
         foreach ($contacts as $contact) {
-            $product_reviews_model->updateByField('contact_id', $contact['id'],
-                array(
-                    'contact_id' => 0,
-                    'name' => $contact['name'],
-                    'auth_provider' => null
-                )
-            );
-
+            // Insert customer info into params of their orders
             $order_ids = array_keys($order_model->select('id')->where('contact_id=:contact_id', array('contact_id' => $contact['id']))->fetchAll('id'));
             $order_params_model->set($order_ids, $this->extractContactInfo($contact));
-            $order_model->updateByField('contact_id', $contact['id'], array('contact_id' => null));
+
+            // Insert contact name into their reviews
+            $product_reviews_model->updateByField('contact_id', $contact['id'], array(
+                'contact_id' => 0,
+                'name' => $contact['name'],
+                'auth_provider' => null
+            ));
         }
 
+        // Update orders as if they were created by guests with no auth
+        $order_model->updateByField('contact_id', $contact_ids, array('contact_id' => null));
+
+        // Forget the customer
         $scm = new shopCustomerModel();
-        $scm->deleteById($params);
+        $scm->deleteById($contact_ids);
+
+        // Forget that this user created coupons
+        $coupm = new shopCouponModel();
+        $coupm->updateByField('contact_id', $contact_ids, array(
+            'contact_id' => 0,
+        ));
+
+        // !!! TODO: take a look to other models related with contacts
+
     }
 
     public function extractContactInfo($contact)

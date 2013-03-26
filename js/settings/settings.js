@@ -41,7 +41,7 @@ $.extend($.settings = $.settings || {}, {
                     var $text = $(xhr.responseText);
                     var $message = $('<div class="block double-padded"></div>');
                     if ($text.find('.dialog-content').length) {
-                        text = $message.append($text.find('.dialog-content *'));
+                        $text = $message.append($text.find('.dialog-content *'));
 
                     } else {
                         $text = $message.append($text.find(':not(style)'));

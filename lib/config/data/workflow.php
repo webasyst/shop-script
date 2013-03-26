@@ -63,7 +63,7 @@ return array(
             'options' => array(
                 'icon' => 'icon16 ss sent',
                 'style' => array(
-                    'color' => 'blue',
+                    'color' => '#0000FF',
                     'font-style' => 'italic',
                 )
             ),
@@ -78,7 +78,7 @@ return array(
             'options' => array (
                 'icon' => 'icon16 ss completed',
                 'style' => array(
-                    'color' => 'purple',
+                    'color' => '#800080',
                 )
             ),
             'available_actions' => array(

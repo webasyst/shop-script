@@ -51,6 +51,7 @@ return array(
         'filter' => array('text'),
         'sort_products' => array('varchar', 32),
         'include_sub_categories' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
+        'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'url' => array('parent_id', 'url', 'unique' => 1),
@@ -93,7 +94,7 @@ return array(
         'comment' => array('text'),
         'expire_datetime' => array('datetime'),
         'create_datetime' => array('datetime', 'null' => 0),
-        'create_contact_id' => array('int', 10, 'unsigned' => 1, 'null' => 0),
+        'create_contact_id' => array('int', 11, 'unsigned' => 1, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'code' => array('code', 'unique' => 1),
@@ -345,7 +346,7 @@ return array(
         'contact_id' => array('int', 11),
         'create_datetime' => array('datetime', 'null' => 0),
         'edit_datetime' => array('datetime'),
-        'status' => array('smallint', 6, 'null' => 0, 'default' => '0'),
+        'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         'type_id' => array('int', 11),
         'image_id' => array('int', 11),
         'sku_id' => array('int', 11),
@@ -440,7 +441,7 @@ return array(
         'title' => array('varchar', 64),
         'text' => array('text'),
         'rate' => array('decimal', "3,2"),
-        'contact_id' => array('int', 11, 'null' => 0),
+        'contact_id' => array('int', 11, 'unsigned' => 1, 'null' => 0, 'default' => '0'),
         'name' => array('varchar', 50),
         'email' => array('varchar', 50),
         'site' => array('varchar', 100),
@@ -485,7 +486,7 @@ return array(
         'dimension_id' => array('int', 11),
         'file_name' => array('varchar', 255, 'null' => 0, 'default' => ''),
         'file_size' => array('int', 11, 'null' => 0, 'default' => '0'),
-        'file_description' => array('text', 'null' => 0),
+        'file_description' => array('text'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'product_id' => 'product_id',
