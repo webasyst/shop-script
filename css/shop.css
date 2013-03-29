@@ -105,7 +105,7 @@ ul.menu-v.stack.drop-target.drag-active { padding: 0; border-left: 0; border-rig
 
 .s-color-tag { display: inline-block; width: 9px; height: 9px; border-radius: 6px; margin-right: 3px; border: 1px solid rgba(0,0,0,0.25); }
 
-.s-plus-minus { display: inline-block; font-family: monospace; font-size: 0.9em; line-height: 1.2em; margin-bottom: -0.3em; text-align: right; vertical-align: -0.4em; }
+.s-plus-minus { display: inline-block !important; font-family: monospace; font-size: 0.9em; line-height: 1.2em; margin-bottom: -0.3em; text-align: right; vertical-align: -0.4em; }
 
 ul.tags { list-style-type: none; margin: 0; padding: 0; }
 
@@ -162,7 +162,7 @@ ul.s-order-actions li .button { border-width: 3px; padding-left: 12px; padding-r
 .s-order-address { padding-left: 20px; }
 .s-order-address img.overhanging { margin-left: -20px; }
 
-.s-order-timeline { font-size: 0.9em; }
+.s-order-timeline .fields { font-size: 0.9em; }
 
 ul.menu-v.with-icons li.s-shifted { padding-left: 36px; }
 
@@ -174,6 +174,25 @@ ul.s-coupon-list { margin-top: 13px; }
 ul.s-coupon-list li.s-expired a { color: #aaa; }
 
 .s-order-item-delete { padding-top: 5px; }
+
+.s-printable-print-button { display: none; }
+.s-printable { overflow: scroll; }
+.s-printable .s-order { box-shadow: none; }
+.s-printable .s-order .s-order-aux .js-printable-docs,
+.s-printable .s-order .s-order-aux ul,
+.s-printable .s-order .s-order-aux p,
+.s-printable .s-order .s-order-actions,
+.s-printable .s-order .workflow-actions,
+.s-printable .s-order .workflow-content,
+.s-printable .s-order .s-order-timeline,
+.s-printable .s-order h1 .back { display: none; }
+.s-printable .s-order .s-printable-print-button { display: block; }
+.s-printable .s-order .s-order-comment { background: #fff; border: 1px dashed #aaa; margin: 20px 0; }
+@media print {
+    .s-printable .s-order .s-printable-print-button { display: none; }
+    .s-printable .s-order a { text-decoration: none; color: #000; font-weight: bold; }
+}
+
 
 /* CUSTOMERS
 ------------ */
@@ -224,8 +243,8 @@ ul.menu-v.with-icons a.rate-clear { margin: 0; padding: 0; }
 #s-product-edit-save-panel { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 0 10px; box-shadow: 0 -6px 10px -10px #AAAAAA; z-index: 100; }
 #s-product-profile-page .content.right200px { margin-right: 230px /* a bit more ousted by product performance charts */; }
 
-#s-content ul.thumbs li { margin-right: 0; line-height: 1.2em; }
-#s-content ul.thumbs li.selected .s-product-details strong { background: #FDDA3B; }
+#s-content ul.thumbs li { margin-right: 0; }
+#s-content ul.thumbs li.selected .s-product-details strong { background: #FDDA3B; padding: 2px 3px; }
 
 table.zebra.s-product-skus td.s-name { max-width: 50%; }
 table.zebra.s-product-skus td.s-stock,
@@ -248,7 +267,7 @@ table#product-list th span.sort { display: block; margin: 4px 0; }
 table#product-list th span.sort a { display: inline; }
 
 .s-product-form.main { min-width: 600px; }
-.s-product-form.main .s-product-categories select { display: block; }
+/*.s-product-form.main .s-product-categories select { display: block; }*/
 .s-product-form.descriptions .s-editor-core-wrapper { border: 1px solid #ccc; margin-top: 0; }
 .s-product-form.descriptions .fields { float: none; }
 .s-product-form.descriptions .field.description { padding: 10px 0; }
@@ -470,7 +489,7 @@ ul.menu-h.s-reports-timeframe li.s-custom-timeframe input { width: 100px; }
 .s-nolevel2-sidebar.s-storefronts ul.menu-v li { margin-bottom: 6px; }
 .s-nolevel2-sidebar.s-storefronts ul.menu-v li a { color: #03c; font-size: 0.9em; }
 .s-nolevel2-sidebar.s-storefronts ul.menu-v li.larger a { font-size: 1.1em; }
-.s-nolevel2-box { position: relative; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); background: #f7f7f7; border: 1px solid #ccc; border-top: 0; margin-bottom: 70px; }
+.s-nolevel2-box { /* position: relative; */ z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); background: #f7f7f7; border: 1px solid #ccc; border-top: 0; margin-bottom: 70px; }
 .s-nolevel2-box table.zebra td.hover-only-links { min-width: 100px; }
 ul#s-settings-menu li a i.icon16 { opacity: 0.4; }
 ul#s-settings-menu li a:hover i.icon16 { opacity: 0.8; }
@@ -534,6 +553,12 @@ ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
 #s-checkout-contact-form-wrapper .field-row.editor-off .name-input { display: none; }
 #s-checkout-contact-form-wrapper .field-row.editor-off .field-advanced-settings { display: none; }
 #s-checkout-contact-form-wrapper .type-selector { margin-top: 5px; }
+
+.s-cheatsheet { background: #f3f3e3; margin-top: 20px; padding: 3px 5px 3px 3px; }
+.s-cheatsheet .fields { border: 1px dashed #cc8; margin-bottom: 0; width: 100%; }
+.s-cheatsheet .fields .name { padding-left: 10px; }
+.s-cheatsheet .s-sub-field { font-size: 0.8em; }
+.s-cheatsheet .s-sub-field .name { padding-left: 20px; }
 
 /* ICONS
 -------- */

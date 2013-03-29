@@ -36,6 +36,13 @@ class shopProductsCollection
         $this->setHash($hash);
     }
 
+    public function setOptions($options)
+    {
+        foreach ($options as $k => $v) {
+            $this->options[$k] = $v;
+        }
+    }
+
     protected function setHash($hash)
     {
         if (is_array($hash)) {
@@ -85,8 +92,9 @@ class shopProductsCollection
             }
 
             if (wa()->getEnv() == 'frontend') {
-                // add filters
-                $this->filters(waRequest::get());
+                if (!empty($this->options['filters'])) {
+                    $this->filters(waRequest::get());
+                }
 
                 $this->where[] = 'p.status = 1';
 

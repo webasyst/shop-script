@@ -24,6 +24,7 @@ class shopProductsAction extends shopProductListAction
             'collection_hash' => $this->hash,
             'collection_param' => $this->collection_param,
             'sort' => $this->sort,
+            'order' => $this->order,
             'text' => $this->text,
             'title' => $this->hash[0] != 'search' ? $this->collection->getTitle() : $this->text,
             'info' => $this->collection->getInfo(),

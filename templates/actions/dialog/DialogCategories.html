@@ -4,11 +4,18 @@
     <div class="dialog-window">
         <div class="dialog-content">
             <div class="dialog-content-indent">
-                <h1>[`Categories`] <span class="gray" style="display:none;">(0)</span></h1>
-                <div class="hierarchical">
+                <h1>[`Categories`] <span class="gray" style="display:none;">(0)</span></h1>                
+                <ul class="menu-v with-icons">
+                    <li class="bottom-padded">
+                        <label>
+                            <i class="icon16 folder"></i><input type="checkbox" name="new_category" value="1"> 
+                            <span class="name">[`New category`]:</span>
+                        </label>                        
+                        <input name="new_category_name" value="" style="margin-top: -5px;">
+                    </li>
                     {if !empty($categories)}
                         {function category_tree parent_id=0}
-                            <ul class="menu-v with-icons">
+                            
                                 {foreach $categories as $category}
                                 {if $category.parent_id == $parent_id}
                                 <li>
@@ -22,13 +29,11 @@
                                 </li>
                                 {/if}
                                 {/foreach}
-                            </ul>
+                            
                         {/function}
                         {call category_tree}
-                    {else}
-                        [`No category exists`]
                     {/if}
-                </div>
+                </ul>
             </div>
         </div>
         <div class="dialog-buttons">

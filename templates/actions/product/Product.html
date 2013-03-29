@@ -130,7 +130,7 @@
 
             </ul>
 
-            <p class="hint"><span class="s-product-description-input">{$product.summary}</span>
+            <p class="hint"><span class="s-product-description-input">{$product.summary|escape}</span>
             {if $edit_right}
             <a href="#/product/{$product.id}/edit/descriptions/" class="s-product-edit-link">[`Edit`]</a></p>
             {/if}
@@ -304,7 +304,7 @@
                                     <option {if $product.status}selected{/if} value="1">[`Available for purchase`]</option>
                                     <option {if !$product.status}selected{/if} value="0">[`Hidden`]</option>
                                 </select>
-                            </div>                            
+                            </div>
                             {strip}
                                 <span style="display:none" class="s-frontend-base-url">{$frontend_base_url}</span>
                                 <a href="{$frontend_url}"  class="s-frontend-base-url" target="_blank">
@@ -316,6 +316,10 @@
                                 <input type="text" class="s-product-url-input" id="s-product-frontend-url-input" value="{$product.url}" name="product[url]" style="display:none;">
                             {/strip}
                             <a href="javascript:void(0);" class="small inline-link" id="s-product-frontend-url-edit-link"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
+                            
+                            <p class="s-product-status-text hint" {if $product.status}style="display:none;"{/if}>
+                                [`Hidden products are not shown among other products in the storefront, are not available for purchase, and can be viewed by the direct URL only.`]
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -359,6 +363,10 @@
                                         <option class="separator" value="---" disabled="disabled" style="display:none;">---</option>
                                     {/if}
                                 </select>
+                                <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$category_id}style="display:none;"{/if}>
+                                    <i class="icon10 delete-bw no-overhanging"></i>
+                                </a>
+                                
                                 <span class="s-new-category" style="display:none;">
                                     <input type="text" name="new_category" class="new-category" class="js-ignore-change">
                                     <input type="hidden" name="product[categories][]" class="val" value="{$category_id}" disabled="disabled">
@@ -466,7 +474,6 @@ TODO
                                     {$count = $sku.stock[$stock_id]}
                                 {else}
                                     {$count = null}
-
                                 {/if}
                                 <span data-stock="{$stock_id}" class="s-product-stock-icon">
                                 {shopHelper::getStockCountIcon($count,$stock_id)}

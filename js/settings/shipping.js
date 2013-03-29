@@ -1,6 +1,6 @@
 /**
  * {literal}
- *
+ * 
  * @names shipping*
  * @property {} shipping_options
  * @method shippingInit
@@ -12,16 +12,16 @@ if (typeof($) != 'undefined') {
 
     $.extend($.settings = $.settings || {}, {
 
-        shipping_options : {
-            'null' : null,
-            'loading' : 'Loading...<i class="icon16 loading"><i>'
+        shipping_options: {
+            'null': null,
+            'loading': 'Loading...<i class="icon16 loading"><i>'
         },
         /**
          * Init section
-         *
+         * 
          * @param string tail
          */
-        shippingInit : function() {
+        shippingInit: function() {
             $.shop.trace('$.settings.shippingInit');
             /* init settings */
             var self = this;
@@ -30,13 +30,13 @@ if (typeof($) != 'undefined') {
             });
 
             $('#s-settings-shipping').sortable({
-                'distance' : 5,
-                'opacity' : 0.75,
-                'items' : '> tbody > tr:visible',
-                'handle' : '.sort',
-                'cursor' : 'move',
-                'tolerance' : 'pointer',
-                'update' : function(event, ui) {
+                'distance': 5,
+                'opacity': 0.75,
+                'items': '> tbody > tr:visible',
+                'handle': '.sort',
+                'cursor': 'move',
+                'tolerance': 'pointer',
+                'update': function(event, ui) {
                     var id = parseInt($(ui.item).data('id'), 10);
                     var after_id = $(ui.item).prev().data('id');
                     if (after_id === undefined) {
@@ -54,15 +54,15 @@ if (typeof($) != 'undefined') {
 
         },
 
-        shipping_data : {
-            'null' : null
+        shipping_data: {
+            'null': null
 
         },
 
         /**
          * Disable section event handlers
          */
-        shippingBlur : function() {
+        shippingBlur: function() {
             $('#s-settings-shipping-type-dialog').off('click', 'a.js-action');
             $('#s-settings-shipping-type-dialog').remove();
             $('#s-settings-content').off('click', 'a.js-action');
@@ -70,10 +70,10 @@ if (typeof($) != 'undefined') {
         },
 
         /**
-         *
+         * 
          * @param {String} tail
          */
-        shippingAction : function(tail) {
+        shippingAction: function(tail) {
             var method = $.shop.getMethod(tail.split('/'), this, 'shipping');
             $.shop.trace('$.settings.shippingAction', [method, this.path, tail]);
             if (method.name) {
@@ -87,10 +87,10 @@ if (typeof($) != 'undefined') {
             }
         },
 
-        shippingSort : function(id, after_id, list) {
+        shippingSort: function(id, after_id, list) {
             $.post('?module=settings&action=shippingSort', {
-                'module_id' : id,
-                'after_id' : after_id
+                'module_id': id,
+                'after_id': after_id
             }, function(response) {
                 $.shop.trace('$.settings.shippingSort result', response);
                 if (response.error) {
@@ -108,7 +108,7 @@ if (typeof($) != 'undefined') {
             });
         },
 
-        shippingPluginAdd : function(plugin_id, $el) {
+        shippingPluginAdd: function(plugin_id, $el) {
             $.wa.dropdownsClose();
             this.shippingPluginShow(plugin_id, function() {
                 var $title = $('#s-settings-content h1.js-bread-crumbs:first');
@@ -121,11 +121,11 @@ if (typeof($) != 'undefined') {
 
         /**
          * Show plugin setup options
-         *
+         * 
          * @param {String} plugin_id
          * @param {JQuery} $el
          */
-        shippingPluginSetup : function(plugin_id, $el) {
+        shippingPluginSetup: function(plugin_id, $el) {
             this.shippingPluginShow(plugin_id, function() {
                 var $title = $('#s-settings-content h1.js-bread-crumbs:first');
                 var $plugin_name = $('#s-settings-shipping-setup .field-group:first h1.js-bread-crumbs:first');
@@ -135,7 +135,7 @@ if (typeof($) != 'undefined') {
 
         },
 
-        shippingPluginShow : function(plugin_id, callback) {
+        shippingPluginShow: function(plugin_id, callback) {
             $('#s-settings-content #s-shipping-menu').hide();
             var $plugins = $('#s-settings-content #s-settings-shipping');
             $plugins.hide();
@@ -150,28 +150,48 @@ if (typeof($) != 'undefined') {
         /**
          * @param {JQuery} $el
          */
-        shippingPluginSave : function($el) {
-            var data = $el.serialize();
+        shippingPluginSave: function($form) {
             var self = this;
             var url = '?module=settings&action=shippingSave';
-            $.post(url, data, function(data, textStatus, jqXHR) {
-                self.dispatch('#/shipping/', true);
+            self.shippingHelper.message('submit');
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: $form.serialize(),
+                dataType: 'json',
+                success: function(data, textStatus, jqXHR) {
+                    if (data && (data.status == 'ok')) {
+                        var message = 'Saved';
+                        if (data.data && data.data.message) {
+                            message = data.data.message;
+                        }
+                        self.shippingHelper.message('success', message);
+                        setTimeout(function() {
+                            self.dispatch('#/shipping/', true);
+                        }, 500);
+                    } else {
+                        self.shippingHelper.message('error', data.errors || []);
+                    }
+                },
+                error: function(jqXHR, errorText) {
+                    self.shippingHelper.message('error', [[errorText]]);
+                }
             });
             return false;
         },
 
-        shippingPluginDelete : function(plugin_id) {
+        shippingPluginDelete: function(plugin_id) {
             var url = '?module=settings&action=shippingDelete';
             var self = this;
             $.post(url, {
-                'plugin_id' : plugin_id
+                'plugin_id': plugin_id
             }, function(data, textStatus, jqXHR) {
                 self.dispatch('#/shipping/', true);
             });
 
         },
 
-        shippingControlOptionAdd : function($el) {
+        shippingControlOptionAdd: function($el) {
             var parent_selector, container_selector;
             var $parent, $container;
             if (container_selector = $el.data('container')) {
@@ -201,7 +221,7 @@ if (typeof($) != 'undefined') {
             }
         },
 
-        shippingControlOptionRemove : function($el) {
+        shippingControlOptionRemove: function($el) {
             var parent_selector = $el.data('parent');
             if (parent_selector) {
                 var $parent = $el.parents(parent_selector);
@@ -217,8 +237,56 @@ if (typeof($) != 'undefined') {
             }
         },
 
-        shippingHelper : {
-            parent : $.settings
+        shippingHelper: {
+            parent: $.settings,
+            timer: null,
+            icon: {
+                'submit': '<i style="vertical-align:middle" class="icon16 loading"></i>',
+                'success': '<i style="vertical-align:middle" class="icon16 yes"></i>',
+                'error': '<i style="vertical-align:middle" class="icon16 no"></i>'
+            },
+            message: function(status, message) {
+                /* enable previos disabled inputs */
+
+                var $container = $('#settings-shipping-form-status');
+                $container.empty().show();
+                var $parent = $container.parents('div.value');
+                $parent.removeClass('errormsg successmsg status');
+
+                if (this.timer) {
+                    clearTimeout(this.timer);
+                }
+                var timeout = null;
+                $container.append(this.icon[status] || '');
+                switch (status) {
+                    case 'submit': {
+                        $parent.addClass('status');
+                        break;
+                    }
+                    case 'error': {
+                        $parent.addClass('errormsg');
+                        for (var i = 0; i < message.length; i++) {
+                            $container.append(message[i][0]);
+                        }
+                        timeout = 20000;
+                        break;
+                    }
+                    case 'success': {
+                        if (message) {
+                            $parent.addClass('successmsg');
+                            $container.append(message);
+                        }
+                        timeout = 3000;
+                        break;
+                    }
+                }
+                if (timeout) {
+                    this.timer = setTimeout(function() {
+                        $parent.removeClass('errormsg successmsg status');
+                        $container.empty().show();
+                    }, timeout);
+                }
+            }
         }
 
     });

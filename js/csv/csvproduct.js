@@ -51,15 +51,16 @@ if (typeof($) != 'undefined') {
             var matches = document.cookie.match(new RegExp("(?:^|; )_csrf=([^;]*)"));
             var csrf = matches ? decodeURIComponent(matches[1]) : '';
 
-            var self = this;
             this.csv_product_upload = this.csv_product_form.find('.fileupload:first').parents('div.field');
             this.csv_product_uploadgroup = this.csv_product_upload.parents('div.field-group');
 
             this.csv_product_uploadgroup.next('div.field-group').hide();
+            var self = this;
             this.csv_product_form.find('.fileupload:first').fileupload({
                 url: url,
                 start: function(e, data) {
                     self.csv_product_upload.find('.fileupload:first').hide();
+                    self.csv_product_upload.find('.js-fileupload-progress').show();
                     self.csv_product_uploadgroup.find('.field:not(:last) :input').attr('disabled', true);
 
                     self.csv_productUploadError(false);
@@ -80,13 +81,14 @@ if (typeof($) != 'undefined') {
 
         },
         csv_productUploadProgress: function(e, data) {
-            $.shop.trace('fileupload progress', data);
             var $progress = this.csv_product_upload.find('.js-fileupload-progress');
             $progress.show();
             var value = Math.round((100 * data.loaded / data.total), 0) + '%';
             $progress.find('i:first').attr('title', value);
             var date = new Date();
-            $progress.find('span:first').text(((date.getTime() / 1000 - this.csv_product_data.upload_time) > 2) ? value : '');
+            var interval = parseInt(date.getTime() / 1000 - this.csv_product_data.upload_time);
+            $progress.find('span:first').text((interval > 2) ? value : '');
+
         },
         csv_productUploadDone: function(e, data) {
             $.shop.trace('fileupload done', [data.result, typeof(data.result)]);
@@ -118,7 +120,7 @@ if (typeof($) != 'undefined') {
 
                 this.csv_product_form.find('select[name^="csv_map\["]').change(function() {
                     var $this = $(this);
-                    self.call('MapHandler', [$this, parseInt($this.val(), 10)])
+                    self.csv_productMapHandler($this, parseInt($this.val(), 10))
                 }).change();
             }
         },
@@ -178,7 +180,6 @@ if (typeof($) != 'undefined') {
             var self = this;
             self.progress = true;
             self.form = $(element);
-            $.shop.trace('$.importexport.plugins.csv_product.csv_productHandler', [element]);
             var data = self.form.serialize();
             self.form.find('.errormsg').text('');
             self.form.find(':input').attr('disabled', true);

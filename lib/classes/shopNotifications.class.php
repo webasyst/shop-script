@@ -59,6 +59,9 @@ class shopNotifications
             $to = array($email);
             $log = sprintf(_w("Notification <strong>%s</strong> sent to customer."), $n['name']);
         } elseif ($n['to'] == 'admin') {
+            if (!$general['email']) {
+                return;
+            }
             $to = array($general['email']);
             $log = sprintf(_w("Notification <strong>%s</strong> sent to store admin."), $n['name']);
         } else {

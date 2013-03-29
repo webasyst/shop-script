@@ -20,6 +20,7 @@ class shopOrderEditAction extends waViewAction
         $order    = array();
         $form     = !$order_id ? shopHelper::getCustomerForm() : null;
         $currency = $this->getConfig()->getCurrency();
+        $shipping_address = array();
 
         if ($order_id) {
             $order = $this->getOrder($order_id);
@@ -28,6 +29,7 @@ class shopOrderEditAction extends waViewAction
                 if (shopHelper::getContactRights($order['contact_id'])) {
                     $form = shopHelper::getCustomerForm($order['contact_id']);
                 }
+                $shipping_address = shopHelper::getOrderAddress($order['params'], 'shipping');
             }
             $currency = $order['currency'];
         }
@@ -42,6 +44,7 @@ class shopOrderEditAction extends waViewAction
 
 
         $this->view->assign(array(
+            'shipping_address' => $shipping_address,
             'order'    => $order,
             'stocks'   => $stocks,
             'form'     => $form,

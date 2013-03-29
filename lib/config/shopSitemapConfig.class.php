@@ -14,7 +14,7 @@ class shopSitemapConfig extends waSitemapConfig
         foreach ($routes as $route) {
             $this->routing->setRoute($route);
             // categories
-            $categories = $category_model->getAll();
+            $categories = $category_model->getByField('status', 1, true);
             foreach ($categories as $c) {
                 if (isset($route['url_type']) && $route['url_type'] == 1) {
                     $url = $c['url'];
@@ -34,8 +34,9 @@ class shopSitemapConfig extends waSitemapConfig
             if (isset($route['url_type']) && $route['url_type'] == 2) {
                 $sql .= " LEFT JOIN ".$category_model->getTableName()." c ON p.category_id = c.id";
             }
+            $sql .= ' WHERE p.status = 1';
             if (isset($route['type_id']) && $route['type_id']) {
-                $sql .= ' WHERE p.type_id IN (';
+                $sql .= ' AND p.type_id IN (';
                 $first = true;
                 foreach ((array)$route['type_id'] as $t) {
                     $sql .= ($first ? '' : ',').(int)$t;

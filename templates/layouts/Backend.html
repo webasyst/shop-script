@@ -56,10 +56,14 @@
 
     <!-- link your JS files here -->
     <script type="text/javascript">
+        var menu_floating = true;
+        {if $page == 'settings' || $page == 'importexport' || $page == 'plugins' || $page == 'storefronts'}
+            menu_floating = false;
+        {/if}
         $(function() {
             $.shop.init({
                 debug: true,
-                menu_floating: {if $page != 'settings'}true{else}false{/if},
+                menu_floating: menu_floating,
                 page: '{if $page}{$page}{else}orders{/if}'
             });
         });

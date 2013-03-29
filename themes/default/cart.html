@@ -54,13 +54,13 @@
                             {/if}
                         </td>
                         <td class="align-center"><input type="text" name="quantity[{$item.id}]" value="{$item.quantity}" class="qty"></td>
-                        <td class="align-center item-total">{shop_currency($item.full_price, true)}</td>
+                        <td class="align-center item-total nowrap">{shop_currency($item.full_price, true)}</td>
                         <td><a class="delete" href="#" title="[`Remove from cart`]"><i class="icon16 remove"></i></a></td>
                     </tr>
                 {/foreach}
                 
                 <!-- discount coupon -->
-                <tr class="no-border">
+                <tr class="no-border" {if !shopDiscounts::isEnabled('coupons') && !$discount}style="display:none"{/if}>
                     <td colspan="2" class="no-border">
                         {if shopDiscounts::isEnabled('coupons')}
                         [`Discount coupon (if you have one)`]:
@@ -68,7 +68,7 @@
                         {/if}
                     </td>
                     <td class="align-center">[`Discount`]</td>
-                    <td class="align-center cart-discount">&minus; {shop_currency($discount, true)}</td>
+                    <td class="align-center cart-discount nowrap">&minus; {shop_currency($discount, true)}</td>
                     <td>&nbsp;</td>
                 </tr>
 
@@ -91,7 +91,7 @@
                 <!-- TOTAL -->
                 <tr class="large no-border">
                     <td colspan="3">[`Total`]</td>
-                    <td class="cart-total align-center total bold">{shop_currency($cart.total, true)}</td>
+                    <td class="cart-total align-center total bold nowrap">{shop_currency($cart.total, true)}</td>
                     <td>&nbsp;</td>
                 </tr>
                 

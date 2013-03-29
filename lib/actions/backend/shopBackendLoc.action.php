@@ -24,6 +24,11 @@ class shopBackendLocAction extends waViewAction
             'New customer',
             'contain',
             'is the same',
+            'matches base product value',
+            'differs from base product value',
+            'any of selected values (OR)',
+            'all of selected values (AND)',
+            'Save',
             'is not the same',
             'all',
             'any',
@@ -31,7 +36,10 @@ class shopBackendLocAction extends waViewAction
             'Stop upload',
             'Please select a category',
             'Processing',
-            'All orders'
+            'All orders',
+            'Tag',
+            'Price',
+            'Upsell products will be offered for a particular base product according to the following criteria:'
         ) as $s) {
             $strings[$s] = _w($s);
         }

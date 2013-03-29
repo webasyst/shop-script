@@ -1,6 +1,5 @@
 <?php
-
-class shopMigratePluginRunController extends waLongActionController
+class shopMigratePluginBackendRunController extends waLongActionController
 {
     /**
      * @var shopMigrateTransport

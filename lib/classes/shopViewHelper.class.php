@@ -212,8 +212,12 @@ class shopViewHelper extends waAppViewHelper
         return $this->wa->getRouteUrl('shop/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url']));
     }
 
-    public function categories($id = 0, $depth = null)
+    public function categories($id = 0, $depth = null, $tree = false)
     {
+        if ($id === true) {
+            $id = 0;
+            $tree = true;
+        }
         $category_model = new shopCategoryModel();
         $cats = $category_model->getTree($id, $depth);
         $url = $this->wa->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
@@ -221,12 +225,44 @@ class shopViewHelper extends waAppViewHelper
         foreach ($cats as $c_id => $c) {
             if ($c['status'] && !isset($hidden[$c['parent_id']])) {
                 $cats[$c_id]['url'] = str_replace('%CATEGORY_URL%', waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url'], $url);
+                $cats[$c_id]['name'] = htmlspecialchars($cats[$c_id]['name']);
             } else {
                 $hidden[$c_id] = 1;
                 unset($cats[$c_id]);
             }
         }
-        return $cats;
+        if ($tree) {
+            $stack = array();
+            $result = array();
+            foreach ($cats as $c) {
+                $c['childs'] = array();
+
+                // Number of stack items
+                $l = count($stack);
+
+                // Check if we're dealing with different levels
+                while($l > 0 && $stack[$l - 1]['depth'] >= $c['depth']) {
+                    array_pop($stack);
+                    $l--;
+                }
+
+                // Stack is empty (we are inspecting the root)
+                if ($l == 0) {
+                    // Assigning the root node
+                    $i = count($result);
+                    $result[$i] = $c;
+                    $stack[] = & $result[$i];
+                } else {
+                    // Add node to parent
+                    $i = count($stack[$l - 1]['childs']);
+                    $stack[$l - 1]['childs'][$i] = $c;
+                    $stack[] = & $stack[$l - 1]['childs'][$i];
+                }
+            }
+            return $result;
+        } else {
+            return $cats;
+        }
     }
 
     public function tags()
@@ -262,22 +298,6 @@ class shopViewHelper extends waAppViewHelper
 
     public function ratingHtml($rating, $size = 10, $show_when_zero = false)
     {
-        $rating = round($rating * 2) / 2;
-        if (!$rating && !$show_when_zero) {
-            return '';
-        }
-        $html = '';
-        for ($i = 1; $i <= 5; $i += 1) {
-            $html .= '<i class="icon'.$size.' star';
-            if ($i > $rating) {
-                if ($i - $rating == 0.5) {
-                    $html .= '-half';
-                } else {
-                    $html .= '-empty';
-                }
-            }
-            $html .= '"></i>';
-        }
-        return $html;
+        return shopHelper::getRatingHtml($rating, $size, $show_when_zero);
     }
 }

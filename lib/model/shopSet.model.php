@@ -86,7 +86,8 @@ class shopSetModel extends waModel
     public function recount($set_id = null)
     {
         $cond = "
-            GROUP BY sp.set_id
+            WHERE s.type = ".self::TYPE_STATIC."
+            GROUP BY s.id
             HAVING s.count != cnt
         ";
         if ($set_id !== null) {
@@ -98,17 +99,17 @@ class shopSetModel extends waModel
                 return;
             }
             $cond = "
-                WHERE s.id IN ('".implode("','", $this->escape($set_ids))."')
-                GROUP BY sp.set_id
+                WHERE s.id IN ('".implode("','", $this->escape($set_ids))."') AND s.type = ".self::TYPE_STATIC."
+                GROUP BY s.id
             ";
         }
         $sql = "
         UPDATE `{$this->table}` s JOIN (
-            SELECT sp.set_id, s.count, count(sp.product_id) cnt
+            SELECT s.id, s.count, count(sp.product_id) cnt
             FROM `{$this->table}` s
-            JOIN `shop_set_products` sp ON sp.set_id = s.id
+            LEFT JOIN `shop_set_products` sp ON sp.set_id = s.id
             $cond
-        ) r ON s.id = r.set_id
+        ) r ON s.id = r.id
         SET s.count = r.cnt";
         return $this->exec($sql);
     }

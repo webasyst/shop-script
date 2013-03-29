@@ -56,10 +56,13 @@
                 this.total_count = this.options.total_count || 0;
                 this.sortable = typeof options.sortable === 'undefined' ? this.sortable : options.sortable;
 
+                this.sort = options.sort || null;
+
                 if (products && options.view) {
                     try {
                         this.container.append(tmpl('template-product-list-' + this.options.view, {
-                            products : products
+                            products : products,
+                            sort: this.sort
                         }, this.options.view == 'table'));
                     } catch (e) {
                         console.log('Error: ' + e.message);
@@ -80,9 +83,6 @@
                     this.collection_param = '';
                 }
 
-                if (options.sort) {
-                    this.sort = options.sort;
-                }
                 if (options.order) {
                     this.order = options.order;
                 }
@@ -127,7 +127,8 @@
                                 try {
                                     self.container.append(tmpl('template-product-list-' + self.options.view, {
                                         products : r.data.products,
-                                        check_all : self.options.view == 'table' ? product_list.find('.s-select-all').attr('checked') : false
+                                        check_all : self.options.view == 'table' ? product_list.find('.s-select-all').attr('checked') : false,
+                                        sort: $.product_list.sort
                                     }));
                                 } catch (e) {
                                     console.log('Error: ' + e.message);
@@ -313,7 +314,8 @@
                     });
                 }
 
-                var param = 'view=' + view + (this.sort ? '&sort=' + this.sort : '');
+                //var param = 'view=' + view + (this.sort ? '&sort=' + this.sort : '');
+                var param = 'view=' + view;
                 sidebar.find('.s-collection-list li.dr').each(function() {
                     var self = $(this);
                     self.find('a:first').attr('href', '#/products/' + self.attr('id').replace('-', '_id=') + '&' + param);
@@ -360,14 +362,6 @@
                         list.trigger('add', [new_item, type]);
                     });
                     return false;
-                });
-                sidebar.unbind('update').bind('update', function(e, lists) {
-                    for (var type in lists) {
-                        var prefix = '#' + type + '-';
-                        for (var id in lists[type]) {
-                            $(prefix + id).find('.count:first').text(lists[type][id].count);
-                        }
-                    }
                 });
 
                 $('#s-content').find('.sort').unbind('click').bind('click', function() {
@@ -582,6 +576,7 @@
                     return false;
                 }
                 if (action == 'new-set') {
+                    /*
                     $.shop.jsonPost('?module=products&action=saveListSettings&set_id=0&parent_id=0', products.serialized.concat({
                         name : 'name',
                         value : 'New set'
@@ -590,14 +585,21 @@
                         $('#s-set-list ul:first').trigger('add', [r.data, 'set', url]);
                         location.href = url + '&edit=name';
                     });
+                    */
                 } else if (action == 'category') {
                     $.product_list.categoriesDialog(products);
+                } else if (action == 'set') {
+                    $.product_list.setsDialog(products);
                 } else if (action == 'type') {
                     $.product_list.typesDialog(products);
+                } else if (action == 'assign-tags') {
+                    $.product_list.assignTagsDialog(products);
                 } else if (action == 'delete') {
                     $.product_list.deleteProductsDialog(products);
                 } else if (action == 'delete-from-set' && $.product_list.collection_hash[0] == 'set') {
                     $.product_list.deleteFromSet(products);
+                } else if (action == 'delete-from-category' && $.product_list.collection_hash[0] == 'category') {
+                    $.product_list.deleteFromCategory(products);
                 }
                 return false;
             });
@@ -671,15 +673,33 @@
                         var self = $(this);
                         self.find('.dialog-content h1 span').text('(' + products.count + ')').show();
                         self.find('.dialog-buttons i.loading').hide();
+                        self.find('input[name=new_category_name]').val('');
+                        self.find('input[name=new_category]').attr('checked', false);
                     },
                     onSubmit : function(d) {
+                        // addToCategories
                         var form = d.find('form');
                         form.find('.dialog-buttons i.loading').show();
                         $.shop.jsonPost(form.attr('action'), form.serializeArray().concat(products.serialized), function(r) {
+
+                            // add new category to sidebar
+                            if (r.data.new_category) {
+                                $('#s-category-list ul:first').
+                                    trigger('add', [
+                                        r.data.new_category,
+                                        'category',
+                                        '#/products/category_id=' +
+                                            r.data.new_category +
+                                            '&view=' +
+                                            $.product_list.options.view
+                                    ]);
+                            }
+
+                            // update cagegories in sidebar
                             if (r.data.categories) {
                                 sidebar.trigger('update', [{
-                                            category : r.data.categories
-                                        }]);
+                                    category : r.data.categories
+                                }]);
                                 product_list.find('.s-select-all:first').trigger('select', false);
                             }
                             form.find('input:checked').attr('checked', false);
@@ -689,12 +709,116 @@
                     }
                 });
             };
-            if (!d.length) {
-                var p = $('<div></div>').appendTo('body');
-                p.load('?module=dialog&action=categories', showDialog);
-            } else {
-                showDialog();
+
+            // no cache dialog
+            if (d.length) {
+                d.parent().remove();
             }
+
+            var p = $('<div></div>').appendTo('body');
+            p.load('?module=dialog&action=categories', showDialog);
+        },
+
+        setsDialog: function(products) {
+            var d = $('#s-sets');
+            var sidebar = this.sidebar;
+            var product_list = this.container;
+            var showDialog = function() {
+                $('#s-sets').waDialog({
+                    disableButtonsOnSubmit : true,
+                    onLoad : function() {
+                        var self = $(this);
+                        self.find('.dialog-content h1 span').text('(' + products.count + ')').show();
+                        self.find('.dialog-buttons i.loading').hide();
+                        self.find('input[name=new_set_name]').val('');
+                        self.find('input[name=new_set]').attr('checked', false);
+                    },
+                    onSubmit : function(d) {
+                        // addToSets
+                        var form = d.find('form');
+                        form.find('.dialog-buttons i.loading').show();
+                        $.shop.jsonPost(form.attr('action'), form.serializeArray().concat(products.serialized), function(r) {
+
+                            // add new category to sidebar
+                            if (r.data.new_set) {
+                                $('#s-set-list ul:first').
+                                    trigger('add', [
+                                        r.data.new_set,
+                                        'set',
+                                        '#/products/set_id=' +
+                                            r.data.new_set +
+                                            '&view=' +
+                                            $.product_list.options.view
+                                    ]);
+                            }
+
+                            // update cagegories in sidebar
+                            if (r.data.sets) {
+                                sidebar.trigger('update', [{
+                                    set : r.data.sets
+                                }]);
+                                product_list.find('.s-select-all:first').trigger('select', false);
+                            }
+                            form.find('input:checked').attr('checked', false);
+                            d.trigger('close');
+                        });
+                        return false;
+                    }
+                });
+            };
+
+            // no cache dialog
+            if (d.length) {
+                d.parent().remove();
+            }
+
+            var p = $('<div></div>').appendTo('body');
+            p.load('?module=dialog&action=sets', showDialog);
+        },
+
+        assignTagsDialog: function(products) {
+            var d = $('#s-assign-tags');
+            var showDialog = function() {
+                $('#s-assign-tags').waDialog({
+                    disableButtonsOnSubmit : true,
+                    onLoad : function() {
+                        var self = $(this);
+                        self.find('.dialog-content h1 span').text('(' + products.count + ')').show();
+                        self.find('.dialog-buttons i.loading').hide();
+                    },
+                    onSubmit : function(d) {
+                        var form = $(this);
+                        form.find('.dialog-buttons i.loading').show();
+                        // assignTags
+                        $.shop.jsonPost(
+                            form.attr('action'),
+                            form.serializeArray().concat(products.serialized),
+                            function(r) {
+                                if (r.data.cloud) {
+                                    $('#s-tag-cloud').trigger('update', [r.data.cloud]);
+                                }
+                                d.trigger('close');
+                                $.products.dispatch();
+                            },
+                            function() {
+                                d.trigger('close');
+                            }
+                        );
+                        return false;
+                    }
+                });
+            };
+
+            // no cache dialog
+            if (d.length) {
+                d.remove();
+            }
+
+            // use post-method instead of get-method because of potential long list of product ids
+            $.post('?module=dialog&action=assignTags', products.serialized, function(html) {
+                $('body').append(html);
+                showDialog();
+            });
         },
 
         typesDialog : function(products) {
@@ -734,9 +858,25 @@
 
         deleteFromSet : function(products) {
             if (products.count > 0) {
-                $.shop.jsonPost('?module=products&action=deleteListFromSet&id=' + this.collection_hash[1], products.serialized, function() {
-                    $.products.dispatch();
-                });
+                $.shop.jsonPost(
+                    '?module=products&action=deleteFromSet&id=' + this.collection_hash[1],
+                    products.serialized,
+                    function() {
+                        $.products.dispatch();
+                    }
+                );
+            }
+        },
+
+        deleteFromCategory: function(products) {
+            if (products.count > 0) {
+                $.shop.jsonPost(
+                    '?module=products&action=deleteFromCategory&id=' + this.collection_hash[1],
+                    products.serialized,
+                    function() {
+                        $.products.dispatch();
+                    }
+                );
             }
         },
 

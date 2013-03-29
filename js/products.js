@@ -324,6 +324,36 @@
                 parent.find('.s-empty-list').hide();
                 return false;
             });
+
+            sidebar.unbind('update').bind('update', function(e, lists) {
+                for (var type in lists) {
+                    var prefix = '#' + type + '-';
+                    for (var id in lists[type]) {
+                        $(prefix + id).find('.count:first').text(lists[type][id].count);
+                    }
+                }
+                return false;
+            });
+
+            $('#s-tag-cloud').unbind('update').bind('update', function(e, tag_cloud) {
+                // redraw tag cloud
+                var html = '<ul class="tags">' +
+                    '<li class="block align-center">';
+                for (var tag_id in tag_cloud) {
+                    var tag = tag_cloud[tag_id];
+                    html +=
+                        '<a href="#/products/tag='  + tag.uri_name +
+                            '/" style="font-size: ' + tag.size +
+                            '%; opacity: ' + tag.opacity +
+                            '"  data-id="' + tag.id +
+                            '"  class="s-product-list">' + tag.name +
+                        '</a>';
+                }
+                html += '</li></ul>';
+                $('#s-tag-cloud').html(html).parents('.block:first').show();
+                return false;
+            });
+
             sidebar.off('count_subtree', '.s-collection-list li').on('count_subtree', '.s-collection-list li', function(e, show) {
                 show = typeof show === 'undefined' ? true : show;
                 var item = $(this);

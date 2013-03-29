@@ -119,15 +119,22 @@ class shopSettingsRecommendationsAction extends waViewAction
                     $html .= $row['cond'].' "'.$row['value'].'"';
                     break;
                 case 'same':
-                    $html .= _w('is same');
+                    $html .= _w('matches base product value');
                     break;
                 case 'notsame':
-                    $html .= _w('is not same');
+                    $html .= _w('differs from base product value');
                     break;
                 case 'all':
                 case 'any':
                 case 'is':
-                    $html .= $row['cond'].' ';
+                    if ($row['cond'] == 'any') {
+                        $html .= _w('any of selected values (OR)');
+                    } elseif ($row['cond'] == 'all') {
+                        $html .= _w('all of selected values (AND)');
+                    } else {
+                        $html .= $row['cond'];
+                    }
+                    $html .= ' ';
 
                     $feature_values_model = shopFeatureModel::getValuesModel($features ? $features[$row['feature_id']]['type'] : $row['feature_type']);
                     if (strpos($row['value'], ',') !== false) {

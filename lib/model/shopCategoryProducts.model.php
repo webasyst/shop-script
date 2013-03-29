@@ -115,6 +115,7 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
         return true;
     }
 
+    /*
     public function deleteProducts($category_id, $count = null)
     {
         $sql = "SELECT product_id FROM {$this->table} WHERE category_id = $category_id ";
@@ -128,7 +129,52 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
         }
         return false;
     }
+    */
 
+    /**
+     * Delete products from category
+     *
+     * @param int $category_id
+     * @param array|bool $product_ids If true than delete all products from category
+     * @return boolean
+     */
+    public function deleteProducts($category_id, $product_ids = array())
+    {
+        if (!$category_id) {
+            return false;
+        }
+        if ($product_ids === true) {
+            if (!$this->deleteByField('category_id', $category_id)) {
+                return false;
+            }
+        } else {
+            if (!$this->deleteByField(array('category_id' => $category_id, 'product_id' => $product_ids))) {
+                return false;
+            }
+        }
+
+        $category_model = new shopCategoryModel();
+        if ($product_ids === true) {
+            return $category_model->updateById($category_id, array('count' => 0));
+        } else {
+            return $category_model->recount($category_id);
+        }
+    }
+
+    /**
+     * Clear category (remove all products from category)
+     * @param string $category_id
+     * @return boolean
+     */
+    public function clearCategory($category_id)
+    {
+        return $this->deleteProducts($category_id, true);
+    }
+
+    /**
+     * Method triggered when deleting product through shopProductModel
+     * @param array $product_ids
+     */
     public function deleteByProducts(array $product_ids)
     {
         $category_model = new shopCategoryModel();
@@ -176,11 +222,16 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
         $current = $this->getByField('product_id',$product->id, 'category_id');
         if ($obsolete = array_diff(array_keys($current), $data)) {
             $this->deleteByField(array('product_id'=>$product->id,'category_id'=>$obsolete));
+
+            // correct counter
+            $category_model = new shopCategoryModel();
+            $category_model->recount($obsolete);
+
         }
         if ($added = array_diff($data, array_keys($current))) {
-
             $this->add($product->id, $added);
         }
+
         return $data;
     }
 }

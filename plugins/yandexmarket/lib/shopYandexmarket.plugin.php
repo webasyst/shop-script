@@ -2,7 +2,7 @@
 class shopYandexmarketPlugin extends shopPlugin
 {
     private $map;
-    public function map($post = array())
+    public function map($post = array(), $sort = false)
     {
         $config_path = $this->path.'/lib/config/map.php';
         if (file_exists($config_path)) {
@@ -15,7 +15,16 @@ class shopYandexmarketPlugin extends shopPlugin
                 }
             }
         }
-        return $this->map;
+        $map = $this->map;
+        if ($sort) {
+            uasort($map, array($this, 'sort'));
+        }
+        return $map;
+    }
+
+    private function sort($a, $b)
+    {
+        return min(1, max(-1, (ifset($a['sort'], 1000) - ifset($b['sort'], 1000))));
     }
 
     public function categories()

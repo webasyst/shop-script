@@ -408,8 +408,9 @@ class shopYandexmarketPluginRunController extends waLongActionController
 
     private function getProductFields()
     {
-        return '*, frontend_url';
-        $fields = array();
+        $fields = array(
+            '*',
+        );
         foreach ($this->data['map'] as $field => $info) {
             $field = preg_replace('/\..*$/', '', $field);
 
@@ -474,7 +475,16 @@ class shopYandexmarketPluginRunController extends waLongActionController
                     }
 
                     if (!empty($value)) {
-                        $product_xml->appendChild($this->dom->createElement($field, $value));
+                        if (is_array($value)) {
+                            foreach ($value as $value_item) {
+                                $product_xml->appendChild($this->dom->createElement($field, $value_item));
+                            }
+                        } elseif (empty($info['attribute'])) {
+                            $product_xml->appendChild($this->dom->createElement($field, $value));
+                        } else {
+                            $product_xml->setAttribute($field, $value);
+                        }
+
                     }
                 }
             }
@@ -510,8 +520,38 @@ class shopYandexmarketPluginRunController extends waLongActionController
             case 'rate':
                 $info['format'] = '%0.2f';
                 break;
+            case 'available':
+                $value = ((empty($value) || ($value === 'false')) && ($value !== null)) ? 'false' : 'true';
+                break;
+            case 'store':
+            case 'pickup':
+            case 'delivery':
+            case 'adult ':
+                $value = (empty($value) || ($value === 'false')) ? 'false' : 'true';
+                break;
+            case 'picture':
+                $values = array();
+                $limit = 10;
+                while (is_array($value) && ($image = array_shift($value)) && !empty($image['url_thumb']) && $limit--) {
+                    $values[] = 'http://'.ifempty($this->data['base_url'], 'localhost').$image['url_thumb'];
+                }
+                $value = $values;
+                break;
         }
         $format = ifempty($info['format'], '%s');
+        if (is_array($value)) {
+            foreach ($value as & $item) {
+                $item = $this->sprintf($format, $item);
+            }
+            unset($item);
+        } else {
+            $value = $this->sprintf($format, $value);
+        }
+        return $value;
+    }
+
+    private function sprintf($format, $value)
+    {
         if (preg_match('/^%0\.\d+f$/', $format)) {
             if (strpos($value, ',') !== false) {
                 $value = str_replace(',', '.', $value);

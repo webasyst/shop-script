@@ -34,7 +34,7 @@ class shopCsvProductrunController extends waLongActionController
             }
             $current = $this->reader->current();
             if (self::getData($current, $this->data['primary']) === null) {
-                throw new waException(_w('Empty primary CSV column').var_export(array($current, $this->data['primary']), true));
+                throw new waException(_w('Empty primary CSV column'));
             }
 
             $model = new shopCategoryModel();
@@ -394,7 +394,7 @@ class shopCsvProductrunController extends waLongActionController
             $parent_id = 0;
         }
         $primary = $this->data['primary'];
-        if (strpos($primary,'skus:')===0) {
+        if (strpos($primary, 'skus:') === 0) {
             $primary = 'name';
         }
         $fields = array(

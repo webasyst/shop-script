@@ -43,9 +43,9 @@ return array(
     ),
 
     'picture'               => array(
-        'type'        => 'fixed',
-        'name'        => 'Ссылка на картинку соответствующего товарного предложения. ',
-        'description' => '',
+        'type'   => 'fixed',
+        'name'   => 'Ссылка на картинку соответствующего товарного предложения. ',
+        'source' => 'field:images',
     ),
 
     'store'                 => array(
@@ -56,6 +56,7 @@ return array(
             false => 'false',
             true => 'true',
         ),
+        'sort'        => 35,
     ),
 
     'pickup'                => array(
@@ -66,6 +67,7 @@ return array(
             false => 'false',
             true => 'true',
         ),
+        'sort'        => 36,
     ),
 
     'delivery'              => array(
@@ -83,6 +85,8 @@ return array(
              **/
             true => 'true',
         ),
+
+        'sort'        => 37,
     ),
 
     'downloadable'          => array(
@@ -124,24 +128,30 @@ return array(
         'name'        => 'Название',
         'description' => 'Наименование товарного предложения',
         'source'      => 'field:name',
+        'sort'        => 1,
     ),
 
     'description'           => array(
-        'type'   => 'adjustable',
-        'name'   => 'Экспорт описаний товаров',
-        'source' => 'field:summary',
+        'type'        => 'adjustable',
+        'name'        => 'Описание',
+        'description' => 'Описание товарного предложения',
+        'source'      => 'field:summary',
+        'sort'        => 2,
     ),
 
     'local_delivery_cost'   => array(
         'type'        => 'adjustable',
         'name'        => 'Стоимость доставки',
         'description' => 'Стоимость доставки данного товара в Своем регионе',
+        'sort'        => 38,
     ),
 
     'available'             => array(
-        'type'        => 'fixed',
+        'type'        => 'adjustable',
         'name'        => 'Наличие',
         'description' => 'Статус доступности товара в наличии/на заказ',
+        'source'      => 'field:count',
+        'attribute'   => true,
         'values'      => array(
             /**
              * товарное предложение на заказ. Магазин готов осуществить поставку товара на указанных условиях в течение месяца
@@ -155,6 +165,7 @@ return array(
              **/
             true => 'true',
         ),
+        'sort'        => 3,
     ),
 
     'sales_notes'           => array(
@@ -162,17 +173,20 @@ return array(
         'name'        => 'Примечания',
         'description' => 'Информация о минимальной сумме заказа, минимальной партии товара или необходимости предоплаты, а так же описания акций, скидок и распродаж',
         'format'      => '%50s',
+        'sort'        => 4,
     ),
 
     'manufacturer_warranty' => array(
         'type'        => 'adjustable',
         'name'        => 'Гарантия',
         'description' => 'Информация об официальной гарантии производителя',
+        'sort'        => 21,
     ),
     'country_of_origin'     => array(
         'type'        => 'adjustable',
         'name'        => 'Страна производитель',
         'description' => '',
+        'sort'        => 20,
     ),
 
     'adult'                 => array(
@@ -183,6 +197,7 @@ return array(
             false => 'false',
             true => 'true',
         ),
+        'sort'        => 22,
     ),
 
     'age'                   => array(
@@ -199,6 +214,7 @@ return array(
         'type'        => 'adjustable',
         'name'        => 'Штрихкод',
         'description' => 'Штрихкод товара, указанный производителем',
+        'sort'        => 23,
     ),
 
     'author'                => array(
@@ -231,7 +247,7 @@ return array(
         'name'     => 'Код книги',
         'category' => array('book', 'audiobook', ),
     ),
-    'description'           => array(
+    'description.*book'     => array(
         'type'     => 'adjustable',
         'name'     => 'Аннотация к книге',
         'category' => array('book', 'audiobook', ),

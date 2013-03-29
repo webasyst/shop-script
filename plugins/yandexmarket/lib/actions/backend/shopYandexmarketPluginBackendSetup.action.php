@@ -41,7 +41,7 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
         $set_model = new shopSetModel();
         $this->view->assign('sets', $set_model->getAll());
 
-        $this->view->assign('map', $this->plugin()->map(waRequest::post('map')));
+        $this->view->assign('map', $this->plugin()->map(waRequest::post('map'), true));
         $this->view->assign('map_categories', $this->plugin()->categories());
 
         $feature_model = new shopFeatureModel();
@@ -51,6 +51,7 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
             'name'        => _w('Product name'),
             'description' => _w('Description'),
             'summary'     => _w('Summary'),
+            'count'       => _w('In stock'),
         );
         $this->view->assign('fields', $fields);
     }

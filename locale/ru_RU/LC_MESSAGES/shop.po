@@ -1370,7 +1370,7 @@ msgstr "Автоматическая подборка рекомендуемых
 
 #: /wa-apps/shop/templates/actions/product/ProductRelated.html:5
 msgid "Cross-selling"
-msgstr "Перекрестные продажи"
+msgstr "Перекрестные продажи (Cross-selling)"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsRecommendations.html:7
 msgid ""
@@ -1411,7 +1411,7 @@ msgstr "Случайно выбранные товары из категории
 
 #: /wa-apps/shop/templates/actions/settings/SettingsRecommendations.html:40
 msgid "Upselling &amp; Similar products"
-msgstr "Схожие и альтернативные товары"
+msgstr "Схожие и альтернативные товары (Upselling)"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsRecommendations.html:41
 msgid ""
@@ -4224,7 +4224,7 @@ msgstr "Заказ выполнен"
 
 #: /wa-apps/shop/lib/config/data/workflow.php:209
 msgid "Callback"
-msgstr "Обратный вызов"
+msgstr "Ответ платежной системы (callback)"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:589
 msgid "Few words describing the most of the product."
@@ -5527,3 +5527,120 @@ msgstr "Комментарий к прикрепленному файлу (не 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:33
 msgid "Invalid primary field"
 msgstr "Неверно указан столбец идентификации"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:30
+msgid "Semicolon"
+msgstr "Точка с запятой"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:31
+msgid "Comma"
+msgstr "Запятая"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:32
+msgid "Tab"
+msgstr "Табуляция"
+
+#: /wa-apps/shop/templates/actions/products/Products.html:57
+msgid "Add to set"
+msgstr "Добавить в список"
+
+#: /wa-apps/shop/templates/actions/products/Products.html:61
+msgid "Remove from set"
+msgstr "Исключить из списка"
+
+#: /wa-apps/shop/templates/actions/products/Products.html:65
+msgid "Remove from category"
+msgstr "Исключить из категории"
+
+#: /wa-apps/shop/templates/actions/dialog/DialogAssignTags.html:7
+msgid "Assign tags"
+msgstr "Назначить теги"
+
+#: /wa-apps/shop/templates/actions/dialog/DialogAssignTags.html:13
+msgid "Remove tags"
+msgstr "Убрать теги"
+
+#: /wa-apps/shop/templates/actions/products/Products.html:305
+msgid "Products stored to this category will not be deleted"
+msgstr "Товары, находящиеся в этой категории, не будут удалены"
+
+#: /wa-apps/shop/templates/actions/products/Products.html:307
+msgid "Products stored in this set will not be deleted"
+msgstr "Товары, находящиеся в этом списке, не будут удалены"
+
+#: /wa-apps/shop/templates/actions/products/Products.html:315
+msgid "Delete all products stored in this category (%d)"
+msgstr "Удалить все товары, находящиеся в этой категории (%d)"
+
+#: /wa-apps/shop/templates/actions/products/Products.html:317
+msgid "Delete all products stored in this set (%d)"
+msgstr "Удалить все товары, находящиеся в этом списке (%d)"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:362
+msgid "Remove product from this category"
+msgstr "Удалить товар из этой категории"
+
+#: /wa-apps/shop/templates/actions/products/Products.html:290
+msgid "Added %s"
+msgstr "Добавлен %s"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsAdd.html:63
+msgid "Variables"
+msgstr "Переменные"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsEdit.html:69
+msgid "Cheat sheet"
+msgstr "Шпаргалка"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:321
+msgid ""
+"Hidden products are not shown among other products in the storefront, are "
+"not available for purchase, and can be viewed by the direct URL only."
+msgstr ""
+"Скрытые товары не показываются на витрине в общих списках товаров и их "
+"нельзя добавить в корзину. Просмотреть скрытый товар на витрине возможно "
+"только по прямому открытию страницы товара (нужно знать ее адрес)."
+
+#: /wa-apps/shop/lib/actions/frontend/shopFrontendCartSave.controller.php:19
+msgid "Only %d left in stock. Sorry."
+msgstr "Извините, но в наличии только %d экземпляров этого товара."
+
+#: /wa-apps/shop/lib/classes/shopPayment.class.php:199
+msgid "Payment for order %s"
+msgstr "Оплата заказа %s"
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:6
+msgid "I’m a new customer"
+msgstr "Я новый покупатель"
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:7
+msgid "I already have an account"
+msgstr "Я уже заказывал ранее и у меня есть аккаунт"
+
+#: /wa-apps/shop/templates/actions/order/Order.html:10
+msgid "Printable version"
+msgstr "Версия для печати"
+
+#: /wa-apps/shop/lib/actions/settings/recommendations/shopSettingsRecommendations.action.php:122
+msgid "matches base product value"
+msgstr "совпадает с базовым"
+
+#: /wa-apps/shop/lib/actions/settings/recommendations/shopSettingsRecommendations.action.php:125
+msgid "differs from base product value"
+msgstr "отличается от базового"
+
+#: /wa-apps/shop/lib/actions/settings/recommendations/shopSettingsRecommendations.action.php:133
+msgid "all of selected values (AND)"
+msgstr "все выбранные (AND)"
+
+#: /wa-apps/shop/lib/actions/settings/recommendations/shopSettingsRecommendations.action.php:131
+msgid "any of selected values (OR)"
+msgstr "любое из выбранных (OR)"
+
+#: /wa-apps/shop/js/settings/recommendations.js:65
+msgid ""
+"Upsell products will be offered for a particular base product according to "
+"the following criteria:"
+msgstr ""
+"Рекомендуемые товары будут подобраны для базового (просматриваемого) товара "
+"согласно следующим правилам:"

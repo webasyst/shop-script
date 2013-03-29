@@ -561,6 +561,39 @@ class shopCategoryModel extends waNestedSetModel
         return trim(rtrim($prefix, '/').'/'.ltrim($url, '/'), '/');
     }
 
+
+    public function recount($category_id = null)
+    {
+        $cond = "
+            WHERE c.type = ".self::TYPE_STATIC."
+            GROUP BY c.id
+            HAVING c.count != cnt
+        ";
+        if ($category_id !== null) {
+            $category_ids = array();
+            foreach ((array)$category_id as $id) {
+                $category_ids[] = $id;
+            }
+            if (!$category_ids) {
+                return;
+            }
+            $cond = "
+                WHERE c.id IN ('".implode("','", $this->escape($category_ids))."') AND c.type = ".self::TYPE_STATIC."
+                GROUP BY c.id
+            ";
+        }
+        $sql = "
+            UPDATE `{$this->table}` c JOIN (
+            SELECT c.id, c.count, count(cp.product_id) cnt
+            FROM `{$this->table}` c
+            LEFT JOIN `shop_category_products` cp ON cp.category_id = c.id
+            $cond
+            ) r ON c.id = r.id
+            SET c.count = r.cnt
+        ";
+        return $this->exec($sql);
+    }
+
     /**
      * Repair "broken" nested-set tree. "Broken" is when keys combination is illegal and(or) full_urls is incorrect
      */

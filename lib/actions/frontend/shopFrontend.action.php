@@ -16,6 +16,7 @@ class shopFrontendAction extends waViewAction
     }
     protected function setCollection(shopProductsCollection $collection)
     {
+        $collection->setOptions(array('filters' => true));
         $limit = $this->getConfig()->getOption('products_per_page');
         $page = waRequest::get('page', 1, 'int');
         if ($page < 1) {
@@ -69,7 +70,7 @@ class shopFrontendAction extends waViewAction
         } catch (waException $e) {
             if ($e->getCode() == 404) {
                 $url = $this->getConfig()->getRequestUrl(false, true);
-                if (substr($url, -1) !== '/') {
+                if (substr($url, -1) !== '/' && substr($url, -9) !== 'index.php') {
                     $this->redirect($url.'/');
                 }
             }

@@ -1,12 +1,12 @@
 <?php
 
-class shopProductsDeleteListFromSetController extends waJsonController
+class shopProductsDeleteFromCategoryController extends waJsonController
 {
     public function execute()
     {
-        $model = new shopSetProductsModel();
+        $model = new shopCategoryProductsModel();
         if (waRequest::post('hash', '')) {
-            $model->clearSet(waRequest::get('id'));
+            $model->clearCategory(waRequest::get('id'));
         } else {
             $model->deleteProducts(
                 waRequest::get('id'),

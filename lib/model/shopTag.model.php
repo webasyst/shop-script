@@ -80,4 +80,35 @@ class shopTagModel extends waModel
             }
         }
     }
+
+    public function recount($tag_id = null)
+    {
+        $cond = "
+            GROUP BY t.id
+            HAVING t.count != cnt
+        ";
+        if ($tag_id !== null) {
+            $tag_ids = array();
+            foreach ((array)$tag_id as $id) {
+                $tag_ids[] = $id;
+            }
+            if (!$tag_ids) {
+                return;
+            }
+            $cond = "
+                WHERE t.id IN ('".implode("','", $this->escape($tag_ids))."')
+                GROUP BY t.id
+            ";
+        }
+        $sql = "
+        UPDATE `{$this->table}` t JOIN (
+            SELECT t.id, t.count, count(pt.product_id) cnt
+            FROM `{$this->table}` t
+            LEFT JOIN `shop_product_tags` pt ON pt.tag_id = t.id
+            $cond
+        ) r ON t.id = r.id
+        SET t.count = r.cnt";
+
+        return $this->exec($sql);
+    }
 }

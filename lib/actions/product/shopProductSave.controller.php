@@ -15,6 +15,14 @@ class shopProductSaveController extends waJsonController
             unset($data['id']);
         }
 
+        if (empty($data['categories'])) {
+            $data['categories'] = array();
+        }
+
+        if (empty($data['tags'])) {
+            $data['tags'] = array();
+        }
+
         $product = new shopProduct($id);
         try {
             if ($product->save($data, true, $this->errors)) {

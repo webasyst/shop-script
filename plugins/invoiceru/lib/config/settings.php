@@ -1,19 +1,5 @@
 <?php
 return array(
-    'NDS'                      => array(
-        'value'        => '0',
-        'title'        => 'Ставка НДС (%)',
-        'description'  => 'Укажите ставку НДС в процентах. Если Вы работаете по упрощенной системе налогообложения, укажите 0',
-        'control_type' => 'text',
-        'subject'      => 'printform',
-    ),
-    'NDS_IS_INCLUDED_IN_PRICE' => array(
-        'value'        => false,
-        'title'        => 'НДС уже включен в стоимость товаров',
-        'description'  => 'Включите эту опцию, если налог уже включен в стоимость товаров в Вашем магазине. Если же НДС не включен в стоимость и должен прибавляться дополнительно, выключите эту опцию',
-        'control_type' => 'checkbox',
-        'subject'      => 'printform',
-    ),
     'COMPANYNAME'              => array(
         'value'        => '',
         'title'        => 'Название компании',

@@ -1,5 +1,5 @@
 
-// $.extend($.importexport = $.importexport || {},
+$.extend($.importexport = $.importexport || {},
 $.importexport ={
     options: {
         'loading': '<i class="icon16 loading"></i>',
@@ -20,7 +20,7 @@ $.importexport ={
     menu: null,
 
     /**
-     * @param {} options
+     * @param {Object} options
      */
     init: function(options) {
         this.options = $.extend(this.options, options || {});
@@ -77,7 +77,7 @@ $.importexport ={
             'raw': path
         };
         var matches = parsed.plugin.match(/(^[^:]+):(.+$)/);
-        if (matches) {
+        if (matches && matches[2]) {
             parsed.plugin = null;
             parsed.module = matches[1];
             parsed.prefix = matches[2];
@@ -87,7 +87,7 @@ $.importexport ={
 
     /**
      * Dispatch location hash changes
-     * 
+     *
      * @param {String} hash
      * @param {Boolean} load Force reload if need
      * @return {Boolean}
@@ -124,7 +124,7 @@ $.importexport ={
                 $content.empty().html(this.options.loading);
             }
 
-            
+
             var url = new Array();
             if (path.plugin) {
                 url.push('plugin=' + path.plugin);
@@ -133,13 +133,13 @@ $.importexport ={
                 url.push('module=' + path.module);
             }
                 url.push('action=' + (path.prefix||'') + 'setup');
-                
+
             var self = this;
             $content.load('?' + url.join('&'), function() {
                 self.path.plugin = path.plugin ;
                 self.path.module = path.module;
                 self.path.prefix = path.prefix;
-                
+
                 // update title
                 window.document.title = self.options.plugin_names[self.path.plugin]||$content.find('h1:first').text() + self.options.title_suffix;
                 self.menu.find('li.selected').removeClass('selected');
@@ -160,7 +160,7 @@ $.importexport ={
 
     /**
      * Setup plugin options
-     * 
+     *
      * @param {} options
      */
     importexportOptions: function(options) {
@@ -174,7 +174,7 @@ $.importexport ={
 
     /**
      * Handler call focus out plugin
-     * 
+     *
      * @param {String} plugin
      */
     importexportBlur: function(plugin) {
@@ -190,13 +190,13 @@ $.importexport ={
 
     /**
      * handle current plugin actions after HTML has beed loaded
-     * 
+     *
      * @param {String} plugin
      * @param {String} tail
      */
     importexportAction: function(action, tail) {
         var method = '';
-        
+
         if(action) {
             method += action.substr(0, 1).toUpperCase() + action.substr(1);
         }
@@ -208,7 +208,7 @@ $.importexport ={
 
     /**
      * @param {String} name
-     * @param [] args
+     * @param Array args
      */
     call: function(name, args) {
         var plugin;
@@ -244,7 +244,7 @@ $.importexport ={
         return result;
     },
     getPlugin:function(){
-        
+
     }
 }
-// );
+);

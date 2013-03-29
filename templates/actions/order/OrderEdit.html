@@ -221,7 +221,7 @@
                     <td class="min-width"></td>
                     <td class="align-right" colspan="3">
                         [`Shipping`]
-                        {$shipping_methods = shopHelper::getShippingMethods(array())}
+                        {$shipping_methods = shopHelper::getShippingMethods($shipping_address)}
                         <select id="shipping_methods" name="shipping_id">
                             <option value=""></option>
                             {foreach $shipping_methods as $m_id => $m}

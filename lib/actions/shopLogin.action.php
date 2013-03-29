@@ -22,8 +22,12 @@ class shopLoginAction extends waLoginAction
 
     protected function afterAuth()
     {
-        $url = $this->getStorage()->get('auth_referer');
-        if (!$url) {
+        $referer = waRequest::server('HTTP_REFERER');
+        $referer = substr($referer, strlen($this->getConfig()->getHostUrl()));
+        if ($referer != wa()->getRouteUrl('/login')) {
+            $url = $this->getStorage()->get('auth_referer');
+        }
+        if (empty($url)) {
             $url = wa()->getRouteUrl('shop/frontend/my/');
         }
         $this->getStorage()->del('auth_referer');

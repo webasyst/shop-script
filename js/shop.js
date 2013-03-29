@@ -15,20 +15,20 @@
     };
 
     $.shop = {
-        options : {
-            'debug' : true
+        options: {
+            'debug': true
         },
-        time : {
-            start : new Date(),
+        time: {
+            start: new Date(),
             /**
              * @return int
              */
-            interval : function(relative) {
+            interval: function(relative) {
                 var d = new Date();
                 return (parseFloat(d - this.start) / 1000.0 - (parseFloat(relative) || 0)).toFixed(3);
             }
         },
-        init : function(options) {
+        init: function(options) {
             this.options = $.extend(this.options, options || {});
 
             if (options.menu_floating) {
@@ -52,6 +52,10 @@
                         recalc();
                     });
                 });
+
+                $('body').on('click', 'a.js-print', function() {
+                    return $.shop.helper.print(this);
+                });
             }
 
             if (options.page != 'orders') {
@@ -68,11 +72,11 @@
          * @param {String} name
          * @return {'name':{String},'params':[]}
          */
-        getMethod : function(args, scope, name) {
+        getMethod: function(args, scope, name) {
             var chunk, callable;
             var method = {
-                'name' : false,
-                'params' : []
+                'name': false,
+                'params': []
             };
             if (args.length) {
                 $.shop.trace('$.getMethod', args);
@@ -91,11 +95,11 @@
         },
         /**
          * Debug trace helper
-         *
+         * 
          * @param String message
          * @param {} data
          */
-        trace : function(message, data) {
+        trace: function(message, data) {
             var timestamp = null;
             if (this.options.debug && console) {
                 timestamp = this.time.interval();
@@ -106,17 +110,17 @@
 
         /**
          * Handler error messages
-         *
+         * 
          * @param String message
          * @param {} data
          */
-        error : function(message, data) {
+        error: function(message, data) {
             if (console) {
                 console.error(message, data);
             }
         },
 
-        jsonPost : function(url, data, success, error) {
+        jsonPost: function(url, data, success, error) {
             if (typeof data === 'function') {
                 success = data;
                 error = success;
@@ -148,16 +152,16 @@
             return xhr;
         },
 
-        getJSON : function(url, data, success, error) {
+        getJSON: function(url, data, success, error) {
             if (typeof data !== 'object') {
                 success = data;
                 error = success;
             }
             var xhr = $.ajax({
-                url : url,
-                dataType : 'json',
-                data : data,
-                success : function(r) {
+                url: url,
+                dataType: 'json',
+                data: data,
+                success: function(r) {
                     if (r.status != 'ok') {
                         if (typeof error === 'function') {
                             if (error(r) !== false) {
@@ -198,6 +202,10 @@
         updateAppCounter: function(count) {
             count = parseInt(count, 10) || '';
             var counter = $('#wa-app-shop').find('.indicator');
+            if (!counter.length) {
+                $('#wa-app-shop').find('a').append('<span class="indicator" style="display:none;"></span>');
+                counter = $('#wa-app-shop').find('.indicator');
+            }
             counter.text(count);
             if (count) {
                 counter.show();
@@ -206,12 +214,12 @@
             }
         },
 
-        helper : {
+        helper: {
             /**
              * @param {String} params
              * @return {object}
              */
-            parseParams : function(params) {
+            parseParams: function(params) {
                 if (!params) {
                     return {};
                 }
@@ -225,6 +233,7 @@
             },
             /**
              * Number of items in key-value object
+             * 
              * @param {Object}
              * @return Number
              */
@@ -236,6 +245,32 @@
                     }
                 }
                 return counter;
+            },
+            print: function(el) {
+                var $head = $('head').clone(false);
+                $head.find('script').remove();
+
+                var $body = $(el).parents($(el).data('selector') || 'div.block').parent().clone(false);
+                $body.find('a.js-print').remove();
+                var html = '<html><head>' + $head.html() + '</head><body class="s-printable">' + $body.html()
+                + '<i class="icon16 loading" style="top: 20px; left: 20px; position: relative;display: none;"></i>' + '</body></html>';
+
+                var wnd = window.open('', 'printversion', 'width=600,height=600');
+                setTimeout(function() {
+                    var $w = $(wnd.document);
+                    $w.find('div:first').hide();
+                    $w.find('i.icon16.loading:last').show();
+                }, 50);
+                setTimeout(function() {
+                    var $w = $(wnd.document);
+                    $w.find('div:hidden:first').show();
+                    $w.find('i.icon16.loading:last').hide();
+                }, 1000);
+                wnd.document.open();
+                wnd.document.write(html);
+                wnd.document.close();
+
+                return false;
             }
         }
     };

@@ -6,7 +6,7 @@ class shopInvoiceruPluginPrintformDisplayAction extends waViewAction
         //XXX check rights
         $plugin_id = 'invoiceru';
         $plugin = waSystem::getInstance()->getPlugin($plugin_id);
-        $order = shopPayment::getOrderData($order_id = waRequest::request('order_id', null, waRequest::TYPE_INT));
+        $order = shopPayment::getOrderData($order_id = waRequest::request('order_id', null, waRequest::TYPE_INT), $this);
         if (!$order && ($order_id || (wa()->getEnv() != 'backend'))) {
             throw new waException('Order not found', 404);
         }
@@ -23,7 +23,7 @@ class shopInvoiceruPluginPrintformDisplayAction extends waViewAction
             shopTaxes::apply($items, array(
                 'billing'  => $order->billing_address,
                 'shipping' => $order->shipping_address,
-            ));
+            ), $order->currency);
         } else {
             $items = array();
         }
@@ -31,5 +31,10 @@ class shopInvoiceruPluginPrintformDisplayAction extends waViewAction
         $this->view->assign('settings', $plugin->getSettings());
         $this->view->assign('order', $order);
         $this->view->assign('items', $items);
+    }
+
+    public function allowedCurrency()
+    {
+        return 'RUB';
     }
 }

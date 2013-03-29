@@ -69,15 +69,33 @@ class shopOrderSaveController extends waJsonController
     private function getParams(&$data, $id)
     {
         $model = new shopPluginModel();
+
+        $shipping_address = array();
+        if (!empty($data['contact'])) {
+            $address = $data['contact']->getFirst('address.shipping');
+            if (!$address) {
+                $address = $data['contact']->getFirst('address');
+            }
+            if (!empty($address['data'])) {
+                $shipping_address = $address['data'];
+            }
+        }
         // shipping
         if ($shipping_id = waRequest::post('shipping_id')) {
-            list($shipping_id, $rate_id) = explode('.', $shipping_id);
+            $shipping_parts = explode('.', $shipping_id);
+            $shipping_id = $shipping_parts[0];
+            $rate_id = isset($shipping_parts[1]) ? $shipping_parts[1] : '';
             $data['params']['shipping_id'] = $shipping_id;
             $data['params']['shipping_rate_id'] = $rate_id;
             $plugin_info = $model->getById($shipping_id);
             $plugin = shopShipping::getPlugin($plugin_info['plugin'], $shipping_id);
-            $rates = $plugin->getRates(array());
-            $rate = $rates[$rate_id];
+            $rates = $plugin->getRates(array(), $shipping_address);
+            if (!$rate_id) {
+                $rate = reset($rates);
+                $data['params']['shipping_rate_id'] = key($rates);
+            } else {
+                $rate = $rates[$rate_id];
+            }
             $data['params']['shipping_plugin'] = $plugin->getId();
             $data['params']['shipping_name'] = $plugin_info['name'].(!empty($rate['name']) ? ' ('.$rate['name'].')' : '');
             $data['params']['shipping_est_delivery'] = $rate['est_delivery'];

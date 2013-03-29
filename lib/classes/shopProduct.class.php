@@ -270,7 +270,7 @@ class shopProduct implements ArrayAccess
 
     public function setData($name, $value)
     {
-        if ($this->getData($name) != $value) {
+        if ($this->getData($name) !== $value) {
             $this->data[$name] = $value;
             $this->is_dirty[$name] = true;
         }

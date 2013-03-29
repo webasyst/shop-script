@@ -81,7 +81,7 @@ var page_url = '';
 	<tr>
 		<td class=leftAlign>Грузополучатель и его адрес:</td>
 		<td class="leftAlign underlined"><b class="inline_edit">
-{if $company}{$company},&nbsp;{/if}
+{if $company}{$company|escape},&nbsp;{/if}
 {if $order.shipping_address.region_name}{$order.shipping_address.region_name|escape},&nbsp;{/if}
 {if $order.shipping_address.city}{$order.shipping_address.city|escape},&nbsp;{/if}
 {if $order.shipping_address.zip}{$order.shipping_address.zip|escape},&nbsp;{/if}
@@ -212,21 +212,22 @@ var page_url = '';
     {$total_tax=0.0}
     {$total_amount=0.0}
 	{foreach $items as $id => $order_item}
-
-        {$total_total=$total_total+$order_item.total}
+        {if $order_item.tax_inclided}
         {$total_tax=$total_tax+$order_item.tax}
-        {$total_amount=$total_amount+$order_item.total+$order_item.tax}
+    {/if}
+    {$total_amount=$total_amount+$order_item.total}
+
 	<tr>
 		<td class="b_left b_top leftAlign inline_edit">{$order_item.name|default:"&nbsp;"}</td>
 		<td class="b_left b_top inline_edit">796</td>
 		<td class="b_left b_top inline_edit">шт</td>
 		<td class="b_left b_top">{$order_item.quantity|string_format:"%d"}</td>
 		<td class="b_left b_top rightAlign nobr">{$order_item.price|wa_format_amount:$order.currency:'%2'}</td>
-		<td class="b_left b_top rightAlign nobr">{$order_item.total|wa_format_amount:$order.currency:'%2'}</td>
+		<td class="b_left b_top rightAlign nobr">{if $order_item.tax_inclided}{($order_item.total-$order_item.tax)|wa_format_amount:$order.currency:'%2'}{else}{$order_item.total|wa_format_amount:$order.currency:'%2'}{/if}</td>
 		<td class="b_left b_top rightAlign">0,00</td>
 		<td class="b_left b_top rightAlign">{$order_item.tax_percent|string_format:"%0.2f"}%</td>
 		<td class="b_left b_top rightAlign">{$order_item.tax|wa_format_amount:$order.currency:'%2'}</td>
-		<td class="b_left b_top rightAlign nobr">{($order_item.total+$order_item.tax)|wa_format_amount:$order.currency:'%2'}</td>
+		<td class="b_left b_top rightAlign nobr">{$order_item.total|wa_format_amount:$order.currency:'%2'}</td>
 		<td class="b_left b_top inline_edit">&nbsp;</td>
 		<td class="b_left b_top inline_edit">&nbsp;</td>
 		<td class="b_top b_left b_right inline_edit">&nbsp;</td>
@@ -234,7 +235,6 @@ var page_url = '';
 	{/foreach}
 	{if $order.shipping}
 	<tr>
-        {$total_total=$total_total+$order.shipping}
         {$total_amount=$total_amount+$order.shipping}
 		<td class="b_left b_top leftAlign">доставка {$order.shipping_name|escape}</td>
 		<td class="b_left b_top">796</td>

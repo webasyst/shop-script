@@ -505,11 +505,13 @@ $.order_edit = {
                 $.getJSON($.order_edit.options.autocomplete_url, request, function(r) {
                     (r = r || []).push({
                         label : $_('New customer'),
+                        name  : $_('New customer'),
                         value : 0
                     });
                     response(r);
                 });
             },
+            delay : 300,
             minLength : 3,
             select : function(event, ui) {
                 var value = autocompete_input.val();
@@ -529,7 +531,10 @@ $.order_edit = {
                 }
                 return false;
             },
-            delay : 300
+            focus: function(event, ui) {
+                this.value = ui.item.name;
+                return false;
+            }
         });
 
         $('#order-add-form').submit(function() {

@@ -168,12 +168,11 @@
     </div>
 
     <!-- tags -->
-    {if !empty($cloud)}
-    <div class="block">
+    <div class="block" {if empty($cloud)}style="display:none;"{/if}>
         <h5 class="heading">
             <i class="icon16 darr collapse-handler" id="tag-cloud-handler"></i>[`Tags`]
         </h5>
-        <div>
+        <div id="s-tag-cloud">
             <ul class="tags">
                 <li class="block align-center">
                     {foreach $cloud as $tag}
@@ -183,8 +182,6 @@
             </ul>
         </div>
     </div>
-    {/if}
-
 </div>
 
 <div class="content left200px blank" id="s-content">

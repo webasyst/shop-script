@@ -36,13 +36,13 @@ class shopShopscriptredirectPlugin extends shopPlugin
                 $url_parts = explode('/', $url);
                 $product_model = new shopProductModel();
                 if ($product_model->getByField('url', $url_parts[0])) {
-                    wa()->getResponse()->redirect(wa()->getRootUrl().wa()->getRouting()->getRootUrl().$url);
+                    wa()->getResponse()->redirect(wa()->getRootUrl(false, true).wa()->getRouting()->getRootUrl().$url);
                 }
             } elseif (substr($url, 0, 9) == 'category/') {
                 $url = substr($url, 9);
                 $category_model = new shopCategoryModel();
                 if ($category_model->getByField('full_url', rtrim($url, '/'))) {
-                    wa()->getResponse()->redirect(wa()->getRootUrl().wa()->getRouting()->getRootUrl().$url);
+                    wa()->getResponse()->redirect(wa()->getRootUrl(false, true).wa()->getRouting()->getRootUrl().$url);
                 }
             }
         }

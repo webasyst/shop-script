@@ -151,7 +151,15 @@ class shopOrderModel extends waModel
             $cnt = $r->fetchField('cnt');
             return $cnt ? $cnt : 0;
         }
-        $counters = $r->fetchAll('state_id', true);
+
+        $counters = array();
+        $workflow = new shopWorkflow();
+        foreach (array_keys($workflow->getAvailableStates()) as $state_id) {
+            $counters[$state_id] = 0;
+        }
+
+        $counters = $r->fetchAll('state_id', true) + $counters;
+
         return $counters ? $counters : array();
     }
 

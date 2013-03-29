@@ -185,7 +185,7 @@
                 <div class="name">{$info.name|escape}</div>
                 <div class="value no-shift">
                     <select name="map[{$field}][source]">
-
+                        {$selected = false}
                         <option value="skip:"></option>
                         {if !empty($info.values)}
                         <optgroup label="Фиксированное значение">
@@ -201,12 +201,12 @@
                         {/if}
                         <optgroup label="Основное свойство товара">
                         {foreach $fields as $fid=>$f}
-                            <option value="field:{$fid}"{if $fid eq $field} selected="selected"{/if}>{$f|escape}</option>
-            			{/foreach}
+                            <option value="field:{$fid}"{if !$selected && (ifset($info['source']) eq "field:`$fid`")}{$selected = true} selected="selected"{/if}>{$f|escape}</option>
+                        {/foreach}
                         </optgroup>
                         <optgroup label="Характеристика">
                         {foreach $features as $feature}
-                            <option value="feature:{$feature.code}"{if $feature.code eq $field} selected="selected"{/if}>{$feature.name|escape}</option>
+                            <option value="feature:{$feature.code}"{if !$selected && ((ifset($info['source']) eq "feature:`$feature['code']`")||($feature.code eq $field))}{$selected = true} selected="selected"{/if}>{$feature.name|escape}</option>
                         {/foreach}
                         </optgroup>
                     </select> &rarr; {$field|regex_replace:'/\..*$/':''}

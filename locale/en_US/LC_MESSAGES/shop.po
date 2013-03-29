@@ -4930,3 +4930,111 @@ msgstr ""
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:33
 msgid "Invalid primary field"
 msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:30
+msgid "Semicolon"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:31
+msgid "Comma"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:32
+msgid "Tab"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:57
+msgid "Add to set"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:61
+msgid "Remove from set"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:65
+msgid "Remove from category"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogAssignTags.html:7
+msgid "Assign tags"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogAssignTags.html:13
+msgid "Remove tags"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:305
+msgid "Products stored to this category will not be deleted"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:307
+msgid "Products stored in this set will not be deleted"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:315
+msgid "Delete all products stored in this category (%d)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:317
+msgid "Delete all products stored in this set (%d)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:362
+msgid "Remove product from this category"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:290
+msgid "Added %s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsAdd.html:63
+msgid "Variables"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsEdit.html:69
+msgid "Cheat sheet"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:321
+msgid "Hidden products are not shown among other products in the storefront, are not available for purchase, and can be viewed by the direct URL only."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/shopFrontendCartSave.controller.php:19
+msgid "Only %d left in stock. Sorry."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopPayment.class.php:199
+msgid "Payment for order %s"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:6
+msgid "I’m a new customer"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:7
+msgid "I already have an account"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:10
+msgid "Printable version"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/recommendations/shopSettingsRecommendations.action.php:122
+msgid "matches base product value"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/recommendations/shopSettingsRecommendations.action.php:125
+msgid "differs from base product value"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/recommendations/shopSettingsRecommendations.action.php:133
+msgid "all of selected values (AND)"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/recommendations/shopSettingsRecommendations.action.php:131
+msgid "any of selected values (OR)"
+msgstr ""
+
+#: /wa-apps/shop/js/settings/recommendations.js:65
+msgid "Upsell products will be offered for a particular base product according to the following criteria:"
+msgstr ""

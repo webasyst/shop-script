@@ -4,6 +4,10 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
 {
     protected $table = 'shop_product_tags';
 
+    /**
+     * Method triggered when deleting product through shopProductModel
+     * @param array $product_ids
+     */
     public function deleteByProducts(array $product_ids)
     {
         $tag_model = new shopTagModel();
@@ -73,5 +77,82 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         }
         // return new tags
         return $this->getData($product);
+    }
+
+    /**
+     * Tag tag of product(s)
+     * @param int|array $product_id
+     * @return array()
+     */
+    public function getTags($product_id)
+    {
+        if (!$product_id) {
+            return array();
+        }
+
+        $sql = "
+            SELECT t.id, t.name
+            FROM ".$this->table." pt
+            JOIN shop_tag t ON pt.tag_id = t.id
+            WHERE pt.product_id IN (i:id)
+        ";
+        return $this->query($sql, array('id' => $product_id))->fetchAll('id', true);
+    }
+
+    /**
+     *
+     * Assign tags to products. Tags just assign to products (without removing if exist for concrete product)
+     * @param array|int $product_id
+     * @param array|int $tag_id
+     */
+    public function assign($product_id, $tag_id)
+    {
+        // define existing tags
+        $sql = "SELECT * FROM {$this->table} ";
+        if ($where = $this->getWhereByField('product_id', $product_id)) {
+            $sql .= " WHERE $where";
+        }
+        $existed_tags = array();
+        foreach ($this->query($sql) as $item) {
+            $existed_tags[$item['product_id']][$item['tag_id']] = true;
+        }
+
+        // accumulate candidate for adding
+        $add = array();
+        foreach ((array)$tag_id as $t_id) {
+            foreach ((array)$product_id as $p_id) {
+                if (!isset($existed_tags[$p_id][$t_id])) {
+                    $add[] = array('product_id' => $p_id, 'tag_id' => $t_id);
+                }
+            }
+        }
+
+        // adding itself
+        if ($add) {
+            $this->multiInsert($add);
+        }
+
+        // recounting counters for this tags
+        $tag_model = new shopTagModel();
+        $tag_model->recount($tag_id);
+    }
+
+
+    /**
+     * @param int|array $product_id
+     * @param int|array $tag_id
+     */
+    public function delete($product_id, $tag_id)
+    {
+        if (!$product_id) {
+            return false;
+        }
+        $product_id = (array) $product_id;
+
+        // delete tags
+        $this->deleteByField(array('product_id' => $product_id, 'tag_id' => $tag_id));
+        // decrease count for tags
+        $tag_model = new shopTagModel();
+        $tag_model->recount($tag_id);
     }
 }

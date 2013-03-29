@@ -62,17 +62,17 @@ $.extend($.settings = $.settings || {}, {
 
             return false;
         });
-        elem.children('.field-settings').empty().append(form.append(table));
+        elem.children('.field-settings').html('<p class="small">' + $_('Upsell products will be offered for a particular base product according to the following criteria:') + '</p>').append(form.append(table));
         for (var i = 0; i < data.length; i++) {
-            this.recommendationsRenderEditFeature(data[i], table);
+            this.recommendationsRenderEditFeature(data[i], table, type_id);
         }
-        table.append('<tr class="white"><td colspan="4"><input type="submit" value="Save"></td></tr>');
+        table.append('<tr class="white"><td colspan="4"><input type="submit" value="' + $_("Save") + '"></td></tr>');
     },
 
-    recommendationsRenderEditFeature: function (data, table) {
+    recommendationsRenderEditFeature: function (data, table, type_id) {
         var f = this.recommendationsGetFeature(data);
         var tr = $('<tr></tr>');
-        var checkbox = $('<input name="data[' + data.feature + '][feature]" value="' + data.feature + '" type="checkbox" ' + (data.cond ? 'checked' : '') +'>').click(function () {
+        var checkbox = $('<input name="data[' + data.feature + '][feature]" id="checkbox-' + type_id + '-' + data.feature + '" value="' + data.feature + '" type="checkbox" ' + (data.cond ? 'checked' : '') +'>').click(function () {
             var p = $(this).closest('tr');
             if ($(this).is(':checked')) {
                 p.find('.v').show();
@@ -84,7 +84,7 @@ $.extend($.settings = $.settings || {}, {
             }
         });
         tr.append($('<td class="min-width"></td>').append(checkbox));
-        tr.append('<td>' + f.name + (f.id ? '<input type="hidden" name="data[' + data.feature + '][feature_id]" value="' + f.id + '">' : '') + '</td>');
+        tr.append('<td><label for="checkbox-' + type_id + '-' + data.feature + '">' + f.name + '</label>' + (f.id ? '<input type="hidden" name="data[' + data.feature + '][feature_id]" value="' + f.id + '">' : '') + '</td>');
         if (f.type == 'int' || f.type == 'float') {
             var td = $('<td><div class="v" ' + (data.cond ? '' : 'style="display:none"') + '></div></td>');
             tr.append(td);
@@ -125,11 +125,11 @@ $.extend($.settings = $.settings || {}, {
             if (data.feature == 'tag') {
                 conds.push(['contain', $_('contain')]);
             } else {
-                conds.push(['same', $_('is the same')]);
-                conds.push(['notsame', $_('is not the same')]);
+                conds.push(['same', $_('matches base product value')]);
+                conds.push(['notsame', $_('differs from base product value')]);
                 if (f.selectable && f.multiple) {
-                    conds.push(['all', $_('all')]);
-                    conds.push(['any', $_('any')]);
+                    conds.push(['all', $_('all of selected values (AND)')]);
+                    conds.push(['any', $_('any of selected values (OR)')]);
                 } else {
                     conds.push(['is', $_('is')]);
                 }

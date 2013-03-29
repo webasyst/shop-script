@@ -11,6 +11,7 @@ class shopProductsSaveListSettingsController extends waJsonController
             throw new waException("Unknown type of list");
         }
 
+        /*
         if (waRequest::get('edit', null, waRequest::TYPE_STRING_TRIM) === 'name') {
             $name = waRequest::post('name', '', waRequest::TYPE_STRING_TRIM);
             $this->getModel($hash[0])->updateById($hash[1], array(
@@ -21,14 +22,18 @@ class shopProductsSaveListSettingsController extends waJsonController
             );
             return;
         }
+        */
 
         $data = $this->getData($hash[0]);
         $id = $this->saveSettings($hash, $data);
 
         if ($id) {
+            /*
             if ($hash[0] == 'set') {    // now supported for sets only
                 $this->addProducts($id, $hash[0]);
             }
+            */
+
             $this->response = $this->getModel($hash[0])->getById($id);
             $this->response['name'] = htmlspecialchars($this->response['name']);
         }
@@ -104,6 +109,10 @@ class shopProductsSaveListSettingsController extends waJsonController
 
     private function saveSetSettings($id, &$data)
     {
+        if (empty($data['count']) || $data['count'] < 0) {
+            $data['count'] = 0;
+        }
+
         /**
          * @var shopSetModel $model
          */

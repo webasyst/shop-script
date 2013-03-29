@@ -20,7 +20,7 @@
 {else}
     {$sortable = false}
 {/if}
-{$order = $wa->get("order", "desc")}
+{* {$order = $wa->get("order", "desc")} *}
 <div class="sidebar right200px" id="s-product-list-toolbar">
     <div class="block">
         <h6 class="heading">
@@ -48,14 +48,30 @@
             {* @event backend_products.%plugin_id%.toolbar_organize_li *}
             {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.toolbar_organize_li)}{/foreach}{/if}
             
-            <li data-action="new-set"><a href="#"><i class="icon16 ss set"></i>[`Create new set`]</a></li>
-            <li data-action="category"><a href="#"><i class="icon16 folder"></i>[`Add to category`]</a></li>
-            <li data-action="type"><a href="#"><i class="icon16 box"></i>[`Change product type`]</a></li>
+            {*<li data-action="new-set"><a href="#"><i class="icon16 ss set"></i>[`Create new set`]</a></li>*}
+            
+            <li data-action="category">
+                <a href="#"><i class="icon16 folder"></i>[`Add to category`]</a>
+            </li>
+            <li data-action="set">
+                <a href="#"><i class="icon16 ss set"></i>[`Add to set`]</a>
+            </li>
+            <li data-action="assign-tags">
+                <a href="#"><i class="icon16 tags"></i>[`Tags`]</a>
+            </li>
+            
             {if $info && $info.hash == 'set' && $info.type == shopSetModel::TYPE_STATIC && $info.count > 0}
-                <li data-action="delete-from-set"><a href="#"><i class="icon16 no-bw"></i>[`Delete from set`]</a></li>
+                <li data-action="delete-from-set"><a href="#"><i class="icon10 no-bw"></i>[`Remove from set`]</a></li>
             {/if}
             
-            <li data-action="delete" class="top-padded"><a href="#"><i class="icon16 delete"></i>[`Delete products`]</a></li>
+            {if $info && $info.hash == 'category' && $info.type == shopCategoryModel::TYPE_STATIC && $info.count > 0}
+                <li data-action="delete-from-category"><a href="#"><i class="icon10 no-bw"></i>[`Remove from category`]</a></li>
+            {/if}
+
+            <li data-action="type" class="top-padded">
+                <a href="#"><i class="icon16 box"></i>[`Change product type`]</a>
+            </li>            
+            <li data-action="delete"><a href="#"><i class="icon16 delete"></i>[`Delete products`]</a></li>
             
         </ul>
     </div>
@@ -93,31 +109,40 @@
                 <ul class="menu-v dropdown">
                     <li>[`Order by`]:
                         {strip}
+                        {$with_icon = true}
                         <a href="#" class="inline-link"><b><i>
                             {if $sort=='name'}
-                                [`name`]<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>
+                                [`name`]
                             {else if $sort=='price'}
-                                [`price`]<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>
+                                [`price`]
                             {else if $sort=='stock'}
-                                [`in stock`]<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>
+                                [`in stock`]
                             {else if $sort=='rate'}
-                                [`rating`]<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>
+                                [`rating`]
                             {else if $sort=='date'}
-                                [`date added`]<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>
+                                [`date added`]
                             {else if $sort=='bestsellers'}
-                                [`top selling`]<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>
+                                [`top selling`]
                             {else if $manual}
                                 [`manual`]
+                                {$with_icon = false}
                             {else}
                                 [`default`]
+                                {$with_icon = false}
                             {/if}
                         </i></b></a>
+                        {if $with_icon}
+                            <i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>
+                        {/if}
                         {/strip}
                         <ul class="menu-v with-icon">
                             {strip}
-                            <li class="sort">
-                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}" class="no-underline {if !$sort}selected{/if}">{if $manual}[`manual`]{else}[`default`]{/if}</a>
-                            </li>
+                            {if $info && ($info.hash == 'set' || $info.hash == 'category')}
+                                <li class="sort">
+                                    <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}" class="no-underline {if !$sort}selected{/if}">{if $manual}[`manual`]{else}[`default`]{/if}</a>
+                                </li>
+                            {/if}
+                            
                             <li class="sort">
                                 <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}" class="no-underline {if $sort=='name'}selected{/if}">[`name`]
                                 </a>{if $sort=='name'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
@@ -131,15 +156,15 @@
                                 </a>{if $sort=='stock'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
                             </li>
                             <li class="sort">
-                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=rate&order={if $order == 'asc' && $sort=='rate'}desc{else}asc{/if}" class="no-underline {if $sort=='rate'}selected{/if}">[`rating`]
+                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=rate&order={if $order == 'desc' && $sort=='rate'}asc{else}desc{/if}" class="no-underline {if $sort=='rate'}selected{/if}">[`rating`]
                                 </a>{if $sort=='rate'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
                             </li>
                             <li class="sort">
-                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=date&order={if $order == 'asc' && $sort=='date'}desc{else}asc{/if}" class="no-underline {if $sort=='date'}selected{/if}">[`date added`]
+                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=date&order={if $order == 'desc' && $sort=='date'}asc{else}desc{/if}" class="no-underline {if $sort=='date'}selected{/if}">[`date added`]
                                 </a>{if $sort=='date'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
                             </li>
                             <li class="sort">
-                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=bestsellers&order={if $order == 'asc' && $sort=='bestsellers'}desc{else}asc{/if}" class="no-underline {if $sort=='bestsellers'}selected{/if}">[`top selling`]
+                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=bestsellers&order={if $order == 'desc' && $sort=='bestsellers'}asc{else}desc{/if}" class="no-underline {if $sort=='bestsellers'}selected{/if}">[`top selling`]
                                 </a>{if $sort=='bestsellers'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
                             </li>
 
@@ -246,8 +271,28 @@
                 <div class="s-product-details">
                     <label>
                         <input type="checkbox"><strong>{%#p.name%}</strong>
-                        <span class="small">{%#p.price_range%}</span>
+                        <span class="small nowrap">{%#p.price_range%}</span>
                     </label>
+
+                    <!-- extend info according to sorting method -->
+                    {% if (o.sort == 'rate') { %}
+                        <span class="rate nowrap" title="{%#'[`Average user rating: %s / 5`]'.replace('%s', p.rating)%}">
+                            {%#p.rating_str%}
+                        </span>
+                    {% } else if (o.sort == 'bestsellers') { %}
+                        <span class="hint total-sales nowrap">
+                            [`Total sales`]: <strong>{%#p.total_sales_str%}</strong>
+                        </span>
+                    {% } else if (o.sort == 'stock') { %}
+                        <span class="small stock nowrap">
+                            {%#p.icon%} {%#((p.count === null)?'<span class="gray">∞</span>':''+p.count)%}
+                        </span>
+                    {% } else if (o.sort == 'date') { %}
+                        <br>
+                        <span class="hint stock nowrap">
+                            {%#'[`Added %s`]'.replace('%s', p.create_datetime_str)%}
+                        </span>
+                    {% } %}
                 </div>
             </li>
             {% } %}
@@ -273,18 +318,27 @@
         <div class="dialog-window">
             <div class="dialog-content">
                 <div class="dialog-content-indent">
-                    <h1>{if $info.hash == 'category'}[`Delete category`]{elseif $info.hash == 'set'}[`Delete set`]{else}[`Delete list`]{/if}</h1>
+                    <h1>{if $info.hash == 'category'}[`Delete category`]{else}[`Delete set`]{/if}</h1>
                     <ul class="menu-v">
                         <li>
                             <label>
                             <input type="radio" name="s-delete-products" value="0" checked>
-                            [`Don't delete products`] <span class="hint">[`Products connected to this list will not be deleted`]</span>
+                            <strong>[`Don't delete products`]</strong>
+                            {if $info.hash == 'category'}
+                                <span class="hint">[`Products stored to this category will not be deleted`]</span>
+                            {else}
+                                <span class="hint">[`Products stored in this set will not be deleted`]</span>
+                            {/if}
                             </label>
                         </li>
                         <li>
                             <label>
                             <input type="radio" name="s-delete-products" value="1" {if $info.hash == 'category' && $info.type == shopCategoryModel::TYPE_DYNAMIC}disabled{/if}>
-                            {assign var="del_products_text" value='[`Delete all products stored in this list (%d)`]'|sprintf:$total_count}
+                            {if $info.hash == 'category'}
+                                {assign var="del_products_text" value='[`Delete all products stored in this category (%d)`]'|sprintf:$total_count}
+                            {else}
+                                {assign var="del_products_text" value='[`Delete all products stored in this set (%d)`]'|sprintf:$total_count}
+                            {/if}
                             {$del_products_text}{if $info.hash == 'category' && $info.type == shopCategoryModel::TYPE_DYNAMIC}<em class="hint"> [`Not available for smart categories.`]</em>{/if}
                             </label>
                         </li>
@@ -315,7 +369,7 @@
         view: '{$view}',
         collection_hash: {json_encode($collection_hash)},
         collection_param: '{$collection_param}',
-        sort: '{$wa->get("sort")}',
+        sort:  '{$sort}',
         order: '{$order}',
         products: {json_encode($products)},
         total_count: {$total_count},

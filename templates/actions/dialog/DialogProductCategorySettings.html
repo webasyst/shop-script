@@ -64,7 +64,7 @@
             <input type="checkbox" name="enable_sorting" {if $settings.enable_sorting}checked="checked"{/if} value="1"> [`Customer can select product sort order`]
         </label>
     </div>
-    <div class="value no-shift">
+    <div class="value no-shift"{if $settings.type == shopCategoryModel::TYPE_DYNAMIC} style="display: none;"{/if}>
         <label>
             <input type="checkbox" name="include_sub_categories" {if $settings.include_sub_categories}checked="checked"{/if} value="1"> [`Include products from sub-categories`]
             <span class="hint">[`When enabled, products will be fetched from both the current category and all its sub-categories (applicable to frontend only)`]</span>

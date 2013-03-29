@@ -23,7 +23,7 @@ $(function() {
     if (!input_rate.length) {
         input_rate = $('<input name="rate" type="hidden" value=0>').appendTo(form);
     }
-    form.find('a.rate').rateWidget({
+    $('#review-rate').rateWidget({
         onUpdate: function(rate) {
             input_rate.val(rate);
         }

@@ -176,7 +176,7 @@ return array(
             'classname' => 'shopWorkflowDeleteAction',
             'name' => _w('Delete'),
             'options' => array(
-                'position' => 'top',
+//                'position' => 'top',
                 'icon' => 'delete',
                 'log_record' => _w('Order was deleted'),
             ),

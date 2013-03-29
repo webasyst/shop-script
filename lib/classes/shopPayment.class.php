@@ -118,6 +118,11 @@ class shopPayment extends waAppPayment
             }
             $order['id_str'] = $encoded_order_id;
         }
+
+        if (!isset($order['id_str'])) {
+            $order['id_str'] = shopHelper::encodeOrderId($order['id']);
+        }
+
         if (!isset($order['params'])) {
 
             $order_params_model = new shopOrderParamsModel();
@@ -196,6 +201,7 @@ class shopPayment extends waAppPayment
             'id'               => $order['id'],
             'contact_id'       => $order['contact_id'],
             'datetime'         => ifempty($order['create_datetime']),
+            'description'      => sprintf(_w('Payment for order %s'), ifempty($order['id_str'], $order['id'])),
             'update_datetime'  => ifempty($order['update_datetime']),
             'total'            => ifempty($total, $order['total']),
             'currency'         => ifempty($currency_id, $order['currency']),

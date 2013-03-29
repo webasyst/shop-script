@@ -3,6 +3,9 @@ $(function () {
     function updateCart(data)
     {
         $(".cart-total").html(data.total);
+        if (data.discount_numeric) {
+            $(".cart-discount").closest('tr').show();
+        }
         $(".cart-discount").html('&minus; ' + data.discount);
     }
 
@@ -36,6 +39,9 @@ $(function () {
                     tr.find('.item-total').html(response.data.item_total);
                     if (response.data.q) {
                         that.val(response.data.q);
+                    }
+                    if (response.data.error) {
+                        alert(response.data.error);
                     }
                     updateCart(response.data);
                 }, "json");

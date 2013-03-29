@@ -13,7 +13,7 @@ class shopSettingsGeneralAction extends waViewAction
                 $app_settings->set('shop', $name, $value);
             }
 
-            $sms = waRequest::post('sms');
+            $sms = waRequest::post('sms', array());
             $path = $this->getConfig()->getPath('config', 'sms');
             $save = array();
             foreach ($sms as $s) {

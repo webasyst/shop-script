@@ -19,27 +19,8 @@
     {/if}
 
     <!-- category tree -->
-    {if $categories = $wa->shop->categories()}
-        {$temp_depth=-1}
-        {foreach $categories as $c}
-            {if $c.depth > $temp_depth}
-                <ul class="menu-v category-tree">
-            {elseif $c.depth == $temp_depth}
-                </li>
-            {elseif $temp_depth > $c.depth}
-                {for $i = 1 to ($temp_depth - $c.depth)}
-                </li></ul>
-                {/for}
-                </li>
-            {/if}
-            <li{if isset($category) && $category.id == $c.id} class="selected"{/if}><a href="{$c.url}">{$c.name|escape}</a>
-            {$temp_depth=$c.depth}
-        {/foreach}
-        {for $i = 1 to $temp_depth}
-            </li></ul>
-        {/for}
-        </li></ul>
-    {/if}
+    {if isset($category)}{$selected_category=$category.id}{else}{$selected_category=null}{/if}
+    {wa_print_tree tree=$wa->shop->categories(0, null, true) selected=$selected_category unfolded=false class="menu-v category-tree" elem ='<a href=":url" title=":name">:name</a>'}
 
     <!-- tag cloud -->
     {if $cloud = $wa->shop->tags()}

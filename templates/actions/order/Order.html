@@ -1,8 +1,13 @@
 <div class="block double-padded s-order">
     <div class="float-right s-order-aux">
 
+        <div class="block half-padded s-printable-print-button align-center">
+            <input type="button" value="[`Print`]" onClick="window.print();">
+        </div>
+
         <!-- order action links -->
         <ul class="menu-v with-icons compact workflow-actions">
+            <li><a href="#" target="_blank" class="js-print" data-selector="div.s-order"><i class="icon16 print"></i>[`Printable version`]</a></li>
             {foreach $top_buttons as $b}
                 <li>{$b}</li>
             {/foreach}
@@ -310,8 +315,8 @@
 
 *}
 
-    <!-- order log -->
-    <div class="s-order-readable">
+    <!-- order processing timeline -->
+    <div class="s-order-readable s-order-timeline">
         <h3>[`Order timeline`]</h3><br>
         <p class="workflow-actions">
             {foreach $bottom_buttons as $b}
@@ -319,7 +324,7 @@
             {/foreach}
         </p>
         <div class="workflow-content"></div>
-        <div class="fields s-order-timeline">
+        <div class="fields">
             {foreach $log as $row}
             <div class="field">
                 <div class="name">{$row.datetime|wa_datetime:"humandatetime"}</div>
@@ -354,7 +359,7 @@
             currency: '{$currency}',
             view: view
         };
-        
+
         // title has to be overridden in this cases
         if (view == 'table') {
             options.title = '{$wa->shop->orderId($order.id)|cat:' — ':$wa->accountName()}';
