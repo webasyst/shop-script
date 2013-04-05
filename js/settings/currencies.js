@@ -100,9 +100,11 @@ $.extend($.settings = $.settings || {}, {
                 disableButtonsOnSubmit: true,
                 onSubmit: function() {
                     var self = $(this);
+                    var loading = self.find('i.loading').show();
                     jsonPost(self.attr('action'), self.serialize(),
                         function() {
                             $.settings.dispatch('#/currencies/', true);
+                            loading.hide();
                             d.trigger('close');
                         }
                     );

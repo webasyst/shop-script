@@ -193,12 +193,12 @@ class shopConfig extends waAppConfig
      */
     public function getCheckoutSettings($all = false)
     {
-        $all_steps = include(wa()->getConfig()->getAppPath('lib/config/data/checkout.php'));
+        $all_steps = include(wa('shop')->getConfig()->getAppPath('lib/config/data/checkout.php'));
         // @todo: event to get all available steps from plugins
         if ($all) {
             return $all_steps;
         }
-        $file = wa()->getConfig()->getConfigPath('checkout.php', true, 'shop');
+        $file = wa('shop')->getConfig()->getConfigPath('checkout.php', true, 'shop');
         if (file_exists($file) && is_array($steps = include($file))) {
             foreach ($steps as $step_id => & $step) {
                 if (is_array($step)) {

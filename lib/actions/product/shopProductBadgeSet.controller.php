@@ -11,6 +11,9 @@ class shopProductBadgeSetController extends waJsonController
         if (!$product) {
             throw new waException(_w("Unknown product"));
         }
+        if (!$product_model->checkRights($product)) {
+            throw new waException(_w("Access denied"));
+        }
 
         $code = waRequest::post('code', null, waRequest::TYPE_STRING_TRIM);
         if (!$code) {

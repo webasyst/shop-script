@@ -41,6 +41,10 @@ class shopFavoriteproductsPlugin extends shopPlugin
     /** Handler for backend_product event: HTML for single order page. */
     public function backendProduct($product)
     {
+        if ($product instanceof shopProduct && !$product->checkRights()) {
+            return '';
+        }
+
         $el_id = uniqid('fav');
         $js = <<<EOJS
 <script>$(function() { "use strict";

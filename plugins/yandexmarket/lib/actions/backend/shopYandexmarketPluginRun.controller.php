@@ -498,8 +498,20 @@ class shopYandexmarketPluginRunController extends waLongActionController
 
     private function format($field, $value, $info = array(), $data = array())
     {
+        $value = str_replace('&nbsp;', ' ', $value);
+        $value = str_replace('&', '&amp;', $value);
         static $currency_model;
         switch ($field) {
+            case 'sales_notes':
+                if (mb_strlen($value) > 50) {
+                    $value = mb_substr($value, 0, 50);
+                }
+                break;
+            case 'description':
+                if (mb_strlen($value) > 512) {
+                    $value = mb_substr($value, 0, 509).'...';
+                }
+                break;
             case 'typePrefix':
                 $model = new shopTypeModel();
                 if ($type = $model->getById($value)) {

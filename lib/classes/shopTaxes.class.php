@@ -84,8 +84,17 @@ class shopTaxes
         foreach($items as &$i) {
             $tax_id = ifempty($i['tax_id']);
             $i['tax_percent'] = ifset($result[$tax_id]['rate'], 0.0);
-            $i['tax'] = ifset($result[$tax_id]['rate'], 0.0)*shop_currency($i['price'] * $i['quantity'], $i['currency'], $currency, false)/100.0;
             $i['tax_inclided'] = ifset($result[$tax_id]['included']);
+
+            $p = shop_currency($i['price'] * $i['quantity'], $i['currency'], $currency, false);
+            $r = ifset($result[$tax_id]['rate'], 0.0);
+
+            if ($i['tax_inclided']) {
+                $i['tax'] = $p*$r/(100.0+$r);
+            } else {
+                $i['tax'] = $r*$p/100.0;
+            }
+
             if ($i['tax_inclided']) {
                 $result[$tax_id]['sum_included'] += $i['tax'];
             } elseif  ($i['tax']) {

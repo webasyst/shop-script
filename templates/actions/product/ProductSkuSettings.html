@@ -3,33 +3,22 @@
 <script type="text/javascript" src="{$wa_app_static_url}js/jquery.fileupload.js"></script>
 
 <div class="fields form">
-    {$custom_features = false}
-    {*
+
     {foreach $features as $code => $feature}
-    {if $feature.multiple && !empty($product.features[$code])}
-    {$custom_features = true}
-    <div class="field">
-        <div class="name">{$feature.name|escape}<br><span class="hint">{$code|escape}</span></div>
-        <div class="value">
-        {foreach $product.features[$code] as $value}
-            <label>
-                <input type="radio" name="product[skus][{$sku_id}][features][{$code}]" value="{$value|escape}"{if !empty($sku_features[$code]) && ($value == (string)$sku_features[$code])} checked="checked"{/if}>
-                {$value|escape}
-            </label>
-            {if !$value@last}<br>{/if}
-        {/foreach}
+        <div class="field">
+            <div class="name">{$feature.name|escape}<br><span class="hint">{$code|escape}</span></div>
+            <div class="value">
+                <select name="product[skus][{$sku_id}][features][{$code}]">
+                    <option value=""></option>
+                    {foreach $feature.values as $value}
+                        <option value="{$value|escape}" {if !empty($sku_features[$code]) && ($value == (string)$sku_features[$code])}selected="selected"{/if}>
+                            {$value|escape}
+                        </option>
+                    {/foreach}
+                </select>
+            </div>
         </div>
-    </div>
-    {/if}
     {/foreach}
-    *}
-    {*if !$custom_features}
-    <div class="field">
-        <div class="name"></div>
-        <div class="value">[`There no custom SKU features`]</div>
-    </div>
-    {/if*}
-    
 
     <div class="field s-product-sku-images" {if count($product->images) <= 1}style="display:none"{/if}>
         <div class="name">[`SKU image`]</div>
@@ -61,7 +50,7 @@
     </div>
     <div class="field">
         <div class="name">[`Compare at price`]</div>
-        <div class="value">
+        <div class="value strike">
             <input type="text" name="product[skus][{$sku_id}][compare_price]" value="{$sku.compare_price|escape}" class="short numerical"><span class="s-product-currency-readonly">{$product.currency}</span>
         </div>
     </div>
@@ -72,7 +61,9 @@
         </div>
         <div class="value no-shift">
             <input type="file" name="" class="fileupload" {if $sku_id < 0} disabled="disabled"{/if} {if !empty($sku.file_name)} style="display:none;"{/if}>
+            
             {if $sku_id < 0}<span class="hint"><br>[`Save product information to be able to upload an attachment`]</span>{/if}
+            
             <div class="js-progressbar-container" style="display:none;">
                 <div class="progressbar blue float-left" style="width: 70%;">
                     <div class="progressbar-outer">
@@ -82,16 +73,29 @@
                 <br clear="left">
                 <span class="small italic">[`Please do not close your browser window and do not leave this page until the entire upload process is finished.`]</span>
             </div>
-            <div {if empty($sku.file_name)} style="display: none;"{/if}>
+            
+            <div class="s-sku-attachment" {if empty($sku.file_name)} style="display: none;"{/if}>
                 <input type="checkbox" name="product[skus][{$sku_id}][eproduct]" value="1" {if !empty($sku.file_name)} checked="checked"{/if}>
-                {if !empty($sku.file_name)}<strong>{$sku.file_name|escape}</strong>{/if} {if !empty($sku.file_size)}<span class="hint">{$sku.file_size|wa_format_file_size}</span>{/if}
-                <input type="hidden" name="product[skus][{$sku_id}][file_name]" value="{if !empty($sku.file_name)}{$sku.file_name|escape}{/if}">
+                <strong class="s-file-name">
+                    {if !empty($sku.file_name)}
+                        {$sku.file_name|escape}
+                    {/if}
+                </strong>
+                <span class="s-file-size hint">
+                    {if !empty($sku.file_size)}
+                        {$sku.file_size|wa_format_file_size}
+                    {/if}
+                </span>
+                <input type="hidden" name="product[skus][{$sku_id}][file_name]" class="s-input-file-name" value="{if !empty($sku.file_name)}{$sku.file_name|escape}{/if}">
                 <p class="hint">[`A link to download attached file will be sent to customer in the order notification email. The link will be functional only when the order is paid.`]</p>
                 <p class="small">[`Optional file description`]:<br>
-                    <textarea rows="5" cols="40" name="product[skus][{$sku_id}][file_description]">{if !empty($sku.file_description)}{$sku.file_description|escape}{/if}</textarea>
+                    <textarea rows="5" cols="40" name="product[skus][{$sku_id}][file_description]" class="s-file-description">{strip}
+                        {if !empty($sku.file_description)}{$sku.file_description|escape}{/if}
+                    {/strip}</textarea>
                 </p>
             </div>
             <br>
+            
             <span class="error-message"></span>
         </div>
     </div>

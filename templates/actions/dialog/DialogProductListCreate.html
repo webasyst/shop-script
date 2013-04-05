@@ -10,11 +10,11 @@
                         <div class="field">
                             <div class="name">{$name_text}</div>
                             <div class="value">
-                                <input type="text" name="name" class="large s-full-width-input" value="" id="s-product-list-name">
+                                <input type="text" name="name" class="large long s-full-width-input" value="" id="s-product-list-name">
                             </div>
-                        </div>
+                        </div>                        
                         {$smarty.capture.frontend_url}
-                    </div>
+                    </div>                 
                     {$smarty.capture.ext_fields}
                     <div class="field-group">
                         <div class="field">
@@ -45,10 +45,10 @@
                             </div>
                         </div>
                     </div>
-                    {$smarty.capture.description}
                     <div class="field-group" id="s-dynamic-field-group" style="display:none;">
                         {$smarty.capture.dynamic_settings}
-                    </div>
+                    </div>                    
+                    {$smarty.capture.description}
                     {$smarty.capture.custom_params}
                 </div>
             </div>

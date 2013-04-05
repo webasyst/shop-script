@@ -222,7 +222,7 @@
                     original: {
                         width:  image.width,
                         height: image.height,
-                        src: '?module=product&action=downloadImage&id='+image.id
+                        src: '?module=product&action=ImageDownload&id='+image.id
                     },
                     image: {
                         width:  this.product_image.width(),

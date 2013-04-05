@@ -14,6 +14,15 @@ class shopTypeFeaturesModel extends shopSortableModel
         return $this->query($sql, array('id' => $type_id))->fetchAll();
     }
 
+    public function addType($type_id)
+    {
+        $sql = "INSERT INTO `{$this->table}`  (`type_id`,`feature_id`,`sort`)
+  SELECT i:type_id, `b`.`feature_id`, 0
+  FROM `{$this->table}` `b`
+  WHERE `b`.`type_id`=0";
+        return $this->query($sql, array('type_id' => $type_id));
+    }
+
     public function updateByFeature($feature_id, $types = array(), $delete_obsolete_types = true)
     {
         $feature_id = intval($feature_id);

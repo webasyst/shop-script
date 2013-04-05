@@ -474,12 +474,10 @@ $.order_edit = {
             if (activate) {
                 disable(false);
                 autocompete_input.val('').hide(200);
-                search_activate_button.show();
             } else {
                 disable();
                 $.order_edit.customer_inputs.val('');
                 autocompete_input.val('').show();
-                search_activate_button.hide();
             }
         };
         var testPhone = function(str) {

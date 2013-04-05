@@ -15,6 +15,12 @@ class shopProductImageRestoreController extends waJsonController
             throw new waException("Can't restore image");
         }
 
+        // check rights
+        $product_model = new shopProductModel();
+        if (!$product_model->checkRights($image['product_id'])) {
+            throw new waException(_w("Access denied"));
+        }
+
         $original_image_path = shopImage::getOriginalPath($image);
         if (!wa('shop')->getConfig()->getOption('image_save_original') || !file_exists($original_image_path)) {
             throw new waException("Can't restore image. Original image doesn't exist");

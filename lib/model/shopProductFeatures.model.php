@@ -13,6 +13,36 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
     }
 
+    public function getSkuFeatures($product_id)
+    {
+        if (!$product_id) {
+            return array();
+        }
+        $sql = "SELECT * FROM ".$this->table." WHERE product_id = i:id AND sku_id IS NOT NULL";
+        $result = array();
+        $rows = $this->query($sql, array('id' => $product_id))->fetchAll();
+        foreach ($rows as $row) {
+            $result[$row['sku_id']][$row['feature_id']] = $row['feature_value_id'];
+        }
+        return $result;
+    }
+
+    public function getSkuByFeatures($product_id, $features)
+    {
+        $sql = "SELECT t0.sku_id FROM ".$this->table." t0 ";
+        for ($i = 1; $i < count($features); $i++) {
+            $sql .= " JOIN ".$this->table." t".$i." ON t0.sku_id = t".$i.".sku_id";
+        }
+        $sql .= " WHERE t0.product_id = ".(int)$product_id;
+        $i = 0;
+        foreach ($features as $f => $v) {
+            $sql .= " AND t".$i.".feature_id = ".(int)$f." AND t".$i.".feature_value_id = ".$v;
+            $i++;
+        }
+        $sql .= " LIMIT 1";
+        return $this->query($sql)->fetchField();
+    }
+
     public function deleteByFeature($feature_id, $feature_value_id = null)
     {
         $sql = "DELETE FROM {$this->table} WHERE ".$this->getWhereByField('feature_id', $feature_id);
@@ -99,7 +129,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         }
 
         $current = array();
-        $rows = $this->getByField('product_id', $product_id, true);
+        $rows = $this->getByField(array('product_id' => $product_id, 'sku_id' => null), true);
         foreach ($rows as $row) {
             $id = $row['feature_id'];
             if (isset($features_map[$id])) {
@@ -183,7 +213,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             }
         }
         foreach ($delete as $feature_id => $value_id) {
-            $this->deleteByField(array('product_id' => $product_id, 'feature_id' => $feature_id, 'feature_value_id' => $value_id));
+            $this->deleteByField(array('product_id' => $product_id, 'sku_id' => null, 'feature_id' => $feature_id, 'feature_value_id' => $value_id));
         }
 
         foreach ($add as $feature_id => $value_id) {

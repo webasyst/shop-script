@@ -11,7 +11,6 @@ class shopProductsSaveListSettingsController extends waJsonController
             throw new waException("Unknown type of list");
         }
 
-        /*
         if (waRequest::get('edit', null, waRequest::TYPE_STRING_TRIM) === 'name') {
             $name = waRequest::post('name', '', waRequest::TYPE_STRING_TRIM);
             $this->getModel($hash[0])->updateById($hash[1], array(
@@ -22,7 +21,6 @@ class shopProductsSaveListSettingsController extends waJsonController
             );
             return;
         }
-        */
 
         $data = $this->getData($hash[0]);
         $id = $this->saveSettings($hash, $data);
@@ -202,6 +200,7 @@ class shopProductsSaveListSettingsController extends waJsonController
         return $model[$type];
     }
 
+    /*
     private function addProducts($id, $type)
     {
         $model = $this->getProductsModel($type);
@@ -224,6 +223,7 @@ class shopProductsSaveListSettingsController extends waJsonController
             }
         }
     }
+    */
 
     private function getHash()
     {
@@ -313,6 +313,16 @@ class shopProductsSaveListSettingsController extends waJsonController
                 $conditions[] = 'tag=' . implode('||', $tags);
             }
         }
+        if (isset($raw_condition['price'])) {
+            $raw_condition['price'] = waRequest::post('price');
+            if (!empty($raw_condition['price'][0])) {
+                $conditions[] = 'price>=' . $raw_condition['price'][0];
+            }
+            if (!empty($raw_condition['price'][1])) {
+                $conditions[] = 'price<=' . $raw_condition['price'][1];
+            }
+        }
+
         $conditions = implode('&', $conditions);
         return $conditions;
     }

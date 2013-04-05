@@ -72,7 +72,7 @@
     {if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.image_toolbar_section)}{/foreach}{/if}
     
     <div class="block s-image-original">
-    [`Full size`]:  <a href="?module=product&action=downloadImage&id={$image.id}"><strong id="photo-name-original">{$image_name}</strong></a><br>
+    [`Full size`]:  <a href="?module=product&action=ImageDownload&id={$image.id}"><strong id="photo-name-original">{$image_name}</strong></a><br>
     [`Dimensions`]: <strong>{$image.width}x{$image.height}</strong><br>
     {if $image.size}[`Size`]: <strong>{waFiles::formatSize($image.size, '%0.2f', 'B,KB,MB,GB')}</strong><br>{/if}
 
@@ -125,7 +125,7 @@
 {* dialogs section *}
 <div class="dialog width400px height200px" id="s-product-image-delete-dialog">
     <div class="dialog-background"></div>
-    <form method="post" action="?module=product&action=DeleteImage&id={$image.id}">
+    <form method="post" action="?module=product&action=ImageDelete&id={$image.id}">
     <div class="dialog-window">
         <div class="dialog-content">
             <div class="dialog-content-indent">

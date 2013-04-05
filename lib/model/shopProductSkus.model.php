@@ -108,16 +108,23 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
      * @param int $product_id
      * @param int $sku_id
      */
-    private function deleteFromStocks($product_id, $sku_id)
+    public function deleteFromStocks($product_id, $sku_id)
     {
         $product_stocks_model = new shopProductStocksModel();
         return $product_stocks_model->deleteByField(array('product_id' => $product_id, 'sku_id' => $sku_id));
     }
 
-    private function deleteServices($product_id, $sku_id)
+    public function deleteServices($product_id, $sku_id)
     {
         $product_services_model = new shopProductServicesModel();
         return $product_services_model->deleteByField(array('product_id' => $product_id, 'sku_id' => $sku_id));
+    }
+
+    public function deleteJoin($table, $product_id, $where)
+    {
+        $where['product_id'] = $product_id;
+        $sql = "DELETE t FROM ".$table." t JOIN shop_product_skus s ON t.sku_id = s.id WHERE ".$this->getWhereByField($where, 's');
+        return $this->exec($sql);
     }
 
     public function getSku($sku_id) {
@@ -183,7 +190,8 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         $result = array();
         $price = array();
         $product_id = $product->getId();
-        $default_sku_id = $product->sku_id;
+
+        $default_sku_id = null;
 
         $update_product_data = array();
 
@@ -231,16 +239,23 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                 }
                 $this->updateById($sku_id, $sku);
 
+                if ($product->sku_id == $sku_id) {
+                    $default_sku_id = $sku_id;
+                }
+
             } else {
                 $is_default = false;
-                if ($sku_id == $default_sku_id) {
+                if ($product->sku_id == $sku_id) {
                     $is_default = true;
                 }
+
                 $sku['product_id'] = $product_id;
                 $sku_id = $this->insert($sku);
                 unset($sku['product_id']);
+
                 if ($is_default) {
-                    $update_product_data['sku_id'] = $sku_id;
+                    $default_sku_id = $sku_id;
+                    //$update_product_data['sku_id'] = $sku_id;
                 }
             }
 
@@ -248,6 +263,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             // In multistocking: if at least one stock-sku count doesn't exists this aggregate counter turn into NULL
             $sku_count = null;
 
+            // if stocking for this sku
             if (isset($sku['stock']) && count($sku['stock'])) {
                 $sku_count = 0;
 
@@ -289,20 +305,27 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                         $sku['stock'][$stock_id] = $count;
                     }
                 }
-
-                // maintain product_count invariant. See above
-                if ($sku_count === null) {
-                    $product_count = null;
-                } elseif ($product_count !== null) {
-                    $product_count += $sku_count;
-                }
-                $sku['count'] = $sku_count;
-
-                $this->updateById($sku_id, array('count' => $sku_count));
             }
 
+            // maintain product_count invariant. See above
+            if ($sku_count === null) {
+                $product_count = null;
+            } elseif ($product_count !== null) {
+                $product_count += $sku_count;
+            }
+            $sku['count'] = $sku_count;
+
+            $this->updateById($sku_id, array('count' => $sku_count));
+
             if (isset($sku['features'])) {
+
                 foreach ($sku['features'] as $code => $value) {
+
+                    // ingoring empty values
+                    if (empty($value)) {
+                        continue;
+                    }
+
                     if ($feature = $feature_model->getByField('code', $code)) {
                         $model = shopFeatureModel::getValuesModel($feature['type']);
                         $field = array(
@@ -312,6 +335,15 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                         );
                         $product_features_model->deleteByField($field);
                         $field['feature_value_id'] = $model->getId($feature['id'], $value, $feature['type']);
+                        $product_features_model->insert($field);
+                    } elseif (is_numeric($code) && is_numeric($value)) {
+                        $field = array(
+                            'product_id' => $product_id,
+                            'sku_id'     => $sku_id,
+                            'feature_id' => $code,
+                        );
+                        $product_features_model->deleteByField($field);
+                        $field['feature_value_id'] = $value;
                         $product_features_model->insert($field);
                     }
                 }
@@ -327,12 +359,19 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         //XXX temporal hack
         $model = new shopProductModel();
 
-        if (empty($update_product_data['sku_id']) && $product->sku_id <= 0) {
-            $update_product_data['sku_id'] = current(array_keys($result));
+        // if default sku id not found choose first sku_id
+        if ($default_sku_id === null) {
+            $product->sku_id = $update_product_data['sku_id'] = current(array_keys($result));
+        } else {
+            $product->sku_id = $update_product_data['sku_id'] = $default_sku_id;
         }
-        if (!empty($update_product_data['sku_id'])) {
-            $product->sku_id = $update_product_data['sku_id'];
-        }
+
+//         if (empty($update_product_data['sku_id']) && $product->sku_id <= 0) {
+//             $update_product_data['sku_id'] = current(array_keys($result));
+//         }
+//         if (!empty($update_product_data['sku_id'])) {
+//             $product->sku_id = $update_product_data['sku_id'];
+//         }
 
         if ($product->currency && $product->currency != $primary_currency) {
             $product->min_price = $this->convertPrice(min($price), $product->currency);

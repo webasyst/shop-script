@@ -11,6 +11,10 @@ class shopProductBadgeDeleteController extends waJsonController
             $this->errors[] = _w("Unknown product");
             return;
         }
+        if (!$product_model->checkRights($product)) {
+            throw new waException(_w("Access denied"));
+        }
+
         $product_model->updateById($id, array('badge' => null));
     }
 }

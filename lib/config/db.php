@@ -366,6 +366,8 @@ return array(
         'total_sales' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'category_id' => array('int', 11),
         'badge' => array('varchar', 255),
+        'sku_type' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
+        'base_price_selectable' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'url' => 'url',
@@ -381,6 +383,14 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
             'feature' => array('product_id', 'sku_id', 'feature_id', 'feature_value_id', 'unique' => 1),
+        ),
+    ),
+    'shop_product_features_selectable' => array(
+        'product_id' => array('int', 11, 'null' => 0),
+        'feature_id' => array('int', 11, 'null' => 0),
+        'value_id' => array('int', 11, 'null' => 0),
+        ':keys' => array(
+            'PRIMARY' => array('product_id', 'feature_id', 'value_id'),
         ),
     ),
     'shop_product_images' => array(
@@ -487,6 +497,7 @@ return array(
         'file_name' => array('varchar', 255, 'null' => 0, 'default' => ''),
         'file_size' => array('int', 11, 'null' => 0, 'default' => '0'),
         'file_description' => array('text'),
+        'virtual' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'product_id' => 'product_id',

@@ -1,9 +1,9 @@
 <form id="order-edit-form" method="post" action="?module=order&action=save{if $order}&id={$order.id}{/if}">
-<div class="sidebar left400px">
+<div class="sidebar left400px s-order-customer-details">
     <div class="block top-padded">
         {if !$order && $wa->userRights('shop')}
             <div class="float-right block half-padded small">
-                <a href="#" id="customer-search-activate" style="display:none;" class="inline-link"><b><i>[`New customer`]</i></b></a>
+                <a href="#" id="customer-search-activate" class="inline-link"><b><i>[`New customer`]</i></b></a>
             </div>
         {/if}
         <h2><a href="#" class="back">&larr; [`Back`]</a> <span>[`Customer`]</span></h2>
@@ -195,11 +195,11 @@
                     {/foreach}
                 {/if}
             </tbody>
-            <tbody>
+            <tfoot>
                 <!-- add product -->
                 <tr class="white" id="s-orders-add-row">
                     <td class="min-width align-center"><i class="icon16 add"></i></td>
-                    <td colspan="5">
+                    <td colspan="5" style="width: 100%;">
                         <input id="orders-add-autocomplete" type="search" class="search bold large long" placeholder="[`Type product or SKU name`]">
                     </td>
                 </tr>
@@ -281,8 +281,9 @@
                         <input type="submit" class="button green large" value="[`Save order`]">
                     </td>
                 </tr>
-            </tbody>
+            </tfoot>
         </table>
+        <div class="clear-both"></div>
     </div>
 </div>
 {$wa->csrf()}

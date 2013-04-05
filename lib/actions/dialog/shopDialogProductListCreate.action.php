@@ -23,7 +23,17 @@ class shopDialogProductListCreateAction extends waViewAction
 
         if ($type == 'category') {
             $tag_model = new shopTagModel();
-            $this->view->assign('cloud', $tag_model->getCloud());
+
+            $stuff = '%category_url%';
+            $frontend_url = wa()->getRouteUrl('/frontend/category', array('category_url' => $stuff), true);
+            $pos = strrpos($frontend_url, $stuff);
+            $fontend_base_url = $pos !== false ? rtrim(substr($frontend_url, 0, $pos), '/').'/' : $frontend_url;
+
+            $this->view->assign(array(
+                'cloud'    => $tag_model->getCloud(),
+                'currency' => wa()->getConfig()->getCurrency(),
+                'frontend_base_url' => $fontend_base_url
+            ));
         } else if ($type == 'set') {
             $this->view->assign('default_count', $this->set_dynamic_default_count);
         }

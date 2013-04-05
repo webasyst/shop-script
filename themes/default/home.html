@@ -19,9 +19,25 @@
 
 <div class="content left300px">
 
-    <!-- general homepage welcome text -->
-    <h1>[`Welcome to Shop-Script!`]</h1>
-    <p>[`Use built-in design editor to edit this text and replace it with your general store information and contacts.`]</p>
+    <!-- GENERAL WELCOME TEXT -->
+    <div itemscope itemtype="http://schema.org/Store">
+        <h1 class="align-center"><span itemprop="name">{sprintf('[`%s online store`]', $wa->shop->settings('name'))}</span></h1>
+        <meta itemprop="description" content="{$wa->meta('description')|escape}">
+
+        {if $wa->shop->settings('phone')}
+            <p class="align-center large">[`Contact us`]: <strong itemprop="telephone">{$wa->shop->settings('phone')}</strong></p>
+        {/if}
+        <div itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+            <meta itemprop="streetAddress" content="">
+            <meta itemprop="addressLocality" content="">
+            <meta itemprop="addressRegion" content="">
+            <meta itemprop="postalCode" content="">
+            <meta itemprop="addressCountry" content="{$wa->shop->settings('country')|upper}">
+        </div>
+  
+        <p class="align-center gray">[`Edit this information in the <strong>home.html</strong> template file using built-in design editor in the store backend.`]</p>
+        
+    </div>
 
     {$bestsellers = $wa->shop->productSet('bestsellers')}
     {if $bestsellers}

@@ -56,7 +56,9 @@ class shopSettingsRecommendationsAction extends waViewAction
         unset($type);
 
         $fids = array();
-        foreach ($features as $f) {
+        foreach ($features as $f_key => $f) {
+            $features[$f_key]['selectable'] = (int)$f['selectable'];
+            $features[$f_key]['multiple'] = (int)$f['multiple'];
             if ($f['selectable']) {
                 $fids[$f['id']] = $f;
             }

@@ -12,7 +12,7 @@
         [`Frontend URL`]
     </div>
     <div class="value">
-        {if !empty($parent)}{$parent.full_url}/{/if}<input type="text" name="url" value="" id="s-product-list-url">/
+        {$frontend_base_url}{if !empty($parent)}{$parent.full_url}/{/if}<input type="text" name="url" value="" id="s-product-list-url">/
     </div>
 </div>
 {/capture}
@@ -76,6 +76,23 @@
     <div class="value">
         <table class="zebra">
             <tbody>
+                <tr>
+                    <td class="min-width">
+                        <input id="s-c-condition-price-interval" type="checkbox" name="condition[]" value="price">
+                    </td>
+                    <td>
+                        <label for="s-c-condition-price-interval">[`Price`]</label>
+                    </td>
+                    <td colspan="2">
+                        <label>
+                            [`from`] <input type="text" name="price[0]" class="short" placeholder="0" value="">
+                        </label>
+                        <label>
+                            [`to`] <input type="text" name="price[1]" class="short" placeholder="&infin;" value="">
+                        </label>
+                        {$currency}
+                    </td>
+                </tr>
                 <tr>
                     <td class="min-width">
                         <input id="s-c-condition-rate" type="checkbox" name="condition[]" value="rating">
@@ -154,7 +171,7 @@
                                 }
                             }
                         });
-                    }, 500);
+                    }, 100);
                 }
             });
 
@@ -176,6 +193,9 @@
         });
         d.on('change', 'input[name^=tag]', function() {
             $('#s-c-condition-tag').attr('checked', true);
+        });
+        d.on('keyup', 'input[name^=price]', function() {
+            $('#s-c-condition-price-interval').attr('checked', true);
         });
     });
 </script>

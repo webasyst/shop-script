@@ -19,6 +19,11 @@ class shopBrandsPluginFrontendBrandAction extends shopFrontendAction
         $this->view->assign('title', htmlspecialchars($brand));
         $this->getResponse()->setTitle($brand);
 
+        /**
+         * @event frontend_search
+         * @return array[string]string $return[%plugin_id%] html output for search
+         */
+        $this->view->assign('frontend_search', wa()->event('frontend_search'));
         $this->setThemeTemplate('search.html');
     }
 

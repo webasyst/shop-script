@@ -25,6 +25,12 @@ class shopProductImageRotateController extends waJsonController
             throw new waException("Unknown image");
         }
 
+        // check rights
+        $product_model = new shopProductModel();
+        if (!$product_model->checkRights($image['product_id'])) {
+            throw new waException(_w("Access denied"));
+        }
+
         $image_path = shopImage::getPath($image);
 
         $paths = array();

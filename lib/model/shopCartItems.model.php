@@ -86,6 +86,16 @@ class shopCartItemsModel extends waModel
         ))->fetchField();
     }
 
+    public function countSku($code, $sku_id)
+    {
+        $sql = "SELECT SUM(quantity) FROM ".$this->table." WHERE code = s:code AND type = 'product' AND sku_id = i:sku_id";
+        return $this->query($sql, array(
+            'code' => $code,
+            'sku_id' => $sku_id
+        ))->fetchField();
+
+    }
+
     public function getSingleItem($code, $product_id, $sku_id)
     {
         $sql = "SELECT c1.* FROM ".$this->table." c1

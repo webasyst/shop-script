@@ -21,7 +21,7 @@
         <tr itemscope itemtype ="http://schema.org/Product">
             <td class="min-width">
                 <div class="image">
-                    <a href="{$p.frontend_url}" title="{$p.name|escape}{if $p.summary} &mdash; {strip_tags($p.summary)}{/if}">
+                    <a href="{$p.frontend_url}" title="{$p.name}{if $p.summary} &mdash; {strip_tags($p.summary)}{/if}">
                         {$badge_html = $wa->shop->badgeHtml($p.badge)}
                         {if $badge_html}
                             <div class="corner top right">{$badge_html}</div>
@@ -32,7 +32,7 @@
             </td>
             <td>
                 <h5 itemprop="name">
-                    <a href="{$p.frontend_url}" title="{$p.name|escape}{if $p.summary} &mdash; {strip_tags($p.summary)}{/if}">{$p.name}</a>
+                    <a href="{$p.frontend_url}" title="{$p.name}{if $p.summary} &mdash; {strip_tags($p.summary)}{/if}">{$p.name}</a>
                     {if $p.rating > 0}
                         <span class="rating nowrap">{$wa->shop->ratingHtml($p.rating)}</span>
                     {/if}

@@ -17,7 +17,7 @@ class shopProductRelatedSaveController extends waJsonController
             if (waRequest::post('delete')) {
                 $related_model->deleteByField($data);
             } else {
-                $related_model->insert($data);
+                $related_model->replace($data);
             }
         } else {
             if (waRequest::post('cross_selling') !== null) {

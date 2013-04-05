@@ -189,6 +189,46 @@ class shopFrontendProductAction extends shopFrontendAction
         $feature_model = new shopFeatureModel();
         $features = $feature_model->getByCode($feature_codes);
 
+        if ($product->sku_type == shopProductModel::SKU_TYPE_SELECTABLE) {
+            $features_selectable_model = new shopProductFeaturesSelectableModel();
+            $selectable = $features_selectable_model->getByProduct($product->id);
+            $features_selectable = $feature_model->getById(array_keys($selectable));
+            $features_selectable = $feature_model->getValues($features_selectable);
+            foreach ($features_selectable as $f_id => $f) {
+                foreach ($f['values'] as $v_id => $v) {
+                    if (!in_array($v_id, $selectable[$f_id])) {
+                        unset($features_selectable[$f_id]['values'][$v_id]);
+                    }
+                }
+            }
+            $this->view->assign('features_selectable', $features_selectable);
+
+            $product_features_model = new shopProductFeaturesModel();
+            $sku_features = $product_features_model->getSkuFeatures($product->id);
+
+            $sku_selectable = array();
+            foreach ($sku_features as $sku_id => $sf) {
+                if (!isset($product->skus[$sku_id])) {
+                    continue;
+                }
+                $sku_f = "";
+                foreach ($features_selectable as $f_id => $f) {
+                    if (isset($sf[$f_id])) {
+                        $sku_f .= $f_id.":".$sf[$f_id].";";
+                    }
+                }
+                $sku = $product->skus[$sku_id];
+                $sku_selectable[$sku_f] = array(
+                    'id' => $sku_id,
+                    'price' => shop_currency($sku['price'], $product['currency'], null, false),
+                    'available' => $product->status && $sku['available'] &&
+                        ($this->getConfig()->getGeneralSettings('ignore_stock_count') || $sku['count'] === null || $sku['count'] > 0),
+                    'image_id' => (int)$sku['image_id']
+                );
+            }
+            $this->view->assign('sku_features_selectable', $sku_selectable);
+        }
+
         $this->view->assign('features', $features);
 
         $this->view->assign('currency_info', $this->getCurrenyInfo());

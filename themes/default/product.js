@@ -49,17 +49,8 @@ $(function () {
         return '<option data-price="' + price + '" id="service-variant-' + id + '" value="' + id + '">' + name + ' (+' + currency_format(price) + ')</option>';
     }
 
-    $("#product-skus input:radio").click(function () {
-        if ($(this).data('image-id')) {
-            $("#product-image-" + $(this).data('image-id')).click();
-        }
-        if ($(this).data('disabled')) {
-            $(".add2cart input:submit").attr('disabled', 'disabled');
-        } else {
-            $(".add2cart input:submit").removeAttr('disabled');
-        }
-        var sku_id = $(this).val();
-        $("div.stocks div:visible").hide();
+    var update_sku_services = function (sku_id) {
+        $("div.stocks div").hide();
         $("#sku-" + sku_id + "-stock").show();
         for (var service_id in sku_services[sku_id]) {
             var v = sku_services[sku_id][service_id];
@@ -87,16 +78,54 @@ $(function () {
                 }
             }
         }
+    }
+
+    $("#product-skus input:radio").click(function () {
+        if ($(this).data('image-id')) {
+            $("#product-image-" + $(this).data('image-id')).click();
+        }
+        if ($(this).data('disabled')) {
+            $(".add2cart input:submit").attr('disabled', 'disabled');
+        } else {
+            $(".add2cart input:submit").removeAttr('disabled');
+        }
+        var sku_id = $(this).val();
+        update_sku_services(sku_id);
         update_price();
     });
     $("#product-skus input:radio:checked").click();
 
-    function update_price()
-    {
-        if ($("#product-skus input:radio:checked").length) {
-            var price = parseFloat($("#product-skus input:radio:checked").data('price'));
+    $("select.sku-feature").change(function () {
+        var key = "";
+        $("select.sku-feature").each(function () {
+            key += $(this).data('feature-id') + ':' + $(this).val() + ';';
+        });
+        var sku = sku_features[key];
+        if (sku) {
+            if (sku.image_id) {
+                $("#product-image-" + sku.image_id).click();
+            }
+            update_sku_services(sku.id);
+            if (sku.available) {
+                $(".add2cart input[type=submit]").removeAttr('disabled');
+            } else {
+                $(".add2cart input[type=submit]").attr('disabled', 'disabled');
+            }
         } else {
-            var price = parseFloat($(".add2cart .price").data('price'));
+            $(".add2cart input[type=submit]").attr('disabled', 'disabled');
+        }
+        update_price(sku.price);
+    });
+    $("select.sku-feature:first").change();
+
+    function update_price(price)
+    {
+        if (price === undefined) {
+            if ($("#product-skus input:radio:checked").length) {
+                var price = parseFloat($("#product-skus input:radio:checked").data('price'));
+            } else {
+                var price = parseFloat($(".add2cart .price").data('price'));
+            }
         }
         $(".cart .services input:checked").each(function () {
             var s = $(this).val();
@@ -207,6 +236,8 @@ $(function () {
                     cart_total.html(response.data.total);
                     cart_total.closest('.cart').removeClass('empty');
                 });
+            } else if (response.status == 'fail') {
+                alert(response.errors);
             }
         }, "json");
         return false;

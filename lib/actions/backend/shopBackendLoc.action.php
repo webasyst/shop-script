@@ -39,10 +39,15 @@ class shopBackendLocAction extends waViewAction
             'All orders',
             'Tag',
             'Price',
-            'Upsell products will be offered for a particular base product according to the following criteria:'
+            'Upsell products will be offered for a particular base product according to the following criteria:',
+            'or'
         ) as $s) {
             $strings[$s] = _w($s);
         }
+
+        // plural forms hack
+        $strings['options'] = _w('option', 'options', 5);
+        $strings['%d SKUs in total'] = str_replace(5, '%d', _w('%d SKU in total', '%d SKUs in total', 5));
 
         $this->view->assign('strings', $strings ? $strings : new stdClass()); // stdClass is used to show {} instead of [] when there's no strings
 

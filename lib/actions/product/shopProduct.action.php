@@ -61,6 +61,7 @@ class shopProductAction extends waViewAction
                     'purchase_price' => 0.0,
                     'count'          => null,
                     'stock'          => array(),
+                    'virtual'        => 0
                 ),
             );
             $product->currency = $config->getCurrency();
@@ -113,12 +114,63 @@ class shopProductAction extends waViewAction
         $this->view->assign('frontend_url', $frontend_url);
         $this->view->assign('frontend_base_url', $fontend_base_url);
 
+        // Selectable features
+        $selectable_features = $this->getSelectableFeatures($product);
+
+        $counts = array();
+        foreach ($selectable_features as $f) {
+            if ($f['count']) {
+                $counts[] = $f['count'];
+            }
+        }
+        $this->view->assign('features', $selectable_features);
+        $this->view->assign('features_counts', $counts);
+
         #load product types
         $this->view->assign('product_types', $product_types);
 
-        $this->view->assign('edit_right', $this->getRights('type.'.$product['type_id']));
+        $this->view->assign('edit_rights', $product->checkRights());
     }
 
+    /**
+     * Get only multiple type features
+     * @param shopProduct $product
+     */
+    protected function getSelectableFeatures(shopProduct $product)
+    {
+        $features_model = new shopFeatureModel();
+
+        $features = array();
+        foreach ($features_model->getByType($product->type_id) as $f) {
+            if ($f['multiple']) {
+                $features[$f['code']] = $f;
+            }
+        }
+
+        // attach values
+        $features = $features_model->getValues($features);
+
+        $features_selectable_model = new shopProductFeaturesSelectableModel();
+        $selected = array();
+        foreach ($features_selectable_model->getByField('product_id', $product->id, true) as $item) {
+            $selected[$item['feature_id']][$item['value_id']] = true;
+        }
+        foreach ($features as $code => $f) {
+            $count = 0;
+            foreach ($f['values'] as $v_id => $v) {
+                $is_selected = isset($selected[$f['id']][$v_id]);
+                $features[$code]['values'][$v_id] = array(
+                    'name' => (string)$v,
+                    'selected' => $is_selected
+                );
+                if ($is_selected) {
+                    $count += 1;
+                }
+            }
+            $features[$code]['count'] = $count;
+        }
+        return $features;
+    }
 
     protected function assignReportsData($product)
     {

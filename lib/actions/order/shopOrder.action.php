@@ -45,11 +45,16 @@ class shopOrderAction extends waViewAction
 
         $config = $this->getConfig();
 
+        $last_action_datetime = null;
+
         $log_model = new shopOrderLogModel();
         $log = $log_model->getLog($order['id']);
         foreach ($log as &$l) {
             if ($l['action_id']) {
                 $l['action'] = $workflow->getActionById($l['action_id']);
+            }
+            if ($order['state_id'] == $l['after_state_id']) {
+                $last_action_datetime = $l['datetime'];
             }
         }
 
@@ -115,6 +120,7 @@ class shopOrderAction extends waViewAction
             'order'             => $order,
             'params'            => $params,
             'log'               => $log,
+            'last_action_datetime' => $last_action_datetime,
             'bottom_buttons'    => $bottom_buttons,
             'top_buttons'       => $top_buttons,
             'buttons'           => $buttons,

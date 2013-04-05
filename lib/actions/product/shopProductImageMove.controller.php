@@ -10,7 +10,18 @@ class shopProductImageMoveController extends waJsonController
         if (!$id) {
             throw new waException(_w("Unknown image"));
         }
+
         $product_images_model = new shopProductImagesModel();
+        $image = $product_images_model->getById($id);
+        if (!$image) {
+            throw new waException(_w("Unkown image"));
+        }
+
+        $product_model = new shopProductModel();
+        if (!$product_model->checkRights($image['product_id'])) {
+            throw new waException(_w("Access denied"));
+        }
+
         if (!$product_images_model->move($id, $before_id)) {
             throw new waException(_w("Error when move"));
         }

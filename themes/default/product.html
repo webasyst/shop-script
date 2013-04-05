@@ -40,7 +40,25 @@
 
             <!-- sku -->
             <h4>{sprintf('[`Buy %s`]',$product.name|escape)}</h4>
-            
+
+            {if $product.sku_type}
+
+            <!-- SELECTABLE FEATURES selling mode -->
+            {$product_available = $product.status}
+            <div>
+                {foreach $features_selectable as $f}
+                {$f.name}:
+                <select data-feature-id="{$f.id}" class="sku-feature" name="features[{$f.id}]">
+                    {foreach $f.values as $v_id => $v}
+                    <option value="{$v_id}" {if $v@first}selected{/if}>{$v}</option>
+                    {/foreach}
+                </select>
+                <br>
+                {/foreach}
+            </div>
+            {else}
+
+            <!-- FLAT SKU LIST selling mode -->
             {$product_available = false}
             {if count($product.skus) > 1}
             
@@ -86,6 +104,7 @@
                     {$product_available = $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
                 </div>
                 
+            {/if}
             {/if}
 
             <!-- stock info -->
@@ -300,5 +319,8 @@
     var currency = {json_encode($currency_info)};
     {if count($product.skus) > 1}
     var sku_services = {json_encode($sku_services)};
+    {/if}
+    {if $product.sku_type}
+    var sku_features = {json_encode($sku_features_selectable)};
     {/if}
 </script>

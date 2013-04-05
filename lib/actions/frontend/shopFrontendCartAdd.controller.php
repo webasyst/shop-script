@@ -45,13 +45,31 @@ class shopFrontendCartAddController extends waJsonController
             if (isset($data['sku_id'])) {
                 $sku = $sku_model->getById($data['sku_id']);
             } else {
-                $sku = $sku_model->getByField('product_id', $data['product_id']);
+                if (isset($data['features'])) {
+                    $product_features_model = new shopProductFeaturesModel();
+                    $sku_id = $product_features_model->getSkuByFeatures($product['id'], $data['features']);
+                    if ($sku_id) {
+                        $sku = $sku_model->getById($sku_id);
+                    } else {
+                        $sku = null;
+                    }
+                } else {
+                    $sku = $sku_model->getById($product['sku_id']);
+                }
             }
         }
 
         $quantity = waRequest::post('quantity', 1);
 
         if ($product && $sku) {
+            // check quantity
+            if (!wa()->getSetting('ignore_stock_count')) {
+                $c = $cart_model->countSku($code, $sku['id']);
+                if ($sku['count'] !== null && $c >= $sku['count']) {
+                    $this->errors = sprintf(_w('Only %d left in stock. Sorry.'), $c);
+                    return;
+                }
+            }
             $services = waRequest::post('services', array());
             $item_id = null;
             if (!$services) {

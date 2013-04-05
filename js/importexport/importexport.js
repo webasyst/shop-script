@@ -1,20 +1,18 @@
-
-$.extend($.importexport = $.importexport || {},
-$.importexport ={
+$.extend($.importexport = $.importexport || {}, $.importexport = {
     options: {
         'loading': '<i class="icon16 loading"></i>',
         'path': '#/'
     },
     path: {
-        'plugin': false,
-        'module': false,
+        'plugin': null,
+        'module': null,
+        'direction': null,
         'prefix': null,
         'action': 'default',
         'tail': null,
         'dispatch': null
     },
-    plugins: {
-    },
+    plugins: {},
 
     ready: false,
     menu: null,
@@ -47,8 +45,7 @@ $.importexport ={
                     } else {
                         text = message.append(text.find(':not(style)'));
                     }
-                    $("#s-importexport-content").empty().append(message).append(
-                            '<div class="clear-both"></div>');
+                    $("#s-importexport-content").empty().append(message).append('<div class="clear-both"></div>');
                     return false;
                 }
                 return true;
@@ -64,7 +61,8 @@ $.importexport ={
 
     /**
      * @param {String} path
-     * @return { 'plugin':String, 'module':String, 'prefix':String, 'action':String, 'tail':String,'raw':String }
+     * @return { 'plugin':String, 'module':String, 'prefix':String,
+     *         'direction':String, 'action':String, 'tail':String,'raw':String }
      */
     parsePath: function(path) {
         path = (path || '').replace(/^.*#\//, '');
@@ -72,16 +70,20 @@ $.importexport ={
             'plugin': path.replace(/\/.*$/, '') || '',
             'module': 'backend',
             'prefix': null,
+            'direction': null,
             'action': path.replace(/^[^\/]+\//, '').replace(/\/.*$/, '') || '',
             'tail': path.replace(/^([^\/]+\/){1,2}/, '').replace(/\/$/, ''),
             'raw': path
         };
-        var matches = parsed.plugin.match(/(^[^:]+):(.+$)/);
+        var matches = parsed.plugin.match(/(^[^:]+):([^:]+)(:(.+))?$/);
         if (matches && matches[2]) {
             parsed.plugin = null;
             parsed.module = matches[1];
             parsed.prefix = matches[2];
+
+            parsed.direction = matches[4] ? matches[4] : null;
         }
+        $.shop.trace('$.importexport.parsePath',parsed);
         return parsed;
     },
 
@@ -109,10 +111,10 @@ $.importexport ={
         this.path.dispatch = path;
 
         /* change importexport plugin */
-        if(path.plugin) {
-            load =load || (path.plugin != this.path.plugin);
-        } else if (path.module && (path.module != 'backend')){
-            load = load || ((path.plugin + path.module) != (this.path.plugin + this.path.module));
+        if (path.plugin) {
+            load = load || (path.plugin != this.path.plugin);
+        } else if (path.module && (path.module != 'backend')) {
+            load = load || ((path.plugin + path.module) != (this.path.plugin + this.path.module)) || (path.direction != this.path.direction);
         }
 
         if (load) {
@@ -124,7 +126,6 @@ $.importexport ={
                 $content.empty().html(this.options.loading);
             }
 
-
             var url = new Array();
             if (path.plugin) {
                 url.push('plugin=' + path.plugin);
@@ -132,19 +133,27 @@ $.importexport ={
             if (path.module && (path.module != 'backend')) {
                 url.push('module=' + path.module);
             }
-                url.push('action=' + (path.prefix||'') + 'setup');
+            if (path.direction) {
+                url.push('direction=' + path.direction);
+            }
+            url.push('action=' + (path.prefix || '') + 'setup');
 
             var self = this;
             $content.load('?' + url.join('&'), function() {
-                self.path.plugin = path.plugin ;
+                self.path.plugin = path.plugin;
                 self.path.module = path.module;
+                self.path.direction = path.direction;
                 self.path.prefix = path.prefix;
 
                 // update title
-                window.document.title = self.options.plugin_names[self.path.plugin]||$content.find('h1:first').text() + self.options.title_suffix;
+                window.document.title = self.options.plugin_names[self.path.plugin] || $content.find('h1:first').text()
+                        + self.options.title_suffix;
                 self.menu.find('li.selected').removeClass('selected');
-                var href = self.path.plugin? self.path.plugin:(self.path.module+':'+self.path.prefix);
-                self.menu.find( 'a[href*="\\#\/' + href + '\/"]').parents('li').addClass('selected');
+                var href = self.path.plugin ? self.path.plugin : (self.path.module + ':' + self.path.prefix);
+                if(self.path.direction) {
+                    href += ':'+self.path.direction;
+                }
+                self.menu.find('a[href*="\\#\/' + href + '\/"]').parents('li').addClass('selected');
                 self.importexportAction(path.action, path.tail);
             });
 
@@ -161,7 +170,7 @@ $.importexport ={
     /**
      * Setup plugin options
      *
-     * @param {} options
+     * @param {Object} options
      */
     importexportOptions: function(options) {
         var plugin = this.path.dispatch.plugin || this.path.plugin;
@@ -197,7 +206,7 @@ $.importexport ={
     importexportAction: function(action, tail) {
         var method = '';
 
-        if(action) {
+        if (action) {
             method += action.substr(0, 1).toUpperCase() + action.substr(1);
         }
         method += 'Action';
@@ -212,39 +221,44 @@ $.importexport ={
      */
     call: function(name, args) {
         var plugin;
-        if(this.path.plugin) {
+        if (this.path.plugin) {
             plugin = this.path.plugin;
-        }else {
-            plugin = this.path.module+'_'+this.path.prefix;
+        } else {
+            plugin = this.path.module + '_' + this.path.prefix;
         }
-        var action  = plugin + name.substr(0, 1).toUpperCase() + name.substr(1);
-        var callable = (typeof(this[action]) == 'function');
+        var action = plugin + name.substr(0, 1).toUpperCase() + name.substr(1);
+        var callable = (typeof (this[action]) == 'function');
         var start = $.shop && $.shop.trace('$.importexport.call', [action, args, callable]);
         var result = null;
         if (callable) {
             try {
                 result = this[action].apply(this, args);
             } catch (e) {
-                (($.shop && $.shop.error) || console.log)('Exception at $.importexport.'+action+': ' + e.message, e);
+                (($.shop && $.shop.error) || console.log)
+                        ('Exception at $.importexport.' + action + ': ' + e.message, e);
             }
-            $.shop && $.shop.trace('$.settings.call complete', [action, $.shop.time.interval(start) + 'ms', args, result]);
+            $.shop
+                    && $.shop.trace('$.settings.call complete', [action, $.shop.time.interval(start) + 'ms', args,
+                            result]);
         } else {
-            action  = name.substr(0, 1).toUpperCase() + name.substr(1);
-            callable = (typeof(this.plugins[action]) == 'function');
-            start = $.shop && $.shop.trace('$.importexport.call', [plugin,action, args, callable]);
+            action = name.substr(0, 1).toUpperCase() + name.substr(1);
+            callable = (typeof (this.plugins[action]) == 'function');
+            start = $.shop && $.shop.trace('$.importexport.call', [plugin, action, args, callable]);
             if (callable) {
                 try {
                     result = this.plugins[action].apply(this, args);
                 } catch (e) {
-                    (($.shop && $.shop.error) || console.log)('Exception at $.importexport.'+action+': ' + e.message, e);
+                    (($.shop && $.shop.error) || console.log)('Exception at $.importexport.' + action + ': '
+                            + e.message, e);
                 }
-                $.shop && $.shop.trace('$.settings.call complete', [action, $.shop.time.interval(start) + 'ms', args, result]);
+                $.shop
+                        && $.shop.trace('$.settings.call complete', [action, $.shop.time.interval(start) + 'ms', args,
+                                result]);
             }
         }
         return result;
     },
-    getPlugin:function(){
+    getPlugin: function() {
 
     }
-}
-);
+});

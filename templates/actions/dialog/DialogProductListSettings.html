@@ -14,12 +14,12 @@
                             </div>
                         </div>
                         {$smarty.capture.frontend_url}
+                        {$smarty.capture.dynamic_settings}
                         {$smarty.capture.frontend_display}
-                    </div>
+                    </div>                
                     {$smarty.capture.ext_fields}
                     {$smarty.capture.description}
                     <input type="hidden" name="type" value="{$settings.type}">
-                    {$smarty.capture.dynamic_settings}
                     {$smarty.capture.custom_params}
                 </div>
             </div>

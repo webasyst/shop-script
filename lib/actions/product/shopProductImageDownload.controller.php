@@ -1,6 +1,6 @@
 <?php
 
-class shopProductDownloadImageController extends waViewController
+class shopProductImageDownloadController extends waViewController
 {
     public function execute()
     {

@@ -3,49 +3,49 @@
         /**
          * {Object}
          */
-        options : {},
+        options: {},
 
         /**
          * {Array} Hash of list(collection)
          */
-        collection_hash : [],
+        collection_hash: [],
 
         /**
          * {String} Param in url for specification list(collection)
          */
-        collection_param : '',
+        collection_param: '',
 
         /**
          * {Number}
          */
-        total_count : 0,
+        total_count: 0,
 
         /**
          * {String|null} Sorting of list (name, rate, datetime, etc.)
          */
-        sort : null,
+        sort: null,
 
         /**
          * {String|null} Ordering or sorting (asc, desc)
          */
-        order : null,
+        order: null,
 
         /**
          * {Object|null} Jquery object related to list container
          */
-        container : null,
+        container: null,
 
         /**
          * {Object|null} Jquery object related to right toolbar
          */
-        toolbar : null,
+        toolbar: null,
 
         /**
          * {Boolean}
          */
-        sortable : true,
+        sortable: true,
 
-        init : function(options) {
+        init: function(options) {
             try {
                 this.options = options;
                 this.container = $('#product-list');
@@ -61,7 +61,7 @@
                 if (products && options.view) {
                     try {
                         this.container.append(tmpl('template-product-list-' + this.options.view, {
-                            products : products,
+                            products: products,
                             sort: this.sort
                         }, this.options.view == 'table'));
                     } catch (e) {
@@ -100,7 +100,7 @@
             return this;
         },
 
-        initLazyLoad : function(options) {
+        initLazyLoad: function(options) {
             var count = options.count;
             var offset = count;
             var total_count = this.total_count;
@@ -110,10 +110,10 @@
             if (offset < total_count) {
                 var self = this;
                 $(window).lazyLoad({
-                    container : self.container,
-                    state : (typeof options.auto === 'undefined' ? true : options.auto) ? 'wake' : 'stop',
-                    hash : ['', 'products'], // ['products']
-                    load : function() {
+                    container: self.container,
+                    state: (typeof options.auto === 'undefined' ? true : options.auto) ? 'wake' : 'stop',
+                    hash: ['', 'products'], // ['products']
+                    load: function() {
                         $(window).lazyLoad('sleep');
                         $('.lazyloading-link').hide();
                         $('.lazyloading-progress').show();
@@ -126,8 +126,8 @@
                                 var product_list = self.container;
                                 try {
                                     self.container.append(tmpl('template-product-list-' + self.options.view, {
-                                        products : r.data.products,
-                                        check_all : self.options.view == 'table' ? product_list.find('.s-select-all').attr('checked') : false,
+                                        products: r.data.products,
+                                        check_all: self.options.view == 'table' ? product_list.find('.s-select-all').attr('checked') : false,
                                         sort: $.product_list.sort
                                     }));
                                 } catch (e) {
@@ -171,7 +171,7 @@
             }
         },
 
-        initSelecting : function() {
+        initSelecting: function() {
             var product_list = this.container;
             var toolbar = this.toolbar;
             var toolbar_count = toolbar.find('.count');
@@ -297,14 +297,14 @@
                     }
                     input = $('#' + item.attr('for'));
                     input.trigger('click', {
-                        shiftKey : e.shiftKey,
-                        checked : !input.attr('checked')
+                        shiftKey: e.shiftKey,
+                        checked: !input.attr('checked')
                     });
                 });
             }
         },
 
-        initView : function(view) {
+        initView: function(view) {
             try {
                 var product_list = this.container;
                 var sidebar = this.sidebar;
@@ -314,7 +314,7 @@
                     });
                 }
 
-                //var param = 'view=' + view + (this.sort ? '&sort=' + this.sort : '');
+                // var param = 'view=' + view + (this.sort ? '&sort=' + this.sort : '');
                 var param = 'view=' + view;
                 sidebar.find('.s-collection-list li.dr').each(function() {
                     var self = $(this);
@@ -372,10 +372,10 @@
                 var embed_code_area = $('#s-embed-code');
                 if (embed_code_area.length) {
                     embed_code_area.inlineEditable({
-                        size : {
-                            width : embed_code_area.width() + 4
+                        size: {
+                            width: embed_code_area.width() + 4
                         },
-                        afterMakeEditable : function(input) {
+                        afterMakeEditable: function(input) {
                             input.trigger('select');
                         }
                     });
@@ -388,30 +388,30 @@
             }
         },
 
-        initEditingControls : function() {
+        initEditingControls: function() {
             var list_title = $('#s-product-list-title');
             if (list_title.hasClass('editable')) {
                 list_title.inlineEditable({
-                    minSize : {
-                        width : 350
+                    minSize: {
+                        width: 350
                     },
-                    maxSize : {
-                        width : 600
+                    maxSize: {
+                        width: 600
                     },
-                    size : {
-                        height : 30
+                    size: {
+                        height: 30
                     },
-                    inputClass : 's-title-h1-edit',
-                    beforeMakeEditable : function() {
+                    inputClass: 's-title-h1-edit',
+                    beforeMakeEditable: function() {
                         $('.s-product-list-manage').hide();
                     },
-                    afterBackReadable : function(input, data) {
+                    afterBackReadable: function(input, data) {
                         $('.s-product-list-manage').show();
                         if (!data.changed) {
                             return false;
                         }
                         $.shop.jsonPost('?module=products&action=saveListSettings&' + $.product_list.collection_param + '&edit=name', {
-                            name : $(input).val()
+                            name: $(input).val()
                         }, function(r) {
                             $.product_list.sidebar.find('#' + $.product_list.collection_hash[0] + '-' + r.data.id).find('.name:first').html(r.data.name);
                         });
@@ -429,7 +429,7 @@
                 list_settings_link.unbind('click').bind('click', function() {
                     var showDialog = function() {
                         $('#s-product-list-settings-dialog').waDialog({
-                            onSubmit : function(d) {
+                            onSubmit: function(d) {
                                 var form = d.find('form');
                                 $.shop.jsonPost(form.attr('action'), form.serializeArray(), function(r) {
                                     var collection_hash = $.product_list.collection_hash;
@@ -479,16 +479,16 @@
                 list_delete_link.unbind('click').bind('click', function() {
                     var d = $("#s-product-list-delete-dialog");
                     d.waDialog({
-                        disableButtonsOnSubmit : true,
-                        onLoad : function() {
+                        disableButtonsOnSubmit: true,
+                        onLoad: function() {
                             $(this).find('.dialog-buttons i.loading').hide();
                         },
-                        onSubmit : function() {
+                        onSubmit: function() {
                             var self = $(this);
                             self.find('.dialog-buttons i.loading').show();
                             var params = {
-                                hash : $.product_list.collection_hash.join('/') || 'all',
-                                remove : ['list']
+                                hash: $.product_list.collection_hash.join('/') || 'all',
+                                remove: ['list']
                             };
                             if (self.find('input[name=s-delete-products]:checked').val() == '1') {
                                 params.remove.push('products');
@@ -544,14 +544,14 @@
             }
         },
 
-        initDragndrop : function() {
+        initDragndrop: function() {
             $.product_dragndrop.init({
-                products : true,
-                view : this.options.view
+                products: true,
+                view: this.options.view
             }).bind('move_product', function(options) {
                 $.shop.jsonPost('?module=product&action=move&' + $.product_list.collection_param, {
-                    product_ids : options.product_ids,
-                    before_id : options.before_id || null
+                    product_ids: options.product_ids,
+                    before_id: options.before_id || null
                 }, options.success, options.error);
             }).bind('is_product_sortable', function() {
                 return $.product_list.sortable;
@@ -566,7 +566,7 @@
             });
         },
 
-        initToolbar : function() {
+        initToolbar: function() {
             var toolbar = this.toolbar;
             toolbar.find('li').unbind('click').bind('click', function() {
                 var action = $(this).attr('data-action');
@@ -577,15 +577,10 @@
                 }
                 if (action == 'new-set') {
                     /*
-                    $.shop.jsonPost('?module=products&action=saveListSettings&set_id=0&parent_id=0', products.serialized.concat({
-                        name : 'name',
-                        value : 'New set'
-                    }), function(r) {
-                        var url = '#/products/set_id=' + r.data.id + '&view=' + $.product_list.options.view;
-                        $('#s-set-list ul:first').trigger('add', [r.data, 'set', url]);
-                        location.href = url + '&edit=name';
-                    });
-                    */
+                     * $.shop.jsonPost('?module=products&action=saveListSettings&set_id=0&parent_id=0', products.serialized.concat({ name : 'name', value : 'New
+                     * set' }), function(r) { var url = '#/products/set_id=' + r.data.id + '&view=' + $.product_list.options.view; $('#s-set-list
+                     * ul:first').trigger('add', [r.data, 'set', url]); location.href = url + '&edit=name'; });
+                     */
                 } else if (action == 'category') {
                     $.product_list.categoriesDialog(products);
                 } else if (action == 'set') {
@@ -600,6 +595,8 @@
                     $.product_list.deleteFromSet(products);
                 } else if (action == 'delete-from-category' && $.product_list.collection_hash[0] == 'category') {
                     $.product_list.deleteFromCategory(products);
+                } else if (action == 'export') {
+                    $.product_list.exportProducts(products, $(this).attr('data-plugin'));
                 }
                 return false;
             });
@@ -608,7 +605,7 @@
             $(document).bind('scroll', function() {
                 if ($(this).scrollTop() > toolbar_top) {
                     toolbar.addClass('s-fixed').css({
-                        top : menu_height
+                        top: menu_height
                     });
                 } else {
                     toolbar.removeClass('s-fixed');
@@ -618,26 +615,26 @@
 
         /**
          * Get special key-value object for mass operations (delete, delete-from-set and etc) Taking into account all-products checkbox (s-select-all)
-         *
+         * 
          * Object say how many products are selected (key 'count'), and info about products or hash If all-products checkbox is activated than object has hash
          * info, else object has products info
-         *
+         * 
          * @param {Boolean} serialize If true than hash/product info packed into field with key 'serialized' else hash info corresponds 'hash'-key and products
          *        info corresponds 'products'-key
          * @returns {Object}
          */
-        getSelectedProducts : function(serialize) {
+        getSelectedProducts: function(serialize) {
             serialize = serialize || false;
             var product_list = this.container;
             var data = {
-                count : 0
+                count: 0
             };
             if (product_list.find('.s-select-all').attr('checked')) {
                 var hash = $.product_list.collection_hash.join('/') || 'all';
                 if (serialize) {
                     data.serialized = [{
-                                name : 'hash',
-                                value : hash
+                                name: 'hash',
+                                value: hash
                             }];
                 } else {
                     data.hash = hash;
@@ -648,8 +645,8 @@
                     data.serialized = $.product_list.container.find('.product.selected').map(function() {
                         data.count += 1;
                         return {
-                            name : 'product_id[]',
-                            value : $(this).attr('data-product-id')
+                            name: 'product_id[]',
+                            value: $(this).attr('data-product-id')
                         };
                     }).toArray();
                 } else {
@@ -662,21 +659,21 @@
             return data;
         },
 
-        categoriesDialog : function(products) {
+        categoriesDialog: function(products) {
             var d = $('#s-categories');
             var sidebar = this.sidebar;
             var product_list = this.container;
             var showDialog = function() {
                 $('#s-categories').waDialog({
-                    disableButtonsOnSubmit : true,
-                    onLoad : function() {
+                    disableButtonsOnSubmit: true,
+                    onLoad: function() {
                         var self = $(this);
                         self.find('.dialog-content h1 span').text('(' + products.count + ')').show();
                         self.find('.dialog-buttons i.loading').hide();
                         self.find('input[name=new_category_name]').val('');
                         self.find('input[name=new_category]').attr('checked', false);
                     },
-                    onSubmit : function(d) {
+                    onSubmit: function(d) {
                         // addToCategories
                         var form = d.find('form');
                         form.find('.dialog-buttons i.loading').show();
@@ -684,22 +681,15 @@
 
                             // add new category to sidebar
                             if (r.data.new_category) {
-                                $('#s-category-list ul:first').
-                                    trigger('add', [
-                                        r.data.new_category,
-                                        'category',
-                                        '#/products/category_id=' +
-                                            r.data.new_category +
-                                            '&view=' +
-                                            $.product_list.options.view
-                                    ]);
+                                $('#s-category-list ul:first').trigger('add',
+                                [r.data.new_category, 'category', '#/products/category_id=' + r.data.new_category + '&view=' + $.product_list.options.view]);
                             }
 
                             // update cagegories in sidebar
                             if (r.data.categories) {
                                 sidebar.trigger('update', [{
-                                    category : r.data.categories
-                                }]);
+                                            category: r.data.categories
+                                        }]);
                                 product_list.find('.s-select-all:first').trigger('select', false);
                             }
                             form.find('input:checked').attr('checked', false);
@@ -725,15 +715,15 @@
             var product_list = this.container;
             var showDialog = function() {
                 $('#s-sets').waDialog({
-                    disableButtonsOnSubmit : true,
-                    onLoad : function() {
+                    disableButtonsOnSubmit: true,
+                    onLoad: function() {
                         var self = $(this);
                         self.find('.dialog-content h1 span').text('(' + products.count + ')').show();
                         self.find('.dialog-buttons i.loading').hide();
                         self.find('input[name=new_set_name]').val('');
                         self.find('input[name=new_set]').attr('checked', false);
                     },
-                    onSubmit : function(d) {
+                    onSubmit: function(d) {
                         // addToSets
                         var form = d.find('form');
                         form.find('.dialog-buttons i.loading').show();
@@ -741,22 +731,15 @@
 
                             // add new category to sidebar
                             if (r.data.new_set) {
-                                $('#s-set-list ul:first').
-                                    trigger('add', [
-                                        r.data.new_set,
-                                        'set',
-                                        '#/products/set_id=' +
-                                            r.data.new_set +
-                                            '&view=' +
-                                            $.product_list.options.view
-                                    ]);
+                                $('#s-set-list ul:first').trigger('add',
+                                [r.data.new_set, 'set', '#/products/set_id=' + r.data.new_set + '&view=' + $.product_list.options.view]);
                             }
 
                             // update cagegories in sidebar
                             if (r.data.sets) {
                                 sidebar.trigger('update', [{
-                                    set : r.data.sets
-                                }]);
+                                            set: r.data.sets
+                                        }]);
                                 product_list.find('.s-select-all:first').trigger('select', false);
                             }
                             form.find('input:checked').attr('checked', false);
@@ -780,30 +763,25 @@
             var d = $('#s-assign-tags');
             var showDialog = function() {
                 $('#s-assign-tags').waDialog({
-                    disableButtonsOnSubmit : true,
-                    onLoad : function() {
+                    disableButtonsOnSubmit: true,
+                    onLoad: function() {
                         var self = $(this);
                         self.find('.dialog-content h1 span').text('(' + products.count + ')').show();
                         self.find('.dialog-buttons i.loading').hide();
                     },
-                    onSubmit : function(d) {
+                    onSubmit: function(d) {
                         var form = $(this);
                         form.find('.dialog-buttons i.loading').show();
                         // assignTags
-                        $.shop.jsonPost(
-                            form.attr('action'),
-                            form.serializeArray().concat(products.serialized),
-                            function(r) {
-                                if (r.data.cloud) {
-                                    $('#s-tag-cloud').trigger('update', [r.data.cloud]);
-                                }
-                                d.trigger('close');
-                                $.products.dispatch();
-                            },
-                            function() {
-                                d.trigger('close');
+                        $.shop.jsonPost(form.attr('action'), form.serializeArray().concat(products.serialized), function(r) {
+                            if (r.data.cloud) {
+                                $('#s-tag-cloud').trigger('update', [r.data.cloud]);
                             }
-                        );
+                            d.trigger('close');
+                            $.products.dispatch();
+                        }, function() {
+                            d.trigger('close');
+                        });
                         return false;
                     }
                 });
@@ -821,22 +799,22 @@
             });
         },
 
-        typesDialog : function(products) {
+        typesDialog: function(products) {
             var d = $('#s-types');
             var product_list = this.container;
             var sidebar = this.sidebar;
             var showDialog = function() {
                 $('#s-types').waDialog({
-                    disableButtonsOnSubmit : true,
-                    onLoad : function() {
+                    disableButtonsOnSubmit: true,
+                    onLoad: function() {
                         $(this).find('.dialog-buttons i.loading').hide();
                     },
-                    onSubmit : function(d) {
+                    onSubmit: function(d) {
                         var form = $(this);
                         form.find('.dialog-buttons i.loading').show();
                         $.shop.jsonPost(form.attr('action'), form.serializeArray().concat(products.serialized), function(r) {
                             sidebar.trigger('update', {
-                                type : r.data.types
+                                type: r.data.types
                             });
                             product_list.find('.s-select-all:first').trigger('select', false);
                             form.find('input:checked').attr('checked', false);
@@ -856,41 +834,33 @@
             }
         },
 
-        deleteFromSet : function(products) {
+        deleteFromSet: function(products) {
             if (products.count > 0) {
-                $.shop.jsonPost(
-                    '?module=products&action=deleteFromSet&id=' + this.collection_hash[1],
-                    products.serialized,
-                    function() {
-                        $.products.dispatch();
-                    }
-                );
+                $.shop.jsonPost('?module=products&action=deleteFromSet&id=' + this.collection_hash[1], products.serialized, function() {
+                    $.products.dispatch();
+                });
             }
         },
 
         deleteFromCategory: function(products) {
             if (products.count > 0) {
-                $.shop.jsonPost(
-                    '?module=products&action=deleteFromCategory&id=' + this.collection_hash[1],
-                    products.serialized,
-                    function() {
-                        $.products.dispatch();
-                    }
-                );
+                $.shop.jsonPost('?module=products&action=deleteFromCategory&id=' + this.collection_hash[1], products.serialized, function() {
+                    $.products.dispatch();
+                });
             }
         },
 
-        deleteProductsDialog : function(products) {
+        deleteProductsDialog: function(products) {
             var showDialog = function() {
                 $('#s-product-list-delete-products-dialog').waDialog({
-                    disableButtonsOnSubmit : true,
-                    onLoad : function() {
+                    disableButtonsOnSubmit: true,
+                    onLoad: function() {
                         $(this).find('.dialog-buttons i.loading').hide();
                     },
-                    onSubmit : function(d) {
+                    onSubmit: function(d) {
                         $(this).find('.dialog-buttons i.loading').show();
                         $.product_list.remove($.extend(products, {
-                            remove : ['products']
+                            remove: ['products']
                         }), function(r) {
                             $.product_list.sidebar.trigger('update', r.data.lists);
                             $.products.dispatch();
@@ -908,10 +878,10 @@
             p.load('?module=dialog&action=productsDelete&count=' + products.count, showDialog);
         },
 
-        createListDialog : function(type, parent_id, onCreate) {
+        createListDialog: function(type, parent_id, onCreate) {
             var showDialog = function() {
                 $('#s-product-list-create-dialog').waDialog({
-                    onSubmit : function(d) {
+                    onSubmit: function(d) {
                         var form = d.find('form');
                         $.shop.jsonPost(form.attr('action'), form.serializeArray(), function(r) {
                             if (typeof onCreate === 'function') {
@@ -940,7 +910,24 @@
             p.load('?module=dialog&action=productListCreate&type=' + type + '&parent_id=' + parent_id, showDialog);
         },
 
-        remove : function(options, finish) {
+        exportProducts: function(products, plugin) {
+            var ids = [];
+            var product;
+            while (product = products.serialized.pop()) {
+                if (product.name && (product.name == 'product_id[]')) {
+                    ids.push(parseInt(product.value, 10));
+                }
+            }
+
+            if (ids.length) {
+                var url = '?action=importexport#/';
+                url += plugin;
+                url += '/hash/id/' + ids.join(',');
+                window.location = url;
+            }
+        },
+
+        remove: function(options, finish) {
             var count = 100;
             var params = {};
             var url = '?module=products&action=deleteList';

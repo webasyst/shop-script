@@ -12,6 +12,7 @@ class shopDialogProductListSettingsAction extends waViewAction
         $this->template = 'DialogProduct'.ucfirst($hash[0]).'Settings';
         $this->view->assign(array(
             'hash' => $hash,
+            'currency' => wa()->getConfig()->getCurrency(),
             'settings' => $this->getSettings($hash[0], $hash[1])
         ));
     }
@@ -68,6 +69,8 @@ class shopDialogProductListSettingsAction extends waViewAction
         if ($settings['type'] == shopCategoryModel::TYPE_DYNAMIC) {
             if ($settings['conditions']) {
                 $settings['conditions'] = shopProductsCollection::parseConditions($settings['conditions']);
+            } else {
+                $settings['conditions'] = array();
             }
 
             $tag_model = new shopTagModel();

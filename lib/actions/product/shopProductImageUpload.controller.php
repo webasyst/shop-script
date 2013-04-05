@@ -9,6 +9,13 @@ class shopProductImageUploadController extends shopUploadController
 
     protected function save(waRequestFile $file)
     {
+
+        $product_id = waRequest::post('product_id', null, waRequest::TYPE_INT);
+        $product_model = new shopProductModel();
+        if (!$product_model->checkRights($product_id)) {
+            throw new waException(_w("Access denied"));
+        }
+
         // check image
         if (!($image = $file->waImage())) {
             throw new waException('Incorrect image');
@@ -19,7 +26,7 @@ class shopProductImageUploadController extends shopUploadController
         }
 
         $data = array(
-            'product_id'      => waRequest::post('product_id', null, waRequest::TYPE_INT),
+            'product_id'      => $product_id,
             'upload_datetime' => date('Y-m-d H:i:s'),
             'width'           => $image->width,
             'height'          => $image->height,

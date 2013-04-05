@@ -25,7 +25,9 @@ class shopCsvProductuploadController extends shopUploadController
                 'description'      => _w('Description'),
                 'sort'             => _w('Product sort order'),
                 'tags'             => _w('Tags'),
-                'tax_id'           => _w('Taxable'),
+                'tax_name'         => _w('Taxable'),
+
+                'type_name'        => _w('Product type'),
                 'url'              => _w('Storefront link'),
                 'currency'         => _w('Currency'),
             ),

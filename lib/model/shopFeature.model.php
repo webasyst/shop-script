@@ -54,7 +54,7 @@ class shopFeatureModel extends waModel
         $feature['multiple'] = intval($feature['multiple']);
         $move = false;
         if (empty($feature['code'])) {
-            $feature['code'] = waLocale::transliterate($feature['name']);
+            $feature['code'] = strtolower(waLocale::transliterate($feature['name']));
         }
         $feature['code'] = $this->getUniqueCode($feature['code'], $id);
         if ($id > 0) {

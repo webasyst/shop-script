@@ -386,10 +386,10 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
             self::STAGE_PRODUCT => '`SC_products`',
             self::STAGE_PRODUCT_REVIEW => '`SC_discussions` WHERE `productID`>0',
             self::STAGE_PRODUCT_SET => '`SC_product_list` WHERE `id`="specialoffers"',
-            self::STAGE_PRODUCT_IMAGE => '`SC_product_pictures` `i` JOIN `SC_products` `p` ON (`p`.`productID` = `i`.`productID`)',
-            self::STAGE_PRODUCT_FILE => '`SC_products` WHERE (`eproduct_filename` != "")',
             self::STAGE_COUPON => '`SC_discount_coupons`',
             self::STAGE_ORDER => '`SC_orders`',
+            self::STAGE_PRODUCT_IMAGE => '`SC_product_pictures` `i` JOIN `SC_products` `p` ON (`p`.`productID` = `i`.`productID`)',
+            self::STAGE_PRODUCT_FILE => '`SC_products` WHERE (`eproduct_filename` != "")',
             self::STAGE_PRODUCT_IMAGE_RESIZE => 0,
         );
 
@@ -522,8 +522,6 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
             }
 
             $category_data['url'] = $category->suggestUniqueUrl(ifempty($data['slug'], $data['categoryID']), ifset($category_data['id']), $parent_id);
-
-            //var_dump($category_data,$this->getOption('preserve'));sleep(5);exit;
 
             $id = $category->add($category_data, $parent_id);
 
@@ -1145,7 +1143,7 @@ LIMIT 100';
                         );
                     } else {
                         $sku['stock'] = array(
-                            0 => ($in_stock - (count($skus)-1) * $sku_instock),
+                            0 => ($in_stock - (count($skus) - 1) * $sku_instock),
                         );
                     }
                 }

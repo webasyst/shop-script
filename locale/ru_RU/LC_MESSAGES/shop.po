@@ -2094,7 +2094,7 @@ msgstr "Нет"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:546
 msgid "SKU name"
-msgstr "Название вариации"
+msgstr "Название артикула"
 
 #: /wa-apps/shop/themes/default/compare.html:27
 msgid "Price"
@@ -2106,11 +2106,11 @@ msgstr "Закупочная цена"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:441
 msgid "Add purchase option"
-msgstr "Добавить вариацию товара"
+msgstr "Добавить артикул"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:445
 msgid "generate SKUs based on features values (%d)"
-msgstr "Сгенерировать вариации товара на основании значений характеристик (%d)"
+msgstr "Создать артикулы на основании значений характеристик (%d)"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:543
 msgid "SKU code"
@@ -2951,7 +2951,7 @@ msgstr "любое"
 
 #: /wa-apps/shop/js/settings/recommendations.js:133
 msgid "is"
-msgstr "является"
+msgstr "равно"
 
 #: /wa-apps/shop/js/settings/recommendations.js:180
 msgid "Tag"
@@ -5411,7 +5411,7 @@ msgstr "Основные поля"
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:15
 msgid "SKU fields"
-msgstr "Поля вариаций товаров"
+msgstr "Поля артикула товаров"
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:23
 msgid "META Keyword"
@@ -5644,3 +5644,220 @@ msgid ""
 msgstr ""
 "Рекомендуемые товары будут подобраны для базового (просматриваемого) товара "
 "согласно следующим правилам:"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:9
+msgid "CSV product export"
+msgstr "Экспорт в CSV"
+
+#: /wa-apps/shop/templates/actions/backend/BackendImportexport.html:24
+msgid "Export products into CSV file"
+msgstr "Экспорт информации о товарах в CSV-файлы"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:11
+msgid ""
+"Export products to a comma-separated values (CSV) file. CSV files can be "
+"created and managed using most modern spreadsheet applications such as "
+"Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-"
+"Script-supported CSV file structure, please <a href=\"%s\" target=\"_blank"
+"\">refer to the manual</a>."
+msgstr ""
+"Экспорт информации о товарах в CSV-файлы. CSV-файлы можно создавать и "
+"редактировать с помощью электронных табличных редакторов, например, "
+"Microsoft Excel, OpenOffice и iWork. Подробное описание структуры CSV-"
+"файлов, которую поддерживает Shop-Script, читайте в <a href=\"%s\" target="
+"\"_blank\">руководстве</a>."
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:25
+msgid "Export CSV file"
+msgstr "Экспортировать в CSV"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:103
+msgid "Select products"
+msgstr "Выбрать товары"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:161
+msgid "Start export"
+msgstr "Экспортировать"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:177
+msgid ""
+"Please do not close your browser window and do not leave this page until the "
+"entire export process is finished."
+msgstr ""
+"Пожалуйста, не закрывайте браузер и не покидайте эту страницу до тех пор, "
+"пока экспорт не будет полностью завершен."
+
+#: /wa-apps/shop/templates/actions/product/Product.html:409
+msgid "Selling mode"
+msgstr "Режим продажи"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:412
+msgid "Flat SKU list"
+msgstr "Список артикулов"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:413
+msgid ""
+"Best for single-priced products and products with a flat list of purchase "
+"options (SKUs). SKUs are added one-by-one arbitrarly. Customer selects "
+"individual SKU and adds it to shopping cart."
+msgstr ""
+"Для товаров с одной ценой или линейным списком артикулов (вариантов заказа "
+"товара). Артикулы добавляются для товара произвольным образом, а покупатель "
+"выбирает предпочтительный артикул при добавлении товара в корзину."
+
+#: /wa-apps/shop/templates/actions/product/Product.html:418
+msgid "Selectable features"
+msgstr "Выбор характеристик"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:419
+msgid ""
+"Best for multi-dimensional featured products, e.g. apparel or footwear which "
+"can vary in size and color. Flat SKU list is created automatically based on "
+"the combination of features offered for selection. Customer is prompted to "
+"choose preferable product feature values which unambiguously identifies SKU "
+"that is being added to shopping cart. "
+msgstr ""
+"Для товаров, которые лучше описываются выбором нескольких характеристик, чем "
+"выбором артикула (например, выбором размера и цвета). Список артикулов будет "
+"создан автоматически на основе всех возможных комбинаций выбранных "
+"характеристик. Покупатель выбирает на витрине магазина предпочтительные "
+"значения характеристик, и его выбор однозначным образом определяет артикул, "
+"который будет добавлен в корзину. "
+
+#: /wa-apps/shop/js/product/product.js:864
+msgid "option"
+msgid_plural "options"
+msgstr[0] "вариант"
+msgstr[1] "варианта"
+msgstr[2] "вариантов"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:465
+msgid "%d SKU in total"
+msgid_plural "%d SKUs in total"
+msgstr[0] "Всего %d артикул"
+msgstr[1] "Всего %d артикула"
+msgstr[2] "Всего %d артикулов"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:482
+msgid ""
+"Base price is applied unless you override it for a particular SKU. A list of "
+"overrided SKUs is shown below. Stock level can be tracked on the level of "
+"individual SKUs only, not for the entire product."
+msgstr ""
+"Базовая цена будет применена к товару по умолчанию и может быть "
+"переопределена на уровне каждого артикула. Складской учет ведется на уровне "
+"каждого артикула."
+
+#: /wa-apps/shop/templates/actions/product/Product.html:527
+msgid "display all automatically generated %d SKUs"
+msgstr "показать все %d автоматически созданные артикулы"
+
+#: /wa-apps/shop/js/product/product.js:879
+msgid "SKU(s)"
+msgstr "артикулов"
+
+#: /wa-apps/shop/js/product/product.js:872
+msgid "in total"
+msgstr "всего"
+
+#: /wa-apps/shop/js/product/product.js:879
+msgid "display all"
+msgstr "показать все"
+
+#: /wa-apps/shop/lib/actions/product/shopProductImageMove.controller.php:17
+msgid "Unkown image"
+msgstr "Неизвестное изображение"
+
+#: /wa-apps/shop/lib/actions/product/shopProductImageSave.controller.php:15
+msgid "Unknow image"
+msgstr "Неизвестное изображение"
+
+#: /wa-apps/shop/themes/default/home.html:24
+msgid "%s online store"
+msgstr "Интернет-магазин «%s»"
+
+#: /wa-apps/shop/themes/default/home.html:28
+msgid "Contact us"
+msgstr "Обратная связь"
+
+#: /wa-apps/shop/themes/default/home.html:38
+msgid ""
+"Edit this information in the <strong>home.html</strong> template file using "
+"built-in design editor in the store backend."
+msgstr ""
+"Измените этот текст в шаблоне дизайна <strong>home.html</strong> с помощью "
+"редактора дизайна витрины в бекенде магазина."
+
+#: /wa-apps/shop/templates/actions/backend/BackendImportexport.html:17
+msgid "Import products from CSV"
+msgstr "Импорт товаров из CSV"
+
+#: /wa-apps/shop/templates/actions/backend/BackendImportexport.html:18
+msgid "Add new and update existing products via CSV files"
+msgstr "Добавление и обновление информации о товарах с помощью CSV-файлов"
+
+#: /wa-apps/shop/templates/actions/backend/BackendImportexport.html:23
+msgid "Export products to CSV"
+msgstr "Экспорт товаров в CSV"
+
+#: /wa-apps/shop/templates/actions/backend/BackendImportexport.html:24
+msgid "Save your existing products information in a CSV file"
+msgstr "Сохранение информации о товарах магазина в CSV-файле"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:24
+msgid "Last export"
+msgstr "Последний экспорт"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:29
+msgid "Updated"
+msgstr "Обновлено"
+
+#: /wa-apps/shop/lib/actions/product/shopProductSave.controller.php:23
+msgid "Check at least one feature value"
+msgstr "Выберите хотя бы одно значение"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:121
+msgid ""
+"If no particular product type column was specified in the uploaded CSV file, "
+"selected product type will be applied to all new products, created during "
+"the import."
+msgstr ""
+"Если тип товаров не задан в отдельной колонке в CSV-файле, то выбранный тип "
+"будет применен ко всем новым товарам, созданным в результате импорта."
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:38
+msgid "CSV file settings"
+msgstr "Параметры CSV-файла"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:162
+msgid "Categories will not be exported"
+msgstr "Категории не будут экспортированы"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:114
+msgid ""
+"Ignore category nesting when searching for matching products (recommended)"
+msgstr ""
+"Игнорировать принадлежность категориям при поиске совпадений товаров "
+"(рекомендуется)"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:116
+msgid ""
+"When importing a product and searching if it exists in the store already, "
+"product search will be performed only within the category as defined in a "
+"CSV file."
+msgstr ""
+"Поиск соответствий товаров в CSV-файле и каталоге магазина будет "
+"производиться по всем категориям магазина, а не только внутри категории, "
+"заданной для товара в CSV-файле."
+
+#: /wa-apps/shop/templates/actions/product/Product.html:409
+msgid "Purchase options"
+msgstr "Варианты покупки"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:153
+msgid "Selected products"
+msgstr "Выбранные товары"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:153
+msgid "Selected products (%d)"
+msgstr "Выбранные товары (%d)"

@@ -24,15 +24,23 @@ class shopProductServicesSaveController extends waJsonController
             $this->errors[] = _w("Unknown product");
             return;
         }
+
+        $product_model = new shopProductModel();
+        if (!$product_model->checkRights($this->product_id)) {
+            throw new waException(_w("Access denied"));
+        }
+
+        // check rights
         if (!$this->service_id) {
             $this->errors = _w("Unkown service");
             return;
         }
 
-        $this->getModel()->save($this->product_id, $this->service_id, $this->getData());
+        $product_services_model = new shopProductServicesModel();
+        $product_services_model->save($this->product_id, $this->service_id, $this->getData());
         $this->response = array(
-            'status' => $this->getModel()->getProductStatus($this->product_id, $this->service_id),
-            'count'  => $this->getModel()->countServices($this->product_id)
+            'status' => $product_services_model->getProductStatus($this->product_id, $this->service_id),
+            'count'  => $product_services_model->countServices($this->product_id)
         );
     }
 
@@ -127,16 +135,5 @@ class shopProductServicesSaveController extends waJsonController
     public function getStatus($is_default)
     {
         return $is_default ? shopProductServicesModel::STATUS_DEFAULT : shopProductServicesModel::STATUS_PERMITTED;
-    }
-
-    /**
-     * @return shopProductServicesModel
-     */
-    public function getModel()
-    {
-        if ($this->model === null) {
-            $this->model = new shopProductServicesModel();
-        }
-        return $this->model;
     }
 }

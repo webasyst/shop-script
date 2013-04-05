@@ -27,7 +27,17 @@ class shopProductPageSaveController extends waJsonController
     {
         $id = waRequest::get('id', null, waRequest::TYPE_INT);
 
-        $data = $this->getData($id);
+        $data    = $this->getData($id);
+        if (!isset($data['product_id']) && $id) {
+            $data['product_id'] = $this->pages_model->select('product_id')->where('id='.(int)$id)->fetchField('product_id');
+        }
+        $product = $this->getProduct($data['product_id']);
+
+        // check rights
+        if (!$this->product_model->checkRights($product)) {
+            throw new waException(_w("Access denied"));
+        }
+
         if ($id) {
             if (!$this->pages_model->update($id, $data)) {
                 $this->errors[] = _w('Error saving product page');
@@ -42,7 +52,6 @@ class shopProductPageSaveController extends waJsonController
         }
 
         $page = $this->pages_model->getById($id);
-        $product = $this->getProduct($page['product_id']);
         $page['name'] = htmlspecialchars($data['name']);
         $page['frontend_url'] = rtrim(
             wa()->getRouteUrl('/frontend/productPage', array(

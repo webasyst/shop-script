@@ -1,4 +1,6 @@
-{$title_text = "[`Settings`]"}
+{capture assign="title_text"}
+    [`Settings`] <span class="hint float-right">id: {$settings.id}</span>
+{/capture}
 {$name_text =  "[`Name`]"}
 
 {capture frontend_url}
@@ -162,6 +164,25 @@
                 <tbody>
                     <tr>
                         <td class="min-width">
+                            <input id="s-condition-price-interval" type="checkbox" name="condition[]" value="price" {if isset($settings.conditions.price)}checked{/if}>
+                        </td>
+                        <td>
+                            <label for="s-condition-price-interval">[`Price`]</label>
+                        </td>
+                        <td colspan="2">
+                            <label>
+                                [`from`]
+                                <input type="text" name="price[0]" class="short" placeholder="0" value="{if isset($settings.conditions.price[0][1])}{$settings.conditions.price[0][1]}{/if}">
+                            </label>
+                            <label>
+                                [`to`]
+                                <input type="text" name="price[1]" class="short" placeholder="&infin;" value="{if isset($settings.conditions.price[1][1])}{$settings.conditions.price[1][1]}{/if}">
+                            </label>
+                            {$currency}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="min-width">
                             <input id="s-condition-rate" type="checkbox" name="condition[]" value="rating" {if isset($settings.conditions.rating)}checked{/if}>
                         </td>
                         <td>
@@ -224,6 +245,9 @@
         });
         d.on('change', 'input[name^=tag]', function() {
             $('#s-condition-tag').attr('checked', true);
+        });
+        d.on('keyup', 'input[name^=price]', function() {
+            $('#s-condition-price-interval').attr('checked', true);
         });
     }
     $('#s-category-allow-filter', d).click(function() {

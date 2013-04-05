@@ -10,6 +10,10 @@ class shopProductModel extends waModel
     const STATUS_ACTIVE = 1;
     const STATUS_DISABLED = 2;
     const STATUS_DRAFT = 3;
+
+    const SKU_TYPE_FLAT = 0;
+    const SKU_TYPE_SELECTABLE = 1;
+
     protected $table = 'shop_product';
 
     public function delete(array $product_ids)
@@ -49,7 +53,8 @@ class shopProductModel extends waModel
             new shopProductTagsModel(),
             new shopCategoryProductsModel(),
             new shopSetProductsModel(),
-            new shopSearchIndexModel()
+            new shopSearchIndexModel(),
+            new shopProductFeaturesSelectableModel()
         ) as $model) {
             $model->deleteByProducts($delete_ids);
         }
@@ -393,5 +398,33 @@ class shopProductModel extends waModel
             'bestseller' => array('name' => _w('Bestseller!'), 'code' => '<div class="badge bestseller"><span>'._w('Bestseller!').'</span></div>'),
             'lowprice' => array('name' => _w('Low price!'), 'code' => '<div class="badge low-price"><span>'._w('Low price!').'</span></div>'),
         );
+    }
+
+    /**
+     * Check current user rights to product with its type id
+     *
+     * @param array|int $product
+     * @throws waException
+     * @return boolean
+     */
+    public function checkRights($product)
+    {
+        if (is_numeric($product)) {
+            $type_id = $this->select('type_id')->where('id='.(int)$product)->fetchField('type_id');
+//             if (!$type_id) {
+//                 throw new waException(_w("Unknown type"));
+//             }
+        } else if (is_array($product)) {
+            if (!isset($product['type_id'])) {
+                //throw new waException(_w("Unknown type"));
+                $type_id = null;
+            } else {
+                $type_id = $product['type_id'];
+            }
+        } else {
+            $type_id = null;
+            //throw new waException(_w("Unknown type"));
+        }
+        return (boolean)wa()->getUser()->getRights('shop', 'type.'.$type_id);
     }
 }

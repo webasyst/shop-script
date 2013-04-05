@@ -35,7 +35,6 @@ class shopCsvReader implements SeekableIterator, Serializable
             $this->delimeter = "\t";
         }
         $this->encoding = ifempty($encoding, 'utf-8');
-        $this->encoding = ifempty($encoding, 'utf-8');
         $this->restore();
         waHtmlControl::registerControl('Csvmap', array($this, 'getCsvmapControl'));
     }
@@ -124,18 +123,6 @@ class shopCsvReader implements SeekableIterator, Serializable
             if (!$this->fp) {
                 throw new waException("error while open CSV file");
             }
-
-            if (strtolower($this->encoding) != 'utf-8') {
-                if (!@stream_filter_append($this->fp, 'convert.iconv.'.$this->encoding.'/UTF-8//IGNORE')) {
-                    if (stream_filter_register('shop.csv.*', 'shopCsvFilter')) {
-                        if (!@stream_filter_append($this->fp, 'shop.csv.'.$this->encoding)) {
-                            throw new waException("error while prepend file encoding filter");
-                        }
-                    } else {
-                        throw new waException("error while register file filter");
-                    }
-                }
-            }
         } else {
             throw new waException("CSV file not found");
         }
@@ -163,7 +150,7 @@ class shopCsvReader implements SeekableIterator, Serializable
 
     public function unserialize($serialized)
     {
-        $data = unserialize($serialized);
+        $data = @unserialize($serialized);
         $this->file = ifset($data['file']);
         $this->delimeter = ifempty($data['delimeter'], ';');
         $this->encoding = ifempty($data['encoding'], 'utf-8');
@@ -191,28 +178,29 @@ class shopCsvReader implements SeekableIterator, Serializable
      */
     public function seek($position)
     {
-        if (isset($this->offset_map[$position - 1])) {
-            fseek($this->fp, $this->offset_map[$position - 1]);
-            $this->key = $position - 1;
-            $this->next();
-        } else {
-            if ($index = $this->offset_map ? max(array_keys($this->offset_map)) : 0) {
-                $this->seek($index);
-            } else {
-                $this->rewind();
-            }
+        if ($position != $this->key) {
 
-            while ($position > $this->key && $this->valid()) {
+            if (isset($this->offset_map[$position - 1])) {
+                fseek($this->fp, $this->offset_map[$position - 1]);
+                $this->key = $position - 1;
                 $this->next();
+            } else {
+                if ($index = $this->offset_map ? max(array_keys($this->offset_map)) : 0) {
+                    $this->seek($index);
+                } else {
+                    $this->rewind();
+                }
+
+                while ($position > $this->key && $this->next()) {
+                    ;
+                }
             }
-        }
-        if (!$this->valid()) {
-            throw new OutOfBoundsException('Invalid seek position');
         }
     }
 
     public function current()
     {
+
         if ($this->current) {
             foreach ($this->current as & $cell) {
                 $cell = $this->utf8_bad_replace($cell);
@@ -239,25 +227,29 @@ class shopCsvReader implements SeekableIterator, Serializable
         }
 
         $this->offset();
-        do { //skip empty lines
-            $this->current = fgetcsv($this->fp, $this->fsize, $this->delimeter);
-            if ($this->current !== false) {
-                ++$this->key;
-            }
+        do {
             $empty = true;
-            if ($this->current) {
-                foreach ($this->current as $cell) {
-                    if ($cell !== '') {
-                        $empty = false;
-                        break;
+            if ($line = fgets($this->fp)) { //skip empty lines
+                if (strtolower($this->encoding) != 'utf-8') {
+                    $line = iconv($this->encoding, 'UTF-8//IGNORE', $line);
+                }
+                $this->current = str_getcsv($line, $this->delimeter);
+                if (is_array($this->current) && (count($this->current) > 1)) {
+                    ++$this->key;
+                    foreach ($this->current as $cell) {
+                        if ($cell !== '') {
+                            $empty = false;
+                            break;
+                        }
                     }
                 }
             }
-        } while (!feof($this->fp) && $empty);
+        } while ($empty && !feof($this->fp));
 
         if (!$this->header && $this->current) {
             $this->header();
         }
+        return $this->valid();
     }
 
     public function key()
@@ -384,7 +376,6 @@ class shopCsvReader implements SeekableIterator, Serializable
             }
         }
         $this->mapped = true;
-
         return $data;
     }
 
@@ -473,13 +464,19 @@ class shopCsvReader implements SeekableIterator, Serializable
             'options'             => array(
                 -1 => array(
                     'value' => - 1,
-                    'title' => _w('Ignore CSV column'),
+                    'title' => sprintf('-- %s --', _w('Ignore CSV column')),
                     'style' => 'font-style:italic;'
                 )
             ),
         ));
         if ($this->header) {
-            $params['options'] = array_merge($this->header, $params['options']);
+            foreach ($this->header as $id => $column) {
+                $params['options'][] = array(
+                    'value' => $id,
+                    'title' => $column,
+                );
+            }
+
         }
 
         $group = null;
@@ -547,7 +544,7 @@ class shopCsvReader implements SeekableIterator, Serializable
             }
 
             if ($params['value'] >= 0) {
-                $params['options'][$params['value']]['style'] = 'font-weight:bold;';
+                $params['options'][$params['value']]['style'] = 'font-weight:bold;text-decoration:underline;';
             }
         }
 

@@ -96,6 +96,17 @@ class shopProductsCollection
                     $this->filters(waRequest::get());
                 }
 
+                if (($type_id = waRequest::param('type_id')) && is_array($type_id)) {
+                    foreach ($type_id as & $t) {
+                        $t = (int) $t;
+                    }
+                    if ($type_id) {
+                        $this->where[] = 'p.type_id IN ('.implode(',', $type_id).')';
+                    } else {
+                        $this->where[] = '0';
+                    }
+                }
+
                 $this->where[] = 'p.status = 1';
 
                 if ($sort = waRequest::get('sort')) {
@@ -177,17 +188,6 @@ class shopProductsCollection
                 }
                 $this->where[] = 'filter'.$feature_join_index.".feature_value_id IN (".implode(',', $values).")";
                 $this->group_by = 'p.id';
-            }
-        }
-
-        if (($type_id = waRequest::param('type_id')) && is_array($type_id)) {
-            foreach ($type_id as & $t) {
-                $t = (int) $t;
-            }
-            if ($type_id) {
-                $this->where[] = 'p.type_id IN ('.implode(',', $type_id).')';
-            } else {
-                $this->where[] = '0';
             }
         }
     }
@@ -378,7 +378,17 @@ class shopProductsCollection
                 if ($name == 'tag') {
                     $temp[1] = explode('||', $temp[1]);
                 }
-                $result[$name] = $temp;
+                if ($name != 'price') {
+                    $result[$name] = $temp;
+                } else {
+                    if ($temp[0] == '>=') {
+                        $result[$name][0] = $temp;
+                    } else if ($temp[0] == '<=') {
+                        $result[$name][1] = $temp;
+                    } else {
+                        $result[$name] = $temp;
+                    }
+                }
             }
         }
         return $result;

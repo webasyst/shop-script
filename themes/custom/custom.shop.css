@@ -39,7 +39,7 @@ div.cart.fixed a { }
 .promo { padding: 0; overflow: hidden; background: #fff; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; }
 .promo a { display: block; height: 500px; position: relative; }
 .promo a .image { position: absolute; right: 0; left: 0; top: 0; bottom: 0; }
-.promo a .image .corner.right { right: 30px; }
+.promo a .image .corner.right { right: 60px; }
 .promo a .image .corner.top { top: 30px; }
 .promo a .image img { width: 100%; top: -30%; position: absolute; }
 .promo a .info { position: absolute; top: 10px; left: 30px; max-width: 60%; }

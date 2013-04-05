@@ -63,6 +63,9 @@
         {else}
             [`Unknown state`]: {$order.state_id}
         {/if}
+        {if $last_action_datetime}
+            <span class="hint">{$last_action_datetime|wa_datetime:'humandatetime'}</span>
+        {/if}
     </h1>
 
     <!-- order action buttons -->
@@ -194,7 +197,7 @@
             <td class="align-right">[`Discount`]</td>
             <td class="align-right nowrap">{wa_currency($order.discount, $order.currency)}</td>
         </tr>
-        {if isset($params.shipping_name)}
+        {if isset($params.shipping_name) || $order.shipping > 0}
         <tr class="no-border">
             <td colspan="2"></td>
             <td class="align-right">[`Shipping`]</td>

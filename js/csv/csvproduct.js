@@ -31,7 +31,6 @@ if (typeof($) != 'undefined') {
             var self = this;
 
             this.csv_product_form = $("#s-csvproduct");
-            this.csv_product_form.find(':submit').hide();
 
             this.csv_product_form.submit(function() {
                 return self.call('SubmitHandler', [this]);
@@ -39,13 +38,33 @@ if (typeof($) != 'undefined') {
 
             this.csv_product_form.find(':input[name="hash"]').change(function() {
                 self.call('HashHandler', [$(this)]);
-            }).change();
+            });
 
-            this.csv_productUploadInit();
+            if (this.csv_product_form.find('.fileupload:first').length) {
+                this.csv_product_form.find(':submit').hide();
+                this.csv_productUploadInit();
+            }
+        },
+
+        csv_productAction: function() {
+            this.csv_product_form.find(':input[name="hash"]:checked').trigger('change');
+        },
+        csv_productHashAction: function(hash) {
+            this.csv_productAction();
+            var options = (hash || '').split('/');
+            var select = this.csv_product_form.find(':input[name="hash"][value="' + options[0] + '"]:first');
+            if (select.length) {
+                select.parents('li').show();
+                select.attr('checked', true).trigger('change');
+                var ids = options[1] || '0';
+                this.csv_product_form.find(':input[name="product_ids"]:first').val(ids);
+                var label = select.parents('label').find('span:first');
+                label.text(label.text().replace('%d', ids.split(',').length));
+            }
+            window.location.hash = '/csv:product:export/';
         },
 
         csv_productUploadInit: function() {
-            $.shop.trace('$.importexport.csv_productInitFileupload');
 
             var url = ('' + this.csv_product_form.attr('action')).replace(/\b(action=(.*))(run)\w*\b/, '$1upload');
             var matches = document.cookie.match(new RegExp("(?:^|; )_csrf=([^;]*)"));
@@ -214,7 +233,7 @@ if (typeof($) != 'undefined') {
                                 return true;
                             };
                             self.progressHandler(url, response.processId, response);
-                        }, 1000));
+                        }, 3000));
                         self.ajax_pull[response.processId].push(setTimeout(function() {
                             self.progressHandler(url, response.processId);
                         }, 2000));

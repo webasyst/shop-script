@@ -21,10 +21,12 @@
  * @property string $edit_datetime
  * @property int $status
  * @property int $sku_id
+ * @property int $sku_type
  * @property string $url
  * @property int $sort
  * @property float $price
  * @property float $compare_price
+ * @property float $base_price_selectable
  * @property string $currency
  * @property float $min_price
  * @property float $max_price
@@ -32,6 +34,8 @@
  * @property int|null $count
  *
  * @property int $type_id
+ * @property array $type
+ * @property string $type['name']
  * @property int $category_id
  * @property array $features
  * @example
@@ -189,11 +193,11 @@ class shopProduct implements ArrayAccess
                     $search->onAdd($id);
                     $this->is_dirty = array();
 
-                    if (!empty($this->data['type'])) {
+                    if (!empty($this->data['type_id'])) {
                         $type_model = new shopTypeModel();
                         // increment on +1
                         $type_model->incCounters(array(
-                            $this->data['type'] => 1
+                            $this->data['type_id'] => 1
                         ));
                     }
 
@@ -396,6 +400,21 @@ class shopProduct implements ArrayAccess
         } else {
             $collection = new shopProductsCollection('related/cross_selling/'.$this->getId());
             return $collection->getProducts('*', $limit);
+        }
+    }
+
+    /**
+     * Check current user rights to product with its type id
+     *
+     * @throws waException
+     * @return boolean
+     */
+    public function checkRights()
+    {
+        if (isset($this->data['type_id'])) {
+            return $this->model->checkRights($this->data);
+        } else {
+            return $this->model->checkRights($this->getId());
         }
     }
 }

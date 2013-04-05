@@ -28,28 +28,28 @@
             [`Export`]
         </h6>
         <ul class="menu-v with-icons compact p-no-photo-selected123 thumbs-view-menu" id="share-menu">
-            <li><a href="#" style="color: #aaa;"><i class="icon16 ss excel"></i>[`CSV`]</a></li>
-            
+            <li data-action="export" data-plugin="csv:product:export"><a href="#"><i class="icon16 ss excel"></i>[`CSV`]</a></li>
+
             <!-- plugin hook: 'backend_products.toolbar_export_li' -->
             {* @event backend_products.%plugin_id%.toolbar_export_li *}
             {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.toolbar_export_li)}{/foreach}{/if}
-            
+
         </ul>
     </div>
-    
+
     <div class="block">
         <h6 class="heading">
             <span class="count indicator" style="display:none"></span>
             [`Organize`]
         </h6>
         <ul class="menu-v with-icons compact p-no-photo-selected123 thumbs-view-menu" id="share-menu">
-        
+
             <!-- plugin hook: 'backend_products.toolbar_organize_li' -->
             {* @event backend_products.%plugin_id%.toolbar_organize_li *}
             {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.toolbar_organize_li)}{/foreach}{/if}
-            
+
             {*<li data-action="new-set"><a href="#"><i class="icon16 ss set"></i>[`Create new set`]</a></li>*}
-            
+
             <li data-action="category">
                 <a href="#"><i class="icon16 folder"></i>[`Add to category`]</a>
             </li>
@@ -59,37 +59,37 @@
             <li data-action="assign-tags">
                 <a href="#"><i class="icon16 tags"></i>[`Tags`]</a>
             </li>
-            
+
             {if $info && $info.hash == 'set' && $info.type == shopSetModel::TYPE_STATIC && $info.count > 0}
                 <li data-action="delete-from-set"><a href="#"><i class="icon10 no-bw"></i>[`Remove from set`]</a></li>
             {/if}
-            
+
             {if $info && $info.hash == 'category' && $info.type == shopCategoryModel::TYPE_STATIC && $info.count > 0}
                 <li data-action="delete-from-category"><a href="#"><i class="icon10 no-bw"></i>[`Remove from category`]</a></li>
             {/if}
 
             <li data-action="type" class="top-padded">
                 <a href="#"><i class="icon16 box"></i>[`Change product type`]</a>
-            </li>            
+            </li>
             <li data-action="delete"><a href="#"><i class="icon16 delete"></i>[`Delete products`]</a></li>
-            
+
         </ul>
     </div>
-    
+
     <!-- plugin hook: 'backend_products.toolbar_section' -->
     {* @event backend_products.%plugin_id%.toolbar_section *}
     {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.toolbar_section)}{/foreach}{/if}
-    
+
 </div>
 <div class="content right200px">
     <div class="block double-padded">
         <h1>
             <span {if $info.hash == 'category' || $info.hash == 'set'}class="editable"{/if} id="s-product-list-title">{if !empty($title)}{$title|escape}{else}[`Untitled`]{/if}</span>
-            
+
             <!-- plugin hook: 'backend_products.title_suffix' -->
             {* @event backend_products.%plugin_id%.title_suffix *}
             {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.title_suffix)}{/foreach}{/if}
-            
+
             {if $collection_hash && ($info.hash == 'category' || $info.hash == 'set')}
                 <span class="s-product-list-manage">
                     <a href="#" id="s-product-list-settings" class="gray s-product-list-settings">
@@ -142,7 +142,7 @@
                                     <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}" class="no-underline {if !$sort}selected{/if}">{if $manual}[`manual`]{else}[`default`]{/if}</a>
                                 </li>
                             {/if}
-                            
+
                             <li class="sort">
                                 <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}" class="no-underline {if $sort=='name'}selected{/if}">[`name`]
                                 </a>{if $sort=='name'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
@@ -182,7 +182,7 @@
             <li{if $wa->get("view") == 'table'} class="selected"{/if}>
                 <a href="#/products/view=table{if $collection_param}&{$collection_param}{/if}{if $sort}{/if}"><i class="icon16 view-table"></i></a>
             </li>
-            
+
             <!-- plugin hook: 'backend_products.viewmode_li' -->
             {* @event backend_products.%plugin_id%.viewmode_li *}
             {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.viewmode_li)}{/foreach}{/if}

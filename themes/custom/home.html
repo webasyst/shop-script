@@ -5,7 +5,7 @@
         <ul class="bxslider">
         {foreach $promos as $p}
         <li itemscope itemtype ="http://schema.org/Product">
-            <a href="{$p.frontend_url}" title="{$p.name|escape}{if $p.summary} &mdash; {strip_tags($p.summary)|escape}{/if}">
+            <a href="{$p.frontend_url}" title="{$p.name}{if $p.summary} &mdash; {strip_tags($p.summary)|escape}{/if}">
                 <div class="image">
                         {$badge_html = $wa->shop->badgeHtml($p.badge)}
                         {if $badge_html}
@@ -14,13 +14,12 @@
                         {$wa->shop->productImgHtml($p, '970', ['itemprop' => 'image', 'default' => "`$wa_theme_url`img/dummy200.png"])}
 
                 </div>
-                
                 <div class="info">
                     <h2 itemprop="name">
                         <span class="name">{$p.name}</span>
                     </h2>
                     <p>{if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency($p.compare_price)} </span>{/if}<span class="price nowrap">{shop_currency($p.price)}</span></p>
-                    {if $p.summary}<p itemprop="description">{$p.summary}</p>{/if}
+                    {if $p.summary}<p itemprop="description">{strip_tags($p.summary)}</p>{/if}
                     
                 </div>
             </a>
@@ -43,9 +42,25 @@
 
 <div class="content left300px">
 
-    <!-- general homepage welcome text -->
-    <h1>[`Welcome to Shop-Script!`]</h1>
-    <p>[`Use built-in design editor to edit this text and replace it with your general store information and contacts.`]</p>
+    <!-- GENERAL WELCOME TEXT -->
+    <div itemscope itemtype="http://schema.org/Store">
+        <h1 class="align-center"><span itemprop="name">{sprintf('[`%s online store`]', $wa->shop->settings('name'))}</span></h1>
+        <meta itemprop="description" content="{$wa->meta('description')|escape}">
+
+        {if $wa->shop->settings('phone')}
+            <p class="align-center large">[`Contact us`]: <strong itemprop="telephone">{$wa->shop->settings('phone')}</strong></p>
+        {/if}
+        <div itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+            <meta itemprop="streetAddress" content="">
+            <meta itemprop="addressLocality" content="">
+            <meta itemprop="addressRegion" content="">
+            <meta itemprop="postalCode" content="">
+            <meta itemprop="addressCountry" content="{$wa->shop->settings('country')|upper}">
+        </div>
+  
+        <p class="align-center gray">[`Edit this information in the <strong>home.html</strong> template file using built-in design editor in the store backend.`]</p>
+        
+    </div>
 
     {$bestsellers = $wa->shop->productSet('bestsellers')}
     {if $bestsellers}

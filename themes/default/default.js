@@ -50,6 +50,8 @@ $(document).ready(function () {
                             cart_total.closest('#cart').removeClass('empty');
                         });
                 }
+            } else if (response.status == 'fail') {
+                alert(response.errors);
             }
         }, "json");
         return false;

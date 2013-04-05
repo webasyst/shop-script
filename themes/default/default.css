@@ -167,6 +167,7 @@ ul.menu-h li.selected ul * { background: #fff !important; }
 .wa-form .wa-field .wa-value input.wa-captcha-input { width: 100px; min-width: 0; }
 .wa-form .wa-field .wa-value label { display: block; }
 .wa-form .wa-field .wa-value .wa-captcha img { margin-left: 0; }
+.wa-form .wa-field .wa-value .errormsg { margin-left: 0; }
 .wa-form .wa-field .wa-value.wa-submit { margin-top: 10px; }
 .wa-form .wa-field .wa-value p label { display: block; margin: 0; }
 .wa-form .wa-field .wa-value p { line-height: 1.6em; margin-bottom: 13px; position: relative; } 
@@ -175,7 +176,7 @@ ul.menu-h li.selected ul * { background: #fff !important; }
 .wa-form .wa-field .wa-value p input { display: block; margin-bottom: 2px; }
 .wa-form .wa-field .wa-value p input[type="radio"],
 .wa-form .wa-field .wa-value p input[type="checkbox"] { display: inline; }
-.wa-form .wa-field .wa-value .errormsg { margin-left: 0; margin-top: -10px; }
+.wa-form .wa-field .wa-value p .field.wa-required span:after { content: " *"; color: #faa; }
 .wa-form .wa-field.wa-required .wa-name:after { content: " *"; color: #faa; }
 
 .wa-captcha { padding: 7px 0 10px; }

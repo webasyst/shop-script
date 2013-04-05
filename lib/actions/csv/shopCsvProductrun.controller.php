@@ -13,6 +13,19 @@ class shopCsvProductrunController extends waLongActionController
      * @var shopCsvReader
      */
     private $reader;
+
+    /**
+     *
+     * file writer
+     * @var shopCsvWriter
+     */
+
+    private $writer;
+    /**
+     *
+     * @var shopProductsCollection
+     */
+    private $collection;
     protected function preExecute()
     {
         $this->getResponse()->addHeader('Content-type', 'application/json');
@@ -22,32 +35,23 @@ class shopCsvProductrunController extends waLongActionController
     protected function init()
     {
         try {
-            $this->data['action'] = 'import';
-            $name = basename(waRequest::post('file'));
-            $file = wa()->getDataPath('temp/csv/upload/'.$name);
-            $this->reader = new shopCsvReader($file);
-            $this->reader->setMap(waRequest::post('csv_map'));
-            $this->data['file'] = $this->reader;
-            $this->data['primary'] = waRequest::post('primary', 'name');
-            if (!in_array($this->data['primary'], array('name', 'url', 'skus:-1:sku'))) {
-                throw new waException(_w('Invalid primary field'));
-            }
-            $current = $this->reader->current();
-            if (self::getData($current, $this->data['primary']) === null) {
-                throw new waException(_w('Empty primary CSV column'));
-            }
+            $this->data['timestamp'] = time();
+            $this->data['direction'] = waRequest::post('direction', 'import');
+            switch ($this->data['direction']) {
 
-            $model = new shopCategoryModel();
-            $this->data['count'] = array(
-                self::STAGE_FILE => $this->reader->size(),
-                self::STAGE_CATEGORY => null,
-                self::STAGE_PRODUCT => null,
-                self::STAGE_SKU => null,
-            );
+                case 'export':
+                    $this->initExport();
+                    break;
+                case 'import':
+                default:
+                    $this->data['direction'] = 'import';
+                    $this->initImport();
+                    break;
+            }
 
             $stages = array_keys($this->data['count']);
             $this->data['current'] = array_fill_keys($stages, 0);
-            $this->data['processed_count'] = array_fill_keys($stages, ($this->data['action'] == 'import') ? array('new' => 0, 'update' => 0, ) : 0);
+            $this->data['processed_count'] = array_fill_keys($stages, ($this->data['direction'] == 'import') ? array('new' => 0, 'update' => 0, ) : 0);
 
             $this->data['map'] = array();
 
@@ -62,6 +66,111 @@ class shopCsvProductrunController extends waLongActionController
             ));
             exit;
         }
+    }
+
+    private function initImport()
+    {
+        $name = basename(waRequest::post('file'));
+        $file = wa()->getDataPath('temp/csv/upload/'.$name);
+        $this->reader = new shopCsvReader($file, waRequest::post('delimeter', ';'), waRequest::post('encoding', 'utf-8'));
+        $this->reader->setMap(waRequest::post('csv_map'));
+        $this->data['file'] = serialize($this->reader);
+        $this->data['primary'] = waRequest::post('primary', 'name');
+        $this->data['type_id'] = waRequest::post('type_id', null, waRequest::TYPE_INT);
+        $this->data['ignore_category'] = !!waRequest::post('ignore_category', 0, waRequest::TYPE_INT);
+        if (!in_array($this->data['primary'], array('name', 'url', 'skus:-1:sku'))) {
+            throw new waException(_w('Invalid primary field'));
+        }
+        $current = $this->reader->current();
+        if (self::getData($current, $this->data['primary']) === null) {
+            throw new waException(_w('Empty primary CSV column'));
+        }
+        $this->data['count'] = array(
+            self::STAGE_FILE => $this->reader ? $this->reader->size() : null,
+            self::STAGE_CATEGORY => null,
+            self::STAGE_PRODUCT => null,
+            self::STAGE_SKU => null,
+        );
+    }
+
+    private function initExport()
+    {
+        $hash = null;
+        $this->data['export_category'] = true;
+        switch ($hash = waRequest::post('hash')) {
+            case 'id':
+                $this->data['export_category'] = false;
+                $hash = 'id/'.waRequest::post('product_ids');
+                break;
+            case 'set':
+                $this->data['export_category'] = false;
+                $hash = 'set/'.waRequest::post('set_id', waRequest::TYPE_STRING_TRIM);
+                break;
+            case 'type':
+                $hash = 'type/'.waRequest::post('type_id', waRequest::TYPE_INT);
+                break;
+            default:
+                $hash = '*';
+                break;
+        }
+        $this->data['timestamp'] = time();
+        $this->data['hash'] = $hash;
+        $encoding = waRequest::post('encoding', 'utf-8');
+        //$name = sprintf('export.csv', $encoding);
+        $name = 'export.csv';
+        $file = wa()->getDataPath('temp/csv/download/'.$name);
+
+        $map = array(
+            'name'                   => _w('Product name'),
+            'skus:-1:name'           => _w('SKU name'),
+            'skus:-1:sku'            => _w('SKU code'),
+            'currency'               => _w('Currency'),
+            'skus:-1:price'          => _w('Price'),
+            'skus:-1:available'      => _w('Available for purchase'),
+            'skus:-1:compare_price'  => _w('Compare at price'),
+            'skus:-1:purchase_price' => _w('Purchase price'),
+            'skus:-1:stock:0'        => _w('In stock'),
+
+            'url'                    => _w('Storefront link'),
+            'type_name'              => _w('Product type'),
+
+            'meta_title'             => _w('Title'),
+            'meta_keywords'          => _w('META Keyword'),
+            'meta_description'       => _w('META Description'),
+            'summary'                => _w('Summary'),
+            'description'            => _w('Description'),
+            'sort'                   => _w('Product sort order'),
+            'tags'                   => _w('Tags'),
+            'tax_name'               => _w('Taxable'),
+        );
+        $stock_model = new shopStockModel();
+        if ($stocks = $stock_model->getAll('id')) {
+
+            foreach ($stocks as $stock_id => $stock) {
+                $map['skus:-1:stock:'.$stock_id] = _w('In stock').' @'.$stock['name'];
+            }
+        }
+
+        $features_model = new shopFeatureModel();
+        $features = $features_model->getAll();
+
+        foreach ($features as $feature) {
+            $map[sprintf('features:%s', $feature['code'])] = $feature['name'];
+        }
+
+        $this->writer = new shopCsvWriter($file, waRequest::post('delimeter', ';'), $encoding);
+        $this->writer->setMap($map);
+
+        $this->data['file'] = serialize($this->writer);
+        $this->data['map'][self::STAGE_CATEGORY] = null;
+        $this->data['map'][self::STAGE_PRODUCT] = 0;
+
+        $model = new shopCategoryModel();
+        $this->data['count'] = array(
+            self::STAGE_PRODUCT => $this->getCollection()->count(),
+            self::STAGE_CATEGORY => $this->data['export_category'] ? $model->countByField('type', shopCategoryModel::TYPE_STATIC) : 0,
+            self::STAGE_SKU => null,
+        );
     }
 
     private static function getData($data, $key)
@@ -84,6 +193,37 @@ class shopCsvProductrunController extends waLongActionController
         return $value;
     }
 
+    /**
+     *
+     * @param string $hash
+     * @return shopProductsCollection
+     */
+    private function getCollection()
+    {
+        static $id = null;
+
+        if ($this->data['export_category'] && ($id !== $this->data['map'][self::STAGE_CATEGORY])) {
+            $this->collection = null;
+        }
+
+        if (!$this->collection) {
+            $hash = null;
+            if ($this->data['export_category']) {
+                $id = $this->data['map'][self::STAGE_CATEGORY];
+                $hash = 'search/category_id='.$id;
+                if ($this->data['hash'] != '*') {
+                    $hash .= '&'.str_replace('/', '_id=', $this->data['hash']);
+                }
+            } else {
+                $hash = $this->data['hash'];
+            }
+
+            $this->collection = new shopProductsCollection($hash);
+        }
+
+        return $this->collection;
+    }
+
     private function getStageReport($stage, $count)
     {
         static $strings;
@@ -92,7 +232,7 @@ class shopCsvProductrunController extends waLongActionController
                 'new' => array(
                     self::STAGE_CATEGORY => array /*_w*/('imported %d category', 'imported %d categories'),
                     self::STAGE_PRODUCT => array /*_w*/('imported %d product', 'imported %d products'),
-                    self::STAGE_SKU => array /*_p*/('imported %d product variant', 'imported %d product variants'),
+                    self::STAGE_SKU => array /*_w*/('imported %d product variant', 'imported %d product variants'),
 
                 ),
                 'update' => array(
@@ -148,28 +288,35 @@ class shopCsvProductrunController extends waLongActionController
 
     protected function step()
     {
-
-        $method_name = 'step'.ucfirst($this->data['action']);
+        $method_name = 'step'.ucfirst($this->data['direction']);
         $result = false;
         try {
             if (method_exists($this, $method_name)) {
                 $result = $this->$method_name();
+                switch ($this->data['direction']) {
+                    case 'import':
+                        $this->data['file'] = serialize($this->reader);
+                        break;
+                    case 'export':
+                        $this->data['file'] = serialize($this->writer);
+                        break;
+                }
             } else {
-                $this->error(sprintf("Unsupported direction %s", $this->data['action']));
+                $this->error(sprintf("Unsupported direction %s", $this->data['direction']));
             }
         } catch (Exception $ex) {
             sleep(5);
-            $this->error($this->data['action'].': '.$ex->getMessage()."\n".$ex->getTraceAsString());
+            $this->error($this->data['direction'].': '.$ex->getMessage()."\n".$ex->getTraceAsString());
         }
-        return !$this->isDone();
+        return $result && !$this->isDone();
     }
 
     private function stepImport()
     {
         $this->reader->next();
         $result = false;
-        $this->data['current']['file'] = $this->reader->offset();
         if ($current = $this->reader->current()) {
+            $this->data['current']['file'] = $this->reader->offset();
             if ($type = $this->getDataType($current)) {
                 $method_name = 'stepImport'.ucfirst($type);
                 if (method_exists($this, $method_name)) {
@@ -246,9 +393,16 @@ class shopCsvProductrunController extends waLongActionController
                 $primary      => ifset($data[$primary]),
             );
         }
+        if ($fields && $this->data['ignore_category']) {
+            unset($fields['category_id']);
+        }
 
         if ($fields && ($current_data = $model->getByField($fields))) {
             $product = new shopProduct($current_data['id']);
+            $data['type_id'] = ifempty($current_data['type_id'], $this->data['type_id']);
+            if (!empty($current_data['tax_id'])) {
+                $data['tax_id'] = $current_data['tax_id'];
+            }
             $target = 'update';
             if (isset($data['currency']) && !isset($currencies[$data['currency']])) {
                 $data['currency'] = reset($currencies);
@@ -292,18 +446,44 @@ class shopCsvProductrunController extends waLongActionController
         }
 
         $this->findTax($data);
+        $this->findType($data);
         return $product;
+    }
+
+    private function findType(&$data)
+    {
+        static $types;
+        static $model;
+        if (!empty($data['type_name'])) {
+            $type = $data['type_name'];
+            if (!isset($types[$type])) {
+                if (!$model) {
+                    $model = new shopTypeModel();
+                }
+                if ($type_row = $model->getByName($type)) {
+                    $types[$type] = $type_row['id'];
+                } else {
+                    $types[$type] = $this->data['type_id'];
+                }
+            }
+            $data['type_id'] = $types[$type];
+        } else {
+            $data['type_id'] = ifempty($data['type_id'], $this->data['type_id']);
+        }
+        if (isset($data['type_name'])) {
+            unset($data['type_name']);
+        }
     }
 
     private function findTax(&$data)
     {
         static $taxes;
         static $tax_model;
-        if (ifset($data['tax_id'])) {
-            if (empty($data['tax_id'])) {
+        if (ifset($data['tax_name'])) {
+            if (empty($data['tax_name'])) {
                 unset($data['tax_id']);
             } else {
-                $tax = $data['tax_id'];
+                $tax = $data['tax_name'];
                 if (!isset($taxes[$tax])) {
                     if (!$tax_model) {
                         $tax_model = new shopTaxModel();
@@ -311,12 +491,12 @@ class shopCsvProductrunController extends waLongActionController
                     if ($tax_row = $tax_model->getByName($tax)) {
                         $taxes[$tax] = $tax_row['id'];
                     } else {
-                        //TODO use default tax
-                        $taxes[$tax] = 0;
+                        $taxes[$tax] = null;
                     }
                 }
                 $data['tax_id'] = $taxes[$tax];
             }
+            unset($data['tax_name']);
         }
     }
 
@@ -348,9 +528,10 @@ class shopCsvProductrunController extends waLongActionController
             $item_sku_id = -1;
             $sku_primary = ($this->data['primary'] == 'skus:-1:sku') ? 'sku' : 'name';
             foreach ($product->skus as $sku_id => $current_sku) {
-                if ($current_sku[$sku_primary] === $sku[$sku_primary]) {
+                if ($current_sku[$sku_primary] === ifset($sku[$sku_primary], '')) {
                     $item_sku_id = $sku_id;
                     $target_sku = 'update';
+                    $sku = array_merge($current_sku, $sku);
                     break;
                 }
             }
@@ -372,6 +553,7 @@ class shopCsvProductrunController extends waLongActionController
             $this->data['processed_count'][self::STAGE_PRODUCT][$target]++;
         }
         $this->data['processed_count'][self::STAGE_SKU][$target_sku]++;
+        return true;
     }
 
     private function stepImportCategory($data)
@@ -411,13 +593,18 @@ class shopCsvProductrunController extends waLongActionController
             $stack[] = $model->add($data, $parent_id);
         }
         $this->data['processed_count'][self::STAGE_CATEGORY][$target]++;
+        return true;
     }
 
     private function getDataType($data)
     {
-        static $noncategory_fields = array("skus", "features", "total_sales", "summary");
+        static $non_category_fields = array(
+            "skus",
+            "features",
+            "total_sales",
+        );
         $type = self::STAGE_CATEGORY;
-        foreach ($noncategory_fields as $field) {
+        foreach ($non_category_fields as $field) {
             if (!empty($data[$field])) {
                 $type = self::STAGE_PRODUCT;
                 break;
@@ -431,7 +618,11 @@ class shopCsvProductrunController extends waLongActionController
 
     private function stepExport()
     {
-
+        $res = $this->stepExportProduct($this->data['current'], $this->data['count'], $this->data['processed_count']);
+        if (!$res && $this->data['export_category']) {
+            $res = $this->stepExportCategory($this->data['current'], $this->data['count'], $this->data['processed_count']);
+        }
+        return $res;
     }
 
     protected function finish($filename)
@@ -440,16 +631,14 @@ class shopCsvProductrunController extends waLongActionController
         $result = false;
         if ($this->getRequest()->post('cleanup')) {
             $result = true;
-
         }
-
         return $result;
     }
 
     protected function report()
     {
         $report = '<div class="successmsg">';
-        $report .= sprintf('<i class="icon16 yes"></i>%s ', ($this->data['action'] == 'import') ? '' : _w('Exported'));
+        $report .= sprintf('<i class="icon16 yes"></i>%s ', ($this->data['direction'] == 'import') ? '' : _w('Exported'));
         $chunks = array();
         foreach ($this->data['processed_count'] as $stage => $current) {
             if ($current) {
@@ -503,7 +692,14 @@ class shopCsvProductrunController extends waLongActionController
 
     protected function restore()
     {
-        $this->reader = $this->data['file'];
+        switch ($this->data['direction']) {
+            case 'import':
+                $this->reader = unserialize($this->data['file']);
+                break;
+            case 'export':
+                $this->writer = unserialize($this->data['file']);
+                break;
+        }
     }
 
     /**
@@ -519,24 +715,31 @@ class shopCsvProductrunController extends waLongActionController
         return $plugin;
     }
 
-    private function stepCategoryExport(&$current_stage, &$count, &$processed)
+    private function stepExportCategory(&$current_stage, &$count, &$processed)
     {
         static $categories;
         if (!$categories) {
             $model = new shopCategoryModel();
-            $categories = $model->getFullTree();
+            $categories = $model->getFullTree(true);
             if ($current_stage) {
-                $categories = array_slice($categories, $current_stage);
+                $categories = array_slice($categories, $current_stage[self::STAGE_CATEGORY]);
             }
         }
-        $chunk = 50;
-        while ((--$chunk > 0) && ($category = reset($categories))) {
-            ;
+        if ($category = reset($categories)) {
+            $category['name'] = str_repeat('!', $category['depth']).$category['name'];
+
+            $this->writer->write($category);
             array_shift($categories);
-            ++$current_stage;
-            ++$processed;
+
+            ++$current_stage[self::STAGE_CATEGORY];
+            ++$processed[self::STAGE_CATEGORY];
+
+            $this->data['map'][self::STAGE_CATEGORY] = intval($category['id']);
+            $this->data['map'][self::STAGE_PRODUCT] = $current_stage[self::STAGE_PRODUCT];
+
+            $count[self::STAGE_PRODUCT] += $this->getCollection()->count();
         }
-        return ($current_stage < $count['category']);
+        return ($current_stage[self::STAGE_CATEGORY] < $count[self::STAGE_CATEGORY]);
     }
 
     protected function save()
@@ -544,49 +747,80 @@ class shopCsvProductrunController extends waLongActionController
         ;
     }
 
-    private function getProductFields()
-    {
-        return '*, frontend_url';
-        $fields = array();
-        foreach ($this->data['map'] as $field => $info) {
-            $field = preg_replace('/\..*$/', '', $field);
-
-            if (!empty($info['source']) && !ifempty($info['category'])) {
-                $value = null;
-
-                list($source, $param) = explode(':', $info['source'], 2);
-                switch ($source) {
-                    case 'field':
-                        $fields[] = $param;
-                        break;
-                }
-            }
-        }
-        return implode(',', $fields);
-    }
-
     private function stepExportProduct(&$current_stage, &$count, &$processed)
     {
         static $products;
         static $features_model;
         if (!$products) {
-            $products = $this->getCollection()->getProducts($this->getProductFields(), $current_stage, 200);
+            $offset = $current_stage[self::STAGE_PRODUCT] - $this->data['map'][self::STAGE_PRODUCT];
+            $products = $this->getCollection()->getProducts('*', $offset, 50);
         }
-        $chunk = 50;
-        while ((--$chunk > 0) && ($product = reset($products))) {
-            if (!isset($product['features'])) {
-                if (!$features_model) {
-                    $features_model = new shopProductFeaturesModel();
+        $chunk = 1;
+        $non_sku_fields = array(
+            'summary',
+            'meta_title',
+            'meta_keywords',
+            'meta_description',
+            'description',
+            'sort',
+            'tags',
+            'currency',
+            'features',
+            'type_name',
+        );
+        while (($chunk-- > 0) && ($product = reset($products))) {
+            $exported = false;
+            if (!$this->data['export_category'] || ($product['category_id'] == $this->data['map'][self::STAGE_CATEGORY])) {
+                $shop_product = new shopProduct($product);
+                if (!isset($product['features'])) {
+                    if (!$features_model) {
+                        $features_model = new shopProductFeaturesModel();
+                    }
+                    $product['features'] = $features_model->getValues($product['id']);
                 }
-                $product['features'] = $features_model->getValues($product['id']);
+
+                $product['type_name'] = $shop_product->type['name'];
+                #WORK
+                $skus = $shop_product->skus;
+
+                if ($product['sku_id']) {
+                    if (isset($skus[$product['sku_id']])) {
+                        $sku = $skus[$product['sku_id']];
+                        $sku['stock'][0] = $sku['count'];
+                        $product['skus'] = array(-1 => $sku);
+                        unset($skus[$product['sku_id']]);
+                    }
+                    $this->writer->write($product);
+                    $exported = true;
+                    unset($product['features']);
+                }
+
+                foreach ($skus as $sku_id => $sku) {
+                    if ($exported) {
+                        foreach ($non_sku_fields as $field) {
+                            if (isset($product[$field])) {
+                                unset($product[$field]);
+                            }
+                        }
+                    }
+                    $sku['stock'][0] = $sku['count'];
+                    $product['skus'] = array(-1 => $sku);
+                    $this->writer->write($product);
+                    $exported = true;
+                    ++$current_stage[self::STAGE_SKU];
+                    ++$processed[self::STAGE_SKU];
+                }
+            } elseif (count($products) > 1) {
+                $chunk = 1;
             }
 
-            #WORK
             array_shift($products);
-            ++$current_stage;
-            ++$processed;
+            ++$current_stage[self::STAGE_PRODUCT];
+            if ($exported) {
+                ++$processed[self::STAGE_PRODUCT];
+            }
         }
-        return ($current_stage < $count['product']);
+        return ($current_stage[self::STAGE_PRODUCT] < $count[self::STAGE_PRODUCT]);
     }
 
     private function format($field, $value, $info = array(), $data = array())

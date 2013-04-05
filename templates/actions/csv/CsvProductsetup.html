@@ -1,16 +1,42 @@
 <div class="block double-padded s-csv-import" id="s-csvproduct-form">
+    {if $direction eq 'import'}
     <h1>[`CSV product import`]</h1>
     <p>
         {sprintf('[`Import new products and update existing product information from a comma-separated values (CSV) file. CSV files can be created and managed using most modern spreadsheet applications such as Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-Script-supported CSV file structure, please <a href="%s" target="_blank">refer to the manual</a>.`]','[`http://www.shop-script.com/help/csv-file-structure/`]')}
         <i class="icon10 new-window"></i>
     </p>
+    {else}
+    <h1>[`CSV product export`]</h1>
+    <p>
+        {sprintf('[`Export products to a comma-separated values (CSV) file. CSV files can be created and managed using most modern spreadsheet applications such as Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-Script-supported CSV file structure, please <a href="%s" target="_blank">refer to the manual</a>.`]','[`http://www.shop-script.com/help/csv-file-structure/`]')}
+        <i class="icon10 new-window"></i>
+    </p>
+    {/if}
    <form id="s-csvproduct" method="post" action="?module=csv&action=productrun">
    {$wa->csrf()}
-
+   <input type="hidden" name="direction" value="{$direction|escape}">
 
     <div class="fields form">
-        <div class="field-group">
-            <h2 class="gray">1. [`Upload CSV file`]</h2>
+{if ($direction eq 'export') && !empty($info.exists)}
+            <div class="field-group block" style="background: #eee;">
+                <div class="field">
+                    <div class="name">
+                        [`Last export`]
+                    </div>
+                    <div class="value no-shift" style="min-width: 300px;">
+                        <a href="?module=csv&action=productdownload" class="bold nowrap"><i class="icon16 download"></i>[`Download`]</a>
+                        <br>
+                        <span class="hint">[`Updated`]: {$info.mtime|wa_datetime:"humandatetime"}</span>
+                    </div>
+                </div>
+            </div>
+            {/if}
+            <div class="field-group">
+            {if $direction eq 'import'}
+                <h2 class="gray">1. [`Upload CSV file`]</h2>
+            {else}
+                <h2 class="gray">1. [`CSV file settings`]</h2>
+            {/if}
             <div class="field">
                 <div class="name">
                    [`Encoding`]
@@ -33,6 +59,7 @@
                     </select>
                 </div>
             </div>
+            {if $direction eq 'import'}
             <div class="field">
                 <div class="name">
                 [`File`]
@@ -62,7 +89,9 @@
 
                 </div>
             </div>
+            {/if}
         </div>
+		{if $direction eq 'import'}
         <div class="field-group">
             <h2 class="gray">2. [`Import options`]</h2>
             <div class="field">
@@ -77,18 +106,103 @@
                     </select>
                     &nbsp;
                     <span class="s-csv-primary-column-helper"></span>
-                    <p class="hint">[`Select the product identification column (property) which uniquely identifies each product. Based on the identification column value in the CSV file uploaded, the import routine will either update existing product info, or create a new product.`]</p>
+                    <br>
+                    <span class="hint">[`Select the product identification column (property) which uniquely identifies each product. Based on the identification column value in the CSV file uploaded, the import routine will either update existing product info, or create a new product.`]</span>
+                </div>
+
+                <div class="value no-shift">
+                <label><input type="checkbox" name="ignore_category" value="1" checked="checked"> [`Ignore category nesting when searching for matching products (recommended)`]</label>
+                <br>
+                <span class="hint">[`When importing a product and searching if it exists in the store already, product search will be performed only within the category as defined in a CSV file.`]</span>
+                </div>
+            </div>
+            <div class="field">
+                <div class="name">[`Product type`]</div>
+                <div class="value">
+                    <select name="type_id">
+                        {foreach $types as $type_id => $type}
+                        <option value="{$type_id}">{$type.name|escape}</option>
+                        {/foreach}
+                    </select>
+                    <br>
+                    <span class="hint">[`If no particular product type column was specified in the uploaded CSV file, selected product type will be applied to all new products, created during the import.`]</span>
                 </div>
             </div>
         </div>
+        {else}
+
+        <div class="field-group">
+            <h2 class="gray">2. [`Select products`]</h2>
+            <div class="field">
+                <div class="name">
+                    <ul class="menu-v with-icons">
+                        <li>
+                            <label class="black"><input type="radio" value="" name="hash" checked="checked"> [`All products`]</label>
+                        </li>
+                        {if count($sets)}
+                        <li>
+                            <label class="black"><input type="radio" value="set" name="hash"> [`Sets`]</label>
+                        </li>
+                        {/if}
+                        {if count($types)}
+                        <li>
+                            <label class="black"><input type="radio" value="type" name="hash"> [`Product types`]</label>
+                        </li>
+                        {/if}
+                        <li style="display:none;" class="nowrap">
+                            <label class="black"><input type="radio" value="id" name="hash"> <span>[`Selected products (%d)`]</span></label>
+                        </li>
+                    </ul>
+                </div>
+                <div class="value js-hash-values js-hash-set" style="width: 400px;">
+                    <div class="bordered-left" style="padding-left: 20px;">
+                        <ul class="menu-v with-icons">
+                        {foreach $sets as $set}
+                            <li>
+                            <label title="{$set.id|escape}">
+                                <span class="count">{$set.count}</span>
+                                <i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}funnel{else}ss set{/if}"></i>
+                                <input type="radio" name="set_id" value="{$set.id}"{if $set@first} checked="checked"{/if}>
+                                {$set.name|escape}
+                            </label>
+                            </li>
+                        {/foreach}
+                        </ul>
+                        <br>
+                        <span class="gray">[`Categories will not be exported`]</span>
+                    </div>
+                </div>
+                <div class="value js-hash-values js-hash-type" style="width: 400px;">
+                    <div class="bordered-left" style="padding-left: 20px;">
+                        <ul class="menu-v with-icons">
+                        {foreach $types as $type}{if $type.count}
+                            <li>
+                                <label>
+                                    <span class="count">{$type.count}</span>
+                                    {shopHelper::getIcon($type.icon)}
+                                    <input type="radio" name="type_id" value="{$type.id}"{if $type@first} checked="checked"{/if}>
+                                    {$type.name|escape}
+                                </label>
+                            </li>
+                        {/if}{/foreach}
+                        </ul>
+                    </div>
+                </div>
+                <div class="value js-hash-values js-hash-id" style="width: 400px;">
+                    <input type="hidden" name="product_ids" value="">
+                </div>
+                <div class="clear-left"></div>
+            </div>
+        </div>
+        {/if}
 
 
         <div class="clear-left"></div>
 
         <div class="field-group" id="s-csvproduct-submit">
             <div class="field">
-                <div class="value submit">
-                    <input type="submit" class="button green" value="[`Start import`]">
+                <div>
+                    <input type="submit" class="button green" value="{if $direction eq 'import'}[`Start import`]{else}[`Start export`]{/if}">
                     <div class="js-progressbar-container" style="display:none;">
                         <div class="progressbar blue float-left" style="display: none; width: 70%;">
                             <div class="progressbar-outer">
@@ -101,7 +215,11 @@
                         <br clear="left" />
                         <br>
                         <span class="small italic">
+                        {if $direction eq 'import'}
                             [`Please do not close your browser window and do not leave this page until the entire import process is finished.`]
+                        {else}
+                            [`Please do not close your browser window and do not leave this page until the entire export process is finished.`]
+                        {/if}
                         </span>
                     </div><br><br>
                     <em class="errormsg"></em>
@@ -113,6 +231,10 @@
         <div class="field-group" id="s-csvproduct-report" style="display: none;">
             <div class="field">
                 <div class="value"></div>
+                {if $direction eq 'export'}
+                <div class="value"><br><a href="?module=csv&action=productdownload" class="bold nowrap"><i class="icon16 download"></i>[`Download`]</a>
+                </div>
+                {/if}
             </div>
         </div>
     </div>
@@ -125,13 +247,13 @@
 <script type="text/javascript" src="{$wa_app_static_url}js/jquery.iframe-transport.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}js/jquery.fileupload.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}js/csv/csvproduct.js?{$wa->version()}"></script>
-
+{if !empty($smarty.capture)}
 {foreach $smarty.capture as $name => $template} {if strpos($name,'template-js')}
 <script type="text/x-jquery-tmpl" id="{$name}">
 <!-- begin {$name} {$template|replace:'</':'<\\/'} end {$name} -->
 </script>
 {/if} {/foreach}
-
+{/if}
 <script type="text/javascript">
 {literal}if(typeof($)!='undefined') {$.importexport.csv_productInit();}{/literal}
 </script>

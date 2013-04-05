@@ -3,6 +3,11 @@ class shopTypeModel extends shopSortableModel
 {
     protected $table = 'shop_type';
 
+    public function getByName($name)
+    {
+        $sql = "SELECT * FROM `{$this->table}` WHERE `name` LIKE s:0";
+        return $this->query($sql, $name)->fetch();
+    }
     /**
      * Take into account rights
      */
@@ -82,6 +87,16 @@ class shopTypeModel extends shopSortableModel
             }
         }
         return $res;
+    }
+
+    public function insert($data, $type = 0)
+    {
+        $id = parent::insert($data, $type);
+        if($id) {
+            $model = new shopTypeFeaturesModel();
+            $model->addType($id);
+        }
+        return $id;
     }
 
     /**

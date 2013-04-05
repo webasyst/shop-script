@@ -1,6 +1,6 @@
 <?php
 
-class shopProductDeleteImageController extends waJsonController
+class shopProductImageDeleteController extends waJsonController
 {
     public function execute()
     {
@@ -10,6 +10,16 @@ class shopProductDeleteImageController extends waJsonController
         }
 
         $product_images_model = new shopProductImagesModel();
+        $image = $product_images_model->getById($id);
+        if (!$image) {
+            throw new waException(_w("Unknown image"));
+        }
+
+        $product_model = new shopProductModel();
+        if (!$product_model->checkRights($image['product_id'])) {
+            throw new waException(_w("Access denied"));
+        }
+
         if (!$product_images_model->delete($id)) {
             throw new waException(_w("Coudn't delete image"));
         }

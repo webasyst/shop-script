@@ -155,7 +155,12 @@ $.extend($.settings = $.settings || {}, {
                             }
                             elem_values.html(html);
                         } else {
-                            elem_values.html('<select name="data[' + data.feature + '][value]></select>');
+                            var html = '<select name="data[' + data.feature + '][value]">';
+                            for (var i = 0; i < f.values.length; i++) {
+                                html += '<option value="' + f.values[i][0] + '">' + f.values[i][1] + '</option>';
+                            }
+                            html += '</select>';
+                            elem_values.html(html);
                         }
                     }
                 }
