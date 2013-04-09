@@ -1740,9 +1740,17 @@
         },
 
         editTabMainSkuImageSelect: function(sku_id, image_id, $el) {
+            var li       = $el.parents('li:first');
+            var selected = li.hasClass('selected');
+
             $el.parents('ul').find('li.selected').removeClass('selected');
-            $el.parents('li').addClass('selected');
-            $el.parents('div.value').find('input[name$="\[image_id\]"]').val(image_id);
+            if (!selected) {
+                li.addClass('selected');
+                $el.parents('div.value').find('input[name$="\[image_id\]"]').val(image_id);
+            } else {
+                $el.parents('div.value').find('input[name$="\[image_id\]"]').val(0);
+            }
+
             $.shop.trace('$.product.editTabMainSkuImageSelect', [$el.parents('div.value'), $el.parents('div.value').find(':input[name$="\[image_id\]"]')]);
             $.product.helper.onChange($el.parents('div.s-product-form'));
         },

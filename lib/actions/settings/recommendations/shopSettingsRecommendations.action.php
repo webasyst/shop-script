@@ -8,7 +8,7 @@ class shopSettingsRecommendationsAction extends waViewAction
         $types = $type_model->getAll('id');
 
         $category_model = new shopCategoryModel();
-        $categories = $category_model->getFullTree(true);
+        $categories = $category_model->getFullTree('id, name, depth', true);
 
         $features_model = new shopFeatureModel();
         $features = $features_model->getAll('id');

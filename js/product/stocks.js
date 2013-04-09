@@ -147,7 +147,13 @@
                     }
 
                     $.product_stocks.transferDialog(
-                        { name: dr.find('a').text(), id: src_item_id[0] },
+                        /*{ name: dr.find('a').text(), id: src_item_id[0] },*/
+                        {
+                            product_image: td.parent().find('td.s-product img').attr('src'),
+                            product_name:  td.parent().find('td.s-product span').text(),
+                            sku_name: dr.find('a').text(),
+                            sku_id: src_item_id[0]
+                        },
                         src_stock_id,
                         dst_stock_id,
                         function(r) {
@@ -171,18 +177,25 @@
             });
         },
 
-        transferDialog: function(sku, src_stock_id, dst_stock_id, success) {
+        transferDialog: function(data/*sku*/, src_stock_id, dst_stock_id, success) {
             var d = $("#s-product-sku-transfer");
             d.waDialog({
                 disableButtonsOnSubmit: false,
                 onLoad: function() {
                     var self = $(this);
-                    $('#s-stock-name-editable').text(sku.name);
-                    $('#s-stock-name-autocomplete').val(sku.name);
-                    self.find('input[name=sku_id]').val(sku.id);
+                    //$('#s-stock-name-editable').text(sku.name);
+                    //$('#s-stock-name-autocomplete').val(sku.name);
+                    //self.find('input[name=sku_id]').val(sku.id);
+
+                    self.find('#s-stock-product-image').attr('src', data.product_image);
+                    self.find('#s-stock-product-name').text(data.product_name);
+                    self.find('#s-stock-sku-name').text(data.sku_name);
+
+                    self.find('input[name=sku_id]').val(data.sku_id);
                     self.find('select[name=src_stock]').val(src_stock_id);
                     self.find('select[name=dst_stock]').val(dst_stock_id);
 
+                    /*
                     if (!$('#s-stock-name-editable').data('inited')) {
 
                         $('#s-stock-name-autocomplete').autocomplete({
@@ -217,11 +230,12 @@
 
                         $('#s-stock-name-editable').data('inited', true);
                     }
+                    */
 
                     return false;
                 },
                 onSubmit: function() {
-                    $('#s-stock-name-editable').trigger('editable', false);
+                    //$('#s-stock-name-editable').trigger('editable', false);
                     var self = $(this);
                     $.shop.jsonPost(self.attr('action'), self.serializeArray(),
                         function(r) {

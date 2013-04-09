@@ -57,7 +57,7 @@
 
             if (this.product_id) {
 
-                // maintain intaraction with $.product object
+                // maintain intearaction with $.product object
 
                 $.product.editTabServicesAction = function(path) {
                     var that = $.product_services;
@@ -128,7 +128,7 @@
                                 sidebar.find('li.selected').addClass('gray');
                             }
 
-                            // udpate counter
+                            // update counter
                             var counter = $(that.options.counter);
                             var count   = sidebar.find('li:not(.gray)').length;
                             counter.text(count);
@@ -138,7 +138,7 @@
                     }
                 );
 
-                // keep track of chainging text inputs
+                // keep track of changing text inputs
                 var timer_id = null;
                 that.form.on('keyup.product_services', 'input[type=text]', function() {
                     // kill previous process
@@ -239,13 +239,18 @@
                     }
                 });
                 $('#s-save-service-submit').click(function() {
+                    $(this).parent().find('i.loading').show();
                     $.products.jsonPost(form.attr('action'), form.serialize(),
                         function(r) {
-                            if (r.data.id == $.product_services.service_id) {
-                                $.products.dispatch();
-                            } else {
-                                location.hash = '#/services/'+r.data.id+'/';
-                            }
+                            $.products.load(
+                                '?module=services' + (r.data.id ? '&id=' + r.data.id : '') + '&saved=1', function() {
+                                    $("#s-content").addClass('bordered-left');
+                                    var icon = $('#s-save-service-submit').parent().find('i.yes').show();
+                                    setTimeout(function() {
+                                        icon.hide();
+                                    }, 3000);
+                                }
+                            );
                         }
                     );
                     return false;
@@ -392,13 +397,23 @@
                 container.off('click', '.s-multiple-options-toggle').
                     on('click', '.s-multiple-options-toggle', function() {
                         $(this).hide();
+
+                        // expand row
                         $.when(container.find('.s-services-ext-cell').show('fast')).done(
                             function() {
                                 container.find('.s-delete-product').show();
+                                container.find('.s-delete-option').show();
                                 container.find('.s-add-row').show();
                                 $(this).find('input').attr('disabled', false);
                                 addNewOption.call(container.find('.s-add-new-option'));
                                 container.find('input[name=name\\[\\]]:first').focus();
+
+                                // process rows of deleted variants
+                                container.find('tr.s-services-variant-deleted').each(function() {
+                                    var tds = $(this).find('td');
+                                    tds.eq(0).show();
+                                    tds.eq(2).attr('colspan', 2);
+                                });
                             }
                         );
                         return false;
@@ -446,17 +461,41 @@
                     on('click', '.s-delete-option',
                         function() {
                             var self = $(this);
-                            var tr = self.parents('tr:first');
+                            var tr = self.parents('tr.s-services-variant:first');
                             var checked = tr.find('input[name=default]').attr('checked');
-                            if (tr.next('.s-services-variant').length || tr.prev('.s-services-variant').length) {
-                                tr.remove();
+                            var count = tr.parent().find('tr.s-services-variant').length;
+
+                            if (count > 1) {
+
+                                // process row and mark it as deleted
+                                var text =
+                                    tr.find('input[name="name[]"]').val() + ' ' +
+                                    tr.find('input[name="price[]"]').val() + ' ' +
+                                    tr.find('select.s-service-currency').val() || tr.find('.s-service-currency').text();
+                                var html =
+                                    "<td class='min-width strike'></td>" +
+                                    "<td class='bold strike'>" + text + "</td>" +
+                                    "<td colspan='2'>" + $_('Click “Save” button below to commit the delete.') + "</td>";
+                                tr.html(html).
+                                    addClass('gray highlighted s-services-variant-deleted').
+                                    removeClass('s-services-variant');
+
                             } else {
                                 self.hide();
+
+                                // squeeze row
                                 $.when(container.find('.s-services-ext-cell').hide('fast')).done(function() {
                                     container.find('.s-add-row').hide();
                                     container.find('.s-multiple-options-toggle').show();
                                     container.find('.s-services-ext-cell').find('input').attr('disabled', true);
-                                    form.find('input[name=variant\\[\\]]').val(0);
+                                    //form.find('input[name=variant\\[\\]]').val(0);
+
+                                    // process rows of deleted variants
+                                    container.find('tr.s-services-variant-deleted').each(function() {
+                                        var tds = $(this).find('td');
+                                        tds.eq(0).hide();
+                                        tds.eq(2).attr('colspan', 1);
+                                    });
                                 });
                                 form.find('input[name=multiple]').val(0);
                             }

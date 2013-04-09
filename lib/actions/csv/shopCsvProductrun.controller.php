@@ -72,7 +72,7 @@ class shopCsvProductrunController extends waLongActionController
     {
         $name = basename(waRequest::post('file'));
         $file = wa()->getDataPath('temp/csv/upload/'.$name);
-        $this->reader = new shopCsvReader($file, waRequest::post('delimeter', ';'), waRequest::post('encoding', 'utf-8'));
+        $this->reader = new shopCsvReader($file, waRequest::post('delimeter', ';')/*, waRequest::post('encoding', 'utf-8')*/);
         $this->reader->setMap(waRequest::post('csv_map'));
         $this->data['file'] = serialize($this->reader);
         $this->data['primary'] = waRequest::post('primary', 'name');
@@ -542,6 +542,7 @@ class shopCsvProductrunController extends waLongActionController
                 $data['sku_id'] = $sku_id;
             }
             $data['skus'][$item_sku_id] = $sku;
+            ksort($data['skus']);
         }
 
         if ($sku_only) {
@@ -720,7 +721,7 @@ class shopCsvProductrunController extends waLongActionController
         static $categories;
         if (!$categories) {
             $model = new shopCategoryModel();
-            $categories = $model->getFullTree(true);
+            $categories = $model->getFullTree('*', true);
             if ($current_stage) {
                 $categories = array_slice($categories, $current_stage[self::STAGE_CATEGORY]);
             }
@@ -751,6 +752,7 @@ class shopCsvProductrunController extends waLongActionController
     {
         static $products;
         static $features_model;
+        static $tags_model;
         if (!$products) {
             $offset = $current_stage[self::STAGE_PRODUCT] - $this->data['map'][self::STAGE_PRODUCT];
             $products = $this->getCollection()->getProducts('*', $offset, 50);
@@ -777,6 +779,12 @@ class shopCsvProductrunController extends waLongActionController
                         $features_model = new shopProductFeaturesModel();
                     }
                     $product['features'] = $features_model->getValues($product['id']);
+                }
+                if (!isset($product['tags'])) {
+                    if (!$tags_model) {
+                        $tags_model = new shopProductTagsModel();
+                    }
+                    $product['tags'] = $tags_model->getTags($product['id']);
                 }
 
                 $product['type_name'] = $shop_product->type['name'];

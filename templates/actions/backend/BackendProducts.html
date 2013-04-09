@@ -78,30 +78,9 @@
         </h5>
 
         <div class="hierarchical s-collection-list" id="s-category-list">
-            {function category_tree parent_id=0}
-                <ul class="menu-v with-icons" {if empty($categories) && $parent_id == 0}style="display:none"{/if}>
-                    <li class="drag-newposition" data-type="category"></li>
-                    {foreach $categories as $category}
-                    {if $category.parent_id == $parent_id}
-                    {* @see js-template "template-sidebar-list-item" *}
-                    <li class="dr {if $category.type == shopCategoryModel::TYPE_DYNAMIC}dynamic{/if}" id="category-{$category.id}" data-type="category">
-                        <span class="count">{$category.count}</span>
-                        {if $category.children_count > 0}<i class="icon16 darr overhanging collapse-handler" id="category-{$category.id}-handler"></i>{/if}
-                        <a href="#/products/category_id={$category.id}" class="s-product-list{if !$category.status} gray{/if}">{strip}
-                            <i class="icon16 {if $category.type == shopCategoryModel::TYPE_DYNAMIC}folder-dynamic{else}folder{/if}"></i><span class="name">{$category.name|escape}</span>
-                            <strong class="small highlighted count-new"></strong>
-                            <span class="count"><i class="icon10 add s-new-list"></i></span>
-                        {/strip}</a>
-                        {if $category.children_count > 0}
-                            {call category_tree parent_id=$category.id}
-                        {/if}
-                    </li>
-                    <li class="drag-newposition" data-type="category"></li>
-                    {/if}
-                    {/foreach}
-                </ul>
-            {/function}
-            {call category_tree}
+        
+            {include './include.categories.html' inline}
+
             <div class="block s-empty-list"  {if !empty($categories)}style="display:none;"{/if}>
                 <p class="hint align-center">[`Create a product category using the green icon above.`]</p>
             </div>

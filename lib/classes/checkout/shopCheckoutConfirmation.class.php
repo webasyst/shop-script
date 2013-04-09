@@ -24,7 +24,9 @@ class shopCheckoutConfirmation extends shopCheckout
         $shipping_address = $contact->getFirst('address.shipping');
         $billing_address = $contact->getFirst('address.billing');
 
-        $taxes = shopTaxes::apply($items, array('shipping' => $shipping_address['data'], 'billing' => $billing_address['data']));
+        $discount_rate = $subtotal ? ($order['discount'] / $subtotal) : 0;
+        $taxes = shopTaxes::apply($items, array('shipping' => $shipping_address['data'],
+            'billing' => $billing_address['data'], 'discount_rate' => $discount_rate));
 
         $tax = 0;
         $tax_included = 0;

@@ -122,6 +122,8 @@ class shopCsvWriter implements Serializable
      */
     private function applyDataMapping($data)
     {
+        $enclosure = '"';
+        $pattern = sprintf("/(?:%s|%s|%s|\s)/", preg_quote($this->delimeter, '/'), preg_quote(',', '/'), preg_quote($enclosure, '/'));
         $maped = array();
         if (empty($this->data_mapping)) {
             $maped = $data;
@@ -141,6 +143,15 @@ class shopCsvWriter implements Serializable
                     }
                 } else {
                     $value = ifset($data[$key]);
+                }
+                if (is_array($value)) {
+                    foreach ($value as & $item) {
+                        if (preg_match($pattern, $item)) {
+                            $item = $enclosure.str_replace($enclosure, $enclosure.$enclosure, $item).$enclosure;
+                        }
+                    }
+                    unset($item);
+                    $value = "{".implode(',', $value)."}";
                 }
                 $maped[] = $value;
             }

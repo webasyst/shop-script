@@ -29,8 +29,13 @@
             <div class="dialog-content-indent">
                 <h1>[`Inventory transfer`]</h1>
                 <p>
-                    <span id="s-stock-name-editable" class="editable" href="javascript:void(0);">111111</span>
-                    <input id="s-stock-name-autocomplete" value="" style="display:none;">
+                    {*<span id="s-stock-name-editable" class="editable" href="javascript:void(0);"></span>*}
+                    {*<input id="s-stock-name-autocomplete" value="" style="display:none;">*}
+                    
+                    <img  id="s-stock-product-image" src="{$wa_app_static_url}/img/image-dummy-small.png" class="not-found"><br>
+                    <span id="s-stock-product-name"></span>
+                    <span id="s-stock-sku-name"></span>
+                    
                     <input type="hidden" name="sku_id" value="">
                 </p>
                 @<select name="src_stock">

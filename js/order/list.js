@@ -214,9 +214,7 @@ $.order_list = {
         }
         */
         if (this.options.id) {
-            this.container.find('.selected').removeClass('selected');
-            this.container.find('[data-order-id='+this.options.id+']').addClass('selected');
-            $.orders.load('?module=order&id='+this.options.id, { content: $('#s-order') });
+            this.loadOrder(this.options.id);
         }
         var orders_view_ul = $('#s-orders-views');
         orders_view_ul.find('li.selected').removeClass('selected');
@@ -237,6 +235,19 @@ $.order_list = {
             return false;
         });
         */
+    },
+
+    loadOrder: function(order_id) {
+        this.container.find('.selected').removeClass('selected');
+        this.container.find('[data-order-id='+this.options.id+']').addClass('selected');
+
+        $('#s-order').html(
+            '<div class="block double-padded">' +
+                $_('Loading') + ' ' +
+            '<i class="icon16 loading"></i></div>'
+        );
+
+        $.orders.load('?module=order&id= ' + order_id, { content: $('#s-order') });
     },
 
     /*
@@ -541,7 +552,7 @@ $.order_list = {
                 });
             },
             order: function() {
-                $.orders.load('?module=order&id='+params.id, { content: $('#s-order') });
+                $.order_list.loadOrder(params.id);
             }
         };
 

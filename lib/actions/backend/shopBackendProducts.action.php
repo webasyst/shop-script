@@ -9,7 +9,24 @@ class shopBackendProductsAction extends waViewAction
         $this->getResponse()->setTitle(_w('Products'));
 
         $category_model = new shopCategoryModel();
-        $this->view->assign('categories', $category_model->getFullTree());
+        $categories = $category_model->getFullTree();
+
+        foreach ($categories as &$item) {
+            if (!isset($item['children_count'])) {
+                $item['children_count'] = 0;
+            }
+            if (isset($categories[$item['parent_id']])) {
+                $parent = &$categories[$item['parent_id']];
+                if (!isset($parent['children_count'])) {
+                    $parent['children_count'] = 0;
+                }
+                ++$parent['children_count'];
+                unset($parent);
+            }
+        }
+        unset($item);
+
+        $this->view->assign('categories', $categories);
 
         $tag_model = new shopTagModel();
         $this->view->assign('cloud', $tag_model->getCloud());

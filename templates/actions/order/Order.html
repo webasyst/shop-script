@@ -59,13 +59,14 @@
         {if $order.state}
             <span class="small" style="font-size: 16px; margin-left: 10px; position: relative; top: -2px; {$order.state->getStyle()}">
                 <i class="{$order.state->getOption('icon')}" style="margin-top: 7px;"></i>{$order.state->getName()}
+                {if $last_action_datetime}
+                    <em class="hint nowrap">{$last_action_datetime|wa_datetime:'humandatetime'}</em>
+                {/if}
             </span>
         {else}
             [`Unknown state`]: {$order.state_id}
         {/if}
-        {if $last_action_datetime}
-            <span class="hint">{$last_action_datetime|wa_datetime:'humandatetime'}</span>
-        {/if}
+        
     </h1>
 
     <!-- order action buttons -->

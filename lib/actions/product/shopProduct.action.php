@@ -102,7 +102,7 @@ class shopProductAction extends waViewAction
         $this->view->assign('backend_product', wa()->event('backend_product', $product));
 
         $category_model = new shopCategoryModel();
-        $this->view->assign('categories', $category_model->getFullTree(true));
+        $this->view->assign('categories', $category_model->getFullTree('id, name, depth', true));
 
         $this->view->assign('counters', $counters);
         $this->view->assign('product', $product);

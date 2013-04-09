@@ -615,10 +615,10 @@
 
         /**
          * Get special key-value object for mass operations (delete, delete-from-set and etc) Taking into account all-products checkbox (s-select-all)
-         * 
+         *
          * Object say how many products are selected (key 'count'), and info about products or hash If all-products checkbox is activated than object has hash
          * info, else object has products info
-         * 
+         *
          * @param {Boolean} serialize If true than hash/product info packed into field with key 'serialized' else hash info corresponds 'hash'-key and products
          *        info corresponds 'products'-key
          * @returns {Object}

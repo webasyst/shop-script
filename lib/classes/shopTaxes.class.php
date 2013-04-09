@@ -5,11 +5,13 @@ class shopTaxes
 
     /**
      * @param array $items order items to modify
-     * @param array $addresses 'billing' => array(...), 'shipping' => array(...)
+     * @param array $params 'billing' => array(...), 'shipping' => array(...), 'discount_rate' => float
      * @return array : tax_id => array ( rate => float, included => bool, name => string )
      */
-    public static function apply(&$items, $addresses, $currency = null)
+    public static function apply(&$items, $params, $currency = null)
     {
+        $addresses = array_intersect_key($params, array('billing' => 1, 'shipping' => 1));
+        $discount_rate = ifset($params['discount_rate'], 0);
         $tax_ids = array();
         $parent_tax_id = null;
         foreach($items as &$i) {
@@ -86,13 +88,13 @@ class shopTaxes
             $i['tax_percent'] = ifset($result[$tax_id]['rate'], 0.0);
             $i['tax_inclided'] = ifset($result[$tax_id]['included']);
 
-            $p = shop_currency($i['price'] * $i['quantity'], $i['currency'], $currency, false);
+            $p = shop_currency((1 - $discount_rate) * $i['price'] * $i['quantity'], $i['currency'], $currency, false);
             $r = ifset($result[$tax_id]['rate'], 0.0);
 
             if ($i['tax_inclided']) {
                 $i['tax'] = $p*$r/(100.0+$r);
             } else {
-                $i['tax'] = $r*$p/100.0;
+                $i['tax'] = $p*$r/100.0;
             }
 
             if ($i['tax_inclided']) {

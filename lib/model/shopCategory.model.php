@@ -22,31 +22,47 @@ class shopCategoryModel extends waNestedSetModel
         return parent::getAll($key, $normalize);
     }
 
+//     /**
+//      * @return array
+//      */
+//     public function getFullTree($static_only = false, $espace = false)
+//     {
+//         $where = $static_only ? 'WHERE type='.self::TYPE_STATIC : '';
+//         $sql = "SELECT * FROM {$this->table} $where ORDER BY {$this->left}";
+//         $tree = $this->query($sql)->fetchAll('id');
+//         foreach ($tree as &$item) {
+//             if (!isset($item['children_count'])) {
+//                 $item['children_count'] = 0;
+//             }
+//             if (isset($tree[$item['parent_id']])) {
+//                 $parent = &$tree[$item['parent_id']];
+//                 if (!isset($parent['children_count'])) {
+//                     $parent['children_count'] = 0;
+//                 }
+//                 ++$parent['children_count'];
+//                 unset($parent);
+//             }
+//             if ($espace) {
+//                 $item['name'] = htmlspecialchars($item['name']);
+//             }
+//         }
+//         return $tree;
+//     }
+
     /**
      * @return array
      */
-    public function getFullTree($static_only = false, $espace = false)
+    public function getFullTree($fields = '', $static_only = false)
     {
-        $where = $static_only ? 'WHERE type='.self::TYPE_STATIC : '';
-        $sql = "SELECT * FROM {$this->table} $where ORDER BY {$this->left}";
-        $tree = $this->query($sql)->fetchAll('id');
-        foreach ($tree as &$item) {
-            if (!isset($item['children_count'])) {
-                $item['children_count'] = 0;
-            }
-            if (isset($tree[$item['parent_id']])) {
-                $parent = &$tree[$item['parent_id']];
-                if (!isset($parent['children_count'])) {
-                    $parent['children_count'] = 0;
-                }
-                ++$parent['children_count'];
-                unset($parent);
-            }
-            if ($espace) {
-                $item['name'] = htmlspecialchars($item['name']);
-            }
+        if (!$fields) {
+            $fields = 'id, left_key, right_key, parent_id, depth, name, count, type, status';
         }
-        return $tree;
+
+        $fields = $this->escape($fields);
+
+        $where = $static_only ? 'WHERE type='.self::TYPE_STATIC : '';
+        $sql = "SELECT $fields FROM {$this->table} $where ORDER BY {$this->left}";
+        return $this->query($sql)->fetchAll('id');
     }
 
     /**

@@ -1,5 +1,4 @@
 <script type="text/javascript" src="{$wa_app_static_url}js/product/services.js"></script>
-
 <div class="sidebar left250px s-inner-sidebar">
         <ul class="menu-v with-icons stack" id="s-services-list">
             {foreach $services as $item}
@@ -182,6 +181,8 @@
                 <div class="value no-shift">
                     {$wa->csrf()}
                     <input type="button" value="[`Save`]" class="button green" id="s-save-service-submit">
+                    <i class="icon16 loading" style="display:none;"></i>
+                    <i class="icon16 yes" style="display:none;"></i>
                 </div>
             </div>
         </div>

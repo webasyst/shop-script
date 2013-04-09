@@ -4,13 +4,13 @@ class shopSettingsOrderStateMoveController extends waJsonController
 {
     public function execute()
     {
-        $id = waRequest::post('id', null, waRequest::TYPE_INT);
+        $id = waRequest::post('id', null, waRequest::TYPE_STRING_TRIM);
         if (!$id) {
             $this->errors[] = _w("Unknown state");
             return;
         }
 
-        $before_id = waRequest::post('before_id', null, waRequest::TYPE_INT);
+        $before_id = waRequest::post('before_id', null, waRequest::TYPE_STRING_TRIM);
 
         $config = shopWorkflow::getConfig();
         $item = $config['states'][$id];

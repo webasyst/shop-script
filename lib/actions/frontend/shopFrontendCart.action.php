@@ -60,7 +60,13 @@ class shopFrontendCartAction extends waViewAction
         $sku_model = new shopProductSkusModel();
         $skus = $sku_model->getByField('id', $sku_ids, 'id');
 
-        foreach ($items as &$item) {
+        $delete_items = array();
+        foreach ($items as $item_id => &$item) {
+            if (!isset($skus[$item['sku_id']])) {
+                unset($items[$item_id]);
+                $delete_items[] = $item_id;
+                continue;
+            }
             if ($item['type'] == 'product') {
                 $item['product'] = $products[$item['product_id']];
                 $sku = $skus[$item['sku_id']];
@@ -71,6 +77,10 @@ class shopFrontendCartAction extends waViewAction
             }
         }
         unset($item);
+
+        if ($delete_items) {
+            $cart_model->deleteByField(array('code' => $code, 'id' => $delete_items));
+        }
 
         $type_ids = array_unique($type_ids);
 

@@ -3,7 +3,7 @@
     <div class="block top-padded">
         {if !$order && $wa->userRights('shop')}
             <div class="float-right block half-padded small">
-                <a href="#" id="customer-search-activate" class="inline-link"><b><i>[`New customer`]</i></b></a>
+                <a href="#" id="s-order-new-customer" class="inline-link"><b><i>[`New customer`]</i></b></a>
             </div>
         {/if}
         <h2><a href="#" class="back">&larr; [`Back`]</a> <span>[`Customer`]</span></h2>
@@ -243,6 +243,7 @@
                         [`Payment`]
                         {$payment_methods = shopHelper::getPaymentMethods()}
                         <select name="payment_id">
+                            <option value=""></option>
                             {foreach $payment_methods as $m}
                             <option {if !empty($order.params.payment_id) && $order.params.payment_id == $m.id}selected="true"{/if} value="{$m.id}">{$m.name}</option>
                             {/foreach}

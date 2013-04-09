@@ -56,25 +56,6 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             $data['contact'] = $contact = wa()->getUser();
         }
 
-        $shipping_address = $contact->getFirst('address.shipping');
-        if (!$shipping_address) {
-            $shipping_address = $contact->getFirst('address');
-        }
-        $billing_address = $contact->getFirst('address.billing');
-        if (!$billing_address) {
-            $billing_address = $contact->getFirst('address');
-        }
-        $taxes = shopTaxes::apply($data['items'], array('shipping' => $shipping_address['data'], 'billing' => $billing_address['data']));
-        $tax = $tax_included = 0;
-        foreach ($taxes as $t) {
-            if (isset($t['sum'])) {
-                $tax += $t['sum'];
-            }
-            if (isset($t['sum_included'])) {
-                $tax_included += $t['sum_included'];
-            }
-        }
-
         $subtotal = 0;
         $currency = wa()->getConfig()->getCurrency(false);
         foreach ($data['items'] as &$item) {
@@ -91,6 +72,28 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         if ($data['discount'] === '') {
             $data['total'] = $subtotal;
             $data['discount'] = shopDiscounts::apply($data);
+        }
+
+        $shipping_address = $contact->getFirst('address.shipping');
+        if (!$shipping_address) {
+            $shipping_address = $contact->getFirst('address');
+        }
+        $billing_address = $contact->getFirst('address.billing');
+        if (!$billing_address) {
+            $billing_address = $contact->getFirst('address');
+        }
+        $discount_rate = $subtotal ? ($data['discount'] / $subtotal) : 0;
+        $taxes = shopTaxes::apply($data['items'], array('shipping' => $shipping_address['data'],
+            'billing' => $billing_address['data'], 'discount_rate' => $discount_rate));
+
+        $tax = $tax_included = 0;
+        foreach ($taxes as $t) {
+            if (isset($t['sum'])) {
+                $tax += $t['sum'];
+            }
+            if (isset($t['sum_included'])) {
+                $tax_included += $t['sum_included'];
+            }
         }
 
         $order = array(

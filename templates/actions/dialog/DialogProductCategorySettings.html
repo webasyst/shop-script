@@ -54,6 +54,7 @@
             <option value="rating ASC"  {if $settings.sort_products == 'rating ASC'}selected="selected"{/if}>[`Lowest rated`]</option>
             <option value="total_sales DESC" {if $settings.sort_products == 'total_sales DESC'}selected="selected"{/if}>[`Best sellers`]</option>
             <option value="total_sales ASC" {if $settings.sort_products == 'total_sales ASC'}selected="selected"{/if}>[`Worst sellers`]</option>
+            <option value="count DESC" {if $settings.sort_products == 'count DESC'}selected="selected"{/if}>[`In stock`]</option>
             {if $settings.type == shopCategoryModel::TYPE_DYNAMIC}
                 <option value="" {if empty($settings.sort_products)}selected="selected"{/if}>[`Date added`]</option>
             {else}

@@ -445,6 +445,7 @@
                                 }
                                 if (r.data) {
                                     self.find('.count:first').text(r.data.count);
+                                    self.trigger('count_subtree');
                                 }
                             }
                         }));
@@ -502,6 +503,7 @@
                                     parent_list.remove();
                                 }
                                 $('.s-collection-list .unapproved').removeClass('unapproved');
+                                self.trigger('count_subtree');
                             },
                             error: function(r) {
                                 if (r && console) {

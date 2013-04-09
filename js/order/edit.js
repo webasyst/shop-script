@@ -78,6 +78,9 @@ $.order_edit = {
             minLength : 3,
             delay : 300,
             select : function(event, ui) {
+
+                $('.s-order-errors').empty();
+
                 var url = '?module=orders&action=getProduct&product_id=' + ui.item.id;
                 $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : ''), function(r) {
                     var table = $('#order-items');
@@ -97,6 +100,7 @@ $.order_edit = {
                     $.order_edit.updateTotal();
                 });
                 add_order_input.val('');
+
                 return false;
             }
         });
@@ -159,10 +163,17 @@ $.order_edit = {
         });
 
         // calculations
-        this.container.off('change', '.s-orders-services input').on('change', '.s-orders-services input', $.order_edit.updateTotal);
-        this.container.off('change', '.s-orders-product-price input').on('change', '.s-orders-product-price input', $.order_edit.updateTotal);
-        this.container.off('change', '.s-orders-services .s-orders-service-variant').on('change', '.s-orders-services .s-orders-service-variant',
-        $.order_edit.updateTotal);
+        this.container.
+            off('change', '.s-orders-services input').
+            on('change', '.s-orders-services input', $.order_edit.updateTotal);
+        this.container.
+            off('change', '.s-orders-product-price input').
+            on('change', '.s-orders-product-price input', $.order_edit.updateTotal);
+        this.container.
+            off('change', '.s-orders-services .s-orders-service-variant').
+            on('change', '.s-orders-services .s-orders-service-variant',
+                    $.order_edit.updateTotal
+        );
 
         $("#shipping_methods").change(function() {
             var rate = $(this).children(':selected').data('rate');
@@ -279,8 +290,21 @@ $.order_edit = {
 
         $("#subtotal").text(Math.round(subtotal * 100) / 100);
         var shipping = extParseFloat($("#shipping-rate").val().replace(',', '.')) || 0;
+        var undiscounted_total = subtotal + shipping;
         var discount = extParseFloat($("#discount").val() || 0);
-        var total = subtotal + shipping - discount;
+
+        // correct discout by constraint: total must be >= 0
+//        if (discount < 0) {
+//            discount = 0;
+//            $("#discount").val('');
+//        } else {
+//            if (undiscounted_total - discount < 0) {
+//                discount = undiscounted_total;
+//            }
+//            $("#discount").val(Math.round(discount * 100) / 100);
+//        }
+
+        var total = undiscounted_total - discount;
         $("#total").text(Math.round(total * 100) / 100);
     },
 
@@ -457,7 +481,6 @@ $.order_edit = {
 
         // adding mode (with autocomplete);
         var autocompete_input = $("#customer-autocomplete");
-        var search_activate_button = $('#customer-search-activate');
 
         // utility-functions
         var disable = function(disabled) {
@@ -483,6 +506,9 @@ $.order_edit = {
         var testPhone = function(str) {
             return parseInt(str, 10) || str.substr(0, 1) == '+' || str.indexOf('(') !== -1;
         };
+        var testEmail = function(str) {
+            return str.indexOf('@') !== -1;
+        };
 
         $.order_edit.bindValidateErrorPlaceholders();
 
@@ -490,16 +516,25 @@ $.order_edit = {
         activate(false);
         $.order_edit.customer_fields.off('focus', ':input').on('focus', ':input', function() {
             disable(false);
-            return false;
         });
-        search_activate_button.click(function() {
-            activate(false);
-            return false;
-        });
+
+        if (editing_mode == 'add') {
+            $('#s-order-new-customer').click(function() {
+                $.order_edit.customer_fields.find('.field-group:first').find(':input').val('');
+                activate();
+                $.order_edit.customer_inputs.first().focus();
+                $('#s-customer-id').val(0);
+                return false;
+            });
+        }
+
+
+        var term = '';
 
         // autocomplete
         autocompete_input.autocomplete({
             source : function(request, response) {
+                term = request.term;
                 $.getJSON($.order_edit.options.autocomplete_url, request, function(r) {
                     (r = r || []).push({
                         label : $_('New customer'),
@@ -512,21 +547,52 @@ $.order_edit = {
             delay : 300,
             minLength : 3,
             select : function(event, ui) {
-                var value = autocompete_input.val();
                 var item = ui.item;
+
+                var focusFirstEmptyInput = function() {
+                    var focused = false;
+                    $.order_edit.customer_inputs.filter('input[type=text], textarea').each(function() {
+                        var input = $(this);
+                        if (input.is(':not(:hidden)') && !this.value) {
+                            focused = true;
+                            input.focus();
+                            return false;
+                        }
+                    });
+                    if (!focused) {
+                        $.order_edit.customer_inputs.first().focus();
+                    }
+                };
+
                 if (item.value) {
                     $.get('?action=contactForm&id=' + item.value, function(html) {
                         $.order_edit.customer_fields.find('.field-group:first').html(html);
                         $.order_edit.customer_inputs = $.order_edit.customer_fields.find(':input');
                         $('#s-customer-id').val(item.value);
                         activate();
+
+                        // autocomplete make focus for its input. That brakes out plan!
+                        // setTimout-hack for fix it
+                        setTimeout(function() {
+                            focusFirstEmptyInput();
+                        }, 200);
                     });
                 } else {
-                    value = value.replace(/^\s*/, '').replace(/\s*$/, '');
-                    $.order_edit.customer_inputs.filter('[name=' + $.order_edit.inputName(testPhone(value) ? 'phone' : 'email') + ']').val(value);
+                    var selector = '[name=' + $.order_edit.inputName(
+                        testPhone(term) ? 'phone' : (
+                            testEmail(term) ? 'email' : 'firstname'
+                    )) + ']';
+                    $.order_edit.customer_inputs.filter(selector).val(term);
                     $('#s-customer-id').val(0);
                     activate();
+
+                    // autocomplete make focus for its input. That brakes out plan!
+                    // setTimout-hack for fix it
+                    setTimeout(function() {
+                        focusFirstEmptyInput();
+                    }, 200);
                 }
+
                 return false;
             },
             focus: function(event, ui) {
@@ -551,6 +617,6 @@ $.order_edit = {
     },
 
     inputName : function(name) {
-        return 'customer\\[' + name + '\\]' + (['email', 'phone'].indexOf(name) !== -1 ? '\\[value\\]' : '');
+        return '"customer[' + name + ']"';
     }
 };

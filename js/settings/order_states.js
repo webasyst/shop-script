@@ -153,12 +153,12 @@ $.extend($.settings = $.settings || {}, {
             tolerance: 'pointer',
             update: function(event, ui) {
                 var li = ui.item;
-                var id = parseInt(li.attr('id').replace('state-', ''), 10);
+                var id = li.attr('id').replace('state-', '');
                 var next, before_id = null;
                 if (id) {
                     next = li.nextAll('li.dr:first');
                     if (next.length) {
-                        before_id = parseInt(next.attr('id').replace('state-', ''), 10) || null;
+                        before_id = next.attr('id').replace('state-', '');
                     }
                     $.shop.jsonPost('?module=settings&action=orderStateMove', { id: id, before_id: before_id }, null,
                         function(r) {

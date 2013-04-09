@@ -1,0 +1,44 @@
+
+<!-- categories begin -->
+{$depth = -1}
+
+{foreach $categories as $category}
+
+  {if $category.depth < $depth}
+    {section name="end-category" loop = $depth - $category.depth}
+            </li>
+            <li class="drag-newposition" data-type="category"></li>
+        </ul>
+    {/section}
+    {$depth = $category.depth}
+  {/if}
+  
+  {if $category.depth == $depth}
+      </li>
+      <li class="drag-newposition" data-type="category"></li>
+      <li class="dr {if $category.type == shopCategoryModel::TYPE_DYNAMIC}dynamic{/if}" id="category-{$category.id}" data-type="category">
+  {/if}
+  
+  {if $category.depth > $depth}
+      <ul class="menu-v with-icons" {if empty($categories) && $depth == -1}style="display:none"{/if}>
+          <li class="drag-newposition" data-type="category"></li>
+          <li class="dr {if $category.type == shopCategoryModel::TYPE_DYNAMIC}dynamic{/if}" id="category-{$category.id}" data-type="category">
+          {$depth = $category.depth}
+  {/if}
+
+    <span class="count">{$category.count}</span>
+    {if $category.children_count > 0}<i class="icon16 darr overhanging collapse-handler" id="category-{$category.id}-handler"></i>{/if}
+    <a href="#/products/category_id={$category.id}" class="s-product-list{if !$category.status} gray{/if}">{strip}
+        <i class="icon16 {if $category.type == shopCategoryModel::TYPE_DYNAMIC}folder-dynamic{else}folder{/if}"></i><span class="name">{$category.name|escape}</span>
+        <strong class="small highlighted count-new"></strong>
+        <span class="count"><i class="icon10 add s-new-list"></i></span>
+    {/strip}</a>
+    
+{/foreach}
+
+{section name="end-category" loop = $depth}
+      </li>
+      <li class="drag-newposition" data-type="category"></li>
+    </ul>
+{/section}
+<!-- categories end -->

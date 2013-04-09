@@ -109,6 +109,24 @@ class shopCsvReader implements SeekableIterator, Serializable
                 default:
                     $this->fp = fopen($this->file, "rb");
                     $this->fsize = filesize($this->file);
+
+                    if (strtolower($this->encoding) != 'utf-8') {
+                        if (!@stream_filter_prepend($this->fp, 'convert.iconv.'.$this->encoding.'/UTF-8//IGNORE')) {
+                            throw new waException("error while register file filter");
+                        }
+                        $file = preg_replace('/\.csv$/', '.utf-8.csv', $file);
+                        if ($this->fp && ($dst = fopen($file, 'wb'))) {
+                            stream_copy_to_stream($this->fp, $dst);
+                            fclose($this->fp);
+                            fclose($dst);
+                            $this->encoding = 'utf-8';
+                            $this->file = $file;
+                            $this->open();
+                        } else {
+                            throw new waException("Error while convert file encoding");
+                        }
+
+                    }
                     break;
             }
         }
@@ -229,18 +247,24 @@ class shopCsvReader implements SeekableIterator, Serializable
         $this->offset();
         do {
             $empty = true;
-            if ($line = fgets($this->fp)) { //skip empty lines
-                if (strtolower($this->encoding) != 'utf-8') {
-                    $line = iconv($this->encoding, 'UTF-8//IGNORE', $line);
+            if (strtolower($this->encoding) != 'utf-8') {
+                if (!function_exists('str_getcsv')) {
+                    throw new waException("PHP 5.3 required");
                 }
-                $this->current = str_getcsv($line, $this->delimeter);
-                if (is_array($this->current) && (count($this->current) > 1)) {
-                    ++$this->key;
-                    foreach ($this->current as $cell) {
-                        if ($cell !== '') {
-                            $empty = false;
-                            break;
-                        }
+
+                if ($line = fgets($this->fp)) { //skip empty lines
+                    $line = iconv($this->encoding, 'UTF-8//IGNORE', $line);
+                    $this->current = str_getcsv($line, $this->delimeter);
+                }
+            } else {
+                $this->current = fgetcsv($this->fp, 0, $this->delimeter);
+            }
+            if (is_array($this->current) && (count($this->current) > 1)) {
+                ++$this->key;
+                foreach ($this->current as $cell) {
+                    if ($cell !== '') {
+                        $empty = false;
+                        break;
                     }
                 }
             }
@@ -345,6 +369,15 @@ class shopCsvReader implements SeekableIterator, Serializable
                 $insert = null;
                 if (ifset($line[$column]) !== '') {
                     $insert = ifset($line[$column]);
+                    if (preg_match('/^\{(.+)\}$/', $insert, $matches)) {
+                        $insert = preg_split("/\s*,\s*/", $matches[1]);
+                        foreach ($insert as & $item) {
+                            if (preg_match('/^"(.+)"$/', $item, $mathes)) {
+                                $item = str_replace('""', '"', $mathes[1]);
+                            }
+                        }
+                        unset($item);
+                    }
                 }
             }
 
@@ -549,36 +582,5 @@ class shopCsvReader implements SeekableIterator, Serializable
         }
 
         return $params['value'];
-    }
-}
-
-class shopCsvFilter extends php_user_filter
-{
-    private $encoding = 'utf-8';
-    public function filter($in, $out, &$consumed, $closing)
-    {
-        while ($bucket = stream_bucket_make_writeable($in)) {
-            if ($this->encoding != 'utf-8') {
-                if (true && function_exists('mb_convert_encoding')) {
-                    $bucket->data = mb_convert_encoding($bucket->data, 'utf-8', $this->encoding);
-                } else {
-                    $bucket->data = iconv(self::$encoding, 'utf-8'.'//IGNORE', $bucket->data);
-                }
-                $consumed += strlen($bucket->data);
-            } else {
-                $consumed += $bucket->datalen;
-            }
-            stream_bucket_append($out, $bucket);
-        }
-        return PSFS_PASS_ON;
-    }
-
-    public function onCreate()
-    {
-        if (preg_match('/\.([^\.]+)$/', $this->filtername, $matches)) {
-            $this->encoding = strtolower($matches[1]);
-        }
-
-        return !!(strtolower($this->encoding) != 'utf-8');
     }
 }

@@ -40,7 +40,9 @@ class shopBackendLocAction extends waViewAction
             'Tag',
             'Price',
             'Upsell products will be offered for a particular base product according to the following criteria:',
-            'or'
+            'or',
+            'Click “Save” button below to commit the delete.',
+            'Loading'
         ) as $s) {
             $strings[$s] = _w($s);
         }

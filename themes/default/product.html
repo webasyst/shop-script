@@ -166,6 +166,7 @@
             <div class="add2cart">
                 {if $product.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency($product.compare_price)} </span>{/if}
                 <span data-price="{shop_currency($product.price, null, null, 0)}" class="price nowrap">{shop_currency($product.price)}</span>
+                <input type="hidden" name="product_id" value="{$product.id}">
                 <input type="hidden" name="quantity" value="1">
                 <input type="submit" {if !$product_available}disabled="disabled"{/if} value="[`Add to cart`]">
             </div>

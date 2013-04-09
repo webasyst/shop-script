@@ -269,10 +269,11 @@
                     </a>
                 </div>
                 <div class="s-product-details">
-                    <label>
-                        <input type="checkbox"><strong>{%#p.name%}</strong>
-                        <span class="small nowrap">{%#p.price_range%}</span>
+                    <input type="checkbox" id="s-product-checkbox-{%#p.id%}">
+                    <label for="s-product-checkbox-{%#p.id%}">
+                        <strong>{%#p.name%}</strong>
                     </label>
+                    <span class="small nowrap">{%#p.price_range%}</span>
 
                     <!-- extend info according to sorting method -->
                     {% if (o.sort == 'rate') { %}

@@ -65,7 +65,9 @@ class shopProductReviewsModel extends waNestedSetModel
     public function getList($offset = 0, $count = null, array $options = array())
     {
         if (!empty($options['reply_to'])) {
-            $sql = "SELECT *, p.text AS parent_text, parent_datetime FROM {$this->table} r LEFT JOIN {$this->table} p ON r.parent_id = p.id";
+            $sql = "SELECT *, p.text AS parent_text, parent_datetime
+                FROM {$this->table} r
+                LEFT JOIN {$this->table} p ON r.parent_id = p.id";
         } else {
             $sql = "SELECT * FROM {$this->table} ";
         }
@@ -77,6 +79,51 @@ class shopProductReviewsModel extends waNestedSetModel
         $this->extendItems($data, $options);
         return $data;
     }
+
+
+    /*
+    public function getListDefaultOptions()
+    {
+        return array(
+            'offset' => 0,
+            'limit'  => 50,
+            'escape' => true,
+            'is_new' => false,
+            'where'  => array()
+        );
+    }
+
+    public function _getList($fields = '*', $options = array())
+    {
+        $options += $this->getListDefaultOptions();
+
+        $main_fields = '';
+
+        foreach (explode(',', $fields) as $name) {
+            if ($this->fieldExists($name) || $name == '*') {
+                $main_fields .= ','.$name;
+            }
+        }
+
+        $main_fields = substr($main_fields, 1);
+
+        $where = $this->getWhereByField($options['where']);
+
+        $sql = "SELECT $main_fields FROM `{$this->table}`".
+            ($where ? " WHERE $where" : "").
+            " ORDER BY datetime DESC, id".
+            " LIMIT ".($options['offset'] ? $options['offset'].',' : '').(int)$options['limit'];
+
+        $data = $this->query($sql)->fetchAll('id');
+        if (!$data) {
+            return $data;
+        }
+
+        $this->extendItems($data, $options);
+        return $data;
+
+    }
+    */
 
     public function count($product_id = null, $reviews_only = true)
     {

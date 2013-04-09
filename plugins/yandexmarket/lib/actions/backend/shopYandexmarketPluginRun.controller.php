@@ -377,7 +377,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
         static $categories;
         if (!$categories) {
             $model = new shopCategoryModel();
-            $categories = $model->getFullTree();
+            $categories = $model->getFullTree('*');
             if ($current_stage) {
                 $categories = array_slice($categories, $current_stage);
             }

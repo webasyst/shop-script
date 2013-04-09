@@ -215,7 +215,7 @@
                 }
                 var parent = item.closest('li');
                 if (parent.attr('data-type') == 'category') {
-                    parent.trigger('count_subtree');
+                    parent.trigger('count_subtree', true);
                 }
             };
             var expand = function(el) {
@@ -354,16 +354,19 @@
                 return false;
             });
 
-            sidebar.off('count_subtree', '.s-collection-list li').on('count_subtree', '.s-collection-list li', function(e, show) {
-                show = typeof show === 'undefined' ? true : show;
+            sidebar.off('count_subtree', '.s-collection-list li').on('count_subtree', '.s-collection-list li', function(e, collapsed) {
                 var item = $(this);
+                if (typeof collapsed === 'undefined') {
+                    collapsed = item.find('i.collapse-handler').hasClass('rarr');
+                }
+
                 var counter = item.find('>.count:not(.subtree)');
                 var subtree_counter = item.find('>.subtree');
                 if (!subtree_counter.length) {
                     subtree_counter = counter.clone().addClass('subtree').hide();
                     counter.after(subtree_counter);
                 }
-                if (show) {
+                if (collapsed) {
                     var total_count = parseInt(counter.text(), 10) || 0;
                     item.find('li.dr:not(.dynamic)>.count:not(.subtree)').each(function() {
                         total_count += parseInt($(this).text(), 10) || 0;
