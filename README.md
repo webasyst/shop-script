@@ -10,7 +10,7 @@ http://www.webasyst.com
   * Web Server
 		* e.g. Apache or IIS
 		
-	* PHP 5.2+
+	* PHP 5.3+
 		* spl extension
 		* mbstring
 		* iconv
