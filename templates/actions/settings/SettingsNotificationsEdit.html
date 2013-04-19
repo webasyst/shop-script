@@ -60,66 +60,7 @@
         {include file="templates/actions/settings/SettingsNotifications.`$n.transport`.html" inline}
     </div>
 
-
-    <div class="field-group">
-        <div class="field">
-            <div class="value submit">
-                {* <div class="block half-padded float-right">
-                    <ul class="menu-h with-icons">
-                        <li><a href="#" class="inline-link"><i class="icon16 script"></i><b><i>[`Cheat sheet`]</i></b><i class="icon10 darr-tiny"></i></a></li>
-                    </ul>
-                </div> *}
-                <input type="submit" value="[`Save`]" class="button green">
-            </div>
-            {* <div class="value">
-                <div class="block s-cheatsheet">
-                    <div class="fields">
-                        <div class="field">
-                            <div class="name bold">
-                                &#123;$order&#125;
-                            </div>
-                            <div class="value no-shift">
-                                An array containing information about the order.
-                            </div>
-                        </div>
-                        <div class="field s-sub-field">
-                            <div class="name">
-                                &#123;$order.id&#125;
-                            </div>
-                            <div class="value no-shift">
-                                Order ID
-                            </div>
-                        </div>
-                        <div class="field s-sub-field">
-                            <div class="name">
-                                &#123;$order.items&#125;
-                            </div>
-                            <div class="value no-shift">
-                                Array containing information about ordered items
-                            </div>
-                        </div>
-                        <div class="field s-sub-field">
-                            <div class="name">
-                                &#123;$order.items[].price&#125;
-                            </div>
-                            <div class="value no-shift">
-                                Item price
-                            </div>
-                        </div>
-                        <div class="field">
-                            <div class="name bold">
-                                &#123;$customer&#125;
-                            </div>
-                            <div class="value no-shift">
-                                An array containing information about the customer.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="clear-both"></div>                    
-                </div>
-            </div> *}
-        </div>
-    </div>
+    {include file="templates/actions/settings/SettingsNotificationsHelp.html" inline}
 
 </div>
 </form>

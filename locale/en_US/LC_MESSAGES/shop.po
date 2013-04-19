@@ -5198,3 +5198,301 @@ msgstr ""
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:153
 msgid "Selected products (%d)"
 msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:99
+msgid "Product identification column"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:105
+msgid "(none)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:115
+msgid "SKU identification column"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:125
+msgid "Similar to product, select the SKU identification column (property) which uniquely identifies each product SKU. Based on the identification column value in the CSV file uploaded, the import routine will either update existing SKU info, or create a new SKU for the product."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:147
+msgid "Product images import local path"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:151
+msgid "If your CSV file contains links to product images to be imported, import routine will attempt to automatically attach them to imported products. A link to an image file can be either global (a full image URL) or local (image file name). For local image import, indicate path to the folder where all source images are stored, i.e. where you uploaded them into. If linked image was not found, no image will be attached to the product."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:128
+msgid "%s did not place reviews yet."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:152
+msgid "Category visibility"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:156
+msgid "All storefronts"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:161
+msgid "Selected storefront only"
+msgstr ""
+
+#: /wa-apps/shop/js/product/product.js:915
+msgid "options"
+msgstr ""
+
+#: /wa-apps/shop/js/product/product.js:922
+msgid "%d SKUs in total"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:21
+msgid "An array containing information about the order"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:29
+msgid "Order ID"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:37
+msgid "Order currency (ISO 3 code)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:45
+msgid "An array containing information about ordered items"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:53
+msgid "Item price"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:61
+msgid "Ordered item quantity"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:69
+msgid "Item download link (SKU attachment)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:77
+msgid "Order discount amount (in order currency)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:85
+msgid "Order tax amount (in order currency)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:93
+msgid "Order shipping cost (amount in order currency)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:101
+msgid "Order total (amount in order currency)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:109
+msgid "Customer’s comment to the order"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:119
+msgid "Current order status name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:128
+msgid "An URL to access order page in customer personal account in storefront"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:138
+msgid "An array of other (custom) order parameter values"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:146
+msgid "Order selected shipping option name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:154
+msgid "Order selected payment option name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:162
+msgid "A 4-digit PIN to access order info page (for customers without permanent account only)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:170
+msgid "Domain and path to Shop-Script storefront where the order was placed"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:178
+msgid "Customer’s IP address for the moment of order creation"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:186
+msgid "Customer’s User Agent string for the moment of order creation"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:194
+msgid "A string indicating approximate timeframe of the order delivery (if defined)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:202
+msgid "Order shipment tracking number (if defined)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:210
+msgid "The list of order params may vary depending on your workflow and plugin setup"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:220
+msgid "An array containing information about the customer according to the Contacts app setup and your storefront’s checkout contact info form"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:228
+msgid "Customer full name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:236
+msgid "Customer first name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:244
+msgid "Customer last name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:252
+msgid "Customer email"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:260
+msgid "Customer phone"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:268
+msgid "The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:278
+msgid "Shipping address as string"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:286
+msgid "Billing address as string"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:296
+msgid "An array containing information about performed order action (action-dependent)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:304
+msgid "Performed action text comment (action-dependent)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:312
+msgid "An array of action-dependent parameters, e.g. &#123;$action_data.params.tracking_number&#125; for Ship’s action tracking number"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:49
+msgid "HTML. Payment option description is shown to customer during the checkout."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:67
+msgid "Allowed shipping options"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:49
+msgid "HTML. Shipping option description is shown to customer during the checkout."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:91
+msgid "Invalid secondary field"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:98
+msgid "Empty secondary CSV column"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:97
+msgid "Error file upload"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopCsvReader.class.php:487
+msgid "No associated column"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopCsvReader.class.php:498
+msgid "CSV columns numbers %s"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:72
+msgid "Payment options"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:76
+msgid "All available payment options"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:87
+msgid "Shipping options"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:91
+msgid "All available shipping options"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/images/ImagesProductsetup.html:2
+msgid "Bulk image upload"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendImportexport.html:31
+msgid "Instantly create multiple products from a set of uploaded images"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:42
+msgid "Select storefront"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/images/ImagesProductsetup.html:3
+msgid "Bulk image upload allows you to instantly create multiple products by uploading a single set of image files. Shop-Script will automatically group images according to their file names, and you will be able to manually arrange them between each other to either create new products or attach to existing products. Bulk image uploader works in HTML5-enabled browsers only."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/images/ImagesProductsetup.html:13
+msgid "Drag images between automatically detected groups, and assign them to either new or existing products. Click “Upload images” when setup is complete."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/images/ImagesProductsetup.html:28
+msgid "Upload images"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:50
+msgid "Select storefront to make product image URLs exported properly"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/images/ImagesProductsetup.html:30
+msgid "Assign all new products following product type:"
+msgstr ""
+#: /wa-apps/shop/lib/actions/images/shopImagesProductcreates.controller.php:9
+msgid "Unkown type of product"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/images/ImagesProductsetup.html:30
+msgid "Add product group"
+msgstr ""
+#: /wa-apps/shop/templates/actions/images/ImagesProductsetup.html:30
+msgid "Add product"
+msgstr ""
+
+#: /wa-apps/shop/js/images/jquery.fileupload-ui.js:497
+msgid "Products added:"
+msgstr ""
+
+#: /wa-apps/shop/js/images/jquery.fileupload-ui.js:500
+msgid "Images uploaded:"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:83
+msgid "Comment to the order"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/category.html:57
+msgid "No products were found."
+msgstr ""

@@ -10,6 +10,11 @@ class shopFrontendCategoryAction extends shopFrontendAction
         } else {
             $category = $category_model->getByField(waRequest::param('url_type') == 1 ? 'url' : 'full_url', waRequest::param('category_url'));
         }
+        $route = wa()->getRouting()->getDomain(null, true).'/'.wa()->getRouting()->getRoute('url');
+        if (!$category || ($category['route'] && $category['route'] != $route)) {
+            throw new waException('Category not found', 404);
+        }
+
         if ($category['filter']) {
             $filter_ids = explode(',', $category['filter']);
             $feature_model = new shopFeatureModel();
@@ -26,10 +31,6 @@ class shopFrontendCategoryAction extends shopFrontendAction
                 }
             }
             $this->view->assign('filters', $filters);
-        }
-
-        if (!$category) {
-            throw new waException('Category not found', 404);
         }
 
         $category['subcategories'] = $category_model->getSubcategories($category, true);

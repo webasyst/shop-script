@@ -158,7 +158,7 @@ ul.s-order-actions li .button { border-width: 3px; padding-left: 12px; padding-r
 
 .s-order-aux { font-size: 0.9em; width: 200px; }
 
-.s-order-comment { margin: 20px -20px; background: #f7f7d7; font-size: 1.3em; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) inset; border-top: 1px solid rgba(0,0,0,0.15); border-bottom: 1px solid rgba(0,0,0,0.1); }
+.s-order-comment { margin: 20px -20px; background: #f7f7d7; font-size: 1.3em; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) inset; border-top: 1px solid rgba(0,0,0,0.15); border-bottom: 1px solid rgba(0,0,0,0.1); white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; }
 
 .s-order-address { padding-left: 20px; }
 .s-order-address img.overhanging { margin-left: -20px; }
@@ -215,7 +215,6 @@ table.zebra.s-customers td.s-userpic { padding-left: 10px; }
 table.zebra.s-customers tr:hover td { background: inherit !important; }
 table.zebra.s-customers th a { display: inline; padding: 2px 4px; }
 table.zebra.s-customers th a.selected { background: #eee; }
-table.zebra.s-customers .s-userpic img { cursor: move; }
 
 .s-category-icons { max-width: 350px; }
 
@@ -236,6 +235,11 @@ ul.menu-v.with-icons a.rate-clear { margin: 0; padding: 0; }
 .fields.s-dialog-form .value textarea { width: 400px; height: 100px; }
 .fields.s-dialog-form .name { width: 135px; }
 .fields.s-dialog-form .value { margin-left: 140px; }
+.fields.s-dialog-form .s-editor-core-wrapper { border: 1px solid #ccc; margin-top: 0; }
+.fields.s-dialog-form .el-rte .toolbar { background: #fff; border: 0; border-bottom: 1px solid #ccc; }
+.fields.s-dialog-form .el-rte .workzone,
+.fields.s-dialog-form .CodeMirror,
+.fields.s-dialog-form .CodeMirror-wrapping { padding: 10px; }
 
 .s-collection-list { margin-left: 14px; }
 .s-collection-list .dr a .count .add { display: none; }
@@ -261,7 +265,8 @@ table.zebra.s-product-skus td.s-name { max-width: 50%; }
 table.zebra.s-product-skus td.s-stock,
 table.zebra.s-product-skus td.s-price { white-space: nowrap; }
 table.zebra.s-product-skus td input { max-width: 90px; min-width: 50px !important; width: 95% !important; }
-table.zebra.s-product-skus td input[type="radio"] { max-width: none; min-width: 0px !important; width: auto !important; }
+table.zebra.s-product-skus td input[type="radio"],
+table.zebra.s-product-skus td .fields.form .value input { max-width: none; min-width: 0px !important; width: auto !important; }
 table.zebra.s-product-skus td.s-name input.long { min-width: 170px !important; max-width: none; }
 
 .s-product-list-manage a { margin-left: 25px; font-size: 13px; font-weight: normal; }
@@ -487,10 +492,21 @@ ul.menu-h.s-reports-timeframe li.s-custom-timeframe input { width: 100px; }
 /* IMPORT & EXPORT
 ------------------ */
 
-.s-csv-import table.zebra tr.selected td { background-color: #ffb !important; font-weight: bold; }
-.s-csv-import table.zebra tr.selected td select { font-weight: bold; }
-.s-csv-import table.zebra tr.gray td select { color: #aaa; }
-.s-csv-primary-column-helper { background: #ffa; width: 16px; height: 16px; border-radius: 100%; border: 1px solid #ee8; position: absolute; }
+.s-csv-settings table.zebra tr.selected td { background-color: #ffb !important; font-weight: bold; }
+.s-csv-settings table.zebra tr.selected.secondary td { background-color: #bfb !important;}
+.s-csv-settings table.zebra tr.selected td select { font-weight: bold; }
+.s-csv-settings table.zebra tr.gray td select { color: #aaa; }
+.s-csv-settings .value ul.menu-v { margin-top: 0; }
+.s-csv-primary-column-helper { background: #ffa; width: 16px; height: 16px; border-radius: 100%; border: 1px solid #ee6; position: absolute; }
+.s-csv-secondary-column-helper { background: #afa; width: 16px; height: 16px; border-radius: 100%; border: 1px solid #6e6; position: absolute; }
+
+table.s-bulk-image-uploader-map { margin-left: 0; }
+table.s-bulk-image-uploader-map .preload-files td { padding: 10px; }
+table.s-bulk-image-uploader-map .preload-files td ul.s-product-image-crops { border: 1px dashed #aaa; min-height: 20px; }
+table.s-bulk-image-uploader-map .preload-files td ul.s-product-image-crops li { padding: 10px; }
+table.s-bulk-image-uploader-map .preload-files td.product { white-space: nowrap; }
+table.s-bulk-image-uploader-map .preload-files li.ui-state-highlight { line-height: 1.2em; border: none; border-left: 3px solid #fdda3b;}
+
 
 /* SETTINGS & PLUGINS
 --------------------- */
@@ -575,9 +591,9 @@ ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
 
 .s-cheatsheet { background: #f3f3e3; margin-top: 20px; padding: 3px 5px 3px 3px; }
 .s-cheatsheet .fields { border: 1px dashed #cc8; margin-bottom: 0; width: 100%; }
-.s-cheatsheet .fields .name { padding-left: 10px; }
+.s-cheatsheet .fields .name { padding-left: 8px; }
 .s-cheatsheet .s-sub-field { font-size: 0.8em; }
-.s-cheatsheet .s-sub-field .name { padding-left: 20px; }
+.s-cheatsheet .s-sub-field .name { padding-left: 15px; }
 
 /* ICONS
 -------- */

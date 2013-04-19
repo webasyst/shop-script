@@ -102,7 +102,6 @@
 </div>
 
 <div class="field-group">
-
     <div class="field">
         <div class="name">[`Title`]</div>
         <div class="value">
@@ -121,20 +120,61 @@
             <textarea name="meta_description">{$settings.meta_description|escape}</textarea>
         </div>
     </div>
-    <div class="field">
+</div>
+
+<div class="field-group">
+    <div class="field description">
         <div class="name">
             <label for="description">
                 [`Description`]<br><span class="hint">[`HTML`]</span>
             </label>
         </div>
         <div class="value">
-            <textarea name="description">{if $settings.description}{$settings.description|escape}{/if}</textarea>
+            <i class="icon16 loading"></i>
+            <div class="s-editor-core-wrapper" style="display:none;">
+                <ul id="s-category-description-wysiwyg-html-toggle" class="s-wysiwyg-html-toggle">
+                    <li><a id="wysiwyg" href="#">[`WYSIWYG`]</a></li>
+                    <li class="selected"><a id="html" href="#">HTML</a></li>
+                </ul>
+                <div>
+                    <textarea style="display:none" id="s-category-description-content" name="description">{if $settings.description}{$settings.description}{/if}</textarea>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
 {/capture}
 
-{capture ext_fields}{/capture}
+{capture ext_fields}
+    <div class="field">
+        <div class="name">
+            [`Category visibility`]
+        </div>
+        <div class="value no-shift">
+            <label><input type="radio" name="storefront" value="" {if !$settings.route}checked="checked"{/if}>
+                [`All storefronts`]
+            </label>
+        </div>
+        <div class="value no-shift">
+            <label><input type="radio" name="storefront" value="route" {if $settings.route}checked="checked"{/if}>
+                [`Selected storefront only`]
+            </label>
+            {if !empty($routes)}
+                <select name="route" {if !$settings.route}disabled="disabled"{/if}>
+                    {foreach $routes as $domain => $domain_routes}
+                        {foreach $domain_routes as $route}
+                            {$url = $domain|cat:"/":$route.url}
+                            <option value="{$url}" {if $settings.route == $url}selected="selected"{/if}>
+                                {$url}
+                            </option>
+                        {/foreach}
+                    {/foreach}
+                </select>
+            {/if}
+        </div>
+    </div>
+{/capture}
 
 {capture custom_params}
 <div class="field-group">
@@ -228,8 +268,14 @@
 {/capture}
 
 {capture js}
+
 <script type="text/javascript">
+
     var d = $('#s-product-list-settings-dialog');
+    var wa_url  = '{$wa_url}';
+    var wa_app  = 'shop';
+    var wa_lang = '{$lang}';
+
     if ($('#s-category-dynamic-settings', d).length) {
         $('#s-category-rate', d).rateWidget({
             withClearAction: false,
@@ -259,6 +305,14 @@
         }
     });
 
+    $('input[name=storefront]', d).change(function() {
+        if (this.value == 'route') {
+            $('select[name=route]', d).attr('disabled', false);
+        } else {
+            $('select[name=route]', d).attr('disabled', true);
+        }
+    });
+    
     var frontend_url = $('#s-settings-frontend-url');
     frontend_url.inlineEditable({
         editLink : '#s-settings-frontend-url-edit-link',

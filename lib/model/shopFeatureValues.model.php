@@ -48,6 +48,7 @@ abstract class shopFeatureValuesModel extends shopSortableModel
     public function getId($feature_id, $value, $type = null)
     {
         $result = array();
+        $exists = array();
         $multi = false;
         $op = $this->getSearchCondition();
         if (is_array($value)) {
@@ -60,20 +61,26 @@ abstract class shopFeatureValuesModel extends shopSortableModel
         } else {
             $values = array($value);
         }
+
+        $sql = "SELECT (MAX(`sort`)+1) `max_sort` FROM ".$this->table." WHERE (`feature_id` = i:0)";
+        $sort = $this->query($sql, $feature_id)->fetchField('max_sort');
         foreach ($values as $v) {
             $data = $this->parseValue($v, $type);
             $data['feature_id'] = $feature_id;
-            $sql = "SELECT `id` FROM ".$this->table." WHERE (`feature_id` = i:feature_id) AND (`value` ".$op.')';
-            $id = $this->query($sql, $data)->fetchField('id');
-            if (!$id) {
-                $id = intval($this->insert($data));
-            }
-            if ($id) {
-                $result[] = intval($id);
+            $data['sort'] = $sort;
+
+            $sql = "SELECT `id`,`sort` FROM ".$this->table." WHERE (`feature_id` = i:feature_id) AND (`value` ".$op.')';
+            $row = $this->query($sql, $data)->fetchAssoc();
+            if ($row) {
+                $exists[$row['sort']] = intval($row['id']);
+            } else {
+                ++$sort;
+                array_unshift($result, intval($this->insert($data)));
             }
         }
-        $result = array_unique($result);
-        return $multi ? $result : $result[0];
+        ksort($exists);
+        $result = array_unique(array_merge($exists, $result));
+        return $multi ? $result : reset($result);
     }
 
     /**

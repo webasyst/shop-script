@@ -42,3 +42,11 @@
     </div>
     </form>
 </div>
+<script type="text/javascript">
+    (function() {
+        var d = $('#s-categories');
+        d.find('input[name=new_category_name]').bind('keydown', function() {
+            d.find('input[name=new_category]').attr('checked', true);
+        });
+    })();
+</script>

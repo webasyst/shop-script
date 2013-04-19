@@ -299,8 +299,11 @@ class shopCheckoutContactinfo extends shopCheckout
 
         }
 
-        if ($field->getParameter('app_id') == 'shop' && !empty($opts['localized_names'])) {
-            $sys_opts['localized_names'] = (string) $opts['localized_names'];
+        if ($field->getParameter('app_id') == 'shop') {
+            $sys_opts = $opts;
+            $opts = array(
+                'localized_names' => ifset($opts['localized_names'], $fld_id),
+            );
         }
 
         return array($opts, $sys_opts);

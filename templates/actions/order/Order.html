@@ -38,6 +38,7 @@
 
         <!-- order aux info -->
         <p class="gray">
+            [`Order created`]: <strong>{$order.create_datetime|wa_datetime:"humandatetime"}</strong>
             {if !empty($order.params.storefront)}[`Source`]: <strong>{$order.params.storefront}</strong><br>{/if}
             {if !empty($order.params.referer)}[`Referrer`]: <strong>{$order.params.referer}</strong><br>{/if}
             {if !empty($order.params.keyword)}[`Keyword`]: <strong>{$order.params.keyword}</strong><br>{/if}
@@ -111,9 +112,7 @@
 
     <!-- order comment -->
     {if $order.comment}
-        <div class="block double-padded s-order-comment">
-            {$order.comment|escape}
-        </div>
+        <pre class="block double-padded s-order-comment">{$order.comment|escape}</pre>
     {/if}
 
     {if $shipping_address}
@@ -183,7 +182,7 @@
                         <span class="small">@{$item.stock.name|escape}</span>
                     {/if}
                 </td>
-                <td class="align-right nowrap"><span class="gray">{wa_currency($item.price, $order.currency)} x</span> {$item.quantity}</td>
+                <td class="align-right nowrap"><span class="gray">{wa_currency($item.price, $order.currency)} &times;</span> {$item.quantity}</td>
                 <td class="align-right nowrap">{wa_currency($item.price * $item.quantity, $order.currency)}</td>
             </tr>
             {$subtotal = $subtotal + $item.price*$item.quantity}
@@ -361,7 +360,8 @@
         var options = {
             order: {json_encode($order)},
             currency: '{$currency}',
-            view: view
+            view: view,
+            offset: {json_encode($offset)},
         };
 
         // title has to be overridden in this cases

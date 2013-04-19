@@ -30,6 +30,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'type_name'        => _w('Product type'),
                 'url'              => _w('Storefront link'),
                 'currency'         => _w('Currency'),
+                'images'           => _w('Product images'),
             ),
             'sku'     => array(
                 'skus:-1:sku'            => _w('SKU code'),
@@ -53,7 +54,10 @@ class shopCsvProductuploadController extends shopUploadController
         foreach ($fileds as $group => $group_fields) {
             foreach ($group_fields as $id => $name) {
                 $options[] = array(
-                    'group' => ifset($translates[$group]),
+                    'group' => array(
+                        'title' => ifset($translates[$group]),
+                        'class' => $group,
+                    ),
                     'value' => $id,
                     'title' => ifempty($name, $id),
                 );
@@ -62,10 +66,13 @@ class shopCsvProductuploadController extends shopUploadController
 
         $features_model = new shopFeatureModel();
         $features = $features_model->getAll();
-
+        $group = 'feature';
         foreach ($features as $feature) {
             $options[] = array(
-                'group'       => & $translates['feature'],
+                'group'       => array(
+                    'title' => ifset($translates[$group]),
+                    'class' => $group,
+                ),
                 'value'       => sprintf('features:%s', $feature['code']),
                 'title'       => $feature['name'],
                 'description' => $feature['code'],
@@ -77,11 +84,20 @@ class shopCsvProductuploadController extends shopUploadController
 
     protected function save(waRequestFile $file)
     {
-        $path = wa()->getDataPath('temp/csv/upload/');
-        waFiles::delete($path, true);
+        $path = wa()->getTempPath('csv/upload/');
         waFiles::create($path);
-        $file->moveTo($path, $name = $file->name);
-        $f = new shopCsvReader($path.$name, waRequest::post('delimeter'), waRequest::post('encoding'));
+        $original_name = $file->name;
+        if ($name = tempnam($path, 'csv')) {
+            unlink($name);
+            if (($ext = pathinfo($original_name, PATHINFO_EXTENSION)) && preg_match('/^\w+$/', $ext)) {
+                $name .= '.'.$ext;
+            }
+            $res = $file->moveTo($name);
+        } else {
+            throw new waException(_w('Error file upload'));
+        }
+
+        $f = new shopCsvReader($name, waRequest::post('delimeter'), waRequest::post('encoding'));
 
         $params = array();
         $params['title'] = _w('CSV column map');
@@ -95,7 +111,7 @@ class shopCsvProductuploadController extends shopUploadController
         }
         return array(
             'name'          => htmlentities(basename($f->file()), ENT_QUOTES, 'utf-8'),
-            'original_name' => htmlentities(basename($file->name), ENT_QUOTES, 'utf-8'),
+            'original_name' => htmlentities(basename($original_name), ENT_QUOTES, 'utf-8'),
             'size'          => waFiles::formatSize($f->size()),
             'original_size' => waFiles::formatSize($file->size),
             'controls'      => waHtmlControl::getControl('Csvmap', 'csv_map', $params),

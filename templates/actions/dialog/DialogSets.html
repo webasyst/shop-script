@@ -13,7 +13,7 @@
                         </label>
                         <input name="new_set_name" value="" style="margin-top: -5px;">
                     </li>
-                    {if !empty($sets)}                        
+                    {if !empty($sets)}
                         {foreach $sets as $set}
                         <li>
                             <label>
@@ -37,3 +37,11 @@
     </div>
     </form>
 </div>
+<script type="text/javascript">
+    (function() {
+        var d = $('#s-sets');
+        d.find('input[name=new_set_name]').bind('keydown', function() {
+            d.find('input[name=new_set]').attr('checked', true);
+        });
+    })();
+</script>

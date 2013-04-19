@@ -257,20 +257,27 @@ $.order_edit = {
         container.find('.s-order-item').each(function() {
             var tr = $(this);
             var product_id = tr.find('input[name^="product"]').val();
+            var item_price = 0;
             var price = extParseFloat(tr.find('.s-orders-product-price input').val());
             var quantity = extParseFloat(tr.find('input.s-orders-quantity').val());
-            subtotal += price * quantity;
+
+            subtotal   += price * quantity;
+            item_price += price * quantity;
+
             if (tr.find('.s-orders-services').length) {
                 tr.find('.s-orders-services input:checkbox:checked').each(function() {
                     var li = $(this).closest('li');
                     price = extParseFloat(li.find('input.s-orders-service-price').val());
-                    subtotal += price * quantity;
+
+                    subtotal   += price * quantity;
+                    item_price += price * quantity;
+
                 });
             }
             data.items.push({
                 product_id: product_id,
                 quantity: quantity,
-                price: price
+                price: item_price
             });
         });
 

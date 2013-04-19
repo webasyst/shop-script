@@ -9,6 +9,14 @@ foreach ($currencies as &$c) {
     $c = $c['title'];
 }
 
+$payment_items = $shipping_items = array();
+foreach (shopHelper::getPaymentMethods() as $p) {
+    $payment_items[$p['id']] = $p['name'];
+}
+foreach (shopHelper::getShippingMethods() as $s) {
+    $shipping_items[$s['id']] = $s['name'];
+}
+
 $stock_model = new shopStockModel();
 $stocks = $stock_model->select('id,name')->order('sort')->fetchAll('id', true);
 
@@ -57,6 +65,36 @@ return array(
                     'name' => _w('Selected only'),
                     'description' => '',
                     'items' => $types
+                )
+            )
+        ),
+        'payment_id' => array(
+            'name' => _w('Payment options'),
+            'type' => 'radio_checkbox',
+            'items' => array(
+                0 => array(
+                    'name' => _w('All available payment options'),
+                    'description' => '',
+                ),
+                array (
+                    'name' => _w('Selected only'),
+                    'description' => '',
+                    'items' => $payment_items
+                )
+            )
+        ),
+        'shipping_id' => array(
+            'name' => _w('Shipping options'),
+            'type' => 'radio_checkbox',
+            'items' => array(
+                0 => array(
+                    'name' => _w('All available shipping options'),
+                    'description' => '',
+                ),
+                array (
+                    'name' => _w('Selected only'),
+                    'description' => '',
+                    'items' => $shipping_items
                 )
             )
         ),

@@ -57,7 +57,7 @@ class shopFrontendProductAction extends shopFrontendAction
         }
 
         if ($types = waRequest::param('type_id')) {
-            if (!in_array($product['type_id'], $types)) {
+            if (!in_array($product['type_id'], (array)$types)) {
                 throw new waException(_w('Product not found'), 404);
             }
         }

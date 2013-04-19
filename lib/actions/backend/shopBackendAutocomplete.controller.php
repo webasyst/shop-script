@@ -97,6 +97,10 @@ class shopBackendAutocompleteController extends waController
                 ->limit($this->limit)
                 ->fetchAll();
         }
+        $currency = wa()->getConfig()->getCurrency();
+        foreach ($products as &$p) {
+            $p['price_str'] = wa_currency($p['price'], $currency);
+        }
         return $products;
     }
 

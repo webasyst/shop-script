@@ -71,9 +71,9 @@ class shopCategoryModel extends waNestedSetModel
      * @param $id int
      * @param $depth int related depth default is unlimited
      */
-    public function getTree($id, $depth = null, $escape = false)
+    public function getTree($id, $depth = null, $escape = false, $where = array())
     {
-        $data = parent::getTree($id, $depth);
+        $data = parent::getTree($id, $depth, $where);
         if ($escape) {
             foreach ($data as &$item) {
                 $item['name'] = htmlspecialchars($item['name']);

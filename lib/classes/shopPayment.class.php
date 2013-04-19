@@ -87,6 +87,29 @@ class shopPayment extends waAppPayment
         if (!empty($plugin['id']) && isset($plugin['settings'])) {
             waPayment::factory($plugin['plugin'], $plugin['id'], self::getInstance())->saveSettings($plugin['settings']);
         }
+        if (!empty($plugin['id'])) {
+            $shipping = ifset($plugin['shipping'], array());
+            $plugins = $model->listPlugins(shopPluginModel::TYPE_SHIPPING);
+            $app_settings = new waAppSettingsModel();
+            $settings = json_decode($app_settings->get('shop', 'shipping_payment_disabled', '{}'), true);
+            if (empty($settings) || !is_array($settings)) {
+                $settings = array();
+            }
+            if (!isset($settings[$plugin['id']])) {
+                $settings[$plugin['id']] = array();
+            }
+            $s =& $settings[$plugin['id']];
+            foreach ($plugins as $item) {
+                if (empty($plugin['shipping'][$item['id']])) {
+                    $s[] = $item['id'];
+                }
+            }
+            $s = array_unique($s);
+            if (empty($s)) {
+                unset($settings[$plugin['id']]);
+            }
+            $app_settings->set('shop', 'shipping_payment_disabled', json_encode($settings));
+        }
         return $plugin;
     }
 
@@ -203,15 +226,18 @@ class shopPayment extends waAppPayment
             'datetime'         => ifempty($order['create_datetime']),
             'description'      => sprintf(_w('Payment for order %s'), ifempty($order['id_str'], $order['id'])),
             'update_datetime'  => ifempty($order['update_datetime']),
+            'paid_datetime'    => empty($order['paid_date']) ? null : ($order['paid_date'].' 00:00:00'),
             'total'            => ifempty($total, $order['total']),
             'currency'         => ifempty($currency_id, $order['currency']),
             'discount'         => $order['discount'],
             'tax'              => $order['tax'],
+            'payment_name'     => ifset($order['params']['payment_name'], ''),
             'billing_address'  => $billing_address,
             'shipping'         => $order['shipping'],
             'shipping_name'    => ifset($order['params']['shipping_name'], ''),
             'shipping_address' => $shipping_address,
             'items'            => $items,
+            'comment'          => ifempty($order['comment'], ''),
             'params'           => $order['params'],
         ));
         return $wa_order;

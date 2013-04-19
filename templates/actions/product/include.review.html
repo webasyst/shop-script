@@ -42,7 +42,9 @@
 
                 <!-- author -->
                 {if $review.contact_id}
-                    <a href="{$wa_backend_url}contacts/#/contact/{$review.contact_id}" class="bold">{$review.author.name|escape}</a>
+                    {if !empty($review.author)}
+                        <a href="{$wa_backend_url}contacts/#/contact/{$review.contact_id}" class="bold">{$review.author.name|escape}</a>
+                    {/if}
                 {elseif $review.site}
                     <a href="{$review.site}" class="bold">{$review.author.name|escape}</a>
                 {else}

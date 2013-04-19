@@ -13,7 +13,9 @@ class shopDialogProductListSettingsAction extends waViewAction
         $this->view->assign(array(
             'hash' => $hash,
             'currency' => wa()->getConfig()->getCurrency(),
-            'settings' => $this->getSettings($hash[0], $hash[1])
+            'settings' => $this->getSettings($hash[0], $hash[1]),
+            'lang' => substr(wa()->getLocale(), 0, 2),
+            'routes' => wa()->getRouting()->getByApp('shop')
         ));
     }
 
@@ -101,7 +103,6 @@ class shopDialogProductListSettingsAction extends waViewAction
         }
         $settings['allow_filter'] = (bool)$filter;
         $settings['filter'] = $features;
-
 
         return $settings;
     }

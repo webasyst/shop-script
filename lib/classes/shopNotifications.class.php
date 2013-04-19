@@ -93,7 +93,7 @@ class shopNotifications
                 'order_id' => $order_id,
                 'contact_id' => null,
                 'action_id' => '',
-                'text' => $log,
+                'text' => '<i class="icon16 email"></i> '.$log,
                 'before_state_id' => $data['order']['state_id'],
                 'after_state_id' => $data['order']['state_id'],
             ));
@@ -143,7 +143,7 @@ class shopNotifications
                 'order_id' => $order_id,
                 'contact_id' => null,
                 'action_id' => '',
-                'text' => $log,
+                'text' => '<i class="icon16 mobile"></i> '.$log,
                 'before_state_id' => $data['order']['state_id'],
                 'after_state_id' => $data['order']['state_id'],
             ));

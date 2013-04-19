@@ -110,6 +110,25 @@
     </table>
 
     <br><br>
+    
+    {capture assign="review_list"}
+        {foreach $reviews as $id => $review}
+            <li data-id="{$review.id}">{include file="./../product/include.review.html" inline reply_allowed=false}</li>
+        {/foreach}
+    {/capture}
+
+    <h2>[`Reviews`]</h2>
+    {if $reviews}
+        <div class="s-reviews">
+            <ul class="menu-v with-icons">
+                {$review_list}
+            </ul>
+        </div>
+    {else}
+        {sprintf('[`%s did not place reviews yet.`]', {$contact.name|escape})}
+    {/if}
+    
+    <br><br>
 
     <h2>[`Affiliate bonus`]</h2>
     <ul class="tabs">
@@ -285,5 +304,77 @@
             return false;
         });
     })();
+    
+    
+    // Controller for reviews
+    (function() {
+        var container = $('#s-content');
+        var status_deleted   = '{shopProductReviewsModel::STATUS_DELETED}';
+        var status_published = '{shopProductReviewsModel::STATUS_PUBLISHED}';
+        
+        container.find('.s-reviews').on('click', '.s-review-reply, .s-review-delete, .s-review-restore',
+            function() {
+                var self = $(this),
+                    li = self.parents('li:first'),
+                    parent_id = parseInt(li.attr('data-id'), 10) || 0;
+                if (self.hasClass('s-review-delete')) {
+                    deleteReview(parent_id/*, options.afterDelete*/);
+                } else if (self.hasClass('s-review-restore')) {
+                    restoreReview(parent_id/*, options.afterRestore*/);
+                }
+                return false;
+            }
+        );
+        
+        var deleteReview = function(review_id, success) {
+            //var sidebar_counter = this.sidebar_counter;
+            $.post('?module=reviews&action=changeStatus',
+                { review_id: review_id, status: status_deleted },
+                function(r) {
+                    if (r.status == 'ok') {
+                        var review_li  = container.find('li[data-id='+review_id+']');
+                        var review_div = review_li.find('div:first');
+                        review_div.addClass('s-deleted');
+                        review_div.find('.s-review-delete').hide();
+                        review_div.find('.s-review-restore').show();
+                        /*
+                        if (sidebar_counter.length) {
+                            sidebar_counter.text(parseInt(sidebar_counter.text(), 10) - 1);
+                        }
+                        */
+                        if (typeof success === 'function') {
+                            success(r);
+                        }
+                    }
+                },
+            'json');
+        };
+
+        var restoreReview = function(review_id, success) {
+            //var sidebar_counter = this.sidebar_counter;
+            $.post('?module=reviews&action=changeStatus',
+                { review_id: review_id, status: status_published },
+                function(r) {
+                    if (r.status == 'ok') {
+                        var review_li  = container.find('li[data-id='+review_id+']');
+                        var review_div = review_li.find('div:first');
+                        review_div.removeClass('s-deleted');
+                        review_div.find('.s-review-delete').show();
+                        review_div.find('.s-review-restore').hide();
+                        /*
+                        if (sidebar_counter.length) {
+                            sidebar_counter.text(parseInt(sidebar_counter.text(), 10) + 1);
+                        }
+                        */
+                        if (typeof success === 'function') {
+                            success();
+                        }
+                    }
+                },
+            'json');
+        };
+        
+    })();
+    
 })();</script>
 

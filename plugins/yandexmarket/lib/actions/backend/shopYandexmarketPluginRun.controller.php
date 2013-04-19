@@ -23,6 +23,10 @@ class shopYandexmarketPluginRunController extends waLongActionController
             foreach ($routes as $route) {
                 if ($domain.'/'.$route['url'] == $this->data['domain']) {
                     $routing->setRoute($route, $domain);
+                    $this->data['type_id'] = ifempty($route['type_id'], array());
+                    if ($this->data['type_id']) {
+                        $this->data['type_id'] = array_map('intval', $this->data['type_id']);
+                    }
                     waRequest::setParam($route);
                     $this->data['base_url'] = $domain;
                     if ($save) {
@@ -443,55 +447,56 @@ class shopYandexmarketPluginRunController extends waLongActionController
         $chunk = 50;
         while ((--$chunk > 0) && ($product = reset($products))) {
             $product_xml = $this->dom->createElement("offer");
-            $map = array();
-            foreach ($this->data['map'] as $field => $info) {
-                $field = preg_replace('/\..*$/', '', $field);
+            if (!$this->data['type_id'] || in_array($product['type_id'], $this->data['type_id'])) {
+                foreach ($this->data['map'] as $field => $info) {
+                    $field = preg_replace('/\..*$/', '', $field);
 
-                if (!empty($info['source']) && !ifempty($info['category'])) {
-                    $value = null;
+                    if (!empty($info['source']) && !ifempty($info['category'])) {
+                        $value = null;
 
-                    list($source, $param) = explode(':', $info['source'], 2);
-                    switch ($source) {
-                        case 'field':
-                            $value = $this->format($field, $product[$param], $info, $product);
-                            break;
-                        case 'value':
-                            $value = $this->format($field, $param, $info);
-                            break;
-                        case 'feature':
-                            if (!isset($product['features'])) {
-                                if (!$features_model) {
-                                    $features_model = new shopProductFeaturesModel();
+                        list($source, $param) = explode(':', $info['source'], 2);
+                        switch ($source) {
+                            case 'field':
+                                $value = $this->format($field, $product[$param], $info, $product);
+                                break;
+                            case 'value':
+                                $value = $this->format($field, $param, $info);
+                                break;
+                            case 'feature':
+                                if (!isset($product['features'])) {
+                                    if (!$features_model) {
+                                        $features_model = new shopProductFeaturesModel();
+                                    }
+                                    $product['features'] = $features_model->getValues($product['id']);
                                 }
-                                $product['features'] = $features_model->getValues($product['id']);
-                            }
-                            $value = $this->format($field, ifempty($product['features'][$param]), $info);
-                            break;
-                        case 'text':
-                            /**
-                             * @todo
-                             */
-                            break;
-                    }
-
-                    if (!empty($value)) {
-                        if (is_array($value)) {
-                            foreach ($value as $value_item) {
-                                $product_xml->appendChild($this->dom->createElement($field, $value_item));
-                            }
-                        } elseif (empty($info['attribute'])) {
-                            $product_xml->appendChild($this->dom->createElement($field, $value));
-                        } else {
-                            $product_xml->setAttribute($field, $value);
+                                $value = $this->format($field, ifempty($product['features'][$param]), $info);
+                                break;
+                            case 'text':
+                                /**
+                                 * @todo
+                                 */
+                                break;
                         }
 
+                        if (!empty($value)) {
+                            if (is_array($value)) {
+                                foreach ($value as $value_item) {
+                                    $product_xml->appendChild($this->dom->createElement($field, $value_item));
+                                }
+                            } elseif (empty($info['attribute'])) {
+                                $product_xml->appendChild($this->dom->createElement($field, $value));
+                            } else {
+                                $product_xml->setAttribute($field, $value);
+                            }
+
+                        }
                     }
                 }
+                $offers->appendChild($product_xml);
+                ++$processed;
             }
-            $offers->appendChild($product_xml);
             array_shift($products);
             ++$current_stage;
-            ++$processed;
         }
         return ($current_stage < $count['product']);
     }

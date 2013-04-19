@@ -4,8 +4,8 @@
 
 		<div class="block half-padded float-right">
 			<ul class="menu-h with-icons">
-            {if isset($plugin.status)}
-				<li><a href="#/payment/plugin/delete/{$plugin_id}/" class="js-action js-confirm"><i class="icon16 delete"></i>[`Delete this payment option`]</a></li>
+            {if isset($plugin.status) && !empty($plugin.id)}
+				<li><a href="#/payment/plugin/delete/{$plugin.id}/" class="js-action js-confirm"><i class="icon16 delete"></i>[`Delete this payment option`]</a></li>
             {/if}
 			</ul>
 		</div>
@@ -46,7 +46,7 @@
 			</div>
 			<div class="value">
 				<textarea name="payment[description]">{$plugin.description|escape}</textarea>
-				<p class="hint">[`HTML. Payment method description is shown to customer during the checkout.`]</p>
+				<p class="hint">[`HTML. Payment option description is shown to customer during the checkout.`]</p>
 			</div>
 		</div>
         {*
@@ -62,9 +62,21 @@
         *}
 	</div>
 
-	<!-- CUSTOM PAYMENT MODULE PARAMS -->
 	<div class="field-group">
-    	{$settings_html}
+        <div class="field">
+    	<div class="name">[`Allowed shipping options`]</div>
+        <div class="value">
+        {foreach $shipping as $p}
+            <label><input type="checkbox" name="payment[shipping][{$p.id}]" value="1" {if $p.available} checked="checked"{/if}> {$p.name|escape}</label>
+            {if !$p@last}<br>{/if}
+        {/foreach}
+        </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM PAYMENT MODULE PARAMS -->
+    <div class="field-group">
+        {$settings_html}
     </div>
 
 	<div class="field-group">

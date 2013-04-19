@@ -239,7 +239,7 @@ $.order_list = {
 
     loadOrder: function(order_id) {
         this.container.find('.selected').removeClass('selected');
-        this.container.find('[data-order-id='+this.options.id+']').addClass('selected');
+        this.container.find('[data-order-id=' + order_id + ']').addClass('selected');
 
         $('#s-order').html(
             '<div class="block double-padded">' +
@@ -247,7 +247,13 @@ $.order_list = {
             '<i class="icon16 loading"></i></div>'
         );
 
-        $.orders.load('?module=order&id= ' + order_id, { content: $('#s-order') });
+        $.orders.load(
+            '?module=order&id= ' + order_id + '&' + this.filter_params_str,
+            { content: $('#s-order') },
+            function() {
+                this.id = order_id;
+            }
+        );
     },
 
     /*
@@ -523,6 +529,7 @@ $.order_list = {
     updateListItem: function(data, id, select) {
         select = typeof select === 'undefined' ? true : select;
         var self = this;
+
         var tmpl_name = 'template-order-list-'+this.options.view;
         if (document.getElementById(tmpl_name)) {
             var container = this.container;
@@ -538,6 +545,18 @@ $.order_list = {
                 }
             }
         }
+    },
+
+    hideListItem: function(id) {
+        // deffered fiber
+        (function(id) {
+            setTimeout(function() {
+                if ($.order_list && $.order_list.container && $.order_list.container.length) {
+                    var li = $.order_list.container.find('li.order[data-order-id='+id+']');
+                    li.slideUp(450);
+                }
+            }, 1000);
+        })(id);
     },
 
     dispatch: function(params, hard) {

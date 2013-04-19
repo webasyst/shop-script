@@ -16,16 +16,25 @@ class shopOrderModel extends waModel
         );
     }
 
-    public function getOffset($order_id, $where)
+    public function getOffset($order_id, $where, $check_presenting = false)
     {
-        $item = $this->getById($order_id);
+        $order_id = (int) $order_id;
+
+        $where = $this->getWhereByField($where);
+
+        // check presenting
+        if ($check_presenting) {
+            $sql = "SELECT * FROM `{$this->table}` WHERE id = $order_id ".($where ? "AND $where" : "");
+            $item = $this->query($sql)->fetchAssoc();
+        } else {
+            $item = $this->getById($order_id);
+        }
         if (!$item) {
             return false;
         }
 
         $offset_where = "create_datetime > '{$item['create_datetime']}' OR (create_datetime = '{$item['create_datetime']}' AND id < '{$item['id']}')";
 
-        $where = $this->getWhereByField($where);
         $sql = "SELECT COUNT(id) offset
                 FROM `{$this->table}`
                 WHERE ".($where ? "$where AND " : "")." ($offset_where)";

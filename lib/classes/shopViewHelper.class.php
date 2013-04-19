@@ -212,14 +212,15 @@ class shopViewHelper extends waAppViewHelper
         return $this->wa->getRouteUrl('shop/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url']));
     }
 
-    public function categories($id = 0, $depth = null, $tree = false)
+    public function categories($id = 0, $depth = null, $tree = false, $params = false)
     {
         if ($id === true) {
             $id = 0;
             $tree = true;
         }
+        $route = wa()->getRouting()->getDomain(null, true).'/'.wa()->getRouting()->getRoute('url');
         $category_model = new shopCategoryModel();
-        $cats = $category_model->getTree($id, $depth);
+        $cats = $category_model->getTree($id, $depth, false, array("route IS NULL OR route = '".$category_model->escape($route)."'"));
         $url = $this->wa->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
         $hidden = array();
         foreach ($cats as $c_id => $c) {
@@ -229,6 +230,13 @@ class shopViewHelper extends waAppViewHelper
             } else {
                 $hidden[$c_id] = 1;
                 unset($cats[$c_id]);
+            }
+        }
+        if ($params) {
+            $category_params_model = new shopCategoryParamsModel();
+            $rows = $category_params_model->getByField('category_id', array_keys($cats));
+            foreach ($rows as $row) {
+                $cats[$row['category_id']]['params'][$row['name']] = $row['value'];
             }
         }
         if ($tree) {

@@ -45,6 +45,18 @@ function currency_format(number) {
 
 $(function () {
 
+    // scroll-dependent animations: flying product info block
+    $(window).scroll(function() {    
+      	if ( $(this).scrollTop()>=253 ) {
+            $("#cart-flyer").addClass( "fixed" );
+            $(".aux").hide();
+    	}
+    	else if ( $(this).scrollTop()<252 ) {
+    		$("#cart-flyer").removeClass( "fixed" );
+            $(".aux").show();
+    	}    
+    });
+
     var service_variant_html = function (id, name, price) {
         return '<option data-price="' + price + '" id="service-variant-' + id + '" value="' + id + '">' + name + ' (+' + currency_format(price) + ')</option>';
     }
@@ -124,6 +136,12 @@ $(function () {
         if (price === undefined) {
             if ($("#product-skus input:radio:checked").length) {
                 var price = parseFloat($("#product-skus input:radio:checked").data('price'));
+                var compare_price = parseFloat($("#product-skus input:radio:checked").data('compare-price'));
+                if (compare_price) {
+                    $(".add2cart .compare-at-price").html(currency_format(compare_price)).show();
+                } else {
+                    $(".add2cart .compare-at-price").hide();
+                }
             } else {
                 var price = parseFloat($(".add2cart .price").data('price'));
             }
@@ -170,7 +188,9 @@ $(function () {
         update_price();
     });
 
-    $(".cart .services .service-variants").on('change', update_price);
+    $(".cart .services .service-variants").on('change', function () {
+        update_price();
+    });
 
     // compare block
     $("a.compare-add").click(function () {
@@ -200,9 +220,7 @@ $(function () {
         if (i != -1) {
             compare.splice(i, 1)
         }
-        if (compare.length < 2) {
-            $("#compare-link").hide();
-        }
+        $("#compare-link").hide();
         if (compare) {
             $.cookie('shop_compare', compare.join(','), { expires: 30, path: '/'});
         } else {
@@ -219,6 +237,10 @@ $(function () {
             if (response.status == 'ok') {
                 var cart_total = $(".cart-total");
                 var cart_div = f.closest('.cart');
+                if ( $(window).scrollTop()>=35 ) {
+                    cart_total.closest('#cart').addClass( "fixed" );
+    	        }
+                cart_total.closest('#cart').removeClass('empty');
                 cart_div.clone().insertAfter(cart_div).css({
                     top: cart_div.offset().top,
                     left: cart_div.offset().left,
@@ -235,7 +257,6 @@ $(function () {
                 }, 500, function() {
                     $(this).remove();
                     cart_total.html(response.data.total);
-                    cart_total.closest('#cart').removeClass('empty');
                 });
             } else if (response.status == 'fail') {
                 alert(response.errors);

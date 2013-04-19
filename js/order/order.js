@@ -89,6 +89,10 @@ $.order = {
         });
         if (this.options.order) {
             $.order_list.updateListItem(this.options.order, this.id);
+            if (this.options.offset === false) {
+                $.order_list.hideListItem(this.id);
+            };
+
         }
 
         // adjust order content height to height of view-port when 'split' order list

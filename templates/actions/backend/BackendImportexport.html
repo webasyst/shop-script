@@ -24,6 +24,14 @@
                         <span class="hint">[`Save your existing products information in a CSV file`]</span>
                     </a>
                 </li>
+                
+                <li>
+                    <a href="#/images:product/">
+                        <i class="icon16 pictures"></i>[`Bulk image upload`]
+                        <span class="hint">[`Instantly create multiple products from a set of uploaded images`]</span>
+                    </a>
+                </li>
+                
                 {foreach $plugins as $info}
                 {$plugin_names[$info.id] = $info.name|default:$info.id|escape}
                 <li>

@@ -5,13 +5,13 @@
         <ul class="bxslider">
         {foreach $promos as $p}
         <li itemscope itemtype ="http://schema.org/Product">
-            <a href="{$p.frontend_url}" title="{$p.name}{if $p.summary} &mdash; {strip_tags($p.summary)|escape}{/if}">
+            <a href="{$p.frontend_url}" title="{$p.name}{if $p.summary} &ndash; {strip_tags($p.summary)|escape}{/if}">
                 <div class="image">
                         {$badge_html = $wa->shop->badgeHtml($p.badge)}
                         {if $badge_html}
                             <div class="corner top right">{$badge_html}</div>
                         {/if}
-                        {$wa->shop->productImgHtml($p, '970', ['itemprop' => 'image', 'default' => "`$wa_theme_url`img/dummy200.png"])}
+                        {$wa->shop->productImgHtml($p, '970', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
 
                 </div>
                 <div class="info">

@@ -6,10 +6,24 @@ class shopPluginModel extends shopSortableModel
     protected $table = 'shop_plugin';
     protected $context = 'type';
 
+    /**
+     *
+     * List availail
+     * @param string $type plugin type
+     * @param array $options
+     */
     public function listPlugins($type, $options = array())
     {
         $plugins = $this->getByField('type', $type, $this->id);
-
+        $complementary = ($type == self::TYPE_PAYMENT) ? self::TYPE_SHIPPING : self::TYPE_PAYMENT;
+        $non_available = array();
+        if (!empty($options[$complementary])) {
+            $non_available = shopHelper::getDisabledMethods($type, $options[$complementary]);
+        }
+        foreach ($plugins as & $plugin) {
+            $plugin['available'] = !in_array($plugin['id'], $non_available);
+        }
+        unset($plugin);
         return $plugins;
     }
 

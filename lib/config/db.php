@@ -52,6 +52,7 @@ return array(
         'sort_products' => array('varchar', 32),
         'include_sub_categories' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
         'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
+        'route' => array('varchar', 255),
         ':keys' => array(
             'PRIMARY' => 'id',
             'url' => array('parent_id', 'url', 'unique' => 1),
@@ -403,6 +404,7 @@ return array(
         'width' => array('int', 5, 'null' => 0, 'default' => '0'),
         'height' => array('int', 5, 'null' => 0, 'default' => '0'),
         'size' => array('int', 11),
+        'original_filename' => array('varchar', 255),
         'ext' => array('varchar', 10),
         'badge_type' => array('int', 4),
         'badge_code' => array('text'),

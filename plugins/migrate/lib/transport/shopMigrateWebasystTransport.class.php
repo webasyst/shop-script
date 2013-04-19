@@ -533,10 +533,10 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
             if ($parent && !isset($category_map[$parent])) {
                 if (!isset($resave[$parent])) {
                     $resave[$parent] = array();
-                }
+                    }
                 $resave[$parent][] = $id;
                 $count[self::STAGE_CATEGORY_REBUILD] = count($resave);
-            }
+                }
             ++$current_stage;
             array_shift($category_data_cache);
             ++$processed;
@@ -557,9 +557,9 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
                     $category->move($id, null, $category_id);
                 }
                 $item = $category->getById($category_id);
-                // update full_url of all descendant
-                $category->correctFullUrlOfDescendants($item['id'], trim($item['full_url'], '/'));
-            }
+                    // update full_url of all descendant
+                    $category->correctFullUrlOfDescendants($item['id'], trim($item['full_url'], '/'));
+                }
 
             unset($this->map[self::STAGE_CATEGORY_REBUILD][$parent]);
             ++$current_stage;
@@ -1329,13 +1329,14 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                     }
 
                     $image_data = array(
-                        'product_id'      => $product['id'],
-                        'upload_datetime' => date('Y-m-d H:i:s'),
-                        'width'           => $image->width,
-                        'height'          => $image->height,
-                        'size'            => filesize($path),
-                        'ext'             => pathinfo($original_name, PATHINFO_EXTENSION),
-                        'description'     => basename(empty($data['filename']) ? $data['enlarged'] : $data['filename']),
+                        'product_id'        => $product['id'],
+                        'upload_datetime'   => date('Y-m-d H:i:s'),
+                        'width'             => $image->width,
+                        'height'            => $image->height,
+                        'size'              => filesize($path),
+                        'original_filename' => empty($data['filename']) ? $data['enlarged'] : $data['filename'],
+                        'ext'               => pathinfo($original_name, PATHINFO_EXTENSION),
+                        'description'       => basename(empty($data['filename']) ? $data['enlarged'] : $data['filename']),
                     );
                     $image_id = $image_data['id'] = $model->add($image_data, $data['default_picture'] == $data['photoID']);
                     if (!$image_id) {

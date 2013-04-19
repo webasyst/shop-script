@@ -274,7 +274,7 @@
             <span class="s-product-edit-tab-status"></span></a>
         </li>
         <li class="related">
-            <a href="#/product/{$product.id}/edit/related/">[`Related products`] <span class="hint">1</span>
+            <a href="#/product/{$product.id}/edit/related/">[`Related products`]
             <span class="s-product-edit-tab-status"></span></a>
         </li>
         <li class="pages">
@@ -686,7 +686,7 @@
                                             {%# sku.stock_icon[stock_id]?sku.stock_icon[stock_id]:sku.stock_icon[0] %}
                                             </span>
                                             <input class="small" type="text" name="product[skus][{%=sku_id%}][stock][{%=stock_id%}]"
-                                            value="{% if(count!==null) { %}{%=count%}{% } %}" placeholder="∞"{% if($.isEmptyObject(sku.stock)) { %} disabled="disabled"{% } %}>
+                                            value="{% if (count !== null) { %}{%=''+count%}{% } %}" placeholder="∞" {% if($.isEmptyObject(sku.stock)) { %} disabled="disabled"{% } %}>
                                             {% if(!$.isEmptyObject(stocks)) { %}
                                             <span class="hint">@{%=stocks[stock_id]['name']%}</span><br>
                                             {% } %}

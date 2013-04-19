@@ -52,7 +52,7 @@
                                     </td>
                                     <td class="nowrap"><strong>{$currency.title}</strong> <span class="hint">{$currency.sign}</span></td>
                                     <td class="s-rate {if $currency.code != $primary}editable{/if}">
-                                        1 {$currency.code} = <span id="s-rate-{$currency.code}">{(float)$currency.rate}</span>
+                                        1 {$currency.code} = <span id="s-rate-{$currency.code}">{$currency.rate}</span>
                                         <input type="text" name="rate[]" value="{(float)$currency.rate}" id="s-rate-{$currency.code}-input" style="display:none;" class="numerical short">
                                         {$primary}
                                     </td>

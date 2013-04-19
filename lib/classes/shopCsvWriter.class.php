@@ -85,10 +85,10 @@ class shopCsvWriter implements Serializable
         if ($this->file) {
             $fsize = file_exists($this->file) ? filesize($this->file) : false;
             $this->fp = @fopen($this->file, 'a');
-            fseek($this->fp, 0, SEEK_END);
             if (!$this->fp) {
                 throw new waException("error while open CSV file");
             }
+            fseek($this->fp, 0, SEEK_END);
 
             if (strtolower($this->encoding) != 'utf-8') {
                 if (!@stream_filter_prepend($this->fp, 'convert.iconv.UTF-8/'.$this->encoding.'//IGNORE')) {
@@ -151,7 +151,11 @@ class shopCsvWriter implements Serializable
                         }
                     }
                     unset($item);
-                    $value = "{".implode(',', $value)."}";
+                    if ($value) {
+                        $value = "{".implode(',', $value)."}";
+                    } else {
+                        $value = '';
+                    }
                 }
                 $maped[] = $value;
             }

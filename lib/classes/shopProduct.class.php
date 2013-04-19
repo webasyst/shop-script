@@ -180,6 +180,9 @@ class shopProduct implements ArrayAccess
                 if (!isset($product['create_datetime'])) {
                     $product['create_datetime'] = date('Y-m-d H:i:s');
                 }
+                if (!isset($product['currency'])) {
+                    $product['currency'] = wa('shop')->getConfig()->getCurrency();
+                }
                 if ($id = $this->model->insert($product)) {
                     $this->data['id'] = $id;
 

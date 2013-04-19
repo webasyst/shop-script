@@ -1,53 +1,58 @@
 <!-- following CSS hides top navigation menu; remove <style>…</style> to unhide -->
 <style>
-    #header { display: none; }    
+    #header, #footer, .currency-toggle { display: none; }    
     .app-header { display: none; }
+    .container.paper { background: transparent; box-shadow: none; }
 </style>
 
-<div class="checkout">
+<div class="checkout-header">
+    <div class="float-right large">
+        {$cart_total = $wa->shop->cart->total()}
+        [`Order total`]: <strong>{shop_currency($cart_total, true)}</strong>
+    </div>
+    <h3><a href="{$wa_app_url}">{$wa->shop->settings("name")}</a></h3>
+</div>
 
-    <!-- checkout navigation -->
-    {if isset($checkout_steps) && count($checkout_steps) > 1}
-        <ul class="checkout-navigation menu-h">
-            <li>
-                <a href="{$wa->getUrl('/frontend/cart')}">[`Cart`]</a>
-            </li>
-            <li>&rarr;</li>
-            {foreach $checkout_steps as $step_id => $s}
-                <li class="{if isset($_upcoming_flag)} upcoming{/if}{if $step_id == $checkout_current_step} selected{$_upcoming_flag = 1}{/if}">
-                    <a href="{if $s@first}{$wa->getUrl('/frontend/checkout')}{else}{$wa->getUrl('/frontend/checkout', ['step' => $step_id])}{/if}">{$s.name}</a>
-                </li>
-                {if not $s@last}<li>&rarr;</li>{/if}
-            {/foreach}
-        </ul>
-        <br>
-    {/if}
+<div class="checkout">
 
     {if isset($checkout_steps)}
     <!-- checkout step content -->
     {foreach $checkout_steps as $step_id => $s}
-        {if $checkout_current_step == $step_id}
-        <div class="checkout-step">
-        <form method="post" action="">
-            <h1>{$s.name}</h1>
-            {if in_array($step_id,['contactinfo', 'shipping', 'payment', 'confirmation'])}
-                {include file="checkout.`$step_id`.html"}
-            {else}
-                {$s.content}
-            {/if}
-            <div class="clear-both"></div>
-            {if $s@last}
-                {if empty($error)}
-                <div class="float-right">
-                    <input type="submit" class="large" value="[`Place order`]">
+        <div class="checkout-step step-{$step_id}">
+            <form class="checkout-form {if $s@last}last{/if}" method="post" action="">
+                <h2>
+                    {if $s@first}
+                        <a href="{$wa->getUrl('/frontend/cart')}" class="hint float-right">[`Back to the store`]</a>
+                    {else}
+                        <a href="#" class="hint float-right back"{if $checkout_current_step != $step_id} style="display:none"{/if}>[`Back`]</a>
+                    {/if}
+                    <a href="#"><span class="gray">{$s@iteration}.</span> {$s.name}</a>
+                </h2>
+                <div class="checkout-step-content"{if $checkout_current_step != $step_id} style="display:none"{/if}>
+                    {if $checkout_current_step == $step_id}
+                        {if in_array($step_id,['contactinfo', 'shipping', 'payment', 'confirmation'])}
+                            {include file="checkout.`$step_id`.html"}
+                        {else}
+                            {$s.content}
+                        {/if}
+                    {else}
+                        <div class="checkout-content" data-step-id="{$step_id}"></div>
+                    {/if}
+                    <div class="clear-both"></div>
+                    <input type="hidden" name="step" value="{$step_id}">
+                    {if $s@last}
+                    {if empty($error)}
+                    <div class="float-right">
+                        <input type="submit" class="large bold" value="[`Place order`]">
+                    </div>
+                    {/if}
+                    {else}
+                    <input type="submit" class="large bold" value="[`Next &rarr;`]">
+                    {/if}
+                    <div class="clear-both"></div>
                 </div>
-                {/if}
-            {else}
-                <input type="submit" value="[`Next &rarr;`]">
-            {/if}
-        </form>
+            </form>
         </div>
-        {/if}
     {/foreach}
     {else}
         <div class="checkout-step">
@@ -56,3 +61,57 @@
     {/if}
 
 </div>
+
+<script type="text/javascript">
+    $(function () {
+        function checkoutStep(step_id) {
+            $.get("{$wa->getUrl('/frontend/checkout')}" + step_id + '/', function (response) {
+                var current = $(".checkout-step .checkout-step-content:visible");
+                var current_step_id =  current.find(".checkout-content").data('step-id');
+                if (current_step_id != step_id) {
+                    current.animate( { height: 0 }, 200, function() { $(this).hide(); } );
+                    current.parent().find('a.back').hide();
+                }
+                $(".checkout-step.step-" + step_id + " .checkout-content").replaceWith(response);
+                $(".checkout-step.step-" + step_id + " a.back").show();
+                if (current_step_id != step_id) {
+                    $(".checkout-step.step-" + step_id + " .checkout-step-content").show(0).css({ height: 'auto'});
+                }
+            });
+        }
+        $(".checkout h2 a").click(function () {
+            if ($(this).hasClass('hint')) {
+                if ($(this).hasClass('back')) {
+                    checkoutStep($(this).closest('div').prev().find('.checkout-content').data('step-id'));
+                    return false;
+                }
+                return true;
+            }
+            checkoutStep($(this).closest('div').find('.checkout-content').data('step-id'));
+            return false;
+        });
+        $("form.checkout-form").on('submit', function () {
+            var f = $(this);
+            if (f.hasClass('last')) {
+                return true;
+            }
+            $.post(f.attr('action'), f.serialize(), function (response) {
+                var content = $(response);
+                var step_id = content.data('step-id');
+                var current = $(".checkout-step .checkout-step-content:visible");
+                var current_step_id =  current.find(".checkout-content").data('step-id');
+                if (current_step_id != step_id) {
+                    current.animate({ height: 0}, 200, function() { $(this).hide(); } );
+                    current.parent().find('a.back').hide();
+                }
+                $(".checkout-step.step-" + step_id + " .checkout-content").replaceWith(content);
+                $(".checkout-step.step-" + step_id + " a.back").show();
+                $(".checkout-step.step-" + step_id + " input[type=submit]:last").show();
+                if (current_step_id != step_id) {
+                    $(".checkout-step.step-" + step_id + " .checkout-step-content").show(0).css({ height: 'auto'});
+                }
+            });
+            return false;
+        });
+    });
+</script>

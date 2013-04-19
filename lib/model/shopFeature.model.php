@@ -500,6 +500,7 @@ class shopFeatureModel extends waModel
                             $units[4] = '...';
                             $units = array_slice($units, 0, 4);
                         }
+                        $units = array_map('_w', $units);
                         $type['name'] .= " (".implode(', ', $units).")";
                     }
                 }

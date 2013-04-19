@@ -8,7 +8,7 @@ class shopFrontendCartAddController extends waJsonController
         $code = waRequest::cookie('shop_cart');
         if (!$code) {
             $code = md5(uniqid(time(), true));
-            wa()->getResponse()->setCookie('shop_cart', $code, time() + 30 * 86400);
+            wa()->getResponse()->setCookie('shop_cart', $code, time() + 30 * 86400, null, '', false, true);
         }
 
         $data = waRequest::post();

@@ -67,6 +67,26 @@ class shopDimension
         return $unit;
     }
 
+    public function fixUnit($type, $unit = null)
+    {
+        if ($unit && $type && ($dimension = $this->getDimension($type))) {
+            if ($unit != $dimension['base_unit']) {
+                if ($unit == _w($dimension['base_unit'])) {
+                    $unit = $dimension['base_unit'];
+                } elseif (!isset($dimension['units'][$unit])) {
+                    $units = array_keys($dimension['units']);
+                    $units = array_combine(array_map('_w', $units), $units);
+                    if (isset($units[$unit])) {
+                        $unit = $units[$unit];
+                    } else {
+                        $unit = $dimension['base_unit'];
+                    }
+                }
+            }
+        }
+        return $unit;
+    }
+
     public static function getControl($name, $params = array())
     {
 
@@ -103,7 +123,7 @@ class shopDimension
                 foreach ($d['units'] as $code => $unit) {
                     $units[] = array(
                         'value'       => $code,
-                        'title'       => $unit['name'],
+                        'title'       => _w($unit['name']),
                         'description' => isset($d['class']) ? $d['class'] : null,
                     );
                 }

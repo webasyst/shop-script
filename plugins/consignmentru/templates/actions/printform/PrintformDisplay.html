@@ -77,7 +77,7 @@ var page_url = '';
 {if !empty($order.shipping_address.city)}{$order.shipping_address.city|escape},&nbsp;{/if}
 {if !empty($order.shipping_address.zip)}{$order.shipping_address.zip|escape},&nbsp;{/if}
 {if !empty($order.shipping_address.street)}{$order.shipping_address.street|escape},&nbsp;{/if}
-{if !empty($order->contact_phone)}тел.: {$order->contact_phone|escape}{/if}
+{if $order->contact_phone}тел.: {$order->contact_phone|escape}{/if}
                 </b></td>
             </tr>
             <tr>
@@ -109,7 +109,7 @@ var page_url = '';
 {if !empty($order.shipping_address.zip)}{$order.shipping_address.zip|escape},&nbsp;{/if}
 {if !empty($order.shipping_address.street)}{$order.shipping_address.street|escape},&nbsp;{/if}
 {/if}
-{if !empty($order->contact_phone)}тел.: {$order->contact_phone|escape}{/if}
+{if $order->contact_phone}тел.: {$order->contact_phone|escape}{/if}
                 </b></td>
             </tr>
             <tr>

@@ -11,6 +11,10 @@ class shopSettingsCurrenciesAction extends waViewAction
     {
         $model = new shopCurrencyModel();
         $currencies = $model->getCurrencies();
+        foreach ($currencies as &$c) {
+            $c['rate'] = $this->formatFloat($c['rate']);
+        }
+        unset($c);
         $primary = $this->getConfig()->getCurrency();
         $system_currencies = $this->getSystemCurrencies();
         $this->view->assign(array(
@@ -21,6 +25,16 @@ class shopSettingsCurrenciesAction extends waViewAction
             'rest_system_currencies' => array_diff_key($system_currencies, $currencies),
             'product_count' => $this->getProductCount($primary)
         ));
+    }
+
+    public function formatFloat($float)
+    {
+        $float = (float) $float;
+        // prevent exponential view fo floating
+        if ($float < 1 && $float > 0) {
+            $float = preg_replace('/0+$/', '', sprintf('%.8f', $float));
+        }
+        return $float;
     }
 
     public function getProductCount($currency)

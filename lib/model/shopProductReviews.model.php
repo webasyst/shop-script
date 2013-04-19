@@ -18,10 +18,10 @@ class shopProductReviewsModel extends waNestedSetModel
         $reviews = $this->getReviews($product_id, $offset, $count, $order, $options);
         if (!empty($reviews)) {
             foreach (
-                $this->query("SELECT * FROM {$this->table} WHERE product_id = ".(int)$product_id.
+                    $this->query("SELECT * FROM {$this->table} WHERE product_id = ".(int)$product_id.
                     " AND review_id IN(".implode(',', array_keys($reviews)).")".
                     " ORDER BY review_id, {$this->left}")
-                as $item)
+                    as $item)
             {
                 $reviews[$item['review_id']]['comments'][$item['id']] = $item;
             }
@@ -62,68 +62,139 @@ class shopProductReviewsModel extends waNestedSetModel
         return $reviews;
     }
 
-    public function getList($offset = 0, $count = null, array $options = array())
-    {
-        if (!empty($options['reply_to'])) {
-            $sql = "SELECT *, p.text AS parent_text, parent_datetime
-                FROM {$this->table} r
-                LEFT JOIN {$this->table} p ON r.parent_id = p.id";
-        } else {
-            $sql = "SELECT * FROM {$this->table} ";
-        }
-        $sql .= " ORDER BY datetime";
-        if ($count) {
-            $sql .= " DESC LIMIT ".(int)$offset.",".(int)$count;
-        }
-        $data =  $this->query($sql)->fetchAll('id');
-        $this->extendItems($data, $options);
-        return $data;
-    }
-
-
-    /*
     public function getListDefaultOptions()
     {
         return array(
             'offset' => 0,
             'limit'  => 50,
             'escape' => true,
-            'is_new' => false,
             'where'  => array()
         );
     }
 
-    public function _getList($fields = '*', $options = array())
+    // fields = *,is_new,contac,product
+    public function getList($fields = '*,is_new,contact,product', $options = array())
     {
         $options += $this->getListDefaultOptions();
 
         $main_fields = '';
+        $post_fields = '';
 
         foreach (explode(',', $fields) as $name) {
             if ($this->fieldExists($name) || $name == '*') {
                 $main_fields .= ','.$name;
+            } else {
+                $post_fields .= ','.$name;
             }
         }
 
         $main_fields = substr($main_fields, 1);
+        $post_fields = substr($post_fields, 1);
 
         $where = $this->getWhereByField($options['where']);
 
+        $limit_str = '';
+        if ($options['limit'] !== false) {
+            $limit_str = " LIMIT ".($options['offset'] ? $options['offset'].',' : '').(int)$options['limit'];
+        }
+
         $sql = "SELECT $main_fields FROM `{$this->table}`".
-            ($where ? " WHERE $where" : "").
-            " ORDER BY datetime DESC, id".
-            " LIMIT ".($options['offset'] ? $options['offset'].',' : '').(int)$options['limit'];
+                ($where ? " WHERE $where" : "").
+                " ORDER BY datetime DESC, id".
+                $limit_str;
 
         $data = $this->query($sql)->fetchAll('id');
         if (!$data) {
             return $data;
         }
+        foreach ($data as &$item) {
+            $item['datetime_ts'] = strtotime($item['datetime']);
+            if ($options['escape']) {
+                $item['text'] = nl2br(htmlspecialchars($item['text']));
+                $item['title'] = htmlspecialchars($item['title']);
+            }
+        }
+        unset($item);
 
-        $this->extendItems($data, $options);
+        $this->workupList($data, $post_fields, $options['escape']);
         return $data;
 
     }
-    */
+
+    private function workupList(&$data, $fields, $escape)
+    {
+        $extract_contact_info = false;
+        foreach (explode(',', $fields) as $field) {
+
+            if ($field == 'contact') {
+                $contact_ids = array();
+                foreach ($data as $item) {
+                    if ($item['contact_id']) {
+                        $contact_ids[] = $item['contact_id'];
+                    }
+                }
+                $contact_ids = array_unique($contact_ids);
+                $contacts = self::getAuthorInfo($contact_ids);
+
+                foreach ($data as &$item) {
+                    $author = array(
+                        'name' =>  $item['name'],
+                        'email' => $item['email'],
+                        'site' =>  $item['site']
+                    );
+                    $item['author'] = array_merge(
+                        $author,
+                        isset($contacts[$item['contact_id']]) ? $contacts[$item['contact_id']] : array()
+                    );
+                    if ($escape) {
+                        $item['author']['name'] = htmlspecialchars($item['author']['name']);
+                    }
+                }
+                unset($item);
+            }
+
+            if ($field == 'is_new') {
+                $this->checkForNew($data);
+            }
+
+            if ($field == 'product') {
+                $product_ids = array();
+                foreach ($data as $item) {
+                    $product_ids[] = $item['product_id'];
+                }
+                $product_ids = array_unique($product_ids);
+                $product_model = new shopProductModel();
+                $products = $product_model->getByField('id', $product_ids, 'id');
+                $image_size = wa()->getConfig()->getImageSize('crop_small');
+                foreach ($data as &$item) {
+                    if (isset($products[$item['product_id']])) {
+                        $product = $products[$item['product_id']];
+                        $item['product_name'] = $product['name'];
+                        if ($product['image_id']) {
+                            $item['product_url_crop_small'] = shopImage::getUrl(
+                                array(
+                                    'id' => $product['image_id'],
+                                    'product_id' => $product['id'],
+                                    'ext' => $product['ext']
+                                ),
+                                $image_size
+                            );
+                        } else {
+                            $item['product_url_crop_small'] = null;
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach ($data as &$item) {
+            // recursive workuping
+            if (!empty($item['comments'])) {
+                $this->extendItems($item['comments'], $options);
+            }
+        }
+        unset($item);
+    }
 
     public function count($product_id = null, $reviews_only = true)
     {
@@ -175,13 +246,13 @@ class shopProductReviewsModel extends waNestedSetModel
         $product = $product_model->getById($product_id);
         if ($inc) {
             $update = array(
-                'rating' => ($product['rating']*$product['rating_count'] + $rate)/($product['rating_count'] + 1),
-                'rating_count' => $product['rating_count'] + 1
+                    'rating' => ($product['rating']*$product['rating_count'] + $rate)/($product['rating_count'] + 1),
+                    'rating_count' => $product['rating_count'] + 1
             );
         } else {
             $update = array(
-                'rating' => ($product['rating']*$product['rating_count'] - $rate)/($product['rating_count'] - 1),
-                'rating_count' => $product['rating_count'] - 1
+                    'rating' => ($product['rating']*$product['rating_count'] - $rate)/($product['rating_count'] - 1),
+                    'rating_count' => $product['rating_count'] - 1
             );
         }
         $product_model->updateById($product_id, $update);
@@ -362,8 +433,8 @@ class shopProductReviewsModel extends waNestedSetModel
                 'site' =>  $item['site']
             );
             $item['author'] = array_merge(
-                $author,
-                isset($contacts[$item['contact_id']]) ? $contacts[$item['contact_id']] : array()
+                    $author,
+                    isset($contacts[$item['contact_id']]) ? $contacts[$item['contact_id']] : array()
             );
             if ($escape) {
                 $item['author']['name'] = htmlspecialchars($item['author']['name']);
@@ -406,6 +477,7 @@ class shopProductReviewsModel extends waNestedSetModel
         if (!$viewed_reviews) {
             $viewed_reviews = array();
             foreach ($items as &$item) {
+                $item['is_new'] = false;
                 $item['datetime_ts'] = isset($item['datetime_ts']) ? $item['datetime_ts'] : strtotime($item['datetime']);
                 if ($item['datetime_ts'] > $datetime && $item['contact_id'] != $contact_id) {
                     $item['is_new'] = true;
@@ -416,6 +488,7 @@ class shopProductReviewsModel extends waNestedSetModel
         } else {
             $review_highlight_time = $config->getOption('review_highlight_time');
             foreach ($items as &$item) {
+                $item['is_new'] = false;
                 $item['datetime_ts'] = isset($item['datetime_ts']) ? $item['datetime_ts'] : strtotime($item['datetime']);
                 if ($item['datetime_ts'] > $datetime && $item['contact_id'] != $contact_id) {
                     if (!isset($viewed_reviews[$item['id']])) {

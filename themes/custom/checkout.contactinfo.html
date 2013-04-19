@@ -1,30 +1,31 @@
+<div class="checkout-content" data-step-id="contactinfo">
 {if $wa->isAuthEnabled()}
     {if !$wa->user()->isAuth()}
 
         <!-- authorized / not authorized selector -->
         <ul class="menu-v">
-            <li><label><input name="user_type" type="radio" checked value="0"> [`I’m a new customer`]</label></li>
-            <li><label><input name="user_type" type="radio" value="1"> [`I already have an account`]</label></li>
+            <li><label><input name="user_type" type="radio" {if !$wa->post('wa_auth_login')}checked{/if} value="0"> [`I’m a new customer`]</label></li>
+            <li><label><input name="user_type" type="radio" {if $wa->post('wa_auth_login')}checked{/if} value="1"> [`I already have an account`]</label></li>
         </ul>
         <script type="text/javascript">
             $(function () {
                 $("#login-form input").attr('disabled', 'disabled');
-                $("input[name='user_type']").click(function () {
-                   if ($(this).val() == '1') {
+                $("input[name='user_type']").change(function () {
+                    if ($("input[name='user_type']:checked").val() == '1') {
                        $("#login-form input").removeAttr('disabled');
-                       $("#checkount-contact-form").hide();
-                       $("input[type=submit]:last").hide();
+                       $("#checkout-contact-form").hide();
+                       $(".step-contactinfo input[type=submit]:last").hide();
                        $("#login-form").show();
                    } else {
                        $("#login-form input").attr('disabled', 'disabled');
                        $("#login-form").hide();
-                       $("#checkount-contact-form").show();
-                       $("input[type=submit]:last").show();
+                       $("#checkout-contact-form").show();
+                       $(".step-contactinfo input[type=submit]:last").show();
                    }
-                });
+                }).change();
             });
         </script>
-        <div id="login-form" style="display:none">
+        <div id="login-form"{if !$wa->post('wa_auth_login')} style="display:none"{/if}>
         {include file="login.html" without_form=true}
         </div>
         <div class="clear-both"></div>
@@ -42,61 +43,68 @@
     {/if}
 {/if}
 
-<div id="checkount-contact-form" class="wa-form">
-    {$checkout_contact_form->html()}
-    {if !$wa->user()->isAuth()}
-    <div class="wa-field">
-        <div class="wa-value">
-            <label><input type="checkbox" {if $wa->post('create_user')}checked{/if} id="create-user" name="create_user" value="1"> [`Create permanent user account`]</label>
-        </div>
-    </div>
-    <div id="create-user-div" style="display:none">
-        <div class="wa-field">
-            <div class="wa-name">
-                [`Email`]
+
+    <div id="checkout-contact-form"{if $wa->post('wa_auth_login')} style="display:none"{/if}>
+        {if !$wa->user()->isAuth()}
+            {$wa->authAdapters()}
+        {/if}
+        <div class="wa-form">
+            {$checkout_contact_form->html()}
+            {if !$wa->user()->isAuth()}
+            <div class="wa-field">
+                <div class="wa-value">
+                    <label><input type="checkbox" {if $wa->post('create_user')}checked{/if} id="create-user" name="create_user" value="1"> [`Create permanent user account`]</label>
+                </div>
             </div>
-            <div class="wa-value">
-                {if !empty($errors.email)}<p>{/if}
-                <input {if !empty($errors.email)}class="error"{/if} name="login" type="text" value="{$wa->post('login', $customer->get('email', 'default'))|escape}">
-                {if !empty($errors.email)}</p>
-                <em class="errormsg">{$errors.email}</em>
-                {/if}
+            <div id="create-user-div" style="display:none">
+                <div class="wa-field">
+                    <div class="wa-name">
+                        [`Email`]
+                    </div>
+                    <div class="wa-value">
+                        {if !empty($errors.email)}<p>{/if}
+                        <input {if !empty($errors.email)}class="error"{/if} name="login" type="text" value="{$wa->post('login', $customer->get('email', 'default'))|escape}">
+                        {if !empty($errors.email)}</p>
+                        <em class="errormsg">{$errors.email}</em>
+                        {/if}
+                    </div>
+                </div>
+                <div class="wa-field">
+                    <div class="wa-name">
+                        [`Password`]
+                    </div>
+                    <div class="wa-value">
+                        <input name="password" type="password" value="{$wa->post('password')}">
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="wa-field">
-            <div class="wa-name">
-                [`Password`]
-            </div>
-            <div class="wa-value">
-                <input name="password" type="password" value="{$wa->post('password')}">
-            </div>
-        </div>
-    </div>
-    <script type="text/javascript">
-        $(function () {
-            var e = $('input[name="customer[email]"]');
-            if (e.length) {
-                e.on('keyup', function () {
-                   if ($("#create-user-div").is(':visible')) {
-                       $('#create-user-div input[name="login"]').val($(this).val());
-                   }
-                });
-                $('#create-user-div input[name="login"]').on('keyup', function () {
-                    e.val($(this).val());
-                })
-            }
-            $("#create-user").change(function () {
-                if ($(this).is(':checked')) {
-                    $("#create-user-div").show().find('input').removeAttr('disabled');
-                    var l = $(this).closest('form').find('input[name="customer[email]"]');
-                    if (l.length && l.val()) {
-                        $('#create-user-div input[name="login"]').val(l.val());
+            <script type="text/javascript">
+                $(function () {
+                    var e = $('input[name="customer[email]"]');
+                    if (e.length) {
+                        e.on('keyup', function () {
+                           if ($("#create-user-div").is(':visible')) {
+                               $('#create-user-div input[name="login"]').val($(this).val());
+                           }
+                        });
+                        $('#create-user-div input[name="login"]').on('keyup', function () {
+                            e.val($(this).val());
+                        })
                     }
-                } else {
-                    $("#create-user-div").hide().find('input').attr('disabled', 'disabled').val('');
-                }
-            }).change();
-        });
-    </script>
-    {/if}
+                    $("#create-user").change(function () {
+                        if ($(this).is(':checked')) {
+                            $("#create-user-div").show().find('input').removeAttr('disabled');
+                            var l = $(this).closest('form').find('input[name="customer[email]"]');
+                            if (l.length && l.val()) {
+                                $('#create-user-div input[name="login"]').val(l.val());
+                            }
+                        } else {
+                            $("#create-user-div").hide().find('input').attr('disabled', 'disabled').val('');
+                        }
+                    }).change();
+                });
+            </script>
+            {/if}
+        </div>
+    </div>
 </div>

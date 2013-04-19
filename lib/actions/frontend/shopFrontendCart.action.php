@@ -55,7 +55,11 @@ class shopFrontendCartAction extends waViewAction
         $sku_ids = array_unique($sku_ids);
 
         $product_model = new shopProductModel();
-        $products = $product_model->getByField('id', $product_ids, 'id');
+        if (waRequest::param('url_type') == 2) {
+            $products = $product_model->getWithCategoryUrl($product_ids);
+        } else {
+            $products = $product_model->getById($product_ids);
+        }
 
         $sku_model = new shopProductSkusModel();
         $skus = $sku_model->getByField('id', $sku_ids, 'id');

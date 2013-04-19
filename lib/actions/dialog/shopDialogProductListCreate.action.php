@@ -32,7 +32,8 @@ class shopDialogProductListCreateAction extends waViewAction
             $this->view->assign(array(
                 'cloud'    => $tag_model->getCloud(),
                 'currency' => wa()->getConfig()->getCurrency(),
-                'frontend_base_url' => $fontend_base_url
+                'frontend_base_url' => $fontend_base_url,
+                'lang' => substr(wa()->getLocale(), 0, 2)
             ));
         } else if ($type == 'set') {
             $this->view->assign('default_count', $this->set_dynamic_default_count);

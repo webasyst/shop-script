@@ -76,7 +76,7 @@ class shopCsvReader implements SeekableIterator, Serializable
                 case 'zip':
                     if (function_exists('zip_open') && ($zip = zip_open($this->file)) && ($zip_entry = zip_read($zip))) {
                         //dummy read first file;
-                        $file = $path.basename(zip_entry_name($zip_entry));
+                        $file = $path.waLocale::transliterate(basename(zip_entry_name($zip_entry)));
                         $zip_fs = zip_entry_filesize($zip_entry);
 
                         if ($z = fopen($file, "w")) {
@@ -412,25 +412,27 @@ class shopCsvReader implements SeekableIterator, Serializable
         return $data;
     }
 
-    private function validateSourceFields()
+    private function validateSourceFields($params = array())
     {
         $counts = array();
         if ($this->header) {
-            foreach ($this->header as $col_id => $col_name) {
-                if (isset($counts[$col_name])) {
-                    $counts[$col_name]++;
+            foreach ($this->header as $n => $name) {
+                $count = count(explode(':', $n));
+                $name = mb_strtolower($name, waHtmlControl::$default_charset);
+                if (isset($counts[$name])) {
+                    $counts[$name] += $count;
                 } else {
-                    $counts[$col_name] = 1;
+                    $counts[$name] = $count;
                 }
             }
         }
-        $res = '';
-        foreach ($counts as $col_name => $count) {
-            if ($count > 1) {
-                $res .= sprintf(_w("Column %s meets %d times"), $col_name, $count)."<br>\n";
+        $columns = array();
+        foreach ($counts as $name => $count) {
+            if (($count > 1) && !isset($params[$name])) {
+                $columns[] = sprintf(_w("Column %s meets %d times"), $name, $count);
             }
         }
-        return $res ? _w('Warning').$res : $res;
+        return $columns ? _w('Warning').' '.implode("<br>\n", $columns) : '';
     }
 
     private function utf8_bad_replace($str, $replace = '?')
@@ -462,84 +464,89 @@ class shopCsvReader implements SeekableIterator, Serializable
     {
         $targets = ifset($params['options'], array());
         $value = ifset($params['value'], array());
-        if (!is_array($value)) {
-            $value['primary'] = $value;
-        }
-        $primary = ifset($value['primary']);
-        $map = ifset($value['map'], array());
         $html = '';
-        $checked = true;
 
-        $html .= '<thead><tr>';
-        $html .= '<th><i>'._w('CSV columns').'</i></th>';
+        $html .= '<thead><tr class="white heading small">';
+        $html .= '<th>'._w('CSV columns').'</th>';
         $html .= '<th>&nbsp;</th>';
-        $html .= '<th><i>'.ifempty($params['description'], _w('Properties')).'</i></th>';
+        $html .= '<th>'.ifempty($params['description'], _w('Properties')).'</th>';
         $html .= '</tr></thead>';
 
         waHtmlControl::addNamespace($params, $name);
-        $namespace = $params['namespace'];
-
-        $primary_params = array_merge($params, array(
-            'value'               => null,
-            'title'               => '',
-            'description'         => '',
-            'title_wrapper'       => '%s',
-            'description_wrapper' => '<span class="hint">(%s)</span>',
-            'control_wrapper'     => '<td>%2$s%1$s%3$s</td>',
-        ));
         $params = array_merge($params, array(
-            'value'               => null,
+            'value'               => - 1,
             'title'               => '',
             'description'         => '',
             'title_wrapper'       => '%s',
             'description_wrapper' => '<span class="hint">(%s)</span>',
-            'control_wrapper'     => '<td>%2$s</td><td>→</td><td>%1$s%3$s</td>',
+            'control_wrapper'     => '<tr><td>%2$s</td><td>→</td><td>%1$s%3$s</td></tr>',
+            'translate'           => false,
             'options'             => array(
                 -1 => array(
                     'value' => - 1,
-                    'title' => sprintf('-- %s --', _w('Ignore CSV column')),
+                    'title' => sprintf('-- %s --', _w('No associated column')),
                     'style' => 'font-style:italic;'
                 )
             ),
         ));
+
         if ($this->header) {
             foreach ($this->header as $id => $column) {
                 $params['options'][] = array(
-                    'value' => $id,
-                    'title' => $column,
+                    'value'       => $id,
+                    'title'       => $column,
+                    'description' => sprintf(_w('CSV columns numbers %s'), implode(', ', explode(':', $id))),
                 );
             }
-
         }
+
+        //TODO use more correct code
 
         $group = null;
         foreach ($targets as $field => $target) {
-            if (ifset($target['group']) !== $group) {
-                $group = htmlentities(ifset($target['group'], ' '), ENT_QUOTES, 'utf-8');
-                $html .= '<tr><th colspan="3">'.$group.'</th></tr>';
+            if (!isset($target['group'])) {
+                $target['group'] = array(
+                    'title' => '',
+                );
+            } elseif (!is_array($target['group']) && $target['group']) {
+                $target['group'] = array(
+                    'title' => $target['group'],
+                );
+            }
+            if (($target['group'] && !$group) || ($target['group']['title'] !== $group)) {
+                if ($group) {
+                    $html .= '</tbody>';
+                }
+                $group = $target['group']['title'];
+                $group_name = htmlentities(ifset($target['group']['title'], ' '), ENT_QUOTES, waHtmlControl::$default_charset);
+                $class = '';
+                if (!empty($target['group']['class'])) {
+                    $class = sprintf(' class="%s"', htmlentities($target['group']['class'], ENT_QUOTES, waHtmlControl::$default_charset));
+                }
+                $html .= '<tbody'.$class.'><tr><th colspan="3">'.$group_name.'</th></tr>';
             }
 
-            $params_target = $params;
-
-            $params_target['title'] = $target['title'];
-            $params_target['description'] = ifset($target['description']);
+            $params_target = array_merge($params, array(
+                'title'       => $target['title'],
+                'description' => ifset($target['description']),
+            ));
             self::findSimilar($params_target);
-            $name = $target['value'];
-            $html .= '<tr>';
-            $html .= waHtmlControl::getControl(waHtmlControl::SELECT, $name, $params_target);
-
-            $primary_params['options'] = array($name => $target['title']);
-
-            $html .= '</tr>';
+            $html .= waHtmlControl::getControl(waHtmlControl::SELECT, $target['value'], $params_target);
         }
-        return $this->validateSourceFields().'<table class="zebra">'.$this->utf8_bad_replace($html).'</table>';
+        if ($group) {
+            $html .= '</tbody>';
+        }
+
+        return (empty($params['validate']) ? '' : $this->validateSourceFields($params['validate'])).'<table class="zebra">'.$this->utf8_bad_replace($html).'</table>';
     }
 
-    private static function findSimilar(&$params)
+    private static function findSimilar(&$params, $target = null)
     {
-        $params['value'] = -1;
-        $target = ifempty($params['description'], ifset($params['title']));
-        $params['value'] = ifempty($params['value'], -1);
+        if ($target === null) {
+            $target = empty($params['title']) ? ifset($params['description']) : $params['title'];
+        }
+        $params['value'] = ifset($params['value'], -1);
+        $selected = null;
         if ($target && $params['value'] < 0) {
             $max = $p = 0;
             foreach ($params['options'] as $id => & $column) {
@@ -549,38 +556,53 @@ class shopCsvReader implements SeekableIterator, Serializable
                         'value' => $id,
                     );
                 }
-                similar_text($column['title'], $target, $p);
-                if ($p > $max) {
-                    $max = $p;
-                    $params['value'] = $id;
-                }
-                if ($max == 100) {
-                    break;
+                $column['like'] = 0;
+                similar_text($column['title'], $target, $column['like']);
+                if ($column['like'] >= 90) {
+                    $max = $column['like'];
+                    $selected =& $column;
+                } else {
+                    $column['like'] = 0;
                 }
             }
+            unset($column);
             if ($max < 90) {
-                $params['value'] = -1;
+                unset($selected);
+                $max = 0;
                 foreach ($params['options'] as $id => & $column) {
-                    if (!is_array($column)) {
-                        $column = array(
-                            'title' => $column,
-                            'value' => $id,
-                        );
-                    }
-                    $from = mb_strtolower($column['title']);
-                    $to = mb_strtolower($target);
-                    if ($from && $to && ((strpos($from, $to) === 0) || (strpos($to, $from) === 0))) {
-                        $params['value'] = $id;
-                        break;
+                    if ($column['like'] < 90) {
+                        $from = mb_strtolower($column['title']);
+                        $to = mb_strtolower($target);
+                        if ($from && $to && ((strpos($from, $to) === 0) || (strpos($to, $from) === 0))) {
+                            $l_from = mb_strlen($from);
+                            $l_to = mb_strlen($to);
+                            $column['like'] = min($l_from, $l_to) / max($l_from, $l_to, 1);
+                            if ($column['like'] > $max) {
+                                $selected =& $column;
+                                $max = $column['like'];
+                            }
+                        }
                     }
                 }
+                unset($column);
+            }
+            if (!empty($params['sort'])) {
+                uasort($params['options'], array(__CLASS__, 'sortSimilar'));
             }
 
-            if ($params['value'] >= 0) {
-                $params['options'][$params['value']]['style'] = 'font-weight:bold;text-decoration:underline;';
+            if (!empty($selected)) {
+                $selected['style'] = 'font-weight:bold;text-decoration:underline;';
+                $params['value'] = $selected['value'];
+            } elseif ((func_num_args() < 2) && !empty($params['title']) && !empty($params['description'])) {
+                self::findSimilar($params, $params['description']);
             }
         }
 
         return $params['value'];
+    }
+
+    private static function sortSimilar($a, $b)
+    {
+        return min(1, max(-1, $b['like'] - $a['like']));
     }
 }

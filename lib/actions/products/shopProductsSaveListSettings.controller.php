@@ -117,7 +117,7 @@ class shopProductsSaveListSettingsController extends waJsonController
         $model = $this->getModel('set');
         if (!$id) {
             if (empty($data['id'])) {
-                $id = str_replace('-', '_', shopHelper::transliterate($data['name']));
+                $id = shopHelper::transliterate($data['name']);
                 $data['id'] = $model->suggestUniqueId($id);
             } else {
                 $data['id'] = $model->suggestUniqueId($data['id']);
@@ -154,9 +154,10 @@ class shopProductsSaveListSettingsController extends waJsonController
 
     private function setSettingsValidate($set = null, $data)
     {
-        if (!$set && !preg_match("/^[a-z0-9\._]+$/i", $data['id'])) {
+        if (!preg_match("/^[a-z0-9\._-]+$/i", $data['id'])) {
             $this->errors['id'] = _w('Only latin characters, numbers and underscore symbol are allowed');
-        } else if ($set) {
+        }
+        if ($set) {
             if (!empty($data['id']) && $set['id'] != $data['id']) {
                 if ($this->getModel('set')->idExists($data['id'])) {
                     $this->errors['id'] = _w('ID is in use');
@@ -251,7 +252,8 @@ class shopProductsSaveListSettingsController extends waJsonController
             'params' => waRequest::post('params', '', waRequest::TYPE_STRING_TRIM),
             'parent_id' => waRequest::get('parent_id', 0, waRequest::TYPE_INT),
             'type' => $type,
-            'status' => waRequest::post('hidden', 0) ? 0 : 1
+            'status' => waRequest::post('hidden', 0) ? 0 : 1,
+            'route' => waRequest::post('route', null, waRequest::TYPE_STRING_TRIM)
         );
         $params = array();
         if (!empty($data['params'])) {

@@ -128,6 +128,17 @@ class shopProductModel extends waModel
         return $this->getProductStocksByProductId($ids, $order);
     }
 
+    public function getWithCategoryUrl($ids)
+    {
+        if (!$ids) {
+            return array();
+        }
+        $sql = "SELECT p.*, c.full_url category_url FROM ".$this->table." p
+                LEFT JOIN shop_category c ON p.category_id = c.id
+                WHERE p.id IN (i:0)";
+        return $this->query($sql, $ids)->fetchAll('id');
+    }
+
     /**
      * Get aggregated data about placing products(skus) in stocks
      *

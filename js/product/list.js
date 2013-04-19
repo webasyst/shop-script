@@ -424,13 +424,34 @@
 
             var type = $.product_list.collection_hash[0];
 
+            // category settings
             var list_settings_link = $('#s-product-list-settings');
             if (list_settings_link.length && (type == 'category' || type == 'set')) {
                 list_settings_link.unbind('click').bind('click', function() {
                     var showDialog = function() {
+
+                        // remove conflict dialog
+                        var conflict_dialog = $('#s-product-list-create-dialog');
+                        if (conflict_dialog.length) {
+                            conflict_dialog.parent().remove();
+                            conflict_dialog.remove();
+                        }
+
                         $('#s-product-list-settings-dialog').waDialog({
+                            onLoad: function() {
+                                if ($('#s-category-description-content').length) {
+                                    $.product_list.initCategoryDescriptionWysiwyg($(this));
+                                }
+                            },
                             onSubmit: function(d) {
-                                var form = d.find('form');
+                                var form = $(this);
+
+                                if ($('#s-category-description-content').length) {
+                                    waEditorUpdateSource({
+                                        id: 's-category-description-content'
+                                    });
+                                }
+
                                 $.shop.jsonPost(form.attr('action'), form.serializeArray(), function(r) {
                                     var collection_hash = $.product_list.collection_hash;
                                     var hash = location.hash.replace(collection_hash[0] + '_id=' + collection_hash[1], collection_hash[0] + '_id=' + r.data.id);
@@ -451,6 +472,7 @@
                                         $.products.dispatch();
                                     }
                                     d.trigger('close');
+
                                 }, function(r) {
                                     if (r && r.errors) {
                                         var errors = r.errors;
@@ -465,9 +487,10 @@
                         });
                     };
                     var d = $('#s-product-list-settings-dialog');
-                    var p = d.parent();
                     if (!d.length) {
                         p = $('<div></div>').appendTo('body');
+                    } else {
+                        p = d.parent();
                     }
                     p.load('?module=dialog&action=productListSettings&' + $.product_list.collection_param, showDialog);
                     return false;
@@ -544,6 +567,66 @@
             }
         },
 
+        initCategoryDescriptionWysiwyg: function(d) {
+
+            var tries = 3;
+
+            var request = function(src) {
+                return $.ajax({
+                    url: src,
+                    dataType: 'script',
+                    cache: true
+                });
+            };
+            var done = function() {
+                var field = d.find('.field.description');
+                field.find('i').hide();
+                field.find('.s-editor-core-wrapper').show();
+                waEditorInit({
+                    id: 's-category-description-content',
+                    prefix: 's-category-description-',
+                    upload_url: "",
+                    lang: "{$lang}"
+                });
+            };
+            var fail = function() {
+                if (tries > 0) {
+                    if (console) {
+                        console.log("Coudn't init editor. Error when loading proper js files. Try again.");
+                    }
+                    load();
+                    tries -= 1;
+                } else {
+                    if (console) {
+                        console.error("Coudn't init editor. Error when loading proper js files");
+                    }
+                }
+            };
+
+            if (wa_lang != 'en') {
+                var load = function() {
+                    $.when(request(wa_url + 'wa-content/js/elrte/elrte.min.js'), request(wa_url + 'wa-content/js/elrte/elrte-wa.js'),
+                    request(wa_url + 'wa-content/js/elrte/i18n/elrte.' + wa_lang + '.js')).then(done, fail);
+                };
+                load();
+            } else {
+                var load = function() {
+                    $.when(request(wa_url + 'wa-content/js/elrte/elrte.min.js'), request(wa_url + 'wa-content/js/elrte/elrte-wa.js')).then(done, fail);
+                };
+                load();
+            }
+
+            // var requests = [
+            // load(wa_url + 'wa-content/js/elrte/elrte.min.js'),
+            // load(wa_url + 'wa-content/js/elrte/elrte-wa.js')
+            // ];
+            // if (wa_lang != 'en') {
+            // requests.push(
+            // load(wa_url + 'wa-content/js/elrte/i18n/elrte.' + wa_lang + '.js')
+            // );
+            // }
+        },
+
         initDragndrop: function() {
             $.product_dragndrop.init({
                 products: true,
@@ -615,10 +698,10 @@
 
         /**
          * Get special key-value object for mass operations (delete, delete-from-set and etc) Taking into account all-products checkbox (s-select-all)
-         *
+         * 
          * Object say how many products are selected (key 'count'), and info about products or hash If all-products checkbox is activated than object has hash
          * info, else object has products info
-         *
+         * 
          * @param {Boolean} serialize If true than hash/product info packed into field with key 'serialized' else hash info corresponds 'hash'-key and products
          *        info corresponds 'products'-key
          * @returns {Object}
@@ -880,9 +963,29 @@
 
         createListDialog: function(type, parent_id, onCreate) {
             var showDialog = function() {
+
+                // remove conflict dialog
+                var conflict_dialog = $('#s-product-list-settings-dialog');
+                if (conflict_dialog.length) {
+                    conflict_dialog.parent().remove();
+                    conflict_dialog.remove();
+                }
+
                 $('#s-product-list-create-dialog').waDialog({
+                    onLoad: function(d) {
+                        if ($('#s-category-description-content').length) {
+                            $.product_list.initCategoryDescriptionWysiwyg($(this));
+                        }
+                    },
                     onSubmit: function(d) {
-                        var form = d.find('form');
+                        var form = $(this);
+
+                        if ($('#s-category-description-content').length) {
+                            waEditorUpdateSource({
+                                id: 's-category-description-content'
+                            });
+                        }
+
                         $.shop.jsonPost(form.attr('action'), form.serializeArray(), function(r) {
                             if (typeof onCreate === 'function') {
                                 onCreate(r.data, type);
@@ -903,9 +1006,10 @@
                 });
             };
             var d = $('#s-product-list-create-dialog');
-            var p = d.parent();
             if (!d.length) {
                 p = $('<div></div>').appendTo('body');
+            } else {
+                p = d.parent();
             }
             p.load('?module=dialog&action=productListCreate&type=' + type + '&parent_id=' + parent_id, showDialog);
         },
@@ -913,15 +1017,22 @@
         exportProducts: function(products, plugin) {
             var ids = [];
             var product;
+            var hash = false;
             while (product = products.serialized.pop()) {
-                if (product.name && (product.name == 'product_id[]')) {
-                    ids.push(parseInt(product.value, 10));
+                if (product.name) {
+                    if (product.name == 'product_id[]') {
+                        ids.push(parseInt(product.value, 10));
+                    } else if (product.name == 'hash') {
+                        hash = product.value;
+                    }
                 }
             }
-
-            if (ids.length) {
-                var url = '?action=importexport#/';
-                url += plugin;
+            var url = '?action=importexport#/';
+            url += plugin;
+            if (hash) {
+                url += '/hash/' + hash;
+                window.location = url;
+            } else if (ids.length) {
                 url += '/hash/id/' + ids.join(',');
                 window.location = url;
             }

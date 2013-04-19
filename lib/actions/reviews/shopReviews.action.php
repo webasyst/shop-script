@@ -11,10 +11,18 @@ class shopReviewsAction extends waViewAction
         $product_reivews_model = new shopProductReviewsModel();
         $reviews_per_page = $this->getConfig()->getOption('reviews_per_page_total');
 
+        /*
         $reviews = $product_reivews_model->getList(
             $offset,
             $reviews_per_page,
             array('is_new' => true)
+        );
+        */
+
+        $reviews = $product_reivews_model->getList('*,is_new,contact,product', array(
+                'offset' => $offset,
+                'limit' => $reviews_per_page
+            )
         );
 
         // TODO: move to model

@@ -6,11 +6,9 @@ class shopFrontendCheckoutAction extends waViewAction
 
     public function execute()
     {
-        $this->setLayout(new shopFrontendLayout());
-
         $steps = $this->getConfig()->getCheckoutSettings();
 
-        $current_step = waRequest::param('step');
+        $current_step = waRequest::param('step', waRequest::request('step'));
         if (!$current_step) {
             $current_step = key($steps);
         }
@@ -74,7 +72,12 @@ class shopFrontendCheckoutAction extends waViewAction
         $this->getResponse()->setTitle($title);
         $this->view->assign('checkout_current_step', $current_step);
 
-        $this->setThemeTemplate('checkout.html');
+        if (waRequest::isXMLHttpRequest()) {
+            $this->setThemeTemplate('checkout.'.$current_step.'.html');
+        } else {
+            $this->setLayout(new shopFrontendLayout());
+            $this->setThemeTemplate('checkout.html');
+        }
     }
 
     protected function createOrder()

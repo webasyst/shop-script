@@ -48,7 +48,7 @@ class shopDimensionValue implements ArrayAccess
 
     public function __toString()
     {
-        return sprintf($this->format, $this->value, $this->unit);
+        return sprintf($this->format, $this->value, _w($this->unit));
     }
 
     public function format($f)

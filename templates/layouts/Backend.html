@@ -113,9 +113,12 @@
                         <a href="?action=reports">[`Reports`]</a>
                     </li>
                 {/if}
-                <li class="{if $page=='storefronts'}selected{else}no-tab{/if} s-storefronts-tab">
-                    <a href="?action=storefronts">[`Storefront`]</a>
-                </li>
+                
+                {if $wa->userRights('design')}
+                    <li class="{if $page=='storefronts'}selected{else}no-tab{/if} s-storefronts-tab">
+                        <a href="?action=storefronts">[`Storefront`]</a>
+                    </li>
+                {/if}
 
                 <!-- plugin hook: 'backend_menu.core_li' -->
                 {* @event backend_menu.%plugin_id%.core_li *}

@@ -26,7 +26,7 @@
                         {if $badge_html}
                             <div class="corner top right">{$badge_html}</div>
                         {/if}
-                        {$wa->shop->productImgHtml($p, '48x48', ['itemprop' => 'image'])}
+                        {$wa->shop->productImgHtml($p, '48x48', ['itemprop' => 'image', 'alt' => $p.name])}
                     </a>
                 </div>
             </td>

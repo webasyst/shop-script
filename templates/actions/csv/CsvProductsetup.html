@@ -1,4 +1,4 @@
-<div class="block double-padded s-csv-import" id="s-csvproduct-form">
+<div class="block double-padded s-csv-settings" id="s-csvproduct-form">
     {if $direction eq 'import'}
     <h1>[`CSV product import`]</h1>
     <p>
@@ -17,25 +17,47 @@
    <input type="hidden" name="direction" value="{$direction|escape}">
 
     <div class="fields form">
-{if ($direction eq 'export') && !empty($info.exists)}
+    {if ($direction eq 'export')}
+        {if !empty($info)}
             <div class="field-group block" style="background: #eee;">
                 <div class="field">
                     <div class="name">
                         [`Last export`]
                     </div>
+                    {foreach $info as $f}
                     <div class="value no-shift" style="min-width: 300px;">
-                        <a href="?module=csv&action=productdownload" class="bold nowrap"><i class="icon16 download"></i>[`Download`]</a>
+                        <a href="?module=csv&action=productdownload&file={$f.name|escape}" class="bold nowrap"><i class="icon16 download"></i>[`Download`]</a> <span class="small">{$f.name|escape}</span> <span class="hint">{$f.size|wa_format_file_size}</span>
                         <br>
-                        <span class="hint">[`Updated`]: {$info.mtime|wa_datetime:"humandatetime"}</span>
+                        <span class="hint">[`Updated`]: {$f.mtime|wa_datetime:"humandatetime"}</span>
                     </div>
+                    {/foreach}
                 </div>
             </div>
-            {/if}
+         {/if}
+
+        {if count($settlements)>1}
+        <div class="field-group">
+            <div class="field">
+                <div class="name">
+                    [`Storefront`]
+                </div>
+                <div class="value no-shift">
+                    <select name="domain">
+                        {foreach $settlements as $route}
+                            <option value="{$route|escape}"{if $route eq $current_domain} selected="selected"{/if}>{$route|escape}</option>
+                        {/foreach}
+                    </select>
+                    <p class="hint">[`Select storefront to make product image URLs exported properly`]</p>
+                </div>
+            </div>
+        </div>
+        {elseif ($route = reset($settlements))}
+        <input type="hidden" value="{$route|escape}" name="domain">
+        {/if}
+        {/if}
             <div class="field-group">
             {if $direction eq 'import'}
                 <h2 class="gray">1. [`Upload CSV file`]</h2>
-            {else}
-                <h2 class="gray">1. [`CSV file settings`]</h2>
             {/if}
             <div class="field">
                 <div class="name">
@@ -75,7 +97,7 @@
                     {% file=o.file; %}
                     <input type="hidden" name="file" value="{%=file.name%}">
                     <i class="icon16 yes"></i>
-                    <strong>{% if(file.name != file.original_name){ %}{%=file.original_name%} &rarr; {% } %}{%=file.name%}</strong><br>
+                    <strong{% if(file.name != file.original_name){ %} title="{%=file.name%}"{% } %}>{%=file.original_name%}</strong><br>
                     <span class="hint">{% if(file.size != file.original_size){ %}{%=file.original_size%} &rarr; {% } %}{%=file.size%}</span>
                     {% if(file.header){ %}
                     <p><br>[`Following columns were located in the uploaded file:`]</p>
@@ -96,18 +118,33 @@
             <h2 class="gray">2. [`Import options`]</h2>
             <div class="field">
                 <div class="name">
-                   [`Identification column`]
+                   [`Product identification column`]
                 </div>
                 <div class="value no-shift">
                     <select name="primary" class="bold">
                         <option value="name">[`Product name`]</option>
-                        <option value="skus:-1:sku">[`SKU code`]</option>
                         <option value="url">[`Storefront link`]</option>
+                        <option value="null" class="italic">[`(none)`]</option>
                     </select>
                     &nbsp;
                     <span class="s-csv-primary-column-helper"></span>
                     <br>
                     <span class="hint">[`Select the product identification column (property) which uniquely identifies each product. Based on the identification column value in the CSV file uploaded, the import routine will either update existing product info, or create a new product.`]</span>
+                </div>
+            </div>
+            <div class="field">
+                <div class="name">
+                   [`SKU identification column`]
+                </div>
+                <div class="value no-shift">
+                    <select name="secondary" class="bold">
+                        <option value="skus:-1:sku">[`SKU code`]</option>
+                        <option value="skus:-1:name">[`SKU name`]</option>
+                    </select>
+                    &nbsp;
+                    <span class="s-csv-secondary-column-helper"></span>
+                    <br>
+                    <span class="hint">[`Similar to product, select the SKU identification column (property) which uniquely identifies each product SKU. Based on the identification column value in the CSV file uploaded, the import routine will either update existing SKU info, or create a new SKU for the product.`]</span>
                 </div>
 
                 <div class="value no-shift">
@@ -128,14 +165,26 @@
                     <span class="hint">[`If no particular product type column was specified in the uploaded CSV file, selected product type will be applied to all new products, created during the import.`]</span>
                 </div>
             </div>
+            <div class="field">
+                <div class="name">[`Product images import local path`]</div>
+                <div class="value">
+                    wa-data/protected/shop/<input type="text" class="long" name="upload_path" value="{$upload_path|escape}" placeholder="path/to/folder/with/source/images/">
+                    <br>
+                    <span class="hint">[`If your CSV file contains links to product images to be imported, import routine will attempt to automatically attach them to imported products. A link to an image file can be either global (a full image URL) or local (image file name). For local image import, indicate path to the folder where all source images are stored, i.e. where you uploaded them into. If linked image was not found, no image will be attached to the product.`]</span>
+                </div>
+            </div>
+
         </div>
         {else}
 
         <div class="field-group">
-            <h2 class="gray">2. [`Select products`]</h2>
             <div class="field">
                 <div class="name">
-                    <ul class="menu-v with-icons">
+                    [`Select products`]
+                </div>
+                <div class="value">
+                    <div class="sidebar left200px">
+                        <ul class="menu-v" style="margin-top: 0;">
                         <li>
                             <label class="black"><input type="radio" value="" name="hash" checked="checked"> [`All products`]</label>
                         </li>
@@ -154,7 +203,8 @@
                         </li>
                     </ul>
                 </div>
-                <div class="value js-hash-values js-hash-set" style="width: 400px;">
+
+                    <div class="content left200px js-hash-values js-hash-set" style="width: 400px;">
                     <div class="bordered-left" style="padding-left: 20px;">
                         <ul class="menu-v with-icons">
                         {foreach $sets as $set}
@@ -172,7 +222,7 @@
                         <span class="gray">[`Categories will not be exported`]</span>
                     </div>
                 </div>
-                <div class="value js-hash-values js-hash-type" style="width: 400px;">
+                    <div class="content left200px js-hash-values js-hash-type" style="width: 400px;">
                     <div class="bordered-left" style="padding-left: 20px;">
                         <ul class="menu-v with-icons">
                         {foreach $types as $type}{if $type.count}
@@ -188,11 +238,12 @@
                         </ul>
                     </div>
                 </div>
-                <div class="value js-hash-values js-hash-id" style="width: 400px;">
+                    <div class="content left200px js-hash-values js-hash-id" style="width: 400px;">
                     <input type="hidden" name="product_ids" value="">
                 </div>
                 <div class="clear-left"></div>
             </div>
+        </div>
         </div>
         {/if}
 
@@ -201,7 +252,7 @@
 
         <div class="field-group" id="s-csvproduct-submit">
             <div class="field">
-                <div>
+                <div class="value submit">
                     <input type="submit" class="button green" value="{if $direction eq 'import'}[`Start import`]{else}[`Start export`]{/if}">
                     <div class="js-progressbar-container" style="display:none;">
                         <div class="progressbar blue float-left" style="display: none; width: 70%;">

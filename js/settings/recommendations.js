@@ -36,7 +36,7 @@ $.extend($.settings = $.settings || {}, {
                     self.recommendationsRenderEdit(f);
                 } else {
                     // save off
-                    self.recommendationsSaveCrossSelling(this);
+                    self.recommendationsSaveUpSelling(this);
                     f.children('.field-settings').empty().hide();
                 }
         });
@@ -210,7 +210,7 @@ $.extend($.settings = $.settings || {}, {
 
     recommendationsSaveUpSelling: function (elem) {
         var f = $(elem).closest('.field');
-        $.post("?module=settings&action=recommendationsSave&setting=cross-selling", {
+        $.post("?module=settings&action=recommendationsSave&setting=upselling", {
             type_id: f.data('type-id'),
             value: 0
         }, function (response) {

@@ -84,17 +84,22 @@ class shopSortableModel extends waModel
     {
         if (!isset($data['sort'])) {
             $sql = "SELECT MAX(sort) sort FROM {$this->table}";
+            $where = array();
             if (is_array($this->id)) {
                 $fields = $this->remapId($data);
-                $where = array();
+
                 foreach ($fields as $field => $value) {
                     if ($value !== null) {
                         $where[] = $this->getWhereByField($field, $value);
                     }
                 }
-                if ($where) {
-                    $sql .= ' WHERE ('.implode(') AND (', $where).')';
-                }
+
+            }
+            if ($this->context && isset($data[$this->context])) {
+                $where[] = $this->getWhereByField($this->context, $data[$this->context]);
+            }
+            if ($where) {
+                $sql .= ' WHERE ('.implode(') AND (', $where).')';
             }
             $data['sort'] = $this->query($sql)->fetchField();
         }

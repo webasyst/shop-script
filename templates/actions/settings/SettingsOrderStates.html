@@ -38,16 +38,6 @@
         <div class="fields form">
             <form id="s-save-order-state" method="post" action="?module=settings&action=orderStateSave&id={$info.id}">
               <div class="field-group">
-                {if $info.id == 'new_state'}
-                <div class="field">
-                    <div class="name">
-                        [`State ID`]:
-                    </div>
-                    <div class="value">
-                        <input type="text" name="id" class="bold" value="">
-                    </div>
-                </div>
-                {/if}
                 <div class="field">
                     <div class="name">
                         [`Order state name`]
@@ -56,6 +46,16 @@
                         <input type="text" name="name" class="bold" value="{if $info.id != 'new_state'}{$info.name}{else}{/if}">
                     </div>
                 </div>
+                {if $info.id == 'new_state'}
+                <div class="field">
+                    <div class="name">
+                        [`State ID`]
+                    </div>
+                    <div class="value">
+                        <input type="text" name="id" class="small" value="">
+                    </div>
+                </div>
+                {/if}                
                 <div class="field">
                     <div class="name">
                         [`Appearance`]

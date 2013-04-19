@@ -70,12 +70,21 @@ class shopCustomersInfoAction extends waViewAction
             // !!! TODO: shipping and payment icons
         }
 
+        // Customer reviews
+        $prm = new shopProductReviewsModel();
+        $reviews = $prm->getList('*,is_new,product', array(
+            'escape' => false,
+            'where'  => array('contact_id' => $id),
+            'limit'  => false
+        ));
+
         // Customer affiliate transactions history
         $atm = new shopAffiliateTransactionModel();
         $affiliate_history = $atm->getByContact($id);
 
         $this->view->assign('top', $top);
-        $this->view->assign('orders', $orders);
+        $this->view->assign('orders',  $orders);
+        $this->view->assign('reviews', $reviews);
         $this->view->assign('contact', $contact);
         $this->view->assign('customer', $customer);
         $this->view->assign('contacts_url', $contacts_url);

@@ -4,8 +4,8 @@
 
 		<div class="block half-padded float-right">
 			<ul class="menu-h with-icons">
-            {if isset($plugin.status)}
-				<li><a href="#/shipping/plugin/delete/{$plugin_id}/" class="js-action js-confirm"><i class="icon16 delete"></i>[`Delete this shipping option`]</a></li>
+            {if isset($plugin.status) && !empty($plugin.id)}
+				<li><a href="#/shipping/plugin/delete/{$plugin.id}/" class="js-action js-confirm"><i class="icon16 delete"></i>[`Delete this shipping option`]</a></li>
             {/if}
 			</ul>
 		</div>
@@ -46,7 +46,7 @@
 			</div>
 			<div class="value">
 				<textarea name="shipping[description]">{$plugin.description|escape}</textarea>
-				<p class="hint">[`HTML. Shipping method description is shown to customer during the checkout.`]</p>
+				<p class="hint">[`HTML. Shipping option description is shown to customer during the checkout.`]</p>
 			</div>
 		</div>
         {*

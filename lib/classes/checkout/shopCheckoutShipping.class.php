@@ -7,20 +7,47 @@ class shopCheckoutShipping extends shopCheckout
     public function display()
     {
         $plugin_model = new shopPluginModel();
-        $methods = $plugin_model->listPlugins('shipping');
+        if (waRequest::param('shipping_id') && is_array(waRequest::param('shipping_id'))) {
+            $methods = $plugin_model->getById(waRequest::param('shipping_id'));
+        } else {
+            $methods = $plugin_model->listPlugins('shipping');
+        }
 
         $address = $this->getAddress();
+        $empty = true;
+        foreach ($address as $v) {
+            if ($v) {
+                $empty = false;
+                break;
+            }
+        }
+        if ($empty) {
+            $address = array();
+        }
         $items = $this->getItems();
 
         $cart = new shopCart();
         $total = $cart->total();
 
+
+        $settings = wa('shop')->getConfig()->getCheckoutSettings();
+        $address_form = !isset($settings['contactinfo']) || !isset($settings['contactinfo']['fields']['address.shipping']);
+        if (!isset($settings['contactinfo']) || !isset($settings['contactinfo']['fields']['address.shipping'])) {
+            $settings = wa('shop')->getConfig()->getCheckoutSettings(true);
+        }
+        if (!$address) {
+            $address_form = true;
+        }
+
         $currencies = wa('shop')->getConfig()->getCurrencies();
         foreach ($methods as $method_id => $m) {
             $plugin = shopShipping::getPlugin($m['plugin'], $m['id']);
+            $plugin_info = $plugin->info($m['plugin']);
+            $m['icon'] = $plugin_info['icon'];
+            $m['img'] = $plugin_info['img'];
             $m['rates'] = $plugin->getRates($items, $address, array('total_price' => $total));
+            $m['currency'] = $plugin->allowedCurrency();
             if (is_array($m['rates'])) {
-                $m['currency'] = $plugin->allowedCurrency();
                 if (!isset($currencies[$m['currency']])) {
                     $m['rate'] = 0;
                     $m['error'] = sprintf(_w('Shipping rate was not calculated because required currency %s is not defined in your store settings.'), $m['currency']);
@@ -35,19 +62,111 @@ class shopCheckoutShipping extends shopCheckout
                 $rate = reset($m['rates']);
                 $m['rate'] = $rate['rate'];
                 $m['est_delivery'] = $rate['est_delivery'];
-                $methods[$method_id] = $m;
             } elseif (is_string($m['rates'])) {
-                $m['error'] = $m['rates'];
-                $methods[$method_id] = $m;
+                if ($address) {
+                    $m['error'] = $m['rates'];
+                } else {
+                    $m['rates'] = array();
+                    $m['rate'] = null;
+                }
             } else {
                 unset($methods[$method_id]);
+                continue;
             }
+
+            $f = $this->getAddressForm($method_id, $plugin, $settings['contactinfo']['fields']['address.shipping'], $address, $address_form);
+            if ($f) {
+                $m['form'] = $f;
+                $m['form']->setValue($this->getContact());
+            }
+
+            $methods[$method_id] = $m;
         }
+
 
         $view = wa()->getView();
         $view->assign('checkout_shipping_methods', $methods);
         $m = reset($methods);
         $view->assign('shipping', $this->getSessionData('shipping', array('id' => $m ? $m['id'] : '', 'rate_id' => '')));
+    }
+
+    public function getAddressForm($method_id, waShipping $plugin, $config_address, $contact_address, $address_form)
+    {
+        $address_fields = $plugin->requestedAddressFields();
+        $disabled_only = true;
+        if ($address_fields === false || $address_fields === null) {
+            return false;
+        }
+        foreach ($address_fields as $f) {
+            if ($f !== false) {
+                $disabled_only = false;
+                break;
+            }
+        }
+        $address = array();
+        if ($disabled_only) {
+            $allowed = $plugin->allowedAddress();
+            if (count($allowed) == 1) {
+                $one = true;
+                if (!isset($config_address['fields'])) {
+                    $address_field = waContactFields::get('address');
+                    foreach ($address_field->getFields() as $f) {
+                        $fields[$f->getId()] = array();
+                    }
+                } else {
+                    $fields =  $config_address['fields'];
+                }
+                foreach ($allowed[0] as $k => $v) {
+                    if (is_array($v)) {
+                        $one = false;
+                        break;
+                    } else {
+                        $fields[$k]['hidden'] = 1;
+                        $fields[$k]['value'] = $v;
+                    }
+                }
+                foreach ($address_fields as $k => $v) {
+                    if ($v === false && isset($fields[$k])) {
+                        unset($fields[$k]);
+                    }
+                }
+                if ($one) {
+                    $address = $config_address;
+                    $address['fields'] = $fields;
+                }
+            }
+        } else {
+            if (isset($config_address['fields'])) {
+                $fields = $config_address['fields'];
+                foreach ($fields as $f_id => $f) {
+                    if (isset($address_fields[$f_id])) {
+                        foreach ($address_fields[$f_id] as $k => $v) {
+                            $fields[$f_id][$k] = $v;
+                        }
+                    } else {
+                        unset($fields[$f_id]);
+                    }
+                }
+                $address_fields = $fields;
+            }
+            if ($address_fields) {
+                $address = array('fields' => $address_fields);
+            }
+        }
+
+        if (!$address_form && !empty($address['fields'])) {
+            foreach ($address['fields'] as $k => $v) {
+                if (empty($contact_address[$k])) {
+                    $address_form = true;
+                    break;
+                }
+            }
+        }
+        if ($address_form) {
+            return waContactForm::loadConfig(array('address.shipping' => $address), array('namespace' => 'customer_'.$method_id));;
+        } else {
+            return null;
+        }
     }
 
     public function getItems()
@@ -140,6 +259,35 @@ class shopCheckoutShipping extends shopCheckout
                 'id' => $shipping_id,
                 'rate_id' => isset($rates[$shipping_id]) ? $rates[$shipping_id] : null
             ));
+
+            if ($data = waRequest::post('customer_'.$shipping_id)) {
+
+                $settings = wa('shop')->getConfig()->getCheckoutSettings();
+                if (!isset($settings['contactinfo']) || !isset($settings['contactinfo']['fields']['address.shipping'])) {
+                    $settings = wa('shop')->getConfig()->getCheckoutSettings(true);
+                }
+                $plugin = shopShipping::getPlugin(null, $shipping_id);
+                $form = $this->getAddressForm($shipping_id, $plugin, $settings['contactinfo']['fields']['address.shipping'], array(), true);
+                if (!$form->isValid()) {
+                    return false;
+                }
+
+                $contact = $this->getContact();
+                if (!$contact) {
+                    $contact = new waContact();
+                }
+                if ($data && is_array($data)) {
+                    foreach ($data as $field => $value) {
+                        $contact->set($field, $value);
+                    }
+                    if (wa()->getUser()->isAuth()) {
+                        $contact->save();
+                    } else {
+                        $this->setSessionData('contact', $contact);
+                    }
+                }
+            }
+
             if ($comment = waRequest::post('comment')) {
                 $this->setSessionData('comment', $comment);
             }

@@ -73,20 +73,14 @@ class shopOrderAction extends waViewAction
         $this->view->assign('tracking', $tracking);
 
 
-        $settings = wa('shop')->getConfig()->getCheckoutSettings();
-        $form_fields = ifset($settings['contactinfo']['fields'], array());
+        //$settings = wa('shop')->getConfig()->getCheckoutSettings();
+        //$form_fields = ifset($settings['contactinfo']['fields'], array());
 
         $formatter = new waContactAddressSeveralLinesFormatter();
-        if (isset($form_fields['address.shipping'])) {
-            $shipping_address = shopHelper::getOrderAddress($params, 'shipping');
-            $c = new waContact();
-            $c['address'] = $shipping_address;
-            $this->view->assign('shipping_address_text', $c->get('address', 'default'));
-            $shipping_address = $formatter->format(array('data' => $shipping_address));
-            $shipping_address = $shipping_address['value'];
-        } else {
-            $shipping_address = null;
-        }
+        $shipping_address = shopHelper::getOrderAddress($params, 'shipping');
+        $this->view->assign('shipping_address_text', shopHelper::getShippingAddressText($params));
+        $shipping_address = $formatter->format(array('data' => $shipping_address));
+        $shipping_address = $shipping_address['value'];
 
         if (isset($form_fields['address.billing'])) {
             $billing_address = shopHelper::getOrderAddress($params, 'billing');
@@ -132,6 +126,7 @@ class shopOrderAction extends waViewAction
             'billing_address'   => $billing_address,
             'shipping_address'  => $shipping_address,
             'shipping_id'       => ifset($params['shipping_id'], '').'.'.ifset($params['shipping_rate_id'], ''),
+            'offset'            => $this->getModel()->getOffset($order['id'], $this->getParams(), true)
         ));
     }
 

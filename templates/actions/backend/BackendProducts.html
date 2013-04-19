@@ -119,9 +119,11 @@
 
     <!-- types -->
     <div class="block">
-        <span class="count">
-            <a href="?action=settings#/features/"><i title="[`Manage product types`]" class="icon16 settings"></i></a>
-        </span>
+        {if $wa->userRights('settings')}
+            <span class="count">
+                <a href="?action=settings#/features/"><i title="[`Manage product types`]" class="icon16 settings"></i></a>
+            </span>
+        {/if}
         <h5 class="heading">
             <i class="icon16 darr collapse-handler" id="s-type-list-handler"></i><a href="javascript:void(0);">[`Product types`]</a>
         </h5>

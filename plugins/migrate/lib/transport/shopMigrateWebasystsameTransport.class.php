@@ -15,9 +15,9 @@ class shopMigrateWebasystsameTransport extends shopMigrateWebasystTransport
     {
         parent::initOptions();
         $this->addOption('path', array(
-            'title'                  => _wp('Path to folder'),
-            'value'                  => wa()->getConfig()->getRootPath(),
-            'description'            => _wp('Path to folder of the WebAsyst (old version) installation'),
+            'title'        => _wp('Path to folder'),
+            'value'        => wa()->getConfig()->getRootPath(),
+            'description'  => _wp('Path to folder of the WebAsyst (old version) installation'),
             'control_type' => waHtmlControl::INPUT,
         ));
     }
@@ -97,11 +97,24 @@ class shopMigrateWebasystsameTransport extends shopMigrateWebasystTransport
 
     protected function query($sql, $one = true)
     {
-        $q = $this->getSourceModel()->query($sql);
-        if ($one) {
-            return $q->fetch();
-        } else {
-            return $q->fetchAll();
+        try {
+            $debug = array();
+            $debug['sql'] = $sql;
+            $q = $this->getSourceModel()->query($sql);
+
+            if ($one) {
+                $res = $q->fetch();
+            } else {
+                $res = $q->fetchAll();
+            }
+            $debug['result'] = $res;
+            $this->log($debug, self::LOG_DEBUG);
+            return $res;
+        } catch (Exception $ex) {
+
+            $debug['error'] = $ex->getMessage();
+            $this->log($debug, self::LOG_ERROR);
+            throw new waException($debug['error']);
         }
     }
 

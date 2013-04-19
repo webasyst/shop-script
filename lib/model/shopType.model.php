@@ -19,7 +19,9 @@ class shopTypeModel extends shopSortableModel
             $types = array();
             $all_types = $this->getAll('id');
             foreach (self::extractAllowed(array_keys($all_types)) as $id) {
-                $types[$id] = $all_types[$id];
+                if(isset($all_types[$id])) {
+                    $types[$id] = $all_types[$id];
+                }
             }
             return $types;
         }
@@ -33,7 +35,7 @@ class shopTypeModel extends shopSortableModel
         $contact = wa('shop')->getUser();
         $allowed_ids = array();
         foreach ($type_ids as $id) {
-            if ($contact->getRights('shop', "type.{$id}")) {
+            if ($contact->getRights('shop',sprintf( "type.%d",$id))) {
                 $allowed_ids[] = $id;
             }
         }

@@ -57,6 +57,8 @@ class shopFeatureValuesDimensionModel extends shopFeatureValuesModel
             }
         }
 
+        $data['unit'] = $dimensions->fixUnit($data['type'], $data['unit']);
+
         $data['value'] = isset($value['value']) ? doubleval($value['value']) : 0;
         $data['value_base_unit'] = $dimensions->convert($data['value'], $data['type'], null, $data['unit']);
         return $data;

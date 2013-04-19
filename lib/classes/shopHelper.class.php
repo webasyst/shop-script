@@ -37,6 +37,29 @@ class shopHelper
         return $plugin_model->listPlugins(shopPluginModel::TYPE_PAYMENT);
     }
 
+    public static function getDisabledMethods($type, $id)
+    {
+        $map = wa()->getSetting('shipping_payment_disabled', null, 'shop');
+        if (!$map) {
+            return array();
+        }
+        $result = array();
+        $map = json_decode($map, true);
+        if (is_array($map)) {
+            $complementary = ($type == shopPluginModel::TYPE_PAYMENT) ? shopPluginModel::TYPE_SHIPPING : shopPluginModel::TYPE_PAYMENT;
+            if ($complementary == shopPluginModel::TYPE_PAYMENT) {
+                $result = isset($map[$id]) ? $map[$id] : array();
+            } else {
+                foreach ($map as $plugin_id => $values) {
+                    if (in_array($id, $values)) {
+                        $result[] = $plugin_id;
+                    }
+                }
+            }
+        }
+        return $result;
+    }
+
     public static function getShippingMethods($address = null, $items = array())
     {
         $plugin_model = new shopPluginModel();
@@ -89,7 +112,8 @@ class shopHelper
                         $plugins["{$type}.{$id}"] = $form;
                     }
                 }
-            } catch (waException $e) {}
+            } catch (waException $e) {
+            }
 
             $type = 'shipping';
             $key = ifempty($order['params'][$type.'_id']);
@@ -100,7 +124,8 @@ class shopHelper
                         $plugins["{$type}.{$id}"] = $form;
                     }
                 }
-            } catch (waException $e) {}
+            } catch (waException $e) {
+            }
 
             foreach ($plugins as $plugin_id => & $plugin) {
                 if (strpos($plugin_id, '.')) {
@@ -156,7 +181,7 @@ class shopHelper
             $default = wa()->getRootUrl(true).'wa-content/img/userpic'.$size.'.jpg';
             $default = urlencode($default);
         }
-        return 'http://www.gravatar.com/avatar/' . md5(strtolower(trim($email))) . "?size=$size&default=$default";
+        return 'http://www.gravatar.com/avatar/'.md5(strtolower(trim($email)))."?size=$size&default=$default";
     }
 
     public static function workupOrders(&$orders, $single = false)
@@ -242,6 +267,37 @@ class shopHelper
         return $address;
     }
 
+    public static function getShippingAddressText($order_params, $for_map = true)
+    {
+        $address = array();
+        foreach (waContactFields::get('address')->getFields() as $k => $v) {
+            $address[$k] = ifset($order_params['shipping_address.'.$k]);
+        }
+
+        if ($for_map) {
+            $address_f = array();
+            foreach (array('country', 'region', 'zip', 'city', 'street') as $k) {
+                if (!isset($address[$k])) {
+                    continue;
+                } else if ($k == 'country') {
+                    $address_f[$k] = waCountryModel::getInstance()->name(ifempty($address['country']));
+                } else if ($k == 'region') {
+                    $address_f['region'] = '';
+                    if (!empty($address['country']) && !empty($address['region'])) {
+                        $model = new waRegionModel();
+                        if ($region = $model->get($address['country'], $address['region'])) {
+                            $address_f['region'] = $region['name'];
+                        }
+                    }
+                } else {
+                    $address_f[$k] = $address[$k];
+                }
+            }
+            return implode(', ', $address_f);
+        }
+        return implode(', ', $address);
+    }
+
     public static function encodeOrderId($id)
     {
         return str_replace('{$order.id}', $id, wa('shop')->getConfig()->getOrderFormat());
@@ -271,7 +327,7 @@ class shopHelper
             if (!$stock_id || empty($stocks[$stock_id])) {
                 $bounds = array(
                     'critical_count' => shopStockModel::CRITICAL_DEFAULT,
-                    'low_count' => shopStockModel::LOW_DEFAULT
+                    'low_count'      => shopStockModel::LOW_DEFAULT
                 );
             } else {
                 $bounds = $stocks[$stock_id];

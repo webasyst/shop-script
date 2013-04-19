@@ -134,6 +134,23 @@ class shopCartItemsModel extends waModel
             $service_variants_model = new shopServiceVariantsModel();
             $variants = $service_variants_model->getByField('id', $variant_ids, 'id');
 
+            $product_services_model = new shopProductServicesModel();
+            $rows = $product_services_model->getByProducts($product_ids);
+
+            $product_services = $sku_services = array();
+            foreach ($rows as $row) {
+                if ($row['sku_id'] && !in_array($row['sku_id'], $sku_ids)) {
+                    continue;
+                }
+                $service_ids[] = $row['service_id'];
+                if (!$row['sku_id']) {
+                    $product_services[$row['product_id']][$row['service_variant_id']] = $row;
+                }
+                if ($row['sku_id']) {
+                    $sku_services[$row['sku_id']][$row['service_variant_id']] = $row;
+                }
+            }
+
             foreach ($items as &$item) {
                 if ($item['type'] == 'product') {
                     $item['product'] = $products[$item['product_id']];
@@ -149,16 +166,21 @@ class shopCartItemsModel extends waModel
                     }
                 } else {
                     $item['name'] = $item['service_name'] = $services[$item['service_id']]['name'];
-                    $item['price'] = $services[$item['service_id']]['price'];
                     $item['currency'] = $services[$item['service_id']]['currency'];
                     $item['service'] = $services[$item['service_id']];
-                    if ($item['service_variant_id']) {
-                        $item['variant_name'] = $variants[$item['service_variant_id']]['name'];
-                        if ($item['variant_name']) {
-                            $item['name'] .= ' ('.$item['variant_name'].')';
+                    $item['variant_name'] = $variants[$item['service_variant_id']]['name'];
+                    if ($item['variant_name']) {
+                        $item['name'] .= ' ('.$item['variant_name'].')';
+                    }
+                    $item['price'] = $variants[$item['service_variant_id']]['price'];
+                    if (isset($product_services[$item['product_id']][$item['service_variant_id']])) {
+                        if ($product_services[$item['product_id']][$item['service_variant_id']]['price'] !== null) {
+                            $item['price'] = $product_services[$item['product_id']][$item['service_variant_id']]['price'];
                         }
-                        if ($variants[$item['service_variant_id']]['price'] !== null) {
-                            $item['price'] = $variants[$item['service_variant_id']]['price'];
+                    }
+                    if (isset($sku_services[$item['sku_id']][$item['service_variant_id']])) {
+                        if ($sku_services[$item['sku_id']][$item['service_variant_id']]['price'] !== null) {
+                            $item['price'] = $sku_services[$item['sku_id']][$item['service_variant_id']]['price'];
                         }
                     }
                 }

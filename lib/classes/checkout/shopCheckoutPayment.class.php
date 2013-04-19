@@ -7,11 +7,29 @@ class shopCheckoutPayment extends shopCheckout
     public function display()
     {
         $plugin_model = new shopPluginModel();
-        $methods = $plugin_model->listPlugins('payment');
+
+        if (waRequest::param('payment_id') && is_array(waRequest::param('payment_id'))) {
+            $methods = $plugin_model->getById(waRequest::param('payment_id'));
+        } else {
+            $methods = $plugin_model->listPlugins('payment');
+        }
+
+        $shipping = $this->getSessionData('shipping');
+        if ($shipping) {
+            $disabled = shopHelper::getDisabledMethods('payment', $shipping['id']);
+        } else {
+            $disabled = array();
+        }
 
         $currencies = wa('shop')->getConfig()->getCurrencies();
         foreach ($methods as $method_id => $m) {
+            if (in_array($method_id, $disabled)) {
+                unset($methods[$method_id]);
+                continue;
+            }
             $plugin = shopPayment::getPlugin($m['plugin'], $m['id']);
+            $plugin_info = $plugin->info($m['plugin']);
+            $methods[$method_id]['icon'] = $plugin_info['icon'];
             $allowed_currencies = $plugin->allowedCurrency();
             if ($allowed_currencies !== true) {
                 $allowed_currencies = (array) $allowed_currencies;
@@ -26,6 +44,7 @@ class shopCheckoutPayment extends shopCheckout
         $m = reset($methods);
         $view->assign('payment_id', $this->getSessionData('payment', $m ? $m['id'] : null));
     }
+
 
     public function validate()
     {

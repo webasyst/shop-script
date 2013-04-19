@@ -115,13 +115,22 @@ class shopCart
         }
 
         $product_services_model = new shopProductServicesModel();
-        $sql = "SELECT v.id, s.currency, IFNULL(ps.price, v.price) price FROM shop_service_variants v
+        $sql = "SELECT v.id, s.currency, ps.sku_id, ps.price, v.price base_price FROM shop_service_variants v
                 LEFT JOIN shop_product_services ps ON
                 v.id = ps.service_variant_id AND ps.product_id = i:0 AND (ps.sku_id = i:1 OR ps.sku_id IS NULL)
                 JOIN shop_service s ON v.service_id = s.id
                 WHERE v.id IN (i:2)
                 ORDER BY ps.sku_id";
-        $prices = $product_services_model->query($sql, $item['product_id'], $item['sku_id'], $variants)->fetchAll('id');
+        $rows = $product_services_model->query($sql, $item['product_id'], $item['sku_id'], $variants)->fetchAll();
+        $prices = array();
+        foreach ($rows as $row) {
+            if (!isset($prices[$row['id']]) || $row['price']) {
+                if ($row['price'] === null) {
+                    $row['price'] = $row['base_price'];
+                }
+                $prices[$row['id']] = $row;
+            }
+        }
 
         foreach ($items as $s) {
             $price += shop_currency($prices[$s['service_variant_id']]['price'] * $item['quantity'], $prices[$s['service_variant_id']]['currency'], null, false);

@@ -3,8 +3,10 @@ class shopBackendSettingsAction extends waViewAction
 {
     public function execute()
     {
-
-        //TODO get dynamic sections lists and verify users rights(?)
+        if (!$this->getUser()->getRights('shop', 'settings')) {
+            throw new waException(_w("Access denied"));
+        }
+        //TODO get dynamic sections lists
         /**
          * @event backend_settings
          * @return array[string]array $return[%plugin_id%] array of html output

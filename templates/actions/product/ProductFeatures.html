@@ -66,7 +66,7 @@
             <input type="text" value="{if !empty($product_features[$code])}{$product_features[$code]->value}{/if}" name="product[features][{$code}][value]">
             <select  name="product[features][{$code}][unit]">
     			{foreach $units as $unit}
-                    <option value="{$unit.value|escape}" title="{$unit.title|escape}"{if !empty($product_features[$code]) && ($product_features[$code]->unit == $unit.value)} selected="selected"{/if}>{$unit.value|escape}</option>
+                    <option value="{$unit.value|escape}" title="{$unit.title|escape}"{if !empty($product_features[$code]) && ($product_features[$code]->unit == $unit.value)} selected="selected"{/if}>{$unit.title|escape}</option>
     			{/foreach}
             </select>
     	{elseif strpos($feature.type,'text') === 0}

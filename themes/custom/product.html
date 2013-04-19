@@ -17,7 +17,7 @@
     <li class="selected"><a href="{$wa->shop->productUrl($product)}">[`Overview`]</a></li>
     <li>
         <a href="{$wa->shop->productUrl($product, 'reviews')}">[`Reviews`]</a>
-        <span class="hint" itemprop="reviewCount">{$reviews_total_count}</span>
+        <span class="hint">{$reviews_total_count}</span>
     </li>
     {foreach $product.pages as $page}
         <li><a href="{$wa->shop->productUrl($product, 'page', ['page_url' => $page.url])}">{$page.name|escape}</a></li>
@@ -45,7 +45,7 @@
             
                 <!-- SELECTABLE FEATURES selling mode -->
                 {$product_available = $product.status}
-                <div>
+                <div class="options">
                     {foreach $features_selectable as $f}
                     {$f.name}:
                     <select data-feature-id="{$f.id}" class="sku-feature" name="features[{$f.id}]">
@@ -69,7 +69,7 @@
                             {$sku_available =  $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
                             <li itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                                 <label{if !$sku.available} class="disabled"{/if}>
-                                    <input name="sku_id" type="radio" value="{$sku.id}"{if !$sku.available} disabled="true"{/if}{if !$sku_available}data-disabled="1"{/if}{if $sku.id == $product.sku_id} checked="checked"{/if} data-price="{shop_currency($sku.price, $product.currency, null, 0)}"{if $sku.image_id} data-image-id="{$sku.image_id}"{/if}> <span itemprop="name">{$sku.name|escape}</span>
+                                    <input name="sku_id" type="radio" value="{$sku.id}"{if !$sku.available} disabled="true"{/if}{if !$sku_available}data-disabled="1"{/if}{if $sku.id == $product.sku_id} checked="checked"{/if} data-compare-price="{shop_currency($sku.compare_price, $product.currency, null, 0)}" data-price="{shop_currency($sku.price, $product.currency, null, 0)}"{if $sku.image_id} data-image-id="{$sku.image_id}"{/if}> <span itemprop="name">{$sku.name|escape}</span>
                                     {if $sku.sku}<span class="hint" itemprop="name">{$sku.sku|escape}</span>{/if}
                                     <meta itemprop="price" content="{shop_currency($sku.price, $product.currency)}">
                                     <span class="price tiny nowrap">{shop_currency($sku.price, $product.currency)}</span>
@@ -109,7 +109,7 @@
             {/if}
 
             <!-- stock info -->
-            {if $product_available}            
+            {if $product_available || count($product.skus) > 1}
             <div class="stocks">
                 {function name=in_stock n=0 low=5 critical=2}
                     {if $n > $low or $n === null}
@@ -234,14 +234,14 @@
                     {$wa->shop->badgeHtml($product.badge)}
                 </div>
                 {/if}
-                {$wa->shop->productImgHtml($product, '750x0', ['itemprop' => 'image', 'id' => 'product-image', 'title' => $product.name|escape|cat:' ':strip_tags($product.summary)|escape])}
+                {$wa->shop->productImgHtml($product, '750x0', [ 'itemprop' => 'image', 'id' => 'product-image', 'alt' => $product.name|escape|cat:' ':strip_tags($product.summary)|escape ])}
             </div>
             <!-- gallery -->
             {if count($product.images) > 1}
                 <div class="gallery" id="product-gallery">
                     {foreach $product.images as $image}
                         <div class="image">                    
-                            <a id="product-image-{$image.id}" href="#">{$wa->shop->productImgHtml(['id'=> $product.id, 'image_id' => $image.id, 'ext' => $image.ext, 'image_desc' => $image.description], '96x96')}</a>
+                            <a id="product-image-{$image.id}" href="#">{$wa->shop->productImgHtml(['id'=> $product.id, 'image_id' => $image.id, 'ext' => $image.ext, 'image_desc' => $image.description], '96x96', ['alt' => $product.name|cat:' - ':$image.description|escape])}</a>
                         </div>
                     {/foreach}
                 </div>

@@ -3,6 +3,7 @@
     <li {if !empty($m.error)}class="gray"{/if}>
         <h3>
             <label>
+                {if !empty($m.logo)}<img src="{$m.logo}" class="method-logo">{/if}
                 <input {if !empty($m.error)}disabled="disabled"{/if} type="radio" name="payment_id" value="{$m.id}" {if $m.id == $payment_id}checked{/if}>
                 {$m.name|escape}
             </label>

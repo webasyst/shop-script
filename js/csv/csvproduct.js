@@ -132,7 +132,7 @@ if (typeof($) != 'undefined') {
                 this.csv_product_form.find(':submit').show();
                 var self = this;
 
-                this.csv_product_form.find('select[name="primary"]').change(function() {
+                this.csv_product_form.find('select[name="primary"], select[name="secondary"]').change(function() {
                     var $this = $(this);
                     self.call('MapPrimaryHandler', [$this, $this.val()])
                 }).change();
@@ -177,16 +177,35 @@ if (typeof($) != 'undefined') {
         },
 
         csv_productMapPrimaryHandler: function($this, value) {
-            this.csv_product_form.find('tr.selected').removeClass('selected');
+            var sub_class = $this.attr('name');
+            this.csv_product_form.find('tr.selected.' + sub_class + ':first').parents('tbody').find('tr.selected').removeClass('selected ' + sub_class);
             var selector = ':input[name^="csv_map\["][name$="' + value + '\]"]:first';
-            this.csv_product_form.find(selector).parents('tr').addClass('selected');
+            var $selected = this.csv_product_form.find(selector);
+            var $non_sku = this.csv_product_form.find('tbody:not(.sku)');
+            if ($selected.length) {
+                $selected.parents('tr').addClass('selected ' + sub_class);
+                switch (sub_class) {
+                    case 'primary':
+                        $non_sku.show();
+                        $non_sku.find(':input').attr('disabled', null);
+                        break;
+                }
+            } else {
+                switch (sub_class) {
+                    case 'primary':
+                        $non_sku.find(':input').attr('disabled', true);
+                        $non_sku.hide();
+                        break;
+
+                }
+            }
         },
 
         csv_productSubmitHandler: function(form) {
             try {
                 var $form = $(form);
                 $.shop.trace('csv_productSubmitHandler', $form);
-                $form.find(':input, :submit').attr('disabled', false).show();
+                $form.find(':input:visible, :submit').attr('disabled', false).show();
                 this.csv_productHandler(form);
             } catch (e) {
                 $('#s-csvproduct-transport-group :input').attr('disabled', false);
@@ -213,7 +232,7 @@ if (typeof($) != 'undefined') {
                 type: 'post',
                 success: function(response) {
                     if (response.error) {
-                        self.form.find(':input').attr('disabled', false);
+                        self.form.find(':input:visible').attr('disabled', false);
                         self.form.find(':submit').show();
                         self.form.find('.js-progressbar-container').hide();
                         self.form.find('.shop-ajax-status-loading').remove();
@@ -223,6 +242,11 @@ if (typeof($) != 'undefined') {
                         self.form.find('.progressbar').attr('title', '0.00%');
                         self.form.find('.progressbar-description').text('0.00%');
                         self.form.find('.js-progressbar-container').show();
+
+                        if (response.file) {
+                            var $link = $('#s-csvproduct-report .value a:first');
+                            $link.attr('href', ('' + $link.attr('href')).replace(/&file=.*$/, '') + '&file=' + response.file);
+                        }
 
                         self.ajax_pull[response.processId] = [];
                         self.ajax_pull[response.processId].push(setTimeout(function() {
@@ -240,7 +264,7 @@ if (typeof($) != 'undefined') {
                     }
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
-                    self.form.find(':input').attr('disabled', false);
+                    self.form.find(':input:visible').attr('disabled', false);
                     self.form.find(':submit').show();
                     self.form.find('.js-progressbar-container').hide();
                     self.form.find('.shop-ajax-status-loading').remove();
@@ -268,6 +292,10 @@ if (typeof($) != 'undefined') {
                     'width': '100%'
                 });
                 $.shop.trace('cleanup', response.processId);
+                if (response.file) {
+                    var $link = $('#s-csvproduct-report .value a:first');
+                    $link.attr('href', ('' + $link.attr('href')).replace(/&file=.*$/, '') + '&file=' + response.file);
+                }
 
                 $.ajax({
                     url: url,
@@ -286,13 +314,14 @@ if (typeof($) != 'undefined') {
                         if (response.report) {
                             $("#s-csvproduct-report .value:first").html(response.report);
                         }
+
                         $.storage.del('shop/hash');
                     }
                 });
 
             } else if (response && response.error) {
 
-                self.form.find(':input').attr('disabled', false);
+                self.form.find(':input:visible').attr('disabled', false);
                 self.form.find(':submit').show();
                 self.form.find('.js-progressbar-container').hide();
                 self.form.find('.shop-ajax-status-loading').remove();

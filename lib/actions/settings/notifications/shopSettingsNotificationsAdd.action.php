@@ -26,15 +26,17 @@ table.table td input.numerical { width: 50px; margin-right: 5px; text-align: rig
 table.table tr.no-border td { border: none; }
 table.table tr.thin td { padding-top: 13px; padding-bottom: 0; }
 .align-right { text-align: right; }
+.nowrap { white-space: nowrap; }
+pre { word-wrap: break-word; }
 </style>
         
-<h1>'.sprintf( _w('New order %s'), '{$order.id}').'</h1>
+<h1>{$order.id}</h1>
 
 <table class="table">
     <tr>
         <th></th>
-        <th>'._w('Quantity').'</th>
-        <th>'._w('Total').'</th>
+        <th class="align-right">'._w('Qty').'</th>
+        <th class="align-right">'._w('Total').'</th>
     </tr>
     {$subtotal = 0}
     {foreach $order.items as $item}
@@ -43,40 +45,53 @@ table.table tr.thin td { padding-top: 13px; padding-bottom: 0; }
             {$item.name|escape}
             {if !empty($item.download_link)}<a href="{$item.download_link}"><strong>'._w('Download').'</strong></a>{/if}
         </td>
-        <td class="align-center">x {$item.quantity}</td>
-        <td class="align-center">{wa_currency($item.price * $item.quantity, $order.currency)}</td>
+        <td class="align-right nowrap">&times; {$item.quantity}</td>
+        <td class="align-right nowrap">{wa_currency($item.price * $item.quantity, $order.currency)}</td>
     </tr>
     {$subtotal = $subtotal + $item.price * $item.quantity}
     {/foreach}
     <tr class="no-border thin">
         <td colspan="2" class="align-right">'._w('Subtotal').'</td>
-        <td class="align-center">{wa_currency($subtotal, $order.currency)}</td>
+        <td class="align-right nowrap">{wa_currency($subtotal, $order.currency)}</td>
     </tr>
     <tr class="no-border thin">
         <td colspan="2" class="align-right">'._w('Discount').'</td>
-        <td class="align-center">{wa_currency($order.discount, $order.currency)}</td>
+        <td class="align-right nowrap">{wa_currency($order.discount, $order.currency)}</td>
     </tr>
     <tr class="no-border thin">
         <td colspan="2" class="align-right">'._w('Shipping').'</td>
-        <td class="align-center">{wa_currency($order.shipping, $order.currency)}</td>
+        <td class="align-right nowrap">{wa_currency($order.shipping, $order.currency)}</td>
     </tr>
     <tr class="no-border thin">
         <td colspan="2" class="align-right">'._w('Tax').'</td>
-        <td class="align-center">{wa_currency($order.tax, $order.currency)}</td>
+        <td class="align-right nowrap">{wa_currency($order.tax, $order.currency)}</td>
     </tr>
     <tr class="no-border thin large">
         <td colspan="2" class="align-right"><b>'._w('Total').'</b></td>
-        <td class="align-center bold">{wa_currency($order.total, $order.currency)}</td>
+        <td class="align-right nowrap bold">{wa_currency($order.total, $order.currency)}</td>
     </tr>
 </table>
 
-<h3>'._w('Ship to').'</h3>
-<p>{$customer->get("name", "html")|escape}<br>
+{if !empty($customer.email) || !empty($customer.phone)}
+    <h3>'._w('Contact info').'</h3>
+    {if !empty($customer.email)}
+        '._w('Email').': {$customer->get("email", "default")|escape}<br>
+    {/if}
+    {if !empty($customer.phone)}
+        '._w('Phone').': {$customer->get("phone", "default")|escape}<br>
+    {/if}
+{/if}
+
+<h3>'._w('Ship to').'{if !empty($order.params.shipping_name)} &mdash; {$order.params.shipping_name}{/if}</h3>
+<p>{$customer.name|escape}<br>
 {$shipping_address}</p>
 
-<h3>'._w('Bill to').'</h3>
-<p>{$customer->get("name", "html")|escape}<br>
+<h3>'._w('Bill to').'{if !empty($order.params.payment_name)} &mdash; {$order.params.payment_name}{/if}</h3>
+<p>{$customer.name|escape}<br>
 {$billing_address}</p>
+
+<h3>'._w('Comment to the order').'</h3>
+<pre>{$order.comment|escape}</pre>
 
 <p>'._w('View and manage your order').': <a href="{$order_url}" target="_blank"><strong>{$order_url}</strong></a>
 {if !empty($order.params.auth_pin)}<br>'._w('PIN').': <strong>{$order.params.auth_pin}</strong>{/if}
@@ -134,7 +149,7 @@ table.table tr.thin td { padding-top: 13px; padding-bottom: 0; }
 
         /* order CANCELLATION email notification template */
         $result['order.delete']['subject'] = sprintf( _w('Order %s has been cancelled'), '{$order.id}');
-        $result['order.delete']['body'] = '<p>'.sprintf( _w('Hi %s'), '{$customer->get("name", "html")}').'</p>
+        $result['order.delete']['body'] = '<p>'.sprintf( _w('Hi %s'), '{$customer.name|escape}').'</p>
 
 <p>'.sprintf( _w('Your order %s has been cancelled. If you want your order to be re-opened, please contact us.'), '{$order.id}').'</p>
 
@@ -149,7 +164,7 @@ table.table tr.thin td { padding-top: 13px; padding-bottom: 0; }
 
         /* MISC order status change email notification template */
         $result['order']['subject'] = sprintf( _w('Order %s has been updated'), '{$order.id}');
-        $result['order']['body'] = '<p>'.sprintf( _w('Hi %s'), '{$customer->get("name", "html")}').'</p>
+        $result['order']['body'] = '<p>'.sprintf( _w('Hi %s'), '{$customer.name|escape}').'</p>
 
 <p>'.sprintf( _w('Your order %s status has been updated to <strong>%s</strong>'), '{$order.id}', '{$status}').'</p>
 

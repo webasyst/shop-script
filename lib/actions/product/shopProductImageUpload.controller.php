@@ -26,12 +26,13 @@ class shopProductImageUploadController extends shopUploadController
         }
 
         $data = array(
-            'product_id'      => $product_id,
-            'upload_datetime' => date('Y-m-d H:i:s'),
-            'width'           => $image->width,
-            'height'          => $image->height,
-            'size'            => $file->size,
-            'ext'             => $file->extension,
+            'product_id'        => $product_id,
+            'upload_datetime'   => date('Y-m-d H:i:s'),
+            'width'             => $image->width,
+            'height'            => $image->height,
+            'size'              => $file->size,
+            'original_filename' => basename($file->name),
+            'ext'               => $file->extension,
         );
         $image_id = $data['id'] = $this->model->add($data);
         if (!$image_id) {

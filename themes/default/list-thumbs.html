@@ -30,7 +30,7 @@
                     {if $badge_html}
                         <div class="corner top right">{$badge_html}</div>
                     {/if}
-                    {$wa->shop->productImgHtml($p, '200x200', ['itemprop' => 'image', 'default' => "`$wa_theme_url`img/dummy200.png"])}
+                    {$wa->shop->productImgHtml($p, '200x200', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
                     <h5 itemprop="name">
                         {$p.name}
                     </h5>
