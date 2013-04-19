@@ -234,7 +234,7 @@ class shopViewHelper extends waAppViewHelper
         }
         if ($params) {
             $category_params_model = new shopCategoryParamsModel();
-            $rows = $category_params_model->getByField('category_id', array_keys($cats));
+            $rows = $category_params_model->getByField('category_id', array_keys($cats), true);
             foreach ($rows as $row) {
                 $cats[$row['category_id']]['params'][$row['name']] = $row['value'];
             }

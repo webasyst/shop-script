@@ -38,6 +38,7 @@
             </em>
         {else}
             <em class="small"><label>
+                <input type="hidden" name="{$prefix}[{$fid}][required]" value="">
                 <input type="checkbox" name="{$prefix}[{$fid}][required]" value="1"{if $f->getParameter('required')} checked{/if}> [`Required`]
             </label></em>
         {/if}

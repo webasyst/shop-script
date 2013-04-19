@@ -432,7 +432,7 @@ $.order_edit = {
     },
 
     showValidateErrors : function(validate_errors) {
-        $('#s-order-edit-customer .error').removeClass('error').empty();
+        $('#s-order-edit-customer .error').removeClass('error');
         $('#s-order-edit-customer .errormsg').empty();
         if (validate_errors && validate_errors.customer) {
             var errors = validate_errors.customer;
