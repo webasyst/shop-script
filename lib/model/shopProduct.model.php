@@ -135,8 +135,8 @@ class shopProductModel extends waModel
         }
         $sql = "SELECT p.*, c.full_url category_url FROM ".$this->table." p
                 LEFT JOIN shop_category c ON p.category_id = c.id
-                WHERE p.id IN (i:0)";
-        return $this->query($sql, $ids)->fetchAll('id');
+                WHERE p.id IN (i:ids)";
+        return $this->query($sql, array('ids' => $ids))->fetchAll('id');
     }
 
     /**
