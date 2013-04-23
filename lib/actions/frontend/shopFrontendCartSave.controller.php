@@ -30,6 +30,7 @@ class shopFrontendCartSaveController extends waJsonController
         $this->response['total'] = shop_currency($cart->total(), true);
         $this->response['discount'] = shop_currency($cart->discount(), true);
         $this->response['discount_numeric'] = $cart->discount();
+        $this->response['count'] = $cart->count();
     }
 
     public function getFullPrice($item)

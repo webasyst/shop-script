@@ -48,7 +48,7 @@ class shopViewHelper extends waAppViewHelper
         return wa('shop')->getConfig()->getGeneralSettings($name);
     }
 
-    public function sortUrl($sort, $name, $attrs = array())
+    public function sortUrl($sort, $name)
     {
 
         $inverted = in_array($sort, array('rating', 'create_datetime', 'total_sales', 'count'));
