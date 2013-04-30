@@ -61,17 +61,19 @@ class shopIndexSearch extends shopSearch
             }
         }
         // skus
-        foreach ($p['skus'] as $sku) {
-            if ($sku['sku']) {
-                $this->addToIndex($index, $sku['sku'], false);
-            }
-            if ($sku['name']) {
-                $this->addToIndex($index, $sku['name'], false);
+        if (isset($p['skus'])) {
+            foreach ($p['skus'] as $sku) {
+                if ($sku['sku']) {
+                    $this->addToIndex($index, $sku['sku'], false);
+                }
+                if ($sku['name']) {
+                    $this->addToIndex($index, $sku['name'], false);
+                }
             }
         }
 
         if (!empty($p['type_id'])) {
-            $this->addToIndex($index, $p['type']['name'], 'type');
+            $this->addToIndex($index, isset($p['type_name']) ? $p['type_name'] : $p['type']['name'], 'type');
         }
         if (!empty($p['tags'])) {
             $this->addToIndex($index, $p['tags'], 'tag', false);
