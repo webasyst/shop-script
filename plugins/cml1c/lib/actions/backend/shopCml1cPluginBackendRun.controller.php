@@ -840,6 +840,8 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         static $model;
         static $sku_model;
         static $states;
+        static $region_model;
+
         if (!$orders) {
             if (!$model) {
                 $model = new shopOrderModel();
@@ -876,23 +878,41 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
             $shipping_address = ifset($order['params']['shipping_address.street']);
             if (ifempty($order['params']['shipping_address.city'])) {
-                $shipping_address .= ', '.trim($order['params']['shipping_address.city']);
+                if ($shipping_address) {
+                    $shipping_address .= ', ';
+                }
+                $shipping_address .= trim($order['params']['shipping_address.city']);
             }
             if (ifempty($order['params']['shipping_address.zip'])) {
-                $shipping_address .= ', '.trim($order['params']['shipping_address.zip']);
+                if ($shipping_address) {
+                    $shipping_address .= ', ';
+                }
+                $shipping_address .= trim($order['params']['shipping_address.zip']);
             }
             if (ifempty($order['params']['shipping_address.country'])) {
-                $shipping_address .= ', '.trim($order['params']['shipping_address.country']);
+                if ($shipping_address) {
+                    $shipping_address .= ', ';
+                }
+                $shipping_address .= waCountryModel::getInstance()->name($order['params']['shipping_address.country']);
             }
             $billing_address = ifset($order['params']['billing_address.street']);
             if (ifempty($order['params']['billing_address.city'])) {
-                $billing_address .= ', '.trim($order['params']['billing_address.city']);
+                if ($billing_address) {
+                    $billing_address .= ', ';
+                }
+                $billing_address .= trim($order['params']['billing_address.city']);
             }
             if (ifempty($order['params']['billing_address.zip'])) {
-                $billing_address .= ', '.trim($order['params']['billing_address.zip']);
+                if ($billing_address) {
+                    $billing_address .= ', ';
+                }
+                $billing_address .= trim($order['params']['billing_address.zip']);
             }
             if (ifempty($order['params']['billing_address.country'])) {
-                $billing_address .= ', '.trim($order['params']['billing_address.country']);
+                if ($billing_address) {
+                    $billing_address .= ', ';
+                }
+                $billing_address .= waCountryModel::getInstance()->name($order['params']['billing_address.country']);
             }
             list($order['contact']['lastname'], $order['contact']['firstname']) = explode(' ', ifempty($order['contact']['name'], '-').' %', 2);
             $order['contact']['firstname'] = preg_replace('/\s+%$/', '', $order['contact']['firstname']);
@@ -922,28 +942,33 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 $this->write('
 					<АдресноеПоле>
 						<Тип>Почтовый индекс</Тип>
-						<Значение>'.$order['params']['shipping_address.zip'].'</Значение>
+						<Значение>'.htmlspecialchars($order['params']['shipping_address.zip'], ENT_QUOTES, 'utf-8').'</Значение>
 					</АдресноеПоле>');
             }
             if (!empty($order['params']['shipping_address.region'])) {
-                $this->write('
+                if (!$region_model) {
+                    $region_model = new waRegionModel();
+                }
+                if ($region = $region_model->get(ifset($order['params']['shipping_address.country']), $order['params']['shipping_address.region'])) {
+                    $this->write('
 					<АдресноеПоле>
 						<Тип>Регион</Тип>
-						<Значение>'.ifset($order['params']['shipping_address.region']).'</Значение>
+						<Значение>'.htmlspecialchars($region['name'], ENT_QUOTES, 'utf-8').'</Значение>
 					</АдресноеПоле>');
+                }
             }
             if (!empty($order['params']['shipping_address.city'])) {
                 $this->write('
 					<АдресноеПоле>
 						<Тип>Город</Тип>
-						<Значение>'.$order['params']['shipping_address.city'].'</Значение>
+						<Значение>'.htmlspecialchars($order['params']['shipping_address.city'], ENT_QUOTES, 'utf-8').'</Значение>
 					</АдресноеПоле>');
             }
             if (!empty($order['params']['shipping_address.street'])) {
                 $this->write('
 					<АдресноеПоле>
 						<Тип>Улица</Тип>
-						<Значение>'.$order['params']['shipping_address.street'].'</Значение>
+						<Значение>'.htmlspecialchars($order['params']['shipping_address.street'], ENT_QUOTES, 'utf-8').'</Значение>
 					</АдресноеПоле>');
             }
             $this->write('
@@ -951,7 +976,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 				<Контакты>
 					<Контакт>
 						<Тип>Почта</Тип>
-						<Значение>'.ifempty($order['params']['contact_email'], ifset($order['pcontact']['email'])).'</Значение>
+						<Значение>'.htmlspecialchars(ifempty($order['params']['contact_email'], ifset($order['pcontact']['email'])), ENT_QUOTES, 'utf-8').'</Значение>
 					</Контакт>');
 
             if ($phone = false) {
@@ -1285,7 +1310,6 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                                     $price = $price / (float) $rate;
                                 }
                             }
-                            $name = $product->name;
 
                             foreach ($element->xpath('ХарактеристикиТовара/ХарактеристикаТовара') as $property) {
                                 switch (self::field($property, 'Наименование')) {

@@ -571,7 +571,7 @@ class shopProductsCollection
                         );
                         $this->group_by = 'p.id';
                         return;
-                    } else {
+                    } elseif ($word_ids) {
                         $result = $this->getProducts('*', 0, 1);
                         $p = array_shift($result);
                         $w = str_replace(',', '.', 0.3 * $p['weight']);
