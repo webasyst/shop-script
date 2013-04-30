@@ -46,7 +46,7 @@
         [`Product sort order`]:
         <select name="sort_products">
             {if $settings.type == shopCategoryModel::TYPE_STATIC}
-                <option value="" {if empty($settings.sort_products)}selected="selected"{/if}>[`As defined in backend`]</option>
+                <option value="" {if empty($settings.sort_products)}selected="selected"{/if}>[`Manual`]</option>
             {/if}
             <option value="price DESC"  {if $settings.sort_products == 'price DESC'}selected="selected"{/if}>[`Most expensive`]</option>
             <option value="price ASC"   {if $settings.sort_products == 'price ASC'}selected="selected"{/if}>[`Least expensive`]</option>

@@ -3,11 +3,22 @@ class shopBackendLayout extends waLayout
 {
     public function execute()
     {
+        $user = wa()->getUser();
+        $product_rights = $user->isAdmin('shop') || wa()->getUser()->getRights('shop', 'type.%');
+
         if (wa()->getUser()->getRights('shop', 'orders')) {
             $default_page = 'orders';
-        } else {
+        } else if ($product_rights) {
             $default_page = 'products';
+        } else {
+            $default_page = null;
         }
+
+        if (!$default_page) {
+            throw new waRightsException(_w("Access denied"));
+        }
+
+        $this->assign('product_rights', $product_rights);
 
         $order_model = new shopOrderModel();
         $this->assign('new_orders_count', $order_model->getStateCounters('new'));

@@ -255,7 +255,7 @@ msgid "Description"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:49
-msgid "HTML. Shipping method description is shown to customer during the checkout."
+msgid "HTML. Shipping option description is shown to customer during the checkout."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:46
@@ -287,7 +287,7 @@ msgid "A collection of payment option icons is available for free: <a href=\"%s\
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:40
-msgid "HTML. Payment method description is shown to customer during the checkout."
+msgid "HTML. Payment option description is shown to customer during the checkout."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:74
@@ -319,8 +319,8 @@ msgid "Shipping & Contacts"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:21
-msgid "Some shipping methods require to know the destination address. If shipping step is before the contact info step (i.e. customer didn't input the address yet), certain shipping methods may not calculate shipping rates properly."
-msgstr "Some shipping methods require the destination address to be known. If shipping step goes before the contact info step (i.e. the customer has not entered an address yet), some shipping methods may calculate shipping rates incorrectly."
+msgid "Some shipping options require to know the destination address. If shipping step is before the contact info step (i.e. customer didn't input the address yet), certain shipping options may not calculate shipping rates properly."
+msgstr "Some shipping options require the destination address to be known. If shipping step goes before the contact info step (i.e. the customer has not entered an address yet), some shipping options may calculate shipping rates incorrectly."
 
 #: /wa-apps/shop/lib/config/data/checkout.php:16
 msgid "Confirmation"
@@ -387,11 +387,11 @@ msgid "Will be displayed in the storefront as in the checkout navigation"
 msgstr "Will be displayed in the storefront in the checkout navigation area"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:175
-msgid "Shipping methods"
+msgid "Shipping options"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:177
-msgid "The list of available shipping methods is determined automatically based on the user address, shopping cart content, and the list of available <a class=\"inline\" href=\"#/shipping/\">shipping options</a>."
+msgid "The list of available shipping options is determined automatically based on the user address, shopping cart content, and the list of available <a class=\"inline\" href=\"#/shipping/\">shipping options</a>."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/data/checkout.php:6
@@ -547,7 +547,7 @@ msgid "Reset"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsReset.html:3
-msgid "If you want to restart your online store from scratch, you may delete the entire store content and settings using the form below. This will delete all products, orders, checkout, shipping and payment methods, currencies. The operation cannot be undone. Be sure to know what you are doing."
+msgid "If you want to restart your online store from scratch, you may delete the entire store content and settings using the form below. This will delete all products, orders, checkout, shipping and payment options, currencies. The operation cannot be undone. Be sure to know what you are doing."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsReset.html:9
@@ -2799,8 +2799,8 @@ msgid "Url is in use"
 msgstr "URL is in use"
 
 #: /wa-apps/shop/lib/actions/products/shopProductsSaveListSettings.controller.php:131
-msgid "Only latin characters, numbers and underscore symbol are allowed"
-msgstr "Only Latin letters, numbers, and underscore characters are allowed"
+msgid "Only Latin characters, numbers, underscore and hyphen symbols are allowed"
+msgstr ""
 
 #: /wa-apps/shop/lib/actions/products/shopProductsSaveListSettings.controller.php:135
 msgid "ID is in use"
@@ -3402,12 +3402,12 @@ msgid "Storefront settings are managed using the Site app"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:75
-msgid "Shipping method not specified"
-msgstr "Shipping method is not specified"
+msgid "Shipping option not specified"
+msgstr "Shipping option is not specified"
 
 #: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:83
-msgid "Payment method not specified"
-msgstr "Payment method is not specified"
+msgid "Payment option not specified"
+msgstr "Payment option is not specified"
 
 #: /wa-apps/shop/lib/actions/plugins/shopPlugins.action.php:8
 msgid "Access denied"
@@ -5495,4 +5495,148 @@ msgstr ""
 
 #: /wa-apps/shop/themes/default/category.html:57
 msgid "No products were found."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductFeaturesSelectable.html:29
+msgid "To activate this mode, this particular product must be assigned a product type which offers at least one <strong>selectable</strong> feature (the list of available product types and features is configured at <em>Settings &rarr; Product types &amp; features</em>)."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:823
+msgid "Optional set of custom <em>key=value</em> parameters which can be used within a frontend's theme template as <em>&#123;$product.params.key&#125;</em>. Each key=value pair should be on a separate line."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:74
+msgid "Delete product"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:334
+msgid "Prompt for address"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:337
+msgid "During the “Shipping” checkout step, when customer selects a preferred shipping option but shipping address was not yet entered, instantly prompt customer to provide:"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:340
+msgid "All required address fields"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:341
+msgid "Prompt for all address fields according to the selected shipping option implementation. If you use this option and have “Shipping” prior to “Contact info” in the checkout step order, it is advisable to hide (disable) shipping address form on the “Contact Info” checkout step to avoid asking for address twice."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:344
+msgid "Only fields required for shipping rate estimation"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:345
+msgid "Prompt for fields required for shipping rate and delivery date estimation only (shipping option implementation declares the list of such fields). This is a suitable setup option if you have “Shipping” prior to “Contact info” in the checkout step order setup."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/data/checkout.php:17
+msgid "The shipping checkout step prompts customer to select preferable shipping option from the list configured on the <a class=\"inline\" href=\"#/shipping/\">Shipping</a> settings screen."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/data/checkout.php:21
+msgid "The payment checkout step prompts customer to select preferable payment option from the list configured on the <a class=\"inline\" href=\"#/payment/\">Payment</a> settings screen."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/data/checkout.php:25
+msgid "The confirmation checkout step presents overall order information including cart content, shipping and tax rates, total amount."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:173
+msgid "Returns array of products by search criteria, e.g. <em>\"tag/new\"</em>, <em>\"category/12\"</em>, <em>\"id/1,5,7\"</em>, <em>\"set/1\"</em>, or <em>\"*\"</em> for all products list."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:174
+msgid "Optional <em>options</em> parameter indicates additional product options, e.g. <em>[\"params\" => 1]</em> to include product custom parameter values into the output."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:174
+msgid "Returns array of products from the specified set."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:180
+msgid "Product summary (brief description)"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:130
+msgid "Product description"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:181
+msgid "Product average rating (float, 0 to 5)"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:182
+msgid "Array of product SKUs"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:183
+msgid "Array of product images"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:184
+msgid "Array of product categories"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:185
+msgid "Array of product tags"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:186
+msgid "Array of product static info pages"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:187
+msgid "Array of product features and values"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:139
+msgid "Array of product reviews"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:140
+msgid "Array of services available for this product"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:170
+msgid "Returns category object by <em>$category_id</em>"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:171
+msgid "Array of custom category parameters"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:172
+msgid "Returns array of products currently added into a comparison list"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:192
+msgid "Returns number of products matching specified search conditions, e.g. <em>\"tag/new\"</em>, <em>\"category/12\"</em>, <em>\"id/1,5,7\"</em>, <em>\"set/1\"</em>, or <em>\"*\"</em> for all products list."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:80
+msgid "If enabled, customer will be prompted to fill in address fields directly on the “Contact info” checkout step."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:81
+msgid "In case shipping method and address were prompted prior to the contact info, only missing address fields will be requested."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormEditor.html:69
+msgid "This field can be invisible in some cases, so it may not be required."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:81
+msgid "Customize field list"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/checkout/shopSettingsCheckoutContactForm.action.php:80
+msgid "Shipping address prompt"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/checkout/shopSettingsCheckoutContactForm.action.php:88
+msgid "Billing address prompt"
 msgstr ""

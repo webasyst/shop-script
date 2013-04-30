@@ -6,7 +6,6 @@
         <a href="#/" class="back">&larr; [`Back`]</a>
         
         <span class="s-product-name">{if $product.id == 'new'}[`New product`]{else}{$product.name|escape}{/if}</span>
-        
         <span class="hint float-right s-product-id" {if $product.id == 'new'}style="display:none;"{/if}>id: {$product.id}</span>
 
         <!-- plugin hook: 'backend_product.title_suffix' -->
@@ -22,14 +21,20 @@
         {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.action_button)}{/foreach}{/if}
 
     </h1>
-
-    {if !empty($frontend_url)}
+    
     <ul class="menu-h small" id="s-product-frontend-links">
         <li class="s-inline-mixed-string">
-            [`Storefront link`]: <a href="{$frontend_url}" target="_blank">{$frontend_url}</a><i class="icon10 new-window"></i>
+            [`Storefront link`]:
+            <span class="s-product-frontend-url-not-empty" {if !$frontend_base_url}style="display:none;"{/if}>
+                <a href="{$frontend_url}" 
+                    target="_blank"
+                >{if $frontend_url}{$frontend_url}{/if}</a><i class="icon10 new-window"></i>
+            </span>
+            <span class="s-product-frontend-url-empty hint" {if $frontend_base_url}style="display:none;"{/if}>
+                {_w(sprintf('This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts', $product.type.name))}
+            </span>
         </li>
     </ul>
-    {/if}
 
 {* PRODUCT PROFILE SECTION BEGIN *}
     <div id="s-product-profile-page">
@@ -69,6 +74,12 @@
                 <i class="icon16 loading"></i>
             </div>
             {/if}
+
+            <div id="s-product-delete" class="block align-center">
+                <ul class="menu-h with-icons">
+                    <li><a href="#/product/{$product.id}/edit/main/product/delete/" class="inline-link js-action"><i class="icon16 delete"></i>[`Delete product`]</a></li>
+                </ul>
+            </div>
 
             <!-- plugin hook: 'backend_product.toolbar_section' -->
             {* @event backend_product.%plugin_id%.toolbar_section *}
@@ -163,12 +174,11 @@
                                     {else}
                                         {$count = null}
                                     {/if}
-
-                                        {shopHelper::getStockCountIcon($sku.count,$stock_id)}
+                                        {shopHelper::getStockCountIcon($count, $stock_id)}
 
                                         {if $count === null}∞{else}{$count}{/if}
 
-                                        {if $count>0 && $count <= 1}
+                                        {if $count > 0 && $count <= 1}
                                             <em class="small bold s-stock-warning-low" title="[`Approximate date when you run out of stock for this SKU is %s based on average selling rate (≈%f items per month)`]">3 days</em>
                                         {/if}
 
@@ -311,17 +321,32 @@
                                 <option {if !$product.status}selected{/if} value="0">[`Hidden`]</option>
                             </select>
                         </div>
-                        {strip}
-                            <span style="display:none" class="s-frontend-base-url">{$frontend_base_url}</span>
-                            <a href="{$frontend_url}"  class="s-frontend-base-url" target="_blank">
-                                {$frontend_base_url}
-                                <span id="s-product-frontend-url">{$product.url}</span>
-                                <span class="slash">/</span>
+                        
+                        <span class="s-product-frontend-url-not-empty" {if !$frontend_base_url}style="display:none;"{/if}>
+                            {strip}
+                                <span style="display:none" class="s-frontend-base-url">
+                                    {if $frontend_base_url}{$frontend_base_url}{/if}
+                                </span>
+                                <a href="{$frontend_url}"  class="s-frontend-base-url" target="_blank">
+                                    {if $frontend_base_url}{$frontend_base_url}{/if}
+                                    <span id="s-product-frontend-url">{$product.url}</span>
+                                    <span class="slash">/</span>
+                                </a>
+                                <i class="icon10 new-window"></i>
+                                <input type="text" class="s-product-url-input" 
+                                    id="s-product-frontend-url-input" 
+                                    value="{$product.url}" 
+                                    name="product[url]" style="display:none;"
+                                >
+                            {/strip}
+                            <a href="javascript:void(0);" class="small inline-link" id="s-product-frontend-url-edit-link">
+                                <i class="icon10 edit"></i><b><i>[`edit`]</i></b>
                             </a>
-                            <i class="icon10 new-window"></i>
-                            <input type="text" class="s-product-url-input" id="s-product-frontend-url-input" value="{$product.url}" name="product[url]" style="display:none;">
-                        {/strip}
-                        <a href="javascript:void(0);" class="small inline-link" id="s-product-frontend-url-edit-link"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
+                        </span>
+                        
+                        <p class="s-product-frontend-url-empty hint" {if $frontend_base_url}style="display:none;"{/if}>
+                            {_w(sprintf('This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts', $product.type.name))}
+                        </p>
                         
                         <p class="s-product-status-text hint" {if $product.status}style="display:none;"{/if}>
                             [`Hidden products are not shown among other products in the storefront, are not available for purchase, and can be viewed by the direct URL only.`]
@@ -404,40 +429,59 @@
                 {/if}
             </div>
             
-            
-            {if !empty($features)}
+            {capture name="sku_type_field_group"}
                 <div class="field-group" id="s-sku-type-field-group">
                     <div class="field">
-                        
-                        {capture name="sku_type_field_value"}
-                            <div class="value no-shift s-sku-type-field-value">
-                                <ul class="thumbs li250px">
-                                    <li>
-                                        <label>
-                                            <input type="radio" name="product[sku_type]" value="{shopProductModel::SKU_TYPE_FLAT}" {if $product.sku_type == shopProductModel::SKU_TYPE_FLAT}checked{/if} /> [`Flat SKU list`]
-                                            <i class="icon16 ss sku-type-flat"></i>
-                                            <br>
-                                            <span class="hint"><br>[`Best for single-priced products and products with a flat list of purchase options (SKUs). SKUs are added one-by-one arbitrarly. Customer selects individual SKU and adds it to shopping cart.`]</span>
-                                        </label>
-                                    </li>
-                                    <li style="width: 400px; margin-left: 50px;">
-                                        <label>
-                                            <input type="radio" name="product[sku_type]" value="{shopProductModel::SKU_TYPE_SELECTABLE}" {if $product.sku_type == shopProductModel::SKU_TYPE_SELECTABLE}checked{/if} /> [`Selectable features`]
-                                            <i class="icon16 ss sku-type-selectable"></i>
-                                            <br>
-                                            <span class="hint"><br>[`Best for multi-dimensional featured products, e.g. apparel or footwear which can vary in size and color. Flat SKU list is created automatically based on the combination of features offered for selection. Customer is prompted to choose preferable product feature values which unambiguously identifies SKU that is being added to shopping cart. `]</span>
-                                        </label>
-                                    </li>
-                                </ul>
-                            </div>
-                        {/capture}
-                        
-                        {if $product.id == 'new'}
-                            {$smarty.capture.sku_type_field_value}
-                        {/if}
-                        
+                        <div class="value no-shift s-sku-type-field-value">
+                            <ul class="thumbs li250px">
+                                <li>
+                                    <label>
+                                        <input type="radio" 
+                                            name="product[sku_type]" 
+                                            value="{shopProductModel::SKU_TYPE_FLAT}" 
+                                            {if empty($features) || $product.sku_type == shopProductModel::SKU_TYPE_FLAT}checked{/if} 
+                                        /> [`Flat SKU list`]
+                                        <i class="icon16 ss sku-type-flat"></i>
+                                        <br>
+                                        <span class="hint"><br>[`Best for single-priced products and products with a flat list of purchase options (SKUs). SKUs are added one-by-one arbitrarly. Customer selects individual SKU and adds it to shopping cart.`]</span>
+                                    </label>
+                                </li>
+                                <li style="width: 400px; margin-left: 50px;">
+                                    <label>
+                                        <input type="radio" 
+                                            name="product[sku_type]" 
+                                            value="{shopProductModel::SKU_TYPE_SELECTABLE}" 
+                                            {if !empty($features) && $product.sku_type == shopProductModel::SKU_TYPE_SELECTABLE}checked{/if}
+                                            {if empty($features)}disabled="disabled"{/if} 
+                                        /> [`Selectable features`]
+                                        <i class="icon16 ss sku-type-selectable"></i>
+                                        <br>
+
+                                        {if empty($features)}
+                                            <span class="small"><br>
+                                            [`To activate this mode, this particular product must be assigned a product type which offers at least one <strong>selectable</strong> feature (the list of available product types and features is configured at <em>Settings &rarr; Product types &amp; features</em>).`]<br>
+                                            </span>
+                                        {/if}
+                                        <span class="hint"><br>
+                                            [`Best for multi-dimensional featured products, e.g. apparel or footwear which can vary in size and color. Flat SKU list is created automatically based on the combination of features offered for selection. Customer is prompted to choose preferable product feature values which unambiguously identifies SKU that is being added to shopping cart. `]
+                                        </span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {/capture}
+            
+            {if $product.id == 'new'}
+                {$smarty.capture.sku_type_field_group}
+            {/if}
+
+            {if !empty($features)}
+                <div class="field-group" id="s-product-feature-superposition-field-group" {if $product.sku_type == shopProductModel::SKU_TYPE_FLAT}style="display:none"{/if}>
+                    <div class="field">
                         <!-- feature selection -->
-                        <div class="value s-product-feature-superposition" id="s-product-feature-superposition" {if $product.sku_type == shopProductModel::SKU_TYPE_FLAT}style="display:none"{/if}>
+                        <div class="value s-product-feature-superposition" id="s-product-feature-superposition">
                             <div class="sidebar left150px">
                                 <div class="block not-padded right-padded">
                                     <ul class="menu-v with-icons features">
@@ -523,14 +567,10 @@
                                 </div>
                             </div>
                         </div>
-                        
                     </div>
                 </div>
             {else}
-                <div class="field-group" id="s-sku-type-field-group">
-                    <input type="hidden" name="product[sku_type]" value="{shopProductModel::SKU_TYPE_FLAT}">
-                </div>
-                {capture name="sku_type_field_value"}{/capture}
+                <div class="field-group" id="s-product-feature-superposition-field-group"></div>
             {/if}
             
             <div class="field-group">
@@ -609,10 +649,9 @@
                                                 {$count = null}
                                             {/if}
                                             <span data-stock="{$stock_id}" class="s-product-stock-icon">
-                                            {shopHelper::getStockCountIcon($count,$stock_id)}
+                                            {shopHelper::getStockCountIcon($count, $stock_id)}
                                             </span>
                                             <input class="small" type="text" name="product[skus][{$sku_id}][stock][{$stock_id}]"value="{if empty($sku.stock) && $stock@first}{$sku.count}{else}{if $count!==null}{$count}{/if}{/if}" placeholder="∞"{if empty($sku.stock)} disabled="disabled"{/if}>
-            
                                             <span class="hint">@{$stock.name|escape}</span><br>
                                         {/foreach}
                                         </div>
@@ -721,12 +760,11 @@
                     </table>
                     </div>
                     <input type="hidden" value="{$product.currency}" name="product[currency]" id="s-product-currency-code">
-                    {if $product.id != 'new'}
-                        {$smarty.capture.sku_type_field_value}
-                    {/if}
                 </div>
             </div>
-                        
+            {if $product.id != 'new'}
+                {$smarty.capture.sku_type_field_group}
+            {/if}
         </div>
 {* PRODUCT EDIT MAIN TAB SECTION END *}
 
@@ -798,6 +836,21 @@
                     </div>
                 </div>
               </div>
+              
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">
+                            <label for="custom-settings">
+                            [`Custom parameters`]
+                            </label>
+                        </div>
+                        <div class="value">
+                            <textarea name="product[params]" rows="10" cols="5">{if $product->params}{foreach $product->params as $k=>$v}{if $k!='order'}{$k}={$v|escape|cat:"\n"}{/if}{/foreach}{/if}</textarea><br>
+                            <span class="hint">[`Optional set of custom <em>key=value</em> parameters which can be used within a frontend's theme template as <em>&#123;$product.params.key&#125;</em>. Each key=value pair should be on a separate line.`]</span>
+                        </div>
+                    </div>
+                </div>
+              
             </div>
         </div>
 {* PRODUCT EDIT DESCRIPTIONS TAB SECTION END *}

@@ -8,7 +8,7 @@ class shopShopscriptredirectPlugin extends shopPlugin
      */
     public function frontendError($params)
     {
-        if ($params->getCode() == 404 && waRequest::param('url_type') != 1) {
+        if ($params->getCode() == 404) {
             $url = wa()->getRouting()->getCurrentUrl();
             if ($url == 'index.php') {
                 if ($id = waRequest::get('productID')) {
@@ -31,14 +31,14 @@ class shopShopscriptredirectPlugin extends shopPlugin
                         'category_url' => waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url'])));
                     }
                 }
-            } elseif (substr($url, 0, 8) == 'product/') {
+            } elseif (substr($url, 0, 8) == 'product/' && waRequest::param('url_type') != 1) {
                 $url = substr($url, 8);
                 $url_parts = explode('/', $url);
                 $product_model = new shopProductModel();
                 if ($product_model->getByField('url', $url_parts[0])) {
                     wa()->getResponse()->redirect(wa()->getRootUrl(false, true).wa()->getRouting()->getRootUrl().$url);
                 }
-            } elseif (substr($url, 0, 9) == 'category/') {
+            } elseif (substr($url, 0, 9) == 'category/' && waRequest::param('url_type') != 1) {
                 $url = substr($url, 9);
                 $category_model = new shopCategoryModel();
                 if ($c = $category_model->getByField('full_url', rtrim($url, '/'))) {

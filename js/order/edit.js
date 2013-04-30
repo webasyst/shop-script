@@ -97,6 +97,9 @@ $.order_edit = {
                         }
                     }));
                     add_row.prev().find('.s-orders-services .s-orders-service-variant').trigger('change');
+
+                    $('#s-order-comment-edit').show();
+
                     $.order_edit.updateTotal();
                 });
                 add_order_input.val('');
@@ -157,7 +160,16 @@ $.order_edit = {
         });
 
         this.container.off('click', '.s-order-item-delete').on('click', '.s-order-item-delete', function() {
-            $(this).parents('tr:first').replaceWith($.order_edit.container.find('.template-deleted').clone().show());
+//            $(this).parents('tr:first').replaceWith(
+//                $.order_edit.container.find('.template-deleted').clone().show()
+//            );
+
+            var self = $(this);
+            self.parents('tr:first').remove();
+            if (!self.parents('table:first').find('tr.s-order-item:first').length) {
+                $('#s-order-comment-edit').hide();
+            }
+
             $.order_edit.updateTotal();
             return false;
         });
@@ -281,7 +293,7 @@ $.order_edit = {
             });
         });
 
-        // Fetch shipping methods and rates, and other info from orderTotal controller
+        // Fetch shipping options and rates, and other info from orderTotal controller
         $.post('?module=order&action=total', data, function(response) {
             if (response.status == 'ok') {
                 for (var ship_id in response.data.shipping_methods) {

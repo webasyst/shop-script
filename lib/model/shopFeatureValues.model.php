@@ -43,13 +43,15 @@ abstract class shopFeatureValuesModel extends shopSortableModel
      *
      * @param int $feature_id
      * @param mixed $value
+     * @param string $type extented feature type (e.g. dimension)
      * @return int|array
      */
-    public function getId($feature_id, $value, $type = null)
+    public function getId($feature_id, $value, $type = null, $update = true)
     {
         $result = array();
         $exists = array();
         $multi = false;
+        $sort = null;
         $op = $this->getSearchCondition();
         if (is_array($value)) {
             if (isset($value['value'])) {
@@ -61,9 +63,10 @@ abstract class shopFeatureValuesModel extends shopSortableModel
         } else {
             $values = array($value);
         }
-
-        $sql = "SELECT (MAX(`sort`)+1) `max_sort` FROM ".$this->table." WHERE (`feature_id` = i:0)";
-        $sort = $this->query($sql, $feature_id)->fetchField('max_sort');
+        if ($update) {
+            $sql = "SELECT (MAX(`sort`)+1) `max_sort` FROM ".$this->table." WHERE (`feature_id` = i:0)";
+            $sort = $this->query($sql, $feature_id)->fetchField('max_sort');
+        }
         foreach ($values as $v) {
             $data = $this->parseValue($v, $type);
             $data['feature_id'] = $feature_id;
@@ -73,7 +76,7 @@ abstract class shopFeatureValuesModel extends shopSortableModel
             $row = $this->query($sql, $data)->fetchAssoc();
             if ($row) {
                 $exists[$row['sort']] = intval($row['id']);
-            } else {
+            } elseif ($update) {
                 ++$sort;
                 array_unshift($result, intval($this->insert($data)));
             }
@@ -81,6 +84,18 @@ abstract class shopFeatureValuesModel extends shopSortableModel
         ksort($exists);
         $result = array_unique(array_merge($exists, $result));
         return $multi ? $result : reset($result);
+    }
+
+    /**
+     *
+     * @param int $feature_id
+     * @param mixed $value
+     * @param string $type extented feature type (e.g. dimension)
+     * @return int|array
+     */
+    public function getValueId($feature_id, $value, $type = null)
+    {
+        return $this->getId($feature_id, $value, $type, false);
     }
 
     /**

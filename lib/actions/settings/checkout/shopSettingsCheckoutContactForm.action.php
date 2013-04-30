@@ -8,7 +8,6 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
 {
     public function execute()
     {
-
         // $this->getConfig()->getCheckoutSettings()['contactinfo']
         $config = $this->params;
         if (empty($config)) {
@@ -29,8 +28,9 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
 
         // Load config parameters into cloned fields
         $fields = array();
-        foreach($config as $fld_id => $opts) {
-            // This allows to specify e.g. 'address.work' as field id in config.
+        $config_fields = ifempty($config['fields'], array());
+        foreach($config_fields as $fld_id => $opts) {
+            // This allows to specify e.g. 'address.shipping' as field id in config.
             $real_fld_id = explode('.', $fld_id, 2);
             $real_fld_id = $real_fld_id[0];
             if (empty($fields_unsorted[$real_fld_id]) || !($fields_unsorted[$real_fld_id] instanceof waContactField) || !is_array($opts)) {
@@ -41,14 +41,18 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
             foreach($opts as $k => $v) {
                 if ($fields[$fld_id] instanceof waContactCompositeField && $k == 'fields') {
                     if (is_array($v)) {
+                        $cloned_subfields = array();
                         foreach($fields[$fld_id]->getFields() as $sf) {
+                            $sf = clone $sf;
                             $o = ifset($v[$sf->getId()]);
                             if ($o && is_array($o)) {
                                 $sf->setParameters($o);
                             } else {
                                 $sf->setParameter('_disabled', true);
                             }
+                            $cloned_subfields[] = $sf;
                         }
+                        $fields[$fld_id]->setParameter('fields', $cloned_subfields);
                     }
                 } else {
                     $fields[$fld_id]->setParameter($k, $v);
@@ -64,13 +68,60 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
             }
         }
 
+        // Address fields are shown separately
+        $address = $fields['address'];
         $billing_address = $fields['address.billing'];
         $shipping_address = $fields['address.shipping'];
         unset($fields['address.billing'], $fields['address.shipping'], $fields['address']);
+        $shipbill_address = array();
+        $shipbill_address['ship'] = array(
+            'short_id' => 'ship',
+            'id' => 'address.shipping',
+            'name' => _w('Shipping address prompt'),
+            'f' => $shipping_address,
+            'subfields' => array(),
+            'show_custom_settings' => false,
+        );
+        $shipbill_address['bill'] = array(
+            'short_id' => 'bill',
+            'id' => 'address.billing',
+            'name' => _w('Billing address prompt'),
+            'f' => $billing_address,
+            'subfields' => array(),
+            'show_custom_settings' => false,
+        );
+        $address_subfields = $address->getFields();
+        foreach($address_subfields as $sf) {
+            $sfa = array(
+                'id' => $sf->getId(),
+                'name' => $sf->getName(),
+                'enabled' => false,
+                'f' => $sf,
+            );
+            $shipbill_address['ship']['subfields'][$sf->getId()] = $sfa;
+            $shipbill_address['bill']['subfields'][$sf->getId()] = $sfa;
+        }
+
+        foreach($shipping_address->getFields() as $sf) {
+            if ($sf->getParameter('_disabled')) {
+                $shipbill_address['ship']['show_custom_settings'] = true;
+            } else {
+                $shipbill_address['ship']['subfields'][$sf->getId()]['enabled'] = true;
+            }
+        }
+        foreach($billing_address->getFields() as $sf) {
+            if ($sf->getParameter('_disabled')) {
+                if (!empty($address_subfields[$sf->getId()]) && !$address_subfields[$sf->getId()]->getParameter('_disabled')) {
+                    $shipbill_address['bill']['show_custom_settings'] = true;
+                }
+            } else {
+                $shipbill_address['bill']['subfields'][$sf->getId()]['enabled'] = true;
+            }
+        }
 
         $this->view->assign('fields', $fields);
-        $this->view->assign('billing_address', $billing_address);
-        $this->view->assign('shipping_address', $shipping_address);
+        $this->view->assign('address', $address);
+        $this->view->assign('shipbill_address', $shipbill_address);
     }
 }
 

@@ -3,6 +3,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
         'loading': '<i class="icon16 loading"></i>',
         'path': '#/'
     },
+    hash: null,
     path: {
         'plugin': null,
         'module': null,
@@ -104,6 +105,19 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                 window.location.hash = hash = $plugin.attr('href');
             }
         }
+
+        // hard reload page because of the tricky confict of several blueimpimageupload plugin
+        if (this.hash && this.hash != hash && hash == '#/images:product/') {
+            location.reload(location.hash);
+        }
+
+        // hard reload page because of the tricky confict of several blueimpimageupload plugin
+        if (this.hash && this.hash != hash && hash == '#/csv:product/') {
+            location.reload(location.hash);
+        }
+
+        this.hash = hash;
+
         if (load) {
             window.location.hash = hash;
         }
@@ -187,11 +201,10 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
      * @param {String} plugin
      */
     importexportBlur: function(plugin) {
-        plugin = plugin || this.path.plugin;
         this.menu.find('li.selected').removeClass('selected');
-        $.shop && $.shop.trace('$.importexport.importexportBlur', plugin);
-        if (plugin) {
-            this.call(plugin + 'Blur', []);
+        $.shop && $.shop.trace('$.importexport.importexportBlur');
+        if (this.path.plugin || this.path.module) {
+            this.call('Blur', []);
         } else {
             this.options.loading = $('#s-importexport-content').html() || this.options.loading;
         }
@@ -215,6 +228,8 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
         this.path.tail = tail;
     },
 
+
+
     /**
      * @param {String} name
      * @param Array args
@@ -227,6 +242,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
             plugin = this.path.module + '_' + this.path.prefix;
         }
         var action = plugin + name.substr(0, 1).toUpperCase() + name.substr(1);
+        action = action.replace(/^(\d)/,'a$1');
         var callable = (typeof (this[action]) == 'function');
         var start = $.shop && $.shop.trace('$.importexport.call', [action, args, callable]);
         var result = null;
@@ -242,6 +258,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                             result]);
         } else {
             action = name.substr(0, 1).toUpperCase() + name.substr(1);
+            action = action.replace(/^(\d)/,'a$1');
             callable = (typeof (this.plugins[action]) == 'function');
             start = $.shop && $.shop.trace('$.importexport.call', [plugin, action, args, callable]);
             if (callable) {

@@ -61,6 +61,11 @@ class shopFrontendCategoryAction extends shopFrontendAction
         $category_params_model = new shopCategoryParamsModel();
         $category['params'] = $category_params_model->get($category['id']);
 
+        if ($this->getConfig()->getOption('can_use_smarty') && $category['description']) {
+            $category['description'] = wa()->getView()->fetch('string:'.$category['description']);
+        }
+
+
         $this->view->assign('category', $category);
 
         if ($category['sort_products'] && !waRequest::get('sort')) {

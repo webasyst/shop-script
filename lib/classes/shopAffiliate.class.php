@@ -28,12 +28,12 @@ class shopAffiliate
             $order = $om->getOrder($order_id);
         } else {
             $order = $order_or_id;
-            $order_id = $order['id'];
+            //$order_id = $order['id'];
         }
 
         // Convert order total from order currency to default currency
         $curm = new shopCurrencyModel();
-        $order_currency = $order['currency'];
+        $order_currency = isset($order['currency']) ? $order['currency'] : null;
         $def_cur = wa('shop')->getConfig()->getCurrency(true);
         $affiliatable_total = $curm->convert($order['total'], ifempty($order_currency, $def_cur), $def_cur);
 

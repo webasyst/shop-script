@@ -20,6 +20,7 @@ class shopFrontendProductAction extends shopFrontendAction
             $product['category_url'] = waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'];
             $breadcrumbs = array();
             $path = $category_model->getPath($category['id']);
+            $path = array_reverse($path);
             foreach ($path as $row) {
                 $breadcrumbs[] = array(
                     'url' => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $row['url'] : $row['full_url'])),
@@ -36,8 +37,11 @@ class shopFrontendProductAction extends shopFrontendAction
                     'name' => $product['name']
                 );
             }
-            if ($breadcrumbs && $this->layout) {
-                $this->layout->assign('breadcrumbs', $breadcrumbs);
+            if ($breadcrumbs) {
+                if ($this->layout) {
+                    $this->layout->assign('breadcrumbs', $breadcrumbs);
+                }
+                $this->view->assign('breadcrumbs', $breadcrumbs);
             }
         }
     }
@@ -64,6 +68,27 @@ class shopFrontendProductAction extends shopFrontendAction
 
 
         $product = new shopProduct($product);
+        if (!isset($product->skus[$product->sku_id])) {
+            $product->sku_id = $product->skus ? key($product->skus) : null;
+        }
+        if (!$product->skus) {
+            $product->skus = array(
+                null => array(
+                    'name' => '',
+                    'sku' => '',
+                    'id' => null,
+                    'available' => false,
+                    'count' => 0,
+                    'price' => null,
+                    'stock' => array()
+                )
+            );
+        }
+
+        if ($this->getConfig()->getOption('can_use_smarty') && $product->description) {
+            $product->description = wa()->getView()->fetch('string:'.$product->description);
+        }
+
         $this->view->assign('product', $product);
 
         $this->getBreadcrumbs($product);
@@ -220,7 +245,7 @@ class shopFrontendProductAction extends shopFrontendAction
                 $sku = $product->skus[$sku_id];
                 $sku_selectable[$sku_f] = array(
                     'id' => $sku_id,
-                    'price' => shop_currency($sku['price'], $product['currency'], null, false),
+                    'price' => (float)shop_currency($sku['price'], $product['currency'], null, false),
                     'available' => $product->status && $sku['available'] &&
                         ($this->getConfig()->getGeneralSettings('ignore_stock_count') || $sku['count'] === null || $sku['count'] > 0),
                     'image_id' => (int)$sku['image_id']

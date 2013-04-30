@@ -9,7 +9,7 @@ class shopFrontendSearchAction extends shopFrontendAction
 
         $query = htmlspecialchars($query);
         $this->view->assign('title', $query);
-        $this->getResponse()->setTitle(_w('Search').' - '.$query);
+        $this->getResponse()->setTitle($query.' — '.$this->getStoreName());
 
         if ($this->layout) {
             $this->layout->assign('query', $query);

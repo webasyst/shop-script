@@ -21,6 +21,22 @@ class shopProductImageUploadController extends shopUploadController
             throw new waException('Incorrect image');
         }
 
+        $image_changed = false;
+
+        /**
+         * Extend upload proccess
+         * Make extra workup
+         * @event image_upload
+         */
+        $event = wa()->event('image_upload', $image);
+        if ($event) {
+            foreach ($event as $plugin_id => $result) {
+                if ($result) {
+                    $image_changed = true;
+                }
+            }
+        }
+
         if (!$this->model) {
             $this->model = new shopProductImagesModel();
         }
@@ -39,18 +55,34 @@ class shopProductImageUploadController extends shopUploadController
             throw new waException("Database error");
         }
 
-        $image_path = shopImage::getPath($data);
-        if ((file_exists($image_path) && !is_writable($image_path)) || (!file_exists($image_path) && !waFiles::create($image_path))) {
-            $this->model->deleteById($image_id);
-            throw new waException(sprintf("The insufficient file write permissions for the %s folder.", substr($image_path, strlen($this->getConfig()->getRootPath()))));
-        }
-
-        $file->moveTo($image_path);
-
         /**
          * @var shopConfig $config
          */
         $config = $this->getConfig();
+
+        $image_path = shopImage::getPath($data);
+        if ((file_exists($image_path) && !is_writable($image_path)) || (!file_exists($image_path) && !waFiles::create($image_path))) {
+            $this->model->deleteById($image_id);
+            throw new waException(
+                sprintf("The insufficient file write permissions for the %s folder.",
+                    substr($image_path, strlen($config->getRootPath()))
+            ));
+        }
+
+        if ($image_changed) {
+            $image->save($image_path);
+
+            // save original
+            $original_file = shopImage::getOriginalPath($data);
+            if ($config->getOption('image_save_original') && $original_file) {
+                $file->moveTo($original_file);
+            }
+
+        } else {
+            $file->moveTo($image_path);
+        }
+        unset($image);        // free variable
+
         shopImage::generateThumbs($data, $config->getImageSizes());
 
         return array(

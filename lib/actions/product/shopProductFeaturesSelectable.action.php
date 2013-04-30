@@ -37,13 +37,7 @@ class shopProductFeaturesSelectableAction extends waViewAction
     protected function getSelectableFeatures(shopProduct $product)
     {
         $features_model = new shopFeatureModel();
-
-        $features = array();
-        foreach ($features_model->getByType($product->type_id) as $f) {
-            if ($f['multiple']) {
-                $features[$f['code']] = $f;
-            }
-        }
+        $features = $features_model->getMultipleSelectableFeaturesByType($product->type_id);
 
         // attach values
         $features = $features_model->getValues($features);

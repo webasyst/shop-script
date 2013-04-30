@@ -453,7 +453,8 @@
             },
 
             paste: function() {
-                ($(this).data('blueimp-fileupload') || $(this).data('fileupload'))._clear();
+                return false;
+                //($(this).data('blueimp-fileupload') || $(this).data('fileupload'))._clear();
             },
 
             drop: function() {

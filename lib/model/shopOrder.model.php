@@ -65,6 +65,12 @@ class shopOrderModel extends waModel
         $post_fields = substr($post_fields, 1);
 
         $where = $this->getWhereByField($options['where']);
+        if(!empty($options['change_datetime'])) {
+            if($where) {
+                $where .= ' AND ';
+            }
+            $where .= sprintf("IFNULL(`update_datetime`,`create_datetime`) > '%s'",date("Y-m-d H:i:s", $options['change_datetime']));
+        }
 
         $sql = "SELECT $main_fields FROM `{$this->table}`".
             ($where ? " WHERE $where" : "").

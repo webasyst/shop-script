@@ -86,7 +86,9 @@ class shopNotifications
 
         $message = new waMailMessage($subject, $body);
         $message->setTo($to);
-        $message->setFrom($general['email'], $general['name']);
+        if ($general['email']) {
+            $message->setFrom($general['email'], $general['name']);
+        }
         if ($message->send()) {
             $order_log_model = new shopOrderLogModel();
             $order_log_model->add(array(

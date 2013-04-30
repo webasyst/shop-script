@@ -10,7 +10,7 @@ class shopBrandsPluginFrontendBrandAction extends shopFrontendAction
         $feature = $feature_model->getById($feature_id);
 
         $values_model = $feature_model->getValuesModel($feature['type']);
-        $value_id = $values_model->getId($feature_id, $brand);
+        $value_id = $values_model->getValueId($feature_id, $brand);
 
         $c = new shopProductsCollection();
         $c->filters(array($feature['code'] => $value_id));

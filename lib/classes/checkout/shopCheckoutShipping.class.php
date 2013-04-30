@@ -32,7 +32,8 @@ class shopCheckoutShipping extends shopCheckout
 
         $settings = wa('shop')->getConfig()->getCheckoutSettings();
         $address_form = !isset($settings['contactinfo']) || !isset($settings['contactinfo']['fields']['address.shipping']);
-        if (!isset($settings['contactinfo']) || !isset($settings['contactinfo']['fields']['address.shipping'])) {
+        if (!isset($settings['contactinfo']) ||
+            (!isset($settings['contactinfo']['fields']['address.shipping']) && !isset($settings['contactinfo']['fields']['address']))) {
             $settings = wa('shop')->getConfig()->getCheckoutSettings(true);
         }
         if (!$address) {
@@ -59,9 +60,14 @@ class shopCheckoutShipping extends shopCheckout
                         $r['rate'] = max($r['rate']);
                     }
                 }
-                $rate = reset($m['rates']);
-                $m['rate'] = $rate['rate'];
-                $m['est_delivery'] = $rate['est_delivery'];
+                if ($m['rates']) {
+                    $rate = reset($m['rates']);
+                    $m['rate'] = $rate['rate'];
+                    $m['est_delivery'] = $rate['est_delivery'];
+                } else {
+                    $m['rates'] = array();
+                    $m['rate'] = null;
+                }
             } elseif (is_string($m['rates'])) {
                 if ($address) {
                     $m['error'] = $m['rates'];
@@ -74,7 +80,7 @@ class shopCheckoutShipping extends shopCheckout
                 continue;
             }
 
-            $f = $this->getAddressForm($method_id, $plugin, $settings['contactinfo']['fields']['address.shipping'], $address, $address_form);
+            $f = $this->getAddressForm($method_id, $plugin, $settings, $address, $address_form);
             if ($f) {
                 $m['form'] = $f;
                 $m['form']->setValue($this->getContact());
@@ -86,12 +92,22 @@ class shopCheckoutShipping extends shopCheckout
 
         $view = wa()->getView();
         $view->assign('checkout_shipping_methods', $methods);
-        $m = reset($methods);
-        $view->assign('shipping', $this->getSessionData('shipping', array('id' => $m ? $m['id'] : '', 'rate_id' => '')));
+        $default_method = '';
+        foreach ($methods as $m) {
+            if (empty($m['error'])) {
+                $default_method = $m['id'];
+                break;
+            }
+        }
+        $view->assign('shipping', $this->getSessionData('shipping', array('id' => $default_method, 'rate_id' => '')));
     }
 
-    public function getAddressForm($method_id, waShipping $plugin, $config_address, $contact_address, $address_form)
+    public function getAddressForm($method_id, waShipping $plugin, $config, $contact_address, $address_form)
     {
+        $config_address = isset($config['contactinfo']['fields']['address.shipping']) ?
+            $config['contactinfo']['fields']['address.shipping'] :
+            (isset($config['contactinfo']['fields']['address']) ? $config['contactinfo']['fields']['address'] : array());
+
         $address_fields = $plugin->requestedAddressFields();
         $disabled_only = true;
         if ($address_fields === false || $address_fields === null) {
@@ -154,15 +170,38 @@ class shopCheckoutShipping extends shopCheckout
             }
         }
 
+
         if (!$address_form && !empty($address['fields'])) {
             foreach ($address['fields'] as $k => $v) {
                 if (empty($contact_address[$k])) {
                     $address_form = true;
-                    break;
                 }
             }
         }
         if ($address_form) {
+            if (!empty($config['shipping']['promt_type'])) {
+                if (!empty($address['fields'])) {
+                    foreach ($address['fields'] as $k => $v) {
+                        if (empty($v['cost'])) {
+                            unset($address['fields'][$k]);
+                        }
+                    }
+                    if (!$address['fields']) {
+                        return null;
+                    }
+                } else {
+                    $empty = true;
+                    foreach ($address_fields as $f) {
+                        if (!empty($f['cost'])) {
+                            $empty = false;
+                            break;
+                        }
+                    }
+                    if ($empty) {
+                        return null;
+                    }
+                }
+            }
             return waContactForm::loadConfig(array('address.shipping' => $address), array('namespace' => 'customer_'.$method_id));;
         } else {
             return null;
@@ -220,7 +259,11 @@ class shopCheckoutShipping extends shopCheckout
             $total = shop_currency($total, $currrent_currency, $currency, false);
         }
         $rates = $plugin->getRates($this->getItems(), $this->getAddress(), array('total_price' => $total));
-        $result = $rates[$rate_id];
+        if ($rate_id) {
+            $result = $rates[$rate_id];
+        } else {
+            $result = array('rate' => 0);
+        }
         if (is_array($result['rate'])) {
             $result['rate'] = max($result['rate']);
         }
@@ -263,11 +306,12 @@ class shopCheckoutShipping extends shopCheckout
             if ($data = waRequest::post('customer_'.$shipping_id)) {
 
                 $settings = wa('shop')->getConfig()->getCheckoutSettings();
-                if (!isset($settings['contactinfo']) || !isset($settings['contactinfo']['fields']['address.shipping'])) {
+                if (!isset($settings['contactinfo']) ||
+                    (!isset($settings['contactinfo']['fields']['address.shipping']) && !isset($settings['contactinfo']['fields']['address']))) {
                     $settings = wa('shop')->getConfig()->getCheckoutSettings(true);
                 }
                 $plugin = shopShipping::getPlugin(null, $shipping_id);
-                $form = $this->getAddressForm($shipping_id, $plugin, $settings['contactinfo']['fields']['address.shipping'], array(), true);
+                $form = $this->getAddressForm($shipping_id, $plugin, $settings, array(), true);
                 if (!$form->isValid()) {
                     return false;
                 }
@@ -299,12 +343,26 @@ class shopCheckoutShipping extends shopCheckout
 
     public function getOptions($config)
     {
-        return '<div class="field">
-    <div class="name">'._w('Shipping methods').'</div>
-    <div class="value no-shift">
-        <p>'._w('The list of available shipping methods is determined automatically based on the user address, shopping cart content, and the list of available <a class="inline" href="#/shipping/">shipping options</a>.').'</p>
+        $html = '
+<div class="field">
+    <div class="name">
+        <p>'._w('Prompt for address').'</p>
     </div>
-</div>';
+    <div class="value">
+        <p>'._w('During the “Shipping” checkout step, when customer selects a preferred shipping option but shipping address was not yet entered, instantly prompt customer to provide:').'</p>
+    </div>
+    <div class="value no-shift">
+        <label><input '.(empty($config['promt_type']) ? 'checked' : '').' name="config[promt_type]" type="radio" value="0"> '._w('All required address fields').'</label>
+        <p class="hint">'._w('Prompt for all address fields according to the selected shipping option implementation. If you use this option and have “Shipping” prior to “Contact info” in the checkout step order, it is advisable to hide (disable) shipping address form on the “Contact Info” checkout step to avoid asking for address twice.').'</p>
+    </div>
+    <div class="value no-shift">
+        <label><input '.(!empty($config['promt_type']) ? 'checked' : '').' name="config[promt_type]" type="radio" value="1"> '._w('Only fields required for shipping rate estimation').'</label>
+        <p class="hint">'._w('Prompt for fields required for shipping rate and delivery date estimation only (shipping option implementation declares the list of such fields). This is a suitable setup option if you have “Shipping” prior to “Contact info” in the checkout step order setup.').'</p>
+    </div>
+    </div>
+    ';
+
+        return $html;
     }
 
 }

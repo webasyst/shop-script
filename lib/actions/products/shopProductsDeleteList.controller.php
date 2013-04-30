@@ -101,11 +101,17 @@ class shopProductsDeleteListController extends waJsonController
 
     public function getLists()
     {
+        $product_model  = new shopProductModel();
         $category_model = $this->getModel('category');
-        $set_model = $this->getModel('set');
+        $set_model  = $this->getModel('set');
+        $type_model = $this->getModel('type');
         return array(
             'category' => $category_model->getAll('id'),
-            'set' => $set_model->getAll('id')
+            'set'  => $set_model->getAll('id'),
+            'type' => $type_model->getAll('id'),
+            'all'  => array(
+                'count' => $product_model->countAll()
+            )
         );
     }
 }

@@ -300,7 +300,6 @@
                 sku_type = sku_type_input.val();
             }
 
-            // selectable features selling mode
             if (sku_type == '1') {
                 var any_checked = $('#s-product-feature-superposition').find('input:checked:first').length;
                 if (!any_checked) {
@@ -436,16 +435,42 @@
             var $container = tab_content.find(':input[name="product\[type_id\]"]').parents('.value');
             $container.data('type', data.type_id);
 
-            // update frontend url widget in product edit page
-            var frontend_url       = $('#s-product-frontend-url');
-            var frontend_url_input = $('#s-product-frontend-url-input');
-            frontend_url.text(data.url);
-            frontend_url_input.text(data.url);
-            frontend_url.trigger('readable');
-            frontend_url.parent().attr('href', data.frontend_url);
+            if (data.frontend_url) {
 
-            // update fronted url in product profile page
-            $('#s-product-frontend-links').find('a').attr('href', data.frontend_url).text(data.frontend_url);
+                // update frontend url widget in product edit page
+                var frontend_url       = $('#s-product-frontend-url');
+                var frontend_url_input = $('#s-product-frontend-url-input');
+                frontend_url.text(data.url);
+                frontend_url_input.text(data.url);
+                frontend_url.trigger('readable');
+                frontend_url.parent().attr('href', data.frontend_url);
+
+                // update frontend base url mentions
+                frontend_url.parents('div.value:first').
+                    find('.s-frontend-base-url').each(
+                        function() {
+                            // update internals of link
+                            if (this.tagName == 'A') {
+                                var self = $(this);
+                                var children = self.children();
+                                self.text(data.fontend_base_url).append(children);
+                            } else {
+                                // just update text
+                                $(this).text(data.fontend_base_url);
+                            }
+                        }
+                    );
+
+                $('.s-product-frontend-url-not-empty').show();
+                $('.s-product-frontend-url-empty').hide();
+
+                // update fronted url in product profile page
+                $('#s-product-frontend-links').find('a').attr('href', data.frontend_url).text(data.frontend_url);
+
+            } else {
+                $('.s-product-frontend-url-not-empty').hide();
+                $('.s-product-frontend-url-empty').show();
+            }
 
             /*
              * $($.product.options.form_selector).on('change.product, keyup.product', ':input', function(e) {
@@ -764,6 +789,13 @@
             $('#s-content').animate({
                 'margin-left': '200px'
             }, duration);
+
+            $('#shop-productprofile').
+                off('click.edit-product', 'a.js-action').
+                on('click.edit-product', 'a.js-action', function() {
+                    return self.editClick($(this));
+                });
+
         },
 
         profileAction: function() {
@@ -789,14 +821,13 @@
         },
 
         onSkuTypeChange: function(sku_type) {
-            var feature_superposition = $('#s-product-feature-superposition');
+            var feature_superposition = $('#s-product-feature-superposition-field-group');
             var product_skus = $(this.options.form_selector).find('.s-product-skus tbody');
 
             // selectable features case
             if (sku_type == '1') {
                 feature_superposition.show();
                 feature_superposition.find('input').attr('disabled', false);
-                //product_skus.find('.alist .all-skus').show();
 
                 if ($.product.path.id == 'new') {
                     $.product.disableSkus(false, true);
@@ -831,6 +862,8 @@
             var product_skus = form.find('.s-product-skus');
 
             // change salling mode (sku type)
+            var sku_type = $.product.getSkyType();
+            $.product.onSkuTypeChange(sku_type);
             form.on('change', 'input[name="product[sku_type]"]', function() {
                 $.product.onSkuTypeChange(this.value);
             });
@@ -1009,9 +1042,11 @@
                 'margin-left': 0
             }, duration);
 
-            $('#s-product-edit-forms').on('click.edit-product', 'a.js-action', function() {
-                return self.editClick($(this));
-            });
+            $('#shop-productprofile').
+                off('click.edit-product', 'a.js-action').
+                on('click.edit-product', 'a.js-action', function() {
+                    return self.editClick($(this));
+                });
         },
 
         editBlur: function() {
@@ -1584,6 +1619,39 @@
             return false;
         },
 
+        editTabMainProductDelete: function(el) {
+            var showDialog = function() {
+                $('#s-product-list-delete-products-dialog').waDialog({
+                    disableButtonsOnSubmit: true,
+                    onLoad: function() {
+                        $(this).find('.dialog-buttons i.loading').hide();
+                    },
+                    onSubmit: function(d) {
+                        $(this).find('.dialog-buttons i.loading').show();
+                        $.shop.jsonPost('?module=products&action=deleteList', {
+                            product_id: [$.product.path.id],
+                            get_lists: 1
+                        }, function(r) {
+                            if ($.product_list) {
+                                $('#s-sidebar').trigger('update', r.data.lists);
+                            }
+                            d.trigger('close');
+                            location.hash = '#/products/';
+                        });
+
+                        return false;
+                    }
+                });
+            };
+            var d = $('#s-product-list-delete-products-dialog');
+            var p = d.parent();
+            if (!d.length) {
+                p = $('<div></div>').appendTo('body');
+            }
+            p.load('?module=dialog&action=productsDelete&count=' + 1, showDialog);
+            return false;
+        },
+
         /**
          *
          * @param {Integer} sku_id
@@ -1793,6 +1861,18 @@
             }, 100);
         },
 
+        getSkyType: function() {
+            var form = $(this.options.form_selector);
+            var sku_type_input = form.find('input[name="product[sku_type]"]:first');
+            var sku_type = '';
+            if (sku_type_input.is(':radio')) {
+                sku_type = form.find('input[name="product[sku_type]"]:checked').val();
+            } else {
+                sku_type = sku_type_input.val();
+            }
+            return sku_type;
+        },
+
         editTabMainTypeChange: function($el) {
 
             var $container = $el.parents('.value');
@@ -1821,15 +1901,9 @@
                 $tab_link.attr('href', $tab_link.attr('href').replace(/\/features\/.*$/, href));
             }
 
-            // define sku type value
-            var form = $(this.options.form_selector);
-            var sku_type_input = form.find('input[name="product[sku_type]"]:first');
-            if (sku_type_input.is(':radio')) {
-                sku_type = form.find('input[name="product[sku_type]"]:checked').val();
-            } else {
-                sku_type = sku_type_input.val();
-            }
+            var sku_type = $.product.getSkyType();
 
+            /*
             var sku_type_field_group = $('#s-sku-type-field-group');
             var currency_control = sku_type_field_group.find('.s-base-price-selectable-currency').contents();
 
@@ -1846,6 +1920,32 @@
                         $.product.featureSelectableInit();
                     }
                 );
+                */
+
+            // ajax for features selectable
+            var currency_control = $(
+                '#s-sku-type-field-group .s-base-price-selectable-currency'
+            ).contents();
+            $.get(
+                '?module=product&action=featuresSelectable&id=' + $.product.path.id, {
+                    type_id: $type.val(), sku_type: sku_type
+                },
+                function(html) {
+                    var wrapper = $('<div></div>');
+
+                    wrapper.html(html);
+                    wrapper.find('.s-base-price-selectable-currency').append(currency_control);
+
+                    $('#s-sku-type-field-group').replaceWith(
+                        $('#s-sku-type-field-group', wrapper)
+                    );
+
+                    $('#s-product-feature-superposition-field-group').replaceWith(
+                        $('#s-product-feature-superposition-field-group', wrapper)
+                    );
+                    $.product.featureSelectableInit();
+                }
+            );
         },
 
         editTabMainUpdate: function(data, features_selectable_strings, old_id) {
@@ -1893,8 +1993,9 @@
             $skus_view.html(html);
 
             if (!old_id || old_id == 'new') {
-                var sku_type_field_value = $('#s-sku-type-field-group .s-sku-type-field-value');
-                $skus.parents('div.field:first').append(sku_type_field_value);
+                $skus.parents('div.field-group:first').after(
+                    $('#s-sku-type-field-group')
+                );
             }
 
             if (features_selectable_strings) {
@@ -2033,6 +2134,7 @@
             setTimeout(function() {
                 self.call('profileLazyInit', []);
             }, 2000);
+
         },
         profileLazyInit: function() {
             $('#product-sales-plot').empty();

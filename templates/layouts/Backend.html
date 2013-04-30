@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"><html>
+<!DOCTYPE html><html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     {$title=$wa->title()}
@@ -105,9 +105,11 @@
                         <a href="?action=customers">[`Customers`]</a>
                     </li>
                 {/if}
+                {if $product_rights}
                 <li class="{if $page=='products'}selected{else}no-tab{/if}">
                     <a href="?action=products">[`Products`]</a>
                 </li>
+                {/if}
                 {if $wa->userRights('reports')}
                     <li class="{if $page=='reports'}selected{else}no-tab{/if}">
                         <a href="?action=reports">[`Reports`]</a>

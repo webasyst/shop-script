@@ -1,5 +1,6 @@
 {if isset($plugin_id)}
     {if !empty($settings_controls)}
+        <h1>{$plugin_info.name}</h1>
         <div class="fields form">
             <form action="?module=plugins&id={$plugin_id}&action=save" method="post" id="plugins-settings-form" enctype="multipart/form-data" target="plugins-settings-iframe">
                 {$wa->csrf()}

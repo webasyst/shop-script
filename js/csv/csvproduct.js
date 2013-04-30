@@ -1,5 +1,5 @@
 /**
- * 
+ *
  * @names csv_product*
  * @property {} csv_product_options
  * @method csv_productInit

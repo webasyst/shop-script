@@ -41,9 +41,10 @@ class shopSettingsOrderStateSaveController extends waJsonController
         if (empty($data['state']['name'])) {
             $this->errors['state']['name'] = _w('State name can not be empty');
         }
-        if (empty($data['state']['id'])) {
-            $this->errors['state']['id'] = _w('State id can not be empty');
+        if (!preg_match("/^[a-z0-9\._-]+$/i", $data['state']['id'])) {
+            $this->errors['state']['id'] = _w('Only Latin characters, numbers, underscore and hyphen symbols are allowed');
         }
+
         if ($add) {
             $states = !empty($this->config['states']) ? $this->config['states'] : array();
             $ids = array_keys($states);

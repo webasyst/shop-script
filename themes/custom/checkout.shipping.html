@@ -9,10 +9,10 @@
                     {shop_currency($m.rate, $m.currency)}
                     {/if}
                 </span>
-                <span class="hint" {if !isset($m.est_delivery)}style="display:none"{/if}>
+                <span class="hint" {if empty($m.est_delivery)}style="display:none"{/if}>
                 <br>
                 [`Estimated delivery`]:<br>
-                <strong class="est_delivery">{if isset($m.est_delivery)}{$m.est_delivery}{/if}</strong>
+                <strong class="est_delivery">{if !empty($m.est_delivery)}{$m.est_delivery}{/if}</strong>
                 </span>
             </div>
             {/if}
@@ -59,7 +59,15 @@
         $.post("{$wa->getUrl('/frontend/shipping')}", $("form").serialize(), function (response) {
             var shipping_id = $("input[name=shipping_id]:checked").val();
             var name = 'rate_id[' + shipping_id + ']';
-            if (response.data.length > 1) {
+            if (typeof(response.data) == 'string') {
+                var f = $(".shipping-" + shipping_id).find('.wa-form');
+                $(".shipping-" + shipping_id).find('.rate').hide();
+                if (f.prev().hasClass('error')) {
+                    f.prev().html(response.data).show();
+                } else {
+                    $('<p class="error"></p>').append($('<em></em>').html(response.data)).insertBefore(f);
+                }
+            } else if (response.data.length > 1) {
                 $(".shipping-" + shipping_id + ' input[name="' + name + '"]').remove();
                 var select = $(".shipping-" + shipping_id + ' select[name="' + name + '"]');
                 if (select.length) {
@@ -77,6 +85,8 @@
                     $(".shipping-" + shipping_id + " h3").append(select);
                 }
                 select.change();
+                $(".shipping-" + shipping_id).find('.rate').show();
+                $(".shipping-" + shipping_id).find('p.error').empty().hide();
             } else {
                 $(".shipping-" + shipping_id + ' select[name="' + name + '"]').remove();
                 var input = $(".shipping-" + shipping_id + ' input[name="' + name + '"]');
@@ -87,6 +97,8 @@
                 }
                 $(".shipping-" + shipping_id + " .price").html(response.data[0].rate);
                 $(".shipping-" + shipping_id + " .est_delivery").html(response.data[0].est_delivery).parent().show();
+                $(".shipping-" + shipping_id).find('.rate').show();
+                $(".shipping-" + shipping_id).find('p.error').empty().hide();
             }
         }, "json");
     });

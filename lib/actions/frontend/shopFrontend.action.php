@@ -14,6 +14,20 @@ class shopFrontendAction extends waViewAction
             $this->setLayout(new shopFrontendLayout());
         }
     }
+
+    public function getStoreName()
+    {
+        $title = waRequest::param('title');
+        if (!$title) {
+            $title = $this->getConfig()->getGeneralSettings('name');
+        }
+        if (!$title) {
+            $app = wa()->getAppInfo();
+            $title = $app['name'];
+        }
+        return htmlspecialchars($title);
+    }
+
     protected function setCollection(shopProductsCollection $collection)
     {
         $collection->setOptions(array('filters' => true));

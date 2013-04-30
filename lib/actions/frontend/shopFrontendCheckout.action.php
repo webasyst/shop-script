@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Class shopFrontendCheckoutAction
+ * @method shopConfig getConfig()
+ */
 class shopFrontendCheckoutAction extends waViewAction
 {
     protected static $steps = array();
@@ -33,6 +37,10 @@ class shopFrontendCheckoutAction extends waViewAction
                 }
             }
             $order['id'] = shopHelper::encodeOrderId($order_id);
+            $order_items_model = new shopOrderItemsModel();
+            $order['items'] = $order_items_model->getByField('order_id', $order_id, true);
+
+            $this->getResponse()->addGoogleAnalytics($this->getGoogleAnalytics($order));
             $this->view->assign('order', $order);
             $this->view->assign('payment', $payment);
         } else {
@@ -80,6 +88,59 @@ class shopFrontendCheckoutAction extends waViewAction
         }
     }
 
+    protected function getGoogleAnalytics($order)
+    {
+        $title = waRequest::param('title');
+        if (!$title) {
+            $title = $this->getConfig()->getGeneralSettings('name');
+        }
+        if (!$title) {
+            $app = wa()->getAppInfo();
+            $title = $app['name'];
+        }
+
+        $result =  "_gaq.push(['_addTrans',
+            '".$order['id']."',           // transaction ID - required
+            '".htmlspecialchars($title)."',  // affiliation or store name
+            '".$this->getBasePrice($order['total'], $order['currency'])."',          // total - required
+            '".$this->getBasePrice($order['tax'], $order['currency'])."',           // tax
+            '".$this->getBasePrice($order['shipping'], $order['currency'])."',              // shipping
+            '".$this->getOrderAddressField($order, 'city')."',       // city
+            '".$this->getOrderAddressField($order, 'region')."',     // state or province
+            '".$this->getOrderAddressField($order, 'country')."'             // country
+        ]);\n";
+
+        foreach ($order['items'] as $item) {
+            $sku = $item['type'] == 'product' ? $item['sku_code'] : '';
+            $result .= " _gaq.push(['_addItem',
+            '".$order['id']."',           // transaction ID - required
+            '".$sku."',           // SKU/code - required
+            '".htmlspecialchars($item['name'])."',        // product name
+            '',   // category or variation
+            '".$this->getBasePrice($item['price'], $order['currency'])."',          // unit price - required
+            '".$item['quantity']."'               // quantity - required
+          ]);\n";
+        }
+
+        $result .= "_gaq.push(['_trackTrans']);\n";
+
+        return $result;
+    }
+
+    protected function getOrderAddressField($order, $name)
+    {
+        if (isset($order['params']['shipping_address.'.$name])) {
+            return htmlspecialchars($order['params']['shipping_address.'.$name]);
+        }
+        return '';
+    }
+
+    protected function getBasePrice($price, $currency)
+    {
+        return shop_currency($price, $currency, $this->getConfig()->getCurrency(true), false);
+    }
+
+
     protected function createOrder()
     {
         $checkout_data = $this->getStorage()->get('shop/checkout');
@@ -99,6 +160,7 @@ class shopFrontendCheckoutAction extends waViewAction
             'total'   => $cart->total(false),
             'params'  => isset($checkout_data['params']) ? $checkout_data['params'] : array(),
         );
+
         $order['discount'] = shopDiscounts::apply($order);
 
         if (isset($checkout_data['shipping'])) {
@@ -108,7 +170,9 @@ class shopFrontendCheckoutAction extends waViewAction
             $rate = $shipping_step->getRate($order['params']['shipping_id'], $order['params']['shipping_rate_id']);
             $order['params']['shipping_plugin'] = $rate['plugin'];
             $order['params']['shipping_name'] = $rate['name'];
-            $order['params']['shipping_est_delivery'] = $rate['est_delivery'];
+            if (isset($rate['est_delivery'])) {
+                $order['params']['shipping_est_delivery'] = $rate['est_delivery'];
+            }
             if (!isset($order['shipping'])) {
                 $order['shipping'] = $rate['rate'];
             }
@@ -122,6 +186,12 @@ class shopFrontendCheckoutAction extends waViewAction
             $plugin_info = $plugin_model->getById($checkout_data['payment']);
             $order['params']['payment_name'] = $plugin_info['name'];
             $order['params']['payment_plugin'] = $plugin_info['plugin'];
+            if (!empty($order['params']['payment'])) {
+                foreach ($order['params']['payment'] as $k => $v) {
+                    $order['params']['payment_params_'.$k] = $v;
+                }
+                unset($order['params']['payment']);
+            }
         }
 
         if ($skock_id = waRequest::post('stock_id')) {

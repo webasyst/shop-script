@@ -224,14 +224,15 @@ class shopFrontendCartAction extends waViewAction
 
 
         $order = array('total' => $cart->total(false));
-        $discount = shopDiscounts::calculate($order);
-        $total = $cart->total();
+        $order['discount'] = $discount = shopDiscounts::calculate($order);
+        $order['total'] = $total = $cart->total();
         $data = wa()->getStorage()->get('shop/checkout');
         $this->view->assign('cart', array(
             'items' => $items,
             'total' => $total,
             'count' => $cart->count()
         ));
+
         $this->view->assign('coupon_code', isset($data['coupon_code']) ? $data['coupon_code'] : '');
         if (shopAffiliate::isEnabled()) {
             $affiliate_bonus = 0;
@@ -247,6 +248,9 @@ class shopFrontendCartAction extends waViewAction
                 $discount -= shop_currency(shopAffiliate::convertBonus($order['params']['affiliate_bonus']), $this->getConfig()->getCurrency(true), null, false);
                 $this->view->assign('used_affiliate_bonus', $order['params']['affiliate_bonus']);
             }
+
+            $add_affiliate_bonus = shopAffiliate::calculateBonus($order);
+            $this->view->assign('add_affiliate_bonus', round($add_affiliate_bonus, 2));
         }
         $this->view->assign('discount', $discount);
 

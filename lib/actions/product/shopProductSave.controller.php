@@ -15,6 +15,16 @@ class shopProductSaveController extends waJsonController
             unset($data['id']);
         }
 
+        $features = array();
+        $features_model = new shopFeatureModel();
+        if ($data['type_id']) {
+            $features = $features_model->getMultipleSelectableFeaturesByType($data['type_id']);
+        }
+
+        if (!$features) {
+            $data['sku_type'] = shopProductModel::SKU_TYPE_FLAT;
+        }
+
         if (
             $data['sku_type'] == shopProductModel::SKU_TYPE_SELECTABLE &&
             !waRequest::post('features_selectable', array())
@@ -75,7 +85,28 @@ class shopProductSaveController extends waJsonController
                 $this->response['id'] = $product->getId();
                 $this->response['name'] = $product->name;
                 $this->response['url']  = $product->url;
-                $this->response['frontend_url'] = wa()->getRouteUrl('/frontend/product', array('product_url' => $product->url), true);
+
+                $frontend_url = null;
+                $fontend_base_url = null;
+
+                $routing =  wa()->getRouting();
+                $domain_routes = $routing->getByApp($this->getAppId());
+                foreach ($domain_routes as $domain => $routes) {
+                    foreach ($routes as $r) {
+                        if (empty($r['type_id']) || (in_array($product->type_id, (array)$r['type_id']))) {
+                            $routing->setRoute($r, $domain);
+                            $frontend_url = $routing->getUrl('/frontend/product', array('product_url' => $product->url), true);
+                            break;
+                        }
+                    }
+                }
+                if ($frontend_url) {
+                    $pos = strrpos($frontend_url, $product->url);
+                    $fontend_base_url = $pos !== false ? rtrim(substr($frontend_url, 0, $pos), '/').'/' : $frontend_url;
+                }
+
+                $this->response['frontend_url'] = $frontend_url;
+                $this->response['fontend_base_url'] = $fontend_base_url;
                 $this->response['raw'] = $this->workupData($product->getData());
 
                 if ($features_counts !== null) {

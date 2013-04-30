@@ -6,7 +6,7 @@ class shopContactsLinksHandler extends waEventHandler
      * @param array $params deleted contact_id
      * @return array|void
      */
-    public function execute($params)
+    public function execute(&$params)
     {
         waLocale::loadByDomain('shop');
         // TODO: take a look to other models related with contacts

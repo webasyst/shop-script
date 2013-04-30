@@ -61,6 +61,20 @@
         return false;
     });
 
+    // Never allow invisible fields to be required
+    var hidden = link.siblings('input:hidden');
+    link.closest('td').off('change.editor').on('change.editor', 'input:checkbox[name$="[required]"]', function() {
+        var cb = $(this);
+        if (cb.is(':checked') && hidden.val()) {
+            alert("[`This field can be invisible in some cases, so it may not be required.`]");
+            cb.attr('checked', false);
+        }
+    });
+    var required_cb = link.closest('td').find('input:checkbox[name$="[required]"]');
+    if (hidden.val() && required_cb.is(':checked')) {
+        required_cb.attr('checked', false);
+    }
+
 });</script>
 {/if} {* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
 

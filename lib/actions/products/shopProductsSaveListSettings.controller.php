@@ -155,7 +155,7 @@ class shopProductsSaveListSettingsController extends waJsonController
     private function setSettingsValidate($set = null, $data)
     {
         if (!preg_match("/^[a-z0-9\._-]+$/i", $data['id'])) {
-            $this->errors['id'] = _w('Only latin characters, numbers and underscore symbol are allowed');
+            $this->errors['id'] = _w('Only Latin characters, numbers, underscore and hyphen symbols are allowed');
         }
         if ($set) {
             if (!empty($data['id']) && $set['id'] != $data['id']) {

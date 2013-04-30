@@ -62,7 +62,7 @@ class shopCart
 
     public function count()
     {
-        return $this->model->count($this->code, 'product');
+        return (int)$this->model->count($this->code, 'product');
     }
 
     public function items($hierarchy = true)

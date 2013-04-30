@@ -65,11 +65,11 @@
             <description locale="ru_RU">Единый шаблон страниц оформления заказа</description>
         </file>
         <file path="checkout.shipping.html" custom="0">
-            <description locale="en_US">Checkout: shipping method selection</description>
+            <description locale="en_US">Checkout: shipping option selection</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
         <file path="checkout.payment.html" custom="0">
-            <description locale="en_US">Checkout: payment method selection</description>
+            <description locale="en_US">Checkout: payment option selection</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
         <file path="checkout.contactinfo.html" custom="0">

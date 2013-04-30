@@ -1,0 +1,160 @@
+<div class="block double-padded" style="padding-bottom: 10px;">
+    <h1>1С: Управление торговлей</h1>
+    <p>Обмен данными с «1С: Управление торговлей» через файлы формата <a href="http://www.1c.ru/rus/products/1c/integration/cml1c.htm">CommerceML</a>. Документация по настройке интеграции: <a href="http://www.shop-script.ru/help/1c/" target="_blank">http://www.shop-script.ru/help/1c/</a><i class="icon16 new-window"></i></p>
+</div>
+<div id="s-cml1c-form">
+    <ul class="tabs" style="padding-left: 10px;">
+       <li class="selected"><a href="#/cml1c/tab/auto/">Автоматический обмен</a></li>
+       <li><a href="#/cml1c/tab/manual/">Ручной обмен</a></li>
+    </ul>
+
+    <div class="tab-content">
+
+        <div class="block double-padded" id="s-cml1c-auto">
+            <div class="fields form">
+                <div class="field">
+                    <div class="name">Автоматический обмен</div>
+                    <div class="value no-shift s-ibutton-checkbox">
+                        <ul class="menu-h">
+                            <li><label for="s-cml1c-auto-enabled"><span class="{if $enabled}gray {/if}s-cml1c-disable">Запрещен</span></label></li>
+                            <li><input type="checkbox" name="enabled" value="1" {if $enabled} checked{/if} id="s-cml1c-auto-enabled"></li>
+                            <li><label for="s-cml1c-auto-enabled"><span class="{if !$enabled}gray {/if}s-cml1c-enable">Разрешен</span></label></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="field"{if empty($enabled)} style="display: none;"{/if}>
+                    <div class="name">Скрипт синхронизации</div>
+                    <div class="value">
+                        <i class="icon16 lock-bw" style="margin-top: 0.2em;"></i>
+                        <input type="text" class="bold" value="{$url|escape}" style="width: 500px;" readonly="readonly">
+                        <br><br>
+                        <p class="small">Сохраните этот адрес в настройках 1С в диалоге «Настройки обмена с WEB-сайтом» &rarr; «Адрес сайта». Поля «Пользователь» и «Пароль» оставьте пустыми, так как эти данные уже закодированы в адресе скрипта синхронизации. Чтобы изменить адрес скрипта синхронизации, выключите и снова включите автоматический обмен с 1С.</p>
+
+                        <p class="hint">При автоматическом обмене данными Shop-Script передает в 1С только информацию о заказах и принимает из 1С только информацию о товарах (добавляет новые товары, обновляет цены и характеристики).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="block double-padded" id="s-cml1c-manual">
+            <h2>Экспорт из магазина <span class="hint">Shop-Script &rarr; 1С</span></h2>
+            <form id="s-plugin-cml1c-export" method="post" action="?plugin=cml1c&action=run">
+                <div class="fields form">
+                    <div class="field-group">
+                        <div class="field">
+                            <div class="name">Экспортировать в файл</div>
+                            <div class="value no-shift"><label><input type="checkbox" name="export[product]" value="1" checked="checked"> Товары</label></div>
+                            <div class="value no-shift">
+                                <label><input type="checkbox" name="export[order]" value="1" checked="checked"> Заказы</label>
+                                {if $export_timestamp}
+                                <select name="export[new_order]">
+                                    <option value="1" selected="selected">только измененные после даты последнего экспорта ({$export_timestamp|wa_datetime:"humandatetime"})</option>
+                                    <option value="0">все заказы</option>
+                                </select>
+                                {/if}
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="field-group plugin-cml1c-submit">
+                        <div class="field">
+                            <div class="value submit">
+                                <input type="hidden" name="direction" value="export">
+                                <input type="submit" class="button green" value="Экспортировать">
+                                <div class="js-progressbar-container" style="display:none;">
+                                    <div class="progressbar blue float-left" style="display: none; width: 70%;">
+                                        <div class="progressbar-outer">
+                                            <div class="progressbar-inner" style="width: 0%;"></div>
+                                        </div>
+                                    </div>
+                                    <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
+                                    <div class="clear"></div>
+                                        <span class="progressbar-description"></span>
+                                    <br clear="left" />
+                                    <br>
+                                    <span class="small italic">
+                                        Не закрывайте браузер пока процесс экспорта не завершится полностью
+                                    </span>
+                                </div><br><br>
+                                <em class="errormsg"></em>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="field-group plugin-cml1c-report" id="plugin-cml1c-report-export" style="display: none;">
+                        <div class="field">
+                            <div class="value"></div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <h2>Импорт в магазин <span class="hint">1С &rarr; Shop-Script</span></h2>
+
+            <form id="s-plugin-cml1c-import" method="post" action="?plugin=cml1c&action=upload" enctype="multipart/form-data" target="s-plugin-cml1c-import-iframe">
+                <div class="fields form">
+                    <div class="field-group">
+                        <div class="field">
+                            <div class="name">Файл CommerceML</div>
+                            <div class="value no-shift">
+                            {$wa->csrf()}
+                            <input type="file" name="files">
+                            <input type="hidden" name="filename" value="">
+                            <span id="s-plugin-cml1c-import-upload-status" style="display:none">
+                                <i style="vertical-align:middle" class="icon16 loading"></i><span></span>
+                            </span>
+                            <br><br>
+                            <p class="small">Импорт из файла CommerceML поддерживает только импорт информации о товарах (добавление новых товаров, обновление цен и характеристик). Импорт заказов из файла CommerceML не поддерживается.</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="field-group plugin-cml1c-submit">
+                        <div class="field">
+                            <div class="value submit">
+                                <input type="hidden" name="direction" value="import">
+                                <input type="submit" class="button green" value="Импортировать">
+                                <div class="js-progressbar-container" style="display:none;">
+                                    <div class="progressbar blue float-left" style="display: none; width: 70%;">
+                                        <div class="progressbar-outer">
+                                            <div class="progressbar-inner" style="width: 0%;"></div>
+                                        </div>
+                                    </div>
+                                    <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
+                                    <div class="clear"></div>
+                                        <span class="progressbar-description"></span>
+                                    <br clear="left" />
+                                    <br>
+                                    <span class="small italic">
+                                        Не закрывайте браузер пока процесс импорта не завершится полностью
+                                    </span>
+                                </div><br><br>
+                                <em class="errormsg"></em>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="field-group plugin-cml1c-report" id="plugin-cml1c-report-import" style="display: none;">
+                        <div class="field">
+                            <div class="value"></div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <iframe style="display:none" name="s-plugin-cml1c-import-iframe" id="s-plugin-cml1c-import-iframe"></iframe>
+        </div>
+
+
+   </div>
+</div>
+
+<div class="clear"></div>
+
+
+<script type="text/javascript">
+{include file="../../../js/cml1c.js"}
+$.importexport.cml1cInit();
+</script>

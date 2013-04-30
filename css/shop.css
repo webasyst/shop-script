@@ -159,6 +159,7 @@ ul.s-order-actions li .button { border-width: 3px; padding-left: 12px; padding-r
 .s-order-aux { font-size: 0.9em; width: 200px; }
 
 .s-order-comment { margin: 20px -20px; background: #f7f7d7; font-size: 1.3em; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) inset; border-top: 1px solid rgba(0,0,0,0.15); border-bottom: 1px solid rgba(0,0,0,0.1); white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; }
+.s-order-comment-edit textarea { display: block; width: 100%; min-height: 100px; margin: 5px 0 15px; font-size: 1.2em; }
 
 .s-order-address { padding-left: 20px; }
 .s-order-address img.overhanging { margin-left: -20px; }
@@ -588,12 +589,16 @@ ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
 #s-checkout-contact-form-wrapper .field-row.editor-off .name-input { display: none; }
 #s-checkout-contact-form-wrapper .field-row.editor-off .field-advanced-settings { display: none; }
 #s-checkout-contact-form-wrapper .type-selector { margin-top: 5px; }
+#s-checkout-contact-form-wrapper .s-ibutton-checkbox .ibutton-container.mini { width: 32px; }
+#s-checkout-contact-form-wrapper .s-ibutton-checkbox .ibutton-container.mini .ibutton-handle { width: 6px; }
 
 .s-cheatsheet { background: #f3f3e3; margin-top: 20px; padding: 3px 5px 3px 3px; }
 .s-cheatsheet .fields { border: 1px dashed #cc8; margin-bottom: 0; width: 100%; }
 .s-cheatsheet .fields .name { padding-left: 8px; }
 .s-cheatsheet .s-sub-field { font-size: 0.8em; }
 .s-cheatsheet .s-sub-field .name { padding-left: 15px; }
+
+.s-add-shipping-method ul { width: 300px !important; margin-left: -80px !important; }
 
 /* ICONS
 -------- */

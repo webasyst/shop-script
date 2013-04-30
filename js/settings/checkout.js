@@ -182,7 +182,7 @@ $.extend($.settings = $.settings || {}, {
                         if (d.find('select.otherwise-options').val() == 'input') {
                             input_hide_unmatched.val('');
                         } else {
-                            input_hide_unmatched.val('1');
+                            input_hide_unmatched.val('1').closest('td').find('input:checkbox[name$="[required]"]').attr('checked', false);
                         }
 
                         // Save data to DB via a separate controller

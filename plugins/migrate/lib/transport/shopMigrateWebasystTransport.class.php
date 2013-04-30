@@ -533,10 +533,10 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
             if ($parent && !isset($category_map[$parent])) {
                 if (!isset($resave[$parent])) {
                     $resave[$parent] = array();
-                    }
+                }
                 $resave[$parent][] = $id;
                 $count[self::STAGE_CATEGORY_REBUILD] = count($resave);
-                }
+            }
             ++$current_stage;
             array_shift($category_data_cache);
             ++$processed;
@@ -557,9 +557,9 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
                     $category->move($id, null, $category_id);
                 }
                 $item = $category->getById($category_id);
-                    // update full_url of all descendant
-                    $category->correctFullUrlOfDescendants($item['id'], trim($item['full_url'], '/'));
-                }
+                // update full_url of all descendant
+                $category->correctFullUrlOfDescendants($item['id'], trim($item['full_url'], '/'));
+            }
 
             unset($this->map[self::STAGE_CATEGORY_REBUILD][$parent]);
             ++$current_stage;
@@ -1019,8 +1019,8 @@ LIMIT 100';
             $product->tax_id = ifempty($this->map[self::STAGE_TAX][$data['classID']], null);
 
             $features = array();
-            if ($weight = $this->getOption('weight')) {
-                $features['weight'] = $data['weight'].' '.$weight;
+            if (($weight = $this->getOption('weight')) && !empty($data['weight'])) {
+                $features['weight'] = array($data['weight'].' '.$weight);
             }
             $services = array();
 
@@ -1043,7 +1043,6 @@ LIMIT 100';
                                     if (!isset($features[$code])) {
                                         $features[$code] = array();
                                     }
-
                                     $features[$code][] = $option['value'];
                                 }
                                 break;
@@ -1255,9 +1254,7 @@ LIMIT 100';
                     $file = $product_data['eproduct_filename'];
                     $model = new shopProductSkusModel();
                     $file_path = shopProduct::getPath($product['id'], "sku_file/{$product['sku_id']}.".pathinfo($file, PATHINFO_EXTENSION));
-                    $path = 'products_files/'.$file;
-                    waFiles::create($path);
-                    $this->moveFile($path, $file_path, false);
+                    $this->moveFile('products_files/'.$file, $file_path, false);
 
                     $data = array(
                         'file_size' => filesize($file_path),

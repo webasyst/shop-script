@@ -43,9 +43,8 @@ class shopCheckoutContactinfo extends shopCheckout
             return;
         }
 
-        if (wa()->getUser()->isAuth()) {
-            $contact = wa()->getUser();
-        } else {
+        $contact = $this->getContact();
+        if (!$contact) {
             $contact = new waContact();
         }
 
@@ -100,7 +99,7 @@ class shopCheckoutContactinfo extends shopCheckout
 
     public function getOptions($config)
     {
-        $action = new shopSettingsCheckoutContactFormAction($config['fields']);
+        $action = new shopSettingsCheckoutContactFormAction($config);
         return $action->display();
     }
 
@@ -125,6 +124,24 @@ class shopCheckoutContactinfo extends shopCheckout
             $fld_id_no_ext = explode('.', $fld_id, 2);
             $field_ext = empty($fld_id_no_ext[1]) ? '' : '.'.$fld_id_no_ext[1];
             $fld_id_no_ext = $fld_id_no_ext[0];
+
+            // Special treatment for subfields of shipping and billing address:
+            // copy actual settings from address field.
+            if ($field_ext && $fld_id_no_ext == 'address') {
+                // Sanity check
+                if (!is_array($opts) || empty($options['address']) || !is_array($options['address']) || empty($options['address']['fields']) || !is_array($options['address']['fields'])) {
+                    continue;
+                }
+
+                // Copy settings if subfield is turned on or required
+                $fields = array();
+                foreach($options['address']['fields'] as $sf_id => $sf_opts) {
+                    if (!empty($sf_opts['required']) || !empty($opts['fields'][$sf_id])) {
+                        $fields[$sf_id] = $sf_opts;
+                    }
+                }
+                $opts['fields'] = $fields;
+            }
 
             $field = ifset($fields_unsorted[$fld_id_no_ext]);
             if ($field) {
@@ -154,13 +171,16 @@ class shopCheckoutContactinfo extends shopCheckout
                 continue;
             }
 
-            $field->setParameters($sys_opts);
-            if ($new_field) {
-                waContactFields::createField($field);
-                waContactFields::enableField($field, 'person');
-                $fields_unsorted[$field->getId()] = $field;
-            } else if ($sys_opts) {
-                waContactFields::updateField($field);
+            // Write to system config.
+            if (!$field_ext) {
+                $field->setParameters($sys_opts);
+                if ($new_field) {
+                    waContactFields::createField($field);
+                    waContactFields::enableField($field, 'person');
+                    $fields_unsorted[$field->getId()] = $field;
+                } else if ($sys_opts) {
+                    waContactFields::updateField($field);
+                }
             }
             $config['fields'][$fld_id] = $local_opts;
         }
@@ -185,7 +205,13 @@ class shopCheckoutContactinfo extends shopCheckout
         if (!$fld_id) {
             $fld_id = 'f';
         }
+        if (strlen($fld_id) > 15) {
+            $fld_id = substr($fld_id, 0, 15);
+        }
         while (isset($occupied_keys[$fld_id])) {
+            if (strlen($fld_id) >= 15) {
+                $fld_id = substr($fld_id, 0, 10);
+            }
             $fld_id .= mt_rand(0, 9);
         }
 
@@ -227,26 +253,29 @@ class shopCheckoutContactinfo extends shopCheckout
         $sys_opts = array();
 
         if (in_array(get_class($field), array('waContactSelectField', 'waContactRadioSelectField', 'waContactChecklistField'))) {
-            if (empty($opts['options']) || !is_array($opts['options'])) {
-                return array(null, null);
-            }
+            if (!empty($opts['options']) && is_array($opts['options'])) {
+                // get rid of empty last element
+                if ( ( $el = trim(array_pop($opts['options'])))) {
+                    $opts['options'][] = $el;
+                }
 
-            // get rid of empty last element
-            if ( ( $el = trim(array_pop($opts['options'])))) {
-                $opts['options'][] = $el;
-            }
+                $select_options = array();
+                foreach($opts['options'] as $v) {
+                    $v = trim($v);
+                    $select_options[$v] = $v;
+                }
 
-            $select_options = array();
-            foreach($opts['options'] as $v) {
-                $v = trim($v);
-                $select_options[$v] = $v;
-            }
+                if (!$select_options) {
+                    return array(null, null);
+                }
 
-            if (!$select_options) {
-                return array(null, null);
+                $sys_opts['options'] = $select_options;
+            } else {
+                if (!$field->getParameter('options')) {
+                    // Never allow select-based field with no options to select from
+                    return array(null, null);
+                }
             }
-
-            $sys_opts['options'] = $select_options;
             unset($opts['options']);
         } else if ($field instanceof waContactCompositeField) {
             if (empty($opts['fields']) || !is_array($opts['fields'])) {
@@ -261,7 +290,7 @@ class shopCheckoutContactinfo extends shopCheckout
                     continue;
                 }
                 if (empty($existing_subfields[$sf_id])) {
-                    $sf = self::createFromOpts($o);
+                    $sf = self::createFromOpts($o, $opts['fields'] + $existing_subfields);
                     if (!$sf) {
                         continue;
                     }
@@ -300,12 +329,12 @@ class shopCheckoutContactinfo extends shopCheckout
         }
 
         if ($field->getParameter('app_id') == 'shop') {
-            $sys_opts = $opts;
-            $opts = array(
-                'localized_names' => ifset($opts['localized_names'], $fld_id),
-            );
+            $sys_opts += $opts;
+            $opts = array();
         }
-
+        if (empty($opts) && $opts !== null) {
+            $opts = array('__dummy__' => 1);
+        }
         return array($opts, $sys_opts);
     }
 }

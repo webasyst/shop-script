@@ -25,9 +25,13 @@ $(function () {
     $(".cart a.delete").click(function () {
         var tr = $(this).closest('tr');
         $.post('delete/', {id: tr.data('id')}, function (response) {
+            if (response.data.count == 0) {
+                location.reload();
+            }
             tr.remove();
             updateCart(response.data);
         }, "json");
+        return false;
     });
 
     $(".cart input.qty").change(function () {

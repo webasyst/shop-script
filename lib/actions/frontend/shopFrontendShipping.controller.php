@@ -17,11 +17,15 @@ class shopFrontendShippingController extends waJsonController
         $cart = new shopCart();
         $shipping = new shopCheckoutShipping();
         $rates = $plugin->getRates($shipping->getItems(), $address, array('total_price' => $cart->total()));
-        foreach ($rates as $r_id => &$r) {
-            $r['id'] = $r_id;
-            $r['rate'] = shop_currency($r['rate'], $r['currency']);
+        if (is_array($rates)) {
+            foreach ($rates as $r_id => &$r) {
+                $r['id'] = $r_id;
+                $r['rate'] = shop_currency($r['rate'], $r['currency']);
+            }
+            unset($r);
+            $this->response = array_values($rates);
+        } else {
+            $this->response = $rates;
         }
-        unset($r);
-        $this->response = array_values($rates);
     }
 }

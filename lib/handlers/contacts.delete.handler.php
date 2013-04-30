@@ -7,7 +7,7 @@ class shopContactsDeleteHandler extends waEventHandler
      * @see waEventHandler::execute()
      * @return void
      */
-    public function execute($params)
+    public function execute(&$params)
     {
         $contact_ids = $params;
 

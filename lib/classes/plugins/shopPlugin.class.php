@@ -31,7 +31,7 @@ abstract class shopPlugin extends waPlugin
             $model = $this->getSettingsModel();
             $this->settings = $model->get(array($this->app_id, $this->id));
             foreach ($this->settings as $key => $value) {
-                if (($json = json_decode($value)) && is_array($json)) {
+                if (($json = json_decode($value,true)) && is_array($json)) {
                     $this->settings[$key] = $json;
                 }
             }

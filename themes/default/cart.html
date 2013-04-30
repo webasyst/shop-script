@@ -53,7 +53,7 @@
                             </div>
                             {/if}
                         </td>
-                        <td class="align-center"><input type="text" name="quantity[{$item.id}]" value="{$item.quantity}" class="qty"></td>
+                        <td class="align-center nowrap"><span class="gray">&times;</span> <input type="text" name="quantity[{$item.id}]" value="{$item.quantity}" class="qty"></td>
                         <td class="align-center item-total nowrap">{shop_currency($item.full_price, true)}</td>
                         <td><a class="delete" href="#" title="[`Remove from cart`]"><i class="icon16 remove"></i></a></td>
                     </tr>

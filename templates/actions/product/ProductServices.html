@@ -38,11 +38,14 @@
                             </td>
                         {/if}
                         <td class="min-width">
-                            <input type="checkbox" name="variant[{$variant.id}]" value="1" 
-                                {if $variant.status != shopProductServicesModel::STATUS_FORBIDDEN}checked="checked"{/if}
+                            <input type="checkbox" name="variant[{$variant.id}]" id="v-{$service.id}-{$variant.id}" value="1" {if $variant.status != shopProductServicesModel::STATUS_FORBIDDEN}checked="checked"{/if}
                             >
                         </td>
-                        <td style="width: 30%;">{if $multi_variants}{$variant.name|escape}{else}{$service.name|escape}{/if}</td>
+                        <td style="width: 30%;">
+                            <label for="v-{$service.id}-{$variant.id}">
+                                {if $multi_variants}{$variant.name|escape}{else}{$service.name|escape}{/if}
+                            </label>
+                        </td>
                         <td>
                             + <input type="text" name="variant_price[{$variant.id}]" class="large bold s-price-surplus" 
                                 placeholder="{if $variant.base_price}{(double)$variant.base_price}{/if}" 
@@ -72,9 +75,10 @@
                             {if $multi_variants}<td class="min-width">&nbsp;</td>{/if}
                             <td class="min-width">&nbsp;</td>
                             <td>
-                                <input type="checkbox" name="variant_sku[{$variant.id}][{$variant_sku.sku_id}]" value="1" 
-                                    {if $variant_sku.status != shopProductServicesModel::STATUS_FORBIDDEN}checked{/if}> 
-                                {$variant_sku.name|escape}
+                                <label>
+                                    <input type="checkbox" name="variant_sku[{$variant.id}][{$variant_sku.sku_id}]" value="1" {if $variant_sku.status != shopProductServicesModel::STATUS_FORBIDDEN}checked{/if}> 
+                                    {$variant_sku.name|escape}
+                                </label>
                             </td>
                             <td>
                                 + <input type="text" name="variant_sku_price[{$variant.id}][{$variant_sku.sku_id}]" class="large bold s-price-surplus" 

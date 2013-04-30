@@ -83,9 +83,11 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             $billing_address = $contact->getFirst('address');
         }
         $discount_rate = $subtotal ? ($data['discount'] / $subtotal) : 0;
-        $taxes = shopTaxes::apply($data['items'], array('shipping' => $shipping_address['data'],
-            'billing' => $billing_address['data'], 'discount_rate' => $discount_rate));
-
+        $taxes = shopTaxes::apply($data['items'], array(
+            'shipping' => isset($shipping_address['data']) ? $shipping_address['data'] : array(),
+            'billing' => isset($billing_address['data']) ? $billing_address['data'] : array(),
+            'discount_rate' => $discount_rate
+        ));
         $tax = $tax_included = 0;
         foreach ($taxes as $t) {
             if (isset($t['sum'])) {

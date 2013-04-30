@@ -11,6 +11,15 @@
         </h3>
         {if $m.description}<p>{$m.description}</p>{/if}
         {if !empty($m.error)}<p class="error"><em>{$m.error}</em></p>{/if}
+        {if !empty($m.custom_html)}<div class="wa-form" {if $m.id != $payment_id}style="display:none"{/if}>{$m.custom_html}</div>{/if}
     </li>
     {/foreach}
 </ul>
+<script type="text/javascript">
+    $(".checkout-options input:radio").change(function () {
+        if ($(this).is(':checked')) {
+            $(".checkout-options .wa-form").hide();
+            $(this).closest('li').find('.wa-form').show();
+        }
+    });
+</script>

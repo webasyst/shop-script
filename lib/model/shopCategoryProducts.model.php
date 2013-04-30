@@ -71,15 +71,9 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
             }
         }
 
-        // check and correct main categories of products (category_id)
         $product_model = new shopProductModel();
-        $sql = "SELECT id FROM `shop_product` WHERE ".
-                $product_model->getWhereByField('id', $product_ids) ."
-                AND category_id IS NULL";
-        $ids = array_keys($this->query($sql)->fetchAll('id'));
-        if ($ids) {
-            $product_model->correctMainCategory($ids);
-        }
+        $product_model->correctMainCategory($product_ids);
+
     }
 
     public function move($product_ids, $before_id, $category_id = null)
@@ -219,18 +213,21 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
             unset($data[$key]);
         }
 
-        $current = $this->getByField('product_id',$product->id, 'category_id');
-        if ($obsolete = array_diff(array_keys($current), $data)) {
-            $this->deleteByField(array('product_id'=>$product->id,'category_id'=>$obsolete));
+        $category_ids = array_keys($this->getByField('product_id', $product->id, 'category_id'));
+
+        if ($obsolete = array_diff($category_ids, $data)) {
+            $this->deleteByField(array('product_id' => $product->id, 'category_id' => $obsolete));
 
             // correct counter
             $category_model = new shopCategoryModel();
             $category_model->recount($obsolete);
-
         }
-        if ($added = array_diff($data, array_keys($current))) {
+        if ($added = array_diff($data, $category_ids)) {
             $this->add($product->id, $added);
         }
+
+        $product_model = new shopProductModel();
+        $product_model->correctMainCategory($product->id);
 
         return $data;
     }

@@ -64,11 +64,15 @@ class shopSettingsCheckoutSaveActions extends waJsonActions
         if (waRequest::post()) {
             $step_id = $this->getStepId();
             $name = waRequest::post('name');
+            $config = waRequest::post('config', array());
             $data = $this->getSteps();
             if (!is_array($data[$step_id])) {
                 $data[$step_id] = array();
             }
             $data[$step_id]['name'] = $name;
+            foreach ($config as $k => $v) {
+                $data[$step_id][$k] = $v;
+            }
 
             $class = "shopCheckout".ucfirst($step_id);
             $step = new $class();

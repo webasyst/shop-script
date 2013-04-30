@@ -15,5 +15,6 @@ class shopFrontendCartDeleteController extends waJsonController
         }
         $this->response['total'] = shop_currency($cart->total());
         $this->response['discount'] = shop_currency($cart->discount());
+        $this->response['count'] = $cart->count();
     }
 }

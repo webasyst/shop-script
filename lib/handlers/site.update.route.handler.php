@@ -7,7 +7,7 @@ class shopSiteUpdateRouteHandler extends waEventHandler
      * @see waEventHandler::execute()
      * @return void
      */
-    public function execute($params)
+    public function execute(&$params)
     {
         $category_model = new shopCategoryModel();
         $category_model->updateByField(array('route' => $params['old']), array('route' => $params['new']));

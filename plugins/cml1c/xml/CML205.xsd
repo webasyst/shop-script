@@ -1,0 +1,1743 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="urn:1C.ru:commerceml2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:cml="urn:1C.ru:commerceml2" elementFormDefault="qualified" attributeFormDefault="unqualified" version="2.05" id="commercem">
+	<!--Предусматривается использование данной схемы, в частности, для обмена:
+·	каталогами товаров; 
+·	коммерческими предложениями (прайс – листами); 
+·	документами, сопровождающими наиболее распространенные торговые (хозяйственные) операции :
+Заказ товара;
+Cчет на оплату;
+Отпуск товара;
+Счет-фактура;
+Возврат товара;
+Передача товара на комиссию;
+Возврат комиссионного товара;
+Отчет о продажах комиссионного товара;
+Выплата наличных денег;
+Возврат наличных денег;
+Выплата безналичных денег;
+Возврат безналичных денег.
+-->
+	<!--Описание составных типов-->
+	<xsd:complexType name="Адрес">
+		<xsd:annotation>
+			<xsd:documentation>Служит для  представления адреса контрагента или любого другого участника бизнес-процесса</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Представление" type="cml:НаименованиеТип">
+				<xsd:annotation>
+					<xsd:documentation>Строковое представление адреса. Например: Москва,  ул. Селезневская, д.21</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Комментарий" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Произвольный комментарий. Например, указание, как проехать на автомобиле</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="cml:КомментарийТип"/>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="АдресноеПоле" minOccurs="0" maxOccurs="10">
+				<xsd:annotation>
+					<xsd:documentation>Позволяет четко структурировать адрес и затем, например, производить отбор сущностей по региону, городу и т.п.</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="Тип" type="cml:АдресТип">
+							<xsd:annotation>
+								<xsd:documentation>Возможные значения: Почтовый индекс, Страна, Регион, Район, Населенный пункт, Город, Улица, Дом, Корпус, Квартира</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="Значение" type="cml:СтрокаТип"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Банк">
+		<xsd:annotation>
+			<xsd:documentation>Служит для определения реквизитов КО или УБР (БИК, Наименование, Адрес и т.д.) через которые клиент осуществляет расчеты</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="СчетКорреспондентский" type="cml:СчетНомерТип" minOccurs="0"/>
+			<xsd:element name="Наименование" type="cml:НаименованиеТип" minOccurs="0"/>
+			<xsd:element name="Адрес" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Адрес (юридический) банка.</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:complexContent>
+						<xsd:extension base="cml:Адрес"/>
+					</xsd:complexContent>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Контакты" type="cml:КонтактнаяИнформация" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Содержит описание возможных способов связи (по телефону, электронной почте и т.д.)</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:sequence>
+				<xsd:choice>
+					<xsd:element name="БИК" type="cml:БИКТип">
+						<xsd:annotation>
+							<xsd:documentation>Банковский идентификационный код (БИК) в соответствии со "Справочником БИК РФ" </xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="SWIFT" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>Код Swift</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:choice>
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Группа">
+		<xsd:annotation>
+			<xsd:documentation>Описывает группу товаров в каталоге </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Ид" type="cml:ИдентфикаторГлобальныйТип">
+				<xsd:annotation>
+					<xsd:documentation>Идентификатор группы товаров в классификаторе</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Наименование" type="cml:КомментарийТип">
+				<xsd:annotation>
+					<xsd:documentation>Наименование группы товаров</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Описание" type="cml:КомментарийТип" minOccurs="0"/>
+			<xsd:element name="Свойства" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Содержит коллекцию свойств, значения которых можно или нужно указать для товаров, принадлежащих данной группе, в каталоге, пакете предложений, документах</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="Свойство" type="cml:Свойство" maxOccurs="unbounded"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Группы" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Содержит описание вложенных групп товаров</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="Группа" type="cml:Группа" maxOccurs="unbounded"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ДопРасход">
+		<xsd:annotation>
+			<xsd:documentation>Дополнительный расход по номенклатурной позиции и/или по документу в целом (например, транспортировка, тара и т.п.)</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Наименование" type="cml:НаименованиеТип"/>
+			<xsd:element name="Сумма" type="cml:СуммаТип"/>
+			<xsd:element name="Процент" type="cml:КоэффициентТип" minOccurs="0"/>
+			<xsd:element name="УчтеноВСумме" type="cml:ПереключательТип" minOccurs="0"/>
+			<xsd:element name="Комментарий" type="cml:КомментарийТип" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ЗначениеРеквизита">
+		<xsd:annotation>
+			<xsd:documentation>Определяет значение поризвольного реквизита документа</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Наименование" type="cml:НаименованиеТип"/>
+			<xsd:element name="Значение" type="cml:ЗначениеТип" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ЗначенияСвойства">
+		<xsd:annotation>
+			<xsd:documentation>Определяет значения свойств номенклатурной позиции в каталоге, пакете предложений, документе</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Ид" type="cml:ИдентфикаторГлобальныйТип">
+				<xsd:annotation>
+					<xsd:documentation>Идентификатор свойства в классификаторе товаров</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Наименование" type="cml:НаименованиеТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Наименование свойства</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Значение" type="cml:ЗначениеТип" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="КонтактнаяИнформация">
+		<xsd:annotation>
+			<xsd:documentation>Содержит описание возможных способов связи (по телефону, электронной почте и т.д.)</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Контакт" maxOccurs="unbounded">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="Тип" type="cml:КонтактТип">
+							<xsd:annotation>
+								<xsd:documentation>Возможные значения: ТелефонВнутренний, ТелефонРабочий, ТелефонМобильный, ТелефонДомашний, Пейджер, Факс, Почта, ICQ, ВебСайт</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="Значение" type="cml:СтрокаТип">
+							<xsd:annotation>
+								<xsd:documentation>Контактная информация, например, номер рабочего телефона (095) 737-92-57</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="Комментарий" type="cml:КомментарийТип" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>Произвольный комментарий. Например: "звонить строго с 10 до 18 часов"</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Контрагент">
+		<xsd:annotation>
+			<xsd:documentation>Универсальное описание контрагента-участника бизнес-процессов. Содержит описание реквизитов юридического или физического лица контрагента.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Ид" type="cml:ИдентфикаторГлобальныйТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Глобально уникальный идентификатор контрагента (рекомендуется использовать GUID)</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Наименование" type="cml:НаименованиеТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Наименование контрагента</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:choice>
+				<xsd:group ref="cml:РеквизитыЮрЛица"/>
+				<xsd:group ref="cml:РеквизитыФизЛица"/>
+			</xsd:choice>
+			<xsd:element name="Комментарий" type="cml:КомментарийТип" minOccurs="0"/>
+			<xsd:element name="Адрес" type="cml:Адрес" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Фактический адрес контрагента.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Контакты" type="cml:КонтактнаяИнформация" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Содержит описание возможных способов связи (по телефону, электронной почте и т.д.)</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Представители" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Содержит описание представителей контрагента, например, контактных лиц или дочерних организаций</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="Представитель" maxOccurs="unbounded">
+							<xsd:complexType>
+								<xsd:complexContent>
+									<xsd:extension base="cml:Контрагент">
+										<xsd:sequence>
+											<xsd:element name="Отношение" type="xsd:string">
+												<xsd:annotation>
+													<xsd:documentation>Описывает отношение (связь) представителя и контрагента. Примеры значений: "Контактное лицо", "Филиал", "Главный офис" и т.п.</xsd:documentation>
+												</xsd:annotation>
+											</xsd:element>
+										</xsd:sequence>
+									</xsd:extension>
+								</xsd:complexContent>
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Налог">
+		<xsd:annotation>
+			<xsd:documentation>Определяет вид налога </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Наименование" type="cml:НаименованиеТип">
+				<xsd:annotation>
+					<xsd:documentation>Вид налога. Например, НДС</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="УчтеноВСумме" type="cml:ПереключательТип" minOccurs="0"/>
+			<xsd:element name="Акциз" type="cml:ПереключательТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Флаг, указывающий, что налог является акцизом</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="РасчетныйСчет">
+		<xsd:annotation>
+			<xsd:documentation>Номер расчетного счета контрагента</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="НомерСчета" type="cml:СчетНомерТип">
+				<xsd:annotation>
+					<xsd:documentation>Номер банковского счета.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Банк" type="cml:Банк">
+				<xsd:annotation>
+					<xsd:documentation>Банк, в котором открыт расчетный счет (собственной фирмы или контрагента)</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="БанкКорреспондент" type="cml:Банк" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Банк для непрямых расчетов.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Комментарий" type="cml:КомментарийТип" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ХарактеристикиТовара">
+		<xsd:annotation>
+			<xsd:documentation>Уточняет характеристики поставляемого товара. Товар с разными характеристиками может иметь разную цену</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="ХарактеристикаТовара" maxOccurs="unbounded">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="Наименование" type="cml:НаименованиеТип"/>
+						<xsd:element name="Значение" type="cml:ЗначениеТип"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Свойство">
+		<xsd:annotation>
+			<xsd:documentation>Описывает свойство товара и возможные варианты значений этого свойства</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Ид" type="cml:ИдентфикаторГлобальныйТип">
+				<xsd:annotation>
+					<xsd:documentation>Идентификатор свойства в классификаторе</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Наименование" type="cml:НаименованиеТип">
+				<xsd:annotation>
+					<xsd:documentation>Наименование свойства</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Описание" type="cml:КомментарийТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Описание свойства, например, для чего оно предназначено</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Обязательное" type="cml:ОбязательностьСвойствТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Определяет обязательность указания значений свойства для товаров в каталоге, пакете предложений, докуменах</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Множественное" type="cml:ПереключательТип" minOccurs="0"/>
+			<xsd:element name="ТипЗначений" type="cml:ТипЗначенийТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Один из следующих типов: Строка (по умолчанию), Число,  ДатаВремя, Справочник</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ВариантыЗначений" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Содержит коллекцию вариантов значений свойства. Если варианты указаны, то при указании  значений данного свойства для товаров должны использоваться значения СТРОГО из данного списка</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="Значение" type="cml:ЗначениеТип" minOccurs="0" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation>Определяет вариант значения свойства</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="Справочник" minOccurs="0" maxOccurs="unbounded">
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:element name="ИдЗначения" type="cml:ИдентфикаторГлобальныйТип" minOccurs="0">
+										<xsd:annotation>
+											<xsd:documentation>Идентифицирует значение свойства</xsd:documentation>
+										</xsd:annotation>
+									</xsd:element>
+									<xsd:element name="Значение" type="cml:ЗначениеТип">
+										<xsd:annotation>
+											<xsd:documentation>Определяет вариант значения свойства</xsd:documentation>
+										</xsd:annotation>
+									</xsd:element>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:group ref="cml:ИспользованиеСвойства"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Скидка">
+		<xsd:annotation>
+			<xsd:documentation>Предоставляемая скидка на товарную позицию и/или в целом на сумму документа</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Наименование" type="cml:НаименованиеТип"/>
+			<xsd:element name="Сумма" type="cml:СуммаТип"/>
+			<xsd:element name="Процент" type="cml:КоэффициентТип" minOccurs="0"/>
+			<xsd:element name="УчтеноВСумме" type="cml:ПереключательТип" minOccurs="0"/>
+			<xsd:element name="Комментарий" type="cml:КомментарийТип" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Склад">
+		<xsd:annotation>
+			<xsd:documentation>Наименование и идентификатор склада</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Ид" type="cml:ИдентфикаторГлобальныйТип">
+				<xsd:annotation>
+					<xsd:documentation>Глобально уникальный идентификатор склада (рекомендуется использовать GUID)</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Наименование" type="cml:НаименованиеТип">
+				<xsd:annotation>
+					<xsd:documentation>Наименование склада</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Комментарий" type="cml:КомментарийТип" minOccurs="0"/>
+			<xsd:element name="Адрес" type="cml:Адрес" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Фактический адрес склада</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Контакты" type="cml:КонтактнаяИнформация" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Содержит описание возможных способов связи (по телефону, электронной почте и т.д.)</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ТипЦены">
+		<xsd:annotation>
+			<xsd:documentation>Описывает цену, идентифицированную в каталоге с указанием кода валюты (если ранее не определена)</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Ид" type="cml:ИдентфикаторГлобальныйТип">
+				<xsd:annotation>
+					<xsd:documentation>Идентификатор типа цены </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Наименование" type="cml:НаименованиеТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Наименование вида цены.  Например: Оптовая, Розничная. </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Валюта" type="cml:ВалютаТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Код валюты по международному классификатору валют  (ISO 4217).</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Описание" type="cml:КомментарийТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Описание структуры цены. Дополнительные условия. Например, наличие дилерского соглашения</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Налог" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>Определяет вид налога и способ учета налога в цене (сумме)</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:complexContent>
+						<xsd:extension base="cml:Налог"/>
+					</xsd:complexContent>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Товар">
+		<xsd:annotation>
+			<xsd:documentation>Описывает идентифицированный в каталоге товар</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:group ref="cml:ИдентификаторТовара"/>
+			<xsd:element name="Наименование" type="cml:НаименованиеТип">
+				<xsd:annotation>
+					<xsd:documentation>Наименование товара</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="БазоваяЕдиница">
+				<xsd:annotation>
+					<xsd:documentation>Имя базовой единицы измерения товара по ОКЕИ. В документах и коммерческих предложениях может быть указана другая единица измерения, но при этом обязательно указывается коэффициент пересчета количества в базовую единицу товара.</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType mixed="true">
+					<xsd:sequence minOccurs="0">
+						<xsd:element name="Пересчет" minOccurs="0" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation>Могут быть указаны способы пересчета в другие единицы. Указанные способы пересчета следует использовать в  случаях несовпадения базовых единиц на одни и те же товары.</xsd:documentation>
+							</xsd:annotation>
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:group ref="cml:ЕдиницаИзмерения"/>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>
+					<xsd:attribute name="Код" type="cml:Строка3" use="optional"/>
+					<xsd:attribute name="НаименованиеПолное" type="cml:СтрокаТип" use="optional"/>
+					<xsd:attribute name="МеждународноеСокращение" type="cml:Строка3" use="optional"/>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="ИдТовараУКонтрагента" type="cml:ИдентфикаторГлобальныйТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Идентификатор товара в системе контрагента.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Группы" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Содержит идентификаторы групп, которым принадлежит данный товар в указанном классификаторе. Если классификатор не указан, то включать данный элемент не имеет смысла.</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="Ид" type="cml:ИдентфикаторГлобальныйТип" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation>Идентификатор группы товаров в классификаторе</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Описание" type="cml:СтрокаТип" minOccurs="0"/>
+			<xsd:element name="Картинка" type="cml:ИмяФайлаТип" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>Имя файла картинки для номенклатурной позиции. Файлы картинок могут поставляться отдельно от передаваемого файла с коммерческой информацией</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:group ref="cml:Производитель" minOccurs="0"/>
+			<xsd:element name="ЗначенияСвойств" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Описывает значения свойств (характеристик) номенклатурной позиции в соответствии с указанным классификатором.  Если классификатор не указан, то включать данный элемент не имеет смысла.</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="ЗначенияСвойства" type="cml:ЗначенияСвойства" maxOccurs="unbounded"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="СтавкиНалогов" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="СтавкаНалога" maxOccurs="unbounded">
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:element name="Наименование" type="cml:СтрокаТип">
+										<xsd:annotation>
+											<xsd:documentation>Вид налога. Например, НДС</xsd:documentation>
+										</xsd:annotation>
+									</xsd:element>
+									<xsd:element name="Ставка" type="cml:КоэффициентТип">
+										<xsd:annotation>
+											<xsd:documentation>Ставка налога в процентах</xsd:documentation>
+										</xsd:annotation>
+									</xsd:element>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Акцизы" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="Акциз" maxOccurs="unbounded">
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:element name="Наименование" type="cml:НаименованиеТип">
+										<xsd:annotation>
+											<xsd:documentation>Вид акцизного налога. </xsd:documentation>
+										</xsd:annotation>
+									</xsd:element>
+									<xsd:element name="СуммаЗаЕдиницу" type="cml:СуммаТип">
+										<xsd:annotation>
+											<xsd:documentation>Сумма сбора за единицу (базовую) товара</xsd:documentation>
+										</xsd:annotation>
+									</xsd:element>
+									<xsd:element name="Валюта" type="cml:ВалютаТип">
+										<xsd:annotation>
+											<xsd:documentation>Код валюты по международному классификатору валют  (ISO 4217).</xsd:documentation>
+										</xsd:annotation>
+									</xsd:element>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Комплектующие" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Для изделий, содержащих комплектующие</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="Комплектующее" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation>Элементы типа «Товар» - определяют комплектующие составных товаров - наборов.</xsd:documentation>
+							</xsd:annotation>
+							<xsd:complexType>
+								<xsd:complexContent>
+									<xsd:extension base="cml:Товар">
+										<xsd:sequence>
+											<xsd:element name="ИдКаталога" type="cml:ИдентфикаторГлобальныйТип" minOccurs="0">
+												<xsd:annotation>
+													<xsd:documentation>Идентификатор каталога </xsd:documentation>
+												</xsd:annotation>
+											</xsd:element>
+											<xsd:element name="ИдКлассификатора" type="cml:ИдентфикаторГлобальныйТип" minOccurs="0">
+												<xsd:annotation>
+													<xsd:documentation>Идентификатор классификатора, в соответствии с которым описано комплектующее</xsd:documentation>
+												</xsd:annotation>
+											</xsd:element>
+											<xsd:element name="Количество" type="cml:КоличествоТип"/>
+										</xsd:sequence>
+									</xsd:extension>
+								</xsd:complexContent>
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Аналоги" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Аналоги товара, например для медикаментов другие лекарства, заменяющие данное</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="Аналог" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation>Элементы типа «Товар» - определяют аналогичные товары, например, в другом каталоге </xsd:documentation>
+							</xsd:annotation>
+							<xsd:complexType>
+								<xsd:complexContent>
+									<xsd:extension base="cml:Товар">
+										<xsd:sequence>
+											<xsd:element name="ИдКаталога" type="cml:ИдентфикаторГлобальныйТип" minOccurs="0">
+												<xsd:annotation>
+													<xsd:documentation>Идентификатор каталога </xsd:documentation>
+												</xsd:annotation>
+											</xsd:element>
+											<xsd:element name="ИдКлассификатора" type="cml:ИдентфикаторГлобальныйТип" minOccurs="0">
+												<xsd:annotation>
+													<xsd:documentation>Идентификатор классификатора, в соответствии с которым описан аналог</xsd:documentation>
+												</xsd:annotation>
+											</xsd:element>
+										</xsd:sequence>
+									</xsd:extension>
+								</xsd:complexContent>
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="ХарактеристикиТовара" type="cml:ХарактеристикиТовара" minOccurs="0"/>
+			<xsd:element name="ЗначенияРеквизитов" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="ЗначениеРеквизита" type="cml:ЗначениеРеквизита" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation>Дополнительные  значения реквизитов товара</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="Статус" type="cml:СтатусТип" use="optional"/>
+	</xsd:complexType>
+	<xsd:complexType name="Цена">
+		<xsd:annotation>
+			<xsd:documentation>Цена по номенклатурной позиции</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Представление" type="cml:НаименованиеТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Представление цены так, как оно отбражается в прайс-листе. Например: 10у.е./за 1000 шт</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ИдТипаЦены" type="cml:ИдентфикаторГлобальныйТип">
+				<xsd:annotation>
+					<xsd:documentation>Идентификатор типа цены </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ЦенаЗаЕдиницу" type="cml:СуммаТип">
+				<xsd:annotation>
+					<xsd:documentation>Цена за единицу товара</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Валюта" type="cml:ВалютаТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Код валюты по международному классификатору валют  (ISO 4217). Если не указана, то используется валюта установленная для данного типа цен</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:group ref="cml:ЕдиницаИзмерения" minOccurs="0"/>
+			<xsd:element name="МинКоличество" type="cml:КоличествоТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Минимальное количество товара в указанных единицах, для которого действует данная цена. </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!--Описание групп элементов-->
+	<xsd:group name="ЕдиницаИзмерения">
+		<xsd:annotation>
+			<xsd:documentation>Определяет единицу измерения товара и коэффициент пересчета количества в базовую единицу. Если отсутсвует, то используется базовая единица товара.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Единица" type="cml:ЕдиницаТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Имя единицы измерения товара по ОКЕИ.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Коэффициент" type="cml:КоэффициентТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Коэффициент пересчета количества товара в базовую единицу.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ДополнительныеДанные" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Содержит дополнительную информацию о единице измерения товара</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="ЗначениеРеквизита" type="cml:ЗначениеРеквизита" maxOccurs="unbounded"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:group name="ИспользованиеСвойства">
+		<xsd:annotation>
+			<xsd:documentation>Определяет способы использования свойства.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:choice>
+				<xsd:annotation>
+					<xsd:documentation>Указывает на то, что должен быть указан хотя бы один вариант использования свойства</xsd:documentation>
+				</xsd:annotation>
+				<xsd:element name="ДляТоваров" type="cml:ПереключательТип" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Свойство может (или должно) использоваться при описании товаров в каталоге, пакете предложений, документах</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="ДляПредложений" type="cml:ПереключательТип" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Свойство может (должно) использоваться при описании товара в пакете предложений. Например: гарантийный срок, способ доставки</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="ДляДокументов" type="cml:ПереключательТип" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Свойство может (должно) использоваться при описании товара в документе. Например: серийный номер</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:choice>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:group name="РеквизитыФизЛица">
+		<xsd:annotation>
+			<xsd:documentation>Содержит описание реквизитов контрагента, специфических для физических лиц </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="ПолноеНаименование" type="cml:НаименованиеТип">
+				<xsd:annotation>
+					<xsd:documentation>Полное наименование физического лица. Может включать обращение и суффикс</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Обращение" type="cml:ОбращениеТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Например: Г-н, Г-жа, Докт., Проф. и т.д.   </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Фамилия" type="cml:СтрокаТип" minOccurs="0"/>
+			<xsd:element name="Имя" type="cml:СтрокаТип" minOccurs="0"/>
+			<xsd:element name="Отчество" type="cml:СтрокаТип" minOccurs="0"/>
+			<xsd:element name="ДатаРождения" type="cml:ДатаТип" minOccurs="0"/>
+			<xsd:element name="МестоРождения" type="cml:Адрес" minOccurs="0"/>
+			<xsd:element name="Пол" type="cml:ПолТип" minOccurs="0"/>
+			<xsd:element name="ИНН" type="cml:ИННТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Индивидуальный номер налогоплательщика (ИНН) </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="КПП" type="cml:КППТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Коп причины постановки на учет</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="УдостоверениеЛичности" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Документ, удостоверяющий личность</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="ВидДокумента" type="cml:СтрокаТип">
+							<xsd:annotation>
+								<xsd:documentation>Вид документа, удостоверяющего личность. Например: паспорт</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="Серия" type="cml:СтрокаТип" minOccurs="0"/>
+						<xsd:element name="Номер" type="cml:НомерТип"/>
+						<xsd:element name="ДатаВыдачи" type="cml:ДатаТип"/>
+						<xsd:element name="КемВыдан" type="cml:НаименованиеТип">
+							<xsd:annotation>
+								<xsd:documentation>Организация, выдавшая документ</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="АдресРегистрации" type="cml:Адрес" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Адрес регистрации физического лица</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:group ref="cml:МестоРаботы" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:group name="РеквизитыЮрЛица">
+		<xsd:annotation>
+			<xsd:documentation>Содержит описание реквизитов контрагента, специфических для юридических лиц </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="ОфициальноеНаименование" type="cml:НаименованиеТип">
+				<xsd:annotation>
+					<xsd:documentation>Официальное наименование юридического лица в соответствии с учредительными документами</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ЮридическийАдрес" type="cml:Адрес" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Юридический адрес контрагента</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ИНН" type="cml:ИННТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Индивидуальный номер налогоплательщика (ИНН) 10 цифр</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="КПП" type="cml:КППТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Код постановки предприятия на учет</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ОсновнойВидДеятельности" type="cml:НаименованиеТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Основной вид деятельности по учредительным документам</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ЕГРПО" type="cml:ЕГРПОТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Код по единому Государственному регистру предприятий и организаций</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ОКВЭД" type="cml:ОКВЭДТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Код отрасли по ОКВЭД</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ОКДП" type="cml:ОКДПТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Код по ОКДП основного вида деятельности</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ОКОПФ" type="cml:ОКОПФТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Код организационно-правовой формы по ОКОПФ</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ОКФС" type="cml:ОКФСТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Код формы собственности по ОКФС</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ОКПО" type="cml:ОКПОТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Код ОКПО организации</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ДатаРегистрации" type="cml:ДатаТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Дата регистрации организации</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Руководитель" type="cml:Контрагент" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Руководитель организации</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="РасчетныеСчета" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Содержит описание расчетных счетов организации</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="РасчетныйСчет" type="cml:РасчетныйСчет" maxOccurs="unbounded"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:group name="МестоРаботы">
+		<xsd:annotation>
+			<xsd:documentation>Содержит описание места работы физического лица и занимаемой должности</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Организация" type="cml:Контрагент" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Описание организации может быть опущено, если физ.лицо описывается, как представитель организации</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Должность" type="cml:СтрокаТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Должность в организации</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:group name="Производитель">
+		<xsd:annotation>
+			<xsd:documentation>Содержит описание страны, непосредственного изготовителя и торговой марки товара</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Страна" type="cml:СтрокаТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Наименование страны (по ОКСМ), в которой изготовлен товар</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ТорговаяМарка" type="cml:СтрокаТип" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Наименование торговой марки (брэнда) товара</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ВладелецТорговойМарки" type="cml:Контрагент" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Контрагент (компания), которому принадлежит торговая марка товара</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Изготовитель" type="cml:Контрагент" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Наименование непосредственного изготовителя товара</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:group name="ИдентификаторТовара">
+		<xsd:annotation>
+			<xsd:documentation>Товар может быть идентифицирован произвольным (например GUID или внутрисистемным) идентификатором, Штрихкодом, Артикулом. Контрагент может использовать любой удобный с его точки зрения  идентификатор - на выбор</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Ид" type="cml:Идентификатор80" minOccurs="0"/>
+			<xsd:element name="Штрихкод" type="cml:ШтрихкодТип" minOccurs="0"/>
+			<xsd:element name="Артикул" type="cml:АртикулТип" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:group>
+	<!--Описание глобальных элементов-->
+	<xsd:element name="КоммерческаяИнформация">
+		<xsd:annotation>
+			<xsd:documentation>Собирательный корневой элемент для всего, что может быть упомянуто в процессе обмена </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="cml:Классификатор" minOccurs="0"/>
+				<xsd:choice>
+					<xsd:element ref="cml:Каталог" minOccurs="0"/>
+					<xsd:element ref="cml:ПакетПредложений" minOccurs="0"/>
+					<xsd:element ref="cml:Документ" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:choice>
+			</xsd:sequence>
+			<xsd:attribute name="ВерсияСхемы" type="xsd:string" use="required"/>
+			<xsd:attribute name="ДатаФормирования" type="cml:ДатаВремяТип" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Каталог">
+		<xsd:annotation>
+			<xsd:documentation>Каталог товаров содержит перечень товаров. Может составляться разными предприятиями (например, каталог продукции фирмы «1С»). У каталога всегда определен владелец, а товары могут описываться по классификатору.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Ид" type="cml:ИдентфикаторГлобальныйТип">
+					<xsd:annotation>
+						<xsd:documentation>Глобально уникальный идентификатор каталога (рекомендуется использовать GUID)</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="ИдКлассификатора" type="cml:ИдентфикаторГлобальныйТип" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Идентификатор классификатора, в соответствии с которым описываются товары</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="Наименование" type="cml:НаименованиеТип">
+					<xsd:annotation>
+						<xsd:documentation>Наименование каталога</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="Владелец" type="cml:Контрагент">
+					<xsd:annotation>
+						<xsd:documentation>Элемент типа "Контрагент". Служит для определения владельца данного каталога. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="Товары">
+					<xsd:annotation>
+						<xsd:documentation/>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="Товар" type="cml:Товар" maxOccurs="unbounded"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="Описание" type="cml:КомментарийТип" minOccurs="0"/>
+			</xsd:sequence>
+			<xsd:attribute name="СодержитТолькоИзменения" type="cml:ПереключательТип" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="ПакетПредложений">
+		<xsd:annotation>
+			<xsd:documentation>Содержит перечень коммерческих предложений. Пакет предложений составляется по определенному (только одному) каталогу, а предложения в пакете могут быть описаны по  классификатору.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Ид" type="cml:ИдентфикаторГлобальныйТип" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Идентификатор пакета предложений</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="Наименование" type="cml:НаименованиеТип">
+					<xsd:annotation>
+						<xsd:documentation>Наименование пакета предложений, например: "Специальные предложения по комплектующим"</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="ИдКаталога" type="cml:ИдентфикаторГлобальныйТип">
+					<xsd:annotation>
+						<xsd:documentation>Идентификатор каталога товаров, по которому составлен пакет предложений</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="ИдКлассификатора" type="cml:ИдентфикаторГлобальныйТип" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Идентификатор классификатора, в соответствии с которым описываются предложения</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="ДействительноС" type="cml:ДатаТип" minOccurs="0"/>
+				<xsd:element name="ДействительноДо" type="cml:ДатаТип" minOccurs="0"/>
+				<xsd:element name="Описание" type="cml:КомментарийТип" minOccurs="0"/>
+				<xsd:element name="Владелец" type="cml:Контрагент">
+					<xsd:annotation>
+						<xsd:documentation>Служит для определения владельца пакета предложения.Определяется  уникальным идентификатором (например GUID). </xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="ТипыЦен">
+					<xsd:annotation>
+						<xsd:documentation>Описывает цены, которые могут быть использованы при форм ировании пакета коммерческих предложений</xsd:documentation>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="ИдКлассификатора" type="cml:ИдентфикаторГлобальныйТип" minOccurs="0">
+								<xsd:annotation>
+									<xsd:documentation>Идентификатор классификатора, в соответствии с которым описываются цены на товары</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+							<xsd:element name="ТипЦены" type="cml:ТипЦены" maxOccurs="unbounded"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="ЗначенияСвойств" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Значения свойств, распространяющиеся на ВСЕ предложения, входящие в пакет. Например: Способ доставки, гарантийный срок в месяцах и т.п.</xsd:documentation>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="ЗначенияСвойства" type="cml:ЗначенияСвойства" maxOccurs="unbounded"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="Предложения">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="Предложение" maxOccurs="unbounded">
+								<xsd:complexType>
+									<xsd:complexContent>
+										<xsd:extension base="cml:Товар">
+											<xsd:sequence>
+												<xsd:element name="Цены">
+													<xsd:complexType>
+														<xsd:sequence>
+															<xsd:element name="Цена" type="cml:Цена" maxOccurs="unbounded"/>
+														</xsd:sequence>
+													</xsd:complexType>
+												</xsd:element>
+												<xsd:element name="Количество" type="cml:КоличествоТип" minOccurs="0">
+													<xsd:annotation>
+														<xsd:documentation>Количество предлагаемого товара. Например, может быть указан остаток на складе.</xsd:documentation>
+													</xsd:annotation>
+												</xsd:element>
+											</xsd:sequence>
+										</xsd:extension>
+									</xsd:complexContent>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="СодержитТолькоИзменения" type="cml:ПереключательТип" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Документ">
+		<xsd:annotation>
+			<xsd:documentation>Элемент определяет хоз. операцию и реквизиты документа, а также роль предприятия в хоз операции</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Ид" type="cml:ИдентфикаторГлобальныйТип">
+					<xsd:annotation>
+						<xsd:documentation>Идентификатор документа уникальный в рамках файла обмена</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="Номер" type="cml:НомерТип"/>
+				<xsd:element name="Дата" type="cml:ДатаТип">
+					<xsd:annotation>
+						<xsd:documentation>Дата документа</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="ХозОперация" type="cml:ХозОперацияТип">
+					<xsd:annotation>
+						<xsd:documentation>Возможные значения: ЗаказТовара;
+CчетНаОплату;
+ОтпускТовара;
+СчетФактура;
+ВозвратТовара;
+ПередачаТовараНаКомиссию;
+ВозвратКомиссионногоТовара;
+ОтчетОПродажахКомиссионногоТовара;
+ВыплатаНаличныхДенег;
+ВозвратНаличныхДенег;
+ВыплатаБезналичныхДенег;
+ВозвратБезналичныхДенег:
+Прочее.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="Роль" type="cml:РольТип">
+					<xsd:annotation>
+						<xsd:documentation>Роль предприятия в документе. Возможные значения: Продавец; Покупатель; Плательщик; Получатель.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="Валюта" type="cml:ВалютаТип">
+					<xsd:annotation>
+						<xsd:documentation>Код валюты по международному классификатору валют  (ISO 4217).</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="Курс" type="cml:КоэффициентТип">
+					<xsd:annotation>
+						<xsd:documentation>Курс указанной валюты по отношению к национальной валюте. Для национальной валюты курс равен 1. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="Сумма" type="cml:СуммаТип">
+					<xsd:annotation>
+						<xsd:documentation>Общая сумма по документу. Налоги, скидки и дополнительные расходы  включаются в данную сумму в зависимости от установленных флажков "УчтеноВСумме" </xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="Контрагенты">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="Контрагент" maxOccurs="unbounded">
+								<xsd:complexType>
+									<xsd:complexContent>
+										<xsd:extension base="cml:Контрагент">
+											<xsd:sequence>
+												<xsd:element name="Роль" type="cml:РольТип">
+													<xsd:annotation>
+														<xsd:documentation>Возможные значения:   Покупатель, Продавец, Плательщик, Получатель, Комитент, Комиссионер</xsd:documentation>
+													</xsd:annotation>
+												</xsd:element>
+												<xsd:element name="РасчетныйСчет" type="cml:РасчетныйСчет" minOccurs="0">
+													<xsd:annotation>
+														<xsd:documentation>Элемент типа "Расчетный счет" описывает Расчетный счет Контрагента в банке</xsd:documentation>
+													</xsd:annotation>
+												</xsd:element>
+												<xsd:element name="Склад" type="cml:Склад" minOccurs="0">
+													<xsd:annotation>
+														<xsd:documentation>Элемент типа "Склад" содержит информацию о складе в объеме, необходимом для оформления (и передачи) документов. </xsd:documentation>
+													</xsd:annotation>
+												</xsd:element>
+											</xsd:sequence>
+										</xsd:extension>
+									</xsd:complexContent>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="Время" type="cml:ВремяТип" minOccurs="0"/>
+				<xsd:element name="СрокПлатежа" type="cml:ДатаТип" minOccurs="0"/>
+				<xsd:element name="Комментарий" type="cml:КомментарийТип" minOccurs="0"/>
+				<xsd:element name="Налоги" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="Налог" maxOccurs="unbounded">
+								<xsd:annotation>
+									<xsd:documentation>Вид, ставка и сумма налога.</xsd:documentation>
+								</xsd:annotation>
+								<xsd:complexType>
+									<xsd:complexContent>
+										<xsd:extension base="cml:Налог">
+											<xsd:sequence>
+												<xsd:element name="Сумма" type="cml:СуммаТип"/>
+												<xsd:element name="Ставка" type="cml:КоэффициентТип" minOccurs="0"/>
+											</xsd:sequence>
+										</xsd:extension>
+									</xsd:complexContent>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="Скидки" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="Скидка" type="cml:Скидка" maxOccurs="unbounded">
+								<xsd:annotation>
+									<xsd:documentation>Скидка, сумма, проценты.</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="ДопРасходы" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="ДопРасход" type="cml:ДопРасход" maxOccurs="unbounded">
+								<xsd:annotation>
+									<xsd:documentation>Дополнительный расход, сумма, проценты.</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="Товары" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="Товар" maxOccurs="unbounded">
+								<xsd:annotation>
+									<xsd:documentation>Определяет информацию о товарной позиции (строке документа) в объеме, необходимом для оформления (и передачи) документов. </xsd:documentation>
+								</xsd:annotation>
+								<xsd:complexType>
+									<xsd:complexContent>
+										<xsd:extension base="cml:Товар">
+											<xsd:sequence>
+												<xsd:element name="ИдКаталога" type="cml:ИдентфикаторГлобальныйТип" minOccurs="0">
+													<xsd:annotation>
+														<xsd:documentation>Идентификатор каталога товаров </xsd:documentation>
+													</xsd:annotation>
+												</xsd:element>
+												<xsd:element name="ИдКлассификатора" type="cml:ИдентфикаторГлобальныйТип" minOccurs="0">
+													<xsd:annotation>
+														<xsd:documentation>Идентификатор классификатора, в соответствии с которым описан товар в документе</xsd:documentation>
+													</xsd:annotation>
+												</xsd:element>
+												<xsd:element name="ЦенаЗаЕдиницу" type="cml:СуммаТип" minOccurs="0">
+													<xsd:annotation>
+														<xsd:documentation>Цена за единицу товара</xsd:documentation>
+													</xsd:annotation>
+												</xsd:element>
+												<xsd:element name="Количество" type="cml:КоличествоТип" minOccurs="0"/>
+												<xsd:element name="Сумма" type="cml:СуммаТип" minOccurs="0"/>
+												<xsd:group ref="cml:ЕдиницаИзмерения" minOccurs="0"/>
+												<xsd:element name="СтранаПроисхождения" type="cml:СтрокаТип" minOccurs="0">
+													<xsd:annotation>
+														<xsd:documentation>Наименование страны (по ОКСМ), из которой ввезен импортный товар согласно таможенным документам </xsd:documentation>
+													</xsd:annotation>
+												</xsd:element>
+												<xsd:element name="ГТД" type="cml:СтрокаТип" minOccurs="0">
+													<xsd:annotation>
+														<xsd:documentation>Номер грузовой таможенной декларации</xsd:documentation>
+													</xsd:annotation>
+												</xsd:element>
+												<xsd:element name="Налоги" minOccurs="0">
+													<xsd:complexType>
+														<xsd:sequence>
+															<xsd:element name="Налог" maxOccurs="unbounded">
+																<xsd:annotation>
+																	<xsd:documentation>Вид, ставка и сумма налога.</xsd:documentation>
+																</xsd:annotation>
+																<xsd:complexType>
+																	<xsd:complexContent>
+																		<xsd:extension base="cml:Налог">
+																			<xsd:sequence>
+																				<xsd:element name="Сумма" type="cml:СуммаТип"/>
+																				<xsd:element name="Ставка" type="cml:КоэффициентТип" minOccurs="0"/>
+																			</xsd:sequence>
+																		</xsd:extension>
+																	</xsd:complexContent>
+																</xsd:complexType>
+															</xsd:element>
+														</xsd:sequence>
+													</xsd:complexType>
+												</xsd:element>
+												<xsd:element name="Скидки" minOccurs="0">
+													<xsd:complexType>
+														<xsd:sequence>
+															<xsd:element name="Скидка" maxOccurs="unbounded">
+																<xsd:annotation>
+																	<xsd:documentation>Скидка, сумма, проценты.</xsd:documentation>
+																</xsd:annotation>
+																<xsd:complexType>
+																	<xsd:complexContent>
+																		<xsd:extension base="cml:Скидка"/>
+																	</xsd:complexContent>
+																</xsd:complexType>
+															</xsd:element>
+														</xsd:sequence>
+													</xsd:complexType>
+												</xsd:element>
+												<xsd:element name="ДопРасходы" minOccurs="0">
+													<xsd:complexType>
+														<xsd:sequence>
+															<xsd:element name="ДопРасход" type="cml:ДопРасход" maxOccurs="unbounded">
+																<xsd:annotation>
+																	<xsd:documentation>Дополнительный расход, сумма, проценты.</xsd:documentation>
+																</xsd:annotation>
+															</xsd:element>
+														</xsd:sequence>
+													</xsd:complexType>
+												</xsd:element>
+												<xsd:element name="ДополнительныеЗначенияРеквизитов" minOccurs="0">
+													<xsd:annotation>
+														<xsd:documentation>Описывает значения дополнительных реквизитов товара для данного вида документа</xsd:documentation>
+													</xsd:annotation>
+													<xsd:complexType>
+														<xsd:sequence>
+															<xsd:element name="ЗначениеРеквизита" type="cml:ЗначениеРеквизита" maxOccurs="unbounded"/>
+														</xsd:sequence>
+													</xsd:complexType>
+												</xsd:element>
+											</xsd:sequence>
+										</xsd:extension>
+									</xsd:complexContent>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="ЗначенияРеквизитов" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Описывает значения дополнительных реквизитов документа</xsd:documentation>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="ЗначениеРеквизита" type="cml:ЗначениеРеквизита" maxOccurs="unbounded"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Классификатор">
+		<xsd:annotation>
+			<xsd:documentation>Группа элементов описывающих классификацию товаров</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Ид" type="cml:ИдентфикаторГлобальныйТип">
+					<xsd:annotation>
+						<xsd:documentation>Идентификатор классификатора товаров. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="Наименование" type="cml:НаименованиеТип">
+					<xsd:annotation>
+						<xsd:documentation>Наименование классификатора товаров.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="Владелец" type="cml:Контрагент">
+					<xsd:annotation>
+						<xsd:documentation>Элемент типа "Контрагент". Служит для определения владельца данного классификатора. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="Описание" type="cml:КомментарийТип" minOccurs="0"/>
+				<xsd:element name="Группы" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Определяет иерархическую структуру групп номенклатуры</xsd:documentation>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="Группа" type="cml:Группа" maxOccurs="unbounded">
+								<xsd:annotation>
+									<xsd:documentation>Группа служит для описания категорий товаров.  Может содержать неограниченное число вложений.</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="Свойства" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Содержит коллекцию свойств, значения которых можно или нужно указать ДЛЯ ВСЕХ товаров в каталоге, пакете предложений, документах</xsd:documentation>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="Свойство" type="cml:Свойство" maxOccurs="unbounded"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="ТипыЦен" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Определяет типы цен, которые могут быть использованы при форм ировании пакета коммерческих предложений</xsd:documentation>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="ТипЦены" type="cml:ТипЦены" maxOccurs="unbounded"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:simpleType name="СчетНомерТип">
+		<xsd:annotation>
+			<xsd:documentation>Номер счета, сформированный в соответствии со "Схемой обозначения лицевых счетов и их нумерации (по основным счетам)" приложения 1 Правил ведения бухгалтерского учета в Банке России от 18.09.97 №66 или Правил ведения бухгалтерского учета в кредитных организациях, расположенных на территории РФ, от 05.12.2002 №205 с учетом изменений и дополнений. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:length value="20"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="КомментарийТип">
+		<xsd:annotation>
+			<xsd:documentation>Текст комментария (пояснения, описания)</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="3000"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="БИКТип">
+		<xsd:annotation>
+			<xsd:documentation>Банковский идентификационный код (БИК). В соответствии со "Справочником БИК РФ"</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:length value="9"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="НаименованиеТип">
+		<xsd:annotation>
+			<xsd:documentation>Наименование контрагента, описание товара (изделия) и дополнительная информация при ее наличии</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="250"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ДатаТип">
+		<xsd:annotation>
+			<xsd:documentation>Представление даты</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:date"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ВремяТип">
+		<xsd:annotation>
+			<xsd:documentation>Представление времени</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:time"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="КонтактТип">
+		<xsd:annotation>
+			<xsd:documentation>Тип связи с контрагентом</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="100"/>
+			<xsd:enumeration value="Телефон внутренний"/>
+			<xsd:enumeration value="Телефон рабочий"/>
+			<xsd:enumeration value="Телефон мобильный"/>
+			<xsd:enumeration value="Телефон домашний"/>
+			<xsd:enumeration value="Пейджер"/>
+			<xsd:enumeration value="Факс"/>
+			<xsd:enumeration value="Почта"/>
+			<xsd:enumeration value="ICQ"/>
+			<xsd:enumeration value="ВебСайт"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="АдресТип">
+		<xsd:annotation>
+			<xsd:documentation>Почтовый адрес </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="Почтовый индекс"/>
+			<xsd:enumeration value="Страна"/>
+			<xsd:enumeration value="Регион"/>
+			<xsd:enumeration value="Район"/>
+			<xsd:enumeration value="Населенный пункт"/>
+			<xsd:enumeration value="Город"/>
+			<xsd:enumeration value="Улица"/>
+			<xsd:enumeration value="Дом"/>
+			<xsd:enumeration value="Корпус"/>
+			<xsd:enumeration value="Квартира"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="СтатусТип">
+		<xsd:annotation>
+			<xsd:documentation>Определяет статус описанного товара</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="Новый"/>
+			<xsd:enumeration value="Изменен"/>
+			<xsd:enumeration value="Удален"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ИННТип">
+		<xsd:annotation>
+			<xsd:documentation>Индивидуальный номер налогоплательщика (ИНН). Область значений [ИНН]. 10 цифр - для юридических лиц, 12 цифр - для физических лиц.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="10"/>
+			<xsd:maxLength value="12"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="КППТип">
+		<xsd:annotation>
+			<xsd:documentation>Код причины постановки на учет (КПП)</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:length value="9"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ИдентфикаторТип">
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="20"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="СуммаТип">
+		<xsd:annotation>
+			<xsd:documentation>Числовое представление суммы. Разделитель целой и дробной части: «.».</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:decimal">
+			<xsd:totalDigits value="18"/>
+			<xsd:fractionDigits value="2"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ИдентфикаторГлобальныйТип">
+		<xsd:annotation>
+			<xsd:documentation>Уникальный идентификатор (рекомендуется использовать GUID - Globally Unique Identifier)</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="40"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ПереключательТип">
+		<xsd:annotation>
+			<xsd:documentation>Переключатель значений (да / нет, 0 / 1, правда / ложь).</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:boolean"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ОбязательностьСвойствТип">
+		<xsd:annotation>
+			<xsd:documentation>Определяет обязательность указания значений свойства для товаров в каталоге, пакете предложений, докуменах</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="Для каталога"/>
+			<xsd:enumeration value="Для документа"/>
+			<xsd:enumeration value="Для предложений"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ТипЗначенийТип">
+		<xsd:annotation>
+			<xsd:documentation>Определяет принадлежность описываемых свойств</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="Строка"/>
+			<xsd:enumeration value="Число"/>
+			<xsd:enumeration value="Время"/>
+			<xsd:enumeration value="Справочник"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ВалютаТип">
+		<xsd:annotation>
+			<xsd:documentation>Код валюты по международному классификатору валют  (ISO 4217). Если не указана, то используется валюта установленная для данного типа цен</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:length value="3"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ЕГРПОТип">
+		<xsd:annotation>
+			<xsd:documentation>Единый Государственный регистр предприятий и организаций</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="КоличествоТип">
+		<xsd:annotation>
+			<xsd:documentation>Числовая информация</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:decimal"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="КоэффициентТип">
+		<xsd:annotation>
+			<xsd:documentation>Коэффициент (например коэффициент пересчета в базовую единицу измерения), процент</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="НомерТип">
+		<xsd:annotation>
+			<xsd:documentation>Номер (например документа)</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ОбращениеТип">
+		<xsd:annotation>
+			<xsd:documentation>Описывает возможные обращения (Господин, Госпожа и др.)</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:enumeration value=""/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="СВИФТТип">
+		<xsd:annotation>
+			<xsd:documentation>Код SWIFT</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ОКВЭДТип">
+		<xsd:annotation>
+			<xsd:documentation>Код в общероссийском классификаторе видов экономической деятельности (ОК 029-2001).</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ОКОПФТип">
+		<xsd:annotation>
+			<xsd:documentation>Код в общероссийском классификаторе организационно-правовой формы</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ОКПОТип">
+		<xsd:annotation>
+			<xsd:documentation>Код в общероссийском классификаторе предприятий и организаций</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ОКФСТип">
+		<xsd:annotation>
+			<xsd:documentation>Код в общероссийском классификаторе форм собственности</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ПолТип">
+		<xsd:annotation>
+			<xsd:documentation>Пол (мужской, женский).</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="М"/>
+			<xsd:enumeration value="Ж"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="РольТип">
+		<xsd:annotation>
+			<xsd:documentation>Определяет роль участника обмена</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="Продавец"/>
+			<xsd:enumeration value="Покупатель"/>
+			<xsd:enumeration value="Плательщик"/>
+			<xsd:enumeration value="Получатель"/>
+			<xsd:enumeration value="Комитент"/>
+			<xsd:enumeration value="Комиссионер"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="СтрокаТип">
+		<xsd:annotation>
+			<xsd:documentation>Определяет строковое значение передаваемой информации</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ШтрихкодТип">
+		<xsd:annotation>
+			<xsd:documentation>Штрихкод (GTIN)  товара (код EAN/UPC).</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="8"/>
+			<xsd:maxLength value="14"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="АртикулТип">
+		<xsd:annotation>
+			<xsd:documentation>Артикул</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ЕдиницаТип">
+		<xsd:annotation>
+			<xsd:documentation>Единица измерения по ОКЕИ</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ХозОперацияТип">
+		<xsd:annotation>
+			<xsd:documentation>Определяет хозяйственную или торговую операцию</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="Заказ товара"/>
+			<xsd:enumeration value="Счет на оплату"/>
+			<xsd:enumeration value="Отпуск товара"/>
+			<xsd:enumeration value="Счет-фактура"/>
+			<xsd:enumeration value="Возврат товара"/>
+			<xsd:enumeration value="Передача товара на комиссию"/>
+			<xsd:enumeration value="Возврат комиссионного товара"/>
+			<xsd:enumeration value="Отчет о продажах комиссионного товара"/>
+			<xsd:enumeration value="Выплата наличных денег"/>
+			<xsd:enumeration value="Возврат наличных денег"/>
+			<xsd:enumeration value="Выплата безналичных денег"/>
+			<xsd:enumeration value="Возврат безналичных денег"/>
+			<xsd:enumeration value="Переоценка товаров"/>
+			<xsd:enumeration value="Прочие"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ИмяФайлаТип">
+		<xsd:annotation>
+			<xsd:documentation>Имя передаваемого файла (картинки)</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ОКДПТип">
+		<xsd:annotation>
+			<xsd:documentation>Код в общероссийском классификаторе видов экономической деятельности, продукции и услуг (ОК 004-93).</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ДатаВремяТип">
+		<xsd:annotation>
+			<xsd:documentation>Представление даты и времени</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:dateTime"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ЗначениеТип">
+		<xsd:annotation>
+			<xsd:documentation>Строка длиной до 1000 символов для определения значения сущности в документе</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="1000"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Идентификатор80">
+		<xsd:annotation>
+			<xsd:documentation>Идентификатор группы, свойства в классификаторе товаров, типа цены в классификаторе, документа в рамках файла обмена</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:maxLength value="80"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Строка3">
+		<xsd:annotation>
+			<xsd:documentation>Определяетдлину строки</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="3"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ВидДеятельностиТип">
+		<xsd:annotation>
+			<xsd:documentation>Основной вид деятельности по учредительным документам</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+</xsd:schema>

@@ -123,25 +123,29 @@ return array(
             '$content' => _w('Core content loaded according to the requested resource: product, category, search results, static page, etc.'),
         ),
         'product.html' => array(
+        
             '$product.id' => _w('Product id. Other elements of <em>$product</em> available in this template are listed below'),
-            '$product.name' => '',
-            '$product.description' => '',
-            '$product.rating' => '0 to 5',
-            '$product.skus' => 'Array of product SKUs',
-            '$product.images' => 'Array of product images',
-            '$product.categories' => 'Array of product categories',
-            '$product.tags' => 'Array of product tags',
-            '$product.pages' => 'Array of product static info pages',
-            '$product.features' => 'Array of product features and values',
+            '$product.name' => _w('Product name'),
+            '$product.summary' => _w('Product summary (brief description)'),
+            '$product.description' => _w('Product description'),
+            '$product.rating' => _w('Product average rating (float, 0 to 5)'),
+            '$product.skus' => _w('Array of product SKUs'),
+            '$product.images' => _w('Array of product images'),
+            '$product.categories' => _w('Array of product categories'),
+            '$product.tags' => _w('Array of product tags'),
+            '$product.pages' => _w('Array of product static info pages'),
+            '$product.features' => _w('Array of product features and values'),
 
-            '$reviews' => 'Array of product reviews',
-            '$services' => 'Array of services available for this product',
+            '$reviews' => _w('Array of product reviews'),
+            '$services' => _w('Array of services available for this product'),
 
+/*
             '$category' => _w('Conditional! Available only if current context of photo is album. Below are describe keys of this param'),
             '$category.id' => '',
             '$category.name' => '',
             '$category.parent_id' => '',
             '$category.description' => '',
+*/
 
         ),
         'search.html' => array(
@@ -163,14 +167,30 @@ return array(
             '$wa->shop->badgeHtml(<em>$product.code</em>)' => _w('Displays badge of the specified product (<em>$product</em> object)'),
             '$wa->shop->cart()' => _w('Returns current cart object'),
             '$wa->shop->categories(<em>$parent_id = 0</em>)' => _w('Returns array of subcategories of the specified category. Omit parent category for the entire array of categories'),
+            '$wa->shop->category(<em>$category_id</em>)' => _w('Returns category object by <em>$category_id</em>'),
+            '<em>$category</em>.params()' => _w('Array of custom category parameters'),
+            '$wa->shop->compare()' => _w('Returns array of products currently added into a comparison list'),
             '$wa->shop->crossSelling(<em>$product_id</em>, <em>$limit = 5</em>)' => _w('Returns array of cross-sell products.<em>$product_id</em> can be either a number (ID of the specified base product) or an array of products IDs'),
             '$wa->shop->currency()' => _w('Returns current currency object'),
-            '$wa->shop->product(<em>$product_id</em>)' => _w('Returns product object by <em>$product_id</em>'),
-            '<em>$product</em>->productUrl()' => _w('Returns valid product page URL'),
-            '<em>$product</em>->upSelling()' => _w('Returns array of upsell products for the specified product'),
+            '$wa->shop->product(<em>$product_id</em>)' => _w('Returns product object by <em>$product_id</em>').'<br><br> '.
+                '$product-><strong>productUrl()</strong>: '._w('Returns valid product page URL').'<br>'.
+                '$product-><strong>upSelling()</strong>:'._w('Returns array of upsell products for the specified product').'<br><br>'.
+                '$product.<strong>id</strong>: '._w('Product id. Other elements of <em>$product</em> available in this template are listed below').'<br>'.
+                '$product.<strong>name</strong>: '._w('Product name').'<br>'.
+                '$product.<strong>description</strong>: '._w('Product summary (brief description)').'<br>'.
+                '$product.<strong>rating</strong>: '._w('Product average rating (float, 0 to 5)').'<br>'.
+                '$product.<strong>skus</strong>: '._w('Array of product SKUs').'<br>'.
+                '$product.<strong>images</strong>: '._w('Array of product images').'<br>'.
+                '$product.<strong>categories</strong>: '._w('Array of product categories').'<br>'.
+                '$product.<strong>tags</strong>: '._w('Array of product tags').'<br>'.
+                '$product.<strong>pages</strong>: '._w('Array of product static info pages').'<br>'.
+                '$product.<strong>features</strong>: '._w('Array of product features and values').'<br>',
+            
             '$wa->shop->productImgHtml($product, $size, $attributes = array())' => _w('Displays specified $product object’s default image'),
             '$wa->shop->productImgUrl($product, $size)' => _w('Returns specified $product default image URL'),
-            '$wa->shop->productSet(<em>set_id</em>)' => _w('Returns array of products from the specified set'),
+            '$wa->shop->products(<em>search_conditions</em>[,<em>offset</em>[, <em>limit</em>[, <em>options</em>]]])' => _w('Returns array of products by search criteria, e.g. <em>"tag/new"</em>, <em>"category/12"</em>, <em>"id/1,5,7"</em>, <em>"set/1"</em>, or <em>"*"</em> for all products list.').' '._w('Optional <em>options</em> parameter indicates additional product options, e.g. <em>["params" => 1]</em> to include product custom parameter values into the output.'),
+            '$wa->shop->productsCount(<em>search_conditions</em>)' => _w('Returns number of products matching specified search conditions, e.g. <em>"tag/new"</em>, <em>"category/12"</em>, <em>"id/1,5,7"</em>, <em>"set/1"</em>, or <em>"*"</em> for all products list.'),
+            '$wa->shop->productSet(<em>set_id</em>)' => _w('Returns array of products from the specified set.').' '._w('Optional <em>options</em> parameter indicates additional product options, e.g. <em>["params" => 1]</em> to include product custom parameter values into the output.'),
             '$wa->shop->ratingHtml(<em>$rating, $size = 10, $show_when_zero = false</em>)' => _w('Displays 1—5 stars rating. $size indicates icon size and can be either 10 or 16'),
             '$wa->shop->settings("<em>option_id</em>")' => _w('Returns store’s general setting option by <em>option_id</em>, e.g. "name", "email", "country"'),
         ),

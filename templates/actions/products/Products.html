@@ -15,11 +15,6 @@
     {$manual = false}
 {/if}
 
-{if !$sort && $manual}
-    {$sortable = true}
-{else}
-    {$sortable = false}
-{/if}
 {* {$order = $wa->get("order", "desc")} *}
 <div class="sidebar right200px" id="s-product-list-toolbar">
     <div class="block">
@@ -111,23 +106,22 @@
                         {strip}
                         {$with_icon = true}
                         <a href="#" class="inline-link"><b><i>
-                            {if $sort=='name'}
+                            {if $sort == 'name'}
                                 [`name`]
-                            {else if $sort=='price'}
+                            {else if $sort == 'price'}
                                 [`price`]
-                            {else if $sort=='stock'}
+                            {else if $sort == 'count'}
                                 [`in stock`]
-                            {else if $sort=='rate'}
+                            {else if $sort == 'rating'}
                                 [`rating`]
-                            {else if $sort=='date'}
+                            {else if $sort == 'create_datetime'}
                                 [`date added`]
-                            {else if $sort=='bestsellers'}
+                            {else if $sort == 'total_sales'}
                                 [`top selling`]
-                            {else if $manual}
+                            {else if $sort == 'sort'}
                                 [`manual`]
                                 {$with_icon = false}
                             {else}
-                                [`default`]
                                 {$with_icon = false}
                             {/if}
                         </i></b></a>
@@ -137,12 +131,13 @@
                         {/strip}
                         <ul class="menu-v with-icon">
                             {strip}
-                            {if $info && ($info.hash == 'set' || $info.hash == 'category')}
+                            {if $manual}
                                 <li class="sort">
-                                    <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}" class="no-underline {if !$sort}selected{/if}">{if $manual}[`manual`]{else}[`default`]{/if}</a>
+                                    <a href="#/products/view={$view}{if $collection_param}&{$collection_param}&sort=sort{/if}" class="no-underline {if $sort == 'sort'}selected{/if}">
+                                        [`manual`]
+                                    </a>
                                 </li>
                             {/if}
-
                             <li class="sort">
                                 <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}" class="no-underline {if $sort=='name'}selected{/if}">[`name`]
                                 </a>{if $sort=='name'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
@@ -152,20 +147,20 @@
                                 </a>{if $sort=='price'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
                             </li>
                             <li class="sort">
-                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=stock&order={if $order == 'asc' && $sort=='stock'}desc{else}asc{/if}" class="no-underline {if $sort=='stock'}selected{/if}">[`in stock`]
-                                </a>{if $sort=='stock'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=count&order={if $order == 'asc' && $sort=='count'}desc{else}asc{/if}" class="no-underline {if $sort=='count'}selected{/if}">[`in stock`]
+                                </a>{if $sort=='count'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
                             </li>
                             <li class="sort">
-                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=rate&order={if $order == 'desc' && $sort=='rate'}asc{else}desc{/if}" class="no-underline {if $sort=='rate'}selected{/if}">[`rating`]
-                                </a>{if $sort=='rate'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=rating&order={if $order == 'desc' && $sort=='rating'}asc{else}desc{/if}" class="no-underline {if $sort=='rating'}selected{/if}">[`rating`]
+                                </a>{if $sort=='rating'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
                             </li>
                             <li class="sort">
-                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=date&order={if $order == 'desc' && $sort=='date'}asc{else}desc{/if}" class="no-underline {if $sort=='date'}selected{/if}">[`date added`]
-                                </a>{if $sort=='date'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=create_datetime&order={if $order == 'desc' && $sort=='create_datetime'}asc{else}desc{/if}" class="no-underline {if $sort=='create_datetime'}selected{/if}">[`date added`]
+                                </a>{if $sort=='create_datetime'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
                             </li>
                             <li class="sort">
-                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=bestsellers&order={if $order == 'desc' && $sort=='bestsellers'}asc{else}desc{/if}" class="no-underline {if $sort=='bestsellers'}selected{/if}">[`top selling`]
-                                </a>{if $sort=='bestsellers'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=total_sales&order={if $order == 'desc' && $sort=='total_sales'}asc{else}desc{/if}" class="no-underline {if $sort=='total_sales'}selected{/if}">[`top selling`]
+                                </a>{if $sort=='total_sales'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
                             </li>
 
                             {/strip}
@@ -177,10 +172,10 @@
 
             <!-- view mode -->
             <li{if $wa->get("view") != 'table'} class="selected"{/if}>
-                <a href="#/products/view=thumbs{if $collection_param}&{$collection_param}{/if}{if $sort}{/if}"><i class="icon16 view-thumbs"></i></a>
+                <a href="#/products/view=thumbs{if $collection_param}&{$collection_param}{/if}&sort={$sort}"><i class="icon16 view-thumbs"></i></a>
             </li>
             <li{if $wa->get("view") == 'table'} class="selected"{/if}>
-                <a href="#/products/view=table{if $collection_param}&{$collection_param}{/if}{if $sort}{/if}"><i class="icon16 view-table"></i></a>
+                <a href="#/products/view=table{if $collection_param}&{$collection_param}{/if}&sort={$sort}"><i class="icon16 view-table"></i></a>
             </li>
 
             <!-- plugin hook: 'backend_products.viewmode_li' -->
@@ -204,7 +199,7 @@
         {if $wa->get("view") == 'table'}
         <table class="zebra" id="product-list">
             <tr class="header">
-                {if $sortable}<th class="min-width"></th>{/if}
+                {if $manual && $sort == 'sort'}<th class="min-width"></th>{/if}
                 <th class="min-width"><input type="checkbox" class="s-select-all" data-count={$total_count}></th>
                 <th>
                     <span class="sort">
@@ -222,9 +217,9 @@
                 </th>
                 <th class="short align-right">
                     <span class="sort">
-                        <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=stock&order={if $order == 'asc' && $sort=='stock'}desc{else}asc{/if}" class="inline-link selected">
+                        <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=count&order={if $order == 'asc' && $sort=='count'}desc{else}asc{/if}" class="inline-link selected">
                             [`In stock`]
-                        </a>{if $sort=='stock'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
+                        </a>{if $sort=='count'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
                     </span>
                 </th>
             </tr>
@@ -234,7 +229,7 @@
             {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
             <tr class="product {% if (i == n-1) { %}last{% } %} {% if (p.status == '0') { %}gray{% } %} {% if (o.check_all) { %}selected{% } %}" data-product-id="{%#p.id%}">
                 {/literal}
-                {if $sortable}<td class="min-width drag-handle"><i class="icon16 sort"></i></td>{/if}
+                {if $manual && $sort == 'sort'}<td class="min-width drag-handle"><i class="icon16 sort"></i></td>{/if}
                 {literal}
                 <td class="min-width">
                     <input type="checkbox" {% if (o.check_all) { %}checked{% } %}>
@@ -274,21 +269,20 @@
                         <strong>{%#p.name%}</strong>
                     </label>
                     <span class="small nowrap">{%#p.price_range%}</span>
-
                     <!-- extend info according to sorting method -->
-                    {% if (o.sort == 'rate') { %}
+                    {% if (o.sort == 'rating') { %}
                         <span class="rate nowrap" title="{%#'[`Average user rating: %s / 5`]'.replace('%s', p.rating)%}">
                             {%#p.rating_str%}
                         </span>
-                    {% } else if (o.sort == 'bestsellers') { %}
+                    {% } else if (o.sort == 'total_sales') { %}
                         <span class="hint total-sales nowrap">
                             [`Total sales`]: <strong>{%#p.total_sales_str%}</strong>
                         </span>
-                    {% } else if (o.sort == 'stock') { %}
+                    {% } else if (o.sort == 'count') { %}
                         <span class="small stock nowrap">
                             {%#p.icon%} {%#((p.count === null)?'<span class="gray">∞</span>':''+p.count)%}
                         </span>
-                    {% } else if (o.sort == 'date') { %}
+                    {% } else if (o.sort == 'create_datetime') { %}
                         <br>
                         <span class="hint stock nowrap">
                             {%#'[`Added %s`]'.replace('%s', p.create_datetime_str)%}
@@ -375,7 +369,7 @@
         products: {json_encode($products)},
         total_count: {$total_count},
         edit: '{$wa->get("edit")}',
-        sortable: {if $sortable}true{else}false{/if},
+        sortable: {if $manual && $sort == 'sort'}true{else}false{/if},
         lazy_loading: {
             auto: true,
             count: {$count}

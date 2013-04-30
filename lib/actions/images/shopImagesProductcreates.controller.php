@@ -29,9 +29,16 @@ class shopImagesProductcreatesController extends waJsonController
 
     public function __construct()
     {
+        $this->type_id = (int)waRequest::post('type_id');
+        if (!$this->type_id) {
+            $this->type_id = null;
+        }
+
+        /*
         if (!($this->type_id = (int)waRequest::post('type_id'))) {
             throw new waException(_w("Unkown type of product"));
         }
+        */
 
         $this->product_model = new shopProductModel();
         $this->product_skus_model = new shopProductSkusModel();

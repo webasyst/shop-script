@@ -1,0 +1,56 @@
+<div id="shop-{$plugin_id}">
+    <div id="shop-{$plugin_id}-image">
+        {if $src}
+            <img src="{$src}"><br>
+            <a href="javascript:void(0);" class="small" id="shop-{$plugin_id}-delete-image-link">{_wp('Delete')}</a>
+            <input type="hidden" name="shop_{$plugin_id}[delete_image]" value="0" id="shop-{$plugin_id}-delete-image"><br><br>
+        {/if}
+    </div>
+    <input type="file" 
+        name="shop_{$plugin_id}[image]" 
+        class="custom file" value="{$file_name}" 
+        id="{$plugin_id}-shop-{$plugin_id}-image"
+    >
+    <span style="display:none;" id="shop-{$plugin_id}-confirm-text">{_wp('Watermark image will be permanently deleted. Delete?')}</span>
+
+</div>
+
+<script type="text/javascript">
+$(function() {
+    
+    var plugin_id = "{$plugin_id}";
+    var delete_txt = '{_wp("Delete")}';
+    
+    $.plugins.options.useIframeTransport = true;
+    $($.plugins).bind('success', function(event, response) {
+        if (response.data.filesrc) {
+            $('#shop-'+plugin_id+'-image').html(
+                '<img src="'+response.data.filesrc+'"><br>' + 
+                '<a href="javascript:void(0);" class="small" id="shop-' + 
+                     plugin_id  + '-delete-image-link">' + 
+                     delete_txt + 
+                '</a>' + 
+                '<input type="hidden" name="shop_' + 
+                    plugin_id + '[delete_image]" value="0" id="shop-' + 
+                    plugin_id + 
+                '-delete-image"><br><br>'
+            );
+            bindDeleteImageHandler();
+        }
+    });
+
+    var bindDeleteImageHandler = function() {
+        $('#shop-'+plugin_id+'-delete-image-link').click(function() {
+            if (confirm($('#shop-'+plugin_id+'-confirm-text').text())) {
+                var id = this.id.replace('-link', '');
+                $('#'+id).attr('value', 1);
+                $('#shop-'+plugin_id+'-image').html('');
+                $.get('?plugin=watermark&module=image&action=delete');
+            }
+        });
+    };
+    
+    bindDeleteImageHandler();
+    
+});
+</script>

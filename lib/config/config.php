@@ -16,6 +16,11 @@ return array(
     'image_save_original'      => 1,
 
     /**
+     * the ability to use Smarty within product/category description
+     */
+    'can_use_smarty' => false,
+
+    /**
      * list of available order state icons (CSS classes)
      */
     'order_state_icons' => array(

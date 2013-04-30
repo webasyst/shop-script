@@ -432,6 +432,14 @@ return array(
             'product_id' => array('product_id', 'url'),
         ),
     ),
+    'shop_product_params' => array(
+        'product_id' => array('int', 11, 'null' => 0),
+        'name' => array('varchar', 255, 'null' => 0),
+        'value' => array('text', 'null' => 0),
+        ':keys' => array(
+            'PRIMARY' => array('product_id', 'name'),
+        ),
+    ),
     'shop_product_related' => array(
         'product_id' => array('int', 11, 'null' => 0),
         'type' => array('enum', "'cross_selling','upselling'", 'null' => 0),

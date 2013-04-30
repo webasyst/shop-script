@@ -9,7 +9,7 @@ class shopFrontendTagAction extends shopFrontendAction
         $this->setThemeTemplate('search.html');
         $this->view->assign('frontend_search', array());
         $this->view->assign('title', waRequest::param('tag'), true);
-        $this->getResponse()->setTitle(_w('Tag').' - '.htmlspecialchars($tag));
+        $this->getResponse()->setTitle(htmlspecialchars($tag).' — '.$this->getStoreName());
     }
 
 }

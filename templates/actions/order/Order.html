@@ -38,7 +38,7 @@
 
         <!-- order aux info -->
         <p class="gray">
-            [`Order created`]: <strong>{$order.create_datetime|wa_datetime:"humandatetime"}</strong>
+            [`Order created`]: <strong>{$order.create_datetime|wa_datetime:"humandatetime"}</strong><br>
             {if !empty($order.params.storefront)}[`Source`]: <strong>{$order.params.storefront}</strong><br>{/if}
             {if !empty($order.params.referer)}[`Referrer`]: <strong>{$order.params.referer}</strong><br>{/if}
             {if !empty($order.params.keyword)}[`Keyword`]: <strong>{$order.params.keyword}</strong><br>{/if}

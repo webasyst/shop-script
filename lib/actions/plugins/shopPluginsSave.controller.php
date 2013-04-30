@@ -22,7 +22,7 @@ class shopPluginsSaveController extends waJsonController
             }
         }
         try {
-            $plugin->saveSettings($settings);
+            $this->response = $plugin->saveSettings($settings);
             $this->response['message'] = _w('Saved');
         } catch (Exception $e) {
             $this->setError($e->getMessage());

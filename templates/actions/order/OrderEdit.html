@@ -8,7 +8,7 @@
         {/if}
         <h2><a href="#" class="back">&larr; [`Back`]</a> <span>[`Customer`]</span></h2>
         <em class="errormsg s-customer-errors" style="font-size: 1.1em;"></em>
-        {if !$order && $wa->userRights('shop')}
+        {if !$order && $has_contacts_rights}
             <input id="customer-autocomplete" type="search" class="search large long" placeholder="[`Type name, email or phone number`]">
         {/if}
     </div>
@@ -89,7 +89,7 @@
             {else}
                 <select name="variant[edit][{$index}][{$service_id}]" class="s-orders-service-variant">
                     {foreach $service.variants as $variant_id => $variant}
-                        <option value="{$variant.id}" data-price="{$variant.price}" 
+                        <option value="{$variant.id}" data-price="{$variant.price}"
                             {if $service.variant_id == $variant_id}selected="selected"{/if}>
                             {$variant.name} ({$variant.price_str})
                         </option>
@@ -187,6 +187,10 @@
     <div class="block double-padded">
         <h2>{if !$order}[`Add products`]{else}{shopHelper::encodeOrderId({$order.id})}{/if}</h2>
         <em class="errormsg s-order-errors" style="padding: 5px 0 10px;"></em>
+        <div class="s-order-comment-edit" {if !$order}style="display:none;"{/if} id="s-order-comment-edit">
+            [`Comment to the order`]:
+            <textarea name="comment">{if $order && $order.comment}{$order.comment|escape}{/if}</textarea>
+        </div>
         <table id="order-items" class="zebra s-order-items-edit">
             <tbody>
                 {if $order}
@@ -215,7 +219,7 @@
                     </td>
                     <td></td>
                 </tr>
-    
+
                 <!-- shipping -->
                 <tr class="white">
                     <td class="min-width"></td>
@@ -235,7 +239,7 @@
                     </td>
                     <td></td>
                 </tr>
-                
+
                 <!-- payment -->
                 <tr class="white">
                     <td class="min-width"></td>
@@ -260,7 +264,7 @@
                     </td>
                     <td></td>
                 </tr>
-    
+
                 <!-- total -->
                 <tr class="white large">
                     <td class="min-width"></td>
@@ -271,7 +275,7 @@
                     </td>
                     <td></td>
                 </tr>
-                
+
                 <tr class="white large">
                     <td colspan="3" class="align-right">
                         {if !empty($taxes_count)}
@@ -307,4 +311,8 @@
         stocks: {json_encode($stocks)},
         title: title
     });
+
+    {if $order && !$has_contacts_rights}
+        $('#s-order-edit-customer').find('select,input,textarea').attr('disabled', true);
+    {/if}
 </script>

@@ -17,21 +17,33 @@ class shopOrderEditAction extends waViewAction
     {
         $order_id = waRequest::get('id', null, waRequest::TYPE_INT);
 
-        $order    = array();
-        $form     = !$order_id ? shopHelper::getCustomerForm() : null;
-        $currency = $this->getConfig()->getCurrency();
+        $form = null;
+        $order = array();
         $shipping_address = array();
 
+        // Existing order?
         if ($order_id) {
             $order = $this->getOrder($order_id);
-
-            if ($order['contact_id']) {
-                if (shopHelper::getContactRights($order['contact_id'])) {
-                    $form = shopHelper::getCustomerForm($order['contact_id']);
-                }
-                $shipping_address = shopHelper::getOrderAddress($order['params'], 'shipping');
-            }
             $currency = $order['currency'];
+            if ($order['contact_id']) {
+                $has_contacts_rights = shopHelper::getContactRights($order['contact_id']);
+                $shipping_address = shopHelper::getOrderAddress($order['params'], 'shipping');
+                if (!empty($order['contact_id'])) {
+                    try {
+                        $form = shopHelper::getCustomerForm($order['contact_id']);
+                    } catch (waException $e) {
+                        // Contact does not exist; ignore. When $form is null, customer data saved in order is shown.
+                    }
+                }
+            } else {
+                $has_contacts_rights = shopHelper::getContactRights();
+            }
+        }
+        // New order?
+        else {
+            $currency = $this->getConfig()->getCurrency();
+            $has_contacts_rights = shopHelper::getContactRights();
+            $form = shopHelper::getCustomerForm();
         }
 
         $stock_model = new shopStockModel();
@@ -44,13 +56,14 @@ class shopOrderEditAction extends waViewAction
 
 
         $this->view->assign(array(
-            'shipping_address' => $shipping_address,
+            'form'     => $form,
             'order'    => $order,
             'stocks'   => $stocks,
-            'form'     => $form,
             'currency' => $currency,
             'count_new' => $count_new,
-            'taxes_count' => $taxes_count
+            'taxes_count' => $taxes_count,
+            'shipping_address' => $shipping_address,
+            'has_contacts_rights' => $has_contacts_rights,
         ));
     }
 

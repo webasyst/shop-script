@@ -22,7 +22,13 @@ class shopCheckoutConfirmation extends shopCheckout
         }
 
         $shipping_address = $contact->getFirst('address.shipping');
+        if (!$shipping_address) {
+            $shipping_address = array('data' => array(), 'value' => '');
+        }
         $billing_address = $contact->getFirst('address.billing');
+        if (!$billing_address) {
+            $billing_address = array('data' => array(), 'value' => '');
+        }
 
         $discount_rate = $subtotal ? ($order['discount'] / $subtotal) : 0;
         $taxes = shopTaxes::apply($items, array('shipping' => $shipping_address['data'],

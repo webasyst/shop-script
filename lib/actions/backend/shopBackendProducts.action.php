@@ -35,7 +35,7 @@ class shopBackendProductsAction extends waViewAction
         $this->view->assign('sets', $set_model->getAll());
 
         $type_model = new shopTypeModel();
-        $this->view->assign('types', $type_model->getAll());
+        $this->view->assign('types', $type_model->getTypes());
 
         $product_model = new shopProductModel();
         $this->view->assign('count_all', $product_model->countAll());

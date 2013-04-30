@@ -19,7 +19,10 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
             as $item)
         {
             $count += 1;
-            $tag_model->query("UPDATE ".$tag_model->getTableName()." SET count = count - {$item['cnt']}");
+            $tag_model->query(
+                "UPDATE ".$tag_model->getTableName()." SET count = count - {$item['cnt']}
+                WHERE id = {$item['tag_id']}"
+            );
         }
         if ($count > 0) {
             $tag_model->query("DELETE FROM ".$tag_model->getTableName()." WHERE count <= 0");

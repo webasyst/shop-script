@@ -13,19 +13,15 @@
     <div class="block double-padded">
 
         <div class="float-right">
-            <ul class="menu-h with-icons dropdown" id="s-shipping-menu">
+            <ul class="menu-h with-icons dropdown s-add-shipping-method" id="s-shipping-menu">
                 <li>
                     <a href="#/shipping/" class="inline-link js-action"><i class="icon16 add"></i><b><i>[`Add shipping option`]</i></b><i class="icon16 darr"></i></a>
                     <ul class="menu-v with-icons">
                         {foreach $plugins as $id => $plugin}
                         <li>
                             <a href="#/shipping/plugin/add/{$id}/">
-                            {if empty($plugin.icon.16)}
-                            {shopHelper::getIcon('ss shipping-bw')}
-                            {else}
-                            {shopHelper::getIcon($plugin.icon.16)}
-                            {/if}
-                            {$plugin.name|escape}
+                            {if empty($plugin.icon.16)}{shopHelper::getIcon('ss shipping-bw')}{else}{shopHelper::getIcon($plugin.icon.16)}{/if}{$plugin.name|escape}
+                            <span class="hint">{strip_tags($plugin.description)}</span>
                             </a>
 
                         </li>
@@ -40,6 +36,7 @@
 
         <h1 class="js-bread-crumbs">[`Shipping`]</h1>
 
+        <br>
         <table class="zebra" id="s-settings-shipping">
             <tbody>
             {foreach $instances as $id => $plugin}

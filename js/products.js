@@ -327,6 +327,10 @@
 
             sidebar.unbind('update').bind('update', function(e, lists) {
                 for (var type in lists) {
+                    if (type == 'all') {
+                        $('#s-all-products').find('.count:first').text(lists[type].count);
+                        continue;
+                    }
                     var prefix = '#' + type + '-';
                     for (var id in lists[type]) {
                         $(prefix + id).find('.count:first').text(lists[type][id].count);

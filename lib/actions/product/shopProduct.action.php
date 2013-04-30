@@ -82,10 +82,29 @@ class shopProductAction extends waViewAction
 
         // %product_url% - stuff used only when creating new product
         $stuff = $product->url ? $product->url : '%product_url%';
-        $frontend_url = wa()->getRouteUrl('/frontend/product', array('product_url' => $stuff), true);
-        $pos = strrpos($frontend_url, $stuff);
-        $fontend_base_url = $pos !== false ? rtrim(substr($frontend_url, 0, $pos), '/').'/' : $frontend_url;
+        $frontend_url = null;
+        $fontend_base_url = null;
 
+        if ($product->id) {
+            $routing =  wa()->getRouting();
+            $domain_routes = $routing->getByApp($this->getAppId());
+            foreach ($domain_routes as $domain => $routes) {
+                foreach ($routes as $r) {
+                    if (empty($r['type_id']) || (in_array($product->type_id, (array)$r['type_id']))) {
+                        $routing->setRoute($r, $domain);
+                        $frontend_url = $routing->getUrl('/frontend/product', array('product_url' => $stuff), true);
+                        break;
+                    }
+                }
+            }
+        }
+        if (empty($frontend_url) && !$product->id) {
+            $frontend_url = wa()->getRouteUrl('/frontend/product', array('product_url' => $stuff), true);
+        }
+        if (!empty($frontend_url)) {
+            $pos = strrpos($frontend_url, $stuff);
+            $fontend_base_url = $pos !== false ? rtrim(substr($frontend_url, 0, $pos), '/').'/' : $frontend_url;
+        }
 
         /**
          * !!! FIXME: update this description?.. E.g. include title_suffix. Or remove it...
@@ -139,13 +158,7 @@ class shopProductAction extends waViewAction
     protected function getSelectableFeatures(shopProduct $product)
     {
         $features_model = new shopFeatureModel();
-
-        $features = array();
-        foreach ($features_model->getByType($product->type_id) as $f) {
-            if ($f['multiple']) {
-                $features[$f['code']] = $f;
-            }
-        }
+        $features = $features_model->getMultipleSelectableFeaturesByType($product->type_id);
 
         // attach values
         $features = $features_model->getValues($features);

@@ -17,9 +17,17 @@ class shopViewHelper extends waAppViewHelper
      *
      * @return array
      */
-    public function products($hash = '', $offset = null, $limit = null)
+    public function products($hash = '', $offset = null, $limit = null, $options = array())
     {
-        $collection = new shopProductsCollection($hash);
+        if (is_array($offset)) {
+            $options = $offset;
+            $offset = null;
+        }
+        if (is_array($limit)) {
+            $options = $limit;
+            $limit = null;
+        }
+        $collection = new shopProductsCollection($hash, $options);
         if (!$limit && $offset) {
             $limit = $offset;
             $offset = 0;
@@ -31,6 +39,12 @@ class shopViewHelper extends waAppViewHelper
         return $collection->getProducts('*', $offset, $limit, true);
     }
 
+    public function productsCount($hash = '')
+    {
+        $collection = new shopProductsCollection($hash);
+        return $collection->count();
+    }
+
     /**
      * Alias for products('set/<set_id>')
      * @param int $set_id
@@ -38,9 +52,9 @@ class shopViewHelper extends waAppViewHelper
      * @param int $limit
      * @return array
      */
-    public function productSet($set_id, $offset = null, $limit = null)
+    public function productSet($set_id, $offset = null, $limit = null, $options = array())
     {
-        return $this->products('set/'.$set_id, $offset, $limit);
+        return $this->products('set/'.$set_id, $offset, $limit, $options);
     }
 
     public function settings($name)
@@ -205,6 +219,35 @@ class shopViewHelper extends waAppViewHelper
             return $this->customer();
         }
         return null;
+    }
+
+    public function compare()
+    {
+        $compare = waRequest::cookie('shop_compare', array(), waRequest::TYPE_ARRAY_INT);
+        if ($compare) {
+            return $this->products('id/'.implode(',', $compare));
+        }
+    }
+
+    public function category($id)
+    {
+        $category_model = new shopCategoryModel();
+        $category = $category_model->getById($id);
+
+        $category['subcategories'] = $category_model->getSubcategories($category, true);
+        $category_url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
+        foreach ($category['subcategories'] as &$sc) {
+            $sc['url'] = str_replace('%CATEGORY_URL%', waRequest::param('url_type') == 1 ? $sc['url'] : $sc['full_url'], $category_url);
+        }
+        unset($sc);
+
+        $category_params_model = new shopCategoryParamsModel();
+        $category['params'] = $category_params_model->get($category['id']);
+
+        if ($this->wa->getConfig()->getOption('can_use_smarty') && $category['description']) {
+            $category['description'] = wa()->getView()->fetch('string:'.$category['description']);
+        }
+        return $category;
     }
 
     public function categoryUrl($c)

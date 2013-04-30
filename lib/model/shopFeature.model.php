@@ -106,14 +106,25 @@ class shopFeatureModel extends waModel
     public function getByType($type_id, $key = null, $fill_values = false)
     {
         $sql = "
-		SELECT f.*
-		FROM `{$this->table}` `f`
-		JOIN `shop_type_features` `t` ON (`t`.`feature_id`=`f`.`id`)
-		WHERE `t`.`type_id` = i:type_id
-		ORDER BY `t`.`sort`";
+        SELECT f.*
+        FROM `{$this->table}` `f`
+        JOIN `shop_type_features` `t` ON (`t`.`feature_id`=`f`.`id`)
+        WHERE `t`.`type_id` = i:type_id
+        ORDER BY `t`.`sort`";
 
         $features = $this->query($sql, array('type_id' => $type_id))->fetchAll($key);
         return $fill_values ? $this->getValues($features) : $features;
+    }
+
+    public function getMultipleSelectableFeaturesByType($type_id, $key = null, $fill_values = false)
+    {
+        $features = array();
+        foreach ($this->getByType($type_id) as $f) {
+            if ($f['multiple'] && $f['selectable']) {
+                $features[$f['code']] = $f;
+            }
+        }
+        return $features;
     }
 
     /**

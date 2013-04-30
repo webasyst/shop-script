@@ -54,13 +54,15 @@ class shopProductModel extends waModel
             new shopCategoryProductsModel(),
             new shopSetProductsModel(),
             new shopSearchIndexModel(),
-            new shopProductFeaturesSelectableModel()
+            new shopProductFeaturesSelectableModel(),
+            new shopProductParamsModel()
         ) as $model) {
             $model->deleteByProducts($delete_ids);
         }
 
-        $type_ids = array_keys($this->query("SELECT DISTINCT type_id FROM `{$this->table}` WHERE id IN(".implode(',', $delete_ids).")")->fetchAll('type_id'));
-
+        $type_ids = array_keys(
+            $this->query("SELECT DISTINCT type_id FROM `{$this->table}` WHERE id IN(".implode(',', $delete_ids).")")->fetchAll('type_id')
+        );
         // remove records
         if ($this->deleteById($delete_ids)) {
             $type_model = new shopTypeModel();
@@ -282,6 +284,14 @@ class shopProductModel extends waModel
         return $data;
     }
 
+    /**
+     * Correct main category of products
+     *
+     * The key point: if main category of product is corrected it is does not affect
+     *
+     * @param null|int|array $product_ids  filter by product ID
+     * @param null|int|array $category_ids filter by product.category_id
+     */
     public function correctMainCategory($product_ids = null, $category_ids = null)
     {
         $where = array();
@@ -291,13 +301,35 @@ class shopProductModel extends waModel
         if ($category_ids) {
             $where[] = "p.category_id IN (".implode(',', (array)$category_ids).")";
         }
-        $sql = "UPDATE
-            {$this->table} p
-            LEFT JOIN shop_category_products cp ON p.id = cp.product_id
-            SET p.category_id = cp.category_id";
+
+        // correct products with category_id IS NULL, but belonging to at least one category
+        $sql = "
+            UPDATE `{$this->table}` p
+            JOIN `shop_category_products` cp ON p.id = cp.product_id
+            SET p.category_id = cp.category_id
+            WHERE p.category_id IS NULL
+        ";
         if ($where) {
-            $sql .= " WHERE ".implode(' AND ', $where);
+            $sql .= " AND ".implode(' AND ', $where);
         }
+
+        $this->exec($sql);
+
+
+        // correct products with category_id related with nonexistent categories
+        $sql = "
+            SELECT p.id FROM `{$this->table}` p
+            LEFT JOIN `shop_category_products` cp ON p.id = cp.product_id AND p.category_id = cp.category_id
+            WHERE p.category_id IS NOT NULL AND cp.category_id IS NULL
+        ";
+        if ($where) {
+            $sql .= " AND ".implode(' AND ', $where);
+        }
+        $sql = "UPDATE `{$this->table}` p
+                JOIN ($sql) r ON p.id = r.id
+                LEFT JOIN `shop_category_products` cp ON p.id = cp.product_id
+                SET p.category_id = cp.category_id";
+
         return $this->exec($sql);
     }
 

@@ -12,6 +12,9 @@ class shopOrderSaveController extends waJsonController
         // not zero numeric - edit existing contact
         // zero numeric     - add contact
         $customer_id = waRequest::post('customer_id', null, waRequest::TYPE_INT);
+        if ($customer_id && !shopHelper::getContactRights($customer_id)) {
+            $customer_id = null;
+        }
 
         if ($customer_id !== null) {
             $contact = new waContact($customer_id);
@@ -44,11 +47,9 @@ class shopOrderSaveController extends waJsonController
                 }
             }
 
-            if ($customer_id && shopHelper::getContactRights(wa()->getUser()->getId())) {
-                if ($errors = $contact->save(array(), true)) { // !!! FIXME: when this returns an error, JS fails to show it
-                    $this->errors['customer'] = $errors;
-                    return;
-                }
+            if ( ( $errors = $contact->save(array(), true))) {
+                $this->errors['customer'] = $errors;
+                return;
             }
             $data['contact'] = $contact;
         }
@@ -144,6 +145,7 @@ class shopOrderSaveController extends waJsonController
         if (!$data) {
             return array();
         }
+        $data['comment'] = waRequest::post('comment', null, waRequest::TYPE_STRING_TRIM);
         $data['shipping'] = waRequest::post('shipping', 0);
         $data['discount'] = waRequest::post('discount', 0);
         $data['tax'] = 0;

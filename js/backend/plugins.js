@@ -1,11 +1,12 @@
 /**
- * 
+ *
  */
 (function($) {
     $.plugins = {
         options: {
             'loading': '<i class="icon16 loading"></i>',
-            'path': '#/'
+            'path': '#/',
+            'useIframeTransport': false
         },
         path: {
             'plugin': false,
@@ -76,7 +77,7 @@
         },
 
         /**
-         * 
+         *
          * @param {String} path
          * @return { 'section':String, 'tail':String,'raw':String,'params':object }
          */
@@ -91,12 +92,15 @@
 
         /**
          * Dispatch location hash changes
-         * 
+         *
          * @param {String} hash
          * @param {Boolean} load Force reload if need
          * @return {Boolean}
          */
-        dispatch: function(hash) {
+        dispatch: function(hash, force) {
+
+            // in specific plugin inline script set it flag to true for iframe form posting
+            this.options.useIframeTransport = false;
 
             if (hash === undefined) {
                 hash = window.location.hash;
@@ -114,17 +118,18 @@
             $.shop.trace('$.plugins.dispatch ' + this.path.plugin + ' -> ' + path.plugin + ' # ' + path.tail);
 
             /* change plugins section */
-            if (path.plugin && (path.plugin != this.path.plugin)) {
+            if (path.plugin && (force || path.plugin != this.path.plugin)) {
                 var $content = $('#s-plugins-content');
                 this.path.tail = null;
                 $content.html(this.options.loading);
 
                 var self = this;
+                var url = '';
 
                 if ($("#plugin-" + path.plugin).attr('data-settings')) {
-                    var url = '?plugin=' + path.plugin + '&module=settings';
+                    url = '?plugin=' + path.plugin + '&module=settings';
                 } else {
-                    var url = '?module=plugins&id=' + path.plugin;
+                    url = '?module=plugins&id=' + path.plugin;
                 }
 
                 $.shop.trace('$.plugins.dispatch: Load URL', [url, $content.length]);
@@ -136,23 +141,55 @@
 
                     self.menu.find('li.selected').removeClass('selected');
                     self.menu.find('a[href*="\\#\/' + self.path.plugin + '\/"]').parents('li').addClass('selected');
-                    $('#plugins-settings-form').submit(function() {
-                        self.saveHandler.apply(self, [this]);
-                        return false;
-                    })
+
+                    if (!self.options.useIframeTransport) {
+                        $('#plugins-settings-form').submit(function() {
+                            self.saveHandlerAjax(this);
+                            return false;
+                        });
+                    } else {
+                        $('#plugins-settings-form').submit(function() {
+                            self.saveHandlerIframe(this);
+                        });
+                    }
+
                 });
                 return true;
             }
         },
-        saveHandler: function(form) {
 
+        saveHandlerIframe: function(form) {
+            var self = this;
+            this.message('submit');
+            $("#plugins-settings-iframe").one('load', function() {
+                var r = null;
+                try {
+                    r = $.parseJSON($(this).contents().find('body').html());
+                } catch (e) {
+                }
+                if (r && r.status == 'ok') {
+                    var message = 'Saved';
+                    if (r.data && r.data.message) {
+                        message = r.data.message;
+                    }
+                    self.message('success', message);
+                    $(self).trigger('success', [r]);
+                } else {
+                    self.message('error', r && r.errors || 'parsererror');
+                    $(self).trigger('error', [r]);
+                }
+            });
+        },
+
+        saveHandlerAjax: function(form) {
             var self = this;
             this.message('submit');
             var $form = $(form);
             $.ajax({
                 type: 'POST',
                 url: $form.attr('action'),
-                data: $form.serialize(),
+                data: $form.serializeArray(),
+                iframe: true,
                 dataType: 'json',
                 success: function(data, textStatus, jqXHR) {
                     if (data && (data.status == 'ok')) {
@@ -161,12 +198,15 @@
                             message = data.data.message;
                         }
                         self.message('success', message);
+                        $(self).trigger('success', [data]);
                     } else {
                         self.message('error', data.errors || []);
+                        $(self).trigger('error', [data]);
                     }
                 },
                 error: function(jqXHR, errorText) {
                     self.message('error', [[errorText]]);
+                    $(self).trigger('error', [errorText]);
                 }
             });
         },

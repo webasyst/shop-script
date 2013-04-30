@@ -6,8 +6,8 @@
     <meta name="Keywords" content="{$wa->meta('keywords')|escape}" />
     <meta name="Description" content="{$wa->meta('description')|escape}" />
     <link href="{$wa_theme_url}default.css?{$wa->version()}" rel="stylesheet" type="text/css">
+    <link href="{$wa_theme_url}mobile.css?{$wa->version()}" media="screen and (max-width: 760px)" rel="stylesheet" type="text/css">
     {if $wa->isMobile()}
-        <link href="{$wa_theme_url}mobile.css?{$wa->version()}" rel="stylesheet" type="text/css">
         <meta name="viewport" content="width=device-width; initial-scale=1; maximum-scale=1; user-scalable=0;">
     {/if}
     <script type="text/javascript" src="{$wa_url}wa-content/js/jquery/jquery-1.8.2.min.js"></script>

@@ -22,6 +22,7 @@ abstract class shopUploadController extends waJsonController
                 'tmp_name' => $file_path,
                 'error'    => 0
             ));
+
             try {
                 $this->response['files'][] = $this->save($file);
             } catch (Exception $e) {

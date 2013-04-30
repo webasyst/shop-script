@@ -13,7 +13,7 @@ $(function() {
     win.lazyLoad('stop');
     if (next.length) {
         win.lazyLoad({
-            container: product_list,
+            container: $('#main'),
             load: function() {
                 win.lazyLoad('sleep');
                 var url = next.find('a').attr('href');

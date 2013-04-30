@@ -238,7 +238,7 @@ class shopHelper
                 $order['shipping_address_formatted'] = $formatter->format(array('data' => $shipping_address));
                 $order['shipping_address_formatted'] = $order['shipping_address_formatted']['value'];
 
-                // Shipping and payment method names
+                // Shipping and payment option names
                 if (isset($order['params']['shipping_name'])) {
                     $order['shipping_name'] = htmlspecialchars($order['params']['shipping_name']);
                 } else {
@@ -355,11 +355,16 @@ class shopHelper
         if (!isset($settings['contactinfo'])) {
             $settings = wa('shop')->getConfig()->getCheckoutSettings(true);
         }
-        $form = waContactForm::loadConfig($settings['contactinfo']['fields'], array(
+
+        $fields_config = ifset($settings['contactinfo']['fields'], array());
+        unset($fields_config['address']);
+        $form = waContactForm::loadConfig($fields_config, array(
             'namespace' => 'customer'
         ));
         if ($id) {
-            $form->setValue(new waContact($id));
+            $contact = new waContact($id);
+            $contact->getName(); // make sure contact exists; throws exception otherwise
+            $form->setValue($contact);
         }
         return $form;
     }
@@ -385,14 +390,19 @@ class shopHelper
         return strtolower($str);
     }
 
-    public static function getContactRights($contact_id)
+    public static function getContactRights($contact_id=null)
     {
-        $rights = true;
+        $rights = false;
         if (wa()->appExists('contacts')) {
-            wa('contacts');
-            $contact_rights = new contactsRightsModel();
-            if (!$contact_rights->getRight(null, $contact_id)) {
-                $rights = false;
+            if ($contact_id) {
+                wa('contacts');
+                $contact_rights = new contactsRightsModel();
+                if ($contact_rights->getRight(null, $contact_id)) {
+                    $rights = true;
+                }
+            } else {
+                $rights = wa()->getUser()->getRights('contacts');
+                $rights = $rights && !empty($rights['backend']);
             }
         }
         return $rights;

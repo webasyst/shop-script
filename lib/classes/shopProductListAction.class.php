@@ -32,18 +32,6 @@ class shopProductListAction extends waViewAction
      */
     protected $collection;
 
-    /**
-     * @var array
-     */
-    protected $sorts = array(
-        'name' => 'name',
-        'date' => 'create_datetime',
-        'bestsellers' => 'total_sales',
-        'rate' => 'rating',
-        'price' => 'price',
-        'stock' => 'count'
-    );
-
     public function __construct($params = null) {
         parent::__construct($params);
         $this->hash = $this->getHash();
@@ -56,17 +44,8 @@ class shopProductListAction extends waViewAction
         if ($info['hash'] == 'set' && empty($info['id'])) {
             throw new waException("Unknown list", 404);
         }
-        /*
-        $this->sort = $this->getSort($this->collection->getInfo());
-        if ($this->sort) {
-            $this->collection->orderBy($this->getOrder($this->sort));
-        }
-        */
 
-        $sort = $this->getSort($info);
-        list ($this->sort, $this->order) = $sort;
-        $sort[0] = isset($this->sorts[$sort[0]]) ? $this->sorts[$sort[0]] : $sort[0];
-        $this->collection->orderBy($sort);
+        $this->setSort();
     }
 
     protected function getCollection($hash)
@@ -114,33 +93,13 @@ class shopProductListAction extends waViewAction
         return null;
     }
 
-    /*
-    protected function getOrder($sort)
+    protected function setSort()
     {
-        $order = array($sort, waRequest::get('order', 'desc', waRequest::TYPE_STRING_TRIM));
-        if ($sort && !empty($this->sorts[$sort])) {
-            $order[0] = $this->sorts[$sort];
-        }
-        return $order;
-    }
-    */
-
-    /*
-    protected function getSort($info)
-    {
-        return waRequest::get(
-            'sort',
-            !$info['hash'] || $info['hash'] == 'all' ? 'date' : '',
-            waRequest::TYPE_STRING_TRIM
-        );
-    }
-    */
-
-    protected function getSort($info)
-    {
-        $sort  = waRequest::get('sort', '', waRequest::TYPE_STRING_TRIM);
+        $info  = $this->collection->getInfo();
+        $sort  = waRequest::get('sort',  '', waRequest::TYPE_STRING_TRIM);
         $order = waRequest::get('order', 'desc', waRequest::TYPE_STRING_TRIM);
 
+        // 'all products' collection
         if (!$info['hash'] || $info['hash'] == 'all') {
 
             // default sort method saved in contact_settings
@@ -154,20 +113,16 @@ class shopProductListAction extends waViewAction
                     $sort   = $chunks[0];
                     $order  = isset($chunks[1]) ? $chunks[1] : $order;
                 } else {
-                    $sort = 'date';
+                    $sort = 'create_datetime';
                 }
             }
 
             // save current sort as default for next usage
             $contact_settings_model->set($contact_id, 'shop', 'all:sort', $sort.' '.$order);
 
-        } else if ($info['hash'] != 'set' && $info['hash'] != 'category') {
-            if (!$sort) {
-                $sort = 'date';
-            }
         }
-
-        return array($sort, $order);
+        list($this->sort, $this->order) = $sort ? array($sort, $order) : $this->collection->getOrderBy();
+        $this->collection->orderBy($this->sort, $this->order);
     }
 
     protected function workupProducts(&$products)
@@ -185,19 +140,19 @@ class shopProductListAction extends waViewAction
         }
         unset($p);
 
-        if ($this->sort == 'stock') {
+        if ($this->sort == 'count') {
             foreach ($products as &$p) {
                 $p['icon'] = shopHelper::getStockCountIcon($p['count']);
             }
-        } else if ($this->sort == 'date') {
+        } else if ($this->sort == 'create_datetime') {
             foreach ($products as &$p) {
                 $p['create_datetime_str'] = wa_date('humandatetime', $p['create_datetime']);
             }
-        } else if ($this->sort == 'rate') {
+        } else if ($this->sort == 'rating') {
             foreach ($products as &$p) {
                 $p['rating_str'] = shopHelper::getRatingHtml($p['rating'], 10, true);
             }
-        } else if ($this->sort == 'bestsellers') {
+        } else if ($this->sort == 'total_sales') {
             $currency = wa('shop')->getConfig()->getCurrency();
             foreach ($products as &$p) {
                 $p['total_sales_str'] = wa_currency($p['total_sales'], $currency);

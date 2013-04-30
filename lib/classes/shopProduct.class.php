@@ -43,6 +43,7 @@
  * $product->features['feature_code'];
  * @property array $skus
  * @property array $categories
+ * @property array $params
  */
 class shopProduct implements ArrayAccess
 {
@@ -74,6 +75,7 @@ class shopProduct implements ArrayAccess
                 'tags'       => true,
                 'features'   => true,
                 'skus'       => true,
+                'params'     => true,
                 'categories' => 'shopCategoryProductsModel'
             );
         }
