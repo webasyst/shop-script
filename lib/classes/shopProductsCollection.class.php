@@ -182,17 +182,30 @@ class shopProductsCollection
                 $values = array($values);
             }
             if (isset($features[$feature_id])) {
-                $feature_join_index++;
-                $this->joins[] = array(
-                    'table' => 'shop_product_features',
-                    'alias' => 'filter'.$feature_join_index,
-                    'on'    => 'p.id = filter'.$feature_join_index.'.product_id AND filter'.$feature_join_index.'.feature_id = '.(int) $features[$feature_id]['id']
-                );
-                foreach ($values as & $v) {
-                    $v = (int) $v;
+                if($features[$feature_id]['multiple']) {
+                    foreach($values as $value) {
+                        $feature_join_index++;
+                        $this->joins[] = array(
+                            'table' => 'shop_product_features',
+                            'alias' => 'filter'.$feature_join_index,
+                            'on'    => 'p.id = filter'.$feature_join_index.'.product_id AND filter'.$feature_join_index.'.feature_id = '.(int) $features[$feature_id]['id']
+                        );
+                        $this->where[] = 'filter'.$feature_join_index.".feature_value_id = ".intval($value);
+                        $this->group_by = 'p.id';
+                    }
+                } else {
+                    $feature_join_index++;
+                    $this->joins[] = array(
+                        'table' => 'shop_product_features',
+                        'alias' => 'filter'.$feature_join_index,
+                        'on'    => 'p.id = filter'.$feature_join_index.'.product_id AND filter'.$feature_join_index.'.feature_id = '.(int) $features[$feature_id]['id']
+                    );
+                    foreach ($values as & $v) {
+                        $v = (int) $v;
+                    }
+                    $this->where[] = 'filter'.$feature_join_index.".feature_value_id IN (".implode(',', $values).")";
+                    $this->group_by = 'p.id';
                 }
-                $this->where[] = 'filter'.$feature_join_index.".feature_value_id IN (".implode(',', $values).")";
-                $this->group_by = 'p.id';
             }
         }
         $this->filtered = true;
