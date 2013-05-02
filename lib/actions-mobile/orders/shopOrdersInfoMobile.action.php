@@ -41,7 +41,7 @@ class shopOrdersInfoMobileAction extends shopMobileViewAction
             $shipping_address = null;
         }
         if (isset($form_fields['address.billing'])) {
-            $billing_address = shopHelper::getOrderAddress($params, 'billing');
+            $billing_address = shopHelper::getOrderAddress($order['params'], 'billing');
             $billing_address = $formatter->format(array('data' => $billing_address));
             $billing_address = $billing_address['value'];
         } else {
