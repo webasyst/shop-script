@@ -1,0 +1,21 @@
+{foreach $controls as $html}
+    {$html}
+{/foreach}
+<script type="text/javascript">
+<!--
+{if $validate}
+if($.importexport.plugins.asiaimport.validate) {
+    $("#s-plugin-asiaimport").submit();
+} else {
+    $.importexport.plugins.asiaimport.validate=true;
+}
+{else}
+$.importexport.plugins.asiaimport.validate=false;
+{/if}
+{if $errors}
+$('#plugin-asiaimport-transport-group :input').attr('disabled', false);
+{else}
+$('#plugin-asiaimport-transport-group :input').attr('disabled', true);
+{/if}
+//-->
+</script>
