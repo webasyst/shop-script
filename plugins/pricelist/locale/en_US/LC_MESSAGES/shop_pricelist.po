@@ -1,0 +1,42 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: shop/plugins/pricelist\n"
+"POT-Creation-Date: 2013-03-10 12:19+0400\n"
+"PO-Revision-Date: \n"
+"Last-Translator:  shop/plugins/pricelist\n"
+"Language-Team:  shop/plugins/pricelist\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: en_US\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+msgid "Pricelist"
+msgstr "Price list"
+
+msgid "Price list"
+msgstr ""
+
+msgid "Simple price list"
+msgstr ""
+
+msgid "Product"
+msgstr "Name"
+
+msgid "Stock"
+msgstr "In stock"
+
+msgid "Price"
+msgstr ""
+
+msgid "Buy"
+msgstr ""
+
+msgid "Cache lifetime"
+msgstr ""
+
+msgid "Is in seconds, the recommended value 600"
+msgstr ""
