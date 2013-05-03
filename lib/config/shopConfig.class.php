@@ -166,6 +166,8 @@ class shopConfig extends waAppConfig
                 'name'             => wa()->accountName(),
                 'email'            => wa()->getSetting('email', '', 'webasyst'),
                 'phone'            => '+1 (212) 555-1234',
+                'skype'            => wa()->getSetting('skype', '', 'shop'),
+                'icq'              => wa()->getSetting('icq', '', 'shop'),
                 'country'          => '',
                 'order_format'     => $this->getOrderFormat(),
                 'use_gravatar'     => 1,
