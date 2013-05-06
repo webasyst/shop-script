@@ -1278,6 +1278,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         if (!isset($this->data['map']['rate'])) {
             $this->data['map']['rate'] = 1.0;
         }
+        static $product_skus_model;
         $rate =& $this->data['map']['rate'];
         switch ($this->xml->nodeType) {
             case XMLReader::ELEMENT:
@@ -1344,6 +1345,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
                             $skus[-1] = array(
                                 'id_1c'     => end($uuid),
+                                'sku'       => self::field($element, 'Артикул'),
                                 'name'      => self::field($element, 'Наименование'),
                                 'available' => 1,
                                 'price'     => $price,
@@ -1352,6 +1354,10 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                                 ),
                                 'features'  => $features,
                             );
+
+                            if (empty($skus[-1]['sku']) && $product->sku_id && isset($skus[$product->sku_id])) {
+                                $skus[-1]['sku'] = $skus[$product->sku_id]['sku'];
+                            }
 
                             foreach ($skus as $id => & $sku) {
                                 if (($id > 0) && !count($sku['stock']) && ($sku['count'] !== null)) {
@@ -1366,8 +1372,39 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                                 }
                             }
                             unset($sku);
+                            $delete_sku = false;
+                            if (count($uuid) > 1 && (end($uuid) != reset($uuid))) {
+                                $count_sku = 0;
+                                $dummy_id = false;
+                                foreach ($skus as $id => $sku) {
+                                    if ($sku['id_1c'] != $product['id_1c']) {
+                                        ++$count_sku;
+                                        if ($dummy_id) {
+                                            break;
+                                        }
+                                    } elseif (($sku['count'] === null) && (!$sku['price'])) {
+                                        $dummy_id = $id;
+                                        if ($count_sku) {
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if ($count_sku && ($dummy_sku !== false)) {
+                                    if (!$product_skus_model) {
+                                        $product_skus_model = new shopProductSkusModel();
+                                    }
+                                    $delete_sku = $skus[$dummy_id]['id'];
+
+                                    unset($skus[$dummy_id]);
+                                }
+                            }
+
                             $product->skus = $skus;
                             $product->save();
+                            if ($delete_sku) {
+                                $product_skus_model->delete($delete_sku);
+                            }
                             ++$processed[self::STAGE_OFFER][$target];
                         } else {
                             $this->error(sprintf('Product with Ид %s not found', implode('#', $uuid)));
@@ -1529,10 +1566,13 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                         $product->features = $features;
                     }
                 }
-            } elseif (count($uuid) > 1) {
-
-                $skus[-1]['features'] = $features;
-
+            } else {
+                if (count($uuid) > 1) {
+                    $skus[-1]['features'] = $features;
+                } else {
+                    /* ignore empty SKU for exists products */
+                    unset($skus[-1]);
+                }
             }
 
             foreach ($skus as $id => & $sku) {
