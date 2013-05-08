@@ -6,7 +6,7 @@ return array(
     'img'           => 'img/asiaimport.png',
     'vendor'        => 'HandySoft',
     'version'       => '1.0.0',
-    'importexport'  => true,
+    //'importexport'  => true,
     'shop_settings' => true,
     'handlers'      => array(),
 );

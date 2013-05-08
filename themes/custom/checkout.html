@@ -1,6 +1,6 @@
 <!-- following CSS hides top navigation menu; remove <style>…</style> to unhide -->
 <style>
-    #header, #footer, .currency-toggle { display: none; }    
+    #header, #footer, .currency-toggle { display: none; }
     .app-header { display: none; }
     .container.paper { background: transparent; box-shadow: none; }
 </style>
@@ -95,7 +95,7 @@
             if (f.hasClass('last')) {
                 return true;
             }
-            $.post(f.attr('action'), f.serialize(), function (response) {
+            $.post(f.attr('action') || window.location, f.serialize(), function (response) {
                 var content = $(response);
                 var step_id = content.data('step-id');
                 var current = $(".checkout-step .checkout-step-content:visible");

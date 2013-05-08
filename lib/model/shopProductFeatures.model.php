@@ -33,7 +33,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         for ($i = 1; $i < count($features); $i++) {
             $sql .= " JOIN ".$this->table." t".$i." ON t0.sku_id = t".$i.".sku_id";
         }
-        $sql .= " WHERE t0.product_id = ".(int)$product_id;
+        $sql .= " WHERE t0.product_id = ".(int)$product_id." AND t0.sku_id IS NOT NULL";
         $i = 0;
         foreach ($features as $f => $v) {
             $sql .= " AND t".$i.".feature_id = ".(int)$f." AND t".$i.".feature_value_id = ".$v;

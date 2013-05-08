@@ -1,6 +1,10 @@
 <div class="fields form">
     <form action="?module=plugins&id=asiaimport&action=save" method="post" id="plugins-settings-form">
     {$wa->csrf()}
+    
+    {* обнуление шагов импорта *}
+    <input type="hidden" name="shop_asiaimport[step]" value="1">
+    <input type="hidden" name="shop_asiaimport[substep]" value="0">
 
     <div class="field">
         <div class="name">
@@ -12,7 +16,8 @@
                 <tr>
                     <td>{$c.name|indent:$c.depth:'&nbsp; - &nbsp;'}</td>
                     <td>
-                        <select name="shop_asiaimport[categories][{$c.id}]">
+                        <select name="shop_asiaimport[selected][categories][{$c.id}]">
+                            <option value="">[`not updated`]</option>
                         {foreach $import_categories as $key => $value}
                             <option value="{$key}" {if $selected.categories[$c.id] == $key}selected{/if}>{$value}</option>
                         {/foreach}
@@ -29,7 +34,7 @@
             [`Currency`]
         </div>
         <div class="value">
-            <select name="shop_asiaimport[currency]">
+            <select name="shop_asiaimport[selected][currency]">
             {foreach $currencies as $c}
                 <option value="{$c.code}" {if $selected.currency == $c.code}selected{/if}>{$c.code}</option>
             {/foreach}
@@ -42,7 +47,25 @@
             [`Pricelist url`]
         </div>
         <div class="value">
-            <input type="text" name="shop_asiaimport[url]" value="{$selected.url}">
+            <input type="text" name="shop_asiaimport[selected][url]" value="{$selected.url}">
+        </div>
+    </div>
+    
+    <div class="field">
+        <div class="name">
+            [`Images page url`]
+        </div>
+        <div class="value">
+            <input type="text" name="shop_asiaimport[selected][images]" value="{$selected.images}">
+        </div>
+    </div>
+    
+    <div class="field">
+        <div class="name">
+            [`Images path url`]
+        </div>
+        <div class="value">
+            <input type="text" name="shop_asiaimport[selected][images_path]" value="{$selected.images_path}">
         </div>
     </div>
     
@@ -51,7 +74,7 @@
             [`Markup procent`]
         </div>
         <div class="value">
-            <input type="text" name="shop_asiaimport[markup]" value="{$selected.markup}">
+            <input type="text" name="shop_asiaimport[selected][markup]" value="{$selected.markup}">
         </div>
     </div>
     
