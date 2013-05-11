@@ -1,0 +1,46 @@
+<div class="sidebar left300px hide-for-mobile">
+    {include file="sidebar.html"}
+</div>
+<div class="content left300px">
+    <h2 class="category-name">[`Pricelist`]</h2>
+    <table class="table product-list pricelist">
+        <thead>
+            <tr class="header">
+                <th>[`Product`]</th>
+                <th>[`Stock`]</th>
+                <th>[`Price`]</th>
+                <th>[`Buy`]</th>
+            </tr>
+        </thead>
+        <tbody>
+        {foreach $pricelist as $cat}
+            <tr class="category category_lvl_{$cat.depth}">
+                <td colspan="4">
+                    <a href="{$cat.frontend_url}">{$cat.name}</a>
+                </td>
+            </tr>
+            {foreach $cat.products as $prd}
+            <tr class="product">
+                <td>
+                    <a href="{$prd.frontend_url}">{$prd.name}</a>
+                </td>
+                <td class="align-center">
+                    {$prd.count}
+                </td>
+                <td class="align-center">
+                    <span class="price nowrap">{shop_currency($prd.price)}</span>
+                </td>
+                <td class="align-center">
+                    {if $wa->shop->settings('ignore_stock_count') || $prd.count === null || $prd.count > 0}
+                    <form class="addtocart" method="post" action="{$wa->getUrl('/frontendCart/add')}">
+                        <input type="hidden" name="product_id" value="{$prd.id}"/>
+                        <input type="submit" value="[`Add to cart`]"/>
+                    </form>
+                    {/if}
+                </td>
+            </tr>
+            {/foreach}
+        </tbody>
+        {/foreach}
+    </table>
+</div>

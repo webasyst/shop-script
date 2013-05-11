@@ -1,0 +1,13 @@
+f7cf2268479ab37c2f8974ab6ce25800 *img/yandexmarket.png
+c7b41fda0ddde7096c78d9e64711c1b3 *js/yandexmarket.js
+04c94d98e4644a52146f633ca2455d6e *lib/actions/backend/shopYandexmarketPluginBackendSetup.action.php
+6e661d8229d3a5de819943760a92425f *lib/actions/backend/shopYandexmarketPluginRun.controller.php
+87613b9454ff050aefb1fc9377099f3a *lib/actions/frontend/shopYandexmarketPluginFrontend.actions.php
+9f6fba90d6d1885244a1bcc76c248145 *lib/config/build.php
+b5c209dd3e60a68869ab01f46391609e *lib/config/map.php
+6cf47a907a350aafd1a5e2402acfb68d *lib/config/plugin.php
+6b703166b92f2d0faee5e5441d0d1cfb *lib/config/routing.php
+67e255aeb7b8d7764dcbaf50c5433d49 *lib/config/settings.php
+9417e6f47e7b84af21b200fa7e5f9e91 *lib/config/shops.dtd
+0c304129053c4853713db429956da77e *lib/shopYandexmarket.plugin.php
+5259f260faae789f8903a5c09dbcf8f1 *templates/actions/backend/BackendSetup.html

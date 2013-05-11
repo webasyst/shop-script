@@ -1,0 +1,11 @@
+872b7a1a8101bcf7ef6c7cf7c8f78ff7 *img/star.png
+a285da79a1cf95556e4eb1fd40059097 *lib/.htaccess
+ed07e2cf60ea4be9ce5b2d3f839377c8 *lib/actions/shopFavoriteproductsPluginBackendFav.controller.php
+d7f75ca82c3b1523008045bcf8c076b5 *lib/config/build.php
+e9ed36cc9e8f4433b4240d8e2e48630e *lib/config/db.php
+96eac0a83a52fc59d854f013a089eda1 *lib/config/plugin.php
+636bd4c06f7d53573132e63727e52b55 *lib/models/shopFavoriteproductsPlugin.model.php
+2ce64e3ab386a45ef7747a7167b7affe *lib/shopFavoriteproducts.plugin.php
+a285da79a1cf95556e4eb1fd40059097 *locale/.htaccess
+8fc16cf4e94f64499c0528f21b17aeb8 *locale/ru_RU/LC_MESSAGES/shop_favoriteproducts.mo
+9131ce2c70a604b1e33e8760531a2bd7 *locale/ru_RU/LC_MESSAGES/shop_favoriteproducts.po

@@ -1,0 +1,102 @@
+<div class="fields form">
+    <form action="?module=plugins&id=asiaimport&action=save" method="post" id="plugins-settings-form">
+    {$wa->csrf()}
+    
+    {* обнуление шагов импорта *}
+    <input type="hidden" name="shop_asiaimport[step]" value="1">
+    <input type="hidden" name="shop_asiaimport[substep]" value="0">
+
+    <div class="field">
+        <div class="name">
+            [`Categories`]
+        </div>
+        <div class="value">
+            <table class="zebra">
+                {foreach $categories as $c}
+                <tr>
+                    <td>{$c.name|indent:$c.depth:'&nbsp; - &nbsp;'}</td>
+                    <td>
+                        <select name="shop_asiaimport[selected][categories][{$c.id}]">
+                            <option value="">[`not updated`]</option>
+                        {foreach $import_categories as $key => $value}
+                            <option value="{$key}" {if $selected.categories[$c.id] == $key}selected{/if}>{$value}</option>
+                        {/foreach}
+                        </select>
+                    </td>
+                </tr>
+                {/foreach}
+            </table> 
+        </div>
+    </div>
+    
+    <div class="field">
+        <div class="name">
+            [`Currency`]
+        </div>
+        <div class="value">
+            <select name="shop_asiaimport[selected][currency]">
+            {foreach $currencies as $c}
+                <option value="{$c.code}" {if $selected.currency == $c.code}selected{/if}>{$c.code}</option>
+            {/foreach}
+            </select>
+        </div>
+    </div>
+    
+    <div class="field">
+        <div class="name">
+            [`Pricelist url`]
+        </div>
+        <div class="value">
+            <input type="text" name="shop_asiaimport[selected][url]" value="{$selected.url}">
+        </div>
+    </div>
+    
+    <div class="field">
+        <div class="name">
+            [`Images page url`]
+        </div>
+        <div class="value">
+            <input type="text" name="shop_asiaimport[selected][images]" value="{$selected.images}">
+        </div>
+    </div>
+    
+    <div class="field">
+        <div class="name">
+            [`Images path url`]
+        </div>
+        <div class="value">
+            <input type="text" name="shop_asiaimport[selected][images_path]" value="{$selected.images_path}">
+        </div>
+    </div>
+    
+    <div class="field">
+        <div class="name">
+            [`Markup procent`]
+        </div>
+        <div class="value">
+            <input type="text" name="shop_asiaimport[selected][markup]" value="{$selected.markup}">
+        </div>
+    </div>
+    
+    <div class="field">
+        <div class="value submit">
+            <input type="submit" class="button green" value="Сохранить">
+            <span id="plugins-settings-form-status" style="display:none">
+                <i style="vertical-align:middle" class="icon16 yes"></i> [`Saved`]
+            </span>
+        </div>
+    </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    $("#plugins-settings-form").submit(function () {
+        var f = $(this);
+        $.post(f.attr('action'), f.serialize(), function (response) {
+            $("#plugins-settings-form-status").fadeIn('slow', function () {
+               $(this).fadeOut(1000);
+            });
+        }, "json")
+        return false;
+    });
+</script>
