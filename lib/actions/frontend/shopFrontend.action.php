@@ -45,6 +45,8 @@ class shopFrontendAction extends waViewAction
         $this->view->assign('pages_count', $pages_count);
 
         $this->view->assign('products', $products);
+        
+        $this->view->assign('products_total_count', $count);
     }
 
     public function execute()
