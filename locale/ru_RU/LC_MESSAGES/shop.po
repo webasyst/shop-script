@@ -3817,7 +3817,7 @@ msgstr "Настройки витрины регулируются с помощ
 
 #: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:75
 msgid "Shipping option not specified"
-msgstr "Способ доставки на определен"
+msgstr "Способ доставки не определен"
 
 #: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:83
 msgid "Payment option not specified"
