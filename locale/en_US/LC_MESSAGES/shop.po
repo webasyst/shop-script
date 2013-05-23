@@ -5640,3 +5640,159 @@ msgstr ""
 #: /wa-apps/shop/lib/actions/settings/checkout/shopSettingsCheckoutContactForm.action.php:88
 msgid "Billing address prompt"
 msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:8
+msgid "This will permanently delete this shipping option. Are you sure?"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:85
+msgid "Terms of service"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:90
+msgid "If you want your customers to be prompted to read and agree to your company’s terms of service, refund and privacy policies or any other legal information during the checkout, enter the text to the field above. A checkbox to agree and a link to read this legal information will be shown on the Confirmation checkout step."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:90
+msgid "Generate sample policy"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:102
+msgid "Backend"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:105
+msgid "Required fields"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:117
+msgid "When a new order is created via backend manually, contact info form will be validated according the Contact info form setup defined for the storefront (above). All required fields will be necessary to fill in."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:121
+msgid "When a new order is created via backend manually, contact info form will not be validated. Fields which are necessary to fill in when order is placed in the storefront, can be left blank when order is created via backend."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:8
+msgid "This will permanently delete this payment option. Are you sure?"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/checkout.payment.html:18
+msgid "Oops! We are sorry, but <strong>we can not offer any payment option for your order</strong>. Checkout can not be completed."
+msgstr ""
+
+#: /wa-apps/shop/themes/default/checkout.shipping.html:54
+msgid "Oops! We are sorry, but <strong>we can not ship this order to your selected destination</strong>. Checkout can not be completed."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormEditor.html:38
+msgid "Radio selector advanced settings"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormEditor.html:39
+msgid "Depending on the current radio selector value, other contact form fields may be set to be omitted (become hidden). Manage form fields visibility settings using checkboxes below for each radio selector value."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateDelete.controller.php:15
+msgid "Cannot delete order status while there are active orders in this status"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:105
+msgid "Required fields validation"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:75
+msgid "When shipping address form is disabled (hidden) on the “Contact info” step, address will be automatically prompted on the “Shipping” checkout step."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:85
+msgid "Hide certain fields"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:384
+msgid "This list of address fields is configured in the “Contact info” step settings."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutConfirmation.class.php:114
+msgid "Your current terms of service content will be erased. Are you sure?"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/checkout.confirmation.html:68
+msgid "You must read and agree to the Terms of service to place an order."
+msgstr ""
+
+#: /wa-apps/shop/themes/default/checkout.confirmation.html:70
+msgid "I have read and agree to the <a href=\"%s\" target=\"_blank\">Terms of service</a>"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormEditor.html:218
+msgid "Click “Save” button below to commit changes."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormEditor.html:216
+msgid "Manage conditions"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormRow.html:65
+msgid "Set default fixed value"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormRow.html:68
+msgid "Default fixed value:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:8
+msgid "Enter available options for %s depending on it’s parent field value."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:8
+msgid "http://www.shop-script.com/help/conditional-contact-fields/"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:8
+msgid "Get help"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:12
+msgid "<strong>IF</strong> parent field"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:31
+msgid "Prompt to select %s from the following list:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:62
+msgid "<strong>ELSE</strong>, in case parent field value does not match any of the listed above"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:65
+msgid "Display &lt;input&gt; (custom text) field for %s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:66
+msgid "Do not prompt for %s"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutConfirmation.class.php:109
+msgid "For Terms of service to work, make sure you updated <strong>checkout.confirmation.html</strong> template file from the original design theme (either Default or CUSTOM). In case there is no checkbox to agree to the Terms of service in the template file along with the terms legal text entered in the backend, order checkout may stop accepting orders due to the lack of a checkbox user could click, and an error message output. The original checkout.confirmation.html template file contains both checkbox and error output text. Please make sure to update it."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormRow.html:67
+msgid "Default value:"
+msgstr ""
+
+#: /wa-apps/shop/js/settings/order_states.js:50
+msgid "This will delete this order state. Are you sure?"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/shopFrontendShipping.controller.php:32
+msgid "Shipping is required"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:62
+msgid "We cannot ship to the specified address via %s."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:66
+msgid "Please double-check the address above, or return to the shipping step and select another shipping option."
+msgstr ""

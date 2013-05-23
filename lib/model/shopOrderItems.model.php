@@ -287,7 +287,10 @@ class shopOrderItemsModel extends waModel
 
         $parent_id = null;
         foreach ($items as $item) {
+
+            // new item insert
             if (empty($item['id']) || empty($old_items[$item['id']])) {
+
                 $item['order_id'] = $order_id;
                 if ($item['type'] == 'product') {
                     $parent_id = $this->insert($item);
@@ -301,10 +304,12 @@ class shopOrderItemsModel extends waModel
                     if (!isset($sku_stock[$item['sku_id']][$item['stock_id']])) {
                         $sku_stock[$item['sku_id']][$item['stock_id']] = 0;
                     }
-                    $sku_stock[$item['sku_id']][$item['stock_id']] += $item['quantity'];
+                    $sku_stock[$item['sku_id']][$item['stock_id']] -= $item['quantity'];
                 }
 
             } else {
+
+                // edit old item
                 $item_id = $item['id'];
                 $old_item = $old_items[$item_id];
                 if ($old_item['type'] == 'product') {
@@ -353,6 +358,7 @@ class shopOrderItemsModel extends waModel
             $this->deleteById(array_keys($old_items));
         }
 
+
         // Update stock count, but take into account 'update_stock_count_on_create_order'-setting and order state
         $order_model = new shopOrderModel();
         $order = $order_model->getById($order_id);
@@ -377,11 +383,13 @@ class shopOrderItemsModel extends waModel
                 $stock_id = (int) $stock_id;
                 if ($stock_id) {
                     $this->exec(
-                        "UPDATE `shop_product_stocks` SET count = count + ({$count}) WHERE sku_id = $sku_id AND stock_id = $stock_id"
+                        "UPDATE `shop_product_stocks` SET count = count + ({$count})
+                        WHERE sku_id = $sku_id AND stock_id = $stock_id"
                     );
                 } else {
                     $this->exec(
-                        "UPDATE `shop_product_skus` SET count = count + ({$count}) WHERE id = $sku_id"
+                        "UPDATE `shop_product_skus` SET count = count + ({$count})
+                        WHERE id = $sku_id"
                     );
                 }
             }
@@ -397,7 +405,8 @@ class shopOrderItemsModel extends waModel
                     GROUP BY sk.id
                     ORDER BY sk.id
                 ) r ON sk.id = r.id
-                SET sk.count = r.count";
+                SET sk.count = r.count
+                WHERE sk.count IS NOT NULL";
             $this->exec($sql);
 
             // correct product counters
@@ -407,7 +416,7 @@ class shopOrderItemsModel extends waModel
                     UPDATE `shop_product` p JOIN (
                         SELECT p.id, SUM(sk.count) AS count FROM `shop_product` p
                         JOIN `shop_product_skus` sk ON p.id = sk.product_id
-                        WHERE p.id IN(".implode(',', $product_ids).")
+                        WHERE p.id IN(".implode(',', $product_ids).") AND sk.available = 1
                         GROUP BY p.id
                         ORDER BY p.id
                     ) r ON p.id = r.id

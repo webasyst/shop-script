@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Class shopOrderTotalController
+ *
+ * @method shopConfig getConfig()
+ */
 class shopOrderTotalController extends waJsonController
 {
     public function execute()
@@ -31,7 +36,18 @@ class shopOrderTotalController extends waJsonController
             );
         }
 
-        $this->response['shipping_methods'] = shopHelper::getShippingMethods($shipping_address, $shipping_items);
+        if (waRequest::post('order_id')) {
+            $order_model = new shopOrderModel();
+            $order = $order_model->getById(waRequest::post('order_id'));
+            $currency = $order['currency'];
+        } else {
+            $currency = $this->getConfig()->getCurrency();
+        }
+
+        $total = waRequest::post('subtotal') - waRequest::post('discount');
+
+        $this->response['shipping_methods'] = shopHelper::getShippingMethods($shipping_address, $shipping_items,
+            array('currency' => $currency, 'total_price' => $total));
     }
 
     protected function getAddress()

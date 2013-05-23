@@ -28,5 +28,9 @@
         return false;
     });
 
+    {if $customer_validation_disabled}
+        $('#new-customer-form').find('.required,.wa-required').removeClass('required').removeClass('wa-required');
+    {/if}
+
 });</script>
 

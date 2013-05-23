@@ -116,6 +116,12 @@
 
                 <div class="field">
                     <div class="value">
+                        <div class="block half-padded float-right">
+                            <ul class="menu-h with-icons">
+                                <li><a id="s-f-help" href="#" class="inline-link"><i class="icon16 script"></i><b><i>[`Cheat sheet`]</i></b><i class="icon10 darr-tiny"></i></a></li>
+                            </ul>
+                        </div>
+
                         <input type="submit" class="button green" value="[`Save`]">
                         {if $followup.id}
                             <input type="button" id="send-test-button" class="button blue" value="[`Send test`]">
@@ -124,6 +130,9 @@
                 </div>
             </div>
         </form>
+
+        {include file="templates/actions/settings/SettingsFollowupsHelp.html" inline}
+
         <div class="clear-both"></div>
     </div>
 </div>

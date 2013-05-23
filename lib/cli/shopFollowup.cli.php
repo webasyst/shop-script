@@ -126,12 +126,36 @@ class shopFollowupCli extends waCliController
             $general = wa('shop')->getConfig()->getGeneralSettings();
         }
 
-        // Build email from template
+        $workflow = new shopWorkflow();
+
+        $items_model = new shopOrderItemsModel();
+        $o['items'] = $items_model->getItems($o['id']);
+        foreach ($data['order']['items'] as &$i) {
+            if (!empty($i['file_name'])) {
+                $i['download_link'] = wa()->getRouteUrl('/frontend/myOrderDownload',
+                    array('id' => $o['id'], 'code' => $o['params']['auth_code'], 'item' => $i['id']), true
+                );
+            }
+        }
+        unset($i);
+
+        // Assign template vars
         $view->clearAllAssign();
         $view->assign('followup', $f); // row from shop_followup
         $view->assign('order', $o); // row from shop_order, + 'params' key
-        //$view->assign('customer', $customer); // row from shop_customer
         $view->assign('customer', $contact); // shopCustomer
+        $view->assign('order_url', wa()->getRouteUrl('/frontend/myOrderByCode', array('id' => $o['id'], 'code' => $o['params']['auth_code']), true));
+        $view->assign('status', $workflow->getStateById($o['state_id'])->getName());
+
+        // $shipping_address, $billing_address
+        foreach (array('shipping', 'billing') as $k) {
+            $address = shopHelper::getOrderAddress($o['params'], $k);
+            $formatter = new waContactAddressOneLineFormatter(array('image' => false));
+            $address = $formatter->format(array('data' => $address));
+            $view->assign($k.'_address', $address['value']);
+        }
+
+        // Build email from template
         $subject = $view->fetch('string:'.$f['subject']);
         $body = $view->fetch('string:'.$f['body']);
 

@@ -5,7 +5,7 @@
 		<div class="block half-padded float-right">
 			<ul class="menu-h with-icons">
             {if isset($plugin.status) && !empty($plugin.id)}
-				<li><a href="#/payment/plugin/delete/{$plugin.id}/" class="js-action js-confirm"><i class="icon16 delete"></i>[`Delete this payment option`]</a></li>
+				<li><a href="#/payment/plugin/delete/{$plugin.id}/" class="js-action js-confirm" data-confirm-text="[`This will permanently delete this payment option. Are you sure?`]"><i class="icon16 delete"></i>[`Delete this payment option`]</a></li>
             {/if}
 			</ul>
 		</div>

@@ -6,20 +6,20 @@
                 <div class="field">
                     <div class="name">[`Store name`]</div>
                     <div class="value">
-                        <input type="text" class="large bold" name="name" value="{$name}">
+                        <input type="text" class="large bold" name="name" value="{$name|escape}">
                     </div>
                 </div>
                 <div class="field">
                     <div class="name">[`Primary email`]</div>
                     <div class="value">
-                        <input type="text" name="email" value="{$email}"><br />
+                        <input type="text" name="email" value="{$email|escape}"><br />
                         <span class="hint">[`Primary email address is used as a reply-to address in email notifications sent to your customers`]</span>
                     </div>
                 </div>
                 <div class="field">
                     <div class="name">[`Phone number`]</div>
                     <div class="value">
-                        <input type="text" name="phone" value="{$phone}"><br />
+                        <input type="text" name="phone" value="{$phone|escape}"><br />
                         <span class="hint">[`Phone number is published in the storefront and included in email notification`]</span>
                     </div>
                 </div>
@@ -128,7 +128,7 @@
                         <div class="value no-shift">
                             {sprintf('[`To enable SMS message sending, install and configure sending module for your preferred SMS gateway.<br /> Browse for SMS gateway modules <a href="%s">in the Installer app</a>.`]', $wa_backend_url|cat:'installer/?module=plugins&subject=systemplugins&slug=sms')}
                         </div>
-                    {/if} 
+                    {/if}
                 </div>
             </div>
             <div class="field-group">

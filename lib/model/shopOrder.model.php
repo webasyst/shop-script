@@ -742,8 +742,6 @@ class shopOrderModel extends waModel
         $paid_date_sql = self::getDateSql('o.paid_date', $start_date, $end_date);
         $sql = "SELECT SUM(o.total*o.rate) AS total
                 FROM ".$this->table." AS o
-                    JOIN shop_currency AS cur
-                        ON cur.code=o.currency
                 WHERE $paid_date_sql";
         return $this->query($sql)->fetchField();
     }
@@ -757,8 +755,6 @@ class shopOrderModel extends waModel
                     SUM(o.shipping*o.rate) AS shipping,
                     SUM(o.tax*o.rate) AS tax
                 FROM ".$this->table." AS o
-                    JOIN shop_currency AS cur
-                        ON cur.code=o.currency
                 WHERE $paid_date_sql";
         $r1 = $this->query($sql)->fetchAssoc();
 

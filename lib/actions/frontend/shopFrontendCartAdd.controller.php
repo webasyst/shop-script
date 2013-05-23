@@ -55,6 +55,9 @@ class shopFrontendCartAddController extends waJsonController
                     }
                 } else {
                     $sku = $sku_model->getById($product['sku_id']);
+                    if (!$sku['available']) {
+                        $sku = $sku_model->getByField(array('product_id' => $product['id'], 'available' => 1));
+                    }
                 }
             }
         }
@@ -65,18 +68,44 @@ class shopFrontendCartAddController extends waJsonController
             // check quantity
             if (!wa()->getSetting('ignore_stock_count')) {
                 $c = $cart_model->countSku($code, $sku['id']);
-                if ($sku['count'] !== null && $c >= $sku['count']) {
-                    $this->errors = sprintf(_w('Only %d left in stock. Sorry.'), $c);
-                    return;
+                if ($sku['count'] !== null && $c + $quantity > $sku['count']) {
+                    $quantity = $sku['count'] - $c;
+                    if (!$quantity) {
+                        $this->errors = sprintf(_w('Only %d left in stock. Sorry.'), $sku['count']);
+                        return;
+                    } else {
+                        $this->response['error'] = sprintf(_w('Only %d left in stock. Sorry.'), $sku['count']);
+                    }
                 }
             }
             $services = waRequest::post('services', array());
+            if ($services) {
+                $variants = waRequest::post('service_variant');
+                $temp = array();
+                $service_ids = array();
+                foreach ($services as $service_id) {
+                    if (isset($variants[$service_id])) {
+                        $temp[$service_id] = $variants[$service_id];
+                    } else {
+                        $service_ids[] = $service_id;
+                    }
+                }
+                if ($service_ids) {
+                    $service_model = new shopServiceModel();
+                    $temp_services = $service_model->getById($service_ids);
+                    foreach ($temp_services as $row) {
+                        $temp[$row['id']] = $row['variant_id'];
+                    }
+                }
+                $services = $temp;
+            }
             $item_id = null;
-            if (!$services) {
-                $item = $cart_model->getSingleItem($code, $product['id'], $sku['id']);
-                if ($item) {
-                    $item_id = $item['id'];
-                    $cart_model->updateById($item_id, array('quantity' => $item['quantity'] + $quantity));
+            $item = $cart_model->getItemByProductAndServices($code, $product['id'], $sku['id'], $services);
+            if ($item) {
+                $item_id = $item['id'];
+                $cart_model->updateById($item_id, array('quantity' => $item['quantity'] + $quantity));
+                if ($services) {
+                    $cart_model->updateByField('parent_id', $item_id, array('quantity' => $item['quantity'] + $quantity));
                 }
             }
             if (!$item_id) {
@@ -90,16 +119,13 @@ class shopFrontendCartAddController extends waJsonController
                 );
                 $item_id = $cart_model->insert($data + array('type' => 'product'));
                 if ($services) {
-                    $variants = waRequest::post('service_variant');
-                    $service_model = new shopServiceModel();
-                    foreach ($services as $service_id) {
-                        $data_service = array('service_id' => $service_id, 'type' => 'service', 'parent_id' => $item_id);
-                        if (isset($variants[$service_id])) {
-                            $data_service['service_variant_id'] = $variants[$service_id];
-                        } else {
-                            $service = $service_model->getById($service_id);
-                            $data_service['service_variant_id'] = $service['variant_id'];
-                        }
+                    foreach ($services as $service_id => $variant_id) {
+                        $data_service = array(
+                            'service_id' => $service_id,
+                            'service_variant_id' => $variant_id,
+                            'type' => 'service',
+                            'parent_id' => $item_id
+                        );
                         $cart_model->insert($data + $data_service);
                     }
                 }

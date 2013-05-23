@@ -177,6 +177,7 @@ ul.s-coupon-list li.s-expired a { color: #aaa; }
 
 .s-order-item-delete { padding-top: 5px; }
 
+.s-print-only { display: none; }
 .s-printable-print-button { display: none; }
 .s-printable { overflow: scroll; }
 .s-printable .s-order { box-shadow: none; }
@@ -188,6 +189,8 @@ ul.s-coupon-list li.s-expired a { color: #aaa; }
 .s-printable .s-order .workflow-content,
 .s-printable .s-order .s-order-timeline,
 .s-printable .s-order h1 .back { display: none; }
+.s-printable .s-order h1 .hint { display: none; }
+.s-printable .s-order h1 .hint.s-print-only { display: inline !important; }
 .s-printable .s-order .s-printable-print-button { display: block; }
 .s-printable .s-order .s-order-comment { background: #fff; border: 1px dashed #aaa; margin: 20px 0; }
 @media print {
@@ -197,10 +200,18 @@ ul.s-coupon-list li.s-expired a { color: #aaa; }
 
 .s-order-customer-details { overflow: hidden; }
 .s-order-customer-details .field .value textarea { min-width: 250px; }
+.s-order-customer-details .field .value label { display: block; padding: 5px 0 0; }
 .s-order-customer-details .field.required .name:after { content: " *"; color: #faa; }
 .s-order-customer-details span.field.required span:after { content: " *"; color: #faa; }
 .s-order-customer-details input#customer-autocomplete { margin-top: 15px; }
 
+.s-order-aux-box .fields.form { font-size: 0.8em; width: 300px; float: right; margin: 10px 0 0; }
+.s-order-aux-box .fields.form .field .name { width: 140px; text-align: right; }
+.s-order-aux-box .fields.form .field .value { width: 150px; margin-left: 150px; }
+.s-order-aux-box .fields.form .field .value input { width: 150px; min-width: 0; }
+.s-order-aux-box .fields.form .field .value select { width: 150px; min-width: 0; }
+
+.s-order-aux-box .error { font-size: 0.8em; font-weight: bold; color: red; }
 
 /* CUSTOMERS
 ------------ */
@@ -540,6 +551,9 @@ ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
 .s-settings-header { padding: 18px; background: #fff; }
 .s-settings-header h4 { font-size: 1.3em; }
 .s-settings-form { min-height: 330px; }
+.s-settings-form h2 i.icon16 { margin-top: 0; }
+.s-settings-form .fields { width: 100%; }
+.s-settings-form .fields .field .value p { line-height: 1.3em; }
 
 .s-ibutton-and-label { display: block; margin: -5px 0 10px; }
 .s-ibutton-and-label span { position: relative; top: -7px; }
@@ -585,12 +599,23 @@ ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
 
 #s-checkout-contact-form-wrapper .field-row.editor-on {}
 #s-checkout-contact-form-wrapper .field-row.editor-on i.edit { display: none; }
-#s-checkout-contact-form-wrapper .field-row.editor-on .name-label { display: none; }
+#s-checkout-contact-form-wrapper .field-row.editor-on .name-label,
+#s-checkout-contact-form-wrapper .field-row.editor-on .name-hint { display: none; }
 #s-checkout-contact-form-wrapper .field-row.editor-off .name-input { display: none; }
-#s-checkout-contact-form-wrapper .field-row.editor-off .field-advanced-settings { display: none; }
+#s-checkout-contact-form-wrapper .field-row.editor-off .field-advanced-settings > * { display: none; }
+#s-checkout-contact-form-wrapper .field-row.editor-off .field-advanced-settings .show-in-readonly { display: block; }
+#s-checkout-contact-form-wrapper .field-row.editor-on .field-advanced-settings .show-in-readonly { display: none; }
+#s-checkout-contact-form-wrapper .field-row td .field-advanced-settings .show-always { display: block; }
 #s-checkout-contact-form-wrapper .type-selector { margin-top: 5px; }
+
+#s-checkout-contact-form-wrapper .field-row.field-enabled .hide-when-field-enabled { display: none; }
+#s-checkout-contact-form-wrapper .field-row.field-disabled .hide-when-field-disabled { display: none; }
+
 #s-checkout-contact-form-wrapper .s-ibutton-checkbox .ibutton-container.mini { width: 32px; }
 #s-checkout-contact-form-wrapper .s-ibutton-checkbox .ibutton-container.mini .ibutton-handle { width: 6px; }
+
+#s-checkout-contact-form-wrapper #main-field-list .setup-default-value-link,
+#s-checkout-contact-form-wrapper #main-field-list .default-value-editor { display: none; }
 
 .s-cheatsheet { background: #f3f3e3; margin-top: 20px; padding: 3px 5px 3px 3px; }
 .s-cheatsheet .fields { border: 1px dashed #cc8; margin-bottom: 0; width: 100%; }

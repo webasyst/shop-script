@@ -25,15 +25,14 @@
     
 <div class="content left200px s-settings-form blank bordered-left">
     <div class="block double-padded">
-        {*
-        {if $info.id != 'new_state'}
+
+        {if !in_array($info.id, array('new', 'processing', 'paid', 'shipped', 'completed', 'refunded', 'deleted'))}
         <div class="float-right">
             <ul class="menu-h">
                 <li><a href="?module=settings&action=orderStateDelete" id="s-delete-state"><i class="icon16 delete"></i>[`Delete order state`]</a></li>
             </ul>
         </div>
         {/if}
-        *}
         <h1>{$info.name}</h1>
         <div class="fields form">
             <form id="s-save-order-state" method="post" action="?module=settings&action=orderStateSave&id={$info.id}">

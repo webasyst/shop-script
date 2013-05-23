@@ -179,7 +179,7 @@
         <div class="field-group">
             <h2 class="gray">3. Экспорт характеристик товаров</h2>
             {foreach $map as $field => $info}
-                {if !ifempty($info.category) && ifempty($info.type) eq 'adjustable'}
+                {if (!ifempty($info.category) || in_array('simple',$info.category)) && ifempty($info.type) eq 'adjustable'}
 
             <div class="field">
                 <div class="name">{$info.name|escape}</div>

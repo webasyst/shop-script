@@ -76,6 +76,10 @@ class shopShipping extends waAppShipping
 
     public static function savePlugin($plugin)
     {
+        $default = array(
+            'status' => 0,
+        );
+        $plugin = array_merge($default, $plugin);
         $model = new shopPluginModel();
         if (!empty($plugin['id']) && ($id = max(0, intval($plugin['id']))) && ($row = $model->getByField(array('id' => $id, 'type' => shopPluginModel::TYPE_SHIPPING)))) {
             $plugin['plugin'] = $row['plugin'];

@@ -58,23 +58,39 @@ class shopStockModel extends waModel
         $data['sort'] = $sort;
         $id = $this->insert($data);
 
-        // After insert new stock, that invariant may be broken:
+        // After insert new stock, for all skus with stocks this invariant is broken:
         // in multistocking if at least one stock is "infinity" for sku, sku count must be NULL
         $sql = "
             UPDATE `shop_product_skus` s JOIN (
-                SELECT sk.id FROM `shop_product_skus` sk JOIN `shop_product_stocks` st ON sk.id = st.sku_id
+                SELECT sk.id FROM `shop_product_skus` sk
+                JOIN `shop_product_stocks` st ON sk.id = st.sku_id
             ) r ON s.id = r.id
             SET s.count = NULL
         ";
         $this->exec($sql);
 
-        // Repair this invariant (if broken):
+        // Repair this invariant:
         // If sku.count IS NULL proper product.count must be NULL
         $sql = "
             UPDATE `shop_product` p
             JOIN `shop_product_skus` s ON s.product_id = p.id
             SET p.count = NULL
-            WHERE s.count IS NULL
+            WHERE s.count IS NULL AND s.available != 1
+        ";
+        $this->exec($sql);
+
+        // Repair this invariant:
+        // If all skus of product are unavailable product.count must be 0
+        $sql = "
+            UPDATE shop_product p JOIN (
+                SELECT p.id, p.count, SUM(sk.available) all_sku_available
+                FROM shop_product p
+                JOIN shop_product_skus sk ON p.id = sk.product_id
+                WHERE p.count IS NULL || (p.count IS NOT NULL AND p.count != 0)
+                GROUP BY p.id
+                HAVING all_sku_available = 0
+            ) r ON p.id = r.id
+            SET p.count = 0
         ";
         $this->exec($sql);
 

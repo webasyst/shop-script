@@ -30,6 +30,12 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
         $fields = array();
         $config_fields = ifempty($config['fields'], array());
         foreach($config_fields as $fld_id => $opts) {
+
+            // Skip hidden fields (they are shown as 'disabled')
+            if (!empty($opts['hidden'])) {
+                continue;
+            }
+
             // This allows to specify e.g. 'address.shipping' as field id in config.
             $real_fld_id = explode('.', $fld_id, 2);
             $real_fld_id = $real_fld_id[0];
@@ -37,7 +43,6 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
                 continue;
             }
             $fields[$fld_id] = clone $fields_unsorted[$real_fld_id];
-            $fields[$fld_id]->setParameter('always_required', $fields[$fld_id]->getParameter('required'));
             foreach($opts as $k => $v) {
                 if ($fields[$fld_id] instanceof waContactCompositeField && $k == 'fields') {
                     if (is_array($v)) {
@@ -45,7 +50,7 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
                         foreach($fields[$fld_id]->getFields() as $sf) {
                             $sf = clone $sf;
                             $o = ifset($v[$sf->getId()]);
-                            if ($o && is_array($o)) {
+                            if ($o && is_array($o) && empty($o['hidden'])) {
                                 $sf->setParameters($o);
                             } else {
                                 $sf->setParameter('_disabled', true);

@@ -12,7 +12,7 @@
             {sprintf('[`Checkout form is based on your system contact field set configured in the <a href="%s">Contacts</a> app. The form below allows you to customize the list of fields prompted during checkout.`]',$wa_backend_url|cat:'contacts/')}
         </p>
 
-        <table class="field-list zebra"><tbody>
+        <table id="main-field-list" class="field-list zebra"><tbody>
             {foreach $fields as $fid => $f}
                 {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid=$fid f=$f css_class='field-row editor-off'}
             {/foreach}
@@ -71,6 +71,9 @@
                 </li>
                 <li><span id="s-{$addr.short_id}-addr-enabled-label">[`Enabled`]</span></li>
             </ul>
+            {if $addr.short_id == 'ship'}
+                <p class="hint italic">[`When shipping address form is disabled (hidden) on the “Contact info” step, address will be automatically prompted on the “Shipping” checkout step.`]</p>
+            {/if}
         </div>
         <div class="value"{if $addr.f->getParameter('_disabled')} style="display:none"{/if}>
             <input type="text" name="options[{$addr.id}][localized_names]" value="{$addr.f->getName()|escape}">
@@ -78,8 +81,8 @@
         <div class="value no-shift"{if $addr.f->getParameter('_disabled')} style="display:none"{/if}>
             <p class="small">
                 [`If enabled, customer will be prompted to fill in address fields directly on the “Contact info” checkout step.`]
-                [`In case shipping method and address were prompted prior to the contact info, only missing address fields will be requested.`] <a href="javascript:void(0)" class="customize-fields-link inline-link"><b><i>[`Customize field list`]</i></b></a></p>
-
+                {if $addr.short_id == 'ship'}[`In case shipping method and address were prompted prior to the contact info, only missing address fields will be requested.`]{/if}
+                <a href="javascript:void(0)" class="customize-fields-link inline-link"><b><i>[`Hide certain fields`]</i></b></a></p>
             <table class="{if !$addr.show_custom_settings} hidden{/if} zebra shipbill-subfields">
                 {foreach $addr.subfields as $sf}
                     <tr><td><label>
@@ -88,7 +91,6 @@
                     </label></td></tr>
                 {/foreach}
             </table>
-            <p></p>
         </div>
     </div>
 {/foreach}
@@ -106,7 +108,7 @@
     form.off('keyup.name', ':text[name="name"]').on('keyup.name', ':text[name="name"]', markAsChanged);
 
     // Form validation
-    form.off('submit.inner').on('submit.inner', function() {
+    form.off('submit.inner').on('submit.inner', function(e) {
         form.find('.errormsg').remove();
         form.find('.error').removeClass('error');
         var valid = true;
@@ -120,9 +122,10 @@
 
         if (!valid) {
             form.find(':submit').before($('<p class="errormsg"></p>').text("[`Please correct errors.`]"));
+            e.validation_failed = true;
         }
 
-        return valid; // !!! FIXME: This actually does not cancel form submission...
+        return false;
     });
 
     //
@@ -131,6 +134,26 @@
     (function() {
         // Counter to ensure unique names for new fields
         var max_field = 1;
+
+        // When user changes 'disabled/enabled' checkbox, toggle classes on <tr>
+        // This hides parts of the form depending on checkbox status.
+        (function () {
+            var f;
+            wrapper.on('change', ':checkbox[name$="[_disabled]"]', f = function() {
+                var cb = $(this);
+                var tr = cb.closest('tr');
+                if (cb.is(':checked')) {
+                    tr.addClass('field-enabled').removeClass('field-disabled');
+                } else {
+                    tr.removeClass('field-enabled').addClass('field-disabled');
+                }
+            }).find(':checkbox[name$="[_disabled]"]').each(f);
+        })();
+
+        // Links to set up default value for disabled fields
+        wrapper.on('click', '.setup-default-value-link', function() {
+            $(this).hide().siblings(':hidden').val('1').parent().find('.default-value-editor').show();
+        });
 
         // Links to add new field
         wrapper.on('click', 'table.field-list > tbody > tr.add-field a.add-field', function() {
@@ -228,7 +251,7 @@
         var ensureCheckboxStatus = function(subfield_id, cb, enabled_cb, required_cb) {
             if (!subfield_id) {
                 if (cb) {
-                    subfield_id = cb.attr('name').match(/\[([^\]]+)\]$/);
+                    subfield_id = (cb.attr('name')||'').match(/\[([^\]]+)\]$/);
                     subfield_id = subfield_id && subfield_id[1];
                 }
                 if (!subfield_id) {
@@ -286,7 +309,7 @@
         // show/hide it in shipping and billing settings.
         $('#address-subfields-list').on('change', 'input:checkbox', f = function() {
             var checkbox = $(this);
-            var parts = checkbox.attr('name').match(/options\[address\]\[fields\]\[([^\]]+)\]\[([^\]]+)\]/);
+            var parts = (checkbox.attr('name')||'').match(/options\[address\]\[fields\]\[([^\]]+)\]\[([^\]]+)\]/);
             if (parts && parts[1] && parts[2]) {
                 if (parts[2] == '_disabled') {
                     ensureCheckboxStatus(parts[1], null, checkbox);

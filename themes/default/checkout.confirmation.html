@@ -7,10 +7,12 @@
     <h3>[`Ship to`]</h3
     <p>{$contact.name|escape}<br>
     {$shipping_address.value}</p>
-    
-    <h3>[`Bill to`]</h3>
-    <p>{$contact.name|escape}<br>
-    {$billing_address.value}</p>
+
+    {if $billing_address}
+        <h3>[`Bill to`]</h3>
+        <p>{$contact.name|escape}<br>
+        {$billing_address.value}</p>
+    {/if}
 
     <table class="table">
         <tr>
@@ -41,7 +43,7 @@
             <td class="align-right nowrap">&minus; {shop_currency($discount, true)}</td>
         </tr>
         <tr class="no-border thin">
-            <td colspan="{$colspan}" class="align-right">[`Shipping`]</td>
+            <td colspan="{$colspan}" class="align-right">[`Shipping`]{if !empty($params.shipping_name)} &mdash; <strong>{$params.shipping_name}</strong>{/if}</td>
             <td class="align-right nowrap">{shop_currency($shipping, true)}</td>
         </tr>
         {if $tax > 0}
@@ -58,5 +60,14 @@
     
     [`Comment`]<br>
     <textarea class="comment" name="comment"></textarea>
+
+
+    {if !empty($terms)}
+    <br>
+    {if waRequest::method() == 'post' && !$wa->post('terms')}
+        <p class="error">[`You must read and agree to the Terms of service to place an order.`]</p>
+    {/if}
+    <label><input type="checkbox" name="terms" value="1"> {sprintf('[`I have read and agree to the <a href="%s" target="_blank">Terms of service</a>`]', $wa->getUrl('/frontend/checkout', ['step' => 'confirmation'])|cat:'?terms=1')}</label>
+    {/if}
 
 {/if}

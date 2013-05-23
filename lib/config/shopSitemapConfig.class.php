@@ -15,13 +15,14 @@ class shopSitemapConfig extends waSitemapConfig
             $this->routing->setRoute($route);
             // categories
             $categories = $category_model->getByField('status', 1, true);
+            $category_url = $this->routing->getUrl($this->app_id.'/frontend/category', array('category_url' => '%CATEGORY_URL%'), true);
             foreach ($categories as $c) {
                 if (isset($route['url_type']) && $route['url_type'] == 1) {
                     $url = $c['url'];
                 } else {
                     $url = $c['full_url'];
                 }
-                $this->addUrl($this->getUrl('category', array('category_url' => $url)),
+                $this->addUrl(str_replace('%CATEGORY_URL%', $url, $category_url),
                     $c['edit_datetime'] ? $c['edit_datetime'] : $c['create_datetime'], self::CHANGE_WEEKLY, 0.6);
             }
 
@@ -44,10 +45,13 @@ class shopSitemapConfig extends waSitemapConfig
                 $sql .= ')';
             }
             $products = $product_model->query($sql);
+            $product_url = $this->routing->getUrl($this->app_id.'/frontend/product', array(
+                'product_url' => '%PRODUCT_URL%',
+                'category_url' => '%CATEGORY_URL%'
+            ), true);
             foreach ($products as $p) {
-                $category_url = isset($p['category_url']) ? $p['category_url'] : '';
-                $this->addUrl($this->getUrl('product', array('product_url' => $p['url'], 'category_url' => $category_url)),
-                    $p['edit_datetime'] ? $p['edit_datetime'] : $p['create_datetime'], self::CHANGE_MONTHLY, 0.8);
+                $url = str_replace(array('%PRODUCT_URL%', '%CATEGORY_URL%'), array($p['url'], isset($p['category_url']) ? $p['category_url'] : ''), $product_url);
+                $this->addUrl($url, $p['edit_datetime'] ? $p['edit_datetime'] : $p['create_datetime'], self::CHANGE_MONTHLY, 0.8);
             }
 
             // main page

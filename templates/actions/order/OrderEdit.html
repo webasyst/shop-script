@@ -224,14 +224,26 @@
                 <tr class="white">
                     <td class="min-width"></td>
                     <td class="align-right" colspan="3">
-                        [`Shipping`]
-                        {$shipping_methods = shopHelper::getShippingMethods($shipping_address)}
-                        <select id="shipping_methods" name="shipping_id">
-                            <option value=""></option>
-                            {foreach $shipping_methods as $m_id => $m}
-                                <option {if !empty($order.shipping_id) && $order.shipping_id == $m_id}selected{/if} data-rate="{$m.rate}" value="{$m_id}">{$m.name}</option>
-                            {/foreach}
-                        </select>
+                        <div class="s-order-aux-box">
+                            [`Shipping`]
+                            {if $order}
+                            {$order_items = $order.items}
+                            {$order_currency = $order.currency}
+                            {$order_total = $order.subtotal - $order.discount}
+                            {else}
+                            {$order_items = array()}
+                            {$order_currency = null}
+                            {$order_total = 0}
+                            {/if}
+                            {$shipping_methods = shopHelper::getShippingMethods($shipping_address, $order_items, ['currency' => $order_currency, 'total_price' => $order_total])}
+                            <select id="shipping_methods" name="shipping_id">
+                                <option value=""></option>
+                                {foreach $shipping_methods as $m_id => $m}
+                                    <option {if !empty($order.shipping_id) && $order.shipping_id == $m_id}selected{/if} data-rate="{$m.rate}" value="{$m_id}">{$m.name|truncate:80}</option>
+                                {/foreach}
+                            </select>
+                            <div id="shipping-info"></div>
+                        </div>
                     </td>
                     <td class="align-right nowrap">
                         <input type="text" name="shipping" class="numerical short" id="shipping-rate" {if $order}value="{(float)$order.shipping}"{/if}>
@@ -244,14 +256,21 @@
                 <tr class="white">
                     <td class="min-width"></td>
                     <td class="align-right nowrap" colspan="3">
+                        <div class="s-order-aux-box">
                         [`Payment`]
-                        {$payment_methods = shopHelper::getPaymentMethods()}
-                        <select name="payment_id">
+                        {$payment_methods = shopHelper::getPaymentMethods($order)}
+                        <select id="payment_methods" name="payment_id">
                             <option value=""></option>
                             {foreach $payment_methods as $m}
-                            <option {if !empty($order.params.payment_id) && $order.params.payment_id == $m.id}selected="true"{/if} value="{$m.id}">{$m.name}</option>
+                            <option {if !empty($order.params.payment_id) && $order.params.payment_id == $m.id}selected="true"{/if} value="{$m.id}">{$m.name|truncate:80}</option>
                             {/foreach}
                         </select>
+                        <div id="payment-info">
+                            {foreach $payment_methods as $m}
+                                {if !empty($m.custom_html)}<div id="payment-custom-{$m.id}" class="fields form" {if empty($order.params.payment_id) || $m.id != $order.params.payment_id}style="display:none"{/if}>{$m.custom_html}</div>{/if}
+                            {/foreach}
+                        </div>
+                        </div>
                     </td>
                     <td></td>
                 </tr>
@@ -277,12 +296,12 @@
                 </tr>
 
                 <tr class="white large">
-                    <td colspan="3" class="align-right">
+                    <td colspan="4" class="align-right">
                         {if !empty($taxes_count)}
                         <em class="hint">[`Tax will be calculated after the order is saved.`]</em>
                         {/if}
                     </td>
-                    <td class="align-right" colspan="3">
+                    <td class="align-right" colspan="2">
                         <input type="submit" class="button green large" value="[`Save order`]">
                     </td>
                 </tr>
@@ -308,11 +327,15 @@
         form: '#order-edit-form',
         autocomplete_url: '{$wa_backend_url}contacts/?action=autocomplete&limit=5',
         currency: '{$currency}',
-        stocks: {json_encode($stocks)},
+        stocks: {json_encode(array_values($stocks))},
         title: title
     });
 
     {if $order && !$has_contacts_rights}
         $('#s-order-edit-customer').find('select,input,textarea').attr('disabled', true);
+    {/if}
+
+    {if $customer_validation_disabled}
+        $('#s-order-edit-customer').find('.required,.wa-required').removeClass('required').removeClass('wa-required');
     {/if}
 </script>

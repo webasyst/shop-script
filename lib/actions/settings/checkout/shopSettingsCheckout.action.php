@@ -19,7 +19,9 @@ class shopSettingsCheckoutAction extends waViewAction
             $steps[$step_id]['status'] = 0;
         }
 
+        $this->view->assign('disable_backend_customer_form_validation', wa()->getSetting('disable_backend_customer_form_validation'));
         $this->view->assign('steps', $steps);
+
     }
 
 }

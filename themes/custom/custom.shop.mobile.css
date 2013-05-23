@@ -10,7 +10,7 @@
  * @package Webasyst
  */
  
-.container { padding: 1px 15px 0; min-width: 0; }
+.container { padding: 1px 10px 0; min-width: 0; }
 
 .sidebar { margin-bottom: 20px; }
 .sidebar.left, .sidebar.left300px { width: 100%; float: none; }
@@ -73,17 +73,24 @@ table.cart td .services { margin-bottom: 0; }
 .wa-form .wa-field .wa-value input[type="text"],
 .wa-form .wa-field .wa-value input[type="email"],
 .wa-form .wa-field .wa-value input[type="password"] { min-width: 200px; }
+.wa-auth-adapters p { width: 100%; }
 
 .checkout { margin: 0 0 30px; }
 .checkout ul.checkout-options li { width: 100%; }
 .checkout ul.checkout-options li img { display: none; }
-.checkout ul.checkout-options li p { font-size: 0.6em; line-height: 1.3em; }
-.checkout ul.checkout-options li .rate { min-width: 0; }
+.checkout ul.checkout-options li p { font-size: 0.8em; line-height: 1.3em; }
+.checkout ul.checkout-options li .rate { min-width: 0; width: auto; max-width: 150px; font-size: 0.7em; }
+.checkout ul.checkout-options li .rate.error { font-size: 0.7em; line-height: 1em; padding-top: 5px; }
 .checkout ul.checkout-options li .rate .hint { display: none; }
 .checkout ul.checkout-options li .wa-form.wa-address p { font-size: 1em; }
-.checkout table.table th { display: none; }
-.checkout table.table td { display: inline-block; border: 0; padding-left: 0; }
 .checkout .checkout-step h2 { font-size: 1.2em; padding: 10px 10px 10px; }
 .checkout .checkout-step h2 a.hint { display: none !important; }
+.checkout .checkout-step input.large { margin: 0 auto; display: block; }
+.checkout .checkout-step-content { padding: 10px 10px 30px; }
+.checkout .checkout-step-content.auth ul.menu-v li { padding: 5px 0; }
+.checkout .checkout-result h1 { font-size: 2.5em; }
 .checkout-header { margin: 10px; font-size: 0.8em; text-align: center; }
 .checkout-header .float-right { display: none; }
+.checkout li .wa-form { margin-left: -25px; }
+.checkout table.table th { display: none; }
+.checkout table.table td { display: inline-block; border: 0; padding-left: 0; }

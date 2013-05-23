@@ -44,7 +44,7 @@ class shopYandexmarketPlugin extends shopPlugin
             'tours'        => 'Туры',
             'tickets'      => 'Билеты',
             'media'        => 'Медиапродукция',
-            'vendor.model' => 'vendor.model',
+            'vendor.model' => 'Бренды',
         );
 
         $types = $this->getSettings('types');

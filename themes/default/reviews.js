@@ -40,7 +40,7 @@ $(function() {
     var captcha = $('.wa-captcha');
     var provider_list = $('#user-auth-provider li');
     var current_provider = provider_list.filter('.selected').attr('data-provider');
-    if (current_provider == 'guest') {
+    if (current_provider == 'guest' || !current_provider) {
         captcha.show();
     } else {
         captcha.hide();

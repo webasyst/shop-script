@@ -25,19 +25,20 @@ class shopProductSaveController extends waJsonController
             $data['sku_type'] = shopProductModel::SKU_TYPE_FLAT;
         }
 
-        if (
-            $data['sku_type'] == shopProductModel::SKU_TYPE_SELECTABLE &&
-            !waRequest::post('features_selectable', array())
-        )
-        {
+        if ($data['sku_type'] == shopProductModel::SKU_TYPE_SELECTABLE && !waRequest::post('features_selectable', array())) {
             throw new waException(_w("Check at least one feature value"));
         }
 
         // edit product info - check rights
+
+        $product_model = new shopProductModel();
         if ($id) {
-            $product_model = new shopProductModel();
             if (!$product_model->checkRights($id)) {
-                throw new waException(_w("Access denied"));
+                throw new waRightsException(_w("Access denied"));
+            }
+        } else {
+            if (!$product_model->checkRights($data)) {
+                throw new waRightsException(_w("Access denied"));
             }
         }
 
@@ -84,16 +85,16 @@ class shopProductSaveController extends waJsonController
 
                 $this->response['id'] = $product->getId();
                 $this->response['name'] = $product->name;
-                $this->response['url']  = $product->url;
+                $this->response['url'] = $product->url;
 
                 $frontend_url = null;
                 $fontend_base_url = null;
 
-                $routing =  wa()->getRouting();
+                $routing = wa()->getRouting();
                 $domain_routes = $routing->getByApp($this->getAppId());
                 foreach ($domain_routes as $domain => $routes) {
                     foreach ($routes as $r) {
-                        if (empty($r['type_id']) || (in_array($product->type_id, (array)$r['type_id']))) {
+                        if (empty($r['type_id']) || (in_array($product->type_id, (array) $r['type_id']))) {
                             $routing->setRoute($r, $domain);
                             $frontend_url = $routing->getUrl('/frontend/product', array('product_url' => $product->url), true);
                             break;
@@ -115,7 +116,7 @@ class shopProductSaveController extends waJsonController
 
                     $this->response['features_selectable_strings'] = array(
                         'options' => implode(' x ', $features_counts).' '._w('option', 'options', $features_total_count),
-                        'skus' => _w('%d SKU in total', '%d SKUs in total', $features_total_count)
+                        'skus'    => _w('%d SKU in total', '%d SKUs in total', $features_total_count)
                     );
                 }
             }
@@ -173,11 +174,11 @@ class shopProductSaveController extends waJsonController
                 continue;
             }
             $skus[$i--] = array_merge(array(
-                'name' => implode(', ', $names),
-                'features' => $f,
-                'virtual' => 1,
+                'name'      => implode(', ', $names),
+                'features'  => $f,
+                'virtual'   => 1,
                 'available' => 1,
-                'count' => null
+                'count'     => null
             ), $data);
         }
         foreach ($old_sku as $s_id => $s) {
@@ -204,7 +205,8 @@ class shopProductSaveController extends waJsonController
         return true;
     }
 
-    protected function arrayCartesian($arrays) {
+    protected function arrayCartesian($arrays)
+    {
         $result = array();
         $keys = array_keys($arrays);
         $reverse_keys = array_reverse($keys);
@@ -212,7 +214,7 @@ class shopProductSaveController extends waJsonController
         foreach ($arrays as $array) {
             $size *= count($array);
         }
-        for ($i = 0; $i < $size; $i ++) {
+        for ($i = 0; $i < $size; $i++) {
             $result[$i] = array();
             foreach ($keys as $j) {
                 $result[$i][$j] = current($arrays[$j]);
@@ -220,15 +222,13 @@ class shopProductSaveController extends waJsonController
             foreach ($reverse_keys as $j) {
                 if (next($arrays[$j])) {
                     break;
-                }
-                elseif (isset ($arrays[$j])) {
+                } elseif (isset($arrays[$j])) {
                     reset($arrays[$j]);
                 }
             }
         }
         return $result;
     }
-
 
     public function update($data)
     {

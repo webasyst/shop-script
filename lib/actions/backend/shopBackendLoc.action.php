@@ -45,7 +45,8 @@ class shopBackendLocAction extends waViewAction
             'Loading',
             'Products added:',
             'Images uploaded:',
-            'New product'
+            'New product',
+            'This will delete this order state. Are you sure?'
         ) as $s) {
             $strings[$s] = _w($s);
         }

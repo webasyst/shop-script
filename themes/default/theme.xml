@@ -144,5 +144,9 @@
             <description locale="en_US">Default theme JS</description>
             <description locale="ru_RU">Скрипты темы «Дефолт»</description>
         </file>
+        <file path="lazyloading.js">
+            <description locale="en_US">Lazy loading JS</description>
+            <description locale="ru_RU">Скрипты загрузки контента «на лету»</description>
+        </file>        
     </files>
 </theme>

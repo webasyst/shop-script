@@ -37,12 +37,6 @@ class shopCheckoutContactinfo extends shopCheckout
      */
     public function execute()
     {
-        if (waRequest::post('wa_auth_login')) {
-            $login_action = new shopLoginAction();
-            $login_action->run();
-            return;
-        }
-
         $contact = $this->getContact();
         if (!$contact) {
             $contact = new waContact();
@@ -57,6 +51,21 @@ class shopCheckoutContactinfo extends shopCheckout
         if ($data && is_array($data)) {
             foreach ($data as $field => $value) {
                 $contact->set($field, $value);
+            }
+        }
+
+        if ($shipping = $this->getSessionData('shipping')) {
+            $shipping_step = new shopCheckoutShipping();
+            $rate = $shipping_step->getRate($shipping['id'], isset($shipping['rate_id']) ? $shipping['rate_id'] : null, $contact);
+            if (!$rate || is_string($rate)) {
+                $errors = array();
+                $errors['all'] = sprintf(_w('We cannot ship to the specified address via %s.'), $shipping['name']);
+                if ($rate) {
+                    $errors['all'] .= '<br> <strong>'.$rate.'</strong><br>';
+                }
+                $errors['all'] .= '<br> '._w('Please double-check the address above, or return to the shipping step and select another shipping option.');
+                wa()->getView()->assign('errors', $errors);
+                return false;
             }
         }
 
@@ -133,10 +142,10 @@ class shopCheckoutContactinfo extends shopCheckout
                     continue;
                 }
 
-                // Copy settings if subfield is turned on or required
+                // Copy settings if subfield is turned on, or required, or is hidden
                 $fields = array();
                 foreach($options['address']['fields'] as $sf_id => $sf_opts) {
-                    if (!empty($sf_opts['required']) || !empty($opts['fields'][$sf_id])) {
+                    if (!empty($sf_opts['required']) || ( !empty($sf_opts['_disabled']) && !empty($sf_opts['_default_value_enabled']) && empty($sf_opts['_deleted']) ) || !empty($opts['fields'][$sf_id])) {
                         $fields[$sf_id] = $sf_opts;
                     }
                 }
@@ -180,6 +189,7 @@ class shopCheckoutContactinfo extends shopCheckout
                     $fields_unsorted[$field->getId()] = $field;
                 } else if ($sys_opts) {
                     waContactFields::updateField($field);
+                    waContactFields::enableField($field, 'person');
                 }
             }
             $config['fields'][$fld_id] = $local_opts;
@@ -245,24 +255,48 @@ class shopCheckoutContactinfo extends shopCheckout
      */
     protected static function tidyOpts($field, $fld_id, $opts)
     {
-        if ($fld_id == '%FID%' || !is_array($opts) || !empty($opts['_disabled']) || !empty($opts['_deleted']) || empty($opts['localized_names'])) {
+        if ($fld_id == '%FID%' || !is_array($opts) || !empty($opts['_deleted']) || empty($opts['localized_names'])) {
             return array(null, null);
         }
-        unset($opts['_disabled'], $opts['_type'], $opts['_deleted']);
+        if (!empty($opts['_disabled'])) {
+            if (!empty($opts['_default_value_enabled']) && isset($opts['_default_value']) && strlen($opts['_default_value'])) {
+                return array(
+                    array(
+                        'hidden' => true,
+                        'value' => $opts['_default_value'],
+                    ),
+                    array()
+                );
+            } else {
+                return array(null, null);
+            }
+        }
+        unset($opts['_disabled'], $opts['_type'], $opts['_deleted'], $opts['_default_value'], $opts['_default_value_enabled']);
 
         $sys_opts = array();
 
-        if (in_array(get_class($field), array('waContactSelectField', 'waContactRadioSelectField', 'waContactChecklistField'))) {
+        if (in_array(get_class($field), array('waContactSelectField', 'waContactRadioSelectField', 'waContactChecklistField', 'waContactBranchField'))) {
             if (!empty($opts['options']) && is_array($opts['options'])) {
+
+                if ($field instanceof waContactBranchField) {
+                    if (empty($opts['hide']) || !is_array($opts['hide'])) {
+                        $opts['hide'] = array();
+                    }
+                }
+
                 // get rid of empty last element
                 if ( ( $el = trim(array_pop($opts['options'])))) {
                     $opts['options'][] = $el;
                 }
 
+                $branch_hide = array();
                 $select_options = array();
-                foreach($opts['options'] as $v) {
+                foreach($opts['options'] as $i => $v) {
                     $v = trim($v);
                     $select_options[$v] = $v;
+                    if ($field instanceof waContactBranchField && !empty($opts['hide'][$i])) {
+                        $branch_hide[$v] = explode(',', (string) $opts['hide'][$i]);
+                    }
                 }
 
                 if (!$select_options) {
@@ -270,6 +304,9 @@ class shopCheckoutContactinfo extends shopCheckout
                 }
 
                 $sys_opts['options'] = $select_options;
+                if ($field instanceof waContactBranchField) {
+                    $sys_opts['hide'] = $branch_hide;
+                }
             } else {
                 if (!$field->getParameter('options')) {
                     // Never allow select-based field with no options to select from
@@ -331,6 +368,11 @@ class shopCheckoutContactinfo extends shopCheckout
         if ($field->getParameter('app_id') == 'shop') {
             $sys_opts += $opts;
             $opts = array();
+            foreach(waContactFields::$customParameters as $k => $v) {
+                if (isset($sys_opts[$k])) {
+                    $opts[$k] = $sys_opts[$k];
+                }
+            }
         }
         if (empty($opts) && $opts !== null) {
             $opts = array('__dummy__' => 1);

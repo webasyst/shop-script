@@ -185,6 +185,11 @@ class shopIndexSearch extends shopSearch
                 }
             }
         }
+        if (preg_match_all('/[0-9]+/is', $word, $matches)) {
+            foreach ($matches[0] as $w) {
+                $result[] = $w;
+            }
+        }
         return $result;
     }
 

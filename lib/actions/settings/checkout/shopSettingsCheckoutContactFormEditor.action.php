@@ -19,6 +19,13 @@ class shopSettingsCheckoutContactFormEditorAction extends waViewAction
         $new_field = false;
         if ($f && $f instanceof waContactField) {
             $ftype = $f->getType();
+            if ($ftype == 'Select') {
+                if ($f instanceof waContactBranchField) {
+                    $ftype = 'branch';
+                } else if ($f instanceof waContactRadioSelectField) {
+                    $ftype = 'radio';
+                }
+            }
         } else {
             $ftype = strtolower(waRequest::param('ftype', waRequest::post('ftype', 'string')));
             $f = self::getField($fid, $ftype);

@@ -46,11 +46,32 @@ class shopProductAction extends waViewAction
 
             $product_services_model = new shopProductServicesModel();
             $counters['services'] = $product_services_model->countServices($product->id);
+
+            $this->view->assign('edit_rights', $product->checkRights());
         } else {
             $counters += array_fill_keys(array('images', 'services', 'pages', 'reviews'), 0);
             $product['images'] = array();
             reset($product_types);
-            $product->type_id = $product_types ? key($product_types) : 0;
+
+            $product->type_id = 0;
+            if ($product_types) {
+                if (!$this->getUser()->isAdmin($this->getAppId())) {
+                    $rights = $this->getUser()->getRights($this->getAppId(), 'type.%');
+                    foreach ($product_types as $id => $type) {
+                        if (empty($rights[$id])) {
+                            unset($product_types[$id]);
+                        }
+                    }
+                }
+                if (!$product_types) {
+                    throw new waRightsException(_w("Access denied"));
+                } else {
+                    reset($product_types);
+                    $product->type_id = key($product_types);
+                }
+                $this->view->assign('edit_rights', true);
+            }
+
             $product['skus'] = array(
                 '-1' => array(
                     'id'             => - 1,
@@ -65,6 +86,7 @@ class shopProductAction extends waViewAction
                 ),
             );
             $product->currency = $config->getCurrency();
+
         }
 
         $this->assignReportsData($product);
@@ -86,11 +108,11 @@ class shopProductAction extends waViewAction
         $fontend_base_url = null;
 
         if ($product->id) {
-            $routing =  wa()->getRouting();
+            $routing = wa()->getRouting();
             $domain_routes = $routing->getByApp($this->getAppId());
             foreach ($domain_routes as $domain => $routes) {
                 foreach ($routes as $r) {
-                    if (empty($r['type_id']) || (in_array($product->type_id, (array)$r['type_id']))) {
+                    if (empty($r['type_id']) || (in_array($product->type_id, (array) $r['type_id']))) {
                         $routing->setRoute($r, $domain);
                         $frontend_url = $routing->getUrl('/frontend/product', array('product_url' => $stuff), true);
                         break;
@@ -147,8 +169,6 @@ class shopProductAction extends waViewAction
 
         #load product types
         $this->view->assign('product_types', $product_types);
-
-        $this->view->assign('edit_rights', $product->checkRights());
     }
 
     /**
@@ -173,7 +193,7 @@ class shopProductAction extends waViewAction
             foreach ($f['values'] as $v_id => $v) {
                 $is_selected = isset($selected[$f['id']][$v_id]);
                 $features[$code]['values'][$v_id] = array(
-                    'name' => (string)$v,
+                    'name'     => (string) $v,
                     'selected' => $is_selected
                 );
                 if ($is_selected) {
@@ -198,7 +218,7 @@ class shopProductAction extends waViewAction
         $i = 0;
         while ($date < time()) {
             $date = date('Y-m-d', $date);
-            $sales_data[] = array($i++, isset($rows[$date]) ? (float)$rows[$date] : 0);
+            $sales_data[] = array($i++, isset($rows[$date]) ? (float) $rows[$date] : 0);
             $date = strtotime($date." +1 day");
         }
         $this->view->assign('sales_plot_data', array($sales_data));
@@ -207,17 +227,17 @@ class shopProductAction extends waViewAction
             $sku_sales_data = array();
             $rows = $order_model->getTotalSkuSalesByProduct($product['id']);
             foreach ($rows as $sku_id => $v) {
-                $sku_sales_data[] = array($product['skus'][$sku_id]['name'], (float)$v['total']);
-                if (!(double)$product['skus'][$sku_id]['purchase_price']) {
+                $sku_sales_data[] = array($product['skus'][$sku_id]['name'], (float) $v['total']);
+                if (!(double) $product['skus'][$sku_id]['purchase_price']) {
                     $profit = false;
-                } elseif ($profit){
+                } elseif ($profit) {
                     $profit -= $v['quantity'] * $product['skus'][$sku_id]['purchase_price'];
                 }
             }
             $this->view->assign('sku_plot_data', array($sku_sales_data));
         } else {
             $sku_id = $product['sku_id'];
-            if ($profit && (double)$product['skus'][$sku_id]['purchase_price']) {
+            if ($profit && (double) $product['skus'][$sku_id]['purchase_price']) {
                 $profit -= $sales_total['quantity'] * $product['skus'][$sku_id]['purchase_price'];
             } else {
                 $profit = false;

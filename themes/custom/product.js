@@ -46,15 +46,15 @@ function currency_format(number) {
 $(function () {
 
     // scroll-dependent animations: flying product info block
-    $(window).scroll(function() {    
-      	if ( $(this).scrollTop()>=253 ) {
-            $("#cart-flyer").addClass( "fixed" );
+    $(window).scroll(function() {
+        var flyer = $("#cart-flyer");
+        if (($(this).scrollTop() >= 253) && (($(this).height() - flyer.height()) >= (253 + 70))) {
+            flyer.addClass("fixed");
             $(".aux").hide();
-    	}
-    	else if ( $(this).scrollTop()<252 ) {
-    		$("#cart-flyer").removeClass( "fixed" );
+        } else if (($(this).scrollTop() < 252) && (flyer.hasClass("fixed"))) {
+            flyer.removeClass("fixed");
             $(".aux").show();
-    	}    
+        }
     });
 
     var service_variant_html = function (id, name, price) {

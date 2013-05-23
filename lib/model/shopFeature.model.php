@@ -269,7 +269,7 @@ class shopFeatureModel extends waModel
     public static function getTypeName($feature)
     {
         static $names = array();
-        $key = ($feature['multiple'] ? 'm' : '_').'.'.($feature['selectable'] ? 's' : '_').'.'.$feature['type'];
+        $key = (ifempty($feature['multiple']) ? 'm' : '_').'.'.(ifempty($feature['selectable']) ? 's' : '_').'.'.$feature['type'];
         $fields = array(
             'multiple'   => 2,
             'selectable' => 2,
@@ -287,16 +287,20 @@ class shopFeatureModel extends waModel
                         $match += $weight;
                     }
                 }
-                if ($type['type'] === '*') {
+                if (preg_match('/\*$/', $type['type'])) {
                     $match += $fields['type'];
                 }
                 $match += $type['available'];
                 if ($match >= $max_match) {
                     $names[$key] = $type['name'];
-                    if ($type['type'] === '*') {
+                    if (preg_match('/\*$/', $type['type'])) {
                         foreach ($type['subtype'] as $subtype) {
                             if ($subtype['type'] == $feature['type']) {
-                                $names[$key] .= ' : '.$subtype['name'];
+                                if ($feature['multiple'] || $feature['selectable']) {
+                                    $names[$key] .= ' : '.$subtype['name'];
+                                } else {
+                                    $names[$key] = $subtype['name'];
+                                }
                                 $match += $fields['type'];
                                 break;
                             }
@@ -322,6 +326,7 @@ class shopFeatureModel extends waModel
 
             $other_units = array();
             $single_types = array();
+            $dimension_types = array();
             $single_types[] = array(
                 'name'      => _w('Texts'),
                 'type'      => 'varchar',
@@ -346,9 +351,17 @@ class shopFeatureModel extends waModel
                     if (empty($type['name'])) {
                         $type['name'] = $dimension['name'];
                     }
+                    $units = array_unique(array_merge(array($dimension['base_unit']), array_keys($dimension['units'])));
+                    if (count($units) > 5) {
+                        $units[4] = '...';
+                        $units = array_slice($units, 0, 4);
+                    }
+                    $units = array_map('_w', $units);
+                    $type['name'] .= " (".implode(', ', $units).")";
                 } else {
                     $type['available'] = 0;
                 }
+                $dimension_types[$unit] = $type;
 
                 $single_types[] = $type;
 
@@ -381,7 +394,7 @@ class shopFeatureModel extends waModel
             /* Numerical */
             $types[] = array(
                 'name'       => _w('Custom number'),
-                'group'      =>  _w('Numerical'),
+                'group'      => _w('Numerical'),
                 'type'       => 'double',
                 'multiple'   => false,
                 'selectable' => false,
@@ -404,7 +417,7 @@ class shopFeatureModel extends waModel
             }
             for ($i = 0; $i < $count; $i++) {
                 $types[] = array(
-                    'group'      =>  _w('Numerical'),
+                    'group'      => _w('Numerical'),
                     'type'       => 'dimension.%'.$i,
                     'multiple'   => false,
                     'selectable' => false,
@@ -415,13 +428,14 @@ class shopFeatureModel extends waModel
             if (count($units_index) > $count) {
                 $types[] = array(
                     'name'       => _w('Other'),
-                    'group'      =>  _w('Numerical'),
+                    'group'      => _w('Numerical'),
                     'type'       => 'dimension.*',
                     'multiple'   => false,
                     'selectable' => false,
                     'available'  => 1,
                     'alias'      => 'dimension',
                     'units'      => & $other_units,
+                    'subtype'    => & $dimension_types,
                 );
             }
 
@@ -496,6 +510,7 @@ class shopFeatureModel extends waModel
                         }
                         if ($unit && ($dimension = $dimensions->getDimension($unit))) {
                             ++$meeted;
+                            unset($dimension_types[$unit]);
                             unset($units_list[$unit]);
                             if (empty($type['name'])) {
                                 $type['name'] = $dimension['name'];
