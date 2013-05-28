@@ -14,6 +14,6 @@ class shopSettingsPaymentSetupAction extends waViewAction
         $this->view->assign('settings_html', $plugin->getSettingsHTML($params));
 
         $model = new shopPluginModel();
-        $this->view->assign('shipping', $model->listPlugins(shopPluginModel::TYPE_SHIPPING, array('payment' => $plugin_id)));
+        $this->view->assign('shipping', $model->listPlugins(shopPluginModel::TYPE_SHIPPING, array('payment' => $plugin_id, 'all' => true)));
     }
 }

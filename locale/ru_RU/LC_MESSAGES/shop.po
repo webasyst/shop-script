@@ -246,7 +246,7 @@ msgstr "Добавить регион"
 
 #: /wa-apps/shop/templates/actions/order/Order.html:116
 msgid "Click “Save” button below to commit the delete."
-msgstr "Нажмите на кнопку «Сохранить», чтобы подтвердить удаление."
+msgstr "Нажмите на кнопку «Сохранить» ниже, чтобы подтвердить удаление."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsRegions.html:96
 msgid "Regions are not saved. Are you sure you want to leave current page?"
@@ -1769,7 +1769,7 @@ msgstr "Черновик"
 
 #: /wa-apps/shop/templates/actions/product/ProductPageEdit.html:38
 msgid "Published"
-msgstr "Опубликована"
+msgstr "Опубликованный"
 
 #: /wa-apps/shop/templates/actions/product/ProductPageEdit.html:43
 msgid "Page URL"
@@ -3817,11 +3817,11 @@ msgstr "Настройки витрины регулируются с помощ
 
 #: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:75
 msgid "Shipping option not specified"
-msgstr "Способ доставки на определен"
+msgstr "Способ доставки не определен"
 
 #: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:83
 msgid "Payment option not specified"
-msgstr "Способ оплаты на определен"
+msgstr "Способ оплаты не определен"
 
 #: /wa-apps/shop/lib/actions/plugins/shopPlugins.action.php:8
 msgid "Access denied"
@@ -6456,7 +6456,7 @@ msgid ""
 "If enabled, customer will be prompted to fill in address fields directly on "
 "the “Contact info” checkout step."
 msgstr ""
-"При включении этой настройки форма ввода адреса будет показано на шаге "
+"При включении этой настройки форма ввода адреса будет показана на шаге "
 "оформления заказа «Контактная информация»."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:81
@@ -6470,3 +6470,261 @@ msgstr "Форма ввода адреса доставки"
 #: /wa-apps/shop/lib/actions/settings/checkout/shopSettingsCheckoutContactForm.action.php:88
 msgid "Billing address prompt"
 msgstr "Форма ввода адреса плательщика"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:8
+msgid "This will permanently delete this shipping option. Are you sure?"
+msgstr "Этот способ доставки будет полностью удален. Продолжить?"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:85
+msgid "Terms of service"
+msgstr "Условия предоставления услуг"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:90
+msgid ""
+"If you want your customers to be prompted to read and agree to your "
+"company’s terms of service, refund and privacy policies or any other legal "
+"information during the checkout, enter  the text to the field above. A "
+"checkbox to agree and a link to read this legal information will be shown on "
+"the Confirmation checkout step."
+msgstr ""
+"Если вы хотите, чтобы покупателям предлагалось ознакомиться и согласиться с "
+"условиями предоставления услуг, возврата денежных средств или иной "
+"юридической информацией во время оформления заказа, введите соответствующий "
+"текст в текстовом поле. После этого на шаге подтверждения заказа появится "
+"флажок для подтверждения согласия и ссылка для просмотра условий."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:90
+msgid "Generate sample policy"
+msgstr "Сгенерировать текст примера"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:102
+msgid "Backend"
+msgstr "Бекенд"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:105
+msgid "Required fields"
+msgstr "Обязательные поля"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:117
+msgid ""
+"When a new order is created via backend manually, contact info form will be "
+"validated according the Contact info form setup defined for the storefront "
+"(above). All required fields will be necessary to fill in."
+msgstr ""
+"При создании заказа вручную в бекенде заполнение контактных данных "
+"покупателя будет проверяться в соответствии с настройками для витрины "
+"(указанными выше). Все обязательные поля при этом должны быть заполнены."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:121
+msgid ""
+"When a new order is created via backend manually, contact info form will not "
+"be validated. Fields which are necessary to fill in when order is placed in "
+"the storefront, can be left blank when order is created via backend."
+msgstr ""
+"При создании заказа вручную в бекенде заполнение контактных данных "
+"покупателя проверяться не будет. Поля, отмеченные как обязательные для "
+"заполнения при оформлении заказа с витрины, могут не заполняться при "
+"создании заказа в бекенде."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:8
+msgid "This will permanently delete this payment option. Are you sure?"
+msgstr "Этот способ оплаты будет полностью удален. Продолжить?"
+
+#: /wa-apps/shop/themes/default/checkout.payment.html:18
+msgid ""
+"Oops! We are sorry, but <strong>we can not offer any payment option for your "
+"order</strong>. Checkout can not be completed."
+msgstr ""
+"Извините, заказ не может быть оформлен — мы <strong>не можем предложить ни "
+"одного способа оплаты для вашего заказа</strong>."
+
+#: /wa-apps/shop/themes/default/checkout.shipping.html:54
+msgid ""
+"Oops! We are sorry, but <strong>we can not ship this order to your selected "
+"destination</strong>. Checkout can not be completed."
+msgstr ""
+"Извините, заказ не может быть оформлен — <strong>мы не можем доставить "
+"заказанные товары по указанному адресу</strong>."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormEditor.html:38
+msgid "Radio selector advanced settings"
+msgstr "Расширенные настройки поля-переключателя"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormEditor.html:39
+msgid ""
+"Depending on the current radio selector value, other contact form fields may "
+"be set to be omitted (become hidden). Manage form fields visibility settings "
+"using checkboxes below for each radio selector value."
+msgstr ""
+"В зависимости от выбранного значения поля-переключателя другие поля формы "
+"для ввода контактной информации могут быть отмечены как скрытые (т. е. будут "
+"пропущены). Для каждого из значений поля-переключателя отметьте галочками те "
+"поля формы ввода контактной информации, которые должны быть запрошены у "
+"пользователя."
+
+#: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateDelete.controller.php:15
+msgid "Cannot delete order status while there are active orders in this status"
+msgstr ""
+"Невозможно удалить статус, т. к. есть заказы, находящиеся в этом стастусе."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:90
+msgid ""
+"If you want your customers to be prompted to read and agree to your "
+"company’s terms of service, refund and privacy policies or any other legal "
+"information during the checkout, enter the text to the field above. A "
+"checkbox to agree and a link to read this legal information will be shown on "
+"the Confirmation checkout step."
+msgstr ""
+"Если вы хотите, чтобы покупателям предлагалось ознакомиться и согласиться с "
+"условиями предоставления услуг, возврата денежных средств или иной "
+"юридической информацией во время оформления заказа, введите соответствующий "
+"текст в текстовом поле. После этого на шаге подтверждения заказа появится "
+"флажок для подтверждения согласия и ссылка для просмотра условий."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:105
+msgid "Required fields validation"
+msgstr "Проверки обязательности полей"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:75
+msgid ""
+"When shipping address form is disabled (hidden) on the “Contact info” step, "
+"address will be automatically prompted on the “Shipping” checkout step."
+msgstr ""
+"Если форма ввода адреса доставки выключена (скрыта) на шаге «Контактная "
+"информация», адрес будет автоматически запрошен у покупателя на шаге "
+"«Доставка»."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:85
+msgid "Hide certain fields"
+msgstr "Скрыть отдельные поля"
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:384
+msgid ""
+"This list of address fields is configured in the “Contact info” step "
+"settings."
+msgstr ""
+"Список полей адреса настраивается в конфигурации шага «Контактная "
+"информация»."
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutConfirmation.class.php:114
+msgid "Your current terms of service content will be erased. Are you sure?"
+msgstr ""
+"Текущий текст условий предоставления услуг будет удален без возможности "
+"восстановления. Удалить?"
+
+#: /wa-apps/shop/themes/default/checkout.confirmation.html:68
+msgid "You must read and agree to the Terms of service to place an order."
+msgstr ""
+"Вы должны прочитать и принять Условия предоставления услуг для того, чтобы "
+"оформить заказ."
+
+#: /wa-apps/shop/themes/default/checkout.confirmation.html:70
+msgid ""
+"I have read and agree to the <a href=\"%s\" target=\"_blank\">Terms of "
+"service</a>"
+msgstr ""
+"Я ознакомился (ознакомилась) с <a href=\"%s\" target=\"_blank\">Условиями "
+"предоставления услуг</a> и принимаю их"
+
+msgid "Click “Save” button below to commit changes."
+msgstr "Нажмите на кнопку «Сохранить», чтобы подтвердить изменения."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormEditor.html:216
+msgid "Manage conditions"
+msgstr "Настроить условия"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormRow.html:65
+msgid "Set default fixed value"
+msgstr "Установить значение"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormRow.html:68
+msgid "Default fixed value:"
+msgstr "Фиксированное значение:"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:8
+msgid "Enter available options for %s depending on it’s parent field value."
+msgstr ""
+"Заполните списки значений поля «%s» в зависимости от значения его "
+"родительского поля."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:8
+msgid "http://www.shop-script.com/help/conditional-contact-fields/"
+msgstr "http://www.shop-script.ru/help/conditional-contact-fields/"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:8
+msgid "Get help"
+msgstr "Помощь"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:12
+msgid "<strong>IF</strong> parent field"
+msgstr "<strong>IF</strong> родительское поле"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:31
+msgid "Prompt to select %s from the following list:"
+msgstr "Предлагать выбрать %s из следующих вариантов:"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:62
+msgid ""
+"<strong>ELSE</strong>, in case parent field value does not match any of the "
+"listed above"
+msgstr ""
+"<strong>ELSE</strong>, если значение родительского поля не совпадает ни с "
+"одним из вариантов"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:65
+msgid "Display &lt;input&gt; (custom text) field for %s"
+msgstr "Показать &lt;input&gt; для ввода произвольного текста"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:66
+msgid "Do not prompt for %s"
+msgstr "Не запрашивать поле «%s»"
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutConfirmation.class.php:109
+msgid ""
+"For Terms of service to work, make sure you updated <strong>checkout."
+"confirmation.html</strong> template file from the original design theme "
+"(either Default or CUSTOM). In case there is no checkbox to agree to the "
+"Terms of service in the template file along with the terms legal text "
+"entered in the backend, order checkout may stop accepting orders due to the "
+"lack of a checkbox user could click, and an error message output. The "
+"original checkout.confirmation.html template file contains both checkbox and "
+"error output text. Please make sure to update it."
+msgstr ""
+"Для того, чтобы функция принятия условий предоставления услуг заработала, "
+"убедитесь в том, что вы обновили файл шаблона дизайна <strong>checkout."
+"confirmation.html</strong>, перенеся его содержимое из оригинального файла "
+"темы дизайна («Дефолт» или CUSTOM) в файл вашей темы дизайна, используемой в "
+"магазине. Если вы не перенесли содержимое этого файла и при этом добавили "
+"текст условий, то оформление заказа может перестать работать в связи с тем, "
+"что для принятия условий пользователь должен отметить галочку «Принимаю "
+"условия», а следовательно, эта галочка должна присутствовать в шаблоне "
+"дизайна <strong>checkout.confirmation.html</strong> вашей используемой теме "
+"дизайна. Рекомендуем полностью перенести содержимое файла checkout."
+"confirmation.html из оригинальной темы дизайна простым копированием "
+"содержимого в дизайн-редакторе."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormRow.html:67
+msgid "Default value:"
+msgstr "Фиксированное значение:"
+
+#: /wa-apps/shop/js/settings/order_states.js:50
+msgid "This will delete this order state. Are you sure?"
+msgstr "Статус заказа будет удален. Вы уверены?"
+
+#: /wa-apps/shop/lib/actions/frontend/shopFrontendShipping.controller.php:32
+msgid "Shipping is required"
+msgstr "Выберите способ доставки"
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:62
+msgid "We cannot ship to the specified address via %s."
+msgstr ""
+"Мы не можем доставить заказ по указанному адресу выбранным способом доставки "
+"«%s»."
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:66
+msgid ""
+"Please double-check the address above, or return to the shipping step and "
+"select another shipping option."
+msgstr ""
+"Пожалуйста, проверьте введенный адрес или вернитесь на шаг выбора способа "
+"доставки и выберите другой способ."

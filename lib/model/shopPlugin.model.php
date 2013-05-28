@@ -14,7 +14,13 @@ class shopPluginModel extends shopSortableModel
      */
     public function listPlugins($type, $options = array())
     {
-        $plugins = $this->getByField('type', $type, $this->id);
+        $fields = array(
+            'type' => $type,
+        );
+        if (empty($options['all'])) {
+            $fields['status'] = 1;
+        }
+        $plugins = $this->getByField($fields, $this->id);
         $complementary = ($type == self::TYPE_PAYMENT) ? self::TYPE_SHIPPING : self::TYPE_PAYMENT;
         $non_available = array();
         if (!empty($options[$complementary])) {

@@ -19,16 +19,15 @@ class shopSortableModel extends waModel
 
             }
             $sort = $after_item[$this->sort];
-        } // move to first
-        else {
-            $sort = 0;
+        } else {
+            $sort = -1;
         }
 
         $sql = null;
         if ($sort > $entry['sort']) {
             $sql = "UPDATE {$this->table} SET {$this->sort} = {$this->sort} - 1 WHERE {$this->sort} > i:sort_old AND {$this->sort} <= i:sort";
         } elseif ($sort < $entry['sort']) {
-            ++$sort;
+            $sort++;
             $sql = "UPDATE {$this->table} SET {$this->sort} = {$this->sort} + 1 WHERE {$this->sort} >= i:sort AND {$this->sort} < i:sort_old";
         }
         if ($sql) {
@@ -37,8 +36,9 @@ class shopSortableModel extends waModel
                 $sql .= ' AND '.$this->getWhereByField($this->context, $context);
             }
             $this->exec($sql, $params);
+            $this->updateById($id, array($this->sort  => (int) $sort));
         }
-        $this->updateById($id, array($this->sort  => (int) $sort));
+
     }
 
     public function getAll($key = null, $normalize = false)
@@ -83,7 +83,7 @@ class shopSortableModel extends waModel
     public function insert($data, $type = 0)
     {
         if (!isset($data['sort'])) {
-            $sql = "SELECT MAX(sort) sort FROM {$this->table}";
+            $sql = "SELECT MAX(`sort`) `sort`, COUNT(1) `cnt` FROM {$this->table}";
             $where = array();
             if (is_array($this->id)) {
                 $fields = $this->remapId($data);
@@ -101,7 +101,11 @@ class shopSortableModel extends waModel
             if ($where) {
                 $sql .= ' WHERE ('.implode(') AND (', $where).')';
             }
-            $data['sort'] = $this->query($sql)->fetchField();
+            $sort = $this->query($sql)->fetchAssoc();
+            if ($sort['cnt']) {
+                ++$sort['sort'];
+            }
+            $data['sort'] = $sort['sort'];
         }
         return parent::insert($data, $type);
     }
@@ -109,13 +113,19 @@ class shopSortableModel extends waModel
     public function getByField($field, $value = null, $all = false, $limit = false)
     {
         $data = parent::getByField($field, $value, $all, $limit);
-        if (is_array($data) && $data && $all) {
+        if (is_array($data) && $data && ($all || (is_array($field) && $value))) {
             uasort($data, array($this, 'sort'));
         }
         return $data;
     }
     private function sort($a, $b)
     {
-        return max(-1, min(1, $a[$this->sort] - $b[$this->sort]));
+        $sort = intval($a[$this->sort]) - intval($b[$this->sort]);
+        return max(-1, min(1, $sort));
+    }
+
+    public function getTableContext()
+    {
+        return $this->context;
     }
 }

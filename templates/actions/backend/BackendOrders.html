@@ -47,6 +47,7 @@
                     </a>
                 </li>
             {/foreach}
+        </ul>
     </div>
 
     {if !empty($contacts)}
@@ -143,9 +144,17 @@
             {% } %}
         </td>
         <input type="hidden" name="product[add][{%#index%}]" value="{%#o.data.id%}">
-        <td class="valign-top">
-            <input type="text" name="quantity[add][{%#index%}][product]" class="s-orders-quantity short numerical" value="1" data-max-value="{% if (o.data.count !== null) { %}{%#o.data.count%}{% } %}">
+        
+        <td class="valign-top nowrap">
+            <span style="padding-top: 2px;" class="gray">&times;</span>
+            <input type="text" 
+                name="quantity[add][{%#index%}][product]" 
+                class="s-orders-quantity short numerical" 
+                value="1" 
+                data-max-value="{% if (o.data.count !== null) { %}{%#o.data.count%}{% } %}"
+            >
         </td>
+        
         {% include('template-order-stocks-add', { sku: product_sku, stocks: stocks, index: index }); %}
         <td class="valign-top align-right s-orders-product-price">
             {% if (!options.price_edit) { %}
@@ -167,9 +176,9 @@
         <td class="valign-top align-right nowrap s-orders-product-stocks">
             {% if (sku && !$.isEmptyObject(sku.stock)) { %}
                 @ <select name="stock[edit][{%#item_id%}]">
-                    {% for (var stock_id in sku.stock) { %}
-                        <option value="{%#stock_id%}">
-                            {%#stocks[stock_id].name%}
+                    {% for (var i = 0; i < stocks.length; i += 1) { %}
+                        <option value="{%#stocks[i].id%}">
+                            {%#stocks[i].name%}
                         </option>
                     {% } %}
                 </select>
@@ -188,9 +197,9 @@
         <td class="valign-top align-right nowrap s-orders-product-stocks">
             {% if (sku && !$.isEmptyObject(sku.stock)) { %}
                 @ <select name="stock[add][{%#index%}][product]">
-                    {% for (var stock_id in sku.stock) { %}
-                        <option value="{%#stock_id%}">
-                            {%#stocks[stock_id].name%}
+                    {% for (var i = 0; i < stocks.length; i += 1) { %}
+                        <option value="{%#stocks[i].id%}">
+                            {%#stocks[i].name%}
                         </option>
                     {% } %}
                 </select>
@@ -249,8 +258,8 @@
     {/if}
 {/foreach}
 
-<script type="text/javascript">
+<script type="text/javascript">$(function() {
     $.orders.init({
         view: '{$default_view}'
     });
-</script>
+});</script>

@@ -87,4 +87,10 @@ class shopSettingsCheckoutSaveActions extends waJsonActions
     {
         waUtils::varExportToFile($data, $this->getConfig()->getConfigPath('checkout.php', true, 'shop'));
     }
+
+    protected function backendCustomerFormValidationAction()
+    {
+        $asm = new waAppSettingsModel();
+        $asm->set('shop', 'disable_backend_customer_form_validation', waRequest::post('enable') ? null : '1');
+    }
 }

@@ -76,6 +76,10 @@ class shopPayment extends waAppPayment
 
     public static function savePlugin($plugin)
     {
+        $default = array(
+            'status' => 0,
+        );
+        $plugin = array_merge($default, $plugin);
         $model = new shopPluginModel();
         if (!empty($plugin['id']) && ($id = max(0, intval($plugin['id']))) && ($row = $model->getByField(array('id' => $id, 'type' => shopPluginModel::TYPE_PAYMENT)))) {
             $plugin['plugin'] = $row['plugin'];
@@ -89,7 +93,7 @@ class shopPayment extends waAppPayment
         }
         if (!empty($plugin['id'])) {
             $shipping = ifset($plugin['shipping'], array());
-            $plugins = $model->listPlugins(shopPluginModel::TYPE_SHIPPING);
+            $plugins = $model->listPlugins(shopPluginModel::TYPE_SHIPPING, array('all' => true, ));
             $app_settings = new waAppSettingsModel();
             $settings = json_decode($app_settings->get('shop', 'shipping_payment_disabled', '{}'), true);
             if (empty($settings) || !is_array($settings)) {
@@ -124,6 +128,7 @@ class shopPayment extends waAppPayment
      * formalize order data
      * @param string|array $order order ID or order data
      * @param waPayment $payment_plugin
+     * return waOrder
      */
     public static function getOrderData($order = array(), $payment_plugin = null)
     {

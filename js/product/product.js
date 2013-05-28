@@ -2137,8 +2137,12 @@
 
         },
         profileLazyInit: function() {
-            $('#product-sales-plot').empty();
-            $('#product-sku-plot').empty();
+            if (!$('#product-sales-plot').empty().length) {
+                return;
+            }
+            if (!$('#product-sku-plot').empty().length) {
+                return;
+            }
             if (sales_plot_data && sales_plot_data.length) {
                 $.jqplot('product-sales-plot', sales_plot_data, {
                     seriesColors: ["#3b7dc0", "#129d0e", "#a38717", "#ac3562", "#1ba17a", "#87469f", "#6b6b6b", "#686190", "#b2b000", "#00b1ab", "#76b300"],
@@ -2183,7 +2187,7 @@
             } else {
                 $('#product-sales-plot').remove();
             }
-            if (sku_plot_data && sku_plot_data.length) {
+            if (sku_plot_data && sku_plot_data.length && sku_plot_data[0] && sku_plot_data[0].length) {
 
                 $.jqplot('product-sku-plot', sku_plot_data, {
                     seriesColors: ["#0077CC", "#33BB11", "#EE5500", "#EEBB11", "#44DDDD", "#6b6b6b", "#686190", "#b2b000", "#00b1ab", "#76b300"],

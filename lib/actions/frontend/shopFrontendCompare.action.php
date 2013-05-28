@@ -29,8 +29,17 @@ class shopFrontendCompareAction extends waViewAction
                     }
                 } else {
                     $features[$f] = $all_features[$f];
-                    $features[$f]['same'] = $i ? false: true;
-                    $features[$f]['value'] = $v;
+                    if (!$i) {
+                        $features[$f]['same'] = true;
+                        $features[$f]['value'] = $v;
+                    } else {
+                        $features[$f]['same'] = false;
+                    }
+                }
+            }
+            foreach ($features as $f => $v) {
+                if (!isset($p['features'][$f])) {
+                    $features[$f]['same'] = false;
                 }
             }
             $i++;

@@ -18,6 +18,10 @@ class shopFrontendProductAction extends shopFrontendAction
             $category_model = new shopCategoryModel();
             $category = $category_model->getById($product['category_id']);
             $product['category_url'] = waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'];
+
+            if (waRequest::param('url_type') == 2 && !waRequest::param('category_url')) {
+                $this->redirect(wa()->getRouteUrl('/frontend/product', array('product_url' => $product['url'], 'category_url' => $product['category_url'])));
+            }
             $breadcrumbs = array();
             $path = $category_model->getPath($category['id']);
             $path = array_reverse($path);

@@ -14,17 +14,10 @@ class shopOrderAction extends waViewAction
 
     public function execute()
     {
-        $id = waRequest::get('id');
-        if (!$id) {
-            throw new waException("Unknown order", 404);
-        }
-        $order = $this->getOrder($id);
+        $order = $this->getOrder();
         if (!$order) {
-            $id = shopHelper::decodeOrderId($id);
-            $order = $this->getOrder($id);
-            if (!$order) {
-                throw new waException("Unkown order", 404);
-            }
+            $this->view->assign('order', $order);
+            return;
         }
 
         $workflow = new shopWorkflow();
@@ -130,6 +123,23 @@ class shopOrderAction extends waViewAction
         ));
     }
 
+    public function getOrder()
+    {
+        $id = waRequest::get('id');
+        if (!$id) {
+            return array();
+        }
+        $order = $this->_getOrder($id);
+        if (!$order) {
+            $id = shopHelper::decodeOrderId($id);
+            $order = $this->_getOrder($id);
+            if (!$order) {
+                return array();
+            }
+        }
+        return $order;
+    }
+
     public function getParams($str = false)
     {
         if ($this->filter_params === null) {
@@ -169,7 +179,7 @@ class shopOrderAction extends waViewAction
         return $this->model;
     }
 
-    public function getOrder($id)
+    private function _getOrder($id)
     {
         $order = $this->getModel()->getOrder($id);
         if (!$order) {

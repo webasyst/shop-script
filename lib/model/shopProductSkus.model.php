@@ -205,11 +205,16 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         // Invariant: if at least one sku.count IS NULL this aggragate count IS NULL
         $product_count = 0;
 
+        $available_sku_count = 0;
         $sort = 0;
         foreach ($data as $sku_id => $sku) {
             $sku['sort'] = ++$sort;
             if (empty($sku['available'])) {
                 $sku['available'] = 0;
+            }
+
+            if ($sku['available']) {
+                $available_sku_count++;
             }
 
             $price[] = $this->castValue('double', $sku['price']);
@@ -308,11 +313,14 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             }
 
             // maintain product_count invariant. See above
-            if ($sku_count === null) {
-                $product_count = null;
-            } elseif ($product_count !== null) {
-                $product_count += $sku_count;
+            if ($sku['available']) {
+                if ($sku_count === null) {
+                    $product_count = null;
+                } elseif ($product_count !== null) {
+                    $product_count += $sku_count;
+                }
             }
+
             $sku['count'] = $sku_count;
 
             $this->updateById($sku_id, array('count' => $sku_count));
@@ -349,6 +357,10 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                 }
             }
             $result[$sku_id] = $sku;
+        }
+
+        if ($available_sku_count == 0) {
+            $product_count = 0;
         }
 
         //TODO save it

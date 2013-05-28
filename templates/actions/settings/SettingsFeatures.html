@@ -204,7 +204,7 @@ action=''
 {if $units}{literal}
 <select name="feature[${feature.id}][values][${id}][unit]{/literal}">
 {foreach $units as $unit}
-    <option value="{$unit.value|escape}"{literal}{{if "{/literal}{$unit.value|escape}{literal}"==$.settings.featuresHelper.value(feature_value,"unit")}} selected="selected"{{/if}}{/literal}>{$unit.title|escape}</option>
+    <option value="{$unit.value|escape}"{literal}{{if (("{/literal}{$unit.value|escape}{literal}"==$.settings.featuresHelper.value(feature_value,"unit") ) || ("{/literal}{$unit.title|escape}{literal}"==$.settings.featuresHelper.value(feature_value,"unit")) ) }} selected="selected"{{/if}}{/literal}>{$unit.title|escape}</option>
 {/foreach}
 </select>
 {/if}

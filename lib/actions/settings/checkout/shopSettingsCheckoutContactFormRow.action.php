@@ -44,13 +44,43 @@ class shopSettingsCheckoutContactFormRowAction extends waViewAction
             );
         }
 
+        $form = waContactForm::loadConfig(array(
+            '_default_value' => $f,
+        ), array(
+            'namespace' => "{$prefix}[{$fid}]"
+        ));
+
+        // Get default value
+        $default_value = null;
+        if (!$new_field && $f->getParameter('_disabled')) {
+            $settings = wa('shop')->getConfig()->getCheckoutSettings();
+            if (!isset($settings['contactinfo'])) {
+                $settings = wa('shop')->getConfig()->getCheckoutSettings(true);
+            }
+            $fields_config = ifset($settings['contactinfo']['fields'], array());
+            if ($parent) {
+                if (!empty($fields_config[$parent]['fields'][$fid]['hidden'])) {
+                    $default_value = ifset($fields_config[$parent]['fields'][$fid]['value']);
+                }
+            } else {
+                if (!empty($fields_config[$fid]['hidden'])) {
+                    $default_value = ifset($fields_config[$fid]['value']);
+                }
+            }
+            if ($default_value !== null) {
+                $form->setValue('_default_value', $default_value);
+            }
+        }
+
         $this->view->assign('f', $f);
         $this->view->assign('fid', $fid);
+        $this->view->assign('form', $form);
         $this->view->assign('parent', $parent);
         $this->view->assign('prefix', $prefix);
         $this->view->assign('uniqid', 'f'.uniqid());
         $this->view->assign('new_field', $new_field);
         $this->view->assign('tr_classes', $css_class);
+        $this->view->assign('default_value', $default_value);
         $this->view->assign('ftypes', $ftypes);
     }
 }

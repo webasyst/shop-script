@@ -43,6 +43,9 @@ $(document).ready(function () {
                             cart_total.html(response.data.total);
                         });
                 }
+                if (response.data.error) {
+                    alert(response.data.error);
+                }
             } else if (response.status == 'fail') {
                 alert(response.errors);
             }

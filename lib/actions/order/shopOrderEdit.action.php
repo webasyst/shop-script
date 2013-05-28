@@ -64,6 +64,7 @@ class shopOrderEditAction extends waViewAction
             'taxes_count' => $taxes_count,
             'shipping_address' => $shipping_address,
             'has_contacts_rights' => $has_contacts_rights,
+            'customer_validation_disabled' => wa()->getSetting('disable_backend_customer_form_validation'),
         ));
     }
 
@@ -85,9 +86,31 @@ class shopOrderEditAction extends waViewAction
         }
         $sku_stocks = $this->getSkuStocks(array_unique($sku_ids));
 
+        $subtotal = 0;
+        $product_ids = array();
+
+        foreach ($order['items'] as $i) {
+            $product_ids[] = $i['id'];
+            $subtotal += $i['item']['price'] * $i['item']['quantity'];
+        }
+        $order['subtotal'] = $subtotal;
+        $product_ids = array_unique($product_ids);
+        $feature_model = new shopFeatureModel();
+        $f = $feature_model->getByCode('weight');
+        if (!$f) {
+            $values = array();
+        } else {
+            $values_model = $feature_model->getValuesModel($f['type']);
+            $values = $values_model->getProductValues($product_ids, $f['id']);
+        }
+
         foreach ($order['items'] as &$item) {
             $this->workupItems($item, $sku_stocks);
+            $item['quantity'] = $item['item']['quantity'];
+            $item['weight'] = isset($values[$item['id']]) ? $values[$item['id']] : 0;
         }
+        unset($item);
+
         return $order;
     }
 

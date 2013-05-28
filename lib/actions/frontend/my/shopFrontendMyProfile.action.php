@@ -7,7 +7,7 @@ class shopFrontendMyProfileAction extends shopFrontendAction
 {
     public function execute()
     {
-        $form = shopHelper::getCustomerForm();
+        $form = shopHelper::getCustomerForm(null, true);
         $this->setValues($form);
 
         $saved = $this->saveFromPost($form, wa()->getUser());

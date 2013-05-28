@@ -102,7 +102,12 @@ class shopYandexmarketPluginRunController extends waLongActionController
 
             $this->dom->lastChild->setAttribute('date', date("Y-m-d H:i"));
             $this->dom->lastChild->appendChild($shop = $this->dom->createElement("shop"));
-            $shop->appendChild($this->dom->createElement('name', $config->getGeneralSettings('name')));
+            $name = $config->getGeneralSettings('name');
+            $name = str_replace('&', '&amp;', $name);
+            $name = str_replace("'", '&apos;', $name);
+            $company = str_replace('&', '&amp;', $company);
+            $company = str_replace("'", '&apos;', $company);
+            $shop->appendChild($this->dom->createElement('name', $name));
             $shop->appendChild($this->dom->createElement('company', $company));
             $shop->appendChild($this->dom->createElement('url', wa()->getRouteUrl('shop/frontend', array(), true)));
             if ($phone = $config->getGeneralSettings('phone')) {
@@ -142,6 +147,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 'delivery'            => true,
                 'deliveryIncluded'    => false,
                 'local_delivery_cost' => '%0.2f',
+                'adult'               => true,
             );
             $values = waRequest::post('shop');
             foreach ($fields as $field => $include_value) {
@@ -248,25 +254,47 @@ class shopYandexmarketPluginRunController extends waLongActionController
 
     protected function finish($filename)
     {
-        $this->info();
         $result = false;
         if ($this->getRequest()->post('cleanup')) {
             $result = true;
-
+            $this->validate();
         }
-        if ($this->dom) {
-            ob_start();
-            shopYandexmarketPlugin::path('shops.dtd');
-            $res = $this->dom->validate();
-            $errors = ob_get_clean();
-            if (!$res) {
-                $this->error(str_replace(__FILE__, __METHOD__, strip_tags($errors)));
-            }
-        }
+        $this->info();
         /**
          * @todo use temp files
          */
         return $result;
+    }
+
+    private function validate()
+    {
+        $this->restore();
+        libxml_use_internal_errors(true);
+        shopYandexmarketPlugin::path('shops.dtd');
+        $valid = $this->dom->validate();
+        $strict = waSystemConfig::isDebug();
+        if ((!$valid || $strict) && ($r = libxml_get_errors())) {
+            $this->data['error'] = array();
+            $error = array();
+            if ($valid) {
+                $this->data['error'][] = array(
+                    'level'   => 'info',
+                    'message' => 'YML файл валиден',
+                );
+            } else {
+
+                $this->data['error'][] = array(
+                    'level'   => 'error',
+                    'message' => 'YML файл содержит ошибки',
+                );
+            }
+            foreach ($r as $er) {
+                $this->data['error'][] = $er;
+                $error[] = "Error #{$er->code}[{$er->level}] at [{$er->line}:{$er->column}]: {$er->message}";
+
+            }
+            $this->error(implode("\n\t", $error));
+        }
     }
 
     protected function report()
@@ -325,8 +353,56 @@ class shopYandexmarketPluginRunController extends waLongActionController
         $response['processed_count'] = $this->data['processed_count'];
         if ($this->getRequest()->post('cleanup')) {
             $response['report'] = $this->report();
+            $response['report'] .= $this->validateReport();
         }
         echo json_encode($response);
+    }
+
+    private function validateReport()
+    {
+        $report = '';
+        if (!empty($this->data['error'])) {
+            $report .= '<div><ul class="menu-v with-icons">';
+            foreach ($this->data['error'] as $error) {
+
+                if (is_object($error) && (get_class($error) == 'LibXMLError')) {
+                    switch ($error->level) {
+                        case LIBXML_ERR_WARNING:
+                            $report .= '<li><i class="icon16 exclamation"></i>';
+                            break;
+                        case LIBXML_ERR_ERROR:
+                            $report .= '<li class="errormsg"><i class="icon16 no"></i>';
+                            break;
+                        case LIBXML_ERR_FATAL:
+                            $report .= '<li class="errormsg"><i class="icon16 status-red"></i>';
+                            break;
+                    }
+                    $report .= "Ошибка валидации XML ({$error->code})<br>";
+                    $report .= htmlentities($error->message, ENT_QUOTES, 'utf-8');
+                    $report .= "<br>(строка {$error->line}, столбец {$error->column})";
+                } elseif (is_array($error)) {
+                    switch (ifset($error['level'])) {
+                        case 'info':
+                            $report .= '<li><i class="icon16 info"></i>';
+                            break;
+                        case 'warning':
+                            $report .= '<li><i class="icon16 exclamation"></i>';
+                            break;
+                        case 'error':
+                        default:
+                            $report .= '<li class="errormsg"><i class="icon16 no"></i>';
+                            break;
+                    }
+                    $report .= htmlentities(ifset($error['message']), ENT_QUOTES, 'utf-8');
+                } else {
+                    $report .= '<li class="errormsg"><i class="icon16 no"></i>';
+                    $report .= htmlentities(is_object($error) ? get_class($error) : $error, ENT_QUOTES, 'utf-8');
+                }
+                $report .= '</li>';
+            }
+            $report .= '</ul></div>';
+        }
+        return $report;
     }
 
     protected function restore()
@@ -388,7 +464,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
         }
         $chunk = 50;
         while ((--$chunk > 0) && ($category = reset($categories))) {
-            $category_xml = $this->dom->createElement("category", $category['name']);
+            $category_xml = $this->dom->createElement("category", str_replace('&', '&amp;', $category['name']));
             $category_xml->setAttribute('id', $category['id']);
             if ($category['parent_id']) {
                 $category_xml->setAttribute('parentId', $category['parent_id']);
@@ -437,7 +513,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
         static $products;
         static $features_model;
         if (!$products) {
-            $products = $this->getCollection()->getProducts($this->getProductFields(), $current_stage, 200);
+            $products = $this->getCollection()->getProducts($this->getProductFields(), $current_stage, 200, false);
             if (!$products) {
                 $current_stage = $count['product'];
             }
@@ -447,17 +523,20 @@ class shopYandexmarketPluginRunController extends waLongActionController
         $chunk = 50;
         while ((--$chunk > 0) && ($product = reset($products))) {
             $product_xml = $this->dom->createElement("offer");
-            if (!$this->data['type_id'] || in_array($product['type_id'], $this->data['type_id'])) {
+            $check_type = !$this->data['type_id'] || in_array($product['type_id'], $this->data['type_id']);
+            $check_price = $product['price'] > 0;
+            $check_category = !empty($product['category_id']);
+            if ($check_type && $check_price && $check_category) {
                 foreach ($this->data['map'] as $field => $info) {
                     $field = preg_replace('/\..*$/', '', $field);
 
-                    if (!empty($info['source']) && !ifempty($info['category'])) {
+                    if (!empty($info['source']) && (!ifempty($info['category'], array()) || in_array('simple', $info['category']))) {
                         $value = null;
 
                         list($source, $param) = explode(':', $info['source'], 2);
                         switch ($source) {
                             case 'field':
-                                $value = $this->format($field, $product[$param], $info, $product);
+                                $value = $this->format($field, ifset($product[$param]), $info, $product);
                                 break;
                             case 'value':
                                 $value = $this->format($field, $param, $info);
@@ -484,7 +563,11 @@ class shopYandexmarketPluginRunController extends waLongActionController
                                     $product_xml->appendChild($this->dom->createElement($field, $value_item));
                                 }
                             } elseif (empty($info['attribute'])) {
-                                $product_xml->appendChild($this->dom->createElement($field, $value));
+                                $child = $this->dom->createElement($field, $value);
+                                if ($field == 'categoryId') {
+                                    $child->setAttribute('type', 'Own');
+                                }
+                                $product_xml->appendChild($child);
                             } else {
                                 $product_xml->setAttribute($field, $value);
                             }
@@ -503,8 +586,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
 
     private function format($field, $value, $info = array(), $data = array())
     {
-        $value = str_replace('&nbsp;', ' ', $value);
-        $value = str_replace('&', '&amp;', $value);
+
         static $currency_model;
         switch ($field) {
             case 'sales_notes':
@@ -513,6 +595,10 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 }
                 break;
             case 'description':
+                $value = preg_replace('/<br\/?\s*>/', "\n", $value);
+                $value = preg_replace("/[\r\n]+/", "\n", $value);
+                $value = strip_tags($value);
+
                 if (mb_strlen($value) > 512) {
                     $value = mb_substr($value, 0, 509).'...';
                 }
@@ -558,10 +644,14 @@ class shopYandexmarketPluginRunController extends waLongActionController
         $format = ifempty($info['format'], '%s');
         if (is_array($value)) {
             foreach ($value as & $item) {
+                $item = str_replace('&nbsp;', ' ', $item);
+                $item = str_replace('&', '&amp;', $item);
                 $item = $this->sprintf($format, $item);
             }
             unset($item);
         } else {
+            $value = str_replace('&nbsp;', ' ', $value);
+            $value = str_replace('&', '&amp;', $value);
             $value = $this->sprintf($format, $value);
         }
         return $value;

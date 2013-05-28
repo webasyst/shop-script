@@ -295,7 +295,11 @@
             <a href="#/product/{$product.id}/edit/reviews/">[`Customer reviews`] <span class="hint">{$counters['reviews']}</span>
             <span class="s-product-edit-tab-status"></span></a>
         </li>
-
+        
+        <!-- plugin hook: 'backend_product.edit_section_li' -->
+        {* @event backend_product.%plugin_id%.edit_section_li *}
+        {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.edit_section_li)}{/foreach}{/if}
+                
     </ul>
 {* PRODUCT EDIT SECTION MENU END *}
 
@@ -312,12 +316,12 @@
                     <div class="value"><input type="text" class="long bold s-product-name-input" value="{$product.name|escape}" name="product[name]"></div>
                 </div>                      
                 <div class="field">
-                    <div class="name">[`Storefront link`]</div>
+                    <div class="name">[`Status`]</div>
                     <div class="value no-shift">
                         <div class="s-product-status">
                             <i class="icon10 {if $product.status}yes{else}no-bw{/if}"></i>
                             <select name="product[status]">
-                                <option {if $product.status}selected{/if} value="1">[`Available for purchase`]</option>
+                                <option {if $product.status}selected{/if} value="1">[`Published`]</option>
                                 <option {if !$product.status}selected{/if} value="0">[`Hidden`]</option>
                             </select>
                         </div>
@@ -575,9 +579,9 @@
             
             <div class="field-group">
 
-                <!-- plugin hook: 'backend_product_edit.basics' -->
-                {* @event backend_product_edit.%plugin_id%.basics *}
-                {if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.basics)}{/foreach}{/if}
+                <!-- plugin hook: 'backend_product.edit_basics' -->
+                {* @event backend_product.%plugin_id%.edit_basics *}
+                {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.edit_basics)}{/foreach}{/if}
 
                 <div class="field">
                     <div class="value">
@@ -787,9 +791,9 @@
                     </div>
                 </div>
 
-                <!-- plugin hook: 'backend_product_edit.descriptions' -->
-                {* @event backend_product_edit.%plugin_id%.descriptions *}
-                {if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.descriptions)}{/foreach}{/if}
+                <!-- plugin hook: 'backend_product.edit_descriptions' -->
+                {* @event backend_product.%plugin_id%.edit_descriptions *}
+                {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.edit_descriptions)}{/foreach}{/if}
 
               </div>
               <div class="field-group">

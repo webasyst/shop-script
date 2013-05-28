@@ -25,6 +25,8 @@ class shopBrandsPluginFrontendBrandAction extends shopFrontendAction
          */
         $this->view->assign('frontend_search', wa()->event('frontend_search'));
         $this->setThemeTemplate('search.html');
+
+        waSystem::popActivePlugin();
     }
 
 }

@@ -96,6 +96,42 @@ class shopCartItemsModel extends waModel
 
     }
 
+
+    public function getItemByProductAndServices($code, $product_id, $sku_id, $services)
+    {
+        if (!$services) {
+            return $this->getSingleItem($code, $product_id, $sku_id);
+        }
+        $items = array();
+        $rows = $this->getByField(array('code' => $code, 'product_id' => $product_id, 'sku_id' => $sku_id), true);
+        foreach ($rows as $row) {
+            if ($row['type'] == 'product') {
+                if (isset($items[$row['id']])) {
+                    $row['services'] = $items[$row['id']]['services'];
+                }
+                $items[$row['id']] = $row;
+            } else {
+                $items[$row['parent_id']]['services'][$row['service_id']] = $row['service_variant_id'];
+            }
+        }
+        foreach ($items as $item) {
+            if (!isset($item['services']) || count($item['services']) != count($services)) {
+                continue;
+            }
+            $flag = true;
+            foreach ($item['services'] as $s_id => $v_id) {
+                if (!isset($services[$s_id]) || $services[$s_id] != $v_id) {
+                    $flag = false;
+                    break;
+                }
+            }
+            if ($flag) {
+                return $item;
+            }
+        }
+        return null;
+    }
+
     public function getSingleItem($code, $product_id, $sku_id)
     {
         $sql = "SELECT c1.* FROM ".$this->table." c1

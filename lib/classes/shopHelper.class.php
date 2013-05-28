@@ -31,10 +31,44 @@ class shopHelper
         return $icon;
     }
 
-    public static function getPaymentMethods()
+    public static function getPaymentMethods($order = array())
     {
         $plugin_model = new shopPluginModel();
-        return $plugin_model->listPlugins(shopPluginModel::TYPE_PAYMENT);
+        $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_PAYMENT);
+        $order_params = $order ? $order['params'] : array();
+        $order = new waOrder(array(
+            'contact_id' => $order ? $order['contact_id'] : null,
+            'contact' => $order ? new waContact($order['contact_id']) : null,
+            'params' => $order_params
+        ));
+        foreach ($methods as $m_id => $m) {
+            $plugin = shopPayment::getPlugin($m['plugin'], $m['id']);
+            $custom_fields = $plugin->customFields($order);
+            if ($custom_fields) {
+                $params = array();
+                $params['namespace'] = 'payment_'.$m['id'];
+                $params['title_wrapper'] = '%s';
+                $params['description_wrapper'] = '<br><span class="hint">%s</span>';
+                $params['control_wrapper'] = '<div class="name">%s</div><div class="value">%s %s</div>';
+
+                $controls = array();
+                foreach ($custom_fields as $name => $row) {
+                    $row = array_merge($row, $params);
+                    if ($order_params && $m['id'] == $order_params['payment_id'] && isset($order_params['payment_params_'.$name])) {
+                        $row['value'] = $order_params['payment_params_'.$name];
+                    }
+                    $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
+                }
+                if ($controls) {
+                    $custom_html = '';
+                    foreach ($controls as $c) {
+                        $custom_html .= '<div class="field">'.$c.'</div>';
+                    }
+                    $methods[$m_id]['custom_html'] = $custom_html;
+                }
+            }
+        }
+        return $methods;
     }
 
     public static function getDisabledMethods($type, $id)
@@ -60,22 +94,33 @@ class shopHelper
         return $result;
     }
 
-    public static function getShippingMethods($address = null, $items = array())
+    public static function getShippingMethods($address = null, $items = array(), $params = array())
     {
         $plugin_model = new shopPluginModel();
         $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_SHIPPING);
         if ($address !== null) {
             $result = array();
+            $currency = isset($params['currency']) ? $params['currency'] : wa()->getConfig()->getCurrency();
             foreach ($methods as $m) {
                 $plugin = shopShipping::getPlugin($m['plugin'], $m['id']);
-                $rates = $plugin->getRates($items, $address ? $address : array());
+                $plugin_currency = $plugin->allowedCurrency();
+                $total = null;
+                if (isset($params['total_price'])) {
+                    if ($plugin_currency != $currency) {
+                        $total = shop_currency($params['total_price'], $currency, $plugin_currency, false);
+                    } else {
+                        $total = $params['total_price'];
+                    }
+                }
+                $rates = $plugin->getRates($items, $address ? $address : array(), $total ? array('total_price' => $total) : array());
                 if (is_array($rates)) {
                     foreach ($rates as $rate_id => $info) {
                         if (is_array($info)) {
                             $result[$m['id'].'.'.$rate_id] = array(
                                 'plugin' => $m['plugin'],
                                 'name'   => $m['name'].(!empty($info['name']) ? ' ('.$info['name'].')' : ''),
-                                'rate'   => round(is_array($info['rate']) ? max($info['rate']) : $info['rate'], 2)
+                                'rate'   => (float)shop_currency(is_array($info['rate']) ? max($info['rate']) : $info['rate'],
+                                    $plugin_currency, $currency, false)
                             );
                         }
                     }
@@ -83,6 +128,7 @@ class shopHelper
                     $result[$m['id']] = array(
                         'plugin' => $m['plugin'],
                         'name'   => $m['name'],
+                        'error'  => $rates,
                         'rate'   => ''
                     );
                 }
@@ -349,7 +395,7 @@ class shopHelper
         return $icon;
     }
 
-    public static function getCustomerForm($id = null)
+    public static function getCustomerForm($id = null, $ensure_address = false)
     {
         $settings = wa('shop')->getConfig()->getCheckoutSettings();
         if (!isset($settings['contactinfo'])) {
@@ -357,7 +403,17 @@ class shopHelper
         }
 
         $fields_config = ifset($settings['contactinfo']['fields'], array());
+        $address_config = ifset($fields_config['address'], array());
         unset($fields_config['address']);
+
+        if (wa()->getEnv() == 'backend' && !isset($fields_config['address.shipping'])) {
+            $fields_config['address.shipping'] = array();
+        }
+
+        if ($ensure_address && !isset($fields_config['address.billing']) && !isset($fields_config['address.shipping'])) {
+            $fields_config['address'] = $address_config;
+        }
+
         $form = waContactForm::loadConfig($fields_config, array(
             'namespace' => 'customer'
         ));

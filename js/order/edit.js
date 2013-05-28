@@ -19,9 +19,9 @@ $.order_edit = {
     customer_inputs : null,
 
     /**
-     * {Object}
+     * {Array}
      */
-    stocks: {},
+    stocks: [],
 
     /**
      * On/off edit mode
@@ -43,6 +43,10 @@ $.order_edit = {
         this.form = typeof options.form === 'string' ? $(options.form) : options.form;
         this.customer_fields = $('#s-order-edit-customer');
         this.customer_inputs = this.customer_fields.find(':input');
+
+        options.stocks.sort(function(a, b) {
+            return a.sort - b.sort;
+        });
         this.stocks = options.stocks;
 
         if (options.title) {
@@ -56,6 +60,20 @@ $.order_edit = {
         var options = this.options;
         this.initCustomerForm(this.id ? 'edit' : 'add');
 
+        var validateQuantity = function(item) {
+            var max_value = parseInt(item.attr('data-max-value'), 10);
+            var val = parseInt(item.val(), 10);
+            if (isNaN(max_value)) {
+                return true;
+            } else {
+                if (isNaN(val)) {
+                    return false;
+                } else {
+                    return val <= max_value;
+                }
+            }
+        };
+
         $.order_edit.slide(true, options.mode == 'add');
 
         this.container.find('.back').click(function() {
@@ -68,7 +86,7 @@ $.order_edit = {
             return false;
         });
 
-        this.updateTotal();
+        this.updateTotal(false);
 
         var price_edit = options.price_edit || false;
 
@@ -96,11 +114,18 @@ $.order_edit = {
                             stocks: $.order_edit.stocks
                         }
                     }));
-                    add_row.prev().find('.s-orders-services .s-orders-service-variant').trigger('change');
+                    var item = add_row.prev();
+                    item.find('.s-orders-services .s-orders-service-variant').trigger('change');
 
                     $('#s-order-comment-edit').show();
 
-                    $.order_edit.updateTotal();
+                    var quantity_item = item.find('.s-orders-quantity');
+                    if (!validateQuantity(quantity_item)) {
+                        quantity_item.addClass('error');
+                    } else {
+                        $.order_edit.updateTotal();
+                        quantity_item.removeClass('error');
+                    }
                 });
                 add_order_input.val('');
 
@@ -144,7 +169,7 @@ $.order_edit = {
                         tmpl('template-order-stocks-' + mode, {
                             sku:     r.data,
                             index:   index,
-                            stocks:  $.order_edit.options.stocks,
+                            stocks:  $.order_edit.stocks,
                             item_id: item_id   // use only in edit mode
                         })
                     );
@@ -187,29 +212,37 @@ $.order_edit = {
                     $.order_edit.updateTotal
         );
 
+        $(".s-order-customer-details").on('change', 'select', function () {
+            if  ($(this).attr('name').indexOf('address')) {
+                $.order_edit.updateTotal();
+            }
+        });
+
         $("#shipping_methods").change(function() {
-            var rate = $(this).children(':selected').data('rate');
+            var o = $(this).children(':selected');
+            var rate = o.data('rate');
             $("#shipping-rate").val(rate);
-            $.order_edit.updateTotal();
+            if (o.data('error')) {
+                $("#shipping-rate").addClass('error');
+                $("#shipping-info").html('<span class="error">' + o.data('error') + '</span>').show();
+            } else {
+                $("#shipping-rate").removeClass('error');
+                $("#shipping-info").empty().hide();
+            }
+            $.order_edit.updateTotal(false);
+        });
+
+        $("#payment_methods").change(function() {
+            var pid = $(this).val();
+            $("#payment-info > div").hide();
+            if ($('#payment-custom-' + pid).length) {
+                $('#payment-custom-' + pid).show();
+            }
         });
 
         $("#discount,#shipping-rate").change(function() {
-            $.order_edit.updateTotal();
+            $.order_edit.updateTotal(false);
         });
-
-        var validate = function(item) {
-            var max_value = parseInt(item.attr('data-max-value'), 10);
-            var val = parseInt(item.val(), 10);
-            if (isNaN(max_value)) {
-                return true;
-            } else {
-                if (isNaN(val)) {
-                    return false;
-                } else {
-                    return val <= max_value;
-                }
-            }
-        };
 
         this.container.off('keydown', '.s-orders-quantity').on('keydown', '.s-orders-quantity', function() {
             var self = $(this);
@@ -218,7 +251,7 @@ $.order_edit = {
                 clearTimeout(timer_id);
             }
             self.data('timer_id', setTimeout(function() {
-                if (!validate(self)) {
+                if (!validateQuantity(self)) {
                     self.addClass('error');
                 } else {
                     $.order_edit.updateTotal();
@@ -242,7 +275,8 @@ $.order_edit = {
         }
     },
 
-    updateTotal : function() {
+    updateTotal : function(ajax) {
+        var ajax = ajax === undefined ? true : ajax;
         var container = $.order_edit.container;
         if (!container.find('.s-order-item').length) {
             $("#subtotal").text(0);
@@ -292,25 +326,37 @@ $.order_edit = {
                 price: item_price
             });
         });
+        data.subtotal = subtotal;
+        var discount = extParseFloat($("#discount").val() || 0);
+        data.discount = discount;
+        if ($.order_edit.id) {
+            data.order_id =  $.order_edit.id;
+        }
 
-        // Fetch shipping options and rates, and other info from orderTotal controller
-        $.post('?module=order&action=total', data, function(response) {
-            if (response.status == 'ok') {
-                for (var ship_id in response.data.shipping_methods) {
-                    var ship =  response.data.shipping_methods[ship_id];
-                    var o = $("#shipping_methods").find('option[value="' + ship_id + '"]');
-                    if (o.attr('selected') && o.data('rate') == $("#shipping-rate").val()) {
-                        $("#shipping-rate").val(ship.rate);
+        if (ajax) {
+            // Fetch shipping options and rates, and other info from orderTotal controller
+            $.post('?module=order&action=total', data, function(response) {
+                if (response.status == 'ok') {
+                    var el = $("#shipping_methods");
+                    var el_selected = el.val();
+                    el.empty();
+                    for (var ship_id in response.data.shipping_methods) {
+                        var ship =  response.data.shipping_methods[ship_id];
+                        var o = $('<option></option>');
+                        o.html(ship.name).attr('value', ship_id).data('rate', ship.rate);
+                        if (ship.error) {
+                            o.data('error', ship.error);
+                        }
+                        el.append(o);
                     }
-                    o.data('rate', ship.rate);
+                    el.val(el_selected).change();
                 }
-            }
-        }, 'json');
+            }, 'json');
+        }
 
         $("#subtotal").text(Math.round(subtotal * 100) / 100);
         var shipping = extParseFloat($("#shipping-rate").val().replace(',', '.')) || 0;
         var undiscounted_total = subtotal + shipping;
-        var discount = extParseFloat($("#discount").val() || 0);
 
         // correct discout by constraint: total must be >= 0
 //        if (discount < 0) {

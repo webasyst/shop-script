@@ -228,7 +228,24 @@ class shopProductsCollection
         }
 
         $this->info['hash'] = 'category';
-        $this->info['frontend_url'] = wa()->getRouteUrl('shop/frontend/category', array('category_url' => $category['full_url']), true);
+        if (wa()->getEnv() == 'frontend') {
+            $this->info['frontend_url'] = wa()->getRouteUrl('shop/frontend/category', array(
+                'category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url']), true);
+        } else {
+            $routing =  wa()->getRouting();
+            $domain_routes = $routing->getByApp('shop');
+            foreach ($domain_routes as $domain => $routes) {
+                foreach ($routes as $r) {
+                    if (!$category['route'] || $category['route'] == $domain.'/'.$r['url']) {
+                        $routing->setRoute($r, $domain);
+                        $this->info['frontend_url'] = $routing->getUrl('shop/frontend/category', array(
+                            'category_url' => isset($r['url_type']) && ($r['url_type'] == 1) ? $category['url'] : $category['full_url']),
+                            true);
+                        break 2;
+                    }
+                }
+            }
+        }
 
         if ($auto_title) {
             $this->addTitle($this->info['name']);
@@ -489,6 +506,33 @@ class shopProductsCollection
                         }
                     }
                     break;
+                case 'same':
+                    if ($model->fieldExists($row['feature'])) {
+                        $this->where[] = 'p.'.$row['feture']." = '".$model->escape($product->features[$row['feature']])."'";
+                    } else {
+                        $product_features_model = new shopProductFeaturesModel();
+                        $rows = $product_features_model->getByField(array(
+                            'product_id' => $product['id'],
+                            'sku_id' => null,
+                            'feature_id' => $row['feature_id']
+                        ), true);
+                        $values = array();
+                        foreach ($rows as $r) {
+                            $values[] = $r['feature_value_id'];
+                        }
+                        if ($values) {
+                            $feature_join_index++;
+                            $this->joins[] = array(
+                                'table' => 'shop_product_features',
+                                'alias' => 'pf'.$feature_join_index
+                            );
+                            $this->where[] = 'pf'.$feature_join_index.".feature_id = ".$row['feature_id'];
+                            $this->where[] = 'pf'.$feature_join_index.".feature_value_id ".
+                                (count($values) == 1 ? "= ".$values[0] : "IN (".implode(',', $values).")");
+                            $this->group_by = 'p.id';
+                        }
+                    }
+                    break;
             }
         }
         if ($sum) {
@@ -564,7 +608,7 @@ class shopProductsCollection
                         $this->order_by = 'p.create_datetime DESC';
                         $this->group_by = null;
                         $q = $model->escape($parts[2], 'like');
-                        $this->where[] = "p.name LIKE '%".$q."%' OR skus.sku LIKE '%".$q."%'";
+                        $this->where[] = "p.name LIKE '%".$q."%' OR skus.name LIKE '%".$q."%' OR skus.sku LIKE '%".$q."%'";
                         $this->joins[] = array(
                             'table' => 'shop_product_skus',
                             'alias' => 'skus'

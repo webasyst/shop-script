@@ -6,10 +6,14 @@
     $(function () {
     $("#compare-all").click(function () {
         $("#compare-table tr.same").show();
+        $(this).closest('ul').find('li.selected').removeClass('selected');
+        $(this).parent().addClass('selected');
         return false;
     });
     $("#compare-diff").click(function () {
         $("#compare-table tr.same").hide();
+        $(this).closest('ul').find('li.selected').removeClass('selected');
+        $(this).parent().addClass('selected');
         return false;
     });
 

@@ -9,6 +9,14 @@ return array(
      'description' => '',
      ),
      */
+    'id'                    => array(
+        'type'        => 'fixed',
+        'name'        => 'идентификатор товарного предложения',
+        'description' => '',
+        'attribute'   => true,
+        'source'      => 'field:id',
+    ),
+
     'url'                   => array(
         'type'        => 'fixed',
         'name'        => 'URL - адрес страницы товара',
@@ -101,19 +109,28 @@ return array(
         'source'   => 'field:type_id',
         'category' => array('vendor.model', )
     ),
+    'name'                  => array(
+        'type'        => 'adjustable',
+        'name'        => 'Название',
+        'description' => 'Наименование товарного предложения',
+        'source'      => 'field:name',
+        'sort'        => 1,
+    ),
 
     'vendor'                => array(
         'type'        => 'adjustable',
         'name'        => 'Производитель',
         'description' => '',
-        'category'    => array('vendor.model', )
+        'category'    => array('vendor.model', 'simple', ),
+        'sort'        => 5,
     ),
 
     'vendorCode'            => array(
         'type'        => 'adjustable',
         'name'        => 'Код',
         'description' => 'Код производителя',
-        'category'    => array('vendor.model', )
+        'category'    => array('vendor.model', 'simple', ),
+        'sort'        => 6,
     ),
 
     'model'                 => array(
@@ -123,13 +140,6 @@ return array(
         'category'    => array('vendor.model', )
     ),
     /* END vendor.model*/
-    'name'                  => array(
-        'type'        => 'adjustable',
-        'name'        => 'Название',
-        'description' => 'Наименование товарного предложения',
-        'source'      => 'field:name',
-        'sort'        => 1,
-    ),
 
     'description'           => array(
         'type'        => 'adjustable',

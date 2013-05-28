@@ -56,14 +56,14 @@
                     <i class="icon16 status-yellow"></i>[`Stock`]
                 </a>
             </li>
-            
+
             <!-- plugin hook: 'backend_products.sidebar_top_li' -->
             {* @event backend_products.%plugin_id%.sidebar_top_li *}
             {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
 
         </ul>
     </div>
-    
+
     <!-- plugin hook: 'backend_products.sidebar_section' -->
     {* @event backend_products.%plugin_id%.sidebar_section *}
     {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
@@ -78,7 +78,7 @@
         </h5>
 
         <div class="hierarchical s-collection-list" id="s-category-list">
-        
+
             {include './include.categories.html' inline}
 
             <div class="block s-empty-list"  {if !empty($categories)}style="display:none;"{/if}>
@@ -198,8 +198,9 @@
 {/literal}
 </script>
 
-<script>
+<script type="text/javascript">$(function() {
     $.products.init({
         view: '{$default_view}'
     });
-</script>
+});</script>
+

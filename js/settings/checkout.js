@@ -8,6 +8,8 @@
 $.extend($.settings = $.settings || {}, {
     checkoutInit: function(options) {
 
+        $.settings.checkoutOptions = options || {};
+        $.settings.checkoutOptions.loc = this.checkoutOptions.loc || {};
 
         // checkout steps
         $("#checkout-steps td div.float-right").on('click', 'a.link-options', function() {
@@ -17,15 +19,12 @@ $.extend($.settings = $.settings || {}, {
             if (form.is(':hidden')) {
                 $.post('?module=settings&action=checkoutOptions', {step_id: step_id}, function (html) {
                     $(html).insertAfter(form.find('div.field.system:first'));
-                    form.show();
+                    form.show(200);
                 });
             } else {
-                form.find('div.field').each (function () {
-                    if (!$(this).hasClass('system')) {
-                        $(this).remove();
-                    }
-                })
-                form.hide();
+                form.hide(200, function() {
+                    form.find('div.field:not(.system)').remove();
+                });
             }
             return false;
         });
@@ -54,12 +53,25 @@ $.extend($.settings = $.settings || {}, {
             return false;
         });
 
-        $("#checkout-steps td form").submit(function () {
-            var tr = $(this).closest('tr');
-            $.post($(this).attr('action'), $(this).serialize(), function (response) {
-                tr.find('a.link-options').click();
-                tr.find("h3.name").text(response.data.name);
-            }, "json");
+        $("#checkout-steps td form").submit(function (e) {
+            var form = $(this);
+            setTimeout(function() {
+                if (!e.validation_failed) {
+                    $.post(form.attr('action'), form.serialize(), function (response) {
+                        var tr = form.closest('tr');
+                        tr.find('a.link-options').click();
+                        tr.find("h3.name").text(response.data.name);
+                        form.find(':submit').removeClass('yellow').addClass('green');
+                        form.closest('td').find('.links').after(
+                            $('<div class="float-right" style="margin-right:20px;"><i class="icon16 yes"></i> '+$.settings.checkoutOptions.loc.saved+'</div>').animate({
+                                opacity: 0
+                            }, 1000, function() {
+                                $(this).remove();
+                            })
+                        );
+                    }, "json");
+                }
+            }, 1);
             return false;
         });
 
@@ -112,24 +124,6 @@ $.extend($.settings = $.settings || {}, {
                         var d = $(this);
                         var form = d.find('form');
 
-                        // Link to add new rule
-                        d.on('click', '.s-add-rule', function() {
-                            var item_tmpl = d.find('.s-new-rule');
-                            if (item_tmpl.length) {
-                                var new_item = item_tmpl.clone();
-                                new_item.removeClass('s-new-rule').show().insertBefore(item_tmpl);
-                                new_item.find('input[name^="parent"]').attr('disabled', false);
-                                new_item.find('.s-add-value').click();
-                                sortable(d);
-
-                                var index = parseInt(item_tmpl.find('input[name="parent[]"]').val(), 10) + 1 || 1;
-                                item_tmpl.find('input[name="parent[]"]').val(index);
-                                item_tmpl.find('input[name^="parent_value"]').attr('name', 'parent_value['+index+']');
-                                item_tmpl.find('input[name^="value"]').attr('name', 'value['+index+'][0]');
-                            }
-                            return false;
-                        });
-
                         // Link to add new value
                         d.on('click', '.s-add-value', function() {
                             var self = $(this);
@@ -149,6 +143,29 @@ $.extend($.settings = $.settings || {}, {
                             }
                             return false;
                         });
+
+                        // Link to add new rule
+                        var f;
+                        d.on('click', '.s-add-rule', f = function() {
+                            var item_tmpl = d.find('.s-new-rule');
+                            if (item_tmpl.length) {
+                                var new_item = item_tmpl.clone();
+                                new_item.removeClass('s-new-rule').show().insertBefore(item_tmpl);
+                                new_item.find('input[name^="parent"]').attr('disabled', false);
+                                new_item.find('.s-add-value').click();
+                                sortable(d);
+
+                                var index = parseInt(item_tmpl.find('input[name="parent[]"]').val(), 10) + 1 || 1;
+                                item_tmpl.find('input[name="parent[]"]').val(index);
+                                item_tmpl.find('input[name^="parent_value"]').attr('name', 'parent_value['+index+']');
+                                item_tmpl.find('input[name^="value"]').attr('name', 'value['+index+'][0]');
+                            }
+                            return false;
+                        });
+                        // Add new rule right away when there's no rules yet
+                        if (d.find('.s-new-rule').siblings().length <= 0) {
+                            f();
+                        }
 
                         // Link to delete value
                         d.on('click', '.s-delete-value', function() {
@@ -178,6 +195,21 @@ $.extend($.settings = $.settings || {}, {
                         var self = $(this);
                         var data = self.serializeArray();
 
+                        // Validation
+                        var validation_passed = true;
+                        self.find('.errormsg').remove();
+                        self.find('.error').removeClass('error');
+                        self.find('[name^="parent_value["]:not(:disabled)').each(function() {
+                            if (!this.value) {
+                                validation_passed = false;
+                                $(this).addClass('error').after($('<em class="errormsg"></em>').text($.settings.checkoutOptions.loc.field_is_required));
+                            }
+                        });
+                        if (!validation_passed) {
+                            $('#s-field-values').closest('.dialog').find('.dialog-buttons :submit').attr('disabled', false);
+                            return false;
+                        }
+
                         // Copy to main form the data that is to be saved to ContactField config
                         if (d.find('select.otherwise-options').val() == 'input') {
                             input_hide_unmatched.val('');
@@ -188,6 +220,9 @@ $.extend($.settings = $.settings || {}, {
                         // Save data to DB via a separate controller
                         $.shop.jsonPost(self.attr('action'), data, function(r) {
                             d.trigger('close');
+                            var wrapper = input_hide_unmatched.closest('.field-advanced-settings');
+                            wrapper.find('.show-when-modified').show();
+                            wrapper.find('.hide-when-modified').hide();
                         });
 
                         return false;

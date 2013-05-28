@@ -52,25 +52,32 @@ class shopFrontendCheckoutAction extends waViewAction
 
             if ($current_step != 'error') {
                 if (waRequest::method() == 'post') {
-                    $redirect = false;
-                    foreach ($steps as $step_id => $step) {
-                        if ($step_id == $current_step) {
-                            $step_instance = $this->getStep($step_id);
-                            if ($step_instance->execute()) {
-                                $redirect = true;
+                    if (waRequest::post('wa_auth_login')) {
+                        $login_action = new shopLoginAction();
+                        $login_action->run();
+                    } else {
+                        $redirect = false;
+                        foreach ($steps as $step_id => $step) {
+                            if ($step_id == $current_step) {
+                                $step_instance = $this->getStep($step_id);
+                                if ($step_instance->execute()) {
+                                    $redirect = true;
+                                }
+
+                            } elseif ($redirect) {
+                                $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => $step_id)));
                             }
+                        }
 
-                        } elseif ($redirect) {
-                            $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => $step_id)));
+                        // last step
+                        if ($redirect) {
+                            if ($this->createOrder()) {
+                                $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => 'success')));
+                            }
                         }
                     }
-
-                    // last step
-                    if ($redirect) {
-                        if ($this->createOrder()) {
-                            $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => 'success')));
-                        }
-                    }
+                } else {
+                    $this->view->assign('error', '');
                 }
                 $title .= ' - '.$steps[$current_step]['name'];
                 $steps[$current_step]['content'] = $this->getStep($current_step)->display();
@@ -144,6 +151,7 @@ class shopFrontendCheckoutAction extends waViewAction
     protected function createOrder()
     {
         $checkout_data = $this->getStorage()->get('shop/checkout');
+
         $contact = $this->getUser()->isAuth() ? $this->getUser() : $checkout_data['contact'];
         $cart = new shopCart();
         $items = $cart->items(false);
@@ -175,6 +183,12 @@ class shopFrontendCheckoutAction extends waViewAction
             }
             if (!isset($order['shipping'])) {
                 $order['shipping'] = $rate['rate'];
+            }
+            if (!empty($order['params']['shipping'])) {
+                foreach ($order['params']['shipping'] as $k => $v) {
+                    $order['params']['shipping_params_'.$k] = $v;
+                }
+                unset($order['params']['shipping']);
             }
         } else {
             $order['shipping'] = 0;

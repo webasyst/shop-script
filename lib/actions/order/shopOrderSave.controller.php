@@ -19,8 +19,11 @@ class shopOrderSaveController extends waJsonController
         if ($customer_id !== null) {
             $contact = new waContact($customer_id);
             $form = shopHelper::getCustomerForm($customer_id);
-            if (!$form->isValid($contact)) {
-                $this->errors['customer']['html'] = $form->html();
+            $customer_validation_disabled = wa()->getSetting('disable_backend_customer_form_validation');
+            if (!$customer_validation_disabled) {
+                if (!$form->isValid($contact)) {
+                    $this->errors['customer']['html'] = $form->html();
+                }
             }
         }
 
@@ -47,9 +50,23 @@ class shopOrderSaveController extends waJsonController
                 }
             }
 
-            if ( ( $errors = $contact->save(array(), true))) {
-                $this->errors['customer'] = $errors;
-                return;
+            if ($customer_validation_disabled) {
+                $contact->save();
+            } else {
+                $errors = $contact->save(array(), true);
+                if ($errors) {
+
+                    // Only consider errors from visible fields
+                    $errors = array_intersect_key($errors, $form->fields);
+
+                    if ($errors) {
+                        $this->errors['customer'] = $errors;
+                        return;
+                    } else {
+                        // No errors from visible fields: save anyway
+                        $contact->save();
+                    }
+                }
             }
             $data['contact'] = $contact;
         }
@@ -100,6 +117,12 @@ class shopOrderSaveController extends waJsonController
             $data['params']['shipping_plugin'] = $plugin->getId();
             $data['params']['shipping_name'] = $plugin_info['name'].(!empty($rate['name']) ? ' ('.$rate['name'].')' : '');
             $data['params']['shipping_est_delivery'] = $rate['est_delivery'];
+
+            if (waRequest::post('shipping'.$shipping_id)) {
+                foreach (waRequest::post('shipping_'.$shipping_id) as $k => $v) {
+                    $data['params']['shipping_params_'.$k] = $v;
+                }
+            }
         } else {
             foreach (array('id', 'rate_id', 'plugin', 'name', 'est_delivery') as $k) {
                 $data['params']['shipping_'.$k] = null;
@@ -111,6 +134,12 @@ class shopOrderSaveController extends waJsonController
             $plugin_info = $model->getById($payment_id);
             $data['params']['payment_plugin'] = $plugin_info['plugin'];
             $data['params']['payment_name'] = $plugin_info['name'];
+
+            if (waRequest::post('payment_'.$payment_id)) {
+                foreach (waRequest::post('payment_'.$payment_id) as $k => $v) {
+                    $data['params']['payment_params_'.$k] = $v;
+                }
+            }
         }
 
         // shipping and billing addreses

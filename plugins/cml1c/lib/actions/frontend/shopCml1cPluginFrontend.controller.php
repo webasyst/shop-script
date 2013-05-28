@@ -34,6 +34,7 @@ class shopCml1cPluginFrontendController extends waController
     public function execute()
     {
         @set_time_limit(0);
+        wa()->setLocale('ru_RU');
 
         $uuid = wa()->getPlugin('cml1c')->uuid();
         if (empty($uuid) || (waRequest::param('hash') != $uuid)) {
@@ -99,7 +100,7 @@ class shopCml1cPluginFrontendController extends waController
                             $_POST['direction'] = 'export';
                             $_POST['export'] = array(
                                 'order'     => true,
-                                'new_order' => true,
+                                'new_order' => false,
                             );
                             ob_start();
                             $this->runner()->run();

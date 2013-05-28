@@ -58,16 +58,22 @@ table.cart td .services { margin-bottom: 0; }
 .review-form .review-submit { padding-left: 0; }
 .review-form .wa-captcha img { margin-bottom: 10px; }
 
+.wa-form { overflow: hidden; }
 .wa-form .wa-field .wa-name { float: none; padding-bottom: 0; }
 .wa-form .wa-field .wa-value { margin-left: 0; }
 .wa-form .wa-field .wa-value p span { display: block; }
+.wa-auth-adapters p { width: 100%; }
 
-.checkout { margin: 0 0 30px; }
+.checkout { margin: 20px 0; padding-bottom: 30px; }
 .checkout ul.checkout-options li { width: 100%; }
 .checkout ul.checkout-options li img { display: none; }
 .checkout ul.checkout-options li p { font-size: 0.6em; line-height: 1.3em; }
-.checkout ul.checkout-options li .rate { min-width: 0; }
+.checkout ul.checkout-options li .rate { min-width: 0; width: auto; max-width: 150px; padding-top: 5px; }
+.checkout ul.checkout-options li .rate.error { font-size: 0.7em; line-height: 1em; padding-top: 10px; }
 .checkout ul.checkout-options li .rate .hint { display: none; }
 .checkout ul.checkout-options li .wa-form.wa-address p { font-size: 1em; }
 .checkout table.table th { display: none; }
 .checkout table.table td { display: inline-block; border: 0; padding-left: 0; }
+.checkout blockquote ul.menu-v li { font-size: 0.7em; padding: 10px 0; line-height: 1.3em; }
+.checkout li .wa-form { margin-left: -25px; }
+.checkout .checkout-step input[type="submit"] { margin: 0 auto; display: block; font-size: 1.2em; font-weight: bold; }

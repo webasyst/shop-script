@@ -49,12 +49,12 @@
                        {$plugin.name|escape}
                        {if empty($plugin.status)}([`disabled`]){/if}
                     </h3>
-                    <p class="hint">{$plugin.description}</p>
+                    <p class="hint">{strip_tags($plugin.description)}</p>
                 </td>
                 <td>
                     <ul class="menu-h with-icons">
                         <li><a href="#/payment/plugin/setup/{$id}/" class="nowrap"><i class="icon16 settings"></i>[`Configure`]</a></li>
-                        <li><a href="#/payment/plugin/delete/{$id}/" class="nowrap js-action js-confirm"><i class="icon16 delete"></i>[`Delete`]</a></li>
+                        <li><a href="#/payment/plugin/delete/{$id}/" class="nowrap js-action js-confirm" data-confirm-text="[`This will permanently delete this payment option. Are you sure?`]"><i class="icon16 delete"></i>[`Delete`]</a></li>
                     </ul>
                 </td>
 

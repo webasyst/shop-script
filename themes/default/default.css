@@ -170,7 +170,7 @@ ul.menu-h li.selected ul * { background: #fff !important; }
 .wa-form .wa-field .wa-value .errormsg { margin-left: 0; }
 .wa-form .wa-field .wa-value.wa-submit { margin-top: 10px; }
 .wa-form .wa-field .wa-value p label { display: block; margin: 0; }
-.wa-form .wa-field .wa-value p { line-height: 1.6em; margin-bottom: 13px; position: relative; } 
+.wa-form .wa-field .wa-value p { line-height: 1.6em; margin-bottom: 23px; position: relative; } 
 .wa-form .wa-field .wa-value p span { color: #777; font-size: 0.9em; display: block; }
 .wa-form .wa-field .wa-value p i.icon16 { float: left; left: -20px; margin-top: 2px; position: absolute; }
 .wa-form .wa-field .wa-value p input { display: block; margin-bottom: 2px; }
@@ -259,7 +259,7 @@ table.compare th { text-align: left; }
 table.compare td img { display: block; margin: 0 auto 10px; }
 
 ul.thumbs { padding: 0; margin: 0; }
-ul.thumbs li { display:inline-block; vertical-align:top; padding: 0; margin: 0 30px 40px 0px; position: relative; display: block\9; float: left\9; /* IE8- hack */ }
+ul.thumbs li { display:inline-block; vertical-align:top; padding: 0; margin: 0 30px 40px 0px; position: relative; display: block\9; float: left\9; height: 320px\9; /* IE8- hack */ }
 ul.thumbs img { margin-bottom: 2px; display: block; }
 ul.thumbs img.overhanging { position: absolute; left: -20px; }
 ul.thumbs i.icon16.overhanging { position: absolute; left: -20px; margin: 0; top: 2px; }
@@ -328,13 +328,13 @@ table.features .name { min-width: 95px; color: #777; font-size: 0.95em; padding-
 /* Checkout */
 
 .checkout { margin: 30px 100px 100px; }
-.checkout ul.checkout-navigation { margin-bottom: 30px; text-align: center; }
+.checkout ul.checkout-navigation { margin: 25px 0; text-align: center; }
 .checkout ul.checkout-navigation li.upcoming a { text-decoration: none; color: #aaa !important; cursor: default; }
 .checkout ul.checkout-options { padding-left: 25px; margin-top: 30px; }
-.checkout ul.checkout-options li { list-style: none; position: relative; margin-bottom: 50px; width: 80%; clear: both; }
+.checkout ul.checkout-options li { list-style: none; position: relative; margin-bottom: 50px; width: 90%; clear: both; }
 .checkout ul.checkout-options li h3 { font-weight: bold; margin-bottom: 10px; }
 .checkout ul.checkout-options li h3 label { margin-right: 10px; }
-.checkout ul.checkout-options li .rate { float: right; text-align: center; min-width: 250px; }
+.checkout ul.checkout-options li .rate { float: right; text-align: center; width: 250px; }
 .checkout ul.checkout-options li p { width: 70%; }
 .checkout ul.checkout-options li input[type="radio"] { position: absolute; top: 7px; left: -25px; }
 .checkout ul.checkout-options li img.method-logo { position: relative; float: left; margin-right: 10px; top: -5px; left: 0px; /* adjusted for default 60x32-px logos */ }
@@ -349,6 +349,9 @@ table.features .name { min-width: 95px; color: #777; font-size: 0.95em; padding-
 .checkout .comment { width: 100%; height: 100px; margin-bottom: 20px; }
 .checkout blockquote img { margin-right: 20px; float: left; }
 .checkout blockquote p { color: #000; margin-bottom: 0; }
+.checkout blockquote ul.menu-v { margin: 0; }
+.checkout blockquote ul.menu-v li { font-size: 1.1em; margin: 0px 0; line-height: 2em; }
+.checkout blockquote ul.menu-v li input { margin-right: 5px; }
 
 /* Product reviews */
 
@@ -422,3 +425,4 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
 .icon16.stock-yellow { background-position:-144px 0; }
 .icon16.stock-green { background-position:-160px 0; }
 .icon16.stock-transparent { background-position:-176px 0; }
+.icon16.loading { background-image: url("img/loading16.gif"); background-position:0 0; }

@@ -6,14 +6,32 @@ class shopConsignmentruPluginPrintformDisplayAction extends waViewAction
         //XXX check rights
         $plugin_id = 'consignmentru';
         $plugin = waSystem::getInstance()->getPlugin($plugin_id);
-        $order = shopPayment::getOrderData($order_id = waRequest::request('order_id', null, waRequest::TYPE_INT), $this);
-        if (!$order && ($order_id || (wa()->getEnv() != 'backend'))) {
-            throw new waException('Order not found', 404);
+        $order_id = waRequest::request('order_id', null, waRequest::TYPE_INT);
+        $order = shopPayment::getOrderData($order_id, $this);
+        switch (wa()->getEnv()) {
+            case 'backend':
+                if (!$order && !$order_id) {
+                    $dummy_order = array(
+                        'contact_id' => $this->getUser()->getId(),
+                        'id'         => 1,
+                        'id_str'     => shopHelper::encodeOrderId(1),
+                        'currency'   => $this->allowedCurrency(),
+                    );
+                    $order = waOrder::factory($dummy_order);
+                } elseif (!$order) {
+                    throw new waException('Order not found', 404);
+                }
+                break;
+            default:
+                if (!$order) {
+                    throw new waException('Order not found', 404);
+                }
+                break;
         }
 
         $product_model = new shopProductModel();
 
-        if ($order && $order->items) {
+        if ($order->id && $order->items) {
             $items = $this->getItems($order);
         } else {
             $items = array();
@@ -29,6 +47,10 @@ class shopConsignmentruPluginPrintformDisplayAction extends waViewAction
         return 'RUB';
     }
 
+    /**
+     *
+     * @param waOrder $order
+     */
     private function getItems($order)
     {
         $items = $order->items;
@@ -50,7 +72,7 @@ class shopConsignmentruPluginPrintformDisplayAction extends waViewAction
             $k = 1.0 - ($order->discount) / ($order->total + $order->discount - $order->shipping);
 
             foreach ($items as & $item) {
-                if ($item['tax_inclided']) {
+                if ($item['tax_included']) {
                     $item['tax'] = round($k * $item['tax'], 4);
                 }
                 $item['price'] = round($k * $item['price'], 4);

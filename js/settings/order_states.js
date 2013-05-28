@@ -47,22 +47,28 @@ $.extend($.settings = $.settings || {}, {
 
         var sidebar = $('.s-settings-order-states.sidebar');
         $('#s-delete-state').unbind('click').bind('click', function() {
-            var self = $(this);
-            $.shop.jsonPost(self.attr('href'), { id: options.id }, function(r) {
-                var selected = sidebar.find('li.selected');
-                var prev = selected.prev('.dr');
-                if (prev.length) {
-                    $.settings.dispatch(prev.find('a').attr('href'),  true);
-                } else {
-                    var next = selected.next('.dr');
-                    if (next.length) {
-                        $.settings.dispatch(next.find('a').attr('href'),  true);
-                    } else {
-                        $.settings.dispatch('#/orderStates/',  true);
-                        sidebar.find('li:not(.dr):first').addClass('selected');
+            if (confirm($_('This will delete this order state. Are you sure?'))) {
+                var self = $(this);
+                $.post(self.attr('href'), { id: options.id }, function(r) {
+                    if (r.status == 'ok') {
+                        var selected = sidebar.find('li.selected');
+                        var prev = selected.prev('.dr');
+                        if (prev.length) {
+                            $.settings.dispatch(prev.find('a').attr('href'),  true);
+                        } else {
+                            var next = selected.next('.dr');
+                            if (next.length) {
+                                $.settings.dispatch(next.find('a').attr('href'),  true);
+                            } else {
+                                $.settings.dispatch('#/orderStates/',  true);
+                                sidebar.find('li:not(.dr):first').addClass('selected');
+                            }
+                        }
+                    } else if (r.status == 'fail') {
+                        alert(r.errors);
                     }
-                }
-            });
+                }, "json");
+            }
             return false;
         });
 
