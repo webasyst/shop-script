@@ -40,7 +40,14 @@ $.extend($.settings = $.settings || {}, {
           var stock_id = parseInt(tr.attr('data-id'), 10);
           if (tr.length) {
                if (stock_id) {
-                   var d = $("#s-settings-delete-stock");
+
+                   var d = null;
+                   if (content.find('.s-stock').length > 1) {
+                       d = $("#s-settings-delete-stock");
+                   } else {
+                       d = $("#s-settings-delete-last-stock");
+                   }
+
                    if (d.parent().get(0) != document.body) {
                        $(document.body).append(d);
                    }

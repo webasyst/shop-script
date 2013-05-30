@@ -206,7 +206,7 @@ $.extend($.settings = $.settings || {}, {
             return false;
         });
 
-        form.find('input[type=radio]').change(function() {
+        form.find('input[name=use_product_currency]').change(function() {
             submit_button.parents('.submit:first').show();
         });
 

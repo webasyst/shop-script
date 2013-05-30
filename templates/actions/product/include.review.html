@@ -3,7 +3,15 @@
         <div class="image">
         
             <!-- product thumbnail -->
-            <a href="#/product/{$review.product_id}/" title="{$product.name|escape}">
+            <a href="#/product/{$review.product_id}/"
+                title="
+                    {if isset($product)}
+                        {$product.name|escape}
+                    {else if ($review.product_name)}
+                        {$review.product_name|escape}
+                    {/if}
+                "
+            >
                 {if !empty($review.product_url_crop_small)}
                     <img src="{$review.product_url_crop_small}">
                 {else}

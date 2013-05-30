@@ -651,8 +651,11 @@
 
         initToolbar: function() {
             var toolbar = this.toolbar;
-            toolbar.find('li').unbind('click').bind('click', function() {
+            toolbar.find('li').unbind('click.product_list').bind('click.product_list', function() {
                 var action = $(this).attr('data-action');
+                if (!action) {
+                    return;
+                }
                 var products = $.product_list.getSelectedProducts(action != 'delete');
                 if (!products.count) {
                     alert($_('Please select at least one product'));
@@ -698,10 +701,10 @@
 
         /**
          * Get special key-value object for mass operations (delete, delete-from-set and etc) Taking into account all-products checkbox (s-select-all)
-         * 
+         *
          * Object say how many products are selected (key 'count'), and info about products or hash If all-products checkbox is activated than object has hash
          * info, else object has products info
-         * 
+         *
          * @param {Boolean} serialize If true than hash/product info packed into field with key 'serialized' else hash info corresponds 'hash'-key and products
          *        info corresponds 'products'-key
          * @returns {Object}

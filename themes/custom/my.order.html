@@ -86,7 +86,9 @@
         </tr>
         {foreach $order.items as $item}
             <tr{if $item.type == 'service'} class="service"{/if}>
-                <td>{if $item.type == 'service'}+ {/if}{$item.name}</td>
+                <td>{if $item.type == 'service'}+ {/if}{$item.name}
+                    {if $item.type == 'product' && !empty($item.download_link)}<a href="{$item.download_link}"><strong>[`Download`]</strong></a>{/if}
+                </td>
                 <td class="align-right"><span class="gray">{wa_currency($item.price, $order.currency)} x</span> {$item.quantity}</td>
                 <td class="align-right">{wa_currency($item.price * $item.quantity, $order.currency)}</td>
             </tr>

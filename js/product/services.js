@@ -238,19 +238,39 @@
                         return false;
                     }
                 });
+
+                // save service info for services page
                 $('#s-save-service-submit').click(function() {
-                    $(this).parent().find('i.loading').show();
+                    var showSuccessIcon = function() {
+                        var icon = $('#s-save-service-submit').parent().find('i.yes').show();
+                        setTimeout(function() {
+                            icon.hide();
+                        }, 3000);
+                    };
+                    var showLoadingIcon = function() {
+                        var p = $('#s-save-service-submit').parent();
+                        p.find('i.yes').hide();
+                        p.find('i.loading').show();
+                    };
+                    // after update services hash, dispathing and load proper content
+                    // 'afterServicesAction' will be called. Extend this handler
+                    var prevHandler = $.products.afterServicesAction;
+                    $.products.afterServicesAction = function() {
+                        showSuccessIcon();
+                        if (typeof prevHandler == 'function') {
+                            prevHandler.apply($.products, arguments);
+                        }
+                        $.products.afterServicesAction = prevHandler;
+                    };
+                    // send post
+                    showLoadingIcon();
                     $.products.jsonPost(form.attr('action'), form.serialize(),
                         function(r) {
-                            $.products.load(
-                                '?module=services' + (r.data.id ? '&id=' + r.data.id : '') + '&saved=1', function() {
-                                    $("#s-content").addClass('bordered-left');
-                                    var icon = $('#s-save-service-submit').parent().find('i.yes').show();
-                                    setTimeout(function() {
-                                        icon.hide();
-                                    }, 3000);
-                                }
-                            );
+                            if ($.product_services.service_id) {
+                                $.products.dispatch();
+                            } else {
+                                $.wa.setHash('#/services/' + r.data.id + '/');
+                            }
                         }
                     );
                     return false;
@@ -283,6 +303,9 @@
                             $.product_services.container.find('#s-services-list li.selected .name').text(name);
                         });
                     }
+                },
+                afterMakeEditable: function(input) {
+                    input.select();
                 }
             });
             if (!this.service_id) {

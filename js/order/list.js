@@ -241,12 +241,8 @@ $.order_list = {
         this.container.find('.selected').removeClass('selected');
         this.container.find('[data-order-id=' + order_id + ']').addClass('selected');
 
-        $('#s-order').html(
-            '<div class="block double-padded">' +
-                $_('Loading') + ' ' +
-            '<i class="icon16 loading"></i></div>'
-        );
-
+        var order_title = $('#s-order-title');
+        order_title.find('.loading').show();
         $.orders.load(
             '?module=order&id= ' + order_id + '&' + this.filter_params_str,
             { content: $('#s-order') },

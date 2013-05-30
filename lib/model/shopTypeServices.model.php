@@ -8,8 +8,10 @@ class shopTypeServicesModel extends waModel
     {
         $service_id = (int)$service_id;
         $sql = "SELECT t.* ".(!$just_own ? ', ts.type_id' : '')."
-                    FROM `shop_type` t ".(!$just_own ? 'LEFT' : '')."
-                    JOIN `{$this->table}` ts ON t.id = ts.type_id AND service_id = $service_id";
+                FROM `shop_type` t ".(!$just_own ? 'LEFT' : '')."
+                JOIN `{$this->table}` ts ON t.id = ts.type_id AND service_id = $service_id
+                ORDER BY t.sort
+        ";
         return $this->query($sql)->fetchAll();
     }
 

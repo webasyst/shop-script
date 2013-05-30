@@ -5796,3 +5796,43 @@ msgstr ""
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:66
 msgid "Please double-check the address above, or return to the shipping step and select another shipping option."
 msgstr ""
+
+#: /wa-apps/shop/themes/default/index.html:98
+msgid "We are using <a href=\"http://www.shop-script.com/\">Shop-Script 5</a>"
+msgstr ""
+
+#: /wa-apps/shop/themes/clear/home.html:43
+msgid "Special offers for %s"
+msgstr ""
+
+#: /wa-apps/shop/themes/clear/product.html:189
+msgid "%s is now <a href=\"%s\"><strong>in your shopping cart</strong></a>"
+msgstr ""
+
+#: /wa-apps/shop/themes/clear/navigation.html:47
+msgid "Brands"
+msgstr ""
+
+#: /wa-apps/shop/themes/clear/navigation.html:47
+msgid "More"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductSetSettings.html:36
+msgid "By name"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:9
+msgid "Registered customers apply for affiliate bonuses and discounts on future orders"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/shopFrontendCart.action.php:43
+msgid "Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed."
+msgstr ""
+
+#: /wa-apps/shop/themes/sidebar/checkout.success.html:17
+msgid "Your payment has been successfully accepted. We will process your order and contact you shortly."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/product/shopProductReviews.action.php:17
+msgid "Unkown product"
+msgstr ""

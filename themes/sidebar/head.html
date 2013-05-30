@@ -1,0 +1,21 @@
+<!-- shop app css -->
+<link href="{$wa_active_theme_url}sidebar.shop.css?{$wa->version()}" rel="stylesheet" type="text/css">
+<link href="{$wa_active_theme_url}jquery.bxslider.css" rel="stylesheet" />
+<link href="{$wa_active_theme_url}sidebar.shop.mobile.css?{$wa->version()}" media="screen and (max-width: 760px)" rel="stylesheet" type="text/css">
+
+<!-- js -->
+<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-wa/wa.core.js"></script>
+<script type="text/javascript" src="{$wa_active_theme_url}lazyloading.js"></script>
+<script src="{$wa_active_theme_url}jquery.bxslider.min.js"></script>
+{$wa->js()}
+<script type="text/javascript" src="{$wa_app_static_url}js/lazy.load.js?v={$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_active_theme_url}sidebar.shop.js"></script>
+
+{if !empty($nofollow)}
+    <!-- "nofollow" for pages not to be indexed, e.g. customer account -->
+    <meta name="robots" content="noindex,nofollow" />
+{/if}
+
+<!-- plugin hook: 'frontend_head' -->
+{* @event frontend_head.%plugin_id% *}
+{foreach $frontend_head as $_}{$_}{/foreach}

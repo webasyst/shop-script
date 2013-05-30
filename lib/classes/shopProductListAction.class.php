@@ -60,6 +60,7 @@ class shopProductListAction extends waViewAction
     {
         $hash = waRequest::request('hash', null, waRequest::TYPE_STRING_TRIM);
         if ($hash) {
+            $this->collection_param = 'hash='.$hash;
             return explode('/', trim(ltrim($hash, '#'), '/'));
         }
 

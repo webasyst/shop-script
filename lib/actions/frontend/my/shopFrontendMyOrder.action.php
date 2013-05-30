@@ -22,6 +22,16 @@ class shopFrontendMyOrderAction extends shopFrontendAction
             throw new waException(_w('Order not found'), 404);
         }
 
+        if ($order['paid_date']) {
+            foreach ($order['items'] as &$i) {
+                if (!empty($i['file_name'])) {
+                    $i['download_link'] = wa()->getRouteUrl('/frontend/myOrderDownload',
+                        array('id' => $order['id'], 'code' => $order['params']['auth_code'], 'item' => $i['id']), true);
+                }
+            }
+            unset($i);
+        }
+
         $workflow = new shopWorkflow();
         $order_params_model = new shopOrderParamsModel();
         $order['params'] = $order_params_model->get($order['id']);

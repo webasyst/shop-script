@@ -1,0 +1,6 @@
+<!-- info pages -->
+{$shop_pages=$wa->shop->pages()}
+{if $shop_pages}
+   {wa_print_tree tree=$shop_pages class="menu-v" attrs = 'id="page-list"' elem ='
+    <a href=":url" title=":title">:name</a>' collapsible_class='collapsible' selected=$wa->param('page_id') unfolded=true}
+{/if}

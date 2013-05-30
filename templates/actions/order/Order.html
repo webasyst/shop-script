@@ -50,7 +50,7 @@
             <!-- order aux info -->
             <p class="gray">
                 [`Order created`]: <strong>{$order.create_datetime|wa_datetime:"humandatetime"}</strong><br>
-                {if !empty($order.params.storefront)}[`Source`]: <strong>{$order.params.storefront}</strong><br>{/if}
+                {if !empty($order.params.storefront)}[`Storefront`]: <strong>{$order.params.storefront}</strong><br>{/if}
                 {if !empty($order.params.referer)}[`Referrer`]: <strong>{$order.params.referer}</strong><br>{/if}
                 {if !empty($order.params.keyword)}[`Keyword`]: <strong>{$order.params.keyword}</strong><br>{/if}
                 {if !empty($order.params.ip)}[`IP`]: <strong>{$order.params.ip}</strong><br>{/if}
@@ -59,10 +59,11 @@
         </div>
     
         <!-- order title -->
-        <h1>
+        <h1 id="s-order-title">
             <a href="#/orders/{if $filter_params_str}{$filter_params_str}&view=table/{/if}" class="back order-list" style="display:none;">&larr; [`Orders`]</a>
             <a href="#/order/{$order.id}/{if $filter_params_str}{$filter_params_str}/{/if}" class="back read-mode" style="display:none;">&larr; [`Back`]</a>
             {$wa->shop->orderId($order.id)}
+            <i class="icon16 loading" style="display:none"></i>
     
             <!-- plugin hook: 'backend_order.title_suffix' -->
             {* @event backend_order.%plugin_id%.title_suffix *}
@@ -141,6 +142,13 @@
             <p class="s-order-address">
                 {$shipping_address}
             </p>
+            {if !empty($custom_fields)}
+            <p>
+            {foreach $custom_fields as $f}
+            {$f.title}: {$f.value}<br>
+            {/foreach}
+            </p>
+            {/if}
             <!-- shipping plugin output -->
             {if !empty($params.tracking_number)}
             [`Shipment tracking number`]: {$params.tracking_number}

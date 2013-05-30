@@ -12,7 +12,7 @@ class shopFrontendMyOrdersAction extends shopFrontendAction
 
         // Customer orders
         $om = new shopOrderModel();
-        $orders = $om->where('contact_id=?', $contact->getId())->fetchAll('id');
+        $orders = $om->where('contact_id=?', $contact->getId())->order('id DESC')->fetchAll('id');
 
         // Items for all orders, one query
         $im = new shopOrderItemsModel();

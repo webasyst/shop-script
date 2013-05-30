@@ -1,6 +1,6 @@
 /**
  * {literal}
- * 
+ *
  * @names shipping*
  * @property {} shipping_options
  * @method shippingInit
@@ -18,7 +18,7 @@ if (typeof($) != 'undefined') {
         },
         /**
          * Init section
-         * 
+         *
          * @param string tail
          */
         shippingInit: function() {
@@ -52,6 +52,28 @@ if (typeof($) != 'undefined') {
                 return self.shippingPluginSave($(this));
             });
 
+            var dropdownSetStyle = function(ul) {
+                dropdownResetStyle(ul).show();
+                var win = $(window);
+                if (ul.height() + ul.offset().top > win.scrollTop() + win.height()) {
+                    ul.css({
+                        'height': Math.max(win.scrollTop() + win.height() - ul.offset().top - 10, 100),
+                        'overflow-y': 'scroll'
+                    });
+                }
+            };
+            var dropdownResetStyle = function(ul) {
+                return ul.css({
+                    'height': '',
+                    'overflow-y': ''
+                });
+            };
+
+            $('#s-shipping-menu').mouseover(function() {
+                dropdownSetStyle($(this).find('ul:first'));
+            }).mouseout(function() {
+                dropdownResetStyle($(this).find('ul:first')).hide();
+            });
         },
 
         shipping_data: {
@@ -70,7 +92,7 @@ if (typeof($) != 'undefined') {
         },
 
         /**
-         * 
+         *
          * @param {String} tail
          */
         shippingAction: function(tail) {
@@ -121,7 +143,7 @@ if (typeof($) != 'undefined') {
 
         /**
          * Show plugin setup options
-         * 
+         *
          * @param {String} plugin_id
          * @param {JQuery} $el
          */

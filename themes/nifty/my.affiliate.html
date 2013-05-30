@@ -1,0 +1,46 @@
+<h1>[`Affiliate program`]</h1>
+
+{$balance = $customer.affiliate_bonus|wa_format_number:false}
+{if $customer.affiliate_bonus >= 0}{$balance = '+'|cat:$balance}{/if}
+<p class="large">{sprintf('[`Your current affiliate bonus: <strong class="bonus">%s</strong>`]', $balance)}</strong></p>
+
+<table class="table">
+    <tr class="white">
+        <th></th>
+        <th></th>
+        <th class="align-right">[`Credit`]</th>
+        <th class="align-right">[`Debit`]</th>
+        <th class="align-right">[`Balance`]</th>
+    </tr>
+    {foreach $affiliate_history as $h}
+        <tr>
+            <td class="gray">{$h.create_datetime|wa_date:'humandatetime'}</td>
+            <td>
+                {if $h.order_id}
+                    <a href="{$h.order_url}">[`Order`] {$wa->shop->orderId($h.order_id)}</a>
+                {/if}
+                {if $h.order_id && $h.comment}
+                    <br>
+                {/if}
+                {if $h.comment}
+                    {$h.comment|escape}
+                {/if}
+            </td>
+            <td class="align-right">
+                {if $h.amount > 0}
+                    {$h.amount|wa_format_number:false}
+                {/if}
+            </td>
+            <td class="align-right">
+                {if $h.amount < 0}
+                    {abs($h.amount)|wa_format_number:false}
+                {/if}
+            </td>
+            <td class="align-right">{$h.balance|wa_format_number:false}</td>
+        </tr>
+    {foreachelse}
+        <tr>
+            <td>[`You have no affiliate history yet.`]</td>
+        </tr>
+    {/foreach}
+</table>

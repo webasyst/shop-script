@@ -1,5 +1,6 @@
 <div class="checkout-content" data-step-id="shipping">
 <ul class="checkout-options">
+    {$external_methods = []}
     {foreach $checkout_shipping_methods as $m}
         <li class="shipping-{$m.id}">
             {if empty($m.error)}
@@ -7,6 +8,9 @@
                 <span class="price nowrap">
                     {if $m.rate !== null}
                     {shop_currency($m.rate, $m.currency)}
+                    {elseif $m.external}
+                    {$external_methods[] = $m.id}
+                    [`Loading...`] <i class="icon16 loading"></i>
                     {/if}
                 </span>
                 <em class="hint error comment" {if empty($m.comment)}style="display:none"{/if}>
@@ -63,11 +67,81 @@
     {/foreach}
 </ul>
 <script type="text/javascript">
-    $(".checkout-options").on('change', "select.shipping-rates", function () {
+    $(function () {
+
+    {if $external_methods}
+        $.get("{$wa->getUrl('/frontend/shipping')}", { shipping_id: [{implode(',', $external_methods)}]}, function (response) {
+            for (var shipping_id in response.data) {
+                responseCallback(shipping_id, response.data[shipping_id]);
+            }
+        }, "json");
+    {/if}
+
+    function responseCallback(shipping_id, data) {
+        var name = 'rate_id[' + shipping_id + ']';
+        if (typeof(data) == 'string') {
+            var el = $(".shipping-" + shipping_id).find('.rate');
+            if (el.hasClass('error')) {
+                el.find('em').html(data);
+            } else {
+                el.find('.price, .hint').hide();
+                el.addClass('error').append($('<em class="shipping-error"></em>').html(data));
+            }
+        } else if (data.length > 1) {
+            $(".shipping-" + shipping_id + ' input[name="' + name + '"]').remove();
+            var select = $(".shipping-" + shipping_id + ' select[name="' + name + '"]');
+            var html = '<select class="shipping-rates" name="' + name + '">';
+            for (var i = 0; i < data.length; i++) {
+                var r = data[i];
+                html += '<option data-rate="' + r.rate + '" data-comment="' + (r.comment || '') + '" data-est_delivery="' + (r.est_delivery || '') + '" value="' + r.id + '">' + r.name + ' (' + r.rate + ')</option>';
+            }
+            html += '</select>';
+            if (select.length) {
+                var selected = select.val();
+                select.remove();
+            } else {
+                var selected = false;
+            }
+            select = $(html);
+            $(".shipping-" + shipping_id + " h3").append(select);
+            if (selected) {
+                select.val(selected);
+            }
+            select.trigger('change', 1);
+            $(".shipping-" + shipping_id).find('.rate').removeClass('error').find('.price').show();
+            $(".shipping-" + shipping_id).find('.rate em.shipping-error').remove();
+        } else {
+            $(".shipping-" + shipping_id + ' select[name="' + name + '"]').remove();
+            var input = $(".shipping-" + shipping_id + ' input[name="' + name + '"]');
+            if (input.length) {
+                input.val(data[0].id);
+            } else {
+                $(".shipping-" + shipping_id + " h3").append('<input type="hidden" name="' + name + '" value="' + data[0].id + '">');
+            }
+            $(".shipping-" + shipping_id + " .price").html(data[0].rate);
+            $(".shipping-" + shipping_id + " .est_delivery").html(data[0].est_delivery);
+            $(".shipping-" + shipping_id).find('.rate').removeClass('error').find('.price').show();
+            if (data[0].est_delivery) {
+                $(".shipping-" + shipping_id + " .est_delivery").parent().show();
+            } else {
+                $(".shipping-" + shipping_id + " .est_delivery").parent().hide();
+            }
+            if (data[0].comment) {
+                $(".shipping-" + shipping_id + " .comment").html('<br>' + data[0].comment).show();
+            } else {
+                $(".shipping-" + shipping_id + " .comment").hide();
+            }
+            $(".shipping-" + shipping_id).find('.rate em.shipping-error').remove();
+        }
+    }
+
+    $(".checkout-options").on('change', "select.shipping-rates", function (e, not_check) {
         var opt = $(this).children('option:selected');
         var li = $(this).closest('li');
         li.find('.price').html(opt.data('rate'));
-        li.find('input:radio').attr('checked', 'checked');
+        if (!not_check) {
+            li.find('input:radio').attr('checked', 'checked');
+        }
         li.find('.est_delivery').html(opt.data('est_delivery'));
         if (opt.data('est_delivery')) {
             li.find('.est_delivery').parent().show();
@@ -115,62 +189,9 @@
 
         $.post("{$wa->getUrl('/frontend/shipping')}", $("form").serialize(), function (response) {
             loaded_flag = true;
-            var name = 'rate_id[' + shipping_id + ']';
-            if (typeof(response.data) == 'string') {
-                var el = $(".shipping-" + shipping_id).find('.rate');
-                if (el.hasClass('error')) {
-                    el.find('em').html(response.data);
-                } else {
-                    el.find('.price, .hint').hide();
-                    el.addClass('error').append($('<em class="shipping-error"></em>').html(response.data));
-                }
-            } else if (response.data.length > 1) {
-                $(".shipping-" + shipping_id + ' input[name="' + name + '"]').remove();
-                var select = $(".shipping-" + shipping_id + ' select[name="' + name + '"]');
-                var html = '<select class="shipping-rates" name="' + name + '">';
-                for (var i = 0; i < response.data.length; i++) {
-                    var r = response.data[i];
-                    html += '<option data-rate="' + r.rate + '" data-comment="' + (r.comment || '') + '" data-est_delivery="' + (r.est_delivery || '') + '" value="' + r.id + '">' + r.name + ' (' + r.rate + ')</option>';
-                }
-                html += '</select>';
-                if (select.length) {
-                    var selected = select.val();
-                    select.remove();
-                } else {
-                    var selected = false;
-                }
-                select = $(html);
-                $(".shipping-" + shipping_id + " h3").append(select);
-                if (selected) {
-                    select.val(selected);
-                }
-                select.change();
-                $(".shipping-" + shipping_id).find('.rate').removeClass('error').find('.price').show();
-                $(".shipping-" + shipping_id).find('.rate em.shipping-error').remove();
-            } else {
-                $(".shipping-" + shipping_id + ' select[name="' + name + '"]').remove();
-                var input = $(".shipping-" + shipping_id + ' input[name="' + name + '"]');
-                if (input.length) {
-                    input.val(response.data[0].id);
-                } else {
-                    $(".shipping-" + shipping_id + " h3").append('<input type="hidden" name="' + name + '" value="' + response.data[0].id + '">');
-                }
-                $(".shipping-" + shipping_id + " .price").html(response.data[0].rate);
-                $(".shipping-" + shipping_id + " .est_delivery").html(response.data[0].est_delivery);
-                $(".shipping-" + shipping_id).find('.rate').removeClass('error').find('.price').show();
-                if (response.data[0].est_delivery) {
-                    $(".shipping-" + shipping_id + " .est_delivery").parent().show();
-                } else {
-                    $(".shipping-" + shipping_id + " .est_delivery").parent().hide();
-                }
-                if (response.data[0].comment) {
-                    $(".shipping-" + shipping_id + " .comment").html('<br>' + response.data[0].comment).show();
-                } else {
-                    $(".shipping-" + shipping_id + " .comment").hide();
-                }
-                $(".shipping-" + shipping_id).find('.rate em.shipping-error').remove();
-            }
+            responseCallback(shipping_id, response.data);
         }, "json");
+    });
     });
 
 </script>

@@ -192,9 +192,6 @@ class shopPayment extends waAppPayment
             }
         }
 
-        $settings = wa('shop')->getConfig()->getCheckoutSettings();
-        $form_fields = ifset($settings['contactinfo']['fields'], array());
-
         $empty_address = array(
             'firstname' => '',
             'lastname'  => '',
@@ -205,17 +202,12 @@ class shopPayment extends waAppPayment
             'zip'       => '',
         );
 
-        if (isset($form_fields['address.shipping'])) {
-            $shipping_address = array_merge($empty_address, shopHelper::getOrderAddress($order['params'], 'shipping'));
-        } else {
-            $shipping_address = $empty_address;
+        $shipping_address = array_merge($empty_address, shopHelper::getOrderAddress($order['params'], 'shipping'));
+        $billing_address = array_merge($empty_address, shopHelper::getOrderAddress($order['params'], 'billing'));
+        if (!count(array_filter($billing_address, 'strlen'))) {
+            $billing_address = $shipping_address;
         }
 
-        if (isset($form_fields['address.billing'])) {
-            $billing_address = array_merge($empty_address, shopHelper::getOrderAddress($order['params'], 'billing'));
-        } else {
-            $billing_address = $empty_address;
-        }
         ifset($order['shipping'], 0.0);
         ifset($order['discount'], 0.0);
         ifset($order['tax'], 0.0);
@@ -306,11 +298,19 @@ class shopPayment extends waAppPayment
                 );
                 $url = wa()->getRouteUrl('shop/frontend/myOrderPrintform', $params, true);
                 break;
-            case self::URL_DECLINE:
-                break;
+
             case self::URL_SUCCESS:
+                $url = wa()->getRouteUrl('shop/frontend/checkout', array('step' => 'success'), true);
+                if (!empty($transaction_data['order_id'])) {
+                    $url .= '?order_id='.$transaction_data['order_id'];
+                }
+                break;
             case self::URL_FAIL:
-                $url = wa()->getRouteUrl('shop/frontend/checkout', array('step' => $type), true);
+            case self::URL_DECLINE:
+                $url = wa()->getRouteUrl('shop/frontend/checkout', array('step' => 'error'), true);
+                if (!empty($transaction_data['order_id'])) {
+                    $url .= '?order_id='.$transaction_data['order_id'];
+                }
                 break;
         }
         return $url;

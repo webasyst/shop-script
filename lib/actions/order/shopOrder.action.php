@@ -55,10 +55,22 @@ class shopOrderAction extends waViewAction
         $params = $order_params_model->get($order['id']);
 
         $tracking = '';
-        if (!empty($params['shipping_id']) && !empty($params['tracking_number'])) {
+        if (!empty($params['shipping_id'])) {
             try {
                 $plugin = shopShipping::getPlugin(null, $params['shipping_id']);
-                $tracking = $plugin->tracking($params['tracking_number']);
+                if (!empty($params['tracking_number'])) {
+                    $tracking = $plugin->tracking($params['tracking_number']);
+                }
+                if ($custom_fields = $plugin->customFields(new waOrder())) {
+                    foreach ($custom_fields as $k => $v) {
+                        if (!empty($params['shipping_params_'.$k])) {
+                            $custom_fields[$k]['value'] = $params['shipping_params_'.$k];
+                        } else {
+                            unset($custom_fields[$k]);
+                        }
+                    }
+                    $this->view->assign('custom_fields', $custom_fields);
+                }
             } catch (waException $ex) {
                 $tracking = $ex->getMessage();
             }
@@ -121,6 +133,17 @@ class shopOrderAction extends waViewAction
             'shipping_id'       => ifset($params['shipping_id'], '').'.'.ifset($params['shipping_rate_id'], ''),
             'offset'            => $this->getModel()->getOffset($order['id'], $this->getParams(), true)
         ));
+
+        /**
+         * Backend order profile page
+         * UI hook allow extends order profile page
+         * @event backend_order
+         * @param array $order
+         * @return array[string][string]string $return[%plugin_id%]['title_suffix'] html output
+         * @return array[string][string]string $return[%plugin_id%]['action_button'] html output
+         * @return array[string][string]string $return[%plugin_id%]['action_link'] html output
+         */
+        $this->view->assign('backend_order', wa()->event('backend_order', $order));
     }
 
     public function getOrder()

@@ -57,9 +57,10 @@ class shopViewHelper extends waAppViewHelper
         return $this->products('set/'.$set_id, $offset, $limit, $options);
     }
 
-    public function settings($name)
+    public function settings($name, $escape = true)
     {
-        return wa('shop')->getConfig()->getGeneralSettings($name);
+        $result = wa('shop')->getConfig()->getGeneralSettings($name);
+        return $escape ? htmlspecialchars($result) : $result;
     }
 
     public function sortUrl($sort, $name)

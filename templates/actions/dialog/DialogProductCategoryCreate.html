@@ -215,6 +215,23 @@
         d.on('keyup', 'input[name^=price]', function() {
             $('#s-c-condition-price-interval').attr('checked', true);
         });
+        
+        // change meta title input placeholder automaticly on changing name of category
+        (function() {
+            var timeout = 450;
+            var timer_id = null;
+            var title_input = $('input[name=meta_title]', d);
+            var name_input  = $('input[name=name]', d);
+            name_input.bind('keydown', function() {
+                if (timer_id) {
+                    clearTimeout(timer_id);
+                    timer_id = null;
+                }
+                timer_id = setTimeout(function() {
+                    title_input.attr('placeholder', name_input.val());
+                }, timeout);
+            });
+        })();
     });
 </script>
 {/capture}

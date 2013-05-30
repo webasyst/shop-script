@@ -151,9 +151,9 @@
                             <input data-price="{shop_currency($s.price, $s.currency, null, 0)}" {if !$product_available}disabled="disabled"{/if} type="checkbox" name="services[]" value="{$s.id}"> {$s.name|escape} {if $s.price && !isset($s.variants)}(+<span class="service-price">{shop_currency($s.price, $s.currency)}</span>){/if}
                         </label>
                         {if isset($s.variants)}
-                        <select class="service-variants" name="service_variant[{$s.id}]" disabled>
+                        <select data-variant-id="{$s.variant_id}" class="service-variants" name="service_variant[{$s.id}]" disabled>
                             {foreach $s.variants as $v}
-                            <option data-price="{shop_currency($v.price, $s.currency, null, 0)}" id="service-variant-{$v.id}" value="{$v.id}">{$v.name|escape} (+{shop_currency($v.price, $s.currency)})</option>
+                            <option {if $s.variant_id == $v.id}selected{/if} data-price="{shop_currency($v.price, $s.currency, null, 0)}" id="service-variant-{$v.id}" value="{$v.id}">{$v.name|escape} (+{shop_currency($v.price, $s.currency)})</option>
                             {/foreach}
                         </select>
                         {else}

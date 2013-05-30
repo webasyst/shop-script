@@ -1,0 +1,35 @@
+<!-- see index.html for base footer layout -->
+
+<div id="poweredby" class="gray float-right">
+    [`We are using <a href="http://www.shop-script.com/">Shop-Script 5</a>`] <span class="dots" title="Webasyst"></span>
+</div>
+<div id="copyright" class="float-left">
+    &copy; {time()|wa_datetime:"Y"}
+    <a href="{$wa_url}">{$wa->accountName()}</a>
+</div>
+
+<div class="float-right currency-toggle">
+    {if count($currencies) > 1}
+        <select id="currency">
+            {$currency = $wa->shop->currency()}
+            {foreach $currencies as $c_code => $c}
+                <option value="{$c_code}" {if $c_code == $currency} selected{/if}>{$c.title}</option>
+            {/foreach}
+        </select>
+        <script>
+            $("#currency").change(function () {
+                var url = location.href;
+                if (url.indexOf('?') == -1) {
+                    url += '?';
+                } else {
+                    url += '&';
+                }
+                location.href = url + 'currency=' + $(this).val();
+            });
+        </script>
+    {/if}
+</div>    
+
+<!-- plugin hook: 'frontend_footer' -->
+{* @event frontend_footer.%plugin_id% *}
+{foreach $frontend_footer as $_}{$_}{/foreach}

@@ -1,0 +1,63 @@
+<h1 class="category-name">
+    {$category.name|escape}
+</h1>
+
+<!-- plugin hook: 'frontend_category' -->
+{* @event frontend_category.%plugin_id% *}
+{foreach $frontend_category as $_}{$_}{/foreach}
+
+<!-- filtering by product features -->    
+{if !empty($filters)}
+<div class="filters">
+    <form method="get" action="">
+    {foreach $filters as $fid => $filter}
+        <p>
+        {if $fid == 'price'}
+            {$c = $wa->shop->currency(true)}
+            <b>[`Price`]</b><br>
+            [`from`] <input type="text" name="price_min" {if $wa->get('price_min')}value="{(int)$wa->get('price_min')}"{/if} placeholder="0">
+            [`to`] <input type="text" name="price_max" {if $wa->get('price_max')}value="{(int)$wa->get('price_max')}"{/if} placeholder="&infin;"> {$c.sign}
+        {else}
+            <b>{$filter.name|escape}</b><br>
+            {foreach $filter.values as $v_id => $v}
+                <label>
+                    <input type="checkbox" name="{$filter.code}[]" {if in_array($v_id, (array)$wa->get($filter.code, array()))}checked{/if} value="{$v_id}"> {$v}
+                </label><br>
+            {/foreach}
+        {/if}
+        </p>
+    {/foreach}
+        <input type="submit" value="[`Filter products`]">
+    </form>
+</div>
+{/if}    
+
+<!-- description -->
+{if $category.description}
+    <p>{$category.description}</p>
+{/if}
+
+<!-- subcategories -->
+{if $category.subcategories}
+    <div class="sub-categories">
+        {foreach $category.subcategories as $sc}
+            <a href="{$sc.url}">{$sc.name|escape}</a><br />
+        {/foreach}
+    </div>
+{/if}
+
+{if !$products}
+    {if !empty($filters)}
+        [`No products were found.`]
+    {else}
+        [`This category does not contain any products.`]
+    {/if}
+{else}
+    <div id="product-list">
+    {include file='list-thumbs.html' sorting=!empty($category.params.enable_sorting)}
+    </div>
+{/if}
+{*
+    or use the line below to change product list view
+    {include file='list-table.html' sorting=!empty($category.params.enable_sorting)}
+*}

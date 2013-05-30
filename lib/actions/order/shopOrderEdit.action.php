@@ -54,7 +54,6 @@ class shopOrderEditAction extends waViewAction
 
         $count_new = $this->order_model->getStateCounters('new');
 
-
         $this->view->assign(array(
             'form'     => $form,
             'order'    => $order,
@@ -146,24 +145,29 @@ class shopOrderEditAction extends waViewAction
                 $size
             );
         }
+
+        // aggregated stocks count icon for product
         if (empty($item['fake'])) {
             $item['icon'] = shopHelper::getStockCountIcon($item['count'], null, true);
         }
+
         foreach ($item['skus'] as &$sku) {
             if (empty($sku['fake'])) {
-
+                // detaled stocks count icon for sku
                 if (empty($sku_stocks[$sku['id']])) {
                     $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);
                 } else {
                     $icons = array();
                     foreach ($sku_stocks[$sku['id']] as $stock_id => $stock) {
-                        $icon  = &$icons[];
+                        $icon  = &$icons[$stock_id];
                         $icon  = shopHelper::getStockCountIcon($stock['count'], $stock_id)." ";
                         $icon .= $stock['count']." ";
-                        $icon .= "@".htmlspecialchars($stock['name']);
+                        $icon .= "<span class='small'>@".htmlspecialchars($stock['name'])."</span>";
                         unset($icon);
                     }
-                    $sku['icon'] = implode(', ', $icons);
+                    //$sku['icon'] = implode(', ', $icons);
+                    $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);
+                    $sku['icons'] = $icons;
                 }
             }
         }

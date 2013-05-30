@@ -12,12 +12,16 @@
     {* @event frontend_search.%plugin_id% *}
     {foreach $frontend_search as $_}{$_}{/foreach}
 
-    <div id="product-list">
-    {include file='list-table.html'}
-    </div>
-    {*
-    or use the line below if you want plain table view instead of thumbs
-    {include file='list-thumbs.html'}
-    *}
-
+    {if !$products}
+        [`No products were found.`]
+    {else}
+        <div id="product-list">
+            {include file='list-thumbs.html'}
+        </div>
+        {*
+            or use the line below if you want plain table view instead of thumbs
+            {include file='list-thumbs.html'}
+        *}
+    {/if}
+    
 </div>

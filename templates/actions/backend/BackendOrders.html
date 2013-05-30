@@ -112,35 +112,47 @@
         <td>
             <strong class="large">{%=o.data.name%}</strong>
             <span class="gray">{%#o.data.price_str%}</span>
-            {%#o.data.icon%}
+            
+            {% if (sku_count == 1) { %}
+                <span class="s-orders-stock-icon-aggregate">
+                    {%#o.data.icon%}
+                </span>
+                <span class="s-orders-stock-icon"></span>
+            {% } else { %}
+                {%#o.data.icon%}
+            {% } %}
+            
             {% if (sku_count > 1) { %}
-            <p>
-                <ul class="menu-v compact small s-orders-skus">
-                    {% for (var sku_id in o.data.skus) { %}
-                        {% if (o.data.skus[sku_id].checked) { %}
-                            {% product_sku = o.data.skus[sku_id]; %}
+                <p>
+                    <ul class="menu-v compact small s-orders-skus">
+                        {% for (var sku_id in o.data.skus) { %}
+                            {% if (o.data.skus[sku_id].checked) { %}
+                                {% product_sku = o.data.skus[sku_id]; %}
+                            {% } %}
+                            <li>
+                                <label>
+                                    <input type="radio" name="sku[add][{%#index%}]" value="{%#sku_id%}"
+                                        {% if (o.data.skus[sku_id].checked) { %}
+                                            checked="checked" {% chosen_sku_id = sku_id; %}
+                                        {% } %}
+                                    >{%=o.data.skus[sku_id].name%}
+                                    <strong>{%#o.data.skus[sku_id].price_str%}</strong>
+                                    <span class="s-orders-stock-icon-aggregate">
+                                        {%#o.data.skus[sku_id].icon%}
+                                    </span>
+                                    <span class="s-orders-stock-icon" style="display:none;"></span>
+                                </label>
+                            </li>
                         {% } %}
-                        <li>
-                            <label>
-                                <input type="radio" name="sku[add][{%#index%}]" value="{%#sku_id%}"
-                                    {% if (o.data.skus[sku_id].checked) { %}
-                                        checked="checked" {% chosen_sku_id = sku_id; %}
-                                    {% } %}
-                                >{%=o.data.skus[sku_id].name%}
-                                <strong>{%#o.data.skus[sku_id].price_str%}</strong>
-                                {%#o.data.skus[sku_id].icon%}
-                            </label>
-                        </li>
-                    {% } %}
-                </ul>
-            </p>
+                    </ul>
+                </p>
             {% } else { %}
                 {% product_sku = o.data.skus[o.data.sku_id]; %}
                 <input type="hidden" name="sku[add][{%#index%}]" value="{%#o.data.sku_id%}">
             {% } %}
 
             {% if (!$.isEmptyObject(o.data.services)) { %}
-            <p>{% include('template-order-services', { services: o.data.services, options: options }); %}</p>
+                <p>{% include('template-order-services', { services: o.data.services, options: options }); %}</p>
             {% } %}
         </td>
         <input type="hidden" name="product[add][{%#index%}]" value="{%#o.data.id%}">
@@ -173,11 +185,13 @@
         {% var sku = o.sku; %}
         {% var stocks = o.stocks; %}
         {% var item_id = o.item_id; %}
+        
         <td class="valign-top align-right nowrap s-orders-product-stocks">
             {% if (sku && !$.isEmptyObject(sku.stock)) { %}
-                @ <select name="stock[edit][{%#item_id%}]">
+                @ <select name="stock[edit][{%#item_id%}]" class="s-orders-stock">
                     {% for (var i = 0; i < stocks.length; i += 1) { %}
-                        <option value="{%#stocks[i].id%}">
+                        {% var stock_id = stocks[i].id; %}
+                        <option value="{%#stock_id%}" data-icon="{%#''+sku.icons[stock_id]%}">
                             {%#stocks[i].name%}
                         </option>
                     {% } %}
@@ -187,6 +201,7 @@
                 <input type="hidden" name="stock[edit][{%#item_id%}]" value="0">
             {% } %}
         </td>
+        
     {/literal}
 {/capture}
 {capture name="template-order-stocks-add"}
@@ -196,9 +211,10 @@
         {% var index = o.index; %}
         <td class="valign-top align-right nowrap s-orders-product-stocks">
             {% if (sku && !$.isEmptyObject(sku.stock)) { %}
-                @ <select name="stock[add][{%#index%}][product]">
+                @ <select name="stock[add][{%#index%}][product]" class="s-orders-stock">
                     {% for (var i = 0; i < stocks.length; i += 1) { %}
-                        <option value="{%#stocks[i].id%}">
+                        {% var stock_id = stocks[i].id; %}
+                        <option value="{%#stocks[i].id%}" data-icon="{%#''+sku.icons[stock_id]%}">
                             {%#stocks[i].name%}
                         </option>
                     {% } %}

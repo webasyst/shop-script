@@ -1810,10 +1810,8 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             $product->skus = $skus;
 
             $product->save();
-
-            if ($image = self::field($element, 'Картинка')) {
-
-                $this->data['map'][self::STAGE_IMAGE][] = array($image, $product->getId());
+            foreach ($element->xpath('//Картинка') as $image) {
+                $this->data['map'][self::STAGE_IMAGE][] = array((string) $image, $product->getId());
                 if (!isset($count[self::STAGE_IMAGE])) {
                     $count[self::STAGE_IMAGE] = 0;
                 }

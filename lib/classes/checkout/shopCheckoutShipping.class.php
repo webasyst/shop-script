@@ -50,14 +50,34 @@ class shopCheckoutShipping extends shopCheckout
             $shipping_address = $address;
         }
 
+        $selected_shipping = $this->getSessionData('shipping', array());
+
+        $dimension = shopDimension::getInstance()->getDimension('weight');
         $currencies = wa('shop')->getConfig()->getCurrencies();
         foreach ($methods as $method_id => $m) {
             $plugin = shopShipping::getPlugin($m['plugin'], $m['id']);
             $plugin_info = $plugin->info($m['plugin']);
             $m['icon'] = $plugin_info['icon'];
             $m['img'] = $plugin_info['img'];
-            $m['rates'] = $plugin->getRates($items, $shipping_address, array('total_price' => $total));
             $m['currency'] = $plugin->allowedCurrency();
+            $weight_unit = $plugin->allowedWeightUnit();
+            if ($weight_unit != $dimension['base_unit']) {
+                $shipping_items = array();
+                foreach ($items as $item_id => $item) {
+                    if ($item['weight']) {
+                        $item['weight'] = $item['weight'] * $dimension['units'][$weight_unit]['multiplier'];
+                    }
+                    $shipping_items[$item_id] = $item;
+                }
+            } else {
+                $shipping_items = $items;
+            }
+            $m['external'] = ($selected_shipping && $selected_shipping['id'] == $m['id']) ? 0 :$plugin->getProperties('external');
+            if ($m['external']) {
+                $m['rates'] = array();
+            } else {
+                $m['rates'] = $plugin->getRates($shipping_items, $shipping_address, array('total_price' => $total));
+            }
             if (is_array($m['rates'])) {
                 if (!isset($currencies[$m['currency']])) {
                     $m['rate'] = 0;
@@ -71,7 +91,11 @@ class shopCheckoutShipping extends shopCheckout
                     }
                 }
                 if ($m['rates']) {
-                    $rate = reset($m['rates']);
+                    if (!empty($selected_shipping['rate_id']) && isset($m['rates'][$selected_shipping['rate_id']])) {
+                        $rate = $m['rates'][$selected_shipping['rate_id']];
+                    } else {
+                        $rate = reset($m['rates']);
+                    }
                     $m['rate'] = $rate['rate'];
                     $m['est_delivery'] = isset($rate['est_delivery']) ? $rate['est_delivery'] : '';
                     if (!empty($rate['comment'])) {
@@ -236,7 +260,7 @@ class shopCheckoutShipping extends shopCheckout
         }
     }
 
-    public function getItems()
+    public function getItems($weight_unit = null)
     {
         $items = array();
         $cart = new shopCart();
@@ -255,12 +279,24 @@ class shopCheckoutShipping extends shopCheckout
             $values = $values_model->getProductValues($product_ids, $f['id']);
         }
 
+        $m = null;
+        if ($weight_unit) {
+            $dimension = shopDimension::getInstance()->getDimension('weight');
+            if ($weight_unit != $dimension['base_unit']) {
+                $m = $dimension['units'][$weight_unit]['multiplier'];
+            }
+        }
+
         foreach ($cart_items as $item) {
+            $w = isset($values[$item['product_id']]) ? $values[$item['product_id']] : 0;
+            if ($m !== null) {
+                $w = $w * $m;
+            }
             $items[] = array(
                 'name' => $item['name'],
                 'price' => $item['price'],
                 'quantity' => $item['quantity'],
-                'weight' => isset($values[$item['product_id']]) ? $values[$item['product_id']] : 0
+                'weight' => $w
             );
         }
         return $items;
@@ -289,7 +325,7 @@ class shopCheckoutShipping extends shopCheckout
         if ($currency != $currrent_currency) {
             $total = shop_currency($total, $currrent_currency, $currency, false);
         }
-        $rates = $plugin->getRates($this->getItems(), $this->getAddress($contact), array('total_price' => $total));
+        $rates = $plugin->getRates($this->getItems($plugin->allowedWeightUnit()), $this->getAddress($contact), array('total_price' => $total));
         if (!$rates) {
             return false;
         }

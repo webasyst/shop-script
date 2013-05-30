@@ -19,30 +19,41 @@ class shopFrontendCheckoutAction extends waViewAction
 
         $title = _w('Checkout');
         if ($current_step == 'success') {
-            $order_id = wa()->getStorage()->get('shop/order_id');
+            $order_id = waRequest::get('order_id');
+            if (!$order_id) {
+                $order_id = wa()->getStorage()->get('shop/order_id');
+                $payment_success = false;
+            } else {
+                $payment_success = true;
+                $this->view->assign('payment_success', true);
+            }
             if (!$order_id) {
                 wa()->getResponse()->redirect(wa()->getRouteUrl('shop/frontend'));
             }
             $order_model = new shopOrderModel();
             $order = $order_model->getById($order_id);
-            $order_params_model = new shopOrderParamsModel();
-            $order['params'] = $order_params_model->get($order_id);
-            $payment = '';
-            if (!empty($order['params']['payment_id'])) {
-                try {
-                    $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
-                    $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), null);
-                } catch (waException $ex) {
-                    $payment = $ex->getMessage();
+            if (!$payment_success) {
+                $order_params_model = new shopOrderParamsModel();
+                $order['params'] = $order_params_model->get($order_id);
+                $payment = '';
+                if (!empty($order['params']['payment_id'])) {
+                    try {
+                        $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
+                        $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), null);
+                    } catch (waException $ex) {
+                        $payment = $ex->getMessage();
+                    }
                 }
-            }
-            $order['id'] = shopHelper::encodeOrderId($order_id);
-            $order_items_model = new shopOrderItemsModel();
-            $order['items'] = $order_items_model->getByField('order_id', $order_id, true);
+                $order['id'] = shopHelper::encodeOrderId($order_id);
+                $order_items_model = new shopOrderItemsModel();
+                $order['items'] = $order_items_model->getByField('order_id', $order_id, true);
 
-            $this->getResponse()->addGoogleAnalytics($this->getGoogleAnalytics($order));
+                $this->getResponse()->addGoogleAnalytics($this->getGoogleAnalytics($order));
+            }
             $this->view->assign('order', $order);
-            $this->view->assign('payment', $payment);
+            if (isset($payment)) {
+                $this->view->assign('payment', $payment);
+            }
         } else {
             $cart = new shopCart();
             if (!$cart->count()) {

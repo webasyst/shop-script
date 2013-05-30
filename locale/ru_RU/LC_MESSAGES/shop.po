@@ -2002,15 +2002,15 @@ msgstr "Прибыль"
 
 #: /wa-apps/shop/templates/actions/products/Products.html:147
 msgid "In stock"
-msgstr "На складе"
+msgstr "В наличии"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:593
 msgid "Out of stock"
-msgstr "Нет на складе"
+msgstr "Нет в наличии"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:595
 msgid "Low stock"
-msgstr "Заканчивается на складе"
+msgstr "Есть, но мало"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:187
 msgid ""
@@ -6728,3 +6728,55 @@ msgid ""
 msgstr ""
 "Пожалуйста, проверьте введенный адрес или вернитесь на шаг выбора способа "
 "доставки и выберите другой способ."
+
+#: /wa-apps/shop/themes/default/index.html:98
+msgid "We are using <a href=\"http://www.shop-script.com/\">Shop-Script 5</a>"
+msgstr "Мы используем <a href=\"http://www.shop-script.ru/\">Shop-Script 5</a>"
+
+#: /wa-apps/shop/themes/clear/home.html:43
+msgid "Special offers for %s"
+msgstr "Спецпредложения на %s"
+
+#: /wa-apps/shop/themes/clear/product.html:189
+msgid "%s is now <a href=\"%s\"><strong>in your shopping cart</strong></a>"
+msgstr "%s теперь <a href=\"%s\"><strong>в вашей корзине покупок</strong></a>"
+
+#: /wa-apps/shop/themes/clear/navigation.html:47
+msgid "Brands"
+msgstr "Бренды"
+
+#: /wa-apps/shop/themes/clear/navigation.html:47
+msgid "More"
+msgstr "Еще"
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductSetSettings.html:36
+msgid "By name"
+msgstr "По названию"
+
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:9
+msgid ""
+"Registered customers apply for affiliate bonuses and discounts on future "
+"orders"
+msgstr ""
+"Зарегистрированные покупатели получают накопительные бонусные баллы и скидки "
+"на будущие заказы"
+
+#: /wa-apps/shop/lib/actions/frontend/shopFrontendCart.action.php:43
+msgid ""
+"Oops! %s is not available for purchase at the moment. Please remove this "
+"product from your shopping cart to proceed."
+msgstr ""
+"Извините, но товар «%s» недоступен для покупки в данный момент. Пожалуйста, "
+"удалите этот товар из корзины для того, чтобы оформить заказ."
+
+#: /wa-apps/shop/themes/sidebar/checkout.success.html:17
+msgid ""
+"Your payment has been successfully accepted. We will process your order and "
+"contact you shortly."
+msgstr ""
+"Оплата успешно принята. Мы обработаем ваш заказ и свяжемся с вами в "
+"ближайшее время."
+
+#: /wa-apps/shop/lib/actions/product/shopProductReviews.action.php:17
+msgid "Unkown product"
+msgstr "Неизвестный товар"

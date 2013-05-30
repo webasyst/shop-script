@@ -12,6 +12,10 @@
             {$payment}
         </div>
     {/if}
+
+    {if !empty($payment_success)}
+        <span class="highlighted">[`Your payment has been successfully accepted. We will process your order and contact you shortly.`]</span>
+    {/if}
     
     <p class="back">
         &larr; <a href="{$wa_app_url}">[`Back to the store`]</a>

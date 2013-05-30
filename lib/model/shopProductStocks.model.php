@@ -44,6 +44,10 @@ class shopProductStocksModel extends waModel
                 if (!$this->exec($sql)) {
                     return false;
                 }
+
+                $product_model = new shopProductModel();
+                $product_model->correctCount();
+
             }
             return $this->deleteByField('stock_id', $stock_id);
         }

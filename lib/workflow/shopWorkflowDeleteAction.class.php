@@ -23,7 +23,17 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
             } else if (!$update_on_create && $data['before_state_id'] != 'new') {
                 $order_model->returnProductsToStocks($order_id);
             }
-
+            $order = $order_model->getById($order_id);
+            shopCustomers::recalculateTotalSpent($order['contact_id']);
+            $order_model->updateById($order_id, array(
+                'paid_date' => null,
+                'paid_year' => null,
+                'paid_month' => null,
+                'paid_quarter' => null,
+            ));
+            $order_model->returnProductsToStocks($order_id);
+            shopAffiliate::cancelBonus($order_id);
+            $order_model->recalculateProductsTotalSales($order_id);
         }
         return $data;
     }

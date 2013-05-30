@@ -28,12 +28,32 @@ class shopProductAction extends waViewAction
         #load product types
         $type_model = new shopTypeModel();
         $product_types = $type_model->getAll($type_model->getTableId(), true);
+        $product_types_count = count($product_types);
+
+        if ($product_types) {
+            if (!$this->getUser()->isAdmin($this->getAppId())) {
+                $rights = $this->getUser()->getRights($this->getAppId(), 'type.%');
+                if (empty($rights['all'])) {
+                    foreach ($product_types as $id => $type) {
+                        if (empty($rights[$id])) {
+                            unset($product_types[$id]);
+                        }
+                    }
+                }
+            }
+        }
 
         if (intval($product->id)) {
             # 1 fill extra product data
             # 1.1 fill product reviews
             $product_reviews_model = new shopProductReviewsModel();
-            $product['reviews'] = $product_reviews_model->getReviews($product->id, 0, $config->getOption('reviews_per_page_product'), 'datetime DESC', array('is_new' => true));
+            $product['reviews'] = $product_reviews_model->getReviews(
+                $product->id,
+                0,
+                $config->getOption('reviews_per_page_product'),
+                'datetime DESC',
+                array('is_new' => true)
+            );
             $counters['reviews'] = $product_reviews_model->count($product->id);
             $sidebar_counters['reviews'] = array(
                 'new' => $product_reviews_model->countNew()
@@ -54,23 +74,17 @@ class shopProductAction extends waViewAction
             reset($product_types);
 
             $product->type_id = 0;
-            if ($product_types) {
-                if (!$this->getUser()->isAdmin($this->getAppId())) {
-                    $rights = $this->getUser()->getRights($this->getAppId(), 'type.%');
-                    foreach ($product_types as $id => $type) {
-                        if (empty($rights[$id])) {
-                            unset($product_types[$id]);
-                        }
-                    }
-                }
+            if ($product_types_count) {
                 if (!$product_types) {
                     throw new waRightsException(_w("Access denied"));
                 } else {
                     reset($product_types);
                     $product->type_id = key($product_types);
                 }
-                $this->view->assign('edit_rights', true);
+            } elseif (!$product->checkRights()) {
+                throw new waRightsException(_w("Access denied"));
             }
+            $this->view->assign('edit_rights', true);
 
             $product['skus'] = array(
                 '-1' => array(

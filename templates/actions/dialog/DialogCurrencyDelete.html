@@ -6,7 +6,9 @@
     <div class="dialog-window">
         <div class="dialog-content">
             <div class="dialog-content-indent">
-                <h1>[`Delete currency`] <span>({$currency.code})</span></h1>
+                <h1>[`Delete currency`] 
+                    <span class="hint">({$currency.title})</span>
+                </h1>
                 {if $product_count > 0}
                     <p>
                         {$convert_text}:

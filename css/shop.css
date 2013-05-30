@@ -625,6 +625,28 @@ ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
 
 .s-add-shipping-method ul { width: 300px !important; margin-left: -80px !important; }
 
+#s-shipping-menu { margin-right: 14px; }
+#s-shipping-menu>li { position: relative; }
+#s-shipping-menu ul {
+    display: none;
+    position: absolute;
+    top: 80%;
+    left: -3px;
+    background: #fff;
+    border: 2px solid #aaa;
+    padding: 0;
+    z-index: 50;
+    -moz-box-shadow: 0px 0px 5px #aaa;
+    -webkit-box-shadow: 0px 0px 5px #aaa;
+    box-shadow: 0px 0px 5px #aaa;
+}
+
+#s-shipping-menu ul li {
+    display: block;
+    padding: 6px 8px 6px 24px;
+    margin: 0;
+}
+
 /* ICONS
 -------- */
 

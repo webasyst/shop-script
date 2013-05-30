@@ -11,6 +11,12 @@ class shopProductReviewsAction extends waViewAction
     public function execute()
     {
         $id = waRequest::get('id', null, waRequest::TYPE_INT);
+        $product_model = new shopProductModel();
+        $product = $product_model->getById($id);
+        if (!$product) {
+            throw new waException(_w("Unkown product"));
+        }
+
         $offset = waRequest::get('offset', 0, waRequest::TYPE_INT);
         $total_count = waRequest::get('total_count', null, waRequest::TYPE_INT);
         $lazy = waRequest::get('lazy');
@@ -25,6 +31,7 @@ class shopProductReviewsAction extends waViewAction
         );
 
         $this->view->assign(array(
+            'product' => $product,
             'reviews' => $reviews,
             'offset' => $offset,
             'total_count' => $total_count ? $total_count : $product_reviews_model->count($id),

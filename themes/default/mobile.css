@@ -7,7 +7,12 @@
  * @copyright 2012 Webasyst LLC
  * @package Webasyst
  */
- 
+
+* { -webkit-text-size-adjust: 100%; }
+
+.mobile-only { display: block; }
+.non-mobile-only { display: none; }
+
 .container { padding: 1px 15px 0; min-width: 0; }
 
 .sidebar { margin-bottom: 20px; }
@@ -67,13 +72,15 @@ table.cart td .services { margin-bottom: 0; }
 .checkout { margin: 20px 0; padding-bottom: 30px; }
 .checkout ul.checkout-options li { width: 100%; }
 .checkout ul.checkout-options li img { display: none; }
-.checkout ul.checkout-options li p { font-size: 0.6em; line-height: 1.3em; }
 .checkout ul.checkout-options li .rate { min-width: 0; width: auto; max-width: 150px; padding-top: 5px; }
-.checkout ul.checkout-options li .rate.error { font-size: 0.7em; line-height: 1em; padding-top: 10px; }
+.checkout ul.checkout-options li .rate.error { padding-top: 10px; }
 .checkout ul.checkout-options li .rate .hint { display: none; }
 .checkout ul.checkout-options li .wa-form.wa-address p { font-size: 1em; }
-.checkout table.table th { display: none; }
-.checkout table.table td { display: inline-block; border: 0; padding-left: 0; }
+.checkout table.table th,
+.checkout table.table td { font-size: 0.75em; }
+.checkout table.table td .gray { display: none; }
+.checkout table.table td.nowrap { white-space: normal; }
+.checkout table.table td.nowrap.bold { white-space: nowrap; }
 .checkout blockquote ul.menu-v li { font-size: 0.7em; padding: 10px 0; line-height: 1.3em; }
 .checkout li .wa-form { margin-left: -25px; }
 .checkout .checkout-step input[type="submit"] { margin: 0 auto; display: block; font-size: 1.2em; font-weight: bold; }

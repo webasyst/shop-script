@@ -62,7 +62,7 @@ $(function () {
                     $("#service-" + service_id + ' .service-price').html(currency_format(v));
                     $("#service-" + service_id + ' input').data('price', v);
                 } else {
-                    var selected_variant_id = 0;
+                    var selected_variant_id = $("#service-" + service_id + ' .service-variants').data('variant-id');
                     for (var variant_id in v) {
                         var obj = $("#service-variant-" + variant_id);
                         if (v[variant_id] === false) {

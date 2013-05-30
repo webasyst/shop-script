@@ -39,6 +39,15 @@ class shopFrontendLayout extends waLayout
          * @return array[string]string $return[%plugin_id%] html output
          */
         $this->view->assign('frontend_header', wa()->event('frontend_header'));
+
+        if (!$this->view->getVars('frontend_nav')) {
+            /**
+             * @event frontend_nav
+             * @return array[string]string $return[%plugin_id%] html output for navigation section
+             */
+            $this->view->assign('frontend_nav', wa()->event('frontend_nav'));
+        }
+
         /**
          * @event frontend_footer
          * @return array[string]string $return[%plugin_id%] html output

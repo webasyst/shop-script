@@ -47,6 +47,8 @@ $(function () {
                     }
                     if (response.data.error) {
                         alert(response.data.error);
+                    } else {
+                        that.removeClass('error');
                     }
                     updateCart(response.data);
                 }, "json");

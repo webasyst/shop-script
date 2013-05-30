@@ -6,6 +6,7 @@
         <div class="wa-field">
             <div class="wa-value">
                 <label><input type="checkbox" {if $wa->post('create_user')}checked{/if} id="create-user" name="create_user" value="1"> [`Create permanent user account`]</label>
+                {if shopAffiliate::isEnabled()}<p class="hint">[`Registered customers apply for affiliate bonuses and discounts on future orders`]</p>{/if}
             </div>
         </div>
         <div id="create-user-div" style="display:none">

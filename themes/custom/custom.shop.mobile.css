@@ -78,9 +78,8 @@ table.cart td .services { margin-bottom: 0; }
 .checkout { margin: 0 0 30px; }
 .checkout ul.checkout-options li { width: 100%; }
 .checkout ul.checkout-options li img { display: none; }
-.checkout ul.checkout-options li p { font-size: 0.8em; line-height: 1.3em; }
-.checkout ul.checkout-options li .rate { min-width: 0; width: auto; max-width: 150px; font-size: 0.7em; }
-.checkout ul.checkout-options li .rate.error { font-size: 0.7em; line-height: 1em; padding-top: 5px; }
+.checkout ul.checkout-options li .rate { min-width: 0; width: auto; max-width: 150px; }
+.checkout ul.checkout-options li .rate.error { padding-top: 5px; }
 .checkout ul.checkout-options li .rate .hint { display: none; }
 .checkout ul.checkout-options li .wa-form.wa-address p { font-size: 1em; }
 .checkout .checkout-step h2 { font-size: 1.2em; padding: 10px 10px 10px; }
@@ -92,5 +91,8 @@ table.cart td .services { margin-bottom: 0; }
 .checkout-header { margin: 10px; font-size: 0.8em; text-align: center; }
 .checkout-header .float-right { display: none; }
 .checkout li .wa-form { margin-left: -25px; }
-.checkout table.table th { display: none; }
-.checkout table.table td { display: inline-block; border: 0; padding-left: 0; }
+.checkout table.table th,
+.checkout table.table td { font-size: 0.75em; }
+.checkout table.table td .gray { display: none; }
+.checkout table.table td.nowrap { white-space: normal; }
+.checkout table.table td.nowrap.bold { white-space: nowrap; }

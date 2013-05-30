@@ -12,7 +12,7 @@
             <tbody>
 
             {foreach $stocks as $stock_id => $stock}
-            <tr data-id="{$stock_id}">
+            <tr data-id="{$stock_id}" class="s-stock">
                 <td class="min-width valign-top">
                     <a style="display: inline;" href="javascript: void(0)"><i class="icon16 sort"></i></a>
                 </td>
@@ -103,42 +103,59 @@
 </div>
 
 {* dialogs section *}
-{$stocks_count = count($stocks)}
-<div class="dialog {if $stocks_count > 1}width400px height200px{else}width400px height150px{/if}" id="s-settings-delete-stock">
+
+<div class="dialog width400px height150px" id="s-settings-delete-last-stock">
     <div class="dialog-background"></div>
     <form method="post" action="?module=settings&action=stockDelete">
     <div class="dialog-window">
         <div class="dialog-content">
             <div class="dialog-content-indent">
                 <h1>[`Delete stock`]</h1>
-                {if $stocks_count > 1}
-                    <ul class="menu-v">
-                        <li>
-                            <label>
-                            <input type="radio" name="delete_stock" value="0" checked>
-                            [`Delete stock and write off products`] <span class="hint">[`All rest products belonging to this stock will be written-off after stock deleting`]</span>
-                            </label>
-                        </li>
-                        <li>
-                            <label>
-                            <input type="radio" name="delete_stock" value="1">
-                            [`Delete stock and transfer products`] <span class="hint">[`All rest products belonging to this stock will be transfered to another stock`]</span>
-                            </label>
-                        </li>
-                        <li>
-                            <label>
-                                <select name="dst_stock" disabled="disabled">
-                                    {foreach $stocks as $stock}
-                                        <option value="{$stock.id}">{$stock.name|escape}</option>
-                                    {/foreach}
-                                </select>
-                            </label>
-                        </li>
-                    </ul>
-                {else}
-                    [`All rest products belonging to this stock will be saved on balance of corresponding skus`]
-                    <input type="hidden" name="delete_stock" value="0" checked>
-                {/if}
+                [`All rest products belonging to this stock will be saved on balance of corresponding skus`]
+                <input type="hidden" name="delete_stock" value="0" checked>
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button red" type="submit" value="[`Delete`]">
+                [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+
+<div class="dialog width400px height200px" id="s-settings-delete-stock">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=settings&action=stockDelete">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Delete stock`]</h1>
+                <ul class="menu-v">
+                    <li>
+                        <label>
+                        <input type="radio" name="delete_stock" value="0" checked>
+                        [`Delete stock and write off products`] <span class="hint">[`All rest products belonging to this stock will be written-off after stock deleting`]</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                        <input type="radio" name="delete_stock" value="1">
+                        [`Delete stock and transfer products`] <span class="hint">[`All rest products belonging to this stock will be transfered to another stock`]</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                            <select name="dst_stock" disabled="disabled">
+                                {foreach $stocks as $stock}
+                                    <option value="{$stock.id}">{$stock.name|escape}</option>
+                                {/foreach}
+                            </select>
+                        </label>
+                    </li>
+                </ul>
             </div>
         </div>
         <div class="dialog-buttons">
@@ -150,6 +167,7 @@
     </div>
     </form>
 </div>
+
 <script>
 document.title = '{"[`Stocking`]"|cat:" — ":{$wa->accountName()}}';
 $.settings.stocksInit({

@@ -60,6 +60,8 @@ $.order_edit = {
         var options = this.options;
         this.initCustomerForm(this.id ? 'edit' : 'add');
 
+        // helpers and handlers here
+
         var validateQuantity = function(item) {
             var max_value = parseInt(item.attr('data-max-value'), 10);
             var val = parseInt(item.val(), 10);
@@ -71,6 +73,28 @@ $.order_edit = {
                 } else {
                     return val <= max_value;
                 }
+            }
+        };
+        var updateStockIcon = function(order_item) {
+            var select   = order_item.find('.s-orders-stock');
+            var option   = select.find('option:selected');
+            var sku_item = order_item.find('.s-orders-skus').
+                find('input[type=radio]:checked').
+                parents('li:first');
+
+            order_item.find('.s-orders-stock-icon-aggregate').show();
+            order_item.find('.s-orders-stock-icon').html('').hide();
+
+            // choose item to work with
+            var item = sku_item.length ?
+                sku_item :   // sku case
+                order_item;  // product case (one sku)
+
+            if (option.attr('data-icon')) {
+                item.find('.s-orders-stock-icon-aggregate').hide();
+                item.find('.s-orders-stock-icon').html(
+                    option.attr('data-icon')
+                ).show();
             }
         };
 
@@ -87,6 +111,9 @@ $.order_edit = {
         });
 
         this.updateTotal(false);
+        $('.s-order-item').each(function() {
+            updateStockIcon($(this));
+        });
 
         var price_edit = options.price_edit || false;
 
@@ -126,6 +153,9 @@ $.order_edit = {
                         $.order_edit.updateTotal();
                         quantity_item.removeClass('error');
                     }
+
+                    updateStockIcon(item);
+
                 });
                 add_order_input.val('');
 
@@ -133,56 +163,73 @@ $.order_edit = {
             }
         });
 
-        this.container.off('change', '.s-orders-skus input[type=radio]').on('change', '.s-orders-skus input[type=radio]',
-            function() {
-                var self = $(this);
-                var tr = self.parents('tr:first');
-                var sku_id = this.value;
-                var product_id = tr.attr('data-product-id');
-                var index = tr.attr('data-index');
-                var mode = $.order_edit.id ? 'edit' : 'add';
-                var item_id = null;
-                if (mode == 'edit') {
-                    item_id = parseInt(self.attr('name').replace('sku[edit][', ''), 10);
+        this.container.
+            off('change', '.s-orders-skus input[type=radio]').
+            on('change', '.s-orders-skus input[type=radio]',
+                function() {
+                    var self = $(this);
+                    var tr = self.parents('tr:first');
+                    var sku_id = this.value;
+                    var product_id = tr.attr('data-product-id');
+                    var index = tr.attr('data-index');
+                    var mode = $.order_edit.id ? 'edit' : 'add';
+                    var item_id = null;
+                    if (mode == 'edit') {
+                        item_id = parseInt(self.attr('name').replace('sku[edit][', ''), 10);
+                    }
+
+                    var url = '?module=orders&action=getProduct&product_id='+product_id+'&sku_id='+sku_id;
+                    $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : ''), function(r) {
+                        tr.find('.s-orders-services').replaceWith(
+                            tmpl('template-order-services', {
+                                services: r.data.services,
+                                product_id: product_id,
+                                options: {
+                                    price_edit: price_edit,
+                                    index: index,
+                                    currency: $.order_edit.options.currency,
+                                    stocks: $.order_edit.stocks
+                                }
+                            })
+                        );
+                        tr.find('.s-orders-services .s-orders-service-variant').trigger('change');
+                        tr.find('.s-orders-product-price').
+                            find('span').text(r.data.price_str).end().
+                            find('input').val(r.data.price).trigger('change');
+
+                        tr.find('.s-orders-product-stocks').replaceWith(
+                            tmpl('template-order-stocks-' + mode, {
+                                sku:     r.data,
+                                index:   index,
+                                stocks:  $.order_edit.stocks,
+                                item_id: item_id   // use only in edit mode
+                            })
+                        );
+
+                        updateStockIcon(tr);
+
+                    });
                 }
+            );
 
-                var url = '?module=orders&action=getProduct&product_id='+product_id+'&sku_id='+sku_id;
-                $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : ''), function(r) {
-                    tr.find('.s-orders-services').replaceWith(
-                        tmpl('template-order-services', {
-                            services: r.data.services,
-                            product_id: product_id,
-                            options: {
-                                price_edit: price_edit,
-                                index: index,
-                                currency: $.order_edit.options.currency,
-                                stocks: $.order_edit.stocks
-                            }
-                        })
-                    );
-                    tr.find('.s-orders-services .s-orders-service-variant').trigger('change');
-                    tr.find('.s-orders-product-price').
-                        find('span').text(r.data.price_str).end().
-                        find('input').val(r.data.price).trigger('change');
+        // change stocks select
+        this.container.
+            off('change', '.s-orders-stock').
+            on( 'change', '.s-orders-stock', function() {
+                updateStockIcon(
+                    $(this).parents('tr.s-order-item:first')
+                );
+            });
 
-                    tr.find('.s-orders-product-stocks').replaceWith(
-                        tmpl('template-order-stocks-' + mode, {
-                            sku:     r.data,
-                            index:   index,
-                            stocks:  $.order_edit.stocks,
-                            item_id: item_id   // use only in edit mode
-                        })
-                    );
-                });
+        this.container.
+            off('change', '.s-orders-service-variant').
+            on('change', '.s-orders-service-variant', function() {
+                var self = $(this);
+                var option = self.find('option:selected');
+                var li = self.parents('li:first');
+                li.find('.s-orders-service-price').val(option.attr('data-price'));
             }
         );
-
-        this.container.off('change', '.s-orders-service-variant').on('change', '.s-orders-service-variant', function() {
-            var self = $(this);
-            var option = self.find('option:selected');
-            var li = self.parents('li:first');
-            li.find('.s-orders-service-price').val(option.attr('data-price'));
-        });
 
         this.container.off('click', '.s-order-item-delete').on('click', '.s-order-item-delete', function() {
 //            $(this).parents('tr:first').replaceWith(
@@ -669,16 +716,6 @@ $.order_edit = {
         $('#order-add-form').submit(function() {
             disable(false);
         });
-    },
-
-    getWarnClass : function(count) {
-        if (count !== null && count <= 0) {
-            return 's-stock-warning-none';
-        } else if (count == 1) {
-            return 's-stock-warning-low';
-        } else {
-            return '';
-        }
     },
 
     inputName : function(name) {

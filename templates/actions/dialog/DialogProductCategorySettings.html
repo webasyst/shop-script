@@ -48,6 +48,7 @@
             {if $settings.type == shopCategoryModel::TYPE_STATIC}
                 <option value="" {if empty($settings.sort_products)}selected="selected"{/if}>[`Manual`]</option>
             {/if}
+            <option value="name ASC" {if $settings.sort_products == 'name ASC'}selected="selected"{/if}>[`By name`]</option>            
             <option value="price DESC"  {if $settings.sort_products == 'price DESC'}selected="selected"{/if}>[`Most expensive`]</option>
             <option value="price ASC"   {if $settings.sort_products == 'price ASC'}selected="selected"{/if}>[`Least expensive`]</option>
             <option value="rating DESC" {if $settings.sort_products == 'rating DESC'}selected="selected"{/if}>[`Highest rated`]</option>
@@ -342,6 +343,23 @@
             parent_div.find('a.s-frontend-base-url').html(parent_div.find('span.s-frontend-base-url').hide().contents()).show();
         }
     });
+    
+    // change meta title input placeholder automaticly on changing name of category
+    (function() {
+        var timeout = 450;
+        var timer_id = null;
+        var title_input = $('input[name=meta_title]', d);
+        var name_input  = $('input[name=name]', d);
+        name_input.bind('keydown', function() {
+            if (timer_id) {
+                clearTimeout(timer_id);
+                timer_id = null;
+            }
+            timer_id = setTimeout(function() {
+                title_input.attr('placeholder', name_input.val());
+            }, timeout);
+        });
+    })();
 
 </script>
 {/capture}

@@ -224,6 +224,9 @@
         servicesAction : function(id) {
             this.load('?module=services' + (id ? '&id=' + id : ''), function() {
                 $("#s-content").addClass('bordered-left');
+                if (typeof $.products.afterServicesAction === 'function') {
+                    $.products.afterServicesAction();
+                }
             });
         },
 

@@ -1,0 +1,26 @@
+<!-- plugin hook: 'frontend_homepage' -->
+{* @event frontend_homepage.%plugin_id% *}
+{foreach $frontend_homepage as $_}{$_}{/foreach}
+
+
+<div class="content">
+
+    <!-- 'promo' product list -->
+    {$promo = $wa->shop->productSet('promo')}
+    {if $promo}
+        {include file="list-thumbs.html" products=$promo}
+    {else}
+        <p class="hint align-center">{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','bestsellers')}</p>
+    {/if}
+
+    <!-- suggested place for greeting text here -->
+
+    <!-- 'bestsellers' product list -->
+    {$bestsellers = $wa->shop->productSet('bestsellers')}
+    {if $bestsellers}
+        {include file="list-thumbs-mini.html" products=$bestsellers}
+    {else}
+        <p class="hint align-center">{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','bestsellers')}</p>
+    {/if}
+    
+</div>

@@ -256,4 +256,17 @@ class shopCartItemsModel extends waModel
         WHERE c.code = s:code AND c.id = i:id";
         return $this->query($sql, array('code' => $code, 'id' => $id))->fetch();
     }
+
+    public function getNotAvailableProducts($code, $check_count)
+    {
+        $sql = "SELECT c.id, s.available, s.count FROM ".$this->table." c
+                JOIN shop_product_skus s ON c.sku_id = s.id AND c.type = 'product'
+                WHERE c.code = s:code AND ";
+        if ($check_count) {
+            $sql .= '(s.available = 0 OR (s.count IS NOT NULL AND c.quantity > s.count))';
+        } else {
+            $sql .= 's.available = 0';
+        }
+        return $this->query($sql, array('code' => $code))->fetchAll();
+    }
 }

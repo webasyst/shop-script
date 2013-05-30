@@ -4,7 +4,7 @@
 <div class="block double-padded" id="shop-productprofile" data-product-id="{$product.id}">
     <h1>
         <a href="#/" class="back">&larr; [`Back`]</a>
-        
+
         <span class="s-product-name">{if $product.id == 'new'}[`New product`]{else}{$product.name|escape}{/if}</span>
         <span class="hint float-right s-product-id" {if $product.id == 'new'}style="display:none;"{/if}>id: {$product.id}</span>
 
@@ -21,12 +21,12 @@
         {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.action_button)}{/foreach}{/if}
 
     </h1>
-    
+
     <ul class="menu-h small" id="s-product-frontend-links">
         <li class="s-inline-mixed-string">
             [`Storefront link`]:
             <span class="s-product-frontend-url-not-empty" {if !$frontend_base_url}style="display:none;"{/if}>
-                <a href="{$frontend_url}" 
+                <a href="{$frontend_url}"
                     target="_blank"
                 >{if $frontend_url}{$frontend_url}{/if}</a><i class="icon10 new-window"></i>
             </span>
@@ -295,11 +295,11 @@
             <a href="#/product/{$product.id}/edit/reviews/">[`Customer reviews`] <span class="hint">{$counters['reviews']}</span>
             <span class="s-product-edit-tab-status"></span></a>
         </li>
-        
+
         <!-- plugin hook: 'backend_product.edit_section_li' -->
         {* @event backend_product.%plugin_id%.edit_section_li *}
         {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.edit_section_li)}{/foreach}{/if}
-                
+
     </ul>
 {* PRODUCT EDIT SECTION MENU END *}
 
@@ -310,11 +310,11 @@
 
 {* PRODUCT EDIT MAIN TAB SECTION BEGIN *}
         <div class="s-product-form main fields form" style="display: none;">
-            <div class="field-group">        
+            <div class="field-group">
                 <div class="field">
                     <div class="name">[`Product name`]</div>
                     <div class="value"><input type="text" class="long bold s-product-name-input" value="{$product.name|escape}" name="product[name]"></div>
-                </div>                      
+                </div>
                 <div class="field">
                     <div class="name">[`Status`]</div>
                     <div class="value no-shift">
@@ -325,7 +325,7 @@
                                 <option {if !$product.status}selected{/if} value="0">[`Hidden`]</option>
                             </select>
                         </div>
-                        
+
                         <span class="s-product-frontend-url-not-empty" {if !$frontend_base_url}style="display:none;"{/if}>
                             {strip}
                                 <span style="display:none" class="s-frontend-base-url">
@@ -337,9 +337,9 @@
                                     <span class="slash">/</span>
                                 </a>
                                 <i class="icon10 new-window"></i>
-                                <input type="text" class="s-product-url-input" 
-                                    id="s-product-frontend-url-input" 
-                                    value="{$product.url}" 
+                                <input type="text" class="s-product-url-input"
+                                    id="s-product-frontend-url-input"
+                                    value="{$product.url}"
                                     name="product[url]" style="display:none;"
                                 >
                             {/strip}
@@ -347,11 +347,11 @@
                                 <i class="icon10 edit"></i><b><i>[`edit`]</i></b>
                             </a>
                         </span>
-                        
+
                         <p class="s-product-frontend-url-empty hint" {if $frontend_base_url}style="display:none;"{/if}>
                             {_w(sprintf('This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts', $product.type.name))}
                         </p>
-                        
+
                         <p class="s-product-status-text hint" {if $product.status}style="display:none;"{/if}>
                             [`Hidden products are not shown among other products in the storefront, are not available for purchase, and can be viewed by the direct URL only.`]
                         </p>
@@ -359,6 +359,7 @@
                 </div>
             </div>
             <div class="field-group">
+                {if $product_types}
                 <div class="field">
                     <div class="name">[`Product type`]</div>
                     <div class="value no-shift" data-type="{$product.type.id|escape}">
@@ -377,7 +378,10 @@
                         {/foreach}
                         </select>
                     </div>
-                </div>                
+                </div>
+                {else}
+                <input type="hidden" name="product[type_id]" value="">
+                {/if}
                 <div class="field">
                     <div class="name">[`Categories`]</div>
                     <div class="value s-product-categories no-shift">
@@ -401,7 +405,7 @@
                             <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$category_id}style="display:none;"{/if}>
                                 <i class="icon10 delete-bw no-overhanging"></i>
                             </a>
-                            
+
                             <span class="s-new-category" style="display:none;">
                                 <input type="text" name="new_category" class="new-category" class="js-ignore-change">
                                 <input type="hidden" name="product[categories][]" class="val" value="{$category_id}" disabled="disabled">
@@ -432,7 +436,7 @@
                 </div>
                 {/if}
             </div>
-            
+
             {capture name="sku_type_field_group"}
                 <div class="field-group" id="s-sku-type-field-group">
                     <div class="field">
@@ -440,10 +444,10 @@
                             <ul class="thumbs li250px">
                                 <li>
                                     <label>
-                                        <input type="radio" 
-                                            name="product[sku_type]" 
-                                            value="{shopProductModel::SKU_TYPE_FLAT}" 
-                                            {if empty($features) || $product.sku_type == shopProductModel::SKU_TYPE_FLAT}checked{/if} 
+                                        <input type="radio"
+                                            name="product[sku_type]"
+                                            value="{shopProductModel::SKU_TYPE_FLAT}"
+                                            {if empty($features) || $product.sku_type == shopProductModel::SKU_TYPE_FLAT}checked{/if}
                                         /> [`Flat SKU list`]
                                         <i class="icon16 ss sku-type-flat"></i>
                                         <br>
@@ -452,11 +456,11 @@
                                 </li>
                                 <li style="width: 400px; margin-left: 50px;">
                                     <label>
-                                        <input type="radio" 
-                                            name="product[sku_type]" 
-                                            value="{shopProductModel::SKU_TYPE_SELECTABLE}" 
+                                        <input type="radio"
+                                            name="product[sku_type]"
+                                            value="{shopProductModel::SKU_TYPE_SELECTABLE}"
                                             {if !empty($features) && $product.sku_type == shopProductModel::SKU_TYPE_SELECTABLE}checked{/if}
-                                            {if empty($features)}disabled="disabled"{/if} 
+                                            {if empty($features)}disabled="disabled"{/if}
                                         /> [`Selectable features`]
                                         <i class="icon16 ss sku-type-selectable"></i>
                                         <br>
@@ -476,7 +480,7 @@
                     </div>
                 </div>
             {/capture}
-            
+
             {if $product.id == 'new'}
                 {$smarty.capture.sku_type_field_group}
             {/if}
@@ -538,10 +542,10 @@
                                                     [`Base price`]
                                                 </div>
                                                 <div class="value">
-                                                    <input name="product[base_price_selectable]" type="text" 
-                                                        class="numerical short bold" placeholder="0" 
+                                                    <input name="product[base_price_selectable]" type="text"
+                                                        class="numerical short bold" placeholder="0"
                                                         value="{(float)$product.base_price_selectable}"
-                                                    > 
+                                                    >
                                                     <div class="s-base-price-selectable-currency">
                                                         {if $use_product_currency}
                                                             <select class="s-product-currency">
@@ -554,7 +558,7 @@
                                                         {/if}
                                                     </div>
                                                 </div>
-                                                
+
                                             </div>
                                             <div class="field">
                                                 <div class="value">
@@ -562,7 +566,7 @@
                                                         [`Base price is applied unless you override it for a particular SKU. A list of overrided SKUs is shown below. Stock level can be tracked on the level of individual SKUs only, not for the entire product.`]
                                                     </p>
                                                 </div>
-                                                
+
                                             </div>
                                         </div>
                                         <div class="clear-both"></div>
@@ -576,7 +580,7 @@
             {else}
                 <div class="field-group" id="s-product-feature-superposition-field-group"></div>
             {/if}
-            
+
             <div class="field-group">
 
                 <!-- plugin hook: 'backend_product.edit_basics' -->
@@ -645,7 +649,7 @@
                                         {/if}
                                         {if count($stocks) >= 1}
                                         <div{if empty($sku.stock)} style="display: none;{/if}" id="s-product-sku-stock-{$sku_id}">
-            
+
                                         {foreach $stocks as $stock_id => $stock}
                                             {if isset($sku.stock[$stock_id])}
                                                 {$count = $sku.stock[$stock_id]}
@@ -660,7 +664,7 @@
                                         {/foreach}
                                         </div>
                                         {/if}
-            
+
                                     </td>
                                     <td>
                                           <a href="#/product/{$product.id}/edit/main/sku/settings/{$sku_id}/" class="inline-link nowrap inline-link js-action" title="[`Customize`]"><i class="icon16 settings"></i><b><i>[`Customize`]</i></b></a>
@@ -715,10 +719,10 @@
                                             </div>
                                             {% } %}
                                         {% } %}
-            
+
                                         {% if(!$.isEmptyObject(stocks)) { %}
                                         <div{% if($.isEmptyObject(sku.stock)) { %} style="display: none;{% } %}" id="s-product-sku-stock-{%=sku_id%}">
-            
+
                                         {% for (stock_id in stocks){ if (!stocks.hasOwnProperty(stock_id)){ continue; } %}
                                             {% if(typeof(sku.stock[stock_id]) != 'undefined') { %}
                                                 {% count = sku.stock[stock_id]; %}
@@ -733,13 +737,13 @@
                                             {% if(!$.isEmptyObject(stocks)) { %}
                                             <span class="hint">@{%=stocks[stock_id]['name']%}</span><br>
                                             {% } %}
-            
+
                                         {% } %}
                                         </div>
                                         {% } %}
-            
+
                                     </td>
-            
+
                                     <td>
                                           <a href="#/product/{/literal}{$product.id}{literal}/edit/main/sku/settings/{%=sku_id%}/" class="inline-link nowrap js-action" title="[`Customize`]"><i class="icon16 settings"></i><b><i>[`Customize`]</i></b></a>
                                     </td>
@@ -749,12 +753,12 @@
                                     <input type="hidden" name="product[skus][{%=sku_id%}][virtual]" value="{%=sku.virtual%}" class="s-input-virtual">
                                 </tr>
                             {/literal}{/capture}
-                            
+
                             {capture name='template-sku-settings'}{literal}
                                 {% var sku_id = o.sku_id; %}
                                 {% var sku = o.sku; %}
                                 <tr data-id="{%=sku_id%}" class="js-sku-settings">
-            
+
                                     <td colspan="7">
                                     [`loading...`]<i class="icon16 loading"></i>
                                     </td>
@@ -840,7 +844,7 @@
                     </div>
                 </div>
               </div>
-              
+
                 <div class="field-group">
                     <div class="field">
                         <div class="name">
@@ -854,7 +858,7 @@
                         </div>
                     </div>
                 </div>
-              
+
             </div>
         </div>
 {* PRODUCT EDIT DESCRIPTIONS TAB SECTION END *}

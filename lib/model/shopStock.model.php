@@ -69,30 +69,8 @@ class shopStockModel extends waModel
         ";
         $this->exec($sql);
 
-        // Repair this invariant:
-        // If sku.count IS NULL proper product.count must be NULL
-        $sql = "
-            UPDATE `shop_product` p
-            JOIN `shop_product_skus` s ON s.product_id = p.id
-            SET p.count = NULL
-            WHERE s.count IS NULL AND s.available != 1
-        ";
-        $this->exec($sql);
-
-        // Repair this invariant:
-        // If all skus of product are unavailable product.count must be 0
-        $sql = "
-            UPDATE shop_product p JOIN (
-                SELECT p.id, p.count, SUM(sk.available) all_sku_available
-                FROM shop_product p
-                JOIN shop_product_skus sk ON p.id = sk.product_id
-                WHERE p.count IS NULL || (p.count IS NOT NULL AND p.count != 0)
-                GROUP BY p.id
-                HAVING all_sku_available = 0
-            ) r ON p.id = r.id
-            SET p.count = 0
-        ";
-        $this->exec($sql);
+        $product_model = new shopProductModel();
+        $product_model->correctCount();
 
         return $id;
     }
@@ -155,6 +133,7 @@ class shopStockModel extends waModel
                 return false;
             }
         }
+
         return $this->deleteById($stock_id);
     }
 }

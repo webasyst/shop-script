@@ -1,0 +1,21 @@
+<!-- plugin hook: 'frontend_header' -->
+{* @event frontend_header.%plugin_id% *}
+{foreach $frontend_header as $_}{$_}{/foreach}            
+ 
+<!-- current page core content -->
+<div class="content">
+
+    <!-- integrnal navigation breadcrumbs -->
+    {if isset($breadcrumbs)}
+        <div class="breadcrumbs">
+            {foreach $breadcrumbs as $breadcrumb}
+                <a href="{$breadcrumb.url}">{$breadcrumb.name|escape}</a> <span class="rarr">&rarr;</span>
+            {/foreach}
+        </div>
+    {/if}
+
+    {$content}
+    
+</div>
+
+<div class="clear-both"></div>

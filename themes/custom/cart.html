@@ -27,7 +27,7 @@
                 <!-- products -->
                 {foreach $cart.items as $item}
                     <tr data-id="{$item.id}">
-                        <td class="min-width"><a href="{$wa->getUrl('/frontend/product', ['product_url' => $item.product.url])}" title="{$item.product.name|escape}">{$wa->shop->productImgHtml($item.product, '48x48')}</a></td>
+                        <td class="min-width"><a href="{$wa->shop->productUrl($item.product)}" title="{$item.product.name|escape}">{$wa->shop->productImgHtml($item.product, '48x48')}</a></td>
                         <td>
                             <a href="{$wa->shop->productUrl($item.product)}" class="bold">{$item.product.name|escape}</a>
                             {if $item.sku_name && $item.sku_name != $item.product.name}{$item.sku_name|escape}{/if}
@@ -52,15 +52,15 @@
 
                             </div>
                             {/if}
+                            {if !empty($item.error)}<script>alert('{$item.error|escape}');</script>{/if}
                         </td>
-                        <td class="align-center nowrap"><span class="gray">&times;</span> <input type="text" name="quantity[{$item.id}]" value="{$item.quantity}" class="qty"></td>
+                        <td class="align-center nowrap"><span class="gray">&times;</span> <input type="text" name="quantity[{$item.id}]" value="{$item.quantity}" class="qty{if !empty($item.error)} error{/if}"></td>
                         <td class="align-center item-total nowrap">{shop_currency($item.full_price, true)}</td>
                         <td><a class="delete" href="#" title="[`Remove from cart`]"><i class="icon16 remove"></i></a></td>
                     </tr>
                 {/foreach}
                 
                 <!-- discount coupon -->
-                {if 1}
                 <tr class="no-border" {if !shopDiscounts::isEnabled('coupons') && !$discount}style="display:none"{/if}>
                     <td colspan="2" class="no-border">
                         {if shopDiscounts::isEnabled('coupons')}
@@ -72,9 +72,8 @@
                     <td class="align-center cart-discount nowrap">&minus; {shop_currency($discount, true)}</td>
                     <td>&nbsp;</td>
                 </tr>
-                {/if}
 
-                {if shopAffiliate::isEnabled() && $affiliate_bonus}
+                {if shopAffiliate::isEnabled() && $affiliate_bonus > 0}
                 <!-- affiliate bonus -->
                 <tr class="no-border">
                     <td colspan="3" class="no-border">

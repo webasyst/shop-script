@@ -1,13 +1,9 @@
 <?php
 
-class shopFrontendCartAction extends waViewAction
+class shopFrontendCartAction extends shopFrontendAction
 {
     public function execute()
     {
-        if (!waRequest::isXMLHttpRequest()) {
-            $this->setLayout(new shopFrontendLayout());
-        }
-
 
         if (waRequest::method() == 'post') {
             $data = wa()->getStorage()->get('shop/checkout', array());
@@ -32,16 +28,28 @@ class shopFrontendCartAction extends waViewAction
             }
         }
 
-        if (waRequest::post('checkout')) {
-            $this->redirect(wa()->getRouteUrl('/frontend/checkout'));
-        }
-
-        $this->setThemeTemplate('cart.html');
+        $cart_model = new shopCartItemsModel();
 
         $cart = new shopCart();
         $code = $cart->getCode();
 
-        $cart_model = new shopCartItemsModel();
+        $errors = array();
+        if (waRequest::post('checkout')) {
+            $not_available_items = $cart_model->getNotAvailableProducts($code, !wa()->getSetting('ignore_stock_count'));
+            foreach ($not_available_items as $row) {
+                if ($row['available']) {
+                    $errors[$row['id']] = sprintf(_w('Only %d left in stock. Sorry.'), $row['count']);
+                } else {
+                    $errors[$row['id']] = _w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.');
+                }
+            }
+            if (!$errors) {
+                $this->redirect(wa()->getRouteUrl('/frontend/checkout'));
+            }
+        }
+
+        $this->setThemeTemplate('cart.html');
+
         $items = $cart_model->where('code= ?', $code)->order('parent_id')->fetchAll('id');
 
 
@@ -78,6 +86,12 @@ class shopFrontendCartAction extends waViewAction
                 $item['price'] = $sku['price'];
                 $item['currency'] = $item['product']['currency'];
                 $type_ids[] = $item['product']['type_id'];
+                if (isset($errors[$item_id])) {
+                    $item['error'] = $errors[$item_id];
+                    if (strpos($item['error'], '%s') !== false) {
+                        $item['error'] = sprintf($item['error'], $item['product']['name'].($item['sku_name'] ? ' ('.$item['sku_name'].')' : ''));
+                    }
+                }
             }
         }
         unset($item);
