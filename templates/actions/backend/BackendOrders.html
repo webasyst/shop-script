@@ -10,7 +10,7 @@
             <li class="bottom-padded">
                 <a href="#/orders/new/" class="bold"><i class="icon16 add"></i>[`New order`]</a>
             </li>
-            <li id="s-pending-orders">
+            <li id="s-pending-orders" class="list">
                 <span class="count">{if !empty($pending_count)}{$pending_count}{/if}</span>
                 <a href="#/orders/state_id=new|processing|paid">
                     <i class="icon16 ss orders-processing"></i>[`Processing`]

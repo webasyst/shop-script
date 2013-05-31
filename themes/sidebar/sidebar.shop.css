@@ -105,7 +105,7 @@ table.features td.name { min-width: 145px; color: #777; vertical-align: top; }
 .aux { padding: 15px; font-size: 0.9em; }
 
 ul.thumbs { padding: 0; margin: 0; }
-ul.thumbs li { display:inline-block; vertical-align:top; padding: 0; margin: 0 0 40px 0; position: relative; text-align: center; display: block\9; float: left\9; height: 320px\9; /* IE8- hack */ }
+ul.thumbs li { display:inline-block; vertical-align:top; padding: 0; margin: 0 0 40px 0; position: relative; text-align: center; display: block\9; float: left\9; height: 380px\9; /* IE8- hack */ }
 ul.thumbs img { margin-bottom: 2px; display: inline-block; display: block\9; }
 ul.thumbs img.overhanging { position: absolute; left: -20px; }
 ul.thumbs i.icon16.overhanging { position: absolute; left: -20px; margin: 0; top: 2px; }
@@ -129,10 +129,12 @@ ul.thumbs li.highlighted { background: inherit; }
 ul.thumbs li.highlighted img { -moz-box-shadow: 0px 0px 10px #fe2; -webkit-box-shadow: 0px 0px 10px #fe2; box-shadow: 0px 0px 10px #fe2; }
 ul.thumbs.mini { text-align: left; }
 ul.thumbs.mini li { margin-right: 20px; }
-ul.thumbs.mini li { height: 160px\9; /* IE8- hack */ }
+ul.thumbs.mini li { height: 180px\9; /* IE8- hack */ }
 
-ul.thumbs .image,
-ul.thumbs .offers { width: 200px; }
+ul.thumbs .image { width: 200px; }
+ul.thumbs .out-of-stock,
+ul.thumbs .rating,
+ul.thumbs .offers { display: block; margin: 3px 0; text-align: center; }
 ul.thumbs .badge { font-size: 1.2em; width: 70px; height: 70px; padding: 1px 2px 3px; border-width: 2px; }
 ul.thumbs .badge span { width: 68px; margin-top: 28px; overflow: hidden; }
 ul.thumbs .added2cart { display: inline; padding: 0; }

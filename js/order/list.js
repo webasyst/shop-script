@@ -323,6 +323,15 @@ $.order_list = {
                 }
             }
         });
+        sidebar.find('li.list a').unbind('click.order_list').
+            bind('click.order_list',
+                function() {
+                    var hash = $(this).attr('href').replace(/(^[^#]*#\/*|\/$)/g, ''); /* fix syntax highlight*/
+                    if (hash == $.orders.hash) {
+                        var params = $.orders.hash.replace('orders/', '');
+                        $.order_list.dispatch(params, true);
+                }
+            });
     },
 
     /*
