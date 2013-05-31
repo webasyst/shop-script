@@ -101,6 +101,7 @@ class shopHelper
         if ($address !== null) {
             $result = array();
             $currency = isset($params['currency']) ? $params['currency'] : wa()->getConfig()->getCurrency();
+            $dimension = shopDimension::getInstance()->getDimension('weight');
             foreach ($methods as $m) {
                 $plugin = shopShipping::getPlugin($m['plugin'], $m['id']);
                 $plugin_currency = $plugin->allowedCurrency();
@@ -112,7 +113,19 @@ class shopHelper
                         $total = $params['total_price'];
                     }
                 }
-                $rates = $plugin->getRates($items, $address ? $address : array(), $total ? array('total_price' => $total) : array());
+                $weight_unit = $plugin->allowedWeightUnit();
+                if ($weight_unit != $dimension['base_unit']) {
+                    $shipping_items = array();
+                    foreach ($items as $item_id => $item) {
+                        if ($item['weight']) {
+                            $item['weight'] = $item['weight'] * $dimension['units'][$weight_unit]['multiplier'];
+                        }
+                        $shipping_items[$item_id] = $item;
+                    }
+                } else {
+                    $shipping_items = $items;
+                }
+                $rates = $plugin->getRates($shipping_items, $address ? $address : array(), $total ? array('total_price' => $total) : array());
                 if (is_array($rates)) {
                     foreach ($rates as $rate_id => $info) {
                         if (is_array($info)) {

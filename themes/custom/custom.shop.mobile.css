@@ -60,7 +60,7 @@ table.cart td .services { margin-bottom: 0; }
 .review-form .review-submit { padding-left: 0; }
 .review-form .wa-captcha img { margin-bottom: 10px; }
 
-.promo { border: 0; }
+.promo.hero.superhero { box-shadow: none; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; }
 .promo a { height: 300px; }
 .promo a .info { max-width: none; left: 20px; top: 20px; }
 .promo a .info h2 { font-size: 2em; }

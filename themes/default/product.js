@@ -150,11 +150,15 @@ $(function () {
 
     // product images
     $("#product-gallery a").click(function () {
+        $("#product-image").parent().find("div.loading").remove();
+        $("#product-image").parent().append('<div class="loading" style="position: absolute; left: ' + (($("#product-image").width() - 16) / 2) + 'px; top: ' + (($("#product-image").height() - 16)/2) + 'px"><i class="icon16 loading"></i></div>');
+
         var img = $(this).find('img');
         var size = $("#product-image").attr('src').replace(/^.*\/[0-9]+\.(.*)\..*$/, '$1');
         var src = img.attr('src').replace(/^(.*\/[0-9]+\.)(.*)(\..*)$/, '$1' + size + '$3');
         $('<img>').attr('src', src).load(function () {
             $("#product-image").attr('src', src);
+            $("#product-image").parent().find("div.loading").remove();
         }).each(function() {
             //ensure image load is fired. Fixes opera loading bug
             if (this.complete) { $(this).trigger("load"); }

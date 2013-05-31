@@ -93,7 +93,9 @@ class shopWorkflowEditAction extends shopWorkflowAction
 
     public function getButton()
     {
-        return '<a href="#" class="s-edit-order"><i class="icon16 edit"></i>'.$this->getName().'</a>';
+        return '<a href="#" class="s-edit-order"><i class="icon16 edit"></i><span>'.
+            $this->getName().
+        '</span><i class="icon16 loading" style="margin-left: 4px; display:none;"></i></a>';
     }
 
 }

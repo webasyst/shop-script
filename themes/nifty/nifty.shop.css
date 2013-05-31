@@ -40,12 +40,12 @@
 
 .sub-categories { margin-bottom: 20px; }
 
-.filters { background: #eee; width: 240px; padding: 15px; float: right; }
+.filters { background: #f3eeff; width: 240px; padding: 15px; float: left; }
 .filters input[type="text"] { font-size: 0.9em; width: 50px; text-align: right; }
 
 /* Product info and lists */
 
-ul.skus { padding-left: 0; }
+ul.skus { padding-left: 2px; }
 ul.skus li { list-style: none; padding-bottom: 3px; }
 
 .stocks { margin-top: 10px; margin-bottom: 15px; }
@@ -101,6 +101,7 @@ table.features td.name { min-width: 145px; color: #777; vertical-align: top; }
 
 .options { line-height: 1.8em; }
 .services { margin-bottom: 20px; }
+.added2cart { display: block; padding-top: 5px; }
 .purchase { margin-bottom: 20px; background: #ddccf3; display: inline-block; display: block\9; padding: 15px; }
 .aux { padding: 15px; font-size: 0.9em; }
 
@@ -126,14 +127,16 @@ ul.thumbs li.selected { /* nothing! */ }
 ul.thumbs li.selected img { border: 4px solid #FDDA3B; margin: -4px -2px -2px -4px; -moz-border-radius: 4px; -webkit-border-radius: 4px; border-radius: 4px; }
 ul.thumbs li.highlighted { background: inherit; }
 ul.thumbs li.highlighted img { -moz-box-shadow: 0px 0px 10px #fe2; -webkit-box-shadow: 0px 0px 10px #fe2; box-shadow: 0px 0px 10px #fe2; }
-ul.thumbs.mini li { margin-right: 20px; }
-ul.thumbs.mini li { height: 120px\9; /* IE8- hack */ }
+ul.thumbs.mini li { margin-right: 20px; height: 150px\9; /* IE8- hack */ }
+ul.thumbs.mini li h5 { font-size: 1.1em; }
 
-ul.thumbs .image { width: 200px; }
+ul.thumbs .image,
+ul.thumbs .offers { width: 200px; }
 ul.thumbs .offers { margin-bottom: 10px; }
 ul.thumbs .badge { font-size: 1.2em; padding: 4px 5px; }
 ul.thumbs .badge span { width: 68px; margin-top: 28px; overflow: hidden; }
-ul.thumbs .purchase { padding: 5px 5px 5px 10px; margin-top: 10px; display: inline\9; }
+ul.thumbs .added2cart { display: inline; padding: 0; }
+ul.thumbs .purchase { padding: 5px 5px 5px 10px; margin-top: 10px; display: inline\9; background: #fff\9; }
 ul.thumbs.mini .image { width: 96px; height: auto; }
 
 ul.menu-h.product-internal { font-size: 1.2em; margin-left: -5px; height: 30px\9; margin-bottom: 20px; }

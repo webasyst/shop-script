@@ -406,15 +406,15 @@ $.order_edit = {
         var undiscounted_total = subtotal + shipping;
 
         // correct discout by constraint: total must be >= 0
-//        if (discount < 0) {
-//            discount = 0;
-//            $("#discount").val('');
-//        } else {
-//            if (undiscounted_total - discount < 0) {
-//                discount = undiscounted_total;
-//            }
-//            $("#discount").val(Math.round(discount * 100) / 100);
-//        }
+        if (discount < 0) {
+            discount = 0;
+            $("#discount").val('');
+        } else {
+            if (undiscounted_total - discount < 0) {
+                discount = undiscounted_total;
+            }
+            $("#discount").val(Math.round(discount * 100) / 100);
+        }
 
         var total = undiscounted_total - discount;
         $("#total").text(Math.round(total * 100) / 100);

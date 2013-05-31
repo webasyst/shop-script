@@ -155,6 +155,7 @@ ul.s-orders li .profile.image50px .details { min-height: 50px; padding-right: 5p
 
 ul.s-order-actions li { margin-right: 0; margin-left: -8px; }
 ul.s-order-actions li .button { border-width: 3px; padding-left: 12px; padding-right: 12px; height: 32px; }
+ul.s-order-actions li i.icon16.loading { margin-top: 7px; margin-left: 3px; }
 
 .s-order-aux { font-size: 0.9em; width: 200px; }
 

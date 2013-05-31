@@ -80,6 +80,27 @@ $(function () {
         }
     }
 
+    function cart_button_visibility(visible)
+    {
+        //toggles "Add to cart" / "%s is now in your shopping cart" visibility status
+        if (visible)
+        {
+            $('.add2cart .compare-at-price').show();
+            $('.add2cart input[type="submit"]').show();
+            $('.add2cart .price').show();
+            $('.add2cart .qty').show();
+            $('.add2cart span.added2cart').hide();
+        }
+        else
+        {
+            $('.add2cart .compare-at-price').hide();
+            $('.add2cart input[type="submit"]').hide();
+            $('.add2cart .price').hide();
+            $('.add2cart .qty').hide();
+            $('.add2cart span.added2cart').show();
+        }
+    }
+
     $("#product-skus input[type=radio]").click(function () {
         if ($(this).data('image-id')) {
             $("#product-image-" + $(this).data('image-id')).click();
@@ -91,6 +112,7 @@ $(function () {
         }
         var sku_id = $(this).val();
         update_sku_services(sku_id);
+        cart_button_visibility(true);
         update_price();
     });
     $("#product-skus input[type=radio]:checked").click();
@@ -115,6 +137,7 @@ $(function () {
         } else {
             $(".add2cart input[type=submit]").attr('disabled', 'disabled');
         }
+        cart_button_visibility(true);
         update_price(sku.price);
     });
     $("select.sku-feature:first").change();
@@ -186,10 +209,12 @@ $(function () {
                 obj.attr('disabled', 'disabled');
             }
         }
+        cart_button_visibility(true);
         update_price();
     });
 
     $(".cart .services .service-variants").on('change', function () {
+        cart_button_visibility(true);
         update_price();
     });
 
@@ -242,11 +267,8 @@ $(function () {
                 cart_total.closest('#cart').removeClass('empty');
                 cart_total.html(response.data.total);
 
-                $('.add2cart input[type="submit"]').hide();
-                $('.add2cart .price').hide();
-                $('.add2cart .qty').hide();
-                $('.add2cart span.added2cart').show();                
-                
+                cart_button_visibility(false);
+                                
             } else if (response.status == 'fail') {
                 alert(response.errors);
             }

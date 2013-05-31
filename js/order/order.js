@@ -82,7 +82,11 @@ $.order = {
     },
 
     initView : function() {
-        this.container.find('.s-edit-order').attr('href', '#/orders/edit/' + $.order.id + '/');
+        var edit_order_link = this.container.find('.s-edit-order');
+        edit_order_link.attr('href', '#/orders/edit/' + $.order.id + '/');
+        edit_order_link.click(function() {
+            edit_order_link.find('.loading').show();
+        });
         this.container.find('h1 .back.read-mode').click(function() {
             $.order.reload();
             return false;
