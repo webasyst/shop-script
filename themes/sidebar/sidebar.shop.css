@@ -88,6 +88,7 @@ table.features td.name { min-width: 145px; color: #777; vertical-align: top; }
 .image .corner.bottom { bottom:-5px; }
 .image .corner.left { left:-8px; }
 .image .corner.right { right:-8px; }
+.image .loading { opacity: 0.7; }
 .gallery { display: block; margin-top: 5px; }
 .gallery .image { border-top: 3px solid #fff; width: 50px; padding: 8px; float: left\9; /* IE8 */ }
 .gallery .image.selected { border-color: #be9; }
