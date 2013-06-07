@@ -17,17 +17,13 @@ $config = new SystemConfig();
 waSystem::getInstance(null, $config);
 $app_config = wa('shop')->getConfig();
 $request_file = $app_config->getRequestUrl(true, true);
-
-if (preg_match("@^thumb.php/(.+)@", $request_file, $matches)) {
-    $request_file = $matches[1];
-}
+$request_file = preg_replace("@^thumb.php(/products)?/?@", '', $request_file);
 $protected_path = wa()->getDataPath('products/', false, 'shop');
 $public_path = wa()->getDataPath('products/', true, 'shop');
 
 $main_thumb_file = false;
 $file = false;
 $size = false;
-
 if (preg_match('@((?:\d{2}/){2}([0-9]+)/images/([0-9]+))/\\3\.(\d+(?:x\d+)?)\.([a-z]{3,4})@i', $request_file, $matches)) {
     $file = $matches[1].'.'.$matches[5];
     $size = $matches[4];
@@ -40,7 +36,6 @@ if (preg_match('@((?:\d{2}/){2}([0-9]+)/images/([0-9]+))/\\3\.(\d+(?:x\d+)?)\.([
         }
     }
 }
-
 wa()->getStorage()->close();
 
 $original_path = $protected_path.$file;

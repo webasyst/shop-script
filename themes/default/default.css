@@ -259,7 +259,7 @@ table.compare th { text-align: left; }
 table.compare td img { display: block; margin: 0 auto 10px; }
 
 ul.thumbs { padding: 0; margin: 0; }
-ul.thumbs li { display:inline-block; vertical-align:top; padding: 0; margin: 0 30px 40px 0px; position: relative; display: block\9; float: left\9; height: 320px\9; /* IE8- hack */ }
+ul.thumbs li { display:inline-block; vertical-align:top; padding: 0; margin: 0 30px 40px 0px; position: relative; display: block\9; float: left\9; height: 370px\9; /* IE8- hack */ }
 ul.thumbs img { margin-bottom: 2px; display: block; }
 ul.thumbs img.overhanging { position: absolute; left: -20px; }
 ul.thumbs i.icon16.overhanging { position: absolute; left: -20px; margin: 0; top: 2px; }

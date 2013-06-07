@@ -134,6 +134,7 @@ class shopProduct implements ArrayAccess
 
     public function save($data = array(), $validate = true, &$errors = array())
     {
+        $result = false;
         $id = $this->getId();
         $search = new shopIndexSearch();
 
@@ -173,7 +174,7 @@ class shopProduct implements ArrayAccess
                     $search->onUpdate($id);
                     $this->is_dirty = array();
 
-                    return true;
+                    $result = true;
                 }
             } else {
                 if (!isset($product['contact_id'])) {
@@ -206,12 +207,31 @@ class shopProduct implements ArrayAccess
                         ));
                     }
 
-                    return true;
+                    $result = true;
                 }
             }
-            return false;
+
+        } else {
+            $result = true;
         }
-        return true;
+
+        $params = array(
+            'data'     => $this->getData(),
+            'instance' => & $this,
+        );
+
+        /**
+         * Handle product entry save
+         * @event product_save
+         *
+         * @param array[string]mixed $params
+         * @param array[string][string]mixed $params['data'] raw product data fields (see shop_product table description and related storages)
+         * @param array[string][string]int $data['data']['id'] product ID
+         * @param array[string]shopProduct $params['instance'] current shopProduct entry instance (avoid recursion)
+         * @return void
+         */
+        wa()->event('product_save', $params);
+        return $result;
     }
 
     protected function saveData(&$errors = array())
@@ -358,7 +378,7 @@ class shopProduct implements ArrayAccess
     public function getType()
     {
         $model = new shopTypeModel();
-        return $model->getById($this->type_id);
+        return $this->type_id ? $model->getById($this->type_id) : null;
     }
 
     public function upSelling($limit = 5)
@@ -376,8 +396,7 @@ class shopProduct implements ArrayAccess
             }
         } elseif (!$upselling) {
             return array();
-        }
-        // upselling on (manually)
+        } // upselling on (manually)
         else {
             $collection = new shopProductsCollection('related/upselling/'.$this->getId());
             return $collection->getProducts('*', $limit);

@@ -721,7 +721,9 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                     if (!$product_model) {
                         $product_model = new shopProductModel();
                     }
-                    $product['id_1c'] = shopCml1cPlugin::makeUuid();
+                    do {
+                        $product['id_1c'] = shopCml1cPlugin::makeUuid();
+                    } while ($product_model->getByField('id_1c', $product['id_1c']));
                     $product_model->updateById($product['id'], array('id_1c' => $product['id_1c']));
                 }
                 $shop_product = new shopProduct($product);
@@ -745,7 +747,9 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                         if (!$product_sku_model) {
                             $product_sku_model = new shopProductSkusModel();
                         }
-                        $sku['id_1c'] = shopCml1cPlugin::makeUuid();
+                        do {
+                            $sku['id_1c'] = shopCml1cPlugin::makeUuid();
+                        } while ($product_sku_model->getByField('id_1c', $sku['id_1c']));
                         $product_sku_model->updateById($sku['id'], array('id_1c' => $sku['id_1c']));
                     }
 
@@ -877,7 +881,9 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         $map =& $this->data['map'][self::STAGE_CATEGORY];
         if ($category = reset($categories)) {
             if (!$category['id_1c']) {
-                $category['id_1c'] = shopCml1cPlugin::makeUuid();
+                do {
+                    $category['id_1c'] = shopCml1cPlugin::makeUuid();
+                } while ($model->getByField('id_1c', $category['id_1c']));
                 $model->updateById($category['id'], array('id_1c' => $category['id_1c']));
                 $map[$category['id']] = $category['id_1c'];
             }

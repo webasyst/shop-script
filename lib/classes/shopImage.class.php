@@ -233,7 +233,8 @@ class shopImage
             if (file_exists(wa()->getDataPath($path, true, 'shop'))) {
                 return wa()->getDataUrl($path, true, 'shop', $absolute);
             } else {
-                return wa()->getDataUrl('thumb.php/'.$path, true, 'shop', $absolute);
+                $path = str_replace('products/', 'products/thumb.php/', $path);
+                return wa()->getDataUrl($path, true, 'shop', $absolute);
             }
         }
     }

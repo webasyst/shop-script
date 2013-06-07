@@ -125,6 +125,7 @@ ul.tags { list-style-type: none; margin: 0; padding: 0; }
 .s-order .s-overhanging-plus { margin-left: -12px; }
 .s-order textarea { width: 90%; }
 .s-order .profile { margin-bottom: 25px; margin-right: 220px; }
+.s-order .s-tracking { margin-right: 220px; }
 
 /* override paddings for .fields * because of complex composite fields */
 .fields .field .value p label { display: block; margin: 0; }

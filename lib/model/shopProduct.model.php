@@ -25,8 +25,9 @@ class shopProductModel extends waModel
             try {
                 waFiles::delete(shopProduct::getPath($product_id, null, false));
                 waFiles::delete(shopProduct::getPath($product_id, null, true));
-                $delete_ids[] = (int)$product_id;
-            } catch (waException $e) { }
+                $delete_ids[] = (int) $product_id;
+            } catch (waException $e) {
+            }
         }
 
         if (empty($delete_ids)) {
@@ -37,7 +38,7 @@ class shopProductModel extends waModel
         /**
          * @event product_delete
          * @param array[string]mixed $params
-         * @param array[string]array $params['ids']
+         * @param array[string]array $params['ids'] Array of IDs of deleted product entries
          * @return void
          */
         wa()->event('product_delete', $params);
@@ -60,9 +61,7 @@ class shopProductModel extends waModel
             $model->deleteByProducts($delete_ids);
         }
 
-        $type_ids = array_keys(
-            $this->query("SELECT DISTINCT type_id FROM `{$this->table}` WHERE id IN(".implode(',', $delete_ids).")")->fetchAll('type_id')
-        );
+        $type_ids = array_keys($this->query("SELECT DISTINCT type_id FROM `{$this->table}` WHERE id IN(".implode(',', $delete_ids).")")->fetchAll('type_id'));
         // remove records
         if ($this->deleteById($delete_ids)) {
             $type_model = new shopTypeModel();
@@ -123,9 +122,8 @@ class shopProductModel extends waModel
         $order = ($order == 'desc' || $order == 'DESC') ? 'DESC' : 'ASC';
 
         // get products ids
-        $sql = "SELECT id FROM {$this->table} ORDER BY count $order LIMIT ".(int)$offset.", ".(int)$count;
+        $sql = "SELECT id FROM {$this->table} ORDER BY count $order LIMIT ".(int) $offset.", ".(int) $count;
         $ids = array_keys($this->query($sql)->fetchAll('id'));
-
 
         return $this->getProductStocksByProductId($ids, $order);
     }
@@ -155,13 +153,13 @@ class shopProductModel extends waModel
         if (!$product_id) {
             return array();
         }
-        $product_ids     = (array)$product_id;
+        $product_ids = (array) $product_id;
         $product_ids_str = implode(',', $product_ids);
 
         $order = ($order == 'desc' || $order == 'DESC') ? 'DESC' : 'ASC';
 
         // necessary models
-        $stock_model          = new shopStockModel();
+        $stock_model = new shopStockModel();
         $product_images_model = new shopProductImagesModel();
 
         // stock ids of items ordered by sort
@@ -175,16 +173,16 @@ class shopProductModel extends waModel
             ORDER BY count $order
         ";
 
-        $data        = array();
-        $image_ids   = array();
+        $data = array();
+        $image_ids = array();
         foreach ($this->query($sql) as $item) {
             $data[$item['id']] = array(
-                'id'          => $item['id'],
-                'name'        => $item['name'],
+                'id'             => $item['id'],
+                'name'           => $item['name'],
                 'url_crop_small' => null,
-                'count'       => $item['count'],
-                'skus'        => array(),
-                'stocks'      => array()
+                'count'          => $item['count'],
+                'skus'           => array(),
+                'stocks'         => array()
             );
             if ($item['image_id'] != null) {
                 $image_ids[] = $item['image_id'];
@@ -195,11 +193,11 @@ class shopProductModel extends waModel
             return array();
         }
 
-        $product_ids     = array_keys($data);
+        $product_ids = array_keys($data);
         $product_ids_str = implode(',', $product_ids);
 
         $images = $product_images_model->getByField('id', $image_ids, 'product_id');
-        $size   = wa()->getConfig()->getImageSize('crop_small');
+        $size = wa()->getConfig()->getImageSize('crop_small');
 
         // get for skus number of stocks in which it presents
         $sql = "
@@ -227,21 +225,20 @@ class shopProductModel extends waModel
 
         $stocks_count = count($stock_ids);
 
-
         // temporary aggragating info about stocks
         $sku_stocks = array();
         if ($stocks_count) {
             $sku_stocks = array_fill(0, $stocks_count, array());
         }
 
-        $sku_id     = 0;
+        $sku_id = 0;
         $product_id = 0;
         $p_product = null;
         foreach ($this->query($sql) as $item) {
             // another product
             if ($product_id != $item['product_id']) {
                 $product_id = $item['product_id'];
-                $p_product = &$data[$product_id];
+                $p_product =& $data[$product_id];
                 if (isset($images[$product_id])) {
                     $p_product['url_crop_small'] = shopImage::getUrl($images[$product_id], $size);
                 }
@@ -249,13 +246,12 @@ class shopProductModel extends waModel
             // another sku
             if ($sku_id != $item['sku_id']) {
                 $sku_id = $item['sku_id'];
-                $p_product['skus'][$sku_id] =
-                    array(
-                        'id'    => $sku_id,
-                        'name'  => $item['sku_name'],
-                        'count' => $item['count'],
-                        'num_of_stocks' => isset($num_of_stocks[$sku_id]) ? $num_of_stocks[$sku_id] : 0
-                    );
+                $p_product['skus'][$sku_id] = array(
+                    'id'            => $sku_id,
+                    'name'          => $item['sku_name'],
+                    'count'         => $item['count'],
+                    'num_of_stocks' => isset($num_of_stocks[$sku_id]) ? $num_of_stocks[$sku_id] : 0
+                );
             }
 
             // aggregate info about stocks
@@ -266,13 +262,13 @@ class shopProductModel extends waModel
 
         // lay out stocks info
         if (!empty($sku_stocks)) {
-            foreach ($data as &$product) {
+            foreach ($data as & $product) {
                 foreach ($stock_ids as $stock_id) {
                     foreach ($product['skus'] as $sku_id => $sku) {
                         $product['stocks'][$stock_id][$sku_id] = array(
-                            'id'    => $sku_id,
-                            'name'  => $sku['name'],
-                            'count' => isset($sku_stocks[$stock_id][$sku_id]) ? $sku_stocks[$stock_id][$sku_id] : null,
+                            'id'            => $sku_id,
+                            'name'          => $sku['name'],
+                            'count'         => isset($sku_stocks[$stock_id][$sku_id]) ? $sku_stocks[$stock_id][$sku_id] : null,
                             'num_of_stocks' => $sku['num_of_stocks']
                         );
                     }
@@ -296,10 +292,10 @@ class shopProductModel extends waModel
     {
         $where = array();
         if ($product_ids) {
-            $where[] = "p.id IN (".implode(',', (array)$product_ids).") ";
+            $where[] = "p.id IN (".implode(',', (array) $product_ids).") ";
         }
         if ($category_ids) {
-            $where[] = "p.category_id IN (".implode(',', (array)$category_ids).")";
+            $where[] = "p.category_id IN (".implode(',', (array) $category_ids).")";
         }
 
         // correct products with category_id IS NULL, but belonging to at least one category
@@ -314,7 +310,6 @@ class shopProductModel extends waModel
         }
 
         $this->exec($sql);
-
 
         // correct products with category_id related with nonexistent categories
         $sql = "
@@ -413,7 +408,7 @@ class shopProductModel extends waModel
      */
     public function changeType($from_type_id, $to_type_id)
     {
-        $sql = "UPDATE `{$this->table}` SET type_id = ".(int)$to_type_id." WHERE type_id = ".(int)$from_type_id;
+        $sql = "UPDATE `{$this->table}` SET type_id = ".(int) $to_type_id." WHERE type_id = ".(int) $from_type_id;
         if (!$this->exec($sql)) {
             return false;
         }
@@ -426,10 +421,10 @@ class shopProductModel extends waModel
 
     public function getCurrency($product_id)
     {
-        return $this->select('currency')->where('id='.(int)$product_id)->fetchField('currency');
+        return $this->select('currency')->where('id='.(int) $product_id)->fetchField('currency');
     }
 
-    public function getTop($limit, $order='sales', $start_date = null, $end_date = null)
+    public function getTop($limit, $order = 'sales', $start_date = null, $end_date = null)
     {
         $paid_date_sql = shopOrderModel::getDateSql('o.paid_date', $start_date, $end_date);
 
@@ -465,9 +460,9 @@ class shopProductModel extends waModel
     public static function badges()
     {
         return array(
-            'new' => array('name' => _w('New!'), 'code' => '<div class="badge new"><span>'._w('New!').'</span></div>'),
+            'new'        => array('name' => _w('New!'), 'code' => '<div class="badge new"><span>'._w('New!').'</span></div>'),
             'bestseller' => array('name' => _w('Bestseller!'), 'code' => '<div class="badge bestseller"><span>'._w('Bestseller!').'</span></div>'),
-            'lowprice' => array('name' => _w('Low price!'), 'code' => '<div class="badge low-price"><span>'._w('Low price!').'</span></div>'),
+            'lowprice'   => array('name' => _w('Low price!'), 'code' => '<div class="badge low-price"><span>'._w('Low price!').'</span></div>'),
         );
     }
 
@@ -481,11 +476,11 @@ class shopProductModel extends waModel
     public function checkRights($product)
     {
         if (is_numeric($product)) {
-            $type_id = $this->select('type_id')->where('id='.(int)$product)->fetchField('type_id');
-//             if (!$type_id) {
-//                 throw new waException(_w("Unknown type"));
-//             }
-        } else if (is_array($product)) {
+            $type_id = $this->select('type_id')->where('id='.(int) $product)->fetchField('type_id');
+            if (!$type_id && false) {
+                throw new waException(_w("Unknown type"));
+            }
+        } elseif (is_array($product)) {
             if (!isset($product['type_id'])) {
                 //throw new waException(_w("Unknown type"));
                 $type_id = null;
@@ -496,6 +491,6 @@ class shopProductModel extends waModel
             $type_id = null;
             //throw new waException(_w("Unknown type"));
         }
-        return (boolean)wa()->getUser()->getRights('shop', 'type.'.$type_id);
+        return (boolean) wa()->getUser()->getRights('shop', 'type.'.$type_id);
     }
 }
