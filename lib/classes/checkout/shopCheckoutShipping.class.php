@@ -65,7 +65,7 @@ class shopCheckoutShipping extends shopCheckout
                 $shipping_items = array();
                 foreach ($items as $item_id => $item) {
                     if ($item['weight']) {
-                        $item['weight'] = $item['weight'] * $dimension['units'][$weight_unit]['multiplier'];
+                        $item['weight'] = $item['weight'] / $dimension['units'][$weight_unit]['multiplier'];
                     }
                     $shipping_items[$item_id] = $item;
                 }

@@ -40,15 +40,15 @@
         </file>
         <file path="product.html" custom="0">
             <description locale="en_US">Dedicated product page</description>
-            <description locale="ru_RU">Шаблон основной страницы продукта</description>
+            <description locale="ru_RU">Шаблон основной страницы товара</description>
         </file>
         <file path="product.js" custom="0">
             <description locale="en_US">Product page JS</description>
-            <description locale="ru_RU">JS-скрипты страницы продукта</description>
+            <description locale="ru_RU">JS-скрипты страницы товара</description>
         </file>
         <file path="product.page.html" custom="0">
             <description locale="en_US">Product static subpage content</description>
-            <description locale="ru_RU">Информационная подстраница продукта</description>
+            <description locale="ru_RU">Информационная подстраница товара</description>
         </file>
         <file path="review.html" custom="0">
             <description locale="en_US">A single product review template</description>

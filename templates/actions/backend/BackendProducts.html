@@ -10,7 +10,7 @@
     {$wa_app_static_url}js/inline.editable.widget.js
     {$wa_app_static_url}js/photo.stream.slider.js
     {$wa_app_static_url}js/product/dragndrop.js
-
+    {$wa_app_static_url}js/backend/categories_tree.js
     {$wa_app_static_url}js/products.js
     {$wa_app_static_url}js/product/product.js
     {$wa_app_static_url}js/rate.widget.js
@@ -70,25 +70,30 @@
 
     <!-- categories -->
     <div class="block drop-target">
+    
         <span class="count">
             <a href="#"><i title="[`New category`]" class="icon16 add s-new-list" id="s-new-category"></i></a>
         </span>
         <h5 class="heading">
-            <i class="icon16 darr collapse-handler" id="s-category-list-handler"></i><a href="javascript:void(0);">[`Categories`]</a>
+            <i class="icon16 loading" style="float:right; display:none;"></i>
+            <i class="icon16 {if $categories->isExpaned()}darr{else}rarr{/if} collapse-handler-ajax" id="s-category-list-handler"></i>
+            <a href="javascript:void(0);">[`Categories`]</a>
         </h5>
-
-        <div class="hierarchical s-collection-list" id="s-category-list">
-
-            {include './include.categories.html' inline}
-
-            <div class="block s-empty-list"  {if !empty($categories)}style="display:none;"{/if}>
+        
+        <div class="hierarchical s-collection-list" id="s-category-list" 
+            {if !$categories->isExpaned()}style="display:none;"{/if}
+        >
+            {include './include.categories.html' categories=$categories->getList() inline}
+            <div class="block s-empty-list" {if $categories->count()}style="display:none;"{/if}>
                 <p class="hint align-center">[`Create a product category using the green icon above.`]</p>
             </div>
         </div>
+        
     </div>
 
     <!-- sets -->
     <div class="block drop-target">
+    
         <span class="count">
             <a href="#"><i title="[`New set`]" class="icon16 add s-new-list" id="s-new-set"></i></a>
         </span>
@@ -96,25 +101,33 @@
             <i class="icon16 darr collapse-handler" id="s-set-list-handler"></i><a href="javascript:void(0);">[`Sets`]</a>
         </h5>
         <div class="s-collection-list" id="s-set-list">
-            <ul class="menu-v with-icons" {if empty($sets)}style="display:none;"{/if}>
-                <li class="drag-newposition" data-type="set"></li>
-                {foreach $sets as $set}
-                    {* @see js-template "template-sidebar-list-item" *}
-                    <li class="dr {if $set.type == shopSetModel::TYPE_DYNAMIC}dynamic{/if}" id="set-{$set.id}" data-type="set">
-                        <span class="count">{$set.count}</span>
-                        <a href="#/products/set_id={$set.id}">{strip}
-                            <i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}funnel{else}ss set{/if}"></i><span class="name">{$set.name|escape}</span>
-                             <span class="hint id"> {$set.id|escape}</span>
-                            <strong class="small highlighted count-new"></strong>
-                        {/strip}</a>
-                    </li>
+        
+            {if !empty($sets)}
+        
+                <ul class="menu-v with-icons">
                     <li class="drag-newposition" data-type="set"></li>
-                {/foreach}
-            </ul>
+                    {foreach $sets as $set}
+                        {* @see js-template "template-sidebar-list-item" *}
+                        <li class="dr {if $set.type == shopSetModel::TYPE_DYNAMIC}dynamic{/if}" id="set-{$set.id}" data-type="set">
+                            <span class="count">{$set.count}</span>
+                            <a href="#/products/set_id={$set.id}">{strip}
+                                <i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}funnel{else}ss set{/if}"></i>
+                                <span class="name">{$set.name|escape}</span>
+                                <span class="hint id"> {$set.id|escape}</span>
+                                <strong class="small highlighted count-new"></strong>
+                            {/strip}</a>
+                        </li>
+                        <li class="drag-newposition" data-type="set"></li>
+                    {/foreach}
+                </ul>
+            
+            {/if}
+            
             <div class="block s-empty-list" {if !empty($sets)}style="display:none;"{/if}>
                 <p class="hint align-center">[`Product sets are used for embedding products into storefront info pages and design templates.`]</p>
             </div>
         </div>
+        
     </div>
 
     <!-- types -->
@@ -175,6 +188,7 @@
 {literal}
 {% var icons = { category: ['folder', 'folder-dynamic'], set: ['ss set', 'funnel'] }; %}
 {% var dynamic = {/literal}'{shopCategoryModel::TYPE_DYNAMIC}'{literal}; %}
+<li class="drag-newposition" data-type="{%#o.type%}"><\/li>
 <li class="dr {% if (o.item.type == dynamic) { %}dynamic{% } %}" id="{%#o.type%}-{%#o.item.id%}" data-type="{%#o.type%}">
     <span class="count">{%#''+(o.item.count || 0)%}<\/span>
     <a href="#/products/{%#o.type%}_id={%#o.item.id%}&view={/literal}{$view}{literal}">
@@ -194,7 +208,6 @@
          {% } %}
     <\/a>
 <\/li>
-<li class="drag-newposition" data-type="category"><\/li>
 {/literal}
 </script>
 

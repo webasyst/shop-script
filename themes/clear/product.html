@@ -152,7 +152,12 @@
                         {in_stock n=$sku.count}
                         {/if}
                         </div>
-                    {/foreach}                
+                    {/foreach}
+                    {if $product.sku_type}
+                    <div id="sku-no-stock">
+                        <strong class="stock-none">[`Product with the selected option combination is not available for purchase`]</strong>
+                    </div>
+                    {/if}
                 </div>
                 {/if}
     
@@ -186,7 +191,7 @@
                         <span data-price="{shop_currency($product.price, null, null, 0)}" class="price nowrap">{shop_currency($product.price)}</span>
                         <input type="hidden" name="product_id" value="{$product.id}">
                         <span class="qty">
-                            &times; <input type="input" name="quantity" value="1">
+                            &times; <input type="text" name="quantity" value="1">
                         </span>
                         <input type="submit" {if !$product_available}disabled="disabled"{/if} value="[`Add to cart`]">
                         <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $product.name|escape, $wa->getUrl('shop/frontend/cart'))}</span>
@@ -345,7 +350,7 @@
 
 <script type="text/javascript">
     var currency = {json_encode($currency_info)};
-    {if count($product.skus) > 1}
+    {if count($product.skus) > 1 or $product.sku_type}
         var sku_services = {json_encode($sku_services)};
     {/if}
     {if $product.sku_type}

@@ -35,6 +35,8 @@ class shopFrontendCheckoutAction extends waViewAction
             if (!$payment_success) {
                 $order_params_model = new shopOrderParamsModel();
                 $order['params'] = $order_params_model->get($order_id);
+                $order_items_model = new shopOrderItemsModel();
+                $order['items'] = $order_items_model->getByField('order_id', $order_id, true);
                 $payment = '';
                 if (!empty($order['params']['payment_id'])) {
                     try {
@@ -45,9 +47,6 @@ class shopFrontendCheckoutAction extends waViewAction
                     }
                 }
                 $order['id'] = shopHelper::encodeOrderId($order_id);
-                $order_items_model = new shopOrderItemsModel();
-                $order['items'] = $order_items_model->getByField('order_id', $order_id, true);
-
                 $this->getResponse()->addGoogleAnalytics($this->getGoogleAnalytics($order));
             }
             $this->view->assign('order', $order);

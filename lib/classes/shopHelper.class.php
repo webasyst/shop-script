@@ -38,8 +38,8 @@ class shopHelper
         $order_params = $order ? $order['params'] : array();
         $order = new waOrder(array(
             'contact_id' => $order ? $order['contact_id'] : null,
-            'contact' => $order ? new waContact($order['contact_id']) : null,
-            'params' => $order_params
+            'contact'    => $order ? new waContact($order['contact_id']) : null,
+            'params'     => $order_params
         ));
         foreach ($methods as $m_id => $m) {
             $plugin = shopPayment::getPlugin($m['plugin'], $m['id']);
@@ -94,56 +94,89 @@ class shopHelper
         return $result;
     }
 
+    /**
+     *
+     * Get available shipping methods and rates
+     * @param array $address
+     * @param array $items array of package items
+     * @param array[string]double $items['weight'] package item weight in base unit
+     * @param array[string]int $items['quantity']
+     * @param array[string]double $items['price'] package item price in default currency
+     * @param array $params optional params
+     * @param array[string]string $params['currency'] result currency code
+     * @param array[string]double $params['total_price'] precalculated total package price
+     * @param array[string]int $params['payment'] selected payment instance ID
+     */
     public static function getShippingMethods($address = null, $items = array(), $params = array())
     {
         $plugin_model = new shopPluginModel();
-        $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_SHIPPING);
+        $options = array();
+        if (!empty($params[shopPluginModel::TYPE_PAYMENT])) {
+            $options[shopPluginModel::TYPE_PAYMENT] = $params[shopPluginModel::TYPE_PAYMENT];
+        }
+        $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_SHIPPING, $options);
         if ($address !== null) {
             $result = array();
-            $currency = isset($params['currency']) ? $params['currency'] : wa()->getConfig()->getCurrency();
-            $dimension = shopDimension::getInstance()->getDimension('weight');
+            $currency = isset($params['currency']) ? $params['currency'] : wa('shop')->getConfig()->getCurrency();
+            $dimensions = shopDimension::getInstance();
             foreach ($methods as $m) {
-                $plugin = shopShipping::getPlugin($m['plugin'], $m['id']);
-                $plugin_currency = $plugin->allowedCurrency();
-                $total = null;
-                if (isset($params['total_price'])) {
-                    if ($plugin_currency != $currency) {
-                        $total = shop_currency($params['total_price'], $currency, $plugin_currency, false);
+                if ($m['available']) {
+                    $plugin = shopShipping::getPlugin($m['plugin'], $m['id']);
+                    $plugin_info = $plugin->info($m['plugin']);
+                    $plugin_currency = $plugin->allowedCurrency();
+                    $total = null;
+                    if (isset($params['total_price'])) {
+                        if ($plugin_currency != $currency) {
+                            $total = shop_currency($params['total_price'], $currency, $plugin_currency, false);
+                        } else {
+                            $total = $params['total_price'];
+                        }
                     } else {
-                        $total = $params['total_price'];
-                    }
-                }
-                $weight_unit = $plugin->allowedWeightUnit();
-                if ($weight_unit != $dimension['base_unit']) {
-                    $shipping_items = array();
-                    foreach ($items as $item_id => $item) {
-                        if ($item['weight']) {
-                            $item['weight'] = $item['weight'] * $dimension['units'][$weight_unit]['multiplier'];
-                        }
-                        $shipping_items[$item_id] = $item;
-                    }
-                } else {
-                    $shipping_items = $items;
-                }
-                $rates = $plugin->getRates($shipping_items, $address ? $address : array(), $total ? array('total_price' => $total) : array());
-                if (is_array($rates)) {
-                    foreach ($rates as $rate_id => $info) {
-                        if (is_array($info)) {
-                            $result[$m['id'].'.'.$rate_id] = array(
-                                'plugin' => $m['plugin'],
-                                'name'   => $m['name'].(!empty($info['name']) ? ' ('.$info['name'].')' : ''),
-                                'rate'   => (float)shop_currency(is_array($info['rate']) ? max($info['rate']) : $info['rate'],
-                                    $plugin_currency, $currency, false)
-                            );
+                        foreach ($items as $item) {
+                            if (!empty($item['price'])) {
+                                $total += $item['price'];
+                            }
+                            if ($total && ($plugin_currency != $currency)) {
+                                $total = shop_currency($total, $currency, $plugin_currency, false);
+                            }
                         }
                     }
-                } else {
-                    $result[$m['id']] = array(
-                        'plugin' => $m['plugin'],
-                        'name'   => $m['name'],
-                        'error'  => $rates,
-                        'rate'   => ''
-                    );
+                    $weight_unit = $plugin->allowedWeightUnit();
+                    foreach ($items as & $item) {
+                        if (!empty($item['weight'])) {
+                            $item['weight'] = $dimensions->convert($item['weight'], 'weight', $weight_unit);
+                        }
+                    }
+                    unset($item);
+                    $rates = $plugin->getRates($items, $address ? $address : array(), $total ? array('total_price' => $total) : array());
+                    if (is_array($rates)) {
+                        foreach ($rates as $rate_id => $info) {
+                            if (is_array($info)) {
+                                $rate = is_array($info['rate']) ? max($info['rate']) : $info['rate'];
+                                $rate = (float) shop_currency($rate, $plugin_currency, $currency, false);
+                                $result[$m['id'].'.'.$rate_id] = array(
+                                    'plugin'   => $m['plugin'],
+                                    'logo'     => $m['logo'],
+                                    'icon'     => $plugin_info['icon'],
+                                    'img'      => $plugin_info['img'],
+                                    'name'     => $m['name'].(!empty($info['name']) ? ' ('.$info['name'].')' : ''),
+                                    'rate'     => $rate,
+                                    'currency' => $currency,
+                                );
+                            }
+                        }
+                    } else {
+                        $result[$m['id']] = array(
+                            'plugin'   => $m['plugin'],
+                            'logo'     => $m['logo'],
+                            'icon'     => $plugin_info['icon'],
+                            'img'      => $plugin_info['img'],
+                            'name'     => $m['name'],
+                            'error'    => $rates,
+                            'rate'     => '',
+                            'currency' => $currency,
+                        );
+                    }
                 }
             }
             return $result;
@@ -338,9 +371,9 @@ class shopHelper
             foreach (array('country', 'region', 'zip', 'city', 'street') as $k) {
                 if (!isset($address[$k])) {
                     continue;
-                } else if ($k == 'country') {
+                } elseif ($k == 'country') {
                     $address_f[$k] = waCountryModel::getInstance()->name(ifempty($address['country']));
-                } else if ($k == 'region') {
+                } elseif ($k == 'region') {
                     $address_f['region'] = '';
                     if (!empty($address['country']) && !empty($address['region'])) {
                         $model = new waRegionModel();
@@ -459,7 +492,7 @@ class shopHelper
         return strtolower($str);
     }
 
-    public static function getContactRights($contact_id=null)
+    public static function getContactRights($contact_id = null)
     {
         $rights = false;
         if (wa()->appExists('contacts')) {

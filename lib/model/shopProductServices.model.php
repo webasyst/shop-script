@@ -307,7 +307,7 @@ class shopProductServicesModel extends waModel
             } else if (isset($services[$service_id]['variants'][$item['id']])) {
                 if ($item['status'] !== null && $item['status'] == 0) {
                     unset($services[$service_id]['variants'][$item['id']]);
-                } else {
+                } else if ($item['price'] !== null) {
                     $services[$service_id]['variants'][$item['id']]['price'] = (float) (
                         $item['price'] ? $item['price'] : $item['base_price']
                     );

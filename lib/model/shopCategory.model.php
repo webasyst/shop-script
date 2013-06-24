@@ -83,6 +83,28 @@ class shopCategoryModel extends waNestedSetModel
         return $data;
     }
 
+    public function getTotalProductsCount($id = 0, $static_only = true)
+    {
+        $id = (int) $id;
+
+        $where = array();
+        if ($static_only) {
+            $where[] = 'type = '.self::TYPE_STATIC;
+        }
+
+        $sql = "SELECT SUM(count) AS cnt FROM `{$this->table}` ";
+        if ($id) {
+            $item = $this->getById($id);
+            $where[] = "`{$this->left}` >= {$item[$this->left]}";
+            $where[] = "`{$this->right}` <= {$item[$this->right]}";
+        }
+        if ($where) {
+            $sql .= " WHERE ".implode(" AND ", $where);
+        }
+
+        return $this->query($sql)->fetchField('cnt');
+    }
+
     /**
      * Get one level descendants
      * @param  int|array $category
@@ -341,6 +363,8 @@ class shopCategoryModel extends waNestedSetModel
         $product_model = new shopProductModel();
         $product_model->correctMainCategory(null, $id);
 
+        shopCategories::clear($id);
+
         return true;
     }
 
@@ -374,6 +398,7 @@ class shopCategoryModel extends waNestedSetModel
             $data[$this->parent] = 0;
             $data[$this->depth] = 0;
             if (!empty($data['url'])) {
+                $data['url'] = $this->suggestUniqueUrl($data['url'], null, 0);
                 $data['full_url'] = $data['url'];
             }
         } else {
@@ -427,9 +452,6 @@ class shopCategoryModel extends waNestedSetModel
             unset($data['url']);
         }
         $item = $this->getById($id);
-        if (!$this->updateById($id, $data)) {
-            return false;
-        }
         if (isset($url)) {
             if ($this->urlExists($url, $id, $item['parent_id'])) {
                 return false;
@@ -437,6 +459,9 @@ class shopCategoryModel extends waNestedSetModel
             if (!$this->updateUrl($id, $url)) {
                 return false;
             }
+        }
+        if (!$this->updateById($id, $data)) {
+            return false;
         }
         return true;
     }

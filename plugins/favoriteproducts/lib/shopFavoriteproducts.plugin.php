@@ -35,7 +35,7 @@ class shopFavoriteproductsPlugin extends shopPlugin
             $collection->addTitle(_wp('Favorites'));
         }
 
-        return null;
+        return true;
     }
 
     /** Handler for backend_product event: HTML for single order page. */

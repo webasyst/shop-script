@@ -101,6 +101,13 @@ class shopShipping extends waAppShipping
         return $plugin;
     }
 
+    public function getDataPath($order_id, $path = null)
+    {
+        $str = str_pad($order_id, 4, '0', STR_PAD_LEFT);
+        $path = 'orders/'.substr($str, -2).'/'.substr($str, -4, 2).'/'.$order_id.'/shipping/'.$path;
+        return wa('shop')->getDataPath($path, false, 'shop');
+    }
+
     public static function getList()
     {
         if (!class_exists('waShipping')) {

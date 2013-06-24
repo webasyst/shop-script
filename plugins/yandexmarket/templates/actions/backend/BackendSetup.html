@@ -34,7 +34,7 @@
                 </div>
             </div>
         </div>
-        {elseif ($route = reset($settlements))}
+        {elseif ($route=reset($settlements))}
         <input type="hidden" value="{$route|escape}" name="domain">
         {/if}
         <div class="clear-left"></div>
@@ -284,7 +284,7 @@
                     <div class="js-progressbar-container" style="display:none;">
                         <div class="progressbar blue float-left" style="display: none; width: 70%;">
                             <div class="progressbar-outer">
-                                <div class="progressbar-inner" style="width: 0%;"></div>
+                                <div class="progressbar-inner" style="width: 0;"></div>
                             </div>
                         </div>
                         <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />

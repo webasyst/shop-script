@@ -1,6 +1,6 @@
 $(document).ready(function () {
 
-    $('.bxslider').bxSlider( { auto : false, pause : 5000, autoHover : true });
+    $('.bxslider').bxSlider( { auto : true, pause : 5000, autoHover : true });
 
     $("form.addtocart").submit(function () {
         var f = $(this);

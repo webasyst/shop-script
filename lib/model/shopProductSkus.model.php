@@ -107,6 +107,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
     /**
      * @param int $product_id
      * @param int $sku_id
+     * @return bool
      */
     public function deleteFromStocks($product_id, $sku_id)
     {
@@ -142,26 +143,53 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         return $sku;
     }
 
-    public function getData(shopProduct $product)
+    /**
+     * @param int $product_id
+     * @param bool $fill_empty_sku_by_null
+     * @return array
+     */
+    public function getDataByProductId($product_id, $fill_empty_sku_by_null = false)
     {
-        $stocks_model = new shopProductStocksModel();
-        $stocks = $stocks_model->getByField('product_id', $product->id, true);
-        $skus = $this->getByField('product_id', $product->id, $this->id);
-        foreach ($skus as $id => & $sku) {
+        $stock_model = new shopStockModel();
+        $stocks = $stock_model->getAll('id');
+        $product_stocks_model = new shopProductStocksModel();
+        $product_stocks = $product_stocks_model->getByField('product_id', $product_id, 'stock_id');
+
+        $skus = $this->getByField('product_id', $product_id, $this->id);
+        foreach ($skus as &$sku) {
             $sku['count'] = ($sku['count'] === null ? null : (int) $sku['count']);
             $sku['price'] = (float) $sku['price'];
             $sku['purchase_price'] = (float) $sku['purchase_price'];
             $sku['compare_price'] = (float) $sku['compare_price'];
-            $sku['stock'] = array();
+            $sku['primary_price'] = (float) $sku['primary_price'];
+            $sku['stock'] = array_fill_keys(array_keys($stocks), null);
         }
         unset($sku);
-        foreach ($stocks as $stock) {
+
+        foreach ($product_stocks as $stock) {
             $id = $stock['sku_id'];
             if (isset($skus[$id])) {
                 $skus[$id]['stock'][$stock['stock_id']] = $stock['count'];
             }
         }
+
+        if (!$fill_empty_sku_by_null) {
+            foreach ($skus as &$sku) {
+                foreach ($sku['stock'] as $stock_id => $count) {
+                    if ($count === null) {
+                        unset($sku['stock'][$stock_id]);
+                    }
+                }
+            }
+            unset($sku);
+        }
+
         return $skus;
+    }
+
+    public function getData(shopProduct $product)
+    {
+        return $this->getDataByProductId($product->id);
     }
 
     private function convertPrice($price, $from)
@@ -175,7 +203,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         return $this->currency_model->convert($price, $from, $this->primary_currency);
     }
 
-    private static function castStock($count)
+    protected static function castStock($count)
     {
         if ($count === '' || !preg_match('@^\-?\d*(\.(\d+)?)?$@', $count)) {
             $count = null;
@@ -185,46 +213,196 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         return $count;
     }
 
-    public function setData(shopProduct $product, $data)
+    /**
+     * @param int $id
+     * @param array $data
+     * @return bool
+     */
+    public function update($id, $data)
     {
-        $result = array();
-        $price = array();
-        $product_id = $product->getId();
+        $sku = $this->getById($id);
+        if (!$sku) {
+            return false;
+        }
+        if (empty($data['product_id'])) {
+            $data['product_id'] = $sku['product_id'];
+        }
 
-        $default_sku_id = null;
-
-        $update_product_data = array();
-
+        $product_model = new shopProductModel();
+        $product = $product_model->getById('id', $data['product_id']);
         $primary_currency = wa()->getConfig()->getCurrency();
 
-        $stocks_model = new shopProductStocksModel();
-        $feature_model = new shopFeatureModel();
-        $product_features_model = new shopProductFeaturesModel();
+        if ($product['currency'] == $primary_currency) {
+            $data['primary_price'] = $data['price'];
+        } else {
+            $data['primary_price'] = $this->convertPrice($data['price'], $product['currency']);
+        }
 
-        // aggragate count by stocks for product
-        // Invariant: if at least one sku.count IS NULL this aggragate count IS NULL
-        $product_count = 0;
+        $this->updateSku($id, $data);
 
-        $available_sku_count = 0;
+        return true;
+    }
+
+    /**
+     * @param array $data
+     * @return bool
+     */
+    public function add($data)
+    {
+        if (empty($data['product_id'])) {
+            return false;
+        }
+
+        $product_model = new shopProductModel();
+        $product = $product_model->getById('id', $data['product_id']);
+        $primary_currency = wa()->getConfig()->getCurrency();
+
+        if ($product['currency'] == $primary_currency) {
+            $data['primary_price'] = $data['price'];
+        } else {
+            $data['primary_price'] = $this->convertPrice($data['price'], $product['currency']);
+        }
+
+        if (empty($sku['available'])) {
+            $sku['available'] = 0;
+        }
+
+        $this->updateSku(0, $data);
+
+        return true;
+    }
+
+    /**
+     * @param int $id
+     * @param array $data
+     * @return array
+     */
+    protected function updateSku($id = 0, $data)
+    {
+        $date['price'] = $this->castValue('double', $data['price']);
+        if (isset($data['purchase_price'])) {
+            $data['purchase_price'] = $this->castValue('double', $data['purchase_price']);
+        }
+        if (isset($data['compare_price'])) {
+            $data['compare_price'] = $this->castValue('double', $data['compare_price']);
+        }
+
+        if ($id > 0) {
+            if (empty($data['eproduct']) && !empty($data['file_name'])) {
+                $file_path = shopProduct::getPath(
+                    $data['product_id'],
+                    "sku_file/{$id}.".pathinfo($data['file_name'], PATHINFO_EXTENSION)
+                );
+                waFiles::delete($file_path);
+                $data['file_name'] = '';
+                $data['file_description'] = '';
+            } elseif (isset($data['file_name'])) {
+                unset($data['file_name']);
+            }
+            $this->updateById($id, $data);
+        } else {
+            $id = $this->insert($data);
+        }
+
+        $data['id'] = $id;
+
+        $sku_count = null;
+
+        // if stocking for this sku
+        if (isset($data['stock']) && count($data['stock'])) {
+
+            $stocks_model  = new shopProductStocksModel();
+
+            $sku_count = 0;
+
+            // not multistocking
+            if (isset($data['stock'][0])) {
+                $sku_count = self::castStock($data['stock'][0]);
+                unset($data['stock'][0]);
+
+            // multistocking
+            } else {
+                foreach ($data['stock'] as $stock_id => $count) {
+                    $field = array(
+                        'sku_id'     => $id,
+                        'stock_id'   => $stock_id,
+                        'product_id' => $data['product_id'],
+                    );
+                    $count = self::castStock($count);
+                    if ($count === null) {
+                        $sku_count = null;
+                        $stocks_model->deleteByField($field);
+                    } else {
+                        // Once turned into NULL value is not changed
+                        if ($sku_count !== null) {
+                            $sku_count += $count;
+                        }
+                        $stock = array('count' => $count);
+                        if ($stocks_model->getByField($field)) {
+                            $stocks_model->updateByField($field, $stock);
+                        } else {
+                            $stocks_model->insert(array_merge($field, $stock));
+                        }
+                    }
+                    $data['stock'][$stock_id] = $count;
+                }
+            }
+        }
+
+        $data['count'] = $sku_count;
+
+        $this->updateById($id, array('count' => $sku_count));
+
+        if (isset($data['features'])) {
+
+            $feature_model = new shopFeatureModel();
+            $product_features_model = new shopProductFeaturesModel();
+
+            foreach ($data['features'] as $code => $value) {
+
+                // ignoring empty values
+                if (empty($value)) {
+                    continue;
+                }
+
+                if ($feature = $feature_model->getByField('code', $code)) {
+                    $model = shopFeatureModel::getValuesModel($feature['type']);
+                    $field = array(
+                        'product_id' => $data['product_id'],
+                        'sku_id'     => $id,
+                        'feature_id' => $feature['id'],
+                    );
+                    $product_features_model->deleteByField($field);
+                    $field['feature_value_id'] = $model->getId($feature['id'], $value, $feature['type']);
+                    $product_features_model->insert($field);
+                } elseif (is_numeric($code) && is_numeric($value)) {
+                    $field = array(
+                        'product_id' => $data['product_id'],
+                        'sku_id'     => $id,
+                        'feature_id' => $code,
+                    );
+                    $product_features_model->deleteByField($field);
+                    $field['feature_value_id'] = $value;
+                    $product_features_model->insert($field);
+                }
+            }
+        }
+
+        return $data;
+    }
+
+    public function setData(shopProduct $product, $data)
+    {
+        $primary_currency = wa()->getConfig()->getCurrency();
+
         $sort = 0;
+        $default_sku_id = null;
+
         foreach ($data as $sku_id => $sku) {
             $sku['sort'] = ++$sort;
+
             if (empty($sku['available'])) {
                 $sku['available'] = 0;
-            }
-
-            if ($sku['available']) {
-                $available_sku_count++;
-            }
-
-            $price[] = $this->castValue('double', $sku['price']);
-
-            if (isset($sku['purchase_price'])) {
-                $sku['purchase_price'] = $this->castValue('double', $sku['purchase_price']);
-            }
-
-            if (isset($sku['compare_price'])) {
-                $sku['compare_price'] = $this->castValue('double', $sku['compare_price']);
             }
 
             if ($product->currency == $primary_currency) {
@@ -232,207 +410,31 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             } else {
                 $sku['primary_price'] = $this->convertPrice($sku['price'], $product->currency);
             }
+            $sku['product_id'] = $product->id;
 
-            if ($sku_id > 0) {
-                if (empty($sku['eproduct']) && !empty($sku['file_name'])) {
-                    $file_path = shopProduct::getPath($product_id, "sku_file/{$sku_id}.".pathinfo($sku['file_name'], PATHINFO_EXTENSION));
-                    waFiles::delete($file_path);
-                    $sku['file_name'] = '';
-                    $sku['file_description'] = '';
-                } elseif (isset($sku['file_name'])) {
-                    unset($sku['file_name']);
-                }
-                $this->updateById($sku_id, $sku);
+            $sku = $this->updateSku($sku_id > 0 ? $sku_id : 0, $sku);
+            $result[$sku['id']] = $sku;
 
-                if ($product->sku_id == $sku_id) {
-                    $default_sku_id = $sku_id;
-                }
-
-            } else {
-                $is_default = false;
-                if ($product->sku_id == $sku_id) {
-                    $is_default = true;
-                }
-
-                $sku['product_id'] = $product_id;
-                $sku_id = $this->insert($sku);
-                unset($sku['product_id']);
-
-                if ($is_default) {
-                    $default_sku_id = $sku_id;
-                    //$update_product_data['sku_id'] = $sku_id;
-                }
+            if ($product->sku_id == $sku_id) {
+                $default_sku_id = $sku['id'];
             }
-
-            // aggregate count by stocks.
-            // In multistocking: if at least one stock-sku count doesn't exists this aggregate counter turn into NULL
-            $sku_count = null;
-
-            // if stocking for this sku
-            if (isset($sku['stock']) && count($sku['stock'])) {
-                $sku_count = 0;
-
-                // not multistocking
-                if (isset($sku['stock'][0])) {
-                    $sku_count = self::castStock($sku['stock'][0]);
-                    unset($sku['stock'][0]);
-
-                // multistocking
-                } else {
-                    foreach ($sku['stock'] as $stock_id => $count) {
-                        $field = array(
-                            'stock_id'   => $stock_id,
-                            'sku_id'     => $sku_id,
-                            'product_id' => $product->id,
-                        );
-                        $count = self::castStock($count);
-                        if ($count === null) {
-                            // turn into NULL and is not longer changing
-                            $sku_count = null;
-                            $stocks_model->deleteByField($field);
-                        } else {
-                            // Once turned into NULL value is not changed
-                            if ($sku_count !== null) {
-                                $sku_count += $count;
-                            }
-
-                            $stock = array('count' => $count);
-                            try {
-                                $stocks_model->insert(array_merge($field, $stock));
-                            } catch (waDbException $ex) {
-                                if ($ex->getCode() == '1062') {
-                                    $stocks_model->updateByField($field, $stock);
-                                } else {
-                                    throw $ex;
-                                }
-                            }
-                        }
-                        $sku['stock'][$stock_id] = $count;
-                    }
-                }
-            }
-
-            // maintain product_count invariant. See above
-            if ($sku['available']) {
-                if ($sku_count === null) {
-                    $product_count = null;
-                } elseif ($product_count !== null) {
-                    $product_count += $sku_count;
-                }
-            }
-
-            $sku['count'] = $sku_count;
-
-            $this->updateById($sku_id, array('count' => $sku_count));
-
-            if (isset($sku['features'])) {
-
-                foreach ($sku['features'] as $code => $value) {
-
-                    // ingoring empty values
-                    if (empty($value)) {
-                        continue;
-                    }
-
-                    if ($feature = $feature_model->getByField('code', $code)) {
-                        $model = shopFeatureModel::getValuesModel($feature['type']);
-                        $field = array(
-                            'product_id' => $product_id,
-                            'sku_id'     => $sku_id,
-                            'feature_id' => $feature['id'],
-                        );
-                        $product_features_model->deleteByField($field);
-                        $field['feature_value_id'] = $model->getId($feature['id'], $value, $feature['type']);
-                        $product_features_model->insert($field);
-                    } elseif (is_numeric($code) && is_numeric($value)) {
-                        $field = array(
-                            'product_id' => $product_id,
-                            'sku_id'     => $sku_id,
-                            'feature_id' => $code,
-                        );
-                        $product_features_model->deleteByField($field);
-                        $field['feature_value_id'] = $value;
-                        $product_features_model->insert($field);
-                    }
-                }
-            }
-            $result[$sku_id] = $sku;
         }
 
-        if ($available_sku_count == 0) {
-            $product_count = 0;
-        }
-
-        //TODO save it
-        if (!$price) {
-            $price[] = 0;
-        }
-
-        //XXX temporal hack
         $model = new shopProductModel();
 
-        // if default sku id not found choose first sku_id
         if ($default_sku_id === null) {
-            $product->sku_id = $update_product_data['sku_id'] = current(array_keys($result));
+            $model->updateById($product->id, array('sku_id' => current(array_keys($result))));
         } else {
-            $product->sku_id = $update_product_data['sku_id'] = $default_sku_id;
+            $model->updateById($product->id, array('sku_id' => $default_sku_id));
         }
+        $model->correct($product->id);
 
-//         if (empty($update_product_data['sku_id']) && $product->sku_id <= 0) {
-//             $update_product_data['sku_id'] = current(array_keys($result));
-//         }
-//         if (!empty($update_product_data['sku_id'])) {
-//             $product->sku_id = $update_product_data['sku_id'];
-//         }
-
-        if ($product->currency && $product->currency != $primary_currency) {
-            $product->min_price = $this->convertPrice(min($price), $product->currency);
-            $product->max_price = $this->convertPrice(max($price), $product->currency);
-
-            $product->price = $update_product_data['price'] =
-                $this->convertPrice(
-                    $result[$product->sku_id]['price'],
-                    $product->currency
-                );
-
-            if (isset($result[$product->sku_id]['compare_price'])) {
-                $product->compare_price = $update_product_data['compare_price'] =
-                    $this->convertPrice(
-                        $result[$product->sku_id]['compare_price'],
-                        $product->currency
-                    );
-            }
-
-        } else {
-            $product->min_price = min($price);
-            $product->max_price = max($price);
-            $product->price = $update_product_data['price'] =
-                $this->castValue(
-                    'double',
-                    $result[$product->sku_id]['price']
-                );
-
-            if (isset($result[$product->sku_id]['compare_price'])) {
-                $product->compare_price = $update_product_data['compare_price'] =
-                    $this->castValue(
-                        'double',
-                        $result[$product->sku_id]['compare_price']
-                    );
-            }
-        }
-
-        $product->count = $product_count;
-
-        if (!$product->currency) {
-            $product->currency = $primary_currency;
-        }
-
-        $update_product_data['min_price'] = $product->min_price;
-        $update_product_data['max_price'] = $product->max_price;
-        $update_product_data['count'] = $product_count;
-        $update_product_data['currency'] = $product->currency;
-
-        $model->updateById($product->getId(), $update_product_data);
+        $product_data = $model->getById($product->id);
+        $product->min_price = $product_data['min_price'];
+        $product->max_price = $product_data['max_price'];
+        $product->price = $product_data['price'];
+        $product->compare_price = $product_data['compare_price'];
+        $product->count = $product_data['count'];
 
         return $result;
     }

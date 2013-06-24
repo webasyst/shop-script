@@ -62,8 +62,6 @@ class shopProductsSaveListSettingsController extends waJsonController
                 if ($url) {
                     $data['url'] = $model->suggestUniqueUrl($url);
                 }
-            } else {
-                $data['url'] = $model->suggestUniqueUrl($data['url']);
             }
             if (empty($data['name'])) {
                 $data['name'] = _w('(no-name)');

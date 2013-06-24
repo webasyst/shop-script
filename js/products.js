@@ -35,6 +35,7 @@
             this.initRouting();
             this.initSearch();
             this.initSidebar();
+            $.categories_tree.init();
             this.initCollapsible();
         },
 
@@ -234,29 +235,20 @@
             var key_prefix = 'shop/products/';
             var collapse = function(el, not_save) {
                 $(el).removeClass('darr').addClass('rarr');
-                var item = target(el).hide();
+                target(el).hide();
                 if (!not_save) {
                     $.storage.set(key_prefix + el.id + '/collapse', 1);
                 }
-                var parent = item.closest('li');
-                if (parent.attr('data-type') == 'category') {
-                    parent.trigger('count_subtree', true);
-                }
             };
             var expand = function(el) {
+                target(el).show();
                 $(el).removeClass('rarr').addClass('darr');
-                var item = target(el).show();
                 $.storage.del(key_prefix + el.id + '/collapse');
-                var parent = item.closest('li');
-                if (parent.attr('data-type') == 'category') {
-                    parent.trigger('count_subtree', false);
-                }
             };
             var target = function(el) {
                 var parent = $(el).parent();
                 return parent.is('li') ? parent.find('ul:first') : parent.next();
             };
-
             $(".collapse-handler").die('click').live('click', function() {
                 var self = $(this);
                 if (self.hasClass('darr')) {
@@ -294,7 +286,7 @@
                 }
                 location.hash = '#/' + hash;
             };
-            // HTML5 search input search-event isn't suppotred
+            // HTML5 search input search-event isn't supported
             $('#s-products-search').unbind('keydown').bind('keydown', function(event) {
                 if (event.keyCode == 13) { // 'Enter'
                     search.call(this);
@@ -340,15 +332,49 @@
                 }
                 $.products.jsonPost('?module=products&action=moveList', data, options.success, options.error);
             });
-            sidebar.off('add', '.s-collection-list ul').on('add', '.s-collection-list ul', function(e, new_item, type) {
-                var self = $(this), parent = self.parents('.s-collection-list:first');
-                self.prepend(tmpl('template-sidebar-list-item', {
-                    type : type,
-                    item : new_item
-                })).show();
-                parent.find('.s-empty-list').hide();
-                return false;
-            });
+
+            // SIDEBAR CUSTOM EVENT HANDLERS
+
+            sidebar.off('add', '.s-collection-list ul').
+                on('add', '.s-collection-list ul',
+                    /**
+                     * @param {Object} e jquery event
+                     * @param {Object} item describes inserting item. Will be passed to template
+                     * @param {String} type: 'category', 'set'
+                     * @param {Boolean} replace if item exists already replace it or not?
+                     */
+                    function(e, item, type, replace) {
+                        var self = $(this), parent = self.parents('.s-collection-list:first');
+                        var tmp = $('<ul></ul>');
+                        tmp.append(tmpl('template-sidebar-list-item', {
+                            type : type,
+                            item : item
+                        }));
+
+                        var new_item = tmp.children(':not(.drag-newposition):first');
+                        var id = new_item.attr('id');
+                        var old_item = self.find('#' + id);
+
+                        if (old_item.length) {
+                            if (replace) {
+                                old_item.replaceWith(new_item);
+                            }
+                        } else {
+                            self.prepend(tmp.children()).show();
+                        }
+
+                        self.children().mouseover();
+                        self.find('.drag-newposition').css({
+                            height: '2px'
+                        }).removeClass('dragging');
+
+                        parent.find('.s-empty-list').hide();
+
+                        tmp.remove();
+
+                        return false;
+                }
+            );
 
             sidebar.unbind('update').bind('update', function(e, lists) {
                 for (var type in lists) {
@@ -383,31 +409,59 @@
                 return false;
             });
 
-            sidebar.off('count_subtree', '.s-collection-list li').on('count_subtree', '.s-collection-list li', function(e, collapsed) {
-                var item = $(this);
-                if (typeof collapsed === 'undefined') {
-                    collapsed = item.find('i.collapse-handler').hasClass('rarr');
-                }
+            sidebar.off('count_subtree', '.s-collection-list li').
+                on('count_subtree', '.s-collection-list li',
+                    function(e, collapsed) {
+                        var item = $(this);
+                        if (typeof collapsed === 'undefined') {
+                            collapsed = item.find('i.collapse-handler-ajax').hasClass('rarr');
+                        }
 
-                var counter = item.find('>.count:not(.subtree)');
-                var subtree_counter = item.find('>.subtree');
-                if (!subtree_counter.length) {
-                    subtree_counter = counter.clone().addClass('subtree').hide();
-                    counter.after(subtree_counter);
+                        // see update_counters also
+                        var counter = item.find('.counters .count:not(.subtree)');
+                        var subtree_counter = item.find('.counters .subtree');
+                        if (!subtree_counter.length) {
+                            subtree_counter = counter.clone().addClass('subtree').hide();
+                            counter.after(subtree_counter);
+                        }
+                        if (collapsed) {
+                            var total_count = parseInt(counter.text(), 10) || 0;
+                            item.find('li.dr:not(.dynamic)>.counters .count:not(.subtree)').each(function() {
+                                total_count += parseInt($(this).text(), 10) || 0;
+                            });
+                            subtree_counter.text(total_count).show();
+                            counter.hide();
+                        } else {
+                            subtree_counter.hide();
+                            counter.show();
+                        }
+                        return false;
                 }
-                if (collapsed) {
-                    var total_count = parseInt(counter.text(), 10) || 0;
-                    item.find('li.dr:not(.dynamic)>.count:not(.subtree)').each(function() {
-                        total_count += parseInt($(this).text(), 10) || 0;
-                    });
-                    subtree_counter.text(total_count).show();
-                    counter.hide();
-                } else {
-                    subtree_counter.hide();
-                    counter.show();
-                }
-                return false;
-            });
+            );
+
+            sidebar.off('update_counters', '.s-collection-list li').
+                on('update_counters', '.s-collection-list li',
+                    function(e, counts) {
+                        var item = $(this);
+                        // see count_subtree also
+                        var counter = item.find('>.count:not(.subtree)');
+                        var subtree_counter = item.find('>.subtree');
+                        if (!subtree_counter.length) {
+                            subtree_counter = counter.clone().addClass('subtree').hide();
+                            counter.after(subtree_counter);
+                        }
+
+                        // update counters if proper key exists
+                        if (typeof counts.item !== 'undefined') {
+                            counter.text(parseInt(counts.item, 10) || 0);
+                        }
+                        if (typeof counts.subtree !== 'undefined') {
+                            subtree_counter.text(parseInt(counts.subtree, 10) || 0);
+                        }
+
+                        return false;
+                    }
+            );
         },
 
         jsonPost : function(url, data, success, error) {

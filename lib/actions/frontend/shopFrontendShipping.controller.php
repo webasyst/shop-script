@@ -61,7 +61,7 @@ class shopFrontendShippingController extends waJsonController
         if ($weight_unit != $dimension['base_unit']) {
             foreach ($items as $item_id => $item) {
                 if ($item['weight']) {
-                    $items[$item_id]['weight'] = $item['weight'] * $dimension['units'][$weight_unit]['multiplier'];
+                    $items[$item_id]['weight'] = $item['weight'] / $dimension['units'][$weight_unit]['multiplier'];
                 }
             }
         }

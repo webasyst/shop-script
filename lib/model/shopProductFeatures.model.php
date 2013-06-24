@@ -13,6 +13,19 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
     }
 
+    public function getValuesByCategory($category_id)
+    {
+        $sql = "SELECT DISTINCT f.feature_id, f.feature_value_id FROM ".$this->table." f
+        JOIN shop_category_products c ON f.product_id = c.product_id
+        WHERE c.category_id ".(is_array($category_id) ? 'IN (i:id)' : '= i:id');
+        $rows = $this->query($sql, array('id' => $category_id));
+        $result = array();
+        foreach ($rows as $row) {
+            $result[$row['feature_id']][] = $row['feature_value_id'];
+        }
+        return $result;
+    }
+
     public function getSkuFeatures($product_id)
     {
         if (!$product_id) {

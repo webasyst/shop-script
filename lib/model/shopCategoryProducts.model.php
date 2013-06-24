@@ -226,8 +226,13 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
             $this->add($product->id, $added);
         }
 
-        $product_model = new shopProductModel();
-        $product_model->correctMainCategory($product->id);
+        //$product_model = new shopProductModel();
+        //$product_model->correctMainCategory($product->id);
+        if ($data) {
+            $product->category_id = reset($data);
+        } else {
+            $product->category_id = null;
+        }
 
         return $data;
     }

@@ -173,9 +173,9 @@
                     current.animate({ height: 0}, 200, function() {
                         $(this).hide();
                     });
-                    $(".checkout-step.step-" + step_id + " .checkout-step-content").show(200, function () {
+                    $(".checkout-step.step-" + step_id + " .checkout-step-content").css({ height: 'auto'}).show(200, function () {
                         $(document).scrollTop($(".checkout-step.step-" + step_id).offset().top);
-                    }).css({ height: 'auto'});
+                    });
                     current.parent().find('a.back').hide();
                 }
                 $(".checkout-step.step-" + step_id + ' h2').removeClass('upcoming')

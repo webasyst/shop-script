@@ -134,7 +134,10 @@ $(function () {
             } else {
                 $(".add2cart input[type=submit]").attr('disabled', 'disabled');
             }
+            $(".add2cart .price").data('price', sku.price);
         } else {
+            $("div.stocks div").hide();
+            $("#sku-no-stock").show();
             $(".add2cart input[type=submit]").attr('disabled', 'disabled');
         }
         cart_button_visibility(true);

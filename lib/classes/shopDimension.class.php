@@ -132,6 +132,14 @@ class shopDimension
         return $units;
     }
 
+    /**
+     *
+     * Convert dimension values
+     * @param double $value
+     * @param string $type dimension type
+     * @param string $unit target dimension unit, default is base_unit
+     * @param string $value_unit value dimension unit, default is base_unit
+     */
     public function convert($value, $type, $unit, $value_unit = null)
     {
         if ($dimension = $this->getDimension($type)) {
@@ -141,7 +149,7 @@ class shopDimension
                 }
             }
 
-            if (($unit !== null) && ($unit != $dimension['unit'])) {
+            if (($unit !== null) && ($unit != $dimension['base_unit'])) {
                 if (isset($dimension['units'][$unit])) {
                     $value = $value / $dimension['units'][$unit]['multiplier'];
                 }

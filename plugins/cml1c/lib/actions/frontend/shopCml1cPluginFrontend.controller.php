@@ -17,7 +17,8 @@ class shopCml1cPluginFrontendController extends waController
 
     /**
      *
-     * @return waLongActionController
+     * @param bool $force
+     * @return shopCml1cPluginBackendRunController
      */
     private function runner($force = false)
     {
@@ -36,7 +37,11 @@ class shopCml1cPluginFrontendController extends waController
         @set_time_limit(0);
         wa()->setLocale('ru_RU');
 
-        $uuid = wa()->getPlugin('cml1c')->uuid();
+        /**
+         * @var shopCml1cPlugin $plugin
+         */
+        $plugin = wa()->getPlugin('cml1c');
+        $uuid = $plugin->uuid();
         if (empty($uuid) || (waRequest::param('hash') != $uuid)) {
             throw new waRightsException('1C');
         }
@@ -109,7 +114,7 @@ class shopCml1cPluginFrontendController extends waController
                             clearstatcache();
                             sleep(3);
                             $this->runner(true)->run();
-                            $r = ob_get_clean();
+                            ob_get_clean();
                             sleep(2);
                             clearstatcache();
                             sleep(3);
@@ -184,7 +189,6 @@ class shopCml1cPluginFrontendController extends waController
                     ;
                 }
             }
-            $response = array();
 
             $size = ini_get('upload_max_filesize');
             if (preg_match('/(\d+)\s*([KMG]?)/', $size, $matches)) {
@@ -202,7 +206,6 @@ class shopCml1cPluginFrontendController extends waController
 
     private function uploadFile()
     {
-        $data = false;
         if (isset($GLOBALS['HTTP_RAW_POST_DATA'])) {
             $data = !empty($GLOBALS['HTTP_RAW_POST_DATA']) ? $GLOBALS['HTTP_RAW_POST_DATA'] : null;
         } else {

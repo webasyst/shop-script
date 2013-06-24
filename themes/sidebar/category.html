@@ -9,7 +9,7 @@
 <!-- filtering by product features -->    
 {if !empty($filters)}
 <div class="filters">
-    <form method="get" action="">
+    <form method="get" action="{$wa->currentUrl()}">
     {foreach $filters as $fid => $filter}
         <p>
         {if $fid == 'price'}

@@ -15,6 +15,9 @@ class shopOrderSaveController extends waJsonController
         if ($customer_id && !shopHelper::getContactRights($customer_id)) {
             $customer_id = null;
         }
+        if ($customer_id === null && !$id) {
+            $customer_id = 0;
+        }
 
         if ($customer_id !== null) {
             $contact = new waContact($customer_id);

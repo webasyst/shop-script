@@ -50,15 +50,10 @@ if (typeof($) != 'undefined') {
                 return self.call('UploadHandler', [this]);
             });
 
-            var button = $('#s-cml1c-auto :checkbox[name="enabled"]').iButton({
+            var button = $('#s-cml1c-auto').find(':checkbox[name="enabled"]:first').iButton({
                 labelOn: "",
                 labelOff: "",
                 className: 'mini'
-            }).click(function() {
-                if (false && !$(this).is(':checked')
-                && !confirm('При отключении автоматического обмена текущий адрес скрипта синхронизации более не будет работать (после повторного включения будет создан новый адрес). Вы уверены?')) {
-                    return false;
-                }
             }).change(function() {
                 var self = $(this);
                 var enabled = self.is(':checked');
@@ -86,16 +81,18 @@ if (typeof($) != 'undefined') {
                         $field.find(":input:first").val(data.data.url);
                     }
                 }, 'json');
+                return true;
             });
         },
 
         cml1cTabAction: function(tab) {
             if (true || this.cml1c_options.tab != tab) {
                 this.cml1c_options.tab = tab;
-                $('#s-cml1c-form ul.tabs li.selected').removeClass('selected');
-                $('#s-cml1c-form ul.tabs a[href$="\/' + tab + '\/"]').parent().addClass('selected');
-                $('#s-cml1c-form .tab-content > div:visible').hide();
-                $('#s-cml1c-form .tab-content > div#s-cml1c-' + tab).show();
+                var $form = $('#s-cml1c-form');
+                $form.find('ul.tabs li.selected').removeClass('selected');
+                $form.find('ul.tabs a[href$="\/' + tab + '\/"]').parent().addClass('selected');
+                $form.find('.tab-content > div:visible').hide();
+                $form.find('.tab-content > div#s-cml1c-' + tab).show();
 
             }
         },
@@ -126,7 +123,7 @@ if (typeof($) != 'undefined') {
                 this.cml1c_data.direction = $form.find(':input[name="direction"]').val();
                 this.cml1cHandler(form);
             } catch (e) {
-                $('#s-csvproduct-transport-group :input').attr('disabled', false);
+                $('#s-csvproduct-transport-group').find(':input').attr('disabled', false);
                 $.shop.error('Exception: ', e.message, e);
             }
             return false;
@@ -146,8 +143,18 @@ if (typeof($) != 'undefined') {
                 $status.fadeIn(400);
                 $('#s-plugin-cml1c-import-iframe').one('load', function() {
                     try {
-                        $.shop.trace('raw', $(this).contents().find('body > *').html());
-                        var r = $.parseJSON($(this).contents().find('body > *').html());
+                        $raw = $(this).contents().find('body > *');
+                        var raw = $raw.html();
+                        $.shop.trace('raw', raw);
+                        var r;
+                        try {
+                            r= $.parseJSON(raw);
+                        } catch (e) {
+                            r = {
+                                errors: e.message+'; '+$raw.find('h1:first').text()
+                            };
+                            $.shop.error('Exception: ', e.message, e);
+                        }
                         $.shop.trace('json', r.files);
                         $status.fadeOut(200, function() {
                             if (r.files && r.files.length) {
@@ -170,6 +177,7 @@ if (typeof($) != 'undefined') {
                         });
                     } catch (e) {
                         $status.html(e.message).css('color', 'red');
+                        $form.find(':submit').attr('disabled', null);
                         $.shop.error('Exception: ', e.message, e);
                     }
                 });
@@ -219,10 +227,7 @@ if (typeof($) != 'undefined') {
                         self.ajax_pull[response.processId] = [];
                         self.ajax_pull[response.processId].push(setTimeout(function() {
                             $.wa.errorHandler = function(xhr) {
-                                if ((xhr.status >= 500) || (xhr.status == 0)) {
-                                    return false;
-                                }
-                                return true;
+                                return !((xhr.status > 400) || (xhr.status == 0));
                             };
                             self.progressHandler(url, response.processId, response);
                         }, 3000));
@@ -302,7 +307,7 @@ if (typeof($) != 'undefined') {
                     var progress = parseFloat(response.progress.replace(/,/, '.'));
                     $bar.animate({
                         'width': progress + '%'
-                    });;
+                    });
                     self.debug.memory = Math.max(0.0, self.debug.memory, parseFloat(response.memory) || 0);
                     self.debug.memory_avg = Math.max(0.0, self.debug.memory_avg, parseFloat(response.memory_avg) || 0);
 

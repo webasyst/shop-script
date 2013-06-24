@@ -93,8 +93,8 @@ table.features td.name { min-width: 145px; color: #777; vertical-align: top; }
 .gallery .image { border-top: 3px solid #fff; width: 50px; padding: 8px; float: left\9; /* IE8 */ }
 .gallery .image.selected { border-color: #be9; }
 
-.badge { display: table; background: #fff; border-radius: 50%; border: 4px solid rgba(0,0,0,0.2); width: 100px; height: 100px; box-shadow: 0 3px 10px rgba(0,0,0,0.3); color: #000; font-weight: bold; font-style: italic; font-size: 1.8em; padding: 11px 13px 15px; }
-.badge span { display: table-cell; vertical-align: middle; text-align: center; line-height: 1.2em; }
+.badge { background: #fff; border-radius: 50%; border: 4px solid rgba(0,0,0,0.2); width: 100px; height: 100px; box-shadow: 0 3px 10px rgba(0,0,0,0.3); color: #000; font-weight: bold; font-style: italic; font-size: 1.8em; padding: 11px 13px 15px; }
+.badge span { display: block; vertical-align: middle; text-align: center; line-height: 1.2em; padding-top: 40px; }
 .badge.new { background: #ff4; color: #000; }
 .badge.bestseller { background: #74ff30; color: #030; }
 .badge.low-price { background: #ffc2e3; color: #300; }
@@ -137,7 +137,7 @@ ul.thumbs .out-of-stock,
 ul.thumbs .rating,
 ul.thumbs .offers { display: block; margin: 3px 0; text-align: center; }
 ul.thumbs .badge { font-size: 1.2em; width: 70px; height: 70px; padding: 1px 2px 3px; border-width: 2px; }
-ul.thumbs .badge span { width: 68px; margin-top: 28px; overflow: hidden; }
+ul.thumbs .badge span { color: #000; width: 68px; margin-top: 28px; overflow: hidden; padding-top: 0px;}
 ul.thumbs .added2cart { display: inline; padding: 0; }
 ul.thumbs .purchase { padding: 5px 5px 5px 10px; margin-top: 10px; display: inline\9; background: #fff\9; }
 ul.thumbs.mini .image { width: 96px; height: auto; }

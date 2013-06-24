@@ -63,7 +63,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
                     $hash = 'type/'.waRequest::post('type_id', waRequest::TYPE_INT);
                     break;
                 default:
-                    $hash = '*';
+                    $hash = '';
                     break;
             }
             $this->data['timestamp'] = time();
@@ -83,6 +83,9 @@ class shopYandexmarketPluginRunController extends waLongActionController
             $this->data['memory_avg'] = memory_get_usage();
 
             $this->dom = new DOMDocument("1.0", "windows-1251");
+            /**
+             * @var shopConfig $config
+             */
             $config = wa('shop')->getConfig();
             $this->dom->encoding = 'windows-1251';
             $this->dom->preserveWhiteSpace = false;
@@ -237,10 +240,9 @@ class shopYandexmarketPluginRunController extends waLongActionController
         $stage = $this->data['stage'];
 
         $method_name = 'step'.ucfirst($stage);
-        $result = false;
         try {
             if (method_exists($this, $method_name)) {
-                $result = $this->$method_name($this->data['current'][$stage], $this->data['count'], $this->data['processed_count'][$stage]);
+                $this->$method_name($this->data['current'][$stage], $this->data['count'], $this->data['processed_count'][$stage]);
             } else {
                 $this->error(sprintf("Unsupported stage [%s]", $stage));
                 $this->data['current'][$stage] = $this->data['count'][$stage];
@@ -428,7 +430,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
 
     /**
      *
-     * @param string $hash
+     * @internal param string $hash
      * @return shopProductsCollection
      */
     private function getCollection()

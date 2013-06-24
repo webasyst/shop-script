@@ -72,6 +72,8 @@ class shopFrontendCartAction extends shopFrontendAction
         $sku_model = new shopProductSkusModel();
         $skus = $sku_model->getByField('id', $sku_ids, 'id');
 
+        $image_model = new shopProductImagesModel();
+
         $delete_items = array();
         foreach ($items as $item_id => &$item) {
             if (!isset($skus[$item['sku_id']])) {
@@ -82,6 +84,13 @@ class shopFrontendCartAction extends shopFrontendAction
             if ($item['type'] == 'product') {
                 $item['product'] = $products[$item['product_id']];
                 $sku = $skus[$item['sku_id']];
+                if ($sku['image_id'] && $sku['image_id'] != $item['product']['image_id']) {
+                    $img = $image_model->getById($sku['image_id']);
+                    if ($img) {
+                        $item['product']['image_id'] = $sku['image_id'];
+                        $item['product']['ext'] = $img['ext'];
+                    }
+                }
                 $item['sku_name'] = $sku['name'];
                 $item['price'] = $sku['price'];
                 $item['currency'] = $item['product']['currency'];

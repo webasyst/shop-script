@@ -71,6 +71,9 @@ class shopYandexmarketPlugin extends shopPlugin
 
     public static function uuid()
     {
+        /**
+         * @var shopYandexmarketPlugin $instance
+         */
         $instance = wa()->getPlugin('yandexmarket');
         $uuid = $instance->getSettings('uuid');
         if (empty($uuid)) {

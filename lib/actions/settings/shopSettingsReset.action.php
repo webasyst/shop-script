@@ -39,6 +39,7 @@ class shopSettingsResetAction extends waViewAction
             'shop_category_products',
             'shop_product',
             'shop_product_features',
+            'shop_product_features_selectable',
             'shop_product_images',
             'shop_product_pages',
             'shop_product_related',

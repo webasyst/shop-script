@@ -13,7 +13,7 @@ class shopProductImagesModel extends waModel
     const BADGE_TYPE_BESTPRICE = 2;
     const BADGE_TYPE_CUSTOM = 100;
 
-    public function getImages($product_id, $sizes = array(), $key = 'id')
+    public function getImages($product_id, $sizes = array(), $key = 'id', $absolute = false)
     {
         if (empty($product_id)) {
             return array();
@@ -34,7 +34,7 @@ class shopProductImagesModel extends waModel
             $image['edit_datetime_ts'] = $image['edit_datetime'] ? strtotime($image['edit_datetime']) : null;
             if (!empty($sizes)) {
                 foreach ($sizes as $name => $size) {
-                    $image['url_'.$name] = shopImage::getUrl($image, $size);
+                    $image['url_'.$name] = shopImage::getUrl($image, $size, $absolute);
                 }
             }
             if ($key == 'id') {

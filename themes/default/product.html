@@ -138,7 +138,12 @@
                         {in_stock n=$sku.count}
                         {/if}
                         </div>
-                    {/foreach}                
+                    {/foreach}
+                    {if $product.sku_type}
+                    <div id="sku-no-stock">
+                        <strong class="stock-none">[`Product with the selected option combination is not available for purchase`]</strong>
+                    </div>
+                    {/if}
                 </div>
                 {/if}
     
@@ -331,7 +336,7 @@
 
 <script type="text/javascript">
     var currency = {json_encode($currency_info)};
-    {if count($product.skus) > 1}
+    {if count($product.skus) > 1 or $product.sku_type}
     var sku_services = {json_encode($sku_services)};
     {/if}
     {if $product.sku_type}

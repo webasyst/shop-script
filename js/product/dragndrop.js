@@ -192,8 +192,8 @@
                 containment: [
                       containment_pos.left,
                       containment_pos.top,
-                      containment_pos.left + containment_metrics.width + containment_metrics.width*0.25,
-                      containment_pos.top + containment_metrics.height
+                      containment_pos.left + containment_metrics.width * 1.25,
+                      containment_pos.top + containment_metrics.height * 1.25
                 ],
                 refreshPositions: true,
                 revert: 'invalid',
@@ -251,7 +251,11 @@
                         return false;
                     }
                     if (self.is(':animated') || self.hasClass('dragging')) {
-                        self.stop().animate({height: '2px'}, 300, null, function(){self.removeClass('dragging');});
+                        self.stop().animate({ height: '2px' }, 300, null,
+                                function() {
+                                    self.removeClass('dragging');
+                                }
+                        );
                     }
                     self.removeClass('active').parent().parent().removeClass('drag-active');
                 },
@@ -276,31 +280,34 @@
 
                     var parent_list = dr.parent('ul');
                     var li_count = parent_list.children('li.dr[id!=category-'+id+']').length;
+                    var old_parent_id = parseInt(parent_list.parent().attr('id').split('-')[1], 10) || 0;
 
                     self.after(sep).after(dr);
-
-                    if (!li_count) {
-                        parent_list.parent('li').children('i').hide();
-                        parent_list.hide();
-                    }
 
                     var parent = dr.parent().parent();
                     if (parent.is('li.dr') || parent.is('.s-collection-list')) {
                         var parent_id = 0;
                         if (!parent.is('.s-collection-list')) {
-                            parent_id = parent.attr('id').split('-')[1] || 0;
+                            parent_id = parseInt(parent.attr('id').split('-')[1], 10) || 0;
                         }
                         var next = dr.nextAll('li.dr:first');
                         var before_id = null;
                         if (next.length) {
                             before_id = next.attr('id').split('-')[1] || null;
                         }
+
+                        if (!li_count && old_parent_id !== parent_id) {
+                            parent_list.parent('li').children('i').hide();
+                            parent_list.hide();
+                        }
+
                         $.product_dragndrop.trigger('move_list', {
                             id: id, type: type, before_id: before_id, parent_id: parent_id,
                             success: function(r) {
-                                if (!li_count) {
+                                if (!li_count && old_parent_id !== parent_id) {
                                     parent_list.parent('li').children('i').remove();
                                     parent_list.remove();
+                                    $.categories_tree.setCollapsed(old_parent_id);
                                 }
                             },
                             error: function(r) {
@@ -398,8 +405,12 @@
 
                     var old = $('.drag-newposition:animated, .drag-newposition.dragging').not(nearby);
 
-                    old.stop().animate({height: '2px'}, 300, null, function(){old.removeClass('dragging');});
-                    nearby.stop().animate({height: '10px'}, 300, null, function(){nearby.addClass('dragging');});
+                    old.stop().animate({height: '2px'}, 300, null, function() {
+                        old.removeClass('dragging');
+                    });
+                    nearby.stop().animate({height: '10px'}, 300, null, function() {
+                        nearby.addClass('dragging');
+                    });
                 },
                 drop: function(event, ui) {
                     var dr = ui.draggable;
@@ -467,43 +478,80 @@
                         selected.trigger('select', false);
                         return false;
                     }
-                    var list;
+
+                    var parent_id = parseInt(self.attr('id').split('-')[1], 10) || 0;
+
+                    var list = null;
                     var sep  = dr.next();
                     var home = dr.prev();
+
+                    // for tracking situation when list acceptor has no children
+                    // and inserted item will be first
+                    var first_child = false;
+
                     if (self.hasClass('drag-newposition')) {
                         list = self.parent('ul');
                     } else {
+                        // has loaded (via ajax) children items
                         if (self.children('ul').length) {
                             list =  self.children('ul');
-                        } else {
-                            list = $('<ul class="menu-v with-icons dr unapproved"><li class="drag-newposition unapproved" data-type="'+type+'"></li></ul>').appendTo(self);
+                        } else if (!self.find('>i.collapse-handler-ajax').length) { // no children
+
+                            list = $(
+                                '<ul class="menu-v with-icons dr unapproved">' +
+                                    '<li class="drag-newposition unapproved" data-type="'+type+'"></li>' +
+                                '</ul>'
+                            ).appendTo(self);
                             list.find('.drag-newposition').mouseover(); // init droppable
-                            $('<i class="icon16 darr overhanging collapse-handler unapproved"></i>').insertBefore(self.children('a'));
+                            $('<i class="icon16 darr overhanging collapse-handler-ajax unapproved" id="' +
+                                    type + '-' + parent_id + '-handler' +
+                                '"></i>').insertBefore(self.children('a'));
+
+                            first_child = true;
                         }
                     }
 
                     var parent_list = dr.parent('ul');
                     var li_count = parent_list.children('li.dr[id!=category-'+id+']').length;
+                    var old_parent_id = parseInt(parent_list.parent().attr('id').split('-')[1], 10) || 0;
 
-                    list.append(dr).append(sep);
+                    if (list) {
+                        list.append(dr).append(sep);
+                    }
 
-                    if (!li_count) {
+                    if (!li_count && old_parent_id !== parent_id) {
                         parent_list.parent('li').children('i').hide();
                         parent_list.hide();
                     }
 
                     var parent = self;
                     if (parent.is('li.dr')) {
-                        var parent_id = self.attr('id').split('-')[1] || 0;
                         $.product_dragndrop.trigger('move_list', {
                             id: id, type: type, parent_id: parent_id,
                             success: function(r) {
-                                if (!li_count) {
+                                if (!li_count && old_parent_id !== parent_id) {
                                     parent_list.parent('li').children('i').remove();
                                     parent_list.remove();
+                                    $.categories_tree.setCollapsed(old_parent_id);
                                 }
-                                $('.s-collection-list .unapproved').removeClass('unapproved');
-                                self.trigger('count_subtree');
+                                // has children, but not loaded yet
+                                if (!list) {
+                                    dr.remove();
+                                    sep.remove();
+                                    // Because children is not loaded yet, calling of count_subtree (see below)
+                                    // will not have effect.
+                                    // So counters is returned by server
+                                    self.trigger('update_counters',
+                                        r.data.count || {}
+                                    );
+                                } else {
+                                    $('.s-collection-list .unapproved').removeClass('unapproved');
+                                    if (first_child) {
+                                        $.categories_tree.setExpanded(parent_id);
+                                    } else {
+                                        self.trigger('count_subtree');
+                                    }
+                                }
                             },
                             error: function(r) {
                                 if (r && console) {

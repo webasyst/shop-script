@@ -15,6 +15,8 @@ class shopFrontendCategoryAction extends shopFrontendAction
             throw new waException('Category not found', 404);
         }
 
+        $category['subcategories'] = $category_model->getSubcategories($category, true);
+
         if ($category['filter']) {
             $filter_ids = explode(',', $category['filter']);
             $feature_model = new shopFeatureModel();
@@ -22,18 +24,38 @@ class shopFrontendCategoryAction extends shopFrontendAction
             if ($features) {
                 $features = $feature_model->getValues($features);
             }
+            // if static category
+            if (!$category['type']) {
+                $product_features_model = new shopProductFeaturesModel();
+                if ($category['include_sub_categories']) {
+                    $cids = array_keys($category['subcategories']);
+                    $cids[] = $category['id'];
+                    $category_values = $product_features_model->getValuesByCategory($cids);
+                } else {
+                    $category_values = $product_features_model->getValuesByCategory($category['id']);
+                }
+            }
+
             $filters = array();
             foreach ($filter_ids as $fid) {
                 if ($fid == 'price') {
                     $filters['price'] = true;
                 } elseif (isset($features[$fid])) {
-                    $filters[$fid] = $features[$fid];
+                    if ($category['type'] || isset($category_values[$fid])) {
+                        $filters[$fid] = $features[$fid];
+                        if (isset($category_values[$fid])) {
+                            foreach ($filters[$fid]['values'] as $v_id => $v) {
+                                if (!in_array($v_id, $category_values[$fid])) {
+                                    unset($filters[$fid]['values'][$v_id]);
+                                }
+                            }
+                        }
+                    }
                 }
             }
+
             $this->view->assign('filters', $filters);
         }
-
-        $category['subcategories'] = $category_model->getSubcategories($category, true);
         $category_url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
         foreach ($category['subcategories'] as &$sc) {
             $sc['url'] = str_replace('%CATEGORY_URL%', waRequest::param('url_type') == 1 ? $sc['url'] : $sc['full_url'], $category_url);

@@ -5836,3 +5836,7 @@ msgstr ""
 #: /wa-apps/shop/lib/actions/product/shopProductReviews.action.php:17
 msgid "Unkown product"
 msgstr ""
+
+#: /wa-apps/shop/themes/default/product.html:144
+msgid "Product with the selected option combination is not available for purchase"
+msgstr ""

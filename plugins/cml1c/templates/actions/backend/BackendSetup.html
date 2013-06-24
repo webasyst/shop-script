@@ -23,10 +23,10 @@
                     </div>
                 </div>
                 <div class="field"{if empty($enabled)} style="display: none;"{/if}>
-                    <div class="name">Скрипт синхронизации</div>
+                    <div class="name"><label for="cml1c-url">Скрипт синхронизации</label></div>
                     <div class="value">
                         <i class="icon16 lock-bw" style="margin-top: 0.2em;"></i>
-                        <input type="text" class="bold" value="{$url|escape}" style="width: 500px;" readonly="readonly">
+                        <input id="cml1c-url" type="text" class="bold" value="{$url|escape}" style="width: 500px;" readonly="readonly">
                         <br><br>
                         <p class="small">Сохраните этот адрес в настройках 1С в диалоге «Настройки обмена с WEB-сайтом» &rarr; «Адрес сайта». Поля «Пользователь» и «Пароль» оставьте пустыми, так как эти данные уже закодированы в адресе скрипта синхронизации. Чтобы изменить адрес скрипта синхронизации, выключите и снова включите автоматический обмен с 1С.</p>
 
@@ -65,7 +65,7 @@
                                 <div class="js-progressbar-container" style="display:none;">
                                     <div class="progressbar blue float-left" style="display: none; width: 70%;">
                                         <div class="progressbar-outer">
-                                            <div class="progressbar-inner" style="width: 0%;"></div>
+                                            <div class="progressbar-inner" style="width: 0;"></div>
                                         </div>
                                     </div>
                                     <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
@@ -74,7 +74,7 @@
                                     <br clear="left" />
                                     <br>
                                     <span class="small italic">
-                                        Не закрывайте браузер пока процесс экспорта не завершится полностью
+                                        Не закрывайте браузер, пока процесс экспорта не завершится полностью.
                                     </span>
                                 </div><br><br>
                                 <em class="errormsg"></em>
@@ -119,7 +119,7 @@
                                 <div class="js-progressbar-container" style="display:none;">
                                     <div class="progressbar blue float-left" style="display: none; width: 70%;">
                                         <div class="progressbar-outer">
-                                            <div class="progressbar-inner" style="width: 0%;"></div>
+                                            <div class="progressbar-inner" style="width: 0;"></div>
                                         </div>
                                     </div>
                                     <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
@@ -128,7 +128,7 @@
                                     <br clear="left" />
                                     <br>
                                     <span class="small italic">
-                                        Не закрывайте браузер пока процесс импорта не завершится полностью
+                                        Не закрывайте браузер, пока процесс импорта не завершится полностью.
                                     </span>
                                 </div><br><br>
                                 <em class="errormsg"></em>

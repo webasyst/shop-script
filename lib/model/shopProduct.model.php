@@ -18,14 +18,24 @@ class shopProductModel extends waModel
 
     public function delete(array $product_ids)
     {
-        $delete_ids = array();
+        $type_model = new shopTypeModel();
+        $types = $type_model->getTypes();
+        if (empty($product_ids) || empty($types)) {
+            return false;
+        }
+        $type_ids = array_keys($types);
+
+        $delete_ids = array_keys($this->query("
+            SELECT id FROM `{$this->table}`
+            WHERE id IN(" . implode(',', $product_ids) . ")
+                AND type_id IN (" . implode(',', $type_ids) . ")"
+        )->fetchAll('id'));
 
         // remove files
-        foreach ($product_ids as $product_id) {
+        foreach ($delete_ids as $product_id) {
             try {
                 waFiles::delete(shopProduct::getPath($product_id, null, false));
                 waFiles::delete(shopProduct::getPath($product_id, null, true));
-                $delete_ids[] = (int) $product_id;
             } catch (waException $e) {
             }
         }
@@ -61,10 +71,8 @@ class shopProductModel extends waModel
             $model->deleteByProducts($delete_ids);
         }
 
-        $type_ids = array_keys($this->query("SELECT DISTINCT type_id FROM `{$this->table}` WHERE id IN(".implode(',', $delete_ids).")")->fetchAll('type_id'));
         // remove records
         if ($this->deleteById($delete_ids)) {
-            $type_model = new shopTypeModel();
             $type_model->recount($type_ids);
             return $delete_ids;
         }
@@ -492,5 +500,98 @@ class shopProductModel extends waModel
             //throw new waException(_w("Unknown type"));
         }
         return (boolean) wa()->getUser()->getRights('shop', 'type.'.$type_id);
+    }
+
+    /**
+     * @param int $id
+     * @return bool
+     */
+    public function correct($id)
+    {
+        if (!$id) {
+            return false;
+        }
+        $id = (int) $id;
+        $product = $this->getById($id);
+
+        $product_skus_model = new shopProductSkusModel();
+        $skus = $product_skus_model->getDataByProductId($id, true);
+
+        $currency_model = new shopCurrencyModel();
+        $currency = wa('shop')->getConfig()->getCurrency();
+
+        $price = array();
+        $update_product_data = array();
+
+        // aggregate count by stocks for product
+        // Invariant: if at least one sku.count IS NULL this aggregate count IS NULL
+        $product_count = 0;
+
+        $available_sku_count = 0;
+        foreach ($skus as $sku) {
+            if ($sku['available']) {
+                $available_sku_count++;
+            }
+
+            $price[] = $this->castValue('double', $sku['price']);
+
+            $sku_count = 0;
+            $num_of_null = 0;
+            foreach ($sku['stock'] as $count) {
+                if ($count === null) {
+                    // turn into NULL and is not longer changing
+                    $sku_count = null;
+                    $num_of_null++;
+                } else {
+                    // Once turned into NULL value is not changed
+                    if ($sku_count !== null) {
+                        $sku_count += $count;
+                    }
+                }
+            }
+            if ($num_of_null == count($sku['stock'])) {
+                // all stock count is null means that not multistocking
+                $sku_count = $sku['count'];
+            }
+
+            // maintain product_count invariant. See above
+            if ($sku['available']) {
+                if ($sku_count === null) {
+                    $product_count = null;
+                } elseif ($product_count !== null) {
+                    $product_count += $sku_count;
+                }
+            }
+        }
+
+        if ($available_sku_count == 0) {
+            $product_count = 0;
+        }
+
+        if (!$price) {
+            $price[] = 0;
+        }
+
+        $update_product_data['min_price'] = $currency_model->convert(min($price), $product['currency'], $currency);
+        $update_product_data['max_price'] = $currency_model->convert(max($price), $product['currency'], $currency);
+        $update_product_data['price'] = $currency_model->convert(
+                $skus[$product['sku_id']]['price'],
+                $product['currency'],
+                $currency
+            );
+        if (isset($skus[$product['sku_id']]['compare_price'])) {
+            $update_product_data['compare_price'] =
+                $currency_model->convert(
+                    $skus[$product['sku_id']]['compare_price'],
+                    $product['currency'],
+                    $currency
+                );
+        }
+
+        $update_product_data['count'] = $product_count;
+
+        $this->updateById($product['id'], $update_product_data);
+
+        return true;
     }
 }

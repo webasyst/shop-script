@@ -30,9 +30,6 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
             case self::STAGE_CATEGORY_REBUILD:
                 $name = _wp('Updating category hierarchy...');
                 break;
-            case self::STAGE_TAX:
-                $name = _wp('Importing taxes...');
-                break;
             case self::STAGE_PRODUCT:
                 $name = _wp('Importing products...');
                 break;
@@ -860,7 +857,7 @@ LIMIT 100';
                     }
                 }
             }
-            if ($ids) {
+            if ($adress_ids) {
 
                 $sql = "SELECT `a`.*,`a`.`address` `street`, LOWER(`c`.`country_iso_3`) `country`,
                 IFNULL(IF(`z`.`zone_code`='',`zone_name_%s`,`z`.`zone_code`),`a`.`state`) `region`
@@ -1209,7 +1206,8 @@ LIMIT 100';
                     $data = array(
                         'rate'          => null,
                         'product_id'    => $product['id'],
-                        'text'          => $review['Topic']."\n".$review['Body'],
+                        'title'         => $review['Topic'],
+                        'text'          => $review['Body'],
                         'name'          => $review['Author'],
                         'datetime'      => date('Y-m-d H:i:s', strtotime($review['add_time'])),
                         'status'        => shopProductReviewsModel::STATUS_PUBLISHED,
@@ -2253,7 +2251,7 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
         $suggested = !empty($target_params['value']);
 
         $feature_params = $params;
-        $feature_options = $this->getFeaturesOptions($suggests_features);
+        $feature_options = $this->getFeaturesOptions($suggests_features, true);
         if (count($feature_options) > 1) {
 
             $feature_params['options'] = $feature_options;

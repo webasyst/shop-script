@@ -130,7 +130,7 @@ class shopFollowupCli extends waCliController
 
         $items_model = new shopOrderItemsModel();
         $o['items'] = $items_model->getItems($o['id']);
-        foreach ($data['order']['items'] as &$i) {
+        foreach ($o['items'] as &$i) {
             if (!empty($i['file_name'])) {
                 $i['download_link'] = wa()->getRouteUrl('/frontend/myOrderDownload',
                     array('id' => $o['id'], 'code' => $o['params']['auth_code'], 'item' => $i['id']), true

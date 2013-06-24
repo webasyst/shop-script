@@ -140,14 +140,14 @@ table.table tr.service td { padding-top: 5px; padding-bottom: 5px; padding-left:
 .image .loading { opacity: 0.7; }
 .gallery .image { float: left\9; /* IE8 */ }
 
-.badge { display: table; background: #fff; border-radius: 50%; border: 4px double rgba(0,0,0,0.3); width: 100px; height: 100px; transform: rotate(-13deg); -webkit-transform: rotate(-13deg); -moz-transform: rotate(-13deg); -o-transform: rotate(-13deg); box-shadow: 0 3px 10px rgba(0,0,0,0.3); color: #000; font-weight: bold; font-style: italic; font-size: 1.6em; padding: 11px 13px 15px; }
-.badge span { display: table-cell; vertical-align: middle; text-align: center; line-height: 1.2em; }
+.badge { background: #fff; border-radius: 50%; border: 4px double rgba(0,0,0,0.3); width: 100px; height: 100px; transform: rotate(-13deg); -webkit-transform: rotate(-13deg); -moz-transform: rotate(-13deg); -o-transform: rotate(-13deg); box-shadow: 0 3px 10px rgba(0,0,0,0.3); color: #000; font-weight: bold; font-style: italic; font-size: 1.6em; padding: 11px 13px 15px; }
+.badge span { display: block; vertical-align: middle; text-align: center; line-height: 1.2em; padding-top: 40px; }
 .badge.new { background: #ff4; color: #000; }
 .badge.bestseller { background: #74ff30; color: #030; }
 .badge.low-price { background: #ffc2e3; color: #300; }
 
 ul.thumbs .badge { font-size: 1.05em; width: 70px; height: 70px; padding: 2px; }
-ul.thumbs .badge span { width: 68px; margin-top: 28px; overflow: hidden; }
+ul.thumbs .badge span { width: 68px; margin-top: 28px; overflow: hidden; padding-top: 0px; }
 table.table { margin: 20px 0; }
 table.table .image { margin-right: 10px; width: 48px; }
 table.table .badge { font-size: 0.8em; width: 24px; height: 24px; padding: 3px 3px 4px; border: 0; }

@@ -1916,7 +1916,7 @@ msgstr "Хит продаж"
 
 #: /wa-apps/shop/lib/model/shopProductImages.model.php:162
 msgid "Low price!"
-msgstr "Цена снижена!"
+msgstr "Скидка!"
 
 #: /wa-apps/shop/templates/actions/product/ProductImage.html:32
 msgid "Custom"
@@ -3486,7 +3486,7 @@ msgstr "Идентификатор отправления"
 
 #: /wa-apps/shop/lib/model/shopProductImages.model.php:160
 msgid "Bestseller!"
-msgstr "Хит продаж!"
+msgstr "Хит!"
 
 #: /wa-apps/shop/lib/model/shopProductImages.model.php:164
 msgid "YOUR TEXT"
@@ -6780,3 +6780,7 @@ msgstr ""
 #: /wa-apps/shop/lib/actions/product/shopProductReviews.action.php:17
 msgid "Unkown product"
 msgstr "Неизвестный товар"
+
+#: /wa-apps/shop/themes/default/product.html:144
+msgid "Product with the selected option combination is not available for purchase"
+msgstr ""

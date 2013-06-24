@@ -116,6 +116,9 @@ class shopProductAction extends waViewAction
             'taxes'                => $taxes_mode->getAll(),
         ));
 
+        $category_model = new shopCategoryModel();
+        $categories = $category_model->getFullTree('id, name, depth, url', true);
+
         // %product_url% - stuff used only when creating new product
         $stuff = $product->url ? $product->url : '%product_url%';
         $frontend_url = null;
@@ -128,8 +131,12 @@ class shopProductAction extends waViewAction
                 foreach ($routes as $r) {
                     if (empty($r['type_id']) || (in_array($product->type_id, (array) $r['type_id']))) {
                         $routing->setRoute($r, $domain);
-                        $frontend_url = $routing->getUrl('/frontend/product', array('product_url' => $stuff), true);
-                        break;
+                        $params = array('product_url' => $stuff);
+                        if ($product->category_id && $r['url_type'] == 2 && isset($categories[$product->category_id])) {
+                            $params['category_url'] = $categories[$product->category_id]['url'];
+                        }
+                        $frontend_url = $routing->getUrl('/frontend/product', $params, true);
+                        break 2;
                     }
                 }
             }
@@ -156,8 +163,7 @@ class shopProductAction extends waViewAction
          */
         $this->view->assign('backend_product', wa()->event('backend_product', $product));
 
-        $category_model = new shopCategoryModel();
-        $this->view->assign('categories', $category_model->getFullTree('id, name, depth', true));
+        $this->view->assign('categories', $categories);
 
         $this->view->assign('counters', $counters);
         $this->view->assign('product', $product);

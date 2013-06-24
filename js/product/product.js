@@ -289,6 +289,7 @@
         saveData: function(mode, tab, callback) {
             var self = this;
             var form = self.get('form');
+            var sku_type;
 
             var sku_type_input_type = 'radio';
             var sku_type_input = form.find('input[name="product[sku_type]"]:first');
@@ -965,7 +966,7 @@
         editInit: function() {
             // check rights
             if (!this.options.edit_rights) {
-                location.hash = '#/product/' + this.path.id + '/';
+                window.location.hash = '#/product/' + this.path.id + '/';
                 return false;
             }
             var form = $(this.options.form_selector);
@@ -1636,7 +1637,7 @@
                                 $('#s-sidebar').trigger('update', r.data.lists);
                             }
                             d.trigger('close');
-                            location.hash = '#/products/';
+                            window.location.hash = '#/products/';
                         });
 
                         return false;
@@ -2050,24 +2051,37 @@
                 try {
                     if ($.product.ajax.cached['elrte-wa.js'] && $.product.ajax.cached['elrte.min.js']) {
 
-                        var $element = $('#s-product-description-content');
-                        $('#s-product-description').html(tmpl('template-product-description', {
-                            description: $element.val()
+                        var container = $('#s-product-description');
+                        container.html(tmpl('template-product-description', {
+                            description: $('#s-product-description-content').val()
                         }));
-                        $element.remove();
 
-                        waEditorInit({
-                            id: 's-product-description-content',
-                            prefix: 's-product-description-',
-                            upload_url: "",
-                            lang: wa_lang,
-                            save_button: 's-product-save-button',
-                            change_callback: function() {
-                                if ($.product.path.tab == 'descriptions') {
-                                    $.product.helper.onTabChanged($.product.path.tab, true);
+                        setTimeout(function() {
+                            waEditorInit({
+                                id: 's-product-description-content',
+                                prefix: 's-product-description-',
+                                upload_url: "",
+                                lang: wa_lang,
+                                save_button: 's-product-save-button',
+                                change_callback: function() {
+                                    if ($.product.path.tab == 'descriptions') {
+                                        $.product.helper.onTabChanged($.product.path.tab, true);
+                                    }
                                 }
+                            });
+
+                            var iframe   = container.find('iframe');
+                            var workzone = iframe.parents('.workzone');
+                            var workzone_height = workzone.height();
+                            var height = iframe.contents().find('body').prop('scrollHeight');
+                            if (height > workzone_height) {
+                                workzone.height(height);
+                                iframe.height(height);
+                                container.find('.CodeMirror-scroll').height(height);
                             }
-                        });
+
+                        }, 200);
+
                     } else {
                         count -= 1;
                         if (count > 0) {

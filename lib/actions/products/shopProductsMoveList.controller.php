@@ -40,8 +40,18 @@ class shopProductsMoveListController extends waJsonController
     {
         if ($type == 'category') {
             $category_model = new shopCategoryModel();
+
+
             if (!$category_model->move($id, $before_id, $parent_id)) {
                 $this->errors = array('Error when move');
+            } else {
+                if ($parent_id) {
+                    $parent = $category_model->getById($parent_id);
+                    $this->response['count'] = array(
+                            'count' => $parent['count'],
+                            'subtree' => $category_model->getTotalProductsCount($parent_id)
+                    );
+                }
             }
         } else if ($type == 'set') {
             $set_model = new shopSetModel();

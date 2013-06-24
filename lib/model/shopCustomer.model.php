@@ -102,6 +102,8 @@ class shopCustomerModel extends waModel
 
         $customers = $this->query($sql)->fetchAll('id');
 
+        $total = $this->query('SELECT FOUND_ROWS()')->fetchField();
+
         // get emails
         $ids = array_keys($customers);
         if ($ids) {
@@ -114,8 +116,6 @@ class shopCustomerModel extends waModel
                 $customers[$item['contact_id']]['email'] = $item['email'];
             }
         }
-
-        $total = $this->query('SELECT FOUND_ROWS()')->fetchField();
 
         if (!$customers) {
             return array(array(), 0);

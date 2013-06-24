@@ -64,6 +64,23 @@ class shopProductsCollection
     {
         if (!$this->prepared || $add) {
             $type = $this->hash[0];
+            if (wa()->getEnv() == 'frontend') {
+                $this->frontendConditions();
+                if ($sort = waRequest::get('sort')) {
+                    if ($sort == 'stock') {
+                        $sort = 'count';
+                    }
+                    $model = $this->getModel();
+                    if ($model->fieldExists($sort)) {
+                        $this->order_by = 'p.'.$sort;
+                        if (waRequest::get('order') == 'desc') {
+                            $this->order_by .= ' DESC';
+                        } else {
+                            $this->order_by .= ' ASC';
+                        }
+                    }
+                }
+            }
             if ($type) {
                 $method = strtolower($type).'Prepare';
                 if (method_exists($this, $method)) {
@@ -80,9 +97,12 @@ class shopProductsCollection
                      * @param array[string]shopProductsCollection $params['collection']
                      * @param array[string]boolean $params['auto_title']
                      * @param array[string]boolean $params['add']
-                     * @return void
+                     * @return null if ignored, true when something changed in the collection
                      */
-                    wa()->event('products_collection', $params);
+                    $processed = wa()->event('products_collection', $params);
+                    if (!$processed) {
+                        throw new waException('Unknown collection hash type: '.htmlspecialchars($type));
+                    }
                 }
             } else {
                 if (!empty($this->options['sort'])) {
@@ -93,45 +113,31 @@ class shopProductsCollection
                 }
             }
 
-            if (wa()->getEnv() == 'frontend') {
-                if (!empty($this->options['filters'])) {
-                    $this->filters(waRequest::get());
-                }
-
-                if (($type_id = waRequest::param('type_id')) && is_array($type_id)) {
-                    foreach ($type_id as & $t) {
-                        $t = (int) $t;
-                    }
-                    if ($type_id) {
-                        $this->where[] = 'p.type_id IN ('.implode(',', $type_id).')';
-                    } else {
-                        $this->where[] = '0';
-                    }
-                }
-
-                $this->where[] = 'p.status = 1';
-
-                if ($sort = waRequest::get('sort')) {
-                    if ($sort == 'stock') {
-                        $sort = 'count';
-                    }
-                    $model = $this->getModel();
-                    if ($model->fieldExists($sort)) {
-                        $this->order_by = 'p.'.$sort;
-                        if (waRequest::get('order') == 'desc') {
-                            $this->order_by .= ' DESC';
-                        } else {
-                            $this->order_by .= ' ASC';
-                        }
-                    }
-                }
-            }
-
             if ($this->prepared) {
                 return;
             }
             $this->prepared = true;
         }
+    }
+
+    protected function frontendConditions()
+    {
+        if (!empty($this->options['filters'])) {
+            $this->filters(waRequest::get());
+        }
+
+        if (($type_id = waRequest::param('type_id')) && is_array($type_id)) {
+            foreach ($type_id as & $t) {
+                $t = (int) $t;
+            }
+            if ($type_id) {
+                $this->where[] = 'p.type_id IN ('.implode(',', $type_id).')';
+            } else {
+                $this->where[] = '0';
+            }
+        }
+
+        $this->where[] = 'p.status = 1';
     }
 
     protected function alsoboughtPrepare($id)
@@ -599,16 +605,15 @@ class shopProductsCollection
                         $this->count = null;
                         $this->joins = $this->where = $this->having = $this->fields = array();
                         if (wa()->getEnv() == 'frontend') {
-                            $this->where[] = 'p.status = 1';
                             if ($this->filtered) {
                                 $this->filtered = false;
-                                $this->filters(waRequest::get());
                             }
+                            $this->frontendConditions();
                         }
                         $this->order_by = 'p.create_datetime DESC';
                         $this->group_by = null;
                         $q = $model->escape($parts[2], 'like');
-                        $this->where[] = "p.name LIKE '%".$q."%' OR skus.name LIKE '%".$q."%' OR skus.sku LIKE '%".$q."%'";
+                        $this->where[] = "(p.name LIKE '%".$q."%' OR skus.name LIKE '%".$q."%' OR skus.sku LIKE '%".$q."%')";
                         $this->joins[] = array(
                             'table' => 'shop_product_skus',
                             'alias' => 'skus'
@@ -923,6 +928,7 @@ class shopProductsCollection
         }
         $sql .= $this->_getOrderBy();
         $sql .= " LIMIT ".($offset ? $offset.',' : '').(int) $limit;
+
         $data = $this->getModel()->query($sql)->fetchAll('id');
         if (!$data) {
             return array();
@@ -936,6 +942,10 @@ class shopProductsCollection
         foreach ($products as & $p) {
             $p['min_price'] = (float) $p['min_price'];
             $p['max_price'] = (float) $p['max_price'];
+            $p['total_sales'] = (float) $p['total_sales'];
+            $p['base_price_selectable'] = (float) $p['base_price_selectable'];
+            $p['rating'] = (float) $p['rating'];
+            $p['price'] = (float) $p['price'];
 
             // escape
             if ($escape) {
@@ -988,7 +998,7 @@ class shopProductsCollection
                                             'id'         => $p['image_id'],
                                             'product_id' => $p['id'],
                                             'ext'        => $p['ext'],
-                                        ), $size);
+                                        ), $size, isset($this->options['absolute']) ? $this->options['absolute'] : false);
                                     }
                                 }
                             }

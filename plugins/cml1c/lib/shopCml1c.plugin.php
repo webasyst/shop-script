@@ -19,6 +19,7 @@ class shopCml1cPlugin extends shopPlugin
                 $path = wa()->getDataPath('plugins/'.$this->id.'/'.$file, false, 'shop', true);
                 break;
             case 'backend':
+            default:
                 $path = wa()->getTempPath('plugins/'.$this->id.'/'.$file, 'shop');
                 break;
         }
@@ -57,7 +58,7 @@ class shopCml1cPlugin extends shopPlugin
 
         $fp = @fopen('/dev/urandom', 'rb');
         if ($fp !== false) {
-            $pr_bits .= @fread($fp, 16);
+            $pr_bits = @fread($fp, 16);
             @fclose($fp);
         } else {
             // If /dev/urandom isn't available (eg: in non-unix systems), use mt_rand().

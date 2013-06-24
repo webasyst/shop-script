@@ -78,8 +78,10 @@ class shopCurrencyModel extends waModel
 
     public function convert($price, $from, $to)
     {
+        if ($from == $to) {
+            return $price;    
+        }
         $price = $this->castValue('double', $price);
-        $primary = $this->getPrimaryCurrency();
         if ($from == $to) {
             return $price;
         }

@@ -240,6 +240,13 @@ class shopPayment extends waAppPayment
         return $wa_order;
     }
 
+    public function getDataPath($order_id, $path = null)
+    {
+        $str = str_pad($order_id, 4, '0', STR_PAD_LEFT);
+        $path = 'orders/'.substr($str, -2).'/'.substr($str, -4, 2).'/'.$order_id.'/payment/'.$path;
+        return wa('shop')->getDataPath($path, false, 'shop');
+    }
+
     public function getSettings($payment_id, $merchant_key)
     {
         return $this->model()->get($merchant_key);

@@ -11,9 +11,7 @@ class shopProductsDeleteListController extends waJsonController
             $hash = explode('/', $hash);
             $remove = waRequest::post('remove', array());
             if (count($remove) == 1 && $remove[0] == 'list') {
-                if ($model = $this->getModel($hash[0])) {
-                    $model->delete($hash[1]);
-                }
+                $this->deleteList($hash);
             } else {
                 $count = waRequest::post('count', null, waRequest::TYPE_INT);
                 $this->delete($hash, $count, count($remove) == 2);
@@ -47,9 +45,42 @@ class shopProductsDeleteListController extends waJsonController
         $this->response['count'] = $count;
         if ($rest_count == 0) {
             $this->response['lists'] = $this->getLists();
-            if ($del_list && $model = $this->getModel($hash[0])) {
-                return $model->delete($hash[1]);
+            if ($del_list) {
+                return $this->deleteList($hash);
             }
+        }
+        return true;
+    }
+
+    private function deleteList($hash)
+    {
+        $model = $this->getModel($hash[0]);
+        if (!$model) {
+            return true;
+        }
+        $item = null;
+        if ($hash[0] == 'category') {
+            $item = $model->getById($hash[1]);
+        }
+
+        if ($model = $this->getModel($hash[0])) {
+            if (!$model->delete($hash[1])) {
+                return false;
+            }
+
+            if ($hash[0] == 'category') {
+                if ($item['parent_id']) {
+                    $count = $model->countByField('parent_id', $item['parent_id']);
+                    $this->response['old_parent_category'] = array(
+                        'id' => $item['parent_id'],
+                        'children_count' => $model->countByField('parent_id', $item['parent_id'])
+                    );
+                    if (!$count) {
+                        shopCategories::clear($item['parent_id']);
+                    }
+                }
+            }
+
         }
         return true;
     }

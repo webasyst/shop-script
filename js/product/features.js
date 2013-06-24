@@ -264,7 +264,7 @@ $.product = $.extend(true, $.product, {
                     'feature' : feature
                 };
                 if (feature.multiple) {
-                    $.when($feature.find('div.value:first :checkbox:last').parents('label').after(tmpl('feature-value-multiple-template-js', data))).done(
+                    $.when($feature.find('div.value:first > a.js-action:first').before(tmpl('feature-value-multiple-template-js', data))).done(
                     function() {
                         $feature.find('div.value:first :checkbox:last+:input:first').focus();
                     });

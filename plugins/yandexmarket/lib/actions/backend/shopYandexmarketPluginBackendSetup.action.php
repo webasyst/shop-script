@@ -30,8 +30,11 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
         );
         $info['url'] = $info['exists'] ? $routing->getUrl('shop/frontend/catalog', $route_params, true) : null;
         $this->view->assign('info', $info);
-
-        $this->view->assign('primary_currency', wa('shop')->getConfig()->getCurrency());
+        /**
+         * @var shopConfig $config;
+         */
+        $config =  wa('shop')->getConfig();
+        $this->view->assign('primary_currency',$config->getCurrency());
 
         $this->view->assign('company', $this->plugin()->getSettings('company'));
 

@@ -18,7 +18,7 @@ $(':text[readonly="readonly"]').bind('click focus keypress focus', function() {
     window.setTimeout(function() {
         $this.select();
     }, 100);
-})
+});
 
 $.importexport.plugins.yandexmarket = {
     form : null,
@@ -62,10 +62,7 @@ $.importexport.plugins.yandexmarket = {
                     self.ajax_pull[response.processId] = [];
                     self.ajax_pull[response.processId].push(setTimeout(function() {
                         $.wa.errorHandler = function(xhr) {
-                            if ((xhr.status >= 500) || (xhr.status == 0)) {
-                                return false;
-                            }
-                            return true;
+                            return !((xhr.status >= 500) || (xhr.status == 0));
                         };
                         self.progressHandler(url, response.processId, response);
                     }, 100));
@@ -74,7 +71,7 @@ $.importexport.plugins.yandexmarket = {
                     }, 2000));
                 }
             },
-            error : function(jqXHR, textStatus, errorThrown) {
+            error : function() {
                 self.form.find(':input').attr('disabled', false);
                 self.form.find(':submit').show();
                 self.form.find('.js-progressbar-container').hide();
@@ -120,9 +117,10 @@ $.importexport.plugins.yandexmarket = {
                     $.shop.trace('report', response);
                     $("#plugin-yandexmarket-submit").hide();
                     self.form.find('.progressbar').hide();
-                    $("#plugin-yandexmarket-report").show();
+                    var $report = $("#plugin-yandexmarket-report");
+                    $report.show();
                     if (response.report) {
-                        $("#plugin-yandexmarket-report .value:first").html(response.report);
+                        $report.find(".value:first").html(response.report);
                     }
                     $.storage.del('shop/hash');
                 }
@@ -144,12 +142,12 @@ $.importexport.plugins.yandexmarket = {
                 var progress = parseFloat(response.progress.replace(/,/, '.'));
                 $bar.animate({
                     'width' : progress + '%'
-                });;
+                });
                 self.debug.memory = Math.max(0.0, self.debug.memory, parseFloat(response.memory) || 0);
                 self.debug.memory_avg = Math.max(0.0, self.debug.memory_avg, parseFloat(response.memory_avg) || 0);
 
                 var title = 'Memory usage: ' + self.debug.memory_avg + '/' + self.debug.memory + 'MB';
-                title += ' (' + (1 + parseInt(response.stage_num)) + '/' + response.stage_count + ')'
+                title += ' (' + (1 + parseInt(response.stage_num)) + '/' + response.stage_count + ')';
 
                 var message = response.progress + ' — ' + response.stage_name;
 
@@ -177,21 +175,21 @@ $.importexport.plugins.yandexmarket = {
                     success : function(response) {
                         self.progressHandler(url, response ? response.processId || id : id, response);
                     },
-                    error : function(jqXHR, textStatus, errorThrown) {
+                    error : function() {
                         self.progressHandler(url, id, null);
                     }
                 });
             }, 500));
         }
     }
-}
+};
 $("#s-plugin-yandexmarket").submit(function() {
     try {
         var $form = $(this);
         $form.find(':input, :submit').attr('disabled', false);
         $.importexport.plugins.yandexmarket.yandexmarketHandler(this);
     } catch (e) {
-        $('#plugin-yandexmarket-transport-group :input').attr('disabled', false);
+        $('#plugin-yandexmarket-transport-group').find(':input').attr('disabled', false);
         $.shop.error('Exception: ', e.message, e);
     }
     return false;

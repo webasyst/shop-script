@@ -19,12 +19,16 @@ class shopWorkflowAction extends waWorkflowAction
         if (isset($options['state'])) {
             $this->state_id = $options['state'];
         }
+
+        if (empty($this->options['log_record'])) {
+            $this->options['log_record'] = $this->getName();
+        }
     }
 
     public function getDefaultOptions()
     {
         return array(
-            'html' => false
+            'html' => false,
         );
     }
 
@@ -93,7 +97,7 @@ class shopWorkflowAction extends waWorkflowAction
         }
 
         $order_log_model = new shopOrderLogModel();
-        $order_log_model->add($data);
+        $data['id'] = $order_log_model->add($data);
 
         $update = isset($result['update']) ? $result['update'] : array();
         $update['update_datetime'] = date('Y-m-d H:i:s');

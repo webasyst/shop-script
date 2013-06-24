@@ -24,6 +24,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
      * @var XMLReader
      */
     private $xml;
+
     /**
      *
      * @return shopCml1cPlugin
@@ -69,7 +70,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 case 'import':
                 default:
                     $this->data['processed_count'] = array_fill_keys($stages, array(
-                        'new'    => 0,
+                        'new' => 0,
                         'update' => 0,
                     ));
                     break;
@@ -81,7 +82,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             $this->data['memory_avg'] = memory_get_usage();
         } catch (waException $ex) {
             $this->error($ex->getMessage());
-            echo json_encode(array('error' => $ex->getMessage(), ));
+            echo json_encode(array('error' => $ex->getMessage(),));
             exit;
         }
     }
@@ -93,7 +94,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
     private function getCollection()
     {
         if (!$this->collection) {
-            $hash = '*';
+            $hash = '';
             $this->collection = new shopProductsCollection($hash);
         }
 
@@ -120,7 +121,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             $this->data['orders_time'] = !empty($export['new_order']) ? $this->plugin()->exportTime() : 0;
             if ($this->data['orders_time']) {
                 $this->data['orders_time'] = $this->data['orders_time'] - 3600;
-                $sql = 'SELECT COUNT(*) FROM `'.$model->getTableName().'` WHERE  IFNULL(`update_datetime`,`create_datetime`) > s:0';
+                $sql = 'SELECT COUNT(*) FROM `' . $model->getTableName() . '` WHERE  IFNULL(`update_datetime`,`create_datetime`) > s:0';
                 $count[self::STAGE_ORDER] = $model->query($sql, date("Y-m-d H:i:s", $this->data['orders_time']))->fetchField();
             } else {
                 $count[self::STAGE_ORDER] = $model->countAll();
@@ -138,18 +139,20 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         $this->data['fsize'] = 0;
         switch (waRequest::param('module', 'backend')) {
             case 'frontend':
-                $name = $this->processId.'.xml';
+                $name = $this->processId . '.xml';
                 break;
             case 'backend':
+            default:
                 $name = sprintf('products_(%s).xml', date('Y-m-d'));
                 break;
+
         }
 
         $this->data['filename'] = $this->plugin()->path($name);
 
         $this->write("<?xml version=\"1.0\" encoding=\"{$this->data['encoding']}\"?>\n");
-        $this->write('<?xml-stylesheet type="text/xsl" href="'.$url.'xml/sale.xsl"?>'."\n");
-        $this->write('<КоммерческаяИнформация ВерсияСхемы="2.05" ДатаФормирования="'.date("Y-m-d H:i")."\">\n");
+        $this->write('<?xml-stylesheet type="text/xsl" href="' . $url . 'xml/sale.xsl"?>' . "\n");
+        $this->write('<КоммерческаяИнформация ВерсияСхемы="2.05" ДатаФормирования="' . date("Y-m-d H:i") . "\">\n");
     }
 
     protected function initImport()
@@ -185,19 +188,18 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
         $this->xml = new XMLReader();
         $this->xml->open($this->data['filename']);
+        return;
 
         $node_map = array(
-            "Классификатор"       => self::STAGE_CATEGORY,
-            "Товары"                     => self::STAGE_PRODUCT,
+            "Классификатор" => self::STAGE_CATEGORY,
+            "Товары" => self::STAGE_PRODUCT,
             "ПакетПредложений" => self::STAGE_OFFER,
         );
 
-        return;
-
         while ($this->xml->read()) {
-            $node = (string) $this->xml->name;
+            $node = (string)$this->xml->name;
             if (isset($node_map[$node])) {
-                $method_name = 'initCount'.ucfirst($node_map[$node]);
+                $method_name = 'initCount' . ucfirst($node_map[$node]);
                 if (!method_exists($this, $method_name)) {
                     $method_name = null;
                 }
@@ -260,7 +262,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
             }
             if (strtolower($this->data['encoding']) != 'utf-8') {
-                if (!@stream_filter_prepend($this->fp, $filter = 'convert.iconv.UTF-8/'.$this->data['encoding'].'//IGNORE')) {
+                if (!@stream_filter_prepend($this->fp, $filter = 'convert.iconv.UTF-8/' . $this->data['encoding'] . '//IGNORE')) {
                     throw new waException(sprintf("error while register file filter %s", $filter));
                 }
             }
@@ -289,33 +291,33 @@ class shopCml1cPluginBackendRunController extends waLongActionController
     {
         if ($category['depth'] > $level) {
             $level = $category['depth'];
-            $this->write(str_repeat("\t", $level - 1)."				<Группы>\n");
+            $this->write(str_repeat("\t", $level - 1) . "				<Группы>\n");
 
         } else
             if ($category['depth'] < $level) {
                 $delta = $level - $category['depth'] + 1;
                 $level = $category['depth'];
                 while (--$delta > 0) {
-                    $this->write(str_repeat("\t", $level + $delta)."			</Группы>\n");
-                    $this->write(str_repeat("\t", $level + $delta)."		</Группа>\n");
+                    $this->write(str_repeat("\t", $level + $delta) . "			</Группы>\n");
+                    $this->write(str_repeat("\t", $level + $delta) . "		</Группа>\n");
                 }
             }
 
-        $this->write(str_repeat("\t", $level)."				<Группа>\n");
-        $this->write(str_repeat("\t", $level)."					<Ид>".$category['id_1c']."</Ид>\n");
-        $this->write(str_repeat("\t", $level)."					<Наименование>".$this->_deleteHTML_Elements($category['name'], false)."</Наименование>\n");
+        $this->write(str_repeat("\t", $level) . "				<Группа>\n");
+        $this->write(str_repeat("\t", $level) . "					<Ид>" . $category['id_1c'] . "</Ид>\n");
+        $this->write(str_repeat("\t", $level) . "					<Наименование>" . $this->_deleteHTML_Elements($category['name'], false) . "</Наименование>\n");
         if (!empty($category['parent_id_1c'])) {
-            $this->write(str_repeat("\t", $level)."					<Родитель>".$category['parent_id_1c']."</Родитель>\n");
+            $this->write(str_repeat("\t", $level) . "					<Родитель>" . $category['parent_id_1c'] . "</Родитель>\n");
         }
 
         if (($category['right_key'] - $category['left_key']) == 1) {
-            $this->write(str_repeat("\t", $level)."				</Группа>\n");
+            $this->write(str_repeat("\t", $level) . "				</Группа>\n");
         }
     }
 
     private function writeProduct($product, $sku)
     {
-        $uuid = ($product['id_1c'] != $sku['id_1c']) ? $product['id_1c'].'#'.$sku['id_1c'] : $sku['id_1c'];
+        $uuid = ($product['id_1c'] != $sku['id_1c']) ? $product['id_1c'] . '#' . $sku['id_1c'] : $sku['id_1c'];
         $group = false;
         if (!empty($product['category_id']) && isset($this->data['map'][self::STAGE_CATEGORY][$product['category_id']])) {
             $group = $this->data['map'][self::STAGE_CATEGORY][$product['category_id']];
@@ -367,7 +369,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         if (in_array($currency, array("RUB", "RUR"))) {
             $currency = "руб";
         }
-        $uuid = ($product['id_1c'] != $sku['id_1c']) ? $product['id_1c'].'#'.$sku['id_1c'] : $sku['id_1c'];
+        $uuid = ($product['id_1c'] != $sku['id_1c']) ? $product['id_1c'] . '#' . $sku['id_1c'] : $sku['id_1c'];
 
         $dom = new DOMDocument('1.0', 'utf-8');
 
@@ -416,7 +418,6 @@ class shopCml1cPluginBackendRunController extends waLongActionController
     protected function isDone()
     {
         static $done;
-        $changed = false;
         if (!$done) {
             $done = true;
             foreach ($this->data['current'] as $stage => $current) {
@@ -427,9 +428,6 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 }
             }
             $this->data['stage_name'] = $this->getStageName($this->data['stage']);
-            if ($done) {
-                $changed = true;
-            }
             if ($done && ($this->data['direction'] == 'export') && empty($this->data['ready'])) {
                 try {
                     $this->data['ready'] = true;
@@ -445,8 +443,8 @@ class shopCml1cPluginBackendRunController extends waLongActionController
     protected function step()
     {
         $method = array(
-            'step'.ucfirst($this->data['direction']).ucfirst($this->data['stage']),
-            'step'.ucfirst($this->data['direction']),
+            'step' . ucfirst($this->data['direction']) . ucfirst($this->data['stage']),
+            'step' . ucfirst($this->data['direction']),
         );
 
         $result = false;
@@ -460,7 +458,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                     $this->error(sprintf("Unsupported action %s", $method_name));
                 }
         } catch (Exception $ex) {
-            $this->error($this->data['direction'].'@ '.$this->data['stage'].': '.$ex->getMessage()."\n".$ex->getTraceAsString());
+            $this->error($this->data['direction'] . '@ ' . $this->data['stage'] . ': ' . $ex->getMessage() . "\n" . $ex->getTraceAsString());
             sleep(5);
         }
         $this->data['memory'] = memory_get_peak_usage();
@@ -474,7 +472,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         $result = false;
         switch (ifset($this->data['direction'])) {
             case 'export':
-                $path = $this->plugin()->path($this->processId.'.xml');
+                $path = $this->plugin()->path($this->processId . '.xml');
                 if ($this->fp) {
                     fclose($this->fp);
                     $this->fp = null;
@@ -531,13 +529,13 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         if (!empty($this->data['timestamp'])) {
             $interval = time() - $this->data['timestamp'];
             $interval = sprintf(_wp('%02d ч %02d мин %02d с'), floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);
-            $report .= ' '.sprintf(_wp('(Общее время: %s)'), $interval);
+            $report .= ' ' . sprintf(_wp('(Общее время: %s)'), $interval);
         }
 
         $report .= '</div>';
         if (($this->data['direction'] == 'export') && (waRequest::param('module', 'backend') == 'backend')) {
-            $report .= '<br><a href="?plugin=cml1c&action=download&file='.basename($this->data['filename']).'"><i class="icon16 download"></i><strong>Скачать</strong></a>';
-            $report .= ' или <a href="?plugin=cml1c&action=download&file='.basename($this->data['filename']).'&mode=view" target="_blank">просмотреть<i class="icon16 new-window"></i></a>';
+            $report .= '<br><a href="?plugin=cml1c&action=download&file=' . basename($this->data['filename']) . '"><i class="icon16 download"></i><strong>Скачать</strong></a>';
+            $report .= ' или <a href="?plugin=cml1c&action=download&file=' . basename($this->data['filename']) . '&mode=view" target="_blank">просмотреть<i class="icon16 new-window"></i></a>';
         }
         return $report;
     }
@@ -549,13 +547,13 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             $interval = time() - $this->data['timestamp'];
         }
         $response = array(
-            'time'       => sprintf('%d:%02d:%02d', floor($interval / 3600), floor($interval / 60) % 60, $interval % 60),
-            'processId'  => $this->processId,
-            'stage'      => false,
-            'progress'   => 0.0,
-            'ready'      => $this->isDone(),
-            'count'      => empty($this->data['count']) ? false : $this->data['count'],
-            'memory'     => sprintf('%0.2fMByte', $this->data['memory'] / 1048576),
+            'time' => sprintf('%d:%02d:%02d', floor($interval / 3600), floor($interval / 60) % 60, $interval % 60),
+            'processId' => $this->processId,
+            'stage' => false,
+            'progress' => 0.0,
+            'ready' => $this->isDone(),
+            'count' => empty($this->data['count']) ? false : $this->data['count'],
+            'memory' => sprintf('%0.2fMByte', $this->data['memory'] / 1048576),
             'memory_avg' => sprintf('%0.2fMByte', $this->data['memory_avg'] / 1048576),
         );
 
@@ -609,10 +607,14 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 case 'export':
                     $strings = array(
                         0 => array(
-                            self::STAGE_ORDER => array /*_w*/('%d заказ', '%d заказов'),
-                            self::STAGE_PRODUCT => array /*_w*/('%d товар', '%d товаров'),
-                            self::STAGE_OFFER => array /*_w*/('%d предложение', '%d предложений'),
-                            self::STAGE_CATEGORY => array /*_w*/('%d категория', '%d категорий'),
+                            self::STAGE_ORDER => array /*_w*/
+                            ('%d заказ', '%d заказов'),
+                            self::STAGE_PRODUCT => array /*_w*/
+                            ('%d товар', '%d товаров'),
+                            self::STAGE_OFFER => array /*_w*/
+                            ('%d предложение', '%d предложений'),
+                            self::STAGE_CATEGORY => array /*_w*/
+                            ('%d категория', '%d категорий'),
                         ),
                     );
 
@@ -621,21 +623,33 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 default:
                     $strings = array(
                         'new' => array(
-                            self::STAGE_ORDER => array /*_w*/('imported %d order', 'imported %d orders'),
-                            self::STAGE_IMAGE => array /*_w*/('imported %d product image', 'imported %d product images'),
-                            self::STAGE_CATEGORY => array /*_w*/('imported %d category', 'imported %d categories'),
-                            self::STAGE_PRODUCT => array /*_w*/('imported %d product', 'imported %d products'),
-                            self::STAGE_SKU => array /*_w*/('imported %d sku', 'imported %d skus'),
-                            self::STAGE_OFFER => array /*_w*/('imported %d offer', 'imported %d offers'),
+                            self::STAGE_ORDER => array /*_w*/
+                            ('imported %d order', 'imported %d orders'),
+                            self::STAGE_IMAGE => array /*_w*/
+                            ('imported %d product image', 'imported %d product images'),
+                            self::STAGE_CATEGORY => array /*_w*/
+                            ('imported %d category', 'imported %d categories'),
+                            self::STAGE_PRODUCT => array /*_w*/
+                            ('imported %d product', 'imported %d products'),
+                            self::STAGE_SKU => array /*_w*/
+                            ('imported %d sku', 'imported %d skus'),
+                            self::STAGE_OFFER => array /*_w*/
+                            ('imported %d offer', 'imported %d offers'),
 
                         ),
                         'update' => array(
-                            self::STAGE_ORDER => array /*_w*/('updated %d order', 'updated %d orders'),
-                            self::STAGE_IMAGE => array /*_w*/('updated %d product image', 'updated %d product images'),
-                            self::STAGE_CATEGORY => array /*_w*/('updated %d category', 'updated %d categories'),
-                            self::STAGE_PRODUCT => array /*_w*/('imported %d product', 'updated %d products'),
-                            self::STAGE_SKU => array /*_w*/('updated %d sku', 'updated %d skus'),
-                            self::STAGE_OFFER => array /*_w*/('updated %d offer', 'updated %d offers'),
+                            self::STAGE_ORDER => array /*_w*/
+                            ('updated %d order', 'updated %d orders'),
+                            self::STAGE_IMAGE => array /*_w*/
+                            ('updated %d product image', 'updated %d product images'),
+                            self::STAGE_CATEGORY => array /*_w*/
+                            ('updated %d category', 'updated %d categories'),
+                            self::STAGE_PRODUCT => array /*_w*/
+                            ('imported %d product', 'updated %d products'),
+                            self::STAGE_SKU => array /*_w*/
+                            ('updated %d sku', 'updated %d skus'),
+                            self::STAGE_OFFER => array /*_w*/
+                            ('updated %d offer', 'updated %d offers'),
                         ),
                     );
 
@@ -644,7 +658,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         }
         $info = array();
         if (ifempty($count[$stage])) {
-            foreach ((array) $count[$stage] as $type => $count) {
+            foreach ((array)$count[$stage] as $type => $count) {
                 if ($count) {
                     $args = $strings[$type][$stage];
                     $args[] = $count;
@@ -696,20 +710,27 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         static $features_model;
         static $product_model;
         static $product_sku_model;
+        static $config;
         if (!$products) {
             $offset = $current_stage[self::STAGE_PRODUCT];
             $products = $this->getCollection()->getProducts('*', $offset, 50, false);
         }
         if (!$current_stage[self::STAGE_PRODUCT]) {
+            if (!$config) {
+                /**
+                 * @var shopConfig $config
+                 */
+                $config = $this->getConfig();
+            }
             $this->data['map'][self::STAGE_PRODUCT] = shopCml1cPlugin::makeUuid();
             $this->write("		<Каталог>\n");
-            $this->write("			<Ид>".$this->data['map'][self::STAGE_PRODUCT]."</Ид>\n");
-            $this->write("			<ИдКлассификатора>".$this->data['map'][self::STAGE_OFFER]."</ИдКлассификатора>\n");
-            $this->write("			<Наименование>Каталог товаров от ".date("Y-m-d H:i")."</Наименование>\n");
+            $this->write("			<Ид>" . $this->data['map'][self::STAGE_PRODUCT] . "</Ид>\n");
+            $this->write("			<ИдКлассификатора>" . $this->data['map'][self::STAGE_OFFER] . "</ИдКлассификатора>\n");
+            $this->write("			<Наименование>Каталог товаров от " . date("Y-m-d H:i") . "</Наименование>\n");
             $this->write("			<Владелец>\n");
-            $this->write("				<Ид>".self::UUID_OWNER."</Ид>\n");
-            $this->write("				<ПолноеНаименование>".$this->_deleteHTML_Elements($this->getConfig()->getGeneralSettings('name'), false)."</ПолноеНаименование>\n");
-            $this->write("				<Наименование>".$this->_deleteHTML_Elements($this->getConfig()->getGeneralSettings('name'), false)."</Наименование>\n");
+            $this->write("				<Ид>" . self::UUID_OWNER . "</Ид>\n");
+            $this->write("				<ПолноеНаименование>" . $this->_deleteHTML_Elements($config->getGeneralSettings('name'), false) . "</ПолноеНаименование>\n");
+            $this->write("				<Наименование>" . $this->_deleteHTML_Elements($config->getGeneralSettings('name'), false) . "</Наименование>\n");
             $this->write("			</Владелец>\n");
             $this->write("			<Товары>\n");
         }
@@ -739,7 +760,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 #WORK
                 $skus = $shop_product->skus;
 
-                foreach ($skus as $sku_id => $sku) {
+                foreach ($skus as $sku) {
 
                     $sku['stock'][0] = $sku['count'];
                     $product['skus'] = array(-1 => $sku);
@@ -778,39 +799,46 @@ class shopCml1cPluginBackendRunController extends waLongActionController
     private function stepExportOffer(&$current_stage, &$count, &$processed)
     {
         static $products;
+        static $config;
         if (!$products) {
             $offset = $current_stage[self::STAGE_OFFER];
             $products = $this->getCollection()->getProducts('*', $offset, 50);
         }
 
         if (!$current_stage[self::STAGE_OFFER]) {
+            if (!$config) {
+                /**
+                 * @var shopConfig $config
+                 */
+                $config = $this->getConfig();
+            }
 
             $this->write("			<ПакетПредложений СодержитТолькоИзменения=\"false\">\n");
-            $this->write("				<Ид>".self::UUID_OFFER."#</Ид>\n");
+            $this->write("				<Ид>" . self::UUID_OFFER . "#</Ид>\n");
             $this->write("				<Наименование>Пакет предложений</Наименование>\n");
-            $this->write("				<ИдКаталога>".$this->data['map'][self::STAGE_PRODUCT]."</ИдКаталога>\n");
-            $this->write("				<ИдКлассификатора>".$this->data['map'][self::STAGE_OFFER]."</ИдКлассификатора>\n");
+            $this->write("				<ИдКаталога>" . $this->data['map'][self::STAGE_PRODUCT] . "</ИдКаталога>\n");
+            $this->write("				<ИдКлассификатора>" . $this->data['map'][self::STAGE_OFFER] . "</ИдКлассификатора>\n");
             $this->write("			<Владелец>\n");
-            $this->write("				<Ид>".self::UUID_OWNER."</Ид>\n");
-            $this->write("				<ПолноеНаименование>".$this->_deleteHTML_Elements($this->getConfig()->getGeneralSettings('name'), false)."</ПолноеНаименование>\n");
-            $this->write("				<Наименование>".$this->_deleteHTML_Elements($this->getConfig()->getGeneralSettings('name'), false)."</Наименование>\n");
+            $this->write("				<Ид>" . self::UUID_OWNER . "</Ид>\n");
+            $this->write("				<ПолноеНаименование>" . $this->_deleteHTML_Elements($config->getGeneralSettings('name'), false) . "</ПолноеНаименование>\n");
+            $this->write("				<Наименование>" . $this->_deleteHTML_Elements($config->getGeneralSettings('name'), false) . "</Наименование>\n");
             $this->write("			</Владелец>\n");
             $this->write("				<ТипыЦен>\n");
             $this->write("					<ТипЦены>\n");
-            $this->write("					<Ид>".$this->_deleteHTML_Elements($this->data['price_type_uuid'])."</Ид>\n");
-            $this->write("					<Наименование>".$this->_deleteHTML_Elements($this->data['price_type'])."</Наименование>\n");
-            $currency = $this->getConfig()->getCurrency();
+            $this->write("					<Ид>" . $this->_deleteHTML_Elements($this->data['price_type_uuid']) . "</Ид>\n");
+            $this->write("					<Наименование>" . $this->_deleteHTML_Elements($this->data['price_type']) . "</Наименование>\n");
+            $currency = $config->getCurrency();
             if (in_array($currency, array("RUB", "RUR"))) {
                 $currency = "руб";
             }
-            $this->write("					<Валюта>".$currency."</Валюта>\n");
+            $this->write("					<Валюта>" . $currency . "</Валюта>\n");
             $this->write("					</ТипЦены>\n");
 
             if (!empty($this->data['purchase_price_type_uuid'])) {
                 $this->write("					<ТипЦены>\n");
-                $this->write("					<Ид>".$this->_deleteHTML_Elements($this->data['purchase_price_type_uuid'])."</Ид>\n");
-                $this->write("					<Наименование>".$this->_deleteHTML_Elements($this->data['purchase_price_type'])."</Наименование>\n");
-                $this->write("					<Валюта>".$currency."</Валюта>\n");
+                $this->write("					<Ид>" . $this->_deleteHTML_Elements($this->data['purchase_price_type_uuid']) . "</Ид>\n");
+                $this->write("					<Наименование>" . $this->_deleteHTML_Elements($this->data['purchase_price_type']) . "</Наименование>\n");
+                $this->write("					<Валюта>" . $currency . "</Валюта>\n");
                 $this->write("					</ТипЦены>\n");
             }
             $this->write("				</ТипыЦен>\n");
@@ -822,7 +850,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             if (true) { /* optional - check rights by type*/
                 $shop_product = new shopProduct($product);
                 #WORK
-                foreach ($shop_product->skus as $sku_id => $sku) {
+                foreach ($shop_product->skus as $sku) {
 
                     $sku['stock'][0] = $sku['count'];
                     $product['skus'] = array(-1 => $sku);
@@ -864,14 +892,18 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             }
         }
         if (!$current_stage[self::STAGE_CATEGORY]) {
+            /**
+             * @var shopConfig $config
+             */
+            $config = $this->getConfig();
             $this->data['map'][self::STAGE_OFFER] = shopCml1cPlugin::makeUuid();
             $this->write("	<Классификатор>\n");
-            $this->write("		<Ид>".$this->data['map'][self::STAGE_OFFER]."</Ид>\n");
+            $this->write("		<Ид>" . $this->data['map'][self::STAGE_OFFER] . "</Ид>\n");
             $this->write("		<Наименование>Классификатор (Каталог товаров)</Наименование>\n");
             $this->write("		<Владелец>\n");
-            $this->write("			<Ид>".self::UUID_OWNER."</Ид>\n");
-            $this->write("			<ПолноеНаименование>".$this->_deleteHTML_Elements($this->getConfig()->getGeneralSettings('name'), false)."</ПолноеНаименование>\n");
-            $this->write("			<Наименование>".$this->_deleteHTML_Elements($this->getConfig()->getGeneralSettings('name'), false)."</Наименование>\n");
+            $this->write("			<Ид>" . self::UUID_OWNER . "</Ид>\n");
+            $this->write("			<ПолноеНаименование>" . $this->_deleteHTML_Elements($config->getGeneralSettings('name'), false) . "</ПолноеНаименование>\n");
+            $this->write("			<Наименование>" . $this->_deleteHTML_Elements($config->getGeneralSettings('name'), false) . "</Наименование>\n");
             $this->write("		</Владелец>\n");
             $this->write("		<Группы>\n");
         }
@@ -902,8 +934,8 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         if ($current_stage[self::STAGE_CATEGORY] == $count[self::STAGE_CATEGORY]) {
             $i = $level + 1;
             while (--$i > 0) {
-                $this->write(str_repeat("\t", $i)."					</Группы>\n");
-                $this->write(str_repeat("\t", $i)."				</Группа>\n");
+                $this->write(str_repeat("\t", $i) . "					</Группы>\n");
+                $this->write(str_repeat("\t", $i) . "				</Группа>\n");
             }
 
             $this->write("			</Группы>\n");
@@ -929,13 +961,16 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             $limit = 50;
             $params = array(
                 'offset' => $current_stage[self::STAGE_ORDER],
-                'limit'  => $limit,
+                'limit' => $limit,
             );
             if ($this->data['orders_time']) {
                 $params['change_datetime'] = $this->data['orders_time'];
             }
             $orders = $model->getList("*,items.name,items.type,items.sku_id,items.product_id,items.quantity,items.price,contact,params", $params);
         }
+        /**
+         * @var waWorkflowState[]  $states
+         */
         if (!$states) {
             $workflow = new shopWorkflow();
             $states = $workflow->getAllStates();
@@ -943,12 +978,12 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
         $empty_address = array(
             'firstname' => '',
-            'lastname'  => '',
-            'country'   => '',
-            'region'    => '',
-            'city'      => '',
-            'street'    => '',
-            'zip'       => '',
+            'lastname' => '',
+            'country' => '',
+            'region' => '',
+            'city' => '',
+            'street' => '',
+            'zip' => '',
         );
         if ($order = reset($orders)) {
 
@@ -1008,35 +1043,35 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 }
                 $billing_address .= waCountryModel::getInstance()->name($order['params']['billing_address.country']);
             }
-            list($order['contact']['lastname'], $order['contact']['firstname']) = explode(' ', ifempty($order['contact']['name'], '-').' %', 2);
+            list($order['contact']['lastname'], $order['contact']['firstname']) = explode(' ', ifempty($order['contact']['name'], '-') . ' %', 2);
             $order['contact']['firstname'] = preg_replace('/\s+%$/', '', $order['contact']['firstname']);
             $this->write('
 	<Документ>
-		<Ид>'.$order['id'].'</Ид>
-		<Номер>'.$order['id_str'].'</Номер>
-		<Дата>'.$date.'</Дата>
+		<Ид>' . $order['id'] . '</Ид>
+		<Номер>' . $order['id_str'] . '</Номер>
+		<Дата>' . $date . '</Дата>
 		<ХозОперация>Заказ товара</ХозОперация>
 		<Роль>Продавец</Роль>
-		<Валюта>'.$currency_code.'</Валюта>
-		<Курс>'.$order['rate'].'</Курс>
-		<Сумма>'.$order['total'].'</Сумма>
+		<Валюта>' . $currency_code . '</Валюта>
+		<Курс>' . $order['rate'] . '</Курс>
+		<Сумма>' . $order['total'] . '</Сумма>
 		<Контрагенты>
 			<Контрагент>
-				<Ид>'.$order['contact_id'].'</Ид>
-				<Наименование>'.$this->_deleteHTML_Elements(ifempty($order['contact']['name'], '-')).'</Наименование>
-				<ПолноеНаименование>'.$this->_deleteHTML_Elements(ifempty($order['contact']['name'], '-')).'</ПолноеНаименование>
+				<Ид>' . $order['contact_id'] . '</Ид>
+				<Наименование>' . $this->_deleteHTML_Elements(ifempty($order['contact']['name'], '-')) . '</Наименование>
+				<ПолноеНаименование>' . $this->_deleteHTML_Elements(ifempty($order['contact']['name'], '-')) . '</ПолноеНаименование>
 				<Роль>Покупатель</Роль>
-				<Фамилия>'.$order['contact']['lastname'].'</Фамилия>
-				<Имя>'.$order['contact']['firstname'].'</Имя>
+				<Фамилия>' . $order['contact']['lastname'] . '</Фамилия>
+				<Имя>' . $order['contact']['firstname'] . '</Имя>
 				<АдресРегистрации>
 					<Вид>Адрес доставки</Вид>
-					<Представление>'.$this->_deleteHTML_Elements($shipping_address).'</Представление>
+					<Представление>' . $this->_deleteHTML_Elements($shipping_address) . '</Представление>
 ');
             if (!empty($order['params']['shipping_address.zip'])) {
                 $this->write('
 					<АдресноеПоле>
 						<Тип>Почтовый индекс</Тип>
-						<Значение>'.$this->_deleteHTML_Elements($order['params']['shipping_address.zip']).'</Значение>
+						<Значение>' . $this->_deleteHTML_Elements($order['params']['shipping_address.zip']) . '</Значение>
 					</АдресноеПоле>');
             }
             if (!empty($order['params']['shipping_address.region'])) {
@@ -1047,7 +1082,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                     $this->write('
 					<АдресноеПоле>
 						<Тип>Регион</Тип>
-						<Значение>'.$this->_deleteHTML_Elements($region['name']).'</Значение>
+						<Значение>' . $this->_deleteHTML_Elements($region['name']) . '</Значение>
 					</АдресноеПоле>');
                 }
             }
@@ -1055,14 +1090,14 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 $this->write('
 					<АдресноеПоле>
 						<Тип>Город</Тип>
-						<Значение>'.$this->_deleteHTML_Elements($order['params']['shipping_address.city']).'</Значение>
+						<Значение>' . $this->_deleteHTML_Elements($order['params']['shipping_address.city']) . '</Значение>
 					</АдресноеПоле>');
             }
             if (!empty($order['params']['shipping_address.street'])) {
                 $this->write('
 					<АдресноеПоле>
 						<Тип>Улица</Тип>
-						<Значение>'.$this->_deleteHTML_Elements($order['params']['shipping_address.street']).'</Значение>
+						<Значение>' . $this->_deleteHTML_Elements($order['params']['shipping_address.street']) . '</Значение>
 					</АдресноеПоле>');
             }
             $this->write('
@@ -1070,7 +1105,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 				<Контакты>
 					<Контакт>
 						<Тип>Почта</Тип>
-						<Значение>'.$this->_deleteHTML_Elements(ifempty($order['params']['contact_email'], ifset($order['pcontact']['email']))).'</Значение>
+						<Значение>' . $this->_deleteHTML_Elements(ifempty($order['params']['contact_email'], ifset($order['pcontact']['email']))) . '</Значение>
 					</Контакт>');
 
             if ($phone = false) {
@@ -1078,8 +1113,8 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 $this->write('
 						<Контакт>
 							<Тип>ТелефонРабочий</Тип>
-							<Представление>'.$phone.'</Представление>
-							<Значение>'.$phone.'</Значение>
+							<Представление>' . $phone . '</Представление>
+							<Значение>' . $phone . '</Значение>
 					</Контакт>');
             }
 
@@ -1087,8 +1122,8 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 				</Контакты>
 			</Контрагент>
 		</Контрагенты>
-		<Время>'.$time.'</Время>
-		<Комментарий>'.$this->_deleteHTML_Elements(ifset($order['status_comment'])).'</Комментарий>
+		<Время>' . $time . '</Время>
+		<Комментарий>' . $this->_deleteHTML_Elements(ifset($order['status_comment'])) . '</Комментарий>
 		');
 
             $items = ifempty($order['items'], array());
@@ -1109,13 +1144,14 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 if (!$product_model) {
                     $product_model = new shopProductModel();
                 }
-                $bind_params = array('id' => $ids);
 
                 $tax_ids = $product_model
                     ->select('`tax_id`,`id`')
                     ->where('`id` IN (i:id)', array('id' => $ids))
                     ->query()
                     ->fetchAll('id', true);
+            } else {
+                $tax_ids = array();
             }
             foreach ($items as & $item) {
                 $item['tax_id'] = ifset($tax_ids[$item['product_id']]);
@@ -1132,9 +1168,9 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 foreach ($taxes as $tax) {
                     $this->write('
             <Налог>
-                <Наименование>'.$this->_deleteHTML_Elements($tax['name']).'</Наименование>
-                <УчтеноВСумме>'.($tax['included'] ? 'true' : 'false').'</УчтеноВСумме>
-                <Сумма>'.str_replace(',', '.', ($tax['included'] ? $tax['sum_included'] : $tax['sum'])).'</Сумма>
+                <Наименование>' . $this->_deleteHTML_Elements($tax['name']) . '</Наименование>
+                <УчтеноВСумме>' . ($tax['included'] ? 'true' : 'false') . '</УчтеноВСумме>
+                <Сумма>' . str_replace(',', '.', ($tax['included'] ? $tax['sum_included'] : $tax['sum'])) . '</Сумма>
             </Налог>');
                 }
                 $this->write('
@@ -1146,7 +1182,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 			<Скидки>
 				<Скидка>
 					<Наименование>Скидка</Наименование>
-					<Сумма>'.$order['discount'].'</Сумма>
+					<Сумма>' . $order['discount'] . '</Сумма>
 					<УчтеноВСумме>true</УчтеноВСумме>
 				</Скидка>
 			</Скидки>');
@@ -1169,20 +1205,20 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 FROM `shop_product_skus` `s`
                 LEFT JOIN `shop_product` `p` ON (`p`.`id` = `s`.`product_id`)
                 WHERE `s`.`id` IN (i:skus)';
-                $map += (array) $sku_model->query($sql, array('skus' => $skus))->fetchAll('id', true);
+                $map += (array)$sku_model->query($sql, array('skus' => $skus))->fetchAll('id', true);
             }
             foreach ($items as $product) {
 
                 $uuid = explode('#', ifset($map[$product['sku_id']]));
                 if ((count($uuid) > 1) && (reset($uuid) != end($uuid))) {
-                    $product['id_1c'] = reset($uuid).'#'.end($uuid);
+                    $product['id_1c'] = reset($uuid) . '#' . end($uuid);
                 } else {
                     $product['id_1c'] = reset($uuid);
                 }
                 $this->write('
 			<Товар>
-				<Ид>'.ifset($product['id_1c'], '-').'</Ид>
-				<Наименование>'.$this->_deleteHTML_Elements($product['name']).'</Наименование>
+				<Ид>' . ifset($product['id_1c'], '-') . '</Ид>
+				<Наименование>' . $this->_deleteHTML_Elements($product['name']) . '</Наименование>
 				<БазоваяЕдиница Код="796" НаименованиеПолное="Штука" МеждународноеСокращение="PCE">шт</БазоваяЕдиница>
 ');
                 $product['dicount'] = 0;
@@ -1192,7 +1228,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 			<Скидки>
 				<Скидка>
 					<Наименование>Скидка на товар</Наименование>
-					<Сумма>'.$product['dicount'].'</Сумма>
+					<Сумма>' . $product['dicount'] . '</Сумма>
 					<УчтеноВСумме>true</УчтеноВСумме>
 				</Скидка>
 			</Скидки>');
@@ -1208,17 +1244,17 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 						<Значение>Товар</Значение>
 					</ЗначениеРеквизита>
 				</ЗначенияРеквизитов>
-				<ЦенаЗаЕдиницу>'.$product['price'].'</ЦенаЗаЕдиницу>
-				<Количество>'.$product['quantity'].'</Количество>
-				<Сумма>'.str_replace(',', '.', ($product['quantity'] * $product['price'] + ($product['tax_included'] ? 0 : $product['tax'])) - $product['quantity'] * $product['dicount']).'</Сумма>');
+				<ЦенаЗаЕдиницу>' . $product['price'] . '</ЦенаЗаЕдиницу>
+				<Количество>' . $product['quantity'] . '</Количество>
+				<Сумма>' . str_replace(',', '.', ($product['quantity'] * $product['price'] + ($product['tax_included'] ? 0 : $product['tax'])) - $product['quantity'] * $product['dicount']) . '</Сумма>');
                 if ($product['tax_id'] && ($tax = ifempty($taxes[$product['tax_id']]))) {
                     $this->write('
         <Налоги>
             <Налог>
-                <Наименование>'.$this->_deleteHTML_Elements($tax['name']).'</Наименование>
-                <УчтеноВСумме>'.($product['tax_included'] ? 'true' : 'false').'</УчтеноВСумме>
-                <Сумма>'.str_replace(',', '.', $product['tax']).'</Сумма>
-                <Ставка>'.str_replace(',', '.', $tax['rate']).'</Ставка>
+                <Наименование>' . $this->_deleteHTML_Elements($tax['name']) . '</Наименование>
+                <УчтеноВСумме>' . ($product['tax_included'] ? 'true' : 'false') . '</УчтеноВСумме>
+                <Сумма>' . str_replace(',', '.', $product['tax']) . '</Сумма>
+                <Ставка>' . str_replace(',', '.', $tax['rate']) . '</Ставка>
             </Налог>
         </Налоги>');
 
@@ -1243,9 +1279,9 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 						<Значение>Услуга</Значение>
 					</ЗначениеРеквизита>
 				</ЗначенияРеквизитов>
-				<ЦенаЗаЕдиницу>'.$order['shipping'].'</ЦенаЗаЕдиницу>
+				<ЦенаЗаЕдиницу>' . $order['shipping'] . '</ЦенаЗаЕдиницу>
 				<Количество>1</Количество>
-				<Сумма>'.$order['shipping'].'</Сумма>
+				<Сумма>' . $order['shipping'] . '</Сумма>
 			</Товар>');
             }
 
@@ -1254,27 +1290,27 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 		<ЗначенияРеквизитов>
 			<ЗначениеРеквизита>
 				<Наименование>Способ оплаты</Наименование>
-				<Значение>'.$this->_deleteHTML_Elements(ifset($order['params']['payment_name'])).'</Значение>
+				<Значение>' . $this->_deleteHTML_Elements(ifset($order['params']['payment_name'])) . '</Значение>
 			</ЗначениеРеквизита>
 			<ЗначениеРеквизита>
 				<Наименование>Статус заказа</Наименование>
-				<Значение>'.$this->_deleteHTML_Elements($states[$order['state_id']]->getName()).'</Значение>
+				<Значение>' . $this->_deleteHTML_Elements($states[$order['state_id']]->getName()) . '</Значение>
 			</ЗначениеРеквизита>
 			<ЗначениеРеквизита>
 				<Наименование>Дата изменения статуса</Наименование>
-				<Значение>'.date("Y-m-d H:i:s", strtotime(ifempty($order['update_datetime'], $order['create_datetime']))).'</Значение>
+				<Значение>' . date("Y-m-d H:i:s", strtotime(ifempty($order['update_datetime'], $order['create_datetime']))) . '</Значение>
 			</ЗначениеРеквизита>
 			<ЗначениеРеквизита>
 				<Наименование>Способ доставки</Наименование>
-				<Значение>'.$this->_deleteHTML_Elements(ifset($order['params']['shipping_name'])).'</Значение>
+				<Значение>' . $this->_deleteHTML_Elements(ifset($order['params']['shipping_name'])) . '</Значение>
 			</ЗначениеРеквизита>
 			<ЗначениеРеквизита>
 				<Наименование>Адрес доставки</Наименование>
-				<Значение>'.$this->_deleteHTML_Elements($shipping_address).'</Значение>
+				<Значение>' . $this->_deleteHTML_Elements($shipping_address) . '</Значение>
 			</ЗначениеРеквизита>
 			<ЗначениеРеквизита>
 				<Наименование>Адрес платильщика</Наименование>
-				<Значение>'.$this->_deleteHTML_Elements($billing_address).'</Значение>
+				<Значение>' . $this->_deleteHTML_Elements($billing_address) . '</Значение>
 			</ЗначениеРеквизита>');
             if ($order['state_id'] == 'deleted') {
                 $this->write('
@@ -1293,6 +1329,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         }
         return ($current_stage[self::STAGE_ORDER] < $count[self::STAGE_ORDER]);
     }
+
     /**
      *
      * @return SimpleXMLElement
@@ -1316,17 +1353,17 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         $value = $element->$field;
         switch ($type) {
             case 'floatval':
-                $value = floatval(str_replace(array(' ', ','), array('', '.'), (string) $value));
+                $value = floatval(str_replace(array(' ', ','), array('', '.'), (string)$value));
                 break;
             case 'doubleval':
-                $value = doubleval(str_replace(array(' ', ','), array('', '.'), (string) $value));
+                $value = doubleval(str_replace(array(' ', ','), array('', '.'), (string)$value));
                 break;
             case 'array':
-                $value = (array) $value;
+                $value = (array)$value;
                 break;
             case 'string':
             default:
-                $value = (string) $value;
+                $value = (string)$value;
                 break;
         }
         return $value;
@@ -1334,25 +1371,22 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
     private function stepImport(&$current_stage, &$count, &$processed)
     {
-        $result = false;
         $node_map = array(
-            "Классификатор"       => self::STAGE_CATEGORY,
-            "Товары"                     => self::STAGE_PRODUCT,
+            "Классификатор" => self::STAGE_CATEGORY,
+            "Товары" => self::STAGE_PRODUCT,
             "ПакетПредложений" => self::STAGE_OFFER,
         );
         /**
          * @todo add resume code
          */
         while ($this->xml->read()) {
-            $result = true;
-            $node = (string) $this->xml->name;
+            $node = (string)$this->xml->name;
             if (isset($node_map[$node])) {
                 $stage = $node_map[$node];
-                $method_name = 'stepImport'.ucfirst($stage);
+                $method_name = 'stepImport' . ucfirst($stage);
                 if (method_exists($this, $method_name)) {
                     while ($this->xml->read() && !($this->xml->name == $node && $this->xml->nodeType == XMLReader::END_ELEMENT)) {
-                        $result = $this->$method_name($current_stage, $count, $processed);
-
+                        $this->$method_name($current_stage, $count, $processed);
                     }
                 }
             }
@@ -1472,7 +1506,6 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         static $product_skus_model;
         $price_type = $this->data['price_type'];
         $purchase_price_type = $this->data['purchase_price_type'];
-        $rate =& $this->data['map']['rate'];
         switch ($this->xml->nodeType) {
             case XMLReader::ELEMENT:
                 switch ($this->xml->name) {
@@ -1488,7 +1521,6 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                             $price = false;
                             $purchase_price = false;
                             $currency = false;
-                            $purchase_currency = false;
                             foreach ($element->xpath('Цены/Цена') as $p) {
                                 $price = self::field($p, 'ЦенаЗаЕдиницу', 'doubleval');
                                 if (self::field($p, 'ИдТипаЦены') == $map[$price_type]["id"]) {
@@ -1501,7 +1533,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                                 if (!$product->currency) {
                                     $product->currency = $currency["currency"];
                                 } elseif ($currency["currency"] != $product->currency) {
-                                    $price = $price / (float) $currency['rate'];
+                                    $price = $price / (float)$currency['rate'];
                                 }
                             }
 
@@ -1511,7 +1543,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                                         $purchase_price = self::field($p, 'ЦенаЗаЕдиницу', 'doubleval');
                                         $purchase_currency = $map[$purchase_price_type];
                                         if ($purchase_currency["currency"] != $currency["currency"]) {
-                                            $purchase_price = $purchase_price / (float) $purchase_currency['rate'];
+                                            $purchase_price = $purchase_price / (float)$purchase_currency['rate'];
                                         }
                                         break;
                                     }
@@ -1535,7 +1567,8 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                                 } elseif ($feature = $feature_model->getByField('name', $feature_name)) {
                                     $feature_map[$feature_name] = $feature['code'];
                                     $features[$feature['code']] = self::field($property, 'Значение');
-                                } else { /* @todo make it adjustable */
+                                } else {
+                                    /* @todo make it adjustable */
                                     $feature = array(
                                         'name' => $feature_name,
                                         'code' => strtolower(waLocale::transliterate($feature_name, 'ru_RU')),
@@ -1550,15 +1583,15 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                             }
 
                             $skus[-1] = array(
-                                'id_1c'     => end($uuid),
-                                'sku'       => self::field($element, 'Артикул'),
-                                'name'      => self::field($element, 'Наименование'),
+                                'id_1c' => end($uuid),
+                                'sku' => self::field($element, 'Артикул'),
+                                'name' => self::field($element, 'Наименование'),
                                 'available' => 1,
-                                'price'     => $price,
-                                'stock'     => array(
+                                'price' => $price,
+                                'stock' => array(
                                     0 => self::field($element, 'Количество', 'doubleval'),
                                 ),
-                                'features'  => $features,
+                                'features' => $features,
                             );
                             if (!empty($purchase_price)) {
                                 $skus[-1]['purchase_price'] = $purchase_price;
@@ -1624,12 +1657,12 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                     case "ТипЦены":
                         $element = $this->element();
                         $currency = array(
-                            'id'       => self::field($element, 'Ид'),
+                            'id' => self::field($element, 'Ид'),
                             'currency' => self::field($element, 'Валюта'),
-                            'rate'     => 1.0,
+                            'rate' => 1.0,
                         );
 
-                        if (in_array($currency['currency'], array('руб', 'RUB', 'RUR', ))) {
+                        if (in_array($currency['currency'], array('руб', 'RUB', 'RUR',))) {
                             $currency['currency'] = 'RUB';
                         }
 
@@ -1679,6 +1712,9 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             $subject = ((count($uuid) < 2) || (reset($uuid) == end($uuid))) ? self::STAGE_PRODUCT : self::STAGE_SKU;
 
             $product = $this->findProduct($uuid);
+            if(!isset($this->data['map'][self::STAGE_CATEGORY])) {
+                $this->data['map'][self::STAGE_CATEGORY] = array();
+            }
             $map = $this->data['map'][self::STAGE_CATEGORY];
             if (!isset($this->data['map'][self::STAGE_PRODUCT])) {
                 $this->data['map'][self::STAGE_PRODUCT] = array();
@@ -1694,7 +1730,8 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 } elseif ($feature = $feature_model->getByField('name', $feature_name)) {
                     $feature_map[$feature_name] = $feature['code'];
                     $features[$feature['code']] = self::field($property, 'Значение');
-                } else { /* @todo make it adjustable */
+                } else {
+                    /* @todo make it adjustable */
                     $feature = array(
                         'name' => $feature_name,
                         'code' => strtolower(waLocale::transliterate($feature_name, 'ru_RU')),
@@ -1708,9 +1745,13 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 }
             }
 
-            $categories = array();
+            /**
+             *
+             * Extend product categories
+             */
+            $categories = $product->categories;
             foreach ($element->xpath('Группы/Ид') as $category) {
-                if ($category = ifset($map[(string) $category])) {
+                if ($category = ifset($map[(string)$category])) {
                     $categories[] = $category;
                 }
             }
@@ -1724,11 +1765,11 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
             $skus = $product->skus;
             $skus[-1] = array(
-                'sku'       => self::field($element, 'Артикул'),
-                'name'      => $name.(((count($skus) > 1) && count($features)) ? ' ('.implode(', ', $features).')' : ''),
+                'sku' => self::field($element, 'Артикул'),
+                'name' => $name . (((count($skus) > 1) && count($features)) ? ' (' . implode(', ', $features) . ')' : ''),
                 'available' => 1,
-                'id_1c'     => end($uuid),
-                'price'     => 0,
+                'id_1c' => end($uuid),
+                'price' => 0,
             );
 
             foreach ($element->xpath('//ЗначениеРеквизита') as $property) {
@@ -1737,7 +1778,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                         $summary = self::field($property, 'Значение');
                         break;
                     case "Вес":
-                        $features['weight'] = self::field($property, 'Значение', 'doubleval').' kg';
+                        $features['weight'] = self::field($property, 'Значение', 'doubleval') . ' kg';
                         break;
                     case 'ОписаниеВФорматеHTML':
                         if ($value = self::field($property, 'Значение')) {
@@ -1760,7 +1801,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 $feature = array(
                     'name' => _w('Weight'),
                     'code' => 'weight',
-                    'type' => shopFeatureModel::TYPE_DIMENSION.'.'.'weight',
+                    'type' => shopFeatureModel::TYPE_DIMENSION . '.' . 'weight',
                 );
 
                 if ($feature_model->save($feature)) {
@@ -1817,7 +1858,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
             $product->save();
             foreach ($element->xpath('//Картинка') as $image) {
-                $this->data['map'][self::STAGE_IMAGE][] = array((string) $image, $product->getId());
+                $this->data['map'][self::STAGE_IMAGE][] = array((string)$image, $product->getId());
                 if (!isset($count[self::STAGE_IMAGE])) {
                     $count[self::STAGE_IMAGE] = 0;
                 }
@@ -1856,18 +1897,18 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                     if ($image = new waImage($file)) {
 
                         $data = array(
-                            'product_id'        => $product_id,
-                            'upload_datetime'   => date('Y-m-d H:i:s'),
-                            'width'             => $image->width,
-                            'height'            => $image->height,
-                            'size'              => filesize($file),
+                            'product_id' => $product_id,
+                            'upload_datetime' => date('Y-m-d H:i:s'),
+                            'width' => $image->width,
+                            'height' => $image->height,
+                            'size' => filesize($file),
                             'original_filename' => $name,
-                            'ext'               => pathinfo($file, PATHINFO_EXTENSION),
+                            'ext' => pathinfo($file, PATHINFO_EXTENSION),
                         );
                         $search = array(
-                            'product_id'        => $product_id,
+                            'product_id' => $product_id,
                             'original_filename' => $name,
-                            'ext'               => pathinfo($file, PATHINFO_EXTENSION),
+                            'ext' => pathinfo($file, PATHINFO_EXTENSION),
                         );
                         if ($exists = $model->getByField($search)) {
                             $data = array_merge($exists, $data);
@@ -1894,7 +1935,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
                         $image_path = shopImage::getPath($data);
                         if ((file_exists($image_path) && !is_writable($image_path)) || (!file_exists($image_path) && !waFiles::create($image_path))) {
-                            $this->model->deleteById($image_id);
+                            $model->deleteById($image_id);
                             throw new waException(sprintf("The insufficient file write permissions for the %s folder.", substr($image_path, strlen($this->getConfig()->getRootPath()))));
                         }
 
@@ -1909,7 +1950,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                         $this->error(sprintf('Invalid image file %s', $file));
                     }
                 } catch (waException $e) {
-                    $this->error($e->getMessage);
+                    $this->error($e->getMessage());
                 }
             }
             array_shift($this->data['map'][self::STAGE_IMAGE]);
@@ -1923,7 +1964,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
     private function error($message)
     {
         $path = wa()->getConfig()->getPath('log');
-        waFiles::create($path.'/shop/plugins/cml1c.log');
+        waFiles::create($path . '/shop/plugins/cml1c.log');
         waLog::log($message, 'shop/plugins/cml1c.log');
     }
 }
