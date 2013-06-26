@@ -7,15 +7,9 @@ class shopProductUpdateMethod extends waAPIMethod
     public function execute()
     {
         $id = $this->get('id', true);
-        $product_model = new shopProductModel();
-        $product = $product_model->getById($id);
-
-        if (!$product) {
-            throw new waAPIException('invalid_param', 'Product not found', 404);
-        }
+        $product = $this->getProduct($id);
 
         $data = waRequest::post();
-        $this->checkRights($product['type_id']);
         if (isset($data['type_id'])) {
             $this->checkRights($data['type_id']);
         }
@@ -32,9 +26,20 @@ class shopProductUpdateMethod extends waAPIMethod
         }
     }
 
-    public function checkRights($type_id)
+    protected function getProduct($id)
     {
-        if (!$this->getRights('type.all') || !$this->getRights('type.'.$type_id)) {
+        $product_model = new shopProductModel();
+        $product = $product_model->getById($id);
+        if (!$product) {
+            throw new waAPIException('invalid_param', 'Product not found', 404);
+        }
+        $this->checkRights($product['type_id']);
+        return $product;
+    }
+
+    protected function checkRights($type_id)
+    {
+        if (!$this->getRights('type.'.$type_id)) {
             throw new waAPIException('access_denied', 403);
         }
     }

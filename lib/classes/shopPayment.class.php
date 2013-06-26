@@ -128,7 +128,7 @@ class shopPayment extends waAppPayment
      * formalize order data
      * @param string|array $order order ID or order data
      * @param waPayment $payment_plugin
-     * return waOrder
+     * @return waOrder
      */
     public static function getOrderData($order = array(), $payment_plugin = null)
     {
@@ -189,6 +189,9 @@ class shopPayment extends waAppPayment
                     'type'        => ifset($item['type'], 'product'),
                     'product_id'  => ifset($item['product_id']),
                 );
+                if (isset($item['weight'])) {
+                    $items[count($items) - 1]['weight']  = $item['weight'];
+                }
             }
         }
 

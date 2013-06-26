@@ -9,9 +9,14 @@ class shopTagModel extends waModel
     const CLOUD_MAX_OPACITY = 100;
     const CLOUD_MIN_OPACITY = 30;
 
-    public function getCloud($key = null)
+    public function getCloud($key = null, $limit = 0)
     {
-        $tags = $this->where('count > 0')->fetchAll($key);
+        $query = $this->where('count > 0');
+        if ($limit) {
+            $query->order('count DESC');
+            $query->limit((int)$limit);
+        }
+        $tags = $query->fetchAll($key);
         if (!empty($tags)) {
             $first = current($tags);
             $max_count = $min_count = $first['count'];

@@ -1,6 +1,6 @@
 /**
  * {literal}
- * 
+ *
  * @names features*
  * @property {} features_options
  * @method featuresInit
@@ -11,52 +11,61 @@
 if (typeof($) != 'undefined') {
 
     $.extend($.settings = $.settings || {}, {
-        features_options : {
+        features_options: {
             /**
              * template map by value type
              */
-            'value_templates' : {
-                '' : ''
+            'value_templates': {
+                '': ''
             },
             /**
              * set true to enable edit canceling
              */
-            'revert' : false,
-            'show_all' : true
+            'revert': false,
+            'show_all': true
 
         },
         /**
-         * Init section
-         * 
-         * @param string tail
+         * @var {jQuery} $('#s-settings-features')
          */
-        featuresInit : function() {
+        $features_list: null,
+        /**
+         * @var {jQuery} $('#s-settings-feature-types'
+         */
+        $features_types: null,
+        /**
+         * Init section
+         */
+        featuresInit: function () {
             $.shop.trace('$.settings.featuresInit');
             /* init settings */
+            this.$features_list = $('#s-settings-features');
+            this.$features_types = $('#s-settings-feature-types');
             var self = this;
+
             this.featuresHelper.featureCountByType();
-            $('#s-settings-content').on('click', 'a.js-action', function() {
+            $('#s-settings-content').on('click', 'a.js-action', function () {
                 return self.click($(this));
             });
-            $('#s-settings-features-type-dialog').on('click', 'a.js-action', function() {
+            $('#s-settings-features-type-dialog').on('click', 'a.js-action', function () {
                 return self.featuresTypeIcon($(this));
             });
 
-            setTimeout(function() {
+            setTimeout(function () {
                 self.call('featuresLazyInit', []);
             }, 50);
         },
-        featuresLazyInit : function() {
+        featuresLazyInit: function () {
             var self = this;
 
             $.shop.trace('$.settings.featuresLazyInit');
-            $('#s-settings-feature-types').sortable({
-                'distance' : 5,
-                'opacity' : 0.75,
-                'items' : '> li:not(.not-sortable)',
-                'axis' : 'y',
-                'containment' : 'parent',
-                'update' : function(event, ui) {
+            this.$features_types.sortable({
+                'distance': 5,
+                'opacity': 0.75,
+                'items': '> li:not(.not-sortable)',
+                'axis': 'y',
+                'containment': 'parent',
+                'update': function (event, ui) {
                     var id = parseInt($(ui.item).data('type'));
                     var after_id = $(ui.item).prev().data('type');
                     if (after_id === undefined) {
@@ -68,14 +77,14 @@ if (typeof($) != 'undefined') {
                 }
             });
 
-            $('#s-settings-features').sortable({
-                'distance' : 5,
-                'opacity' : 0.75,
-                'items' : '> tbody > tr:visible',
-                'handle' : '.sort, .js-feature-name',
-                'cursor' : 'move',
-                'tolerance' : 'pointer',
-                'update' : function(event, ui) {
+            this.$features_list.sortable({
+                'distance': 5,
+                'opacity': 0.75,
+                'items': '> tbody:first > tr:visible',
+                'handle': '.sort, .js-feature-name',
+                'cursor': 'move',
+                'tolerance': 'pointer',
+                'update': function (event, ui) {
                     if (self.featuresHelper.type()) {
                         var $feature = $(ui.item);
                         var $after = $feature.prev(':visible');
@@ -84,22 +93,22 @@ if (typeof($) != 'undefined') {
                         $(this).sortable('cancel');
                     }
                 },
-                'start' : function() {
+                'start': function () {
                     $('.block.drop-target').addClass('drag-active');
                 },
-                'stop' : function() {
+                'stop': function () {
                     $('.block.drop-target').removeClass('drag-active');
                 }
             }).find(':not:input').disableSelection();
 
-            this.featuresInitDroppable($('#s-settings-feature-types li:not(.not-sortable)'));
+            this.featuresInitDroppable(this.$features_types.find('li:not(.not-sortable)'));
             $('#s-settings-features-type-dialog').prependTo('#wa-app');
 
-            $('#s-settings-features').on('change, click', ':input:checkbox[name$="\]\[types\]\[0\]"][name^="feature\["]', function() {
+            this.$features_list.on('change, click', ':input:checkbox[name$="\]\[types\]\[0\]"][name^="feature\["]', function () {
                 self.featuresFeatureTypesChange($(this));
             });
 
-            $('#s-settings-features').on('keypress', ':input[name$="\]\[name\]"][name^="feature\["]', function(e) {
+            this.$features_list.on('keypress', ':input[name$="\]\[name\]"][name^="feature\["]', function (e) {
 
                 try {
                     if (e.which && e.which == 13) {
@@ -111,17 +120,17 @@ if (typeof($) != 'undefined') {
                 }
             });
 
-            $('#s-settings-features').on('change', ':input.js-feature-types-control:first', function() {
+            this.$features_list.on('change', ':input.js-feature-types-control:first', function () {
                 self.featuresFeatureValueTypeChange($(this));
             });
 
-            $('#s-settings-features').on('change', ':input.js-feature-subtypes-control:first', function() {
+            this.$features_list.on('change', ':input.js-feature-subtypes-control:first', function () {
                 self.featuresFeatureValueTypeChainChange($(this));
             });
 
-            $('#s-settings-features .color').hover(function() {
+            this.$features_list.find('.color').hover(function () {
                 $(this).css('cursor', 'pointer');
-            }, function() {
+            }, function () {
                 $(this).css('cursor', 'default');
             });
 
@@ -131,29 +140,27 @@ if (typeof($) != 'undefined') {
         },
 
         /**
-         * @deprecated
-         * @param {JQuery} $feature
-         * @param {} feature
+         * @param {jQuery} $feature
+         * @param {Object} feature
          */
-        featuresFeatureChange : function($feature, feature) {
+        featuresFeatureChange: function ($feature, feature) {
             var $list = $feature.find('ul.js-feature-values:first');
             var $container = $list.parent();
             if (feature.selectable) {
-                var self = this;
                 $container.show();
                 feature.values_template = feature.values_template || (this.features_options.value_templates[feature.type] || '');
                 $feature.find('ul.js-feature-values:first').sortable({
-                    'distance' : 5,
-                    'opacity' : 0.75,
-                    'items' : '> li[data-value-id]',
-                    'handle' : '.sort',
-                    'cursor' : 'move',
-                    'tolerance' : 'pointer'
-                })/* .find(':not:input').disableSelection() */;
+                    'distance': 5,
+                    'opacity': 0.75,
+                    'items': '> li[data-value-id]',
+                    'handle': '.sort',
+                    'cursor': 'move',
+                    'tolerance': 'pointer'
+                });
 
                 if (feature.values_template != $list.data('values_template')) {
                     $.shop.trace('$.settings.featuresFeatureChange template changed', [feature.values_template, $list.data('values_template')]);
-                    $list.find(':input[name^="feature\[' + feature.id + '\]\[values\]"]').each(function() {
+                    $list.find(':input[name^="feature\[' + feature.id + '\]\[values\]"]').each(function () {
                         $(this).parents('li').remove();
                     });
                     $list.data('values_template', feature.values_template);
@@ -168,46 +175,45 @@ if (typeof($) != 'undefined') {
         },
 
         /**
-         * @param {JQuery} $el
+         * @param {jQuery} $el
          */
-        featuresFeatureTypesChange : function($el) {
+        featuresFeatureTypesChange: function ($el) {
             var checked = $el.attr('checked') || false;
             $.shop.trace('all type changed', [checked, $el]);
             var $container = $el.parents('ul');
             if (checked) {
                 $container.find('li[data-type!="0"]').hide();
-                $container.find('li[data-type!="0"] :checkbox').each(function() {
+                $container.find('li[data-type!="0"] :checkbox').each(function () {
                     this.checked = checked;
                 });
             } else {
                 var type = this.featuresHelper.type();
                 $container.find('li[data-type!="0"]').show();
-                $container.find('li[data-type!="0"] :checkbox').each(function(index, el) {
+                $container.find('li[data-type!="0"] :checkbox').each(function (index, el) {
                     $(this).attr('checked', el.defaultChecked || (type == $(this).val()));
                 });
             }
         },
 
-        features_data : {
-            'feature_id' : 0,
-            'value_id' : 0
+        features_data: {
+            'feature_id': 0,
+            'value_id': 0
         },
 
         /**
          * Disable section event handlers
          */
-        featuresBlur : function() {
-            $('#s-settings-features-type-dialog').off('click', 'a.js-action');
-            $('#s-settings-features-type-dialog').remove();
+        featuresBlur: function () {
+            $('#s-settings-features-type-dialog').off('click', 'a.js-action').remove();
             $('#s-settings-content').off('click', 'a.js-action');
-            $('#s-settings-features').off('change, click');
+            this.container.off('change, click');
         },
 
         /**
-         * 
+         *
          * @param {String} tail
          */
-        featuresAction : function(tail) {
+        featuresAction: function (tail) {
             $.shop.trace('$.settings.featuresAction', [this.path, tail]);
             $('div.s-settings-form:first > div:hidden').show();
             this.featuresTypeSelect(parseInt(tail) || 0);
@@ -215,40 +221,19 @@ if (typeof($) != 'undefined') {
         },
 
         /**
-         * @param {JQuery} $el
+         * @param {jQuery} $el
          */
-        featuresInitDroppable : function($el) {
+        featuresInitDroppable: function ($el) {
             var self = this;
             $el.droppable({
 
-                'accept-deleted' : function($el) {
-                    var $this = $(this);
-                    // $.shop.trace('accept', [$this, $this.is('li:not(.not-sortable)')]);
-                    if (!$this.is('li:not(.not-sortable)')) {
-                        return false;
-                    }
-                    return true;
-                    var current = $el.data('types');
-                    var accept = false;
-                    var type = '' + $this.data('type');
-                    if (current === undefined) {
-                        accept = false;
-                    } else {
-                        accept = self.featuresFeatureTypeChangeAllowed(('' + current).split(' '), type);
-                    }
-                    if (type === 'null') {
-                        if (accept) {
-                            $this.show();
-                        } else {
-                            $this.hide();
-                        }
-                    }
-                    return accept;
+                'accept-deleted': function () {
+                    return $(this).is('li:not(.not-sortable)');
                 },
-                'activeClass-deleted' : "ui-state-hover",
-                'hoverClass' : 'drag-newparent',
-                'tolerance' : 'pointer',
-                'drop' : function(event, ui) {
+                'activeClass-deleted': "ui-state-hover",
+                'hoverClass': 'drag-newparent',
+                'tolerance': 'pointer',
+                'drop': function (event, ui) {
                     return self.featuresFeatureTypeChange(event, ui, this);
                 }
             });
@@ -256,26 +241,24 @@ if (typeof($) != 'undefined') {
 
         /**
          * Select feature types and filter data
-         * 
-         * @param {Integer} type
+         *
+         * @param {Number} type
          */
-        featuresTypeSelect : function(type) {
+        featuresTypeSelect: function (type) {
             /* change selected type and filter features rows */
             $.shop.trace('$.settings.featuresTypeSelect', type);
-            $('#s-settings-feature-types li.selected').removeClass('selected');
+            this.$features_types.find('> li.selected').removeClass('selected');
 
-            if ($('#s-settings-feature-types li[data-type="' + type + '"]').length) {
-                var name = $('#s-settings-feature-types li[data-type="' + type + '"]').addClass('selected').find('span.js-type-name').text();
+            if (this.$features_types.find('> li[data-type="' + type + '"]').length) {
+                var name = this.$features_types.find('> li[data-type="' + type + '"]').addClass('selected').find('span.js-type-name').text();
                 $('#s-settings-features-type-name').text(name.replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, ''));
-                $.when(this.featuresFilter(type)).done(function() {
-                    // $('#s-settings-features').sortable(type ? 'enable' : 'disable');
-                });
+                this.featuresFilter(type);
             } else {
                 window.location.hash = '#/features/';
             }
         },
 
-        featuresFeatureTypeChangeAllowed : function(current, target) {
+        featuresFeatureTypeChangeAllowed: function (current, target) {
             if (target != 'null') {
                 return (current.indexOf(target) < 0);
             } else {
@@ -283,7 +266,7 @@ if (typeof($) != 'undefined') {
             }
         },
 
-        featuresFeatureTypeChange : function(event, ui, el) {
+        featuresFeatureTypeChange: function (event, ui, el) {
             var $feature = ui.draggable;
             var target = parseInt($(el).data('type')) || 0;
             var current = this.featuresHelper.featureTypes($feature);
@@ -297,9 +280,9 @@ if (typeof($) != 'undefined') {
             if (current.indexOf(target) < 0) {
 
                 $.post('?module=settings&action=featuresFeatureType', {
-                    'feature' : $feature.data('feature'),
-                    'type' : target
-                }, function(data, textStatus, jqXHR) {
+                    'feature': $feature.data('feature'),
+                    'type': target
+                },function (data) {
                     $.shop.trace('$.settings.featuresFeatureTypeChange ajax', data);
 
                     var index = current.indexOf(NaN);
@@ -315,27 +298,27 @@ if (typeof($) != 'undefined') {
                     } else {
                         current = [target];
                     }
-                }, 'json').complete(function() {
-                    $feature.data('types', '' + current.join(' '));
-                    $.shop.trace('$.settings.featuresFeatureTypeChange tmpl', current);
-                    self.featuresHelper.featureCountByType();
+                }, 'json').complete(function () {
+                        $feature.data('types', '' + current.join(' '));
+                        $.shop.trace('$.settings.featuresFeatureTypeChange tmpl', current);
+                        self.featuresHelper.featureCountByType();
 
-                    if (current.length == 1) {
-                        self.featuresFilter(self.featuresHelper.type(), true);
-                    }
-                }).error(function() {
+                        if (current.length == 1) {
+                            self.featuresFilter(self.featuresHelper.type(), true);
+                        }
+                    }).error(function () {
 
-                });
+                    });
             }
         },
 
         /**
          * Filter visible features list by type
-         * 
-         * @param {Integer} type
+         *
+         * @param {Number} type
          * @param {Boolean} animate use animation
          */
-        featuresFilter : function(type, animate) {
+        featuresFilter: function (type, animate) {
             $.shop.trace('$.settings.featuresFilter', [type, animate]);
             if (type) {
                 $('#s-settings-features-type-menu:hidden, #s-settings-features > tbody > tr > td > .sort').show();
@@ -345,11 +328,11 @@ if (typeof($) != 'undefined') {
             if (type || !this.features_options.show_all) {
                 type = parseInt(type) || 0;
                 var self = this;
-                $('#s-settings-features tbody > tr:visible').filter(function() {
+                this.$features_list.find('> tbody:first > tr:visible').filter(function () {
                     var types = self.featuresHelper.featureTypes($(this));
                     return (type && !types.length) || (types.length && types.indexOf(type) < 0);
                 }).hide(animate ? 'slow' : null);
-                $('#s-settings-features tbody > tr:hidden').filter(function() {
+                this.$features_list.find('> tbody:first > tr:hidden').filter(function () {
                     var types = self.featuresHelper.featureTypes($(this));
                     return (!type && !types.length) || types.indexOf(type) >= 0;
                 }).show(animate ? 'slow' : null);
@@ -358,7 +341,7 @@ if (typeof($) != 'undefined') {
                  * @todo test speed
                  */
 
-                $('#s-settings-features tbody:first').append($("#s-settings-features tbody:first > tr:visible").get().sort(function(a, b) {
+                this.$features_list.find('> tbody:first').append(this.$features_list.find('> tbody:first > tr:visible').get().sort(function (a, b) {
                     if (type) {
                         a = $(a).data('sort') || {};
                         a = parseInt(a[type]) || 0;
@@ -366,19 +349,19 @@ if (typeof($) != 'undefined') {
                         b = $(b).data('sort') || {};
                         b = parseInt(b[type]) || 0;
                     } else {
-                        a = parseInt($(a).data('feature')) || 0
-                        b = parseInt($(b).data('feature')) || 0
+                        a = parseInt($(a).data('feature')) || 0;
+                        b = parseInt($(b).data('feature')) || 0;
                     }
                     return parseInt(a - b);
                 }));
 
             } else {
-                $('#s-settings-features tbody tr:hidden').show();
+                this.$features_list.find('> tbody:first > tr:hidden').show();
                 $('#s-settings-features-type-menu:visible').hide();
 
-                $('#s-settings-features tbody:first').append($("#s-settings-features tbody:first > tr:visible").get().sort(function(a, b) {
-                    a = -parseInt($(a).data('feature')) || -1
-                    b = -parseInt($(b).data('feature')) || -1
+                this.$features_list.find('> tbody:first').append(this.$features_list.find('> tbody:first > tr:visible').get().sort(function (a, b) {
+                    a = -parseInt($(a).data('feature')) || -1;
+                    b = -parseInt($(b).data('feature')) || -1;
                     var sign = ((a * b > 0) && (a > 0)) ? -1 : a * b;
                     return parseInt(a - b) * sign;
                 }));
@@ -387,9 +370,9 @@ if (typeof($) != 'undefined') {
         },
 
         /**
-         * @param {JQuery} $el
+         * @param {jQuery} $el
          */
-        featuresTypeIcon : function($el) {
+        featuresTypeIcon: function ($el) {
             var $item = $el.parents('li');
             var $container = $el.parents('ul');
             $container.find('li.selected').removeClass('selected');
@@ -402,10 +385,10 @@ if (typeof($) != 'undefined') {
             return false;
         },
 
-        featuresTypeAdd : function() {
+        featuresTypeAdd: function () {
             var self = this;
             $('#s-settings-features-type-dialog').waDialog({
-                onLoad : function(d) {
+                onLoad: function () {
                     var $this = $(this);
                     var form = $this.find('form');
 
@@ -421,15 +404,15 @@ if (typeof($) != 'undefined') {
                     $this.find(':input[name="name"]').val('').focus();
 
                 },
-                onSubmit : function(d) {
+                onSubmit: function (d) {
                     var form = d.find('form');
-                    $.post(form.attr('action'), form.serialize(), function(response) {
+                    $.post(form.attr('action'), form.serialize(), function (response) {
                         try {
                             if (response && (response.status == 'ok')) {
                                 $.shop.trace('response', [response, response.data]);
                                 var type = response.data;
-                                $.tmpl('feature-type', type).insertBefore('#s-settings-feature-types li:last');
-                                var $type = $('#s-settings-feature-types li[data-type="' + type.id + '"]');
+                                $.tmpl('feature-type', type).insertBefore(self.$features_types.find('> li:last'));
+                                var $type = self.$features_types.find('>  li[data-type="' + type.id + '"]');
                                 self.featuresInitDroppable($type);
                                 d.trigger('close');
                                 window.location.hash = '#/features/' + type.id + '/';
@@ -446,14 +429,14 @@ if (typeof($) != 'undefined') {
             });
         },
 
-        featuresTypeEdit : function() {
+        featuresTypeEdit: function () {
             var type = this.featuresHelper.type();
             $.shop.trace('$.settings.featuresTypeEdit', type);
             if (type) {
                 var self = this;
-                var $type = $('#s-settings-feature-types li[data-type="' + type + '"]');
+                var $type = this.$features_types.find('> li[data-type="' + type + '"]');
                 $('#s-settings-features-type-dialog').waDialog({
-                    onLoad : function(d) {
+                    onLoad: function () {
                         var $this = $(this);
                         $.shop.trace('$.settings.featuresTypeEdit', this);
                         var name = $type.find('.js-type-name').text().replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, '');
@@ -474,9 +457,9 @@ if (typeof($) != 'undefined') {
                         $this.find(':input[name="name"]').val(name).focus();
 
                     },
-                    onSubmit : function(d) {
+                    onSubmit: function (d) {
                         var $form = d.find('form');
-                        $.post($form.attr('action'), $form.serialize(), function(response) {
+                        $.post($form.attr('action'), $form.serialize(), function (response) {
                             try {
                                 if (response && (response.status == 'ok')) {
                                     d.trigger('close');
@@ -484,17 +467,17 @@ if (typeof($) != 'undefined') {
                                     $type.replaceWith($.tmpl('feature-type', response.data));
 
                                     self.featuresTypeSelect(type);
-                                    $('#s-settings-features span[data-type="' + response.data.id + '"]').each(function() {
+                                    self.$features_list.find('span[data-type="' + response.data.id + '"]').each(function () {
                                         $(this).text(response.data.name);
                                     });
-                                    $type = $('#s-settings-feature-types li[data-type="' + type + '"]');
+                                    $type = self.$features_types.find('> li[data-type="' + type + '"]');
 
                                     self.featuresInitDroppable($type);
 
-                                    $('#s-settings-features tr.js-inline-edit ul li[data-type="' + type + '"]').each(function() {
+                                    self.$features_list.find('tr.js-inline-edit ul li[data-type="' + type + '"]').each(function () {
                                         response.data['feature'] = {
-                                            'id' : $(this).parents('tr').data('feature'),
-                                            'types' : []
+                                            'id': $(this).parents('tr').data('feature'),
+                                            'types': []
                                         };
                                         if ($(this).find(':checkbox:checked').length) {
                                             response.data.feature.types.push(type);
@@ -517,31 +500,31 @@ if (typeof($) != 'undefined') {
 
         /**
          * Delete feature type
-         * 
-         * @param {Integer} type Type's ID
+         *
+         * @param {Number} type Type's ID
          * @return {Boolean}
          */
-        featuresTypeDelete : function(type) {
+        featuresTypeDelete: function (type) {
             type = this.featuresHelper.type(type);
             $.shop.trace('$.settings.featuresTypeDelete', [type, this.path]);
             var self = this;
             if (type && confirm) {
                 $.post('?module=settings&action=featuresTypeDelete', {
-                    'id' : type
-                }, function(response) {
+                    'id': type
+                }, function (response) {
                     try {
                         if (response && (response.status == 'ok')) {
                             $.shop.trace('response', [response, response.data, type]);
-                            $('#s-settings-feature-types li[data-type="' + type + '"]').remove();
-                            $('#s-settings-features span[data-type="' + type + '"]').remove();
-                            $('#s-settings-features tr').filter(function() {
+                            self.$features_types.find('> li[data-type="' + type + '"]').remove();
+                            self.$features_list.find('span[data-type="' + type + '"]').remove();
+                            self.$features_list.find('> tbody > tr').filter(function () {
                                 return self.featuresHelper.featureTypes($(this)).indexOf(type) > 0;
-                            }).each(function() {
-                                var pattern = new RegExp('\b' + type + '\b\s+');
-                                $(this).data('types', $(this).data('types').replace(pattern, ''));
-                            });
+                            }).each(function () {
+                                    var pattern = new RegExp('\b' + type + '\b\s+');
+                                    $(this).data('types', $(this).data('types').replace(pattern, ''));
+                                });
 
-                            $('#s-settings-features li[data-type="' + type + '"]').remove();
+                            self.$features_list.find('li[data-type="' + type + '"]').remove();
 
                             window.location.hash = '#/features/';
                         } else {
@@ -555,47 +538,47 @@ if (typeof($) != 'undefined') {
             return false;
         },
 
-        featuresTypeSort : function(id, after_id, list) {
+        featuresTypeSort: function (id, after_id, list) {
             $.post('?module=settings&action=featuresTypeSort', {
-                id : id,
-                after_id : after_id
-            }, function(response) {
+                id: id,
+                after_id: after_id
+            }, function (response) {
                 $.shop.trace('$.settings.featuresTypeSort result', response);
                 if (response.error) {
                     $.shop.error('Error occurred while sorting product types', 'error');
                     list.sortable('cancel');
                 }
-            }, function(response) {
+            }, function (response) {
                 $.shop.trace('$.settings.featuresTypeSort cancel', {
-                    'data' : response
+                    'data': response
                 });
                 list.sortable('cancel');
                 $.shop.error('Error occurred while sorting product types', 'error');
             });
         },
 
-        featuresFeatureAdd : function() {
+        featuresFeatureAdd: function () {
             try {
                 $.shop.trace('featuresFeatureAdd env', this);
                 var feature = {
-                    'id' : --this.features_data.feature_id,
-                    'type' : 'varchar',
-                    'types' : [],
-                    'selectable' : 0,
-                    'multiple' : 0,
-                    'values' : [],
-                    'values_template' : this.features_options.value_templates['varchar'] || ''
+                    'id': --this.features_data.feature_id,
+                    'type': 'varchar',
+                    'types': [],
+                    'selectable': 0,
+                    'multiple': 0,
+                    'values': [],
+                    'values_template': this.features_options.value_templates['varchar'] || ''
                 };
                 var type = this.featuresHelper.type();
                 if (type) {
                     feature.types.push(type);
                 } else {
                     feature.types.push(0);
-                    var selector = '#s-settings-feature-types li:not(.not-sortable)';
+                    var selector = '> li:not(.not-sortable)';
                     if (type) {
                         selector += '[data-type="' + type + '"]';
                     }
-                    $(selector).each(function() {
+                    this.$features_types.find(selector).each(function () {
                         var id = $(this).data('type');
                         if (id && id != undefined) {
                             feature.types.push(id);
@@ -603,54 +586,54 @@ if (typeof($) != 'undefined') {
                     });
                 }
                 feature.values.push({
-                    'id' : --this.features_data.value_id,
-                    'value' : ''
+                    'id': --this.features_data.value_id,
+                    'value': ''
                 });
 
                 $.shop.trace('$.settings.featuresFeatureAdd', feature);
                 var self = this;
                 $.when($.tmpl('edit-feature', {
-                    'types' : this.featuresHelper.types(),
-                    'feature' : feature
-                }).prependTo('#s-settings-features tbody')).done(function() {
-                    var $feature = $('#s-settings-features tbody tr[data-feature="' + self.features_data.feature_id + '"]');
-                    self.featuresFeatureChange($feature, feature);
-                    if (!self.featuresHelper.type()) {
-                        $feature.find(' > td > .sort').hide()
-                    }
+                    'types': this.featuresHelper.types(),
+                    'feature': feature
+                }).prependTo(self.$features_list.find('> tbody:first'))).done(function () {
+                        var $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + self.features_data.feature_id + '"]:first');
+                        self.featuresFeatureChange($feature, feature);
+                        if (!self.featuresHelper.type()) {
+                            $feature.find(' > td > .sort').hide()
+                        }
 
-                    var $el = $feature.find(':input:checkbox[name$="\]\[types\]\[0\]"][name^="feature\["]');
-                    self.featuresFeatureTypesChange($el);
-                    $feature.find(':input[name$="\[name\]"]').focus();
-                });
+                        var $el = $feature.find(':input:checkbox[name$="\]\[types\]\[0\]"][name^="feature\["]');
+                        self.featuresFeatureTypesChange($el);
+                        $feature.find(':input[name$="\[name\]"]').focus();
+                    });
             } catch (e) {
                 $.shop.error('exception', e);
             }
         },
 
-        featuresFeatureEdit : function(feature_id) {
+        featuresFeatureEdit: function (feature_id) {
             feature_id = parseInt(feature_id);
-            var $feature = $('#s-settings-features tbody tr[data-feature="' + feature_id + '"]');
+            var $feature = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"]');
             var type = $feature.data('type');
             var feature = {
-                'id' : feature_id,
-                'name' : $feature.find('.js-feature-name').text(),
-                'code' : $feature.find('.js-feature-code').text(),
-                'type' : type,
-                'type_name' : $feature.find('.js-feature-type-name').text(),
-                'types' : this.featuresHelper.featureTypes($feature),
-                'selectable' : $feature.data('selectable'),
-                'multiple' : $feature.data('multiple'),
-                'values' : [],
-                'values_template' : this.features_options.value_templates[type] || ''
+                'id': feature_id,
+                'name': $feature.find('.js-feature-name').text(),
+                'code': $feature.find('.js-feature-code').text(),
+                'type': type,
+                'type_name': $feature.find('.js-feature-type-name').text(),
+                'types': this.featuresHelper.featureTypes($feature),
+                'selectable': $feature.data('selectable'),
+                'multiple': $feature.data('multiple'),
+                'values': [],
+                'values_template': this.features_options.value_templates[type] || ''
             };
 
-            $feature.find('ul.js-feature-values li').each(function() {
+            $feature.find('ul.js-feature-values li').each(function () {
                 var id = parseInt($(this).data('value-id'));
                 if (id && id != undefined) {
                     feature.values.push({
-                        'id' : id,
-                        'value' : $(this).text().replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, '')
+                        'id': id,
+                        'value': $(this).text().replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, '')
                     });
                 }
             });
@@ -659,11 +642,11 @@ if (typeof($) != 'undefined') {
             try {
                 var self = this;
                 var data = {
-                    'types' : this.featuresHelper.types(),
-                    'feature' : feature
+                    'types': this.featuresHelper.types(),
+                    'feature': feature
                 };
-                $.when($feature.replaceWith($.tmpl('edit-feature', data))).done(function() {
-                    var $edit_feature = $('#s-settings-features tbody tr[data-feature="' + feature_id + '"]');
+                $.when($feature.replaceWith($.tmpl('edit-feature', data))).done(function () {
+                    var $edit_feature = self.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"]:first');
                     if (self.features_options.revert) {
                         $edit_feature.data('cancel', $feature);
                     }
@@ -678,21 +661,21 @@ if (typeof($) != 'undefined') {
             }
         },
 
-        featuresFeatureCodeEdit : function(feature_id, $el) {
+        featuresFeatureCodeEdit: function (feature_id, $el) {
             var $container = $el.parents('td');
             $container.find('span.js-feature-code:first').hide();
             $el.hide();
             $container.find(':input[name$="\[code\]"]').show().focus();
         },
 
-        featuresFeatureValueTypeChange : function($el) {
+        featuresFeatureValueTypeChange: function ($el) {
             var $selected = $el.find('option:selected');
             var $feature = $el.parents('td');
             var feature = {
-                'id' : parseInt($feature.parents('tr').data('feature')),
-                'type' : $selected.data('type'),
-                'selectable' : $selected.data('selectable'),
-                'multiple' : $selected.data('multiple')
+                'id': parseInt($feature.parents('tr').data('feature')),
+                'type': $selected.data('type'),
+                'selectable': $selected.data('selectable'),
+                'multiple': $selected.data('multiple')
             };
             // update hidden input value
             $feature.find(':input[name$="\[type\]"]').val(feature.type);
@@ -704,37 +687,23 @@ if (typeof($) != 'undefined') {
             var $select = $feature.find(':input.js-feature-subtypes-control:first');
 
             if (feature.type.match(/\*$/)) {
-                var self = this;
                 $select.show().trigger('change').focus();
             } else {
                 $select.hide();
             }
             // retrieve input value controls
-            var values = [];
             $.shop.trace('$.settings.featuresFeatureValueTypeChange', feature);
             return false;
-
-            $feature.find(':input[name^="feature\[' + feature_id + '\]\[values\]"]').each(function() {
-                var input_name = $(this).attr('name');
-                var matches = input_name.match(/\[-?\d+\](\[value\])?$/);
-                if (matches && matches.length) {
-                    values.push({
-                        'name' : input_name,
-                        'value' : $(this).val()
-                    });
-                    $(this).parents('li').remove();
-                }
-            });
         },
 
-        featuresFeatureValueTypeChainChange : function($el) {
+        featuresFeatureValueTypeChainChange: function ($el) {
 
             var $feature = $el.parents('td');
             var feature = {
-                'id' : parseInt($feature.parents('tr').data('feature')),
-                'type' : $feature.find(':input[name$="\[type\]"]').val(),
-                'selectable' : $feature.find(':input[name$="\[selectable\]"]').val(),
-                'multiple' : $feature.find(':input[name$="\[multiple\]"]').val()
+                'id': parseInt($feature.parents('tr').data('feature')),
+                'type': $feature.find(':input[name$="\[type\]"]').val(),
+                'selectable': $feature.find(':input[name$="\[selectable\]"]').val(),
+                'multiple': $feature.find(':input[name$="\[multiple\]"]').val()
             };
 
             var $selected = $el.find('option:selected');
@@ -749,12 +718,12 @@ if (typeof($) != 'undefined') {
             this.featuresFeatureChange($feature, feature);
         },
 
-        featuresFeatureSave : function(feature_id) {
+        featuresFeatureSave: function (feature_id) {
             var self = this;
-            var $feature = $('#s-settings-features tbody tr[data-feature="' + feature_id + '"].js-inline-edit');
+            var $feature = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"].js-inline-edit');
             var feature_raw = $feature.find(':input').serialize();
             $.shop.trace('$.settings.featuresFeatureSave', feature_raw);
-            $.post('?module=settings&action=featuresFeatureSave', feature_raw, function(data, textStatus, jqXHR) {
+            $.post('?module=settings&action=featuresFeatureSave', feature_raw,function (data) {
                 if (data.status == 'ok') {
                     var feature = data.data[feature_id];
                     feature.values_template = feature.values_template || (self.features_options.value_templates[feature.type] || '');
@@ -769,12 +738,12 @@ if (typeof($) != 'undefined') {
 
                     $.shop.trace('response', feature.values);
                     $feature.replaceWith($.tmpl(error ? 'edit-feature' : 'feature', {
-                        'types' : self.featuresHelper.types(!error ? true : false),
-                        'feature' : feature
+                        'types': self.featuresHelper.types(!error),
+                        'feature': feature
                     }));
                     if (error) {
-                        $feature = $('#s-settings-features tbody tr[data-feature="' + feature_id + '"]');
-                        $feature.on('click focus', 'input', function() {
+                        $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"]:first');
+                        $feature.on('click focus', 'input', function () {
                             var $this = $(this);
                             var $parent = $(this).parents('ul');
                             $parent.find('input.red').removeClass('red');
@@ -792,19 +761,19 @@ if (typeof($) != 'undefined') {
                         self.featuresFilter(type, true);
                     } else {
                         if (type) {
-                            $('#s-settings-features > tbody > tr > td > .sort').show();
+                            self.$features_list.find('> tbody:first > tr > td > .sort').show();
                         } else {
-                            $('#s-settings-features > tbody > tr > td > .sort').hide()
+                            self.$features_list.find('> tbody:first > tr > td > .sort').hide()
                         }
                     }
 
                 }
-            }, 'json').complete(function() {
-                self.featuresHelper.featureCountByType();
-            });
+            }, 'json').complete(function () {
+                    self.featuresHelper.featureCountByType();
+                });
             return false;
         },
-        featuresFeatureSort : function($feature, $after, $features) {
+        featuresFeatureSort: function ($feature, $after, $features) {
 
             var id = parseInt($feature.data('feature'));
             var after_id = $after.data('feature');
@@ -817,10 +786,10 @@ if (typeof($) != 'undefined') {
             var type = this.featuresHelper.type();
             $.shop.trace('$.settings.featuresFeatureSort', [id, after_id, type, $features]);
             $.post('?module=settings&action=featuresFeatureSort', {
-                feature_id : id,
-                after_id : after_id,
-                type_id : type
-            }, function(data, textStatus, jqXHR) {
+                feature_id: id,
+                after_id: after_id,
+                type_id: type
+            },function (data, textStatus) {
                 if (data.status == 'ok') {
                     // update internal sort data
                     // use code like SQL
@@ -832,7 +801,7 @@ if (typeof($) != 'undefined') {
                     current_sort[type] = current_sort[type] || 0;
                     $.shop.trace('sort ' + id + '->' + after_id, [current_sort[type], new_sort]);
 
-                    $features.find('tr:visible').each(function(index, el) {
+                    $features.find('tr:visible').each(function (index, el) {
                         var each_id = parseInt($(el).data('feature')) || 0;
                         if (each_id) {
                             var sort = $(el).data('sort') || {};
@@ -864,21 +833,21 @@ if (typeof($) != 'undefined') {
                     $.shop.error('Error occurred while sorting features', data.errors || data);
                     $features.sortable('cancel');
                 }
-            }, 'json').error(function(jqXHR, errorText) {
-                $features.sortable('cancel');
-                $.shop.error('featuresFeatureSort ajaxError' + errorText, jqXHR);
-            });
+            }, 'json').error(function (jqXHR, errorText) {
+                    $features.sortable('cancel');
+                    $.shop.error('featuresFeatureSort ajaxError' + errorText, jqXHR);
+                });
         },
 
-        featuresFeatureDelete : function(feature_id) {
+        featuresFeatureDelete: function (feature_id) {
             var self = this;
-            var $feature = $('#s-settings-features tbody tr[data-feature="' + feature_id + '"]');
+            var $feature = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"]:first');
             if (feature_id > 0) {
                 $.post('?module=settings&action=featuresFeatureDelete', {
-                    'feature_id' : feature_id
-                }, function(data, textStatus, jqXHR) {
+                    'feature_id': feature_id
+                }, function (data) {
                     if (data.status == 'ok') {
-                        $feature.hide('slow', function() {
+                        $feature.hide('slow', function () {
                             $(this).remove();
                             self.featuresHelper.featureCountByType();
                         });
@@ -886,7 +855,7 @@ if (typeof($) != 'undefined') {
                     }
                 }, 'json');
             } else {
-                $feature.hide('slow', function() {
+                $feature.hide('slow', function () {
                     $(this).remove();
                     self.featuresHelper.featureCountByType();
                 });
@@ -894,46 +863,46 @@ if (typeof($) != 'undefined') {
         },
 
         /**
-         * @param int feature_id
+         * @param feature_id
          */
-        featuresFeatureValueAdd : function(feature_id) {
+        featuresFeatureValueAdd: function (feature_id) {
             $.shop.trace('featuresFeatureValueAdd env', this);
-            var $feature = $('#s-settings-features tbody tr[data-feature="' + feature_id + '"].js-inline-edit');
+            var $feature = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"].js-inline-edit:first');
             if (!$feature.length) {
                 this.featuresFeatureEdit(feature_id);
-                $feature = $('#s-settings-features tbody tr[data-feature="' + feature_id + '"].js-inline-edit');
+                $feature = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"].js-inline-edit:first');
             }
             var type = $feature.find(':input[name$="\[type\]"]').val();
             var template = (this.features_options.value_templates[type] || '');
             $.tmpl('edit-feature-value' + template, {
-                'feature' : {
-                    'id' : feature_id,
-                    'value_template' : template
+                'feature': {
+                    'id': feature_id,
+                    'value_template': template
                 },
-                'id' : --this.features_data.value_id,
-                'feature_value' : ''
+                'id': --this.features_data.value_id,
+                'feature_value': ''
             }).insertBefore($feature.find('ul.js-feature-values li:last'));
             $feature.find('ul.js-feature-values:first').sortable('refresh').find(':input:last').focus();
         },
 
-        featuresFeatureValuesShow : function(feature_id) {
-            var $container = $('#s-settings-features tbody tr[data-feature="' + feature_id + '"] ul.js-feature-values');
+        featuresFeatureValuesShow: function (feature_id) {
+            var $container = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"] ul.js-feature-values');
             $container.find('li:hidden').show();
             $container.find('li.js-more-link').hide();
         },
 
-        featuresFeatureValueDelete : function(feature_id, value_id) {
-            var $feature = $('#s-settings-features tbody tr[data-feature="' + feature_id + '"].js-inline-edit');
-            var $input = $feature.find(':input[name^="feature\[' + feature_id + '\]\[values\]\[' + value_id + '\]"]');
+        featuresFeatureValueDelete: function (feature_id, value_id) {
+            var $feature = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"].js-inline-edit:first');
+            var $input = $feature.find(':input[name^="feature[' + feature_id + '\]\[values\]\[' + value_id + '\]"]');
             var $values = $input.parents('li');
-            $values.hide('normal', function() {
+            $values.hide('normal', function () {
                 $values.remove();
             });
         },
 
-        featuresFeatureRevert : function(feature_id) {
+        featuresFeatureRevert: function (feature_id) {
             if (this.features_options.revert) {
-                var $feature = $('#s-settings-features tbody tr[data-feature="' + feature_id + '"].js-inline-edit');
+                var $feature = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"].js-inline-edit');
                 if (feature_id > 0) {
                     $.shop.trace('$.settings.featuresFeatureRevert', $feature.data('cancel'));
                     $feature.replaceWith($feature.data('cancel'));
@@ -943,29 +912,29 @@ if (typeof($) != 'undefined') {
             }
         },
 
-        featuresHelper : {
-            parent : $.settings,
+        featuresHelper: {
+            parent: $.settings,
             /**
              * Get current selected features type
-             * 
+             *
              * @return int
              */
-            type : function() {
+            type: function () {
                 return 0 + parseInt($.settings.path.tail) || 0;
             },
             /**
              * Get list available types
-             * 
-             * @param boolean name_only
+             * @param name_only
+             * @param type
              * @return {}
              */
-            types : function(name_only, type) {
+            types: function (name_only, type) {
                 var types = {};
-                var selector = '#s-settings-feature-types li:not(.not-sortable)';
+                var selector = '> li:not(.not-sortable)';
                 if (type) {
                     selector += '[data-type="' + type + '"]';
                 }
-                $(selector).each(function() {
+                this.parent.$features_types.find(selector).each(function () {
                     var id = $(this).data('type');
                     if (id && id != undefined) {
                         if (name_only) {
@@ -980,25 +949,25 @@ if (typeof($) != 'undefined') {
             },
             /**
              * Get feature types
-             * 
-             * @param {} $feature
+             *
+             * @param {jQuery} $feature
              * @return [int,...] array of feature types
              */
-            featureTypes : function($feature) {
+            featureTypes: function ($feature) {
                 var types = $feature.data('types');
                 if (!types) {
                     return [];
                 }
-                return ('' + types).split(' ').map(function(a, b) {
+                return ('' + types).split(' ').map(function (a, b) {
                     return parseInt(a);
                 });
             },
-            featureCountByType : function() {
+            featureCountByType: function () {
                 var helper = this;
                 var counter = {
-                    0 : 0
+                    0: 0
                 };
-                $('#s-settings-features tbody tr').each(function() {
+                this.parent.$features_list.find('> tbody:first > tr').each(function () {
                     var types = helper.featureTypes($(this));
                     if (!types.length) {
                         types.push(0);
@@ -1016,7 +985,7 @@ if (typeof($) != 'undefined') {
                     }
                 });
 
-                $('#s-settings-feature-types li').each(function() {
+                this.parent.$features_types.find('> li').each(function () {
                     var $this = $(this);
                     var id = $this.data('type');
                     var count = '0';
@@ -1026,16 +995,16 @@ if (typeof($) != 'undefined') {
                     $this.find('span.count').text(count);
                 });
             },
-            value : function(value, field) {
+            value: function (value, field) {
                 if (typeof(value) != 'object') {
                     if (field) {
                         value = {
-                            'value' : value.replace(/\s+.*$/, ''),
-                            'unit' : value.replace(/^[^\s]\s+/, '')
+                            'value': value.replace(/\s+.*$/, ''),
+                            'unit': value.replace(/^[^\s]\s+/, '')
                         };
                     } else {
                         value = {
-                            'value' : value
+                            'value': value
                         }
                     }
                 } else {

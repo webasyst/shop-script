@@ -257,13 +257,15 @@ class shopProductsCollection
             $this->addTitle($this->info['name']);
         }
 
-        if (!empty($this->info['sort_products'])) {
-            $this->order_by = 'p.'.$this->info['sort_products'];
-        } else {
-            if ($this->info['type'] == shopCategoryModel::TYPE_STATIC) {
-                $this->order_by = 'cp.sort ASC';
+        if (wa()->getEnv() != 'frontend' && !waRequest::get('sort')) {
+            if (!empty($this->info['sort_products'])) {
+                $this->order_by = 'p.'.$this->info['sort_products'];
             } else {
-                $this->order_by = 'p.create_datetime DESC';
+                if ($this->info['type'] == shopCategoryModel::TYPE_STATIC) {
+                    $this->order_by = 'cp.sort ASC';
+                } else {
+                    $this->order_by = 'p.create_datetime DESC';
+                }
             }
         }
 

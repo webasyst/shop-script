@@ -199,7 +199,7 @@ class shopHelper
             $key = ifempty($order['params'][$type.'_id']);
             try {
                 if (!empty($key) && ($plugin = shopPayment::getPlugin(null, $key)) && method_exists($plugin, 'getPrintForms')) {
-                    $forms = $plugin->getPrintForms();
+                    $forms = $plugin->getPrintForms(shopPayment::getOrderData($order));
                     foreach ($forms as $id => $form) {
                         $plugins["{$type}.{$id}"] = $form;
                     }
@@ -211,7 +211,7 @@ class shopHelper
             $key = ifempty($order['params'][$type.'_id']);
             try {
                 if (!empty($key) && ($plugin = shopShipping::getPlugin(null, $key)) && method_exists($plugin, 'getPrintForms')) {
-                    $forms = $plugin->getPrintForms();
+                    $forms = $plugin->getPrintForms(shopPayment::getOrderData($order));
                     foreach ($forms as $id => $form) {
                         $plugins["{$type}.{$id}"] = $form;
                     }

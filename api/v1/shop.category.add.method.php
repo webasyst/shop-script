@@ -7,6 +7,7 @@ class shopCategoryAddMethod extends waAPIMethod
     public function execute()
     {
         $data = waRequest::post();
+
         $exclude = array('left_key', 'right_key', 'type', 'full_url');
         foreach ($exclude as $k) {
             if (isset($data[$k])) {

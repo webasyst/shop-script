@@ -5840,3 +5840,11 @@ msgstr ""
 #: /wa-apps/shop/themes/default/product.html:144
 msgid "Product with the selected option combination is not available for purchase"
 msgstr ""
+
+#: /wa-apps/shop/themes/vk/footer.html:4
+msgid "We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Shop-Script 5</a>"
+msgstr ""
+
+#: /wa-apps/shop/themes/vk/navigation.html:7
+msgid "Order by phone"
+msgstr ""

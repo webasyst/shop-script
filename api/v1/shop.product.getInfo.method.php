@@ -20,6 +20,18 @@ class shopProductGetInfoMethod extends waAPIMethod
             ), wa('shop')->getConfig()->getImageSize('default'), true);
         }
         $this->response['skus'] = array_values($p->skus);
+        foreach ($this->response['skus'] as &$sku) {
+            $stocks = array();
+            foreach ($sku['stock'] as  $stock_id => $count) {
+                $stocks[] = array(
+                    'id' => $stock_id,
+                    'count' => $count
+                );
+            }
+            unset($sku['stock']);
+            $sku['stocks'] = $stocks;
+        }
+        unset($sku);
         $this->response['categories'] = array_values($p->categories);
         $this->response['images'] = array_values($p->getImages('thumb', true));
         $this->response['features'] = array();

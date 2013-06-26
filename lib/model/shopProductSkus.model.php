@@ -153,7 +153,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         $stock_model = new shopStockModel();
         $stocks = $stock_model->getAll('id');
         $product_stocks_model = new shopProductStocksModel();
-        $product_stocks = $product_stocks_model->getByField('product_id', $product_id, 'stock_id');
+        $product_stocks = $product_stocks_model->getByField('product_id', $product_id, true);
 
         $skus = $this->getByField('product_id', $product_id, $this->id);
         foreach ($skus as &$sku) {
@@ -162,7 +162,11 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             $sku['purchase_price'] = (float) $sku['purchase_price'];
             $sku['compare_price'] = (float) $sku['compare_price'];
             $sku['primary_price'] = (float) $sku['primary_price'];
-            $sku['stock'] = array_fill_keys(array_keys($stocks), null);
+            if ($fill_empty_sku_by_null) {
+                $sku['stock'] = array_fill_keys(array_keys($stocks), null);
+            } else {
+                $sku['stock'] = array();
+            }
         }
         unset($sku);
 
@@ -171,17 +175,6 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             if (isset($skus[$id])) {
                 $skus[$id]['stock'][$stock['stock_id']] = $stock['count'];
             }
-        }
-
-        if (!$fill_empty_sku_by_null) {
-            foreach ($skus as &$sku) {
-                foreach ($sku['stock'] as $stock_id => $count) {
-                    if ($count === null) {
-                        unset($sku['stock'][$stock_id]);
-                    }
-                }
-            }
-            unset($sku);
         }
 
         return $skus;

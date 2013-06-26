@@ -290,7 +290,7 @@ class shopCheckoutShipping extends shopCheckout
         foreach ($cart_items as $item) {
             $w = isset($values[$item['product_id']]) ? $values[$item['product_id']] : 0;
             if ($m !== null) {
-                $w = $w * $m;
+                $w = $w / $m;
             }
             $items[] = array(
                 'name' => $item['name'],

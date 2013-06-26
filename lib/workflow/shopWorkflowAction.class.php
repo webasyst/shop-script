@@ -66,10 +66,7 @@ class shopWorkflowAction extends waWorkflowAction
      */
     public function execute($oder_id = null)
     {
-        if ($this->state_id) {
-            return true;
-        }
-        return null;
+        return true;
     }
 
     public function postExecute($order_id = null, $result = null)

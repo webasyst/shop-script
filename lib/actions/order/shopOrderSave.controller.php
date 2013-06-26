@@ -87,6 +87,44 @@ class shopOrderSaveController extends waJsonController
         $this->response['order'] = $this->workupOrder($this->getModel()->getOrder($id));
     }
 
+    private function getOrderItems($items, $weight_unit)
+    {
+        $product_ids = array();
+        foreach ($items as $item) {
+            $product_ids[] = $item['product_id'];
+        }
+        $product_ids = array_unique($product_ids);
+        $feature_model = new shopFeatureModel();
+        $f = $feature_model->getByCode('weight');
+        if (!$f) {
+            $values = array();
+        } else {
+            $values_model = $feature_model->getValuesModel($f['type']);
+            $values = $values_model->getProductValues($product_ids, $f['id']);
+        }
+
+        $m = null;
+        if ($weight_unit) {
+            $dimension = shopDimension::getInstance()->getDimension('weight');
+            if ($weight_unit != $dimension['base_unit']) {
+                $m = $dimension['units'][$weight_unit]['multiplier'];
+            }
+        }
+
+        foreach ($items as &$item) {
+            if ($item['type'] == 'product') {
+                $w = isset($values[$item['product_id']]) ? $values[$item['product_id']] : 0;
+                if ($m !== null) {
+                    $w = $w / $m;
+                }
+                $item['weight'] = $w;
+            }
+        }
+        unset($item);
+        return $items;
+
+    }
+
     private function getParams(&$data, $id)
     {
         $model = new shopPluginModel();
@@ -110,7 +148,7 @@ class shopOrderSaveController extends waJsonController
             $data['params']['shipping_rate_id'] = $rate_id;
             $plugin_info = $model->getById($shipping_id);
             $plugin = shopShipping::getPlugin($plugin_info['plugin'], $shipping_id);
-            $rates = $plugin->getRates(array(), $shipping_address);
+            $rates = $plugin->getRates($this->getOrderItems($data['items'], $plugin->allowedWeightUnit()), $shipping_address);
             if (!$rate_id) {
                 $rate = reset($rates);
                 $data['params']['shipping_rate_id'] = key($rates);

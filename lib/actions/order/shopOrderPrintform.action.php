@@ -28,6 +28,22 @@ class shopOrderPrintformAction extends waViewAction
             }
         }
 
+        $product_ids = array();
+        foreach ($order['items'] as $item) {
+            if ($item['type'] == 'product') {
+                $product_ids[] = $item['product_id'];
+            }
+        }
+        $product_ids = array_unique($product_ids);
+        $feature_model = new shopFeatureModel();
+        $f = $feature_model->getByCode('weight');
+        if (!$f) {
+            $weights = array();
+        } else {
+            $values_model = $feature_model->getValuesModel($f['type']);
+            $weights = $values_model->getProductValues($product_ids, $f['id']);
+        }
+
         $form_id = waRequest::get('form_id');
         if (strpos($form_id, '.')) {
             list($type, $form) = explode('.', $form_id, 2);
@@ -40,6 +56,24 @@ class shopOrderPrintformAction extends waViewAction
         $params = $order_params_model->get($order['id']);
 
         $plugin = self::getPlugin($type, ifempty($params[$type.'_id']));
+        if ($weights) {
+            $dimension = shopDimension::getInstance()->getDimension('weight');
+            $weight_unit = $plugin->allowedWeightUnit();
+            $m = null;
+            if ($weight_unit != $dimension['base_unit']) {
+                $m = $dimension['units'][$weight_unit]['multiplier'];
+            }
+            foreach ($order['items'] as &$item) {
+                if ($item['type'] == 'product') {
+                    $w = isset($weights[$item['product_id']]) ? $weights[$item['product_id']] : 0;
+                    if ($m !== null) {
+                        $w = $w / $m;
+                    }
+                    $item['weight'] = $w;
+                }
+            }
+            unset($item);
+        }
 
         if (!$plugin) {
             throw new waException(_w('Printform not found'), 404);

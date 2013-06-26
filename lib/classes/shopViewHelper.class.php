@@ -317,10 +317,10 @@ class shopViewHelper extends waAppViewHelper
         }
     }
 
-    public function tags()
+    public function tags($limit = 50)
     {
         $tag_model = new shopTagModel();
-        return $tag_model->getCloud();
+        return $tag_model->getCloud(null, $limit);
     }
 
     public function payment()
