@@ -134,6 +134,7 @@ return array(
         'type' => array('varchar', 255),
         'selectable' => array('int', 11, 'null' => 0),
         'multiple' => array('int', 11, 'null' => 0),
+        'count' => array('int', 10, 'unsigned' => 1, 'null' => 0),
         ':keys' => array(
             'PRIMARY' => 'id',
             'code' => array('code', 'unique' => 1),

@@ -91,6 +91,8 @@ table.s-big-table td table.zebra td { border: none; padding: 5px; }
 
 .s-inner-sidebar { padding-top: 18px; }
 .s-inner-sidebar ul.menu-v li.selected a { background: #e7e7e7; }
+.s-inner-sidebar .icon16.search-bw { opacity: 0.4; margin-left: -15px !important; margin-top: 1px !important; }
+.s-inner-sidebar input[type="search"] { width: 83%; }
 
 .s-banner-success { background: #dfd; border-bottom: 1px solid #ccc; }
 .s-banner-error { background: #fdd; border-bottom: 1px solid #ccc; }

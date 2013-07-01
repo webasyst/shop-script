@@ -3,24 +3,36 @@
  */
 
 $.extend($.settings = $.settings || {}, {
-    options : {
-        'loading' : '<i class="icon16 loading"></i>',
-        'path' : '#/'
-    },
-    path : {
-        'section' : false,
-        'tail' : null,
-        'params':{},
-        'dispatch' : null
+    options: {
+        'loading': '<i class="icon16 loading"></i>',
+        'path': '#/'
     },
 
-    ready : false,
-    menu : null,
+    path: {
+        /**
+         * @type {String}
+         */
+        'section': null,
+
+        /**
+         * @type {String}
+         */
+        'tail': null,
+
+        /**
+         * @type {Object}
+         */
+        'params': {},
+        'dispatch': null
+    },
+
+    ready: false,
+    menu: null,
 
     /**
-     * @param {} options
+     * @param {Object=} options
      */
-    init : function(options) {
+    init: function (options) {
         this.options = $.extend(this.options, options || {});
         if (!this.ready) {
             this.ready = true;
@@ -32,19 +44,18 @@ $.extend($.settings = $.settings || {}, {
             });
 
             if (typeof($.History) != "undefined") {
-                $.History.bind(function() {
+                $.History.bind(function () {
                     $.settings.dispatch();
                 });
             }
-            $.wa.errorHandler = function(xhr) {
+            $.wa.errorHandler = function (xhr) {
                 if ((xhr.status === 403) || (xhr.status === 404)) {
                     var $text = $(xhr.responseText);
                     var $message = $('<div class="block double-padded"></div>');
                     if ($text.find('.dialog-content').length) {
-                        $text = $message.append($text.find('.dialog-content *'));
-
+                        $message.append($text.find('.dialog-content *'));
                     } else {
-                        $text = $message.append($text.find(':not(style)'));
+                        $message.append($text.find(':not(style)'));
                     }
                     $("#s-settings-content").empty().append($message).append('<div class="clear-both"></div>');
                     return false;
@@ -63,21 +74,21 @@ $.extend($.settings = $.settings || {}, {
     /**
      *
      * @param {String} path
-     * @return { 'section':String, 'tail':String,'raw':String,'params':object }
+     * @return {{section:String, tail:String,raw:String,params:Object}}
      */
-    parsePath : function(path) {
+    parsePath: function (path) {
         path = path.replace(/^.*#\//, '');
         return {
-            'section' : path.replace(/\/.*$/, '') || 'general',
-            'tail' : path.replace(/^[^\/]+\//, '').replace(/[\w_\-]+=.*$/,'').replace(/\/$/, ''),
-            'params':path.match(/(^|\/)[\w_\-]+=/) ? $.shop.helper.parseParams(path.replace(/(^|^.*\/)([\w_\-]+=.*$)/,'$2').replace(/\/$/, '')) : {},
-            'raw' : path
+            'section': path.replace(/\/.*$/, '') || 'general',
+            'tail': path.replace(/^[^\/]+\//, '').replace(/[\w_\-]+=.*$/, '').replace(/\/$/, ''),
+            'params': path.match(/(^|\/)[\w_\-]+=/) ? $.shop.helper.parseParams(path.replace(/(^|^.*\/)([\w_\-]+=.*$)/, '$2').replace(/\/$/, '')) : {},
+            'raw': path
         };
     },
 
     /** Force reload current content page. */
-    redispatch: function() {
-        this.dispatch(undefined, true);
+    redispatch: function () {
+        this.dispatch(window.location.hash, true);
     },
 
 
@@ -92,11 +103,11 @@ $.extend($.settings = $.settings || {}, {
     /**
      * Dispatch location hash changes
      *
-     * @param {String} hash
-     * @param {Boolean} load Force reload if need
+     * @param {String=} hash
+     * @param {Boolean=} load Force reload if need
      * @return {Boolean}
      */
-    dispatch : function(hash, load) {
+    dispatch: function (hash, load) {
         if (load) {
             this.skipDispatch = 0;
         } else if (this.skipDispatch > 0) {
@@ -129,7 +140,7 @@ $.extend($.settings = $.settings || {}, {
         }
 
         /* change settings section */
-        if (load || path.section != this.path.section) {
+        if (load || (path.section != this.path.section)) {
             $.shop && $.shop.trace('$.settings.dispatch: PreLoad returned nothing. Load section HTML, then call settingsAction().');
             var $content = $('#s-settings-content');
             this.settingsBlur(this.path.section, path);
@@ -142,7 +153,7 @@ $.extend($.settings = $.settings || {}, {
             var url = '?module=settings&action=' + path.section;
             for (var param in path.params) {
                 if (path.params.hasOwnProperty(param)) {
-                    url += '&' + param+ '=' + path.params[param];
+                    url += '&' + param + '=' + path.params[param];
                 }
             }
 
@@ -150,8 +161,8 @@ $.extend($.settings = $.settings || {}, {
                 url += '&param[]=' + path.tail.split('/').join('&param[]=');
             }
 
-            $.shop && $.shop.trace('$.settings.dispatch: Load URL',[url,path.params]);
-            $content.load(url, function() {
+            $.shop && $.shop.trace('$.settings.dispatch: Load URL', [url, path.params]);
+            $content.load(url, function () {
                 self.path.section = path.section || self.path.section;
                 self.menu.find('a[href*="\\#\/' + self.path.section + '\/"]').parents('li').addClass('selected');
                 self.settingsAction(path.section, path.tail);
@@ -163,18 +174,18 @@ $.extend($.settings = $.settings || {}, {
         else {
             $.shop && $.shop.trace('$.settings.dispatch: PreLoad returned nothing. Section is already loaded, just call settingsAction().');
             this.settingsAction(path.section, path.tail);
+            return true;
         }
     },
 
     /**
      * Handle js section interactions
      *
-     * @param {JQuery} $el
+     * @param {jQuery} $el
      * @return {Boolean}
      */
-    click : function($el) {
+    click: function ($el) {
         var args = $el.attr('href').replace(/.*#\//, '').replace(/\/$/, '').split('/');
-        var params = [];
         var method = $.shop.getMethod(args, this);
 
         if (method.name) {
@@ -192,9 +203,9 @@ $.extend($.settings = $.settings || {}, {
     /**
      * Setup section options
      *
-     * @param {} options
+     * @param {Object} options
      */
-    settingsOptions : function(options) {
+    settingsOptions: function (options) {
         var section = this.path.dispatch.section || this.path.section;
         $.shop && $.shop.trace('$.settings.settingsOptions', section);
         if (typeof(this[section + '_options']) == 'undefined') {
@@ -207,11 +218,11 @@ $.extend($.settings = $.settings || {}, {
      * Handler call focus out section
      *
      * @param {String} section
-     * @param {object} path
+     * @param {{section:String, tail:String,raw:String,params:Object}=} path
      */
-    settingsBlur : function(section, path) {
+    settingsBlur: function (section, path) {
         section = section || this.path.section;
-        if(!path || !path.section || (path.section != this.path.section)) {
+        if (!path || !path.section || (path.section != this.path.section)) {
             this.menu.find('li.selected').removeClass('selected');
         }
 
@@ -224,19 +235,19 @@ $.extend($.settings = $.settings || {}, {
     },
 
     /**
-     * handle current section actions after HTML has beed loaded
+     * handle current section actions after HTML has being loaded
      *
      * @param {String} section
      * @param {String} tail
      */
-    settingsAction : function(section, tail) {
+    settingsAction: function (section, tail) {
         $.shop && $.shop.trace('$.settings.settingsAction', [section, tail]);
         this.call(section + 'Action', [tail]);
         this.path.tail = tail;
     },
 
     /**
-     * Handle current section actions before HTML has beed loaded. Pre-actions replace this.dispatch() behaviour in case we need to parse #-hash-string before
+     * Handle current section actions before HTML has being loaded. Pre-actions replace this.dispatch() behaviour in case we need to parse #-hash-string before
      * data load, e.g. to determine params to pass to PHP.
      *
      * Calls this.<section>PreLoad(tail, load).
@@ -254,8 +265,9 @@ $.extend($.settings = $.settings || {}, {
      *
      * @param {String} section
      * @param {String} tail
+     * @param {Boolean=} load
      */
-    settingsPreLoad : function(section, tail, load) {
+    settingsPreLoad: function (section, tail, load) {
         $.shop && $.shop.trace('$.settings.settingsPreLoad', [section, tail, load]);
         return this.call(section + 'PreLoad', [tail, load]);
     },
@@ -263,9 +275,9 @@ $.extend($.settings = $.settings || {}, {
     /**
      *
      * @param {String} name
-     * @param [] args
+     * @param {Array=} args
      */
-    call : function(name, args) {
+    call: function (name, args) {
         var callable = (typeof(this[name]) == 'function');
         var start = $.shop && $.shop.trace('$.settings.call', [name, args, callable]);
         var result = null;
@@ -275,7 +287,7 @@ $.extend($.settings = $.settings || {}, {
             } catch (e) {
                 (($.shop && $.shop.error) || console.log)('Exception: ' + e.message, e);
             }
-            $.shop && $.shop.trace('$.settings.call complete', [name, $.shop.time.interval(start) + 'ms', args, result]);
+            $.shop && $.shop.trace('$.settings.call complete', [name, $.shop.time.interval(start) + 's', args, result]);
         }
         return result;
     },
@@ -285,7 +297,7 @@ $.extend($.settings = $.settings || {}, {
     // See settingsPreLoad()
     //
 
-    taxesPreLoad: function(tail) {
+    taxesPreLoad: function (tail) {
         var id;
         if (tail !== '') {
             id = parseInt((tail || '').split('/')[0]) || 'new';
@@ -299,13 +311,13 @@ $.extend($.settings = $.settings || {}, {
 
         // Load content
         var self = this;
-        $('#s-settings-content').load('?module=settings&action=taxes&id='+id, function() {
+        $('#s-settings-content').load('?module=settings&action=taxes&id=' + id, function () {
             self.settingsAction(self.path.section, tail);
         });
         return true;
     },
 
-    followupsPreLoad: function(tail) {
+    followupsPreLoad: function (tail) {
         var id;
         if (tail === 'new') {
             id = '';
@@ -317,7 +329,7 @@ $.extend($.settings = $.settings || {}, {
 
         // Load content
         var self = this;
-        $('#s-settings-content').load('?module=settings&action=followups&id='+id, function() {
+        $('#s-settings-content').load('?module=settings&action=followups&id=' + id, function () {
             self.settingsAction(self.path.section, tail);
         });
         return true;
@@ -326,20 +338,20 @@ $.extend($.settings = $.settings || {}, {
     //
     // Helpers
     //
-    helpers : {
-        init : function() {
+    helpers: {
+        init: function () {
             this.compileTemplates();
         },
         /**
          * Compile jquery templates
          *
-         * @param {String} selector optional selector of template container
+         * @param {String=} selector optional selector of template container
          */
-        compileTemplates : function(selector) {
+        compileTemplates: function (selector) {
             var pattern = /<\\\/(\w+)/g;
             var replace = '</$1';
 
-            $(selector || '*').find("script[type$='x-jquery-tmpl']").each(function() {
+            $(selector || '*').find("script[type$='x-jquery-tmpl']").each(function () {
                 var id = $(this).attr('id').replace(/-template-js$/, '');
                 var template = $(this).html().replace(pattern, replace);
                 try {

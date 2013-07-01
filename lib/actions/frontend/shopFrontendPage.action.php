@@ -22,7 +22,7 @@ class shopFrontendPageAction extends waPageAction
             if ($e->getCode() == 404) {
                 $url = $this->getConfig()->getRequestUrl(false, true);
                 if (substr($url, -1) !== '/' && substr($url, -9) !== 'index.php') {
-                    $this->redirect($url.'/');
+                    $this->redirect($url.'/', 301);
                 }
             }
             wa()->event('frontend_error', $e);

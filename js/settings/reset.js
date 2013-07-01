@@ -59,7 +59,7 @@ if (typeof($) != 'undefined') {
                         data = $.parseJSON(response);
                     } catch (e) {
 
-                    };
+                    }
                     if (data && data.redirect) {
                         window.location = data.redirect;
                     } else {

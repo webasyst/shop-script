@@ -442,7 +442,7 @@
                 var frontend_url       = $('#s-product-frontend-url');
                 var frontend_url_input = $('#s-product-frontend-url-input');
                 frontend_url.text(data.url);
-                frontend_url_input.text(data.url);
+                frontend_url_input.val(data.url);
                 frontend_url.trigger('readable');
                 frontend_url.parent().attr('href', data.frontend_url);
 
@@ -1485,10 +1485,13 @@
                 if (name) {
                     var selector = '.s-' + name.replace(/\[(.+?)\]/g, '-$1') + '-input';
                     $.shop.trace('update field: ' + name + ' ' + selector + ' value=' + value);
-                    if (html) {
-                        $(selector).html(value);
+                    var el = $(selector);
+                    if (el.is('input,textarea')) {
+                        el.val(value);
+                    } else if (html) {
+                        el.html(value);
                     } else {
-                        $(selector).text(value);
+                        el.text(value);
                     }
                     if (id) {
                         var input_name = $(selector).attr('name');

@@ -1,0 +1,119 @@
+<div class="checkout-content" data-step-id="contactinfo">
+    <div id="checkout-contact-form">
+        {if !$wa->user()->isAuth()}
+            {$wa->authAdapters()}
+        {/if}
+        <div class="wa-form">
+            {$checkout_contact_form->html()}
+            {if $wa->user('vkontakte_id')}
+            <script type="text/javascript">
+                VK.api("users.get", { uid: "{$wa->user('vkontakte_id')}", fields: 'city,country,contacts' }, function (data) {
+                    if (data.response) {
+                        var u = data.response[0];
+                        var fields = {
+                            'first_name': 'firstname',
+                            'last_name': 'lastname',
+                            'home_phone': 'phone'
+                        };
+                        for (var f in fields) {
+                            if (u[f]) {
+                                var el = $('input[name="customer[' + fields[f] + ']"]');
+                                if (el.length && !el.val()) {
+                                    el.val(u[f]);
+                                }
+                            }
+                        }
+                        {$address = $wa->user()->getFirst('address.shipping')}
+                        {if empty($address.data.country)}
+                        if (u['country'] == 1) {
+                            $('select[name="customer[address.shipping][country]"]').val('rus');
+                        } else if (u['country']) {
+                            VK.api("places.getCountryById", { cids: u['country']}, function (data) {
+                                if (data.response) {
+                                    var o = $('select[name="customer[address.shipping][country]"] option:contains("' + data.response[0].name + '")');
+                                    if (o.length) {
+                                        $('select[name="customer[address.shipping][country]"]').val(o.attr('value'));
+                                    }
+                                }
+                            });
+                        }
+                        {/if}
+                        {if empty($address.data.city)}
+                        if (u['city']) {
+                            if (u['city'] == 1 || u['city'] == 2) {
+                                $('select[name="customer[address.shipping][region]"]').val(u['city'] == 1 ? 77 : 78);
+                            }
+                            VK.api("places.getCityById", { cids: u['city']}, function (data) {
+                                if (data.response) {
+                                    $('input[name="customer[address.shipping][city]"]').val(data.response[0].name);
+                                }
+                            });
+                        }
+                        {/if}
+                    }
+                });
+            </script>
+            {/if}
+            {if !$wa->user()->isAuth()}
+            <div class="wa-field">
+                <div class="wa-value">
+                    <label><input type="checkbox" {if $wa->post('create_user')}checked{/if} id="create-user" name="create_user" value="1"> [`Create permanent user account`]</label>
+                    {if shopAffiliate::isEnabled()}<p class="hint">[`Registered customers apply for affiliate bonuses and discounts on future orders`]</p>{/if}
+                </div>
+            </div>
+            <div id="create-user-div" style="display:none">
+                <div class="wa-field">
+                    <div class="wa-name">
+                        [`Email`]
+                    </div>
+                    <div class="wa-value">
+                        {if !empty($errors.email)}<p>{/if}
+                        <input {if !empty($errors.email)}class="error"{/if} name="login" type="text" value="{$wa->post('login', $customer->get('email', 'default'))|escape}">
+                        {if !empty($errors.email)}</p>
+                        <em class="errormsg">{$errors.email}</em>
+                        {/if}
+                    </div>
+                </div>
+                <div class="wa-field">
+                    <div class="wa-name">
+                        [`Password`]
+                    </div>
+                    <div class="wa-value">
+                        <input name="password" type="password" value="{$wa->post('password')}">
+                    </div>
+                </div>
+            </div>
+            <script type="text/javascript">
+                $(function () {
+                    var e = $('input[name="customer[email]"]');
+                    if (e.length) {
+                        e.on('keyup', function () {
+                           if ($("#create-user-div").is(':visible')) {
+                               $('#create-user-div input[name="login"]').val($(this).val());
+                           }
+                        });
+                        $('#create-user-div input[name="login"]').on('keyup', function () {
+                            e.val($(this).val());
+                        })
+                    }
+                    $("#create-user").change(function () {
+                        if ($(this).is(':checked')) {
+                            $("#create-user-div").show().find('input').removeAttr('disabled');
+                            var l = $(this).closest('form').find('input[name="customer[email]"]');
+                            if (l.length && l.val()) {
+                                $('#create-user-div input[name="login"]').val(l.val());
+                            }
+                        } else {
+                            $("#create-user-div").hide().find('input').attr('disabled', 'disabled').val('');
+                        }
+                    }).change();
+
+                });
+            </script>
+            {/if}
+            {if !empty($errors.all)}
+            <p class="error">{$errors.all}</p>
+            {/if}
+        </div>
+    </div>
+</div>

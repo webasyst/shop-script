@@ -27,4 +27,26 @@ class shopWorkflowShipAction extends shopWorkflowAction
             return true;
         }
     }
+
+    public function postExecute($params = null, $result = null)
+    {
+        if (is_array($params)) {
+            $order_id = $params['order_id'];
+        } else {
+            $order_id = $params;
+        }
+        parent::postExecute($order_id, $result);
+
+        $log_model = new shopOrderLogModel();
+        $state_id = $log_model->getPreviousState($order_id);
+
+        $app_settings_model = new waAppSettingsModel();
+        $update_on_create   = $app_settings_model->get('shop', 'update_stock_count_on_create_order');
+
+        if (!$update_on_create && $state_id == 'new') {
+            // jump through 'processing' state - reduce
+            $order_model = new shopOrderModel();
+            $order_model->reduceProductsFromStocks($order_id);
+        }
+    }
 }

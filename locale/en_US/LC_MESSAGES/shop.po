@@ -5848,3 +5848,23 @@ msgstr ""
 #: /wa-apps/shop/themes/vk/navigation.html:7
 msgid "Order by phone"
 msgstr ""
+
+#: /wa-apps/shop/lib/model/shopFeatureValuesBoolean.model.php:68
+msgid "Yes"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductFeatures.html:145
+msgid "Not defined"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:9
+msgid "Type product type name to filter"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFeaturesFeatureList.html:17
+msgid "View"
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopFeature.model.php:438
+msgid "Yes/No toggle (boolean)"
+msgstr ""

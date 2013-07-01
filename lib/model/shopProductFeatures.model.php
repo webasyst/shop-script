@@ -2,6 +2,7 @@
 class shopProductFeaturesModel extends waModel implements shopProductStorageInterface
 {
     protected $table = 'shop_product_features';
+
     //protected $id = array('product_id', 'sku_id', 'feature_id', 'feature_value_id', );
 
     /**
@@ -15,9 +16,9 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
     public function getValuesByCategory($category_id)
     {
-        $sql = "SELECT DISTINCT f.feature_id, f.feature_value_id FROM ".$this->table." f
+        $sql = "SELECT DISTINCT f.feature_id, f.feature_value_id FROM " . $this->table . " f
         JOIN shop_category_products c ON f.product_id = c.product_id
-        WHERE c.category_id ".(is_array($category_id) ? 'IN (i:id)' : '= i:id');
+        WHERE c.category_id " . (is_array($category_id) ? 'IN (i:id)' : '= i:id');
         $rows = $this->query($sql, array('id' => $category_id));
         $result = array();
         foreach ($rows as $row) {
@@ -31,7 +32,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         if (!$product_id) {
             return array();
         }
-        $sql = "SELECT * FROM ".$this->table." WHERE product_id = i:id AND sku_id IS NOT NULL";
+        $sql = "SELECT * FROM " . $this->table . " WHERE product_id = i:id AND sku_id IS NOT NULL";
         $result = array();
         $rows = $this->query($sql, array('id' => $product_id))->fetchAll();
         foreach ($rows as $row) {
@@ -42,14 +43,14 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
     public function getSkuByFeatures($product_id, $features)
     {
-        $sql = "SELECT t0.sku_id FROM ".$this->table." t0 ";
+        $sql = "SELECT t0.sku_id FROM " . $this->table . " t0 ";
         for ($i = 1; $i < count($features); $i++) {
-            $sql .= " JOIN ".$this->table." t".$i." ON t0.sku_id = t".$i.".sku_id";
+            $sql .= " JOIN " . $this->table . " t" . $i . " ON t0.sku_id = t" . $i . ".sku_id";
         }
-        $sql .= " WHERE t0.product_id = ".(int)$product_id." AND t0.sku_id IS NOT NULL";
+        $sql .= " WHERE t0.product_id = " . (int)$product_id . " AND t0.sku_id IS NOT NULL";
         $i = 0;
         foreach ($features as $f => $v) {
-            $sql .= " AND t".$i.".feature_id = ".(int)$f." AND t".$i.".feature_value_id = ".$v;
+            $sql .= " AND t" . $i . ".feature_id = " . (int)$f . " AND t" . $i . ".feature_value_id = " . $v;
             $i++;
         }
         $sql .= " LIMIT 1";
@@ -58,9 +59,9 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
     public function deleteByFeature($feature_id, $feature_value_id = null)
     {
-        $sql = "DELETE FROM {$this->table} WHERE ".$this->getWhereByField('feature_id', $feature_id);
+        $sql = "DELETE FROM {$this->table} WHERE " . $this->getWhereByField('feature_id', $feature_id);
         if ($feature_id !== null) {
-            $sql .= ' AND '.$this->getWhereByField('feature_value_id', $feature_value_id);
+            $sql .= ' AND ' . $this->getWhereByField('feature_value_id', $feature_value_id);
         }
         return $this->exec($sql);
     }
@@ -72,8 +73,8 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
     public function getValues($product_id, $sku_id = null, $type_id = null)
     {
-        $sql = "SELECT ".($type_id ? 'tf.sort, ' : '')."f.code, f.type, f.multiple, pf.*
-                FROM ".$this->table." pf";
+        $sql = "SELECT " . ($type_id ? 'tf.sort, ' : '') . "f.code, f.type, f.multiple, pf.*
+                FROM " . $this->table . " pf";
         $sql .= " JOIN shop_feature f ON (pf.feature_id = f.id)";
         if ($type_id) {
             $sql .= " LEFT JOIN shop_type_features tf ON ((tf.feature_id = f.id) AND (tf.type_id=i:type_id))";
@@ -90,23 +91,29 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         }
         $features = $storages = array();
         $params = array(
-            'id'      => $product_id,
-            'sku_id'  => $sku_id,
+            'id' => $product_id,
+            'sku_id' => $sku_id,
             'type_id' => $type_id,
         );
         $data = $this->query($sql, $params);
         $result = array();
         foreach ($data as $row) {
             $features[$row['feature_id']] = array(
-                'code'     => $row['code'],
+                'code' => $row['code'],
                 'multiple' => $row['multiple'],
             );
             $result[$row['code']] = null;
             $type = preg_replace('/\..*$/', '', $row['type']);
-            if ($sku_id) {
-                $storages[$type][$row['feature_id']] = $row['feature_value_id'];
+            if ($type == shopFeatureModel::TYPE_BOOLEAN) {
+                $model = shopFeatureModel::getValuesModel($type);
+                $values = $model->getValues('id',$row['feature_value_id']);
+                $result[$row['code']] =reset($values);
             } else {
-                $storages[$type][] = $row['feature_value_id'];
+                if ($sku_id) {
+                    $storages[$type][$row['feature_id']] = $row['feature_value_id'];
+                } else {
+                    $storages[$type][] = $row['feature_value_id'];
+                }
             }
 
         }
@@ -125,7 +132,6 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
     }
 
     /**
-     * (non-PHPdoc)
      * @see shopProductStorageInterface::setData()
      * @param shopProduct $product current product object
      * @param array[string] mixed $data new product feature values
@@ -135,7 +141,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         $product_id = $product->getId();
 
         $feature_model = new shopFeatureModel();
-        $features = $feature_model->getAll('code');
+        $features = $feature_model->getByCode(array_keys($data));
         $features_map = array();
         foreach ($features as $code => $f) {
             $features_map[$f['id']] =& $features[$code];
@@ -166,8 +172,6 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         foreach ($data as $code => $value) {
             if (isset($features[$code])) {
                 $f =& $features[$code];
-                $model = shopFeatureModel::getValuesModel($f['type']);
-                $empty = false;
                 if (is_array($value)) {
                     $empty = isset($value['value']) && ($value['value'] === '');
                 } else {
@@ -175,11 +179,11 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 }
                 if ($empty) {
                     //delete it
-                    if (!empty($current[$code])) {
+                    if (isset($current[$code])) {
                         $delete[$f['id']] = $current[$code];
                     }
                 } else {
-                    $id = $model->getId($f['id'], $value, $f['type']);
+                    $id = $feature_model->getValueId($f, $value, true);
 
                     if (isset($current[$code])) {
                         if (empty($f['multiple'])) {
@@ -188,11 +192,11 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                                 $add[$f['id']] = $id;
                             }
                         } else {
-                            $delete[$f['id']] = array_diff($current[$code], (array) $id);
+                            $delete[$f['id']] = array_diff($current[$code], (array)$id);
                             if (empty($delete[$f['id']])) {
                                 unset($delete[$f['id']]);
                             }
-                            $add[$f['id']] = array_diff((array) $id, $current[$code]);
+                            $add[$f['id']] = array_diff((array)$id, $current[$code]);
                             if (empty($add[$f['id']])) {
                                 unset($add[$f['id']]);
                             }
@@ -203,19 +207,19 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 }
             } else {
                 //it's a new feature
-                if (!empty($value) && !empty($value['value'])) {
+                if (!empty($value) && (($value['type'] == shopFeatureModel::TYPE_BOOLEAN)||!empty($value['value']) )) {
                     $f = array(
-                        'name'  => $value['name'],
-                        'type'  => $value['type'],
+                        'name' => $value['name'],
+                        'type' => $value['type'],
                         'types' => $value['types'],
                     );
                     $f['id'] = $feature_model->save($f);
 
                     $type_features_model = new shopTypeFeaturesModel();
                     $type_features_model->updateByFeature($f['id'], $f['types']);
-
-                    $model = shopFeatureModel::getValuesModel($f['type']);
-                    $add[$f['id']] = $model->getId($f['id'], $value['value'], $f['type']);
+                    if($value['value'] !== '') {
+                        $add[$f['id']] = $feature_model->getValueId($f, $value['value'], true);
+                    }
                 }
             }
         }

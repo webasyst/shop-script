@@ -35,7 +35,7 @@
                     form.find(':submit').after('<span class="s-mgs-after-button"><i class="icon16 loading"></i></span>');
                     $.post(form.attr('action'), form.serialize(), function (response) {
                         if (response.status == 'ok') {
-                            var n = response.data
+                            var n = response.data;
                             if ($("#notification-" + n.id).length) {
                                 $("#notification-" + n.id + ' a').html('<i class="icon16 ' + n.icon + '"></i>' + n.name);
                             } else {

@@ -10,7 +10,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
         } else {
             $category = $category_model->getByField(waRequest::param('url_type') == 1 ? 'url' : 'full_url', waRequest::param('category_url'));
         }
-        $route = wa()->getRouting()->getDomain(null, true).'/'.wa()->getRouting()->getRoute('url');
+        $route = wa()->getRouting()->getDomain(null, true) . '/' . wa()->getRouting()->getRoute('url');
         if (!$category || ($category['route'] && $category['route'] != $route)) {
             throw new waException('Category not found', 404);
         }
@@ -43,10 +43,14 @@ class shopFrontendCategoryAction extends shopFrontendAction
                 } elseif (isset($features[$fid])) {
                     if ($category['type'] || isset($category_values[$fid])) {
                         $filters[$fid] = $features[$fid];
-                        if (isset($category_values[$fid])) {
-                            foreach ($filters[$fid]['values'] as $v_id => $v) {
-                                if (!in_array($v_id, $category_values[$fid])) {
-                                    unset($filters[$fid]['values'][$v_id]);
+                        if (false && ($filters[$fid]['type'] == shopFeatureModel::TYPE_BOOLEAN)) {
+                            unset($filters[$fid]['values'][0]);
+                        } else {
+                            if (isset($category_values[$fid])) {
+                                foreach ($filters[$fid]['values'] as $v_id => $v) {
+                                    if (!in_array($v_id, $category_values[$fid])) {
+                                        unset($filters[$fid]['values'][$v_id]);
+                                    }
                                 }
                             }
                         }
@@ -62,9 +66,13 @@ class shopFrontendCategoryAction extends shopFrontendAction
         }
         unset($sc);
 
+        $root_category_id = $category['id'];
+
         if ($category['parent_id']) {
             $breadcrumbs = array();
             $path = array_reverse($category_model->getPath($category['id']));
+            $root_category = reset($path);
+            $root_category_id = $root_category['id'];
             foreach ($path as $row) {
                 $breadcrumbs[] = array(
                     'url' => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $row['url'] : $row['full_url'])),
@@ -76,6 +84,11 @@ class shopFrontendCategoryAction extends shopFrontendAction
             }
         }
 
+        $this->view->assign('root_category_id', $root_category_id);
+        if ($this->layout) {
+            $this->layout->assign('root_category_id', $root_category_id);
+        }
+
         if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC && !$category['sort_products']) {
             $category['sort_products'] = 'create_datetime DESC';
         }
@@ -84,7 +97,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
         $category['params'] = $category_params_model->get($category['id']);
 
         if ($this->getConfig()->getOption('can_use_smarty') && $category['description']) {
-            $category['description'] = wa()->getView()->fetch('string:'.$category['description']);
+            $category['description'] = wa()->getView()->fetch('string:' . $category['description']);
         }
 
 
@@ -104,7 +117,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
         }
 
 
-        $this->setCollection(new shopProductsCollection('category/'.$category['id']));
+        $this->setCollection(new shopProductsCollection('category/' . $category['id']));
 
         $title = $category['meta_title'] ? $category['meta_title'] : $category['name'];
         wa()->getResponse()->setTitle($title);

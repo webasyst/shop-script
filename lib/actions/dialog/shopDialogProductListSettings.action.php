@@ -92,7 +92,8 @@ class shopDialogProductListSettingsAction extends waViewAction
             'id' => 'price',
             'name' => 'Price'
         );
-        $features += $feature_model->getFeatures('selectable', 1, 'id', true);
+        $features += $feature_model->getFeatures('selectable', 1);
+        //$features += $feature_model->getFeatures('type',shopFeatureModel::TYPE_BOOLEAN);
         if (!empty($filter)) {
             foreach ($filter as $feature_id) {
                 $feature_id = trim($feature_id);

@@ -8,14 +8,14 @@ class shopSortableModel extends waModel
     {
         $entry = $this->getById($id);
         if (!$entry) {
-            throw new waException(sprintf(_w("%s entry not found"), $this->table).var_export($id, true).__LINE__);
+            throw new waException(sprintf(_w("%s entry not found"), $this->table) . var_export($id, true) . __LINE__);
 
         }
 
         if (!empty($after_id)) {
             $after_item = $this->getById($after_id);
             if (!$after_item) {
-                throw new waException(sprintf(_w("%s entry not found"), $this->table).var_export($after_id, true).__LINE__);
+                throw new waException(sprintf(_w("%s entry not found"), $this->table) . var_export($after_id, true) . __LINE__);
 
             }
             $sort = $after_item[$this->sort];
@@ -33,18 +33,29 @@ class shopSortableModel extends waModel
         if ($sql) {
             $params = array('sort' => $sort, 'sort_old' => $entry[$this->sort]);
             if ($context) {
-                $sql .= ' AND '.$this->getWhereByField($this->context, $context);
+                $sql .= ' AND ' . $this->getWhereByField($this->context, $context);
             }
             $this->exec($sql, $params);
-            $this->updateById($id, array($this->sort  => (int) $sort));
+            $this->updateById($id, array($this->sort => (int)$sort));
         }
 
     }
 
     public function getAll($key = null, $normalize = false)
     {
-        $sql = "SELECT * FROM ".$this->table." ORDER BY ".$this->sort;
+        $sql = "SELECT * FROM " . $this->table . " ORDER BY " . $this->sort;
         return $this->query($sql)->fetchAll($key, $normalize);
+    }
+
+    public function getPage($offset = 0, $limit = 50, $key = null, $normalize = false)
+    {
+        $sql = "SELECT * FROM " . $this->table . " ORDER BY " . $this->sort . " LIMIT i:offset,i:limit";
+        $params = array(
+            'offset' => max(0, $offset),
+            'limit' => max(1, $limit),
+        );
+        return $this->query($sql, $params)->fetchAll($key, $normalize);
+
     }
 
     private function remapId($id)
@@ -59,7 +70,7 @@ class shopSortableModel extends waModel
                 }
             }
         } else {
-            $field = array($this->id  => $id);
+            $field = array($this->id => $id);
         }
         return $field;
     }
@@ -99,7 +110,7 @@ class shopSortableModel extends waModel
                 $where[] = $this->getWhereByField($this->context, $data[$this->context]);
             }
             if ($where) {
-                $sql .= ' WHERE ('.implode(') AND (', $where).')';
+                $sql .= ' WHERE (' . implode(') AND (', $where) . ')';
             }
             $sort = $this->query($sql)->fetchAssoc();
             if ($sort['cnt']) {
@@ -118,7 +129,8 @@ class shopSortableModel extends waModel
         }
         return $data;
     }
-    private function sort($a, $b)
+
+    protected function sort($a, $b)
     {
         $sort = intval($a[$this->sort]) - intval($b[$this->sort]);
         return max(-1, min(1, $sort));

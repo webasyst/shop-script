@@ -4,14 +4,18 @@ class shopProductGetInfoMethod extends waAPIMethod
 {
     public function execute()
     {
-        $id = waRequest::get('id');
+        $id = $this->get('id', true);
 
         $product_model = new shopProductModel();
         $data = $product_model->getById($id);
 
+        if (!$data) {
+            throw new waAPIException('invalid_param', 'Product not found', 404);
+        }
+
         $this->response = $data;
 
-        $p = new shopProduct($id);
+        $p = new shopProduct($data);
         if ($p['image_id']) {
             $this->response['image_url'] = shopImage::getUrl(array(
                 'product_id' => $id,

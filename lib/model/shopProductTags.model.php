@@ -82,6 +82,23 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         return $this->getData($product);
     }
 
+    public function addTags($product_id, $tags)
+    {
+        if (!is_array($tags)) {
+            $tags = explode(',', $tags);
+        }
+        $tag_model = new shopTagModel();
+        $tag_ids = $tag_model->getIds($tags);
+        $old_tag_ids = $this->query("SELECT tag_id FROM ".$this->table."
+            WHERE product_id = i:id", array('id' => $product_id))->fetchAll(null, true);
+        $add_tag_ids = array_diff($tag_ids, $old_tag_ids);
+        if ($add_tag_ids) {
+            $this->multipleInsert(array('product_id' => $product_id, 'tag_id' => $add_tag_ids));
+            $tag_model->incCounters($add_tag_ids);
+        }
+        return true;
+    }
+
     /**
      * Tag tag of product(s)
      * @param int|array $product_id
@@ -132,7 +149,7 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
 
         // adding itself
         if ($add) {
-            $this->multiInsert($add);
+            $this->multipleInsert($add);
         }
 
         // recounting counters for this tags

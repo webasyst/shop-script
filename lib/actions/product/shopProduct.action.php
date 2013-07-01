@@ -117,7 +117,7 @@ class shopProductAction extends waViewAction
         ));
 
         $category_model = new shopCategoryModel();
-        $categories = $category_model->getFullTree('id, name, depth, url', true);
+        $categories = $category_model->getFullTree('id, name, depth, url, full_url', true);
 
         // %product_url% - stuff used only when creating new product
         $stuff = $product->url ? $product->url : '%product_url%';
@@ -132,8 +132,12 @@ class shopProductAction extends waViewAction
                     if (empty($r['type_id']) || (in_array($product->type_id, (array) $r['type_id']))) {
                         $routing->setRoute($r, $domain);
                         $params = array('product_url' => $stuff);
-                        if ($product->category_id && $r['url_type'] == 2 && isset($categories[$product->category_id])) {
-                            $params['category_url'] = $categories[$product->category_id]['url'];
+                        if ($product->category_id && isset($categories[$product->category_id])) {
+                            if ($r['url_type'] == 1) {
+                                $params['category_url'] = $categories[$product->category_id]['url'];
+                            } else {
+                                $params['category_url'] = $categories[$product->category_id]['full_url'];
+                            }
                         }
                         $frontend_url = $routing->getUrl('/frontend/product', $params, true);
                         break 2;

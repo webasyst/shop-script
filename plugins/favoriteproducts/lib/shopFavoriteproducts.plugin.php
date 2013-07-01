@@ -12,7 +12,7 @@ class shopFavoriteproductsPlugin extends shopPlugin
         $fm = new shopFavoriteproductsPluginModel();
         $count = $fm->countByField('contact_id', wa()->getUser()->getId());
         return array(
-            'sidebar_top_li' => '<li id="s-sb-favoriteproducts"><span class="count">'.$count.'</span><a href="#/products/hash=favorites"><i class="icon16 star"></i>'._wp('Favorites').'</a></li>',
+            'sidebar_top_li' => '<li id="favorites-"><span class="count">'.$count.'</span><a href="#/products/hash=favorites"><i class="icon16 star"></i>'._wp('Favorites').'</a></li>',
         );
     }
 
@@ -47,21 +47,21 @@ class shopFavoriteproductsPlugin extends shopPlugin
 
         $el_id = uniqid('fav');
         $js = <<<EOJS
-<script>$(function() { "use strict";
+<script>window.setTimeout(function() { "use strict";
     var a = $('#{$el_id}').click(function() {
         var i = a.children('i').toggleClass('star').toggleClass('star-empty');
         var fav = i.hasClass('star') ? 1 : 0;
-        $.post('?plugin=favoriteproducts&action=fav', { fav: fav, id: '{$product['id']}' }, function(r) {
-            $('#s-sb-favoriteproducts .count').text(r.data);
+        $.post('?plugin=favoriteproducts&action=fav', { fav: fav, id: ($.product && $.product.path && $.product.path.id) || '{$product['id']}' }, function(r) {
+            $('#favorites- .count').text(r.data);
         }, 'json');
     });
-});</script>
+}, 0);</script>
 EOJS;
 
         $fm = new shopFavoriteproductsPluginModel();
         $favorite = !!$fm->getByField(array('contact_id' => wa()->getUser()->getId(), 'product_id' => $product['id']));
         return array(
-            'title_suffix' => '<a id="'.$el_id.'" href="javascript:void(0)" title="'._wp('Add to favorites').'"><i class="icon16 star'.($favorite ? '' : '-empty').'"></i></a>'.$js,
+            'title_suffix' => '<a id="'.$el_id.'" href="javascript:void(0)" title="'.htmlspecialchars(_wp('Add to favorites')).'"><i class="icon16 star'.($favorite ? '' : '-empty').'"></i></a>'.$js,
         );
     }
 

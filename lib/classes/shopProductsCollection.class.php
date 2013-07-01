@@ -257,7 +257,7 @@ class shopProductsCollection
             $this->addTitle($this->info['name']);
         }
 
-        if (wa()->getEnv() != 'frontend' && !waRequest::get('sort')) {
+        if (wa()->getEnv() != 'frontend' || !waRequest::get('sort')) {
             if (!empty($this->info['sort_products'])) {
                 $this->order_by = 'p.'.$this->info['sort_products'];
             } else {

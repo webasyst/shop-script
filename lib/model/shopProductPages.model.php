@@ -17,6 +17,13 @@ class shopProductPagesModel extends waModel
         return $this->getById($id);
     }
 
+    public function getByProductId($product_id)
+    {
+        $sql = "SELECT id,name,title,url,create_datetime,update_datetime,sort,create_contact_id,keywords,description
+        FROM ".$this->table." WHERE product_id = i:0 AND status = 1 ORDER BY sort";
+        return $this->query($sql, $product_id)->fetchAll();
+    }
+
     public function getPages($product_id = null, $only_public = false)
     {
         return $this->query("SELECT * FROM {$this->table}".
@@ -47,6 +54,7 @@ class shopProductPagesModel extends waModel
         }
         $product_id = (int)$data['product_id'];
         $data['create_datetime'] = date('Y-m-d H:i:s');
+        $data['create_contact_id'] = wa()->getUser()->getId();
         $sort = (int)$this->query("SELECT MAX(sort) sort FROM `{$this->table}` WHERE product_id = $product_id ")->fetchField('sort');
         $data['sort'] = $sort;
         $id = $this->insert($data);

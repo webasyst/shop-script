@@ -30,7 +30,7 @@
                     target="_blank"
                 >{if $frontend_url}{$frontend_url}{/if}</a><i class="icon10 new-window"></i>
             </span>
-            <span class="s-product-frontend-url-empty hint" {if $frontend_base_url}style="display:none;"{/if}>
+            <span class="s-product-frontend-url-empty gray" {if $frontend_base_url}style="display:none;"{/if}>
                 {_w(sprintf('This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts', $product.type.name))}
             </span>
         </li>

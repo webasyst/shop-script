@@ -12,9 +12,6 @@ class shopBrandsPlugin extends shopPlugin
             return;
         }
         $values = $feature_model->getFeatureValues($feature);
-        if ($values) {
-            $values = $values[$feature_id];
-        }
         $html = '<ul class="menu-v brands">';
         foreach ($values as $v) {
             $url = wa()->getRouteUrl('shop/frontend/brand', array('brand'=>urlencode($v)));

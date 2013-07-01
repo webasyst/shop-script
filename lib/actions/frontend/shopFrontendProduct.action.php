@@ -20,11 +20,16 @@ class shopFrontendProductAction extends shopFrontendAction
             $product['category_url'] = waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'];
 
             if (waRequest::param('url_type') == 2 && !waRequest::param('category_url')) {
-                $this->redirect(wa()->getRouteUrl('/frontend/product', array('product_url' => $product['url'], 'category_url' => $product['category_url'])));
+                $this->redirect(wa()->getRouteUrl('/frontend/product', array('product_url' => $product['url'], 'category_url' => $product['category_url'])), 301);
             }
             $breadcrumbs = array();
             $path = $category_model->getPath($category['id']);
             $path = array_reverse($path);
+            $root_category_id = $category['id'];
+            if ($path) {
+                $temp = reset($path);
+                $root_category_id = $temp['id'];
+            }
             foreach ($path as $row) {
                 $breadcrumbs[] = array(
                     'url' => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $row['url'] : $row['full_url'])),
@@ -47,6 +52,12 @@ class shopFrontendProductAction extends shopFrontendAction
                 }
                 $this->view->assign('breadcrumbs', $breadcrumbs);
             }
+        } else {
+            $root_category_id = null;
+        }
+        $this->view->assign('root_category_id', $root_category_id);
+        if ($this->layout) {
+            $this->layout->assign('root_category_id', $root_category_id);
         }
     }
 

@@ -18,12 +18,20 @@ if (typeof($) != 'undefined') {
             'value_templates': {
                 '': ''
             },
+            'filter': null,
             /**
              * set true to enable edit canceling
              */
             'revert': false,
-            'show_all': true
+            'show_all_features': true,
+            'show_all_types': true,
+            'types_per_page':null
 
+        },
+        features_timer: {
+            'loading': null,
+            'filter': null,
+            'type_filter': null
         },
         /**
          * @var {jQuery} $('#s-settings-features')
@@ -39,11 +47,11 @@ if (typeof($) != 'undefined') {
         featuresInit: function () {
             $.shop.trace('$.settings.featuresInit');
             /* init settings */
-            this.$features_list = $('#s-settings-features');
             this.$features_types = $('#s-settings-feature-types');
+            this.$features_list = $('#s-settings-features');
             var self = this;
 
-            this.featuresHelper.featureCountByType();
+            //this.featuresHelper.featureCountByType();
             $('#s-settings-content').on('click', 'a.js-action', function () {
                 return self.click($(this));
             });
@@ -59,6 +67,20 @@ if (typeof($) != 'undefined') {
             var self = this;
 
             $.shop.trace('$.settings.featuresLazyInit');
+            if (this.features_options.show_all_types) {
+                this.featuresTypeInit();
+            } else {
+                $('#s-settings-feature-type-filter').on('keyup change', ':input', function () {
+                    self.featuresTypeFilter($(this).parents('li'), this.value.toLowerCase());
+                });
+            }
+
+            if (this.helpers) {
+                this.helpers.compileTemplates('#s-settings-content');
+            }
+        },
+        featuresTypeInit: function () {
+            var self = this;
             this.$features_types.sortable({
                 'distance': 5,
                 'opacity': 0.75,
@@ -76,7 +98,59 @@ if (typeof($) != 'undefined') {
                     self.featuresTypeSort(id, after_id, $(this));
                 }
             });
+        },
 
+        featuresTypeFilter: function ($input, val) {
+            var self = this;
+            $input.find('.icon16').removeClass('search').addClass('loading');
+            clearTimeout(this.features_timer.type_filter);
+            self.features_timer.type_filter = setTimeout(function () {
+                self.featuresTypeFilterApply(val);
+                $input.find('.icon16').removeClass('loading').addClass('search');
+            }, 500);
+        },
+
+        featuresTypeFilterApply: function (val) {
+            val = val.toLowerCase();
+            $.shop.trace('$.settings.featuresTypeFilterApply', [val,this.features_options.filter]);
+            if (val != this.features_options.filter) {
+                this.features_options.filter = val;
+                if (val) {
+                    this.$features_types.find('>li.not-sortable.js-type-show-all:visible').hide();
+                    var reg = new RegExp(val, 'i');
+                    var type = this.featuresHelper.type();
+                    this.$features_types.find('>li.js-type-item').each(function (index, el) {
+                        var $this = $(el);
+                        if (type && ($this.data('type') == type)) {
+                            $this.show();
+                        } else {
+                            if (reg.test($this.data('name'))) {
+                                $this.show();
+                            } else {
+                                $this.hide();
+                            }
+                        }
+                    });
+                } else {
+                    if (this.features_options.show_all_types) {
+                        this.$features_types.find('>li.js-type-item:hidden').show();
+                    } else {
+                        this.$features_types.find('>li.js-type-item:visible').hide();
+                        var counter = this.features_options.types_per_page;
+                        this.$features_types.find('>li.js-type-item:hidden').each(function () {
+                            $(this).show();
+                            $.shop.trace('$.settings.featuresTypeFilterApply cnt',counter);
+                            return (--counter > 0);
+                        });
+                        this.featuresTypeShow(false);
+                    }
+                }
+            }
+        },
+
+        featuresInitList: function () {
+            this.$features_list = $('#s-settings-features');
+            var self = this;
             this.$features_list.sortable({
                 'distance': 5,
                 'opacity': 0.75,
@@ -133,10 +207,6 @@ if (typeof($) != 'undefined') {
             }, function () {
                 $(this).css('cursor', 'default');
             });
-
-            if (this.helpers) {
-                this.helpers.compileTemplates('#s-settings-content');
-            }
         },
 
         /**
@@ -182,17 +252,23 @@ if (typeof($) != 'undefined') {
             $.shop.trace('all type changed', [checked, $el]);
             var $container = $el.parents('ul');
             if (checked) {
-                $container.find('li[data-type!="0"]').hide();
-                $container.find('li[data-type!="0"] :checkbox').each(function () {
-                    this.checked = checked;
-                });
+                $container.find('> li:gt(0)').hide();
             } else {
-                var type = this.featuresHelper.type();
-                $container.find('li[data-type!="0"]').show();
-                $container.find('li[data-type!="0"] :checkbox').each(function (index, el) {
-                    $(this).attr('checked', el.defaultChecked || (type == $(this).val()));
-                });
+                $container.find('> li').show();
             }
+            var self = this;
+            setTimeout(function () {
+                if (checked) {
+                    $container.find('> li[data-type!="0"] :checkbox').each(function () {
+                        this.checked = checked;
+                    });
+                } else {
+                    var type = self.featuresHelper.type();
+                    $container.find('> li[data-type!="0"] :checkbox').each(function (index, /* Element */ el) {
+                        this.checked = el.defaultChecked || (type == this.valueOf());
+                    });
+                }
+            }, 10);
         },
 
         features_data: {
@@ -215,18 +291,19 @@ if (typeof($) != 'undefined') {
          */
         featuresAction: function (tail) {
             $.shop.trace('$.settings.featuresAction', [this.path, tail]);
-            $('div.s-settings-form:first > div:hidden').show();
-            this.featuresTypeSelect(parseInt(tail) || 0);
-            $('div.s-settings-form:first > div.js-loading').remove();
+            var type = parseInt(tail) || 0;
+            if (type || this.features_options.show_all_features) {
+                $('div.s-settings-form:first > div:hidden:not(.js-loading)').show();
+            }
+            this.featuresTypeSelect(type);
         },
 
         /**
-         * @param {jQuery} $el
+         * @param  $el {jQuery}
          */
         featuresInitDroppable: function ($el) {
             var self = this;
             $el.droppable({
-
                 'accept-deleted': function () {
                     return $(this).is('li:not(.not-sortable)');
                 },
@@ -244,17 +321,46 @@ if (typeof($) != 'undefined') {
          *
          * @param {Number} type
          */
-        featuresTypeSelect: function (type) {
+        featuresTypeSelect: function (type, lazy) {
             /* change selected type and filter features rows */
             $.shop.trace('$.settings.featuresTypeSelect', type);
-            this.$features_types.find('> li.selected').removeClass('selected');
-
-            if (this.$features_types.find('> li[data-type="' + type + '"]').length) {
-                var name = this.$features_types.find('> li[data-type="' + type + '"]').addClass('selected').find('span.js-type-name').text();
-                $('#s-settings-features-type-name').text(name.replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, ''));
-                this.featuresFilter(type);
+            this.$features_types.find('> li.selected:first').removeClass('selected');
+            if (!type && !this.features_options.show_all_features) {
+                $('div.s-settings-form:first > div:visible:not(.clear)').hide();
             } else {
-                window.location.hash = '#/features/';
+
+                if (this.$features_types.find('> li[data-type="' + type + '"]:first').length) {
+                    var name = this.$features_types.find('> li[data-type="' + type + '"]:first').addClass('selected').find('span.js-type-name').text();
+                    $('#s-settings-features-type-name').text(name.replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, ''));
+                    if (lazy) {
+                        this.featuresFilter(type);
+                    } else {
+                        this.$features_list.hide();
+                        $('div.s-settings-form:first > div.js-loading:first').show();
+                        var self = this;
+                        //TODO show loading
+                        $.get('?module=settings&action=featuresFeatureList',
+                            {'type': type},function (data) {
+                                $.shop.trace('$.settings.featuresTypeSelect ajax');
+                                self.$features_list.find('> tbody:first').html(data);
+                            }, 'html').complete(function () {
+                                self.$features_list.show();
+                                $('div.s-settings-form:first > div:hidden:not(.js-loading)').show();
+                                $('div.s-settings-form:first > div.js-loading:first').hide();
+                                $('html, body').animate({
+                                    scrollTop: 0
+                                }, 200);
+                                setTimeout(function () {
+                                    self.call('featuresInitList', []);
+                                }, 50);
+                                self.featuresHelper.featureCountByType(type);
+                            }).error(function () {
+
+                            });
+                    }
+                } else {
+                    window.location.hash = '#/features/';
+                }
             }
         },
 
@@ -266,6 +372,12 @@ if (typeof($) != 'undefined') {
             }
         },
 
+        /**
+         *
+         * @param {Event} event
+         * @param ui
+         * @param {Element} el
+         */
         featuresFeatureTypeChange: function (event, ui, el) {
             var $feature = ui.draggable;
             var target = parseInt($(el).data('type')) || 0;
@@ -316,31 +428,102 @@ if (typeof($) != 'undefined') {
          * Filter visible features list by type
          *
          * @param {Number} type
-         * @param {Boolean} animate use animation
+         * @param {boolean=} animate use animation
          */
         featuresFilter: function (type, animate) {
             $.shop.trace('$.settings.featuresFilter', [type, animate]);
-            if (type) {
-                $('#s-settings-features-type-menu:hidden, #s-settings-features > tbody > tr > td > .sort').show();
-            } else {
-                $('#s-settings-features-type-menu:visible, #s-settings-features > tbody > tr > td > .sort').hide()
-            }
-            if (type || !this.features_options.show_all) {
-                type = parseInt(type) || 0;
-                var self = this;
-                this.$features_list.find('> tbody:first > tr:visible').filter(function () {
-                    var types = self.featuresHelper.featureTypes($(this));
-                    return (type && !types.length) || (types.length && types.indexOf(type) < 0);
-                }).hide(animate ? 'slow' : null);
-                this.$features_list.find('> tbody:first > tr:hidden').filter(function () {
-                    var types = self.featuresHelper.featureTypes($(this));
-                    return (!type && !types.length) || types.indexOf(type) >= 0;
-                }).show(animate ? 'slow' : null);
+            this.featuresFilterStop();
+            var self = this;
+            this.features_timer.loading = setTimeout(function () {
+                self.features_timer.loading = null;
+                $.shop.trace('show', 409);
+                $('div.s-settings-form:first > div.js-loading:first').show();
+            }, 100);
 
+            if (type) {
+                $('#s-settings-features-type-menu:hidden').show();
+            } else {
+                $('#s-settings-features-type-menu:visible').hide()
+            }
+
+            if ((type = parseInt(type) || 0) || !this.features_options.show_all_features) {
+                this.$features_list.find('> tbody:first > tr:visible').hide();
+            }
+
+            setTimeout(function () {
+                self.featuresFilterApply(type);
+            }, 10);
+        },
+
+        /**
+         * Recursive apply filter conditions
+         * @private
+         * @param {Number} type
+         */
+        featuresFilterApply: function (type) {
+            var counter = 50;
+            var selector;
+            if (type) {
+                selector = '> tbody:first > tr[data-types~=' + type + ']:hidden';
+            } else {
+                selector = '> tbody:first > tr:hidden';
+            }
+
+            $.shop.trace('$.settings.featuresFilterApply', [type, selector]);
+            this.$features_list.find(selector).each(function () {
+                var $this = $(this);
+                $this.show();
+                if (type) {
+                    $this.find('.sort:hidden').show();
+                } else {
+                    $this.find('.sort:visible').hide();
+                }
+                return !!(counter--);
+            });
+            if (counter >= 0) {
+                this.featuresSort(type);
+                this.featuresFilterStop(true);
+                $.shop.trace('$.settings.featuresFilter stop', [counter, selector]);
+            } else {
+                var self = this;
+                this.features_timer.filter = setTimeout(function () {
+                    self.featuresFilterApply(type);
+                }, 50);
+            }
+        },
+
+        /**
+         *
+         * @param {boolean=} scroll
+         */
+        featuresFilterStop: function (scroll) {
+            if (this.features_timer.filter) {
+                clearTimeout(this.features_timer.filter);
+                this.features_timer.filter = null;
+            }
+            if (this.features_timer.loading) {
+                clearTimeout(this.features_timer.loading);
+                this.features_timer.loading = null;
+            }
+            $('div.s-settings-form:first > div.js-loading:first').hide();
+            if (scroll) {
+                $('html, body').animate({
+                    scrollTop: 0
+                }, 200);
+            }
+        },
+
+
+        /**
+         *
+         * @param {Number} type
+         */
+        featuresSort: function (type) {
+            if (type || !this.features_options.show_all_features) {
+                type = parseInt(type) || 0;
                 /**
                  * @todo test speed
                  */
-
                 this.$features_list.find('> tbody:first').append(this.$features_list.find('> tbody:first > tr:visible').get().sort(function (a, b) {
                     if (type) {
                         a = $(a).data('sort') || {};
@@ -365,8 +548,8 @@ if (typeof($) != 'undefined') {
                     var sign = ((a * b > 0) && (a > 0)) ? -1 : a * b;
                     return parseInt(a - b) * sign;
                 }));
-
             }
+            $.shop.trace('$.settings.featuresSort stop', [type]);
         },
 
         /**
@@ -383,6 +566,30 @@ if (typeof($) != 'undefined') {
             $form.find(':input[name="icon_url"]').val('');
             $.shop.trace('$.settings.featuresTypeIcon', [icon, $el]);
             return false;
+        },
+
+        /**
+         *
+         * @param {jQuery=} silent
+         */
+        featuresTypeShow: function ($el) {
+
+            if ($el && ($el !== false)) {
+                this.$features_types.find('>li.not-sortable.js-type-show-all:visible').html('<i class="icon16 loading"></i>');
+                var self = this;
+                this.features_options.show_all_types = true;
+                setTimeout(function () {
+                    self.$features_types.find('>li.js-type-item:hidden').show();
+                    self.$features_types.find('>li.not-sortable.js-type-show-all:visible').hide();
+                    self.featuresTypeInit();
+                }, 50);
+            } else {
+                if ($el === false) {
+                    this.$features_types.find('>li.not-sortable.js-type-show-all:hidden').show();
+                } else {
+                    this.$features_types.find('>li.not-sortable.js-type-show-all:visible').hide();
+                }
+            }
         },
 
         featuresTypeAdd: function () {
@@ -466,7 +673,7 @@ if (typeof($) != 'undefined') {
                                     $.shop.trace('response', [response, response.data]);
                                     $type.replaceWith($.tmpl('feature-type', response.data));
 
-                                    self.featuresTypeSelect(type);
+                                    self.featuresTypeSelect(type, true);
                                     self.$features_list.find('span[data-type="' + response.data.id + '"]').each(function () {
                                         $(this).text(response.data.name);
                                     });
@@ -538,7 +745,13 @@ if (typeof($) != 'undefined') {
             return false;
         },
 
-        featuresTypeSort: function (id, after_id, list) {
+        /**
+         *
+         * @param {Number} id
+         * @param {Number} after_id
+         * @param {jQuery} $list
+         */
+        featuresTypeSort: function (id, after_id, $list) {
             $.post('?module=settings&action=featuresTypeSort', {
                 id: id,
                 after_id: after_id
@@ -546,13 +759,13 @@ if (typeof($) != 'undefined') {
                 $.shop.trace('$.settings.featuresTypeSort result', response);
                 if (response.error) {
                     $.shop.error('Error occurred while sorting product types', 'error');
-                    list.sortable('cancel');
+                    $list.sortable('cancel');
                 }
             }, function (response) {
                 $.shop.trace('$.settings.featuresTypeSort cancel', {
                     'data': response
                 });
-                list.sortable('cancel');
+                $list.sortable('cancel');
                 $.shop.error('Error occurred while sorting product types', 'error');
             });
         },
@@ -593,9 +806,9 @@ if (typeof($) != 'undefined') {
                 $.shop.trace('$.settings.featuresFeatureAdd', feature);
                 var self = this;
                 $.when($.tmpl('edit-feature', {
-                    'types': this.featuresHelper.types(),
-                    'feature': feature
-                }).prependTo(self.$features_list.find('> tbody:first'))).done(function () {
+                        'types': this.featuresHelper.types(),
+                        'feature': feature
+                    }).prependTo(self.$features_list.find('> tbody:first'))).done(function () {
                         var $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + self.features_data.feature_id + '"]:first');
                         self.featuresFeatureChange($feature, feature);
                         if (!self.featuresHelper.type()) {
@@ -611,9 +824,23 @@ if (typeof($) != 'undefined') {
             }
         },
 
+        /**
+         *
+         * @param {Number} feature_id
+         */
         featuresFeatureEdit: function (feature_id) {
             feature_id = parseInt(feature_id);
-            var $feature = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"]');
+            var self = this;
+            var $feature = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"]:first');
+            var $more = $feature.find('ul.js-feature-values:first li.js-more-link:first');
+            if ($more.length) {
+                var $actions = $feature.find('a[href^="\#/features/feature/delete/"]:first').parents('ul');
+                $actions.after('<i class="icon16 loading"></i>');
+                $actions.hide();
+                return this.featuresFeatureValuesShow(feature_id, function (feature_id) {
+                    self.featuresFeatureEdit(feature_id);
+                });
+            }
             var type = $feature.data('type');
             var feature = {
                 'id': feature_id,
@@ -630,7 +857,7 @@ if (typeof($) != 'undefined') {
 
             $feature.find('ul.js-feature-values li').each(function () {
                 var id = parseInt($(this).data('value-id'));
-                if (id && id != undefined) {
+                if (id) {
                     feature.values.push({
                         'id': id,
                         'value': $(this).text().replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, '')
@@ -640,7 +867,6 @@ if (typeof($) != 'undefined') {
             $.shop.trace('$.settings.featuresFeatureEdit', [$feature.find('ul.js-feature-values li').length, feature.values.length]);
             $.shop.trace('$.settings.featuresFeatureEdit', feature);
             try {
-                var self = this;
                 var data = {
                     'types': this.featuresHelper.types(),
                     'feature': feature
@@ -661,6 +887,11 @@ if (typeof($) != 'undefined') {
             }
         },
 
+        /**
+         *
+         * @param {Number} feature_id
+         * @param {jQuery} $el
+         */
         featuresFeatureCodeEdit: function (feature_id, $el) {
             var $container = $el.parents('td');
             $container.find('span.js-feature-code:first').hide();
@@ -668,6 +899,11 @@ if (typeof($) != 'undefined') {
             $container.find(':input[name$="\[code\]"]').show().focus();
         },
 
+        /**
+         *
+         * @param {jQuery} $el
+         * @returns {boolean}
+         */
         featuresFeatureValueTypeChange: function ($el) {
             var $selected = $el.find('option:selected');
             var $feature = $el.parents('td');
@@ -696,6 +932,10 @@ if (typeof($) != 'undefined') {
             return false;
         },
 
+        /**
+         *
+         * @param {jQuery} $el
+         */
         featuresFeatureValueTypeChainChange: function ($el) {
 
             var $feature = $el.parents('td');
@@ -773,8 +1013,8 @@ if (typeof($) != 'undefined') {
                 });
             return false;
         },
-        featuresFeatureSort: function ($feature, $after, $features) {
 
+        featuresFeatureSort: function ($feature, $after, $features) {
             var id = parseInt($feature.data('feature'));
             var after_id = $after.data('feature');
             if (after_id === undefined) {
@@ -842,7 +1082,11 @@ if (typeof($) != 'undefined') {
         featuresFeatureDelete: function (feature_id) {
             var self = this;
             var $feature = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"]:first');
+
             if (feature_id > 0) {
+                var $actions = $feature.find('a[href^="\#/features/feature/delete/"]:first').parents('ul');
+                $actions.after('<i class="icon16 loading"></i>');
+                $actions.hide();
                 $.post('?module=settings&action=featuresFeatureDelete', {
                     'feature_id': feature_id
                 }, function (data) {
@@ -852,6 +1096,8 @@ if (typeof($) != 'undefined') {
                             self.featuresHelper.featureCountByType();
                         });
 
+                    } else {
+                        $actions.show();
                     }
                 }, 'json');
             } else {
@@ -885,10 +1131,24 @@ if (typeof($) != 'undefined') {
             $feature.find('ul.js-feature-values:first').sortable('refresh').find(':input:last').focus();
         },
 
-        featuresFeatureValuesShow: function (feature_id) {
+        featuresFeatureValuesShow: function (feature_id, callback) {
             var $container = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"] ul.js-feature-values');
-            $container.find('li:hidden').show();
-            $container.find('li.js-more-link').hide();
+            if (!callback || (typeof(callback) != 'function')) {
+                $container.find('li.js-more-link').html('<i class="icon16 loading"></i>');
+            }
+            $.get('?module=settings&action=featuresFeatureValues',
+                {'id': feature_id},function (data) {
+                    $.shop.trace('$.settings.featuresFeatureValuesShow ajax');
+                    $container.html(data);
+                }, 'html').complete(function () {
+                    if (typeof(callback) == 'function') {
+                        try {
+                            callback(feature_id);
+                        } catch (e) {
+                            $.shop.error(e.message, e);
+                        }
+                    }
+                });
         },
 
         featuresFeatureValueDelete: function (feature_id, value_id) {
@@ -919,14 +1179,14 @@ if (typeof($) != 'undefined') {
              *
              * @return int
              */
-            type: function () {
-                return 0 + parseInt($.settings.path.tail) || 0;
+            type: function (type) {
+                return 0 + parseInt(type || $.settings.path.tail) || 0;
             },
             /**
              * Get list available types
-             * @param name_only
-             * @param type
-             * @return {}
+             * @param {boolean=} name_only
+             * @param {Number=} type
+             * @return {Object}
              */
             types: function (name_only, type) {
                 var types = {};
@@ -954,6 +1214,7 @@ if (typeof($) != 'undefined') {
              * @return [int,...] array of feature types
              */
             featureTypes: function ($feature) {
+                //return $feature.data('types')||[];
                 var types = $feature.data('types');
                 if (!types) {
                     return [];
@@ -962,12 +1223,23 @@ if (typeof($) != 'undefined') {
                     return parseInt(a);
                 });
             },
-            featureCountByType: function () {
+            /**
+             *
+             * @param {Number=} type
+             */
+            featureCountByType: function (type) {
+
+                type = type || this.type();
+                $.shop.trace('featureCountByType', [type]);
                 var helper = this;
                 var counter = {
                     0: 0
                 };
-                this.parent.$features_list.find('> tbody:first > tr').each(function () {
+                var selector = '> tbody:first > tr';
+                if (type) {
+                    selector += ':visible';
+                }
+                this.parent.$features_list.find(selector).each(function () {
                     var types = helper.featureTypes($(this));
                     if (!types.length) {
                         types.push(0);
@@ -976,16 +1248,20 @@ if (typeof($) != 'undefined') {
                         if (typeof(counter[types[i]]) == 'undefined') {
                             counter[types[i]] = 0;
                         }
-                        if (types[i] || !helper.parent.features_options.show_all) {
+                        if (types[i] || !helper.parent.features_options.show_all_features) {
                             ++counter[types[i]];
                         }
                     }
-                    if (helper.parent.features_options.show_all) {
+                    if (helper.parent.features_options.show_all_features) {
                         ++counter[0];
                     }
                 });
 
-                this.parent.$features_types.find('> li').each(function () {
+                selector = '> li.js-type-item';
+                if (type) {
+                    selector += '[data-type="' + type + '"]';
+                }
+                this.parent.$features_types.find(selector).each(function () {
                     var $this = $(this);
                     var id = $this.data('type');
                     var count = '0';
