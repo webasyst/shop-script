@@ -75,6 +75,9 @@ if (typeof($) != 'undefined') {
                 });
             }
 
+            this.featuresInitDroppable(this.$features_types.find('li:not(.not-sortable)'));
+            $('#s-settings-features-type-dialog').prependTo('#wa-app');
+
             if (this.helpers) {
                 this.helpers.compileTemplates('#s-settings-content');
             }
@@ -174,9 +177,6 @@ if (typeof($) != 'undefined') {
                     $('.block.drop-target').removeClass('drag-active');
                 }
             }).find(':not:input').disableSelection();
-
-            this.featuresInitDroppable(this.$features_types.find('li:not(.not-sortable)'));
-            $('#s-settings-features-type-dialog').prependTo('#wa-app');
 
             this.$features_list.on('change, click', ':input:checkbox[name$="\]\[types\]\[0\]"][name^="feature\["]', function () {
                 self.featuresFeatureTypesChange($(this));
@@ -307,6 +307,7 @@ if (typeof($) != 'undefined') {
                 'accept-deleted': function () {
                     return $(this).is('li:not(.not-sortable)');
                 },
+                'accept':'tr',
                 'activeClass-deleted': "ui-state-hover",
                 'hoverClass': 'drag-newparent',
                 'tolerance': 'pointer',

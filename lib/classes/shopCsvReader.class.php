@@ -9,7 +9,7 @@ class shopCsvReader implements SeekableIterator, Serializable
     /**
      *
      * resource a file pointer
-     * @var resouce
+     * @var resource
      */
     private $fp = null;
     private $fsize = null;
@@ -74,7 +74,7 @@ class shopCsvReader implements SeekableIterator, Serializable
                     $this->fsize = filesize($this->file);
                     break;
                 case 'zip':
-                    if (function_exists('zip_open') && ($zip = zip_open($this->file)) && ($zip_entry = zip_read($zip))) {
+                    if (function_exists('zip_open') && ($zip = zip_open($this->file)) && is_resource($zip) && ($zip_entry = zip_read($zip))) {
                         //dummy read first file;
                         $file = $path.waLocale::transliterate(basename(zip_entry_name($zip_entry)));
                         $zip_fs = zip_entry_filesize($zip_entry);

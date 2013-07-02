@@ -209,17 +209,15 @@ $(function () {
             } else {
                 a.append($(this));
             }
-            Facebook.callMethod('scrollTop');
-            $(".facebook-photo-zoom").show();
+            FB.Canvas.getPageInfo(function (info) {
+                $(".facebook-photo-zoom").css('top', (info.scrollTop - 20) + 'px');
+                $(".facebook-photo-zoom").show();
+            })
         }).each(function() {
                 //ensure image load is fired. Fixes opera loading bug
                 if (this.complete) { $(this).trigger("load"); }
         });
         return false;
-    });
-
-    Facebook.addCallback('onScrollTop', function(scroll){
-        $(".facebook-photo-zoom").css('top', scroll + 'px');
     });
 
     $(".facebook-photo-zoom,#facebook-photo-zoom").click(function () {

@@ -5,9 +5,9 @@
         {/if}
         <div class="wa-form">
             {$checkout_contact_form->html()}
-            {if $wa->user('vkontakte_id')}
+            {if $wa->storage('vk_user_id')}
             <script type="text/javascript">
-                VK.api("users.get", { uid: "{$wa->user('vkontakte_id')}", fields: 'city,country,contacts' }, function (data) {
+                VK.api("users.get", { uid: "{$wa->storage('vk_user_id')}", fields: 'city,country,contacts' }, function (data) {
                     if (data.response) {
                         var u = data.response[0];
                         var fields = {

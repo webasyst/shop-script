@@ -221,7 +221,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         if (file_exists($target)) {
             $result = $target;
         } elseif (!empty($this->data['zipfile'])) {
-            if (function_exists('zip_open') && ($zip = zip_open($this->data['zipfile']))) {
+            if (function_exists('zip_open') && ($zip = zip_open($this->data['zipfile']))&& is_resource($zip)) {
                 while ($zip_entry = zip_read($zip)) {
                     if ($filename == zip_entry_name($zip_entry)) {
                         if ($z = fopen($target, "w")) {

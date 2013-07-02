@@ -158,10 +158,6 @@
             <description locale="en_US">CUSTOM theme JS</description>
             <description locale="ru_RU">Скрипты темы CUSTOM</description>
         </file>
-        <file path="lazyloading.js" custom="0">
-            <description locale="en_US">Lazy loading JS</description>
-            <description locale="ru_RU">Скрипты загрузки контента «на лету»</description>
-        </file>
     </files>
     <about locale="en_US">
 <![CDATA[

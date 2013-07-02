@@ -263,7 +263,6 @@ SQL;
 SET `count` = (
 SELECT COUNT(*) FROM `{$model->getTableName()}` `v`
 WHERE (`v`.`feature_id` = `f`.`id`)
-GROUP BY `v`.`feature_id`
 )
 WHERE `f`.`type`=s:0
 SQL;

@@ -8,6 +8,6 @@ class shopSettingsFeaturesFeatureTypeController extends waJsonController
             'type_id'    => waRequest::post('type', 0, waRequest::TYPE_INT),
             'feature_id' => waRequest::post('feature', 0, waRequest::TYPE_INT),
         );
-        $model->insert($data);
+        $model->insert($data, 2);
     }
 }
