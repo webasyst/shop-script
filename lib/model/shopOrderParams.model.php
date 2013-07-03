@@ -6,7 +6,7 @@ class shopOrderParamsModel extends waModel
 
     /**
      * Get custom params of order
-     * @param int|array $id order ID
+     * @param array|int $ids order ID
      * @return array params in key=>value format
      */
     public function get($ids)

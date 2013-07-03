@@ -5,7 +5,7 @@ class shopMigratePluginBackendSetupAction extends waViewAction
     {
         /**
          *
-         * @var shopMigratePlugin
+         * @var shopMigratePlugin $plugin
          */
         $plugin = wa()->getPlugin('migrate');
         $this->view->assign('transports', $plugin->getTransports());

@@ -308,7 +308,7 @@ var page_url = '';
     {$total_amount=0.0}
     {foreach $items as $id => $item}
 
-    {if $item.tax_inclided}
+    {if $item.tax_included}
         {$total_tax=$total_tax+$item.tax}
     {/if}
     {$total_amount=$total_amount+$item.total}
@@ -327,7 +327,7 @@ var page_url = '';
         <td class="b_left b_bottom">&nbsp;</td>
         <td class="b_left b_bottom rightAlign">{$item.quantity|string_format:"%0.3f"}</td>
         <td class="b_left b_bottom rightAlign nobr">{$item.price|wa_format_amount:$order.currency:'%2'}</td>
-        <td class="b_left b_bottom rightAlign nobr">{if $item.tax_inclided}{($item.total-$item.tax)|default:0|wa_format_amount:$order.currency:'%2'}{else}{$item.total|default:0|wa_format_amount:$order.currency:'%2'}{/if}</td>
+        <td class="b_left b_bottom rightAlign nobr">{if $item.tax_included}{($item.total-$item.tax)|default:0|wa_format_amount:$order.currency:'%2'}{else}{$item.total|default:0|wa_format_amount:$order.currency:'%2'}{/if}</td>
         <td class="b_left b_bottom">{$item.tax_percent|string_format:"%d"}</td>
         <td class="b_left b_bottom rightAlign">{$item.tax|default:0|wa_format_amount:$order.currency:'%2'}</td>
         <td class="b_left b_bottom b_right rightAlign nobr">{$item.total|wa_format_amount:$order.currency:'%2'}</td>

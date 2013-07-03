@@ -50,6 +50,8 @@ class shopCategoryModel extends waNestedSetModel
 //     }
 
     /**
+     * @param string $fields
+     * @param bool $static_only
      * @return array
      */
     public function getFullTree($fields = '', $static_only = false)
@@ -66,10 +68,13 @@ class shopCategoryModel extends waNestedSetModel
     }
 
     /**
-     * get subtree
+     * Returns subtree
      *
-     * @param $id int
-     * @param $depth int related depth default is unlimited
+     * @param int $id
+     * @param int $depth related depth default is unlimited
+     * @param bool $escape
+     * @param array $where
+     * @return array
      */
     public function getTree($id, $depth = null, $escape = false, $where = array())
     {

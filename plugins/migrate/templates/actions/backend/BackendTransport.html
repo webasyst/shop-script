@@ -12,10 +12,7 @@ if($.importexport.plugins.migrate.validate) {
 {else}
 $.importexport.plugins.migrate.validate=false;
 {/if}
-{if $errors}
-$('#plugin-migrate-transport-group :input').attr('disabled', false);
-{else}
-$('#plugin-migrate-transport-group :input').attr('disabled', true);
-{/if}
+
+$('#plugin-migrate-transport-group').find(':input').attr('disabled', {var_export(!!$errors,true)|escape});
 //-->
 </script>

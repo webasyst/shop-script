@@ -135,7 +135,6 @@ class shopCsvProductrunController extends waLongActionController
     {
         $hash = null;
         $this->data['export_category'] = true;
-        $selector = '';
         switch ($hash = waRequest::post('hash')) {
             case 'id':
                 $this->data['export_category'] = false;
@@ -148,6 +147,7 @@ class shopCsvProductrunController extends waLongActionController
                 $selector = waRequest::post('set_id', waRequest::TYPE_STRING_TRIM);
                 break;
             case 'type':
+                $this->data['export_category'] = false;
                 $hash = 'type/'.waRequest::post('type_id', waRequest::TYPE_INT);
                 $selector = 'type_'.waRequest::post('type_id', waRequest::TYPE_STRING_TRIM);
                 break;
@@ -239,14 +239,16 @@ class shopCsvProductrunController extends waLongActionController
                 }
             }
         } else {
-            $value = ifset($data[$key]);
+            /**
+             * @var string $key
+             */
+            $value = ifset($data[(string)$key]);
         }
         return $value;
     }
 
     /**
      *
-     * @param string $hash
      * @return shopProductsCollection
      */
     private function getCollection()
@@ -270,6 +272,9 @@ class shopCsvProductrunController extends waLongActionController
             }
 
             $this->collection = new shopProductsCollection($hash);
+            waLog::log(var_export(array(
+                'hash' => $hash,
+            ), true), __CLASS__.'.log');
         }
 
         return $this->collection;
@@ -399,6 +404,9 @@ class shopCsvProductrunController extends waLongActionController
         if (empty($currencies)) {
             $currencies = array();
             $config = wa()->getConfig();
+            /**
+             * @var shopConfig $config
+             */
             $c = $config->getCurrency();
             $currencies[$c] = $c;
             foreach ($config->getCurrencies() as $row) {
@@ -504,7 +512,7 @@ class shopCsvProductrunController extends waLongActionController
         }
 
         if (!empty($data['features'])) {
-            foreach ($data['features'] as $code => & $values) {
+            foreach ($data['features'] as & $values) {
                 if (preg_match('/^\{(.*)\}$/', $values, $matches)) {
                     $values = explode(',', $matches[1]);
                 }
@@ -624,7 +632,7 @@ class shopCsvProductrunController extends waLongActionController
                     $sku['available'] = true;
                 }
                 if (!$sku_only && !$product->skus) {
-                    $data['sku_id'] = $sku_id;
+                    $data['sku_id'] = $item_sku_id;
                 }
                 $data['skus'][$item_sku_id] = $sku;
             }
@@ -722,7 +730,7 @@ class shopCsvProductrunController extends waLongActionController
 
                     $image_path = shopImage::getPath($data);
                     if ((file_exists($image_path) && !is_writable($image_path)) || (!file_exists($image_path) && !waFiles::create($image_path))) {
-                        $this->model->deleteById($image_id);
+                        $model->deleteById($image_id);
                         throw new waException(sprintf("The insufficient file write permissions for the %s folder.", substr($image_path, strlen($this->getConfig()->getRootPath()))));
                     }
 
@@ -909,19 +917,6 @@ class shopCsvProductrunController extends waLongActionController
         }
     }
 
-    /**
-     *
-     * @return shopYandexmarketPlugin
-     */
-    private function plugin()
-    {
-        static $plugin;
-        if (!$plugin) {
-            $plugin = wa()->getPlugin('csvproducts');
-        }
-        return $plugin;
-    }
-
     private function stepExportCategory(&$current_stage, &$count, &$processed)
     {
         static $categories;
@@ -963,6 +958,13 @@ class shopCsvProductrunController extends waLongActionController
         if (!$products) {
             $offset = $current_stage[self::STAGE_PRODUCT] - ifset($this->data['map'][self::STAGE_PRODUCT], 0);
             $products = $this->getCollection()->getProducts('*, images', $offset, 50, false);
+            waLog::log(var_export(array(
+                'products' => count($products),
+                'offset'   => $offset,
+            ), true), __CLASS__.'.log');
+            if ($products) {
+                waLog::log(count($products)." ".$this->data['map'][self::STAGE_PRODUCT], __CLASS__.'.cnt.log');
+            }
         }
         $chunk = 1;
         $non_sku_fields = array(
@@ -982,6 +984,20 @@ class shopCsvProductrunController extends waLongActionController
             $rights = empty($product['type_id']) || in_array($product['type_id'], $this->data['types']);
             /* check category match*/
             $category = !$this->data['export_category'] || ($product['category_id'] == $this->data['map'][self::STAGE_CATEGORY]);
+
+            if (!$rights) {
+                waLog::log(var_export(array(
+                    'rights'  => $this->data['types'],
+                    'type_id' => $product['type_id'],
+                ), true), __FUNCTION__.'.log');
+            }
+            if (!$category) {
+                waLog::log(var_export(array(
+                    'map'             => $this->data['map'][self::STAGE_CATEGORY],
+                    'export_category' => $this->data['export_category'],
+                    'category_id'     => $product['category_id'],
+                ), true), __FUNCTION__.'.log');
+            }
 
             if ($rights && $category) {
                 $shop_product = new shopProduct($product);
@@ -1026,7 +1042,7 @@ class shopCsvProductrunController extends waLongActionController
                     unset($product['features']);
                 }
 
-                foreach ($skus as $sku_id => $sku) {
+                foreach ($skus as $sku) {
                     if ($exported) {
                         foreach ($non_sku_fields as $field) {
                             if (isset($product[$field])) {
@@ -1055,17 +1071,6 @@ class shopCsvProductrunController extends waLongActionController
             }
         }
         return ($current_stage[self::STAGE_PRODUCT] < $count[self::STAGE_PRODUCT]);
-    }
-
-    private function format($field, $value, $info = array(), $data = array())
-    {
-        static $currency_model;
-        switch ($field) {
-            case 'field':
-                break;
-        }
-
-        return sprintf(ifempty($info['format'], '%s'), $value);
     }
 
     private function error($message)

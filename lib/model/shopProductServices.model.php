@@ -583,7 +583,8 @@ class shopProductServicesModel extends waModel
     /**
      * Get products for which service is setted
      * @param int $service_id
-     * @param int $status
+     * @param int|string $status
+     * @return array
      */
     public function getProducts($service_id, $status = self::STATUS_PERMITTED)
     {

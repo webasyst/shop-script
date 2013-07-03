@@ -3,6 +3,7 @@ class shopDimensionValue implements ArrayAccess
 {
     private $value;
     private $unit;
+    private $type;
     private $value_base_unit;
     private $base_code;
     private $format = '%0.2f %s';
@@ -58,7 +59,7 @@ class shopDimensionValue implements ArrayAccess
 
     public function convert($unit)
     {
-        $value = shopDimension::getInstance()->convert($this->value, $unit);
+        $value = shopDimension::getInstance()->convert($this->value,$this->type, $unit);
         return sprintf($this->format, $value, $unit);
     }
 }

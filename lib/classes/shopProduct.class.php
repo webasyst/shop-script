@@ -35,7 +35,6 @@
  *
  * @property int $type_id
  * @property array $type
- * @property string $type['name']
  * @property int $category_id
  * @property array $features
  * @example
@@ -262,15 +261,6 @@ class shopProduct implements ArrayAccess
             return $this->data[$name];
         }
         return null;
-    }
-
-    private function preloadExtInfo($ext_info)
-    {
-        foreach ($ext_info as $name) {
-            if (!isset($this->data[$name])) {
-                $this->__get($name);
-            }
-        }
     }
 
     /**

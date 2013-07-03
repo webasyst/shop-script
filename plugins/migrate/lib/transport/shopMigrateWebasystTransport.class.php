@@ -472,7 +472,6 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
     private function stepCategory(&$current_stage, &$count, &$processed)
     {
         static $category_data_cache = array();
-        $result = false;
         if (!isset($this->map[self::STAGE_CATEGORY])) {
             $this->offset[self::STAGE_CATEGORY] = 1;
             $this->map[self::STAGE_CATEGORY] = array();
@@ -538,8 +537,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
             array_shift($category_data_cache);
             ++$processed;
         }
-        $result = true;
-        return $result;
+        return true;
     }
 
     private function stepCategoryRebuild(&$current_stage, &$count)
@@ -1220,9 +1218,6 @@ LIMIT 100';
                         $this->log("Error while import product review", self::LOG_ERROR, $data);
                     }
                 } catch (Exception $ex) {
-                    if (false && $file_path && file_exists($file_path)) {
-                        waFiles::delete($file_path);
-                    }
                     $this->log($ex->getMessage(), self::LOG_ERROR);
                 }
             } else {
@@ -1261,9 +1256,6 @@ LIMIT 100';
                     $model->updateById($product['sku_id'], $data);
                     ++$processed;
                 } catch (Exception $ex) {
-                    if (false && $file_path && file_exists($file_path)) {
-                        waFiles::delete($file_path);
-                    }
                     $this->log($ex->getMessage(), self::LOG_ERROR);
                 }
             }
@@ -1313,8 +1305,8 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                     $model = new shopProductImagesModel();
                 }
                 $product = $this->map[self::STAGE_PRODUCT][$product_id];
+                $image_id = null;
                 try {
-                    $image_id = null;
                     $original_name = empty($data['enlarged']) ? $data['filename'] : $data['enlarged'];
 
                     $path = $this->getTempPath('pi');
@@ -1351,9 +1343,6 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                     ++$processed;
 
                 } catch (Exception $ex) {
-                    if (false && $path && file_exists($path)) {
-                        waFiles::delete($path);
-                    }
                     if ($image_id) {
                         $model->deleteById($image_id);
                     }
@@ -1420,8 +1409,7 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
 
     private function stepOptions(&$current_stage, &$count)
     {
-        static $cache;
-        static $sort = null;
+        static $cache =null;
         $result = false;
         if (!$current_stage) {
             $this->offset[self::STAGE_OPTIONS] = 0;
@@ -2011,6 +1999,7 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                 $payd = false;
                 $first = true;
                 foreach ($order_changelog_cache[$id] as $log) {
+                    $after_state = null;
                     if (!empty($this->map[self::STAGE_ORDER]['state'][$log['status_name']])) {
                         $after_state = $this->map[self::STAGE_ORDER]['state'][$log['status_name']];
                     }
@@ -2090,10 +2079,7 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
             <tr><td>&nbsp;</td><td>&nbsp;</td><td>';
             $params['title_wrapper'] = '%s';
 
-            $suggests = array();
-
             $control .= "<table class = \"zebra\"><tbody>";
-            $cnt = 0;
             $locale = $this->getOption('locale');
             while ($option = array_shift($options)) {
                 $name = $option['optionID'];
@@ -2142,11 +2128,15 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
             );
 
             foreach (waContactFields::getAll() as $contact_field) {
-                /**
-                 * @var waContactField $contact_field
-                 */
+
                 if ($contact_field instanceof waContactCompositeField) {
+                    /**
+                     * @var waContactCompositeField $contact_field
+                     */
                     foreach ($contact_field->getFields() as $contact_subfield) {
+                        /**
+                         * @var waContactField $contact_subfield
+                         */
                         $field = array(
                             'group' => $contact_field->getName(),
                             'value' => $contact_field->getId().':'.$contact_subfield->getId(),
@@ -2159,6 +2149,9 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                     }
 
                 } else {
+                    /**
+                     * @var waContactField $contact_field
+                     */
                     $field = array(
                         'value' => $contact_field->getId(),
                         'title' => $contact_field->getName(),
@@ -2170,11 +2163,7 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                 }
             }
 
-            $suggests = array();
-
             $control .= "<table class = \"zebra\"><tbody>";
-            $cnt = 0;
-            $locale = $this->getOption('locale');
             while ($field = array_shift($fields)) {
                 $name = $field['id'];
                 $field_params = $params;
@@ -2327,7 +2316,6 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
         if (!isset($params['value']) || !is_array($params['value'])) {
             $params['value'] = array();
         }
-        $value = $params['value'];
 
         waHtmlControl::addNamespace($params, $name);
         $control .= '<table class="zebra">';
@@ -2389,9 +2377,6 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                                         'value' => sprintf("f+:%s:%d:%d", $type, $f['multiple'], $f['selectable']),
                                         'title' => (empty($f['group']) ? $f['name'] : ($f['group'].': '.$f['name']))." — {$sf['name']}",
                                     );
-                                    if ($op['value'] == 'f+:varchar:0:1') {
-                                        $single = $op;
-                                    }
                                 }
                             }
                         }

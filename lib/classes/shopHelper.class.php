@@ -261,9 +261,8 @@ class shopHelper
      * Get either a Gravatar URL or complete image tag for a specified email address.
      *
      * @param string $email The email address
-     * @param string $size Size in pixels, defaults to 50
+     * @param int $size Size in pixels, defaults to 50
      * @param string $default Default imageset to use [ custom | 404 | mm | identicon | monsterid | wavatar ]
-     * @param string $rating Maximum rating (inclusive) [ g | pg | r | x ]
      * @return String containing either just a URL or a complete image tag
      * @source http://gravatar.com/site/implement/images/php/
      */

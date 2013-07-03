@@ -254,7 +254,7 @@ class shopCheckoutShipping extends shopCheckout
                     }
                 }
             }
-            return waContactForm::loadConfig(array('address.shipping' => $address), array('namespace' => 'customer_'.$method_id));;
+            return waContactForm::loadConfig(array('address.shipping' => $address), array('namespace' => 'customer_'.$method_id));
         } else {
             return null;
         }

@@ -4,7 +4,7 @@ class shopCsvWriter implements Serializable
     /**
      *
      * resource a file pointer
-     * @var resouce
+     * @var resource
      */
     private $fp = null;
 
@@ -117,8 +117,8 @@ class shopCsvWriter implements Serializable
     }
 
     /**
-     *
-     * @param array $line
+     * @param $data
+     * @return array
      */
     private function applyDataMapping($data)
     {

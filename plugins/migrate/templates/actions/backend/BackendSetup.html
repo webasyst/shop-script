@@ -4,7 +4,7 @@
         <h6 class="heading">[`Source`]</h6>
         <div class="field-group" id="plugin-migrate-transport-group">
             <div class="field">
-                <div class="name">[`Platform`]</div>
+                <div class="name"><label for="plugin-migrate-transport">[`Platform`]</label></div>
                 <div class="value no-shift">
                     <select name="transport" id="plugin-migrate-transport" class="s-plugin-migrate-transport">
                     {$group = false}
@@ -43,13 +43,13 @@
                     <div class="js-progressbar-container" style="display:none;">
                         <div class="progressbar blue float-left" style="display: none; width: 70%;">
                             <div class="progressbar-outer">
-                                <div class="progressbar-inner" style="width: 0%;"></div>
+                                <div class="progressbar-inner" style="width: 0;"></div>
                             </div>
                         </div>
                         <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
                         <div class="clear"></div>
                             <span class="progressbar-description"></span>
-                        <br clear="left" />
+                        <br style="clear: left" />
                         <br>
                         <span class="small italic">
                             [`Please do not close your browser window and do not leave this page until the entire migration process is finished.`]

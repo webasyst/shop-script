@@ -74,7 +74,7 @@ $.order = {
                 var checked = $this.is(':checked');
                 $.storage.set('shop/order/print/' + $this.data('name'), checked);
                 if (checked) {
-                    window.open($(this).val(), $(this).data('target'));
+                    window.open($(this).val(), $(this).data('target').replace(/\./,'_'));
                 }
             });
             return false;

@@ -50,6 +50,7 @@ class shopViewHelper extends waAppViewHelper
      * @param int $set_id
      * @param int $offset
      * @param int $limit
+     * @param array $options
      * @return array
      */
     public function productSet($set_id, $offset = null, $limit = null, $options = array())

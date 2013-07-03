@@ -327,10 +327,8 @@ class shopPayment extends waAppPayment
     }
 
     /**
-     *
-     *
-     * @param array $wa_transaction_data
-     * @return array|null
+     * @param array $transaction_data
+     * @return array
      */
     public function callbackPaymentHandler($transaction_data)
     {

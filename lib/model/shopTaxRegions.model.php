@@ -10,7 +10,9 @@ class shopTaxRegionsModel extends waModel
     }
 
     /**
-     * @param array $arr tax_id => address array
+     * @param int $tax_id
+     * @param array $address
+     * @return float
      */
     public function getByTaxAddress($tax_id, $address)
     {

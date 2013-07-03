@@ -40,7 +40,7 @@ class shopProductFeaturesSelectableModel extends waModel
         }
 
         if ($insert) {
-            $this->multiInsert($insert);
+            $this->multipleInsert($insert);
         }
         if ($old_data) {
             foreach ($old_data as $f_id => $values) {

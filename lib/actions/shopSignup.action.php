@@ -17,6 +17,7 @@ class shopSignupAction extends waSignupAction
                 throw $e;
             }
         }
+        wa()->getResponse()->setTitle(_w('Sign up'));
     }
 
     public function afterSignup(waContact $contact)

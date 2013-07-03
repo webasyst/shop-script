@@ -139,6 +139,7 @@ class shopDimension
      * @param string $type dimension type
      * @param string $unit target dimension unit, default is base_unit
      * @param string $value_unit value dimension unit, default is base_unit
+     * @return double
      */
     public function convert($value, $type, $unit, $value_unit = null)
     {

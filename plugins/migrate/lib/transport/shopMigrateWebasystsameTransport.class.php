@@ -29,9 +29,6 @@ class shopMigrateWebasystsameTransport extends shopMigrateWebasystTransport
             $this->addOption('path', array('readonly' => true));
         } catch (waException $ex) {
             $result = false;
-            if (!($field = $ex->getCode())) {
-                $field = 'global';
-            }
             $errors['path'] = $ex->getMessage();
             $this->addOption('path', array('readonly' => false));
         }
@@ -54,7 +51,7 @@ class shopMigrateWebasystsameTransport extends shopMigrateWebasystTransport
 
             /**
              *
-             * @var SimpleXMLElement
+             * @var SimpleXMLElement $wbs
              */
             $wbs = simplexml_load_file($this->source_path.'kernel/wbs.xml');
             $this->dbkey = (string) $wbs->FRONTEND['dbkey'];
@@ -65,11 +62,9 @@ class shopMigrateWebasystsameTransport extends shopMigrateWebasystTransport
             }
             /**
              *
-             * @var SimpleXMLElement
+             * @var SimpleXMLElement $dblist
              */
             $dblist = simplexml_load_file($dkey_path);
-
-            $version = (string) $dblist->VERSIONS['SC'];
 
             $host_name = (string) $dblist->DBSETTINGS['SQLSERVER'];
             $host = $wbs->xPath('/WBS/SQLSERVERS/SQLSERVER[@NAME="'.htmlentities($host_name, ENT_QUOTES, 'utf-8').'"]');

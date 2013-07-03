@@ -86,11 +86,10 @@ class shopImage
     }
 
     /**
-     *
      * @param array $image
      * @param array $sizes (optional)
      * generateThumbs
-     *
+     * @param bool $force
      * @throws waException
      */
     public static function generateThumbs($image, $sizes = array(), $force = true)
@@ -242,9 +241,9 @@ class shopImage
     /**
      * Calculate dimensions of thumbnail
      *
-     * @param array $photo Key-value object with image info
+     * @param array $image Key-value object with image info
      * @param string $size string size-code or key-value object returned by parseSize
-     * @returns array Key-value object with width and height values
+     * @return array Key-value object with width and height values
      */
     public static function getThumbDimensions($image, $size = null)
     {

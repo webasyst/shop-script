@@ -35,14 +35,6 @@ class shopOrderPrintformAction extends waViewAction
             }
         }
         $product_ids = array_unique($product_ids);
-        $feature_model = new shopFeatureModel();
-        $f = $feature_model->getByCode('weight');
-        if (!$f) {
-            $weights = array();
-        } else {
-            $values_model = $feature_model->getValuesModel($f['type']);
-            $weights = $values_model->getProductValues($product_ids, $f['id']);
-        }
 
         $form_id = waRequest::get('form_id');
         if (strpos($form_id, '.')) {
@@ -55,24 +47,36 @@ class shopOrderPrintformAction extends waViewAction
         $order_params_model = new shopOrderParamsModel();
         $params = $order_params_model->get($order['id']);
 
-        $plugin = self::getPlugin($type, ifempty($params[$type.'_id']));
-        if ($weights) {
-            $dimension = shopDimension::getInstance()->getDimension('weight');
-            $weight_unit = $plugin->allowedWeightUnit();
-            $m = null;
-            if ($weight_unit != $dimension['base_unit']) {
-                $m = $dimension['units'][$weight_unit]['multiplier'];
+        $plugin = self::getPlugin($type, ifempty($params[$type . '_id']));
+        if ($type == 'shipping') { /* add weight info only for shipping modules */
+
+            $feature_model = new shopFeatureModel();
+            $f = $feature_model->getByCode('weight');
+            if (!$f) {
+                $weights = array();
+            } else {
+                $values_model = $feature_model->getValuesModel($f['type']);
+                $weights = $values_model->getProductValues($product_ids, $f['id']);
             }
-            foreach ($order['items'] as &$item) {
-                if ($item['type'] == 'product') {
-                    $w = isset($weights[$item['product_id']]) ? $weights[$item['product_id']] : 0;
-                    if ($m !== null) {
-                        $w = $w / $m;
-                    }
-                    $item['weight'] = $w;
+
+            if ($weights) {
+                $dimension = shopDimension::getInstance()->getDimension('weight');
+                $weight_unit = $plugin->allowedWeightUnit();
+                $m = null;
+                if ($weight_unit != $dimension['base_unit']) {
+                    $m = $dimension['units'][$weight_unit]['multiplier'];
                 }
+                foreach ($order['items'] as &$item) {
+                    if ($item['type'] == 'product') {
+                        $w = isset($weights[$item['product_id']]) ? $weights[$item['product_id']] : 0;
+                        if ($m !== null) {
+                            $w = $w / $m;
+                        }
+                        $item['weight'] = $w;
+                    }
+                }
+                unset($item);
             }
-            unset($item);
         }
 
         if (!$plugin) {

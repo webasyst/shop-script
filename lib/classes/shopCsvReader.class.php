@@ -16,9 +16,8 @@ class shopCsvReader implements SeekableIterator, Serializable
     private $header = null;
 
     protected $data_mapping = array();
-    private $delimeter = ';';
+    private $delimiter = ';';
     private $encoding;
-    private $compression;
     private $header_count = 0;
 
     private $offset_map = array();
@@ -27,12 +26,12 @@ class shopCsvReader implements SeekableIterator, Serializable
     private $key = 0;
     private $file;
 
-    public function __construct($file, $delimeter = ';', $encoding = 'utf-8')
+    public function __construct($file, $delimiter = ';', $encoding = 'utf-8')
     {
         $this->file = ifempty($file);
-        $this->delimeter = ifempty($delimeter, ';');
-        if ($this->delimeter == 'tab') {
-            $this->delimeter = "\t";
+        $this->delimiter = ifempty($delimiter, ';');
+        if ($this->delimiter == 'tab') {
+            $this->delimiter = "\t";
         }
         $this->encoding = ifempty($encoding, 'utf-8');
         $this->restore();
@@ -97,14 +96,9 @@ class shopCsvReader implements SeekableIterator, Serializable
                         }
 
                         $this->open();
-                        break;
                     } else {
                         throw new waException("Error while read zip file");
                     }
-                    $this->file = $file;
-
-                    $this->fsize = filesize($this->file);
-                    $this->fp = fopen($this->file, "rb");
                     break;
                 default:
                     $this->fp = fopen($this->file, "rb");
@@ -158,7 +152,7 @@ class shopCsvReader implements SeekableIterator, Serializable
     {
         return serialize(array(
             'file'         => $this->file,
-            'delimeter'    => $this->delimeter,
+            'delimiter'    => $this->delimiter,
             'encoding'     => $this->encoding,
             'data_mapping' => $this->data_mapping,
             'key'          => $this->key,
@@ -170,7 +164,7 @@ class shopCsvReader implements SeekableIterator, Serializable
     {
         $data = @unserialize($serialized);
         $this->file = ifset($data['file']);
-        $this->delimeter = ifempty($data['delimeter'], ';');
+        $this->delimiter = ifempty($data['delimiter'], ';');
         $this->encoding = ifempty($data['encoding'], 'utf-8');
         $this->data_mapping = ifset($data['data_mapping']);
         $this->offset_map = ifset($data['offset_map']);
@@ -254,10 +248,10 @@ class shopCsvReader implements SeekableIterator, Serializable
 
                 if ($line = fgets($this->fp)) { //skip empty lines
                     $line = iconv($this->encoding, 'UTF-8//IGNORE', $line);
-                    $this->current = str_getcsv($line, $this->delimeter);
+                    $this->current = str_getcsv($line, $this->delimiter);
                 }
             } else {
-                $this->current = fgetcsv($this->fp, 0, $this->delimeter);
+                $this->current = fgetcsv($this->fp, 0, $this->delimiter);
             }
             if (is_array($this->current) && (count($this->current) > 1)) {
                 ++$this->key;
@@ -331,7 +325,6 @@ class shopCsvReader implements SeekableIterator, Serializable
             if (strpos($columns, ':')) {
                 $columns = explode(':', $columns);
             }
-            $add = false;
             if (is_array($columns)) {
                 $columns = array_unique(array_map('intval', $columns));
                 $add = count($columns);
@@ -348,13 +341,14 @@ class shopCsvReader implements SeekableIterator, Serializable
     /**
      *
      * @param array $line
+     * @return array
      */
     private function applyDataMapping($line)
     {
         $data = array();
 
         foreach ($this->data_mapping as $field => $column) {
-
+            $insert = null;
             if (is_array($column)) {
                 $insert = array();
                 foreach ($column as $id) {
@@ -366,7 +360,6 @@ class shopCsvReader implements SeekableIterator, Serializable
                     $insert = null;
                 }
             } elseif ($column >= 0) {
-                $insert = null;
                 if (ifset($line[$column]) !== '') {
                     $insert = ifset($line[$column]);
                     if (preg_match('/^\{(.+)\}$/', $insert, $matches)) {
@@ -463,7 +456,7 @@ class shopCsvReader implements SeekableIterator, Serializable
     public function getCsvmapControl($name, $params = array())
     {
         $targets = ifset($params['options'], array());
-        $value = ifset($params['value'], array());
+        ifset($params['value'], array());
         $html = '';
 
         $html .= '<thead><tr class="white heading small">';
@@ -503,7 +496,7 @@ class shopCsvReader implements SeekableIterator, Serializable
         //TODO use more correct code
 
         $group = null;
-        foreach ($targets as $field => $target) {
+        foreach ($targets as $target) {
             if (!isset($target['group'])) {
                 $target['group'] = array(
                     'title' => '',
@@ -569,7 +562,7 @@ class shopCsvReader implements SeekableIterator, Serializable
             if ($max < 90) {
                 unset($selected);
                 $max = 0;
-                foreach ($params['options'] as $id => & $column) {
+                foreach ($params['options'] as & $column) {
                     if ($column['like'] < 90) {
                         $from = mb_strtolower($column['title']);
                         $to = mb_strtolower($target);

@@ -2,9 +2,9 @@
 {foreach $feature.values as $value_id => $value}
     {if !$values_more}
         <li data-value-id="{$value_id}"{if $values_more} style="display: none;"{/if}>{$value|escape}</li>
-        {if !empty($values_per_feature) && $feature.count>($values_per_feature-1) && $feature.count>($values_per_feature+1) && $value@iteration == $values_per_feature}
+        {if !empty($values_per_feature) && $feature.count>($values_per_feature) && $value@last}
             {$values_more = true}
-            <li class="js-more-link"><a href="#/features/feature/values/show/{$id}/" class="js-action inline-link"><b><i>{($feature.count-$values_per_feature)|string_format:"[`Show %d more`]"}</i></b></a></li>
+            <li class="js-more-link"><a href="#/features/feature/values/show/{$id}/" class="js-action inline-link"><b><i>{($feature.count-count($feature.values))|string_format:"[`Show %d more`]"}</i></b></a></li>
         {/if}
     {/if}
 {/foreach}

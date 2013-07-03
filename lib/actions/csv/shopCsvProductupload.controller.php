@@ -92,7 +92,7 @@ class shopCsvProductuploadController extends shopUploadController
             if (($ext = pathinfo($original_name, PATHINFO_EXTENSION)) && preg_match('/^\w+$/', $ext)) {
                 $name .= '.'.$ext;
             }
-            $res = $file->moveTo($name);
+            $file->moveTo($name);
         } else {
             throw new waException(_w('Error file upload'));
         }

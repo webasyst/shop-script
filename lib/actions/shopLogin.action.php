@@ -18,6 +18,7 @@ class shopLoginAction extends waLoginAction
                 throw $e;
             }
         }
+        wa()->getResponse()->setTitle(_w('Login'));
     }
 
     protected function afterAuth()

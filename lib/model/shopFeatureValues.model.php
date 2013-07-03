@@ -23,9 +23,9 @@ SELECT `t`.*
 FROM (
   SELECT * FROM `{$this->table}`
   WHERE {$where}
-  ORDER BY `feature_id` ASC
+  ORDER BY `feature_id` ASC, `sort`
 ) AS `t`
-WHERE (IF (@fid=`t`.`feature_id`, @a:=@a+1, (@fid:=`t`.`feature_id`) AND (@a:=1)) <= i:0)
+WHERE (IF (@fid=`t`.`feature_id`, @a:=@a+1, @a:=(@fid:=t.feature_id) - `t`.`feature_id` + 1) <= i:0)
 SQL;
                 $data = $this->query($sql, max(1, $limit))->fetchAll($this->id);
                 uasort($data, array($this, 'sort'));

@@ -10,7 +10,7 @@ class shopProductPagesModel extends waModel
     /**
      * Alias for getById
      * @param int $id
-     * @return array|false
+     * @return array
      */
     public function get($id)
     {

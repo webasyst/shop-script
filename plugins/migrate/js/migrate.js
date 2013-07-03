@@ -2,15 +2,16 @@
  * {literal}
  */
 
-$("#plugin-migrate-transport").change(function() {
-    $("#s-plugin-migrate .plugin-migrate-transport-description:visible").hide();
+$("#plugin-migrate-transport").change(function () {
+    var $container =$("#s-plugin-migrate");
+    $container.find(".plugin-migrate-transport-description:visible").hide();
     $("#plugin-migrate-submit").hide();
     if ($(this).val()) {
-        $('#s-plugin-migrate .plugin-migrate-transport-description:visible').hide();
+        $container.find('.plugin-migrate-transport-description:visible').hide();
         $("#plugin-migrate-transport-" + $(this).val()).show();
         $("#plugin-migrate-transport-fields").html($_('Loading...') + '<i class="icon16 loading"></i>').load("?plugin=migrate&action=transport", {
             'transport': $(this).val()
-        }, function() {
+        }, function () {
             $("#plugin-migrate-submit").show();
         });
 
@@ -37,7 +38,7 @@ $.importexport.plugins.migrate = {
     },
     date: new Date(),
     validate: false,
-    migrateHandler: function(element) {
+    migrateHandler: function (element) {
         var self = this;
         self.progress = true;
         self.form = $(element);
@@ -50,11 +51,11 @@ $.importexport.plugins.migrate = {
         self.form.find('.progressbar').show();
         var url = $(element).attr('action');
         $.ajax({
-            url: url+'&t='+this.date.getTime(),
+            url: url + '&t=' + this.date.getTime(),
             data: data,
             dataType: 'json',
             type: 'post',
-            success: function(response) {
+            success: function (response) {
                 if (response.error) {
                     self.form.find(':input').attr('disabled', false);
                     self.form.find(':submit').show();
@@ -68,21 +69,18 @@ $.importexport.plugins.migrate = {
                     self.form.find('.js-progressbar-container').show();
 
                     self.ajax_pull[response.processId] = [];
-                    self.ajax_pull[response.processId].push(setTimeout(function() {
-                        $.wa.errorHandler = function(xhr) {
-                            if ((xhr.status >= 500) || (xhr.status == 0)) {
-                                return false;
-                            }
-                            return true;
+                    self.ajax_pull[response.processId].push(setTimeout(function () {
+                        $.wa.errorHandler = function (xhr) {
+                            return !((xhr.status >= 500) || (xhr.status == 0));
                         };
                         self.progressHandler(url, response.processId, response);
                     }, 1000));
-                    self.ajax_pull[response.processId].push(setTimeout(function() {
-                        self.progressHandler(url, response.processId);
+                    self.ajax_pull[response.processId].push(setTimeout(function () {
+                        self.progressHandler(url, response.processId,response);
                     }, 2000));
                 }
             },
-            error: function(jqXHR, textStatus, errorThrown) {
+            error: function () {
                 self.form.find(':input').attr('disabled', false);
                 self.form.find(':submit').show();
                 self.form.find('.js-progressbar-container').hide();
@@ -92,11 +90,17 @@ $.importexport.plugins.migrate = {
         });
         return false;
     },
-    progressHandler: function(url, processId, response) {
+    /**
+     *
+     * @param url
+     * @param {string} processId
+     * @param {{ready:boolean=, memory:string,memory_avg:string,processId:string, report:string, stage_num:number, stage_count:number, stage_name:string, warning:string, error:string,progress:number}} response
+     */
+    progressHandler: function (url, processId, response) {
         // display progress
         // if not completed do next iteration
         var self = $.importexport.plugins.migrate;
-
+        var $bar;
         if (response && response.ready) {
             $.wa.errorHandler = null;
             var timer;
@@ -107,7 +111,7 @@ $.importexport.plugins.migrate = {
             }
             // self.form.find(':input').attr('disabled', false);
             // self.form.find(':submit').show();
-            var $bar = self.form.find('.progressbar .progressbar-inner');
+            $bar = self.form.find('.progressbar .progressbar-inner');
             $bar.css({
                 'width': '100%'
             });
@@ -116,21 +120,22 @@ $.importexport.plugins.migrate = {
             $.shop.trace('cleanup', response.processId);
 
             $.ajax({
-                url: url+'&t='+this.date.getTime(),
+                url: url + '&t=' + this.date.getTime(),
                 data: {
                     'processId': response.processId,
                     'cleanup': 1
                 },
                 dataType: 'json',
                 type: 'post',
-                success: function(response) {
+                success: function (response) {
                     // show statistic
                     $.shop.trace('report', response);
                     $("#plugin-migrate-submit").hide();
                     self.form.find('.progressbar').hide();
-                    $("#plugin-migrate-report").show();
+                    var $report =$("#plugin-migrate-report");
+                    $report.show();
                     if (response.report) {
-                        $("#plugin-migrate-report .value:first").html(response.report);
+                        $report.find(".value:first").html(response.report);
                     }
                     $.storage.del('shop/hash');
                 }
@@ -148,16 +153,16 @@ $.importexport.plugins.migrate = {
         } else {
             var $description;
             if (response && (typeof(response.progress) != 'undefined')) {
-                var $bar = self.form.find('.progressbar .progressbar-inner');
+                $bar = self.form.find('.progressbar .progressbar-inner');
                 var progress = parseFloat(response.progress.replace(/,/, '.'));
                 $bar.animate({
                     'width': progress + '%'
-                });;
+                });
                 self.debug.memory = Math.max(0.0, self.debug.memory, parseFloat(response.memory) || 0);
                 self.debug.memory_avg = Math.max(0.0, self.debug.memory_avg, parseFloat(response.memory_avg) || 0);
 
                 var title = 'Memory usage: ' + self.debug.memory_avg + '/' + self.debug.memory + 'MB';
-                title += ' (' + (1 + parseInt(response.stage_num)) + '/' + response.stage_count + ')'
+                title += ' (' + (1 + parseInt(response.stage_num)) + '/' + response.stage_count + ')';
 
                 var message = response.progress + ' — ' + response.stage_name;
 
@@ -174,30 +179,31 @@ $.importexport.plugins.migrate = {
             var ajax_url = url;
             var id = processId;
 
-            self.ajax_pull[id].push(setTimeout(function() {
+            self.ajax_pull[id].push(setTimeout(function () {
                 $.ajax({
-                    url: ajax_url+'&t='+self.date.getTime(),
+                    url: ajax_url + '&t=' + self.date.getTime(),
                     data: {
                         'processId': id
                     },
                     dataType: 'json',
                     type: 'post',
-                    success: function(response) {
+                    success: function (response) {
                         self.progressHandler(url, response ? response.processId || id : id, response);
                     },
-                    error: function(jqXHR, textStatus, errorThrown) {
+                    error: function () {
                         self.progressHandler(url, id, null);
                     }
                 });
             }, 1000));
         }
     }
-}
-$("#s-plugin-migrate").submit(function() {
+};
+$("#s-plugin-migrate").submit(function () {
+    var $group = $('#plugin-migrate-transport-group');
     try {
         var $form = $(this);
         if (!$.importexport.plugins.migrate.validate) {
-            $('#plugin-migrate-transport-group :input').attr('disabled', false);
+            $group.find(':input').attr('disabled', false);
             var item, data = $form.serializeArray();
             var params = {};
             while (item = data.shift()) {
@@ -208,9 +214,9 @@ $("#s-plugin-migrate").submit(function() {
             $.shop.trace('validate', params);
             $form.find(':submit:first').after(loading);
             $form.find(':input, :submit').attr('disabled', true);
-            $('#plugin-migrate-transport-group :input').attr('disabled', true);
+            $group.find(':input').attr('disabled', true);
 
-            $("#plugin-migrate-transport-fields").load(url, params, function() {
+            $("#plugin-migrate-transport-fields").load(url, params, function () {
                 $("#plugin-migrate-submit").show();
                 $form.find(':submit:first ~ i.loading').remove();
                 $form.find('#plugin-migrate-transport-fields :input, :submit').attr('disabled', false);
@@ -220,8 +226,8 @@ $("#s-plugin-migrate").submit(function() {
             $.importexport.plugins.migrate.migrateHandler(this);
         }
     } catch (e) {
-        $('#plugin-migrate-transport-group :input').attr('disabled', false);
-        $.shop.error('Exception: ', e.message, e);
+        $group.find(':input').attr('disabled', false);
+        $.shop.error('Exception: ' + e.message, e);
     }
     return false;
 });

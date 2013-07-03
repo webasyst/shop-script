@@ -4,25 +4,26 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
 {
     private $stage_data_stack = array();
     const TIMEOUT_SOCKET = 15;
+
     protected function initOptions()
     {
         parent::initOptions();
         $this->addOption('url', array(
-            'title'        => _wp('Data access URL'),
-            'description'  => _wp('For WebAsyst <strong>PHP software</strong> installed on your server:<br /> 1. Download data access script <a href="http://www.webasyst.com/wa-data/public/site/downloads/old-webasyst-export-php.zip">export.php</a>, and upload it to your Webasyst published/ folder via FTP.<br /> 2. Enter the complete URL to this file, which should look like this: <strong>http://YOUR_WEBASYST_ROOT_URL/published/export.php</strong><br /><br /> For <strong>hosted accounts</strong>: get your Secure Data Access URL in your ACCOUNT.webasyst.net backend’s “Account (link in the top right corner) &gt; System Settings” page.'),
-            'value'        => 'http://',
+            'title' => _wp('Data access URL'),
+            'description' => _wp('For WebAsyst <strong>PHP software</strong> installed on your server:<br /> 1. Download data access script <a href="http://www.webasyst.com/wa-data/public/site/downloads/old-webasyst-export-php.zip">export.php</a>, and upload it to your Webasyst published/ folder via FTP.<br /> 2. Enter the complete URL to this file, which should look like this: <strong>http://YOUR_WEBASYST_ROOT_URL/published/export.php</strong><br /><br /> For <strong>hosted accounts</strong>: get your Secure Data Access URL in your ACCOUNT.webasyst.net backend’s “Account (link in the top right corner) &gt; System Settings” page.'),
+            'value' => 'http://',
             'control_type' => waHtmlControl::INPUT,
         ));
         $this->addOption('login', array(
-            'title'        => _wp('Login'),
-            'value'        => '',
-            'description'  => _wp('WebAsyst user login'),
+            'title' => _wp('Login'),
+            'value' => '',
+            'description' => _wp('WebAsyst user login'),
             'control_type' => waHtmlControl::INPUT,
         ));
         $this->addOption('password', array(
-            'title'        => _wp('Password'),
-            'value'        => '',
-            'description'  => _wp('WebAsyst user password'),
+            'title' => _wp('Password'),
+            'value' => '',
+            'description' => _wp('WebAsyst user password'),
             'control_type' => waHtmlControl::PASSWORD,
         ));
     }
@@ -47,7 +48,9 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
 
     public function init()
     {
-
+        if (!$this->curlAvailable()) {
+            throw new waException('PHP extension curl not loaded');
+        }
     }
 
     protected function query($sql, $one = true)
@@ -55,7 +58,7 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
         $debug = array();
         try {
             $sql = trim(preg_replace("/^select/is", '', $sql));
-            $url = $this->getURL("sql=".($one ? '1' : '0').urlencode(base64_encode($sql)));
+            $url = $this->getURL("sql=" . ($one ? '1' : '0') . urlencode(base64_encode($sql)));
             $debug['URL'] = self::logURL($url);
             $debug['method'] = __METHOD__;
             $result = '';
@@ -88,11 +91,11 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
 
     protected function moveFile($path, $target, $public = true)
     {
-        $url = $this->getURL("file=SC".urlencode(base64_encode($path)));
+        $url = $this->getURL("file=SC" . urlencode(base64_encode($path)));
         if ($public) {
             $url .= '&public=1';
         }
-        $this->log('URL:'.self::logURL($url), self::LOG_DEBUG);
+        $this->log('URL:' . self::logURL($url), self::LOG_DEBUG);
         $target_stream = @fopen($target, 'wb');
 
         try {
@@ -100,7 +103,7 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
         } catch (Exception $ex) {
             if ($ex->getCode() == 502) {
                 $this->log(array(
-                    'url'     => self::logURL($url),
+                    'url' => self::logURL($url),
                     'message' => $ex->getMessage(),
                     $url), self::LOG_ERROR);
                 sleep(5);
@@ -125,8 +128,8 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
         } else {
             $url .= '&';
         }
-        $url .= 'auth='.urlencode(base64_encode($this->getOption('login').':'.$this->getOption('password')));
-        $url .= '&'.$params;
+        $url .= 'auth=' . urlencode(base64_encode($this->getOption('login') . ':' . $this->getOption('password')));
+        $url .= '&' . $params;
         return $url;
     }
 
@@ -134,21 +137,27 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
     {
         $ch = null;
         try {
-            $this->log(__METHOD__.' :download via cURL', self::LOG_DEBUG, array('source' => self::logURL($url), ));
+            $this->log(__METHOD__ . ' :download via cURL', self::LOG_DEBUG, array('source' => self::logURL($url),));
             $content_length = 0;
             $download_content_length = 0;
             $ch = $this->getCurl($url);
 
             $this->stage_data_stack = array(
-                'stream'              => & $target_stream,
-                'stage_value'         => & $content_length,
+                'stream' => & $target_stream,
+                'stage_value' => & $content_length,
                 'stage_current_value' => & $download_content_length,
             );
+            $post = array();
+            parse_str(parse_url($url, PHP_URL_QUERY), $post);
+            if (!empty($post['sql'])) {
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, array('sql' => $post['sql']));
+            }
 
-            $res = curl_exec($ch);
+            curl_exec($ch);
             if ($errno = curl_errno($ch)) {
                 $url = self::logURL($url);
-                $message = "Curl error: {$errno}# ".curl_error($ch)." at [{$url}]";
+                $message = "Curl error: {$errno}# " . curl_error($ch) . " at [{$url}]";
                 throw new waException($message);
             }
 
@@ -156,10 +165,10 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
             if ($status != 200) {
                 throw new waException(sprintf(_wp("Invalid server response with code %d"), $status), $status);
             }
-            curl_close($ch);
             if ($target_stream && is_resource($target_stream)) {
                 fclose($target_stream);
             }
+            curl_close($ch);
 
             return $content_length;
         } catch (waException $ex) {
@@ -174,9 +183,14 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
         }
     }
 
+    /**
+     * @param $ch
+     * @param string $chunk
+     * @return int
+     * @throws waException
+     */
     public function curlWriteHandler($ch, $chunk)
     {
-        $size = 0;
         if ($this->stage_data_stack['stream'] && is_resource($this->stage_data_stack['stream'])) {
             $size = fwrite($this->stage_data_stack['stream'], $chunk);
             $this->stage_data_stack['stage_current_value'] += $size;
@@ -187,16 +201,16 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
         } else {
             throw new waException('Invalid write stream');
         }
-        $state_data = array(
-            'stage_value'         => $this->stage_data_stack['stage_value'],
-            'stage_current_value' => $this->stage_data_stack['stage_current_value'],
-        );
         return $size;
     }
 
+    /**
+     * @param $ch
+     * @param string $header
+     * @return int
+     */
     public function curlHeaderHandler($ch, $header)
     {
-        //$this->log(__METHOD__, self::LOG_DEBUG, $header);
         $header_matches = null;
         if (preg_match('/content-length:\s*(\d+)/i', $header, $header_matches)) {
             $this->stage_data_stack['stage_value'] = intval($header_matches[1]);
@@ -212,7 +226,7 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
     private function getCurl($url, $curl_options = array())
     {
         $ch = null;
-        if (!extension_loaded('curl') || !function_exists('curl_init')) {
+        if (!$this->curlAvailable()) {
             throw new waException(_wp('PHP extension curl not loaded'));
         }
         if (!($ch = curl_init())) {
@@ -246,17 +260,11 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
             }
         }
         $curl_options[CURLOPT_URL] = $url;
-        $options_fields = array(
-            'host'     => 'PROXY_HOST',
-            'port'     => 'PROXY_PORT',
-            'user'     => 'PROXY_USER',
-            'password' => 'PROXY_PASS',
-        );
         $options = array();
 
         if (isset($options['host']) && strlen($options['host'])) {
             $curl_options[CURLOPT_HTTPPROXYTUNNEL] = true;
-            $curl_options[CURLOPT_PROXY] = sprintf("%s%s", $options['host'], (isset($options['port']) && $options['port']) ? ':'.$options['port'] : '');
+            $curl_options[CURLOPT_PROXY] = sprintf("%s%s", $options['host'], (isset($options['port']) && $options['port']) ? ':' . $options['port'] : '');
 
             if (isset($options['user']) && strlen($options['user'])) {
                 $curl_options[CURLOPT_PROXYUSERPWD] = sprintf("%s:%s", $options['user'], $options['password']);

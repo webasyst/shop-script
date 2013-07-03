@@ -1,19 +1,22 @@
 $(function() {
-    var paging = $('.lazyloading-paging').hide();
+    var paging = $('.lazyloading-paging');
     if (!paging.length) {
         return;
     }
+    var current = paging.find('li.selected');
+    if (current.children('a').text() != '1') {
+        return
+    }
+    paging.hide();
     var loading = $('<div><i class="icon16 loading"></i>Loading...</div>').hide().insertBefore(paging);
-
     var win = $(window);
     var product_list = $('#product-list .product-list');
-    var current = paging.find('li.selected');
     var next = current.next();
 
     win.lazyLoad('stop');
     if (next.length) {
         win.lazyLoad({
-            container: $('#main'),
+            container: $('#main > .content'),
             load: function() {
                 win.lazyLoad('sleep');
                 var url = next.find('a').attr('href');

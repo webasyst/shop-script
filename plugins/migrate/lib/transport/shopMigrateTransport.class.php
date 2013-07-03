@@ -29,6 +29,7 @@ abstract class shopMigrateTransport implements Serializable
      * Get migrate transport instance
      * @param string $id transport id
      * @param array $options
+     * @throws waException
      * @return shopMigrateTransport
      */
     public static function getTransport($id, $options = array())
@@ -78,6 +79,9 @@ abstract class shopMigrateTransport implements Serializable
 
     abstract public function step(&$current, &$count, &$processed, $stage, &$error);
 
+    /**
+     * @return string[string]
+     */
     abstract public function count();
     abstract public function getStageName($stage);
     abstract public function getStageReport($stage, $data);
@@ -120,6 +124,7 @@ abstract class shopMigrateTransport implements Serializable
 
     /**
      *
+     * @param string $file_prefix
      * @return string
      */
     protected function getTempPath($file_prefix = null)

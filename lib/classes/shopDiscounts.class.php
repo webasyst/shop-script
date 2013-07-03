@@ -4,6 +4,7 @@ class shopDiscounts
 {
     /**
      * @param array $order items, total
+     * @param bool $apply
      * @return float total discount value in currency of the order
      */
     public static function calculate(&$order, $apply = false)
