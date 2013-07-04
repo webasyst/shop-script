@@ -94,9 +94,11 @@ $(function () {
         $.post($(this).data('url'), {product_id: $(this).data('product_id')}, function (response) {
             if (response.status == 'ok') {
                 var cart_total = $(".cart-total");
-                $(".content").parent().load(location.href, function () {
+                $(".container > .content").load(location.href, function () {
                     cart_total.closest('#cart').removeClass('empty');
                     cart_total.html(response.data.total);
+                    $('input[type="button"]').addClass('facebook-button');
+                    $('input[type="submit"]').addClass('facebook-button');
                 });
             }
         }, 'json');
