@@ -133,7 +133,7 @@ class shopProductAction extends waViewAction
                         $routing->setRoute($r, $domain);
                         $params = array('product_url' => $stuff);
                         if ($product->category_id && isset($categories[$product->category_id])) {
-                            if ($r['url_type'] == 1) {
+                            if (!empty($r['url_type']) && ($r['url_type'] == 1)) {
                                 $params['category_url'] = $categories[$product->category_id]['url'];
                             } else {
                                 $params['category_url'] = $categories[$product->category_id]['full_url'];

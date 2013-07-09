@@ -54,6 +54,7 @@ class shopProductPagesModel extends waModel
         }
         $product_id = (int)$data['product_id'];
         $data['create_datetime'] = date('Y-m-d H:i:s');
+        $data['update_datetime'] = date("Y-m-d H:i:s");
         $data['create_contact_id'] = wa()->getUser()->getId();
         $sort = (int)$this->query("SELECT MAX(sort) sort FROM `{$this->table}` WHERE product_id = $product_id ")->fetchField('sort');
         $data['sort'] = $sort;

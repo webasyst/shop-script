@@ -42,6 +42,7 @@ class shopDimensionValue implements ArrayAccess
     {
 
     }
+
     public function offsetExists($offset)
     {
         return true;
@@ -49,7 +50,7 @@ class shopDimensionValue implements ArrayAccess
 
     public function __toString()
     {
-        return sprintf($this->format, $this->value, _w($this->unit));
+        return ($this->value === null) ? '' : sprintf($this->format, $this->value, _w($this->unit));
     }
 
     public function format($f)
@@ -59,7 +60,12 @@ class shopDimensionValue implements ArrayAccess
 
     public function convert($unit)
     {
-        $value = shopDimension::getInstance()->convert($this->value,$this->type, $unit);
+        $value = shopDimension::getInstance()->convert($this->value, $this->type, $unit);
         return sprintf($this->format, $value, $unit);
+    }
+
+    public function is_null()
+    {
+        return is_null($this->value);
     }
 }

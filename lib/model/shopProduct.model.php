@@ -20,16 +20,19 @@ class shopProductModel extends waModel
     {
         $type_model = new shopTypeModel();
         $types = $type_model->getTypes();
-        if (empty($product_ids) || empty($types)) {
-            return false;
-        }
         $type_ids = array_keys($types);
-
-        $delete_ids = array_keys($this->query("
-            SELECT id FROM `{$this->table}`
-            WHERE id IN(" . implode(',', $product_ids) . ")
-                AND type_id IN (" . implode(',', $type_ids) . ")"
-        )->fetchAll('id'));
+        if (wa('shop')->getUser()->getRights('shop', 'type.all')) {
+            $delete_ids = $product_ids;
+        } else {
+            if (empty($product_ids) || empty($types)) {
+                return false;
+            }
+            $delete_ids = array_keys($this->query("
+                SELECT id FROM `{$this->table}`
+                WHERE id IN(" . implode(',', $product_ids) . ")
+                    AND type_id IN (" . implode(',', $type_ids) . ")"
+            )->fetchAll('id'));
+        }
 
         // remove files
         foreach ($delete_ids as $product_id) {
@@ -295,6 +298,7 @@ class shopProductModel extends waModel
      *
      * @param null|int|array $product_ids  filter by product ID
      * @param null|int|array $category_ids filter by product.category_id
+     * @return bool|resource
      */
     public function correctMainCategory($product_ids = null, $category_ids = null)
     {

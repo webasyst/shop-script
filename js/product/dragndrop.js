@@ -266,7 +266,15 @@
                     if (type != self.attr('data-type')) {
                         return false;
                     }
-                    var id = dr.attr('id').split('-')[1];
+
+                    var getRawId = function(id) {
+                        var parts = id.split('-');
+                        parts.shift();
+                        return parts.join('-');
+                    };
+
+
+                    var id = getRawId(dr.attr('id'));
                     var prev = self.prev('li');
                     var sep  = dr.next();
                     var home = dr.prev();
@@ -280,7 +288,7 @@
 
                     var parent_list = dr.parent('ul');
                     var li_count = parent_list.children('li.dr[id!=category-'+id+']').length;
-                    var old_parent_id = parseInt(parent_list.parent().attr('id').split('-')[1], 10) || 0;
+                    var old_parent_id = parseInt(getRawId(parent_list.parent().attr('id')), 10) || 0;
 
                     self.after(sep).after(dr);
 
@@ -288,12 +296,12 @@
                     if (parent.is('li.dr') || parent.is('.s-collection-list')) {
                         var parent_id = 0;
                         if (!parent.is('.s-collection-list')) {
-                            parent_id = parseInt(parent.attr('id').split('-')[1], 10) || 0;
+                            parent_id = parseInt(getRawId(parent.attr('id')), 10) || 0;
                         }
                         var next = dr.nextAll('li.dr:first');
                         var before_id = null;
                         if (next.length) {
-                            before_id = next.attr('id').split('-')[1] || null;
+                            before_id = getRawId(next.attr('id')) || null;
                         }
 
                         if (!li_count && old_parent_id !== parent_id) {

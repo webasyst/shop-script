@@ -5,7 +5,7 @@ class shopFeatureValuesDoubleModel extends shopFeatureValuesModel
 
     protected function getSearchCondition()
     {
-        return '= :value';
+        return '`value`= :value';
     }
 
     protected function parseValue($value, $type)

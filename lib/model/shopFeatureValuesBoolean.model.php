@@ -1,16 +1,18 @@
 <?php
 class shopFeatureValuesBooleanModel extends shopFeatureValuesModel
 {
+    const VALUE_YES = 1;
+    const VALUE_NO = 0;
     protected $table = null;
 
     protected function getSearchCondition()
     {
-        return '= i:value';
+        return '`value`= i:value';
     }
 
     protected function parseValue($value, $type)
     {
-        return array('value' => ($value === "") ? null : (empty($value) ? 0 : 1));
+        return array('value' => ($value === "") ? null : (empty($value) ? self::VALUE_NO : self::VALUE_YES));
     }
 
     protected function getValue($row)
@@ -38,8 +40,8 @@ class shopFeatureValuesBooleanModel extends shopFeatureValuesModel
                 break;
             case 'feature_id':
                 $raw_values = array(
-                    0 => $this->getValue($this->parseValue(0, null)),
-                    1 => $this->getValue($this->parseValue(1, null)),
+                    0 => $this->getValue($this->parseValue(false, null)),
+                    1 => $this->getValue($this->parseValue(true, null)),
                 );
                 foreach ((array)$value as $id) {
                     $values[$id] = $raw_values;
@@ -103,6 +105,11 @@ class shopFeatureValuesBooleanModel extends shopFeatureValuesModel
     public function countByField($field, $value = null)
     {
         return 2;
+    }
+
+    public function deleteByField($field, $value = null)
+    {
+        return true;
     }
 
 }

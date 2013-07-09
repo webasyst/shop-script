@@ -23,6 +23,7 @@ class shopSettingsFeaturesAction extends waViewAction
         }
 
         $this->view->assign('product_types', $types);
+        $this->view->assign('types_per_page', $this->getConfig()->getOption('types_per_page'));
         $this->view->assign('features', $features);
         $this->view->assign('icons', (array)$this->getConfig()->getOption('type_icons'));
     }

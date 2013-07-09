@@ -379,9 +379,13 @@
                             list.trigger('add', [new_item, type]);
                         };
 
-                        $.categories_tree.expand(handler, function() {
+                        if (type == 'category') {
+                            $.categories_tree.expand(handler, function() {
+                                add();
+                            });
+                        } else {
                             add();
-                        });
+                        }
 
                     });
                     return false;

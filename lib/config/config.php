@@ -7,6 +7,7 @@ return array(
     'products_default_view'    => 'table',
     'orders_default_view'      => 'split',
     'orders_per_page'          => array('split' => 15, 'table' => 30),
+    'types_per_page'          => 25,
     'orders_update_list'       => 60000, // miliseconds
 
     'image_sizes'              => array(),

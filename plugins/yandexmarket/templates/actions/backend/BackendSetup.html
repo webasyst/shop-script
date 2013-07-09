@@ -18,6 +18,7 @@
                 </div>
             </div>
         </div>
+
         {if count($settlements)>1}
         <div class="field-group">
             <div class="field">
@@ -34,7 +35,8 @@
                 </div>
             </div>
         </div>
-        {elseif ($route=reset($settlements))}
+        {elseif reset($settlements)}
+        {$route = reset($settlements)}
         <input type="hidden" value="{$route|escape}" name="domain">
         {/if}
         <div class="clear-left"></div>
@@ -290,7 +292,7 @@
                         <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
                         <div class="clear"></div>
                             <span class="progressbar-description"></span>
-                        <br clear="left" />
+                        <br style="clear:left;" />
                         <br>
                         <span class="small italic">
                             Не закрывайте окно браузера и не покидайте страницу до тех пор, пока процесс экспорта не будет завершен

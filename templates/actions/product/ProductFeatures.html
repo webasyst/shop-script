@@ -62,13 +62,25 @@
 	{*$feature.selectable*}
 
     	{if strpos($feature.type,'dimension') === 0}
-    	{$units = shopDimension::getUnits($feature.type)}
+            {$units = shopDimension::getUnits($feature.type)}
             <input id="product-features-{$code}" type="text" value="{if !empty($product_features[$code])}{$product_features[$code]->value}{/if}" name="product[features][{$code}][value]">
             <select  name="product[features][{$code}][unit]">
-    			{foreach $units as $unit}
+                {foreach $units as $unit}
                     <option value="{$unit.value|escape}" title="{$unit.title|escape}"{if !empty($product_features[$code]) && ($product_features[$code]->unit == $unit.value)} selected="selected"{/if}>{$unit.title|escape}</option>
-    			{/foreach}
+                {/foreach}
             </select>
+        {elseif strpos($feature.type,'range') === 0}
+            <input id="product-features-{$code}" type="text" value="{if !empty($product_features[$code]) && !$product_features[$code]->begin->is_null()}{$product_features[$code]->begin->value}{/if}" name="product[features][{$code}][value][begin]">
+            —
+            <input id="product-features-{$code}" type="text" value="{if !empty($product_features[$code]) && !$product_features[$code]->end->is_null()}{$product_features[$code]->end->value}{/if}" name="product[features][{$code}][value][end]">
+            {$units = shopDimension::getUnits($feature.type)}
+            {if $units}
+            <select  name="product[features][{$code}][unit]">
+                {foreach $units as $unit}
+                    <option value="{$unit.value|escape}" title="{$unit.title|escape}"{if !empty($product_features[$code]) && ($product_features[$code]->unit == $unit.value)} selected="selected"{/if}>{$unit.title|escape}</option>
+                {/foreach}
+            </select>
+            {/if}
         {elseif strpos($feature.type,'text') === 0}
             <textarea id="product-features-{$code}" name="product[features][{$code}]">{if !empty($product_features[$code])}{$product_features[$code]|escape}{/if}</textarea>
 
@@ -140,6 +152,7 @@
         <label>
             <input type="radio" name="{literal}product[features][{%=o.feature.input%}]{/literal}" value="1" checked="checked">
             [`Yes`]
+
         </label><br>
         <label>
             <input type="radio" name="{literal}product[features][{%=o.feature.input%}]{/literal}" value="0">
@@ -153,22 +166,46 @@
 
     {$dimension = shopDimension::getInstance()}
     {$dimensions = $dimension->getList()}
-    {foreach $dimensions as $code=>$unit}
-    <!-- {capture name="feature-value-dimension-`$code`-template-js"} -->
-    <input type="text" name="{literal}product[features][{%=o.feature.input%}][value]{/literal}" value="" placeholder="{$unit.name}">
+        {foreach $dimensions as $code=>$unit}
+                <!-- {capture name="feature-value-dimension-`$code`-template-js"} -->
+            <input type="text" name="{literal}product[features][{%=o.feature.input%}][value]{/literal}" value="" placeholder="{$unit.name}">
 
-    {$units = shopDimension::getUnits($code)}
-    {if $units}
-        <select name="{literal}product[features][{%=o.feature.input%}][unit]{/literal}">
-        {foreach $units as $unit}
-            <option value="{$unit.value|escape}">{$unit.title|escape}</option>
+            {$units = shopDimension::getUnits($code)}
+            {if $units}
+                <select name="{literal}product[features][{%=o.feature.input%}][unit]{/literal}">
+                    {foreach $units as $unit}
+                        <option value="{$unit.value|escape}">{$unit.title|escape}</option>
+                    {/foreach}
+                </select>
+            {/if}
+            <!-- {/capture} -->
         {/foreach}
-        </select>
-    {/if}
-    <!-- {/capture} -->
-    {/foreach}
 
-    {include file="../../includes/featuresValuesTypes.html" inline base="/product/`$product.id`/edit/features/feature/type" class="js-action" link=true}
+        <!-- {capture name="feature-value-range-double-template-js"} -->
+    <input type="text" name="{literal}product[features][{%=o.feature.input%}][value][begin]{/literal}" value="" placeholder="[`Feature value`]">
+    <span class="input">—</span>
+    <input type="text" name="{literal}product[features][{%=o.feature.input%}][value][end]{/literal}" value="" placeholder="[`Feature value`]">
+
+        <!-- {/capture} -->
+
+        {foreach $dimensions as $code=>$unit}
+                <!-- {capture name="feature-value-range-`$code`-template-js"} -->
+            <input type="text" name="{literal}product[features][{%=o.feature.input%}][value][begin]{/literal}" value="" placeholder="{$unit.name}">
+            <span class="input">—</span>
+            <input type="text" name="{literal}product[features][{%=o.feature.input%}][value][end]{/literal}" value="" placeholder="{$unit.name}">
+
+            {$units = shopDimension::getUnits($code)}
+            {if $units}
+                <select name="{literal}product[features][{%=o.feature.input%}][unit]{/literal}">
+                    {foreach $units as $unit}
+                        <option value="{$unit.value|escape}">{$unit.title|escape}</option>
+                    {/foreach}
+                </select>
+            {/if}
+            <!-- {/capture} -->
+        {/foreach}
+
+        {include file="../../includes/featuresValuesTypes.html" inline base="/product/`$product.id`/edit/features/feature/type" class="js-action" link=true}
    </div>
 </div>
 <!-- {/capture} -->
@@ -197,12 +234,14 @@ $.product = $.extend(true, $.product, {
 {literal}
 $.product.init({
     'value_templates':{{/literal}
-        'boolean':'-boolean',
-        'text':'-text',
         {$dimensions = $dimension->getList()}
-        {foreach $dimensions as $code => $var}'dimension.{$code|escape}':'-dimension-{$code|escape}'{if !$var@last},{/if}
-
+        {foreach $dimensions as $code => $var}'dimension.{$code|escape}':'-dimension-{$code|escape}',
+        {/foreach}
+        {foreach $dimensions as $code => $var}'range.{$code|escape}':'-range-{$code|escape}',
         {/foreach}{literal}
+        'range.double':'-range-double',
+        'boolean':'-boolean',
+        'text':'-text'
      }
 },'features');{/literal}
 </script>

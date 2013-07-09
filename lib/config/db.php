@@ -163,6 +163,21 @@ return array(
             'values' => array('feature_id', 'value', 'unique' => 1),
         ),
     ),
+    'shop_feature_values_range' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'feature_id' => array('int', 11, 'null' => 0),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
+        'begin' => array('double'),
+        'end' => array('double'),
+        'unit' => array('varchar', 255, 'null' => 0),
+        'type' => array('varchar', 16, 'null' => 0),
+        'begin_base_unit' => array('double'),
+        'end_base_unit' => array('double'),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+            'feature_id' => array('feature_id', 'begin', 'end', 'unit', 'type', 'unique' => 1),
+        ),
+    ),
     'shop_feature_values_text' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
         'feature_id' => array('int', 11, 'null' => 0),
@@ -658,6 +673,7 @@ return array(
         'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => array('type_id', 'feature_id'),
+            'feature_id' => 'feature_id',
         ),
     ),
     'shop_type_services' => array(

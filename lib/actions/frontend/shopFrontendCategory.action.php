@@ -15,7 +15,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
             throw new waException('Category not found', 404);
         }
 
-        $category['subcategories'] = $category_model->getSubcategories($category, true);
+        $category['subcategories'] = $category_model->getSubcategories($category, $route);
 
         if ($category['filter']) {
             $filter_ids = explode(',', $category['filter']);

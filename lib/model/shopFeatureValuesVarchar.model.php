@@ -5,7 +5,7 @@ class shopFeatureValuesVarcharModel extends shopFeatureValuesModel
 
     protected function getSearchCondition()
     {
-        return 'LIKE s:search_value';
+        return '`value` LIKE s:search_value';
     }
 
     protected function parseValue($value, $type)

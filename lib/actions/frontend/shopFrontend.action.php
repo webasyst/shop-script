@@ -80,6 +80,16 @@ class shopFrontendAction extends waViewAction
          */
         $this->view->assign('frontend_nav', wa()->event('frontend_nav'));
 
+        // set globals
+        $params = waRequest::param();
+        foreach ($params as $k => $v) {
+            if (in_array($k, array('url', 'module', 'action', 'meta_keywords', 'meta_description', 'private',
+                'url_type', 'type_id', 'payment_id', 'shipping_id', 'currency', 'stock_id'))) {
+                unset($params[$k]);
+            }
+        }
+        $this->view->getHelper()->globals($params);
+
         try {
             return parent::display(false);
         } catch (waException $e) {

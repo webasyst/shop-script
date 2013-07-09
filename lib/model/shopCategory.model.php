@@ -22,6 +22,12 @@ class shopCategoryModel extends waNestedSetModel
         return parent::getAll($key, $normalize);
     }
 
+    public function getByName($name)
+    {
+        $sql = "SELECT * FROM ".$this->table." WHERE name LIKE '%".$this->escape($name, 'like')."%'";
+        return $this->query($sql)->fetchAll();
+    }
+
 //     /**
 //      * @return array
 //      */
@@ -112,8 +118,10 @@ class shopCategoryModel extends waNestedSetModel
 
     /**
      * Get one level descendants
-     * @param  int|array $category
-     * @return array|boolean
+     *
+     * @param int|array $category
+     * @param bool|string $public_only
+     * @return array
      */
     public function getSubcategories($category, $public_only = false)
     {
@@ -124,6 +132,9 @@ class shopCategoryModel extends waNestedSetModel
                 WHERE `{$this->left}` > i:left AND `{$this->right}` < i:right AND `{$this->depth}` = i:depth";
         if ($public_only) {
             $sql .= " AND status = 1";
+            if (is_string($public_only)) {
+                $sql .= " AND (route IS NULL OR route = '".$this->escape($public_only)."')";
+            }
         }
         $sql .= " ORDER BY `{$this->left}`";
 

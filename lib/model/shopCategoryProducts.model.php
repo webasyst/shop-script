@@ -137,22 +137,36 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
         if (!$category_id) {
             return false;
         }
+
+        $category_model = new shopCategoryModel();
+
+
         if ($product_ids === true) {
+
+            $product_ids = array_keys($this->select('product_id')->
+                where('category_id = :c_id', array('c_id' => $category_id))->
+                fetchAll('product_id', true));
+
             if (!$this->deleteByField('category_id', $category_id)) {
                 return false;
             }
+            if (!$category_model->updateById($category_id, array('count' => 0))) {
+                return false;
+            }
+
         } else {
             if (!$this->deleteByField(array('category_id' => $category_id, 'product_id' => $product_ids))) {
                 return false;
             }
+            if (!$category_model->recount($category_id)) {
+                return false;
+            }
         }
 
-        $category_model = new shopCategoryModel();
-        if ($product_ids === true) {
-            return $category_model->updateById($category_id, array('count' => 0));
-        } else {
-            return $category_model->recount($category_id);
-        }
+        $product_model = new shopProductModel();
+        $product_model->correctMainCategory($product_ids);
+
+        return true;
     }
 
     /**

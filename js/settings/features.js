@@ -25,7 +25,7 @@ if (typeof($) != 'undefined') {
             'revert': false,
             'show_all_features': true,
             'show_all_types': true,
-            'types_per_page':null
+            'types_per_page': null
 
         },
         features_timer: {
@@ -115,7 +115,7 @@ if (typeof($) != 'undefined') {
 
         featuresTypeFilterApply: function (val) {
             val = val.toLowerCase();
-            $.shop.trace('$.settings.featuresTypeFilterApply', [val,this.features_options.filter]);
+            $.shop.trace('$.settings.featuresTypeFilterApply', [val, this.features_options.filter]);
             if (val != this.features_options.filter) {
                 this.features_options.filter = val;
                 if (val) {
@@ -142,7 +142,7 @@ if (typeof($) != 'undefined') {
                         var counter = this.features_options.types_per_page;
                         this.$features_types.find('>li.js-type-item:hidden').each(function () {
                             $(this).show();
-                            $.shop.trace('$.settings.featuresTypeFilterApply cnt',counter);
+                            $.shop.trace('$.settings.featuresTypeFilterApply cnt', counter);
                             return (--counter > 0);
                         });
                         this.featuresTypeShow(false);
@@ -198,7 +198,7 @@ if (typeof($) != 'undefined') {
                 self.featuresFeatureValueTypeChange($(this));
             });
 
-            this.$features_list.on('change', ':input.js-feature-subtypes-control:first', function () {
+            this.$features_list.on('change', ':input.js-feature-subtypes-control', function () {
                 self.featuresFeatureValueTypeChainChange($(this));
             });
 
@@ -307,7 +307,7 @@ if (typeof($) != 'undefined') {
                 'accept-deleted': function () {
                     return $(this).is('li:not(.not-sortable)');
                 },
-                'accept':'tr',
+                'accept': 'tr',
                 'activeClass-deleted': "ui-state-hover",
                 'hoverClass': 'drag-newparent',
                 'tolerance': 'pointer',
@@ -326,43 +326,43 @@ if (typeof($) != 'undefined') {
             /* change selected type and filter features rows */
             $.shop.trace('$.settings.featuresTypeSelect', type);
             this.$features_types.find('> li.selected:first').removeClass('selected');
-            if (!type && !this.features_options.show_all_features) {
-                $('div.s-settings-form:first > div:visible:not(.clear)').hide();
-            } else {
-
-                if (this.$features_types.find('> li[data-type="' + type + '"]:first').length) {
-                    var name = this.$features_types.find('> li[data-type="' + type + '"]:first').addClass('selected').find('span.js-type-name').text();
-                    $('#s-settings-features-type-name').text(name.replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, ''));
-                    if (lazy) {
-                        this.featuresFilter(type);
-                    } else {
-                        this.$features_list.hide();
-                        $('div.s-settings-form:first > div.js-loading:first').show();
-                        var self = this;
-                        //TODO show loading
-                        $.get('?module=settings&action=featuresFeatureList',
-                            {'type': type},function (data) {
-                                $.shop.trace('$.settings.featuresTypeSelect ajax');
-                                self.$features_list.find('> tbody:first').html(data);
-                            }, 'html').complete(function () {
-                                self.$features_list.show();
-                                $('div.s-settings-form:first > div:hidden:not(.js-loading)').show();
-                                $('div.s-settings-form:first > div.js-loading:first').hide();
-                                $('html, body').animate({
-                                    scrollTop: 0
-                                }, 200);
-                                setTimeout(function () {
-                                    self.call('featuresInitList', []);
-                                }, 50);
-                                self.featuresHelper.featureCountByType(type);
-                            }).error(function () {
-
-                            });
-                    }
+            if (this.$features_types.find('> li[data-type="' + type + '"]:first').length) {
+                var name = this.$features_types.find('> li[data-type="' + type + '"]:first').addClass('selected').find('span.js-type-name').text();
+                $('#s-settings-features-type-name').text(name.replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, ''));
+                if (lazy) {
+                    this.featuresFilter(type);
                 } else {
-                    window.location.hash = '#/features/';
+                    this.featuresTypeLoadList(type);
                 }
+            } else {
+                window.location.hash = '#/features/';
             }
+        },
+
+        featuresTypeLoadList: function (type) {
+
+            this.$features_list.hide();
+            $('div.s-settings-form:first > div.js-loading:first').show();
+            var self = this;
+            //TODO show loading
+            $.get('?module=settings&action=featuresFeatureList',
+                {'type': type},function (data) {
+                    $.shop.trace('$.settings.featuresTypeSelect ajax');
+                    self.$features_list.find('> tbody:first').html(data);
+                }, 'html').complete(function () {
+                    self.$features_list.show();
+                    $('div.s-settings-form:first > div:hidden:not(.js-loading)').show();
+                    $('div.s-settings-form:first > div.js-loading:first').hide();
+                    $('html, body').animate({
+                        scrollTop: 0
+                    }, 200);
+                    setTimeout(function () {
+                        self.call('featuresInitList', []);
+                    }, 50);
+                    self.featuresHelper.featureCountByType(type);
+                }).error(function () {
+
+                });
         },
 
         featuresFeatureTypeChangeAllowed: function (current, target) {
@@ -712,11 +712,11 @@ if (typeof($) != 'undefined') {
          * @param {Number} type Type's ID
          * @return {Boolean}
          */
-        featuresTypeDelete: function (type) {
-            type = this.featuresHelper.type(type);
+        featuresTypeDelete: function () {
+            var type = this.featuresHelper.type();
             $.shop.trace('$.settings.featuresTypeDelete', [type, this.path]);
             var self = this;
-            if (type && confirm) {
+            if (type) {
                 $.post('?module=settings&action=featuresTypeDelete', {
                     'id': type
                 }, function (response) {
@@ -921,13 +921,14 @@ if (typeof($) != 'undefined') {
 
             this.featuresFeatureChange($feature, feature);
 
-            var $select = $feature.find(':input.js-feature-subtypes-control:first');
+            var $select = $feature.find(':input.js-feature-subtypes-control').each(function () {
+                if (feature.type == $(this).data('subtype')) {
+                    $(this).show().trigger('change').focus();
+                } else {
+                    $(this).hide();
+                }
+            });
 
-            if (feature.type.match(/\*$/)) {
-                $select.show().trigger('change').focus();
-            } else {
-                $select.hide();
-            }
             // retrieve input value controls
             $.shop.trace('$.settings.featuresFeatureValueTypeChange', feature);
             return false;

@@ -1,8 +1,9 @@
 {if !isset($base)}{$base = ''}{/if}
 {if !isset($available)}{$available = 2}{/if}
 {$variants = shopFeatureModel::getTypes()}
-{$subtype = null}
+{$subtypes = []}
 <select{if !empty($link)} style="display:none;"{/if} class="js-feature-types-control">
+    {if $available gt 1}<option>—</option>{/if}
     {$group = false}
     {foreach $variants as $v}
     {if $group && (empty($v.group) || ($v.group != $group))}
@@ -15,7 +16,7 @@
     {/if}
 
     <option{if $v.available lt $available} disabled="disabled"{/if} data-type="{$v.type}" data-multiple="{$v.multiple}" data-selectable="{$v.selectable}">{$v.name|escape}</option>
-    {if !empty($v.subtype)}{$subtype = $v.subtype}{/if}
+    {if !empty($v.subtype)}{$subtypes[$v.type] = $v.subtype}{/if}
     {/foreach}
     {if $group}
         </optgroup>
@@ -28,13 +29,14 @@
 <a href="#{$base}"{if !empty($class)} class="{$class|escape}"{/if} title="{$v.name|escape}"><i class="icon16 settings"></i></a>
 {/if}
 
-{if $subtype}
-<select style="display:none;" class="js-feature-subtypes-control">
+{foreach $subtypes as $key => $subtype}
+<select style="display:none;" class="js-feature-subtypes-control" data-subtype="{$key}">
+{if $available gt 1}<option>—</option>{/if}
 {foreach $subtype as $s}
 <option{if $s.available lt $available} disabled="disabled"{/if} data-type="{$s.type|escape}">{$s.name}</option>
 {/foreach}
 </select>
-{/if}
+{/foreach}
 
 {if !empty($link)}
 <br>

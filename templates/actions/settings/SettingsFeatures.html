@@ -1,22 +1,29 @@
-{$types_per_page=10}
 {$show_all_types=((count($product_types)-$types_per_page)<3)}
 <div class="sidebar left200px s-settings-internal-sidebar">
     <div class="s-inner-sidebar">
         <ul class="menu-v with-icons stack block drop-target" id="s-settings-feature-types">
             {if !$show_all_types}
-            <li class="bottom-padded not-sortable" id="s-settings-feature-type-filter">
-                <i class="icon16 ss search-bw"></i>
-                <input type="search" placeholder="[`Type product type name to filter`]" class="js-type-filter">
-                <i class="icon16 loading" style="display:none;"></i>
-            </li>
+                <li class="bottom-padded not-sortable" id="s-settings-feature-type-filter">
+                    <i class="icon16 ss search-bw"></i>
+                    <input type="search" placeholder="[`Type product type name to filter`]" class="js-type-filter">
+                    <i class="icon16 loading" style="display:none;"></i>
+                </li>
+
+                <li class="bottom-padded not-sortable" data-type="0">
+                    <a href="#/features/0/">
+                        <span class="count"><!-- count --></span>
+                        <i class="icon16 box"></i>
+                        <span class="js-type-name">[`Empty type`]</span>
+                    </a>
+                </li>
             {else}
-            <li class="bottom-padded not-sortable" data-type="0">
-                <a href="#/features/">
-                    <span class="count"><!-- count --></span>
-                    <i class="icon16 box"></i>
-                    <span class="js-type-name">[`All product types`]</span>
-                </a>
-            </li>
+                <li class="bottom-padded not-sortable" data-type="0">
+                    <a href="#/features/">
+                        <span class="count"><!-- count --></span>
+                        <i class="icon16 box"></i>
+                        <span class="js-type-name">[`All product types`]</span>
+                    </a>
+                </li>
             {/if}
 
             {foreach $product_types as $id => $type}{strip}

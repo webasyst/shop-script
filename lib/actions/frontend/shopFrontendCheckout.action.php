@@ -139,6 +139,7 @@ class shopFrontendCheckoutAction extends waViewAction
           ]);\n";
         }
 
+        $result .= "_gaq.push(['_set', 'currencyCode', '".$this->getConfig()->getCurrency(true)."']);\n";
         $result .= "_gaq.push(['_trackTrans']);\n";
 
         return $result;

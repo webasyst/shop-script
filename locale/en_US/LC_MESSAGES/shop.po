@@ -15,8 +15,14 @@ msgstr ""
 "X-Poedit-SearchPath-1: .\n"
 
 #: /wa-apps/shop/templates/includes/featuresValuesTypes.html:41
-msgid "If the feature type you are going to add is disabled in the form above, add this feature in your store Settings first, and then provide this feature value for this particular product."
-msgstr "If the feature type you are going to add is disabled in the form above, add this feature in your store Settings first, and then enter its value for this particular product."
+msgid ""
+"If the feature type you are going to add is disabled in the form above, add "
+"this feature in your store Settings first, and then provide this feature "
+"value for this particular product."
+msgstr ""
+"If the feature type you are going to add is disabled in the form above, add "
+"this feature in your store Settings first, and then enter its value for this "
+"particular product."
 
 #: /wa-apps/shop/templates/actions/backend/BackendPlugins.html:46
 msgid "Plugins"
@@ -103,7 +109,8 @@ msgid "Coupon type"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/coupons/CouponsEditor.html:43
-msgid "Discount will be calculated automatically to match the order shipping cost."
+msgid ""
+"Discount will be calculated automatically to match the order shipping cost."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/coupons/CouponsEditor.html:54
@@ -111,8 +118,12 @@ msgid "Max number of usage"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/coupons/CouponsEditor.html:58
-msgid "Enter the maximum number of times this coupon can be used. Leave empty for no limits."
-msgstr "Enter the maximum number of times this coupon can be used. Leave empty for unlimited use."
+msgid ""
+"Enter the maximum number of times this coupon can be used. Leave empty for "
+"no limits."
+msgstr ""
+"Enter the maximum number of times this coupon can be used. Leave empty for "
+"unlimited use."
 
 #: /wa-apps/shop/templates/actions/coupons/CouponsEditor.html:63
 msgid "Expire date"
@@ -247,7 +258,9 @@ msgid "Logo URL"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:40
-msgid "A collection of shipping option icons is available for free: <a href=\"%1$s\" target=\"_blank\">%1$s</a> <i class=\"icon10 new-window\"></i>"
+msgid ""
+"A collection of shipping option icons is available for free: <a href=\"%1$s"
+"\" target=\"_blank\">%1$s</a> <i class=\"icon10 new-window\"></i>"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:74
@@ -255,7 +268,8 @@ msgid "Description"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:49
-msgid "HTML. Shipping option description is shown to customer during the checkout."
+msgid ""
+"HTML. Shipping option description is shown to customer during the checkout."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:46
@@ -263,7 +277,9 @@ msgid "Delivery info"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:50
-msgid "Optional text to be sent to customer with the order notification email. Plain text, no HTML allowed."
+msgid ""
+"Optional text to be sent to customer with the order notification email. "
+"Plain text, no HTML allowed."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/stocks/Stocks.html:54
@@ -283,11 +299,14 @@ msgid "Payment option name"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:31
-msgid "A collection of payment option icons is available for free: <a href=\"%s\" target=\"_blank\">%s</a> <i class=\"icon10 new-window\"></i>"
+msgid ""
+"A collection of payment option icons is available for free: <a href=\"%s\" "
+"target=\"_blank\">%s</a> <i class=\"icon10 new-window\"></i>"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:40
-msgid "HTML. Payment option description is shown to customer during the checkout."
+msgid ""
+"HTML. Payment option description is shown to customer during the checkout."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:74
@@ -299,15 +318,21 @@ msgid "Recommended setup"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:10
-msgid "For online stores shipping to multiple countries and regions: <em>1. Contact info &rarr; 2. Shipping &rarr; 3. Payment &rarr; 4. Confirmation.</em>"
+msgid ""
+"For online stores shipping to multiple countries and regions: <em>1. Contact "
+"info &rarr; 2. Shipping &rarr; 3. Payment &rarr; 4. Confirmation.</em>"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:12
-msgid "For one-city-centric stores offering mostly courier shipping: <em>1.Shipping &rarr; 2. Contact info &rarr; 3. Payment &rarr; 4. Confirmation</em>"
+msgid ""
+"For one-city-centric stores offering mostly courier shipping: <em>1.Shipping "
+"&rarr; 2. Contact info &rarr; 3. Payment &rarr; 4. Confirmation</em>"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:14
-msgid "For electronic-delivery-only stores: <em>1. Contact info &rarr; 2. Payment &rarr; 3. Confirmation</em>"
+msgid ""
+"For electronic-delivery-only stores: <em>1. Contact info &rarr; 2. Payment "
+"&rarr; 3. Confirmation</em>"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:16
@@ -319,23 +344,39 @@ msgid "Shipping & Contacts"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:21
-msgid "Some shipping options require to know the destination address. If shipping step is before the contact info step (i.e. customer didn't input the address yet), certain shipping options may not calculate shipping rates properly."
-msgstr "Some shipping options require the destination address to be known. If shipping step goes before the contact info step (i.e. the customer has not entered an address yet), some shipping options may calculate shipping rates incorrectly."
+msgid ""
+"Some shipping options require to know the destination address. If shipping "
+"step is before the contact info step (i.e. customer didn't input the address "
+"yet), certain shipping options may not calculate shipping rates properly."
+msgstr ""
+"Some shipping options require the destination address to be known. If "
+"shipping step goes before the contact info step (i.e. the customer has not "
+"entered an address yet), some shipping options may calculate shipping rates "
+"incorrectly."
 
 #: /wa-apps/shop/lib/config/data/checkout.php:16
 msgid "Confirmation"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:26
-msgid "Disabling the Confirmation step is bad if the order total can be changed during the checkout, e.g. if shipping, tax, or promotions can increase the order total. Make sure your customer seen the final order amount before the order is placed."
-msgstr "Disabling the Confirmation step is bad if the order total can be changed during the checkout; e.g., if shipping, tax, or promotions can increase the order total. Make sure your customer can see the final order amount before the order is finalized."
+msgid ""
+"Disabling the Confirmation step is bad if the order total can be changed "
+"during the checkout, e.g. if shipping, tax, or promotions can increase the "
+"order total. Make sure your customer seen the final order amount before the "
+"order is placed."
+msgstr ""
+"Disabling the Confirmation step is bad if the order total can be changed "
+"during the checkout; e.g., if shipping, tax, or promotions can increase the "
+"order total. Make sure your customer can see the final order amount before "
+"the order is finalized."
 
 #: /wa-apps/shop/templates/actions/backend/BackendSettings.html:37
 msgid "Checkout"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:37
-msgid "Define the checkout step order and each step settings using the form below."
+msgid ""
+"Define the checkout step order and each step settings using the form below."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/customers/CustomersList.html:17
@@ -367,7 +408,9 @@ msgid "Options"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:97
-msgid "The promotions step allows offering user to select gift options according to the order content."
+msgid ""
+"The promotions step allows offering user to select gift options according to "
+"the order content."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:109
@@ -380,7 +423,8 @@ msgstr "Skip this step if no rules match the current shopping cart state"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:163
 msgid "The shipping checkout step prompts user to select the shipping type"
-msgstr "The shipping checkout step prompts customer to select a shipping option"
+msgstr ""
+"The shipping checkout step prompts customer to select a shipping option"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:21
 msgid "Will be displayed in the storefront as in the checkout navigation"
@@ -391,7 +435,10 @@ msgid "Shipping options"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:177
-msgid "The list of available shipping options is determined automatically based on the user address, shopping cart content, and the list of available <a class=\"inline\" href=\"#/shipping/\">shipping options</a>."
+msgid ""
+"The list of available shipping options is determined automatically based on "
+"the user address, shopping cart content, and the list of available <a class="
+"\"inline\" href=\"#/shipping/\">shipping options</a>."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/data/checkout.php:6
@@ -403,7 +450,10 @@ msgid "Misc fields"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:30
-msgid "Checkout form is based on your system contact field set configured in the <a href=\"%s\">Contacts</a> app. The form below allows you to customize the list of fields prompted during checkout."
+msgid ""
+"Checkout form is based on your system contact field set configured in the <a "
+"href=\"%s\">Contacts</a> app. The form below allows you to customize the "
+"list of fields prompted during checkout."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:178
@@ -479,7 +529,9 @@ msgid "List (radio)"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:537
-msgid "The list of checkout steps is defined according to your storefront setup and the list of installed plugins."
+msgid ""
+"The list of checkout steps is defined according to your storefront setup and "
+"the list of installed plugins."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogFieldValues.html:12
@@ -547,7 +599,11 @@ msgid "Reset"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsReset.html:3
-msgid "If you want to restart your online store from scratch, you may delete the entire store content and settings using the form below. This will delete all products, orders, checkout, shipping and payment options, currencies. The operation cannot be undone. Be sure to know what you are doing."
+msgid ""
+"If you want to restart your online store from scratch, you may delete the "
+"entire store content and settings using the form below. This will delete all "
+"products, orders, checkout, shipping and payment options, currencies. The "
+"operation cannot be undone. Be sure to know what you are doing."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsReset.html:9
@@ -555,7 +611,9 @@ msgid "Enter the following text"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsReset.html:15
-msgid "You are about to reset entire store reset content and settings without the ability to rollback!"
+msgid ""
+"You are about to reset entire store reset content and settings without the "
+"ability to rollback!"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsReset.html:22
@@ -571,16 +629,22 @@ msgid "Status"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscountsCoupons.html:27
-msgid "Coupons can be created on the <a href=\"%s\">Discount coupons</a> screen."
-msgstr "Coupons can be created in the <a href=\"%s\">Discount coupons</a> screen."
+msgid ""
+"Coupons can be created on the <a href=\"%s\">Discount coupons</a> screen."
+msgstr ""
+"Coupons can be created in the <a href=\"%s\">Discount coupons</a> screen."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscountsCoupons.html:35
 msgid "Import coupons"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscountsCoupons.html:40
-msgid "Coupons can be either created manually on the <a href=\"%s\">Discount coupons</a> screen, or imported from a CSV file using the button above."
-msgstr "Coupons can be either created manually in the <a href=\"%s\">Discount coupons</a> screen, or imported from a CSV file using the button above."
+msgid ""
+"Coupons can be either created manually on the <a href=\"%s\">Discount "
+"coupons</a> screen, or imported from a CSV file using the button above."
+msgstr ""
+"Coupons can be either created manually in the <a href=\"%s\">Discount "
+"coupons</a> screen, or imported from a CSV file using the button above."
 
 #: /wa-apps/shop/templates/actions/product/ProductPageEdit.html:17
 msgid "Preview"
@@ -603,8 +667,12 @@ msgid "Unknown plugin"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:16
-msgid "If more then one rule is applicable for the customer order, how the total discount should be calculated?"
-msgstr "How should the total discount be calculated if more than one rule is applicable for the customer order?"
+msgid ""
+"If more then one rule is applicable for the customer order, how the total "
+"discount should be calculated?"
+msgstr ""
+"How should the total discount be calculated if more than one rule is "
+"applicable for the customer order?"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:18
 msgid "Maximum"
@@ -631,7 +699,9 @@ msgid "Primary email"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:17
-msgid "Primary email address is used as a reply-to address in email notifications sent to your customers"
+msgid ""
+"Primary email address is used as a reply-to address in email notifications "
+"sent to your customers"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:21
@@ -639,7 +709,9 @@ msgid "Phone number"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:24
-msgid "Phone number is published in the storefront and included in email notification"
+msgid ""
+"Phone number is published in the storefront and included in email "
+"notification"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:30
@@ -647,7 +719,9 @@ msgid "Order ID format"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:33
-msgid "<strong>%id%</strong> will be replaced with the actual order ID. Do not delete %id% from this string."
+msgid ""
+"<strong>%id%</strong> will be replaced with the actual order ID. Do not "
+"delete %id% from this string."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:18
@@ -864,7 +938,8 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:206
 msgid "Max 160 chars. SMS is sent only if customer phone number was provided."
-msgstr "Max 160 chars. SMS is sent only if customer phone number has been provided."
+msgstr ""
+"Max 160 chars. SMS is sent only if customer phone number has been provided."
 
 #: /wa-apps/shop/templates/actions/backend/BackendSettings.html:82
 msgid "Notifications"
@@ -875,7 +950,9 @@ msgid "New tax rule"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:15
-msgid "To customize the list of countries and regions, use <a href=\"%s\">Countries & Regions</a> screen."
+msgid ""
+"To customize the list of countries and regions, use <a href=\"%s\">Countries "
+"& Regions</a> screen."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:26
@@ -895,7 +972,9 @@ msgid "Tax is not included in product prices"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:52
-msgid "Mostly used for sales tax. Tax will be added to the cart subtotal after customer entered destination address during the checkout."
+msgid ""
+"Mostly used for sales tax. Tax will be added to the cart subtotal after "
+"customer entered destination address during the checkout."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:57
@@ -903,7 +982,9 @@ msgid "Tax is included in my product prices"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:58
-msgid "Mostly used for VAT. Tax will not be added to the cart subtotal, but will be calculated to be shown in the invoice."
+msgid ""
+"Mostly used for VAT. Tax will not be added to the cart subtotal, but will be "
+"calculated to be shown in the invoice."
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/settings/checkout/shopSettingsCheckoutContactForm.action.php:113
@@ -959,7 +1040,17 @@ msgid "County taxes"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:132
-msgid "If your jurisdiction require you to charge additional county taxes, define taxing rules by zip (postal) code. Use asteryx (*) for wildcard. For example, mask 12* is applicable for all zip codes with 12 as first two symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is ok for both letters and numbers). Zip code rules are processed one by one in the given order. Applied is the first rule matching the user zip code (only one matching rule is applied at a time). County tax rules are of a higher priority than state tax rules (if matched, county tax rate replaces the state tax rule when calculated during the checkout), which means that combined county rates must be provided."
+msgid ""
+"If your jurisdiction require you to charge additional county taxes, define "
+"taxing rules by zip (postal) code. Use asteryx (*) for wildcard. For "
+"example, mask 12* is applicable for all zip codes with 12 as first two "
+"symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is ok for "
+"both letters and numbers). Zip code rules are processed one by one in the "
+"given order. Applied is the first rule matching the user zip code (only one "
+"matching rule is applied at a time). County tax rules are of a higher "
+"priority than state tax rules (if matched, county tax rate replaces the "
+"state tax rule when calculated during the checkout), which means that "
+"combined county rates must be provided."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:163
@@ -999,7 +1090,9 @@ msgid "Please correct errors."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:301
-msgid "This will remove field and all its data from all existing contacts. Are you sure?"
+msgid ""
+"This will remove field and all its data from all existing contacts. Are you "
+"sure?"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPrintform.html:19
@@ -1007,7 +1100,9 @@ msgid "There no printforms"
 msgstr "There are no printable forms"
 
 #: /wa-apps/shop/templates/actions/backend/BackendPlugins.html:28
-msgid "<a href=\"%s\">Browse for new plugins</a> and install them using the Installer app."
+msgid ""
+"<a href=\"%s\">Browse for new plugins</a> and install them using the "
+"Installer app."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendSettings.html:77
@@ -1043,7 +1138,9 @@ msgid "Add currency..."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:109
-msgid "Convert product prices (%d) to the new primary currency (%s) according to the current exchange rate (%s)"
+msgid ""
+"Convert product prices (%d) to the new primary currency (%s) according to "
+"the current exchange rate (%s)"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:120
@@ -1127,16 +1224,26 @@ msgid "Allow on demand generation of custom-sized thumbnails"
 msgstr "Allow on-demand generation of custom-sized thumbnails"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:94
-msgid "If enabled, frontend design theme can request generation of custom-sized image thumbnails on fly (any custom size can be requested in addition to the listed above, including cropped versions)"
-msgstr "If enabled, frontend design theme can request generation of custom-sized image thumbnails on the fly (any custom size can be requested in addition to those listed above, including cropped versions)"
+msgid ""
+"If enabled, frontend design theme can request generation of custom-sized "
+"image thumbnails on fly (any custom size can be requested in addition to the "
+"listed above, including cropped versions)"
+msgstr ""
+"If enabled, frontend design theme can request generation of custom-sized "
+"image thumbnails on the fly (any custom size can be requested in addition to "
+"those listed above, including cropped versions)"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:98
 msgid "Max thumbnail size"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:100
-msgid "Limits the maximum thumbnail size that can be created on demand. Must be no less than 970 px."
-msgstr "Limits the maximum size of thumbnails which can be created on demand. Must be no less than 970 px."
+msgid ""
+"Limits the maximum thumbnail size that can be created on demand. Must be no "
+"less than 970 px."
+msgstr ""
+"Limits the maximum size of thumbnails which can be created on demand. Must "
+"be no less than 970 px."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:107
 msgid "Sharpen"
@@ -1155,8 +1262,20 @@ msgid "Backup image originals"
 msgstr "Back up original images"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:124
-msgid "When enabled, every uploaded image file is automatically backed up and stored independently from image full size version, which is modified when you edit it, e.g. rotate, apply watermarks or image visual effects. Originals are never updated. Pros: you have backups of all uploaded images. Cons: almost twice more disk space is required for storing original images than for storing only full size versions and thumbnails."
-msgstr "When enabled, every uploaded image file is automatically backed up and stored separately from the full size image version, which is modified when you edit it; e.g., rotate, apply watermarks or image visual effects. Originals are never updated. Pros: you have backups of all uploaded images. Cons: almost twice as much disk space is required for storing original images than for storing only full size versions and thumbnails."
+msgid ""
+"When enabled, every uploaded image file is automatically backed up and "
+"stored independently from image full size version, which is modified when "
+"you edit it, e.g. rotate, apply watermarks or image visual effects. "
+"Originals are never updated. Pros: you have backups of all uploaded images. "
+"Cons: almost twice more disk space is required for storing original images "
+"than for storing only full size versions and thumbnails."
+msgstr ""
+"When enabled, every uploaded image file is automatically backed up and "
+"stored separately from the full size image version, which is modified when "
+"you edit it; e.g., rotate, apply watermarks or image visual effects. "
+"Originals are never updated. Pros: you have backups of all uploaded images. "
+"Cons: almost twice as much disk space is required for storing original "
+"images than for storing only full size versions and thumbnails."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:201
 msgid "Click “Save” button below to apply this change."
@@ -1171,8 +1290,20 @@ msgid "Cross-selling"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsRecommendations.html:7
-msgid "Cross-selling is a technique of getting customer to buy related products to the order, e.g. complementary products and accessories. In Shop-Script, cross-selling mechanism works on a customers-who-bought-this-also-bought model. Shop-Script analyses which products are more likely to be bought with a particular product based on what other customers purchased so far. Related products are suggested to customer based on his current order content."
-msgstr "Cross-selling is a technique of getting customer to order related items; e.g., complementary products and accessories. In Shop-Script, cross-selling mechanism works using the customers-who-bought-this-also-bought model. Shop-Script analyses which products are more likely to be bought with the particular product based on what other customers purchased before. Related products are suggested to customer based on his current order content."
+msgid ""
+"Cross-selling is a technique of getting customer to buy related products to "
+"the order, e.g. complementary products and accessories. In Shop-Script, "
+"cross-selling mechanism works on a customers-who-bought-this-also-bought "
+"model. Shop-Script analyses which products are more likely to be bought with "
+"a particular product based on what other customers purchased so far. Related "
+"products are suggested to customer based on his current order content."
+msgstr ""
+"Cross-selling is a technique of getting customer to order related items; e."
+"g., complementary products and accessories. In Shop-Script, cross-selling "
+"mechanism works using the customers-who-bought-this-also-bought model. Shop-"
+"Script analyses which products are more likely to be bought with the "
+"particular product based on what other customers purchased before. Related "
+"products are suggested to customer based on his current order content."
 
 #: /wa-apps/shop/js/settings/recommendations.js:31
 msgid "On"
@@ -1183,8 +1314,10 @@ msgid "Off"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsRecommendations.html:22
-msgid "Auto (based on what other customers purchased with a particular product)"
-msgstr "Auto (based on what other customers purchased with the particular product)"
+msgid ""
+"Auto (based on what other customers purchased with a particular product)"
+msgstr ""
+"Auto (based on what other customers purchased with the particular product)"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsRecommendations.html:23
 msgid "Random products from a category"
@@ -1195,8 +1328,20 @@ msgid "Upselling &amp; Similar products"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsRecommendations.html:41
-msgid "Upselling is a technique of encouraging customer to purchase more expensive products or upgrades. In Shop-Script, up-selling is based on suggesting customers to view and purchase similar and/or alternative products. Similar product list is fetched automatically based on the product that the customer is currently viewing, or recently viewed, and filtering conditions which can be customized individually for every product type."
-msgstr "Upselling is a technique of encouraging customer to purchase more expensive products or upgrades. In Shop-Script, up-selling is based on suggesting customers to view and purchase similar and/or alternative products. Similar product list is fetched automatically based on the product the customer is currently viewing or recently viewed, and filtering conditions, which can be customized individually for every product type."
+msgid ""
+"Upselling is a technique of encouraging customer to purchase more expensive "
+"products or upgrades. In Shop-Script, up-selling is based on suggesting "
+"customers to view and purchase similar and/or alternative products. Similar "
+"product list is fetched automatically based on the product that the customer "
+"is currently viewing, or recently viewed, and filtering conditions which can "
+"be customized individually for every product type."
+msgstr ""
+"Upselling is a technique of encouraging customer to purchase more expensive "
+"products or upgrades. In Shop-Script, up-selling is based on suggesting "
+"customers to view and purchase similar and/or alternative products. Similar "
+"product list is fetched automatically based on the product the customer is "
+"currently viewing or recently viewed, and filtering conditions, which can be "
+"customized individually for every product type."
 
 #: /wa-apps/shop/js/settings/recommendations.js:57
 msgid "Customize"
@@ -1239,7 +1384,10 @@ msgid "Stocking"
 msgstr "Stocks"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsStock.html:4
-msgid "Inventory tracking is performed by stocks (warehouses) listed below. Yellow and red indicators are used to visually display low and critical stock levels in both backend and storefront."
+msgid ""
+"Inventory tracking is performed by stocks (warehouses) listed below. Yellow "
+"and red indicators are used to visually display low and critical stock "
+"levels in both backend and storefront."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/customers/CustomersList.html:9
@@ -1259,20 +1407,31 @@ msgid "Delete stock and write off products"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsStock.html:85
-msgid "All rest products belonging to this stock will be written-off after stock deleting"
-msgstr "All remaining products belonging to this stock will be written off after stock deletion"
+msgid ""
+"All rest products belonging to this stock will be written-off after stock "
+"deleting"
+msgstr ""
+"All remaining products belonging to this stock will be written off after "
+"stock deletion"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsStock.html:91
 msgid "Delete stock and transfer products"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsStock.html:91
-msgid "All rest products belonging to this stock will be transfered to another stock"
-msgstr "All remaining products belonging to this stock will be transferred to another stock"
+msgid ""
+"All rest products belonging to this stock will be transfered to another stock"
+msgstr ""
+"All remaining products belonging to this stock will be transferred to "
+"another stock"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsStock.html:105
-msgid "All rest products belonging to this stock will be saved on balance of corresponding skus"
-msgstr "All remaining products belonging to this stock will be saved on balance of corresponding SKUs"
+msgid ""
+"All rest products belonging to this stock will be saved on balance of "
+"corresponding skus"
+msgstr ""
+"All remaining products belonging to this stock will be saved on balance of "
+"corresponding SKUs"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsStock.html:124
 msgid "Value must be a positive number"
@@ -1287,8 +1446,16 @@ msgid "This value must be no greater than previous field count"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:7
-msgid "Most shipping rate calculation modules require <strong>product %1$s</strong> information which is taken from a product feature with the <code>%1$s</code> identifier. You don't have such feature in your online store setup. Add it in the <a href=\"%2$s\">Product types &amp; Features</a> screen to make."
-msgstr "Most shipping rate calculation modules require <strong>product %1$s</strong> information which is taken from a product feature with the <code>%1$s</code> identifier. You don't have such a feature in your online store setup. Add it in the <a href=\"%2$s\">Product types &amp; Features</a> screen."
+msgid ""
+"Most shipping rate calculation modules require <strong>product %1$s</strong> "
+"information which is taken from a product feature with the <code>%1$s</code> "
+"identifier. You don't have such feature in your online store setup. Add it "
+"in the <a href=\"%2$s\">Product types &amp; Features</a> screen to make."
+msgstr ""
+"Most shipping rate calculation modules require <strong>product %1$s</strong> "
+"information which is taken from a product feature with the <code>%1$s</code> "
+"identifier. You don't have such a feature in your online store setup. Add it "
+"in the <a href=\"%2$s\">Product types &amp; Features</a> screen."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:16
 msgid "Add shipping option"
@@ -1311,15 +1478,21 @@ msgid "New product type"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:41
-msgid "Product types allow to limit access to products for backend users, and to customize which products must and must not be shown in your storefronts."
-msgstr "Product types allow limiting access to products for backend users and to define which products must be shown in your storefronts."
+msgid ""
+"Product types allow to limit access to products for backend users, and to "
+"customize which products must and must not be shown in your storefronts."
+msgstr ""
+"Product types allow limiting access to products for backend users and to "
+"define which products must be shown in your storefronts."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:52
 msgid "Edit product type"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:54
-msgid "This will delete the entire product type, leaving all its products untyped. Are you sure?"
+msgid ""
+"This will delete the entire product type, leaving all its products untyped. "
+"Are you sure?"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductFeatures.html:144
@@ -1347,8 +1520,12 @@ msgid "Add feature value"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:120
-msgid "Deleting this feature will ENTIRELY ERASE its defined values for all of your products. Are you sure?"
-msgstr "Deleting this feature will ENTIRELY ERASE its values from all of your products. Are you sure?"
+msgid ""
+"Deleting this feature will ENTIRELY ERASE its defined values for all of your "
+"products. Are you sure?"
+msgstr ""
+"Deleting this feature will ENTIRELY ERASE its values from all of your "
+"products. Are you sure?"
 
 #: /wa-apps/shop/templates/actions/backend/BackendSettings.html:16
 msgid "Product types & Features"
@@ -1467,8 +1644,12 @@ msgid "Files uploaded with errors"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/include.imageUpload.html:86
-msgid "Failed to upload. Most probably, there were not enough memory to create thumbnails."
-msgstr "Failed to upload. Most probably, there is not enough memory to create thumbnails."
+msgid ""
+"Failed to upload. Most probably, there were not enough memory to create "
+"thumbnails."
+msgstr ""
+"Failed to upload. Most probably, there is not enough memory to create "
+"thumbnails."
 
 #: /wa-apps/shop/templates/actions/product/ProductPageEdit.html:7
 msgid "Page settings"
@@ -1551,7 +1732,9 @@ msgid "for"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductServices.html:27
-msgid "<strong>+%s (+%f%)</strong> to the overall sales of this product during the last 30 days (%s)"
+msgid ""
+"<strong>+%s (+%f%)</strong> to the overall sales of this product during the "
+"last 30 days (%s)"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductServices.html:49
@@ -1559,8 +1742,12 @@ msgid "Setup by SKU"
 msgstr "Set up by SKU"
 
 #: /wa-apps/shop/templates/actions/product/ProductServices.html:81
-msgid "No custom services are defined in your online store yet. Create a service using the <a href=\"%s\">Services</a> screen."
-msgstr "There are no services defined in your online store. Create a new service using the <a href=\"%s\">Services</a> screen."
+msgid ""
+"No custom services are defined in your online store yet. Create a service "
+"using the <a href=\"%s\">Services</a> screen."
+msgstr ""
+"There are no services defined in your online store. Create a new service "
+"using the <a href=\"%s\">Services</a> screen."
 
 #: /wa-apps/shop/templates/actions/product/ProductReviews.html:4
 msgid "Newest"
@@ -1687,8 +1874,10 @@ msgid "Delete image"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductImage.html:117
-msgid "Image “%s” will be deleted without the ability to restore. Are you sure?"
-msgstr "Image “%s” will be deleted without possibility of recovery. Are you sure?"
+msgid ""
+"Image “%s” will be deleted without the ability to restore. Are you sure?"
+msgstr ""
+"Image “%s” will be deleted without possibility of recovery. Are you sure?"
 
 #: /wa-apps/shop/templates/actions/backend/BackendProductsSubmenu.html:6
 msgid "New product"
@@ -1723,8 +1912,12 @@ msgid "Low stock"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:187
-msgid "Approximate date when you run out of stock for this SKU is %s based on average selling rate (≈%f items per month)"
-msgstr "Approximate date when you may run out of stock for this SKU is %s calculated based on average selling rate (≈%f items per month)"
+msgid ""
+"Approximate date when you run out of stock for this SKU is %s based on "
+"average selling rate (≈%f items per month)"
+msgstr ""
+"Approximate date when you may run out of stock for this SKU is %s calculated "
+"based on average selling rate (≈%f items per month)"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:317
 msgid "Customer reviews"
@@ -1855,8 +2048,12 @@ msgid "Online delivery"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:59
-msgid "Please do not close your browser window and do not leave this page until the entire upload process is finished."
-msgstr "Please do not close your browser window and do not leave this page until uploading is completed."
+msgid ""
+"Please do not close your browser window and do not leave this page until the "
+"entire upload process is finished."
+msgstr ""
+"Please do not close your browser window and do not leave this page until "
+"uploading is completed."
 
 #: /wa-apps/shop/templates/actions/product/ProductRelated.html:63
 msgid "Auto"
@@ -1907,16 +2104,32 @@ msgid "Set ID"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductSetCreate.html:18
-msgid "Set ID is used in the code for embedding product set into frontend design templates and pages."
-msgstr "Set ID is used for embedding product set in frontend design templates and info pages."
+msgid ""
+"Set ID is used in the code for embedding product set into frontend design "
+"templates and pages."
+msgstr ""
+"Set ID is used for embedding product set in frontend design templates and "
+"info pages."
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductSetSettings.html:14
-msgid "Updating set ID <em>will not</em> automatically update templates and pages that this code is embedded into, so be sure to update those manually if you change the ID."
-msgstr "Updating set ID <em>will not</em> automatically update templates and pages in which it is embedded, so be sure to update the manually after you change the ID."
+msgid ""
+"Updating set ID <em>will not</em> automatically update templates and pages "
+"that this code is embedded into, so be sure to update those manually if you "
+"change the ID."
+msgstr ""
+"Updating set ID <em>will not</em> automatically update templates and pages "
+"in which it is embedded, so be sure to update the manually after you change "
+"the ID."
 
 #: /wa-apps/shop/templates/actions/products/Products.html:241
-msgid "It is highly advisable to keep product sets with IDs <strong>promos</strong> and <strong>bestsellers</strong>, as these set IDs are used by most Shop-Script frontend design themes."
-msgstr "It is strongly advisable not to delete product sets with IDs <strong>promos</strong> and <strong>bestsellers</strong>, because these set IDs are used in most frontend design themes."
+msgid ""
+"It is highly advisable to keep product sets with IDs <strong>promos</strong> "
+"and <strong>bestsellers</strong>, as these set IDs are used by most Shop-"
+"Script frontend design themes."
+msgstr ""
+"It is strongly advisable not to delete product sets with IDs <strong>promos</"
+"strong> and <strong>bestsellers</strong>, because these set IDs are used in "
+"most frontend design themes."
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductSetSettings.html:26
 msgid "Dynamic set rule"
@@ -1951,12 +2164,18 @@ msgid "Change product type"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogTypes.html:8
-msgid "Changing product type may affect products' publication status and access settings."
+msgid ""
+"Changing product type may affect products' publication status and access "
+"settings."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendProducts.html:151
-msgid "You have no product types in your online store. Create one in the store settings."
-msgstr "You have no product types defined in your online store. Create one in the settings section."
+msgid ""
+"You have no product types in your online store. Create one in the store "
+"settings."
+msgstr ""
+"You have no product types defined in your online store. Create one in the "
+"settings section."
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductListCreate.html:29
 msgid "Static"
@@ -1991,15 +2210,23 @@ msgid "Bestsellers"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogCurrencyDelete.html:1
-msgid "Prices of <strong>%d products</strong> are defined in the currency you are about to delete. Select the currency which all these prices will be converted into"
-msgstr "Prices of <strong>%d products</strong> are defined in the currency you are about to delete. Select the currency to which all these prices should be converted."
+msgid ""
+"Prices of <strong>%d products</strong> are defined in the currency you are "
+"about to delete. Select the currency which all these prices will be "
+"converted into"
+msgstr ""
+"Prices of <strong>%d products</strong> are defined in the currency you are "
+"about to delete. Select the currency to which all these prices should be "
+"converted."
 
 #: /wa-apps/shop/templates/actions/dialog/DialogCurrencyDelete.html:9
 msgid "Delete currency"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogCurrencyDelete.html:22
-msgid "You don't have products priced in this currency. The currency can be safely deleted."
+msgid ""
+"You don't have products priced in this currency. The currency can be safely "
+"deleted."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/customers/CustomersSidebar.html:18
@@ -2007,8 +2234,10 @@ msgid "New category"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:4
-msgid "Manually add and arrange products in this category and it's sub-categories"
-msgstr "Manually add and arrange products in this category and its subcategories"
+msgid ""
+"Manually add and arrange products in this category and it's sub-categories"
+msgstr ""
+"Manually add and arrange products in this category and its subcategories"
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:5
 msgid "Smart category based on a search criteria, e.g. rating or tags"
@@ -2023,8 +2252,14 @@ msgid "Custom parameters"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:96
-msgid "Optional set of custom <em>key=value</em> parameters which can be used within a frontend's theme template as <em>&#123;$category.params.key&#125;</em>. Each key=value pair should be on a separate line."
-msgstr "Optional set of custom <em>key=value</em> parameters, which can be used within frontend theme templates as <em>&#123;$category.params.key&#125;</em>. Each key=value pair should be specified on a separate line."
+msgid ""
+"Optional set of custom <em>key=value</em> parameters which can be used "
+"within a frontend's theme template as <em>&#123;$category.params.key&#125;</"
+"em>. Each key=value pair should be on a separate line."
+msgstr ""
+"Optional set of custom <em>key=value</em> parameters, which can be used "
+"within frontend theme templates as <em>&#123;$category.params.key&#125;</"
+"em>. Each key=value pair should be specified on a separate line."
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:118
 msgid "Rating"
@@ -2071,16 +2306,24 @@ msgid "Include products from sub-categories"
 msgstr "Include products from subcategories"
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:45
-msgid "When enabled, products will be fetched from both the current category and all its sub-categories (applicable to frontend only)"
-msgstr "When enabled, products will be fetched from both the current category and all its subcategories (applicable to frontend only)"
+msgid ""
+"When enabled, products will be fetched from both the current category and "
+"all its sub-categories (applicable to frontend only)"
+msgstr ""
+"When enabled, products will be fetched from both the current category and "
+"all its subcategories (applicable to frontend only)"
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:50
 msgid "Allow product filtering"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:51
-msgid "Product filtering allows your customers to filter (search) products within this category by feature values, e.g. by color, manufacturer, price"
-msgstr "Product filtering allows your customers to filter (search) products within this category by feature values; e.g., by color, manufacturer, price."
+msgid ""
+"Product filtering allows your customers to filter (search) products within "
+"this category by feature values, e.g. by color, manufacturer, price"
+msgstr ""
+"Product filtering allows your customers to filter (search) products within "
+"this category by feature values; e.g., by color, manufacturer, price."
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:108
 msgid "Product filtering options"
@@ -2103,8 +2346,14 @@ msgid "New service"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/services/Services.html:18
-msgid "Services allow you to add customization options for products and SKUs, e.g. custom packaging, extended warranty, engraving. Services are great for increasing your online store's average order value."
-msgstr "Services allow you to add customization options for products and SKUs; e.g., custom packaging, extended warranty, engraving. Services are great for increasing the average order value."
+msgid ""
+"Services allow you to add customization options for products and SKUs, e.g. "
+"custom packaging, extended warranty, engraving. Services are great for "
+"increasing your online store's average order value."
+msgstr ""
+"Services allow you to add customization options for products and SKUs; e.g., "
+"custom packaging, extended warranty, engraving. Services are great for "
+"increasing the average order value."
 
 #: /wa-apps/shop/templates/actions/services/Services.html:29
 msgid "Delete this service"
@@ -2127,11 +2376,15 @@ msgid "Add option"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/services/Services.html:96
-msgid "Price you charge for this service can be customized for every product or SKU. Base price is used if the custom price for a particular product is not set."
+msgid ""
+"Price you charge for this service can be customized for every product or "
+"SKU. Base price is used if the custom price for a particular product is not "
+"set."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/services/Services.html:105
-msgid "<strong>+%s (+%f%)</strong> to the overall sales during the last 30 days"
+msgid ""
+"<strong>+%s (+%f%)</strong> to the overall sales during the last 30 days"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/services/Services.html:111
@@ -2139,7 +2392,8 @@ msgid "Applicable for"
 msgstr "Applicable to"
 
 #: /wa-apps/shop/templates/actions/services/Services.html:115
-msgid "Automatically offer this service with the products of the following types:"
+msgid ""
+"Automatically offer this service with the products of the following types:"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/services/Services.html:141
@@ -2199,8 +2453,12 @@ msgid "Sets"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendProducts.html:122
-msgid "Product sets are used for embedding products into storefront info pages and design templates."
-msgstr "Product sets are used for embedding products in storefront pages and design templates."
+msgid ""
+"Product sets are used for embedding products into storefront info pages and "
+"design templates."
+msgstr ""
+"Product sets are used for embedding products in storefront pages and design "
+"templates."
 
 #: /wa-apps/shop/templates/actions/backend/BackendProducts.html:131
 msgid "Manage product types"
@@ -2215,8 +2473,18 @@ msgid "Welcome to Shop-Script!"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:4
-msgid "Using the quick-start form below you can easily prepare an initial setup of your online store depending on your region and what you are going to sell online. This won't add your stuff to your store automatically, but will prepare configuration lists such as currencies and taxes rates, so you don't add such data manually."
-msgstr "Using this quick start form you can easily prepare an initial setup of your online store depending on your geographical location and on what you are going to sell online. This will not automatically add all your stuff but will prepare configuration lists such as currencies and tax rates so that you don't have to add them manually."
+msgid ""
+"Using the quick-start form below you can easily prepare an initial setup of "
+"your online store depending on your region and what you are going to sell "
+"online. This won't add your stuff to your store automatically, but will "
+"prepare configuration lists such as currencies and taxes rates, so you don't "
+"add such data manually."
+msgstr ""
+"Using this quick start form you can easily prepare an initial setup of your "
+"online store depending on your geographical location and on what you are "
+"going to sell online. This will not automatically add all your stuff but "
+"will prepare configuration lists such as currencies and tax rates so that "
+"you don't have to add them manually."
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:25
 msgid "Other"
@@ -2227,12 +2495,22 @@ msgid "No default regional data will be added"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:34
-msgid "Select product types which you are going to sell online. Product types will automatically add a set of product custom features to your store, and will then allow you to manage product access level and publication based on product types."
-msgstr "Select the product types which you are going to sell online. Product types will automatically add sets of product features to your store settings and will then allow you to manage product access level and publication status for each product type."
+msgid ""
+"Select product types which you are going to sell online. Product types will "
+"automatically add a set of product custom features to your store, and will "
+"then allow you to manage product access level and publication based on "
+"product types."
+msgstr ""
+"Select the product types which you are going to sell online. Product types "
+"will automatically add sets of product features to your store settings and "
+"will then allow you to manage product access level and publication status "
+"for each product type."
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:46
-msgid "If you don't see your product type here, you will be able to add it later."
-msgstr "If you cannot find your product type here, you will be able to add it later."
+msgid ""
+"If you don't see your product type here, you will be able to add it later."
+msgstr ""
+"If you cannot find your product type here, you will be able to add it later."
 
 #: /wa-apps/shop/templates/actions/backend/BackendWelcome.html:52
 msgid "Import"
@@ -2407,8 +2685,14 @@ msgid "Default stock"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/storefronts/StorefrontsSettings.html:88
-msgid "Select primary stock to which this storefront is associated with. When you process orders from placed via this storefront, selected stock will be automatically offered for product stock update."
-msgstr "Select the primary stock to be associated with this storefront. When you process orders placed via this storefront, the selected stock will be automatically offered for updating product stock level."
+msgid ""
+"Select primary stock to which this storefront is associated with. When you "
+"process orders from placed via this storefront, selected stock will be "
+"automatically offered for product stock update."
+msgstr ""
+"Select the primary stock to be associated with this storefront. When you "
+"process orders placed via this storefront, the selected stock will be "
+"automatically offered for updating product stock level."
 
 #: /wa-apps/shop/lib/actions/customers/shopCustomersList.action.php:69
 msgid "All customers"
@@ -2435,7 +2719,9 @@ msgid "Show more customers"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/customers/CustomersList.html:152
-msgid "This will delete the entire customer category (customers will not be deleted). Are you sure?"
+msgid ""
+"This will delete the entire customer category (customers will not be "
+"deleted). Are you sure?"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/customers/CustomersList.html:157
@@ -2575,8 +2861,12 @@ msgid "Please select at least one product"
 msgstr ""
 
 #: /wa-apps/shop/js/product/product_images.js:250
-msgid "This will reset all changes you applied to the image after upload, and will restore the image to its original. Are you sure?"
-msgstr "This will reset all changes you have applied to the image after uploading and will restore the original image. Are you sure?"
+msgid ""
+"This will reset all changes you applied to the image after upload, and will "
+"restore the image to its original. Are you sure?"
+msgstr ""
+"This will reset all changes you have applied to the image after uploading "
+"and will restore the original image. Are you sure?"
 
 #: /wa-apps/shop/js/product/product.js:1220
 msgid "At least one SKU per product must exists"
@@ -2799,7 +3089,8 @@ msgid "Url is in use"
 msgstr "URL is in use"
 
 #: /wa-apps/shop/lib/actions/products/shopProductsSaveListSettings.controller.php:131
-msgid "Only Latin characters, numbers, underscore and hyphen symbols are allowed"
+msgid ""
+"Only Latin characters, numbers, underscore and hyphen symbols are allowed"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/products/shopProductsSaveListSettings.controller.php:135
@@ -3143,8 +3434,11 @@ msgid "Write a review"
 msgstr ""
 
 #: /wa-apps/shop/themes/default/reviews.html:112
-msgid "To add a review please <a href=\"%s\">sign up</a> or <a href=\"%s\">login</a>"
-msgstr "To add a review please <a href=\"%s\">sign up</a> or <a href=\"%s\">log in</a>"
+msgid ""
+"To add a review please <a href=\"%s\">sign up</a> or <a href=\"%s\">login</a>"
+msgstr ""
+"To add a review please <a href=\"%s\">sign up</a> or <a href=\"%s\">log in</"
+"a>"
 
 #: /wa-apps/shop/themes/default/signup.html:7
 msgid "Sign up"
@@ -3287,11 +3581,19 @@ msgid "Login"
 msgstr ""
 
 #: /wa-apps/shop/themes/default/home.html:47
-msgid "Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here."
-msgstr "Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products to a product set with this ID to make them appear here."
+msgid ""
+"Product set with the ID <strong>%s</strong> either does not exist or does "
+"not contain any product. Add some products into a product set with the "
+"specified ID to make these products featured here."
+msgstr ""
+"Product set with the ID <strong>%s</strong> either does not exist or does "
+"not contain any product. Add some products to a product set with this ID to "
+"make them appear here."
 
 #: /wa-apps/shop/themes/default/home.html:34
-msgid "Use built-in design editor to edit this text and replace it with your general store information and contacts."
+msgid ""
+"Use built-in design editor to edit this text and replace it with your "
+"general store information and contacts."
 msgstr ""
 
 #: /wa-apps/shop/themes/default/checkout.html:37
@@ -3366,8 +3668,14 @@ msgid "performed action"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/products/Products.html:263
-msgid "It is highly advisable to keep product sets with IDs <strong>promo</strong> and <strong>bestsellers</strong>, as these set IDs are used by most Shop-Script frontend design themes."
-msgstr "It is strongly advisable not to delete product sets with IDs <strong>promo</strong> and <strong>bestsellers</strong>, because these set IDs are used in most frontend design themes."
+msgid ""
+"It is highly advisable to keep product sets with IDs <strong>promo</strong> "
+"and <strong>bestsellers</strong>, as these set IDs are used by most Shop-"
+"Script frontend design themes."
+msgstr ""
+"It is strongly advisable not to delete product sets with IDs <strong>promo</"
+"strong> and <strong>bestsellers</strong>, because these set IDs are used in "
+"most frontend design themes."
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:42
 msgid "Price (asc)"
@@ -3430,8 +3738,12 @@ msgid "Invalid auth provider data"
 msgstr "Invalid authorization provider data"
 
 #: /wa-apps/shop/lib/actions/frontend/shopFrontendCheckout.action.php:26
-msgid "Your shopping cart is empty. Please add some products to cart, and then proceed to checkout."
-msgstr "Your shopping cart is empty. Please add some products to cart and then proceed to the checkout."
+msgid ""
+"Your shopping cart is empty. Please add some products to cart, and then "
+"proceed to checkout."
+msgstr ""
+"Your shopping cart is empty. Please add some products to cart and then "
+"proceed to the checkout."
 
 #: /wa-apps/shop/lib/config/site.php:18
 msgid "Homepage title <title>"
@@ -3499,7 +3811,9 @@ msgstr "An error has occurred during processing of your payment."
 
 #: /wa-apps/shop/themes/default/checkout.success.html:3
 msgid "We successfully accepted your order, and will contact you asap."
-msgstr "We have successfully accepted your order and will contact you as soon as possible."
+msgstr ""
+"We have successfully accepted your order and will contact you as soon as "
+"possible."
 
 #: /wa-apps/shop/themes/default/checkout.success.html:4
 msgid "Your order number is "
@@ -3510,8 +3824,12 @@ msgid "Back to the store"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscountsCategory.html:41
-msgid "No customer categories are defined in your store. Define one using the main <a href=\"%s\">Customers</a> screen."
-msgstr "No customer categories are defined in your store. Create a category using the <a href=\"%s\">Customers</a> screen."
+msgid ""
+"No customer categories are defined in your store. Define one using the main "
+"<a href=\"%s\">Customers</a> screen."
+msgstr ""
+"No customer categories are defined in your store. Create a category using "
+"the <a href=\"%s\">Customers</a> screen."
 
 # msgid "Most shipping rate calculation modules require <strong>product %1$s</strong> information which is taken from a product feature with the <code>%1$s</code> identifier. You don\'t have such feature in your online store setup. Add it in the <a href=\"%2$s\">Product types &amp; Features</a> screen to make."
 # msgstr ""
@@ -3589,7 +3907,9 @@ msgid "Mixed"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:35
-msgid "<br>Product URLs: /<strong>product-name/</strong><br>Category URLs: /category/<strong>category-name/subcategory-name/subcategory-name/...</strong>"
+msgid ""
+"<br>Product URLs: /<strong>product-name/</strong><br>Category URLs: /"
+"category/<strong>category-name/subcategory-name/subcategory-name/...</strong>"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:38
@@ -3597,7 +3917,9 @@ msgid "Plain"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:39
-msgid "<br>Product URLs: /product/<strong>product-name/</strong><br>Category URLs: /category/<strong>category-name/</strong>"
+msgid ""
+"<br>Product URLs: /product/<strong>product-name/</strong><br>Category URLs: /"
+"category/<strong>category-name/</strong>"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/shopHelper.class.php:142
@@ -3605,7 +3927,9 @@ msgid "not specified"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/coupons/CouponsEditor.html:5
-msgid "Discounts by coupons are turned off. Enable discounts in your <a href=\"%s\">store settings</a>."
+msgid ""
+"Discounts by coupons are turned off. Enable discounts in your <a href=\"%s"
+"\">store settings</a>."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:44
@@ -3779,7 +4103,9 @@ msgid "None of your customers posted a review of this product yet."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:46
-msgid "<strong>&#123;$order.id&#125;</strong> will be replaced with the actual order ID. Do not delete &#123;$order.id&#125; from this string."
+msgid ""
+"<strong>&#123;$order.id&#125;</strong> will be replaced with the actual "
+"order ID. Do not delete &#123;$order.id&#125; from this string."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotifications.email.html:2
@@ -3799,7 +4125,9 @@ msgid "Email body"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotifications.sms.html:16
-msgid "Max 160 chars. SMS is sent only if customer phone number was entered during the checkout."
+msgid ""
+"Max 160 chars. SMS is sent only if customer phone number was entered during "
+"the checkout."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsAdd.html:27
@@ -3863,11 +4191,15 @@ msgid "Natural"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:43
-msgid "<br>Product URLs: /category-name/<strong>product-name/</strong><br>Category URLs: /<strong>category-name/</strong>"
+msgid ""
+"<br>Product URLs: /category-name/<strong>product-name/</strong><br>Category "
+"URLs: /<strong>category-name/</strong>"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:35
-msgid "<br>Product URLs: /<strong>category-name/subcategory-name/product-name/</strong><br>Category URLs: /<strong>category-name/subcategory-name/</strong>"
+msgid ""
+"<br>Product URLs: /<strong>category-name/subcategory-name/product-name/</"
+"strong><br>Category URLs: /<strong>category-name/subcategory-name/</strong>"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/products/Products.html:68
@@ -3879,7 +4211,10 @@ msgid "Top choice"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:7
-msgid "Most shipping rate calculation modules require <strong>product weight</strong> information which is taken from a product feature with the <code>%s</code> identifier."
+msgid ""
+"Most shipping rate calculation modules require <strong>product weight</"
+"strong> information which is taken from a product feature with the <code>%s</"
+"code> identifier."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:8
@@ -3887,7 +4222,8 @@ msgid "You don't have such feature in your online store setup."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:9
-msgid "Add it in the <a href=\"%s\">Product types &amp; Features</a> screen to make."
+msgid ""
+"Add it in the <a href=\"%s\">Product types &amp; Features</a> screen to make."
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/frontend/my/shopFrontendMyOrder.action.php:22
@@ -3923,7 +4259,8 @@ msgid "Contact information successfully updated!"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/coupons/CouponsEditor.html:84
-msgid "Optional comment for your convenience. Will never be shown to customers."
+msgid ""
+"Optional comment for your convenience. Will never be shown to customers."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/order/OrderEdit.html:240
@@ -3939,7 +4276,9 @@ msgid "PIN is not valid"
 msgstr ""
 
 #: /wa-apps/shop/themes/default/my.order.html:10
-msgid "Please enter a 4-digit PIN that you received with your order receipt by email."
+msgid ""
+"Please enter a 4-digit PIN that you received with your order receipt by "
+"email."
 msgstr ""
 
 #: /wa-apps/shop/themes/default/my.order.html:15
@@ -3971,7 +4310,9 @@ msgid "Order %s has been cancelled"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:107
-msgid "Your order %s has been cancelled. If you want your order to be re-opened, please contact us."
+msgid ""
+"Your order %s has been cancelled. If you want your order to be re-opened, "
+"please contact us."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscountsOrderTotal.html:46
@@ -4047,19 +4388,27 @@ msgid "Printform not found"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:26
-msgid "Shipping rate was not calculated because required currency %s is not defined in your store settings."
+msgid ""
+"Shipping rate was not calculated because required currency %s is not defined "
+"in your store settings."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:85
-msgid "Core content loaded according to the requested resource: product, category, search results, static page, etc."
+msgid ""
+"Core content loaded according to the requested resource: product, category, "
+"search results, static page, etc."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:88
-msgid "Product id. Other elements of <em>$product</em> available in this template are listed below"
+msgid ""
+"Product id. Other elements of <em>$product</em> available in this template "
+"are listed below"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:102
-msgid "Conditional! Available only if current context of photo is album. Below are describe keys of this param"
+msgid ""
+"Conditional! Available only if current context of photo is album. Below are "
+"describe keys of this param"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:121
@@ -4075,11 +4424,15 @@ msgid "Returns current cart object"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:127
-msgid "Returns array of subcategories of the specified category. Omit parent category for the entire array of categories"
+msgid ""
+"Returns array of subcategories of the specified category. Omit parent "
+"category for the entire array of categories"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:128
-msgid "Returns array of cross-sell products.<em>$product_id</em> can be either a number (ID of the specified base product) or an array of products IDs"
+msgid ""
+"Returns array of cross-sell products.<em>$product_id</em> can be either a "
+"number (ID of the specified base product) or an array of products IDs"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:129
@@ -4107,11 +4460,15 @@ msgid "Returns array of products from the specified set"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:135
-msgid "Displays 1—5 stars rating. $size indicates icon size and can be either 10 or 16"
+msgid ""
+"Displays 1—5 stars rating. $size indicates icon size and can be either 10 or "
+"16"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:136
-msgid "Returns store’s general setting option by <em>option_id</em>, e.g. \"name\", \"email\", \"country\""
+msgid ""
+"Returns store’s general setting option by <em>option_id</em>, e.g. \"name\", "
+"\"email\", \"country\""
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:104
@@ -4131,7 +4488,9 @@ msgid "Payment amount"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutPayment.class.php:17
-msgid "Payment procedure cannot be processed because required currency %s is not defined in your store settings."
+msgid ""
+"Payment procedure cannot be processed because required currency %s is not "
+"defined in your store settings."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:42
@@ -4143,7 +4502,8 @@ msgid "Follow-up name"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:53
-msgid "This name is for your convenience only. It will never be shown to customers."
+msgid ""
+"This name is for your convenience only. It will never be shown to customers."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:60
@@ -4223,7 +4583,9 @@ msgid "points"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:123
-msgid "Comment is <strong>public</strong>. Your customer will see it in his account in the storefront."
+msgid ""
+"Comment is <strong>public</strong>. Your customer will see it in his account "
+"in the storefront."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:128
@@ -4279,11 +4641,15 @@ msgid "What is cron?"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:45
-msgid "Follow-ups require CRON to be properly setup for the Shop-Script app, which is currently not the case."
+msgid ""
+"Follow-ups require CRON to be properly setup for the Shop-Script app, which "
+"is currently not the case."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:47
-msgid "Setup cron with the following command (<a href=\"%s\" target=\"_blank\">cron setup instructions</a>):"
+msgid ""
+"Setup cron with the following command (<a href=\"%s\" target=\"_blank\">cron "
+"setup instructions</a>):"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:48
@@ -4307,7 +4673,9 @@ msgid "Update stock"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsStock.html:78
-msgid "Product stock levels will be updated (reduced) when this action is performed to the order."
+msgid ""
+"Product stock levels will be updated (reduced) when this action is performed "
+"to the order."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsStock.html:83
@@ -4315,7 +4683,9 @@ msgid "Ordering"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsStock.html:86
-msgid "Maximum number of items that can be added to shopping cart is limited by stock level"
+msgid ""
+"Maximum number of items that can be added to shopping cart is limited by "
+"stock level"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsStock.html:89
@@ -4323,7 +4693,9 @@ msgid "Ordering is not limited by stock levels"
 msgstr ""
 
 #: /wa-apps/shop/themes/default/cart.html:79
-msgid "Your current affiliate bonus of %s points allows you to get an additonal discount of up to %s"
+msgid ""
+"Your current affiliate bonus of %s points allows you to get an additonal "
+"discount of up to %s"
 msgstr ""
 
 #: /wa-apps/shop/themes/default/cart.html:83
@@ -4359,11 +4731,15 @@ msgid "Shipment tracking number"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:28
-msgid "Cron for follow-ups is configured properly. Latest execution time: <strong>%s</strong>"
+msgid ""
+"Cron for follow-ups is configured properly. Latest execution time: <strong>"
+"%s</strong>"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:28
-msgid "Follow-ups are configured properly. Latest Cron execution time: <strong>%s</strong>"
+msgid ""
+"Follow-ups are configured properly. Latest Cron execution time: <strong>%s</"
+"strong>"
 msgstr ""
 
 #: /wa-apps/shop/themes/default/category.html:52
@@ -4523,7 +4899,9 @@ msgid "Test follow-up"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:134
-msgid "Follow-up testing requires at least one paid or complete order for sample data."
+msgid ""
+"Follow-up testing requires at least one paid or complete order for sample "
+"data."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:145
@@ -4567,7 +4945,11 @@ msgid "Thank you for your recent order %s!"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/settings/followups/shopSettingsFollowups.action.php:88
-msgid "We hope that you are happy with your purchase, and that the overall shopping experience was pleasant. Please let us know if you have any questions on your order, or if there is anything we can assist you with. We will be glad working with you again!"
+msgid ""
+"We hope that you are happy with your purchase, and that the overall shopping "
+"experience was pleasant. Please let us know if you have any questions on "
+"your order, or if there is anything we can assist you with. We will be glad "
+"working with you again!"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/data/workflow.php:25
@@ -4607,11 +4989,16 @@ msgid "This will permanently delete this notification. Are you sure?"
 msgstr ""
 
 #: /wa-apps/shop/themes/default/checkout.contactinfo.html:16
-msgid "You are currently authorized as <strong>%s</strong>. Please verify or update your contact information using the form below. Your existing contact info will be automatically updated."
+msgid ""
+"You are currently authorized as <strong>%s</strong>. Please verify or update "
+"your contact information using the form below. Your existing contact info "
+"will be automatically updated."
 msgstr ""
 
 #: /wa-apps/shop/themes/default/checkout.contactinfo.html:17
-msgid "If you want to place an order on behalf of another customer, <a href=\"%s\">log out</a> from your current profile and proceed to checkout again."
+msgid ""
+"If you want to place an order on behalf of another customer, <a href=\"%s"
+"\">log out</a> from your current profile and proceed to checkout again."
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:68
@@ -4619,7 +5006,9 @@ msgid "Email already registered"
 msgstr ""
 
 #: /wa-apps/shop/themes/default/checkout.contactinfo.html:12
-msgid "If you want to place an order on behalf of another customer, <a href=\"?logout\">log out</a> from your current profile and proceed to checkout again."
+msgid ""
+"If you want to place an order on behalf of another customer, <a href=\"?"
+"logout\">log out</a> from your current profile and proceed to checkout again."
 msgstr ""
 
 #: /wa-apps/shop/themes/default/checkout.contactinfo.html:23
@@ -4647,7 +5036,11 @@ msgid "Display Gravatar userpics"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:55
-msgid "Gravatar.com (Globally Recognized Avatars) is a web service that returns userpic (profile photo, avatar) by email address. In case userpic is not uploaded in the Contacts app for a particular customer, his Gravatar userpic will be displayed."
+msgid ""
+"Gravatar.com (Globally Recognized Avatars) is a web service that returns "
+"userpic (profile photo, avatar) by email address. In case userpic is not "
+"uploaded in the Contacts app for a particular customer, his Gravatar userpic "
+"will be displayed."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:59
@@ -4695,7 +5088,9 @@ msgid "Only registered users can add reviews"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:89
-msgid "Make sure sign up and login forms are enabled in your <a href=\"%s\">Site app settings</a>"
+msgid ""
+"Make sure sign up and login forms are enabled in your <a href=\"%s\">Site "
+"app settings</a>"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:88
@@ -4703,7 +5098,9 @@ msgid "If enabled, user needs to sign in to post a review."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:89
-msgid "Make sure sign up and login forms are enabled in your <a href=\"%s\">Site app settings</a>."
+msgid ""
+"Make sure sign up and login forms are enabled in your <a href=\"%s\">Site "
+"app settings</a>."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotifications.sms.html:26
@@ -4711,13 +5108,14 @@ msgid "From"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotifications.sms.html:40
-msgid "Max 300 chars. SMS is sent only if customer phone number was entered during the checkout."
+msgid ""
+"Max 300 chars. SMS is sent only if customer phone number was entered during "
+"the checkout."
 msgstr ""
 
 #: /wa-apps/shop/themes/default/compare.html:56
 msgid "Remove from comparison list"
 msgstr ""
-
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:2
 msgid "CSV product import"
@@ -4728,7 +5126,12 @@ msgid "Import and update products via CSV files"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:4
-msgid "Import new products and update existing product information from a comma-separated values (CSV) file. CSV files can be created and managed using most modern spreadsheet applications such as Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-Script-supported CSV file structure, please <a href=\"%s\" target=\"_blank\">refer to the manual</a>."
+msgid ""
+"Import new products and update existing product information from a comma-"
+"separated values (CSV) file. CSV files can be created and managed using most "
+"modern spreadsheet applications such as Microsoft Excel, OpenOffice, and "
+"iWork. For detailed information about Shop-Script-supported CSV file "
+"structure, please <a href=\"%s\" target=\"_blank\">refer to the manual</a>."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:4
@@ -4764,7 +5167,11 @@ msgid "Identification column"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:80
-msgid "Select the product identification column (property) which uniquely identifies each product. Based on the identification column value in the CSV file uploaded, the import routine will either update existing product info, or create a new product."
+msgid ""
+"Select the product identification column (property) which uniquely "
+"identifies each product. Based on the identification column value in the CSV "
+"file uploaded, the import routine will either update existing product info, "
+"or create a new product."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:91
@@ -4772,7 +5179,9 @@ msgid "Start import"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:104
-msgid "Please do not close your browser window and do not leave this page until the entire import process is finished."
+msgid ""
+"Please do not close your browser window and do not leave this page until the "
+"entire import process is finished."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:387
@@ -4780,7 +5189,9 @@ msgid "Hidden"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductsDelete.html:10
-msgid "After you delete a product, all it’s sales reports, cross-selling data, and connections to the orders made in the past will be impossible to restore."
+msgid ""
+"After you delete a product, all it’s sales reports, cross-selling data, and "
+"connections to the orders made in the past will be impossible to restore."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/products/Products.html:58
@@ -4792,15 +5203,23 @@ msgid "Sender ID"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:107
-msgid "Enter Sender ID to use with this SMS gateway (Sender ID is either your phone number or up-to-11-characters text label). Enter * to use default Sender ID issued for your account by the gateway."
+msgid ""
+"Enter Sender ID to use with this SMS gateway (Sender ID is either your phone "
+"number or up-to-11-characters text label). Enter * to use default Sender ID "
+"issued for your account by the gateway."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:124
-msgid "Once gateway is setup, add new and edit existing SMS notifications using the <a href=\"%s\">Notifications</a> settings screen."
+msgid ""
+"Once gateway is setup, add new and edit existing SMS notifications using the "
+"<a href=\"%s\">Notifications</a> settings screen."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:129
-msgid "To enable SMS message sending, install and configure sending module for your preferred SMS gateway.<br /> Browse for SMS gateway modules <a href=\"%s\">in the Installer app</a>."
+msgid ""
+"To enable SMS message sending, install and configure sending module for your "
+"preferred SMS gateway.<br /> Browse for SMS gateway modules <a href=\"%s"
+"\">in the Installer app</a>."
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:37
@@ -4840,7 +5259,9 @@ msgid "CSV column map"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:92
-msgid "No data columns were located in the uploaded file. Make sure right separator and encoding were chosen for this upload."
+msgid ""
+"No data columns were located in the uploaded file. Make sure right separator "
+"and encoding were chosen for this upload."
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:92
@@ -4908,7 +5329,8 @@ msgid "Hidden category"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:29
-msgid "When enabled, this category will be temporarily hidden from the storefront"
+msgid ""
+"When enabled, this category will be temporarily hidden from the storefront"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:71
@@ -4920,7 +5342,9 @@ msgid "Save product information to be able to upload an attachment"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:89
-msgid "A link to download attached file will be sent to customer in the order notification email. The link will be functional only when the order is paid."
+msgid ""
+"A link to download attached file will be sent to customer in the order "
+"notification email. The link will be functional only when the order is paid."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:90
@@ -4996,7 +5420,9 @@ msgid "Cheat sheet"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:321
-msgid "Hidden products are not shown among other products in the storefront, are not available for purchase, and can be viewed by the direct URL only."
+msgid ""
+"Hidden products are not shown among other products in the storefront, are "
+"not available for purchase, and can be viewed by the direct URL only."
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/frontend/shopFrontendCartSave.controller.php:19
@@ -5036,7 +5462,9 @@ msgid "any of selected values (OR)"
 msgstr ""
 
 #: /wa-apps/shop/js/settings/recommendations.js:65
-msgid "Upsell products will be offered for a particular base product according to the following criteria:"
+msgid ""
+"Upsell products will be offered for a particular base product according to "
+"the following criteria:"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:9
@@ -5048,7 +5476,12 @@ msgid "Export products into CSV file"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:11
-msgid "Export products to a comma-separated values (CSV) file. CSV files can be created and managed using most modern spreadsheet applications such as Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-Script-supported CSV file structure, please <a href=\"%s\" target=\"_blank\">refer to the manual</a>."
+msgid ""
+"Export products to a comma-separated values (CSV) file. CSV files can be "
+"created and managed using most modern spreadsheet applications such as "
+"Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-"
+"Script-supported CSV file structure, please <a href=\"%s\" target=\"_blank"
+"\">refer to the manual</a>."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:25
@@ -5064,7 +5497,9 @@ msgid "Start export"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:177
-msgid "Please do not close your browser window and do not leave this page until the entire export process is finished."
+msgid ""
+"Please do not close your browser window and do not leave this page until the "
+"entire export process is finished."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:409
@@ -5076,7 +5511,10 @@ msgid "Flat SKU list"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:413
-msgid "Best for single-priced products and products with a flat list of purchase options (SKUs). SKUs are added one-by-one arbitrarly. Customer selects individual SKU and adds it to shopping cart."
+msgid ""
+"Best for single-priced products and products with a flat list of purchase "
+"options (SKUs). SKUs are added one-by-one arbitrarly. Customer selects "
+"individual SKU and adds it to shopping cart."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:418
@@ -5084,7 +5522,12 @@ msgid "Selectable features"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:419
-msgid "Best for multi-dimensional featured products, e.g. apparel or footwear which can vary in size and color. Flat SKU list is created automatically based on the combination of features offered for selection. Customer is prompted to choose preferable product feature values which unambiguously identifies SKU that is being added to shopping cart. "
+msgid ""
+"Best for multi-dimensional featured products, e.g. apparel or footwear which "
+"can vary in size and color. Flat SKU list is created automatically based on "
+"the combination of features offered for selection. Customer is prompted to "
+"choose preferable product feature values which unambiguously identifies SKU "
+"that is being added to shopping cart. "
 msgstr ""
 
 #: /wa-apps/shop/js/product/product.js:864
@@ -5100,7 +5543,10 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:482
-msgid "Base price is applied unless you override it for a particular SKU. A list of overrided SKUs is shown below. Stock level can be tracked on the level of individual SKUs only, not for the entire product."
+msgid ""
+"Base price is applied unless you override it for a particular SKU. A list of "
+"overrided SKUs is shown below. Stock level can be tracked on the level of "
+"individual SKUs only, not for the entire product."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:527
@@ -5136,7 +5582,9 @@ msgid "Contact us"
 msgstr ""
 
 #: /wa-apps/shop/themes/default/home.html:38
-msgid "Edit this information in the <strong>home.html</strong> template file using built-in design editor in the store backend."
+msgid ""
+"Edit this information in the <strong>home.html</strong> template file using "
+"built-in design editor in the store backend."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendImportexport.html:17
@@ -5168,7 +5616,10 @@ msgid "Check at least one feature value"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:121
-msgid "If no particular product type column was specified in the uploaded CSV file, selected product type will be applied to all new products, created during the import."
+msgid ""
+"If no particular product type column was specified in the uploaded CSV file, "
+"selected product type will be applied to all new products, created during "
+"the import."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:38
@@ -5180,11 +5631,15 @@ msgid "Categories will not be exported"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:114
-msgid "Ignore category nesting when searching for matching products (recommended)"
+msgid ""
+"Ignore category nesting when searching for matching products (recommended)"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:116
-msgid "When importing a product and searching if it exists in the store already, product search will be performed only within the category as defined in a CSV file."
+msgid ""
+"When importing a product and searching if it exists in the store already, "
+"product search will be performed only within the category as defined in a "
+"CSV file."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:409
@@ -5212,7 +5667,11 @@ msgid "SKU identification column"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:125
-msgid "Similar to product, select the SKU identification column (property) which uniquely identifies each product SKU. Based on the identification column value in the CSV file uploaded, the import routine will either update existing SKU info, or create a new SKU for the product."
+msgid ""
+"Similar to product, select the SKU identification column (property) which "
+"uniquely identifies each product SKU. Based on the identification column "
+"value in the CSV file uploaded, the import routine will either update "
+"existing SKU info, or create a new SKU for the product."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:147
@@ -5220,7 +5679,13 @@ msgid "Product images import local path"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:151
-msgid "If your CSV file contains links to product images to be imported, import routine will attempt to automatically attach them to imported products. A link to an image file can be either global (a full image URL) or local (image file name). For local image import, indicate path to the folder where all source images are stored, i.e. where you uploaded them into. If linked image was not found, no image will be attached to the product."
+msgid ""
+"If your CSV file contains links to product images to be imported, import "
+"routine will attempt to automatically attach them to imported products. A "
+"link to an image file can be either global (a full image URL) or local "
+"(image file name). For local image import, indicate path to the folder where "
+"all source images are stored, i.e. where you uploaded them into. If linked "
+"image was not found, no image will be attached to the product."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:128
@@ -5316,7 +5781,9 @@ msgid "Order selected payment option name"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:162
-msgid "A 4-digit PIN to access order info page (for customers without permanent account only)"
+msgid ""
+"A 4-digit PIN to access order info page (for customers without permanent "
+"account only)"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:170
@@ -5332,7 +5799,8 @@ msgid "Customer’s User Agent string for the moment of order creation"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:194
-msgid "A string indicating approximate timeframe of the order delivery (if defined)"
+msgid ""
+"A string indicating approximate timeframe of the order delivery (if defined)"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:202
@@ -5340,11 +5808,14 @@ msgid "Order shipment tracking number (if defined)"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:210
-msgid "The list of order params may vary depending on your workflow and plugin setup"
+msgid ""
+"The list of order params may vary depending on your workflow and plugin setup"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:220
-msgid "An array containing information about the customer according to the Contacts app setup and your storefront’s checkout contact info form"
+msgid ""
+"An array containing information about the customer according to the Contacts "
+"app setup and your storefront’s checkout contact info form"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:228
@@ -5368,7 +5839,9 @@ msgid "Customer phone"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:268
-msgid "The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step"
+msgid ""
+"The list of available contact fields is defined in your store backend: "
+"Settings &rarr; Checkout &rarr; Contact info checkout step"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:278
@@ -5380,7 +5853,9 @@ msgid "Billing address as string"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:296
-msgid "An array containing information about performed order action (action-dependent)"
+msgid ""
+"An array containing information about performed order action (action-"
+"dependent)"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:304
@@ -5388,19 +5863,13 @@ msgid "Performed action text comment (action-dependent)"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:312
-msgid "An array of action-dependent parameters, e.g. &#123;$action_data.params.tracking_number&#125; for Ship’s action tracking number"
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:49
-msgid "HTML. Payment option description is shown to customer during the checkout."
+msgid ""
+"An array of action-dependent parameters, e.g. &#123;$action_data.params."
+"tracking_number&#125; for Ship’s action tracking number"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:67
 msgid "Allowed shipping options"
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:49
-msgid "HTML. Shipping option description is shown to customer during the checkout."
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:91
@@ -5431,10 +5900,6 @@ msgstr ""
 msgid "All available payment options"
 msgstr ""
 
-#: /wa-apps/shop/lib/config/site.php:87
-msgid "Shipping options"
-msgstr ""
-
 #: /wa-apps/shop/lib/config/site.php:91
 msgid "All available shipping options"
 msgstr ""
@@ -5452,11 +5917,18 @@ msgid "Select storefront"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/images/ImagesProductsetup.html:3
-msgid "Bulk image upload allows you to instantly create multiple products by uploading a single set of image files. Shop-Script will automatically group images according to their file names, and you will be able to manually arrange them between each other to either create new products or attach to existing products. Bulk image uploader works in HTML5-enabled browsers only."
+msgid ""
+"Bulk image upload allows you to instantly create multiple products by "
+"uploading a single set of image files. Shop-Script will automatically group "
+"images according to their file names, and you will be able to manually "
+"arrange them between each other to either create new products or attach to "
+"existing products. Bulk image uploader works in HTML5-enabled browsers only."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/images/ImagesProductsetup.html:13
-msgid "Drag images between automatically detected groups, and assign them to either new or existing products. Click “Upload images” when setup is complete."
+msgid ""
+"Drag images between automatically detected groups, and assign them to either "
+"new or existing products. Click “Upload images” when setup is complete."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/images/ImagesProductsetup.html:28
@@ -5470,6 +5942,7 @@ msgstr ""
 #: /wa-apps/shop/templates/actions/images/ImagesProductsetup.html:30
 msgid "Assign all new products following product type:"
 msgstr ""
+
 #: /wa-apps/shop/lib/actions/images/shopImagesProductcreates.controller.php:9
 msgid "Unkown type of product"
 msgstr ""
@@ -5477,6 +5950,7 @@ msgstr ""
 #: /wa-apps/shop/templates/actions/images/ImagesProductsetup.html:30
 msgid "Add product group"
 msgstr ""
+
 #: /wa-apps/shop/templates/actions/images/ImagesProductsetup.html:30
 msgid "Add product"
 msgstr ""
@@ -5498,11 +5972,18 @@ msgid "No products were found."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductFeaturesSelectable.html:29
-msgid "To activate this mode, this particular product must be assigned a product type which offers at least one <strong>selectable</strong> feature (the list of available product types and features is configured at <em>Settings &rarr; Product types &amp; features</em>)."
+msgid ""
+"To activate this mode, this particular product must be assigned a product "
+"type which offers at least one <strong>selectable</strong> feature (the list "
+"of available product types and features is configured at <em>Settings &rarr; "
+"Product types &amp; features</em>)."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:823
-msgid "Optional set of custom <em>key=value</em> parameters which can be used within a frontend's theme template as <em>&#123;$product.params.key&#125;</em>. Each key=value pair should be on a separate line."
+msgid ""
+"Optional set of custom <em>key=value</em> parameters which can be used "
+"within a frontend's theme template as <em>&#123;$product.params.key&#125;</"
+"em>. Each key=value pair should be on a separate line."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:74
@@ -5514,7 +5995,10 @@ msgid "Prompt for address"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:337
-msgid "During the “Shipping” checkout step, when customer selects a preferred shipping option but shipping address was not yet entered, instantly prompt customer to provide:"
+msgid ""
+"During the “Shipping” checkout step, when customer selects a preferred "
+"shipping option but shipping address was not yet entered, instantly prompt "
+"customer to provide:"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:340
@@ -5522,7 +6006,12 @@ msgid "All required address fields"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:341
-msgid "Prompt for all address fields according to the selected shipping option implementation. If you use this option and have “Shipping” prior to “Contact info” in the checkout step order, it is advisable to hide (disable) shipping address form on the “Contact Info” checkout step to avoid asking for address twice."
+msgid ""
+"Prompt for all address fields according to the selected shipping option "
+"implementation. If you use this option and have “Shipping” prior to “Contact "
+"info” in the checkout step order, it is advisable to hide (disable) shipping "
+"address form on the “Contact Info” checkout step to avoid asking for address "
+"twice."
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:344
@@ -5530,27 +6019,45 @@ msgid "Only fields required for shipping rate estimation"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:345
-msgid "Prompt for fields required for shipping rate and delivery date estimation only (shipping option implementation declares the list of such fields). This is a suitable setup option if you have “Shipping” prior to “Contact info” in the checkout step order setup."
+msgid ""
+"Prompt for fields required for shipping rate and delivery date estimation "
+"only (shipping option implementation declares the list of such fields). This "
+"is a suitable setup option if you have “Shipping” prior to “Contact info” in "
+"the checkout step order setup."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/data/checkout.php:17
-msgid "The shipping checkout step prompts customer to select preferable shipping option from the list configured on the <a class=\"inline\" href=\"#/shipping/\">Shipping</a> settings screen."
+msgid ""
+"The shipping checkout step prompts customer to select preferable shipping "
+"option from the list configured on the <a class=\"inline\" href=\"#/shipping/"
+"\">Shipping</a> settings screen."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/data/checkout.php:21
-msgid "The payment checkout step prompts customer to select preferable payment option from the list configured on the <a class=\"inline\" href=\"#/payment/\">Payment</a> settings screen."
+msgid ""
+"The payment checkout step prompts customer to select preferable payment "
+"option from the list configured on the <a class=\"inline\" href=\"#/payment/"
+"\">Payment</a> settings screen."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/data/checkout.php:25
-msgid "The confirmation checkout step presents overall order information including cart content, shipping and tax rates, total amount."
+msgid ""
+"The confirmation checkout step presents overall order information including "
+"cart content, shipping and tax rates, total amount."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:173
-msgid "Returns array of products by search criteria, e.g. <em>\"tag/new\"</em>, <em>\"category/12\"</em>, <em>\"id/1,5,7\"</em>, <em>\"set/1\"</em>, or <em>\"*\"</em> for all products list."
+msgid ""
+"Returns array of products by search criteria, e.g. <em>\"tag/new\"</em>, <em>"
+"\"category/12\"</em>, <em>\"id/1,5,7\"</em>, <em>\"set/1\"</em>, or <em>\"*"
+"\"</em> for all products list."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:174
-msgid "Optional <em>options</em> parameter indicates additional product options, e.g. <em>[\"params\" => 1]</em> to include product custom parameter values into the output."
+msgid ""
+"Optional <em>options</em> parameter indicates additional product options, e."
+"g. <em>[\"params\" => 1]</em> to include product custom parameter values "
+"into the output."
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:174
@@ -5614,15 +6121,22 @@ msgid "Returns array of products currently added into a comparison list"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/site.php:192
-msgid "Returns number of products matching specified search conditions, e.g. <em>\"tag/new\"</em>, <em>\"category/12\"</em>, <em>\"id/1,5,7\"</em>, <em>\"set/1\"</em>, or <em>\"*\"</em> for all products list."
+msgid ""
+"Returns number of products matching specified search conditions, e.g. <em>"
+"\"tag/new\"</em>, <em>\"category/12\"</em>, <em>\"id/1,5,7\"</em>, <em>"
+"\"set/1\"</em>, or <em>\"*\"</em> for all products list."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:80
-msgid "If enabled, customer will be prompted to fill in address fields directly on the “Contact info” checkout step."
+msgid ""
+"If enabled, customer will be prompted to fill in address fields directly on "
+"the “Contact info” checkout step."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:81
-msgid "In case shipping method and address were prompted prior to the contact info, only missing address fields will be requested."
+msgid ""
+"In case shipping method and address were prompted prior to the contact info, "
+"only missing address fields will be requested."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormEditor.html:69
@@ -5650,7 +6164,12 @@ msgid "Terms of service"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:90
-msgid "If you want your customers to be prompted to read and agree to your company’s terms of service, refund and privacy policies or any other legal information during the checkout, enter the text to the field above. A checkbox to agree and a link to read this legal information will be shown on the Confirmation checkout step."
+msgid ""
+"If you want your customers to be prompted to read and agree to your "
+"company’s terms of service, refund and privacy policies or any other legal "
+"information during the checkout, enter the text to the field above. A "
+"checkbox to agree and a link to read this legal information will be shown on "
+"the Confirmation checkout step."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:90
@@ -5666,11 +6185,17 @@ msgid "Required fields"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:117
-msgid "When a new order is created via backend manually, contact info form will be validated according the Contact info form setup defined for the storefront (above). All required fields will be necessary to fill in."
+msgid ""
+"When a new order is created via backend manually, contact info form will be "
+"validated according the Contact info form setup defined for the storefront "
+"(above). All required fields will be necessary to fill in."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:121
-msgid "When a new order is created via backend manually, contact info form will not be validated. Fields which are necessary to fill in when order is placed in the storefront, can be left blank when order is created via backend."
+msgid ""
+"When a new order is created via backend manually, contact info form will not "
+"be validated. Fields which are necessary to fill in when order is placed in "
+"the storefront, can be left blank when order is created via backend."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:8
@@ -5678,11 +6203,15 @@ msgid "This will permanently delete this payment option. Are you sure?"
 msgstr ""
 
 #: /wa-apps/shop/themes/default/checkout.payment.html:18
-msgid "Oops! We are sorry, but <strong>we can not offer any payment option for your order</strong>. Checkout can not be completed."
+msgid ""
+"Oops! We are sorry, but <strong>we can not offer any payment option for your "
+"order</strong>. Checkout can not be completed."
 msgstr ""
 
 #: /wa-apps/shop/themes/default/checkout.shipping.html:54
-msgid "Oops! We are sorry, but <strong>we can not ship this order to your selected destination</strong>. Checkout can not be completed."
+msgid ""
+"Oops! We are sorry, but <strong>we can not ship this order to your selected "
+"destination</strong>. Checkout can not be completed."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormEditor.html:38
@@ -5690,7 +6219,10 @@ msgid "Radio selector advanced settings"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormEditor.html:39
-msgid "Depending on the current radio selector value, other contact form fields may be set to be omitted (become hidden). Manage form fields visibility settings using checkboxes below for each radio selector value."
+msgid ""
+"Depending on the current radio selector value, other contact form fields may "
+"be set to be omitted (become hidden). Manage form fields visibility settings "
+"using checkboxes below for each radio selector value."
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateDelete.controller.php:15
@@ -5702,7 +6234,9 @@ msgid "Required fields validation"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:75
-msgid "When shipping address form is disabled (hidden) on the “Contact info” step, address will be automatically prompted on the “Shipping” checkout step."
+msgid ""
+"When shipping address form is disabled (hidden) on the “Contact info” step, "
+"address will be automatically prompted on the “Shipping” checkout step."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactForm.html:85
@@ -5710,7 +6244,9 @@ msgid "Hide certain fields"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:384
-msgid "This list of address fields is configured in the “Contact info” step settings."
+msgid ""
+"This list of address fields is configured in the “Contact info” step "
+"settings."
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutConfirmation.class.php:114
@@ -5722,7 +6258,9 @@ msgid "You must read and agree to the Terms of service to place an order."
 msgstr ""
 
 #: /wa-apps/shop/themes/default/checkout.confirmation.html:70
-msgid "I have read and agree to the <a href=\"%s\" target=\"_blank\">Terms of service</a>"
+msgid ""
+"I have read and agree to the <a href=\"%s\" target=\"_blank\">Terms of "
+"service</a>"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormEditor.html:218
@@ -5762,7 +6300,9 @@ msgid "Prompt to select %s from the following list:"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:62
-msgid "<strong>ELSE</strong>, in case parent field value does not match any of the listed above"
+msgid ""
+"<strong>ELSE</strong>, in case parent field value does not match any of the "
+"listed above"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:65
@@ -5774,7 +6314,15 @@ msgid "Do not prompt for %s"
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutConfirmation.class.php:109
-msgid "For Terms of service to work, make sure you updated <strong>checkout.confirmation.html</strong> template file from the original design theme (either Default or CUSTOM). In case there is no checkbox to agree to the Terms of service in the template file along with the terms legal text entered in the backend, order checkout may stop accepting orders due to the lack of a checkbox user could click, and an error message output. The original checkout.confirmation.html template file contains both checkbox and error output text. Please make sure to update it."
+msgid ""
+"For Terms of service to work, make sure you updated <strong>checkout."
+"confirmation.html</strong> template file from the original design theme "
+"(either Default or CUSTOM). In case there is no checkbox to agree to the "
+"Terms of service in the template file along with the terms legal text "
+"entered in the backend, order checkout may stop accepting orders due to the "
+"lack of a checkbox user could click, and an error message output. The "
+"original checkout.confirmation.html template file contains both checkbox and "
+"error output text. Please make sure to update it."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutContactFormRow.html:67
@@ -5794,7 +6342,9 @@ msgid "We cannot ship to the specified address via %s."
 msgstr ""
 
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:66
-msgid "Please double-check the address above, or return to the shipping step and select another shipping option."
+msgid ""
+"Please double-check the address above, or return to the shipping step and "
+"select another shipping option."
 msgstr ""
 
 #: /wa-apps/shop/themes/default/index.html:98
@@ -5822,15 +6372,21 @@ msgid "By name"
 msgstr ""
 
 #: /wa-apps/shop/themes/default/checkout.contactinfo.html:9
-msgid "Registered customers apply for affiliate bonuses and discounts on future orders"
+msgid ""
+"Registered customers apply for affiliate bonuses and discounts on future "
+"orders"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/frontend/shopFrontendCart.action.php:43
-msgid "Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed."
+msgid ""
+"Oops! %s is not available for purchase at the moment. Please remove this "
+"product from your shopping cart to proceed."
 msgstr ""
 
 #: /wa-apps/shop/themes/sidebar/checkout.success.html:17
-msgid "Your payment has been successfully accepted. We will process your order and contact you shortly."
+msgid ""
+"Your payment has been successfully accepted. We will process your order and "
+"contact you shortly."
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/product/shopProductReviews.action.php:17
@@ -5838,11 +6394,14 @@ msgid "Unkown product"
 msgstr ""
 
 #: /wa-apps/shop/themes/default/product.html:144
-msgid "Product with the selected option combination is not available for purchase"
+msgid ""
+"Product with the selected option combination is not available for purchase"
 msgstr ""
 
 #: /wa-apps/shop/themes/vk/footer.html:4
-msgid "We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Shop-Script 5</a>"
+msgid ""
+"We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Shop-"
+"Script 5</a>"
 msgstr ""
 
 #: /wa-apps/shop/themes/vk/navigation.html:7
@@ -5867,4 +6426,12 @@ msgstr ""
 
 #: /wa-apps/shop/lib/model/shopFeature.model.php:438
 msgid "Yes/No toggle (boolean)"
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopFeature.model.php:475
+msgid "Value"
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopFeature.model.php:484
+msgid "Range"
 msgstr ""

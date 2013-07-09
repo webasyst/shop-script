@@ -51,7 +51,12 @@ SQL;
 
     public function getProductValues($product_id, $feature_id, $field = 'value')
     {
-        $sql = "SELECT pf.product_id, fv." . $field . " FROM shop_product_features pf
+        if (is_array($field)) {
+            $fields = 'fv.' . implode(', fv.', $field);
+        } else {
+            $fields = 'fv.' . $field;
+        }
+        $sql = "SELECT pf.product_id, " . $fields . " FROM shop_product_features pf
                 JOIN " . $this->table . " fv ON pf.feature_value_id = fv.id
                 WHERE pf.product_id IN (i:0) AND pf.feature_id = i:1";
         return $this->query($sql, $product_id, $feature_id)->fetchAll('product_id', true);
@@ -98,7 +103,7 @@ SQL;
             $data['feature_id'] = $feature_id;
             $data['sort'] = $sort;
 
-            $sql = "SELECT `id`,`sort` FROM " . $this->table . " WHERE (`feature_id` = i:feature_id) AND (`value` " . $op . ')';
+            $sql = "SELECT `id`,`sort` FROM " . $this->table . " WHERE (`feature_id` = i:feature_id) AND (" . $op . ')';
             $row = $this->query($sql, $data)->fetchAssoc();
             if ($row) {
                 $exists[$row['sort']] = intval($row['id']);

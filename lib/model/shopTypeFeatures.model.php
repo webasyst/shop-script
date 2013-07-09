@@ -71,26 +71,18 @@ class shopTypeFeaturesModel extends shopSortableModel
 SQL;
         $result = $this->query($sql);
         while ($row = $result->fetchAssoc()) {
-            if(isset($types[$row['id']])) {
+            if (isset($types[$row['id']])) {
                 $types[$row['id']] += $row;
             }
         }
 
     }
 
-    public function fillTypes(&$features, &$types)
+    public function fillTypes(&$features, &$types = null)
     {
 
         $sql = "SELECT * FROM " . $this->table;
-        if (count($features) == 1) {
-            reset($features);
-            $feature = current($features);
-            $feature_id = empty($feature['id']) ? key($features) : $feature['id'];
-            $sql .= ' WHERE ' . $this->getWhereByField('feature_id', $feature_id);
-        }
 
-        $result = $this->query($sql);
-        $all = array('id' => 0, 'name' => _w('All product types'), 'icon' => '');
         $map = array();
         foreach ($features as $id => & $feature) {
             if (!isset($feature['types'])) {
@@ -100,17 +92,40 @@ SQL;
             $map[$feature_id] = $id;
         }
         unset($feature);
+
+        if (count($features) == 1) {
+            reset($features);
+            $feature = current($features);
+            $feature_id = empty($feature['id']) ? key($features) : $feature['id'];
+            $sql .= ' WHERE ' . $this->getWhereByField('feature_id', $feature_id);
+        } elseif ($types === null) {
+            $sql .= ' WHERE ' . $this->getWhereByField('feature_id', array_keys($map));
+        }
+
+        $result = $this->query($sql);
+        $all = array('id' => 0, 'name' => _w('All product types'), 'icon' => '');
         while ($row = $result->fetchAssoc()) {
             if (isset($map[$row['feature_id']])) {
                 $id = $map[$row['feature_id']];
                 if (isset($features[$id])) {
                     $f =& $features[$id];
 
-                    if (!isset($f['sort']) || !is_array($f['sort'])) {
-                        $f['sort'] = array();
-                    }
                     $type = $row['type_id'];
-                    if (isset($types[$type])) {
+
+                    if (!isset($f['sort'])) {
+                        $f['sort'] = array();
+                    } elseif (!is_array($f['sort'])) {
+                        $f['sort'][$type] = array($f['sort']);
+                    }
+                    if ($types === null) {
+                        if (!$type) {
+                            $f['types'][$type] =& $all;
+                            $f['sort'][$type] = intval($row['sort']);
+                        } else {
+                            $f['types'][$type] = array('id' => $type);
+                            $f['sort'][$type] = intval($row['sort']);
+                        }
+                    } elseif (isset($types[$type])) {
                         $f['types'][$type] =& $types[$type];
                         $f['sort'][$type] = intval($row['sort']);
                     } elseif (!$type) {

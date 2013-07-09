@@ -66,6 +66,6 @@ class shopFeatureValuesDimensionModel extends shopFeatureValuesModel
 
     protected function getSearchCondition()
     {
-        return '= :value) AND (`unit` = s:unit';
+        return '(`value`= :value) AND (`unit` = s:unit)';
     }
 }

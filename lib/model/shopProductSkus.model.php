@@ -270,7 +270,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
      * @param array $data
      * @return array
      */
-    protected function updateSku($id = 0, $data)
+    protected function updateSku($id = 0, $data, $correct = true)
     {
         $date['price'] = $this->castValue('double', $data['price']);
         if (isset($data['purchase_price'])) {
@@ -381,6 +381,11 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             }
         }
 
+        if ($correct) {
+            $product_model = new shopProductModel();
+            $product_model->correct($data['product_id']);
+        }
+
         return $data;
     }
 
@@ -405,7 +410,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             }
             $sku['product_id'] = $product->id;
 
-            $sku = $this->updateSku($sku_id > 0 ? $sku_id : 0, $sku);
+            $sku = $this->updateSku($sku_id > 0 ? $sku_id : 0, $sku, false);
             $result[$sku['id']] = $sku;
 
             if ($product->sku_id == $sku_id) {

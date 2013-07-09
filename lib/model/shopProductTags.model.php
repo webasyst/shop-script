@@ -99,6 +99,23 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         return true;
     }
 
+    public function deleteTags($product_id, $tags)
+    {
+        if (!is_array($tags)) {
+            $tags = explode(',', $tags);
+        }
+        $tag_model = new shopTagModel();
+        $tag_ids = $tag_model->getIds($tags);
+        $old_tag_ids = $this->query("SELECT tag_id FROM ".$this->table."
+            WHERE product_id = i:id", array('id' => $product_id))->fetchAll(null, true);
+        $delete_tag_ids = array_intersect($tag_ids, $old_tag_ids);
+        if ($delete_tag_ids) {
+            $this->deleteByField(array('product_id' => $product_id, 'tag_id' => $delete_tag_ids));
+            $tag_model->incCounters($delete_tag_ids, -1);
+        }
+        return true;
+    }
+
     /**
      * Tag tag of product(s)
      * @param int|array $product_id
