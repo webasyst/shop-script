@@ -101,6 +101,9 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         $this->deleteFromStocks($product['id'], $sku_id); // take info account stocks
         $this->deleteServices($product['id'], $sku_id);
 
+        $product_features_model = new shopProductFeaturesModel();
+        $product_features_model->deleteByField('sku_id', $sku_id);
+
         return true;
     }
 
