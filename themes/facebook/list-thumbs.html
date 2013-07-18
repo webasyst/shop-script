@@ -48,7 +48,7 @@
                 <form class="purchase addtocart" method="post" action="{$wa->getUrl('/frontendCart/add')}">
                     <span class="price nowrap" itemprop="price">{shop_currency($p.price)}</span>
                     <input type="hidden" name="product_id" value="{$p.id}">
-                    <input type="submit" value="[`Add to cart`]">
+                    <input type="submit" value="[`Add to cart`]" class="facebook-button">
                     <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $wa->getUrl('shop/frontend/cart'))}</span>
                 </form>
                 <link itemprop="availability" href="http://schema.org/InStock" />

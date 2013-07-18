@@ -27,6 +27,7 @@ class shopCsvProductrunController extends waLongActionController
      * @var shopProductsCollection
      */
     private $collection;
+
     protected function preExecute()
     {
         $this->getResponse()->addHeader('Content-type', 'application/json');
@@ -54,7 +55,7 @@ class shopCsvProductrunController extends waLongActionController
 
             $stages = array_keys($this->data['count']);
             $this->data['current'] = array_fill_keys($stages, 0);
-            $this->data['processed_count'] = array_fill_keys($stages, ($this->data['direction'] == 'import') ? array('new' => 0, 'update' => 0, ) : 0);
+            $this->data['processed_count'] = array_fill_keys($stages, ($this->data['direction'] == 'import') ? array('new' => 0, 'update' => 0,) : 0);
 
             $this->data['map'] = array();
 
@@ -106,13 +107,13 @@ class shopCsvProductrunController extends waLongActionController
             $this->data['type_id'] = reset($this->data['types']);
         }
         $this->data['ignore_category'] = !!waRequest::post('ignore_category', 0, waRequest::TYPE_INT);
-        if (!in_array($this->data['primary'], array('name', 'url', 'null', ))) {
+        if (!in_array($this->data['primary'], array('name', 'url', 'null',))) {
             throw new waException(_w('Invalid primary field'));
         }
         if ($this->data['primary'] == 'null') {
             $this->data['primary'] = null;
         }
-        if (!in_array($this->data['secondary'], array('skus:-1:sku', 'skus:-1:name', ))) {
+        if (!in_array($this->data['secondary'], array('skus:-1:sku', 'skus:-1:name',))) {
             throw new waException(_w('Invalid secondary field'));
         }
         $current = $this->reader->current();
@@ -123,11 +124,11 @@ class shopCsvProductrunController extends waLongActionController
             throw new waException(_w('Empty secondary CSV column'));
         }
         $this->data['count'] = array(
-            self::STAGE_FILE => $this->reader ? $this->reader->size() : null,
+            self::STAGE_FILE     => $this->reader ? $this->reader->size() : null,
             self::STAGE_CATEGORY => null,
-            self::STAGE_PRODUCT => null,
-            self::STAGE_SKU => null,
-            self::STAGE_IMAGE => null,
+            self::STAGE_PRODUCT  => null,
+            self::STAGE_SKU      => null,
+            self::STAGE_IMAGE    => null,
         );
     }
 
@@ -196,7 +197,9 @@ class shopCsvProductrunController extends waLongActionController
         $features = $features_model->getAll();
 
         foreach ($features as $feature) {
-            $map[sprintf('features:%s', $feature['code'])] = $feature['name'];
+            if (!preg_match('/\.\d$/', $feature['code'])) {
+                $map[sprintf('features:%s', $feature['code'])] = $feature['name'];
+            }
         }
 
         $cnt = $features_model->query('SELECT COUNT(1) AS `cnt` FROM `shop_product_images` GROUP BY `product_id` ORDER BY `cnt` DESC LIMIT 1')->fetchField('cnt');
@@ -214,10 +217,10 @@ class shopCsvProductrunController extends waLongActionController
 
         $model = new shopCategoryModel();
         $this->data['count'] = array(
-            self::STAGE_PRODUCT => $this->getCollection()->count(),
+            self::STAGE_PRODUCT  => $this->getCollection()->count(),
             self::STAGE_CATEGORY => $this->data['export_category'] ? $model->countByField('type', shopCategoryModel::TYPE_STATIC) : 0,
-            self::STAGE_SKU => null,
-            self::STAGE_IMAGE => null,
+            self::STAGE_SKU      => null,
+            self::STAGE_IMAGE    => null,
         );
 
         $this->data['domain'] = waRequest::post('domain');
@@ -285,30 +288,54 @@ class shopCsvProductrunController extends waLongActionController
         static $strings;
         if (!$strings) {
             $strings = array(
-                'new' => array(
-                    self::STAGE_CATEGORY => array /*_w*/('imported %d category', 'imported %d categories'),
-                    self::STAGE_PRODUCT => array /*_w*/('imported %d product', 'imported %d products'),
-                    self::STAGE_SKU => array /*_w*/('imported %d product variant', 'imported %d product variants'),
-                    self::STAGE_IMAGE => array /*_w*/('imported %d product image', 'imported %d product images'),
+                'new'    => array(
+                    self::STAGE_CATEGORY => array /*_w*/
+                    ('imported %d category', 'imported %d categories'
+                    ),
+                    self::STAGE_PRODUCT  => array /*_w*/
+                    ('imported %d product', 'imported %d products'
+                    ),
+                    self::STAGE_SKU      => array /*_w*/
+                    ('imported %d product variant', 'imported %d product variants'
+                    ),
+                    self::STAGE_IMAGE    => array /*_w*/
+                    ('imported %d product image', 'imported %d product images'
+                    ),
 
                 ),
                 'update' => array(
-                    self::STAGE_CATEGORY => array /*_w*/('updated %d category', 'updated %d categories'),
-                    self::STAGE_PRODUCT => array /*_w*/('updated %d product', 'updated %d products'),
-                    self::STAGE_SKU => array /*_w*/('updated %d product variant', 'updated %d product variants'),
-                    self::STAGE_IMAGE => array /*_w*/('updated %d product image', 'updated %d product images'),
+                    self::STAGE_CATEGORY => array /*_w*/
+                    ('updated %d category', 'updated %d categories'
+                    ),
+                    self::STAGE_PRODUCT  => array /*_w*/
+                    ('updated %d product', 'updated %d products'
+                    ),
+                    self::STAGE_SKU      => array /*_w*/
+                    ('updated %d product variant', 'updated %d product variants'
+                    ),
+                    self::STAGE_IMAGE    => array /*_w*/
+                    ('updated %d product image', 'updated %d product images'
+                    ),
                 ),
-                0     => array(
-                    self::STAGE_CATEGORY => array /*_w*/('%d category', '%d categories'),
-                    self::STAGE_PRODUCT => array /*_w*/('updated %d product', '%d products'),
-                    self::STAGE_SKU => array /*_w*/('%d product variant', '%d product variants'),
-                    self::STAGE_IMAGE => array /*_w*/('%d product image', '%d product images'),
+                0        => array(
+                    self::STAGE_CATEGORY => array /*_w*/
+                    ('%d category', '%d categories'
+                    ),
+                    self::STAGE_PRODUCT  => array /*_w*/
+                    ('updated %d product', '%d products'
+                    ),
+                    self::STAGE_SKU      => array /*_w*/
+                    ('%d product variant', '%d product variants'
+                    ),
+                    self::STAGE_IMAGE    => array /*_w*/
+                    ('%d product image', '%d product images'
+                    ),
                 ),
             );
         }
         $info = array();
         if (ifempty($count[$stage])) {
-            foreach ((array) $count[$stage] as $type => $count) {
+            foreach ((array)$count[$stage] as $type => $count) {
                 if ($count) {
                     $args = $strings[$type][$stage];
                     $args[] = $count;

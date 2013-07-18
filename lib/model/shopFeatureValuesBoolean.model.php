@@ -94,7 +94,7 @@ class shopFeatureValuesBooleanModel extends shopFeatureValuesModel
         return $this->query($sql, $product_id, $feature_id)->fetchAll('product_id', true);
     }
 
-    public function addValue($feature_id, $value, $id = null, $type = null, $sort)
+    public function addValue($feature_id, $value, $id = null, $type = null, $sort = null)
     {
         $row = $this->parseValue($value, $type);
         $row['id'] = ($id === null) ? $this->getId($feature_id, $value) : $id;

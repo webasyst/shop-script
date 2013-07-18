@@ -326,79 +326,99 @@ class shopPayment extends waAppPayment
         return $url;
     }
 
+
+    protected function workflowAction($method, $transaction_data)
+    {
+        $order_model = new shopOrderModel();
+        $order = $order_model->getById($transaction_data['order_id']);
+        if (!$order) {
+            return array('error' => 'Order not found');
+        }
+        $result = array();
+        if (empty($transaction_data['customer_id'])) {
+            $result['customer_id'] = $order['contact_id'];
+        }
+        $workflow = new shopWorkflow();
+        $workflow->getActionById($method)->run($transaction_data);
+
+        return $result;
+    }
+
     /**
      * @param array $transaction_data
      * @return array
      */
     public function callbackPaymentHandler($transaction_data)
     {
-        $workflow = new shopWorkflow();
-        return $workflow->getActionById('pay')->run($transaction_data);
+        $result = $this->workflowAction('callback', $transaction_data);
+        if (empty($result['error'])) {
+            $workflow = new shopWorkflow();
+            $workflow->getActionById('pay')->run($transaction_data['order_id']);
+        }
+        return $result;
     }
 
     /**
-     *
-     *
-     * @param array $wa_transaction_data
-     * @return array|null
+     * @param array $transaction_data
+     * @return array
      */
-    public function callbackCancelHandler($wa_transaction_data)
+    public function callbackCancelHandler($transaction_data)
     {
-        return null;
+        return $this->workflowAction('callback', $transaction_data);
     }
 
     /**
-     *
-     *
-     * @param array $wa_transaction_data
-     * @return array|null
+     * @param array $transaction_data
+     * @return array
      */
-    public function callbackDeclineHandler($wa_transaction_data)
+    public function callbackDeclineHandler($transaction_data)
     {
-        return null;
+        return $this->workflowAction('callback', $transaction_data);
     }
 
     /**
-     *
-     *
-     * @param array $wa_transaction_data
-     * @return array|null
+     * @param array $transaction_data
+     * @return array
      */
-    public function callbackRefundHandler($wa_transaction_data)
+    public function callbackRefundHandler($transaction_data)
     {
-        return null;
+        $result = $this->workflowAction('callback', $transaction_data);
+        if (empty($result['error'])) {
+            $workflow = new shopWorkflow();
+            $workflow->getActionById('refund')->run($transaction_data['order_id']);
+        }
+        return $result;
     }
 
     /**
-     *
-     *
-     * @param array $wa_transaction_data
-     * @return array|null
+     * @param array $transaction_data
+     * @return array
      */
-    public function callbackCaptureHandler($wa_transaction_data)
+    public function callbackCaptureHandler($transaction_data)
     {
-        return null;
+        return $this->callbackPaymentHandler($transaction_data);
     }
 
     /**
-     *
-     *
-     * @param array $wa_transaction_data
-     * @return array|null
+     * @param array $transaction_data
+     * @return array
      */
-    public function callbackChargebackHandler($wa_transaction_data)
+    public function callbackChargebackHandler($transaction_data)
     {
-        return null;
+        return $this->workflowAction('callback', $transaction_data);
     }
 
     /**
-     *
-     *
-     * @param array $wa_transaction_data
-     * @return array|null
+     * @param array $transaction_data
+     * @return array
      */
-    public function callbackConfirmationHandler($wa_transaction_data)
+    public function callbackConfirmationHandler($transaction_data)
     {
-        return null;
+        $result = $this->workflowAction('callback', $transaction_data);
+        if (empty($result['error'])) {
+            $workflow = new shopWorkflow();
+            $workflow->getActionById('process')->run($transaction_data['order_id']);
+        }
+        return $result;
     }
 }

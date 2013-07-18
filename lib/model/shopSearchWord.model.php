@@ -22,12 +22,14 @@ class shopSearchWordModel extends waModel
         if ($row) {
             $id = $row['id'];
         } else {
-            $id = $this->insert(array('name' => $word));
+            $id = $this->insert(array('name' => $word), 2);
         }
         if (count(self::$words_cache) > 5000) {
             self::$words_cache = array();
         }
-        self::$words_cache[$word] = $id;
+        if ($id) {
+            self::$words_cache[$word] = $id;
+        }
         return $id;
     }
 

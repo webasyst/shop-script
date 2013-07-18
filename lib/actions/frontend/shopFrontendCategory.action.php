@@ -28,8 +28,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
             if (!$category['type']) {
                 $product_features_model = new shopProductFeaturesModel();
                 if ($category['include_sub_categories']) {
-                    $cids = array_keys($category['subcategories']);
-                    $cids[] = $category['id'];
+                    $cids = $category_model->descendants($category, true)->select('id')->where('type = '.shopCategoryModel::TYPE_STATIC)->fetchAll(null, true);
                     $category_values = $product_features_model->getValuesByCategory($cids);
                 } else {
                     $category_values = $product_features_model->getValuesByCategory($category['id']);

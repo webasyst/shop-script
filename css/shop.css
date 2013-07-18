@@ -183,7 +183,7 @@ ul.s-coupon-list li.s-expired a { color: #aaa; }
 
 .s-print-only { display: none; }
 .s-printable-print-button { display: none; }
-.s-printable { overflow: scroll; }
+.s-printable {  overflow-x: visible; overflow-y: visible; }
 .s-printable .s-order { box-shadow: none; }
 .s-printable .s-order .s-order-aux .js-printable-docs,
 .s-printable .s-order .s-order-aux ul,

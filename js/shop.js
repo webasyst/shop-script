@@ -255,7 +255,7 @@
                 var html = '<html><head>' + $head.html() + '</head><body class="s-printable">' + $body.html()
                 + '<i class="icon16 loading" style="top: 20px; left: 20px; position: relative;display: none;"></i>' + '</body></html>';
 
-                var wnd = window.open('', 'printversion', 'width=600,height=600');
+                var wnd = window.open('', 'printversion', 'scrollbars=1,width=600,height=600');
                 setTimeout(function() {
                     var $w = $(wnd.document);
                     $w.find('div:first').hide();

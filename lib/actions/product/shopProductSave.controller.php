@@ -97,7 +97,7 @@ class shopProductSaveController extends waJsonController
                         if (empty($r['type_id']) || (in_array($product->type_id, (array) $r['type_id']))) {
                             $routing->setRoute($r, $domain);
                             $url_params = array('product_url' => $product->url);
-                            if ($product->category_id && $r['url_type'] == 2) {
+                            if ($product->category_id && !empty($r['url_type']) && ($r['url_type'] == 2)) {
                                 $category_model = new shopCategoryModel();
                                 if ($category = $category_model->getById($product->category_id)) {
                                     $url_params['category_url'] = $category['url'];

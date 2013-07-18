@@ -46,7 +46,7 @@ div.cart.fixed a { }
 .promo a .info h2 { font-size: 3em; font-weight: bold; color: #000; line-height: 1.5em; margin-bottom: 0; text-shadow: 0 1px 1px #fff; }
 .promo a .info p { color: #222; font-size: 1.3em; text-shadow: 0 1px 1px #fff; }
 
-.promo .bx-wrapper { margin: 0 auto; }
+.promo .bx-wrapper { margin: 0 auto; direction: ltr; }
 .promo .bx-wrapper .bx-viewport { border: none; box-shadow: none; left: 0; }
 .promo .bx-wrapper .bx-pager,
 .promo .bx-wrapper .bx-controls-auto { bottom: 20px; }

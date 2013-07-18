@@ -136,13 +136,13 @@ class shopRangeValue implements ArrayAccess
     {
         $str = array();
         if ($this->begin !== null) {
-            $str[] = $this->begin;
+            $str[] = $this->begin->format(false);
         } else {
             $str[] = '∅';
         }
 
         if ($this->end !== null) {
-            $str[] = $this->end;
+            $str[] = $this->end->format(false);
         } else {
             $str[] = '∞';
         }

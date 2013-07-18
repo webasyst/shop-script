@@ -115,6 +115,19 @@ class shopWorkflowAction extends waWorkflowAction
             'status' => $this->getWorkflow()->getStateById($data['after_state_id'])->getName(),
             'action_data' => $data
         ));
+
+        /**
+         * @event order_action.create
+         * @event order_action.callback
+         * @event order_action.pay
+         * @event order_action.ship
+         * @event order_action.process
+         * @event order_action.delete
+         * @event order_action.restore
+         * @event order_action.complete
+         * @event order_action.comment
+         */
+        wa('shop')->event('order_action.'.$this->getId(), $data);
         return $data;
     }
 

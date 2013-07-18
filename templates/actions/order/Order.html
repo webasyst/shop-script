@@ -355,6 +355,12 @@
                             {if $row.contact_id}
                             <i class="icon16 userpic20" style="background-image: url('{waContact::getPhotoUrl($row.contact_id, $row.contact_photo, 20)}');"></i>
                             {$row.contact_name|escape}
+                            {elseif $row.action_id == 'callback' && $row.text}
+                            {$_tmp = explode(' ', $row.text, 2)}
+                            {$pl = shopPayment::getPluginInfo($_tmp[0])}
+                            {$row.text = $_tmp[1]}
+                            <i class="icon16" style="background-image: url('{$pl.icon.16}');"></i>
+                            {$pl.name|escape}
                             {/if}
                             <strong>{$row.action->getOption('log_record')}</strong>
                             {if $row.text}<p>{$row.text}</p>{/if}

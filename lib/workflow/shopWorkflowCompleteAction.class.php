@@ -27,7 +27,7 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
 
     public function postExecute($order_id = null, $result = null)
     {
-        parent::postExecute($order_id, $result);
+        $data = parent::postExecute($order_id, $result);
 
         $order_model = new shopOrderModel();
         if (is_array($order_id)) {
@@ -54,5 +54,6 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
 
             $order_model->recalculateProductsTotalSales($order_id);
         }
+        return $data;
     }
 }

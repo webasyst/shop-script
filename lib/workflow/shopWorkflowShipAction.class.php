@@ -35,7 +35,7 @@ class shopWorkflowShipAction extends shopWorkflowAction
         } else {
             $order_id = $params;
         }
-        parent::postExecute($order_id, $result);
+        $data = parent::postExecute($order_id, $result);
 
         $log_model = new shopOrderLogModel();
         $state_id = $log_model->getPreviousState($order_id);
@@ -48,5 +48,6 @@ class shopWorkflowShipAction extends shopWorkflowAction
             $order_model = new shopOrderModel();
             $order_model->reduceProductsFromStocks($order_id);
         }
+        return $data;
     }
 }

@@ -22,11 +22,16 @@ class shopCml1cPluginFrontendController extends waController
      */
     private function runner($force = false)
     {
+        /**
+         * @var shopCml1cPluginBackendRunController $runner
+         */
         static $runner;
         if (!$runner || $force) {
             if ($runner) {
                 unset($runner);
+                $runner = null;
             }
+
             $runner = new shopCml1cPluginBackendRunController();
         }
         return $runner;
@@ -65,19 +70,7 @@ class shopCml1cPluginFrontendController extends waController
 
                         case "file":
                             /* C. Выгрузка на сайт файлов обмена*/
-                            $files = $this->uploadFile();
-                            if (is_array($files)) {
-                                $files = array_map('basename', $files);
-                                $count = count($files);
-                                $files = array_slice($files, 0, min(3, count($files) - 1));
-                                $message = sprintf('%d Files uploaded (%s, ...)', $count, implode(', ', $files));
-                            } else {
-                                $message = sprintf('File %s uploaded', basename($files));
-                                if (preg_match('/\.zip/', $files)) {
-                                    $this->getStorage()->set('filename', $files);
-                                }
-                            }
-                            $this->response('success', $message);
+                            $this->uploadCatalog();
                             break;
 
                         case "import":
@@ -101,28 +94,7 @@ class shopCml1cPluginFrontendController extends waController
 
                         case 'query':
                             /* C. Получение файла обмена с сайта*/
-
-                            $_POST['direction'] = 'export';
-                            $_POST['export'] = array(
-                                'order'     => true,
-                                'new_order' => false,
-                            );
-                            ob_start();
-                            $this->runner()->run();
-                            $this->getStorage()->set('processId', $_POST['processId'] = $this->runner()->processId);
-                            sleep(3);
-                            clearstatcache();
-                            sleep(3);
-                            $this->runner(true)->run();
-                            ob_get_clean();
-                            sleep(2);
-                            clearstatcache();
-                            sleep(3);
-                            ob_start();
-                            $this->runner(true)->run();
-                            if ($r = ob_get_clean()) {
-                                $this->response('failure', $r);
-                            }
+                            $this->exportSale();
                             break;
 
                         case 'success':
@@ -149,7 +121,6 @@ class shopCml1cPluginFrontendController extends waController
 
                         case 'file':
                             /* D. Отправка файла обмена на сайт*/
-
                             $this->importSale();
                             break;
 
@@ -229,6 +200,23 @@ class shopCml1cPluginFrontendController extends waController
         return $filename;
     }
 
+    private function uploadCatalog()
+    {
+        $files = $this->uploadFile();
+        if (is_array($files)) {
+            $files = array_map('basename', $files);
+            $count = count($files);
+            $files = array_slice($files, 0, min(3, count($files) - 1));
+            $message = sprintf('%d Files uploaded (%s, ...)', $count, implode(', ', $files));
+        } else {
+            $message = sprintf('File %s uploaded', basename($files));
+            if (preg_match('/\.zip/', $files)) {
+                $this->getStorage()->set('filename', $files);
+            }
+        }
+        $this->response('success', $message);
+    }
+
     private function importCatalog($filename)
     {
         $s = $this->getStorage();
@@ -236,30 +224,24 @@ class shopCml1cPluginFrontendController extends waController
         $_POST['direction'] = 'import';
         $_POST['filename'] = $filename;
         $_POST['zipfile'] = $s->get('filename');
-        ob_start();
-        if ($_POST['processId']) {
-            sleep(2);
-            clearstatcache();
-            sleep(2);
-        }
-        $this->runner()->run();
-        $r = ob_get_clean();
-        if (!$_POST['processId']) {
+        if (empty($_POST['processId'])) {
+            ob_start();
+            $this->runner()->run();
             $s->set('processId'.$filename, $this->runner()->processId);
-            $this->response('progress', $r);
-
+            $out = ob_get_clean();
+            $this->response('progress', $out);
         } else {
-            if (strpos($r, 'success' === 0)) {
+            ob_start();
+            $this->runner()->run();
+            $out = ob_get_clean();
+            if (strpos($out, 'success') === 0) {
+                $_POST['cleanup'] = true;
                 ob_start();
-                if ($_POST['processId']) {
-                    sleep(2);
-                    clearstatcache();
-                    sleep(2);
-                }
-                $this->runner(true)->run();
-                $r = ob_get_clean();
+                $this->sleep();
+                $this->runner()->run();
+                $out = ob_get_clean();
             }
-            $this->response($r);
+            $this->response($out);
         }
     }
 
@@ -276,8 +258,46 @@ class shopCml1cPluginFrontendController extends waController
 
     private function importSale()
     {
-        //return $this->response('success', 'ignore orders from 1C');
+        return $this->response('success', 'ignore orders from 1C');
         $filename = $this->uploadFile();
         $this->response('success', basename($filename));
+    }
+
+    private function exportSale()
+    {
+        $_POST['direction'] = 'export';
+        $_POST['export'] = array(
+            'order'     => true,
+            'new_order' => false,
+        );
+
+        $limit = 10;
+        do {
+            ob_start();
+            $this->runner()->run();
+            if (empty($_POST['processId'])) {
+                $_POST['processId'] = $this->runner()->processId;
+                $this->getStorage()->set('processId', $_POST['processId']);
+            }
+            $out = ob_get_clean();
+            $this->sleep();
+        } while (--$limit && $out);
+
+        if ($limit) {
+            $this->runner()->run();
+            $_POST['cleanup'] = true;
+            ob_start();
+            $this->runner(true)->run();
+            ob_get_clean();
+        } else {
+            $this->response('failure', $out);
+        }
+    }
+
+    private function sleep($time = 2)
+    {
+        sleep($time / 2);
+        clearstatcache();
+        sleep($time / 2);
     }
 }

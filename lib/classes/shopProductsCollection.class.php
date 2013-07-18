@@ -19,6 +19,7 @@ class shopProductsCollection
     protected $order_by = 'p.create_datetime DESC';
     protected $group_by;
     protected $joins;
+    protected $join_index = array();
 
     protected $post_fields = array();
 
@@ -142,20 +143,9 @@ class shopProductsCollection
 
     protected function alsoboughtPrepare($id)
     {
-        $this->joins[] = array(
-            'table' => 'shop_order_items',
-            'alias' => 'items1',
-        );
-
-        $this->joins[] = array(
-            'table' => 'shop_order_items',
-            'alias' => 'items2',
-            'on'    => "items1.order_id = items2.order_id AND items1.type = 'product'",
-        );
-
+        $alias = $this->addJoin('shop_order_items', null, ':table.product_id != '.(int)$id." AND :table.type = 'product'");
+        $this->addJoin('shop_order_items', $alias.".order_id = :table.order_id", ':table.product_id = '.(int)$id);
         $this->fields[] = "COUNT(*) orders_count";
-        $this->where[] = "items1.product_id != ".(int) $id;
-        $this->where[] = "items2.product_id = ".(int) $id;
         $this->group_by = 'p.id';
         $this->order_by = 'orders_count DESC';
     }
@@ -182,22 +172,17 @@ class shopProductsCollection
         }
         $feature_model = new shopFeatureModel();
         $features = $feature_model->getByField('code', array_keys($data), 'code');
-        $feature_join_index = 0;
         foreach ($data as $feature_id => $values) {
             if (!is_array($values)) {
                 $values = array($values);
             }
             if (isset($features[$feature_id])) {
-                $feature_join_index++;
-                $this->joins[] = array(
-                    'table' => 'shop_product_features',
-                    'alias' => 'filter'.$feature_join_index,
-                    'on'    => 'p.id = filter'.$feature_join_index.'.product_id AND filter'.$feature_join_index.'.feature_id = '.(int) $features[$feature_id]['id']
-                );
                 foreach ($values as & $v) {
                     $v = (int) $v;
                 }
-                $this->where[] = 'filter'.$feature_join_index.".feature_value_id IN (".implode(',', $values).")";
+                $this->addJoin('shop_product_features',
+                    'p.id = :table.product_id AND :table.feature_id = '.(int) $features[$feature_id]['id'],
+                    ':table.feature_value_id IN ('.implode(',', $values).')');
                 $this->group_by = 'p.id';
             }
         }
@@ -247,7 +232,9 @@ class shopProductsCollection
                         $this->info['frontend_url'] = $routing->getUrl('shop/frontend/category', array(
                             'category_url' => isset($r['url_type']) && ($r['url_type'] == 1) ? $category['url'] : $category['full_url']),
                             true);
-                        break 2;
+                        if (empty($r['private'])) {
+                            break 2;
+                        }
                     }
                 }
             }
@@ -260,52 +247,38 @@ class shopProductsCollection
         if (wa()->getEnv() != 'frontend' || !waRequest::get('sort')) {
             if (!empty($this->info['sort_products'])) {
                 $this->order_by = 'p.'.$this->info['sort_products'];
-            } else {
-                if ($this->info['type'] == shopCategoryModel::TYPE_STATIC) {
-                    $this->order_by = 'cp.sort ASC';
-                } else {
-                    $this->order_by = 'p.create_datetime DESC';
-                }
             }
         }
 
         if ($this->info['type'] == shopCategoryModel::TYPE_STATIC) {
-
-            $this->joins['shop_category_products'] = array(
-                'table' => 'shop_category_products',
-                'alias' => 'cp',
-            );
-
+            $alias = $this->addJoin('shop_category_products');
             if (wa()->getEnv() == 'frontend' && $this->info['include_sub_categories']) {
                 $this->info['subcategories'] = $category_model->descendants($this->info, true)->where('type = '.shopCategoryModel::TYPE_STATIC)->fetchAll('id');
                 $descendant_ids = array_keys($this->info['subcategories']);
                 if ($descendant_ids) {
-                    $this->where[] = "cp.category_id IN(".implode(',', $descendant_ids).")";
+                    $this->where[] = $alias.".category_id IN(".implode(',', $descendant_ids).")";
                 }
             } else {
-                $this->where[] = "cp.category_id = ".(int) $id;
+                $this->where[] = $alias.".category_id = ".(int) $id;
+            }
+            if (empty($this->info['sort_products'])) {
+                $this->order_by = $alias.'.sort ASC';
             }
         } else {
-
-            //if ($this->info['conditions']) {
-                $hash = $this->hash;
-                $this->setHash('/search/'.$this->info['conditions']);
-                $this->prepare(false, false);
-                while ($this->info['parent_id']/* && $this->info['conditions']*/) {
-                    $this->info = $category_model->getByid($this->info['parent_id']);
-                    if ($this->info['conditions']) {
-                        $this->setHash('/search/'.$this->info['conditions']);
-                        $this->prepare(true, false);
-                    } else {
-                        $this->joins['shop_category_products'] = array(
-                            'table' => 'shop_category_products',
-                            'alias' => 'cp',
-                        );
-                        $this->where[] = "cp.category_id = ".(int) $this->info['id'];
-                    }
+            $hash = $this->hash;
+            $this->setHash('/search/'.$this->info['conditions']);
+            $this->prepare(false, false);
+            while ($this->info['parent_id']/* && $this->info['conditions']*/) {
+                $this->info = $category_model->getByid($this->info['parent_id']);
+                if ($this->info['type'] == shopCategoryModel::TYPE_DYNAMIC) {
+                    $this->setHash('/search/'.$this->info['conditions']);
+                    $this->prepare(true, false);
+                } else {
+                    $this->addJoin('shop_category_products', null, ':table.category_id = '.(int) $this->info['id']);
+                    break;
                 }
-                $this->setHash(implode('/', $hash));
-            //}
+            }
+            $this->setHash(implode('/', $hash));
         }
     }
 
@@ -331,12 +304,8 @@ class shopProductsCollection
         }
 
         if ($set['type'] == shopSetModel::TYPE_STATIC) {
-            $this->joins['shop_set_products'] = array(
-                'table' => 'shop_set_products',
-                'alias' => 'sp'
-            );
-            $this->where[] = "sp.set_id = '".$set_model->escape($id)."'";
-            $this->order_by = 'sp.sort ASC';
+            $alias = $this->addJoin('shop_set_products', null, ":table.set_id = '".$set_model->escape($id)."'");
+            $this->order_by = $alias.'.sort ASC';
         } else {
             if (!empty($set['rule'])) {
                 $this->order_by = $set['rule'];
@@ -344,7 +313,8 @@ class shopProductsCollection
         }
     }
 
-    protected function idPrepare($ids_str) {
+    protected function idPrepare($ids_str)
+    {
         $this->info = array(
             'hash' => 'id'
         );
@@ -358,6 +328,12 @@ class shopProductsCollection
         $this->where[] = "p.id IN (".implode(',', $ids).")";
     }
 
+    /**
+     * Collections /type/1
+     *
+     * @param int $id - type_id
+     * @param bool $auto_title
+     */
     protected function typePrepare($id, $auto_title = true)
     {
         $type_model = new shopTypeModel();
@@ -375,6 +351,12 @@ class shopProductsCollection
         $this->where[] = "p.type_id = ".(int) $id;
     }
 
+    /**
+     * Collections /tag/iphone or /tag/1
+     *
+     * @param int|string $id - tag_id or tag
+     * @param bool $auto_title
+     */
     protected function tagPrepare($id, $auto_title = true)
     {
         $tag_model = new shopTagModel();
@@ -384,14 +366,18 @@ class shopProductsCollection
         }
         if (!$tag) {
             $tag = $tag_model->getByName($id);
-            $id = $tag['id'];
+            if ($tag) {
+                $id = $tag['id'];
+            }
         }
-        $this->joins['tags'] = array(
-            'table' => 'shop_product_tags',
-            'alias' => 'pt',
-        );
-        $this->where[] = "pt.tag_id = ".(int) $id;
-        $this->addTitle(sprintf(_w('Tagged “%s”'), $tag['name']));
+        if ($tag) {
+            $this->addJoin('shop_product_tags', null, ':table.tag_id = '.(int)$id);
+            if ($auto_title) {
+                $this->addTitle(sprintf(_w('Tagged “%s”'), $tag['name']));
+            }
+        } else {
+            $this->where[] = "0";
+        }
     }
 
     public static function parseConditions($query)
@@ -449,7 +435,6 @@ class shopProductsCollection
 
         $sum = array();
 
-        $feature_join_index = 0;
         foreach ($conditions as $row) {
             if ($row['feature'] == 'tag') {
                 $tag_model = new shopTagModel();
@@ -487,12 +472,8 @@ class shopProductsCollection
                     if ($model->fieldExists($row['feature'])) {
                         $this->where[] = 'p.'.$row['feature']." = '".$model->escape($row['value'])."'";
                     } else {
-                        $feature_join_index++;
-                        $this->joins[] = array(
-                            'table' => 'shop_product_features',
-                            'alias' => 'pf'.$feature_join_index
-                        );
-                        $this->where[] = 'pf'.$feature_join_index.".feature_value_id = ".(int) $row['value'];
+                        $this->addJoin('shop_product_features', null,
+                            ":table.feature_id = ".(int)$row['feature_id']." AND :table.feature_value_id = ".(int)$row['value']);
                         $this->group_by = 'p.id';
                     }
                     break;
@@ -502,12 +483,8 @@ class shopProductsCollection
                         //$this->where[] = 'p.'.$row['feture']." = '".$model->escape($row['value'])."'";
                     } else {
                         if ($row['value']) {
-                            $feature_join_index++;
-                            $this->joins[] = array(
-                                'table' => 'shop_product_features',
-                                'alias' => 'pf'.$feature_join_index
-                            );
-                            $this->where[] = 'pf'.$feature_join_index.".feature_value_id IN (".$row['value'].")";
+                            $this->addJoin('shop_product_features', null,
+                                ":table.feature_id = ".(int)$row['feature_id']." AND :table.feature_value_id IN (".$row['value'].")");
                             $this->group_by = 'p.id';
                         } else {
                             $this->where[] = '0';
@@ -516,7 +493,7 @@ class shopProductsCollection
                     break;
                 case 'same':
                     if ($model->fieldExists($row['feature'])) {
-                        $this->where[] = 'p.'.$row['feture']." = '".$model->escape($product->features[$row['feature']])."'";
+                        $this->where[] = 'p.'.$row['feature']." = '".$model->escape($product->features[$row['feature']])."'";
                     } else {
                         $product_features_model = new shopProductFeaturesModel();
                         $rows = $product_features_model->getByField(array(
@@ -529,13 +506,9 @@ class shopProductsCollection
                             $values[] = $r['feature_value_id'];
                         }
                         if ($values) {
-                            $feature_join_index++;
-                            $this->joins[] = array(
-                                'table' => 'shop_product_features',
-                                'alias' => 'pf'.$feature_join_index
-                            );
-                            $this->where[] = 'pf'.$feature_join_index.".feature_id = ".$row['feature_id'];
-                            $this->where[] = 'pf'.$feature_join_index.".feature_value_id ".
+                            $alias = $this->addJoin('shop_product_features');
+                            $this->where[] = $alias.".feature_id = ".$row['feature_id'];
+                            $this->where[] = $alias.".feature_value_id ".
                                 (count($values) == 1 ? "= ".$values[0] : "IN (".implode(',', $values).")");
                             $this->group_by = 'p.id';
                         }
@@ -573,14 +546,8 @@ class shopProductsCollection
             $parts = preg_split("/(\\\$=|\^=|\*=|==|!=|>=|<=|=|>|<)/uis", $part, 2, PREG_SPLIT_DELIM_CAPTURE);
             if ($parts) {
                 if ($parts[0] == 'category_id') {
-                    if (!isset($this->joins['shop_category_products'])) {
-                        $this->joins['shop_category_products'] = array(
-                            'table' => 'shop_category_products',
-                            'alias' => 'cp'
-                        );
-                    }
+                    $this->addJoin('shop_category_products', null, ':table.category_id'.$this->getExpression($parts[1], $parts[2]));
                     $title[] = "category_id ".$parts[1].$parts[2];
-                    $this->where[] = 'cp.category_id'.$this->getExpression($parts[1], $parts[2]);
                 } elseif ($parts[0] == 'query') {
                     $word_model = new shopSearchWordModel();
                     $word_ids = $word_model->getByString($parts[2]);
@@ -615,11 +582,7 @@ class shopProductsCollection
                         $this->order_by = 'p.create_datetime DESC';
                         $this->group_by = null;
                         $q = $model->escape($parts[2], 'like');
-                        $this->where[] = "(p.name LIKE '%".$q."%' OR skus.name LIKE '%".$q."%' OR skus.sku LIKE '%".$q."%')";
-                        $this->joins[] = array(
-                            'table' => 'shop_product_skus',
-                            'alias' => 'skus'
-                        );
+                        $this->addJoin('shop_product_skus', null, "(p.name LIKE '%".$q."%' OR :table.name LIKE '%".$q."%' OR :table.sku LIKE '%".$q."%')");
                         $this->group_by = 'p.id';
                         return;
                     } elseif ($word_ids) {
@@ -635,10 +598,6 @@ class shopProductsCollection
                     }
                     $title[] = $parts[0].$parts[1].$parts[2];
                 } elseif ($parts[0] == 'tag') {
-                    $this->joins['tags'] = array(
-                        'table' => 'shop_product_tags',
-                        'alias' => 'pt',
-                    );
                     $tag_model = $this->getModel('tag');
                     if (strpos($parts[2], '||') !== false) {
                         $tags = explode('||', $parts[2]);
@@ -648,11 +607,32 @@ class shopProductsCollection
                         $tag_ids = $tag_model->query($sql)->fetchAll(null, true);
                     }
                     if ($tag_ids) {
-                        $this->where[] = "pt.tag_id IN ('".implode("', '", $tag_ids)."')";
+                        $this->addJoin('shop_product_tags', null, ":table.tag_id IN ('".implode("', '", $tag_ids)."')");
+                    } else {
+                        $this->where[] = "0";
                     }
                 } elseif ($model->fieldExists($parts[0])) {
                     $title[] = $parts[0].$parts[1].$parts[2];
                     $this->where[] = 'p.'.$parts[0].$this->getExpression($parts[1], $parts[2]);
+                } elseif ($parts[1] == '=') {
+                    $code = $parts[0];
+                    $is_value_id = false;
+                    if (substr($code, -9) == '.value_id') {
+                        $code = substr($code, 0, -9);
+                        $is_value_id = true;
+                    }
+                    $feature_model = $this->getModel('feature');
+                    $f = $feature_model->getByCode($code);
+                    if ($f) {
+                        if ($is_value_id) {
+                            $value_id = $parts[2];
+                        } else {
+                            $values_model = $feature_model->getValuesModel($f['type']);
+                            $value_id = $values_model->getValueId($f['id'], $parts[2]);
+                        }
+                        $this->addJoin('shop_product_features', null, ':table.feature_id = '.$f['id'].' AND :table.feature_value_id = '.(int)$value_id);
+                        $this->group_by = 'p.id';
+                    }
                 }
             }
         }
@@ -694,9 +674,16 @@ class shopProductsCollection
             case "=";
         default:
             return " = '".$model->escape($value)."'";
+            return " = '".$model->escape($value)."'";
         }
     }
 
+    /**
+     * Returns fields for SELECT clause
+     *
+     * @param string|array $fields
+     * @return string
+     */
     protected function getFields($fields)
     {
         $model = $this->getModel();
@@ -802,13 +789,7 @@ class shopProductsCollection
                     return $this->order_by = 'p.'.$field." ".$order;
                 } else if ($field == 'sort') {
                     $this->getSQL();
-                    if ($this->info['hash'] == 'set') {
-                        return $this->order_by = 'sp.'.$field." ASC";
-                    } else if ($this->info['hash'] == 'category') {
-                        return $this->order_by = 'cp.'.$field." ASC";
-                    } else {
-                        return '';
-                    }
+                    return '';
                 }
             } else {
                 $this->getSQL();
@@ -1036,14 +1017,9 @@ class shopProductsCollection
     protected function getModel($name = 'product')
     {
         if (!isset($this->models[$name])) {
-            if ($name == 'product') {
-                $this->models[$name] = new shopProductModel();
-            } elseif ($name == 'category') {
-                $this->models[$name] = new shopCategoryModel();
-            } elseif ($name == 'set') {
-                $this->models[$name] = new shopSetModel();
-            } elseif ($name == 'tag') {
-                $this->models[$name] = new shopTagModel();
+            if (in_array($name, array('product', 'category', 'tag', 'set', 'feature'))) {
+                $class_name = 'shop'.ucfirst($name).'Model';
+                $this->models[$name] = new $class_name();
             }
         }
         return $this->models[$name];
@@ -1093,15 +1069,57 @@ class shopProductsCollection
         return $this;
     }
 
-    /** Add JOIN clause. Primarily for plugins that extend this collection. */
-    public function addJoin($id, $clause=null)
+    /**
+     * Add JOIN clause
+     *
+     * @param string|array $table
+     * @param string $on
+     * @param string $where
+     * @return string - alias
+     */
+    public function addJoin($table, $on = null, $where = null)
     {
-        if ($clause === null) {
-            $this->joins[] = $id;
-        } else {
-            $this->joins[$id] = $clause;
+        if (is_array($table)) {
+            if (isset($table['on'])) {
+                $on = $table['on'];
+            }
+            if (isset($table['where'])) {
+                $where = $table['where'];
+            }
+            $table = $table['table'];
         }
-        return $this;
+        $t = explode('_', $table);
+        $alias = '';
+        foreach ($t as $tp) {
+            if ($tp == 'shop') {
+                continue;
+            }
+            $alias .= substr($tp, 0, 1);
+        }
+
+        if (!$alias) {
+            $alias = $table;
+        }
+
+        if (!isset($this->join_index[$alias])) {
+            $this->join_index[$alias] = 1;
+        } else {
+            $this->join_index[$alias]++;
+        }
+        $alias .= $this->join_index[$alias];
+
+        $join = array(
+            'table' => $table,
+            'alias' => $alias,
+        );
+        if ($on) {
+            $join['on'] = str_replace(':table', $alias, $on);
+        }
+        $this->joins[] = $join;
+        if ($where) {
+            $this->where[] = str_replace(':table', $alias, $where);
+        }
+        return $alias;
     }
 
     public function getHash()

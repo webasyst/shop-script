@@ -323,6 +323,10 @@ class shopProductsSaveListSettingsController extends waJsonController
             }
         }
 
+        if ($custom_conditions = waRequest::post('custom_conditions')) {
+            $conditions[] = $custom_conditions;
+        }
+
         $conditions = implode('&', $conditions);
         return $conditions;
     }

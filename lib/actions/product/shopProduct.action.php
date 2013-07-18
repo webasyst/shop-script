@@ -140,7 +140,9 @@ class shopProductAction extends waViewAction
                             }
                         }
                         $frontend_url = $routing->getUrl('/frontend/product', $params, true);
-                        break 2;
+                        if (empty($r['private'])) {
+                            break 2;
+                        }
                     }
                 }
             }

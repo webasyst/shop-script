@@ -112,7 +112,7 @@
         <td>
             <strong class="large">{%=o.data.name%}</strong>
             <span class="gray">{%#o.data.price_str%}</span>
-            
+
             {% if (sku_count == 1) { %}
                 <span class="s-orders-stock-icon-aggregate">
                     {%#o.data.icon%}
@@ -121,7 +121,7 @@
             {% } else { %}
                 {%#o.data.icon%}
             {% } %}
-            
+
             {% if (sku_count > 1) { %}
                 <p>
                     <ul class="menu-v compact small s-orders-skus">
@@ -156,17 +156,16 @@
             {% } %}
         </td>
         <input type="hidden" name="product[add][{%#index%}]" value="{%#o.data.id%}">
-        
         <td class="valign-top nowrap">
             <span style="padding-top: 2px;" class="gray">&times;</span>
-            <input type="text" 
-                name="quantity[add][{%#index%}][product]" 
-                class="s-orders-quantity short numerical" 
-                value="1" 
-                data-max-value="{% if (o.data.count !== null) { %}{%#o.data.count%}{% } %}"
+            <input type="text"
+                name="quantity[add][{%#index%}][product]"
+                class="s-orders-quantity short numerical"
+                value="1"
+                data-max-value="{% if (product_sku.count !== null) { %}{%#''+product_sku.count%}{% } %}"
             >
         </td>
-        
+
         {% include('template-order-stocks-add', { sku: product_sku, stocks: stocks, index: index }); %}
         <td class="valign-top align-right s-orders-product-price">
             {% if (!options.price_edit) { %}
@@ -185,7 +184,7 @@
         {% var sku = o.sku; %}
         {% var stocks = o.stocks; %}
         {% var item_id = o.item_id; %}
-        
+
         <td class="valign-top align-right nowrap s-orders-product-stocks">
             {% if (sku && !$.isEmptyObject(sku.stock)) { %}
                 @ <select name="stock[edit][{%#item_id%}]" class="s-orders-stock">
@@ -201,7 +200,7 @@
                 <input type="hidden" name="stock[edit][{%#item_id%}]" value="0">
             {% } %}
         </td>
-        
+
     {/literal}
 {/capture}
 {capture name="template-order-stocks-add"}

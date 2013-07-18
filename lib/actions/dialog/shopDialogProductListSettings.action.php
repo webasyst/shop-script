@@ -83,6 +83,9 @@ class shopDialogProductListSettingsAction extends waViewAction
                 }
             }
             $settings['cloud'] = $cloud;
+
+            $settings['custom_conditions'] = $this->extractCustomConditions($settings['conditions']);
+
         }
 
         $filter = $settings['filter'] !== null ? explode(',', $settings['filter']) : null;
@@ -93,7 +96,6 @@ class shopDialogProductListSettingsAction extends waViewAction
             'name' => 'Price'
         );
         $features += $feature_model->getFeatures('selectable', 1);
-        //$features += $feature_model->getFeatures('type',shopFeatureModel::TYPE_BOOLEAN);
         if (!empty($filter)) {
             foreach ($filter as $feature_id) {
                 $feature_id = trim($feature_id);
@@ -108,10 +110,30 @@ class shopDialogProductListSettingsAction extends waViewAction
         return $settings;
     }
 
+    /**
+     * @param array $conditions
+     * @return string
+     */
+    protected function extractCustomConditions($conditions)
+    {
+        foreach (array('price', 'tag', 'rating') as $name) {
+            if (isset($conditions[$name])) {
+                unset($conditions[$name]);
+            }
+        }
+        $custom_conditions = array();
+        foreach ($conditions as $name => $value) {
+            $custom_conditions[] = $name . implode('', $value);
+        }
+        return implode('&', $custom_conditions);
+    }
+
     private function getSetSettings($id)
     {
         $set_model = new shopSetModel();
         $settings = $set_model->getById($id);
         return $settings ? $settings : array();
     }
+
+
 }

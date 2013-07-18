@@ -4,7 +4,7 @@ class shopWorkflowRefundAction extends shopWorkflowAction
 {
     public function postExecute($order_id = null, $result = null)
     {
-        parent::postExecute($order_id, $result);
+        $data = parent::postExecute($order_id, $result);
 
         $order_model = new shopOrderModel();
         if (is_array($order_id)) {
@@ -28,5 +28,7 @@ class shopWorkflowRefundAction extends shopWorkflowAction
             shopAffiliate::cancelBonus($order_id);
             $order_model->recalculateProductsTotalSales($order_id);
         }
+
+        return $data;
     }
 }

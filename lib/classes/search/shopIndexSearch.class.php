@@ -162,7 +162,9 @@ class shopIndexSearch extends shopSearch
         $word_model = $this->getWordModel();
         foreach ($words as $w) {
             if ($w) {
-                $result[] = $word_model->getId(shopSearch::stem($w));
+                if ($w_id = $word_model->getId(shopSearch::stem($w))) {
+                    $result[] = $w_id;
+                }
             }
         }
         return array_unique($result);

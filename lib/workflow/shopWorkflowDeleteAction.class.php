@@ -12,7 +12,8 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
         return true;
     }
 
-    public function postExecute($order_id = null, $result = null) {
+    public function postExecute($order_id = null, $result = null)
+    {
         $data = parent::postExecute($order_id, $result);
         if ($order_id != null) {
             $order_model = new shopOrderModel();

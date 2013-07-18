@@ -1,4 +1,13 @@
 <?php
+/**
+ * Class shopDimensionValue
+ * @property-read string $value
+ * @property-read string $unit
+ * @property-read string $unit_name
+ * @property-read string $type
+ * @property-read string $value_base_unit
+ * @property-read string $base_code
+ */
 class shopDimensionValue implements ArrayAccess
 {
     private $value;
@@ -6,7 +15,7 @@ class shopDimensionValue implements ArrayAccess
     private $type;
     private $value_base_unit;
     private $base_code;
-    private $format = '%0.2f %s';
+    private $format = false;
 
     public function __construct($row)
     {
@@ -22,10 +31,17 @@ class shopDimensionValue implements ArrayAccess
 
     public function __get($field)
     {
-        if ($field == 'units') {
-            return shopDimension::getUnits($this->unit);
+        switch ($field) {
+            case 'units':
+                return shopDimension::getUnits($this->unit);
+                break;
+            case 'unit_name':
+                return _w($this->unit);
+                break;
+            default:
+                return isset($this->$field) ? $this->$field : $this->convert($field);
+                break;
         }
-        return isset($this->$field) ? $this->$field : $this->convert($field);
     }
 
     public function offsetGet($offset)
@@ -50,18 +66,25 @@ class shopDimensionValue implements ArrayAccess
 
     public function __toString()
     {
-        return ($this->value === null) ? '' : sprintf($this->format, $this->value, _w($this->unit));
+        return ($this->value === null) ? '' : ($this->format ? sprintf($this->format, $this->value, _w($this->unit)) : $this->value.' '._w($this->unit));
     }
 
-    public function format($f)
+    public function format($format)
     {
-        return sprintf($f, $this->value, $this->unit);
+        if ($this->value === null) {
+            return '';
+        } else {
+            return ($format === false) ? ($this->value.' '.$this->unit_name) : sprintf($format, $this->value, $this->unit_name);
+        }
     }
 
-    public function convert($unit)
+    public function convert($unit, $format = null)
     {
-        $value = shopDimension::getInstance()->convert($this->value, $this->type, $unit);
-        return sprintf($this->format, $value, $unit);
+        if ($format === null) {
+            $format = $this->format;
+        }
+        $value = shopDimension::getInstance()->convert($this->value, $this->type, $unit, $this->unit);
+        return ($format === false) ? $value : sprintf($format, $value, _w($unit));
     }
 
     public function is_null()

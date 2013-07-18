@@ -64,6 +64,7 @@ class shopOrderEditAction extends waViewAction
             'shipping_address' => $shipping_address,
             'has_contacts_rights' => $has_contacts_rights,
             'customer_validation_disabled' => wa()->getSetting('disable_backend_customer_form_validation'),
+            'ignore_stock_count' => wa()->getSetting('ignore_stock_count')
         ));
     }
 

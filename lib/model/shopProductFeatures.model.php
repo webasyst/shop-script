@@ -16,9 +16,9 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
     public function getValuesByCategory($category_id)
     {
-        $sql = "SELECT DISTINCT f.feature_id, f.feature_value_id FROM " . $this->table . " f
+        $sql = "SELECT DISTINCT f.feature_id, f.feature_value_id FROM ".$this->table." f
         JOIN shop_category_products c ON f.product_id = c.product_id
-        WHERE c.category_id " . (is_array($category_id) ? 'IN (i:id)' : '= i:id');
+        WHERE c.category_id ".(is_array($category_id) ? 'IN (i:id)' : '= i:id');
         $rows = $this->query($sql, array('id' => $category_id));
         $result = array();
         foreach ($rows as $row) {
@@ -32,7 +32,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         if (!$product_id) {
             return array();
         }
-        $sql = "SELECT * FROM " . $this->table . " WHERE product_id = i:id AND sku_id IS NOT NULL";
+        $sql = "SELECT * FROM ".$this->table." WHERE product_id = i:id AND sku_id IS NOT NULL";
         $result = array();
         $rows = $this->query($sql, array('id' => $product_id))->fetchAll();
         foreach ($rows as $row) {
@@ -43,14 +43,14 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
     public function getSkuByFeatures($product_id, $features)
     {
-        $sql = "SELECT t0.sku_id FROM " . $this->table . " t0 ";
+        $sql = "SELECT t0.sku_id FROM ".$this->table." t0 ";
         for ($i = 1; $i < count($features); $i++) {
-            $sql .= " JOIN " . $this->table . " t" . $i . " ON t0.sku_id = t" . $i . ".sku_id";
+            $sql .= " JOIN ".$this->table." t".$i." ON t0.sku_id = t".$i.".sku_id";
         }
-        $sql .= " WHERE t0.product_id = " . (int)$product_id . " AND t0.sku_id IS NOT NULL";
+        $sql .= " WHERE t0.product_id = ".(int)$product_id." AND t0.sku_id IS NOT NULL";
         $i = 0;
         foreach ($features as $f => $v) {
-            $sql .= " AND t" . $i . ".feature_id = " . (int)$f . " AND t" . $i . ".feature_value_id = " . $v;
+            $sql .= " AND t".$i.".feature_id = ".(int)$f." AND t".$i.".feature_value_id = ".$v;
             $i++;
         }
         $sql .= " LIMIT 1";
@@ -59,9 +59,9 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
     public function deleteByFeature($feature_id, $feature_value_id = null)
     {
-        $sql = "DELETE FROM {$this->table} WHERE " . $this->getWhereByField('feature_id', $feature_id);
+        $sql = "DELETE FROM {$this->table} WHERE ".$this->getWhereByField('feature_id', $feature_id);
         if ($feature_id !== null) {
-            $sql .= ' AND ' . $this->getWhereByField('feature_value_id', $feature_value_id);
+            $sql .= ' AND '.$this->getWhereByField('feature_value_id', $feature_value_id);
         }
         return $this->exec($sql);
     }
@@ -73,11 +73,11 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
     public function getValues($product_id, $sku_id = null, $type_id = null)
     {
-        $sql = "SELECT " . ($type_id ? 'tf.sort, ' : '') . "f.code, f.type, f.multiple, pf.*
-                FROM " . $this->table . " pf";
+        $sql = "SELECT ".($type_id ? 'tf.sort, ' : '')."f.code, f.type, f.multiple, pf.*
+                FROM ".$this->table." pf";
         $sql .= " JOIN shop_feature f ON (pf.feature_id = f.id)";
         if ($type_id) {
-            $sql .= " LEFT JOIN shop_type_features tf ON ((tf.feature_id = f.id) AND (tf.type_id=i:type_id))";
+            $sql .= " LEFT JOIN shop_type_features tf ON ((tf.feature_id = IFNULL(f.parent_id,f.id)) AND (tf.type_id=i:type_id))";
         }
         $sql .= " WHERE pf.product_id = i:id AND ";
         if ($sku_id) {
@@ -91,23 +91,27 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         }
         $features = $storages = array();
         $params = array(
-            'id' => $product_id,
-            'sku_id' => $sku_id,
+            'id'      => $product_id,
+            'sku_id'  => $sku_id,
             'type_id' => $type_id,
         );
         $data = $this->query($sql, $params);
         $result = array();
         foreach ($data as $row) {
             $features[$row['feature_id']] = array(
-                'code' => $row['code'],
+                'code'     => $row['code'],
                 'multiple' => $row['multiple'],
             );
-            $result[$row['code']] = null;
+            if (preg_match('/^(.+)\.[0-2]$/', $row['code'], $matches)) {
+                $result[$matches[1]] = null;
+            } else {
+                $result[$row['code']] = null;
+            }
             $type = preg_replace('/\..*$/', '', $row['type']);
             if ($type == shopFeatureModel::TYPE_BOOLEAN) {
                 $model = shopFeatureModel::getValuesModel($type);
-                $values = $model->getValues('id',$row['feature_value_id']);
-                $result[$row['code']] =reset($values);
+                $values = $model->getValues('id', $row['feature_value_id']);
+                $result[$row['code']] = reset($values);
             } else {
                 if ($sku_id) {
                     $storages[$type][$row['feature_id']] = $row['feature_value_id'];
@@ -128,6 +132,17 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 }
             }
         }
+
+
+        /**
+         * composite fields workaround
+         */
+        $composite = array_filter(array_keys($result), create_function('$a', 'return preg_match("/\.0$/",$a);'));
+        foreach ($composite as $code) {
+            $code = preg_replace('/\.0$/', '', $code);
+            $result[$code] = new shopCompositeValue($code, $result);
+        }
+
         return $result;
     }
 
@@ -141,7 +156,34 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         $product_id = $product->getId();
 
         $feature_model = new shopFeatureModel();
-        $features = $feature_model->getByCode(array_keys($data));
+        $codes = array_keys($data);
+        $features = $feature_model->getByCode($codes);
+
+
+        /**
+         * composite fields workaround
+         */
+        $composite_codes = array();
+        foreach ($data as $code => $value) {
+            if (!strpos($code, '.') && isset($features[$code]) && preg_match('/^([23])d\./', $features[$code]['type'], $matches)) {
+                $n = $matches[1];
+                $pattern = '/^'.implode('\s*×\s*', array_fill(0, $n, '([^\s]+)')).'(\s+.+)?$/';
+                if (preg_match($pattern, trim($value), $matches)) {
+                    for ($i = 0; $i < $n; $i++) {
+                        $c_code = $code.'.'.$i;
+                        $data[$c_code] = $matches[$i + 1].$matches[$n + 1];
+                        $composite_codes[] = $c_code;
+                    }
+                    unset($features[$code]);
+                }
+                unset($data[$code]);
+            }
+        }
+
+        if ($composite_codes) {
+            $features += $feature_model->getByCode(array_keys($data));
+        }
+
         $features_map = array();
         foreach ($features as $code => $f) {
             $features_map[$f['id']] =& $features[$code];
@@ -170,10 +212,27 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
         $add = $delete = array();
         foreach ($data as $code => $value) {
+
             if (isset($features[$code])) {
                 $f =& $features[$code];
                 if (is_array($value)) {
                     $empty = isset($value['value']) && ($value['value'] === '');
+                    if (!$empty && isset($value['value']) && is_array($value['value'])) {
+                        foreach ($value['value'] as $key => $v) {
+                            if ($v === '') {
+                                unset($value['value'][$key]);
+                            }
+                        }
+                        $empty = (count($value['value']) == 0);
+                    }
+                    if (!$empty && !isset($value['value'])) {
+                        foreach ($value as $key => $v) {
+                            if ($v === '') {
+                                unset($value[$key]);
+                            }
+                        }
+                        $empty = (count($value) == 0);
+                    }
                 } else {
                     $empty = ($value === '');
                 }
@@ -183,6 +242,9 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                         $delete[$f['id']] = $current[$code];
                     }
                 } else {
+                    if (is_array($value) && preg_match('/^(.+\.)[12]$/', $code, $matches) && isset($data[$matches[1].'0'])) {
+                        $value = array_merge($data[$matches[1].'0'], $value);
+                    }
                     $id = $feature_model->getValueId($f, $value, true);
 
                     if (isset($current[$code])) {
@@ -205,19 +267,19 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                         $add[$f['id']] = $id;
                     }
                 }
-            } else {
+            } elseif (!empty($value) && is_array($value)) {
                 //it's a new feature
-                if (!empty($value) && (($value['type'] == shopFeatureModel::TYPE_BOOLEAN)||!empty($value['value']) )) {
+                if (!empty($value) && (($value['type'] == shopFeatureModel::TYPE_BOOLEAN) || !empty($value['value']))) {
                     $f = array(
-                        'name' => $value['name'],
-                        'type' => $value['type'],
+                        'name'  => $value['name'],
+                        'type'  => $value['type'],
                         'types' => $value['types'],
                     );
                     $f['id'] = $feature_model->save($f);
 
                     $type_features_model = new shopTypeFeaturesModel();
                     $type_features_model->updateByFeature($f['id'], $f['types']);
-                    if($value['value'] !== '') {
+                    if ($value['value'] !== '') {
                         $add[$f['id']] = $feature_model->getValueId($f, $value['value'], true);
                     }
                 }

@@ -1089,7 +1089,7 @@ LIMIT 100';
             $product->sku_id = -1;
             $in_stock = sprintf('%d', intval($data['in_stock']));
             $skus = array(-1 => array(
-                'name'          => $data['name_'.$locale],
+                'name'          => $sku_options? $data['name_'.$locale]:'',
                 'sku'           => ifempty($data['product_code'], ''),
                 'stock'         => array(
                     0 => $in_stock,

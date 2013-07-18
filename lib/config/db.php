@@ -279,7 +279,7 @@ return array(
         'datetime' => array('datetime', 'null' => 0),
         'before_state_id' => array('varchar', 16, 'null' => 0),
         'after_state_id' => array('varchar', 16, 'null' => 0),
-        'text' => array('text', 'null' => 0),
+        'text' => array('text', 'null' => 1),
         ':keys' => array(
             'PRIMARY' => 'id',
         ),

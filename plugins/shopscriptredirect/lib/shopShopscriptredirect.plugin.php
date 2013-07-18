@@ -21,14 +21,14 @@ class shopShopscriptredirectPlugin extends shopPlugin
                             $c = $category_model->getById($p['category_id']);
                             $params['category_url'] = $c['full_url'];
                         }
-                        wa()->getResponse()->redirect(wa()->getRouteUrl('shop/frontend/product', $params));
+                        wa()->getResponse()->redirect(wa()->getRouteUrl('shop/frontend/product', $params), 301);
                     }
                 } elseif ($id = waRequest::get('categoryID')) {
                     $category_model = new shopCategoryModel();
                     $c = $category_model->getById($id);
                     if ($c) {
                         wa()->getResponse()->redirect(wa()->getRouteUrl('shop/frontend/category', array(
-                        'category_url' => waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url'])));
+                        'category_url' => waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url'])), 301);
                     }
                 }
             } elseif (substr($url, 0, 8) == 'product/' && waRequest::param('url_type') != 1) {
@@ -36,7 +36,7 @@ class shopShopscriptredirectPlugin extends shopPlugin
                 $url_parts = explode('/', $url);
                 $product_model = new shopProductModel();
                 if ($product_model->getByField('url', $url_parts[0])) {
-                    wa()->getResponse()->redirect(wa()->getRootUrl(false, true).wa()->getRouting()->getRootUrl().$url);
+                    wa()->getResponse()->redirect(wa()->getRootUrl(false, true).wa()->getRouting()->getRootUrl().$url, 301);
                 }
             } elseif (substr($url, 0, 9) == 'category/' && waRequest::param('url_type') != 1) {
                 $url = substr($url, 9);
@@ -44,7 +44,7 @@ class shopShopscriptredirectPlugin extends shopPlugin
                 if ($c = $category_model->getByField('full_url', rtrim($url, '/'))) {
                     $route = wa()->getRouting()->getDomain(null, true).'/'.wa()->getRouting()->getRoute('url');
                     if (!$c['route'] || $c['route'] == $route) {
-                        wa()->getResponse()->redirect(wa()->getRootUrl(false, true).wa()->getRouting()->getRootUrl().$url);
+                        wa()->getResponse()->redirect(wa()->getRootUrl(false, true).wa()->getRouting()->getRootUrl().$url, 301);
                     }
                 }
             }

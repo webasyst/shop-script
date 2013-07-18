@@ -48,7 +48,7 @@
             {if $settings.type == shopCategoryModel::TYPE_STATIC}
                 <option value="" {if empty($settings.sort_products)}selected="selected"{/if}>[`Manual`]</option>
             {/if}
-            <option value="name ASC" {if $settings.sort_products == 'name ASC'}selected="selected"{/if}>[`By name`]</option>            
+            <option value="name ASC" {if $settings.sort_products == 'name ASC'}selected="selected"{/if}>[`By name`]</option>
             <option value="price DESC"  {if $settings.sort_products == 'price DESC'}selected="selected"{/if}>[`Most expensive`]</option>
             <option value="price ASC"   {if $settings.sort_products == 'price ASC'}selected="selected"{/if}>[`Least expensive`]</option>
             <option value="rating DESC" {if $settings.sort_products == 'rating DESC'}selected="selected"{/if}>[`Highest rated`]</option>
@@ -262,6 +262,8 @@
                     {/if}
                 </tbody>
             </table>
+            <!-- extra custom condition items -->
+            <input type="hidden" name="custom_conditions" value="{$settings['custom_conditions']}">
         </div>
     </div>
 </div>
@@ -313,7 +315,7 @@
             $('select[name=route]', d).attr('disabled', true);
         }
     });
-    
+
     var frontend_url = $('#s-settings-frontend-url');
     frontend_url.inlineEditable({
         editLink : '#s-settings-frontend-url-edit-link',
@@ -343,7 +345,7 @@
             parent_div.find('a.s-frontend-base-url').html(parent_div.find('span.s-frontend-base-url').hide().contents()).show();
         }
     });
-    
+
     // change meta title input placeholder automaticly on changing name of category
     (function() {
         var timeout = 450;

@@ -6,7 +6,8 @@ class shopFeatureModel extends waModel
     const TYPE_TEXT = 'text';
     const TYPE_DIMENSION = 'dimension';
     const TYPE_RANGE = 'range';
-    const TYPE_COMPLEX = 'complex';
+    const TYPE_2D = '2d';
+    const TYPE_3D = '3d';
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_DIVIDER = 'divider';
 
@@ -33,10 +34,11 @@ class shopFeatureModel extends waModel
 
                 $types = $this->groupByValueType($items);
                 foreach ($types as $type => $type_ids) {
-                    $model = self::getValuesModel($type);
-                    $model->deleteByField('feature_id', $type_ids);
+                    if ($model = self::getValuesModel($type)) {
+                        $model->deleteByField('feature_id', $type_ids);
+                    }
                 }
-
+                $this->deleteByField('parent_id', $ids);
             }
         }
         return $res;
@@ -45,12 +47,12 @@ class shopFeatureModel extends waModel
     public function save(&$feature, $id = null)
     {
         $default = array(
-            'name' => '',
-            'types' => array(),
-            'values' => array(),
-            'type' => self::TYPE_VARCHAR,
+            'name'       => '',
+            'types'      => array(),
+            'values'     => array(),
+            'type'       => self::TYPE_VARCHAR,
             'selectable' => 0,
-            'multiple' => 0,
+            'multiple'   => 0,
         );
         $feature = array_merge($default, $feature);
         $feature['selectable'] = intval($feature['selectable']);
@@ -66,13 +68,34 @@ class shopFeatureModel extends waModel
             }
             $this->updateById($id, $feature);
             $feature['type'] = $this->select('type')->where($this->getWhereByField('id', $id))->fetchField('type');
+            if ($id && preg_match('/^(\d)d\.(.+)$/', $feature['type'], $matches)) {
+                $child_features = $this->getByField('parent_id', $id, true);
+                foreach ($child_features as $child_feature) {
+                    $n = preg_replace('/^.*(\.\d)$/', '$1', $child_feature['code']);
+                    $data = array(
+                        'code' => $feature['code'].$n,
+                        'name' => $feature['name'].$n,
+                    );
+                    $this->updateById($child_feature['id'], $data);
+                }
+            }
         } else {
             if (empty($feature['type'])) {
                 $feature['type'] = $default['type'];
-            } elseif ($feature['type'] == self::TYPE_DIMENSION . '.' . self::TYPE_DOUBLE) {
+            } elseif ($feature['type'] == self::TYPE_DIMENSION.'.'.self::TYPE_DOUBLE) {
                 $feature['type'] = self::TYPE_DOUBLE;
             }
             $id = $this->insert($feature);
+            if ($id && preg_match('/^(\d)d\.(.+)$/', $feature['type'], $matches)) {
+                for ($i = 0; $i < $matches[1]; $i++) {
+                    $child_feature = $feature;
+                    $child_feature['type'] = $matches[2];
+                    $child_feature['parent_id'] = $id;
+                    $child_feature['code'] .= '.'.$i;
+                    $child_feature['name'] .= '.'.$i;
+                    $this->insert($child_feature);
+                }
+            }
         }
         return $id;
     }
@@ -86,7 +109,7 @@ class shopFeatureModel extends waModel
             WHERE (`id` != i:id) AND (`code` LIKE s:c)
 SQL;
             $params = array(
-                'c' => $this->escape($code, 'like') . '%',
+                'c'  => $this->escape($code, 'like').'%',
                 'id' => $id,
             );
             $codes = $this->query($sql, $params)->fetchAll('id', true);
@@ -94,7 +117,7 @@ SQL;
                 $count = 0;
                 $unique_code = $code;
                 while (in_array(strtolower($unique_code), $codes)) {
-                    $unique_code = $code . (++$count);
+                    $unique_code = $code.(++$count);
                 }
             } else {
                 $unique_code = $code;
@@ -123,14 +146,14 @@ SQL;
         SELECT f.*
         FROM `{$this->table}` `f`
         JOIN `shop_type_features` `t` ON (`t`.`feature_id`=`f`.`id`)
-        WHERE `t`.`type_id` = i:type_id
+        WHERE `t`.`type_id` = i:type_id AND `f`.`parent_id` IS NULL
         ORDER BY `t`.`sort`";
         } else {
             $sql = "
         SELECT f.*
         FROM `{$this->table}` `f`
         LEFT JOIN `shop_type_features` `t` ON (`t`.`feature_id`=`f`.`id`)
-        WHERE `t`.`type_id` IS NULL";
+        WHERE `t`.`type_id` IS NULL  AND `f`.`parent_id` IS NULL";
         }
 
         $features = $this->query($sql, array('type_id' => $type_id))->fetchAll($key);
@@ -160,7 +183,7 @@ SQL;
     public function getFeatures($field, $value = null, $key = 'id', $fill_values = false)
     {
         if ($field === true) {
-            $features = $this->getAll($key);
+            $features = $this->select('*')->where('`parent_id` IS NULL')->fetchAll($key);
         } else {
             $features = $this->getByField($field, $value, $key);
         }
@@ -180,25 +203,26 @@ SQL;
 
         $types = $this->groupByValueType($features);
         foreach ($types as $type => $ids) {
-            $model = self::getValuesModel($type);
-            $field = ($all === true) ? true : 'feature_id';
-            $value = ($all === true) ? null : array_keys($ids);
-            $features_values = $model->getValues($field, $value, ($all === true) ? null : $all);
-            foreach ($features_values as $feature_id => $values) {
-                if (isset($ids[$feature_id])) {
-                    // avoid values with wrong types
-                    $id = $ids[$feature_id];
+            if ($model = self::getValuesModel($type)) {
+                $field = ($all === true) ? true : 'feature_id';
+                $value = ($all === true) ? null : array_keys($ids);
+                $features_values = $model->getValues($field, $value, ($all === true) ? null : $all);
+                foreach ($features_values as $feature_id => $values) {
+                    if (isset($ids[$feature_id])) {
+                        // avoid values with wrong types
+                        $id = $ids[$feature_id];
 
-                    if (isset($features[$id])) {
-                        //avoid values without related features
-                        $features[$id]['values'] = $values;
+                        if (isset($features[$id])) {
+                            //avoid values without related features
+                            $features[$id]['values'] = $values;
+                        } else {
+                            //TODO
+                            trigger_error("Outdated records at {$this->table}", E_USER_WARNING);
+                        }
                     } else {
                         //TODO
-                        trigger_error("Outdated records at {$this->table}", E_USER_WARNING);
+                        //trigger_error("Outdated records at {$model->getTableName()} with 'feature_id'={$feature_id}", E_USER_WARNING);
                     }
-                } else {
-                    //TODO
-                    trigger_error("Outdated records at {$model->getTableName()} with 'feature_id'={$feature_id}", E_USER_WARNING);
                 }
             }
         }
@@ -242,7 +266,7 @@ SQL;
                 $product_features_model->deleteByFeature($feature['id'], $obsolete_values);
                 $field = array(
                     'feature_id' => $feature['id'],
-                    'id' => $obsolete_values,
+                    'id'         => $obsolete_values,
                 );
                 $model->deleteByField($field);
 
@@ -298,9 +322,11 @@ SQL;
             throw new waException("unknown feature value type");
         }
         if (!isset(self::$instances[$type])) {
-            $model = 'shopFeatureValues' . ucfirst($type) . 'Model';
+            $model = 'shopFeatureValues'.ucfirst($type).'Model';
             if (class_exists($model)) {
                 self::$instances[$type] = new $model();
+            } elseif (in_array($type, array(self::TYPE_2D, self::TYPE_3D))) {
+                self::$instances[$type] = false;
             } else {
                 throw new waException("Not found model for feature value type {$type}");
             }
@@ -345,7 +371,7 @@ SQL;
                     foreach ($type['subtype'] as $subtype) {
                         $subtype += $type;
                         $key = sprintf('m:%d;s:%d;t:%s', !empty($subtype['multiple']), !empty($subtype['selectable']), $subtype['type']);
-                        $names[$key] = $type['name'] . ':' . $subtype['name'];
+                        $names[$key] = $type['name'].':'.$subtype['name'];
                         if (isset($subtype['alias']) && isset($subtype['alias'][$subtype['type']])) {
                             $subtype['type'] = $subtype['alias'][$subtype['type']];
                             $key = sprintf('m:%d;s:%d;t:%s', !empty($subtype['multiple']), !empty($subtype['selectable']), $subtype['type']);
@@ -374,18 +400,18 @@ SQL;
             #single types
             $single_types = array();
             $single_types[] = array(
-                'name' => _w('Texts'),
-                'type' => self::TYPE_VARCHAR,
+                'name'      => _w('Texts'),
+                'type'      => self::TYPE_VARCHAR,
                 'available' => 1,
             );
             $single_types[] = array(
-                'name' => _w('Custom number'),
-                'type' => self::TYPE_DOUBLE,
+                'name'      => _w('Custom number'),
+                'type'      => self::TYPE_DOUBLE,
                 'available' => 1,
             );
             $single_types[] = array(
-                'name' => _w('Color'),
-                'type' => 'color',
+                'name'      => _w('Color'),
+                'type'      => 'color',
                 'available' => 0,
             );
 
@@ -393,19 +419,23 @@ SQL;
             $numerical_types = array();
 
             $numerical_types[] = array(
-                'name' => _w('Custom number'),
-                'group' => _w('Numerical'),
-                'type' => '%s.' . self::TYPE_DOUBLE,
-                'alias' => array(
-                    self::TYPE_DIMENSION . '.' . self::TYPE_DOUBLE => self::TYPE_DOUBLE,
+                'name'       => _w('Custom number'),
+                'group'      => _w('Numerical'),
+                'type'       => '%s.'.self::TYPE_DOUBLE,
+                'alias'      => array(
+                    self::TYPE_DIMENSION.'.'.self::TYPE_DOUBLE => self::TYPE_DOUBLE,
                 ),
-                'multiple' => false,
+                'multiple'   => false,
                 'selectable' => false,
-                'available' => 2,
+                'available'  => 2,
             );
             foreach ($units_index as $unit) {
                 $type = array(
-                    'type' => '%s' . '.' . $unit,
+                    'type'      => '%s'.'.'.self::TYPE_DIMENSION.'.'.$unit,
+                    'alias'     => array(
+                        self::TYPE_RANGE.'.'.self::TYPE_DIMENSION.'.'.$unit     => self::TYPE_RANGE.'.'.$unit,
+                        self::TYPE_DIMENSION.'.'.self::TYPE_DIMENSION.'.'.$unit => self::TYPE_DIMENSION.'.'.$unit,
+                    ),
                     'available' => 2,
                 );
                 if ($dimension = $dimensions->getDimension($unit)) {
@@ -418,7 +448,7 @@ SQL;
                         $units = array_slice($units, 0, 4);
                     }
                     $units = array_map('_w', $units);
-                    $type['name'] .= " (" . implode(', ', $units) . ")";
+                    $type['name'] .= " (".implode(', ', $units).")";
                 } else {
                     $type['available'] = 0;
                 }
@@ -429,25 +459,25 @@ SQL;
 
             $types = array();
             $types[] = array(
-                'name' => _w('Custom text (input)'),
-                'type' => self::TYPE_VARCHAR,
-                'multiple' => false,
+                'name'       => _w('Custom text (input)'),
+                'type'       => self::TYPE_VARCHAR,
+                'multiple'   => false,
                 'selectable' => false,
-                'available' => 2, /*0 under development; 1 only at features settings; 2 full access*/
+                'available'  => 2, /*0 under development; 1 only at features settings; 2 full access*/
             );
             $types[] = array(
-                'name' => _w('HTML (textarea)'),
-                'type' => self::TYPE_TEXT,
-                'multiple' => false,
+                'name'       => _w('HTML (textarea)'),
+                'type'       => self::TYPE_TEXT,
+                'multiple'   => false,
                 'selectable' => false,
-                'available' => 2,
+                'available'  => 2,
             );
             $types[] = array(
-                'name' => _w('Yes/No toggle (boolean)'),
-                'type' => self::TYPE_BOOLEAN,
-                'multiple' => false,
+                'name'       => _w('Yes/No toggle (boolean)'),
+                'type'       => self::TYPE_BOOLEAN,
+                'multiple'   => false,
                 'selectable' => false,
-                'available' => 2,
+                'available'  => 2,
             );
             /* TODO
              $types[] = array(
@@ -472,34 +502,54 @@ SQL;
              */
 
             $types[] = array(
-                'name' => _w('Value'),
-                'group' => _w('Numerical'),
-                'type' => self::TYPE_DIMENSION . '.*',
-                'multiple' => false,
+                'name'       => _w('Value'),
+                'group'      => _w('Numerical'),
+                'type'       => self::TYPE_DIMENSION.'.*',
+                'multiple'   => false,
                 'selectable' => false,
-                'available' => 2,
-                'subtype' => self::extendSubtypes($numerical_types, self::TYPE_DIMENSION),
+                'available'  => 2,
+                'subtype'    => self::extendSubtypes($numerical_types, self::TYPE_DIMENSION),
             );
             $types[] = array(
-                'name' => _w('Range'),
-                'group' => _w('Numerical'),
-                'type' => self::TYPE_RANGE . '.*',
-                'multiple' => false,
+                'name'       => _w('Range'),
+                'group'      => _w('Numerical'),
+                'type'       => self::TYPE_RANGE.'.*',
+                'multiple'   => false,
                 'selectable' => false,
-                'available' => 2,
-                'subtype' => self::extendSubtypes($numerical_types, self::TYPE_RANGE),
+                'available'  => 2,
+                'subtype'    => self::extendSubtypes($numerical_types, self::TYPE_RANGE),
+            );
+
+            $types[] = array(
+                'name'       => _w('Value').' × '._w('Value'),
+                'group'      => _w('Numerical'),
+                'type'       => self::TYPE_2D.'.*',
+                'multiple'   => false,
+                'selectable' => false,
+                'available'  => 1,
+                'subtype'    => self::extendSubtypes($numerical_types, self::TYPE_2D),
+            );
+
+            $types[] = array(
+                'name'       => _w('Value').' × '._w('Value').' × '._w('Value'),
+                'group'      => _w('Numerical'),
+                'type'       => self::TYPE_3D.'.*',
+                'multiple'   => false,
+                'selectable' => false,
+                'available'  => 1,
+                'subtype'    => self::extendSubtypes($numerical_types, self::TYPE_3D),
             );
 
 
             /* Selectable */
             $types[] = array(
-                'name' => _w('Select'),
-                'group' => _w('Selectable'),
-                'type' => '*',
-                'multiple' => false,
+                'name'       => _w('Select'),
+                'group'      => _w('Selectable'),
+                'type'       => '*',
+                'multiple'   => false,
                 'selectable' => true,
-                'available' => 1,
-                'subtype' => self::extendSubtypes($single_types, self::TYPE_DIMENSION),
+                'available'  => 1,
+                'subtype'    => self::extendSubtypes($single_types, self::TYPE_DIMENSION),
             );
             /** TODO
             $types[] = array(
@@ -513,22 +563,22 @@ SQL;
             );
              */
             $types[] = array(
-                'name' => _w('Checkboxes (multiple)'),
-                'group' => _w('Selectable'),
-                'type' => '*',
-                'multiple' => true,
+                'name'       => _w('Checkboxes (multiple)'),
+                'group'      => _w('Selectable'),
+                'type'       => '*',
+                'multiple'   => true,
                 'selectable' => true,
-                'available' => 1,
-                'subtype' => self::extendSubtypes($single_types, self::TYPE_DIMENSION),
+                'available'  => 1,
+                'subtype'    => self::extendSubtypes($single_types, self::TYPE_DIMENSION),
             );
             /* divider */
             $types[] = array(
-                'name' => _w('Divider'),
-                'group' => _w('Other'),
-                'type' => self::TYPE_DIVIDER,
-                'multiple' => true,
+                'name'       => _w('Divider'),
+                'group'      => _w('Other'),
+                'type'       => self::TYPE_DIVIDER,
+                'multiple'   => true,
                 'selectable' => true,
-                'available' => 0,
+                'available'  => 0,
             );
         }
         return $types;
@@ -540,6 +590,9 @@ SQL;
         foreach ($subtypes as &$subtype) {
             if (strpos($subtype['type'], '%s') !== false) {
                 $subtype['type'] = sprintf($subtype['type'], $prefix);
+                if (!empty($subtype['alias']) && isset($subtype['alias'][$subtype['type']])) {
+                    $subtype['type'] = $subtype['alias'][$subtype['type']];
+                }
             }
             unset($subtype);
         }

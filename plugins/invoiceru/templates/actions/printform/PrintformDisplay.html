@@ -233,7 +233,7 @@ var page_url = '';
 		<td class="b_top b_left b_right inline_edit">&nbsp;</td>
 	</tr>
 	{/foreach}
-	{if $order.shipping}
+	{if $order.shipping > 0}
 	<tr>
         {$total_amount=$total_amount+$order.shipping}
 		<td class="b_left b_top leftAlign">доставка {$order.shipping_name|escape}</td>

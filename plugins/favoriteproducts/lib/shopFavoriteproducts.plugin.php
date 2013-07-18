@@ -26,10 +26,7 @@ class shopFavoriteproductsPlugin extends shopPlugin
             return null;
         }
 
-        $collection->addJoin(array(
-            'table' => 'shop_favoriteproducts',
-            'on'    => 'shop_favoriteproducts.product_id = p.id',
-        ))->addWhere('shop_favoriteproducts.contact_id='.wa()->getUser()->getId());
+        $collection->addJoin('shop_favoriteproducts', null, ':table.contact_id='.wa()->getUser()->getId());
 
         if ($params['auto_title']) {
             $collection->addTitle(_wp('Favorites'));

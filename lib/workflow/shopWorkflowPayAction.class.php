@@ -17,12 +17,9 @@ class shopWorkflowPayAction extends shopWorkflowAction
         if (is_array($params)) {
             $order_id = $params['order_id'];
             $result['text'] = $params['plugin'].' ('.$params['view_data'].' - '.$params['amount'].' '.$params['currency_id'].')';
-            $order_params_model = new shopOrderParamsModel();
-            $order_params_model->insert(array(
-                'order_id' => $order_id,
-                'name' => 'payment_transaction_id',
-                'value' => $params['id']
-            ));
+            $result['update']['params'] = array(
+                'payment_transaction_id' => $params['id'],
+            );
         } else {
             $order_id = $params;
             $result['text'] = waRequest::post('text', '');
@@ -31,7 +28,7 @@ class shopWorkflowPayAction extends shopWorkflowAction
         $order = $order_model->getById($order_id);
         if (!$order['paid_year']) {
             shopAffiliate::applyBonus($order_id);
-            $result['update']= array(
+            $result['update'] = array(
                     'paid_year' => date('Y'),
                     'paid_quarter' => floor((date('n') - 1) / 3) + 1,
                     'paid_month' => date('n'),
@@ -51,7 +48,7 @@ class shopWorkflowPayAction extends shopWorkflowAction
         } else {
             $order_id = $params;
         }
-        parent::postExecute($order_id, $result);
+        $data = parent::postExecute($order_id, $result);
 
         $order_model = new shopOrderModel();
         if (is_array($order_id)) {
@@ -77,6 +74,8 @@ class shopWorkflowPayAction extends shopWorkflowAction
             $order_model = new shopOrderModel();
             $order_model->reduceProductsFromStocks($order_id);
         }
+
+        return $data;
     }
 }
 

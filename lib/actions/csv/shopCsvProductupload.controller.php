@@ -65,18 +65,20 @@ class shopCsvProductuploadController extends shopUploadController
         }
 
         $features_model = new shopFeatureModel();
-        $features = $features_model->getAll();
+        $features = $features_model->select('`code`, `name`')->fetchAll('code', true);
         $group = 'feature';
-        foreach ($features as $feature) {
-            $options[] = array(
-                'group'       => array(
-                    'title' => ifset($translates[$group]),
-                    'class' => $group,
-                ),
-                'value'       => sprintf('features:%s', $feature['code']),
-                'title'       => $feature['name'],
-                'description' => $feature['code'],
-            );
+        foreach ($features as $code => $feature) {
+            if (!preg_match('/\.\d$/', $code)) {
+                $options[] = array(
+                    'group'       => array(
+                        'title' => ifset($translates[$group]),
+                        'class' => $group,
+                    ),
+                    'value'       => sprintf('features:%s', $code),
+                    'title'       => $feature,
+                    'description' => $code,
+                );
+            }
         }
 
         return $options;

@@ -24,8 +24,9 @@ class shopWorkflowRestoreAction extends shopWorkflowAction
         return true;
     }
 
-    public function postExecute($order_id = null, $result = null) {
-        parent::postExecute($order_id, $result);
+    public function postExecute($order_id = null, $result = null)
+    {
+        $data = parent::postExecute($order_id, $result);
 
         if ($order_id != null) {
             $order_model = new shopOrderModel();
@@ -46,5 +47,6 @@ class shopWorkflowRestoreAction extends shopWorkflowAction
                 shopCustomers::recalculateTotalSpent($order['contact_id']);
             }
         }
+        return $data;
     }
 }

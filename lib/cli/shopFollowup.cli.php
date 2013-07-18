@@ -39,6 +39,7 @@ class shopFollowupCli extends waCliController
                 }
                 $customers = $cm->getById($cids);
 
+                $sent_count = 0;
                 foreach($orders as $o) {
                     try {
                         // Is there a recipient in the first place?
@@ -85,6 +86,7 @@ class shopFollowupCli extends waCliController
                         $to = array($email => $contact->getName());
 
                         if (self::sendOne($f, $o, $customer, $contact, $to, $view, $general)) {
+                            $sent_count++;
                             // Write to order log
                             $olm->add(array(
                                 'order_id' => $o['id'],
@@ -107,6 +109,19 @@ class shopFollowupCli extends waCliController
                         waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}:\n".$e);
                     }
                 }
+
+                /**
+                 * @event followup_send
+                 *
+                 * Notify plugins about sending followup
+                 *
+                 * @param array[string]int $params['sent_count'] number of emails successfully sent
+                 * @param array[string]array $params['id'] followup_id
+                 * @return void
+                 */
+                $event_params = $f;
+                $event_params['sent_count'] = $sent_count;
+                wa()->event('followup_send', $event_params);
             }
             $fm->updateById($f['id'], array(
                 'last_cron_time' => $between_to,

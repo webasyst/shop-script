@@ -312,10 +312,6 @@
                 }
             }
 
-            waEditorUpdateSource({
-                id: 's-product-description-content'
-            });
-
             if (self.ajax.save) {
                 setTimeout(function() {
                     self.saveData(mode, tab, callback);
@@ -329,6 +325,10 @@
                 }
             }
             self.ajax.save = true;
+
+            this.editorUpdateSource({
+                id: 's-product-description-content'
+            });
 
             // cut out all spaces for prices
             form.find('.s-price').find('input').each(function() {
@@ -2042,8 +2042,15 @@
             }
         },
 
+        editorUpdateSource: function(options) {
+            waEditorUpdateSource(options);
+            if(wa_editor){
+                this.description = wa_editor.getValue();
+            }
+        },
+
         editTabDescriptionsBlur: function() {
-            waEditorUpdateSource({
+            this.editorUpdateSource({
                 id: 's-product-description-content'
             });
         },

@@ -61,8 +61,10 @@ $.order_edit = {
         this.initCustomerForm(this.id ? 'edit' : 'add');
 
         // helpers and handlers here
-
         var validateQuantity = function(item) {
+            if (options.ignore_stock_count) {
+                return true;
+            }
             var max_value = parseInt(item.attr('data-max-value'), 10);
             var val = parseInt(item.val(), 10);
             if (isNaN(max_value)) {
@@ -206,6 +208,14 @@ $.order_edit = {
                             })
                         );
 
+                        var quantity_input = tr.find('.s-orders-quantity');
+                        quantity_input.attr('data-max-value', r.data.count !== null ? r.data.count : '');
+                        if (!validateQuantity(quantity_input)) {
+                            quantity_input.addClass('error');
+                        } else {
+                            quantity_input.removeClass('error');
+                        }
+
                         updateStockIcon(tr);
 
                     });
@@ -309,6 +319,14 @@ $.order_edit = {
 
         if (this.form && this.form.length) {
             this.form.unbind('sumbit').bind('submit', function() {
+                $('.s-orders-quantity').each(function() {
+                    var self = $(this);
+                    if (!validateQuantity(self)) {
+                        self.addClass('error');
+                    } else {
+                        self.removeClass('error');
+                    }
+                });
                 $.order_edit.showValidateErrors();
                 if (!$.order_edit.container.find('.error').length) {
                     if ($.order_edit.id) {
