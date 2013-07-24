@@ -1,6 +1,9 @@
 <div class="dialog width650px {if $type == 'set'}height350px{else}height500px{/if}" id="s-product-list-create-dialog">
     <div class="dialog-background"></div>
-    <form method="post" action="?module=products&action=saveListSettings&{$type}_id=0&parent_id={if !empty($parent)}{$parent.id}{else}0{/if}">
+    <form id="s-product-list-create-form" method="post"
+          action="?module=products&action=saveListSettings&{$type}_id=0&parent_id={if !empty($parent)}{$parent.id}{else}0{/if}"
+          enctype="multipart/form-data"
+    >
     <div class="dialog-window">
         <div class="dialog-content">
             <div class="dialog-content-indent">
@@ -12,9 +15,9 @@
                             <div class="value">
                                 <input type="text" name="name" class="large long s-full-width-input" value="" id="s-product-list-name">
                             </div>
-                        </div>                        
+                        </div>
                         {$smarty.capture.frontend_url}
-                    </div>                 
+                    </div>
                     {$smarty.capture.ext_fields}
                     <div class="field-group">
                         <div class="field">
@@ -47,7 +50,7 @@
                     </div>
                     <div class="field-group" id="s-dynamic-field-group" style="display:none;">
                         {$smarty.capture.dynamic_settings}
-                    </div>                    
+                    </div>
                     {$smarty.capture.description}
                     {$smarty.capture.custom_params}
                 </div>

@@ -60,6 +60,11 @@ class shopProductsDeleteListController extends waJsonController
         }
         $item = null;
         if ($hash[0] == 'category') {
+            /**
+             * @event category_delete
+             * @param int category_id
+             */
+            wa()->event('category_delete', $hash[1]);
             $item = $model->getById($hash[1]);
         }
 

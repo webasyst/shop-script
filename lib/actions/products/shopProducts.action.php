@@ -15,14 +15,13 @@ class shopProductsAction extends shopProductListAction
         /*
          * @event backend_products
          */
-        $this->view->assign('backend_products', wa()->event('backend_products'));
-
+        $event_params = array('type' => $this->hash[0], 'info' => $this->collection->getInfo());
+        $this->view->assign('backend_products', wa()->event('backend_products', $event_params));
+        
         $this->assign(array(
             'products' => array_values($products),
             'total_count' => $this->collection->count(),
             'count' => count($products),
-            'collection_hash' => $this->hash,
-            'collection_param' => $this->collection_param,
             'sort' => $this->sort,
             'order' => $this->order,
             'text' => $this->text,
@@ -31,5 +30,6 @@ class shopProductsAction extends shopProductListAction
             'view' => $view,
             'default_view' => $default_view,
         ));
+
     }
 }

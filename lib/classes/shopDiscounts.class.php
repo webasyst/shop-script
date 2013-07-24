@@ -33,7 +33,19 @@ class shopDiscounts
             $applicable_discounts[] = self::byCustomerTotal($order, $contact, $apply);
         }
 
-        // !!! TODO: Plugin hook for discounts
+        /**
+         * @event order_calculate_discount
+         * @param array
+         * @param array['order'] - order info array('total' => '', 'items' => array(...))
+         * @param array['contact'] - contact info
+         * @param array['apply'] - calculate or apply discount
+         * @return float - discount
+         */
+        $event_params = array('order' => $order, 'contact' => $contact, 'apply' => $apply);
+        $plugins_discounts = wa()->event('order_calculate_discount', $event_params);
+        foreach ($plugins_discounts as $plugin_discount) {
+            $applicable_discounts[] = $plugin_discount;
+        }
 
         // Select max discount or sum depending on global setting.
         $discount = 0.0;

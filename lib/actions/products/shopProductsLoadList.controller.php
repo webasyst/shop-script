@@ -31,6 +31,7 @@ class shopProductsLoadListController extends shopProductListAction
 
     protected function assign($data)
     {
+        $data = parent::preAssign($data);
         echo json_encode(array('status' => 'ok', 'data' => $data));
         exit;
     }

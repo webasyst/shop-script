@@ -11,6 +11,9 @@ class shopProductAddToListController extends waJsonController
             $model = $this->getModel($type);
             if ($model) {
                 $this->response = $model->getById($list_id);
+                if ($type == 'category') {
+                    $this->response['total_count'] = $model->getTotalProductsCount($list_id);
+                }
             }
         }
     }

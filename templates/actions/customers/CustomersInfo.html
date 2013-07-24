@@ -72,11 +72,16 @@
     <br class="clear-left"><br>
 
     <h2>[`Orders`]</h2>
-    <table class="zebra double-padded">
+    <table class="zebra double-padded" id="s-order-list">
         {foreach $orders as $o}
             <tr>
                 <td class="nowrap">
-                    <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/" style="{$o.style|escape}">
+                    <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/" 
+                                      style="{$o.style|escape}"
+                                      data-order-id="{$o.id}"
+                                      data-state-id="{$o.state_id}"
+                                      class="s-order-link"
+                                >
                         <i class="{$o.icon}"></i>{$wa->shop->orderId($o.id)}
                     </a>
                 </td>
@@ -374,6 +379,26 @@
             'json');
         };
         
+    })();
+    
+    // controller for order list
+    (function() {
+        var view = $.storage.get('shop/orders/view') || '{$orders_default_view}';
+        var container = $('#s-order-list');
+        container.find('a.s-order-link').each(function() {
+            var link = $(this);
+            var href = '?action=orders#/orders/state_id=%state_id%&id=%id%/';
+            if (view == 'table') {
+                href = '?action=orders#/order/%id%/state_id=%state_id%/';
+            }
+            link.attr('href', 
+                href.replace(
+                    '%id%', link.attr('data-order-id')
+                ).replace(
+                    '%state_id%', link.attr('data-state-id')
+                )
+            );
+        });
     })();
     
 })();</script>

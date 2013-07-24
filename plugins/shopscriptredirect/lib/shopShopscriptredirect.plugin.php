@@ -43,7 +43,9 @@ class shopShopscriptredirectPlugin extends shopPlugin
                 $category_model = new shopCategoryModel();
                 if ($c = $category_model->getByField('full_url', rtrim($url, '/'))) {
                     $route = wa()->getRouting()->getDomain(null, true).'/'.wa()->getRouting()->getRoute('url');
-                    if (!$c['route'] || $c['route'] == $route) {
+                    $cat_routes_model = new shopCategoryRoutesModel();
+                    $routes = $cat_routes_model->getRoutes($c['id']);
+                    if (!$routes || in_array($route, $routes)) {
                         wa()->getResponse()->redirect(wa()->getRootUrl(false, true).wa()->getRouting()->getRootUrl().$url, 301);
                     }
                 }

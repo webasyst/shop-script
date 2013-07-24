@@ -162,8 +162,24 @@ class shopProductListAction extends waViewAction
         unset($p);
     }
 
+    protected function preAssign($data)
+    {
+        $data['collection_hash'] = $this->hash;
+        if (isset($data['collection_hash'][1])) {
+            $data['collection_hash'][1] = urlencode($data['collection_hash'][1]);
+        }
+        $data['collection_param'] = explode('=', $this->collection_param);
+        if (isset($data['collection_param'][1])) {
+            $data['collection_param'][1] = urlencode($data['collection_param'][1]);
+        }
+        $data['collection_param'] = implode('=', $data['collection_param']);
+        return $data;
+    }
+
+
     protected function assign($data)
     {
+        $data = $this->preAssign($data);
         $this->view->assign($data);
     }
 }

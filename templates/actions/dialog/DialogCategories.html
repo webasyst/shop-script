@@ -17,14 +17,7 @@
                     </li>
                     
                     {if !empty($categories)}
-                        {foreach $categories as $category}
-                            <li>
-                                <label>
-                                    <i class="icon16 folder"></i><input type="checkbox" name="category_id[]" value="{$category.id}">
-                                    <span class="name">{$category.name|escape}</span>
-                                </label>
-                            </li>
-                        {/foreach}
+                        {include './include.categories.html' inline}
                     {/if}
 
                 </ul>

@@ -34,6 +34,11 @@ class shopProductsSaveListSettingsController extends waJsonController
 
             $this->response = $this->getModel($hash[0])->getById($id);
             $this->response['name'] = htmlspecialchars($this->response['name']);
+
+            // when use iframe-transport unescaped content bring errors when parseJSON
+            if (!empty($this->response['description'])) {
+                $this->response['description'] = htmlspecialchars($this->response['description']);
+            }
         }
     }
 
@@ -88,6 +93,17 @@ class shopProductsSaveListSettingsController extends waJsonController
             }
             $category_params_model = new shopCategoryParamsModel();
             $category_params_model->set($id, !empty($data['params']) ? $data['params'] : null);
+
+            $category_routes_model = new shopCategoryRoutesModel();
+            $category_routes_model->setRoutes($id, isset($data['routes']) ? $data['routes'] : array());
+
+            $data['id'] = $id;
+            /**
+             * @event category_save
+             * @param array $category
+             * @return void
+             */
+            wa()->event('category_save', $data);
         }
         return $id;
 
@@ -251,7 +267,7 @@ class shopProductsSaveListSettingsController extends waJsonController
             'parent_id' => waRequest::get('parent_id', 0, waRequest::TYPE_INT),
             'type' => $type,
             'status' => waRequest::post('hidden', 0) ? 0 : 1,
-            'route' => waRequest::post('route', null, waRequest::TYPE_STRING_TRIM)
+            'routes' => waRequest::post('routes', array())
         );
         $params = array();
         if (!empty($data['params'])) {

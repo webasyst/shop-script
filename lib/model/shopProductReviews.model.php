@@ -15,14 +15,19 @@ class shopProductReviewsModel extends waNestedSetModel
 
     public function getFullTree($product_id, $offset = 0, $count = null, $order = null, array $options = array())
     {
+        // first lever reviews - reviews to products
         $reviews = $this->getReviews($product_id, $offset, $count, $order, $options);
         if (!empty($reviews)) {
-            foreach (
-                    $this->query("SELECT * FROM {$this->table} WHERE product_id = ".(int)$product_id.
-                    " AND review_id IN(".implode(',', array_keys($reviews)).")".
-                    " ORDER BY review_id, {$this->left}")
-                    as $item)
-            {
+            
+            // extract reviews to reviews (comments)
+            $sql = "SELECT * FROM {$this->table} WHERE product_id = ".(int)$product_id.
+                    " AND review_id IN(".implode(',', array_keys($reviews)).")";
+            if (wa()->getEnv() == 'frontend') {
+                $sql .= " AND status = '".self::STATUS_PUBLISHED."'";
+            }
+            $sql .= " ORDER BY review_id, {$this->left}";
+            
+            foreach ($this->query($sql) as $item) {
                 $reviews[$item['review_id']]['comments'][$item['id']] = $item;
             }
             foreach ($reviews as &$review) {

@@ -165,9 +165,9 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
          */
         $composite_codes = array();
         foreach ($data as $code => $value) {
-            if (!strpos($code, '.') && isset($features[$code]) && preg_match('/^([23])d\./', $features[$code]['type'], $matches)) {
+            if (!preg_match('/\.[0-3]$/', $code) && isset($features[$code]) && preg_match('/^([23])d\\./', $features[$code]['type'], $matches)) {
                 $n = $matches[1];
-                $pattern = '/^'.implode('\s*×\s*', array_fill(0, $n, '([^\s]+)')).'(\s+.+)?$/';
+                $pattern = '/^'.implode('\\s*[×xX\\*]?\\s*', array_fill(0, $n, '([^\\s]+)')).'(\\s+.+)?$/u';
                 if (preg_match($pattern, trim($value), $matches)) {
                     for ($i = 0; $i < $n; $i++) {
                         $c_code = $code.'.'.$i;
@@ -175,13 +175,17 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                         $composite_codes[] = $c_code;
                     }
                     unset($features[$code]);
+                } else {
+                    /**
+                     * invalid complex feature format
+                     */
                 }
                 unset($data[$code]);
             }
         }
 
         if ($composite_codes) {
-            $features += $feature_model->getByCode(array_keys($data));
+            $features += $feature_model->getByCode($composite_codes);
         }
 
         $features_map = array();

@@ -435,6 +435,8 @@
                     </div>
                 </div>
                 {/if}
+                {* @event backend_product_edit.%plugin_id%.basics *}
+                {foreach $backend_product_edit as $_}{if !empty($_.basics)}{$_.basics}{/if}{/foreach}
             </div>
 
             {capture name="sku_type_field_group"}

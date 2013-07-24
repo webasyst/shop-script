@@ -2,6 +2,7 @@
 class shopPayment extends waAppPayment
 {
     private static $instance;
+
     public static function getInstance()
     {
         if (!isset(self::$instance)) {
@@ -93,7 +94,7 @@ class shopPayment extends waAppPayment
         }
         if (!empty($plugin['id'])) {
             $shipping = ifset($plugin['shipping'], array());
-            $plugins = $model->listPlugins(shopPluginModel::TYPE_SHIPPING, array('all' => true, ));
+            $plugins = $model->listPlugins(shopPluginModel::TYPE_SHIPPING, array('all' => true,));
             $app_settings = new waAppSettingsModel();
             $settings = json_decode($app_settings->get('shop', 'shipping_payment_disabled', '{}'), true);
             if (empty($settings) || !is_array($settings)) {
@@ -106,9 +107,16 @@ class shopPayment extends waAppPayment
             foreach ($plugins as $item) {
                 if (empty($plugin['shipping'][$item['id']])) {
                     $s[] = $item['id'];
+                } else {
+                    $key = array_search($item['id'], $s);
+                    if ($key !== false) {
+                        unset($s[$key]);
+                    }
                 }
             }
+
             $s = array_unique($s);
+
             if (empty($s)) {
                 unset($settings[$plugin['id']]);
             }
@@ -162,7 +170,7 @@ class shopPayment extends waAppPayment
             $total = $order['total'];
             $currency_id = $order['currency'];
             if ($currency !== true) {
-                $currency = (array) $currency;
+                $currency = (array)$currency;
                 if (!in_array($order['currency'], $currency)) {
                     $convert = true;
                     $total = shop_currency($total, $order['currency'], $currency_id = reset($currency), false);
@@ -190,7 +198,7 @@ class shopPayment extends waAppPayment
                     'product_id'  => ifset($item['product_id']),
                 );
                 if (isset($item['weight'])) {
-                    $items[count($items) - 1]['weight']  = $item['weight'];
+                    $items[count($items) - 1]['weight'] = $item['weight'];
                 }
             }
         }

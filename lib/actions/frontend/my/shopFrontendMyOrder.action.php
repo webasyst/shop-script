@@ -83,7 +83,7 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         if (!empty($order['params']['payment_id']) && !$order['paid_date']) {
             try {
                 $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
-                $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), null);
+                $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), false);
             } catch (waException $ex) {
                 $payment = $ex->getMessage();
             }

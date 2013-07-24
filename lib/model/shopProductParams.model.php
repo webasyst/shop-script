@@ -114,7 +114,7 @@ class shopProductParamsModel extends waModel implements shopProductStorageInterf
         $ar = array();
         if (!empty($params)) {
             foreach (explode("\n", $params) as $param_str) {
-                $param = explode('=', $param_str);
+                $param = explode('=', $param_str, 2);
                 if (count($param) > 1) {
                     $ar[$param[0]] = trim($param[1]);
                 }

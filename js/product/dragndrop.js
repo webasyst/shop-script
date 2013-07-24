@@ -463,8 +463,8 @@
                                     products.trigger('select', false);
                                 }
                                 if (r.data) {
-                                    self.find('.count:first').text(r.data.count);
-                                    self.trigger('count_subtree');
+                                    self.find('>.counters .count:not(.subtree)').text(r.data.count);
+                                    self.find('>.counters .subtree').text(r.data.total_count);
                                 }
                             }
                         }));
@@ -532,6 +532,7 @@
                         parent_list.hide();
                     }
 
+                    //#
                     var parent = self;
                     if (parent.is('li.dr')) {
                         $.product_dragndrop.trigger('move_list', {

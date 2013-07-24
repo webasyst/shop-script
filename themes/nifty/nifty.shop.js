@@ -1,6 +1,6 @@
 $(document).ready(function () {
 
-    $("#product-list").on('submit', 'form.addtocart', function () {
+    $(".product-list").on('submit', 'form.addtocart', function () {
         var f = $(this);
         $.post(f.attr('action'), f.serialize(), function (response) {
             if (response.status == 'ok') {

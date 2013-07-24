@@ -232,6 +232,7 @@ function shop_currency($n, $in_currency = null, $out_currency = null, $format = 
      */
     $config = wa('shop')->getConfig();
     $primary = $config->getCurrency(true);
+    // current currency
     $currency = $config->getCurrency(false);
     if (!$in_currency) {
         $in_currency = $primary;

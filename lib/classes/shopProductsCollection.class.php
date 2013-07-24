@@ -75,9 +75,14 @@ class shopProductsCollection
                     if ($model->fieldExists($sort)) {
                         $this->order_by = 'p.'.$sort;
                         if (waRequest::get('order') == 'desc') {
-                            $this->order_by .= ' DESC';
+                            $order = 'DESC';
                         } else {
-                            $this->order_by .= ' ASC';
+                            $order = 'ASC';
+                        }
+                        $this->order_by .= ' '.$order;
+                        if ($sort == 'count') {
+                            $this->fields[] = 'IF(p.count IS NULL, 1, 0) count_null';
+                            $this->order_by = 'count_null '.$order.', '.$this->order_by;
                         }
                     }
                 }
@@ -174,6 +179,9 @@ class shopProductsCollection
         $features = $feature_model->getByField('code', array_keys($data), 'code');
         foreach ($data as $feature_id => $values) {
             if (!is_array($values)) {
+                if ($values === '') {
+                    continue;
+                }
                 $values = array($values);
             }
             if (isset($features[$feature_id])) {
@@ -223,11 +231,13 @@ class shopProductsCollection
             $this->info['frontend_url'] = wa()->getRouteUrl('shop/frontend/category', array(
                 'category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url']), true);
         } else {
+            $category_routes_model = new shopCategoryRoutesModel();
+            $category['routes'] = $category_routes_model->getRoutes($id);
             $routing =  wa()->getRouting();
             $domain_routes = $routing->getByApp('shop');
             foreach ($domain_routes as $domain => $routes) {
                 foreach ($routes as $r) {
-                    if (!$category['route'] || $category['route'] == $domain.'/'.$r['url']) {
+                    if (!$category['routes'] || in_array($domain.'/'.$r['url'], $category['routes'])) {
                         $routing->setRoute($r, $domain);
                         $this->info['frontend_url'] = $routing->getUrl('shop/frontend/category', array(
                             'category_url' => isset($r['url_type']) && ($r['url_type'] == 1) ? $category['url'] : $category['full_url']),
@@ -246,7 +256,16 @@ class shopProductsCollection
 
         if (wa()->getEnv() != 'frontend' || !waRequest::get('sort')) {
             if (!empty($this->info['sort_products'])) {
-                $this->order_by = 'p.'.$this->info['sort_products'];
+                if ($this->info['sort_products'] == 'count') {
+                    $tmp = explode(' ', $this->info['sort_products']);
+                    if (!isset($tmp[1])) {
+                        $tmp[1] = 'DESC';
+                    }
+                    $this->fields[] = 'IF(p.count IS NULL, 1, 0) count_null';
+                    $this->order_by = 'count_null '.$tmp[1].', p.count '.$tmp[1];
+                } else {
+                    $this->order_by = 'p.'.$this->info['sort_products'];
+                }
             }
         }
 
@@ -261,20 +280,21 @@ class shopProductsCollection
             } else {
                 $this->where[] = $alias.".category_id = ".(int) $id;
             }
-            if (empty($this->info['sort_products'])) {
+            if (empty($this->info['sort_products']) && (wa()->getEnv() != 'frontend' || !waRequest::get('sort'))) {
                 $this->order_by = $alias.'.sort ASC';
             }
         } else {
             $hash = $this->hash;
             $this->setHash('/search/'.$this->info['conditions']);
             $this->prepare(false, false);
-            while ($this->info['parent_id']/* && $this->info['conditions']*/) {
-                $this->info = $category_model->getByid($this->info['parent_id']);
-                if ($this->info['type'] == shopCategoryModel::TYPE_DYNAMIC) {
-                    $this->setHash('/search/'.$this->info['conditions']);
+            $info = $this->info;
+            while ($info['parent_id']/* && $this->info['conditions']*/) {
+                $info = $category_model->getByid($info['parent_id']);
+                if ($info['type'] == shopCategoryModel::TYPE_DYNAMIC) {
+                    $this->setHash('/search/'.$info['conditions']);
                     $this->prepare(true, false);
                 } else {
-                    $this->addJoin('shop_category_products', null, ':table.category_id = '.(int) $this->info['id']);
+                    $this->addJoin('shop_category_products', null, ':table.category_id = '.(int) $info['id']);
                     break;
                 }
             }
@@ -786,7 +806,12 @@ class shopProductsCollection
                 $model = $this->getModel();
                 if ($model->fieldExists($field)) {
                     $this->getSQL();
-                    return $this->order_by = 'p.'.$field." ".$order;
+                    if ($field == 'count') {
+                        $this->fields[] = 'IF(p.count IS NULL, 1, 0) count_null';
+                        return $this->order_by = 'count_null '.$order.', p.count '.$order;
+                    } else {
+                        return $this->order_by = 'p.'.$field." ".$order;
+                    }
                 } else if ($field == 'sort') {
                     $this->getSQL();
                     return '';

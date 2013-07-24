@@ -40,8 +40,11 @@ class shopFrontendCheckoutAction extends waViewAction
                 $payment = '';
                 if (!empty($order['params']['payment_id'])) {
                     try {
+                        /**
+                         * @var waPayment $plugin
+                         */
                         $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
-                        $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), null);
+                        $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), true);
                     } catch (waException $ex) {
                         $payment = $ex->getMessage();
                     }

@@ -442,12 +442,17 @@ SQL;
                     if (empty($type['name'])) {
                         $type['name'] = $dimension['name'];
                     }
-                    $units = array_unique(array_merge(array($dimension['base_unit']), array_keys($dimension['units'])));
-                    if (count($units) > 5) {
-                        $units[4] = '...';
-                        $units = array_slice($units, 0, 4);
+                    $count = count($dimension['units']);
+                    $units = array_slice(array_values($dimension['units']), 0, min(4, $count));
+
+                    if ($count > 5) {
+                        $units[] = array('name' => '...');
                     }
-                    $units = array_map('_w', $units);
+                    foreach ($units as &$u) {
+                        $u = $u['name'];
+                    }
+                    unset($u);
+
                     $type['name'] .= " (".implode(', ', $units).")";
                 } else {
                     $type['available'] = 0;

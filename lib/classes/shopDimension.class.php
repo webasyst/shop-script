@@ -7,6 +7,7 @@ class shopDimension
      */
     private static $instance;
     private $units = array();
+
     private function __construct()
     {
         $config = wa('shop')->getConfig();
@@ -25,6 +26,7 @@ class shopDimension
         }
         waHtmlControl::registerControl(__CLASS__, array(__CLASS__, 'getControl'));
     }
+
     private function __clone()
     {
         ;
@@ -121,15 +123,34 @@ class shopDimension
         if ($type && ($d = $instance->getDimension($type))) {
             if (isset($d['units'])) {
                 foreach ($d['units'] as $code => $unit) {
-                    $units[] = array(
+                    $units[$code] = array(
                         'value'       => $code,
-                        'title'       => _w($unit['name']),
+                        'title'       => $unit['name'],
                         'description' => isset($d['class']) ? $d['class'] : null,
                     );
                 }
             }
         }
         return $units;
+    }
+
+    public static function castUnit($type, $unit)
+    {
+        $units = self::getUnits($type);
+
+        if (!isset($units[$unit])) {
+            foreach ($units as $u) {
+                if (strcasecmp($u['value'], $unit) === 0) {
+                    $unit = $u['value'];
+                    break;
+                }
+                if (strcasecmp($u['title'], $unit) === 0) {
+                    $unit = $u['value'];
+                    break;
+                }
+            }
+        }
+        return $unit;
     }
 
     /**

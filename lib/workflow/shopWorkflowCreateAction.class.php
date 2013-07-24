@@ -64,6 +64,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                 if (!empty($item['purchase_price'])) {
                     $item['purchase_price'] = shop_currency($item['purchase_price'], $item['currency'], null, false);
                 }
+                $item['currency'] = $currency;
             }
             $subtotal += $item['price'] * $item['quantity'];
         }

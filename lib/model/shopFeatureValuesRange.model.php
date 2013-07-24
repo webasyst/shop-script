@@ -31,24 +31,24 @@ class shopFeatureValuesRangeModel extends shopFeatureValuesModel
                 if (preg_match('/^(.*)\s+([\D]+)$/', $value, $matches)) {
                     $value = array(
                         'value' => trim($matches[1]),
-                        'unit' => trim($matches[2]),
+                        'unit'  => trim($matches[2]),
                     );
                 } else {
                     $value = array(
                         'value' => trim($value),
-                        'unit' => null,
+                        'unit'  => null,
                     );
                 }
                 $values = array_map('trim', preg_split('/\s*([\s—]|\.\.)\s/', $value['value'], 2));
                 if (count($values) > 1) {
                     $value['value'] = array(
                         'begin' => ($values[0] === '') ? null : $this->castValue('double', $values[0]),
-                        'end' => ($values[1] === '') ? null : $this->castValue('double', $values[1]),
+                        'end'   => ($values[1] === '') ? null : $this->castValue('double', $values[1]),
                     );
                 } else {
                     $value['value'] = array(
                         'begin' => ($values[0] === '') ? null : $this->castValue('double', $values[0]),
-                        'end' => null,
+                        'end'   => null,
                     );
                 }
             }
@@ -105,6 +105,7 @@ class shopRangeValue implements ArrayAccess
      */
     private $end;
     private $unit;
+    private $type;
 
     /**
      * @param array $row
@@ -136,17 +137,21 @@ class shopRangeValue implements ArrayAccess
     {
         $str = array();
         if ($this->begin !== null) {
-            $str[] = $this->begin->format(false);
+            $str[] = $this->begin->format('%s');
         } else {
             $str[] = '∅';
         }
 
         if ($this->end !== null) {
-            $str[] = $this->end->format(false);
+            $str[] = $this->end->format('%s');
         } else {
             $str[] = '∞';
         }
-        return implode(' — ', $str);
+        $str = implode(' — ', $str);
+        if ($this->begin || $this->end) {
+            $str .= ' '.($this->begin ? $this->begin->unit_name : $this->end->unit_name);
+        }
+        return $str;
     }
 
     /**
@@ -185,7 +190,7 @@ class shopRangeValue implements ArrayAccess
     public function __get($field)
     {
         if ($field == 'units') {
-            return shopDimension::getUnits($this->unit);
+            return shopDimension::getUnits($this->type);
         }
         if ($field == 'value') {
             $str = array();
@@ -204,6 +209,6 @@ class shopRangeValue implements ArrayAccess
         if (!isset($this->$field)) {
             var_dump($field);
         }
-        return isset($this->$field) ? $this->$field : '!!!' . $field . var_dump($field);
+        return isset($this->$field) ? $this->$field : '!!!'.$field.var_dump($field);
     }
 }

@@ -418,8 +418,8 @@
                         }
 
                         // see update_counters also
-                        var counter = item.find('.counters .count:not(.subtree)');
-                        var subtree_counter = item.find('.counters .subtree');
+                        var counter = item.find('>.counters .count:not(.subtree)');
+                        var subtree_counter = item.find('>.counters .subtree');
                         if (!subtree_counter.length) {
                             subtree_counter = counter.clone().addClass('subtree').hide();
                             counter.after(subtree_counter);
@@ -431,6 +431,8 @@
                             });
                             subtree_counter.text(total_count).show();
                             counter.hide();
+                            counter.hide();
+                            subtree_counter.show();
                         } else {
                             subtree_counter.hide();
                             counter.show();

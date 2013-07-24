@@ -13,9 +13,23 @@ class shopSettingsFollowupsAction extends waViewAction
         // Save data when POST came
         if ($id && waRequest::post()) {
             if (waRequest::post('delete')) {
-                $fm->deleteById($id);
+
+                $f = $fm->getById($id);
+                if ($f) {
+                    /**
+                     * @event followup_delete
+                     *
+                     * Notify plugins about deleted followup
+                     *
+                     * @param array[string]int $params['id'] followup_id
+                     * @return void
+                     */
+                    wa()->event('followup_delete', $f);
+                    $fm->deleteById($id);
+                }
                 exit;
             }
+
             $followup = waRequest::post('followup');
             if ($followup && is_array($followup)) {
                 $empty_row = $fm->getEmptyRow();
@@ -29,9 +43,27 @@ class shopSettingsFollowupsAction extends waViewAction
                 if ($id && $id !== 'new') {
                     unset($followup['last_cron_time']);
                     $fm->updateById($id, $followup);
+                    $just_created = false;
                 } else {
                     $followup['last_cron_time'] = date('Y-m-d H:i:s');
                     $id = $fm->insert($followup);
+                    $just_created = true;
+                }
+
+                $f = $fm->getById($id);
+                if ($f) {
+                    $f['just_created'] = $just_created;
+
+                    /**
+                     * @event followup_save
+                     *
+                     * Notify plugins about created or modified followup
+                     *
+                     * @param array[string]int $params['id'] followup_id
+                     * @param array[string]bool $params['just_created']
+                     * @return void
+                     */
+                    wa()->event('followup_save', $f);
                 }
             }
         }

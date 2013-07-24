@@ -153,25 +153,25 @@
             [`Category visibility`]
         </div>
         <div class="value no-shift">
-            <label><input type="radio" name="storefront" value="" {if !$settings.route}checked="checked"{/if}>
+            <label><input type="radio" name="storefront" value="" {if !$settings.routes}checked="checked"{/if}>
                 [`All storefronts`]
             </label>
         </div>
         <div class="value no-shift">
-            <label><input type="radio" name="storefront" value="route" {if $settings.route}checked="checked"{/if}>
-                [`Selected storefront only`]
+            <label><input type="radio" name="storefront" value="route" {if $settings.routes}checked="checked"{/if}>
+                [`Selected storefronts only`]
             </label>
             {if !empty($routes)}
-                <select name="route" {if !$settings.route}disabled="disabled"{/if}>
-                    {foreach $routes as $domain => $domain_routes}
-                        {foreach $domain_routes as $route}
-                            {$url = $domain|cat:"/":$route.url}
-                            <option value="{$url}" {if $settings.route == $url}selected="selected"{/if}>
-                                {$url}
-                            </option>
-                        {/foreach}
+            </div>
+            <div class="value">
+                {foreach $routes as $domain => $domain_routes}
+                    {foreach $domain_routes as $route}
+                        {$url = $domain|cat:"/":$route.url}
+                        <label>
+                            <input {if in_array($url, $settings.routes)}checked{/if} {if !$settings.routes}disabled{/if} type="checkbox" name="routes[]" value="{$url}"> {$url}
+                        </label><br>
                     {/foreach}
-                </select>
+                {/foreach}
             {/if}
         </div>
     </div>
@@ -310,9 +310,9 @@
 
     $('input[name=storefront]', d).change(function() {
         if (this.value == 'route') {
-            $('select[name=route]', d).attr('disabled', false);
+            $('input[name="routes[]"]', d).attr('disabled', false);
         } else {
-            $('select[name=route]', d).attr('disabled', true);
+            $('input[name="routes[]"]', d).attr('disabled', true);
         }
     });
 

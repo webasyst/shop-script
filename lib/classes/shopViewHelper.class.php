@@ -66,8 +66,7 @@ class shopViewHelper extends waAppViewHelper
 
     public function sortUrl($sort, $name)
     {
-
-        $inverted = in_array($sort, array('rating', 'create_datetime', 'total_sales', 'count'));
+        $inverted = in_array($sort, array('rating', 'create_datetime', 'total_sales', 'count', 'stock'));
         $html = '<a href="?sort='.$sort.'&order=';
         if ($sort == waRequest::get('sort')) {
             $order = waRequest::get('order') == 'asc' ? 'desc' : 'asc';
@@ -236,7 +235,7 @@ class shopViewHelper extends waAppViewHelper
         $category_model = new shopCategoryModel();
         $category = $category_model->getById($id);
 
-        $category['subcategories'] = $category_model->getSubcategories($category, true);
+        $category['subcategories'] = $category_model->getSubcategories($category, $this->getRoute());
         $category_url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
         foreach ($category['subcategories'] as &$sc) {
             $sc['url'] = str_replace('%CATEGORY_URL%', waRequest::param('url_type') == 1 ? $sc['url'] : $sc['full_url'], $category_url);
@@ -257,15 +256,19 @@ class shopViewHelper extends waAppViewHelper
         return $this->wa->getRouteUrl('shop/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url']));
     }
 
+    protected function getRoute()
+    {
+        return wa()->getRouting()->getDomain(null, true).'/'.wa()->getRouting()->getRoute('url');
+    }
+
     public function categories($id = 0, $depth = null, $tree = false, $params = false)
     {
         if ($id === true) {
             $id = 0;
             $tree = true;
         }
-        $route = wa()->getRouting()->getDomain(null, true).'/'.wa()->getRouting()->getRoute('url');
         $category_model = new shopCategoryModel();
-        $cats = $category_model->getTree($id, $depth, false, array("route IS NULL OR route = '".$category_model->escape($route)."'"));
+        $cats = $category_model->getTree($id, $depth, false, $this->getRoute());
         $url = $this->wa->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
         $hidden = array();
         foreach ($cats as $c_id => $c) {

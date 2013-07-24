@@ -50,7 +50,16 @@ class shopCheckoutShipping extends shopCheckout
             $shipping_address = $address;
         }
 
-        $selected_shipping = $this->getSessionData('shipping', array());
+        if (waRequest::method() == 'post') {
+            $shipping_id = waRequest::post('shipping_id');
+            $rate_id = waRequest::post('rate_id');
+            $selected_shipping = array(
+                'id' => $shipping_id,
+                'rate_id' => !empty($rate_id[$shipping_id]) ? $rate_id[$shipping_id] : ''
+            );
+        } else {
+            $selected_shipping = $this->getSessionData('shipping', array());
+        }
 
         $dimension = shopDimension::getInstance()->getDimension('weight');
         $currencies = wa('shop')->getConfig()->getCurrencies();
@@ -145,7 +154,7 @@ class shopCheckoutShipping extends shopCheckout
                 break;
             }
         }
-        $view->assign('shipping', $this->getSessionData('shipping', array('id' => $default_method, 'rate_id' => '')));
+        $view->assign('shipping', $selected_shipping ? $selected_shipping : array('id' => $default_method, 'rate_id' => ''));
     }
 
     public function getAddressForm($method_id, waShipping $plugin, $config, $contact_address, $address_form)

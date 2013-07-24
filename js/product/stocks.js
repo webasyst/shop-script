@@ -3,9 +3,7 @@
         /**
          * {Object}
          */
-        options: {
-
-        },
+        options: {},
 
         container: null,
 
@@ -52,7 +50,9 @@
                             $(window).lazyLoad('stop');
                         };
                         $.get(
-                            '?module=stocks&offset='+offset+'&total_count='+total_count,
+                            '?module=stocks&offset=' + offset + 
+                                '&total_count=' + total_count + 
+                                (self.options.order ? '&order=' + self.options.order : ''),
                             function(r) {
                                 if (r && r.status == 'ok') {
                                     offset += r.data.count;

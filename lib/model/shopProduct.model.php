@@ -133,7 +133,10 @@ class shopProductModel extends waModel
         $order = ($order == 'desc' || $order == 'DESC') ? 'DESC' : 'ASC';
 
         // get products ids
-        $sql = "SELECT id FROM {$this->table} ORDER BY count $order LIMIT ".(int) $offset.", ".(int) $count;
+        $sql = "SELECT id, IF(count IS NULL, 1, 0) count_null FROM {$this->table}
+        ORDER BY count_null $order, count $order
+        LIMIT ".(int) $offset.", ".(int) $count;
+
         $ids = array_keys($this->query($sql)->fetchAll('id'));
 
         return $this->getProductStocksByProductId($ids, $order);

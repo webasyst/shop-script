@@ -169,6 +169,11 @@ class shopProductAction extends waViewAction
          */
         $this->view->assign('backend_product', wa()->event('backend_product', $product));
 
+        /**
+         * @event backend_product_edit
+         */
+        $this->view->assign('backend_product_edit', wa()->event('backend_product_edit', $product));
+
         $this->view->assign('categories', $categories);
 
         $this->view->assign('counters', $counters);

@@ -1,6 +1,9 @@
 <div class="dialog width650px {if $hash[0] == 'set'}height300px{else}height500px{/if}" id="s-product-list-settings-dialog">
     <div class="dialog-background"></div>
-    <form method="post" action="?module=products&action=saveListSettings&{implode('_id=', $hash)}">
+    <form id="s-product-list-settings-form" method="post"
+          action="?module=products&action=saveListSettings&{implode('_id=', $hash)}"
+          enctype="multipart/form-data"
+    >
     <div class="dialog-window">
         <div class="dialog-content">
             <div class="dialog-content-indent">
@@ -14,9 +17,10 @@
                             </div>
                         </div>
                         {$smarty.capture.frontend_url}
+                        {if !empty($event_dialog)}{foreach $event_dialog as $plugin_id => $plugin_html}{$plugin_html}{/foreach}{/if}
                         {$smarty.capture.dynamic_settings}
                         {$smarty.capture.frontend_display}
-                    </div>                
+                    </div>
                     {$smarty.capture.ext_fields}
                     {$smarty.capture.description}
                     <input type="hidden" name="type" value="{$settings.type}">
@@ -30,7 +34,7 @@
                 [`or`] <a class="cancel" href="#">[`cancel`]</a>
             </div>
         </div>
-        {$wa->csrf}
+        {$wa->csrf()}
     </div>
     </form>
 </div>

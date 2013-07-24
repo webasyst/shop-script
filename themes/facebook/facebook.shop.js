@@ -2,7 +2,7 @@ $(document).ready(function () {
 
     $('.bxslider').bxSlider( { auto : false, pause : 5000, autoHover : true });
 
-    $("form.addtocart").submit(function () {
+    $(".product-list").on('submit', function () {
         var f = $(this);
         $.post(f.attr('action'), f.serialize(), function (response) {
             if (response.status == 'ok') {

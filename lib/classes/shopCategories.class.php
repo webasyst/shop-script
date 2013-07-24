@@ -196,7 +196,96 @@ class shopCategories
         }
 
         // children_count is number of children of category
-        // total_count is count of products for whole subree rooted to this category
+        foreach ($categories as &$item) {
+            if (!isset($item['children_count'])) {
+                $item['children_count'] = 0;
+            }
+            if (isset($categories[$item['parent_id']])) {
+                $parent = &$categories[$item['parent_id']];
+                if (!isset($parent['children_count'])) {
+                    $parent['children_count'] = 0;
+                }
+                ++$parent['children_count'];
+                unset($parent);
+            }
+        }
+        unset($item);
+
+        // form intermediate utility data structure
+        $stack = array();
+        $hierarchy = array();
+        foreach ($categories as $item) {
+            $c = array(
+                'id' => $item['id'],
+                'total_count' => 0,
+                'parent_id' => $item['parent_id'],
+                'count' => $item['count'],
+                'depth' => $item['depth'],
+                'children' => array()
+            );
+
+            // Number of stack items
+            $l = count($stack);
+
+            // Check if we're dealing with different levels
+            while($l > 0 && $stack[$l - 1]['depth'] >= $item['depth']) {
+                array_pop($stack);
+                $l--;
+            }
+
+            // Stack is empty (we are inspecting the root)
+            if ($l == 0) {
+                // Assigning the root node
+                $i = count($hierarchy);
+                $hierarchy[$i] = $c;
+                $stack[] = & $hierarchy[$i];
+            } else {
+                // Add node to parent
+                $i = count($stack[$l - 1]['children']);
+                $stack[$l - 1]['children'][$i] = $c;
+                $stack[] = & $stack[$l - 1]['children'][$i];
+            }
+        }
+
+        $hierarchy = array(
+            'id' => 0,
+            'count' => 0,
+            'total_count' => 0,
+            'children' => $hierarchy
+        );
+        $this->totalCount($hierarchy, $categories);
+
+        return $categories;
+    }
+
+    private function totalCount(&$tree, &$plain_list)
+    {
+        $total = $tree['count'];
+        foreach ($tree['children'] as &$node) {
+            $total += $this->totalCount($node, $plain_list);
+        }
+        if (isset($plain_list[$tree['id']])) {
+            $plain_list[$tree['id']]['total_count'] = $total;
+        }
+        return $total ;
+    }
+
+    /**
+     * TODO: remove
+     * @param int $parent_id
+     * @return array
+     */
+    private function _getTree($parent_id = 0)
+    {
+        $category_model = self::getCategoryModel();
+        if ($parent_id) {
+            $categories = $category_model->getTree($parent_id);
+        } else {
+            $categories = $category_model->getFullTree();
+        }
+
+        // children_count is number of children of category
+        // total_count is count of products for whole subtree rooted to this category
         foreach ($categories as &$item) {
             if (!isset($item['children_count'])) {
                 $item['children_count'] = 0;
@@ -230,6 +319,16 @@ class shopCategories
 
     public static function setExpanded($category_id)
     {
+        $map = self::getCategoryExpandedStatesMap();
+        if (isset($map[0]) && count($map) == 1) {
+            self::switchToNaturalMode();
+            self::getSettingsModel()->set(
+                wa('shop')->getUser()->getId(),
+                'shop',
+                self::$prefix . '0',
+                1
+            );
+        }
         self::getSettingsModel()->set(
                 wa('shop')->getUser()->getId(),
                 'shop',

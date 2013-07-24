@@ -53,6 +53,16 @@ class shopDialogProductListSettingsAction extends waViewAction
             return array();
         }
 
+        $category_routes_model = new shopCategoryRoutesModel();
+        $settings['routes'] = $category_routes_model->getRoutes($id);
+
+        /**
+         * @event backend_category.dialog
+         * @param array $category
+         * @return array[string][string] $return[%plugin_id%] html output for dialog
+         */
+        $this->view->assign('event_dialog', wa()->event('backend_category_dialog', $settings));
+
         $frontend_url = wa()->getRouteUrl('/frontend/category', array('category_url' => $settings['full_url']), true);
         if ($frontend_url) {
             $pos = strrpos($frontend_url, $settings['url']);
@@ -96,6 +106,7 @@ class shopDialogProductListSettingsAction extends waViewAction
             'name' => 'Price'
         );
         $features += $feature_model->getFeatures('selectable', 1);
+        $features += $feature_model->getFeatures('type', 'boolean');
         if (!empty($filter)) {
             foreach ($filter as $feature_id) {
                 $feature_id = trim($feature_id);

@@ -1,0 +1,39 @@
+<!-- categories begin -->
+{if !empty($categories)}
+
+    {$depth = -1}
+
+    {foreach $categories as $category}
+
+      {if $category.depth < $depth}
+        {section name="end-category" loop = $depth - $category.depth}
+                </li>
+            </ul>
+        {/section}
+        {$depth = $category.depth}
+      {/if}
+
+      {if $category.depth == $depth}
+          </li>
+          <li>
+      {/if}
+
+      {if $category.depth > $depth}
+          <ul class="menu-v with-icons">
+              <li>
+              {$depth = $category.depth}
+      {/if}
+
+        <label>
+            <i class="icon16 folder"></i><input type="checkbox" name="category_id[]" value="{$category.id}">
+            <span class="name">{$category.name|escape}</span>
+        </label>
+
+    {/foreach}
+
+    {section name="end-category" loop = $depth + 1}
+          </li>
+        </ul>
+    {/section}
+{/if}
+<!-- categories end -->

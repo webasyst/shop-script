@@ -111,12 +111,10 @@ class shopFollowupCli extends waCliController
                 }
 
                 /**
-                 * @event followup_send
-                 *
                  * Notify plugins about sending followup
-                 *
+                 * @event followup_send
                  * @param array[string]int $params['sent_count'] number of emails successfully sent
-                 * @param array[string]array $params['id'] followup_id
+                 * @param array[string]int $params['id'] followup_id
                  * @return void
                  */
                 $event_params = $f;

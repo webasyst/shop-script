@@ -20,7 +20,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
     public function deleteByProducts(array $product_ids)
     {
         $this->deleteByField('product_id', $product_ids);
-        foreach ((array) $product_ids as $product_id) {
+        foreach ((array)$product_ids as $product_id) {
             $file_path = shopProduct::getPath($product_id, "sku_file");
             waFiles::delete($file_path);
         }
@@ -61,11 +61,11 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
 
         if (!$data) {
             return false; // something's wrong
-            }
+        }
 
         if (!$data['cnt']) {
             return true; // can't remove single sku
-            }
+        }
 
         $primary = wa('shop')->getConfig()->getCurrency();
         $currency = $primary;
@@ -89,11 +89,11 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         }
         if ($sku['count'] !== null && $product['count'] !== null) {
             $update['count'] = $product['count'] - $sku['count']; // increase count if it's possible
-            }
+        }
         $diff = array_diff_assoc($update, $product);
         if ($diff) {
             $product_model->updateById($product['id'], $diff); // we'll have difference after sku's deleting, so up product info
-            }
+        }
         if (!$this->deleteById($sku_id)) { // delete sku
             return false;
         }
@@ -131,7 +131,8 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         return $this->exec($sql);
     }
 
-    public function getSku($sku_id) {
+    public function getSku($sku_id)
+    {
         $sku = $this->getById($sku_id);
         if (!$sku) {
             return array();
@@ -160,11 +161,11 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
 
         $skus = $this->getByField('product_id', $product_id, $this->id);
         foreach ($skus as &$sku) {
-            $sku['count'] = ($sku['count'] === null ? null : (int) $sku['count']);
-            $sku['price'] = (float) $sku['price'];
-            $sku['purchase_price'] = (float) $sku['purchase_price'];
-            $sku['compare_price'] = (float) $sku['compare_price'];
-            $sku['primary_price'] = (float) $sku['primary_price'];
+            $sku['count'] = ($sku['count'] === null ? null : (int)$sku['count']);
+            $sku['price'] = (float)$sku['price'];
+            $sku['purchase_price'] = (float)$sku['purchase_price'];
+            $sku['compare_price'] = (float)$sku['compare_price'];
+            $sku['primary_price'] = (float)$sku['primary_price'];
             if ($fill_empty_sku_by_null) {
                 $sku['stock'] = array_fill_keys(array_keys($stocks), null);
             } else {
@@ -275,7 +276,9 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
      */
     protected function updateSku($id = 0, $data, $correct = true)
     {
-        $date['price'] = $this->castValue('double', $data['price']);
+        if (isset($data['price'])) {
+            $data['price'] = $this->castValue('double', $data['price']);
+        }
         if (isset($data['purchase_price'])) {
             $data['purchase_price'] = $this->castValue('double', $data['purchase_price']);
         }
@@ -307,7 +310,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         // if stocking for this sku
         if (isset($data['stock']) && count($data['stock'])) {
 
-            $stocks_model  = new shopProductStocksModel();
+            $stocks_model = new shopProductStocksModel();
 
             $sku_count = 0;
 
@@ -316,7 +319,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                 $sku_count = self::castStock($data['stock'][0]);
                 unset($data['stock'][0]);
 
-            // multistocking
+                // multistocking
             } else {
                 foreach ($data['stock'] as $stock_id => $count) {
                     $field = array(
@@ -406,10 +409,12 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                 $sku['available'] = 0;
             }
 
-            if ($product->currency == $primary_currency) {
-                $sku['primary_price'] = $sku['price'];
-            } else {
-                $sku['primary_price'] = $this->convertPrice($sku['price'], $product->currency);
+            if (isset($sku['price'])) {
+                if ($product->currency == $primary_currency) {
+                    $sku['primary_price'] = $sku['price'];
+                } else {
+                    $sku['primary_price'] = $this->convertPrice($sku['price'], $product->currency);
+                }
             }
             $sku['product_id'] = $product->id;
 
@@ -442,10 +447,10 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
 
     public function transfer($sku_id, $count, $src_stock, $dst_stock)
     {
-        $src_stock = (int) $src_stock;
-        $dst_stock = (int) $dst_stock;
-        $sku_id = (int) $sku_id;
-        $count = (int) $count;
+        $src_stock = (int)$src_stock;
+        $dst_stock = (int)$dst_stock;
+        $sku_id = (int)$sku_id;
+        $count = (int)$count;
 
         $sku = $this->getById($sku_id);
         if (empty($sku)) {

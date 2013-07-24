@@ -25,7 +25,7 @@ class shopFeatureValuesDimensionModel extends shopFeatureValuesModel
                 if (preg_match('/^(\-?\d+([\.,]\d+)?)\s+(.+)$/', $value, $matches)) {
                     $value = array(
                         'value' => $this->castValue('double', $matches[1]),
-                        'unit'  => trim($matches[3]),
+                        'unit'  => shopDimension::castUnit($type, trim($matches[3])),
                     );
                 } else {
                     $value = array(
@@ -40,7 +40,7 @@ class shopFeatureValuesDimensionModel extends shopFeatureValuesModel
         if (!empty($value['code'])) {
             if (strpos($value['code'], '.')) {
                 list($data['type'], $data['unit']) = explode('.', $value['code'], 2);
-                $dimension = $dimensions->getDimension($data['type']);
+                //$dimension = $dimensions->getDimension($data['type']);
             } elseif ($dimension = $dimensions->getDimension(empty($value['type']) ? $value['code'] : $value['type'])) {
                 $data['type'] = !empty($value['type']) ? $value['type'] : $value['code'];
                 $data['unit'] = !empty($value['unit']) ? $value['unit'] : $dimension['base_unit'];

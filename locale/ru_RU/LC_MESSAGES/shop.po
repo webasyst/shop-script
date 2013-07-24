@@ -5201,8 +5201,8 @@ msgid "All storefronts"
 msgstr "Все витрины"
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:161
-msgid "Selected storefront only"
-msgstr "Только выбранная витрина"
+msgid "Selected storefronts only"
+msgstr "Только выбранные витрины"
 
 #: /wa-apps/shop/js/product/product.js:915
 msgid "options"

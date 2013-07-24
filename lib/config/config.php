@@ -1,4 +1,20 @@
 <?php
+
+/**
+ * Don't change this file!
+ * If you want to change some settings you can create file wa-config/apps/shop/config.php
+ * (this file will not be restored to default after updates) and make all changes in it
+ *
+ * For example,
+ *
+ * wa-config/apps/shop/config.php
+ * <?php
+ *
+ * return array(
+ *     'products_per_page' => 100,
+ *     'can_use_smarty' => true,
+ * );
+ */
 return array(
     'products_per_page'        => 30,
     'reviews_per_page_total'   => 30,

@@ -52,7 +52,6 @@ return array(
         'sort_products' => array('varchar', 32),
         'include_sub_categories' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
         'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
-        'route' => array('varchar', 255),
         ':keys' => array(
             'PRIMARY' => 'id',
             'url' => array('parent_id', 'url', 'unique' => 1),
@@ -76,6 +75,13 @@ return array(
         'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => array('category_id', 'product_id'),
+        ),
+    ),
+    'shop_category_routes' => array(
+        'category_id' => array('int', 11, 'null' => 0),
+        'route' => array('varchar', 255, 'null' => 0),
+        ':keys' => array(
+            'PRIMARY' => array('category_id', 'route'),
         ),
     ),
     'shop_contact_category_discount' => array(
@@ -128,13 +134,14 @@ return array(
     ),
     'shop_feature' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'parent_id' => array('int', 11),
         'code' => array('varchar', 64, 'null' => 0),
         'status' => array('enum', "'public','hidden','private'", 'null' => 0, 'default' => 'public'),
         'name' => array('varchar', 255),
         'type' => array('varchar', 255),
         'selectable' => array('int', 11, 'null' => 0),
         'multiple' => array('int', 11, 'null' => 0),
-        'count' => array('int', 10, 'unsigned' => 1, 'null' => 0),
+        'count' => array('int', 10, 'unsigned' => 1, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'code' => array('code', 'unique' => 1),

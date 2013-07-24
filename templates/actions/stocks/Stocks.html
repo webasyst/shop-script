@@ -161,6 +161,7 @@
     $.product_stocks.init({
         product_stocks: {json_encode($product_stocks)},
         stocks: {json_encode($stocks)},
+        order: '{$order}',
         lazy_loading: {
             auto: true,
             count: {$count},

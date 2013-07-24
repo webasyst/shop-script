@@ -245,10 +245,11 @@ class shopFrontendCartAction extends shopFrontendAction
         }
 
 
-
-        $order = array('total' => $cart->total(false));
+        $total = $cart->total(false);
+        $order = array('total' => $total, 'items' => $items);
         $order['discount'] = $discount = shopDiscounts::calculate($order);
-        $order['total'] = $total = $cart->total();
+        $order['total'] = $total = $total - $order['discount'];
+
         $data = wa()->getStorage()->get('shop/checkout');
         $this->view->assign('cart', array(
             'items' => $items,

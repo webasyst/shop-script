@@ -82,9 +82,40 @@ class shopCategoryModel extends waNestedSetModel
      * @param array $where
      * @return array
      */
-    public function getTree($id, $depth = null, $escape = false, $where = array())
+    public function getTree($id, $depth = null, $escape = false, $route = null)
     {
-        $data = parent::getTree($id, $depth, $where);
+        $where = array();
+        if ($id) {
+            $parent = $this->getById($id);
+            $left  = (int) $parent[$this->left];
+            $right = (int) $parent[$this->right];
+        } else {
+            $left = $right = 0;
+        }
+        $sql = "SELECT c.* FROM {$this->table} c";
+        if ($id) {
+            $where[] = "c.`{$this->left}` >= i:left";
+            $where[] = "c.`{$this->right}` <= i:right";
+        }
+        if ($depth !== null) {
+            $depth = max(0, intval($depth));
+            if ($id && $parent) {
+                $depth += (int) $parent[$this->depth];
+            }
+            $where[] = "`c.{$this->depth}` <= i:depth";
+        }
+        if ($route) {
+            $sql .= " LEFT JOIN shop_category_routes cr ON c.id = cr.category_id";
+            $where[] = "c.status = 1";
+            $where[] = "cr.route IS NULL OR cr.route = '".$this->escape($route)."'";
+        }
+        if ($where) {
+            $sql .= " WHERE (".implode(') AND (', $where).')';
+        }
+        $sql .= " ORDER BY c.`{$this->left}`";
+
+        $data = $this->query($sql, array('left' => $left, 'right' => $right,'depth'=> $depth))->fetchAll($this->id);
+
         if ($escape) {
             foreach ($data as &$item) {
                 $item['name'] = htmlspecialchars($item['name']);
@@ -128,14 +159,16 @@ class shopCategoryModel extends waNestedSetModel
         if (is_numeric($category)) {
             $category = $this->getById($category);
         }
-        $sql = "SELECT * FROM `{$this->table}`
-                WHERE `{$this->left}` > i:left AND `{$this->right}` < i:right AND `{$this->depth}` = i:depth";
+        $sql = "SELECT c.* FROM `{$this->table}` c";
+        $where = "`{$this->left}` > i:left AND `{$this->right}` < i:right AND `{$this->depth}` = i:depth";
         if ($public_only) {
-            $sql .= " AND status = 1";
+            $where .= " AND status = 1";
             if (is_string($public_only)) {
-                $sql .= " AND (route IS NULL OR route = '".$this->escape($public_only)."')";
+                $sql .= " LEFT JOIN shop_category_routes cr ON c.id = cr.category_id";
+                $where .= " AND (route IS NULL OR route = '".$this->escape($public_only)."')";
             }
         }
+        $sql .= ' WHERE '.$where;
         $sql .= " ORDER BY `{$this->left}`";
 
         return $this->query($sql, array(
@@ -318,6 +351,11 @@ class shopCategoryModel extends waNestedSetModel
         $right = (int)$item[$this->right];
         $parent_id = (int)$item[$this->parent];
 
+        /**
+         * @event category_delete
+         */
+        wa()->event('category_delete', $item);
+
         // because all descendants will be thrown one level up
         // it's necessary to ensure uniqueness urls of descendants in new environment (new parent)
         foreach (
@@ -375,6 +413,8 @@ class shopCategoryModel extends waNestedSetModel
         $category_params_model->clear($id);
         $category_products_model = new shopCategoryProductsModel();
         $category_products_model->deleteByField('category_id', $id);
+        $category_routes_model = new shopCategoryRoutesModel();
+        $category_routes_model->deleteByField('category_id', $id);
 
         $product_model = new shopProductModel();
         $product_model->correctMainCategory(null, $id);

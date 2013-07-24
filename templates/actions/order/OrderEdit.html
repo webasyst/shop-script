@@ -174,8 +174,10 @@
         </td>
         <td class="valign-top align-right nowrap">
             <span style="padding-top: 2px;" class="gray">&times;</span>
-            <input type="text" name="quantity[edit][{$product.item.id}]" value="{$product.item.quantity}"
-                   data-max-value="{if $product_sku && $product_sku.count !== null}{$product_sku.count}{/if}"
+            <input type="text" 
+                   name="quantity[edit][{$product.item.id}]" 
+                   value="{$product.item.quantity}"
+                   data-max-value="{if $product_sku && $product_sku.count !== null}{max($product.item.quantity, $product_sku.count)}{/if}"
                    class="s-orders-quantity short numerical"
             >
         </td>

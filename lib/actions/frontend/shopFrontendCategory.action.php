@@ -11,7 +11,11 @@ class shopFrontendCategoryAction extends shopFrontendAction
             $category = $category_model->getByField(waRequest::param('url_type') == 1 ? 'url' : 'full_url', waRequest::param('category_url'));
         }
         $route = wa()->getRouting()->getDomain(null, true) . '/' . wa()->getRouting()->getRoute('url');
-        if (!$category || ($category['route'] && $category['route'] != $route)) {
+        if ($category) {
+            $category_routes_model = new shopCategoryRoutesModel();
+            $routes = $category_routes_model->getRoutes($category['id']);
+        }
+        if (!$category || ($routes && !in_array($route, $routes))) {
             throw new waException('Category not found', 404);
         }
 
@@ -109,7 +113,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
             } else {
                 $order = 'asc';
             }
-            $_GET['sort'] = $sort[0];
+            $_GET['sort'] = ($sort[0] == 'count' ? 'stock' : $sort[0]);
             $_GET['order'] = $order;
         } elseif (!$category['sort_products'] && !waRequest::get('sort')) {
             $this->view->assign('active_sort', '');

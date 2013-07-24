@@ -37,7 +37,7 @@
 
                 {if $s@first}
                     <div class="checkout-step-content auth" {if $checkout_current_step != $step_id}style="display:none"{/if}>
-                        {if $wa->isAuthEnabled() && !$wa->user()->isAuth()}
+                        {if !$wa->user()->isAuth()}
                             <!-- authorized / not authorized selector -->
                             <ul class="menu-v">
                                 <li><label><input name="user_type" type="radio" {if !$wa->post('wa_auth_login')}checked{/if} value="0"> [`I’m a new customer`]</label></li>
