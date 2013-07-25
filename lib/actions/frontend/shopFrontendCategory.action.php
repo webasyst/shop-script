@@ -131,7 +131,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
          * @event frontend_category
          * @return array[string]string $return[%plugin_id%] html output for category
          */
-        $this->view->assign('frontend_category', wa()->event('frontend_category'));
+        $this->view->assign('frontend_category', wa()->event('frontend_category', $category));
         $this->setThemeTemplate('category.html');
     }
 }
