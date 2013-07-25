@@ -15,8 +15,11 @@ class shopSettingsRecommendationsAction extends waViewAction
 
         $data = array();
 
+        $type_values = array();
         foreach ($types as $type_id => $type) {
+            $type_values[] = array($type_id, $type['name']);
             $data[$type_id]['price'] = array('feature' => 'price');
+            $data[$type_id]['type_id'] = array('feature' => 'type_id');
             $data[$type_id]['tag'] = array('feature' => 'tag');
         }
 
@@ -74,6 +77,13 @@ class shopSettingsRecommendationsAction extends waViewAction
             unset($fids);
         }
 
+        $features['type_id'] = array(
+            'name' => _w('Type'),
+            'type' => 'varchar',
+            'selectable' => 1,
+            'values' => $type_values
+        );
+
         $this->view->assign(array(
             'types'      => $types,
             'categories' => $categories,
@@ -107,6 +117,8 @@ class shopSettingsRecommendationsAction extends waViewAction
                     $html = _w('Price');
                 } elseif ($row['feature'] == 'tag') {
                     $html = _w('Tags');
+                } elseif ($row['feature'] == 'type_id') {
+                    $html = _w('Type');
                 } else {
                     continue;
                 }
@@ -134,22 +146,28 @@ class shopSettingsRecommendationsAction extends waViewAction
                     } elseif ($row['cond'] == 'all') {
                         $html .= _w('all of selected values (AND)');
                     } else {
-                        $html .= $row['cond'];
+                        $html .= _w($row['cond']);
                     }
                     $html .= ' ';
 
-                    $feature_values_model = shopFeatureModel::getValuesModel($features ? $features[$row['feature_id']]['type'] : $row['feature_type']);
-                    if (strpos($row['value'], ',') !== false) {
-                        $value_ids = explode(',', $row['value']);
-                        $values = $feature_values_model->getById($value_ids);
-                        foreach ($values as & $v) {
-                            $v = $v['value'];
-                        }
-                        unset($v);
-                        $html .= implode(', ', $values);
+                    if ($row['feature'] == 'type_id') {
+                        $type_model = new shopTypeModel();
+                        $type = $type_model->getById($row['value']);
+                        $html .= $type['name'];
                     } else {
-                        $v = $feature_values_model->getById($row['value']);
-                        $html .= $v['value'];
+                        $feature_values_model = shopFeatureModel::getValuesModel($features ? $features[$row['feature_id']]['type'] : $row['feature_type']);
+                        if (strpos($row['value'], ',') !== false) {
+                            $value_ids = explode(',', $row['value']);
+                            $values = $feature_values_model->getById($value_ids);
+                            foreach ($values as & $v) {
+                                $v = $v['value'];
+                            }
+                            unset($v);
+                            $html .= implode(', ', $values);
+                        } else {
+                            $v = $feature_values_model->getById($row['value']);
+                            $html .= $v['value'];
+                        }
                     }
                     break;
             }

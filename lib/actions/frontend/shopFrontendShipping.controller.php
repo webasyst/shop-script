@@ -11,7 +11,9 @@ class shopFrontendShippingController extends waJsonController
         $shipping = new shopCheckoutShipping();
         $items = $shipping->getItems();
 
+
         if (waRequest::method() == 'post') {
+            wa()->getStorage()->close();
             $shipping_id = waRequest::post('shipping_id');
             $customer = waRequest::post('customer_'.$shipping_id);
             if (isset($customer['address.shipping'])) {
@@ -27,6 +29,7 @@ class shopFrontendShippingController extends waJsonController
             }
         } elseif ($shipping_ids = waRequest::get('shipping_id', array(), waRequest::TYPE_ARRAY_INT)) {
             $address = $shipping->getAddress();
+            wa()->getStorage()->close();
             $empty = true;
             foreach ($address as $v) {
                 if ($v) {

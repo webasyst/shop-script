@@ -184,6 +184,8 @@ $.extend($.settings = $.settings || {}, {
                 return {'name': $_('Price'), 'type': 'float'};
             } else if (data.feature == 'tag') {
                 return {'name': $_('Tag'), 'type': 'varchar'};
+            } else if (data.feature == 'type_id') {
+                return this.recommendations_options.features['type_id'];
             }
         }
     },

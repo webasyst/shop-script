@@ -65,6 +65,7 @@ class shopSettingsRecommendationsSaveController extends waJsonController
             $this->response['data'] = array(
                 'price' => array('feature' => 'price'),
                 'tag' => array('feature' => 'tag'),
+                'type_id' => array('feature' => 'type_id'),
             );
             $type_features_model = new shopTypeFeaturesModel();
             $rows = $type_features_model->getByType($this->type_id);

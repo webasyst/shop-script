@@ -2124,6 +2124,8 @@
                     $product_name.removeClass('editable');
                 }
 
+                var form = this.get('form');
+
                 $product_name.inlineEditable({
                     minSize: {
                         width: 150
@@ -2145,7 +2147,9 @@
                                 name: $(input).val()
                             }
                         }, function() {
-                            document.title = $(input).val() + $.product.options.title_suffix;
+                            var input_val = $(input).val();
+                            document.title = input_val + $.product.options.title_suffix;
+                            form.find('input[name="product[name]"]').val(input_val);
                         });
                     },
                     hold: function() {

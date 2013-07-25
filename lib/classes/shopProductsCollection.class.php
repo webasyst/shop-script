@@ -467,6 +467,15 @@ class shopProductsCollection
                     );
                 }
                 continue;
+            } elseif ($row['feature'] == 'type_id') {
+                if ($row['cond'] == 'same') {
+                    $this->where[] = 'p.type_id = '.(int)$product['type_id'];
+                } elseif ($row['cond'] == 'notsame') {
+                    $this->where[] = 'p.type_id != '.(int)$product['type_id'];
+                } elseif ($row['cond'] == 'is') {
+                    $this->where[] = 'p.type_id = '.(int)$row['value'];
+                }
+                continue;
             }
             switch ($row['cond']) {
                 case 'between':
@@ -511,9 +520,10 @@ class shopProductsCollection
                         }
                     }
                     break;
+                case 'notsame':
                 case 'same':
                     if ($model->fieldExists($row['feature'])) {
-                        $this->where[] = 'p.'.$row['feature']." = '".$model->escape($product->features[$row['feature']])."'";
+                        $this->where[] = 'p.'.$row['feature']." ".($row['cond'] == 'notsame' ? '!' : '')."= '".$model->escape($product->features[$row['feature']])."'";
                     } else {
                         $product_features_model = new shopProductFeaturesModel();
                         $rows = $product_features_model->getByField(array(
@@ -529,7 +539,7 @@ class shopProductsCollection
                             $alias = $this->addJoin('shop_product_features');
                             $this->where[] = $alias.".feature_id = ".$row['feature_id'];
                             $this->where[] = $alias.".feature_value_id ".
-                                (count($values) == 1 ? "= ".$values[0] : "IN (".implode(',', $values).")");
+                                (count($values) == 1 ? ($row['cond'] == 'notsame' ? '!' : '')."= ".$values[0] : ($row['cond'] == 'notsame' ? 'NOT ' : '')."IN (".implode(',', $values).")");
                             $this->group_by = 'p.id';
                         }
                     }

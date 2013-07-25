@@ -298,7 +298,12 @@
                 {if !$reviews}
                     <p>{sprintf('[`Be the first to <a href="%s">write a review</a> of this product!`]', 'reviews/')}</p>
                 {else}
-                    {sprintf('[`Read <a href="%s">all %d reviews</a> on %s`]', 'reviews/', $reviews_total_count, $product.name|escape)}
+                    {sprintf(_w(
+                            'Read <a href="%s">all %d review</a> on %s', 
+                            'Read <a href="%s">all %d reviews</a> on %s', 
+                            $reviews_total_count, false
+                        ), 'reviews/', $reviews_total_count, $product.name|escape)
+                    };
                 {/if}
             </div>
             

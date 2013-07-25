@@ -102,7 +102,7 @@ class shopCategoryModel extends waNestedSetModel
             if ($id && $parent) {
                 $depth += (int) $parent[$this->depth];
             }
-            $where[] = "`c.{$this->depth}` <= i:depth";
+            $where[] = "c.`{$this->depth}` <= i:depth";
         }
         if ($route) {
             $sql .= " LEFT JOIN shop_category_routes cr ON c.id = cr.category_id";

@@ -3258,8 +3258,10 @@ msgid "%s reviews"
 msgstr "%s отзывы"
 
 #: /wa-apps/shop/themes/default/product.html:179
-msgid "Read <a href=\"%s\">all %d reviews</a> on %s"
-msgstr "Посмотрите <a href=\"%s\">все %d отзывов</a> о %s"
+msgid "Read <a href=\"%s\">all %d review</a> on %s"
+msgid_plural "Read <a href=\"%s\">all %d reviews</a> on %s"
+msgstr[0] "Посмотрите <a href=\"%s\">%d отзыв</a> о %s"
+msgstr[1] "Посмотрите <a href=\"%s\">все %d отзывов</a> о %s"
 
 #: /wa-apps/shop/themes/default/product.html:181
 msgid "Be the first to <a href=\"%s\">write a review</a> of this product!"

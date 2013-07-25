@@ -3537,8 +3537,10 @@ msgid "%s reviews"
 msgstr ""
 
 #: /wa-apps/shop/themes/default/product.html:179
-msgid "Read <a href=\"%s\">all %d reviews</a> on %s"
-msgstr ""
+msgid "Read <a href=\"%s\">all %d review</a> on %s"
+msgid_plural "Read <a href=\"%s\">all %d reviews</a> on %s"
+msgstr[0] ""
+msgstr[1] ""
 
 #: /wa-apps/shop/themes/default/product.html:181
 msgid "Be the first to <a href=\"%s\">write a review</a> of this product!"

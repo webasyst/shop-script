@@ -273,6 +273,9 @@ class shopFrontendProductAction extends shopFrontendAction
                         ($this->getConfig()->getGeneralSettings('ignore_stock_count') || $sku['count'] === null || $sku['count'] > 0),
                     'image_id' => (int)$sku['image_id']
                 );
+                if ($sku['compare_price']) {
+                    $sku_selectable[$sku_f]['compare_price'] = (float)shop_currency($sku['compare_price'], $product['currency'], null, false);
+                }
             }
             $this->view->assign('sku_features_selectable', $sku_selectable);
         }

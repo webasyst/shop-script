@@ -112,29 +112,37 @@ $(function () {
                 $(".add2cart input[type=submit]").attr('disabled', 'disabled');
             }
             $(".add2cart .price").data('price', sku.price);
+            update_price(sku.price, sku.compare_price);
         } else {
             $("div.stocks div").hide();
             $("#sku-no-stock").show();
             $(".add2cart input[type=submit]").attr('disabled', 'disabled');
+            $(".add2cart .compare-at-price").hide();
+            $(".add2cart .price").empty();
         }
-        update_price(sku.price);
+
     });
     $("select.sku-feature:first").change();
 
-    function update_price(price)
+    function update_price(price, compare_price)
     {
         if (price === undefined) {
             if ($("#product-skus input:radio:checked").length) {
                 var price = parseFloat($("#product-skus input:radio:checked").data('price'));
-                var compare_price = parseFloat($("#product-skus input:radio:checked").data('compare-price'));
-                if (compare_price) {
-                    $(".add2cart .compare-at-price").html(currency_format(compare_price)).show();
-                } else {
-                    $(".add2cart .compare-at-price").hide();
+                if (compare_price === undefined) {
+                    var compare_price = parseFloat($("#product-skus input:radio:checked").data('compare-price'));
                 }
             } else {
                 var price = parseFloat($(".add2cart .price").data('price'));
             }
+        }
+        if (compare_price) {
+            if (!$(".add2cart .compare-at-price").length) {
+                $(".add2cart").prepend('<span class="compare-at-price nowrap"></span>');
+            }
+            $(".add2cart .compare-at-price").html(currency_format(compare_price)).show();
+        } else {
+            $(".add2cart .compare-at-price").hide();
         }
         $(".cart .services input:checked").each(function () {
             var s = $(this).val();

@@ -109,7 +109,9 @@
                     {foreach $sets as $set}
                         {* @see js-template "template-sidebar-list-item" *}
                         <li class="dr {if $set.type == shopSetModel::TYPE_DYNAMIC}dynamic{/if}" id="set-{$set.id}" data-type="set">
-                            <span class="count">{$set.count}</span>
+                            <span class="counters">
+                                <span class="count">{$set.count}</span>
+                            </span>
                             <a href="#/products/set_id={$set.id}">{strip}
                                 <i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}funnel{else}ss set{/if}"></i>
                                 <span class="name">{$set.name|escape}</span>
@@ -190,7 +192,12 @@
 {% var dynamic = {/literal}'{shopCategoryModel::TYPE_DYNAMIC}'{literal}; %}
 <li class="drag-newposition" data-type="{%#o.type%}"><\/li>
 <li class="dr {% if (o.item.type == dynamic) { %}dynamic{% } %}" id="{%#o.type%}-{%#o.item.id%}" data-type="{%#o.type%}">
-    <span class="count">{%#''+(o.item.count || 0)%}<\/span>
+    <span class="counters">
+        <span class="count">{%#''+(o.item.count || 0)%}<\/span>
+        {% if (o.type == 'category') { %}
+            <span class="count subtree" style="display:none;">{%#'' + (o.item.total_count || 0)%}<\/span>
+        {% } %}
+    </span>
     <a href="#/products/{%#o.type%}_id={%#o.item.id%}&view={/literal}{$view}{literal}">
          <i class="icon16
             {% if (o.item.type == dynamic) { %}
