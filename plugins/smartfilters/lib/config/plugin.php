@@ -11,7 +11,5 @@ return array(
         'frontend_category' => 'frontendCategory'
     ),
     'shop_settings' => true,
-	'slug' => "shop/plugins/brands",
-	'app_slug' => 'shop'
 );
 //EOF

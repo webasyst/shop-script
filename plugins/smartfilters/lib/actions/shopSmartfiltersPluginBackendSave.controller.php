@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by Hardman.com.ua.
- * Author: Eugen Nichikov <eugen@hardman.com.ua>
- * Date: 25.07.13
- * Time: 2:32
- */
 
 class shopSmartfiltersPluginBackendSaveController extends waJsonController {
 

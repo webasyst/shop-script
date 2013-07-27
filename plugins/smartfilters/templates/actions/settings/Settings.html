@@ -9,8 +9,18 @@
     }
 </style>
 
-<div class="block double-padded gray">
-<form id="sf-settings" method="post" action="?plugin=smartfilters&action=save">
+<div class="block double-padded">
+    <h1>Smart Filters</h1>
+    <p>Для автоматического отображения фильтра во всех категориях настройте используемую тему (<a href="#" class="inline-link" onclick="if($('#tutorial').hasClass('opened')) $('#tutorial').removeClass('opened').fadeOut(); else $('#tutorial').addClass('opened').fadeIn();">инструкция</a>) и включите плагин.</p>
+    <div id="tutorial" class="block double-padded" style="border: 1px solid #ccc;display: none;margin-bottom: 20px">
+        <p>Для установки плагина оберните <code class="bold italic">{ldelim}$content{rdelim}</code> в <code class="bold italic">&lt;div <span class="red">id="smartfiltercontent"</span>&gt;...&lt;/div&gt;</code> в файле <code class="bold italic">content.html</code> используемой темы.</p>
+        <p>Пример для темы <span class="bold">CUSTOM</span>:<br><br>
+            <img src="{$wa_url}wa-apps/shop/plugins/smartfilters/img/example.png">
+        </p>
+    </div>
+    <p class="gray"><i class="icon16 exclamation"></i> Обратите внимание, данный плагин не замещает стандартные фильтры. Если Вы включили плагин вместе с фильтрами в категории, будут показаны оба блока.</p>
+    <p class="gray"><i class="icon16 exclamation"></i> Для автоматической отправки данных формы необходимо подключить библиотеку jQuery.</p>
+    <form id="sf-settings" method="post" action="?plugin=smartfilters&action=save">
     <div class="field">
         <div class="name">Включить фильтрацию</div>
         <div class="value no-shift">
