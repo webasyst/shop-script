@@ -34,11 +34,12 @@ class shopSearch
 
     public static function stem($word)
     {
-        if (preg_match('/[а-я]/ui', $word)) {
+        if (preg_match('/^[а-я]+$/ui', $word)) {
             return shopStemmerRU::stem($word);
-        } else {
+        }  elseif (preg_match('/^[a-z]+$/i', $word)) {
             return shopStemmerEN::stem($word);
+        } else {
+            return $word;
         }
-
     }
 }
