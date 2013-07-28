@@ -37,9 +37,9 @@ class shopSearch
         if (preg_match('/^[а-я]+$/ui', $word)) {
             return shopStemmerRU::stem($word);
         }  elseif (preg_match('/^[a-z]+$/i', $word)) {
-        	return shopStemmerEN::stem($word);
-	    } else {
-		    return $word;
-	    }
+            return shopStemmerEN::stem($word);
+        } else {
+            return $word;
+        }
     }
 }
