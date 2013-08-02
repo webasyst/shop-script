@@ -424,8 +424,21 @@ class shopPayment extends waAppPayment
     {
         $result = $this->workflowAction('callback', $transaction_data);
         if (empty($result['error'])) {
-            $workflow = new shopWorkflow();
-            $workflow->getActionById('process')->run($transaction_data['order_id']);
+            $order_model = new shopOrderModel();
+            $order = $order_model->getById($transaction_data['order_id']);
+            $result['result'] = true;
+            $total = $transaction_data['amount'];
+
+            if ($transaction_data['currency_id'] != $order['currency']) {
+                $total = shop_currency($total, $transaction_data['currency_id'], $order['currency'], false);
+            }
+            if (abs($order['total'] - $total) > 0.01) {
+                $result['result'] = false;
+                $result['error'] = sprintf('Invalid order amount: expect %f, but get %f', $order['total'], $total);
+            } else {
+                $workflow = new shopWorkflow();
+                $workflow->getActionById('process')->run($transaction_data['order_id']);
+            }
         }
         return $result;
     }

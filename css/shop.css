@@ -47,7 +47,7 @@
 #maincontent { padding: 0 5px; margin-top: 84px /* #mainmenu offset */; }
 .s-no-level2 #maincontent { margin-top: 39px; padding: 0; /* when there is no 2nd level menu, and #mainmenu is not fixed */ }
 
-#s-sidebar { padding-top: 42px; position: relative; }
+#s-sidebar { padding-top: 42px; position: relative; padding-bottom: 60px; }
 #s-sidebar .s-sidebar-width-control { position: fixed; bottom: 0; left: 0; opacity: 0; box-shadow: 0 -10px 15px -15px rgba(0,0,0,0.3); background: #fff; text-align: right; padding-bottom: 25px; }
 #s-sidebar .s-sidebar-width-control a { text-decoration: none; color: #888; font-size: 1.5em; margin: 0 3px; }
 #s-sidebar:hover .s-sidebar-width-control { opacity: 1; }

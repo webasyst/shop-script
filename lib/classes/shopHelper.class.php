@@ -165,7 +165,7 @@ class shopHelper
                                 );
                             }
                         }
-                    } else {
+                    } elseif (is_string($rates)) {
                         $result[$m['id']] = array(
                             'plugin'   => $m['plugin'],
                             'logo'     => $m['logo'],
