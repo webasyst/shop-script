@@ -295,7 +295,9 @@
                     if (!data.changed) {
                         return false;
                     }
-                    if ($.product_services.service_id) {
+                    if (!$.product_services.service_id) {
+                        $('#s-save-service-submit').click();
+                    } else {
                         var name = $(input).val();
                         $.products.jsonPost('?module=service&action=save&edit=name&id='+$.product_services.service_id, {
                             name: name

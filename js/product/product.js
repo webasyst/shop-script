@@ -63,6 +63,7 @@
             } else {
                 this.options = $.extend(this.options, options || {});
             }
+            this.options.sidebar_width = this.options.sidebar_width || 250;
         },
 
         get: function(type) {
@@ -268,21 +269,23 @@
             this.path.tab = null;
             this.path.tail = null;
             $('*').off('.product');
-
             $('#mainmenu .s-level2').show();
             $('#s-product-edit-menu, #s-product-edit-save-panel').hide();
             var duration = 'fast';
 
-            $('#s-sidebar, #s-toolbar').show().animate({
-                width: '200px'
+            $('#s-sidebar').show().animate({
+                width: $.product.options.sidebar_width
             }, duration).queue(function() {
                 $(this).dequeue();
+            });
+            $('#s-toolbar').show().animate({
+                width: '200px'
             });
             $('#maincontent').animate({
                 'margin-top': '84px'
             }, duration);
             $('#s-content').animate({
-                'margin-left': '200px'
+                'margin-left': $.product.options.sidebar_width
             }, duration);
         },
 
@@ -776,7 +779,11 @@
             $('#s-product-edit-menu, #s-product-edit-save-panel').hide();
             self.switchSubMenu();
 
-            $('#s-sidebar, #s-toolbar').show().animate({
+            $('#s-sidebar').show().animate({
+                width: $.product.options.sidebar_width
+            });
+
+            $('#s-toolbar').show().animate({
                 width: '200px'
             }, duration).queue(function() {
                 $(this).dequeue();
@@ -788,7 +795,7 @@
                 'margin-top': '84px'
             }, duration);
             $('#s-content').animate({
-                'margin-left': '200px'
+                'margin-left': $.product.options.sidebar_width
             }, duration);
 
             $('#shop-productprofile').
@@ -964,6 +971,18 @@
         },
 
         editInit: function() {
+    
+            // Ctrl+S hotkey handler
+            $('#s-product-edit-forms').unbind('keydown.product').
+                bind('keydown.product', function(e) {
+                    if ($(e.target).is(':input') && e.ctrlKey && e.keyCode == 83) {
+                        $('#s-product-save-button').click();
+                        return false;
+                    }
+                });
+                
+            $.shop.makeFlexibleInput('s-product-meta-title');
+            
             // check rights
             if (!this.options.edit_rights) {
                 window.location.hash = '#/product/' + this.path.id + '/';

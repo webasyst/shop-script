@@ -55,10 +55,8 @@ class shopSettingsFollowupsAction extends waViewAction
                     $f['just_created'] = $just_created;
 
                     /**
-                     * @event followup_save
-                     *
                      * Notify plugins about created or modified followup
-                     *
+                     * @event followup_save
                      * @param array[string]int $params['id'] followup_id
                      * @param array[string]bool $params['just_created']
                      * @return void

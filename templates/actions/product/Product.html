@@ -469,7 +469,7 @@
 
                                         {if empty($features)}
                                             <span class="small"><br>
-                                            [`To activate this mode, this particular product must be assigned a product type which offers at least one <strong>selectable</strong> feature (the list of available product types and features is configured at <em>Settings &rarr; Product types &amp; features</em>).`]<br>
+                                            [`To activate this mode, this particular product must be assigned a product type which offers at least one product feature with a <strong>multiple choice</strong> control, i.e. checkbox list. The list of available product types and features is configured on the <em>Settings &rarr; Product types &amp; features</em> screen.`]<br>
                                             </span>
                                         {/if}
                                         <span class="hint"><br>
@@ -672,7 +672,11 @@
                                           <a href="#/product/{$product.id}/edit/main/sku/settings/{$sku_id}/" class="inline-link nowrap inline-link js-action" title="[`Customize`]"><i class="icon16 settings"></i><b><i>[`Customize`]</i></b></a>
                                     </td>
                                     <td>
-                                          <a href="#/product/{$product.id}/edit/main/sku/delete/{$sku_id}/" class="gray inline-link js-action js-confirm"><i class="icon16 delete"></i></a>
+                                          <a href="#/product/{$product.id}/edit/main/sku/delete/{$sku_id}/" 
+                                                                       class="gray inline-link js-action js-confirm"
+                                                                       title="[`Delete this SKU?`]">
+                                              <i class="icon16 delete"></i>
+                                          </a>
                                     </td>
                                     <input type="hidden" name="product[skus][{$sku_id}][virtual]" value="{$sku.virtual}" class="s-input-virtual">
                                 </tr>
@@ -750,7 +754,11 @@
                                           <a href="#/product/{/literal}{$product.id}{literal}/edit/main/sku/settings/{%=sku_id%}/" class="inline-link nowrap js-action" title="[`Customize`]"><i class="icon16 settings"></i><b><i>[`Customize`]</i></b></a>
                                     </td>
                                     <td>
-                                          <a href="#/product/{/literal}{$product.id}{literal}/edit/main/sku/delete/{%=sku_id%}/" class="inline-link js-action js-confirm"><i class="icon16 delete"></i></a>
+                                          <a href="#/product/{/literal}{$product.id}{literal}/edit/main/sku/delete/{%=sku_id%}/" 
+                                                                       class="inline-link js-action js-confirm"
+                                                                       title="[`Delete this SKU?`]">
+                                              <i class="icon16 delete"></i>
+                                          </a>
                                     </td>
                                     <input type="hidden" name="product[skus][{%=sku_id%}][virtual]" value="{%=sku.virtual%}" class="s-input-virtual">
                                 </tr>
@@ -806,7 +814,11 @@
                 <div class="field">
                     <div class="name">[`Title`] <span class="hint">&lt;title&gt;</span></div>
                     <div class="value">
-                        <input value="{$product.meta_title|escape}" name="product[meta_title]" placeholder="{$product.name|escape}" class="long bold">
+                        <input value="{$product.meta_title|escape}" 
+                                            id="s-product-meta-title"
+                                            name="product[meta_title]" 
+                                            placeholder="{$product.name|escape}" class="long bold"
+                                      >
                     </div>
                 </div>
                 <div class="field">
@@ -931,7 +943,8 @@
     var sku_plot_data = {if empty($sku_plot_data)}[]{else}{json_encode($sku_plot_data)}{/if};
     $.product.setOptions({
         title_suffix: '{$title_suffix}',
-        edit_rights: {if $edit_rights}true{else}false{/if},
+        edit_rights:    {if $edit_rights}true{else}false{/if},
+        sidebar_width: {if $sidebar_width}{$sidebar_width}{else}0{/if},
     });
 
     {if $product.id > 0}

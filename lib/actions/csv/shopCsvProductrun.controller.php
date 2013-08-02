@@ -768,8 +768,9 @@ class shopCsvProductrunController extends waLongActionController
                 $target = 'new';
                 $name = basename($file);
                 $search = array(
-                    'product_id' => $this->data['map'][self::STAGE_PRODUCT],
-                    'ext'        => pathinfo($file, PATHINFO_EXTENSION),
+                    'product_id'        => $this->data['map'][self::STAGE_PRODUCT],
+                    'ext'               => pathinfo($file, PATHINFO_EXTENSION),
+                    'original_filename' => $name,
                 );
                 if ($_is_url) {
                     $pattern = sprintf('@/(%d)/images/(\\d+)/\\2\\.(\\d+(x\\d+)?)\\.([^\\.]+)$@', $search['product_id']);
@@ -790,52 +791,55 @@ class shopCsvProductrunController extends waLongActionController
                     }
                 } else {
                     $file = wa()->getDataPath($this->data['upload_path'].$file);
-                    $search['original_filename'] = $name;
                 }
 
-                if ($file && file_exists($file) && ($image = new waImage($file))) {
+                if ($file && file_exists($file)) {
+                    if ($image = new waImage($file)) {
 
-                    $data = array(
-                        'product_id'        => $this->data['map'][self::STAGE_PRODUCT],
-                        'upload_datetime'   => date('Y-m-d H:i:s'),
-                        'width'             => $image->width,
-                        'height'            => $image->height,
-                        'size'              => filesize($file),
-                        'original_filename' => $name,
-                        'ext'               => pathinfo($file, PATHINFO_EXTENSION),
-                    );
-                    if ($exists = $model->getByField($search)) {
-                        $data = array_merge($exists, $data);
-                        $thumb_dir = shopImage::getThumbsPath($data);
-                        $back_thumb_dir = preg_replace('@(/$|$)@', '.back$1', $thumb_dir, 1);
-                        $paths[] = $back_thumb_dir;
-                        waFiles::delete($back_thumb_dir); // old backups
-                        if (!(waFiles::move($thumb_dir, $back_thumb_dir) || waFiles::delete($back_thumb_dir)) && !waFiles::delete($thumb_dir)) {
-                            throw new waException(_w("Error while rebuild thumbnails"));
+                        $data = array(
+                            'product_id'        => $this->data['map'][self::STAGE_PRODUCT],
+                            'upload_datetime'   => date('Y-m-d H:i:s'),
+                            'width'             => $image->width,
+                            'height'            => $image->height,
+                            'size'              => filesize($file),
+                            'original_filename' => $name,
+                            'ext'               => pathinfo($file, PATHINFO_EXTENSION),
+                        );
+                        if ($exists = $model->getByField($search)) {
+                            $data = array_merge($exists, $data);
+                            $thumb_dir = shopImage::getThumbsPath($data);
+                            $back_thumb_dir = preg_replace('@(/$|$)@', '.back$1', $thumb_dir, 1);
+                            $paths[] = $back_thumb_dir;
+                            waFiles::delete($back_thumb_dir); // old backups
+                            if (!(waFiles::move($thumb_dir, $back_thumb_dir) || waFiles::delete($back_thumb_dir)) && !waFiles::delete($thumb_dir)) {
+                                throw new waException(_w("Error while rebuild thumbnails"));
+                            }
                         }
-                    }
 
-                    if (empty($data['id'])) {
-                        $image_id = $data['id'] = $model->add($data);
+                        if (empty($data['id'])) {
+                            $image_id = $data['id'] = $model->add($data);
+                        } else {
+                            $image_id = $data['id'];
+                            $target = 'update';
+                            $model->updateById($image_id, $data);
+                        }
+
+                        if (!$image_id) {
+                            throw new waException("Database error");
+                        }
+
+                        $image_path = shopImage::getPath($data);
+                        if ((file_exists($image_path) && !is_writable($image_path)) || (!file_exists($image_path) && !waFiles::create($image_path))) {
+                            $model->deleteById($image_id);
+                            throw new waException(sprintf("The insufficient file write permissions for the %s folder.", substr($image_path, strlen($this->getConfig()->getRootPath()))));
+                        }
+
+                        waFiles::copy($file, $image_path);
+
+                        $this->data['processed_count'][self::STAGE_IMAGE][$target]++;
                     } else {
-                        $image_id = $data['id'];
-                        $target = 'update';
-                        $model->updateById($image_id, $data);
+                        $this->error(sprintf('Invalid image file', $file));
                     }
-
-                    if (!$image_id) {
-                        throw new waException("Database error");
-                    }
-
-                    $image_path = shopImage::getPath($data);
-                    if ((file_exists($image_path) && !is_writable($image_path)) || (!file_exists($image_path) && !waFiles::create($image_path))) {
-                        $model->deleteById($image_id);
-                        throw new waException(sprintf("The insufficient file write permissions for the %s folder.", substr($image_path, strlen($this->getConfig()->getRootPath()))));
-                    }
-
-                    waFiles::copy($file, $image_path);
-
-                    $this->data['processed_count'][self::STAGE_IMAGE][$target]++;
                 } elseif ($file) {
                     $this->error(sprintf('File %s not found', $file));
                 } else {

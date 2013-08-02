@@ -109,6 +109,32 @@ $.extend($.settings = $.settings || {}, {
                 form.find('input.error').removeClass('error');
                 form.find('.errormsg').remove();
             };
+            
+            var showSuccessIcon = function() {
+                var icon = $('#s-settings-order-states-submit').parent().find('i.yes').show();
+                setTimeout(function() {
+                    icon.hide();
+                }, 3000);
+            };
+            var showLoadingIcon = function() {
+                var p = $('#s-settings-order-states-submit').parent();
+                p.find('i.yes').hide();
+                p.find('i.loading').show();
+            };
+            
+            // after update services hash, dispathing and load proper content
+            // 'afterOrderStatesInit' will be called. Extend this handler
+            var prevHandler = $.settings.afterOrderStatesInit;
+            $.settings.afterOrderStatesInit = function() {
+                showSuccessIcon();
+                if (typeof prevHandler == 'function') {
+                    prevHandler();
+                }
+                $.settings.afterOrderStatesInit = prevHandler;
+            };
+            
+            // send post
+            showLoadingIcon();
             $.shop.jsonPost(self.attr('action'), data,
                 function(r) {
                     clear();
@@ -136,6 +162,10 @@ $.extend($.settings = $.settings || {}, {
         });
 
         this.orderStatesSortableInit();
+
+        if (typeof $.settings.afterOrderStatesInit == "function") {
+            $.settings.afterOrderStatesInit();
+        }
     },
 
     orderStatesAction: function(path) {

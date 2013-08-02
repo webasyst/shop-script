@@ -103,7 +103,7 @@ class shopProductsCollection
                      * @param array[string]shopProductsCollection $params['collection']
                      * @param array[string]boolean $params['auto_title']
                      * @param array[string]boolean $params['add']
-                     * @return null if ignored, true when something changed in the collection
+                     * @return bool null if ignored, true when something changed in the collection
                      */
                     $processed = wa()->event('products_collection', $params);
                     if (!$processed) {
@@ -271,7 +271,7 @@ class shopProductsCollection
 
         if ($this->info['type'] == shopCategoryModel::TYPE_STATIC) {
             $alias = $this->addJoin('shop_category_products');
-            if (wa()->getEnv() == 'frontend' && $this->info['include_sub_categories']) {
+            if (/*wa()->getEnv() == 'frontend' && */$this->info['include_sub_categories']) {
                 $this->info['subcategories'] = $category_model->descendants($this->info, true)->where('type = '.shopCategoryModel::TYPE_STATIC)->fetchAll('id');
                 $descendant_ids = array_keys($this->info['subcategories']);
                 if ($descendant_ids) {
@@ -891,7 +891,7 @@ class shopProductsCollection
         }
         $count = (int) $this->getModel()->query($sql)->fetchField();
 
-        if ($this->hash[0] == 'category' && !empty($this->info['id'])) {
+        if ($this->hash[0] == 'category' && !empty($this->info['id']) && $this->info['type'] == shopCategoryModel::TYPE_DYNAMIC) {
             if ($this->info['count'] != $count && wa()->getEnv() != 'frontend') {
                 $this->getModel('category')->updateById($this->hash[1], array('count' => $count));
             }

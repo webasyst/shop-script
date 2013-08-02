@@ -248,16 +248,12 @@ class shopServiceModel extends waModel
 
         $sql = "SELECT
                     s.*,
-                    SUM(sv.price*cur.rate*oi.quantity) AS total
+                    SUM(oi.price*o.rate*oi.quantity) AS total
                 FROM shop_order AS o
                     JOIN shop_order_items AS oi
                         ON oi.order_id=o.id
                     JOIN shop_service AS s
                         ON oi.service_id=s.id
-                    JOIN shop_service_variants AS sv
-                        ON oi.service_variant_id=sv.id
-                    JOIN shop_currency AS cur
-                        ON cur.code=s.currency
                 WHERE $paid_date_sql
                     AND oi.type = 'service'
                 GROUP BY s.id

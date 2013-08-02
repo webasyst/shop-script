@@ -18,7 +18,7 @@ class shopCheckoutConfirmation extends shopCheckout
         $items = $cart->items(false);
 
         $subtotal = $cart->total(false);
-        $order = array('contact' => $this->getContact(), 'total' => $subtotal);
+        $order = array('contact' => $this->getContact(), 'total' => $subtotal, 'items' => $items);
         $order['discount'] = shopDiscounts::calculate($order);
 
         $contact = $this->getContact();

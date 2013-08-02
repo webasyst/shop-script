@@ -28,7 +28,7 @@
 
         initDragProducts: function() {
             var product_list = $('#product-list');
-            var context = product_list.find('.product');
+            var context = product_list.find('.product:not(.s-alien)');
             context.find('.drag-handle').live('selectstart', function() {
                 document.onselectstart = function() {
                     return false;
@@ -116,6 +116,9 @@
                     }
                     // activate item
                     var self = $(this);
+                    if (self.hasClass('s-alien')) {
+                        return false;
+                    }
                     if (!ui.draggable.hasClass('product')) {
                         return false;
                     }

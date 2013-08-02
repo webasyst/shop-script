@@ -4013,10 +4013,6 @@ msgstr ""
 msgid "Selectable"
 msgstr ""
 
-#: /wa-apps/shop/lib/model/shopFeature.model.php:430
-msgid "Checkboxes (multiple)"
-msgstr ""
-
 #: /wa-apps/shop/lib/model/shopFeature.model.php:450
 msgid "Divider"
 msgstr ""
@@ -6436,4 +6432,51 @@ msgstr ""
 
 #: /wa-apps/shop/lib/model/shopFeature.model.php:484
 msgid "Range"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:46
+msgid "Default product sort order"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:49
+msgid "Manual (as defined in the backend)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:66
+msgid "Customers can select preferable product sort order"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:72
+msgid ""
+"When enabled, products will be fetched from both the current category and "
+"all its sub-categories — and shown in one list"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:163
+msgid "Selected storefronts only"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:264
+msgid "This is a subcategory product"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:16
+msgid "Empty type"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:472
+msgid ""
+"To activate this mode, this particular product must be assigned a product "
+"type which offers at least one product feature with a <strong>multiple "
+"choice</strong> control, i.e. checkbox list. The list of available product "
+"types and features is configured on the <em>Settings &rarr; Product types "
+"&amp; features</em> screen."
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopFeature.model.php:571
+msgid "Checkboxes (multiple choice)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:759
+msgid "Delete this SKU?"
 msgstr ""

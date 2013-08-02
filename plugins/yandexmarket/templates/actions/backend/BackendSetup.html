@@ -64,7 +64,7 @@
                             <li>
                             <label title="{$set.id|escape}">
                                 <span class="count">{$set.count}</span>
-                                <i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}funnel{else}ss set{/if}"></i>
+                                <i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}ss set-dynamic{else}ss set{/if}"></i>
                                 <input type="radio" name="set_id" value="{$set.id}"{if $set@first} checked="checked"{/if}>
                                 {$set.name|escape}
                             </label>

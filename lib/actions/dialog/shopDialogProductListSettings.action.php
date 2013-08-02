@@ -57,7 +57,7 @@ class shopDialogProductListSettingsAction extends waViewAction
         $settings['routes'] = $category_routes_model->getRoutes($id);
 
         /**
-         * @event backend_category.dialog
+         * @event backend_category_dialog
          * @param array $category
          * @return array[string][string] $return[%plugin_id%] html output for dialog
          */
@@ -143,6 +143,13 @@ class shopDialogProductListSettingsAction extends waViewAction
     {
         $set_model = new shopSetModel();
         $settings = $set_model->getById($id);
+
+        /**
+         * @event backend_set_dialog
+         * @param array $set
+         * @return array[string][string] $return[%plugin_id%] html output for dialog
+         */
+        $this->view->assign('event_dialog', wa()->event('backend_set_dialog', $settings));
         return $settings ? $settings : array();
     }
 

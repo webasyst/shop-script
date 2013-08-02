@@ -18,6 +18,13 @@ class shopProductsAction extends shopProductListAction
         $event_params = array('type' => $this->hash[0], 'info' => $this->collection->getInfo());
         $this->view->assign('backend_products', wa()->event('backend_products', $event_params));
         
+        $include_path = 
+                $this->getConfig()->getAppPath() . 
+                '/templates/actions/products/product_list_' . $view . '.html';
+        if (!file_exists($include_path)) {
+            $view = $default_view;
+        }
+        
         $this->assign(array(
             'products' => array_values($products),
             'total_count' => $this->collection->count(),

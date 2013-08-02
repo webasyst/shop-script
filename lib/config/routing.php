@@ -156,7 +156,7 @@ return array(
         ),
         '<product_url:[^/]+>/' => 'frontend/product',
         '<category_url>/?<product_url:[^/]+>/reviews/' => 'frontend/productReviews',
-        '<category_url>/<product_url:[^/]+>/reviews/add/' => 'frontend/productReviewsAdd',
+        '<category_url>/?<product_url:[^/]+>/reviews/add/' => 'frontend/productReviewsAdd',
         '<category_url>/<product_url:[^/]+>/' => 'frontend/product',
         '<category_url>/<product_url:[^/]+>/<page_url>/' => 'frontend/productPage',
         '<category_url>/' => 'frontend/category',

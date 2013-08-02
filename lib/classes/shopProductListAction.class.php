@@ -160,6 +160,20 @@ class shopProductListAction extends waViewAction
             }
         }
         unset($p);
+        
+        $info = $this->collection->getInfo();
+        if ($info['hash'] == 'category') {
+            $product_ids = array_keys($products);
+            $category_products_model = new shopCategoryProductsModel();
+            $ids = $category_products_model->filterByEnteringInCategories(
+                    $product_ids, $info['id']
+            );
+            $ids = array_flip($ids);
+            foreach ($products as $id => &$product) {
+                $product['alien'] = $info['type'] == shopCategoryModel::TYPE_STATIC && !isset($ids[$id]);
+            }
+            unset($product);
+        }
     }
 
     protected function preAssign($data)

@@ -71,7 +71,7 @@ class shopCartItemsModel extends waModel
             $currencies = wa('shop')->getConfig()->getCurrencies(array($currency));
             $total = $total / $currencies[$currency]['rate'];
         }
-        return $total;
+        return (float)$total;
     }
 
     public function count($code, $type = null)
@@ -142,6 +142,9 @@ class shopCartItemsModel extends waModel
 
     public function getByCode($code, $full_info = false, $hierarchy = true)
     {
+        if (!$code) {
+            return array();
+        }
         $sql = "SELECT * FROM ".$this->table." WHERE code = s:0 ORDER BY parent_id";
         $items = $this->query($sql, $code)->fetchAll('id');
 

@@ -163,7 +163,12 @@
                 var current = $(".checkout-step .checkout-step-content:visible");
                 var current_step_id =  current.find(".checkout-content").data('step-id');
                 if (current_step_id != step_id) {
-                    current.animate({ height: 0}, 200, function() { $(this).hide(); } );
+                    current.animate({ height: 0}, 200, function() {
+                        $(this).hide();
+                    });
+                    $(".checkout-step.step-" + step_id + " .checkout-step-content").css({ height: 'auto'}).show(200, function () {
+                        $(document).scrollTop($(".checkout-step.step-" + step_id).offset().top);
+                    });
                     current.parent().find('a.back').hide();
                 }
                 $(".checkout-step.step-" + step_id + " .checkout-content").replaceWith(content);

@@ -272,12 +272,11 @@ class shopViewHelper extends waAppViewHelper
         $url = $this->wa->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
         $hidden = array();
         foreach ($cats as $c_id => $c) {
-            if ($c['status'] && !isset($hidden[$c['parent_id']])) {
+            if ($c['parent_id'] && !isset($cats[$c['parent_id']])) {
+                unset($cats[$c_id]);
+            } else {
                 $cats[$c_id]['url'] = str_replace('%CATEGORY_URL%', waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url'], $url);
                 $cats[$c_id]['name'] = htmlspecialchars($cats[$c_id]['name']);
-            } else {
-                $hidden[$c_id] = 1;
-                unset($cats[$c_id]);
             }
         }
         if ($params) {

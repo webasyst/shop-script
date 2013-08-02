@@ -40,6 +40,16 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
         $this->view->assign('current_auth_source', $current_auth_source);
         $this->view->assign('current_auth', $current_auth, true);
 
+        /**
+         * @event frontend_product
+         * @param shopProduct $product
+         * @return array[string][string]string $return[%plugin_id%]['menu'] html output
+         * @return array[string][string]string $return[%plugin_id%]['cart'] html output
+         * @return array[string][string]string $return[%plugin_id%]['block_aux'] html output
+         * @return array[string][string]string $return[%plugin_id%]['block'] html output
+         */
+        $this->view->assign('frontend_product', wa()->event('frontend_product', $product));
+
         $this->setThemeTemplate('reviews.html');
     }
 

@@ -166,9 +166,6 @@
                 var step_id = content.data('step-id');
                 var current = $(".checkout-step .checkout-step-content:visible");
                 var current_step_id =  current.find(".checkout-content").data('step-id');
-                $(".checkout-step.step-" + step_id + " .checkout-content").replaceWith(content);
-                $(".checkout-step.step-" + step_id + " a.back").show();
-                $(".checkout-step.step-" + step_id + " input[type=submit]:last").show();
                 if (current_step_id != step_id) {
                     current.animate({ height: 0}, 200, function() {
                         $(this).hide();
@@ -177,6 +174,12 @@
                         $(document).scrollTop($(".checkout-step.step-" + step_id).offset().top);
                     });
                     current.parent().find('a.back').hide();
+                }
+                $(".checkout-step.step-" + step_id + " .checkout-content").replaceWith(content);
+                $(".checkout-step.step-" + step_id + " a.back").show();
+                $(".checkout-step.step-" + step_id + " input[type=submit]:last").show();
+                if (current_step_id != step_id) {
+                    $(".checkout-step.step-" + step_id + " .checkout-step-content").show(0).css({ height: 'auto'});
                 }
                 $(".checkout-step.step-" + step_id + ' h2').removeClass('upcoming')
                 $(".checkout-step.step-" + step_id).next('.checkout-step').each(function () {

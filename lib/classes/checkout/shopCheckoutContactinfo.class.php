@@ -260,6 +260,17 @@ class shopCheckoutContactinfo extends shopCheckout
         }
         if (!empty($opts['_disabled'])) {
             if (!empty($opts['_default_value_enabled']) && isset($opts['_default_value']) && strlen($opts['_default_value'])) {
+
+                // A hack for region field: when user specifies region name, replace it with region code.
+                // In case there's a region with code equal to another region's name, prefer the former.
+                if ($field instanceof waContactRegionField) {
+                    $rm = new waRegionModel();
+                    $regions = $rm->select('code, code AS a')->where('code = s:0 OR name = s:0', $opts['_default_value'])->query()->fetchAll('code', true);
+                    if ($regions && empty($regions[$opts['_default_value']])) {
+                        $opts['_default_value'] = reset($regions);
+                    }
+                }
+
                 return array(
                     array(
                         'hidden' => true,

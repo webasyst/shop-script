@@ -19,20 +19,8 @@ class shopProductModel extends waModel
     public function delete(array $product_ids)
     {
         $type_model = new shopTypeModel();
-        $types = $type_model->getTypes();
-        $type_ids = array_keys($types);
-        if (wa('shop')->getUser()->getRights('shop', 'type.all')) {
-            $delete_ids = $product_ids;
-        } else {
-            if (empty($product_ids) || empty($types)) {
-                return false;
-            }
-            $delete_ids = array_keys($this->query("
-                SELECT id FROM `{$this->table}`
-                WHERE id IN(" . implode(',', $product_ids) . ")
-                    AND type_id IN (" . implode(',', $type_ids) . ")"
-            )->fetchAll('id'));
-        }
+        $type_ids = array_keys($type_model->getTypes());
+        $delete_ids = $this->filterAllowedProductIds($product_ids);
 
         // remove files
         foreach ($delete_ids as $product_id) {
@@ -451,9 +439,9 @@ class shopProductModel extends waModel
 
         $sql = "SELECT
                     p.*,
-                    SUM(ps.price*pcur.rate*oi.quantity) AS sales,
-                    SUM(ps.purchase_price*pcur.rate*oi.quantity) AS purchase,
-                    SUM(ps.price*pcur.rate*oi.quantity - ps.purchase_price*pcur.rate*oi.quantity) AS profit
+                    SUM(oi.price*o.rate*oi.quantity) AS sales,
+                    SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*pcur.rate)*oi.quantity) AS purchase,
+                    SUM(oi.price*o.rate*oi.quantity - IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*pcur.rate)*oi.quantity) AS profit
                 FROM shop_order AS o
                     JOIN shop_order_items AS oi
                         ON oi.order_id=o.id
@@ -479,6 +467,34 @@ class shopProductModel extends waModel
             'bestseller' => array('name' => _w('Bestseller!'), 'code' => '<div class="badge bestseller"><span>'._w('Bestseller!').'</span></div>'),
             'lowprice'   => array('name' => _w('Low price!'), 'code' => '<div class="badge low-price"><span>'._w('Low price!').'</span></div>'),
         );
+    }
+
+    /**
+     * Get product ids and leave only allowed by rights
+     *
+     * @param array $product_ids
+     * @return array
+     */
+    public function filterAllowedProductIds(array $product_ids)
+    {
+        if (wa('shop')->getUser()->getRights('shop', 'type.all')) {
+            return $product_ids;
+        }
+
+        $type_model = new shopTypeModel();
+        $types = $type_model->getTypes();
+        $type_ids = array_keys($types);
+
+        if (empty($product_ids) || empty($types)) {
+            return array();
+        }
+        $product_ids = array_keys($this->query("
+            SELECT id FROM `{$this->table}`
+            WHERE id IN(" . implode(',', $product_ids) . ")
+                AND type_id IN (" . implode(',', $type_ids) . ")"
+        )->fetchAll('id'));
+
+        return $product_ids;
     }
 
     /**

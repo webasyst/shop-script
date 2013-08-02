@@ -638,7 +638,7 @@ class shopOrderModel extends waModel
         // Total purchases
         $sql = "SELECT
                     {$date_col} as `date`,
-                    SUM(ps.purchase_price*pcur.rate*oi.quantity) AS purchase
+                    SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*pcur.rate)*oi.quantity) AS purchase
                 FROM ".$this->table." AS o
                     JOIN shop_order_items AS oi
                         ON oi.order_id=o.id
@@ -758,7 +758,7 @@ class shopOrderModel extends waModel
                 WHERE $paid_date_sql";
         $r1 = $this->query($sql)->fetchAssoc();
 
-        $sql = "SELECT SUM(ps.purchase_price*pcur.rate*oi.quantity) AS purchase
+        $sql = "SELECT SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*pcur.rate)*oi.quantity) AS purchase
                 FROM ".$this->table." AS o
                     JOIN shop_order_items AS oi
                         ON oi.order_id=o.id

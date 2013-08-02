@@ -41,5 +41,7 @@ class shopBackendProductsAction extends waViewAction
          * @return array[string][string]string $return[%plugin_id%]['sidebar_section'] html output
          */
         $this->view->assign('backend_products', wa()->event('backend_products'));
+        
+        $this->view->assign('sidebar_width', $config->getSidebarWidth());
     }
 }

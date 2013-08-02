@@ -11,7 +11,7 @@ class shopCart
 
     public function __construct()
     {
-        $this->code = waRequest::cookie(self::COOKIE_KEY);
+        $this->code = waRequest::cookie(self::COOKIE_KEY, '');
         $this->model = new shopCartItemsModel();
     }
 
@@ -42,7 +42,8 @@ class shopCart
         if ($total === null) {
             $total = $this->model->total($this->code);
             $order = array(
-                'total' => $total
+                'total' => $total,
+                'items' => $this->items(false)
             );
             $discount = shopDiscounts::calculate($order);
             $total = $total - $discount;
@@ -55,7 +56,8 @@ class shopCart
     {
         $total = $this->model->total($this->code);
         $order = array(
-            'total' => $total
+            'total' => $total,
+            'items' => $this->items(false)
         );
         return shopDiscounts::calculate($order);
     }

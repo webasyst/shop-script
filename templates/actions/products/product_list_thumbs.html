@@ -1,0 +1,54 @@
+<ul class="thumbs li250px" id="product-list">
+    <script id="template-product-list-thumbs" type="text/html">
+    {literal}
+    {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
+    <li class="product 
+        {% if (i == n-1) { %}last{% } %} 
+        {% if (p.status == '0') { %}gray{% } %} 
+        {% if (p.alien) { %}s-alien{% } %}"
+        data-product-id="{%#p.id%}"
+        {% if (p.alien) { %}title="[`This is a subcategory product`]"{% } %}
+    >
+        <div class="s-product-image s-image">
+            <a href="#/product/{%#p.id%}/">
+                {% if (p.badge) { %}
+                    <div class="s-image-corner top right">{%#p.badge%}</div>
+                {% } %}
+                {% if (p.image) { %}
+                    <img src="{%#p.image.thumb_url%}" class="drag-handle">
+                {% } else { %}
+                    <img src="{/literal}{$wa_app_static_url}{literal}img/image-dummy.png" class="drag-handle not-found">
+                {% } %}
+            </a>
+        </div>
+        <div class="s-product-details">
+            <input type="checkbox" id="s-product-checkbox-{%#p.id%}">
+            <label for="s-product-checkbox-{%#p.id%}">
+                <strong>{%#p.name%}</strong>
+            </label>
+            <span class="small nowrap">{%#p.price_range%}</span>
+            <!-- extend info according to sorting method -->
+            {% if (o.sort == 'rating') { %}
+                <span class="rate nowrap" title="{%#'[`Average user rating: %s / 5`]'.replace('%s', p.rating)%}">
+                    {%#p.rating_str%}
+                </span>
+            {% } else if (o.sort == 'total_sales') { %}
+                <span class="hint total-sales nowrap">
+                    [`Total sales`]: <strong>{%#p.total_sales_str%}</strong>
+                </span>
+            {% } else if (o.sort == 'count') { %}
+                <span class="small stock nowrap">
+                    {%#p.icon%} {%#((p.count === null)?'<span class="gray">∞</span>':''+p.count)%}
+                </span>
+            {% } else if (o.sort == 'create_datetime') { %}
+                <br>
+                <span class="hint stock nowrap">
+                    {%#'[`Added %s`]'.replace('%s', p.create_datetime_str)%}
+                </span>
+            {% } %}
+        </div>
+    </li>
+    {% } %}
+    {/literal}
+    </script>
+</ul>

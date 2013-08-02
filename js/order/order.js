@@ -105,17 +105,19 @@ $.order = {
             (function() {
                 var win       = $(window);
                 var container = $('#s-order').find('.s-order');
-                var top       = container.offset().top;
-                var height    = win.height() - top;   // height of view-port
-                if (height > container.height()) {
-                    container.height(height);
-                }
-                win.bind('resize.order', function() {
-                    var height    = $(this).height() - top;   // height of view-port
+                if (container.length) {
+                    var top       = container.offset().top;
+                    var height    = win.height() - top;   // height of view-port
                     if (height > container.height()) {
                         container.height(height);
                     }
-                });
+                    win.bind('resize.order', function() {
+                        var height    = $(this).height() - top;   // height of view-port
+                        if (height > container.height()) {
+                            container.height(height);
+                        }
+                    });
+                }
             })();
         }
     },

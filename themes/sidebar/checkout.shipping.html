@@ -80,6 +80,8 @@
                 function responseCallback(shipping_id, data) {
                     var name = 'rate_id[' + shipping_id + ']';
                     if (typeof(data) == 'string') {
+                        $(".shipping-" + shipping_id + ' input[name="' + name + '"]').remove();
+                        $(".shipping-" + shipping_id + ' select[name="' + name + '"]').remove();
                         var el = $(".shipping-" + shipping_id).find('.rate');
                         if (el.hasClass('error')) {
                             el.find('em').html(data);
@@ -193,5 +195,5 @@
                     }, "json");
                 });
             });
-
 </script>
+</div>

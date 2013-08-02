@@ -29,13 +29,6 @@
 .promo a .info p { color: #555; font-size: 1.3em; text-shadow: 0 0 3px #fff; }
 .promo .purchase { padding: 10px; }
 
-.promo .bx-wrapper { margin: 0 auto; }
-.promo .bx-wrapper .bx-viewport { border: none; box-shadow: none; left: 0; }
-.promo .bx-wrapper .bx-pager,
-.promo .bx-wrapper .bx-controls-auto { bottom: 20px; }
-.promo .bx-wrapper .bx-prev { left: 0; }
-.promo .bx-wrapper .bx-next { right: 0; }
-
 /* Category */
 
 .sub-categories { margin-bottom: 20px; }

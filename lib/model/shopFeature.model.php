@@ -568,7 +568,7 @@ SQL;
             );
              */
             $types[] = array(
-                'name'       => _w('Checkboxes (multiple)'),
+                'name'       => _w('Checkboxes (multiple choice)'),
                 'group'      => _w('Selectable'),
                 'type'       => '*',
                 'multiple'   => true,

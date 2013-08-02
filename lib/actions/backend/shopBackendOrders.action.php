@@ -30,6 +30,7 @@ class shopBackendOrdersAction extends waViewAction
          * @return array[string][string]string $return[%plugin_id%]['sidebar_section'] html output
          */
         $backend_orders = wa()->event('backend_orders');
+        $this->getLayout()->assign('backend_orders', $backend_orders);
         $this->view->assign(array(
             'states'           => $this->getStates(),
             'user_id'          => $this->getUser()->getId(),

@@ -31,10 +31,10 @@ class shopFrontendMyProfileAction extends shopFrontendAction
         $contact = new waContact(wa()->getUser()->getId());
 
         // Assign address with the right extension, if no extension is set
-        if (!$contact->get('address.shipping') && $addresses = $contact->get('address')) {
+        if ($form->fields('address.shipping') && !$contact->get('address.shipping') && $addresses = $contact->get('address')) {
             $contact->set('address.shipping', $addresses[0]);
         }
-        if (!$contact->get('address.billing') && $addresses = $contact->get('address.shipping')) {
+        if ($form->fields('address.billing') && !$contact->get('address.billing') && $addresses = $contact->get('address.shipping')) {
             $contact->set('address.billing', $addresses[0]);
         }
 

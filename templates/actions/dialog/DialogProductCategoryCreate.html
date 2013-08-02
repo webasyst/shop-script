@@ -39,7 +39,7 @@
     <div class="field">
         <div class="name">[`Title`]</div>
         <div class="value">
-            <input value="" name="meta_title" class="long bold" placeholder="">
+            <input value="" name="meta_title" class="long bold" placeholder="" id="s-c-meta-title">
         </div>
     </div>
     <div class="field">
@@ -159,7 +159,7 @@
         
         var d = $('#s-product-list-create-dialog');
 
-        var product_list_name = $("#s-product-list-name");
+        var product_list_name = $("#s-c-product-list-name");
         var product_list_url  = $("#s-product-list-url");
 
         var state = { name: '', url: '', timer_id: null };
@@ -232,6 +232,9 @@
                 }, timeout);
             });
         })();
+        
+        $.shop.makeFlexibleInput('s-c-meta-title');
+        
     });
 </script>
 {/capture}

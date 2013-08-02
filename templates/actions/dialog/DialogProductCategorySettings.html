@@ -1,5 +1,7 @@
 {capture assign="title_text"}
-    [`Settings`] <span class="hint float-right">id: {$settings.id}</span>
+    {$settings.name|escape}
+    <i class="icon16 {if $settings.type == shopCategoryModel::TYPE_STATIC}folder{else}folder-dynamic{/if}"></i>
+    <span class="hint float-right">id: {$settings.id}</span>
 {/capture}
 {$name_text =  "[`Name`]"}
 
@@ -7,7 +9,7 @@
 <div class="field-group">
     <div class="field">
         <div class="name">
-            [`Frontend URL`]
+            [`Storefront link`]
         </div>
         <div class="value no-shift">
         {strip}
@@ -43,10 +45,10 @@
         </label>
     </div>
     <div class="value no-shift">
-        [`Product sort order`]:
+        [`Default product sort order`]:
         <select name="sort_products">
             {if $settings.type == shopCategoryModel::TYPE_STATIC}
-                <option value="" {if empty($settings.sort_products)}selected="selected"{/if}>[`Manual`]</option>
+                <option value="" {if empty($settings.sort_products)}selected="selected"{/if}>[`Manual (as defined in the backend)`]</option>
             {/if}
             <option value="name ASC" {if $settings.sort_products == 'name ASC'}selected="selected"{/if}>[`By name`]</option>
             <option value="price DESC"  {if $settings.sort_products == 'price DESC'}selected="selected"{/if}>[`Most expensive`]</option>
@@ -62,16 +64,14 @@
                 <option value="create_datetime DESC" {if $settings.sort_products == 'id DESC'}selected="selected"{/if}>[`Date added`]</option>
             {/if}
         </select>
-    </div>
-    <div class="value no-shift">
-        <label>
-            <input type="checkbox" name="enable_sorting" {if $settings.enable_sorting}checked="checked"{/if} value="1"> [`Customer can select product sort order`]
+        <label class="small">
+            <input type="checkbox" name="enable_sorting" {if $settings.enable_sorting}checked="checked"{/if} value="1"> [`Customers can select preferable product sort order`]
         </label>
     </div>
     <div class="value no-shift"{if $settings.type == shopCategoryModel::TYPE_DYNAMIC} style="display: none;"{/if}>
         <label>
             <input type="checkbox" name="include_sub_categories" {if $settings.include_sub_categories}checked="checked"{/if} value="1"> [`Include products from sub-categories`]
-            <span class="hint">[`When enabled, products will be fetched from both the current category and all its sub-categories (applicable to frontend only)`]</span>
+            <span class="hint">[`When enabled, products will be fetched from both the current category and all its sub-categories — and shown in one list`]</span>
         </label>
     </div>
     <div class="value no-shift">
@@ -106,7 +106,10 @@
     <div class="field">
         <div class="name">[`Title`]</div>
         <div class="value">
-            <input value="{$settings.meta_title|escape}" name="meta_title" placeholder="{$settings.name|escape}" class="long bold">
+            <input value="{$settings.meta_title|escape}" 
+                        id="s-meta-title"
+                        name="meta_title" 
+                        placeholder="{$settings.name|escape}" class="long bold">
         </div>
     </div>
     <div class="field">
@@ -362,6 +365,8 @@
             }, timeout);
         });
     })();
+
+    $.shop.makeFlexibleInput('s-meta-title');
 
 </script>
 {/capture}

@@ -14,6 +14,10 @@
     {foreach $product.pages as $page}
     <li><a href="{$wa->shop->productUrl($product, 'page', ['page_url' => $page.url])}">{$page.name|escape}</a></li>
     {/foreach}
+
+    <!-- plugin hook: 'frontend_product.menu' -->
+    {* @event frontend_product.%plugin_id%.menu *}
+    {foreach $frontend_product as $_}{$_.menu}{/foreach}
 </ul>
 
 <br clear="left">

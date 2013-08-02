@@ -42,12 +42,12 @@ class shopCsvReader implements SeekableIterator, Serializable
     {
         if ($this->file && file_exists($this->file)) {
             $extension = pathinfo($this->file, PATHINFO_EXTENSION);
-            $file = basename($this->file, '.' . $extension);
+            $file = basename($this->file, '.'.$extension);
             if (pathinfo($file, PATHINFO_EXTENSION) != 'csv') {
                 $file .= '.csv';
             }
-            $path = pathinfo($this->file, PATHINFO_DIRNAME) . '/';
-            $file = $path . $file;
+            $path = pathinfo($this->file, PATHINFO_DIRNAME).'/';
+            $file = $path.$file;
             switch ($extension) {
                 case 'gz':
                     if (extension_loaded('zlib')) {
@@ -63,7 +63,7 @@ class shopCsvReader implements SeekableIterator, Serializable
                             $this->open();
                             break;
                         } elseif (in_array('compress.zlib', stream_get_wrappers())) {
-                            $this->fp = fopen('compress.zlib://' . $this->file, 'rb');
+                            $this->fp = fopen('compress.zlib://'.$this->file, 'rb');
                         } else {
                             throw new waException("Unsupported file extension");
                         }
@@ -75,7 +75,7 @@ class shopCsvReader implements SeekableIterator, Serializable
                 case 'zip':
                     if (function_exists('zip_open') && ($zip = zip_open($this->file)) && is_resource($zip) && ($zip_entry = zip_read($zip))) {
                         //dummy read first file;
-                        $file = $path . waLocale::transliterate(basename(zip_entry_name($zip_entry)));
+                        $file = $path.waLocale::transliterate(basename(zip_entry_name($zip_entry)));
                         $zip_fs = zip_entry_filesize($zip_entry);
 
                         if ($z = fopen($file, "w")) {
@@ -105,7 +105,7 @@ class shopCsvReader implements SeekableIterator, Serializable
                     $this->fsize = filesize($this->file);
 
                     if (strtolower($this->encoding) != 'utf-8') {
-                        if (!@stream_filter_prepend($this->fp, 'convert.iconv.' . $this->encoding . '/UTF-8//IGNORE')) {
+                        if (!@stream_filter_prepend($this->fp, 'convert.iconv.'.$this->encoding.'/UTF-8//IGNORE')) {
                             throw new waException("error while register file filter");
                         }
                         $file = preg_replace('/\.csv$/', '.utf-8.csv', $file);
@@ -151,12 +151,12 @@ class shopCsvReader implements SeekableIterator, Serializable
     public function serialize()
     {
         return serialize(array(
-            'file' => $this->file,
-            'delimiter' => $this->delimiter,
-            'encoding' => $this->encoding,
+            'file'         => $this->file,
+            'delimiter'    => $this->delimiter,
+            'encoding'     => $this->encoding,
             'data_mapping' => $this->data_mapping,
-            'key' => $this->key,
-            'offset_map' => $this->offset_map,
+            'key'          => $this->key,
+            'offset_map'   => $this->offset_map,
         ));
     }
 
@@ -251,7 +251,7 @@ class shopCsvReader implements SeekableIterator, Serializable
                     $this->current = str_getcsv($line, $this->delimiter);
                 }
             } else {
-                $this->current = fgetcsv($this->fp, 0, $this->delimiter);
+                $this->current = array_map('trim', fgetcsv($this->fp, 0, $this->delimiter));
             }
             if (is_array($this->current) && (count($this->current) > 1)) {
                 ++$this->key;
@@ -300,14 +300,15 @@ class shopCsvReader implements SeekableIterator, Serializable
             $columns = $this->current;
             $names = array();
             foreach ($columns as $col => $name) {
+                $name = $this->utf8_bad_replace($name);
                 if (isset($names[$name])) {
                     unset($columns[$col]);
                     $key = array_search($name, $this->header);
                     unset($this->header[$key]);
-                    $this->header[$key . ':' . $col] = $this->utf8_bad_replace($name);
+                    $this->header[$key.':'.$col] = $name;
                 } else {
                     $names[$name] = true;
-                    $this->header[$col] = $this->utf8_bad_replace($name);
+                    $this->header[$col] = $name;
                 }
             }
         }
@@ -425,21 +426,22 @@ class shopCsvReader implements SeekableIterator, Serializable
                 $columns[] = sprintf(_w("Column %s meets %d times"), $name, $count);
             }
         }
-        return $columns ? _w('Warning') . ' ' . implode("<br>\n", $columns) : '';
+        return $columns ? _w('Warning').' '.implode("<br>\n", $columns) : '';
     }
 
     private function utf8_bad_replace($str, $replace = '?')
     {
-        $UTF8_BAD = '([\x00-\x7F]' . # ASCII (including control chars)
-            '|[\xC2-\xDF][\x80-\xBF]' . # non-overlong 2-byte
-            '|\xE0[\xA0-\xBF][\x80-\xBF]' . # excluding overlongs
-            '|[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}' . # straight 3-byte
-            '|\xED[\x80-\x9F][\x80-\xBF]' . # excluding surrogates
-            '|\xF0[\x90-\xBF][\x80-\xBF]{2}' . # planes 1-3
-            '|[\xF1-\xF3][\x80-\xBF]{3}' . # planes 4-15
-            '|\xF4[\x80-\x8F][\x80-\xBF]{2}' . # plane 16
+        $UTF8_BAD = '([\x00-\x7F]'. # ASCII (including control chars)
+            '|[\xC2-\xDF][\x80-\xBF]'. # non-overlong 2-byte
+            '|\xE0[\xA0-\xBF][\x80-\xBF]'. # excluding overlongs
+            '|[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}'. # straight 3-byte
+            '|\xED[\x80-\x9F][\x80-\xBF]'. # excluding surrogates
+            '|\xF0[\x90-\xBF][\x80-\xBF]{2}'. # planes 1-3
+            '|[\xF1-\xF3][\x80-\xBF]{3}'. # planes 4-15
+            '|\xF4[\x80-\x8F][\x80-\xBF]{2}'. # plane 16
             '|(.{1}))'; # invalid byte
-        $pattern = '/' . $UTF8_BAD . '/S';
+        $pattern = '/'.$UTF8_BAD.'/S';
+        //TODO
         ob_start();
         while (preg_match($pattern, $str, $matches)) {
             if (!isset($matches[2])) {
@@ -459,24 +461,24 @@ class shopCsvReader implements SeekableIterator, Serializable
         $targets = ifset($params['options'], array());
         ifset($params['value'], array());
         $html = '';
-        $html .= (empty($params['validate']) ? '' : $this->validateSourceFields($params['validate'])) . '<table class="zebra">';
+        $html .= (empty($params['validate']) ? '' : $this->validateSourceFields($params['validate'])).'<table class="zebra">';
 
         $html .= '<thead><tr class="white heading small">';
-        $html .= '<th>' . _w('CSV columns') . '</th>';
+        $html .= '<th>'._w('CSV columns').'</th>';
         $html .= '<th>&nbsp;</th>';
-        $html .= '<th>' . ifempty($params['description'], _w('Properties')) . '</th>';
+        $html .= '<th>'.ifempty($params['description'], _w('Properties')).'</th>';
         $html .= '</tr></thead>';
 
         waHtmlControl::addNamespace($params, $name);
         $params = array_merge($params, array(
-            'value' => -1,
-            'title' => '',
-            'description' => '',
-            'title_wrapper' => '%s',
+            'value'               => -1,
+            'title'               => '',
+            'description'         => '',
+            'title_wrapper'       => '%s',
             'description_wrapper' => '<span class="hint">(%s)</span>',
-            'control_wrapper' => '<tr><td>%2$s</td><td>→</td><td>%1$s%3$s</td></tr>',
-            'translate' => false,
-            'options' => array(
+            'control_wrapper'     => '<tr><td>%2$s</td><td>→</td><td>%1$s%3$s</td></tr>',
+            'translate'           => false,
+            'options'             => array(
                 -1 => array(
                     'value' => -1,
                     'title' => sprintf('-- %s --', _w('No associated column')),
@@ -488,8 +490,8 @@ class shopCsvReader implements SeekableIterator, Serializable
         if ($this->header) {
             foreach ($this->header as $id => $column) {
                 $params['options'][] = array(
-                    'value' => $id,
-                    'title' => $column,
+                    'value'       => $id,
+                    'title'       => $column,
                     'description' => sprintf(_w('CSV columns numbers %s'), implode(', ', explode(':', $id))),
                 );
             }
@@ -518,11 +520,11 @@ class shopCsvReader implements SeekableIterator, Serializable
                 if (!empty($target['group']['class'])) {
                     $class = sprintf(' class="%s"', htmlentities($target['group']['class'], ENT_QUOTES, waHtmlControl::$default_charset));
                 }
-                $html .= '<tbody' . $class . '><tr><th colspan="3">' . $group_name . '</th></tr>';
+                $html .= '<tbody'.$class.'><tr><th colspan="3">'.$group_name.'</th></tr>';
             }
 
             $params_target = array_merge($params, array(
-                'title' => $target['title'],
+                'title'       => $target['title'],
                 'description' => ifset($target['description']),
             ));
             self::findSimilar($params_target, null, array('similar' => false));

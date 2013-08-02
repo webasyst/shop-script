@@ -27,6 +27,9 @@ abstract class shopCheckout
         wa()->getStorage()->set('shop/checkout', $data);
     }
 
+    /**
+     * @return waContact
+     */
     protected function getContact()
     {
         if (wa()->getUser()->isAuth()) {
@@ -42,7 +45,7 @@ abstract class shopCheckout
                 $contact->set('address.billing', $addresses[0]);
             }
         }
-        return $contact;
+        return $contact ? $contact : new waContact();
     }
 
 

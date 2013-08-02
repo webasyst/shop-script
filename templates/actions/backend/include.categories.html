@@ -31,10 +31,10 @@
 
         <i class="icon16 loading" style="float:right; display:none;"></i>
         <span class="counters">
-            <span class="count" {if empty($category.expanded)}style="display:none;"{/if}>
+            <span class="count" {if empty($category.expanded) && $category.children_count > 0}style="display:none;"{/if}>
                 {$category.count}
             </span>
-            <span class="count subtree" {if !empty($category.expanded)}style="display:none;"{/if}>
+            <span class="count subtree" {if !empty($category.expanded) || $category.children_count == 0}style="display:none;"{/if}>
                 {$category.total_count}
             </span>
         </span>

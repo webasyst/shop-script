@@ -313,6 +313,7 @@
 
         initSidebar : function() {
             var sidebar = $('#s-sidebar');
+            
             $.product_dragndrop.init({
                 collections : true
             }).bind('move_list', function(options) {
@@ -464,6 +465,45 @@
                         return false;
                     }
             );
+            
+            var arrows_panel = sidebar.find('#s-category-list-widen-arrows');
+            arrows_panel.find('a.arrow').unbind('click').
+                    bind('click', function() {
+                        var max_width = 400;
+                        var min_width = 200;
+                        var cls = sidebar.attr('class');
+                        var width = 0;
+                        
+                        var m = cls.match(/left([\d]{2,3})px/);
+                        if (m && m[1] && (width = parseInt(m[1]))) {
+                            var new_width = width + ($(this).is('.right') ? 50 : -50);
+                            new_width = Math.max(Math.min(new_width, max_width), min_width);
+                            
+                            if (new_width != width) {
+                            
+                                arrows_panel.css({'width': new_width.toString() + 'px'});                            
+                                
+                                var replace = ['left' + width + 'px', 'left' + new_width + 'px'];
+                                sidebar.attr('class', cls.replace(replace[0], replace[1]));
+                                sidebar.css('width', '');
+
+                                var content = $('#s-content');
+                                cls = content.attr('class');
+                                content.attr('class', cls.replace(replace[0], replace[1]));
+                                content.css('margin-left', '');
+                                
+                                if ($.product) {
+                                    $.product.setOptions({
+                                        'sidebar_width': new_width
+                                    });
+                                }
+
+                                $.shop.jsonPost('?action=sidebarSaveWidth', { width: new_width });
+                            }
+                        }
+                        
+                        return false;
+                    });
         },
 
         jsonPost : function(url, data, success, error) {

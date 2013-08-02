@@ -19,6 +19,11 @@
          * {Number}
          */
         total_count: 0,
+        
+        /**
+         * {Number}
+         */
+        category_count: 0,
 
         /**
          * {String|null} Sorting of list (name, rate, datetime, etc.)
@@ -54,6 +59,10 @@
                 var products = this.options.products;
                 delete this.options.products;
                 this.total_count = this.options.total_count || 0;
+                this.category_count = parseInt(this.options.category_count, 10);
+                if (isNaN(this.category_count)) {
+                    this.category_count = this.total_count;
+                }
                 this.sortable = typeof options.sortable === 'undefined' ? this.sortable : options.sortable;
 
                 this.sort = options.sort || null;
@@ -64,6 +73,7 @@
                             products: products,
                             sort: this.sort
                         }, this.options.view == 'table'));
+                        this.container.trigger('append_product_list', [products]);
                     } catch (e) {
                         console.log('Error: ' + e.message);
                         return this;
@@ -130,6 +140,7 @@
                                         check_all: self.options.view == 'table' ? product_list.find('.s-select-all').attr('checked') : false,
                                         sort: $.product_list.sort
                                     }));
+                                    self.container.trigger('append_product_list', [r.data.products]);
                                 } catch (e) {
                                     console.log('Error: ' + e.message);
                                     $(window).lazyLoad('stop');
@@ -333,7 +344,7 @@
                 if (active_element.length <= 0) {
                     active_element = sidebar.find('#s-all-products');
                 }
-                active_element.addClass('selected').find('.count:first').text(this.total_count);
+                active_element.addClass('selected').find('.count:first').text(this.category_count);
 
                 sidebar.off('click', '.s-new-list').on('click', '.s-new-list', function() {
                     var self = $(this);
@@ -561,7 +572,7 @@
 
         initCategoryDescriptionWysiwyg: function(d) {
 
-            var tries = 3;
+            var tries = 10;
 
             var request = function(src) {
                 return $.ajax({
@@ -597,13 +608,19 @@
 
             if (wa_lang != 'en') {
                 var load = function() {
-                    $.when(request(wa_url + 'wa-content/js/elrte/elrte.min.js'), request(wa_url + 'wa-content/js/elrte/elrte-wa.js'),
-                    request(wa_url + 'wa-content/js/elrte/i18n/elrte.' + wa_lang + '.js')).then(done, fail);
+                    $.when(
+                        request(wa_url + 'wa-content/js/elrte/elrte.min.js'), 
+                        request(wa_url + 'wa-content/js/elrte/elrte-wa.js'),
+                        request(wa_url + 'wa-content/js/elrte/i18n/elrte.' + wa_lang + '.js')
+                    ).then(done, fail);
                 };
                 load();
             } else {
                 var load = function() {
-                    $.when(request(wa_url + 'wa-content/js/elrte/elrte.min.js'), request(wa_url + 'wa-content/js/elrte/elrte-wa.js')).then(done, fail);
+                    $.when(
+                        request(wa_url + 'wa-content/js/elrte/elrte.min.js'), 
+                        request(wa_url + 'wa-content/js/elrte/elrte-wa.js')
+                    ).then(done, fail);
                 };
                 load();
             }
@@ -999,6 +1016,7 @@
                         if ($('#s-category-description-content').length) {
                             $.product_list.initCategoryDescriptionWysiwyg($(this));
                         }
+                        $('#s-product-list-name').focus();
                     },
                     onSubmit: function(d) {
                         var form = $(this);
@@ -1071,6 +1089,7 @@
                         if ($('#s-category-description-content').length) {
                             $.product_list.initCategoryDescriptionWysiwyg($(this));
                         }
+                        $("#s-c-product-list-name").focus();
                     },
                     onSubmit: function(d) {
                         var form = $(this);

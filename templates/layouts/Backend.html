@@ -195,9 +195,9 @@
                             </li>
                             *}
 
-                            <!-- plugin hook: 'backend_menu.reports_li' -->
-                            {* @event backend_menu.%plugin_id%.reports_li *}
-                            {foreach $backend_menu as $_}{ifset($_.reports_li)}{/foreach}
+                            <!-- plugin hook: 'backend_reports.menu_li' -->
+                            {* @event backend_reports.%plugin_id%.menu_li *}
+                            {foreach $backend_reports as $_}{ifset($_.menu_li)}{/foreach}
 
                         </ul>
 
@@ -211,9 +211,9 @@
                                 <a href="#"><i class="icon16 view-table"></i></a>
                             </li>
 
-                            <!-- plugin hook: 'backend_menu.orders_viewmode_li' -->
-                            {* @event backend_menu.%plugin_id%.orders_viewmode_li *}
-                            {foreach $backend_menu as $_}{ifset($_.orders_viewmode_li)}{/foreach}
+                            <!-- plugin hook: 'backend_orders.viewmode_li' -->
+                            {* @event backend_orders.%plugin_id%.viewmode_li *}
+                            {foreach $backend_orders as $_}{ifset($_.viewmode_li)}{/foreach}
 
                         </ul>
                         <div class="s-search-form">

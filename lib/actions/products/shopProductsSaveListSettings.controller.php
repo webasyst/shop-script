@@ -163,6 +163,15 @@ class shopProductsSaveListSettingsController extends waJsonController
             $data['edit_datetime'] = date('Y-m-d H:i:s');
             $model->update($set['id'], $data);
         }
+        if ($id) {
+            $data['id'] = $data;
+            /**
+             * @event set_save
+             * @param array $set
+             * @return void
+             */
+            wa()->event('set_save', $data);
+        }
         return $id;
     }
 

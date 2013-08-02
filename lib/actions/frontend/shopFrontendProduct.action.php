@@ -81,6 +81,11 @@ class shopFrontendProductAction extends shopFrontendAction
             if (!$c) {
                 throw new waException(_w('Product not found'), 404);
             }
+
+            $category_products_model = new shopCategoryProductsModel();
+            if (!$category_products_model->getByField(array('category_id' => $c['id'], 'product_id' => $product['id']))) {
+                throw new waException(_w('Product not found'), 404);
+            }
         }
 
         if ($types = waRequest::param('type_id')) {

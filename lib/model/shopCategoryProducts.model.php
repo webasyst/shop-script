@@ -250,4 +250,22 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
 
         return $data;
     }
+    
+    /**
+     * Check for each product if is in any categories and return proper ids
+     * @param array|int $product_ids
+     * @param array|int $category_ids
+     */
+    public function filterByEnteringInCategories($product_ids, $category_ids)
+    {
+        $product_ids = (array) $product_ids;
+        $category_ids = (array) $category_ids;
+        if (empty($product_ids) || empty($category_ids)) {
+            return array();
+        }
+        $sql = "SELECT product_id FROM `{$this->table}` 
+            WHERE product_id IN(" . implode(',', $product_ids) . ") 
+                AND category_id IN(" . implode(',', $category_ids) . ")";
+        return array_keys($this->query($sql)->fetchAll('product_id'));
+    }
 }

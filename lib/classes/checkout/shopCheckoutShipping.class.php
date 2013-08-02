@@ -419,6 +419,9 @@ class shopCheckoutShipping extends shopCheckout
             $rates = waRequest::post('rate_id');
             $rate_id = isset($rates[$shipping_id]) ? $rates[$shipping_id] : null;
             $rate = $this->getRate($shipping_id, $rate_id);
+            if (is_string($rate)) {
+                $rate = false;
+            }
             $this->setSessionData('shipping', array(
                 'id' => $shipping_id,
                 'rate_id' => $rate_id,

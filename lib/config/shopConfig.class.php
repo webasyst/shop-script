@@ -81,9 +81,9 @@ class shopConfig extends waAppConfig
              * Extend routing via plugin routes
              * @event routing
              * @param array $routes
-             * @return array routes collected for every plugin
+             * @return array $routes routes collected for every plugin
              */
-            $result = wa()->event(array($this->application, 'routing'), $routes);
+            $result = wa()->event(array($this->application, 'routing'), $route);
             $all_plugins_routes = array();
             foreach ($result as $plugin_id => $routing_rules) {
                 if ($routing_rules) {
@@ -187,6 +187,32 @@ class shopConfig extends waAppConfig
         }
     }
 
+    public function getSidebarWidth()
+    {
+        $settings_model = new waContactSettingsModel();
+        $width = (int) $settings_model->getOne(
+                wa()->getUser()->getId(), 
+                'shop', 
+                'sidebar_width'
+        );
+        if (!$width) {
+            return 250;
+        }
+        return max(min($width,  400), 200);
+    }
+    
+    public function setSidebarWidth($width)
+    {
+        $width = max(min((int) $width,  400), 200);
+        $settings_model = new waContactSettingsModel();
+        $settings_model->set(
+                wa()->getUser()->getId(), 
+                'shop', 
+                'sidebar_width',
+                $width
+        );
+    }
+    
     /**
      * @param bool $all - return all available or only enabled steps
      * @return array

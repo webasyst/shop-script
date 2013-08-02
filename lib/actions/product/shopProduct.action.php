@@ -156,8 +156,6 @@ class shopProductAction extends waViewAction
         }
 
         /**
-         * !!! FIXME: update this description?.. E.g. include title_suffix. Or remove it...
-         *
          * Backend product profile page
          * UI hook allow extends product profile page
          * @event backend_product
@@ -200,6 +198,8 @@ class shopProductAction extends waViewAction
 
         #load product types
         $this->view->assign('product_types', $product_types);
+        
+        $this->view->assign('sidebar_width', $config->getSidebarWidth());
     }
 
     /**
