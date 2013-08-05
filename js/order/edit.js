@@ -405,16 +405,38 @@ $.order_edit = {
                     var el = $("#shipping_methods");
                     var el_selected = el.val();
                     el.empty();
-                    for (var ship_id in response.data.shipping_methods) {
-                        var ship =  response.data.shipping_methods[ship_id];
+                    
+                    var shipping_method_ids = response.data.shipping_method_ids;
+                    var shipping_methods = response.data.shipping_methods;
+                    
+                    // exact match
+                    var found = shipping_method_ids.indexOf(el_selected) !== -1;
+                    
+                    for (var i = 0; i < shipping_method_ids.length; i += 1) {
+                        var ship_id = shipping_method_ids[i];
+                        var ship =  shipping_methods[ship_id];
                         var o = $('<option></option>');
                         o.html(ship.name).attr('value', ship_id).data('rate', ship.rate);
                         if (ship.error) {
                             o.data('error', ship.error);
                         }
                         el.append(o);
+                        
+                        // unexact match, but close
+                        if (!found) {
+                            var ship_id_parts = ('' + ship_id).split('.');
+                            var el_selected_parts = el_selected.split('.');
+                            if (ship_id_parts[0] !== undefined && el_selected_parts[0] !== undefined && 
+                                    ship_id_parts[0] == el_selected_parts[0])
+                            {
+                                    found = true;
+                                    el_selected = ship_id;
+                            }
+                        }
                     }
-                    el.val(el_selected).change();
+                    if (found) {
+                        el.val(el_selected).change();
+                    }
                 }
             }, 'json');
         }

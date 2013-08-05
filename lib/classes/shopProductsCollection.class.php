@@ -964,6 +964,11 @@ class shopProductsCollection
             $p['base_price_selectable'] = (float) $p['base_price_selectable'];
             $p['rating'] = (float) $p['rating'];
             $p['price'] = (float) $p['price'];
+            $p['compare_price'] = (float) $p['compare_price'];
+
+            if (wa()->getEnv() == 'frontend' && $p['compare_price'] && $p['compare_price'] <= $p['price']) {
+                $p['compare_price'] = 0;
+            }
 
             // escape
             if ($escape) {

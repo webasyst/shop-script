@@ -27,7 +27,7 @@ class shopSettingsDiscountsAction extends waViewAction
          */
         $plugin_types = wa()->event('backend_settings_discounts');
 
-        $types = array();
+        $all_types = array();
         foreach($plugin_types + array('shop' => self::getCoreTypes()) as $plugin_id => $types) {
             if (isset($types['name'])) {
                 $types['id'] = $plugin_id;
@@ -43,11 +43,11 @@ class shopSettingsDiscountsAction extends waViewAction
 
                 $type['status'] = ifempty($type['status'], false);
 
-                $types[$type['id']] = $type;
+                $all_types[$type['id']] = $type;
             }
         }
 
-        $this->view->assign('types', $types);
+        $this->view->assign('types', $all_types);
         $this->view->assign('combiner', wa()->getSetting('discounts_combine', 'max'));
     }
 

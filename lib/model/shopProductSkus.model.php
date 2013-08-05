@@ -166,6 +166,9 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             $sku['purchase_price'] = (float)$sku['purchase_price'];
             $sku['compare_price'] = (float)$sku['compare_price'];
             $sku['primary_price'] = (float)$sku['primary_price'];
+            if ((wa()->getEnv() == 'frontend') && $sku['compare_price'] && ($sku['price'] >= $sku['compare_price'])) {
+                $sku['compare_price'] = 0.0;
+            }
             if ($fill_empty_sku_by_null) {
                 $sku['stock'] = array_fill_keys(array_keys($stocks), null);
             } else {

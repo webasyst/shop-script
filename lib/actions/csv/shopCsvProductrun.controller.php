@@ -890,8 +890,11 @@ class shopCsvProductrunController extends waLongActionController
 
         if ($current_data = $model->getByField($fields)) {
             $stack[] = $current_data['id'];
-            $model->updateById($current_data['id'], $data);
-            $target = 'update';
+            if ($model->update($current_data['id'], $data)) {
+                $target = 'update';
+            } else {
+                $target = 'skip';
+            }
         } else {
             $target = 'new';
             $stack[] = $model->add($data, $parent_id);

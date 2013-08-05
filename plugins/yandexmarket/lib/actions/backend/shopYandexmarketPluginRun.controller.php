@@ -9,6 +9,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
      * @var DOMDocument
      */
     private $dom;
+
     protected function preExecute()
     {
         $this->getResponse()->addHeader('Content-type', 'application/json');
@@ -18,7 +19,8 @@ class shopYandexmarketPluginRunController extends waLongActionController
     private function initRouting($save = false)
     {
         $routing = wa()->getRouting();
-        $domain_routes = $routing->getByApp('shop');
+        $app_id = $this->getAppId();
+        $domain_routes = $routing->getByApp($app_id);
         foreach ($domain_routes as $domain => $routes) {
             foreach ($routes as $route) {
                 if ($domain.'/'.$route['url'] == $this->data['domain']) {
@@ -36,6 +38,10 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 }
             }
         }
+        $app_settings_model = new waAppSettingsModel();
+        $this->data['app_settings'] = array(
+            'ignore_stock_count' => $app_settings_model->get($app_id, 'ignore_stock_count', 0)
+        );
     }
 
     protected function init()
@@ -90,9 +96,14 @@ class shopYandexmarketPluginRunController extends waLongActionController
             $this->dom->encoding = 'windows-1251';
             $this->dom->preserveWhiteSpace = false;
             $this->dom->formatOutput = true;
-            $this->dom->loadXML('<?xml version="1.0" encoding="windows-1251"?>
+            $xml = <<<XML
+<?xml version="1.0" encoding="windows-1251"?>
 <!DOCTYPE yml_catalog SYSTEM "shops.dtd">
-<yml_catalog/>');
+<yml_catalog  date="%s">
+</yml_catalog>
+XML;
+
+            $this->dom->loadXML(sprintf($xml, date("Y-m-d H:i")));
 
             $this->dom->encoding = 'windows-1251';
             $this->dom->preserveWhiteSpace = false;
@@ -103,7 +114,6 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 $company = $this->plugin()->getSettings('company');
             }
 
-            $this->dom->lastChild->setAttribute('date', date("Y-m-d H:i"));
             $this->dom->lastChild->appendChild($shop = $this->dom->createElement("shop"));
             $name = $config->getGeneralSettings('name');
             $name = str_replace('&', '&amp;', $name);
@@ -173,10 +183,11 @@ class shopYandexmarketPluginRunController extends waLongActionController
             }
         } catch (waException $ex) {
             $this->error($ex->getMessage());
-            echo json_encode(array('error' => $ex->getMessage(), ));
+            echo json_encode(array('error' => $ex->getMessage(),));
             exit;
         }
     }
+
     private function getStageName($stage)
     {
         $name = '';
@@ -493,9 +504,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
         $fields = array(
             '*',
         );
-        foreach ($this->data['map'] as $field => $info) {
-            $field = preg_replace('/\..*$/', '', $field);
-
+        foreach ($this->data['map'] as $info) {
             if (!empty($info['source']) && !ifempty($info['category'])) {
                 $value = null;
 
@@ -525,10 +534,11 @@ class shopYandexmarketPluginRunController extends waLongActionController
         $chunk = 50;
         while ((--$chunk > 0) && ($product = reset($products))) {
             $product_xml = $this->dom->createElement("offer");
-            $check_type = !$this->data['type_id'] || in_array($product['type_id'], $this->data['type_id']);
+            $check_type = empty($this->data['type_id']) || in_array($product['type_id'], $this->data['type_id']);
+            $check_stock = !empty($this->data['app_settings']['ignore_stock_count']) || ($product['count'] === null) || ($product['count'] > 0);
             $check_price = $product['price'] > 0;
             $check_category = !empty($product['category_id']);
-            if ($check_type && $check_price && $check_category) {
+            if ($check_type && $check_price && $check_category && $check_stock) {
                 foreach ($this->data['map'] as $field => $info) {
                     $field = preg_replace('/\..*$/', '', $field);
 
@@ -626,7 +636,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 $info['format'] = '%0.2f';
                 break;
             case 'available':
-                $value = ((empty($value) || ($value === 'false')) && ($value !== null)) ? 'false' : 'true';
+                $value = ((($value <= 0) || ($value === 'false')) && ($value !== null)) ? 'false' : 'true';
                 break;
             case 'store':
             case 'pickup':
@@ -665,7 +675,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
             if (strpos($value, ',') !== false) {
                 $value = str_replace(',', '.', $value);
             }
-            $value = str_replace(',', '.', sprintf($format, (double) $value));
+            $value = str_replace(',', '.', sprintf($format, (double)$value));
         } else {
             $value = sprintf($format, $value);
         }

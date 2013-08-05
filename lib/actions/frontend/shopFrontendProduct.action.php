@@ -117,6 +117,11 @@ class shopFrontendProductAction extends shopFrontendAction
             $product->description = wa()->getView()->fetch('string:'.$product->description);
         }
 
+
+        if ((float)$product->compare_price <= (float)$product->price) {
+            $product->compare_price = 0;
+        }
+
         $this->view->assign('product', $product);
 
         $this->getBreadcrumbs($product);

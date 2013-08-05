@@ -48,6 +48,8 @@ class shopOrderTotalController extends waJsonController
 
         $this->response['shipping_methods'] = shopHelper::getShippingMethods($shipping_address, $shipping_items,
             array('currency' => $currency, 'total_price' => $total));
+        // for saving order in js
+        $this->response['shipping_method_ids'] = array_keys($this->response['shipping_methods']);
     }
 
     protected function getAddress()

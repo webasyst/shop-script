@@ -1107,6 +1107,7 @@
                     $(document.body).append($(this));
                 }
             });
+
             var main_tab_content = $('#s-product-edit-forms .s-product-form.main');
             var self = this;
             var $table = main_tab_content.find('table.s-product-skus:last > tbody');
@@ -1176,6 +1177,17 @@
             });
             if (!parseInt(path.id, 10)) {
                 frontend_url.trigger('editable');
+            }
+
+            // select last static category on create new product
+            if (path.id == 'new') {
+                if ($.product_list && $.isArray($.product_list.collection_hash) && 
+                        $.product_list.collection_hash[0] == 'category') 
+                {
+                    main_tab_content.find('select.s-product-categories').val(
+                            $.product_list.collection_hash[1]
+                    );
+                }
             }
 
             main_tab_content.off('change.product', 'select.s-product-categories').on('change.product', 'select.s-product-categories', function(e) {
