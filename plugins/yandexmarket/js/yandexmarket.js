@@ -1,8 +1,8 @@
 /**
- * 
+ * {literal}
  */
 
-$(':input[name="hash"]').change(function() {
+$(':input[name="hash"]').change(function () {
     var $container = $(this).parents('div.field');
     $container.find('.js-hash-values:visible').hide();
     if ($(this).is(':checked')) {
@@ -13,23 +13,23 @@ $(':input[name="hash"]').change(function() {
 
 $(':input[name="hash"]:checked').trigger('change');
 
-$(':text[readonly="readonly"]').bind('click focus keypress focus', function() {
+$(':text[readonly="readonly"]').bind('click focus keypress focus', function () {
     var $this = $(this);
-    window.setTimeout(function() {
+    window.setTimeout(function () {
         $this.select();
     }, 100);
 });
 
 $.importexport.plugins.yandexmarket = {
-    form : null,
-    ajax_pull : {},
-    progress : false,
-    id : null,
-    debug : {
-        'memory' : 0.0,
-        'memory_avg' : 0.0
+    form: null,
+    ajax_pull: {},
+    progress: false,
+    id: null,
+    debug: {
+        'memory': 0.0,
+        'memory_avg': 0.0
     },
-    yandexmarketHandler : function(element) {
+    yandexmarketHandler: function (element) {
         var self = this;
         self.progress = true;
         self.form = $(element);
@@ -42,11 +42,11 @@ $.importexport.plugins.yandexmarket = {
         self.form.find('.progressbar').show();
         var url = $(element).attr('action');
         $.ajax({
-            url : url,
-            data : data,
-            dataType : 'json',
-            type : 'post',
-            success : function(response) {
+            url: url,
+            data: data,
+            dataType: 'json',
+            type: 'post',
+            success: function (response) {
                 if (response.error) {
                     self.form.find(':input').attr('disabled', false);
                     self.form.find(':submit').show();
@@ -60,18 +60,18 @@ $.importexport.plugins.yandexmarket = {
                     self.form.find('.js-progressbar-container').show();
 
                     self.ajax_pull[response.processId] = [];
-                    self.ajax_pull[response.processId].push(setTimeout(function() {
-                        $.wa.errorHandler = function(xhr) {
+                    self.ajax_pull[response.processId].push(setTimeout(function () {
+                        $.wa.errorHandler = function (xhr) {
                             return !((xhr.status >= 500) || (xhr.status == 0));
                         };
                         self.progressHandler(url, response.processId, response);
                     }, 100));
-                    self.ajax_pull[response.processId].push(setTimeout(function() {
-                        self.progressHandler(url, response.processId);
+                    self.ajax_pull[response.processId].push(setTimeout(function () {
+                        self.progressHandler(url, response.processId, null);
                     }, 2000));
                 }
             },
-            error : function() {
+            error: function () {
                 self.form.find(':input').attr('disabled', false);
                 self.form.find(':submit').show();
                 self.form.find('.js-progressbar-container').hide();
@@ -81,11 +81,29 @@ $.importexport.plugins.yandexmarket = {
         });
         return false;
     },
-    progressHandler : function(url, processId, response) {
+    /**
+     *
+     * @param url
+     * @param processId
+     * @param {{
+     * ready:boolean,
+     * error:String=,
+     * warning:String=,
+     * progress:Number,
+     * processId:String,
+     * report:String,
+     * stage_num:Number,
+     * stage_count:Number,
+     * stage_name:String,
+     * memory:String,
+     * memory_avg:String
+     * }} response
+     */
+    progressHandler: function (url, processId, response) {
         // display progress
         // if not completed do next iteration
         var self = $.importexport.plugins.yandexmarket;
-
+        var $bar;
         if (response && response.ready) {
             $.wa.errorHandler = null;
             var timer;
@@ -96,23 +114,23 @@ $.importexport.plugins.yandexmarket = {
             }
             // self.form.find(':input').attr('disabled', false);
             // self.form.find(':submit').show();
-            var $bar = self.form.find('.progressbar .progressbar-inner');
+            $bar = self.form.find('.progressbar .progressbar-inner');
             $bar.css({
-                'width' : '100%'
+                'width': '100%'
             });
             // self.form.find('.progressbar').hide();
             // self.form.find('.progressbar-description').hide();
             $.shop.trace('cleanup', response.processId);
 
             $.ajax({
-                url : url,
-                data : {
-                    'processId' : response.processId,
-                    'cleanup' : 1
+                url: url,
+                data: {
+                    'processId': response.processId,
+                    'cleanup': 1
                 },
-                dataType : 'json',
-                type : 'post',
-                success : function(response) {
+                dataType: 'json',
+                type: 'post',
+                success: function (response) {
                     // show statistic
                     $.shop.trace('report', response);
                     $("#plugin-yandexmarket-submit").hide();
@@ -138,10 +156,10 @@ $.importexport.plugins.yandexmarket = {
         } else {
             var $description;
             if (response && (typeof(response.progress) != 'undefined')) {
-                var $bar = self.form.find('.progressbar .progressbar-inner');
+                $bar = self.form.find('.progressbar .progressbar-inner');
                 var progress = parseFloat(response.progress.replace(/,/, '.'));
                 $bar.animate({
-                    'width' : progress + '%'
+                    'width': progress + '%'
                 });
                 self.debug.memory = Math.max(0.0, self.debug.memory, parseFloat(response.memory) || 0);
                 self.debug.memory_avg = Math.max(0.0, self.debug.memory_avg, parseFloat(response.memory_avg) || 0);
@@ -164,18 +182,18 @@ $.importexport.plugins.yandexmarket = {
             var ajax_url = url;
             var id = processId;
 
-            self.ajax_pull[id].push(setTimeout(function() {
+            self.ajax_pull[id].push(setTimeout(function () {
                 $.ajax({
-                    url : ajax_url,
-                    data : {
-                        'processId' : id
+                    url: ajax_url,
+                    data: {
+                        'processId': id
                     },
-                    dataType : 'json',
-                    type : 'post',
-                    success : function(response) {
+                    dataType: 'json',
+                    type: 'post',
+                    success: function (response) {
                         self.progressHandler(url, response ? response.processId || id : id, response);
                     },
-                    error : function() {
+                    error: function () {
                         self.progressHandler(url, id, null);
                     }
                 });
@@ -183,14 +201,17 @@ $.importexport.plugins.yandexmarket = {
         }
     }
 };
-$("#s-plugin-yandexmarket").submit(function() {
+$("#s-plugin-yandexmarket").submit(function () {
     try {
         var $form = $(this);
         $form.find(':input, :submit').attr('disabled', false);
         $.importexport.plugins.yandexmarket.yandexmarketHandler(this);
     } catch (e) {
         $('#plugin-yandexmarket-transport-group').find(':input').attr('disabled', false);
-        $.shop.error('Exception: ', e.message, e);
+        $.shop.error('Exception: ' + e.message, e);
     }
     return false;
 });
+/**
+ * {/literal}
+ */

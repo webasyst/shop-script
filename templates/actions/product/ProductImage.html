@@ -74,7 +74,7 @@
     <div class="block s-image-original">
     [`Full size`]:  <a href="?module=product&action=ImageDownload&id={$image.id}"><strong id="photo-name-original">{$image_name}</strong></a><br>
     [`Dimensions`]: <strong>{$image.width}x{$image.height}</strong><br>
-    {if $image.size}[`Size`]: <strong>{waFiles::formatSize($image.size, '%0.2f', 'B,KB,MB,GB')}</strong><br>{/if}
+    {if $image.size}[`Size`]: <strong>{$image.size}</strong><br>{/if}
 
     {if $original_exists}
         <br>

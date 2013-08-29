@@ -122,7 +122,7 @@ XML;
             $company = str_replace("'", '&apos;', $company);
             $shop->appendChild($this->dom->createElement('name', $name));
             $shop->appendChild($this->dom->createElement('company', $company));
-            $shop->appendChild($this->dom->createElement('url', wa()->getRouteUrl('shop/frontend', array(), true)));
+            $shop->appendChild($this->dom->createElement('url', preg_replace('@^https@', 'http', wa()->getRouteUrl('shop/frontend', array(), true))));
             if ($phone = $config->getGeneralSettings('phone')) {
                 $shop->appendChild($this->dom->createElement('phone', $phone));
             }
@@ -600,6 +600,7 @@ XML;
     {
 
         static $currency_model;
+        static $size;
         switch ($field) {
             case 'sales_notes':
                 if (mb_strlen($value) > 50) {
@@ -647,8 +648,11 @@ XML;
             case 'picture':
                 $values = array();
                 $limit = 10;
-                while (is_array($value) && ($image = array_shift($value)) && !empty($image['url_thumb']) && $limit--) {
-                    $values[] = 'http://'.ifempty($this->data['base_url'], 'localhost').$image['url_thumb'];
+                while (is_array($value) && ($image = array_shift($value)) && $limit--) {
+                    if (!$size) {
+                        $size = wa('shop')->getConfig()->getImageSize('big');
+                    }
+                    $values[] = 'http://'.ifempty($this->data['base_url'], 'localhost').shopImage::getUrl($image, $size);
                 }
                 $value = $values;
                 break;

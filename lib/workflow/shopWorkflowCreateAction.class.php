@@ -182,6 +182,10 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             'action_data' => $data
         ));
 
+        /**
+         * @event order_action.create
+         */
+        wa('shop')->event('order_action.create', $data);
         return $order_id;
     }
 

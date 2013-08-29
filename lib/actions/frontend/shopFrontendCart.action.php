@@ -4,6 +4,8 @@ class shopFrontendCartAction extends shopFrontendAction
 {
     public function execute()
     {
+        $this->getResponse()->addHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+        $this->getResponse()->addHeader("Expires", date("r"));
 
         if (waRequest::method() == 'post') {
             $data = wa()->getStorage()->get('shop/checkout', array());

@@ -280,6 +280,8 @@
                         hash = hash.replace(new RegExp(text), '');
                     }
                 } else if (query) {
+                    // prevent double of 'text' param in url
+                    delete $.products.list_params.text;
                     hash = 'products/' + $.products.buildProductsUrlComponent($.products.list_params) + '&text=' + encodeURIComponent(query);
                 } else {
                     hash = 'products/' + $.products.buildProductsUrlComponent($.products.list_params);
@@ -351,20 +353,28 @@
                             type : type,
                             item : item
                         }));
-
+                        
                         var new_item = tmp.children(':not(.drag-newposition):first');
                         var id = new_item.attr('id');
                         var old_item = self.find('#' + id);
+                        var children = tmp.children();
 
                         if (old_item.length) {
                             if (replace) {
                                 old_item.replaceWith(new_item);
                             }
                         } else {
-                            self.prepend(tmp.children()).show();
+                            self.prepend(children).show();
                         }
 
-                        self.children().mouseover();
+                        children.each(function() {
+                            var item = $(this);
+                            if (item.hasClass('dr')) {
+                                item.find('a').mouseover();
+                            } else {
+                                item.mouseover();
+                            }
+                        });
                         self.find('.drag-newposition').css({
                             height: '2px'
                         }).removeClass('dragging');

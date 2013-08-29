@@ -246,14 +246,16 @@ class shopCsvReader implements SeekableIterator, Serializable
                     throw new waException("PHP 5.3 required");
                 }
 
-                if ($line = fgets($this->fp)) { //skip empty lines
+                if ($line = fgets($this->fp)) {
                     $line = iconv($this->encoding, 'UTF-8//IGNORE', $line);
                     $this->current = str_getcsv($line, $this->delimiter);
                 }
             } else {
-                $this->current = array_map('trim', fgetcsv($this->fp, 0, $this->delimiter));
+                if ($line = fgetcsv($this->fp, 0, $this->delimiter)) {
+                    $this->current = array_map('trim', $line);
+                }
             }
-            if (is_array($this->current) && (count($this->current) > 1)) {
+            if ($line && is_array($this->current) && (count($this->current) > 0)) { //skip empty lines
                 ++$this->key;
                 foreach ($this->current as $cell) {
                     if ($cell !== '') {
@@ -429,31 +431,9 @@ class shopCsvReader implements SeekableIterator, Serializable
         return $columns ? _w('Warning').' '.implode("<br>\n", $columns) : '';
     }
 
-    private function utf8_bad_replace($str, $replace = '?')
+    private function utf8_bad_replace($str)
     {
-        $UTF8_BAD = '([\x00-\x7F]'. # ASCII (including control chars)
-            '|[\xC2-\xDF][\x80-\xBF]'. # non-overlong 2-byte
-            '|\xE0[\xA0-\xBF][\x80-\xBF]'. # excluding overlongs
-            '|[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}'. # straight 3-byte
-            '|\xED[\x80-\x9F][\x80-\xBF]'. # excluding surrogates
-            '|\xF0[\x90-\xBF][\x80-\xBF]{2}'. # planes 1-3
-            '|[\xF1-\xF3][\x80-\xBF]{3}'. # planes 4-15
-            '|\xF4[\x80-\x8F][\x80-\xBF]{2}'. # plane 16
-            '|(.{1}))'; # invalid byte
-        $pattern = '/'.$UTF8_BAD.'/S';
-        //TODO
-        ob_start();
-        while (preg_match($pattern, $str, $matches)) {
-            if (!isset($matches[2])) {
-                echo $matches[0];
-            } else {
-                echo $replace;
-            }
-            $str = substr($str, strlen($matches[0]));
-        }
-        $result = ob_get_contents();
-        ob_end_clean();
-        return $result;
+        return iconv('UTF-8', 'UTF-8//IGNORE', $str);
     }
 
     public function getCsvmapControl($name, $params = array())

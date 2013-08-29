@@ -82,8 +82,11 @@ class shopFrontendCategoryAction extends shopFrontendAction
                     'name' => $row['name']
                 );
             }
-            if ($breadcrumbs && $this->layout) {
-                $this->layout->assign('breadcrumbs', $breadcrumbs);
+            if ($breadcrumbs) {
+                if ($this->layout) {
+                    $this->layout->assign('breadcrumbs', $breadcrumbs);
+                }
+                $this->view->assign('breadcrumbs', $breadcrumbs);
             }
         }
 

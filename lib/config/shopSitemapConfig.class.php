@@ -14,9 +14,13 @@ class shopSitemapConfig extends waSitemapConfig
         foreach ($routes as $route) {
             $this->routing->setRoute($route);
             // categories
-            $categories = $category_model->getByField('status', 1, true);
+            $categories = $category_model->query("SELECT id,parent_id,left_key,url,full_url FROM shop_category WHERE status = 1 ORDER BY left_key")->fetchAll('id');
             $category_url = $this->routing->getUrl($this->app_id.'/frontend/category', array('category_url' => '%CATEGORY_URL%'), true);
-            foreach ($categories as $c) {
+            foreach ($categories as $c_id => $c) {
+                if ($c['parent_id'] && !isset($categories[$c_id])) {
+                    unset($categories[$c_id]);
+                    continue;
+                }
                 if (isset($route['url_type']) && $route['url_type'] == 1) {
                     $url = $c['url'];
                 } else {

@@ -371,7 +371,7 @@ if (typeof($) != 'undefined') {
                             self.progressHandler(url, id, null);
                         }
                     });
-                }, 1000));
+                }, 2500));
             }
         }
     });

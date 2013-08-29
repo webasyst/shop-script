@@ -68,8 +68,8 @@
 
         /**
          * @param {Array} args
-         * @param {object} scope
-         * @param {String} name
+         * @param {Object} scope
+         * @param {String=} name
          * @return {'name':{String},'params':[]}
          */
         getMethod: function(args, scope, name) {

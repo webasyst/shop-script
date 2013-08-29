@@ -342,7 +342,7 @@ class shopProductReviewsModel extends waNestedSetModel
         return true;
     }
 
-    public function add($review, $parent_id = null)
+    public function add($review, $parent_id = null, $before_id = null)
     {
         if (empty($review['product_id'])) {
             return false;
@@ -382,7 +382,8 @@ class shopProductReviewsModel extends waNestedSetModel
                 $review['site'] = 'http://'.$review['site'];
             }
         }
-        $id = parent::add($review, $parent_id);
+        $before_id = null;
+        $id = parent::add($review, $parent_id, $before_id);
         if (!$id) {
             return false;
         }

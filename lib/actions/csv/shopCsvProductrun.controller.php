@@ -284,7 +284,7 @@ class shopCsvProductrunController extends waLongActionController
             $hash = null;
             if ($this->data['export_category']) {
                 $id = $this->data['map'][self::STAGE_CATEGORY];
-                $hash = 'search/category_id='.$id;
+                $hash = 'search/category_id='.($id?$id:'=null');
                 if ($this->data['hash'] != '*') {
                     $hash .= '&'.str_replace('/', '_id=', $this->data['hash']);
                 }
@@ -351,7 +351,7 @@ class shopCsvProductrunController extends waLongActionController
                     ('%d category', '%d categories'
                     ),
                     self::STAGE_PRODUCT  => array /*_w*/
-                    ('updated %d product', '%d products'
+                    ('%d product', '%d products'
                     ),
                     self::STAGE_SKU      => array /*_w*/
                     ('%d product variant', '%d product variants'

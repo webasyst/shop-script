@@ -311,10 +311,17 @@ class shopPayment extends waAppPayment
                 ifempty($transaction_data['printform'], 0);
                 $params = array(
                     'id'        => $transaction_data['order_id'],
+                    'code'      => waRequest::param('code'),
                     'form_type' => 'payment',
                     'form_id'   => ifempty($transaction_data['printform'], 'payment'),
                 );
-                $url = wa()->getRouteUrl('shop/frontend/myOrderPrintform', $params, true);
+
+                if (empty($params['code'])) {
+                    unset($params['code']);
+                }
+                    $action = 'shop/frontend/myOrderPrintform';
+
+                $url = wa()->getRouteUrl($action, $params, true);
                 break;
 
             case self::URL_SUCCESS:

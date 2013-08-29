@@ -30,8 +30,7 @@
                         <input type="hidden" name="product[features][{$code}][]" value="">
                         {foreach $feature.values as $value_id => $value}
                             <label>
-                                <input type="checkbox" name="product[features][{$code}][]"
-                                       value="{$value|escape}"{if !empty($product_features[$code]) && in_array($value, (array)$product_features[$code])} checked="checked"{/if}>
+                                <input type="checkbox" name="product[features][{$code}][]" value="{$value|escape}"{if !empty($product_features[$code][$value_id])} checked="checked"{/if}>
                                 {$value|escape}
                                 <br>
                             </label>

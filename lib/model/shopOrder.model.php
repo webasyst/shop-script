@@ -535,7 +535,7 @@ class shopOrderModel extends waModel
     public function returnProductsToStocks($order_id)
     {
         $items_model = new shopOrderItemsModel();
-        $items = $items_model->select('*')->where('type="product" AND order_id = '.(int) $order_id)->fetchAll();
+        $items = $items_model->select('*')->where("type='product' AND order_id = ".(int) $order_id)->fetchAll();
         $sku_stock = array();
         foreach ($items as $item) {
             if (!isset($sku_stock[$item['sku_id']][$item['stock_id']])) {
@@ -549,7 +549,7 @@ class shopOrderModel extends waModel
     public function reduceProductsFromStocks($order_id)
     {
         $items_model = new shopOrderItemsModel();
-        $items = $items_model->select('*')->where('type="product" AND order_id = '.(int) $order_id)->fetchAll();
+        $items = $items_model->select('*')->where("type='product' AND order_id = ".(int) $order_id)->fetchAll();
         $sku_stock = array();
         foreach ($items as $item) {
             if (!isset($sku_stock[$item['sku_id']][$item['stock_id']])) {
@@ -648,7 +648,8 @@ class shopOrderModel extends waModel
                         ON oi.sku_id=ps.id
                     JOIN shop_currency AS pcur
                         ON pcur.code=p.currency
-                WHERE $paid_date_sql
+                WHERE oi.type='product'
+                    AND $paid_date_sql
                 GROUP BY {$date_col}";
         foreach($this->query($sql) as $row) {
             $sales_by_date[$row['date']]['purchase'] = $row['purchase'];

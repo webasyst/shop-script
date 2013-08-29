@@ -33,11 +33,11 @@ class shopProductsSaveListSettingsController extends waJsonController
             */
 
             $this->response = $this->getModel($hash[0])->getById($id);
-            $this->response['name'] = htmlspecialchars($this->response['name']);
+            $this->response['name'] = htmlspecialchars($this->response['name'], ENT_NOQUOTES);
 
             // when use iframe-transport unescaped content bring errors when parseJSON
             if (!empty($this->response['description'])) {
-                $this->response['description'] = htmlspecialchars($this->response['description']);
+                $this->response['description'] = htmlspecialchars($this->response['description'], ENT_NOQUOTES);
             }
         }
     }

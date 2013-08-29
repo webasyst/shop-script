@@ -6,6 +6,7 @@ class shopWorkflowRestoreAction extends shopWorkflowAction
     {
         // Restore previous state
         $log_model = new shopOrderLogModel();
+        $params = array();
         $this->state_id = $log_model->getPreviousState($oder_id, $params);
 
         // Restore order.paid_*, customer.total_spent and customer.affiliation_bonus

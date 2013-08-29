@@ -6,6 +6,7 @@ return array(
         16 => 'img/shop16.png',
         24 => 'img/shop24.png',
         48 => 'img/shop.png',
+        96 => 'img/shop96.png',
     ),
     'rights'      => true,
     'frontend'    => true,

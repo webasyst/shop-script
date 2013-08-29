@@ -34,9 +34,12 @@ class shopConfig extends waAppConfig
         $storage = wa()->getStorage();
         $shop_last_datetime = $storage->get('shop_last_datetime');
         if (!$shop_last_datetime) {
-            $shop_last_datetime = time();
             $contact_model = new waContactSettingsModel();
-            $contact_model->set(wa()->getUser()->getId(), 'shop', 'shop_last_datetime', $shop_last_datetime);
+            $shop_last_datetime = (int)$contact_model->getOne(wa()->getUser()->getId(), 'shop', 'shop_last_datetime');
+            if (!$shop_last_datetime) {
+                $shop_last_datetime = time();
+            }
+            $contact_model->set(wa()->getUser()->getId(), 'shop', 'shop_last_datetime', time());
             $storage->set('shop_last_datetime', $shop_last_datetime);
         }
         return $shop_last_datetime;
@@ -163,16 +166,16 @@ class shopConfig extends waAppConfig
         if (!$settings) {
             $all_settings = wa()->getSetting(null, '', 'shop');
             foreach (array(
-                'name'             => wa()->accountName(),
-                'email'            => wa()->getSetting('email', '', 'webasyst'),
-                'phone'            => '+1 (212) 555-1234',
-                'country'          => '',
-                'order_format'     => $this->getOrderFormat(),
-                'use_gravatar'     => 1,
-                'gravatar_default' => 'custom',
-                'require_captcha' => 1,    // is captcha is required for add reviews
-                'require_authorization' => 0  // is authorization is required for add reviews
-            ) as $k => $value) {
+                         'name'                  => wa()->accountName(),
+                         'email'                 => wa()->getSetting('email', '', 'webasyst'),
+                         'phone'                 => '+1 (212) 555-1234',
+                         'country'               => '',
+                         'order_format'          => $this->getOrderFormat(),
+                         'use_gravatar'          => 1,
+                         'gravatar_default'      => 'custom',
+                         'require_captcha'       => 1, // is captcha is required for add reviews
+                         'require_authorization' => 0 // is authorization is required for add reviews
+                     ) as $k => $value) {
                 $settings[$k] = isset($all_settings[$k]) ? $all_settings[$k] : $value;
             }
         }
@@ -190,29 +193,29 @@ class shopConfig extends waAppConfig
     public function getSidebarWidth()
     {
         $settings_model = new waContactSettingsModel();
-        $width = (int) $settings_model->getOne(
-                wa()->getUser()->getId(), 
-                'shop', 
-                'sidebar_width'
+        $width = (int)$settings_model->getOne(
+            wa()->getUser()->getId(),
+            'shop',
+            'sidebar_width'
         );
         if (!$width) {
             return 250;
         }
-        return max(min($width,  400), 200);
+        return max(min($width, 400), 200);
     }
-    
+
     public function setSidebarWidth($width)
     {
-        $width = max(min((int) $width,  400), 200);
+        $width = max(min((int)$width, 400), 200);
         $settings_model = new waContactSettingsModel();
         $settings_model->set(
-                wa()->getUser()->getId(), 
-                'shop', 
-                'sidebar_width',
-                $width
+            wa()->getUser()->getId(),
+            'shop',
+            'sidebar_width',
+            $width
         );
     }
-    
+
     /**
      * @param bool $all - return all available or only enabled steps
      * @return array
@@ -276,7 +279,7 @@ function shop_currency($n, $in_currency = null, $out_currency = null, $format = 
             $n = $n * $currencies[$in_currency]['rate'];
         }
         if ($out_currency != $primary) {
-            $n = $n / $currencies[$out_currency]['rate'];
+            $n = $n / ifempty($currencies[$out_currency]['rate'], 1.0);
         }
     }
     if ($format) {

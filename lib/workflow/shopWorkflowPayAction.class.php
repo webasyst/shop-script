@@ -28,11 +28,16 @@ class shopWorkflowPayAction extends shopWorkflowAction
         $order = $order_model->getById($order_id);
         if (!$order['paid_year']) {
             shopAffiliate::applyBonus($order_id);
+            if (wa('shop')->getConfig()->getOption('order_paid_date') == 'create') {
+                $time = strtotime($order['create_datetime']);
+            } else {
+                $time = null;
+            }
             $result['update'] = array(
-                    'paid_year' => date('Y'),
-                    'paid_quarter' => floor((date('n') - 1) / 3) + 1,
-                    'paid_month' => date('n'),
-                    'paid_date' => date('Y-m-d'),
+                    'paid_year' => date('Y', $time),
+                    'paid_quarter' => floor((date('n', $time) - 1) / 3) + 1,
+                    'paid_month' => date('n', $time),
+                    'paid_date' => date('Y-m-d', $time),
             );
             if (!$order_model->where("contact_id = ? AND paid_date IS NOT NULL", $order['contact_id'])->limit(1)->fetch()) {
                 $result['update']['is_first'] = 1;

@@ -254,7 +254,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                         ('Exception at $.importexport.' + action + ': ' + e.message, e);
             }
             $.shop
-                    && $.shop.trace('$.settings.call complete', [action, $.shop.time.interval(start) + 'ms', args,
+                    && $.shop.trace('$.settings.call complete', [action, $.shop.time.interval(start) + 's', args,
                             result]);
         } else {
             action = name.substr(0, 1).toUpperCase() + name.substr(1);
@@ -269,7 +269,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                             + e.message, e);
                 }
                 $.shop
-                        && $.shop.trace('$.settings.call complete', [action, $.shop.time.interval(start) + 'ms', args,
+                        && $.shop.trace('$.settings.call complete', [action, $.shop.time.interval(start) + 's', args,
                                 result]);
             }
         }

@@ -67,6 +67,8 @@ class shopDialogProductListSettingsAction extends waViewAction
         if ($frontend_url) {
             $pos = strrpos($frontend_url, $settings['url']);
             $settings['frontend_base_url'] = $pos !== false ? rtrim(substr($frontend_url, 0, $pos),'/').'/' : '';
+        } else {
+            $settings['frontend_base_url'] = '';
         }
         $settings['frontend_url'] = $frontend_url;
 

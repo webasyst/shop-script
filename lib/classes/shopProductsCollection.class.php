@@ -576,8 +576,13 @@ class shopProductsCollection
             $parts = preg_split("/(\\\$=|\^=|\*=|==|!=|>=|<=|=|>|<)/uis", $part, 2, PREG_SPLIT_DELIM_CAPTURE);
             if ($parts) {
                 if ($parts[0] == 'category_id') {
-                    $this->addJoin('shop_category_products', null, ':table.category_id'.$this->getExpression($parts[1], $parts[2]));
-                    $title[] = "category_id ".$parts[1].$parts[2];
+                    if ($parts[1] == '==' && $parts[2] == 'null') {
+                        $this->where[] = 'p.category_id IS NULL';
+                        $title[] = 'without category';
+                    } else {
+                        $this->addJoin('shop_category_products', null, ':table.category_id'.$this->getExpression($parts[1], $parts[2]));
+                        $title[] = "category_id ".$parts[1].$parts[2];
+                    }
                 } elseif ($parts[0] == 'query') {
                     $word_model = new shopSearchWordModel();
                     $word_ids = $word_model->getByString($parts[2]);
@@ -703,7 +708,6 @@ class shopProductsCollection
             case "==":
             case "=";
         default:
-            return " = '".$model->escape($value)."'";
             return " = '".$model->escape($value)."'";
         }
     }
@@ -1014,14 +1018,13 @@ class shopProductsCollection
                                     $products[$product_id]['images'] = $images;
                                 }
                             } elseif ($f == 'image') {
-                                $size = wa('shop')->getConfig()->getImageSize('thumb');
+                                $thumb_size = wa('shop')->getConfig()->getImageSize('thumb');
+                                $big_size = wa('shop')->getConfig()->getImageSize('big');
                                 foreach ($products as & $p) {
                                     if ($p['image_id']) {
-                                        $p['image']['thumb_url'] = shopImage::getUrl(array(
-                                            'id'         => $p['image_id'],
-                                            'product_id' => $p['id'],
-                                            'ext'        => $p['ext'],
-                                        ), $size, isset($this->options['absolute']) ? $this->options['absolute'] : false);
+                                        $tmp = array('id' => $p['image_id'], 'product_id' => $p['id'], 'ext' => $p['ext']);
+                                        $p['image']['thumb_url'] = shopImage::getUrl($tmp, $thumb_size, isset($this->options['absolute']) ? $this->options['absolute'] : false);
+                                        $p['image']['big_url'] = shopImage::getUrl($tmp, $big_size, isset($this->options['absolute']) ? $this->options['absolute'] : false);
                                     }
                                 }
                             }

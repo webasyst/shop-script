@@ -279,6 +279,11 @@ class shopViewHelper extends waAppViewHelper
                 $cats[$c_id]['name'] = htmlspecialchars($cats[$c_id]['name']);
             }
         }
+
+        if ($id && isset($cats[$id])) {
+            unset($cats[$id]);
+        }
+
         if ($params) {
             $category_params_model = new shopCategoryParamsModel();
             $rows = $category_params_model->getByField('category_id', array_keys($cats), true);

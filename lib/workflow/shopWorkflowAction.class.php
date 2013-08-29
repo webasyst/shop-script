@@ -117,7 +117,6 @@ class shopWorkflowAction extends waWorkflowAction
         ));
 
         /**
-         * @event order_action.create
          * @event order_action.callback
          * @event order_action.pay
          * @event order_action.ship

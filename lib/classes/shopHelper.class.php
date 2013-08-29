@@ -106,6 +106,7 @@ class shopHelper
      * @param array[string]string $params['currency'] result currency code
      * @param array[string]double $params['total_price'] precalculated total package price
      * @param array[string]int $params['payment'] selected payment instance ID
+     * @return array[integer]
      */
     public static function getShippingMethods($address = null, $items = array(), $params = array())
     {
@@ -116,18 +117,38 @@ class shopHelper
         }
         $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_SHIPPING, $options);
         if ($address !== null) {
+            $config = wa('shop')->getConfig();
+            /**
+             * @var $config shopConfig
+             */
             $result = array();
-            $currency = isset($params['currency']) ? $params['currency'] : wa('shop')->getConfig()->getCurrency();
+            $currency = isset($params['currency']) ? $params['currency'] : $config->getCurrency();
             $dimensions = shopDimension::getInstance();
             foreach ($methods as $m) {
                 if ($m['available']) {
                     $plugin = shopShipping::getPlugin($m['plugin'], $m['id']);
                     $plugin_info = $plugin->info($m['plugin']);
-                    $plugin_currency = $plugin->allowedCurrency();
+                    $plugin_currency = (array)$plugin->allowedCurrency();
+
                     $total = null;
+                    if($plugin_currency != $currency){
+                        if(!$config->getCurrencies($plugin_currency)){
+                            $result[$m['id']] = array(
+                                'plugin'   => $m['plugin'],
+                                'logo'     => $m['logo'],
+                                'icon'     => $plugin_info['icon'],
+                                'img'      => $plugin_info['img'],
+                                'name'     => $m['name'],
+                                'error'    => sprintf(_w('Shipping rate was not calculated because required currency %s is not defined in your store settings.'), implode(', ',$plugin_currency)),
+                                'rate'     => '',
+                                'currency' => $currency,
+                            );
+                            continue;
+                        }
+                    }
                     if (isset($params['total_price'])) {
-                        if ($plugin_currency != $currency) {
-                            $total = shop_currency($params['total_price'], $currency, $plugin_currency, false);
+                        if (!in_array($currency,$plugin_currency)) {
+                            $total = shop_currency($params['total_price'], $currency, reset($plugin_currency), false);
                         } else {
                             $total = $params['total_price'];
                         }
@@ -136,8 +157,8 @@ class shopHelper
                             if (!empty($item['price'])) {
                                 $total += $item['price'];
                             }
-                            if ($total && ($plugin_currency != $currency)) {
-                                $total = shop_currency($total, $currency, $plugin_currency, false);
+                            if ($total && !in_array($currency,$plugin_currency)) {
+                                $total = shop_currency($total, $currency, reset($plugin_currency), false);
                             }
                         }
                     }
@@ -153,7 +174,7 @@ class shopHelper
                         foreach ($rates as $rate_id => $info) {
                             if (is_array($info)) {
                                 $rate = is_array($info['rate']) ? max($info['rate']) : $info['rate'];
-                                $rate = (float) shop_currency($rate, $plugin_currency, $currency, false);
+                                $rate = (float) shop_currency($rate, reset($plugin_currency), $currency, false);
                                 $result[$m['id'].'.'.$rate_id] = array(
                                     'plugin'   => $m['plugin'],
                                     'logo'     => $m['logo'],

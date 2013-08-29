@@ -247,6 +247,10 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
         } else {
             $product->category_id = null;
         }
+        $product_model = new shopProductModel();
+        $product_model->updateById($product->id, array(
+            'category_id' => $product->category_id
+        ));
 
         return $data;
     }
