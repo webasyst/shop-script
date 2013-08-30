@@ -12,7 +12,7 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
             if (wa('shop')->getConfig()->getOption('order_paid_date') == 'create') {
                 $time = strtotime($order['create_datetime']);
             } else {
-                $time = null;
+                $time = time();
             }
             shopAffiliate::applyBonus($order_id);
             $result = array(

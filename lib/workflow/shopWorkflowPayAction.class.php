@@ -31,7 +31,7 @@ class shopWorkflowPayAction extends shopWorkflowAction
             if (wa('shop')->getConfig()->getOption('order_paid_date') == 'create') {
                 $time = strtotime($order['create_datetime']);
             } else {
-                $time = null;
+                $time = time();
             }
             $result['update'] = array(
                     'paid_year' => date('Y', $time),
