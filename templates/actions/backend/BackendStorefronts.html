@@ -7,8 +7,12 @@
     <div class="block s-nolevel2-sidebar s-inner-sidebar s-storefronts">
 
     	<ul class="menu-v s-links with-icons">
+             {if $wa->userRights('pages')}
 	         <li id="s-link-pages" class="larger"><a href="#/pages/"><i class="icon16 notebook"></i>[`Pages`]</a></li>
+             {/if}
+             {if $wa->userRights('design')}
     	     <li id="s-link-design" class="larger"><a href="#/design/"><i class="icon16 palette"></i>[`Design`]</a></li>
+             {/if}
              {if $wa->user()->getRights('site', 'backend')}
 	         <li id="s-link-settings" class="top-padded">
 	             <a href="{$wa_backend_url}site/#/routing/">

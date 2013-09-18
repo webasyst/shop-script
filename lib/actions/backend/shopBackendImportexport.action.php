@@ -4,6 +4,11 @@ class shopBackendImportexportAction extends waViewAction
 {
     public function execute()
     {
+
+        if (!$this->getUser()->isAdmin('shop') && !wa()->getUser()->getRights('shop', 'type.%')) {
+            throw new waRightsException('Access denied');
+        }
+
         $this->setLayout(new shopBackendLayout());
         $this->layout->assign('no_level2', true);
         $this->getResponse()->addJs('js/importexport/importexport.js', true);

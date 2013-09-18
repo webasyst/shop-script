@@ -69,15 +69,11 @@
 <script type="text/javascript">
     $(function() {
         var d = $('#s-product-list-create-dialog');
-        var height_static = $('.dialog-window', d).height();
-        var height_dynamic = height_static + 100;
         $('#s-product-list-create-dialog input[name=type]').click(function() {
             if ($(this).val() == '0') {
                 $('#s-dynamic-field-group').hide();
-                $('.dialog-window', d).height(height_static);
             } else {
                 $('#s-dynamic-field-group').show();
-                $('.dialog-window', d).height(height_dynamic);
                 d.trigger('dynamic_settings');
             }
         });

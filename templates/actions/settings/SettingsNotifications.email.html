@@ -18,7 +18,7 @@
             <option {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin'}selected{/if} value="">[`Other...`]</option>
         </select>
         {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin'}
-            <input type="text" name="to" value="{$params.to}" placeholder="[`Enter email address`]">
+            <input type="text" name="params[to]" value="{$params.to}" placeholder="[`Enter email address`]">
         {/if}
     </div>
 </div>

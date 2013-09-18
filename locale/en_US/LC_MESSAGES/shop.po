@@ -632,7 +632,7 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:17
 msgid "Primary email address is used as a reply-to address in email notifications sent to your customers"
-msgstr ""
+msgstr "Primary email address; used as the “From” address in email notifications sent by online store."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:21
 msgid "Phone number"
@@ -3318,7 +3318,7 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:40
 msgid "http://www.webasyst.net/support/help/payment-shipping-icons.html"
-msgstr ""
+msgstr "http://old.webasyst.net/support/help/payment-shipping-icons.html"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:38
 msgid "Your online store base country."
@@ -4286,7 +4286,7 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:48
 msgid "http://www.webasyst.com/framework/docs/server/cron/"
-msgstr ""
+msgstr "http://www.webasyst.com/developers/docs/tips/cron/"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:86
 msgid "Send in"
@@ -4730,7 +4730,7 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:4
 msgid "http://www.shop-script.com/help/csv-file-structure/"
-msgstr ""
+msgstr "http://www.webasyst.com/help/45/import-products-from-csv-file/"
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:13
 msgid "Upload CSV file"
@@ -5734,7 +5734,7 @@ msgstr "Enter available options for %s depending on its parent field’s value."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:8
 msgid "http://www.shop-script.com/help/conditional-contact-fields/"
-msgstr ""
+msgstr "http://www.webasyst.com/help/46/conditional-contact-fields/"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckoutFieldValues.html:8
 msgid "Get help"
@@ -5979,3 +5979,11 @@ msgid_plural "%d product images"
 msgstr[0] ""
 msgstr[1] ""
 
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:11
+msgid "http://www.webasyst.com/help/45/import-products-from-csv-file/"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:16
+msgid "All email notifications sent to store customers will be sent from the primary email address"
+msgstr ""

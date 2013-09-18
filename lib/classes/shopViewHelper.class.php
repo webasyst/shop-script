@@ -67,13 +67,14 @@ class shopViewHelper extends waAppViewHelper
     public function sortUrl($sort, $name)
     {
         $inverted = in_array($sort, array('rating', 'create_datetime', 'total_sales', 'count', 'stock'));
-        $html = '<a href="?sort='.$sort.'&order=';
+        $data = waRequest::get();
+        $data['sort'] = $sort;
         if ($sort == waRequest::get('sort')) {
-            $order = waRequest::get('order') == 'asc' ? 'desc' : 'asc';
+            $data['order'] = waRequest::get('order') == 'asc' ? 'desc' : 'asc';
         } else {
-            $order = $inverted ? 'desc' : 'asc';
+            $data['order'] = $inverted ? 'desc' : 'asc';
         }
-        $html .= $order.'">'.$name.($sort == waRequest::get('sort') ? ' <i class="sort-'.($order == 'asc' ? 'desc' : 'asc').'"></i>' : '').'</a>';
+        $html = '<a href="?'.http_build_query($data).'">'.$name.($sort == waRequest::get('sort') ? ' <i class="sort-'.($data['order'] == 'asc' ? 'desc' : 'asc').'"></i>' : '').'</a>';
         return $html;
     }
 

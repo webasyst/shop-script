@@ -16,6 +16,13 @@ class shopCheckoutContactinfo extends shopCheckout
         $contact = $this->getContact();
         if ($contact) {
             $this->form->setValue($contact);
+
+            // Make sure there are no more than one address of each type in the form
+            foreach(array('address', 'address.shipping', 'address.billing') as $fld) {
+                if (isset($this->form->values[$fld]) && count($this->form->values[$fld]) > 1) {
+                    $this->form->values[$fld] = array(reset($this->form->values[$fld]));
+                }
+            }
         }
         $view = wa()->getView();
         $view->assign('checkout_contact_form', $this->form);

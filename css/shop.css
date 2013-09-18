@@ -380,8 +380,8 @@ ul.thumbs.s-mini-stream li.s-stream-wrapper { height: 48px; overflow: hidden; pa
 .s-image .s-image-corner.top { top: 10px; }
 .s-image #s-product-image { max-width: 100%; max-height: auto; }
 
-.badge { display: table; background: #fff; border-radius: 50%; border: 4px double rgba(0,0,0,0.3); width: 100px; height: 100px; transform: rotate(-13deg); -webkit-transform: rotate(-13deg); -moz-transform: rotate(-13deg); -o-transform: rotate(-13deg); box-shadow: 0 3px 10px rgba(0,0,0,0.3); color: #000; font-weight: bold; font-style: italic; font-size: 1.6em; padding: 11px 13px 15px; }
-.badge span { display: table-cell; vertical-align: middle; text-align: center; }
+.badge { background: #fff; border-radius: 50%; border: 4px double rgba(0,0,0,0.3); width: 100px; height: 100px; transform: rotate(-13deg); -webkit-transform: rotate(-13deg); -moz-transform: rotate(-13deg); -o-transform: rotate(-13deg); box-shadow: 0 3px 10px rgba(0,0,0,0.3); color: #000; font-weight: bold; font-style: italic; font-size: 1.6em; padding: 11px 13px 15px; overflow: hidden; }
+.badge span { display: block; vertical-align: middle; text-align: center; line-height: 1.2em; padding-top: 40px; }
 .badge.new { background: #ff4; color: #000; }
 .badge.bestseller { background: #74ff30; color: #030; }
 .badge.low-price { background: #ffc2e3; color: #300; }
@@ -389,7 +389,8 @@ ul.thumbs.s-mini-stream li.s-stream-wrapper { height: 48px; overflow: hidden; pa
 .thumbs li .s-image .s-image-corner.left { left: -10px; }
 .thumbs li .s-image .s-image-corner.right { right: -10px; }
 .thumbs li .s-image .s-image-corner.top { top: -10px; }
-.thumbs li .badge {  width: 40px; height: 40px; font-size: 1.1em; }
+.thumbs li .badge { width: 40px; height: 40px; font-size: 1.0em; }
+.thumbs li .badge span { padding-top: 13px; }
 
 /* services */
 

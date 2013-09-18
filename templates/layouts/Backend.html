@@ -86,9 +86,11 @@
                     <a href="?action=settings">[`Settings`]</a>
                 </li>
                 {/if}
+                {if $product_rights}
                 <li class="small float-right{if $page=='importexport'} selected{else} no-tab{/if}">
                     <a href="?action=importexport">[`Import / Export`]</a>
                 </li>
+                {/if}
 
                 <!-- plugin hook: 'backend_menu.aux_li' -->
                 {* @event backend_menu.%plugin_id%.aux_li *}
@@ -116,7 +118,7 @@
                     </li>
                 {/if}
                 
-                {if $wa->userRights('design')}
+                {if $wa->userRights('design') || $wa->userRights('pages')}
                     <li class="{if $page=='storefronts'}selected{else}no-tab{/if} s-storefronts-tab">
                         <a href="?action=storefronts">[`Storefront`]</a>
                     </li>

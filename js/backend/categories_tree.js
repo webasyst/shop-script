@@ -53,12 +53,15 @@
      */
     var setLoadingIcon = function(context, status) {
         var icon = context.parent.find('.loading:first');
+        var action = context.parent.parent().find('.count:first');
         var counters = context.parent.find('.counters');
         if (status) {
             icon.show();
+            action.hide();
             counters.hide();
         } else {
             icon.hide();
+            action.show();
             counters.show();
         }
     };

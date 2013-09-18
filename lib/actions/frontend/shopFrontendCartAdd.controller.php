@@ -58,6 +58,11 @@ class shopFrontendCartAddController extends waJsonController
                     if (!$sku['available']) {
                         $sku = $sku_model->getByField(array('product_id' => $product['id'], 'available' => 1));
                     }
+
+                    if (!$sku) {
+                        $this->errors = _w('This product is not available for purchase');
+                        return;
+                    }
                 }
             }
         }

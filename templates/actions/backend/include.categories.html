@@ -28,11 +28,14 @@
               <li class="dr {if $category.type == shopCategoryModel::TYPE_DYNAMIC}dynamic{/if}" id="category-{$category.id}" data-type="category">
               {$depth = $category.depth}
       {/if}
-
         <i class="icon16 loading" style="float:right; display:none;"></i>
         <span class="counters">
             <span class="count" {if empty($category.expanded) && $category.children_count > 0}style="display:none;"{/if}>
-                {$category.count}
+                {if $category.include_sub_categories}
+                    {$category.total_count}
+                {else}
+                    {$category.count}
+                {/if}
             </span>
             <span class="count subtree" {if !empty($category.expanded) || $category.children_count == 0}style="display:none;"{/if}>
                 {$category.total_count}

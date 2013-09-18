@@ -139,27 +139,15 @@
             </span>
         {/if}
         <h5 class="heading">
-            <i class="icon16 darr collapse-handler" id="s-type-list-handler"></i><a href="javascript:void(0);">[`Product types`]</a>
+            <i class="icon16 {if $types ===false}rarr{else}darr{/if} collapse-handler" id="s-type-list-handler"></i><a href="javascript:void(0);">[`Product types`]</a>
         </h5>
-         {if count($types)}
-         <div class="s-collection-list" id="s-type-list">
-            <ul class="menu-v with-icons">
-            {foreach $types as $type}
-                <li data-type="type" id="type-{$type.id}">
-                    <span class="count">{$type.count}</span>
-                    <a href="#/products/type_id={$type.id}/">
-                        {shopHelper::getIcon($type.icon, 'icon.box')}{$type.name|escape}
-                    </a>
-                </li>
-            {/foreach}
-            </ul>
-        </div>
-        {else}
-            <div class="block">
-                <p class="hint align-center">[`You have no product types in your online store. Create one in the store settings.`]</p>
-            </div>
-
-        {/if}
+         {if ($types ===false)}
+         <div class="s-collection-list" id="s-type-list-placeholder" data-url="?module=products&amp;action=loadTypes">
+             <!-- types list placeholder -->
+         </div>
+         {else}
+             {include "./../products/ProductsLoadTypes.html" inline}
+         {/if}
     </div>
 
     <!-- tags -->

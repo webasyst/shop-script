@@ -17,7 +17,7 @@
 <div class="content block{if !empty($shop_pages[ $wa->param('page_id') ].childs)} right{/if}">
 
     <!-- integrnal navigation breadcrumbs -->
-    {if isset($breadcrumbs) && $action!='page'}
+    {if !empty($breadcrumbs) && $action!='page'}
         <div class="breadcrumbs">
             {foreach $breadcrumbs as $breadcrumb}
                 <a href="{$breadcrumb.url}">{$breadcrumb.name|escape}</a> <span class="rarr">&rarr;</span>

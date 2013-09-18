@@ -10,11 +10,19 @@ class shopSitemapConfig extends waSitemapConfig
 
         $category_model = new shopCategoryModel();
         $product_model = new shopProductModel();
+        $page_model = new shopPageModel();
 
         foreach ($routes as $route) {
             $this->routing->setRoute($route);
+            $domain = $this->routing->getDomain(null, true);
+            $route_url = $domain.'/'.$this->routing->getRoute('url');
             // categories
-            $categories = $category_model->query("SELECT id,parent_id,left_key,url,full_url FROM shop_category WHERE status = 1 ORDER BY left_key")->fetchAll('id');
+            $sql = "SELECT c.id,c.parent_id,c.left_key,c.url,c.full_url,c.create_datetime,c.edit_datetime
+                    FROM shop_category c
+                    LEFT JOIN shop_category_routes cr ON c.id = cr.category_id
+                    WHERE c.status = 1 AND (cr.route IS NULL OR cr.route = '".$category_model->escape($route_url)."')
+                    ORDER BY c.left_key";
+            $categories = $category_model->query($sql)->fetchAll('id');
             $category_url = $this->routing->getUrl($this->app_id.'/frontend/category', array('category_url' => '%CATEGORY_URL%'), true);
             foreach ($categories as $c_id => $c) {
                 if ($c['parent_id'] && !isset($categories[$c_id])) {
@@ -58,8 +66,17 @@ class shopSitemapConfig extends waSitemapConfig
                 $this->addUrl($url, $p['edit_datetime'] ? $p['edit_datetime'] : $p['create_datetime'], self::CHANGE_MONTHLY, 0.8);
             }
 
+            $main_url = $this->getUrl('');
+            // pages
+            $sql = "SELECT full_url, url, create_datetime, update_datetime FROM ".$page_model->getTableName().'
+                    WHERE status = 1 AND domain = s:domain AND route = s:route';
+            $pages = $page_model->query($sql, array('domain' => $domain, 'route' => $route['url']))->fetchAll();
+            foreach ($pages as $p) {
+                $this->addUrl($main_url.$p['full_url'], $p['update_datetime'] ? $p['update_datetime'] : $p['create_datetime'], self::CHANGE_MONTHLY, 0.6);
+            }
+
             // main page
-            $this->addUrl($this->getUrl(''), time(), self::CHANGE_DAILY, 1);
+            $this->addUrl($main_url, time(), self::CHANGE_DAILY, 1);
         }
     }
 

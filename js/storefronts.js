@@ -73,7 +73,11 @@
         },
 
         defaultAction: function () {
-            this.designAction();
+            if ($('#s-link-design').length) {
+                this.designAction();
+            } else {
+                this.pagesAction();
+            }
         },
 
         setActive: function (id) {

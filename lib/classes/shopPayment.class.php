@@ -189,6 +189,7 @@ class shopPayment extends waAppPayment
                 $items[] = array(
                     'id'          => ifset($item['id']),
                     'name'        => ifset($item['name']),
+                    'sku'        => ifset($item['sku_code']),
                     'description' => '',
                     'price'       => $item['price'],
                     'quantity'    => ifset($item['quantity'], 0),

@@ -13,7 +13,7 @@
                     <div class="name">[`Primary email`]</div>
                     <div class="value">
                         <input type="text" name="email" value="{$email|escape}"><br />
-                        <span class="hint">[`Primary email address is used as a reply-to address in email notifications sent to your customers`]</span>
+                        <span class="hint">[`All email notifications sent to store customers will be sent from the primary email address`]</span>
                     </div>
                 </div>
                 <div class="field">
@@ -126,7 +126,7 @@
                         {/foreach}
                     {else}
                         <div class="value no-shift">
-                            {sprintf('[`To enable SMS message sending, install and configure sending module for your preferred SMS gateway.<br /> Browse for SMS gateway modules <a href="%s">in the Installer app</a>.`]', $wa_backend_url|cat:'installer/?module=plugins&subject=systemplugins&slug=sms')}
+                            {sprintf('[`To enable SMS message sending, install and configure sending module for your preferred SMS gateway.<br /> Browse for SMS gateway modules <a href="%s">in the Installer app</a>.`]', $wa_backend_url|cat:'installer/#/plugins/wa-plugins/sms/')}
                         </div>
                     {/if}
                 </div>

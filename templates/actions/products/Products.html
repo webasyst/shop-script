@@ -271,7 +271,7 @@
         order: '{$order}',
         products: {json_encode($products)},
         total_count: {$total_count},
-        category_count: {if $info && $info['hash'] == 'category' && $info['type'] == shopCategoryModel::TYPE_STATIC}{$info['count']}{else}null{/if},
+        category_count: {if $info && $info['hash'] == 'category' && $info['type'] == shopCategoryModel::TYPE_STATIC && !$info['include_sub_categories']}{$info['count']}{else}null{/if},
         edit: '{$wa->get("edit")}',
         sortable: {if $manual && $sort == 'sort'}true{else}false{/if},
         lazy_loading: {

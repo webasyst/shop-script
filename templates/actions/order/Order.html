@@ -181,7 +181,7 @@
             </tr>
             {$subtotal = 0}
             {foreach $order.items as $item}
-                <tr{if $item.type == 'service'} class="small"{/if}>
+                <tr data-id="{$item.id}" {if $item.type == 'service'} class="small"{/if}>
                     <td class="min-width valign-top">
                         {if $item.type != 'service'}
                             {if !empty($item.image_id)}

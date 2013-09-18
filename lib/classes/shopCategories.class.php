@@ -192,7 +192,7 @@ class shopCategories
         if ($parent_id) {
             $categories = $category_model->getTree($parent_id);
         } else {
-            $categories = $category_model->getFullTree();
+            $categories = $category_model->getFullTree('id, left_key, right_key, parent_id, depth, name, count, type, status, include_sub_categories');
         }
 
         // children_count is number of children of category

@@ -1012,6 +1012,7 @@
                 }
 
                 $('#s-product-list-settings-dialog').waDialog({
+                    disableButtonsOnSubmit: true,
                     onLoad: function() {
                         if ($('#s-category-description-content').length) {
                             $.product_list.initCategoryDescriptionWysiwyg($(this));
@@ -1085,6 +1086,7 @@
                 }
 
                 $('#s-product-list-create-dialog').waDialog({
+                    disableButtonsOnSubmit: true,
                     onLoad: function(d) {
                         if ($('#s-category-description-content').length) {
                             $.product_list.initCategoryDescriptionWysiwyg($(this));
