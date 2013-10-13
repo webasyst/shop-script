@@ -38,7 +38,7 @@ abstract class shopPlugin extends waPlugin
             if ($settings_config = $this->getSettingsConfig()) {
                 foreach ($settings_config as $key => $row) {
                     if (!isset($this->settings[$key])) {
-                        $this->settings[$key] = isset($row['value']) ? $row['value'] : null;
+                        $this->settings[$key] = isset($row) ? $row : null;
                     }
                 }
             }
