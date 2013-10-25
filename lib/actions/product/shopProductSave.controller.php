@@ -181,6 +181,7 @@ class shopProductSaveController extends waJsonController
                 continue;
             }
             $skus[$i--] = array_merge(array(
+                'sku'       => '',
                 'name'      => implode(', ', $names),
                 'features'  => $f,
                 'virtual'   => 1,

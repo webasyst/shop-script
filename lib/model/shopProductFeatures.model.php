@@ -6,12 +6,11 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
     //protected $id = array('product_id', 'sku_id', 'feature_id', 'feature_value_id', );
 
     /**
-     * TODO: realize
      * @param array $product_ids
      */
     public function deleteByProducts(array $product_ids)
     {
-
+        return $this->deleteByField('product_id', $product_ids);
     }
 
     public function getValuesByCategory($category_id)
@@ -45,12 +44,12 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
     {
         $sql = "SELECT t0.sku_id FROM ".$this->table." t0 ";
         for ($i = 1; $i < count($features); $i++) {
-            $sql .= " JOIN ".$this->table." t".$i." ON t0.sku_id = t".$i.".sku_id";
+            $sql .= " JOIN ".$this->table." t".$i." ON t0.product_id = t".$i.".product_id AND t0.sku_id = t".$i.".sku_id";
         }
         $sql .= " WHERE t0.product_id = ".(int)$product_id." AND t0.sku_id IS NOT NULL";
         $i = 0;
         foreach ($features as $f => $v) {
-            $sql .= " AND t".$i.".feature_id = ".(int)$f." AND t".$i.".feature_value_id = ".$v;
+            $sql .= " AND t".$i.".feature_id = ".(int)$f." AND t".$i.".feature_value_id = ".(int)$v;
             $i++;
         }
         $sql .= " LIMIT 1";

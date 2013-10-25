@@ -111,6 +111,16 @@
                         </div>
 
                     </div>
+                    <div class="field">
+                        <div class="name">
+                            [`Thumbnail quality`]
+                        </div>
+                        <div class="value">
+                            <input type="input" name="image_save_quality" value="{if !empty($settings.image_save_quality)}{str_replace(',', '.', $settings.image_save_quality)}{/if}"><br>
+                            <span class="hint">[`JPEG compression quality for photo thumbnails. From 0 (min quality, min file size) to 100 (max quality, max file size). 90 is recommended.`]</span>
+                        </div>
+
+                    </div>
                 </div>
                 <h6 class="heading">[`Originals`]</h6>
                 <div class="field-group">

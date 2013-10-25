@@ -276,6 +276,8 @@ return array(
         'purchase_price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         ':keys' => array(
             'PRIMARY' => 'id',
+            'order_type' => array('order_id', 'type'),
+            'product_order' => array('product_id', 'order_id'),
         ),
     ),
     'shop_order_log' => array(
@@ -289,6 +291,7 @@ return array(
         'text' => array('text', 'null' => 1),
         ':keys' => array(
             'PRIMARY' => 'id',
+            'order_id' => 'order_id',
         ),
     ),
     'shop_order_log_params' => array(
@@ -407,6 +410,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
             'feature' => array('product_id', 'sku_id', 'feature_id', 'feature_value_id', 'unique' => 1),
+            'product_feature' => array('product_id', 'feature_id', 'feature_value_id'),
         ),
     ),
     'shop_product_features_selectable' => array(

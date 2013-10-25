@@ -9,7 +9,7 @@ class shopSettingsImagesAction extends waViewAction
 
     public function execute()
     {
-        $this->settings = $this->getConfig()->getOption();
+        $this->settings = $this->getConfig()->getOption(null);
         if (waRequest::getMethod() == 'post') {
             $this->save($this->settings);
             $this->view->assign('saved', 1);
@@ -58,6 +58,7 @@ class shopSettingsImagesAction extends waViewAction
         $settings['image_sharpen'] = waRequest::post('image_sharpen') ? 1 : 0;
         $settings['image_save_original'] = waRequest::post('image_save_original') ? 1 : 0;
         $settings['image_thumbs_on_demand'] = waRequest::post('image_thumbs_on_demand') ? 1 : 0;
+        
         if ($settings['image_thumbs_on_demand']) {
             $settings['image_max_size'] = waRequest::post('image_max_size', 1000, waRequest::TYPE_INT);
             $big_size = $config->getImageSize('big');
@@ -112,6 +113,21 @@ class shopSettingsImagesAction extends waViewAction
 
         $settings['image_sizes'] = array_values((array)$settings['image_sizes']);
         $config_file = $config->getConfigPath('config.php');
+        
+        $settings['image_save_quality'] = waRequest::post('image_save_quality', '', waRequest::TYPE_STRING_TRIM);
+        if ($settings['image_save_quality'] == '') {
+            $settings['image_save_quality'] = 90;
+        } else {
+            $settings['image_save_quality'] = (float) $settings['image_save_quality'];
+            if ($settings['image_save_quality'] < 0) {
+                $settings['image_save_quality'] = 0;
+            }
+            if ($settings['image_save_quality'] > 100) {
+                $settings['image_save_quality'] = 100;
+            }
+            $settings['image_save_quality'] = str_replace(',', '.', $settings['image_save_quality']);
+        }
+        
         waUtils::varExportToFile($settings, $config_file);
     }
 }

@@ -26,11 +26,14 @@ return array(
     'types_per_page'          => 25,
     'orders_update_list'       => 60000, // miliseconds
 
+    'stocks_log_items_per_page' => 30,
+    
     'image_sizes'              => array(),
     'image_max_size'           => 1000,
     'image_sharpen'            => 1,
     'image_thumbs_on_demand'   => 1,
     'image_save_original'      => 1,
+    'image_save_quality'    => 90,
 
     /**
      * the ability to use Smarty within product/category description

@@ -45,7 +45,8 @@ if ($file && file_exists($original_path) && !file_exists($thumb_path)) {
     if (!file_exists($thumbs_dir)) {
         waFiles::create($thumbs_dir);
     }
-    shopImage::generateThumb($original_path, $size, $app_config->getOption('max_size'))->save($thumb_path);
+    shopImage::generateThumb($original_path, $size, $app_config->getOption('max_size'))->
+            save($thumb_path, $app_config->getSaveQuality());
     clearstatcache();
 }
 

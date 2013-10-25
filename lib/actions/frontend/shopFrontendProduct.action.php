@@ -75,19 +75,6 @@ class shopFrontendProductAction extends shopFrontendAction
             throw new waException(_w('Product not found'), 404);
         }
 
-        if (waRequest::param('category_url')) {
-            $category_model = new shopCategoryModel();
-            $c = $category_model->getByField('full_url', waRequest::param('category_url'));
-            if (!$c) {
-                throw new waException(_w('Product not found'), 404);
-            }
-
-            $category_products_model = new shopCategoryProductsModel();
-            if (!$category_products_model->getByField(array('category_id' => $c['id'], 'product_id' => $product['id']))) {
-                throw new waException(_w('Product not found'), 404);
-            }
-        }
-
         if ($types = waRequest::param('type_id')) {
             if (!in_array($product['type_id'], (array)$types)) {
                 throw new waException(_w('Product not found'), 404);
@@ -302,7 +289,7 @@ class shopFrontendProductAction extends shopFrontendAction
          * @return array[string][string]string $return[%plugin_id%]['block_aux'] html output
          * @return array[string][string]string $return[%plugin_id%]['block'] html output
          */
-        $this->view->assign('frontend_product', wa()->event('frontend_product', $product));
+        $this->view->assign('frontend_product', wa()->event('frontend_product', $product, array('menu','cart','block_aux','block')));
 
         $sku_stocks = array();
         foreach ($product->skus as $sku) {

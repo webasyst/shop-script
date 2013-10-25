@@ -251,6 +251,14 @@ class shopConfig extends waAppConfig
         reset($steps);
         return $steps;
     }
+    
+    public function getSaveQuality() {
+        $quality = $this->getOption('image_save_quality');
+        if(!$quality) {
+            $quality = 90;
+        }
+        return $quality;
+    }
 
 }
 

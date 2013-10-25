@@ -43,7 +43,7 @@ class shopImage
     {
         $config = wa('shop')->getConfig();
         if ($quality === null) {
-            $quality = $config->getOption('image_save_quality');
+            $quality = $config->getSaveQuality();
             if (!$quality) {
                 $quality = 100;
             }
@@ -96,6 +96,7 @@ class shopImage
     {
         $sizes = (array) $sizes;
         $product_id = $image['product_id'];
+        $config = wa('shop')->getConfig();
         if (!empty($sizes) && !empty($image) && $product_id) {
             $thumbs_path = self::getThumbsPath($image);
             if (!file_exists($thumbs_path) && !waFiles::create($thumbs_path)) {
@@ -110,7 +111,7 @@ class shopImage
                      * @var waImage
                      */
                     if ($thumb_img = self::generateThumb($image_path, $size)) {
-                        $thumb_img->save($thumb_path);
+                        $thumb_img->save($thumb_path, $config->getSaveQuality());
                     }
                 }
             }

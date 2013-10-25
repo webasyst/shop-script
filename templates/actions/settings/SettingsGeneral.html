@@ -60,11 +60,11 @@
                         [`In case there were no Gravatar userpic uploaded`]:
                             <select name="gravatar_default">
                                 <option value="custom" {if $gravatar_default == 'custom'}selected="selected""{/if}>[`Use default userpic`]</option>
-                                <option value="mm" {if $gravatar_default == 'mm'}selected="selected""{/if}>(mystery-man) a simple, cartoon-style silhouetted outline of a person (does not vary by email hash)</option>
-                                <option value="identicon" {if $gravatar_default == 'identicon'}selected="selected""{/if}>a geometric pattern based on an email hash</option>
-                                <option value="monsterid" {if $gravatar_default == 'monsterid'}selected="selected""{/if}>a generated 'monster' with different colors, faces, etc</option>
-                                <option value="wavatar" {if $gravatar_default == 'wavatar'}selected="selected""{/if}>generated faces with differing features and backgrounds</option>
-                                <option value="retro" {if $gravatar_default == 'retro'}selected="selected""{/if}>awesome generated, 8-bit arcade-style pixelated faces</option>
+                                <option value="mm" {if $gravatar_default == 'mm'}selected="selected"{/if}>[`(mystery-man) a simple, cartoon-style silhouetted outline of a person (does not vary by email hash)`]</option>
+                                <option value="identicon" {if $gravatar_default == 'identicon'}selected="selected"{/if}>[`a geometric pattern based on an email hash`]</option>
+                                <option value="monsterid" {if $gravatar_default == 'monsterid'}selected="selected"{/if}>[`a generated 'monster' with different colors, faces, etc`]</option>
+                                <option value="wavatar" {if $gravatar_default == 'wavatar'}selected="selected"{/if}>[`generated faces with differing features and backgrounds`]</option>
+                                <option value="retro" {if $gravatar_default == 'retro'}selected="selected"{/if}>[`awesome generated, 8-bit arcade-style pixelated faces`]</option>
                             </select>
                         </label>
                     </div>
@@ -98,12 +98,12 @@
                     {if count($sms_adapters)}
                         {foreach $sms_adapters as $i => $a}
                         <div class="value no-shift">
-                            <input name="sms[$i][adapter]" type="hidden" value="{$a.id}">
+                            <input name="sms[{$i}][adapter]" type="hidden" value="{$a.id}">
                             <strong><i class="icon16" style="background-image: url('{$a.icon}');"></i>{$a.name}</strong><br>
                             <div class="field">
                                 <div class="name">[`Sender ID`]</div>
                                 <div class="value">
-                                    <input name="sms[$i][from]" value="{if !empty($a.config.from)}{$a.config.from}{/if}">
+                                    <input name="sms[{$i}][from]" value="{if !empty($a.config.from)}{$a.config.from|escape}{/if}">
                                     <p class="hint">[`Enter Sender ID to use with this SMS gateway (Sender ID is either your phone number or up-to-11-characters text label). Enter * to use default Sender ID issued for your account by the gateway.`]</p>
                                 </div>
                             </div>
@@ -111,7 +111,7 @@
                             <div class="field">
                                 <div class="name">{$v.title}</div>
                                 <div class="value">
-                                    <input name="sms[$i][{$k}]" value="{if !empty($a.config[$k])}{$a.config[$k]}{/if}">
+                                    <input name="sms[{$i}][{$k}]" value="{if !empty($a.config[$k])}{$a.config[$k]|escape}{/if}">
                                     {if !empty($v.description)}
                                     <p class="hint">{$v.description}</p>
                                     {/if}

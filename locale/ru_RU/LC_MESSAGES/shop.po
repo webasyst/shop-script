@@ -6982,3 +6982,32 @@ msgstr ""
 
 msgid "Any"
 msgstr "Неважно"
+
+msgid ""
+"(mystery-man) a simple, cartoon-style silhouetted outline of a person (does "
+"not vary by email hash)"
+msgstr ""
+"простая фигурка человека на сером фоне (одинаковая для всех покупателей)"
+
+msgid "a geometric pattern based on an email hash"
+msgstr "геометрический рисунок, генерируемый на основе email-адреса"
+
+msgid "a generated 'monster' with different colors, faces, etc"
+msgstr "автоматически сгенерированная фигурка монстра"
+
+msgid "generated faces with differing features and backgrounds"
+msgstr "сгенерированные лица с разным фоном"
+
+msgid "awesome generated, 8-bit arcade-style pixelated faces"
+msgstr "изображение лица в стиле старых компьютерных игр"
+
+msgid "Thumbnail quality"
+msgstr "Качество эскизов"
+
+msgid ""
+"JPEG compression quality for photo thumbnails. From 0 (min quality, min file "
+"size) to 100 (max quality, max file size). 90 is recommended."
+msgstr ""
+"Коэффициент качества сжатия JPEG при создании эскизов изображений товаров. "
+"От 0 (минимальное качество, минимальный размер файлов) до 100 (максимальное "
+"качество, максимальный размер файлов). Рекомендуемое значение — 90."
