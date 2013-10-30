@@ -11,10 +11,11 @@ class shopFrontendProductController extends waViewController
             if (waRequest::param('category_url')) {
                 $category_model = new shopCategoryModel();
                 $c = $category_model->getByField('full_url', waRequest::param('category_url'));
-                if (!$c) {
-                    throw new waException(_w('Product not found'), 404);
+                if ($c) {
+                    $product = $product_model->getByField(array('url' => waRequest::param('product_url'), 'category_id' => $c['id']));
+                } else {
+                    $product = null;
                 }
-                $product = $product_model->getByField(array('url' => waRequest::param('product_url'), 'category_id' => $c['id']));
             } else {
                 $product = $product_model->getByField('url', waRequest::param('product_url'));
             }
