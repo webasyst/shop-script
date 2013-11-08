@@ -32,7 +32,8 @@ abstract class shopCheckout
         if (wa()->getUser()->isAuth()) {
             $contact = wa()->getUser();
         } else {
-            $contact = $this->getSessionData('contact');
+            $contact_id = $this->getSessionData('contact');
+            $contact = new waContact($contact_id);
         }
         if ($contact) {
             if (!$contact->get('address.shipping') && $addresses = $contact->get('address')) {
