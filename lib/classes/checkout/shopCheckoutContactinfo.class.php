@@ -96,7 +96,14 @@ class shopCheckoutContactinfo extends shopCheckout
                     return false;
                 }
             }
-            $this->setSessionData('contact', $contact);
+
+            $contact->save();
+            $this->setSessionData('contact', $contact->getId());
+
+            $cart = new shopCart();
+            $code = $cart->getCode();
+            $cart_items_model = new shopCartItemsModel();
+            $cart_items_model->updateByField('code', $code, array('contact_id' => $contact->getId()));
         }
 
         if ($comment = waRequest::post('comment')) {
