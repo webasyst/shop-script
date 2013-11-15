@@ -57,7 +57,6 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         }
 
         $subtotal = 0;
-        $currency = wa()->getConfig()->getCurrency(false);
         foreach ($data['items'] as &$item) {
             if ($currency != $item['currency']) {
                 $item['price'] = shop_currency($item['price'], $item['currency'], null, false);
