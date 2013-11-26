@@ -1782,7 +1782,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
              *
              * Extend product categories
              */
-            $categories = $product->categories;
+            $categories = array_keys($product->categories);
             foreach ($element->xpath('Группы/Ид') as $category) {
                 if ($category = ifset($map[(string)$category])) {
                     $categories[] = $category;
