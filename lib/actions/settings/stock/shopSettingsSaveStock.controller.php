@@ -9,21 +9,20 @@ class shopSettingsSaveStockController extends waJsonController
             $model->updateById($id, $item);
         }
 
-        $inventory_stock_id = null;
-
+        $assigned = false;
         foreach ($this->getAddData() as $before_id => $data) {
             foreach ($data as $item) {
                 $id = $model->add($item, $before_id);
-                if (!empty($item['inventory'])) {
-                    $inventory_stock_id = $id;
+                if (!empty($item['inventory']) && !$assigned) {
+                    // Assign all inventory to this stock
+                    $product_stocks_model = new shopProductStocksModel();
+                    $product_stocks_model->insertFromSkus($id);
+                    // Preventing from double assignment
+                    $assigned = true;
                 }
+                $item['id'] = $id;
+                wa()->event('add_stock', $item);
             }
-        }
-
-        if ($inventory_stock_id) {
-            // Assign all inventory to this stock
-            $product_stocks_model = new shopProductStocksModel();
-            $product_stocks_model->insertFromSkus($inventory_stock_id);
         }
 
         $app_id = $this->getAppId();
