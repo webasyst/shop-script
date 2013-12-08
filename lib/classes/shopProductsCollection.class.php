@@ -33,17 +33,13 @@ class shopProductsCollection
      */
     public function __construct($hash = '', $options = array())
     {
-        foreach ($options as $k => $v) {
-            $this->options[$k] = $v;
-        }
+        $this->setOptions($options);
         $this->setHash($hash);
     }
 
     public function setOptions($options)
     {
-        foreach ($options as $k => $v) {
-            $this->options[$k] = $v;
-        }
+        $this->options = array_merge($this->options, $options);
     }
 
     protected function setHash($hash)
