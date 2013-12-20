@@ -57,7 +57,7 @@ ul.thumbs.mini li { margin-bottom: 30px; }
 .promo { border: 0; }
 .promo a { height: 400px; }
 .promo a .info { position: static; width: 80%; margin-left: 0px; }
-.promo a .info h2 { font-size: 2em; }
+.promo a .info h2 { font-size: 2em; margin-right: 0; }
 .promo a .info p { font-size: 0.9em; line-height: 1.3em; margin-right: 0; }
 .promo a .image { top: 0; float: none; margin-right: 0; margin-left: 0px; }
 .promo a .purchase { width: auto; }
