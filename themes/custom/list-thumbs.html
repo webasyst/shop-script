@@ -12,12 +12,12 @@
     <li{if !$active_sort} class="selected"{/if}><a href="{$wa->currentUrl(0, 1)}">[`New & Popular`]</a></li>
     {/if}
     {foreach $sort_fields as $sort => $name}
-    <li{if $active_sort == $sort} class="selected"{/if}>{$wa->shop->sortUrl($sort, $name)}</li>
+    <li{if $active_sort == $sort} class="selected"{/if}>{$wa->shop->sortUrl($sort, $name, $active_sort)}</li>
     {if $wa->get('sort') == $sort}{$wa->title( $wa->title()|cat:' — '|cat:$name)}{/if}
     {/foreach}
 </ul>
 {/if}
-    
+
 <ul class="thumbs li250px product-list">
 {foreach $products as $p}
     <li itemscope itemtype ="http://schema.org/Product">
@@ -40,11 +40,11 @@
         {if $p.summary}<p itemprop="description">{$p.summary}</p>{/if}
         
         <div itemprop="offers" class="offers" itemscope itemtype="http://schema.org/Offer">
-            {if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency($p.compare_price)} </span>{/if}
-            <span class="price nowrap" itemprop="price">{shop_currency($p.price)}</span>
+            {if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency_html($p.compare_price)} </span>{/if}
+            <span class="price nowrap" itemprop="price">{shop_currency_html($p.price)}</span>
 
             {if $wa->shop->settings('ignore_stock_count') || $p.count === null || $p.count > 0}
-                <form class="addtocart" method="post" action="{$wa->getUrl('/frontendCart/add')}">
+                <form class="addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}?cart=1"{/if} method="post" action="{$wa->getUrl('/frontendCart/add')}">
                     <input type="hidden" name="product_id" value="{$p.id}">
                     <input type="submit" value="[`Add to cart`]">
                 </form>

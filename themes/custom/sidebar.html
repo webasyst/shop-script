@@ -3,7 +3,7 @@
 {foreach $frontend_nav as $_}{$_}{/foreach}
 
 <!-- product search -->
-<div class="search{if isset($breadcrumbs)} float-right{/if}">
+<div class="search">
     <form method="get" action="{$wa->getUrl('/frontend/search')}">
     <input type="search" name="query" {if !empty($query)}value="{$query}"{/if} id="search" placeholder="[`Find products`]">
     </form>
@@ -12,7 +12,7 @@
 <!-- info pages -->
 {$shop_pages=$wa->shop->pages()}
 {if $shop_pages}
-    {wa_print_tree tree=$shop_pages attrs = 'id="page-list"' elem ='
+    {wa_print_tree tree=$shop_pages class="menu-v" attrs = 'id="page-list"' elem ='
 <a href=":url" title=":title">:name</a>' selected=$wa->param('page_id')}
     <hr>
 {/if}

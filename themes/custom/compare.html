@@ -65,7 +65,7 @@
         <th>[`Price`]</th>
         {foreach $products as $p}
             <td width="{$td_width}%">
-                <span class="price nowrap">{shop_currency($p.price)}</span>
+                <span class="price nowrap">{shop_currency_html($p.price)}</span>
             </td>
         {/foreach}
     </tr>

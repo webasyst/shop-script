@@ -7,7 +7,13 @@ $(function () {
             $(".cart-discount").closest('tr').show();
         }
         $(".cart-discount").html('&minus; ' + data.discount);
-        $(".affiliate").hide();
+        
+        if (data.add_affiliate_bonus) {
+            $(".affiliate").show().html(data.add_affiliate_bonus);
+        } else {
+            $(".affiliate").hide();
+        }
+        
     }
 
     // add to cart block: services

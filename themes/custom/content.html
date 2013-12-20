@@ -39,8 +39,20 @@
             });
         </script>
     {/if}
-</div>    
+</div>
 
 <!-- plugin hook: 'frontend_footer' -->
 {* @event frontend_footer.%plugin_id% *}
 {foreach $frontend_footer as $_}{$_}{/foreach}
+
+<div id="dialog" class="dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <!-- common part -->
+        <div class="cart">
+
+        </div>
+        <!-- /common part -->
+
+    </div>
+</div>

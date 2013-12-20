@@ -1,3 +1,5 @@
+{$wa->myNav('menu-h bottom-padded')}
+
 {if !empty($pin_required)}
     <h1>
         [`Order`] {$encoded_order_id}
@@ -89,17 +91,17 @@
                 <td>{if $item.type == 'service'}+ {/if}{$item.name}
                     {if $item.type == 'product' && !empty($item.download_link)}<a href="{$item.download_link}"><strong>[`Download`]</strong></a>{/if}
                 </td>
-                <td class="align-right"><span class="gray">{wa_currency($item.price, $order.currency)} x</span> {$item.quantity}</td>
-                <td class="align-right">{wa_currency($item.price * $item.quantity, $order.currency)}</td>
+                <td class="align-right"><span class="gray">{wa_currency_html($item.price, $order.currency)} x</span> {$item.quantity}</td>
+                <td class="align-right">{wa_currency_html($item.price * $item.quantity, $order.currency)}</td>
             </tr>
         {/foreach}
         <tr class="no-border thin">
             <td colspan="2" class="align-right">[`Subtotal`]</td>
-            <td class="align-right">{wa_currency($subtotal, $order.currency)}</td>
+            <td class="align-right">{wa_currency_html($subtotal, $order.currency)}</td>
         </tr>
         <tr class="no-border thin">
             <td colspan="2" class="align-right">[`Discount`]</td>
-            <td class="align-right">&minus; {wa_currency($order.discount, $order.currency)}</td>
+            <td class="align-right">&minus; {wa_currency_html($order.discount, $order.currency)}</td>
         </tr>
         <tr class="no-border thin">
             <td colspan="2" class="align-right">
@@ -108,17 +110,17 @@
                     (<strong>{$order.params.shipping_name}</strong>)
                 {/if}
             </td>
-            <td class="align-right">{wa_currency($order.shipping, $order.currency)}</td>
+            <td class="align-right">{wa_currency_html($order.shipping, $order.currency)}</td>
         </tr>
         {if $order.tax > 0}
             <tr class="no-border thin">
                 <td colspan="2" class="align-right">[`Tax`]</td>
-                <td class="align-right">{wa_currency($order.tax, $order.currency)}</td>
+                <td class="align-right">{wa_currency_html($order.tax, $order.currency)}</td>
             </tr>
         {/if}
         <tr class="no-border thin large">
             <td colspan="2" class="align-right"><b>[`Total`]</b></td>
-            <td class="align-right bold">{wa_currency($order.total, $order.currency)}</td>
+            <td class="align-right bold">{wa_currency_html($order.total, $order.currency)}</td>
         </tr>
     </table>
 {/if}

@@ -14,7 +14,7 @@
 
     <!-- filtering by product features -->    
     {if !empty($filters)}
-    <div class="filters">
+    <div class="filters{if !empty($theme_settings.ajax_filters)} ajax{/if}">
         <form method="get" action="{$wa->currentUrl()}">
         {foreach $filters as $fid => $filter}
             <p>
@@ -60,6 +60,7 @@
         </div>
     {/if}
 
+    <div id="product-list">
     {if !$products}
         {if !empty($filters)}
             [`No products were found.`]
@@ -67,13 +68,11 @@
             [`This category does not contain any products.`]
         {/if}
     {else}
-        <div id="product-list">
         {include file='list-thumbs.html' sorting=!empty($category.params.enable_sorting)}
-        </div>
-    {/if}
-    {*
+        {*
         or use the line below to change product list view
         {include file='list-table.html' sorting=!empty($category.params.enable_sorting)}
-    *}
-
+        *}
+    {/if}
+    </div>
 </div>
