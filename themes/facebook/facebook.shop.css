@@ -36,6 +36,8 @@
 .promo .bx-wrapper .bx-prev { left: 0; }
 .promo .bx-wrapper .bx-next { right: 0; }
 
+.welcome { text-align: center; font-size: 130%; padding: 80px 0 150px; }
+
 /* Category */
 
 .sub-categories { margin-bottom: 20px; }
@@ -77,9 +79,10 @@ table.compare td { text-align: center; line-height: 1em; padding: 10px 2px; }
 table.compare th { text-align: left; }
 table.compare td img { display: block; margin: 0 auto 10px; }
 
-table.features { clear: both; }
-table.features td { padding: 1px 0 4px; }
+table.features { clear: both; border-spacing: 0; border-collapse: collapse; }
+table.features td { padding: 5px 0 2px; }
 table.features td.name { min-width: 145px; color: #777; vertical-align: top; }
+table.features tr.divider td { border-bottom: 1px solid #ccc; padding-left: 0; padding-top: 15px; padding-bottom: 0; }
 
 .image { position: relative; display: inline-block; max-width: 100%; display: block\9; /* IE8- hack */ }
 .image#product-core-image { float: left; width: 350px; }
@@ -174,8 +177,11 @@ ul.menu-h.product-internal.top-padded { margin-top: 2.5em; }
 .checkout ul.checkout-options li .rate { float: right; text-align: center; width: 250px; }
 .checkout ul.checkout-options li p { width: 70%; }
 .checkout ul.checkout-options li input[type="radio"] { position: absolute; top: 4px; left: -25px; }
+.checkout ul.checkout-options li label input[type="radio"] { top: 4px; left: -20px; }
 .checkout ul.checkout-options li img.method-logo { position: relative; float: left; margin-right: 10px; top: -6px; left: 0px; /* adjusted for default 60x32-px logos */ }
 .checkout ul.checkout-options li .wa-form { margin-top: 0px; margin-bottom: 30px; }
+.checkout ul.checkout-options li .wa-form label input[type="radio"] { position: static; }
+
 .checkout .checkout-result { padding: 80px 0 60px; background: #fff; text-align: center; }
 .checkout .checkout-result h1 { font-size: 4em; margin-bottom: 50px; }
 .checkout .checkout-result.error h1 { color: red; }
@@ -195,6 +201,8 @@ ul.menu-h.product-internal.top-padded { margin-top: 2.5em; }
 .checkout blockquote img { margin-right: 20px; float: left; }
 .checkout blockquote p { margin-bottom: 10px; }
 .checkout blockquote p span { color: #000; }
+
+.checkout .errormsg.inline { display: inline; margin-left: 10px; }
 
 /* Product reviews */
 
@@ -274,3 +282,11 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
 .icon16.stock-green { background-image: url("img/icons.png"); background-position:-160px 0; }
 .icon16.stock-transparent { background-image: url("img/icons.png"); background-position:-176px 0; }
 .icon16.loading { background-image: url("img/loading16.gif"); background-position:0 0; }
+
+/* Dialog */
+
+.dialog { display: none; }
+.dialog-background { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; opacity: 0.8; filter: alpha(opacity=80); z-index: 99; }
+.dialog-window .cart { position: fixed; top: 15%; left: 0; right: 0; opacity: 1; z-index: 100; overflow-x: hidden; box-shadow: 0 3px 15px #ddd; margin: 0 auto; text-align: left; width: 400px; bottom: 15%; background: #fff; padding: 25px; }
+.dialog-window .cart .added2cart { font-size: 1.1em; font-style: italic; }
+.dialog-window .dialog-close { float: right; color: #cc8; text-decoration: none; font-size: 200%; margin-top: -3px; }
