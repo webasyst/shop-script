@@ -257,6 +257,29 @@
         initSearch: function() {
             var search_input = $("#s-orders-search");
             
+            var autocomplete_url = '?action=autocomplete&type=order';
+            var last_response = [];            
+            
+            var onSelect = function(autocomplete_item) {
+                switch (autocomplete_item.autocomplete_item_type) {
+                    case 'order':
+                        location.hash = '#/order/' + autocomplete_item.id + '/';
+                        search_input.val(autocomplete_item.value);
+                        break;
+                    case 'contact':
+                        location.hash = '#/orders/contact_id=' + autocomplete_item.id + '/';
+                        search_input.val(autocomplete_item.value);
+                        break;
+                    case 'product':
+                        location.hash = '#/orders/product_id=' + autocomplete_item.id + '/';
+                        search_input.val(autocomplete_item.value);
+                        break;
+                    default:
+                        // search
+                        break;
+                }
+            };
+            
             search_input.unbind('keydown').
                 bind('keydown', function(event) {
                     if (event.keyCode == 13 || event.keyCode == 10) { // 'Enter'
@@ -265,36 +288,33 @@
                             location.hash = '#/orders/all/';
                             self.autocomplete("close");
                             return false;
+                        } else {
+                            if (last_response && $.isArray(last_response) && last_response.length) {
+                                onSelect(last_response[0]);
+                                setTimeout(function() {
+                                    self.autocomplete("close");    
+                                }, 150);
+                                return false;
+                            }
                         }
                     }
                 });
 
             search_input.autocomplete({
-                source: '?action=autocomplete&type=order',
                 minLength: 1,
                 delay: 300,
                 html: true,
                 select: function(event, ui) {
                     //location.hash = '#/order/'+ui.item.id+'/';
-                    switch (ui.item.autocomplete_item_type) {
-                        case 'order':
-                            location.hash = '#/order/' + ui.item.id + '/';
-                            search_input.val(ui.item.value);
-                            break;
-                        case 'contact':
-                            location.hash = '#/orders/contact_id=' + ui.item.id + '/';
-                            search_input.val(ui.item.value);
-                            break;
-                        case 'product':
-                            location.hash = '#/orders/product_id=' + ui.item.id + '/';
-                            search_input.val(ui.item.value);
-                            break;
-                        default:
-                            // search
-                            break;
-                    }
+                    onSelect(ui.item);
                     return false;
-                }
+                },
+                source : function(request, response) {
+                    $.getJSON(autocomplete_url, request, function(r) {
+                        last_response = r;
+                        response(r);
+                    });
+                },
             });
         },
 

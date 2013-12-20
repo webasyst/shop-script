@@ -34,7 +34,7 @@
                             <div class="value">
                             <label>
                                 <input type="checkbox" name="product[features][{$code}][]" value="{$value|escape}"{if !empty($product_features[$code][$value_id])} checked="checked"{/if}>
-                                {if is_object($value)}{$value.icon}{/if}{$value|escape}
+                                {if is_object($value) && isset($value.icon)}{$value.icon}{/if}{$value|escape}
                             </label>
                             </div>
                         {/foreach}

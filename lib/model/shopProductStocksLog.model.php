@@ -131,7 +131,7 @@ class shopProductStocksLogModel extends waModel {
                 if ($v['type'] == self::TYPE_ORDER) {
                     $v['description'] = sprintf(
                             _w($v['description']), 
-                            '<a href="?action=orders#/orders/'.$v['order_id'].'">'.shopHelper::encodeOrderId($v['order_id']).'</a>'
+                            '<a href="?action=orders#/orders/id='.$v['order_id'].'/">'.shopHelper::encodeOrderId($v['order_id']).'</a>'
                     );
                 }
             }

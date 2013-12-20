@@ -575,6 +575,9 @@ $.order_list = {
      */
     updateCounters: function(counters) {
         var sidebar = this.sidebar;
+        if (!sidebar) {
+            sidebar = $('#s-sidebar');
+        }
         var ext_new_counter = $('#s-pending-orders .small');
         for (var name in counters) {
             if (counters.hasOwnProperty(name)) {

@@ -59,6 +59,7 @@ class shopBackendAutocompleteController extends waController
                         'id' => $item['id'],
                         'value' => $item['value'],
                         'label' => $item['label'],
+                        'autocomplete_item_type' => 'order'
                     );
                 }
             }

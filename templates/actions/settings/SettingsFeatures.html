@@ -4,7 +4,7 @@
 <div class="sidebar left200px s-settings-internal-sidebar">
     <div class="s-inner-sidebar">
         <ul class="menu-v with-icons stack block drop-target" id="s-settings-feature-types">
-            {if !$show_all_types}
+            {if empty($show_all_types)}
                 <li class="not-sortable s-inner-search" id="s-settings-feature-type-filter">
                     <i class="icon16 ss search-bw"></i>
                     <input type="search" placeholder="[`Type product type name to filter`]" class="js-type-filter">
@@ -41,14 +41,14 @@
             *}
 
             {foreach $product_types as $id => $type}{strip}
-            <li data-type="{$id}" data-icon="{$type.icon|escape}" class="js-type-item" data-name="{$type.name|escape}"{if !$show_all_types && ($type@iteration>$types_per_page)} style="display:none"{/if}>
+            <li data-type="{$id}" data-icon="{$type.icon|escape}" class="js-type-item" data-name="{$type.name|escape}"{if empty($show_all_types) && ($type@iteration>$types_per_page)} style="display:none"{/if}>
                 <a href="#/features/{$id}/">
                     <span class="count">{$type.features_count|default:'0'}</span>
                     <span class="js-type-icon">{shopHelper::getIcon($type.icon, 'icon.box')}</span>
                     <span class="js-type-name">{$type.name|escape}</span>
                  </a>
             </li>{/strip}{/foreach}
-            {if !$show_all_types}
+            {if empty($show_all_types)}
             <li class="not-sortable js-type-show-all">
                 <a href="#/features/type/show/" class="js-action inline-link small">
                     <b><i>{($type@total-$types_per_page)|string_format:"[`Show %d more`]"}</i></b>
