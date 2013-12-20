@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="sidebar" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:sidebar" version="1.0.0">
+<theme id="sidebar" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:sidebar" version="1.1.0">
     <name locale="en_US">Sidebar</name>
     <name locale="ru_RU">Sidebar</name>
     <files>
@@ -49,6 +49,10 @@
         <file path="product.html" custom="0">
             <description locale="en_US">Dedicated product page</description>
             <description locale="ru_RU">Шаблон основной страницы товара</description>
+        </file>
+        <file path="product.cart.html" custom="0">
+            <description locale="en_US">Product add to cart block</description>
+            <description locale="ru_RU">Блок добавления товара в корзину</description>
         </file>
         <file path="product.js" custom="0">
             <description locale="en_US">Product page JS</description>
@@ -106,9 +110,9 @@
             <description locale="en_US">Checkout: error page</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
-        <file path="my.html" custom="0">
-            <description locale="en_US">Customer account interface layout</description>
-            <description locale="ru_RU">Личный кабинет покупателя</description>
+        <file path="my.nav.html" custom="0">
+            <description locale="en_US">Customer account navigation menu</description>
+            <description locale="ru_RU">Меню навигации в личном кабинете покупателя</description>
         </file>
         <file path="my.affiliate.html" custom="0">
             <description locale="en_US">Customer account interface: affiliate program</description>
@@ -187,4 +191,18 @@
 <p>В шаблоне product.html подключается изображение товара нестандартного размера <b>400px</b> (.400.jpg). Если вы используете тему Sidebar для вашего интернет-магазина, то в настройках магазина в разделе «Изображения» должна быть включена опция создания эскизов произвольного размера по требованию («на лету»). Если данная опция будет выключена, то на странице товара вместо изображения товара будут публиковать «битые» изображения.</p>
 ]]>
     </about>
+    <settings>
+        <setting var="ajax_filters" control_type="checkbox">
+            <value>1</value>
+            <name locale="en_US">AJAX-enabled product by-feature filtering</name>
+            <name locale="ru_RU">AJAX-фильтры товаров по характеристикам</name>
+        </setting>
+    </settings>
+    <thumbs>
+        <thumb>48x48</thumb>
+        <thumb>96x96</thumb>
+        <thumb>200</thumb>
+        <thumb>400</thumb>
+        <thumb>970</thumb>
+    </thumbs>
 </theme>
