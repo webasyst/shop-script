@@ -36,6 +36,8 @@ class shopInvoiceruPluginPrintformDisplayAction extends waViewAction
             $items = array();
         }
 
+        $this->setTemplate($plugin->getTemplatePath());
+        
         $this->view->assign('settings', $plugin->getSettings());
         $this->view->assign('order', $order);
         $this->view->assign('items', $items);
