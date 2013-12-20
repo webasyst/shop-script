@@ -3,6 +3,9 @@ class shopSettingsFeaturesTypeSaveController extends waJsonController
 {
     public function execute()
     {
+        if (!$this->getUser()->getRights('shop', 'settings')) {
+            throw new waRightsException(_w('Access denied'));
+        }
         $data = array();
 
         $data['id'] = waRequest::post('id', 0, waRequest::TYPE_INT);

@@ -61,22 +61,6 @@ $.order_edit = {
         this.initCustomerForm(this.id ? 'edit' : 'add');
 
         // helpers and handlers here
-        var validateQuantity = function(item) {
-            if (options.ignore_stock_count) {
-                return true;
-            }
-            var max_value = parseInt(item.attr('data-max-value'), 10);
-            var val = parseInt(item.val(), 10);
-            if (isNaN(max_value)) {
-                return true;
-            } else {
-                if (isNaN(val)) {
-                    return false;
-                } else {
-                    return val <= max_value;
-                }
-            }
-        };
         var updateStockIcon = function(order_item) {
             var select   = order_item.find('.s-orders-stock');
             var option   = select.find('option:selected');
@@ -114,14 +98,15 @@ $.order_edit = {
 
         this.updateTotal(false);
         $('.s-order-item').each(function() {
-            updateStockIcon($(this));
+            var item = $(this);
+            updateStockIcon(item);
         });
 
         var price_edit = options.price_edit || false;
 
         var add_order_input = $("#orders-add-autocomplete");
         add_order_input.autocomplete({
-            source : '?action=autocomplete&with_counts=1',
+            source : '?action=autocomplete&with_counts=1&with_sku_name=1',
             minLength : 3,
             delay : 300,
             select : function(event, ui) {
@@ -131,14 +116,13 @@ $.order_edit = {
                 var url = '?module=orders&action=getProduct&product_id=' + ui.item.id;
                 $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : ''), function(r) {
                     var table = $('#order-items');
-                    var order_items_tr = table.find('.s-order-item');
-                    var product = r.data;
+                    var index = parseInt(table.find('.s-order-item:last').attr('data-index'), 10) + 1 || 1;
+                    var product = r.data.product;
                     product.skus[product.sku_id].checked = true;
-
                     var add_row = $('#s-orders-add-row');
                     add_row.before(tmpl('template-order', {
                         data: r.data, options: {
-                            index: order_items_tr.length,
+                            index: index,
                             currency: $.order_edit.options.currency,
                             stocks: $.order_edit.stocks
                         }
@@ -148,13 +132,7 @@ $.order_edit = {
 
                     $('#s-order-comment-edit').show();
 
-                    var quantity_item = item.find('.s-orders-quantity');
-                    if (!validateQuantity(quantity_item)) {
-                        quantity_item.addClass('error');
-                    } else {
-                        $.order_edit.updateTotal();
-                        quantity_item.removeClass('error');
-                    }
+                    $.order_edit.updateTotal();
 
                     updateStockIcon(item);
 
@@ -184,7 +162,8 @@ $.order_edit = {
                     $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : ''), function(r) {
                         tr.find('.s-orders-services').replaceWith(
                             tmpl('template-order-services', {
-                                services: r.data.services,
+                                services: r.data.sku.services,
+                                service_ids: r.data.service_ids,
                                 product_id: product_id,
                                 options: {
                                     price_edit: price_edit,
@@ -196,25 +175,24 @@ $.order_edit = {
                         );
                         tr.find('.s-orders-services .s-orders-service-variant').trigger('change');
                         tr.find('.s-orders-product-price').
-                            find('span').text(r.data.price_str).end().
-                            find('input').val(r.data.price).trigger('change');
+                            find('span').text(r.data.sku.price_str).end().
+                            find('input').val(r.data.sku.price).trigger('change');
+
+                        var ns;
+                        if (tr.find('input:first').attr('name').indexOf('add') !== -1) {
+                            ns = 'add';
+                        } else {
+                            ns = 'edit';
+                        }
 
                         tr.find('.s-orders-product-stocks').replaceWith(
-                            tmpl('template-order-stocks-' + mode, {
-                                sku:     r.data,
+                            tmpl('template-order-stocks-' + ns, {
+                                sku:     r.data.sku,
                                 index:   index,
                                 stocks:  $.order_edit.stocks,
-                                item_id: item_id   // use only in edit mode
+                                item_id: item_id   // use only for edit namespace
                             })
                         );
-
-                        var quantity_input = tr.find('.s-orders-quantity');
-                        quantity_input.attr('data-max-value', r.data.count !== null ? r.data.count : '');
-                        if (!validateQuantity(quantity_input)) {
-                            quantity_input.addClass('error');
-                        } else {
-                            quantity_input.removeClass('error');
-                        }
 
                         updateStockIcon(tr);
 
@@ -226,20 +204,33 @@ $.order_edit = {
         this.container.
             off('change', '.s-orders-stock').
             on( 'change', '.s-orders-stock', function() {
-                updateStockIcon(
-                    $(this).parents('tr.s-order-item:first')
-                );
+                var item = $(this).parents('tr.s-order-item:first');
+                updateStockIcon(item);
             });
 
+        var updateServicePriceInput = function(variant_option, service_input, update_val) {
+                var price = variant_option.attr('data-price');
+                var percent_price = variant_option.attr('data-percent-price');
+                if (update_val) {
+                    service_input.val(price);
+                }
+                service_input.attr('data-price', price);
+                service_input.attr('data-percent-price', percent_price);
+        };
         this.container.
             off('change', '.s-orders-service-variant').
             on('change', '.s-orders-service-variant', function() {
                 var self = $(this);
                 var option = self.find('option:selected');
                 var li = self.parents('li:first');
-                li.find('.s-orders-service-price').val(option.attr('data-price'));
-            }
-        );
+                updateServicePriceInput(option, li.find('.s-orders-service-price'), true);
+        });
+        this.container.find('.s-orders-service-variant').each(function() {
+                var item = $(this);
+                var option = item.find('option:selected');
+                var li = item.parents('li:first');
+                updateServicePriceInput(option, li.find('.s-orders-service-price'), false);            
+        });
 
         this.container.off('click', '.s-order-item-delete').on('click', '.s-order-item-delete', function() {
 //            $(this).parents('tr:first').replaceWith(
@@ -262,7 +253,18 @@ $.order_edit = {
             on('change', '.s-orders-services input', $.order_edit.updateTotal);
         this.container.
             off('change', '.s-orders-product-price input').
-            on('change', '.s-orders-product-price input', $.order_edit.updateTotal);
+            on('change', '.s-orders-product-price input', function() {
+                var price = $(this).val();
+                $.order_edit.container.find('.s-orders-service-price').each(function() {
+                    var item = $(this);
+                    if (item.data('currency') === '%' && item.attr('data-price') === item.val()) {
+                        var p = price * (item.data('percentPrice') / 100);
+                        item.val(p);
+                        item.attr('data-price', p);
+                    }
+                });
+                $.order_edit.updateTotal.apply(this);
+            });
         this.container.
             off('change', '.s-orders-services .s-orders-service-variant').
             on('change', '.s-orders-services .s-orders-service-variant',
@@ -308,26 +310,21 @@ $.order_edit = {
                 clearTimeout(timer_id);
             }
             self.data('timer_id', setTimeout(function() {
-                if (!validateQuantity(self)) {
-                    self.addClass('error');
-                } else {
-                    $.order_edit.updateTotal();
-                    self.removeClass('error');
-                }
+                $.order_edit.updateTotal();
             }, 450));
         });
 
         if (this.form && this.form.length) {
             this.form.unbind('sumbit').bind('submit', function() {
-                $('.s-orders-quantity').each(function() {
-                    var self = $(this);
-                    if (!validateQuantity(self)) {
-                        self.addClass('error');
-                    } else {
-                        self.removeClass('error');
-                    }
-                });
                 $.order_edit.showValidateErrors();
+                
+                // submit optimization
+                // disable that services that aren't checked
+                $('.s-orders-services input[name^=service]:not(:checked)', this.form).each(function() {
+                    var item = $(this);
+                    item.closest('li').find(':input').attr('disabled', true);
+                });
+                
                 if (!$.order_edit.container.find('.error').length) {
                     if ($.order_edit.id) {
                         $.order_edit.editSubmit();
@@ -339,6 +336,7 @@ $.order_edit = {
             });
         }
     },
+    
 
     updateTotal : function(ajax) {
         var ajax = ajax === undefined ? true : ajax;
@@ -468,6 +466,7 @@ $.order_edit = {
             $.shop.trace('editSubmit', r);
             if (r && r.errors && !$.isEmptyObject(r.errors)) {
                 $.order_edit.showValidateErrors(r.errors);
+                $('.s-orders-services input:disabled', this.form).attr('disabled', false);
                 return false;
             }
         });
@@ -484,6 +483,7 @@ $.order_edit = {
             $.shop.trace('addSubmit', r);
             if (r && r.errors && !$.isEmptyObject(r.errors)) {
                 $.order_edit.showValidateErrors(r.errors);
+                $('.s-orders-services input:disabled', this.form).attr('disabled', false);
                 return false;
             }
         });
@@ -577,7 +577,7 @@ $.order_edit = {
     },
 
     showValidateErrors : function(validate_errors) {
-        $('#s-order-edit-customer .error').removeClass('error');
+        $('.error').removeClass('error');
         $('#s-order-edit-customer .errormsg').empty();
         if (validate_errors && validate_errors.customer) {
             var errors = validate_errors.customer;
@@ -594,6 +594,9 @@ $.order_edit = {
                 });
             }
         }
+        
+        var common_errors = [];
+        
         $('.s-order-errors').empty();
         if (validate_errors && validate_errors.order) {
             if (!$.isEmptyObject(validate_errors.order.items)) {
@@ -606,9 +609,28 @@ $.order_edit = {
                     delete validate_errors.order.items[index];
                 }
             }
-            if (validate_errors.order.common) {
-                $('.s-order-errors').html(validate_errors.order.common);
+
+
+            if (!$.isEmptyObject(validate_errors.order.product)) {
+                var p_errors = validate_errors.order.product;
+                for (var p_id in p_errors) {
+                    if (p_errors.hasOwnProperty(p_id)) {
+                        if ('quantity' in p_errors[p_id]) {
+                            var order_item = $('.s-order-item[data-product-id='+p_id+']');
+                            order_item.find('.s-orders-quantity').addClass('error');
+                            common_errors.push(p_errors[p_id]['quantity']);
+                        }
+                    }
+                }
             }
+            if (validate_errors.order.common) {
+                common_errors.push(validate_errors.order.common);
+            }
+            
+            if (common_errors.length) {
+                $('.s-order-errors').html(common_errors.join("<br>"));
+            }
+            
         }
     },
 
@@ -760,5 +782,9 @@ $.order_edit = {
 
     inputName : function(name) {
         return '"customer[' + name + ']"';
+    },
+            
+    getPercentSymbol: function() {
+        return '%';
     }
 };

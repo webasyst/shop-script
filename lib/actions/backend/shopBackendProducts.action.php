@@ -51,5 +51,7 @@ class shopBackendProductsAction extends waViewAction
         $this->view->assign('backend_products', wa()->event('backend_products'));
 
         $this->view->assign('sidebar_width', $config->getSidebarWidth());
+        
+        $this->view->assign('lang', substr(wa()->getLocale(), 0, 2));
     }
 }

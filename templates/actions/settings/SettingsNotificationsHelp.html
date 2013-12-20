@@ -6,7 +6,10 @@
                     <li><a id="s-n-help" href="#" class="inline-link"><i class="icon16 script"></i><b><i>[`Cheat sheet`]</i></b><i class="icon10 darr-tiny"></i></a></li>
                 </ul>
             </div>
-            <input type="submit" value="[`Save`]" class="button green">
+            <input type="submit" id="n-send-button" value="[`Save`]" class="button green">
+            {if !empty($n)}
+                <input type="button" id="send-test-button" class="button" value="[`Send test`]">
+            {/if}
         </div>
         <div class="value" id="s-n-help-content" style="display:none">
             <div class="block s-cheatsheet">
@@ -148,10 +151,26 @@
                     </div>
                     <div class="field s-sub-field">
                         <div class="name">
+                            &#123;$order.params.shipping_description&#125;
+                        </div>
+                        <div class="value no-shift">
+                            [`Order selected shipping option description`]
+                        </div>
+                    </div>
+                    <div class="field s-sub-field">
+                        <div class="name">
                             &#123;$order.params.payment_name&#125;
                         </div>
                         <div class="value no-shift">
                             [`Order selected payment option name`]
+                        </div>
+                    </div>
+                    <div class="field s-sub-field">
+                        <div class="name">
+                            &#123;$order.params.payment_description&#125;
+                        </div>
+                        <div class="value no-shift">
+                            [`Order selected payment option description`]
                         </div>
                     </div>
                     <div class="field s-sub-field">
@@ -318,6 +337,73 @@
         </div>
     </div>
 </div>
+        
+{if !empty($n)}
+    <div id="send-test-dialog" class="dialog" style="display:none">
+        <div class="dialog-background"></div>
+        <div class="dialog-window">
+            <div class="dialog-content">
+                <div class="dialog-content-indent">
+                    <h1>[`Send test notification`]</h1>
+                    {if empty($test_orders)}
+                        <p>[`Notification testing requires at least one paid or complete order for sample data.`]</p>
+                    {else}
+                        <div class="fields form">
+                            <div class="field">
+                                <div class="name">[`Send to`]</div>
+                                <div class="value">
+                                    {if $n.transport == 'email'}
+                                        <input type="text" value="{$wa->user()->get('email', 'default')|escape}" class="bold">
+                                    {else if $n.transport == 'sms'}
+                                        <input type="text" value="{$wa->user()->get('phone', 'default')|escape}" class="bold">
+                                    {/if}
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="clear-left select-order-message">[`Select an order to fetch sample data from`]</p>
+                        <table class="zebra">
+                        {foreach $test_orders as $o}
+                            <tr>
+                                <td>
+                                    <input type="radio" name="order_selector" value="{$o.id|escape}">
+                                </td>
+                                <td class="nowrap">
+                                    <span style="{$o.style|escape}">
+                                        <i class="{$o.icon}"></i>{$o.id_str}
+                                    </span>
+                                </td>
+                                <td>{$o.create_datetime|wa_date:'humandate'}</td>
+                                <td>
+                                    {foreach $o.items as $i}
+                                        {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
+                                    {/foreach}
+                                </td>
+                                <td class="bold nowrap align-right">{$o.total_formatted}</td>
+                            </tr>
+                        {/foreach}
+                        </table>
+                    {/if}
+                </div>
+            </div>
+            <div class="dialog-buttons">
+                <div class="dialog-buttons-gradient">
+                    {$wa->csrf()}
+                    <div class="before-send">
+                        <input class="button blue" type="submit" value="[`Send test`]" data-n-id={$n.id}>
+                        <span class="s-mgs-after-button" style="display:none;"><i class="icon16 loading"></i></span>
+                        [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a><br>
+                    </div>
+                    <div class="after-send">
+                        <input class="button cancel" type="button" value="[`Close`]">
+                        <em class="bold successmsg"><i class="icon16 yes"></i>[`Test message sent!`]</em>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{/if}
+        
 <script type="text/javascript">
     $("#s-n-help").click(function () {
         $("#s-n-help-content").toggle();

@@ -48,7 +48,7 @@ $.order = {
             if (!self.data('confirm') || confirm(self.data('confirm'))) {
                 self.after('<i class="icon16 loading"></i>');
                 $.post('?module=workflow&action=prepare', {
-                    action_id : self.data('action-id'),
+                    action_id : self.attr('data-action-id'),
                     id : $.order.id
                 }, function(response) {
                     self.parent().find('.loading').remove();
@@ -92,9 +92,12 @@ $.order = {
             return false;
         });
         if (this.options.order) {
-            $.order_list.updateListItem(this.options.order, this.id);
+            $.order_list.updateListItems(this.options.order);
+            $.order_list.container.find('.selected').removeClass('selected');
+            $.order_list.container.find('.order[data-order-id='+this.options.order.id+']').
+                    addClass('selected');
             if (this.options.offset === false) {
-                $.order_list.hideListItem(this.id);
+                $.order_list.hideListItems(this.id);
             };
 
         }

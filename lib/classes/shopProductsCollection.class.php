@@ -24,17 +24,19 @@ class shopProductsCollection
     protected $post_fields = array();
 
     protected $models = array();
+    protected $is_frontend;
 
     /**
-     * Constructor for collections of photos
+     * Constructor for collections of products
      *
      * @param string|array $hash
      * @param array $options
      */
     public function __construct($hash = '', $options = array())
     {
-        foreach ($options as $k => $v) {
-            $this->options[$k] = $v;
+        $this->setOptions($options);
+        if ($this->is_frontend === null) {
+            $this->is_frontend = wa()->getEnv() == 'frontend';
         }
         $this->setHash($hash);
     }
@@ -43,6 +45,9 @@ class shopProductsCollection
     {
         foreach ($options as $k => $v) {
             $this->options[$k] = $v;
+        }
+        if (isset($this->options['frontend'])) {
+            $this->is_frontend = $this->options['frontend'];
         }
     }
 
@@ -65,25 +70,25 @@ class shopProductsCollection
     {
         if (!$this->prepared || $add) {
             $type = $this->hash[0];
-            if (wa()->getEnv() == 'frontend') {
+            if ($this->is_frontend) {
                 $this->frontendConditions();
-                if ($sort = waRequest::get('sort')) {
-                    if ($sort == 'stock') {
-                        $sort = 'count';
+            }
+            if ($sort = waRequest::get('sort')) {
+                if ($sort == 'stock') {
+                    $sort = 'count';
+                }
+                $model = $this->getModel();
+                if ($model->fieldExists($sort)) {
+                    $this->order_by = 'p.'.$sort;
+                    if (waRequest::get('order') == 'desc') {
+                        $order = 'DESC';
+                    } else {
+                        $order = 'ASC';
                     }
-                    $model = $this->getModel();
-                    if ($model->fieldExists($sort)) {
-                        $this->order_by = 'p.'.$sort;
-                        if (waRequest::get('order') == 'desc') {
-                            $order = 'DESC';
-                        } else {
-                            $order = 'ASC';
-                        }
-                        $this->order_by .= ' '.$order;
-                        if ($sort == 'count') {
-                            $this->fields[] = 'IF(p.count IS NULL, 1, 0) count_null';
-                            $this->order_by = 'count_null '.$order.', '.$this->order_by;
-                        }
+                    $this->order_by .= ' '.$order;
+                    if ($sort == 'count') {
+                        $this->fields[] = 'IF(p.count IS NULL, 1, 0) count_null';
+                        $this->order_by = 'count_null '.$order.', '.$this->order_by;
                     }
                 }
             }
@@ -215,6 +220,9 @@ class shopProductsCollection
      */
     protected function categoryPrepare($id, $auto_title = true)
     {
+        /**
+         * @var shopCategoryModel $category_model
+         */
         $category_model = $this->getModel('category');
         $category = $category_model->getById($id);
 
@@ -227,26 +235,14 @@ class shopProductsCollection
         }
 
         $this->info['hash'] = 'category';
-        if (wa()->getEnv() == 'frontend') {
+        if ($this->is_frontend) {
             $this->info['frontend_url'] = wa()->getRouteUrl('shop/frontend/category', array(
                 'category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url']), true);
         } else {
-            $category_routes_model = new shopCategoryRoutesModel();
-            $category['routes'] = $category_routes_model->getRoutes($id);
-            $routing =  wa()->getRouting();
-            $domain_routes = $routing->getByApp('shop');
-            foreach ($domain_routes as $domain => $routes) {
-                foreach ($routes as $r) {
-                    if (!$category['routes'] || in_array($domain.'/'.$r['url'], $category['routes'])) {
-                        $routing->setRoute($r, $domain);
-                        $this->info['frontend_url'] = $routing->getUrl('shop/frontend/category', array(
-                            'category_url' => isset($r['url_type']) && ($r['url_type'] == 1) ? $category['url'] : $category['full_url']),
-                            true);
-                        if (empty($r['private'])) {
-                            break 2;
-                        }
-                    }
-                }
+            $frontend_urls = $category_model->getFrontendUrls($id);
+            if ($frontend_urls) {
+                $this->info['frontend_url'] = $frontend_urls[0];
+                $this->info['frontend_urls'] = $frontend_urls;
             }
         }
 
@@ -254,7 +250,7 @@ class shopProductsCollection
             $this->addTitle($this->info['name']);
         }
 
-        if (wa()->getEnv() != 'frontend' || !waRequest::get('sort')) {
+        if (!waRequest::get('sort')) {
             if (!empty($this->info['sort_products'])) {
                 if ($this->info['sort_products'] == 'count') {
                     $tmp = explode(' ', $this->info['sort_products']);
@@ -269,6 +265,7 @@ class shopProductsCollection
             }
         }
 
+
         if ($this->info['type'] == shopCategoryModel::TYPE_STATIC) {
             $alias = $this->addJoin('shop_category_products');
             if (/*wa()->getEnv() == 'frontend' && */$this->info['include_sub_categories']) {
@@ -280,7 +277,7 @@ class shopProductsCollection
             } else {
                 $this->where[] = $alias.".category_id = ".(int) $id;
             }
-            if (empty($this->info['sort_products']) && (wa()->getEnv() != 'frontend' || !waRequest::get('sort'))) {
+            if ((empty($this->info['sort_products']) && !waRequest::get('sort')) || waRequest::get('sort') == 'sort') {
                 $this->order_by = $alias.'.sort ASC';
             }
         } else {
@@ -584,8 +581,8 @@ class shopProductsCollection
                         $title[] = "category_id ".$parts[1].$parts[2];
                     }
                 } elseif ($parts[0] == 'query') {
-                    $word_model = new shopSearchWordModel();
-                    $word_ids = $word_model->getByString($parts[2]);
+                    $search = new shopIndexSearch();
+                    $word_ids = $search->getWordIds($parts[2], true);
                     if ($word_ids) {
                         $this->joins[] = array(
                             'table' => 'shop_search_index',
@@ -608,7 +605,7 @@ class shopProductsCollection
                     if (!$this->count()) {
                         $this->count = null;
                         $this->joins = $this->where = $this->having = $this->fields = array();
-                        if (wa()->getEnv() == 'frontend') {
+                        if ($this->is_frontend) {
                             if ($this->filtered) {
                                 $this->filtered = false;
                             }
@@ -625,9 +622,9 @@ class shopProductsCollection
                         $p = array_shift($result);
                         $w = str_replace(',', '.', 0.3 * $p['weight']);
                         if (count($word_ids) > 1) {
-                            $this->having[] = 'SUM(si.weight) > '.$w;
+                            $this->having[] = 'SUM(si.weight) >= '.$w;
                         } else {
-                            $this->where[] = 'weight > '.$w;
+                            $this->where[] = 'weight >= '.$w;
                         }
                         $this->count = null;
                     }
@@ -763,6 +760,10 @@ class shopProductsCollection
             }
         }
 
+        if (waRequest::param('drop_out_of_stock')) {
+            $fields[] = '(p.count > 0 || p.count IS NULL) AS in_stock';
+        }
+
         return implode(",", $fields);
     }
 
@@ -773,7 +774,7 @@ class shopProductsCollection
     protected function _getOrderBy()
     {
         if ($this->order_by) {
-            return " ORDER BY ".$this->order_by;
+            return " ORDER BY ".(waRequest::param('drop_out_of_stock') ? 'in_stock DESC,' : '').$this->order_by;
         } else {
             return "";
         }
@@ -829,6 +830,10 @@ class shopProductsCollection
                 } else if ($field == 'sort') {
                     $this->getSQL();
                     return '';
+                } else if (strtolower($field) == 'rand()') {
+                    $this->getSQL();
+                    $this->order_by = 'RAND()';
+                    return '';
                 }
             } else {
                 $this->getSQL();
@@ -843,7 +848,8 @@ class shopProductsCollection
         if (!$this->order_by) {
             return array();
         } else {
-            $order = explode(' ', $this->order_by);
+            $order = explode(',', $this->order_by);
+            $order = explode(' ', trim(end($order)));
             if (!isset($order[1])) {
                 $order[1] = 'ASC';
             }
@@ -890,19 +896,22 @@ class shopProductsCollection
         $sql = $this->getSQL();
         $sql = "SELECT COUNT(".($this->joins ? 'DISTINCT ' : '')."p.id) ".$sql;
         if ($this->having) {
-            $sql .= $this->_getGroupBy();
+            // when make groub by p.id COUNT doesn't work correct
+            if ($this->group_by != 'p.id') {
+                $sql .= $this->_getGroupBy();
+            }
             $sql .= " HAVING ".implode(' AND ', $this->having);
         }
         $count = (int) $this->getModel()->query($sql)->fetchField();
 
         if ($this->hash[0] == 'category' && !empty($this->info['id']) && $this->info['type'] == shopCategoryModel::TYPE_DYNAMIC) {
-            if ($this->info['count'] != $count && wa()->getEnv() != 'frontend') {
+            if ($this->info['count'] != $count && !$this->is_frontend) {
                 $this->getModel('category')->updateById($this->hash[1], array('count' => $count));
             }
         } elseif ($this->hash[0] == 'set' && !empty($this->info['id'])) {
             if ($this->info['type'] == shopSetModel::TYPE_DYNAMIC) {
                 $count = min($this->info['count'], $count);
-            } elseif ($this->info['count'] != $count && wa()->getEnv() != 'frontend') {
+            } elseif ($this->info['count'] != $count && !$this->is_frontend) {
                 $this->getModel('set')->updateById($this->hash[1], array('count' => $count));
             }
         }
@@ -923,7 +932,7 @@ class shopProductsCollection
                 $limit = 50;
             }
         }
-        if (wa()->getEnv() == 'frontend' && $fields == '*') {
+        if ($this->is_frontend && $fields == '*') {
             $fields .= ',frontend_url';
         }
         $split_fields = array_map('trim', explode(',', $fields));
@@ -970,7 +979,7 @@ class shopProductsCollection
             $p['price'] = (float) $p['price'];
             $p['compare_price'] = (float) $p['compare_price'];
 
-            if (wa()->getEnv() == 'frontend' && $p['compare_price'] && $p['compare_price'] <= $p['price']) {
+            if ($this->is_frontend && $p['compare_price'] && $p['compare_price'] <= $p['price']) {
                 $p['compare_price'] = 0;
             }
 
@@ -994,7 +1003,7 @@ class shopProductsCollection
             $ids = array_keys($products);
             foreach ($this->post_fields as $table => $fields) {
                 if ($table == '_internal') {
-                    if (wa()->getEnv() == 'frontend' && waRequest::param('url_type') == 2) {
+                    if ($this->is_frontend && waRequest::param('url_type') == 2) {
                         $cat_ids = array();
                         foreach ($products as &$p) {
                             if (!empty($p['category_id'])) {
@@ -1002,10 +1011,12 @@ class shopProductsCollection
                             }
                         }
                         $cat_ids = array_unique($cat_ids);
-                        $categories = $this->getModel('category')->getById($cat_ids);
-                        foreach ($products as &$p) {
-                            if (!empty($p['category_id'])) {
-                                $p['category_url'] = $categories[$p['category_id']]['full_url'];
+                        if ($cat_ids) {
+                            $categories = $this->getModel('category')->getById($cat_ids);
+                            foreach ($products as &$p) {
+                                if (!empty($p['category_id'])) {
+                                    $p['category_url'] = $categories[$p['category_id']]['full_url'];
+                                }
                             }
                         }
                     }

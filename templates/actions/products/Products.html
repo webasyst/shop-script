@@ -22,7 +22,7 @@
             <span class="count indicator" style="display:none"></span>
             [`Export`]
         </h6>
-        <ul class="menu-v with-icons compact p-no-photo-selected123 thumbs-view-menu" id="share-menu">
+        <ul class="menu-v with-icons compact p-no-photo-selected123 thumbs-view-menu">
             <li data-action="export" data-plugin="csv:product:export"><a href="#"><i class="icon16 ss excel"></i>[`CSV`]</a></li>
 
             <!-- plugin hook: 'backend_products.toolbar_export_li' -->
@@ -37,7 +37,7 @@
             <span class="count indicator" style="display:none"></span>
             [`Organize`]
         </h6>
-        <ul class="menu-v with-icons compact p-no-photo-selected123 thumbs-view-menu" id="share-menu">
+        <ul class="menu-v with-icons compact p-no-photo-selected123 thumbs-view-menu" id="organize-menu">
 
             <!-- plugin hook: 'backend_products.toolbar_organize_li' -->
             {* @event backend_products.%plugin_id%.toolbar_organize_li *}
@@ -70,6 +70,15 @@
 
         </ul>
     </div>
+            
+    <div class="block" id="hint-menu-block" style="display:none;">
+        <p class="p-sort-order-error-disclaimer create_datetime" style="display:none;">[`Products in this view are sorted <strong>by date added</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer name" style="display:none;">[`Products in this view are sorted <strong>by name</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer price" style="display:none;">[`Products in this view are sorted <strong>by price</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer count" style="display:none;">[`Products in this view are sorted <strong>by count in stocks</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer rating" style="display:none;">[`Products in this view are sorted <strong>by rating</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer total_sales" style="display:none;">[`Products in this view are sorted <strong>by total sales value</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+    </div>
 
     <!-- plugin hook: 'backend_products.toolbar_section' -->
     {* @event backend_products.%plugin_id%.toolbar_section *}
@@ -98,8 +107,7 @@
 
         </h1>
         <ul class="menu-h small s-product-nav">
-            {if $view != 'table'}
-            <!-- order -->
+            <!-- sort order -->
             <li class="s-inline-mixed-string float-right" id="s-sort-control">
                 <ul class="menu-v dropdown">
                     <li>[`Order by`]:
@@ -168,7 +176,6 @@
                     </li>
                 </ul>
             </li>
-            {/if}
 
             <!-- view mode -->
             <li{if $wa->get("view") != 'table'} class="selected"{/if}>
@@ -184,12 +191,15 @@
 
             <!-- frontend link -->
             <li class="s-inline-mixed-string">
-            {if !empty($info.frontend_url)}
-                [`Storefront link`]: <a id="s-category-frontend-link" href="{$info.frontend_url}" target="_blank">{$info.frontend_url}</a> <i class="icon10 new-window"></i>
+            {if !empty($info.frontend_urls)}
+                [`Storefront link`]:
+                {foreach $info.frontend_urls as $frontend_url}
+                    <a id="s-category-frontend-link" href="{$frontend_url}" target="_blank">{$frontend_url}</a> <i class="icon10 new-window"></i>
+                {/foreach}
             {elseif $info.hash == 'set'}
-                <span class="s-embed">[`Embed into template or page`]:
-                    <strong class="s-embed-code" id="s-embed-code">&#123;$wa-&gt;shop-&gt;productSet("{$id}")&#125;</strong>
-                    <input id="s-embed-code-input" value="&#123;$wa-&gt;shop-&gt;productSet("{$id}")&#125;" class="s-embed-code-input" readonly="readonly" style="display: none;">
+                <span class="s-embed">
+                    <strong class="black">&#123;$wa->shop->productSet("{$id}")&#125;</strong>
+                    <a href="#" id="s-embed-code">[`Get embed code`]</a>
                 </span>
             {/if}
             </li>
@@ -259,10 +269,64 @@
         </div>
         </form>
     </div>
+
+    {if $info.hash == 'set'}
+        <div class="dialog width800px height350px" id="s-product-list-embed-dialog">
+            <div class="dialog-background"></div>
+            <div class="dialog-window">
+                <div class="dialog-content">
+                    <div class="block double-padded" style="padding-bottom: 0;">
+                        <h1>{$id}</h1>
+                        <p>[`Full HTML/Smarty code for embedding this product set into a design template or a page of any app of this Webasyst installation.`]</p>
+                    </div>
+                    <textarea style="display:none" id="s-product-list-embed-content">{literal}
+{if $wa->shop}
+  {$products = $wa->shop->productSet("{{/literal}$id{literal}}")}
+  <ul class="thumbs li250px">
+    {foreach $products as $p}
+      <li itemscope itemtype ="http://schema.org/Product">
+        <div class="image">
+          <a href="{$p.frontend_url}" title="{$p.name}{if $p.summary} &mdash; {strip_tags($p.summary)}{/if}">
+            {$wa->shop->productImgHtml($p, '200', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
+            <h5 itemprop="name">{$p.name}</h5>
+          </a>
+        </div>
+        {if $p.summary}<p itemprop="description">{$p.summary}</p>{/if}
+        <div itemprop="offers" class="offers" itemscope itemtype="http://schema.org/Offer">
+          {if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency_html($p.compare_price)} </span>{/if}
+          <span class="price nowrap" itemprop="price">{shop_currency_html($p.price)}</span>
+        </div>
+      </li>
+    {/foreach}
+  </ul>
+{/if}
+                    {/literal}</textarea>
+                    <div class="ace">
+                        <div id="s-product-list-embed-content-ace" style="max-height: 350px;">
+                    </div>
+                </div>
+                <div class="dialog-buttons">
+                    <div class="dialog-buttons-gradient">
+                        {$wa->csrf()}
+                        <input class="button gray cancel" type="button" value="[`Close`]">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+                wa_url = '{$wa_url}';
+                waEditorAceInit({
+                    'id': 's-product-list-embed-content',
+                    'ace_editor_container': 's-product-list-embed-content-ace'
+                });
+                wa_editor.selectAll();
+            </script>
+    {/if}
+                    
 </div>
-{$title = $title|cat:" — ":{$wa->accountName()}}
+{$title = $title|cat:" — ":{$wa->accountName(false)}}
 <script type="text/javascript">
-    document.title = '{$title|escape}';
+    document.title = '{$title|escape:'javascript'}';
     $.product_list.init({
         view: '{$view}',
         collection_hash: {json_encode($collection_hash)},

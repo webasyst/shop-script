@@ -106,7 +106,7 @@
         <div class="block double-padded">
             <h2>[`Usage`]</h2>
             {if $orders}
-                <p>{_w("[`This coupon was used for <strong>%d order</strong>.`]", "[`This coupon was used for <strong>%d orders</strong>.`]", count($orders))}</p>
+                <p>{_w("This coupon was used for <strong>%d order</strong>.", "This coupon was used for <strong>%d orders</strong>.", count($orders))}</p>
                 <table class="zebra">
                     {foreach $orders as $o}
                         <tr>
@@ -156,6 +156,9 @@
             $.post(form.attr('action'), { 'delete': 1 });
             $('#s-content .sidebar li.selected').remove();
             form.parents('.s-coupon-border').html("[`Coupon %s has been deleted.`]".replace('%s', code)).parent().siblings().remove();
+            var counter = $('#s-coupons .count');
+            var cnt = parseInt(counter.text(), 10) || 0;
+            counter.text(cnt > 0 ? cnt - 1 : 0);
         });
     {/if}
 
@@ -209,6 +212,16 @@
         if (!code_field.val()) {
             valid = false;
             code_field.addClass('error').after($('<em class="errormsg"></em>').text("[`This field is required.`]"));
+        }
+
+        var discount_value = 0;
+        var discount_input = $('[name="coupon[value]"]');
+        if ($('[name="coupon[type]"]').val() === '%') {
+            discount_value = parseInt(discount_input.val(), 10);
+            if (isNaN(discount_value) || discount_value < 0 || discount_value > 100) {
+                valid = false;
+                discount_input.addClass('error').nextAll().after($('<em class="errormsg"></em>').text("[`Must be a value from 0 to 100`]"));
+            }
         }
 
         return valid;

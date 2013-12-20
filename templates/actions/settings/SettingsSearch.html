@@ -1,0 +1,130 @@
+<div class="block double-padded blank s-settings-form">
+    <h1 style="margin-bottom: 0.75em;">[`Product search`]</h1>
+    <p>[`Product search is performed by multiple product parameters including name, descriptions, tags, feature values, and others. When product information is indexed for search, every parameter value is counted with a priority (weight) you define using the chart below. Fine-tune product search by defining which parameters have the most priority for search (100 is the highest priority, 0 is the lowest).`]</p>
+    <div id="s-settings-block">
+        <form action="?module=settings&action=searchSave" method="post" id="s-settings-form">
+            <div class="fields form">
+                <div class="field-group">
+
+                    {foreach $fields as $field => $field_name}
+                        <div class="field">
+                            <div class="name">{$field_name}</div>
+                            <div class="value">
+                                <input type="text" name="weights[{$field}]" value="{ifset($weights[$field])}">
+                                <div class="s-search-weight-value">
+                                    <strong class="weight-value"></strong>
+                                    {if isset($default_weights[$field])}
+                                        <span class="hint default-weight" style="display:none;">{sprintf('Default value: %d', $default_weights[$field])}</span>
+                                    {/if}
+                                </div>
+                            </div>
+                        </div>
+                    {/foreach}
+                    {if isset($weights.other)}
+                    <input type="hidden" name="weights[other]" value="{$weights.other}">
+                    {/if}
+                </div>
+                
+                <div class="field-group">
+
+                    <div class="field">
+                        <div class="name">[`Ignore symbols`]</div>
+                        <div class="value">
+                            <input type="text" name="ignore" value="{$ignore|escape}"><br>
+                            <p class="hint">[`All ignored symbols will be automatically omitted from the user search query. Example: if product name contains “V-112”, and you wish users to be able to find this product using “v112” search criteria, add - (hyphen) to the list of ignored symbols.`]</p>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="name">[`Search on part of word`]</div>
+                        <div class="value no-shift">
+                            <label>
+                                <input id="search_by_part" type="checkbox"{if $by_part} checked{/if}> [`Search on part of word`]
+                            </label>
+                            <p class="hint">[`Enabling this option will make words such as “transmitter” and “transformer” found by a search query such as “trans”. Recommended if most products in your online store come with long or complex names.`]</p>
+                        </div>
+                        <div class="value small" id="search_by_part_div"{if !$by_part} style="display:none"{/if}>
+                            {$_by_part_char_count=''}
+                            {if $by_part}{$_by_part_char_count=$by_part}{/if}
+                            {sprintf('[`Only if search query length is no less then %s characters`]', '<input class="short" type="text" name="by_part" value="'|cat:$_by_part_char_count|cat:'">')}
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="value submit">
+                            <input type="submit" name="save" class="button green" value="[`Save`]">
+                            <span class="hidden s-mgs-after-button"><i class="icon16 yes after-submit"></i>[`Saved`]</span>
+                        </div>
+                        <div class="value no-shift" style="display:none;" id="submit-message">
+                            <p class="small"><em class="highlighted">[`Updated search settings will be applied only to products added or updated after new settings had been saved. To apply updated search settings to all existing products, re-index entire product search database.`]</em></p>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="value">
+                            <hr>
+                        </div>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <div class="field">
+                        <div></div>
+                        <div class="value">
+                            <a class="inline-link" href="#" id="s-reindex">[`Re-index all products for search`]</a><br>
+                            <span class="hint">[`Re-generate search index database for all existing products of your online store.`]</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {$wa->csrf()}
+        </form>
+    </div>
+</div>
+        
+{* dialogs section *}
+
+<div class="dialog width600px height300px" id="s-reindex-dialog">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=settings&action=searchReindex">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Re-index all products for search`]</h1>
+                <p>[`This will re-generate search index database table for all existing products of your online store.`] [`Depending on the number of products, this operation may take from few seconds to few minutes or even hours for very large databases.`]</p>
+                <div id="s-reindex-progressbar" style="display:none; margin-top: 20px;">
+                    
+                    <div class="progressbar blue float-left" style="display: none; width: 70%;">
+                        <div class="progressbar-outer">
+                            <div class="progressbar-inner" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
+                    <div class="clear"></div>
+                    <span class="progressbar-description">0.000%</span>
+                    <em class="hint">[`Please don't close your browser window until the entire process is finished.`]</em>
+                    <br clear="left" />
+                    <em class="errormsg"></em>
+                </div>
+                
+                <div id="s-reindex-report" style="display: none; margin-top: 20px;"></div>
+                
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button green" type="submit" value="[`Start re-indexing process`]">
+                [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+                
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+                
+<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/search.js?{$wa->version()}"></script>
+<script type="text/javascript">
+document.title = '{"[`Product search`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+if(typeof($)!='undefined') {
+    $.settings.searchInit();
+}
+</script>

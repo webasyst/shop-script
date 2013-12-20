@@ -25,11 +25,19 @@ class shopLoginAction extends waLoginAction
     {
         $referer = waRequest::server('HTTP_REFERER');
         $referer = substr($referer, strlen($this->getConfig()->getHostUrl()));
-        if ($referer != wa()->getRouteUrl('/login')) {
+        $checkout_url = wa()->getRouteUrl('shop/frontend/checkout');
+
+        if ($referer && !strncasecmp($referer, $checkout_url, strlen($checkout_url))) {
+            $url = $referer;
+        } elseif ($referer != wa()->getRouteUrl('/login')) {
             $url = $this->getStorage()->get('auth_referer');
         }
         if (empty($url)) {
-            $url = wa()->getRouteUrl('shop/frontend/my/');
+            if (waRequest::param('secure')) {
+                $url = $this->getConfig()->getCurrentUrl();
+            } else {
+                $url = wa()->getRouteUrl('shop/frontend/my');
+            }
         }
         $this->getStorage()->del('auth_referer');
         $this->getStorage()->del('shop/cart');

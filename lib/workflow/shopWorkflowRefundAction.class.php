@@ -24,6 +24,16 @@ class shopWorkflowRefundAction extends shopWorkflowAction
                 'paid_month' => null,
                 'paid_quarter' => null,
             ));
+            
+            // for logging changes in stocks
+            shopProductStocksLogModel::setContext(
+                    shopProductStocksLogModel::TYPE_ORDER,
+                    'Order %s was refunded',
+                    array(
+                        'order_id' => $order_id
+                    )
+            );
+            
             $order_model->returnProductsToStocks($order_id);
             shopAffiliate::cancelBonus($order_id);
             $order_model->recalculateProductsTotalSales($order_id);

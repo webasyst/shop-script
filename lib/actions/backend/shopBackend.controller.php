@@ -15,6 +15,8 @@ class shopBackendController extends waViewController
                 $this->executeAction(new shopBackendStorefrontsAction());
             } elseif ($this->getRights('reports')) {
                 $this->executeAction(new shopBackendReportsAction());
+            } elseif (wa()->getUser()->getRights('shop', 'settings')) {
+                $this->executeAction(new shopBackendSettingsAction());
             }
         }
     }

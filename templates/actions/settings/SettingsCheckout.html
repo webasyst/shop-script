@@ -65,11 +65,13 @@
                             <div class="field system">
                                 <div class="value submit">
                                     <br>
+                                    {if $step_id != 'contactinfo'}
                                     <div class="float-right">
                                         <ul class="menu-h with-icons">
                                             <li><a href="#" class="link-disable"><i class="icon16 no"></i>[`Disable this step`]</a></li>
                                         </ul>
                                     </div>
+                                    {/if}
                                     <input type="submit" class="button green submit" value="[`Save`]">
                                 </div>
                             </div>
@@ -116,7 +118,7 @@
 
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/checkout.js?{$wa->version()}"></script> {* !!! move to layout? *}
 <script type="text/javascript">
-    document.title = "[`Checkout`] — {$wa->accountName()|escape}";
+    document.title ='{"[`Checkout`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     $.settings.checkoutInit({
         loc: {
             field_is_required: "[`This field is required.`]",

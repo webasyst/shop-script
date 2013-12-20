@@ -23,7 +23,7 @@
     </div>
 </div>
 <script>
-    document.title = '{"[`Reviews`]"|cat:" — ":{$wa->accountName()}}';
+    document.title = '{"[`Reviews`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     $.product_reviews.init({
         statuses: {
             deleted: '{shopProductReviewsModel::STATUS_DELETED}',

@@ -36,7 +36,7 @@ class shopCart
     public function total($discount = true)
     {
         if (!$discount) {
-            return $this->model->total($this->code);
+            return (float) $this->model->total($this->code);
         }
         $total = $this->getSessionData('total');
         if ($total === null) {
@@ -49,7 +49,7 @@ class shopCart
             $total = $total - $discount;
             $this->setSessionData('total', $total);
         }
-        return $total;
+        return (float) $total;
     }
 
     public function discount()
@@ -135,7 +135,12 @@ class shopCart
         }
 
         foreach ($items as $s) {
-            $price += shop_currency($prices[$s['service_variant_id']]['price'] * $item['quantity'], $prices[$s['service_variant_id']]['currency'], null, false);
+            $v = $prices[$s['service_variant_id']];
+            if ($v['currency'] == '%') {
+                $v['price'] = $v['price'] * $item['price'] / 100;
+                $v['currency'] = $item['currency'];
+            }
+            $price += shop_currency($v['price'] * $item['quantity'], $v['currency'], null, false);
         }
         return $price;
     }

@@ -93,10 +93,35 @@
     });
 
     form.submit(function() {
-        form.find(':submit').attr('disabled', true);
-        $.post(form.attr('action'), form.serialize(), function(r) {
-            $('#s-discounts-content').html(r);
+    
+    
+        form.find('.error').removeClass('error');
+        form.find('.errormsg').remove();
+        
+        form.find('.rate-row:not(.template) input').each(function() {
+            var item = $(this), name = item.attr('name'), val = 0;
+            if (name && name.indexOf('discount') !== -1) {
+                val = parseInt(item.val(), 10);
+                if (isNaN(val) || val < 0 || val > 100) {
+                    item.addClass('error');
+                    item.after('<span class="errormsg">[`Must be a value from 0 to 100`]</span>');
+                }
+            }
+            if (name && name.indexOf('sum') !== -1) {
+                val = parseInt(item.val(), 10);
+                if (isNaN(val) || val < 0) {
+                    item.addClass('error');
+                    item.after('<span class="errormsg">[`Must be a positive value or zero`]</span>');
+                }
+            }
         });
+        
+        if (!form.find('.error').length) {
+            form.find(':submit').attr('disabled', true);
+            $.post(form.attr('action'), form.serialize(), function(r) {
+                $('#s-discounts-content').html(r);
+            });
+        }
         return false;
     });
 

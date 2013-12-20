@@ -64,17 +64,20 @@ class shopViewHelper extends waAppViewHelper
         return $escape ? htmlspecialchars($result) : $result;
     }
 
-    public function sortUrl($sort, $name)
+    public function sortUrl($sort, $name, $active_sort = null)
     {
+        if ($active_sort === null) {
+            $active_sort = waRequest::get('sort');
+        }
         $inverted = in_array($sort, array('rating', 'create_datetime', 'total_sales', 'count', 'stock'));
         $data = waRequest::get();
         $data['sort'] = $sort;
-        if ($sort == waRequest::get('sort')) {
+        if ($sort == $active_sort) {
             $data['order'] = waRequest::get('order') == 'asc' ? 'desc' : 'asc';
         } else {
             $data['order'] = $inverted ? 'desc' : 'asc';
         }
-        $html = '<a href="?'.http_build_query($data).'">'.$name.($sort == waRequest::get('sort') ? ' <i class="sort-'.($data['order'] == 'asc' ? 'desc' : 'asc').'"></i>' : '').'</a>';
+        $html = '<a href="?'.http_build_query($data).'">'.$name.($sort == $active_sort ? ' <i class="sort-'.($data['order'] == 'asc' ? 'desc' : 'asc').'"></i>' : '').'</a>';
         return $html;
     }
 
@@ -177,11 +180,16 @@ class shopViewHelper extends waAppViewHelper
     }
 
 
-    public function crossSelling($product_id, $limit = 5, $key = false)
+    public function crossSelling($product_id, $limit = 5, $available_only = false, $key = false)
     {
         if (!is_numeric($limit)) {
-            $key = $limit;
+            $key = $available_only;
+            $available_only = $limit;
             $limit = 5;
+        }
+        if (is_string($available_only)) {
+            $key = $available_only;
+            $available_only = false;
         }
         if (!$product_id) {
             return array();
@@ -200,7 +208,7 @@ class shopViewHelper extends waAppViewHelper
             ORDER BY RAND() LIMIT 1";
             $p = $product_model->query($sql, array('id' => $product_id))->fetchAssoc();
             $p = new shopProduct($p);
-            $result = $p->crossSelling($limit);
+            $result = $p->crossSelling($limit, $available_only);
             foreach ($result as $p_id => $pr) {
                 if (in_array($p_id, $product_id)) {
                     unset($result[$p_id]);
@@ -209,7 +217,7 @@ class shopViewHelper extends waAppViewHelper
             return $result;
         } else {
             $p = new shopProduct($product_id);
-            return $p->crossSelling($limit);
+            return $p->crossSelling($limit, $available_only);
         }
     }
 
@@ -236,12 +244,17 @@ class shopViewHelper extends waAppViewHelper
         $category_model = new shopCategoryModel();
         $category = $category_model->getById($id);
 
-        $category['subcategories'] = $category_model->getSubcategories($category, $this->getRoute());
-        $category_url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
-        foreach ($category['subcategories'] as &$sc) {
-            $sc['url'] = str_replace('%CATEGORY_URL%', waRequest::param('url_type') == 1 ? $sc['url'] : $sc['full_url'], $category_url);
+        $route = $this->getRoute();
+        if (!$route) {
+            $category['subcategories'] = array();
+        } else {
+            $category['subcategories'] = $category_model->getSubcategories($category, $route['domain'].'/'.$route['url']);
+            $category_url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
+            foreach ($category['subcategories'] as &$sc) {
+                $sc['url'] = str_replace('%CATEGORY_URL%', isset($route['url_type']) && $route['url_type'] == 1 ? $sc['url'] : $sc['full_url'], $category_url);
+            }
+            unset($sc);
         }
-        unset($sc);
 
         $category_params_model = new shopCategoryParamsModel();
         $category['params'] = $category_params_model->get($category['id']);
@@ -257,26 +270,68 @@ class shopViewHelper extends waAppViewHelper
         return $this->wa->getRouteUrl('shop/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url']));
     }
 
-    protected function getRoute()
+    protected function getRoute($domain = null, $route_url = null)
     {
-        return wa()->getRouting()->getDomain(null, true).'/'.wa()->getRouting()->getRoute('url');
+        $current_domain = wa()->getRouting()->getDomain(null, true);
+        $current_route = wa()->getRouting()->getRoute();
+        if (wa()->getApp() != 'shop' || ($domain && $current_domain != $domain) || ($route_url && $route_url != $current_route['url'])) {
+            $routes = wa()->getRouting()->getByApp('shop');
+            if (!$routes) {
+                return false;
+            }
+            if ($domain && !isset($routes[$domain])) {
+                return false;
+            }
+            $domain = $current_domain;
+            if (!isset($routes[$domain])) {
+                $domain = key($routes);
+            }
+        } else {
+            $current_route['domain'] = $current_domain;
+            return $current_route;
+        }
+        if ($route_url) {
+            $route = false;
+            foreach ($routes[$domain] as $r) {
+                if ($r['url'] === $route_url) {
+                    $route = $r;
+                    break;
+                }
+            }
+        } else {
+            $route = end($routes[$domain]);
+        }
+        if ($route) {
+            $route['domain'] = $domain;
+        }
+        return $route;
     }
 
-    public function categories($id = 0, $depth = null, $tree = false, $params = false)
+    public function categories($id = 0, $depth = null, $tree = false, $params = false, $route = null)
     {
         if ($id === true) {
             $id = 0;
             $tree = true;
         }
         $category_model = new shopCategoryModel();
-        $cats = $category_model->getTree($id, $depth, false, $this->getRoute());
-        $url = $this->wa->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
+        if ($route && !is_array($route)) {
+            $route = explode('/', $route, 2);
+            $route = $this->getRoute($route[0], isset($route[1]) ? $route[1] : null);
+        }
+        if (!$route) {
+            $route = $this->getRoute();
+        }
+        if (!$route) {
+            return array();
+        }
+        $cats = $category_model->getTree($id, $depth, false, $route['domain'].'/'.$route['url']);
+        $url = $this->wa->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'), false, $route['domain'], $route['url']);
         $hidden = array();
         foreach ($cats as $c_id => $c) {
             if ($c['parent_id'] && $c['id'] != $id && !isset($cats[$c['parent_id']])) {
                 unset($cats[$c_id]);
             } else {
-                $cats[$c_id]['url'] = str_replace('%CATEGORY_URL%', waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url'], $url);
+                $cats[$c_id]['url'] = str_replace('%CATEGORY_URL%', isset($route['url_type']) && $route['url_type'] == 1 ? $c['url'] : $c['full_url'], $url);
                 $cats[$c_id]['name'] = htmlspecialchars($cats[$c_id]['name']);
             }
         }

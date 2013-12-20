@@ -3,6 +3,40 @@
 class shopOrderSaveController extends waJsonController
 {
     private $models = array();
+    private $shipping_address;
+    private $billing_address;
+
+
+    protected function setAddress(waContact $contact, $params, $ext)
+    {
+        $address = shopHelper::getOrderAddress($params, $ext);
+        if ($contact['address.'.$ext]) {
+            $flag = false;
+            foreach ($contact['address.'.$ext] as $i => $a) {
+                $flag = true;
+                foreach ($address as $k => $v) {
+                    $old_v = isset($a['data'][$k]) ? $a['data'][$k] : '';
+                    if ($v !== $old_v) {
+                        $flag = false;
+                        break;
+                    }
+                }
+                if ($flag) {
+                    break;
+                }
+            }
+            if ($flag) {
+                $tmp = $contact['address.'.$ext];
+                $tmp[$i] = ($ext == 'shipping') ? $this->shipping_address : $this->billing_address;
+                $contact['address.'.$ext] = $tmp;
+            }
+        } else {
+            $tmp = ($ext == 'shipping') ? $this->shipping_address : $this->billing_address;
+            if ($tmp) {
+                $contact['address.'.$ext] = $tmp;
+            }
+        }
+    }
 
     public function execute()
     {
@@ -31,16 +65,28 @@ class shopOrderSaveController extends waJsonController
         }
 
         if ($data = $this->getData($id)) {
-            $this->validate($data);
+            $this->validate($data, $id);
         }
 
         if ($this->errors) {
             return;
         }
 
+        $params_model = new shopOrderParamsModel();
+        $params = $params_model->get($id);
+
         if ($customer_id !== null) {
             foreach((array)$form->post() as $fld_id => $fld_data) {
                 if (!$fld_data) {
+                    continue;
+                }
+                if ($fld_id == 'address.shipping') {
+                    $this->shipping_address = $fld_data;
+                    $this->setAddress($contact, $params, 'shipping');
+                    continue;
+                } elseif ($fld_id == 'address.billing') {
+                    $this->billing_address = $fld_data;
+                    $this->setAddress($contact, $params, 'billing');
                     continue;
                 }
                 if (is_array($fld_data) && !empty($fld_data[0])) {
@@ -118,6 +164,8 @@ class shopOrderSaveController extends waJsonController
                     $w = $w / $m;
                 }
                 $item['weight'] = $w;
+            } else {
+                $item['weight'] = 0;
             }
         }
         unset($item);
@@ -139,6 +187,7 @@ class shopOrderSaveController extends waJsonController
                 $shipping_address = $address['data'];
             }
         }
+        $empty_address = false;
         // shipping
         if ($shipping_id = waRequest::post('shipping_id')) {
             $shipping_parts = explode('.', $shipping_id);
@@ -149,6 +198,10 @@ class shopOrderSaveController extends waJsonController
             $plugin_info = $model->getById($shipping_id);
             $plugin = shopShipping::getPlugin($plugin_info['plugin'], $shipping_id);
             $rates = $plugin->getRates($this->getOrderItems($data['items'], $plugin->allowedWeightUnit()), $shipping_address);
+            // save address
+            if ($plugin->allowedAddress() === false) {
+                $empty_address = true;
+            }
             if (!$rate_id) {
                 $rate = reset($rates);
                 $data['params']['shipping_rate_id'] = key($rates);
@@ -190,20 +243,19 @@ class shopOrderSaveController extends waJsonController
                 $opm = new shopOrderParamsModel();
                 foreach($opm->get($id) as $k => $v) {
                     if (preg_match('~^(billing|shipping)_address\.~', $k)) {
-                        $data['params'][$k] = '';
+                        $data['params'][$k] = null;
                     }
                 }
             }
-            // Save addresses from contact into params
-            foreach (array('shipping', 'billing') as $ext) {
-                $address = $data['contact']->getFirst('address.'.$ext);
-                if (!$address) {
-                    $address = $data['contact']->getFirst('address');
+            if (!$empty_address && $this->shipping_address) {
+                foreach ($this->shipping_address as $k => $v) {
+                    $data['params']['shipping_address.'.$k] = $v;
                 }
-                if (!empty($address['data'])) {
-                    foreach ($address['data'] as $k => $v) {
-                        $data['params'][$ext.'_address.'.$k] = $v;
-                    }
+            }
+
+            if ($this->billing_address) {
+                foreach ($this->billing_address as $k => $v) {
+                    $data['params']['billing_address.'.$k] = $v;
                 }
             }
         }
@@ -235,14 +287,126 @@ class shopOrderSaveController extends waJsonController
         return array();
     }
 
-    private function validate($data)
+    private function validate($data, $order_id)
     {
         if (empty($data['items'])) {
             $this->errors['order']['common'] = _w('There is not one product for order');
         }
+      
+        if (!wa('shop')->getSetting('ignore_stock_count')) {
+            $this->validateExceedStocksCount($data, $order_id);
+        }
+        
         return empty($this->errors);
     }
+    
+    private function validateExceedStocksCount($data, $order_id)
+    {
+        $sku_ids = array();
 
+        // calc currenct quantity usage
+        $usage = array();
+        foreach ($data['items'] as $i) {
+            if ($i['type'] == 'product') {
+                if ($i['stock_id']) {
+                    if (!isset($usage[$i['sku_id']][$i['stock_id']])) {
+                        $usage[$i['sku_id']][$i['stock_id']] = 0;
+                    }
+                    $usage[$i['sku_id']][$i['stock_id']] += $i['quantity'];
+                } else {
+                    if (!isset($usage[$i['sku_id']])) {
+                        $usage[$i['sku_id']] = 0;
+                    }
+                    $usage[$i['sku_id']] += $i['quantity'];
+                }
+                $sku_ids[] = $i['sku_id'];
+            }
+        }
+
+        // calc old quantity usage of this order (if order is new, than array will be empty)
+        $old_usage = array();
+        foreach ($this->getModel('order_items')->getByField(
+                array('order_id' => $order_id, 'type' => 'product'),
+                'id'
+        ) as $i) 
+        {
+            if ($i['stock_id']) {
+                if (!isset($old_usage[$i['sku_id']][$i['stock_id']])) {
+                    $old_usage[$i['sku_id']][$i['stock_id']] = 0;
+                }
+                $old_usage[$i['sku_id']][$i['stock_id']] += $i['quantity'];
+            } else {
+                if (!isset($old_usage[$i['sku_id']])) {
+                    $old_usage[$i['sku_id']] = 0;
+                }
+                $old_usage[$i['sku_id']] += $i['quantity'];
+            }
+            $sku_ids[] = $i['sku_id'];
+        }
+
+        $sku_ids = array_unique($sku_ids);
+
+        // calc stock counts
+        $sku_stocks = $this->getSkuStocks($sku_ids);
+        $skus = $this->getModel('product_skus')->getByField('id', $sku_ids, 'id');
+        $counts = array();
+        foreach ($sku_stocks as $sku_id => &$stock) {
+            if (empty($stock)) {
+                $counts[$sku_id] = $skus[$sku_id]['count'];
+            } else {
+                foreach ($stock as $stock_id => $st) {
+                    $counts[$sku_id][$stock_id] = $st['count'];
+                }
+            }
+        }
+
+        // summarize stock counts with old usage as if temporary return items to stocks
+        foreach ($old_usage as $sku_id => $ou) {
+            if (!is_array($counts[$sku_id])) {
+                $cnt = array_sum((array)$ou);
+                $counts[$sku_id] += $cnt;
+            } else {
+                if (is_array($ou)) {
+                    foreach ($ou as $stock_id => $cnt) {
+                        if (isset($counts[$sku_id][$stock_id])) {
+                            $counts[$sku_id][$stock_id] += $cnt;
+                        }
+                    }
+                } else {
+                    $stock_ids = array_keys($counts[$sku_id]);
+                    $first_stock_id = reset($stock_ids);
+                    $counts[$sku_id][$first_stock_id] += $ou;
+                }
+            }
+        }
+
+        // AND NOW check CURRENT USAGE does not exceed COUNTs in stocks
+        $error_sku_id = null;
+        foreach ($usage as $sku_id => $u) {
+            if (is_array($u)) {
+                foreach ($u as $stock_id => $cnt) {
+                    if (isset($counts[$sku_id][$stock_id]) && $cnt > $counts[$sku_id][$stock_id]) {
+                        $error_sku_id = $sku_id;
+                        break 2;
+                    }
+                }
+            } else {
+                if ($counts[$sku_id] !== null && $u > $counts[$sku_id]) {
+                    $error_sku_id = $sku_id;
+                    break;
+                }
+            }
+        }
+
+        // Error for some sku
+        if ($error_sku_id) {
+            $sku = $this->getModel('product_skus')->getById($error_sku_id);
+            $product_id = $sku['product_id'];
+            $this->errors['order']['product'][$product_id]['quantity'] = _w('Common quantity usage is exceed for this product');
+        }
+        
+    }
+    
     private function validateEditDataStocks()
     {
         $skus   = $this->post('sku', array(), 'edit');
@@ -262,6 +426,7 @@ class shopOrderSaveController extends waJsonController
                 $this->errors['order']['items'][$index]['stock_id'] = _w('Select stock');
             }
         }
+        
         return empty($this->errors);
     }
 

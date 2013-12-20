@@ -18,7 +18,6 @@ class shopReviewsAction extends waViewAction
             array('is_new' => true)
         );
         */
-
         $reviews = $product_reivews_model->getList('*,is_new,contact,product', array(
                 'offset' => $offset,
                 'limit' => $reviews_per_page

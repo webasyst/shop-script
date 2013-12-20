@@ -48,6 +48,10 @@ return array(
                 'women',
                 'unisex',
             ),
-        )
+        ),
+        'weight' => array(
+            'name' => 'Weight',
+            'type' => shopFeatureModel::TYPE_DIMENSION.'.weight'
+        ),
     ),
 );

@@ -49,6 +49,19 @@ class shopCheckoutPayment extends shopCheckout
         $view->assign('checkout_payment_methods', $methods);
         $m = reset($methods);
         $view->assign('payment_id', $this->getSessionData('payment', $m ? $m['id'] : null));
+        
+        $checkout_flow = new shopCheckoutFlowModel();
+        $step_number = shopCheckout::getStepNumber('payment');
+        // IF no errors 
+        $checkout_flow->add(array(
+            'step' => $step_number
+        ));
+        // ELSE
+//        $checkout_flow->add(array(
+//            'step' => $step_number,
+//            'description' => ERROR MESSAGE HERE
+//        ));
+        
     }
 
     protected function getCustomFields($id, waPayment $plugin)

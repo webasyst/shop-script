@@ -55,6 +55,32 @@
                 <input id="n-name" name="data[name]" type="text" class="bold" value="{$n.name}">
             </div>
         </div>
+        <div class="field">
+            <div class="name">[`Enabled`]</div>
+            <div class="value">
+                <input type="checkbox" name="data[status]" value="1" {if $n.status}checked{/if}>
+            </div>
+        </div>
+    </div>
+            
+    <div class="field-group">
+        <div class="field">
+            <div class="name">[`Order source`]</div>
+            <div class="value no-shift">
+                <select name="data[source]">
+                    <option value="" {if !$n.source}selected{/if}>[`All order sources`]</option>
+                    <option value="backend" {if $n.source == 'backend'}selected{/if}>[`Backend orders only`]</option>
+                    {foreach $routes as $domain => $domain_routes}
+                        {foreach $domain_routes as $route}
+                            {$url = $domain|cat:"/":$route.url}
+                            <option {if $url == $n.source}selected{/if} value="{$url}">{$url}</option>
+                        {/foreach}
+                    {/foreach}
+                </select>
+                <p class="hint">[`Notification will be sent only for orders placed via the selected source.`]</p>
+            </div>
+        </div>
+    </div>
 
     <div class="field-group">
         {include file="templates/actions/settings/SettingsNotifications.`$n.transport`.html" inline}

@@ -35,8 +35,27 @@ class shopProductListAction extends waViewAction
     public function __construct($params = null) {
         parent::__construct($params);
         $this->hash = $this->getHash();
+
+        if (!$this->hash) {
+            // default sort method saved in contact_settings
+            $contact_settings_model = new waContactSettingsModel();
+
+            if (waRequest::get('sort')) {
+                $this->getUser()->setSettings('shop', 'all:sort', waRequest::get('sort').' '.waRequest::get('order', 'desc'));
+            } else {
+                $sort = $this->getUser()->getSettings('shop', 'all:sort');
+                if ($sort) {
+                    $sort = explode(' ', $sort);
+                    $this->sort = $_GET['sort'] = $sort[0];
+                    $this->order = $_GET['order'] = $sort[1];
+                }
+            }
+        }
+
         $this->collection = $this->getCollection($this->hash ? implode('/', $this->hash) : '');
         $info = $this->collection->getInfo();
+
+        list($this->sort, $this->order) = $this->collection->getOrderBy();
 
         if ($info['hash'] == 'category' && empty($info['id'])) {
             throw new waException("Unkown category", 404);
@@ -44,8 +63,6 @@ class shopProductListAction extends waViewAction
         if ($info['hash'] == 'set' && empty($info['id'])) {
             throw new waException("Unknown list", 404);
         }
-
-        $this->setSort();
     }
 
     protected function getCollection($hash)
@@ -94,38 +111,6 @@ class shopProductListAction extends waViewAction
         return null;
     }
 
-    protected function setSort()
-    {
-        $info  = $this->collection->getInfo();
-        $sort  = waRequest::get('sort',  '', waRequest::TYPE_STRING_TRIM);
-        $order = waRequest::get('order', 'desc', waRequest::TYPE_STRING_TRIM);
-
-        // 'all products' collection
-        if (!$info['hash'] || $info['hash'] == 'all') {
-
-            // default sort method saved in contact_settings
-            $contact_settings_model = new waContactSettingsModel();
-            $contact_id = $this->getUser()->getId();
-
-            if (!$sort) {
-                $default = $contact_settings_model->getOne($contact_id, 'shop', 'all:sort');
-                if ($default) {
-                    $chunks = explode(' ', $default);
-                    $sort   = $chunks[0];
-                    $order  = isset($chunks[1]) ? $chunks[1] : $order;
-                } else {
-                    $sort = 'create_datetime';
-                }
-            }
-
-            // save current sort as default for next usage
-            $contact_settings_model->set($contact_id, 'shop', 'all:sort', $sort.' '.$order);
-
-        }
-        list($this->sort, $this->order) = $sort ? array($sort, $order) : $this->collection->getOrderBy();
-        $this->collection->orderBy($this->sort, $this->order);
-    }
-
     protected function workupProducts(&$products)
     {
         $currency = $this->getConfig()->getCurrency();
@@ -138,6 +123,15 @@ class shopProductListAction extends waViewAction
             if ($p['badge']) {
                 $p['badge'] = shopHelper::getBadgeHtml($p['badge']);
             }
+            
+            unset(
+                $p['meta_description'],
+                $p['meta_keywords'],
+                $p['meta_title'],
+                $p['description'],
+                $p['summary']
+            );
+            
         }
         unset($p);
 

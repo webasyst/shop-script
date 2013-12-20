@@ -55,7 +55,8 @@ class shopCsvProductrunController extends waLongActionController
 
             $stages = array_keys($this->data['count']);
             $this->data['current'] = array_fill_keys($stages, 0);
-            $this->data['processed_count'] = array_fill_keys($stages, ($this->data['direction'] == 'import') ? array('new' => 0, 'update' => 0, 'skip' => 0) : 0);
+            $value = ($this->data['direction'] == 'import') ? array('new' => 0, 'update' => 0, 'skip' => 0) : 0;
+            $this->data['processed_count'] = array_fill_keys($stages, $value);
 
             $this->data['map'] = array();
 
@@ -65,7 +66,7 @@ class shopCsvProductrunController extends waLongActionController
             $this->data['timestamp'] = time();
         } catch (waException $ex) {
             $this->error($ex->getMessage());
-            echo json_encode(array(
+            echo $this->json(array(
                 'error' => $ex->getMessage(),
             ));
             exit;
@@ -78,7 +79,7 @@ class shopCsvProductrunController extends waLongActionController
         $domain_routes = $routing->getByApp('shop');
         foreach ($domain_routes as $domain => $routes) {
             foreach ($routes as $route) {
-                if ($domain.'/'.$route['url'] == $this->data['domain']) {
+                if ($domain.'/'.$route['url'] == $this->data['config']['domain']) {
                     $routing->setRoute($route, $domain);
                     waRequest::setParam($route);
                     $this->data['base_url'] = $domain;
@@ -92,7 +93,7 @@ class shopCsvProductrunController extends waLongActionController
     {
         $name = basename(waRequest::post('file'));
         $file = wa()->getTempPath('csv/upload/'.$name);
-        $this->reader = new shopCsvReader($file, waRequest::post('delimeter', ';') /*, waRequest::post('encoding', 'utf-8')*/);
+        $this->reader = new shopCsvReader($file, waRequest::post('delimiter', ';') /*, waRequest::post('encoding', 'utf-8')*/);
         $this->reader->setMap($map = waRequest::post('csv_map'));
         $this->data['file'] = serialize($this->reader);
         $this->data['primary'] = waRequest::post('primary', 'name');
@@ -147,34 +148,17 @@ class shopCsvProductrunController extends waLongActionController
 
     private function initExport()
     {
-        $hash = null;
-        $this->data['export_category'] = true;
-        switch ($hash = waRequest::post('hash')) {
-            case 'id':
-                $this->data['export_category'] = false;
-                $hash = 'id/'.waRequest::post('product_ids');
-                $selector = 'selected';
-                break;
-            case 'set':
-                $this->data['export_category'] = false;
-                $hash = 'set/'.waRequest::post('set_id', waRequest::TYPE_STRING_TRIM);
-                $selector = waRequest::post('set_id', waRequest::TYPE_STRING_TRIM);
-                break;
-            case 'type':
-                $this->data['export_category'] = false;
-                $hash = 'type/'.waRequest::post('type_id', waRequest::TYPE_INT);
-                $selector = 'type_'.waRequest::post('type_id', waRequest::TYPE_STRING_TRIM);
-                break;
-            default:
-                $hash = '*';
-                $selector = 'all';
-                break;
-        }
+        $hash = shopImportexportHelper::getCollectionHash();
+        $this->data['export_category'] = !in_array($hash['type'], array('id', 'set', 'type'));
+
         $this->data['timestamp'] = time();
-        $this->data['hash'] = $hash;
+        $this->data['hash'] = $hash['hash'];
+        //TODO use profile name
+        $selector = str_replace(array('/',), array('_'), $hash['hash']);
         $encoding = waRequest::post('encoding', 'utf-8');
-        $name = sprintf('products_%s(%s)%s.csv', date('Y-m-d'), $selector, strtolower($encoding));
-        $file = wa()->getTempPath('csv/download/'.$name);
+        $name = sprintf('products_%s(%s)%s.csv', date('Y-m-d'), str_replace('*', 'all', $selector), strtolower($encoding));
+
+        $options = array();
 
         $map = array(
             'name'                   => _w('Product name'),
@@ -195,9 +179,12 @@ class shopCsvProductrunController extends waLongActionController
             'meta_description'       => _w('META Description'),
             'summary'                => _w('Summary'),
             'description'            => _w('Description'),
+            'badge'                  => _w('Badge'),
+            'status'                 => _w('Status'),
             'sort'                   => _w('Product sort order'),
             'tags'                   => _w('Tags'),
             'tax_name'               => _w('Taxable'),
+            'rating'                 => _w('Rating'),
         );
         $stock_model = new shopStockModel();
         if ($stocks = $stock_model->getAll('id')) {
@@ -206,32 +193,91 @@ class shopCsvProductrunController extends waLongActionController
             }
         }
 
-        $features_model = new shopFeatureModel();
-        $features = $features_model->getAll();
+        $config = array(
+            'encoding'  => $encoding,
+            'delimiter' => waRequest::post('delimiter', ';'),
+            'features'  => !!waRequest::post('features'),
+            'images'    => !!waRequest::post('images'),
+            'extra'     => !!waRequest::post('extra'),
+            'domain'    => waRequest::post('domain'),
+            'hash'      => $hash['hash'],
+        );
 
         $this->data['composite_features'] = array();
+        $features_model = new shopFeatureModel();
+        if (!empty($config['features'])) {
 
-        foreach ($features as $feature) {
-            if (!preg_match('/\.\d$/', $feature['code'])) {
-                $map[sprintf('features:%s', $feature['code'])] = $feature['name'];
-                if ($encoding != 'UTF-8') {
-                    $this->data['composite_features'][$feature['code']] = true;
+            if ($features = $features_model->getAll()) {
+                $options['features'] = true;
+                foreach ($features as $feature) {
+                    if (!preg_match('/\.\d$/', $feature['code']) && ($feature['type'] != shopFeatureModel::TYPE_DIVIDER)) {
+                        $map[sprintf('features:%s', $feature['code'])] = $feature['name'];
+                        if ($encoding != 'UTF-8') {
+                            $this->data['composite_features'][$feature['code']] = true;
+                        }
+                    }
                 }
             }
         }
 
-        $cnt = $features_model->query('SELECT COUNT(1) AS `cnt` FROM `shop_product_images` GROUP BY `product_id` ORDER BY `cnt` DESC LIMIT 1')->fetchField('cnt');
-        for ($n = 0; $n < $cnt; $n++) {
-            $field = sprintf('images:%d', $n);
-            $map[$field] = _w('Product images');
+        if (!empty($config['images'])) {
+            $sql = 'SELECT COUNT(1) AS `cnt` FROM `shop_product_images` GROUP BY `product_id` ORDER BY `cnt` DESC LIMIT 1';
+            if ($cnt = $features_model->query($sql)->fetchField('cnt')) {
+                $options['images'] = true;
+                for ($n = 0; $n < $cnt; $n++) {
+                    $field = sprintf('images:%d', $n);
+                    $map[$field] = _w('Product images');
+                }
+            }
         }
 
-        $this->writer = new shopCsvWriter($file, waRequest::post('delimeter', ';'), $encoding);
+        //TODO
+        if (!empty($config['extra'])) {
+            $product_model = new shopProductModel();
+            $fields = $product_model->getMetadata();
+            $reserved = array(
+                'id',
+                "contact_id",
+                "create_datetime",
+                "edit_datetime",
+                "type_id",
+                "image_id",
+                "tax_id",
+                "cross_selling",
+                "upselling",
+                "total_sales",
+                "sku_type",
+                "sku_count",
+                'sku_id',
+                'ext',
+                'price',
+                'compare_price',
+                'min_price',
+                'max_price',
+                'count',
+                'rating_count',
+                'category_id',
+                'base_price_selectable',
+            );
+            foreach ($fields as $field => $info) {
+                if (!isset($map[$field]) && !in_array($field, $reserved)) {
+                    $map[$field] = $field;
+                }
+            }
+        }
+
+        $profile_helper = new shopImportexportHelper('csv:product:export');
+        $profile = $profile_helper->setConfig($config);
+
+        $file = wa()->getTempPath('csv/download/'.$profile.'/'.$name);
+        $this->writer = new shopCsvWriter($file, $config['delimiter'], $encoding);
         $this->writer->setMap($map);
 
         $this->data['file'] = serialize($this->writer);
         $this->data['map'][self::STAGE_CATEGORY] = null;
         $this->data['map'][self::STAGE_PRODUCT] = 0;
+        $this->data['config'] = $config;
+        $this->data['options'] = $options;
 
         $model = new shopCategoryModel();
         $this->data['count'] = array(
@@ -241,7 +287,6 @@ class shopCsvProductrunController extends waLongActionController
             self::STAGE_IMAGE    => null,
         );
 
-        $this->data['domain'] = waRequest::post('domain');
         $this->initRouting();
     }
 
@@ -284,15 +329,17 @@ class shopCsvProductrunController extends waLongActionController
             $hash = null;
             if ($this->data['export_category']) {
                 $id = $this->data['map'][self::STAGE_CATEGORY];
-                $hash = 'search/category_id='.($id?$id:'=null');
+                $hash = 'search/category_id='.($id ? $id : '=null');
                 if ($this->data['hash'] != '*') {
                     $hash .= '&'.str_replace('/', '_id=', $this->data['hash']);
                 }
             } else {
                 $hash = $this->data['hash'];
             }
-
-            $this->collection = new shopProductsCollection($hash);
+            $options = array(
+                'frontend' => true,
+            );
+            $this->collection = new shopProductsCollection($hash, $options);
         }
 
         return $this->collection;
@@ -382,9 +429,9 @@ class shopCsvProductrunController extends waLongActionController
             parent::execute();
         } catch (waException $ex) {
             if ($ex->getCode() == '302') {
-                echo json_encode(array('warning' => $ex->getMessage()));
+                echo $this->json(array('warning' => $ex->getMessage()));
             } else {
-                echo json_encode(array('error' => $ex->getMessage()));
+                echo $this->json(array('error' => $ex->getMessage()));
             }
         }
     }
@@ -401,12 +448,17 @@ class shopCsvProductrunController extends waLongActionController
         return $done;
     }
 
+    /**
+     * @uses self::stepExport
+     * @uses self::stepImport
+     */
     protected function step()
     {
         $method_name = 'step'.ucfirst($this->data['direction']);
         $result = false;
         try {
             if (method_exists($this, $method_name)) {
+
                 $result = $this->$method_name();
                 switch ($this->data['direction']) {
                     case 'import':
@@ -426,20 +478,32 @@ class shopCsvProductrunController extends waLongActionController
         return $result && !$this->isDone();
     }
 
+    /**
+     * @return bool
+     * @uses self::stepImportCategory()
+     * @uses self::stepImportProduct()
+     * @uses self::stepImportSku()
+     * @uses self::stepImportImage()
+     * @usedby self::step()
+     */
     private function stepImport()
     {
         $result = false;
         if ($this->data['count'][self::STAGE_IMAGE] > $this->data['current'][self::STAGE_IMAGE]) {
             $result = $this->stepImportImage();
-        } elseif ($this->reader->next() && ($current = $this->reader->current())) {
-            $this->data['current'][self::STAGE_FILE] = $this->reader->offset();
-            if ($type = $this->getDataType($current)) {
-                $method_name = 'stepImport'.ucfirst($type);
-                if (method_exists($this, $method_name)) {
-                    $result = $this->$method_name($current);
-                } else {
-                    $this->error(sprintf("Unsupported import data type %s", $type));
+        } else {
+            if ($this->reader->next() && ($current = $this->reader->current())) {
+                $this->data['current'][self::STAGE_FILE] = $this->reader->offset();
+                if ($type = $this->getDataType($current)) {
+                    $method_name = 'stepImport'.ucfirst($type);
+                    if (method_exists($this, $method_name)) {
+                        $result = $this->{$method_name}($current);
+                    } else {
+                        $this->error(sprintf("Unsupported import data type %s", $type));
+                    }
                 }
+            } elseif (!$this->reader->valid()) {
+                $this->data['current'][self::STAGE_FILE] = $this->reader->offset();
             }
         }
         return $result;
@@ -644,10 +708,17 @@ class shopCsvProductrunController extends waLongActionController
 
     private function stepImportProduct($data)
     {
+        $empty = $this->reader->getEmpty();
+        $data += $empty;
         if ($product = $this->findProduct($data)) {
+
+            shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_IMPORT);
 
             $target = $product->getId() ? 'update' : 'new';
             $product->save($data);
+
+            shopProductStocksLogModel::clearContext();
+
             $this->data['map'][self::STAGE_PRODUCT] = $product->getId();
             if (!empty($data['images'])) {
                 foreach ($data['images'] as & $image) {
@@ -667,6 +738,9 @@ class shopCsvProductrunController extends waLongActionController
 
     private function stepImportSku($data)
     {
+        $item_sku_id = false;
+        $empty = $this->reader->getEmpty();
+        $data += $empty;
         if ($product = $this->findProduct($data)) {
             $current_id = ifset($this->data['map'][self::STAGE_PRODUCT]);
             $id = $product->getId();
@@ -677,7 +751,9 @@ class shopCsvProductrunController extends waLongActionController
                 if ($id == $current_id) {
                     $sku_only = true;
                 }
-                $sku = $data['skus'][-1];
+
+                $empty_sku = ifset($empty['skus'][-1], array());
+                $sku = $data['skus'][-1] + $empty_sku;
                 unset($data['skus'][-1]);
                 $item_sku_id = -1;
                 $secondary = explode(':', $this->data['secondary']);
@@ -721,6 +797,8 @@ class shopCsvProductrunController extends waLongActionController
                 }
             }
 
+            shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_IMPORT);
+
             if ($sku_only || empty($this->data['primary'])) {
                 if ($product->getId() && ($item_sku_id !== false)) {
                     $product->save(array('skus' => $data['skus']));
@@ -737,6 +815,9 @@ class shopCsvProductrunController extends waLongActionController
                     $this->data['count'][self::STAGE_IMAGE] += count($data['images']);
                 }
             }
+
+            shopProductStocksLogModel::clearContext();
+
             if ($product->getId()) {
                 $this->data['processed_count'][self::STAGE_SKU][$target_sku]++;
             }
@@ -757,21 +838,27 @@ class shopCsvProductrunController extends waLongActionController
             if (!$model) {
                 $model = new shopProductImagesModel();
             }
-
+            //TODO store image id & if repeated - skip it
+            $target = 'new';
             $u = @parse_url($file);
+            $_is_url = false;
             if (!$u || !(isset($u['scheme']) && isset($u['host']) && isset($u['path']))) {
-                $_is_url = 0;
+
+            } elseif (in_array($u['scheme'], array('http', 'https', 'ftp', 'ftps'))) {
+                $_is_url = true;
             } else {
-                $_is_url = in_array($u['scheme'], array('http', 'https', 'ftp', 'ftps')) && ($u['host'] && $u['path']) && (!isset($u['query']) || !$u['query']) && (!isset($u['fragment']) || !$u['fragment']);
+                $target = 'skip';
+                $file = null;
+                $this->error(sprintf('Unsupported file source protocol', $u['scheme']));
             }
+
+            $search = array(
+                'product_id' => $this->data['map'][self::STAGE_PRODUCT],
+                'ext'        => pathinfo($file, PATHINFO_EXTENSION),
+            );
+
             try {
-                $target = 'new';
-                $name = basename($file);
-                $search = array(
-                    'product_id'        => $this->data['map'][self::STAGE_PRODUCT],
-                    'ext'               => pathinfo($file, PATHINFO_EXTENSION),
-                    'original_filename' => $name,
-                );
+                $name = preg_replace('@[^a-z0-9\._\-]+@', '', basename($file));
                 if ($_is_url) {
                     $pattern = sprintf('@/(%d)/images/(\\d+)/\\2\\.(\\d+(x\\d+)?)\\.([^\\.]+)$@', $search['product_id']);
                     if (preg_match($pattern, $file, $matches)) {
@@ -789,13 +876,13 @@ class shopCsvProductrunController extends waLongActionController
                     if ($file) {
                         waFiles::upload($file, $file = wa()->getDataPath($this->data['upload_path'].'remote/'.waLocale::transliterate($name, 'en_US')));
                     }
-                } else {
+                } elseif ($file) {
                     $file = wa()->getDataPath($this->data['upload_path'].$file);
                 }
 
                 if ($file && file_exists($file)) {
-                    if ($image = new waImage($file)) {
-
+                    if ($image = waImage::factory($file)) {
+                        $search['original_filename'] = $name;
                         $data = array(
                             'product_id'        => $this->data['map'][self::STAGE_PRODUCT],
                             'upload_datetime'   => date('Y-m-d H:i:s'),
@@ -811,10 +898,35 @@ class shopCsvProductrunController extends waLongActionController
                             $back_thumb_dir = preg_replace('@(/$|$)@', '.back$1', $thumb_dir, 1);
                             $paths[] = $back_thumb_dir;
                             waFiles::delete($back_thumb_dir); // old backups
-                            if (!(waFiles::move($thumb_dir, $back_thumb_dir) || waFiles::delete($back_thumb_dir)) && !waFiles::delete($thumb_dir)) {
-                                throw new waException(_w("Error while rebuild thumbnails"));
+                            if (file_exists($thumb_dir)) {
+                                if (!(waFiles::move($thumb_dir, $back_thumb_dir) || waFiles::delete($back_thumb_dir)) && !waFiles::delete($thumb_dir)) {
+                                    throw new waException(_w("Error while rebuild thumbnails"));
+                                }
+                            }
+
+                        }
+
+                        $image_changed = false;
+
+                        /**
+                         * TODO move it code into product core method
+                         */
+
+                        /**
+                         * Extend add/update product images
+                         * Make extra workup
+                         * @event image_upload
+                         */
+                        $event = wa()->event('image_upload', $image);
+                        if ($event) {
+                            foreach ($event as $result) {
+                                if ($result) {
+                                    $image_changed = true;
+                                    break;
+                                }
                             }
                         }
+
 
                         if (empty($data['id'])) {
                             $image_id = $data['id'] = $model->add($data);
@@ -834,7 +946,19 @@ class shopCsvProductrunController extends waLongActionController
                             throw new waException(sprintf("The insufficient file write permissions for the %s folder.", substr($image_path, strlen($this->getConfig()->getRootPath()))));
                         }
 
-                        waFiles::copy($file, $image_path);
+                        if ($image_changed) {
+                            $image->save($image_path);
+                            /**
+                             * @var shopConfig $config
+                             */
+                            $config = $this->getConfig();
+                            if ($config->getOption('image_save_original') && ($original_file = shopImage::getOriginalPath($data))) {
+                                waFiles::copy($file, $original_file);
+                            }
+                        } else {
+                            waFiles::copy($file, $image_path);
+                        }
+
 
                         $this->data['processed_count'][self::STAGE_IMAGE][$target]++;
                     } else {
@@ -842,11 +966,14 @@ class shopCsvProductrunController extends waLongActionController
                     }
                 } elseif ($file) {
                     $this->error(sprintf('File %s not found', $file));
+                    $target = 'skip';
+                    $this->data['processed_count'][self::STAGE_IMAGE][$target]++;
                 } else {
                     $this->data['processed_count'][self::STAGE_IMAGE][$target]++;
                 }
             } catch (Exception $e) {
                 $this->error($e->getMessage());
+                //TODO skip on repeated error
             }
 
             array_shift($this->data['map'][self::STAGE_IMAGE]);
@@ -862,7 +989,15 @@ class shopCsvProductrunController extends waLongActionController
 
     private function stepImportCategory($data)
     {
-        $model = new shopCategoryModel();
+        /**
+         * @var shopCategoryModel $model
+         */
+        static $model;
+        $empty = $this->reader->getEmpty();
+        $data += $empty;
+        if (!$model) {
+            $model = new shopCategoryModel();
+        }
         if (!isset($this->data['map'][self::STAGE_CATEGORY])) {
             $this->data['map'][self::STAGE_CATEGORY] = array();
         }
@@ -923,6 +1058,10 @@ class shopCsvProductrunController extends waLongActionController
         return $type;
     }
 
+    /**
+     * @return bool
+     * @usedby self::step()
+     */
     private function stepExport()
     {
         $res = $this->stepExportProduct($this->data['current'], $this->data['count'], $this->data['processed_count']);
@@ -934,12 +1073,7 @@ class shopCsvProductrunController extends waLongActionController
 
     protected function finish($filename)
     {
-        $this->info();
-        $result = false;
-        if ($this->getRequest()->post('cleanup')) {
-            $result = true;
-        }
-        return $result;
+        return !!$this->getRequest()->post('cleanup');
     }
 
     protected function report()
@@ -961,7 +1095,7 @@ class shopCsvProductrunController extends waLongActionController
             $report .= ' '.sprintf(_w('(total time: %s)'), $interval);
         }
         $report .= '</div>';
-        return $report;
+        return iconv('UTF-8', 'UTF-8//IGNORE', $report);
     }
 
     protected function info()
@@ -997,14 +1131,16 @@ class shopCsvProductrunController extends waLongActionController
         $response['stage_count'] = $stage_count;
         $response['current_count'] = $this->data['current'];
         $response['processed_count'] = $this->data['processed_count'];
+        $this->getResponse()->addHeader('Content-type', 'application/json');
+        $this->getResponse()->sendHeaders();
         if ($this->writer) {
             $response['file'] = urlencode(basename($this->writer->file()));
         }
-        if ($this->getRequest()->post('cleanup')) {
+        if ($response['ready']) {
             $response['report'] = $this->report();
-
         }
-        echo json_encode($response);
+
+        echo $this->json($response);
     }
 
     protected function restore()
@@ -1060,7 +1196,11 @@ class shopCsvProductrunController extends waLongActionController
         static $size;
         if (!$products) {
             $offset = $current_stage[self::STAGE_PRODUCT] - ifset($this->data['map'][self::STAGE_PRODUCT], 0);
-            $products = $this->getCollection()->getProducts('*, images', $offset, 50, false);
+            $fields = '*';
+            if (!empty($this->data['options']['images'])) {
+                $fields .= ', images';
+            }
+            $products = $this->getCollection()->getProducts($fields, $offset, 50, false);
         }
         $chunk = 1;
         $non_sku_fields = array(
@@ -1083,33 +1223,40 @@ class shopCsvProductrunController extends waLongActionController
 
             if ($rights && $category) {
                 $shop_product = new shopProduct($product);
-                if (!isset($product['features'])) {
-                    if (!$features_model) {
-                        $features_model = new shopProductFeaturesModel();
+                if (!empty($this->data['options']['features'])) {
+                    if (!isset($product['features'])) {
+                        if (!$features_model) {
+                            $features_model = new shopProductFeaturesModel();
+                        }
+                        $product['features'] = $features_model->getValues($product['id']);
                     }
-                    $product['features'] = $features_model->getValues($product['id']);
-                }
-                foreach ($product['features'] as $code => &$feature) {
-                    if (!empty($this->data['composite_features'][$code])) {
-                        $feature = str_replace('×', 'x', $feature);
+                    foreach ($product['features'] as $code => &$feature) {
+                        if (!empty($this->data['composite_features'][$code])) {
+                            $feature = str_replace('×', 'x', $feature);
+                        }
+                        unset($feature);
                     }
-                    unset($feature);
                 }
-
                 if (!isset($product['tags'])) {
                     if (!$tags_model) {
                         $tags_model = new shopProductTagsModel();
                     }
                     $product['tags'] = implode(',', $tags_model->getTags($product['id']));
                 }
-                if (isset($product['images'])) {
-                    if (!$size) {
-                        $size = wa('shop')->getConfig()->getImageSize('big');
+                if (!empty($this->data['options']['images'])) {
+                    if (isset($product['images'])) {
+                        if (!$size) {
+                            /**
+                             * @var shopConfig $config
+                             */
+                            $config = $this->getConfig();
+                            $size = $config->getImageSize('big');
+                        }
+                        foreach ($product['images'] as & $image) {
+                            $image = 'http://'.ifempty($this->data['base_url'], 'localhost').shopImage::getUrl($image, $size);
+                        }
+                        $product['images'] = array_values($product['images']);
                     }
-                    foreach ($product['images'] as & $image) {
-                        $image = 'http://'.ifempty($this->data['base_url'], 'localhost').shopImage::getUrl($image, $size);
-                    }
-                    $product['images'] = array_values($product['images']);
                 }
 
                 $product['type_name'] = $shop_product->type['name'];
@@ -1124,11 +1271,15 @@ class shopCsvProductrunController extends waLongActionController
                         unset($skus[$product['sku_id']]);
                     }
                     $this->writer->write($product);
-                    if (isset($product['images'])) {
-                        $processed[self::STAGE_IMAGE] += count($product['images']);
+                    if (!empty($this->data['options']['images'])) {
+                        if (isset($product['images'])) {
+                            $processed[self::STAGE_IMAGE] += count($product['images']);
+                        }
                     }
                     $exported = true;
-                    unset($product['features']);
+                    if (!empty($this->data['options']['features'])) {
+                        unset($product['features']);
+                    }
                 }
 
                 foreach ($skus as $sku) {
@@ -1167,5 +1318,11 @@ class shopCsvProductrunController extends waLongActionController
         $path = wa()->getConfig()->getPath('log');
         waFiles::create($path.'/shop/csvproducts.log');
         waLog::log($message, 'shop/csvproducts.log');
+    }
+
+    private function json($data)
+    {
+        // $options = JSON_UNESCAPED_UNICODE;
+        return json_encode($data);
     }
 }

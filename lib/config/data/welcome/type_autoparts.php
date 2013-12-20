@@ -20,5 +20,9 @@ return array(
             'selecable' => true,
             'multiple' => true
         ),
+        'weight' => array(
+            'name' => 'Weight',
+            'type' => shopFeatureModel::TYPE_DIMENSION.'.weight'
+        ),
     ),
 );

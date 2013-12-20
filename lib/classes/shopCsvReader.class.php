@@ -190,6 +190,8 @@ class shopCsvReader implements SeekableIterator, Serializable
      */
     public function seek($position)
     {
+
+        //XXX invalid on empty strings
         if ($position != $this->key) {
 
             if (isset($this->offset_map[$position - 1])) {
@@ -197,8 +199,16 @@ class shopCsvReader implements SeekableIterator, Serializable
                 $this->key = $position - 1;
                 $this->next();
             } else {
-                if ($index = $this->offset_map ? max(array_keys($this->offset_map)) : 0) {
-                    $this->seek($index);
+                $positions = $this->offset_map ? array_keys($this->offset_map) : array();
+                $key = max($positions);
+                if (($key >= $position) && $this->offset_map) {
+                    $callback = create_function('$a', sprintf(' return ($a < %d);', $position));
+                    $positions = array_filter($positions, $callback);
+                    $key = max($positions);
+                }
+
+                if ($key) {
+                    $this->seek($key + 1);
                 } else {
                     $this->rewind();
                 }
@@ -238,16 +248,31 @@ class shopCsvReader implements SeekableIterator, Serializable
             return false;
         }
 
+
         $this->offset();
         do {
+            $this->current = false;
             $empty = true;
+            $line = null;
             if (strtolower($this->encoding) != 'utf-8') {
                 if (!function_exists('str_getcsv')) {
                     throw new waException("PHP 5.3 required");
                 }
 
                 if ($line = fgets($this->fp)) {
-                    $line = iconv($this->encoding, 'UTF-8//IGNORE', $line);
+                    //XXX fix multiline csv columns
+                    $line = @iconv($this->encoding, 'UTF-8//IGNORE', $line);
+                    if ($line === false) {
+                        if (function_exists('error_get_last')) {
+                            $error = error_get_last();
+                            $hint = $error['message'];
+                        } elseif (!empty($php_errormsg)) {
+                            $hint = strip_tags($php_errormsg);
+                        } else {
+                            $hint = 'unknown';
+                        }
+                        throw new waException(sprintf('Error while convert file encoding: %s', $hint));
+                    }
                     $this->current = str_getcsv($line, $this->delimiter);
                 }
             } else {
@@ -264,7 +289,14 @@ class shopCsvReader implements SeekableIterator, Serializable
                     }
                 }
             }
-        } while ($empty && !feof($this->fp));
+            if ($empty) {
+                $this->current = false;
+            }
+        } while ($empty && !empty($this->fp) && !feof($this->fp));
+        if ($empty) {
+            $this->offset();
+        }
+
 
         if (!$this->header && $this->current) {
             $this->header();
@@ -378,34 +410,55 @@ class shopCsvReader implements SeekableIterator, Serializable
             }
 
             if ($insert !== null) {
-                if (strpos($field, ':')) {
-                    $fields = explode(':', $field);
-                    $field = array_shift($fields);
-                    if (!isset($data[$field])) {
-                        $data[$field] = array();
-                    }
-                    $target =& $data[$field];
-                    while (($field = array_shift($fields)) !== null) {
-                        if (empty($target)) {
-                            $target = array();
-                        }
-                        if (!isset($target[$field])) {
-                            $target[$field] = array();
-                        }
-                        $target =& $target[$field];
-                    }
-                } else {
-                    if (!isset($data[$field])) {
-                        $data[$field] = array();
-                    }
-                    $target =& $data[$field];
-                }
-                $target = $insert;
-                unset($target);
+                self::insert($data, $field, $insert);
             }
         }
         $this->mapped = true;
         return $data;
+    }
+
+    private $empty = null;
+
+    /**
+     * Get mapped data for empty line
+     * @return array
+     */
+    public function getEmpty()
+    {
+        if ($this->empty === null) {
+            foreach ($this->data_mapping as $field => $column) {
+                self::insert($this->empty, $field, '');
+            }
+        }
+        return $this->empty;
+    }
+
+    private static function insert(&$data, $field, $value)
+    {
+        if (strpos($field, ':')) {
+            $fields = explode(':', $field);
+            $field = array_shift($fields);
+            if (!isset($data[$field])) {
+                $data[$field] = array();
+            }
+            $target =& $data[$field];
+            while (($field = array_shift($fields)) !== null) {
+                if (empty($target)) {
+                    $target = array();
+                }
+                if (!isset($target[$field])) {
+                    $target[$field] = array();
+                }
+                $target =& $target[$field];
+            }
+        } else {
+            if (!isset($data[$field])) {
+                $data[$field] = array();
+            }
+            $target =& $data[$field];
+        }
+        $target = $value;
+        unset($target);
     }
 
     private function validateSourceFields($params = array())
@@ -495,7 +548,7 @@ class shopCsvReader implements SeekableIterator, Serializable
                     $html .= '</tbody>';
                 }
                 $group = $target['group']['title'];
-                $group_name = htmlentities(ifset($target['group']['title'], ' '), ENT_QUOTES, waHtmlControl::$default_charset);
+                $group_name = htmlentities(ifset($target['group']['title'], ' '), ENT_NOQUOTES, waHtmlControl::$default_charset);
                 $class = '';
                 if (!empty($target['group']['class'])) {
                     $class = sprintf(' class="%s"', htmlentities($target['group']['class'], ENT_QUOTES, waHtmlControl::$default_charset));
@@ -506,9 +559,18 @@ class shopCsvReader implements SeekableIterator, Serializable
             $params_target = array_merge($params, array(
                 'title'       => $target['title'],
                 'description' => ifset($target['description']),
+                'control'     => ifset($target['control']),
             ));
-            self::findSimilar($params_target, null, array('similar' => false));
-            $html .= waHtmlControl::getControl(waHtmlControl::SELECT, $target['value'], $params_target);
+            if (empty($params_target['control'])) {
+                self::findSimilar($params_target, null, array('similar' => false));
+            }
+            $control = waHtmlControl::getControl(waHtmlControl::SELECT, $target['value'], $params_target);
+            if (!empty($params_target['control'])) {
+                $_type = ifempty($params_target['control']['control'], waHtmlControl::INPUT);
+                $_control = waHtmlControl::getControl($_type, $target['value'], ifempty($params_target['control']['params'], array()));
+                $control = preg_replace('@</td></tr>$@', $_control, $control).'</td></tr>';
+            }
+            $html .= $control;
         }
         if ($group) {
             $html .= '</tbody>';

@@ -72,9 +72,11 @@
                     if (!self.find('input:checked').length) {
                         self.removeClass('selected');
                     }
-
+                    hideSortHint();
                     $(document).unbind('scroll', $.product_dragndrop._scrolHelper);
                     $('.block.drop-target').removeClass('drag-active');
+                    
+                    hideSortHint();
                 },
                 helper: function(event, ui) {
                     var count = 1;
@@ -111,9 +113,7 @@
                 greedy: true,
                 tolerance: 'pointer',
                 over: function(event, ui) {
-                    if (!$.product_dragndrop.trigger('is_product_sortable')) {
-                        return false;
-                    }
+                    
                     // activate item
                     var self = $(this);
                     if (self.hasClass('s-alien')) {
@@ -122,52 +122,79 @@
                     if (!ui.draggable.hasClass('product')) {
                         return false;
                     }
-                    if (self.hasClass('last')) {
-                        ui.draggable.extDragActivate = (function(self) {
-                            return function (e) {
-                                $.product_dragndrop._extDragActivate(e, self);
-                            };
-                        })(self);
-                        $(document).bind('mousemove', ui.draggable.extDragActivate);
+                    
+                    if (!$.product_dragndrop.trigger('is_product_sortable')) {
+                        showSortHint();
                     } else {
-                        self.addClass('drag-active');
+                        hideSortHint();
                     }
+                    
+                    $.product_dragndrop._activatePhotoListItem.call(this);
                 },
                 out: function(event, ui) {
-                    if (!$.product_dragndrop.trigger('is_product_sortable')) {
-                        return false;
-                    }
-                    $(this).removeClass('drag-active drag-active-last');
-                    if (ui.draggable.extDragActivate) {
-                        $(document).unbind('mousemove', ui.draggable.extDragActivate);
-                    }
+                    $.product_dragndrop._unactivatePhotoListItem.call(this);
                 },
                 drop: function(event, ui) {
-                    if (!$.product_dragndrop.trigger('is_product_sortable')) {
+                    if (!ui.draggable.hasClass('product')) {
                         return false;
                     }
+                    
                     var self = $(this);
                     // drop into itself is illegal
                     if (self.hasClass('selected')) {
+                        $.product_dragndrop._unactivatePhotoListItem.call(this);
                         return false;
                     }
 
                     var selected = $('#product-list').find('.product.selected');
+                    
+                    if (!$.product_dragndrop.trigger('is_product_sortable')) {
+                        $.product_dragndrop._unactivatePhotoListItem.call(this);
+                        $.product_dragndrop._unactivatePhotoListItem.call(ui.draggable);
+                        return false;
+                    }
+                    
                     var before_id = null;
-                    if (!self.hasClass('drag-active-last')) {
-                        before_id = self.attr('data-product-id');
-                    }
-
-                    if (self.hasClass('last') && self.hasClass('drag-active-last')) {
-                        self.after(selected).removeClass('drag-active drag-active-last last');
-                        selected.filter(':last').addClass('last');
+                    // Special case: self is alien (from child categories)
+                    if (self.hasClass('s-alien')) {
+                        var closest = self.nextAll(':not(.s-alien):first');
+                        if (!closest.length) {
+                            closest = self.prevAll(':not(.s-alien):first');
+                            if (!closest.length || closest.hasClass('selected')) {
+                                return false;
+                            }
+                            before_id = null;
+                            closest.after(selected);
+                            if (closest.hasClass('last')) {
+                                closest.removeClass('last');
+                                selected.filter(':last').addClass('last');    
+                            }
+                        } else {
+                            before_id = closest.attr('data-product-id');
+                            closest.before(selected);
+                            if (closest.hasClass('last')) {
+                                closest.removeClass('last');
+                                selected.filter(':last').addClass('last');
+                            }
+                        }
+                        
                     } else {
-                        self.before(selected).removeClass('drag-active');
+                        if (!self.hasClass('drag-active-last')) {
+                            before_id = self.attr('data-product-id');
+                        }
+                        
+                        if (self.hasClass('last') && self.hasClass('drag-active-last')) {
+                            self.after(selected).removeClass('drag-active drag-active-last last');
+                            selected.filter(':last').addClass('last');
+                        } else {
+                            self.before(selected).removeClass('drag-active');
+                        }
+                        self.removeClass('drag-active drag-active-last');
                     }
-                    self.removeClass('drag-active drag-active-last');
-                    if (ui.draggable.extDragActivate) {
-                        $(document).unbind('mousemove', ui.draggable.extDragActivate);
-                    }
+                    
+                    $.product_dragndrop._unactivatePhotoListItem.call(this);
+                    $.product_dragndrop._unactivatePhotoListItem.call(ui.draggable);
+                    
                     selected.trigger('select', false);
 
                     var product_ids = selected.map(function() {
@@ -535,7 +562,6 @@
                         parent_list.hide();
                     }
 
-                    //#
                     var parent = self;
                     if (parent.is('li.dr')) {
                         $.product_dragndrop.trigger('move_list', {
@@ -595,7 +621,8 @@
         },
 
         // active/inactive drop-item both left and right
-        _extDragActivate: function(e, self) {
+        _extDragActivate: function(e, self, className) {
+            var classNameOfLast = className + '-last';
             if (!self.hasClass('last')) {
                 self.addClass('drag-active');
                 return;
@@ -607,23 +634,127 @@
                 self_offset = self.offset();
 
             if ($.product_dragndrop.options.view == 'thumbs') {
-                if (pageX > self_offset.left + self_width*0.5) {
-                    self.removeClass('drag-active').addClass('drag-active-last');
-                } else if (pageX > self_offset.left) {
-                    self.removeClass('drag-active-last').addClass('drag-active');
+                if (pageX > self_offset.left + self_width*0.5 && pageX <= self_offset.left + self_width) {
+                    self.removeClass(className).addClass(classNameOfLast);
+                    $.product_dragndrop._shiftToLeft(self);
+                } else if (pageX > self_offset.left && pageX <= self_offset.left + self_width*0.5) {
+                    self.removeClass(classNameOfLast).addClass(className);
+                    $.product_dragndrop._shiftToRight(self);
+                } else {
+                    $.product_dragndrop._shiftAtPlace(self);
                 }
             } else if ($.product_dragndrop.options.view == 'table') {
                 if (pageY > self_offset.top + self_height*0.5) {
-                    self.removeClass('drag-active').addClass('drag-active-last');
+                    self.removeClass(className).addClass(classNameOfLast);
                 } else if (pageY > self_offset.top) {
-                    self.removeClass('drag-active-last').addClass('drag-active');
+                    self.removeClass(classNameOfLast).addClass(className);
                 }
             }
             if (pageY < self_offset.top || pageY > self_offset.top + self_height ||
                     pageX < self_offset.left || pageX > self_offset.left + self_width)
             {
-                self.removeClass('drag-active drag-active-last');
+                self.removeClass(className).removeClass(classNameOfLast);
+            }
+        },
+
+        _bindExtDragActivate: function(item, className) {
+            $(document).bind('mousemove.ext_drag_activate', function (e) {
+                $.product_dragndrop._extDragActivate(
+                    e,  item, className
+                );
+            });
+        },
+        
+        _unbindExtDragActivate: function() {
+            $(document).unbind('mousemove.ext_drag_activate');
+        },
+                
+        _activatePhotoListItem: function() {
+                var self = $(this);
+                var sort_enable = $.product_dragndrop.trigger('is_product_sortable');
+                var className = sort_enable ? 'drag-active' : 'drag-active-disabled';
+                if (sort_enable && $.product_dragndrop.options.view == 'thumbs') {
+                    $.product_dragndrop._shiftToRight(self);
+                }
+                if (self.hasClass('last')) {
+                    $.product_dragndrop._bindExtDragActivate(self, className);
+                } else {
+                    self.addClass(className);
+                }  
+        },
+
+        // clear (unactive) action
+        _unactivatePhotoListItem: function() {
+            var self = $(this);
+            var sort_enable = $.product_dragndrop.trigger('is_product_sortable');
+            var className =  sort_enable ? 'drag-active' : 'drag-active-disabled';
+            var classNameOfLast = className + '-last';
+            if (self.hasClass('last')) {
+                $.product_dragndrop._unbindExtDragActivate();
+            }
+            self.removeClass(className + ' ' + classNameOfLast);
+            if (sort_enable && $.product_dragndrop.options.view == 'thumbs') {
+                $.product_dragndrop._shiftAtPlace(self);
+            }
+        },
+
+        _shiftToLeft: function(item) {
+            if (item.data('shifted') !== 'left') {
+                var wrapper = item.find('.p-wrapper');
+                if (!wrapper.length) {
+                    var children = item.children();
+                    var wrapper = $("<div class='p-wrapper' style='position:relative;'></div>").appendTo(item);
+                    wrapper.append(children);
+                }
+                wrapper.stop().animate({
+                    left: -15
+                }, 200);
+                item.data('shifted', 'left');
+            }
+        },
+        _shiftToRight: function(item) {
+                if (item.data('shifted') !== 'right') {
+                    var wrapper = item.find('.p-wrapper');
+                    if (!wrapper.length) {
+                        var children = item.children();
+                        var wrapper = $("<div class='p-wrapper' style='position:relative;'></div>").appendTo(item);
+                        wrapper.append(children);
+                    }
+                    wrapper.stop().animate({
+                        left: 15
+                    }, 200);
+                    item.data('shifted', 'right');
+                }
+        },
+        _shiftAtPlace: function(item) {
+            if (item.data('shifted')) {
+                var wrapper = item.find('.p-wrapper');
+                if (wrapper.length) {
+                    var children = wrapper.children();
+                    wrapper.stop().css({
+                        left: 0
+                    });
+                    item.append(children);
+                    wrapper.remove();
+                }
+                item.data('shifted', '');
             }
         }
+
     };
+    
+    function showSortHint() {
+        var sort_method = $.product_dragndrop.options.sort;
+        if (sort_method) {
+            var block = $('#hint-menu-block').show();
+            block.children().hide();
+            block.find('.' + sort_method).show();
+        }
+    }
+    
+    function hideSortHint() {
+            var block = $('#hint-menu-block').hide();
+            block.children().hide();
+    }
+    
 })(jQuery);

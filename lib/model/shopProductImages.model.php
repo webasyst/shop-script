@@ -175,4 +175,47 @@ class shopProductImagesModel extends waModel
             return '<div class="badge" style="background-color: #a1fcff;"><span>'._w('YOUR TEXT').'</span></div>';
         }
     }
+    
+    public function countAvailableImages()
+    {
+        if (wa()->getUser()->getRights('shop', 'type.all')) {
+            $sql = "SELECT COUNT(id) FROM `{$this->table}`";
+        } else {
+            $type_model = new shopTypeModel();
+            $types = $type_model->getTypes();
+            if (!$types) {
+                return false;
+            }
+            $sql = "SELECT COUNT(i.id) FROM `{$this->table}` i
+                JOIN `shop_products` p ON p.id = i.product_id
+                WHERE p.type IN(".array_keys($types).")";
+        }
+        return $this->query($sql)->fetchField();
+    }
+    
+    public function getAvailableImages($offset = 0, $limit = null)
+    {
+        if (!$limit) {
+            $limit = (int) $offset;
+            $offset = 0;
+        } else {
+            $offset = (int) $offset;
+            $limit = (int) $limit;
+        }
+        if (wa()->getUser()->getRights('shop', 'type.all')) {
+            $sql = "SELECT * FROM `{$this->table}` ORDER BY product_id, id LIMIT {$offset}, {$limit}";
+        } else {
+            $type_model = new shopTypeModel();
+            $types = $type_model->getTypes();
+            if (!$types) {
+                return array();
+            }
+            $sql = "SELECT i.* FROM `{$this->table}` i
+                JOIN `shop_products` p ON p.id = i.product_id
+                WHERE p.type_id IN (".array_keys($types).")
+                ORDER BY i.product_id, i.id
+                LIMIT {$offset}, {$limit}";
+        }
+        return $this->query($sql)->fetchAll('id');
+    }
 }

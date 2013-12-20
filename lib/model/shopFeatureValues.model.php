@@ -1,6 +1,8 @@
 <?php
 abstract class shopFeatureValuesModel extends shopSortableModel
 {
+    protected $changed_fields = array();
+
     //TODO deleteByField = update related tables
 
     /**
@@ -52,12 +54,12 @@ SQL;
     public function getProductValues($product_id, $feature_id, $field = 'value')
     {
         if (is_array($field)) {
-            $fields = 'fv.' . implode(', fv.', $field);
+            $fields = 'fv.'.implode(', fv.', $field);
         } else {
-            $fields = 'fv.' . $field;
+            $fields = 'fv.'.$field;
         }
-        $sql = "SELECT pf.product_id, " . $fields . " FROM shop_product_features pf
-                JOIN " . $this->table . " fv ON pf.feature_value_id = fv.id
+        $sql = "SELECT pf.product_id, ".$fields." FROM shop_product_features pf
+                JOIN ".$this->table." fv ON pf.feature_value_id = fv.id
                 WHERE pf.product_id IN (i:0) AND pf.feature_id = i:1";
         return $this->query($sql, $product_id, $feature_id)->fetchAll('product_id', true);
     }
@@ -65,6 +67,11 @@ SQL;
     protected function getValue($row)
     {
         return $row['value'];
+    }
+
+    protected function isChanged($row, $data)
+    {
+        return false;
     }
 
     /**
@@ -95,17 +102,21 @@ SQL;
             $values = array($value);
         }
         if ($update) {
-            $sql = "SELECT (MAX(`sort`)+1) `max_sort` FROM " . $this->table . " WHERE (`feature_id` = i:0)";
+            $sql = "SELECT (MAX(`sort`)+1) `max_sort` FROM ".$this->table." WHERE (`feature_id` = i:0)";
             $sort = $this->query($sql, $feature_id)->fetchField('max_sort');
         }
         foreach ($values as $v) {
             $data = $this->parseValue($v, $type);
             $data['feature_id'] = $feature_id;
             $data['sort'] = $sort;
-
-            $sql = "SELECT `id`,`sort` FROM " . $this->table . " WHERE (`feature_id` = i:feature_id) AND (" . $op . ')';
+            $fields = array_unique(array_merge(array($this->id, $this->sort), $this->changed_fields));
+            $fields = '`'.implode('`, `', $fields).'`';
+            $sql = "SELECT {$fields} FROM ".$this->table." WHERE (`feature_id` = i:feature_id) AND (".$op.')';
             $row = $this->query($sql, $data)->fetchAssoc();
             if ($row) {
+                if ($changed = $this->isChanged($row, $data)) {
+                    $this->updateById($row['id'], $changed);
+                }
                 $exists[$row['sort']] = intval($row['id']);
             } elseif ($update) {
                 ++$sort;
@@ -147,6 +158,9 @@ SQL;
         try { //store
             $data = $this->parseValue($value, $type);
             $row['value'] = (string)$this->getValue($data);
+            if (isset($data['code'])) {
+                $row['code'] = $data['code'];
+            }
             if ($sort !== null) {
                 $row['sort'] = $sort;
                 $data['sort'] = $sort;
@@ -164,7 +178,7 @@ SQL;
                 case '1062':
                     $id = $this->getId($feature_id, $value, $type);
                     $row['error'] = array(
-                        'message' => _w('Not unique value'),
+                        'message'     => _w('Not unique value'),
                         'original_id' => $id,
                     );
 
@@ -172,7 +186,7 @@ SQL;
                     break;
                 default:
                     $row['error'] = array(
-                        'message' => wa()->getConfig()->isDebug() ? $ex->getMessage() : _w('Error while insert'),
+                        'message'     => wa()->getConfig()->isDebug() ? $ex->getMessage() : _w('Error while insert'),
                         'original_id' => 0,
                     );
                     break;

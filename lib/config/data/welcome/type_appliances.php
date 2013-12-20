@@ -48,7 +48,7 @@ return array(
         ),
         'color' => array(
             'name' => 'Color',
-            'type' => shopFeatureModel::TYPE_VARCHAR,
+            'type' => shopFeatureModel::TYPE_COLOR,
             'selectable' => true,
             'multiple' => true,
             'values' => array(
@@ -62,6 +62,11 @@ return array(
                 'gray',
                 'black',
             )
+        ),
+        'weight'=>array(
+            'name'=>'Weight',
+            'type'=>shopFeatureModel::TYPE_DIMENSION.'.weight',
         )
+
     )
 );

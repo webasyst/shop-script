@@ -152,7 +152,8 @@ $.extend($.settings = $.settings || {}, {
                         if (!$.isEmptyObject(r.errors.actions)) {
                             for (var id in r.errors.actions) {
                                 var input = form.find('input[name^=new_action_id]').filter('[data-action-id='+id+']');
-                                input.addClass('error').after('<em class="errormsg">'+r.errors.actions[id]+'</em>');
+                                input.parent().find('input').addClass('error');
+                                input.after('<em class="errormsg">'+r.errors.actions[id]+'</em>');
                             }
                         }
                     }

@@ -23,7 +23,13 @@ abstract class shopCheckout
     protected function setSessionData($key, $value)
     {
         $data = wa()->getStorage()->get('shop/checkout', array());
-        $data[$key] = $value;
+        if ($value === null) {
+            if (isset($data[$key])) {
+                unset($data[$key]);
+            }
+        } else {
+            $data[$key] = $value;
+        }
         wa()->getStorage()->set('shop/checkout', $data);
     }
 
@@ -57,6 +63,24 @@ abstract class shopCheckout
     public function setOptions($config)
     {
         return $config;
+    }
+    
+    /**
+     * Get number of step in checkout by ID of step. 
+     * @param string|null $step_id If null get number of last step + 1
+     * @return int|false
+     */
+    public static function getStepNumber($step_id = null)
+    {
+        $steps = array_keys(wa('shop')->getConfig()->getCheckoutSettings());
+        if ($step_id === null) {
+            return count($steps) + 1;
+        }
+        $n = array_search($step_id, $steps);
+        if ($n === false) {
+            return false;   // or throw Exception?
+        }
+        return $n + 1;
     }
 
 }

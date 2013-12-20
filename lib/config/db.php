@@ -56,9 +56,7 @@ return array(
             'PRIMARY' => 'id',
             'url' => array('parent_id', 'url', 'unique' => 1),
             'full_url' => array('full_url', 'unique' => 1),
-            'parent_id' => 'parent_id',
-            'left_key' => 'left_key',
-            'right_key' => 'right_key',
+            'ns_keys' => array('left_key', 'right_key'),
         ),
     ),
     'shop_category_params' => array(
@@ -147,6 +145,17 @@ return array(
             'code' => array('code', 'unique' => 1),
         ),
     ),
+    'shop_feature_values_color' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'feature_id' => array('int', 11, 'null' => 0),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
+        'code' => array('mediumint', 8, 'unsigned' => 1),
+        'value' => array('varchar', 255, 'null' => 0),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+            'values' => array('feature_id', 'value', 'unique' => 1),
+        ),
+    ),
     'shop_feature_values_dimension' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
         'feature_id' => array('int', 11, 'null' => 0),
@@ -212,8 +221,23 @@ return array(
         'subject' => array('text', 'null' => 0),
         'body' => array('text', 'null' => 0),
         'last_cron_time' => array('datetime', 'null' => 0),
+        'from' => array('varchar', 32),
+        'source' => array('varchar', 64),
+        'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         ':keys' => array(
             'PRIMARY' => 'id',
+        ),
+    ),
+    'shop_importexport' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'plugin' => array('varchar', 64, 'null' => 0),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
+        'name' => array('varchar', 255),
+        'description' => array('text'),
+        'config' => array('text'),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+            'id' => array('plugin', 'id', 'sort', 'unique' => 1),
         ),
     ),
     'shop_notification' => array(
@@ -221,6 +245,8 @@ return array(
         'name' => array('varchar', 128, 'null' => 0),
         'event' => array('varchar', 64, 'null' => 0),
         'transport' => array('enum', "'email','sms','http'", 'null' => 0, 'default' => 'email'),
+        'source' => array('varchar', 64),
+        'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'event' => 'event',
@@ -288,7 +314,7 @@ return array(
         'datetime' => array('datetime', 'null' => 0),
         'before_state_id' => array('varchar', 16, 'null' => 0),
         'after_state_id' => array('varchar', 16, 'null' => 0),
-        'text' => array('text', 'null' => 1),
+        'text' => array('text'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'order_id' => 'order_id',
@@ -395,6 +421,7 @@ return array(
         'badge' => array('varchar', 255),
         'sku_type' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
         'base_price_selectable' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
+        'sku_count' => array('int', 11, 'null' => 0, 'default' => '1'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'url' => 'url',
@@ -550,6 +577,25 @@ return array(
             'product_id' => array('product_id', 'sku_id'),
         ),
     ),
+    'shop_product_stocks_log' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'product_id' => array('int', 11, 'null' => 0),
+        'sku_id' => array('int', 11, 'null' => 0),
+        'stock_id' => array('int', 11),
+        'stock_name' => array('varchar', 255),
+        'before_count' => array('int', 11),
+        'after_count' => array('int', 11),
+        'diff_count' => array('int', 11),
+        'type' => array('varchar', 32, 'null' => 0),
+        'description' => array('text'),
+        'datetime' => array('datetime', 'null' => 0),
+        'order_id' => array('int', 11),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+            'product_id' => array('product_id', 'sku_id'),
+            'stock_id' => 'stock_id',
+        ),
+    ),
     'shop_product_tags' => array(
         'product_id' => array('int', 11, 'null' => 0),
         'tag_id' => array('int', 11, 'null' => 0),
@@ -582,6 +628,7 @@ return array(
         'currency' => array('char', 3),
         'variant_id' => array('int', 11, 'null' => 0),
         'tax_id' => array('int', 11, 'default' => '0'),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
@@ -592,6 +639,7 @@ return array(
         'name' => array('varchar', 255),
         'price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'primary_price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'service_id' => 'service_id',

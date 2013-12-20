@@ -3,6 +3,9 @@ class shopSettingsFeaturesFeatureSaveController extends waJsonController
 {
     public function execute()
     {
+        if (!$this->getUser()->getRights('shop', 'settings')) {
+            throw new waRightsException(_w('Access denied'));
+        }
         if ($features = waRequest::post('feature')) {
 
             $model = new shopFeatureModel();
@@ -17,8 +20,9 @@ class shopSettingsFeaturesFeatureSaveController extends waJsonController
 
                 $feature['types'] = $type_features_model->updateByFeature($feature['id'], $feature['types']);
                 if ($feature_id < $feature['id']) {
+                    $feature['sort'] = array();
                     foreach ($feature['types'] as $type) {
-                        $type_features_model->move(array('feature_id' => $feature['id'], 'type_id' => $type), null, $type);
+                        $feature['sort'][$type] = $type_features_model->move(array('feature_id' => $feature['id'], 'type_id' => $type), null, $type);
                     }
                 }
             }

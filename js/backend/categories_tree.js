@@ -105,8 +105,7 @@
     $.categories_tree = {
 
         init: function() {
-            var parent = $("#s-category-list-handler").parent().parent();
-            parent.off('click', '.collapse-handler-ajax').on('click', '.collapse-handler-ajax',
+            $('#s-sidebar').off('click', '.collapse-handler-ajax').on('click', '.collapse-handler-ajax',
                 function() {
                     var self = $(this);
                     if (self.hasClass('darr')) {
@@ -134,6 +133,10 @@
             } else if (typeof func === 'function') {
                 func(handler);
             }
+        },
+                
+        isCollapsed: function(handler) {
+            return $(handler).hasClass('rarr');
         },
 
         setExpanded: function(category_id) {

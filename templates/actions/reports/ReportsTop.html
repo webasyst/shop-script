@@ -2,7 +2,7 @@
 
 <div class="sidebar left400px">
     <div class="block double-padded">
-        <div id="reports-types-pie"></div>
+        <div id="reports-types-pie" style="height:{count(ifset($pie_data[0], 0))*15 + 250}px"></div>
     </div>
 </div>
 
@@ -73,6 +73,6 @@
     <div class="clear-both"></div>
 </div>
 <script type="text/javascript">(function() { "use strict";
-    document.title = '[`Top products`] — {$wa->accountName()}';
+    document.title = '{"[`Top products`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     $.reports.pie('reports-types-pie', {json_encode($pie_data)});
 })();</script>

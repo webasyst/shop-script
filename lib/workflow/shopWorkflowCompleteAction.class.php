@@ -53,8 +53,20 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
 
             if (!$update_on_create && $state_id == 'new') {
                 // jump through 'processing' state - reduce
+                
+                // for logging changes in stocks
+                shopProductStocksLogModel::setContext(
+                        shopProductStocksLogModel::TYPE_ORDER,
+                        'Order %s was completed',
+                        array(
+                            'order_id' => $order_id
+                        )
+                );
+                
                 $order_model = new shopOrderModel();
                 $order_model->reduceProductsFromStocks($order_id);
+                
+                shopProductStocksLogModel::clearContext();
             }
 
             $order_model->recalculateProductsTotalSales($order_id);

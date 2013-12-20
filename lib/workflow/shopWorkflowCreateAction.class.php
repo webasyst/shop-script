@@ -50,6 +50,11 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                 $contact = $data['contact'];
                 if (!$contact->getId()) {
                     $contact->save();
+                    // if user has been created
+                    if ($contact['password']) {
+                        $signup_action = new shopSignupAction();
+                        $signup_action->send($contact);
+                    }
                 }
             }
         } else {
@@ -135,12 +140,6 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             }
         }
 
-        // Update stock count, but take into account 'update_stock_count_on_create_order'-setting
-        $app_settings_model = new waAppSettingsModel();
-        if ($app_settings_model->get('shop', 'update_stock_count_on_create_order')) {
-            $order_model->reduceProductsFromStocks($order_id);
-        }
-
         // Order params
         if (empty($data['params'])) {
             $data['params'] = array();
@@ -151,7 +150,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         // Save params
         $params_model = new shopOrderParamsModel();
         $params_model->set($order_id, $data['params']);
-
+        
         return array(
             'order_id' => $order_id,
             'contact_id' => wa()->getEnv() == 'frontend' ? $contact->getId() : wa()->getUser()->getId()
@@ -186,6 +185,23 @@ class shopWorkflowCreateAction extends shopWorkflowAction
          * @event order_action.create
          */
         wa('shop')->event('order_action.create', $data);
+
+        // Update stock count, but take into account 'update_stock_count_on_create_order'-setting
+        $app_settings_model = new waAppSettingsModel();
+        if ($app_settings_model->get('shop', 'update_stock_count_on_create_order')) {
+            // for logging changes in stocks
+            shopProductStocksLogModel::setContext(
+                shopProductStocksLogModel::TYPE_ORDER,
+                'Order %s was placed',
+                array(
+                    'order_id' => $order_id
+                )
+            );
+            $order_model->reduceProductsFromStocks($order_id);
+
+            shopProductStocksLogModel::clearContext();
+        }
+        
         return $order_id;
     }
 

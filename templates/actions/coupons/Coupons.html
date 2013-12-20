@@ -64,7 +64,7 @@
     
     // document title
     var order_count_new = {if !empty($order_count_new)}{$order_count_new}{else}0{/if};
-    document.title = "{'[`Discount coupons`]'|cat:' — ':$wa->accountName()}";
+    document.title = '{"[`Discount coupons`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     if (order_count_new) {
         document.title = '(' + order_count_new + ') ' + document.title;
     }

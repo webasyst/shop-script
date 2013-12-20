@@ -2,7 +2,7 @@
 
     <div class="block double-padded align-center blank">
             <br><br><br><br>
-            <span class="gray large">[`You don't have any orders here.`]</span>
+            <span class="gray large">[`There are no orders in this view.`]</span>
             <div class="clear-left"></div>
         </div>
     </div>
@@ -200,6 +200,9 @@
                         {if !empty($item.stock)}
                             <span class="small">@{$item.stock.name|escape}</span>
                         {/if}
+                        {if !empty($item.stock_icon)}
+                            {$item.stock_icon}
+                        {/if}
                     </td>
                     <td class="align-right nowrap"><span class="gray">{wa_currency($item.price, $order.currency)} &times;</span> {$item.quantity}</td>
                     <td class="align-right nowrap">{wa_currency($item.price * $item.quantity, $order.currency)}</td>
@@ -214,7 +217,7 @@
             <tr class="no-border">
                 <td colspan="2"></td>
                 <td class="align-right">[`Discount`]</td>
-                <td class="align-right nowrap">{wa_currency($order.discount, $order.currency)}</td>
+                <td class="align-right nowrap">&minus; {wa_currency($order.discount, $order.currency)}</td>
             </tr>
             {if isset($params.shipping_name) || $order.shipping > 0}
             <tr class="no-border">
@@ -362,7 +365,7 @@
                             <i class="icon16" style="background-image: url('{$pl.icon.16}');"></i>
                             {$pl.name|escape}
                             {/if}
-                            <strong>{$row.action->getOption('log_record')}</strong>
+                            <strong>{if $row.action}{$row.action->getOption('log_record')}{else}{$row.action_id}{/if}</strong>
                             {if $row.text}<p>{$row.text}</p>{/if}
                         {else}
                             {if $row.text} {$row.text}{/if}
@@ -391,7 +394,7 @@
     
             // title has to be overridden in this cases
             if (view == 'table') {
-                options.title = '{$wa->shop->orderId($order.id)|cat:' — ':$wa->accountName()}';
+                options.title = '{$wa->shop->orderId($order.id)|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
                 if (count_new) {
                     options.title = '(' + count_new + ') ' + options.title;
                 }
@@ -408,7 +411,7 @@
                         timeout: {$timeout}
                     },
                     count_new: {$count_new},
-                    title_suffix: "{' — '|cat:$wa->accountName()}",
+                    title_suffix: '{' — '|cat:{$wa->accountName(false)}|escape:'javascript'}',
                     filter_params: {json_encode($filter_params)},
                     filter_params_str: '{$filter_params_str}'
                 };

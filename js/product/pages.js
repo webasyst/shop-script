@@ -187,29 +187,18 @@
         loadPage: function(id) {
             this.page_id = id || 0;
             var self  = this;
-            var count = 10;
             var onLoad = function(html) {
-                if ($.product.ajax.cached['elrte-wa.js'] && $.product.ajax.cached['elrte.min.js']) {
-                    self.container.find("#s-page-container").html(html);
-                    self.sidebar.find('li.selected').removeClass('selected');
-                    if (self.page_id) {
-                        var li = self.sidebar.find('#page-' + self.page_id);
-                        if (li.length) {
-                            li.addClass('selected');
-                            return;
-                        }
-                    }
-                    self.page_id = 0;
-                    self.sidebar.find('li:last').addClass('selected');
-                } else {
-                    count -= 1;
-                    if (count > 0) {
-                        $.shop.trace('$.product_pages wait while js are loading');
-                        setTimeout(function() {
-                            onLoad(html);
-                        }, 500);
+                self.container.find("#s-page-container").html(html);
+                self.sidebar.find('li.selected').removeClass('selected');
+                if (self.page_id) {
+                    var li = self.sidebar.find('#page-' + self.page_id);
+                    if (li.length) {
+                        li.addClass('selected');
+                        return;
                     }
                 }
+                self.page_id = 0;
+                self.sidebar.find('li:last').addClass('selected');
             };
 
             $.get("?module=product&action=pageEdit&id="+this.page_id+'&product_id='+this.product_id, function(html) {

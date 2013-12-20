@@ -69,7 +69,7 @@ class shopConfig extends waAppConfig
             // for URL <category_url>/<product_url>/
             if ($dispatch && $url_type == 2) {
                 $category_model = new shopCategoryModel();
-                $categories = $category_model->getAll();
+                $categories = $category_model->getByRoute(wa()->getRouting()->getDomain(null, true).'/'.$route['url']);
                 $categories_routes = array();
                 foreach ($categories as $c) {
                     $categories_routes[$c['full_url'].'/'] = array(
@@ -290,10 +290,17 @@ function shop_currency($n, $in_currency = null, $out_currency = null, $format = 
             $n = $n / ifempty($currencies[$out_currency]['rate'], 1.0);
         }
     }
-    if ($format) {
+    if ($format === 'h') {
+        return wa_currency_html($n, $out_currency);
+    } elseif ($format) {
         return wa_currency($n, $out_currency);
     } else {
         return str_replace(',', '.', $n);
     }
 
+}
+
+function shop_currency_html($n, $in_currency = null, $out_currency = null, $format = 'h')
+{
+    return shop_currency($n, $in_currency, $out_currency, $format);
 }

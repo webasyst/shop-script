@@ -27,10 +27,17 @@ class shopOrderEditAction extends waViewAction
             $currency = $order['currency'];
             if ($order['contact_id']) {
                 $has_contacts_rights = shopHelper::getContactRights($order['contact_id']);
+                
+
                 $shipping_address = shopHelper::getOrderAddress($order['params'], 'shipping');
+
                 if (!empty($order['contact_id'])) {
                     try {
-                        $form = shopHelper::getCustomerForm($order['contact_id']);
+                        $c = new waContact($order['contact_id']);
+                        if ($shipping_address) {
+                            $c['address.shipping'] = $shipping_address;
+                        }
+                        $form = shopHelper::getCustomerForm($c);
                     } catch (waException $e) {
                         // Contact does not exist; ignore. When $form is null, customer data saved in order is shown.
                     }

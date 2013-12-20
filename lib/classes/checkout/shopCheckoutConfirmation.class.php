@@ -38,7 +38,7 @@ class shopCheckoutConfirmation extends shopCheckout
             $billing_address = array('data' => array(), 'value' => '');
         }
 
-        $discount_rate = $subtotal ? ($order['discount'] / $subtotal) : 0;
+        $discount_rate = ((float)$subtotal) ? ($order['discount'] / $subtotal) : 0;
         $taxes = shopTaxes::apply($items, array('shipping' => $shipping_address['data'],
             'billing' => $billing_address['data'], 'discount_rate' => $discount_rate));
 
@@ -63,20 +63,25 @@ class shopCheckoutConfirmation extends shopCheckout
             }
         }
 
+        $plugin_model = new shopPluginModel();
 
         $params = array();
         if ($shipping = $this->getSessionData('shipping')) {
             $params['shipping_id'] = $shipping['id'];
-            $params['shipping_rate_id'] = $shipping['rate_id'];
-            $params['shipping_name'] = $shipping['name'];
+            if ($shipping['id']) {
+                $plugin_info = $plugin_model->getById($shipping['id']);
+                $params['shipping_rate_id'] = $shipping['rate_id'];
+                $params['shipping_name'] = $shipping['name'];
+                $params['shipping_description'] = $plugin_info['description'];
+            }
         }
 
         if ($payment_id = $this->getSessionData('payment')) {
             $params['payment_id'] = $payment_id;
-            $plugin_model = new shopPluginModel();
             $plugin_info = $plugin_model->getById($payment_id);
             $params['payment_name'] = $plugin_info['name'];
             $params['payment_plugin'] = $plugin_info['plugin'];
+            $params['payment_description'] = $plugin_info['description'];
         }
 
         $view->assign(array(
@@ -92,6 +97,19 @@ class shopCheckoutConfirmation extends shopCheckout
             'billing_address' => !empty($settings['contactinfo']['fields']['address.billing']) ? $billing_address : false,
             'terms' => !empty($settings['confirmation']['terms']) ? $settings['confirmation']['terms'] : false
         ));
+
+        $checkout_flow = new shopCheckoutFlowModel();
+        $step_number = shopCheckout::getStepNumber('confirmation');
+        // IF no errors
+        $checkout_flow->add(array(
+            'step' => $step_number
+        ));
+        // ELSE
+//        $checkout_flow->add(array(
+//            'step' => $step_number,
+//            'description' => ERROR MESSAGE HERE
+//        ));
+
     }
 
 

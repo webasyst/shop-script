@@ -29,5 +29,9 @@ return array(
             'name' => 'Wattage',
             'type' => shopFeatureModel::TYPE_DIMENSION.'.power',
         ),
+        'weight' => array(
+            'name' => 'Weight',
+            'type' => shopFeatureModel::TYPE_DIMENSION.'.weight'
+        ),
     )
 );

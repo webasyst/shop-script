@@ -32,18 +32,23 @@ class shopSettingsGeneralAction extends waViewAction
                     if (!$from) {
                         $from = '*';
                     }
-                    $save[$from] = $s;
-                    $save[$from]['adapter'] = $adapter;
+                    foreach (explode("\n", $from) as $from) {
+                        $from = trim($from);
+                        $save[$from] = $s;
+                        $save[$from]['adapter'] = $adapter;
+                    }
                 }
             }
             waUtils::varExportToFile($save, $path);
 
         }
-
+        
         $cm = new waCountryModel();
         $this->view->assign('countries', $cm->all());
         $this->view->assign($this->getConfig()->getGeneralSettings());
-        $this->view->assign('sms_adapters', $this->getSMSAdapters());
+        
+        $sms_adapters = $this->getSMSAdapters();
+        $this->view->assign('sms_adapters', $sms_adapters);
     }
 
     public function getData()
@@ -61,7 +66,7 @@ class shopSettingsGeneralAction extends waViewAction
         );
         return $data;
     }
-
+    
     protected function getSMSAdapters()
     {
         $path = $this->getConfig()->getPath('plugins').'/sms/';
@@ -89,12 +94,18 @@ class shopSettingsGeneralAction extends waViewAction
         foreach ($config as $c_from => $c) {
             if (isset($adapters[$c['adapter']])) {
                 $used[$c['adapter']] = 1;
-                $temp = $this->getSMSAdapaterInfo($adapters[$c['adapter']]);
-                $temp['config'] = $c;
-                $temp['config']['from'] = $c_from;
-                $result[] = $temp;
+                if (!isset($result[$c['adapter']])) {
+                    $temp = $this->getSMSAdapaterInfo($adapters[$c['adapter']]);
+                    $temp['config'] = $c;
+                    $temp['config']['from'] = array($c_from);
+                    $result[$c['adapter']] = $temp;
+                } else {
+                    $result[$c['adapter']]['config']['from'][] = $c_from;
+                }
             }
         }
+        $result = array_values($result);
+        
         foreach ($adapters as $a) {
             /**
              * @var waSMSAdapter $a
@@ -103,7 +114,7 @@ class shopSettingsGeneralAction extends waViewAction
                 continue;
             }
             $result[] = $this->getSMSAdapaterInfo($a);
-        }
+        }        
         return $result;
 
     }

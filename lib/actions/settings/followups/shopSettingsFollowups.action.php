@@ -39,7 +39,14 @@ class shopSettingsFollowupsAction extends waViewAction
                 if (empty($followup['name'])) {
                     $followup['name'] = _w('<no name>');
                 }
-
+                
+                $followup['from']    = $followup['from'] ? $followup['from'] : null;
+                $followup['source'] = $followup['source'] ? $followup['source'] : null;
+                
+                if ($followup['from'] === 'other') {
+                    $followup['from'] = waRequest::post('from');
+                }
+                
                 if ($id && $id !== 'new') {
                     unset($followup['last_cron_time']);
                     $fm->updateById($id, $followup);
@@ -100,13 +107,15 @@ class shopSettingsFollowupsAction extends waViewAction
                 $o['total_formatted'] = waCurrency::format('%{s}', $o['total'], $o['currency']);
             }
         }
-
+        
         $this->view->assign('followup', $followup);
         $this->view->assign('followups', $followups);
         $this->view->assign('test_orders', $test_orders);
         $this->view->assign('last_cron', wa()->getSetting('last_followup_cli'));
         $this->view->assign('cron_ok', wa()->getSetting('last_followup_cli') + 3600*36 > time());
         $this->view->assign('cron_command', 'php '.wa()->getConfig()->getRootPath().'/cli.php shop followup');
+        $this->view->assign('default_email_from', $this->getConfig()->getGeneralSettings('email'));
+        $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
     }
 
     public static function getDefaultBody()

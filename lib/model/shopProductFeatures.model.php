@@ -108,6 +108,16 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             }
             $type = preg_replace('/\..*$/', '', $row['type']);
             if ($type == shopFeatureModel::TYPE_BOOLEAN) {
+                /**
+                 * @var shopFeatureValuesBooleanModel $model
+                 */
+                $model = shopFeatureModel::getValuesModel($type);
+                $values = $model->getValues('id', $row['feature_value_id']);
+                $result[$row['code']] = reset($values);
+            } elseif ($type == shopFeatureModel::TYPE_DIVIDER) {
+                /**
+                 * @var shopFeatureValuesDividerModel $model
+                 */
                 $model = shopFeatureModel::getValuesModel($type);
                 $values = $model->getValues('id', $row['feature_value_id']);
                 $result[$row['code']] = reset($values);
@@ -148,7 +158,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
     /**
      * @see shopProductStorageInterface::setData()
      * @param shopProduct $product current product object
-     * @param array[string] mixed $data new product feature values
+     * @param array [string] mixed $data new product feature values
      */
     public function setData(shopProduct $product, $data)
     {
@@ -272,7 +282,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 }
             } elseif (!empty($value) && is_array($value)) {
                 //it's a new feature
-                if (!empty($value) && (($value['type'] == shopFeatureModel::TYPE_BOOLEAN) || !empty($value['value']))) {
+                if (!empty($value) && ((ifset($value['type']) == shopFeatureModel::TYPE_BOOLEAN) || !empty($value['value']))) {
                     $f = array(
                         'name'  => $value['name'],
                         'type'  => $value['type'],

@@ -37,10 +37,20 @@ class shopFrontendCartAction extends shopFrontendAction
 
         $errors = array();
         if (waRequest::post('checkout')) {
+            $saved_quantity = $cart_model->select('id,quantity')->where("type='product' AND code = s:code", array('code' => $code))->fetchAll('id');
+            $quantity = waRequest::post('quantity');
+            foreach ($quantity as $id => $q) {
+                if ($q != $saved_quantity[$id]) {
+                    $cart->setQuantity($id, $q);
+                }
+            }
             $not_available_items = $cart_model->getNotAvailableProducts($code, !wa()->getSetting('ignore_stock_count'));
             foreach ($not_available_items as $row) {
+                if ($row['sku_name']) {
+                    $row['name'] .= ' ('.$row['sku_name'].')';
+                }
                 if ($row['available']) {
-                    $errors[$row['id']] = sprintf(_w('Only %d left in stock. Sorry.'), $row['count']);
+                    $errors[$row['id']] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $row['count'], $row['name']);
                 } else {
                     $errors[$row['id']] = _w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.');
                 }
@@ -212,13 +222,25 @@ class shopFrontendCartAction extends shopFrontendAction
                 foreach ($item_services as $s_id => &$s) {
                     if (!$s['variants']) {
                         unset($item_services[$s_id]);
-                    } elseif (count($s['variants']) == 1) {
+                        continue;
+                    }
+
+                    if ($s['currency'] == '%') {
+                        foreach ($s['variants'] as $v_id => $v) {
+                            $s['variants'][$v_id]['price'] = $v['price'] *  $item['price'] / 100;
+                        }
+                        $s['currency'] = $item['currency'];
+                    }
+
+                    if (count($s['variants']) == 1) {
                         $v = reset($s['variants']);
                         $s['price'] = $v['price'];
                         unset($s['variants']);
                     }
                 }
                 unset($s);
+                uasort($item_services, array('shopServiceModel', 'sortServices'));
+
                 $items[$item_id]['services'] = $item_services;
             } else {
                 $items[$item['parent_id']]['services'][$item['service_id']]['id'] = $item['id'];
@@ -287,6 +309,14 @@ class shopFrontendCartAction extends shopFrontendAction
         $this->view->assign('frontend_cart', wa()->event('frontend_cart'));
 
         $this->getResponse()->setTitle(_w('Cart'));
+        
+        $checkout_flow = new shopCheckoutFlowModel();
+        $checkout_flow->add(array(
+            'code' => $code,
+            'step' => 0,
+            'description' => null /* TODO: Error message here if exists */
+        ));
+        
     }
 
 }

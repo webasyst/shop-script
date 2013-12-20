@@ -179,7 +179,11 @@ class shopProductServicesModel extends waModel
             $this->multipleInsert($add);
         }
 
-        $this->convertPrimaryPrices($product_id, $service_id);
+        $service_model = new shopServiceModel();
+        $currency = $service_model->select('currency')->where('id = i:id', array('id' => $service_id))->fetchField();
+        if ($currency != '%') {
+            $this->convertPrimaryPrices($product_id, $service_id);
+        }
 
         return true;
     }
@@ -201,8 +205,8 @@ class shopProductServicesModel extends waModel
             JOIN `shop_service` s ON s.id = ps.service_id
             JOIN `shop_currency` c ON c.code = s.currency
             SET ps.primary_price = ps.price*c.rate
-            WHERE ps.product_id = $product_id AND ps.service_id = $service_id";
-        $this->exec($sql);
+            WHERE ps.product_id = i:0 AND ps.service_id = i:1";
+        $this->exec($sql, $product_id, $service_id);
     }
 
     private function getProduct($product_id) {
@@ -460,6 +464,7 @@ class shopProductServicesModel extends waModel
                 return array();
             }
         }
+        $service_id = (int)$service_id;
         $product_id = $product['id'];
         $type_id = $product['type_id'];
         $sql = "
@@ -479,7 +484,7 @@ class shopProductServicesModel extends waModel
                 s.id = ts.service_id AND type_id ".($type_id ? " = $type_id" : " IS NULL")."
             WHERE ps.sku_id IS NULL ".($service_id ? " AND s.id = $service_id" : "")."
             GROUP BY s.id
-            ORDER BY s.id
+            ORDER BY s.sort
         ";
         $services = $this->query($sql)->fetchAll('id');
         if (!$services) {
@@ -552,15 +557,15 @@ class shopProductServicesModel extends waModel
                 ps.status
 
             FROM `shop_service_variants` sv
-            LEFT JOIN `{$this->table}` ps ON sv.id = ps.service_variant_id AND ps.product_id = $product_id
-            WHERE sv.service_id IN(".implode(',', $service_ids).")
-            ORDER BY sv.service_id, sv.id, ps.sku_id";
+            LEFT JOIN `{$this->table}` ps ON sv.id = ps.service_variant_id AND ps.product_id = i:0
+            WHERE sv.service_id IN (i:1)
+            ORDER BY sv.service_id, sv.sort, ps.sku_id";
 
         $data = array();
         $sku_id = 0;
         $v_id   = 0;
         $s_id   = 0;
-        foreach ($this->query($sql) as $item) {
+        foreach ($this->query($sql, $product_id, $service_ids) as $item) {
             if ($s_id != $item['service_id']) {
                 $s_id = $item['service_id'];
                 $data[$s_id]['variants'] = array();

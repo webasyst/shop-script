@@ -132,8 +132,8 @@ class shopCurrencyModel extends waModel
 
         $this->convertPrices($code, $rate, $convert_to, $rate_to);
         $convert_to = $this->escape($convert_to);
-        $this->exec("UPDATE `shop_product` SET currency = '$convert_to' WHERE currency = '$code'");
-        $this->exec("UPDATE `shop_service` SET currency = '$convert_to' WHERE currency = '$code'");
+        $this->exec("UPDATE `shop_product` SET currency = s:0 WHERE currency = s:1", $convert_to, $code);
+        $this->exec("UPDATE `shop_service` SET currency = s:0 WHERE currency = s:1", $convert_to, $code);
 
         $this->recalcProductPrimaryPrices($convert_to);
         $this->recalcServicePrimaryPrices($convert_to);
@@ -181,8 +181,9 @@ class shopCurrencyModel extends waModel
 
             // check invariant old primary currency rate == 1.0. If broken - repair before
             $old_rate = $this->getById($old_code);
+            $old_rate = $old_rate['rate'];
             if ($old_rate != 1) {
-                $this->exec("UPDATE `{$this->table}` SET rate = 1 WHERE code = '$old_code'");
+                $this->updateByField('code', $old_code, array('rate' => 1));
             }
 
             if ($convert) {
@@ -191,12 +192,14 @@ class shopCurrencyModel extends waModel
 
             $this->exec("UPDATE `{$this->table}` SET rate = rate/$rate");
             $this->exec("UPDATE `shop_customer`  SET total_spent = total_spent/$rate");
+            $this->exec("UPDATE `shop_product` SET total_sales = total_sales/$rate");
+            $this->exec("UPDATE `shop_order` SET rate = rate/$rate");
             $this->updateById($old_code, array('sort' => $currencies[$new_code]));
             $this->updateById($new_code, array('sort' => 0));
 
             if ($convert) {
-                $this->exec("UPDATE `shop_product` SET currency = '$new_code' WHERE currency = '$old_code'");
-                $this->exec("UPDATE `shop_service` SET currency = '$new_code' WHERE currency = '$old_code'");
+                $this->exec("UPDATE `shop_product` SET currency = s:0 WHERE currency = s:1", $new_code, $old_code);
+                $this->exec("UPDATE `shop_service` SET currency = s:0 WHERE currency = s:1", $new_code, $old_code);
             }
 
             $this->recalcProductPrimaryPrices();
@@ -204,6 +207,10 @@ class shopCurrencyModel extends waModel
 
             wa('shop')->getConfig()->setCurrency($new_code);
             $this->primary_currency = $new_code;
+            
+            $cache = new waRuntimeCache('shop_currencies');
+            $cache->delete();
+            
         }
         return true;
     }
@@ -226,11 +233,14 @@ class shopCurrencyModel extends waModel
         $rate_from = $this->castValue('double', $rate_from);
         $rate_to = $this->castValue('double', $rate_to);
         $cond = "p.currency = '".$this->escape($from)."'";
-        $sql = "UPDATE `shop_product_skus` ps
-            JOIN `shop_product` p ON p.id = ps.product_id
-            SET ps.price = (ps.price*$rate_from)/$rate_to
-            WHERE $cond";
-        $this->exec($sql);
+        $price_fields = array('price', 'purchase_price', 'compare_price');
+        foreach ($price_fields as $p_name) {
+            $sql = "UPDATE `shop_product_skus` ps
+                JOIN `shop_product` p ON p.id = ps.product_id
+                SET ps.{$p_name} = (ps.{$p_name}*{$rate_from})/{$rate_to}
+                WHERE {$cond}";
+            $this->exec($sql);
+        }
     }
 
     private function convertServicePrices($from, $rate_from, $to, $rate_to)
@@ -338,6 +348,13 @@ class shopCurrencyModel extends waModel
             JOIN `shop_product_skus` ps ON ps.product_id = p.id AND ps.id = p.sku_id
             JOIN `shop_currency` c ON c.code = p.currency
             SET p.price = ps.price*c.rate
+            $where";
+        $this->exec($sql);
+        
+        $sql = "UPDATE `shop_product` p 
+            JOIN `shop_product_skus` ps ON ps.product_id = p.id AND ps.id = p.sku_id
+            JOIN `shop_currency` c ON c.code = p.currency
+            SET p.compare_price = ps.compare_price*c.rate
             $where";
         $this->exec($sql);
 

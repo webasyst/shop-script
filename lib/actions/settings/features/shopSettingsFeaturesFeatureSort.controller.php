@@ -3,7 +3,9 @@ class shopSettingsFeaturesFeatureSortController extends waJsonController
 {
     public function execute()
     {
-
+        if (!$this->getUser()->getRights('shop', 'settings')) {
+            throw new waRightsException(_w('Access denied'));
+        }
         $model = new shopTypeFeaturesModel();
         $id = waRequest::post('feature_id', 0, waRequest::TYPE_INT);
         $type = waRequest::post('type_id', 0, waRequest::TYPE_INT);

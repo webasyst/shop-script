@@ -24,6 +24,7 @@ return array(
     'orders_default_view'      => 'split',
     'orders_per_page'          => array('split' => 15, 'table' => 30),
     'types_per_page'          => 25,
+    'features_per_page'        =>200,
     'orders_update_list'       => 60000, // miliseconds
 
     'stocks_log_items_per_page' => 30,
@@ -34,6 +35,19 @@ return array(
     'image_thumbs_on_demand'   => 1,
     'image_save_original'      => 1,
     'image_save_quality'    => 90,
+
+    // search weights
+    'search_weights' => array(
+        'name' => 90,
+        'summary' => 20,
+        'description' => 20,
+        'tag' => 30,
+        'feature' => 30,
+        'sku' => 40,
+        'other' => 10,
+    ),
+
+    'search_ignore' => ',.!?«»"\'()[]<>|/',
 
     /**
      * the ability to use Smarty within product/category description

@@ -20,8 +20,8 @@ class shopFollowupCli extends waCliController
         $view = wa()->getView();
         $empty_customer = $cm->getEmptyRow();
         $general = wa('shop')->getConfig()->getGeneralSettings();
-
-        foreach($fm->getAll() as $f) {
+        
+        foreach($fm->getAllEnabled() as $f) {
             $between_from = date('Y-m-d', strtotime($f['last_cron_time']) - 24*3600);
             $between_to = date('Y-m-d 23:59:59', time() - $f['delay'] - 10*3600);
             $orders = $om->where('paid_date >= ? AND paid_date < ?', $between_from, $between_to)->fetchAll('id');
@@ -60,8 +60,17 @@ class shopFollowupCli extends waCliController
                                 continue;
                             }
                         }
-
+                        
                         $o['params'] = ifset($params[$o['id']], array());
+                        
+                        $source = 'backend';
+                        if (isset($o['params']['storefront'])) {
+                            $source = $o['params']['storefront'].'*';
+                        }
+                        
+                        if ($f['source'] && $f['source'] != $source) {
+                            continue;
+                        }
 
                         // Make sure we have not send follow-up for this order yet
                         if (isset($o['params'][$f_param_key])) {
@@ -70,7 +79,7 @@ class shopFollowupCli extends waCliController
                             }
                             continue;
                         }
-
+                        
                         shopHelper::workupOrders($o, true);
 
                         // Recipient info
@@ -131,7 +140,7 @@ class shopFollowupCli extends waCliController
      * Helper to send one message: used during real sending, as well as for test emails from follow-ups settings page.
      */
     public static function sendOne($f, $o, $customer, $contact, $to, $view=null, $general=null)
-    {
+    {        
         if (!$view) {
             $view = wa()->getView();
         }
@@ -171,11 +180,16 @@ class shopFollowupCli extends waCliController
         // Build email from template
         $subject = $view->fetch('string:'.$f['subject']);
         $body = $view->fetch('string:'.$f['body']);
-
+        
+        $from = $general['email'];
+        if ($f['from']) {
+            $from = $f['from'];
+        }
+        
         // Send the message
         $message = new waMailMessage($subject, $body);
         $message->setTo($to);
-        $message->setFrom($general['email'], $general['name']);
+        $message->setFrom($from, $general['name']);
 
         return $message->send();
     }

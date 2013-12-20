@@ -69,15 +69,21 @@
                     <select name="variant[edit][{$index}][{$service_id}]" class="s-orders-service-variant"
                         {if $service.item.service_variant_id === null}disabled="disabled"{/if}>
                         {foreach $service.variants as $variant_id => $variant}
-                            <option value="{$variant.id}" data-price="{$variant.price}"
-                                {if $service.item.service_variant_id == variant_id}selected="selected"{/if}>
+                            <option value="{$variant.id}" 
+                                                   data-price="{$variant.price}"
+                                                   {if $service.currency == '%'}data-percent-price="{$variant.percent_price}"{/if}
+                                                   {if $service.item.service_variant_id == $variant_id}selected="selected"{/if}>
                                 {$variant.name} ({$variant.price_str})
                             </option>
                         {/foreach}
                     </select>
                {/if}
             {/if}
-            <input type="text" name="price[edit][item][{$service.item.id}]" value="{$service.item.price}" class="short numerical s-orders-service-price">{$currency}
+            <input type="text" name="price[edit][item][{$service.item.id}]" value="{$service.item.price}" 
+                                        data-currency="{$service.currency}"
+                                        data-price="{$service.item.price}"
+                                        {if $service.currency == '%'}data-percent-price="{$service.percent_price}"{/if}
+                                        class="short numerical s-orders-service-price">{$currency}
         {else}
             <label>
                 <input type="checkbox" name="service[edit][{$index}][new][{$service_id}]" value="{$service_id}">
@@ -89,14 +95,20 @@
             {else}
                 <select name="variant[edit][{$index}][{$service_id}]" class="s-orders-service-variant">
                     {foreach $service.variants as $variant_id => $variant}
-                        <option value="{$variant.id}" data-price="{$variant.price}"
-                            {if $service.variant_id == $variant_id}selected="selected"{/if}>
+                        <option value="{$variant.id}" 
+                                             data-price="{$variant.price}"
+                                             {if $service.currency == '%'}data-percent-price="{$variant.percent_price}"{/if}
+                                             {if $service.variant_id == $variant_id}selected="selected"{/if}>
                             {$variant.name} ({$variant.price_str})
                         </option>
                     {/foreach}
                 </select>
             {/if}
-            <input type="text" name="price[edit][new][{$service_id}]" value="{$service.price}" class="short numerical s-orders-service-price">{$currency}
+            <input type="text" name="price[edit][new][{$service_id}]" value="{$service.price}" 
+                                        data-currency="{$service.currency}"
+                                        data-price="{$service.price}"
+                                        {if $service.currency == '%'}data-percent-price="{$service.percent_price}"{/if}
+                                        class="short numerical s-orders-service-price">{$currency}
         {/if}
     </li>
 {/function}
@@ -154,7 +166,7 @@
                     </ul>
                 {else}
                     {$product_sku = $product.skus[$product.item.sku_id]}
-                    {if $product_sku.sku}
+                    {if $product_sku && $product_sku.sku}
                         <span class="hint">{$product_sku.sku}</span>
                     {/if}
                     {if !empty($product.fake)}
@@ -177,7 +189,6 @@
             <input type="text" 
                    name="quantity[edit][{$product.item.id}]" 
                    value="{$product.item.quantity}"
-                   data-max-value="{if $product_sku && $product_sku.count !== null}{max($product.item.quantity, $product_sku.count)}{/if}"
                    class="s-orders-quantity short numerical"
             >
         </td>
@@ -190,9 +201,10 @@
                         <option value="0"></option>
                     {/if}
                     {foreach $stocks as $stock_id => $stock}
+                        {$selected = $stock_id == $product.item.stock_id}
                         <option value="{$stock_id}" data-icon="{$product_sku.icons[$stock_id]}"
-                            {if $stock_id == $product.item.stock_id}selected="selected"{/if}
-                        >
+                                        {if $selected}selected="selected"{/if}
+                                      >
                             {$stock.name|escape}
                         </option>
                     {/foreach}
@@ -309,7 +321,7 @@
                     <td class="min-width"></td>
                     <td class="align-right" colspan="3">[`Discount`]</td>
                     <td class="align-right nowrap">
-                        <input type="text" class="numerical short" id="discount" name="discount" {if $order}value="{(float)$order.discount}"{/if}>
+                        &minus; <input type="text" class="numerical short" id="discount" name="discount" {if $order}value="{(float)$order.discount}"{/if}>
                         <span class="currency">{$currency}</span>
                     </td>
                     <td></td>
@@ -347,7 +359,7 @@
 <script type="text/javascript" src="{$wa_app_static_url}js/order/edit.js?v{$wa->version()}"></script>
 <script>
     var count_new = {if !empty($count_new)}{$count_new}{else}0{/if};
-    var title = {if !$order}'{"[`New order`]"|cat:' — ':$wa->accountName()}'{else}'{$wa->shop->orderId($order.id)|cat:' — ':$wa->accountName()}'{/if};
+    var title = {if !$order}'{"[`New order`]"|cat:" — ":{$wa->accountName(false)}|escape:"javascript"}'{else}'{$wa->shop->orderId($order.id)|cat:" — ":{$wa->accountName(false)}|escape:"javascript"}'{/if};
     if (title && count_new) {
         title = '(' + count_new + ') ' + title;
     }
@@ -356,7 +368,7 @@
         mode: '{if $order}edit{else}add{/if}',
         container: '#s-content',
         form: '#order-edit-form',
-        autocomplete_url: '{$wa_backend_url}contacts/?action=autocomplete&limit=5',
+        autocomplete_url: '?action=autocomplete&type=contact',
         currency: '{$currency}',
         stocks: {json_encode(array_values($stocks))},
         ignore_stock_count: {if $ignore_stock_count}true{else}false{/if},

@@ -1,8 +1,17 @@
 <?php
+/**
+ *
+ * @deprecated
+ * Class shopSettingsFeaturesFeatureControlController
+ *
+ */
 class shopSettingsFeaturesFeatureControlController extends waJsonController
 {
     public function execute()
     {
+        if (!$this->getUser()->getRights('shop', 'settings')) {
+            throw new waRightsException(_w('Access denied'));
+        }
         $values = waRequest::post('values');
         if (!$values || !is_array($values)) {
             $values = array();
@@ -18,6 +27,9 @@ class shopSettingsFeaturesFeatureControlController extends waJsonController
                 case shopFeatureModel::TYPE_DIMENSION:
                     $data['type'] = $type;
                     $this->response[] = shopDimension::getControl($data['name'], $data);
+                    break;
+                case shopFeatureModel::TYPE_BOOLEAN:
+                    $this->response[] = waHtmlControl::getControl(waHtmlControl::CHECKBOX, $data['name'], $data);
                     break;
                 default:
                     $this->response[] = waHtmlControl::getControl(waHtmlControl::INPUT, $data['name'], $data);

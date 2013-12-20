@@ -3,6 +3,9 @@ class shopSettingsResetAction extends waViewAction
 {
     public function execute()
     {
+        if (!$this->getUser()->isAdmin('shop')) {
+            throw new waRightsException(_w('Access denied'));
+        }
         if (waRequest::post('reset')) {
             $confirm = waRequest::post('confirm');
             if ($confirm !== null) {
@@ -87,6 +90,10 @@ class shopSettingsResetAction extends waViewAction
             'shop_tax',
             'shop_tax_regions',
             'shop_tax_zip_codes',
+
+            'shop_affiliate_transaction',
+
+            'shop_importexport',
         );
         $model = new waModel();
         foreach ($tables as $table) {
@@ -127,6 +134,8 @@ class shopSettingsResetAction extends waViewAction
 
         $paths[] = wa()->getDataPath('products', false, 'shop');
         $paths[] = wa()->getDataPath('products', true, 'shop');
+        $paths[] = wa()->getConfigPath('shop');
+        $paths[] = wa()->getCachePath(null, 'shop');
 
         foreach ($paths as $path) {
             waFiles::delete($path, true);

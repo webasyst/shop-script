@@ -4,7 +4,6 @@ class shopFrontendShippingController extends waJsonController
 {
     public function execute()
     {
-
         $cart = new shopCart();
         $total = $cart->total();
 
@@ -77,6 +76,7 @@ class shopFrontendShippingController extends waJsonController
         if (is_array($rates)) {
             foreach ($rates as $r_id => &$r) {
                 $r['id'] = $r_id;
+                $r['rate_html'] = shop_currency_html($r['rate'], $r['currency']);
                 $r['rate'] = shop_currency($r['rate'], $r['currency']);
             }
             unset($r);

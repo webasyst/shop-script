@@ -90,6 +90,9 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
                 SELECT sort FROM {$this->table}
                 WHERE product_id = $before_id AND category_id = $category_id"
             )->fetchField('sort');
+            if ($sort === false) {
+                return false;
+            }
             $this->exec("
                 UPDATE {$this->table} SET sort = sort + ".count($product_ids)."
                 WHERE sort >= $sort AND category_id = $category_id"

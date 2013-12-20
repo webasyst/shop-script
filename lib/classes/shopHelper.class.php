@@ -54,7 +54,7 @@ class shopHelper
                 $controls = array();
                 foreach ($custom_fields as $name => $row) {
                     $row = array_merge($row, $params);
-                    if ($order_params && $m['id'] == $order_params['payment_id'] && isset($order_params['payment_params_'.$name])) {
+                    if (!empty($order_params['payment_id']) && ($m['id'] == $order_params['payment_id']) && isset($order_params['payment_params_'.$name])) {
                         $row['value'] = $order_params['payment_params_'.$name];
                     }
                     $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
@@ -293,7 +293,7 @@ class shopHelper
             $default = wa()->getRootUrl(true).'wa-content/img/userpic'.$size.'.jpg';
             $default = urlencode($default);
         }
-        return 'http://www.gravatar.com/avatar/'.md5(strtolower(trim($email)))."?size=$size&default=$default";
+        return '//www.gravatar.com/avatar/'.md5(strtolower(trim($email)))."?size=$size&default=$default";
     }
 
     public static function workupOrders(&$orders, $single = false)
@@ -302,7 +302,7 @@ class shopHelper
             $orders = array($orders);
         }
 
-        $items_count = 4;
+
         $currency = wa('shop')->getConfig()->getCurrency();
 
         $workflow = new shopWorkflow();
@@ -314,25 +314,6 @@ class shopHelper
                 $order['create_datetime_str'] = wa_date('humandatetime', $order['create_datetime']);
             }
             $state = isset($states[$order['state_id']]) ? $states[$order['state_id']] : null;
-
-            if (!empty($order['items'])) {
-                $items_str = '';
-                $i = 0;
-                foreach ($order['items'] as $item) {
-                    if ($i >= $items_count) {
-                        break;
-                    }
-                    $items_str .= ', '.$item['name'];
-                    if ($item['type'] == 'product') {
-                        $items_str .= ' x '.$item['quantity'];
-                    }
-                    $i += 1;
-                }
-                $order['items_str'] = substr($items_str, 2);
-            }
-            if (!$single && isset($order['items'])) {
-                unset($order['items']);
-            }
 
             $icon = '';
             $style = '';
@@ -461,6 +442,11 @@ class shopHelper
         return $icon;
     }
 
+    /**
+     * @param int|waContact $id
+     * @param bool $ensure_address
+     * @return waContactForm
+     */
     public static function getCustomerForm($id = null, $ensure_address = false)
     {
         $settings = wa('shop')->getConfig()->getCheckoutSettings();
@@ -472,8 +458,22 @@ class shopHelper
         $address_config = ifset($fields_config['address'], array());
         unset($fields_config['address']);
 
-        if (wa()->getEnv() == 'backend' && !isset($fields_config['address.shipping'])) {
-            $fields_config['address.shipping'] = array();
+        if (wa()->getEnv() == 'backend') {
+            // new order
+            if (!isset($fields_config['address.shipping']) || !$id) {
+                $fields_config['address.shipping'] = array();
+            }
+            // edit order
+            elseif (!empty($fields_config['address.shipping']) && $id && $id instanceof waContact) {
+                $address = $id->getFirst('address.shipping');
+                if ($address && !empty($address['data'])) {
+                    foreach ($address['data'] as $subfield => $v) {
+                        if (!isset($fields_config['address.shipping']['fields'][$subfield])) {
+                            $fields_config['address.shipping']['fields'][$subfield] = array();
+                        }
+                    }
+                }
+            }
         }
 
         if ($ensure_address && !isset($fields_config['address.billing']) && !isset($fields_config['address.shipping'])) {
@@ -484,9 +484,15 @@ class shopHelper
             'namespace' => 'customer'
         ));
         if ($id) {
-            $contact = new waContact($id);
-            $contact->getName(); // make sure contact exists; throws exception otherwise
-            $form->setValue($contact);
+            if (is_numeric($id)) {
+                $contact = new waContact($id);
+                $contact->getName(); // make sure contact exists; throws exception otherwise
+            } elseif ($id instanceof waContact) {
+                $contact = $id;
+            }
+            if (isset($contact)) {
+                $form->setValue($contact);
+            }
         }
         return $form;
     }
@@ -499,7 +505,7 @@ class shopHelper
      */
     public static function transliterate($str, $strict = true)
     {
-        $str = preg_replace('/\s+/', '-', $str);
+        $str = preg_replace('/\s+/u', '-', $str);
         if ($str) {
             foreach (waLocale::getAll() as $lang) {
                 $str = waLocale::transliterate($str, $lang);

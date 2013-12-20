@@ -46,7 +46,12 @@ class shopBackendLocAction extends waViewAction
             'Products added:',
             'Images uploaded:',
             'New product',
-            'This will delete this order state. Are you sure?'
+            'This will delete this order state. Are you sure?',
+            'Perform action to all selected orders?',
+            "There are no orders in this view.",
+            "Please save changes to be able to send tests.",
+            "A product must have at least one SKU.",
+            "Drag products here"
         ) as $s) {
             $strings[$s] = _w($s);
         }

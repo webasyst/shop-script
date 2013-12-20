@@ -4,10 +4,22 @@ class shopCsvProductsetupAction extends waViewAction
     public function execute()
     {
         $direction = (waRequest::request('direction', 'import') == 'export') ? 'export' : 'import';
-
+        $profile_helper = new shopImportexportHelper('csv:product:'.$direction);
+        $this->view->assign('profiles', $profile_helper->getList());
+        $profile = $profile_helper->getConfig();
         if ($direction == 'export') { //export section TODO
 
-            $path = wa()->getTempPath('csv/download/');
+
+            $profile['config'] += array(
+                'encoding'  => 'UTF-8',
+                'images'    => true,
+                'features'  => true,
+                'domain'    => null,
+                'delimiter' => ';',
+                'hash'      => '',
+            );
+
+            $path = wa()->getTempPath('csv/download/'.$profile['id']);
             $files = waFiles::listdir($path);
 
             $info = array();
@@ -35,18 +47,28 @@ class shopCsvProductsetupAction extends waViewAction
                     $settlement = $domain.'/'.$route['url'];
                     if ($current_domain === null) {
                         $current_domain = $settlement;
+                    } elseif ($settlement == $profile['config']['domain']) {
+                        $current_domain = $settlement;
                     }
                     $settlements[] = $settlement;
                 }
             }
             $this->view->assign('current_domain', $current_domain);
-
             $this->view->assign('settlements', $settlements);
+
         } else {
+            $profile['config'] += array(
+                'encoding'  => 'UTF-8',
+                'delimiter' => ';',
+                'map'       => array(),
+            );
+
             $upload_path = waSystem::getSetting('csv.upload_path', 'path/to/folder/with/source/images/');
             $this->view->assign('upload_path', $upload_path);
             $this->view->assign('upload_full_path', wa()->getDataPath($upload_path));
         }
+
+        $this->view->assign('profile', $profile);
 
         $type_model = new shopTypeModel();
         $this->view->assign('types', $type_model->getTypes());

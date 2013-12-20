@@ -14,6 +14,8 @@ class shopBackendLayout extends waLayout
             $default_page = 'storefronts';
         } else if (wa()->getUser()->getRights('shop', 'reports')) {
             $default_page = 'reports';
+        } else if (wa()->getUser()->getRights('shop', 'settings')) {
+            $default_page = 'settings';
         } else {
             throw new waRightsException(_w("Access denied"));
         }

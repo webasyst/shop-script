@@ -48,7 +48,7 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
          * @return array[string][string]string $return[%plugin_id%]['block_aux'] html output
          * @return array[string][string]string $return[%plugin_id%]['block'] html output
          */
-        $this->view->assign('frontend_product', wa()->event('frontend_product', $product));
+        $this->view->assign('frontend_product', wa()->event('frontend_product', $product, array('menu','cart','block_aux','block')));
 
         $this->setThemeTemplate('reviews.html');
     }

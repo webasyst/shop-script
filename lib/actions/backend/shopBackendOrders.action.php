@@ -21,7 +21,7 @@ class shopBackendOrdersAction extends waViewAction
             (!empty($state_counters['paid'])       ? $state_counters['paid'] : 0);
 
         $cm = new shopCouponModel();
-
+        
         /*
          * @event backend_orders
          * @return array[string]array $return[%plugin_id%] array of html output
@@ -40,8 +40,8 @@ class shopBackendOrdersAction extends waViewAction
             'state_counters'   => $state_counters,
             'pending_count'    => $pending_count,
             'all_count'        => $order_model->countAll(),
-            'contact_counters' => $order_model->getContactCounters(),
-            'backend_orders'   => $backend_orders,
+            'storefronts' => $order_model->getStorefrontCounters(),
+            'backend_orders'   => $backend_orders
         ));
     }
 

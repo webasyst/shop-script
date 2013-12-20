@@ -115,8 +115,10 @@
         $('[name$="[localized_names]"]').each(function() {
             var self = $(this);
             if (!self.val() && self.parents('.template').length <= 0) {
-                valid = false;
-                self.addClass('error').parent().append($('<em class="errormsg"></em>').text("[`This field is required.`]"));
+                if (self.closest('tr').find('[name$="[_disabled]"]:checked').length) {
+                    valid = false;
+                    self.addClass('error').parent().append($('<em class="errormsg"></em>').text("[`This field is required.`]"));
+                }
             }
         });
 
@@ -279,9 +281,13 @@
 
             // Disabled subfields: do not show checkbox
             if (enabled_cb && enabled_cb.length && enabled_cb.is(':checked')) {
-                cb.closest('tr').show();
+                var tr = cb.closest('tr');
+                if (!tr.is(':visible')) {
+                    cb.prop('checked', true);
+                    tr.show();
+                }
             } else {
-                cb.attr('checked', false).closest('tr').hide();
+                cb.prop('checked', false).closest('tr').hide();
             }
 
             // Required subfields: show checked disabled checkbox

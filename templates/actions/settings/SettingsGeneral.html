@@ -100,11 +100,15 @@
                         <div class="value no-shift">
                             <input name="sms[{$i}][adapter]" type="hidden" value="{$a.id}">
                             <strong><i class="icon16" style="background-image: url('{$a.icon}');"></i>{$a.name}</strong><br>
-                            <div class="field">
-                                <div class="name">[`Sender ID`]</div>
+                            <div class="field" {if count($sms_adapters) == 1}style="display:none;"{/if}>
+                                <div class="name">[`Sender IDs`]</div>
                                 <div class="value">
-                                    <input name="sms[{$i}][from]" value="{if !empty($a.config.from)}{$a.config.from|escape}{/if}">
-                                    <p class="hint">[`Enter Sender ID to use with this SMS gateway (Sender ID is either your phone number or up-to-11-characters text label). Enter * to use default Sender ID issued for your account by the gateway.`]</p>
+                                    {strip}
+                                    <textarea name="sms[{$i}][from]">
+                                        {if !empty($a.config.from)}{implode("\n", $a.config.from)}{/if}
+                                    </textarea>
+                                    {/strip}
+                                    <p class="hint">[`Enter Sender IDs to use with this SMS gateway (Sender ID is either your phone number or up-to-11-characters text label). Enter * to use default Sender ID issued for your account by the gateway.`]</p>
                                 </div>
                             </div>
                             {foreach $a.controls as $k => $v}
@@ -144,7 +148,7 @@
 </div>
 <script type="text/javascript">
     var form = $('#s-settings-general-form');
-    document.title = '{"[`General settings`]"|cat:" — ":{$wa->accountName()}}';
+    document.title = '{"[`General settings`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     form.submit(function() {
         var self = $(this);
         form.find(':submit').after('<span class="s-mgs-after-button"><i class="icon16 loading"></i></span>');

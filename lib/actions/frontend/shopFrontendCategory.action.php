@@ -5,10 +5,23 @@ class shopFrontendCategoryAction extends shopFrontendAction
     public function execute()
     {
         $category_model = new shopCategoryModel();
+        $url_field = waRequest::param('url_type') == 1 ? 'url' : 'full_url';
+
         if (waRequest::param('category_id')) {
             $category = $category_model->getById(waRequest::param('category_id'));
+            if ($category) {
+                $category_url = wa()->getRouteUrl('/frontend/category', array('category_url' => $category[$url_field]));
+                if (urldecode(wa()->getConfig()->getRequestUrl(false, true)) !== $category_url) {
+                    $q = waRequest::server('QUERY_STRING');
+                    $this->redirect($category_url.($q ? '?'.$q : ''), 301);
+                }
+            }
         } else {
-            $category = $category_model->getByField(waRequest::param('url_type') == 1 ? 'url' : 'full_url', waRequest::param('category_url'));
+            $category = $category_model->getByField($url_field, waRequest::param('category_url'));
+            if ($category && $category[$url_field] !== urldecode(waRequest::param('category_url'))) {
+                $q = waRequest::server('QUERY_STRING');
+                $this->redirect(wa()->getRouteUrl('/frontend/category', array('category_url' => $category[$url_field])).($q ? '?'.$q : ''), 301);
+            }
         }
         $route = wa()->getRouting()->getDomain(null, true) . '/' . wa()->getRouting()->getRoute('url');
         if ($category) {
@@ -18,6 +31,8 @@ class shopFrontendCategoryAction extends shopFrontendAction
         if (!$category || ($routes && !in_array($route, $routes))) {
             throw new waException('Category not found', 404);
         }
+
+
 
         $category['subcategories'] = $category_model->getSubcategories($category, $route);
 
@@ -69,6 +84,16 @@ class shopFrontendCategoryAction extends shopFrontendAction
         }
         unset($sc);
 
+        $get_vars = waRequest::get();
+        if (isset($get_vars['page'])) {
+            unset($get_vars['page']);
+        }
+
+        if ($get_vars) {
+            $this->view->assign('canonical', wa()->getRouteUrl('shop/frontend/category', array('category_url' =>
+                waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url']), true));
+        }
+
         $root_category_id = $category['id'];
 
         if ($category['parent_id']) {
@@ -83,17 +108,11 @@ class shopFrontendCategoryAction extends shopFrontendAction
                 );
             }
             if ($breadcrumbs) {
-                if ($this->layout) {
-                    $this->layout->assign('breadcrumbs', $breadcrumbs);
-                }
                 $this->view->assign('breadcrumbs', $breadcrumbs);
             }
         }
 
         $this->view->assign('root_category_id', $root_category_id);
-        if ($this->layout) {
-            $this->layout->assign('root_category_id', $root_category_id);
-        }
 
         if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC && !$category['sort_products']) {
             $category['sort_products'] = 'create_datetime DESC';
@@ -116,12 +135,11 @@ class shopFrontendCategoryAction extends shopFrontendAction
             } else {
                 $order = 'asc';
             }
-            $_GET['sort'] = ($sort[0] == 'count' ? 'stock' : $sort[0]);
-            $_GET['order'] = $order;
+            //$_GET['order'] = $order;
+            $this->view->assign('active_sort', $sort[0] == 'count' ? 'stock' : $sort[0]);
         } elseif (!$category['sort_products'] && !waRequest::get('sort')) {
             $this->view->assign('active_sort', '');
         }
-
 
         $this->setCollection(new shopProductsCollection('category/' . $category['id']));
 

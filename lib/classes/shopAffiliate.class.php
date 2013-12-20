@@ -22,20 +22,18 @@ class shopAffiliate
             return 0;
         }
 
-        if (int_ok($order_or_id)) {
-            $order_id = $order_or_id;
+        if (wa_is_int($order_or_id)) {
             $om = new shopOrderModel();
-            $order = $om->getOrder($order_id);
+            $order = $om->getOrder($order_or_id);
         } else {
             $order = $order_or_id;
-            //$order_id = $order['id'];
         }
 
         // Convert order total from order currency to default currency
         $curm = new shopCurrencyModel();
         $order_currency = isset($order['currency']) ? $order['currency'] : null;
         $def_cur = wa('shop')->getConfig()->getCurrency(true);
-        $affiliatable_total = $curm->convert($order['total'], ifempty($order_currency, $def_cur), $def_cur);
+        $affiliatable_total = $curm->convert($order['total'] - ifset($order['shipping'], 0), ifempty($order_currency, $def_cur), $def_cur);
 
         $product_types = wa()->getSetting('affiliate_product_types', '', 'shop');
         if (!empty($product_types)) {
@@ -84,7 +82,7 @@ class shopAffiliate
 
     public static function applyBonus($order_or_id)
     {
-        if (int_ok($order_or_id)) {
+        if (wa_is_int($order_or_id)) {
             $order_id = $order_or_id;
             $om = new shopOrderModel();
             $order = $om->getOrder($order_id);
@@ -115,7 +113,7 @@ class shopAffiliate
 
     public static function cancelBonus($order_or_id)
     {
-        if (int_ok($order_or_id)) {
+        if (wa_is_int($order_or_id)) {
             $order_id = $order_or_id;
             $om = new shopOrderModel();
             $order = $om->getOrder($order_id);

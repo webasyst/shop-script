@@ -44,7 +44,7 @@ class shopFrontendProductReviewsAddController extends waJsonController
             'id' => $id,
             'parent_id' => $this->getParentId(),
             'count' => $count,
-            'html' => $this->renderTempate(array(
+            'html' => $this->renderTemplate(array(
                     'review' => $this->model->getReview($id, true),
                     'reply_allowed' => true,
                     'ajax_append' => true),
@@ -58,7 +58,7 @@ class shopFrontendProductReviewsAddController extends waJsonController
         );
     }
 
-    private function renderTempate($assign, $template)
+    private function renderTemplate($assign, $template)
     {
         $theme = waRequest::param('theme', 'default');
         $theme_path = wa()->getDataPath('themes', true).'/'.$theme;

@@ -4,8 +4,11 @@ class shopBackendSettingsAction extends waViewAction
     public function execute()
     {
         if (!$this->getUser()->getRights('shop', 'settings')) {
-            throw new waException(_w("Access denied"));
+            throw new waRightsException(_w("Access denied"));
         }
+        
+        $this->setLayout(new shopBackendLayout());
+        
         //TODO get dynamic sections lists
         /**
          * @event backend_settings

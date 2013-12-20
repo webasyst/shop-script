@@ -41,7 +41,7 @@ class shopDiscounts
          * @param array[string] $params['apply'] calculate or apply discount
          * @return float discount
          */
-        $event_params = array('order' => $order, 'contact' => $contact, 'apply' => $apply);
+        $event_params = array('order' => &$order, 'contact' => $contact, 'apply' => $apply);
         $plugins_discounts = wa()->event('order_calculate_discount', $event_params);
         foreach ($plugins_discounts as $plugin_discount) {
             $applicable_discounts[] = $plugin_discount;
@@ -130,12 +130,11 @@ class shopDiscounts
                 break;
             default:
                 // Flat value in currency
-                $coupon['value'] = max(0.0, (float) $coupon['value']);
-                if (wa()->getConfig()->getCurrency(false) == $coupon['type']) {
-                    return $coupon['value'];
+                $result = max(0.0, (float) $coupon['value']);
+                if (wa()->getConfig()->getCurrency(false) != $coupon['type']) {
+                    $crm = new shopCurrencyModel();
+                    $result = (float) $crm->convert($result, $coupon['type'], wa()->getConfig()->getCurrency(false));
                 }
-                $crm = new shopCurrencyModel();
-                $result = (float) $crm->convert($coupon['value'], $coupon['type'], wa()->getConfig()->getCurrency(false));
                 break;
         }
 

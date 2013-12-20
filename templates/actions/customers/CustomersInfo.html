@@ -87,9 +87,11 @@
                 </td>
                 <td>{$o.create_datetime|wa_date:'humandate'}</td>
                 <td>
-                    {foreach $o.items as $i}
-                        {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
-                    {/foreach}
+                    {if isset($o.items)}
+                        {foreach $o.items as $i}
+                            {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
+                        {/foreach}
+                    {/if}
                 </td>
                 <td>
                     {* !!! TODO: shipping icon *}
@@ -243,7 +245,7 @@
         var add_payment_link = $('#add-payment');
         var amount_hint = wrapper.find('.amount-hint');
         
-        document.title = '{$contact.name|escape|cat:' — ':$wa->accountName()}';
+        document.title = '{$contact.name|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 
         // Changing the field makes hint with amount in default currency appear
         var h;

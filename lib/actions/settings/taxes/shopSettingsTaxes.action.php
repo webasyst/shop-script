@@ -37,8 +37,11 @@ class shopSettingsTaxesAction extends waViewAction
         $tax = $this->processPostData($tax);
         if ($tax['id'] && !$tax_id) {
             $tax_id = $tax['id'];
+        }
+        if ($tax_id) {
             $taxes[$tax_id] = $tax;
         }
+        uasort($taxes, wa_lambda('$a,$b', 'return strcmp($a["name"], $b["name"]);'));
 
         $this->view->assign('tax_countries', $this->getTaxCountries($tax, $countries));
         $this->view->assign('tax_zip_codes', $this->getTaxZipCodes($tax));

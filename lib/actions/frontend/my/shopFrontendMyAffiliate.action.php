@@ -27,10 +27,11 @@ class shopFrontendMyAffiliateAction extends shopFrontendAction
 
         // Set up layout and template from theme
         $this->setThemeTemplate('my.affiliate.html');
+        $this->view->assign('my_nav_selected', 'affiliate');
         if (!waRequest::isXMLHttpRequest()) {
             $this->setLayout(new shopFrontendLayout());
             $this->getResponse()->setTitle(_w('Affiliate program'));
-            $this->layout->assign('breadcrumbs', self::getBreadcrumbs());
+            $this->view->assign('breadcrumbs', self::getBreadcrumbs());
             $this->layout->assign('nofollow', true);
         }
     }

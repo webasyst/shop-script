@@ -88,7 +88,7 @@ class shopOrdersLoadListController extends shopOrderListAction
             if (!$id) {
                 return false;
             }
-            $offset = $this->model->getOffset($id, $this->getFilterParams());
+            $offset = $this->collection->getOrderOffset($id);
             if ($offset === false) {
                 return false;
             }
@@ -99,8 +99,7 @@ class shopOrdersLoadListController extends shopOrderListAction
     public function getListCounters()
     {
         return array(
-            'state_counters'   => $this->model->getStateCounters(),
-            'contact_counters' => $this->model->getContactCounters()
+            'state_counters'   => $this->model->getStateCounters()
         );
     }
 

@@ -17,8 +17,52 @@ class shopNotifications
 
     public static function send($event, $data)
     {
-        $notifications = self::getModel()->getByEvent($event);
+        $notifications = self::getModel()->getByEvent($event, true);
         if ($notifications) {
+            $params_model = new shopOrderParamsModel();
+            $data['order']['params'] = $params_model->get($data['order']['id'], true);
+            $items_model = new shopOrderItemsModel();
+            $data['order']['items'] = $items_model->getItems($data['order']['id']);
+            foreach ($data['order']['items'] as &$i) {
+                if (!empty($i['file_name'])) {
+                    $i['download_link'] = wa()->getRouteUrl('/frontend/myOrderDownload',
+                        array('id' => $data['order']['id'], 'code' => $data['order']['params']['auth_code'], 'item' => $i['id']), true);
+                }
+            }
+            unset($i);
+            if (!empty($data['order']['params']['shipping_id'])) {
+                try {
+                    $data['shipping_plugin'] = shopShipping::getPlugin($data['order']['params']['shipping_plugin'], $data['order']['params']['shipping_id']);
+                } catch (waException $e) {}
+            }
+        }
+
+        $source = 'backend';
+        if (isset($data['order']['params']['storefront'])) {
+            $source = $data['order']['params']['storefront'].'*';
+        }
+        
+        foreach ($notifications as $n) {
+            if (!$n['source'] || ($n['source'] == $source)) {
+                $method = 'send'.ucfirst($n['transport']);
+                if (method_exists('shopNotifications', $method)) {
+                    self::$method($n, $data);
+                }
+            }
+        }
+    }
+
+    /**
+     * 
+     * @param int $id
+     * @param array $data
+     * @param string|null $to For test send. If null get real info from notification params
+     */
+    public static function sendOne($id, $data, $to = null)
+    {
+        $n = self::getModel()->getOne($id);
+        if ($n) {
+            
             $params_model = new shopOrderParamsModel();
             $data['order']['params'] = $params_model->get($data['order']['id']);
             $items_model = new shopOrderItemsModel();
@@ -35,18 +79,25 @@ class shopNotifications
                     $data['shipping_plugin'] = shopShipping::getPlugin($data['order']['params']['shipping_plugin'], $data['order']['params']['shipping_id']);
                 } catch (waException $e) {}
             }
-        }
-        foreach ($notifications as $n) {
+            
             $method = 'send'.ucfirst($n['transport']);
             if (method_exists('shopNotifications', $method)) {
+                if ($to !== null) {
+                    $n['to'] = $to;
+                }
                 self::$method($n, $data);
             }
         }
     }
-
+    
     protected static function sendEmail($n, $data)
     {
-        $general = wa('shop')->getConfig()->getGeneralSettings();
+        $general = wa('shop')->getConfig()->getGeneralSettings(); 
+        if (!empty($n['from'])) {
+            $from = $n['from'];
+        } else {
+            $from = $general['email'];
+        }
         /**
          * @var waContact $customer
          */
@@ -86,9 +137,10 @@ class shopNotifications
 
         $message = new waMailMessage($subject, $body);
         $message->setTo($to);
-        if ($general['email']) {
-            $message->setFrom($general['email'], $general['name']);
+        if ($from) {
+            $message->setFrom($from, $general['name']);
         }
+        
         if ($message->send()) {
             $order_log_model = new shopOrderLogModel();
             $order_log_model->add(array(
@@ -136,7 +188,7 @@ class shopNotifications
         $view->assign('order_url', wa()->getRouteUrl('/frontend/myOrderByCode', array('id' => $order_id, 'code' => $data['order']['params']['auth_code']), true));
         $view->assign($data);
         $text = $view->fetch('string:'.$n['text']);
-
+        
         $sms = new waSMS();
         $sms->setFrom(isset($n['from']) ? $n['from'] : null);
         if ($sms->send($to, $text)) {

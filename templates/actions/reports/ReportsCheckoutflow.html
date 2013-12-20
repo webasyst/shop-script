@@ -1,0 +1,48 @@
+<div class="block double-padded">
+
+    <h1>Checkout flow <span class="hint">&alpha;</span></h1>
+
+    <p>Checkout flow report shows how many customers abandon their shopping carts during checkout process. Data mining for this report started in Shop-Script 5.2.0. This report is to be published in version 5.2.1 or later — as soon as enough data is available.</p>
+
+    <table>
+    {foreach $stat as $key => $val}
+        <tr>        
+            <td>{$key}</td>
+            <td>
+                <div style="width: 400px; height: 25px; background: #eee; margin: 15px;">
+                    <div style="width: {str_replace(',','.',$val['percents']/100*400)}px; height: 25px; background: #fc5;">
+                        
+                    </div>
+                </div>
+            </td>
+            <td>
+                {$val['count']} passed
+                {if !empty($stat[$key+1])}
+                    <span class="hint">{$val['count'] - $stat[$key+1]['count']} abandoned checkout on this step</span>
+                {/if}
+            </td>
+        </tr>
+    {/foreach}
+    </table>
+
+    {if $checkout_flow_changed}
+        <div>
+            <i class="icon16 exclamation"></i> {sprintf(_w('Warning. Checkout flow has changed from %s'), wa_date('humandatetime', $checkout_flow_changed))}
+            <a href="#" id="s-reports-checkoutflow-clear">[`Start again?`]</a>
+        </div>
+    {/if}
+</div>
+<hr>
+<div class="clear-both"></div>
+<script>
+    $(function() {
+        $('#s-reports-checkoutflow-clear').click(function() {
+            $.post('?module=reports&action=checkoutflowClear', {
+                clear: 'all'
+            }, function() {
+                $.reports.dispatch();
+            });
+            return false;
+        });
+    });
+</script>

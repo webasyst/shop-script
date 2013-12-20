@@ -16,9 +16,16 @@ class shopCategoryModel extends waNestedSetModel
     const TYPE_DYNAMIC = 1;
 
 
+    public function getByRoute($route)
+    {
+        $sql = "SELECT c.id, c.full_url FROM shop_category c
+           LEFT JOIN shop_category_routes cr ON c.id = cr.category_id
+           WHERE cr.route IS NULL OR cr.route = '".$this->escape($route)."'";
+        return $this->query($sql)->fetchAll();
+    }
+
     public function getAll($key = null, $normalize = false)
     {
-        $this->setCache(new waRuntimeCache('shop/categories/all'));
         return parent::getAll($key, $normalize);
     }
 
@@ -256,7 +263,7 @@ class shopCategoryModel extends waNestedSetModel
      * @param array $data
      * @param int $parent_id If 0 than rool level
      */
-    public function add($data, $parent_id = 0, $before_id = null)
+    public function add($data, $parent_id = null, $before_id = null)
     {
         if (empty($data)) {
             return false;
@@ -487,7 +494,35 @@ class shopCategoryModel extends waNestedSetModel
         return $query;
     }
 
+    public function getFrontendUrls($id)
+    {
+        $category = $this->getById($id);
+        if (!$category) {
+            return array();
+        }
+        $category_routes_model = new shopCategoryRoutesModel();
+        $category['routes'] = $category_routes_model->getRoutes($id);
 
+        $frontend_urls = array();
+
+        $routing =  wa()->getRouting();
+        $domain_routes = $routing->getByApp('shop');
+        foreach ($domain_routes as $domain => $routes) {
+            foreach ($routes as $r) {
+                if (!empty($r['private'])) {
+                    continue;
+                }
+                if (!$category['routes'] || in_array($domain.'/'.$r['url'], $category['routes'])) {
+                    $routing->setRoute($r, $domain);
+                    $frontend_urls[] = $routing->getUrl('shop/frontend/category', array(
+                        'category_url' => isset($r['url_type']) && ($r['url_type'] == 1) ? $category['url'] : $category['full_url']),
+                        true);
+                }
+            }
+        }
+        return $frontend_urls;
+    }
+    
     public function recount($category_id = null)
     {
         $cond = "

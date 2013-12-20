@@ -8,6 +8,9 @@ class shopFrontendCartAddController extends waJsonController
         $code = waRequest::cookie('shop_cart');
         if (!$code) {
             $code = md5(uniqid(time(), true));
+            // header for IE
+            wa()->getResponse()->addHeader('P3P', 'CP="NOI ADM DEV COM NAV OUR STP"');
+            // set cart cookie
             wa()->getResponse()->setCookie('shop_cart', $code, time() + 30 * 86400, null, '', false, true);
         }
 
@@ -27,11 +30,29 @@ class shopFrontendCartAddController extends waJsonController
                 $parent['service_variant_id'] = $service['variant_id'];
             }
             $cart = new shopCart();
-            $this->response['id'] = $cart->addItem($parent);
-            $this->response['total'] = shop_currency($cart->total(), true);
-            $this->response['count'] = shop_currency($cart->count());
-            $this->response['discount'] = shop_currency($cart->discount(), true);
-            $this->response['item_total'] = shop_currency($cart->getItemTotal($data['parent_id']), true);
+            
+            $id = $cart->addItem($parent);
+            $total = $cart->total();
+            $discount = $cart->discount();
+            
+            $this->response['id'] = $id;
+            $this->response['total'] = shop_currency_html($total, true);
+            $this->response['count'] = $cart->count();
+            $this->response['discount'] = shop_currency_html($discount, true);
+            $this->response['item_total'] = shop_currency_html($cart->getItemTotal($data['parent_id']), true);
+            
+            if (shopAffiliate::isEnabled()) {
+                $add_affiliate_bonus = shopAffiliate::calculateBonus(array(
+                    'total' => $total,
+                    'discount' => $discount,
+                    'items' => $cart->items(false)
+                ));
+                $this->response['add_affiliate_bonus'] = sprintf(
+                    _w("This order will add +%s points to your affiliate bonus."), 
+                    round($add_affiliate_bonus, 2)
+                );
+            }
+            
             return;
         }
 
@@ -75,11 +96,12 @@ class shopFrontendCartAddController extends waJsonController
                 $c = $cart_model->countSku($code, $sku['id']);
                 if ($sku['count'] !== null && $c + $quantity > $sku['count']) {
                     $quantity = $sku['count'] - $c;
+                    $name = $product['name'].($sku['name'] ? ' ('.$sku['name'].')' : '');
                     if (!$quantity) {
-                        $this->errors = sprintf(_w('Only %d left in stock. Sorry.'), $sku['count']);
+                        $this->errors = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
                         return;
                     } else {
-                        $this->response['error'] = sprintf(_w('Only %d left in stock. Sorry.'), $sku['count']);
+                        $this->response['error'] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
                     }
                 }
             }
@@ -142,7 +164,7 @@ class shopFrontendCartAddController extends waJsonController
 
             if (waRequest::isXMLHttpRequest()) {
                 $this->response['item_id'] = $item_id;
-                $this->response['total'] = shop_currency($total, true);
+                $this->response['total'] = shop_currency_html($total, true);
                 $this->response['count'] = $shop_cart->count();
             } else {
                 $this->redirect(waRequest::server('HTTP_REFERER'));

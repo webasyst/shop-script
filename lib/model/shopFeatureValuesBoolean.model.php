@@ -89,7 +89,7 @@ class shopFeatureValuesBooleanModel extends shopFeatureValuesModel
      */
     public function getProductValues($product_id, $feature_id, $field = 'value')
     {
-        $sql = "SELECT pf.product_id, pf.value_id  " . $field . " FROM shop_product_features pf
+        $sql = "SELECT pf.product_id, pf.value_id  ".$field." FROM shop_product_features pf
                 WHERE pf.product_id IN (i:0) AND pf.feature_id = i:1";
         return $this->query($sql, $product_id, $feature_id)->fetchAll('product_id', true);
     }
@@ -114,7 +114,12 @@ class shopFeatureValuesBooleanModel extends shopFeatureValuesModel
 
 }
 
-
+/**
+ * Class shopBooleanValue
+ * @property boolean $value
+ * @property string $feature_id
+ * @property-read int $sort
+ */
 class shopBooleanValue implements ArrayAccess
 {
     private $value;

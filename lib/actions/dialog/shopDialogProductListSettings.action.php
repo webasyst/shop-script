@@ -53,9 +53,6 @@ class shopDialogProductListSettingsAction extends waViewAction
             return array();
         }
 
-        $category_routes_model = new shopCategoryRoutesModel();
-        $settings['routes'] = $category_routes_model->getRoutes($id);
-
         /**
          * @event backend_category_dialog
          * @param array $category
@@ -63,14 +60,17 @@ class shopDialogProductListSettingsAction extends waViewAction
          */
         $this->view->assign('event_dialog', wa()->event('backend_category_dialog', $settings));
 
-        $frontend_url = wa()->getRouteUrl('/frontend/category', array('category_url' => $settings['full_url']), true);
-        if ($frontend_url) {
+        $category_routes_model = new shopCategoryRoutesModel();
+        $settings['routes'] = $category_routes_model->getRoutes($id);
+        
+        $settings['frontend_urls'] = array();
+        foreach ($category_model->getFrontendUrls($id) as $frontend_url) {
             $pos = strrpos($frontend_url, $settings['url']);
-            $settings['frontend_base_url'] = $pos !== false ? rtrim(substr($frontend_url, 0, $pos),'/').'/' : '';
-        } else {
-            $settings['frontend_base_url'] = '';
+            $settings['frontend_urls'][] = array(
+                'url' => $frontend_url,
+                'base' => $pos !== false ? rtrim(substr($frontend_url, 0, $pos),'/').'/' : ''
+            );
         }
-        $settings['frontend_url'] = $frontend_url;
 
         $settings['params'] = $category_params_model->get($id);
         if (isset($settings['params']['enable_sorting'])) {
@@ -102,6 +102,8 @@ class shopDialogProductListSettingsAction extends waViewAction
 
         $filter = $settings['filter'] !== null ? explode(',', $settings['filter']) : null;
 
+        $feature_filter = array();
+        
         $feature_model = new shopFeatureModel();
         $features['price'] = array(
             'id' => 'price',
@@ -113,12 +115,14 @@ class shopDialogProductListSettingsAction extends waViewAction
             foreach ($filter as $feature_id) {
                 $feature_id = trim($feature_id);
                 if (isset($features[$feature_id])) {
-                    $features[$feature_id]['checked'] = true;
+                    $feature_filter[$feature_id] = $features[$feature_id];
+                    $feature_filter[$feature_id]['checked'] = true;
+                    unset($features[$feature_id]);
                 }
             }
         }
         $settings['allow_filter'] = (bool)$filter;
-        $settings['filter'] = $features;
+        $settings['filter'] = $feature_filter + $features;
 
         return $settings;
     }

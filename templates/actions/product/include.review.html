@@ -31,20 +31,6 @@
                     {$review.title|escape|nl2br}
                 </h5>
             {/if}
-            {*
-            <span class="s-review-auth-user">
-                {if isset($review.product) && $review.product && (!isset($single_view) || !$single_view)}
-                    <span class="hint">
-                      [`on`]
-                      {if isset($review.product) && $reivew.product && (true || $review.editable) || (isset($review.product) && $review.product)}
-                          {$review.product.title|escape}
-                      {else}
-                          [`unknown product`]
-                      {/if}
-                    </span>
-                {/if}
-            </span>
-            *}
 
             <span class="hint">
 

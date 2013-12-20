@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     {$title = "{if $wa->title()}{$wa->title()|escape}{else}{$wa->appName()}{/if}"}
-    <title>{$title} &mdash; {$wa->accountName()}</title>
+    <title>{{$title|default:$wa->appName()}|cat:" — ":{$wa->accountName(false)}|escape}</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0">
     <link rel="apple-touch-icon" href="apps/mobile/img/iphone_icon.png">{* !!! ? *}

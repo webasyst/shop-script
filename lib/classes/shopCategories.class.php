@@ -210,6 +210,21 @@ class shopCategories
             }
         }
         unset($item);
+        
+        // bind storefronts
+        $category_routes_model = new shopCategoryRoutesModel();
+        foreach ($category_routes_model->getRoutes(array_keys($categories)) as $category_id => $routes) {
+            foreach ($routes as &$r) {
+                if (substr($r, -1) === '*') {
+                    $r = substr($r, 0, -1);
+                }
+                if (substr($r, -1) === '/') {
+                    $r = substr($r, 0, -1);
+                }
+            }
+            unset($r);  
+            $categories[$category_id]['routes'] = $routes;
+        }
 
         // form intermediate utility data structure
         $stack = array();

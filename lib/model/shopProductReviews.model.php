@@ -140,7 +140,7 @@ class shopProductReviewsModel extends waNestedSetModel
         foreach ($data as &$item) {
             $item['datetime_ts'] = strtotime($item['datetime']);
             if ($options['escape']) {
-                $item['text'] = nl2br(htmlspecialchars($item['text']));
+                $item['text'] = $item['text'];
                 $item['title'] = htmlspecialchars($item['title']);
             }
         }

@@ -1,7 +1,7 @@
 {if empty($orders)}
     <div class="block double-padded align-center blank">
             <br><br><br><br>
-            <span class="gray large">[`You don't have any orders here.`]</span>
+            <span class="gray large">[`There are no orders in this view.`]</span>
             <div class="clear-left"></div>
         </div>
     </div>
@@ -50,8 +50,26 @@
             <table class="zebra single-lined padded" id="order-list">
                 <thead>
                     <tr class="header">
-                        {*<th><input type="checkbox" class="s-select-all"></th>*}
-                        <th colspan="2"></th>
+                        <th>
+                            <input type="checkbox" class="s-select-all">
+                        </th>
+                        <th colspan="2">
+                            <ul class="menu-h with-icons dropdown s-with-selected" style="display:none;">
+                                <li>
+                                    <a class="inline-link nowrap" style="display:inline;">
+                                        <b><i><strong>[`With selected`]</strong></i></b>
+                                        <i class="icon10 darr"></i>
+                                    </a>
+                                    <ul class="menu-v wf-actions">
+                                        {foreach $actions as $a_id => $a}
+                                            <li>
+                                                <a href="#" data-action-id="{$a_id}">{* <i class="icon16 color" background: #{$a.style.button_class}></i> *}{$a['name']}</a>
+                                            </li>
+                                        {/foreach}
+                                    </ul>
+                                </li>
+                            </ul>
+                        </th>
 <!--                         <th>[`Order content`]</th> -->
                         <th>[`Customer`]</th>
                         <th class="nowrap align-right">[`Total`]</th>
@@ -68,9 +86,7 @@
                 {% for (var i = 0, n = orders.length; i < n; i += 1) { %}
                     {% var order = orders[i]; %}
                     <tr class="order" data-order-id="{%#order.id%}">
-                        {/literal}{*
                         <td><input type="checkbox" {% if (check_all) { %}checked="checked"{% } %}></td>
-                        *}{literal}
                         <td style="{%#order.style%}" class="nowrap">
                             <div><a href="#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">
                                 <i class="{%#order.icon%}"></i><span{% if (order.state_id == 'new') { %} class="highlighted"{% } %}>{%#order.id_str%}</span></a>
@@ -81,13 +97,6 @@
                                 <i class="shortener"></i>
                             </div>
                         </td>
-<!--
-                        <td style="{%#order.style%}">
-                            <div><a href="#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">{%#order.items_str%}</a>
-                                <i class="shortener"></i>
-                            </div>
-                        </td>
--->
                         <td style="{%#order.style%}">
                             <div><a href="#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">{%#order.contact.name%}</a>
                                 <i class="shortener"></i>
@@ -150,8 +159,8 @@
         update_process: {
             timeout: {$timeout}
         },
-        count_new: {$count_new},
-        title_suffix: "{' — '|cat:$wa->accountName()}",
-        state_names: {json_encode($state_names)}
+        title_suffix: '{' — '|cat:{$wa->accountName(false)}|escape:'javascript'}',
+        state_names: {json_encode($state_names)},
+        counters: {json_encode($counters)}
     });
 </script>

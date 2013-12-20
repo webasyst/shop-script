@@ -14,8 +14,13 @@ class shopProductImageDownloadController extends waViewController
         if (!$image) {
             throw new waException(_w("Image not found"), 404);
         }
+        
+        if (waRequest::get('original')) {
+            $path = shopImage::getOriginalPath($image);
+        } else {
+            $path = shopImage::getPath($image);
+        }
 
-        $path = shopImage::getPath($image);
         if (!$path || !file_exists($path)) {
             throw new waException(_w("Image not found"), 404);
         }

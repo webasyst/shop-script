@@ -11,15 +11,24 @@
     {$wa_app_static_url}js/photo.stream.slider.js
     {$wa_app_static_url}js/product/dragndrop.js
     {$wa_app_static_url}js/backend/categories_tree.js
+    {$wa_app_static_url}js/product/sidebar.js
     {$wa_app_static_url}js/products.js
     {$wa_app_static_url}js/product/product.js
     {$wa_app_static_url}js/rate.widget.js
     {$wa_app_static_url}js/product/reviews.js
     {$wa_app_static_url}js/product/images.js
+    {$wa_app_static_url}js/product/stocks_log.js
     {$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.min.js
-
     {$wa_app_static_url}js/product/list.js
 {/wa_js}
+<script type="text/javascript" src="{$wa_url}wa-content/js/ace/ace.js"></script>
+<script type="text/javascript" src="{$wa_url}wa-content/js/elrte/elrte.min.js"></script>
+<script type="text/javascript" src="{$wa_url}wa-content/js/elrte/elrte-wa.js"></script>
+{if $lang != 'en'}
+<script type="text/javascript" src="{$wa_url}wa-content/js/elrte/i18n/elrte.{$lang}.js"></script>
+{/if}
+<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-wa/wa.elrte.ace.js"></script>
+
 
 {$view = $wa->get('view')|default:$default_view}
 <div class="sidebar left{$sidebar_width}px" id="s-sidebar">
@@ -69,15 +78,14 @@
     {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
 
     <!-- categories -->
-    <div class="block drop-target">
+    <div class="block drop-target" id="s-category-list-block">
     
         <span class="count">
             <a href="#"><i title="[`New category`]" class="icon16 add s-new-list" id="s-new-category"></i></a>
         </span>
         <h5 class="heading">
             <i class="icon16 loading" style="float:right; display:none;"></i>
-            <i class="icon16 {if $categories->isExpaned()}darr{else}rarr{/if} collapse-handler-ajax" id="s-category-list-handler"></i>
-            <a href="javascript:void(0);">[`Categories`]</a>
+            <i class="icon16 {if $categories->isExpaned()}darr{else}rarr{/if} collapse-handler-ajax" id="s-category-list-handler"></i><a href="javascript:void(0);">[`Categories`]</a>
         </h5>
         
         <div class="hierarchical s-collection-list" id="s-category-list" 
@@ -91,7 +99,7 @@
     </div>
 
     <!-- sets -->
-    <div class="block drop-target">
+    <div class="block drop-target" id="s-set-list-block">
     
         <span class="count">
             <a href="#"><i title="[`New set`]" class="icon16 add s-new-list" id="s-new-set"></i></a>

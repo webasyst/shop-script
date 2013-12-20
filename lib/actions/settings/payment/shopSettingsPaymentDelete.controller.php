@@ -3,6 +3,9 @@ class shopSettingsPaymentDeleteController extends waJsonController
 {
     public function execute()
     {
+        if (!$this->getUser()->getRights('shop', 'settings')) {
+            throw new waRightsException(_w('Access denied'));
+        }
         if ($plugin_id = waRequest::post('plugin_id')) {
             $model = new shopPluginModel();
             if ($plugin = $model->getByField(array('id' => $plugin_id, 'type' => 'payment'))) {

@@ -116,4 +116,10 @@ class shopTagModel extends waModel
 
         return $this->exec($sql);
     }
+    
+    public function popularTags($limit = 10)
+    {
+        return $this->select('*')->order('count DESC')->limit($limit)->fetchAll();
+    }
+    
 }

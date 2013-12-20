@@ -51,9 +51,7 @@ class shopOrderAction extends waViewAction
             }
         }
 
-        $order_params_model = new shopOrderParamsModel();
-        $params = $order_params_model->get($order['id']);
-
+        $params = $order['params'];
         $tracking = '';
         if (!empty($params['shipping_id'])) {
             try {
@@ -78,8 +76,9 @@ class shopOrderAction extends waViewAction
         $this->view->assign('tracking', $tracking);
 
 
-        //$settings = wa('shop')->getConfig()->getCheckoutSettings();
-        //$form_fields = ifset($settings['contactinfo']['fields'], array());
+        $settings = wa('shop')->getConfig()->getCheckoutSettings();
+        $form_fields = ifset($settings['contactinfo']['fields'], array());
+
 
         $formatter = new waContactAddressSeveralLinesFormatter();
         $shipping_address = shopHelper::getOrderAddress($params, 'shipping');
@@ -87,10 +86,14 @@ class shopOrderAction extends waViewAction
         $shipping_address = $formatter->format(array('data' => $shipping_address));
         $shipping_address = $shipping_address['value'];
 
+
         if (isset($form_fields['address.billing'])) {
             $billing_address = shopHelper::getOrderAddress($params, 'billing');
             $billing_address = $formatter->format(array('data' => $billing_address));
             $billing_address = $billing_address['value'];
+            if ($billing_address === $shipping_address) {
+                $billing_address = null;
+            }
         } else {
             $billing_address = null;
         }
@@ -148,7 +151,7 @@ class shopOrderAction extends waViewAction
 
     public function getOrder()
     {
-        $id = waRequest::get('id');
+        $id = (int) waRequest::get('id');
         if (!$id) {
             return array();
         }
@@ -212,13 +215,20 @@ class shopOrderAction extends waViewAction
         $order['state'] = $workflow->getStateById($order['state_id']);
         $order = shopHelper::workupOrders($order, true);
 
-        // extend items by stocks
+        $sku_ids = array();
         $stock_ids = array();
         foreach ($order['items'] as $item) {
             if ($item['stock_id']) {
                 $stock_ids[] = $item['stock_id'];
             }
+            if ($item['sku_id']) {
+                $sku_ids[] = $item['sku_id'];
+            }
         }
+        $sku_ids = array_unique($sku_ids);
+        $stock_ids = array_unique($stock_ids);
+        
+        // extend items by stocks
         $stocks = $this->getStocks($stock_ids);
         foreach ($order['items'] as &$item) {
             if (!empty($stocks[$item['stock_id']])) {
@@ -227,16 +237,60 @@ class shopOrderAction extends waViewAction
         }
         unset($item);
 
+        $skus = $this->getSkus($sku_ids);
+        $sku_stocks = $this->getSkuStocks($sku_ids);
+        
+        foreach ($order['items'] as &$item) {
+            // product and existing sku
+            if (isset($skus[$item['sku_id']])) {
+                $s = $skus[$item['sku_id']];
+                
+                // for that counts that lower than low_count-thresholds show icon
+                
+                if ($s['count'] !== null) {
+                    if (isset($item['stock'])) {
+                        if (isset($sku_stocks[$s['id']][$item['stock']['id']])) {
+                            $count = $sku_stocks[$s['id']][$item['stock']['id']]['count'];
+                            if ($count <= $item['stock']['low_count']) {
+                                $item['stock_icon'] = shopHelper::getStockCountIcon($count, $item['stock']['id'], true);
+                            }
+                        }
+                    } else if ($s['count'] <= shopStockModel::LOW_DEFAULT) {
+                        $item['stock_icon'] = shopHelper::getStockCountIcon($s['count'], null, true);
+                    }
+                }
+            }
+        }
+        unset($item);
+
         return $order;
 
     }
-
+    
+    public function getSkus($sku_ids)
+    {
+        if (!$sku_ids) {
+            return array();
+        }
+        $model = new shopProductSkusModel();
+        return $model->getByField('id', $sku_ids, 'id');
+    }
+    
     public function getStocks($stock_ids)
     {
         if (!$stock_ids) {
             return array();
         }
         $model = new shopStockModel();
-        return $model->getById($stock_ids, 'id');
+        return $model->getById($stock_ids);
+    }
+    
+    public function getSkuStocks($sku_ids)
+    {
+        if (!$sku_ids) {
+            return array();
+        }
+        $model = new shopProductStocksModel();
+        return $model->getBySkuId($sku_ids);
     }
 }

@@ -4,6 +4,9 @@ class shopPluginsSaveController extends waJsonController
 {
     public function execute()
     {
+        if (!$this->getUser()->getRights('shop', 'settings')) {
+            throw new waException(_w('Access denied'));
+        }
         $plugin_id = waRequest::get('id');
         if (!$plugin_id) {
             throw new waException(_ws("Can't save plugin settings: unknown plugin id"));

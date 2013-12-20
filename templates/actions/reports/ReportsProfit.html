@@ -94,8 +94,15 @@
 <div class="clear-both"></div>
 
 <script type="text/javascript">(function() { "use strict";
-    document.title = '[`Profit`] — {$wa->accountName()}';
-    $.reports.graph('reports-profit-graph', {json_encode($profit_data)}, {if $group_by == 'days'}0{else}1{/if});
+    document.title = '{"[`Profit`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+    {$cnt = count($profit_data)};
+    {$scale = floor($cnt/35) + 1}
+    $.reports.graph(
+        'reports-profit-graph', 
+        {json_encode($profit_data)}, 
+        {if $group_by == 'days'}0{else}1{/if},
+        "{if $cnt <= 35}1 {if $group_by != 'days'}month{else}day{/if}{else}{$scale} {if $group_by != 'days'}months{else}days{/if}{/if}"
+    );
     {if $pie_data}
         $.reports.pie('reports-profit-pie', {json_encode($pie_data)});
     {/if}

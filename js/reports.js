@@ -1,7 +1,7 @@
 (function ($) {
     $.storage = new $.store();
     $.reports = {
-        init: function () {
+        init: function (options) {
             var that = this;
             if (typeof($.History) != "undefined") {
                 $.History.bind(function () {
@@ -21,7 +21,7 @@
             } else {
                 $.wa.setHash(hash);
             }
-
+            document.documentElement.setAttribute('lang', options.lang);
             $.reports.initTimeframeSelector();
         },
 
@@ -233,6 +233,10 @@
             $("#reportscontent").load('?module=reports&action=top&mode=profits'+this.getTimeframeParams());
         },
 
+        checkoutflowAction: function() {
+            $("#reportscontent").load('?module=reports&action=checkoutflow'+this.getTimeframeParams());
+        },
+
         // Helper
         getTimeframe: function() {
             return $.storage.get('shop/reports/timeframe') || {
@@ -251,7 +255,6 @@
                 $('#'+id).remove();
                 return;
             }
-
             $.jqplot(id, data, {
                 seriesColors : ["#0077CC", "#33BB11", "#EE5500", "#EEBB11", "#44DDDD", "#6b6b6b", "#686190", "#b2b000", "#00b1ab", "#76b300"],
                 grid : {
@@ -276,7 +279,10 @@
         },
 
         // Helper to draw line charts
-        graph: function (id, data, period_month) {
+        graph: function (id, data, period_month, tickInterval) {
+            if (tickInterval === undefined) {
+                tickInterval = period_month ? '1 month' : '1 day';
+            }
             $.jqplot(id, [data], {
                 seriesColors : ["#3b7dc0", "#129d0e", "#a38717", "#ac3562", "#1ba17a", "#87469f", "#6b6b6b", "#686190", "#b2b000", "#00b1ab", "#76b300"],
                 series : [{
@@ -304,7 +310,7 @@
                         tickOptions:{
                             formatString: period_month ? '%b %Y' : '%b %d'
                         },
-                        tickInterval: period_month ? '1 month' : '1 day'
+                        tickInterval: tickInterval
                     },
                     y2axis:{
                         min: 0,

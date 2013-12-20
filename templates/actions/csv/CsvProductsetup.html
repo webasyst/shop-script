@@ -15,6 +15,16 @@
    <form id="s-csvproduct" method="post" action="?module=csv&action=productrun">
    {$wa->csrf()}
    <input type="hidden" name="direction" value="{$direction|escape}">
+   {if ($direction eq 'export')}
+   <div class="field js-profile-description">
+       <div class="name">Профиль</div>
+       <div class="value">
+           <input type="text" name="profile[name]" value="{$profile.name|escape}">
+           <input type="hidden" name="profile[id]" value="{$profile.id|default:'-1'}">
+       </div>
+
+   </div>
+   {/if}
 
     <div class="fields form">
     {if ($direction eq 'export')}
@@ -26,7 +36,7 @@
                     </div>
                     {foreach $info as $f}
                     <div class="value no-shift" style="min-width: 300px;">
-                        <a href="?module=csv&action=productdownload&file={$f.name|escape}" class="bold nowrap"><i class="icon16 download"></i>[`Download`]</a> <span class="small">{$f.name|escape}</span> <span class="hint">{$f.size|wa_format_file_size}</span>
+                        <a href="?module=csv&action=productdownload&profile={$profile.id|default:''}&file={$f.name|escape}" class="bold nowrap"><i class="icon16 download"></i>[`Download`]</a> <span class="small">{$f.name|escape}</span> <span class="hint">{$f.size|wa_format_file_size}</span>
                         <br>
                         <span class="hint">[`Updated`]: {$f.mtime|wa_datetime:"humandatetime"}</span>
                     </div>
@@ -65,7 +75,7 @@
                 </div>
                 <div class="value">
                     <select name="encoding">
-                    {foreach $encoding as $enc}<option{if $enc == 'UTF-8'} selected="selected"{/if}>{$enc|escape}</option>{/foreach}
+                    {foreach $encoding as $enc}<option{if $enc == $profile.config.encoding} selected="selected"{/if}>{$enc|escape}</option>{/foreach}
                     </select>
                 </div>
             </div>
@@ -74,13 +84,38 @@
                    [`Separator`]
                 </div>
                 <div class="value">
-                    <select name="delimeter">
-                        <option value=";" selected="selected">[`Semicolon`] (;)</option>
-                        <option value=",">[`Comma`] (,)</option>
-                        <option value="tab">[`Tab`]</option>
+                    <select name="delimiter">
+                        <option value=";"{if $profile.config.delimiter eq ';'} selected="selected"{/if}>[`Semicolon`] (;)</option>
+                        <option value=","{if $profile.config.delimiter eq ','} selected="selected"{/if}>[`Comma`] (,)</option>
+                        <option value="tab"{if $profile.config.delimiter eq 'tab'} selected="selected"{/if}>[`Tab`]</option>
                     </select>
                 </div>
             </div>
+
+                {if ($direction eq 'export')}
+                <div class="field">
+                    <div class="name">
+                        [`Features`]
+                    </div>
+                    <div class="value no-shift">
+                        <label><input type="checkbox" name="features"{if !empty($profile.config.features)} checked="checked"{/if}> [`Export product feature values`]</label>
+                    </div>
+                </div>
+                    <div class="field">
+                        <div class="name">
+                            [`Images`]
+                        </div>
+                        <div class="value no-shift">
+                            <label><input type="checkbox" name="images"{if !empty($profile.config.images)} checked="checked"{/if}> [`Export product image filenames`]</label>
+                        </div>
+                    </div>{*
+                    <div class="field">
+                        <div class="name">
+                            [`Plugin fields`]
+                        </div>
+                        <div class="value"><label><input type="checkbox" name="extra"{if !empty($profile.config.extra)} checked="checked"{/if}> [`Export product extra fields`]</label></div>
+                    </div>*}
+                {/if}
             {if $direction eq 'import'}
             <div class="field">
                 <div class="name">
@@ -178,72 +213,7 @@
         {else}
 
         <div class="field-group">
-            <div class="field">
-                <div class="name">
-                    [`Select products`]
-                </div>
-                <div class="value">
-                    <div class="sidebar left200px">
-                        <ul class="menu-v" style="margin-top: 0;">
-                        <li>
-                            <label class="black"><input type="radio" value="" name="hash" checked="checked"> [`All products`]</label>
-                        </li>
-                        {if count($sets)}
-                        <li>
-                            <label class="black"><input type="radio" value="set" name="hash"> [`Sets`]</label>
-                        </li>
-                        {/if}
-                        {if count($types)}
-                        <li>
-                            <label class="black"><input type="radio" value="type" name="hash"> [`Product types`]</label>
-                        </li>
-                        {/if}
-                        <li style="display:none;" class="nowrap">
-                            <label class="black"><input type="radio" value="id" name="hash"> <span>[`Selected products (%d)`]</span></label>
-                        </li>
-                    </ul>
-                </div>
-
-                    <div class="content left200px js-hash-values js-hash-set" style="width: 400px;">
-                    <div class="bordered-left" style="padding-left: 20px;">
-                        <ul class="menu-v with-icons">
-                        {foreach $sets as $set}
-                            <li>
-                            <label title="{$set.id|escape}">
-                                <span class="count">{$set.count}</span>
-                                <i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}funnel{else}ss set{/if}"></i>
-                                <input type="radio" name="set_id" value="{$set.id}"{if $set@first} checked="checked"{/if}>
-                                {$set.name|escape}
-                            </label>
-                            </li>
-                        {/foreach}
-                        </ul>
-                        <br>
-                        <span class="gray">[`Categories will not be exported`]</span>
-                    </div>
-                </div>
-                    <div class="content left200px js-hash-values js-hash-type" style="width: 400px;">
-                    <div class="bordered-left" style="padding-left: 20px;">
-                        <ul class="menu-v with-icons">
-                        {foreach $types as $type}{if $type.count}
-                            <li>
-                                <label>
-                                    <span class="count">{$type.count}</span>
-                                    {shopHelper::getIcon($type.icon)}
-                                    <input type="radio" name="type_id" value="{$type.id}"{if $type@first} checked="checked"{/if}>
-                                    {$type.name|escape}
-                                </label>
-                            </li>
-                        {/if}{/foreach}
-                        </ul>
-                    </div>
-                </div>
-                    <div class="content left200px js-hash-values js-hash-id" style="width: 400px;">
-                    <input type="hidden" name="product_ids" value="">
-                </div>
-                <div class="clear-left"></div>
-            </div>
-        </div>
+            {include file="templates/includes/productSelector.html" hints=['set'=>'[`Categories will not be exported`]'] hash=$profile.config.hash}
         </div>
         {/if}
 
@@ -254,6 +224,10 @@
             <div class="field">
                 <div class="value submit">
                     <input type="submit" class="button green" value="{if $direction eq 'import'}[`Start import`]{else}[`Start export`]{/if}">
+                    {if $direction eq 'export'}
+                        <br><br>
+                        <em class="small js-profile-notice">[`Profile settings will be automatically saved and applied to all future data exports.`]</em>
+                    {/if}
                     <div class="js-progressbar-container" style="display:none;">
                         <div class="progressbar blue float-left" style="display: none; width: 70%;">
                             <div class="progressbar-outer">
@@ -283,7 +257,7 @@
             <div class="field">
                 <div class="value"></div>
                 {if $direction eq 'export'}
-                <div class="value"><br><a href="?module=csv&action=productdownload" class="bold nowrap"><i class="icon16 download"></i>[`Download`]</a>
+                <div class="value"><br><a href="?module=csv&action=productdownload&profile={$profile.id|default:''}" class="bold nowrap"><i class="icon16 download"></i>[`Download`]</a>
                 </div>
                 {/if}
             </div>
@@ -294,10 +268,12 @@
 
 <div class="clear"></div>
 
+
+{if $direction eq 'import'}
 <script type="text/javascript" src="{$wa_app_static_url}js/tmpl.min.js"></script>
 <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.iframe-transport.js"></script>
 <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.fileupload.js"></script>
-<script type="text/javascript" src="{$wa_app_static_url}js/csv/csvproduct.js?{$wa->version()}"></script>
+
 {if !empty($smarty.capture)}
 {foreach $smarty.capture as $name => $template} {if strpos($name,'template-js')}
 <script type="text/x-jquery-tmpl" id="{$name}">
@@ -305,6 +281,16 @@
 </script>
 {/if} {/foreach}
 {/if}
+{/if}
 <script type="text/javascript">
-{literal}if(typeof($)!='undefined') {$.importexport.csv_productInit();}{/literal}
+    {* generic code for plugins with profiles support *}
+    if ($.importexport.csv_productInit) {
+        $.importexport.csv_productInit();
+    }else {
+        $.getScript('{$wa_app_static_url}js/csv/csvproduct.js?{$wa->version()}',function(){
+            $.importexport.csv_productInit();
+        });
+    }
+    $.importexport.profiles.set('csv:product:{$direction|escape}',{$profiles|json_encode});
+
 </script>

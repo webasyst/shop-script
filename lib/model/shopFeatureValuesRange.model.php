@@ -39,7 +39,7 @@ class shopFeatureValuesRangeModel extends shopFeatureValuesModel
                         'unit'  => null,
                     );
                 }
-                $values = array_map('trim', preg_split('/\s*([\s—]|\.\.)\s/', $value['value'], 2));
+                $values = array_map('trim', preg_split('/\s*([\s—]+|\.\.\.?|-\s+)\s*/', $value['value'], 2));
                 if (count($values) > 1) {
                     $value['value'] = array(
                         'begin' => ($values[0] === '') ? null : $this->castValue('double', $values[0]),

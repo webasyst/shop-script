@@ -26,7 +26,7 @@
                     <tr class="p" data-product-id="{$p.id}">
                         <td>{$p.name|escape}</td>
                         <td>{shop_currency($p.price, $p.currency)}</td>
-                        <td class="min-width"><a href="#"><i class="icon16 delete"></i></a></td>
+                        <td class="min-width"><a class="delete" href="#"><i class="icon16 delete"></i></a></td>
                     </tr>
                     {/foreach}
                     {/if}

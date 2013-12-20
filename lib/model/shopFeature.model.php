@@ -10,6 +10,7 @@ class shopFeatureModel extends waModel
     const TYPE_3D = '3d';
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_DIVIDER = 'divider';
+    const TYPE_COLOR = 'color';
 
     private static $instances = array();
 
@@ -103,6 +104,9 @@ class shopFeatureModel extends waModel
     public function getUniqueCode($code, $id = null)
     {
         if ($code = preg_replace('/[^a-zA-Z0-9_]+/', '_', trim(waLocale::transliterate($code)))) {
+            if ($code == '_') {
+                $code = 'f_';
+            }
             $sql = <<<SQL
             SELECT `id`, LOWER(`code`) AS `code`
             FROM `{$this->table}`
@@ -141,7 +145,7 @@ SQL;
 
     public function getByType($type_id, $key = null, $fill_values = false)
     {
-        if ($type_id) {
+        if (!in_array($type_id, array(false, null), true)) {
             $sql = "
         SELECT f.*
         FROM `{$this->table}` `f`
@@ -183,12 +187,16 @@ SQL;
     public function getFeatures($field, $value = null, $key = 'id', $fill_values = false)
     {
         if ($field === true) {
-            $features = $this->select('*')->where('`parent_id` IS NULL')->fetchAll($key);
+            $where = '`parent_id` IS NULL';
+            if ($value) {
+                $where .= ' AND `count`>0';
+            }
+            $features = $this->select('*')->where($where)->fetchAll($key);
         } else {
             $features = $this->getByField($field, $value, $key);
         }
         if ($fill_values) {
-            $features = $this->getValues($features, ($field === true));
+            $features = $this->getValues($features, (is_int($fill_values) ? $fill_values : (($field === true) || $fill_values === true)));
         }
         return $features;
 
@@ -293,6 +301,7 @@ SQL;
                 self::TYPE_DOUBLE,
                 self::TYPE_TEXT,
                 self::TYPE_DIMENSION,
+                self::TYPE_COLOR,
             );
             foreach ($types as $type) {
                 $model = self::getValuesModel($type);
@@ -411,8 +420,8 @@ SQL;
             );
             $single_types[] = array(
                 'name'      => _w('Color'),
-                'type'      => 'color',
-                'available' => 0,
+                'type'      => self::TYPE_COLOR,
+                'available' => 1,
             );
 
 
@@ -452,6 +461,7 @@ SQL;
                         $u = $u['name'];
                     }
                     unset($u);
+                    $type['short_name'] = $type['name'];
 
                     $type['name'] .= " (".implode(', ', $units).")";
                 } else {
@@ -484,27 +494,39 @@ SQL;
                 'selectable' => false,
                 'available'  => 2,
             );
-            /* TODO
-             $types[] = array(
-             'name'       => 'Color',
-             'type'       => 'color',
-             'multiple'   => false,
-             'selectable' => false,
-             'available'  => 0,
-             );
-             */
-            /* Numerical */
 
-            /** TODO
+            /* Shortcuts */
+
             $types[] = array(
-            'name'       => 'Date',
-            'group'      => 'Numerical',
-            'type'       => 'date',
-            'multiple'   => false,
-            'selectable' => false,
-            'available'  => 0,
+                'name'       => _w('Color'),
+                'type'       => self::TYPE_COLOR,
+                'multiple'   => true,
+                'selectable' => true,
+                'available'  => 2,
             );
-             */
+
+            foreach (array('weight', 'length') as $unit) {
+                if (isset($numerical_types[$unit])) {
+                    $type = $numerical_types[$unit];
+                    $type += array(
+                        'multiple'   => false,
+                        'selectable' => false,
+                        'available'  => 2,
+                    );
+                    if (strpos($type['type'], '%s') !== false) {
+                        $type['type'] = sprintf($type['type'], self::TYPE_DIMENSION);
+                        if (!empty($type['alias']) && isset($type['alias'][$type['type']])) {
+                            $type['type'] = $type['alias'][$type['type']];
+                        }
+                    }
+                    if (!empty($type['short_name'])) {
+                        $type['name'] = $type['short_name'];
+                    }
+                    $types[] = $type;
+                }
+            }
+
+            /* Numerical */
 
             $types[] = array(
                 'name'       => _w('Value'),
@@ -515,6 +537,17 @@ SQL;
                 'available'  => 2,
                 'subtype'    => self::extendSubtypes($numerical_types, self::TYPE_DIMENSION),
             );
+            /**
+             * $types[] = array(
+             * 'name'       => _w('Date'),
+             * 'group'      => _w('Numerical'),
+             * 'type'       => 'date',
+             * 'multiple'   => false,
+             * 'selectable' => false,
+             * 'available'  => 0,
+             * );
+             */
+
             $types[] = array(
                 'name'       => _w('Range'),
                 'group'      => _w('Numerical'),
@@ -557,15 +590,15 @@ SQL;
                 'subtype'    => self::extendSubtypes($single_types, self::TYPE_DIMENSION),
             );
             /** TODO
-            $types[] = array(
-            'name'       => 'Radiobuttons',
-            'group'      => _w('Selectable'),
-            'type'       => '*',
-            'multiple'   => false,
-            'selectable' => true,
-            'available'  => 0,
-            'subtype'    => & $single_types,
-            );
+             * $types[] = array(
+             * 'name'       => 'Radiobuttons',
+             * 'group'      => _w('Selectable'),
+             * 'type'       => '*',
+             * 'multiple'   => false,
+             * 'selectable' => true,
+             * 'available'  => 0,
+             * 'subtype'    => & $single_types,
+             * );
              */
             $types[] = array(
                 'name'       => _w('Checkboxes (multiple choice)'),
@@ -581,8 +614,8 @@ SQL;
                 'name'       => _w('Divider'),
                 'group'      => _w('Other'),
                 'type'       => self::TYPE_DIVIDER,
-                'multiple'   => true,
-                'selectable' => true,
+                'multiple'   => false,
+                'selectable' => false,
                 'available'  => 0,
             );
         }

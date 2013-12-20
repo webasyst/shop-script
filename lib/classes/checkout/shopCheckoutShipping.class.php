@@ -155,6 +155,19 @@ class shopCheckoutShipping extends shopCheckout
             }
         }
         $view->assign('shipping', $selected_shipping ? $selected_shipping : array('id' => $default_method, 'rate_id' => ''));
+        
+        $checkout_flow = new shopCheckoutFlowModel();
+        $step_number = shopCheckout::getStepNumber('shipping');
+        // IF no errors 
+        $checkout_flow->add(array(
+            'step' => $step_number
+        ));
+        // ELSE
+//        $checkout_flow->add(array(
+//            'step' => $step_number,
+//            'description' => ERROR MESSAGE HERE
+//        ));
+        
     }
 
     public function getAddressForm($method_id, waShipping $plugin, $config, $contact_address, $address_form)
@@ -457,7 +470,7 @@ class shopCheckoutShipping extends shopCheckout
         <p>'._w('During the “Shipping” checkout step, when customer selects a preferred shipping option but shipping address was not yet entered, instantly prompt customer to provide:').'</p>
     </div>
     <div class="value no-shift">
-        <label><input '.(empty($config['prompt_type']) ? 'checked' : '').' name="config[prompt_type]" type="radio" value="0"> '._w('All required address fields').'</label>
+        <label><input '.(empty($config['prompt_type']) ? 'checked' : '').' name="config[prompt_type]" type="radio" value="0"> '._w('All address fields required by the selected shipping option').'</label>
         <p class="hint">'._w('Prompt for all address fields according to the selected shipping option implementation. If you use this option and have “Shipping” prior to “Contact info” in the checkout step order, it is advisable to hide (disable) shipping address form on the “Contact Info” checkout step to avoid asking for address twice.').'</p>
     </div>
     <div class="value no-shift">

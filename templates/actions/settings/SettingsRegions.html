@@ -103,7 +103,7 @@
     <div class="clear-both"></div>
 </div>
 <script>(function() { "use strict";
-    document.title = '{"[`Countries & Regions`]"|cat:" — ":{$wa->accountName()}}';
+    document.title = '{"[`Countries & Regions`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     var form = $('#regions-form');
     var selector = form.find('select');
     var table = form.find('table');

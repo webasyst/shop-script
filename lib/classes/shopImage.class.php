@@ -119,7 +119,7 @@ class shopImage
         }
     }
 
-    public static function generateThumb($src_image_path, $size, $max_size = false)
+    public static function generateThumb($src_image_path, $size)
     {
         $image = waImage::factory($src_image_path);
         $width = $height = null;

@@ -151,5 +151,9 @@ return array(
                 'Li-Pol',
             ),
         ),
+        'weight' => array(
+            'name' => 'Weight',
+            'type' => shopFeatureModel::TYPE_DIMENSION.'.weight'
+        ),
     ),
 );

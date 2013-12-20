@@ -5,7 +5,7 @@
 		<div class="block half-padded float-right">
 			<ul class="menu-h with-icons">
             {if isset($plugin.status) && !empty($plugin.id)}
-				<li><a href="#/payment/plugin/delete/{$plugin.id}/" class="js-action js-confirm" data-confirm-text="[`This will permanently delete this payment option. Are you sure?`]"><i class="icon16 delete"></i>[`Delete this payment option`]</a></li>
+				<li><a href="#/payment/plugin/delete/{$plugin.id}/" class="js-action js-confirm" data-confirm-text="[`This will permanently delete this payment option. Are you sure?`]" style="position: relative; z-index: 99;"><i class="icon16 delete"></i>[`Delete this payment option`]</a></li>
             {/if}
 			</ul>
 		</div>
@@ -37,7 +37,7 @@
 			<div class="value">
 				<input name="payment[logo]" type="text" class="long" value="{$plugin.logo|default:''|escape}" id="s-payment-plugin-logo">
                 {if !empty($plugin.logo)}<img src="{$plugin.logo}" style="float:right;">{/if}
-				<p class="hint">{sprintf('[`A collection of payment option icons is available for free: <a href="%s" target="_blank">%s</a> <i class="icon10 new-window"></i>`]','[`http://www.webasyst.net/support/help/payment-shipping-icons.html`]','[`http://www.webasyst.net/support/help/payment-shipping-icons.html`]')}</p>
+				<p class="hint">{sprintf('[`A collection of payment option icons is available for free: <a href="%s" target="_blank">%s</a> <i class="icon10 new-window"></i>`]','[`http://www.webasyst.com/help/729/payment-shipping-icons/`]','[`http://www.webasyst.com/help/729/payment-shipping-icons/`]')}</p>
 			</div>
 		</div>
 		<div class="field">

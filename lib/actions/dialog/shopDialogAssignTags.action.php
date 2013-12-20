@@ -33,6 +33,11 @@ class shopDialogAssignTagsAction extends waViewAction
             }
         }
 
-        $this->view->assign('tags', $tags);
+        $tag_model = new shopTagModel();
+
+        $this->view->assign(array(
+            'tags' => $tags,
+            'popular_tags' => $tag_model->popularTags()
+        ));
     }
 }

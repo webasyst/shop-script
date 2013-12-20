@@ -20,6 +20,17 @@ class shopSignupAction extends waSignupAction
         wa()->getResponse()->setTitle(_w('Sign up'));
     }
 
+    protected function getFrom()
+    {
+        /**
+         * @var shopConfig $config
+         */
+        $config = wa('shop')->getConfig();
+        return array(
+            $config->getGeneralSettings('email') => $config->getGeneralSettings('name')
+        );
+    }
+
     public function afterSignup(waContact $contact)
     {
         $contact->addToCategory($this->getAppId());

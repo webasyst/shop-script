@@ -19,10 +19,15 @@ class shopProductSkuTransferController extends waJsonController
         }
 
         $product_skus_model = new shopProductSkusModel();
+        shopProductStocksLogModel::setContext(
+                shopProductStocksLogModel::TYPE_STOCK
+        );
         if (!$product_skus_model->transfer($sku_id, $count, $src_stock, $dst_stock)) {
             $this->errors[] = _w("Error when transfer");
             return;
         }
+        
+        shopProductStocksLogModel::clearContext();
 
         $sku = $product_skus_model->getById($sku_id);
 

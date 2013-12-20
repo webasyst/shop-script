@@ -6,8 +6,9 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
         $this->view->assign('events', $this->getEvents());
         $this->view->assign('transports', self::getTransports());
         $this->view->assign('templates', $this->getTemplates());
-
+        $this->view->assign('default_email_from', $this->getConfig()->getGeneralSettings('email'));
         $this->view->assign('sms_from', $this->getSmsFrom());
+        $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
     }
 
 
@@ -27,6 +28,7 @@ table.table tr.no-border td { border: none; }
 table.table tr.thin td { padding-top: 13px; padding-bottom: 0; }
 .align-right { text-align: right; }
 .nowrap { white-space: nowrap; }
+.gray { color: #aaa; }
 pre { word-wrap: break-word; }
 </style>
         
@@ -42,7 +44,7 @@ pre { word-wrap: break-word; }
     {foreach $order.items as $item}
     <tr>
         <td>
-            {$item.name|escape}
+            {$item.name|escape}{if !empty($item.sku_code)} <span class="gray">{$item.sku_code|escape}</span>{/if}
             {if !empty($item.download_link)}<a href="{$item.download_link}"><strong>'._w('Download').'</strong></a>{/if}
         </td>
         <td class="align-right nowrap">&times; {$item.quantity}</td>

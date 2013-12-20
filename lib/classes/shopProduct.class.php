@@ -371,7 +371,7 @@ class shopProduct implements ArrayAccess
         return $this->type_id ? $model->getById($this->type_id) : null;
     }
 
-    public function upSelling($limit = 5)
+    public function upSelling($limit = 5, $available_only = false)
     {
         $upselling = $this->getData('upselling');
         // upselling on (usign similar settting for type)
@@ -380,6 +380,9 @@ class shopProduct implements ArrayAccess
             $conditions = $type_upselling_model->getByField('type_id', $this->getData('type_id'), true);
             if ($conditions) {
                 $collection = new shopProductsCollection('upselling/'.$this->getId(), array('product' => $this, 'conditions' => $conditions));
+                if ($available_only) {
+                    $collection->addWhere('(p.count > 0 OR p.count IS NULL)');
+                }
                 return $collection->getProducts('*', $limit);
             } else {
                 return array();
@@ -389,11 +392,14 @@ class shopProduct implements ArrayAccess
         } // upselling on (manually)
         else {
             $collection = new shopProductsCollection('related/upselling/'.$this->getId());
+            if ($available_only) {
+                $collection->addWhere('(p.count > 0 OR p.count IS NULL)');
+            }
             return $collection->getProducts('*', $limit);
         }
     }
 
-    public function crossSelling($limit = 5)
+    public function crossSelling($limit = 5, $available_only = false)
     {
         $cross_selling = $this->getData('cross_selling');
         // upselling on (usign similar settting for type)
@@ -401,6 +407,12 @@ class shopProduct implements ArrayAccess
             $type = $this->getType();
             if ($type['cross_selling']) {
                 $collection = new shopProductsCollection($type['cross_selling'].($type['cross_selling'] == 'alsobought' ? '/'.$this->getId() : ''));
+                if ($available_only) {
+                    $collection->addWhere('(p.count > 0 OR p.count IS NULL)');
+                }
+                if ($type['cross_selling'] != 'alsobought') {
+                    $collection->orderBy('RAND()');
+                }
                 $result = $collection->getProducts('*', $limit);
                 if (isset($result[$this->getId()])) {
                     unset($result[$this->getId()]);
@@ -413,8 +425,48 @@ class shopProduct implements ArrayAccess
             return array();
         } else {
             $collection = new shopProductsCollection('related/cross_selling/'.$this->getId());
+            if ($available_only) {
+                $collection->addWhere('(p.count > 0 OR p.count IS NULL)');
+            }
             return $collection->getProducts('*', $limit);
         }
+    }
+    
+    /**
+     * 
+     * @param double $rate Number of sold products in one day
+     */
+    public function getRunout($rate)
+    {
+        $runout = array();
+        $sku_runout = array();
+        if ($rate > 0) {
+            // for whole product
+            if ($this->count !== null) {
+                $runout['days'] = round($this->count / $rate);
+                $runout['date'] = date('Y-m-d', strtotime("+{$runout['days']} days"));
+            }
+            // for each sku
+            foreach ($this->skus as $sku_id => $sku) {
+                if (empty($sku['stock'])) {
+                    if ($sku['count'] !== null) {
+                        $days = round($sku['count'] / $rate);
+                        $sku_runout[$sku_id]['days'] = $days;
+                        $sku_runout[$sku_id]['date'] = date('Y-m-d', strtotime("+{$days} days"));
+                    }
+                } else {
+                    foreach ($sku['stock'] as $stock_id => $count) {
+                        $days = round($count / $rate);
+                        $sku_runout[$sku_id]['stock'][$stock_id]['days'] = $days;
+                        $sku_runout[$sku_id]['stock'][$stock_id]['date'] = date('Y-m-d', strtotime("+{$days} days"));
+                    }
+                }
+            }  
+        }
+        return array(
+            'product' => $runout,
+            'sku' => $sku_runout
+        );
     }
 
     /**

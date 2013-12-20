@@ -39,7 +39,7 @@ class shopContactsDeleteHandler extends waEventHandler
         foreach ($contacts as $contact) {
             // Insert customer info into params of their orders
             $order_ids = array_keys($order_model->select('id')->where('contact_id=:contact_id', array('contact_id' => $contact['id']))->fetchAll('id'));
-            $order_params_model->set($order_ids, $this->extractContactInfo($contact));
+            $order_params_model->set($order_ids, $this->extractContactInfo($contact), false);
 
             // Insert contact name into their reviews
             $product_reviews_model->updateByField('contact_id', $contact['id'], array(

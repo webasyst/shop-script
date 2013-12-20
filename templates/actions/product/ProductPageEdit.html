@@ -83,23 +83,31 @@
     </div>
     <div class="s-editor-core-wrapper">
         <ul class="s-page-wysiwyg-html-toggle">
-            <li><a id="wysiwyg" href="#">[`WYSIWYG`]</a></li>
-            <li class="selected"><a id="html" href="#">HTML</a></li>
+            <li><a id="s-product-page-wysiwyg" href="#">[`WYSIWYG`]</a></li>
+            <li><a id="s-product-page-html" href="#">HTML</a></li>
         </ul>
         <div style="clear:both">
             <textarea style="display:none" id="s-page-content" name="info[content]">{if $page}{$page.content|escape}{/if}</textarea>
+            <div class="ace">
+                <div id="s-product-page-ace-editor-container"></div>
+            </div>
         </div>
     </div>
 </form>
 
 <script type="text/javascript">
     $(function () {
+        
         waEditorInit({
             id: 's-page-content',
             prefix: 's-page-',
             upload_url: "",
             lang: "{$lang}",
-            save_button: 's-product-save-button'
+            html_tab: 's-product-page-html',
+            wysiwyg_tab: 's-product-page-wysiwyg',
+            ace_editor_container: 's-product-page-ace-editor-container',
+            save_button: 's-product-save-button',
+            ace_editor_container: 's-product-page-ace-editor-container'
         });
         
         var page_settings_container = $('#s-page-settings');

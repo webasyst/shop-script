@@ -34,7 +34,7 @@
             $.extend(this.options, options);
             this.initRouting();
             this.initSearch();
-            this.initSidebar();
+            $.product_sidebar.init();
             $.categories_tree.init();
             this.initCollapsible();
         },
@@ -172,6 +172,10 @@
             this.productsAction();
         },
 
+        welcomeAction: function () {
+            this.load('?module=products&action=welcome');
+        },
+
         buildProductsUrlComponent: function (params) {
             return 'view=' + (params.view || this.options.view) + (params.category_id ? '&category_id=' + params.category_id : '')
                 + (params.set_id ? '&set_id=' + params.set_id : '') + (params.tag ? '&tag=' + params.tag : '') + (params.sort ? '&sort=' + params.sort : '')
@@ -188,7 +192,12 @@
             $.storage.set('shop/products/view', params.view);
             this.list_hash = this.hash;
             this.list_params = params;
-            this.load('?module=products&' + this.buildProductsUrlComponent(params));
+            this.load('?module=products&' + this.buildProductsUrlComponent(params), function() {
+                if ($.product_list !== undefined && $.product_list.fixed_blocks !== undefined) {
+                    $.product_list.fixed_blocks.set.unsetFixed();
+                    $.product_list.fixed_blocks.category.unsetFixed();
+                }
+            });
         },
 
         productAction: function (id, action, tab) {
@@ -221,6 +230,10 @@
 
         stocksAction: function (order) {
             this.load('?module=stocks' + (order ? '&order=' + order : ''));
+        },
+
+        stockslogAction: function (params) {
+            this.load('?module=stocksLog' + (params ? '&' + params : ''));
         },
 
         servicesAction: function (id) {
@@ -325,11 +338,19 @@
                 location.hash = '#/' + hash;
             };
             var $products_search = $('#s-products-search');
+
             // HTML5 search input search-event isn't supported
             $products_search.unbind('keydown').bind('keydown', function (event) {
                 if (event.keyCode == 13) { // 'Enter'
                     search.call(this);
-                    $(this).autocomplete("close");
+
+                    var self = $(this);
+                    self.autocomplete("close");
+                    // sometimes "close" has done earlier than list has shown
+                    setTimeout(function () {
+                        self.autocomplete("close");
+                    }, 300);
+
                     return false;
                 }
             });
@@ -347,213 +368,42 @@
                     $.wa.setHash('#/product/' + ui.item.id);
                     return false;
                 }
-            });
-        },
-
-        initSidebar: function () {
-            var sidebar = $('#s-sidebar');
-
-            $.product_dragndrop.init({
-                collections: true
-            }).bind('move_list', function (options) {
-                    if (!options.type) {
-                        if (typeof options.error === 'function') {
-                            options.error('Unknown list type');
-                        }
-                        return;
-                    }
-                    var data = {
-                        id: options.id,
-                        type: options.type,
-                        parent_id: options.parent_id || 0
-                    };
-                    if (options.before_id) {
-                        data.before_id = options.before_id;
-                    }
-                    $.products.jsonPost('?module=products&action=moveList', data, options.success, options.error);
-                });
-
-            // SIDEBAR CUSTOM EVENT HANDLERS
-
-            sidebar.off('add', '.s-collection-list ul').
-                on('add', '.s-collection-list ul',
-                /**
-                 * @param {Object} e jquery event
-                 * @param {Object} item describes inserting item. Will be passed to template
-                 * @param {String} type 'category', 'set'
-                 * @param {Boolean} replace if item exists already replace it or not?
-                 */
-                    function (e, item, type, replace) {
-                    var self = $(this), parent = self.parents('.s-collection-list:first');
-                    var tmp = $('<ul></ul>');
-                    tmp.append(tmpl('template-sidebar-list-item', {
-                        type: type,
-                        item: item
-                    }));
-
-                    var new_item = tmp.children(':not(.drag-newposition):first');
-                    var id = new_item.attr('id');
-                    var old_item = self.find('#' + id);
-                    var children = tmp.children();
-
-                    if (old_item.length) {
-                        if (replace) {
-                            old_item.replaceWith(new_item);
-                        }
-                    } else {
-                        self.prepend(children).show();
-                    }
-
-                    children.each(function () {
-                        var item = $(this);
-                        if (item.hasClass('dr')) {
-                            item.find('a').mouseover();
-                        } else {
-                            item.mouseover();
-                        }
-                    });
-                    self.find('.drag-newposition').css({
-                        height: '2px'
-                    }).removeClass('dragging');
-
-                    parent.find('.s-empty-list').hide();
-
-                    tmp.remove();
-
-                    return false;
-                }
-            );
-
-            sidebar.unbind('update').bind('update', function (e, lists) {
-                for (var type in lists) {
-                    if (type == 'all') {
-                        $('#s-all-products').find('.count:first').text(lists[type].count);
-                        continue;
-                    }
-                    var prefix = '#' + type + '-';
-                    for (var id in lists[type]) {
-                        $(prefix + id).find('.count:first').text(lists[type][id].count);
-                    }
-                }
-                return false;
-            });
-
-            $('#s-tag-cloud').unbind('update').bind('update', function (e, tag_cloud) {
-                // redraw tag cloud
-                var html = '<ul class="tags">' +
-                    '<li class="block align-center">';
-                for (var tag_id in tag_cloud) {
-                    var tag = tag_cloud[tag_id];
-                    html +=
-                        '<a href="' + '#/products/tag=' + tag.uri_name +
-                            '/" style="font-size: ' + tag.size +
-                            '%; opacity: ' + tag.opacity +
-                            '"  data-id="' + tag.id +
-                            '"  class="s-product-list">' + tag.name +
-                            '</a>';
-                }
-                html += '</li></ul>';
-                $('#s-tag-cloud').html(html).parents('.block:first').show();
-                return false;
-            });
-
-            sidebar.off('count_subtree', '.s-collection-list li').
-                on('count_subtree', '.s-collection-list li',
-                function (e, collapsed) {
-                    var item = $(this);
-                    if (typeof collapsed === 'undefined') {
-                        collapsed = item.find('i.collapse-handler-ajax').hasClass('rarr');
-                    }
-
-                    // see update_counters also
-                    var counter = item.find('>.counters .count:not(.subtree)');
-                    var subtree_counter = item.find('>.counters .subtree');
-                    if (!subtree_counter.length) {
-                        subtree_counter = counter.clone().addClass('subtree').hide();
-                        counter.after(subtree_counter);
-                    }
-                    if (collapsed) {
-//                        var total_count = parseInt(counter.text(), 10) || 0;
-//                        item.find('li.dr:not(.dynamic)>.counters .count:not(.subtree)').each(function () {
-//                            total_count += parseInt($(this).text(), 10) || 0;
-//                        });
-//                        subtree_counter.text(total_count).show();
-                        counter.hide();
-                        subtree_counter.show();
-                    } else {
-                        subtree_counter.hide();
-                        counter.show();
-                    }
-                    return false;
-                }
-            );
-
-            sidebar.off('update_counters', '.s-collection-list li').
-                on('update_counters', '.s-collection-list li',
-                function (e, counts) {
-                    var item = $(this);
-                    // see count_subtree also
-                    var counter = item.find('>.count:not(.subtree)');
-                    var subtree_counter = item.find('>.subtree');
-                    if (!subtree_counter.length) {
-                        subtree_counter = counter.clone().addClass('subtree').hide();
-                        counter.after(subtree_counter);
-                    }
-
-                    // update counters if proper key exists
-                    if (typeof counts.item !== 'undefined') {
-                        counter.text(parseInt(counts.item, 10) || 0);
-                    }
-                    if (typeof counts.subtree !== 'undefined') {
-                        subtree_counter.text(parseInt(counts.subtree, 10) || 0);
-                    }
-
-                    return false;
-                }
-            );
-
-            var arrows_panel = sidebar.find('#s-category-list-widen-arrows');
-            arrows_panel.find('a.arrow').unbind('click').
-                bind('click', function () {
-                    var max_width = 400;
-                    var min_width = 200;
-                    var cls = sidebar.attr('class');
-                    var width = 0;
-
-                    var m = cls.match(/left([\d]{2,3})px/);
-                    if (m && m[1] && (width = parseInt(m[1]))) {
-                        var new_width = width + ($(this).is('.right') ? 50 : -50);
-                        new_width = Math.max(Math.min(new_width, max_width), min_width);
-
-                        if (new_width != width) {
-
-                            arrows_panel.css({'width': new_width.toString() + 'px'});
-
-                            var replace = ['left' + width + 'px', 'left' + new_width + 'px'];
-                            sidebar.attr('class', cls.replace(replace[0], replace[1]));
-                            sidebar.css('width', '');
-
-                            var content = $('#s-content');
-                            cls = content.attr('class');
-                            content.attr('class', cls.replace(replace[0], replace[1]));
-                            content.css('margin-left', '');
-
-                            if ($.product) {
-                                $.product.setOptions({
-                                    'sidebar_width': new_width
-                                });
-                            }
-
-                            $.shop.jsonPost('?action=sidebarSaveWidth', { width: new_width });
-                        }
-                    }
-
-                    return false;
+            }).unbind('keyup').bind('keyup', function (event) {
                 });
         },
 
         jsonPost: function (url, data, success, error) {
             $.shop.jsonPost(url, data, success, error);
+        },
+
+        _iframePost: function (form, success, error) {
+            var form_id = form.attr('id');
+            var iframe_id = form_id + '-iframe';
+
+            // add hidden iframe if need
+            if (!$('#' + iframe_id).length) {
+                form.after("<iframe id=" + iframe_id + " name=" + iframe_id + " style='display:none;'></iframe>");
+            }
+
+            var iframe = $('#' + iframe_id);
+            form.attr('target', iframe_id);
+
+            iframe.one('load', function () {
+                var r;
+                try {
+                    var data = $(this).contents().find('body').html();
+                    r = $.parseJSON(data);
+                } catch (e) {
+                    error(data);
+                    return;
+                }
+                if (r.status == 'ok') {
+                    success(r);
+                } else {
+                    error(r);
+                }
+            });
         }
+
     };
 })(jQuery);

@@ -30,6 +30,18 @@ class shopCheckoutContactinfo extends shopCheckout
         if (!$view->getVars('error')) {
             $view->assign('error', array());
         }
+        
+        $checkout_flow = new shopCheckoutFlowModel();
+        $step_number = shopCheckout::getStepNumber('contactinfo');
+        // IF no errors 
+        $checkout_flow->add(array(
+            'step' => $step_number
+        ));
+        // ELSE
+//        $checkout_flow->add(array(
+//            'step' => $step_number,
+//            'description' => ERROR MESSAGE HERE
+//        ));
     }
 
     public function validate()
@@ -61,18 +73,23 @@ class shopCheckoutContactinfo extends shopCheckout
             }
         }
 
-        if ($shipping = $this->getSessionData('shipping')) {
+        if ($shipping = $this->getSessionData('shipping') && !waRequest::post('ignore_shipping_error')) {
             $shipping_step = new shopCheckoutShipping();
             $rate = $shipping_step->getRate($shipping['id'], isset($shipping['rate_id']) ? $shipping['rate_id'] : null, $contact);
             if (!$rate || is_string($rate)) {
+                // remove selected shipping method
+                $this->setSessionData('shipping', null);
+                /*
                 $errors = array();
                 $errors['all'] = sprintf(_w('We cannot ship to the specified address via %s.'), $shipping['name']);
                 if ($rate) {
                     $errors['all'] .= '<br> <strong>'.$rate.'</strong><br>';
                 }
                 $errors['all'] .= '<br> '._w('Please double-check the address above, or return to the shipping step and select another shipping option.');
+                $errors['all'] .= '<input type="hidden" name="ignore_shipping_error" value="1">';
                 wa()->getView()->assign('errors', $errors);
                 return false;
+                */
             }
         }
 
