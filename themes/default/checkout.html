@@ -79,7 +79,7 @@
 
         {/if}
         <div class="checkout-step"{if $wa->post('wa_auth_login')} style="display:none"{/if}>
-        <form method="post" action="">
+        <form id="checkout-form" method="post" action="">
             <h1>{$s.name}</h1>
             {if in_array($step_id,['contactinfo', 'shipping', 'payment', 'confirmation'])}
                 {include file="checkout.`$step_id`.html"}
@@ -111,5 +111,21 @@
 <script type="text/javascript">
     $(".checkout-navigation li.upcoming a").on('click', function () {
         return false
-    })
+    });
+    $('#checkout-form').on('submit', function () {
+
+        {if $checkout_current_step == 'shipping' || $checkout_current_step == 'payment'}
+            var f = $(this);
+            if (!f.find('input[name="{$checkout_current_step}_id"]:checked').not(':disabled').length) {
+                if (!f.find('em.errormsg').length) {
+                    $('<em class="errormsg inline">{if $checkout_current_step == 'payment'}[`Please select payment option`]{else}[`Please select shipping option`]{/if}</em>').insertAfter(f.find('input:submit:last'));
+                }
+                return false;
+            } else {
+                f.find('em.errormsg').remove();
+            }
+        {/if}
+
+        $('<span class="loading"> <i class="icon16 loading"></i></span>').insertAfter($(this).find('input:submit:last').attr('disabled', 'disabled'));
+    });
 </script>

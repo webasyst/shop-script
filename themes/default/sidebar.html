@@ -5,7 +5,7 @@
 <!-- info pages -->
 {$shop_pages=$wa->shop->pages()}
 {if $shop_pages}
-    {wa_print_tree tree=$shop_pages attrs = 'id="page-list"' elem ='
+    {wa_print_tree tree=$shop_pages class="menu-v" attrs='id="page-list"' elem='
 <a href=":url" title=":title">:name</a>' selected=$wa->param('page_id')}
     <hr>
 {/if}

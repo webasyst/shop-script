@@ -128,7 +128,7 @@ ul.menu-h li.selected ul * { background: #fff !important; }
 #header ul#wa-apps li a:visited { color: #ccc; }
 #header ul#wa-apps li a:hover { color: #fff !important; }
 #header ul#wa-apps li.selected a,
-#header ul#wa-apps li.selected strong { font-weight: bold; color: #fff; }
+#header ul#wa-apps li.selected strong { font-weight: bold; color: #fff !important; }
 #header ul#wa-apps li.float-right a,
 #header ul#wa-apps li.float-right strong { margin-right: 0; margin-left: 10px; }
 #header ul#wa-apps li.small { padding-top: 7px; padding-bottom: 6px; /* give some extra space because of a smaller font size */ }
@@ -199,6 +199,8 @@ ul.menu-h li.selected ul * { background: #fff !important; }
 .sidebar p { line-height: 1.3em; }
 
 .breadcrumbs { padding-top: 20px; }
+
+.welcome { text-align: center; font-size: 110%; padding: 80px 0 150px; }
 
 div.cart { background: #eed; width: 240px; padding: 15px 15px 15px; }
 div.cart.empty { background: #fff; }
@@ -324,7 +326,9 @@ table.cart td.total { font-size: 1.3em; }
 .add2cart { margin-bottom: 20px; }
 
 .aux { padding: 15px; font-size: 0.9em; }
+table.features { border-spacing: 0; border-collapse: collapse; }
 table.features .name { min-width: 95px; color: #777; font-size: 0.95em; padding-top: 0.05em; vertical-align: top; }
+table.features tr.divider td { border-bottom: 1px solid #ccc; padding-left: 0; padding-top: 15px; }
 
 /* Checkout */
 
@@ -338,13 +342,17 @@ table.features .name { min-width: 95px; color: #777; font-size: 0.95em; padding-
 .checkout ul.checkout-options li .rate { float: right; text-align: center; width: 250px; }
 .checkout ul.checkout-options li p { width: 70%; }
 .checkout ul.checkout-options li input[type="radio"] { position: absolute; top: 7px; left: -25px; }
+.checkout ul.checkout-options li label input[type="radio"] { top: 4px; left: -20px; }
 .checkout ul.checkout-options li img.method-logo { position: relative; float: left; margin-right: 10px; top: -5px; left: 0px; /* adjusted for default 60x32-px logos */ }
 .checkout ul.checkout-options li .wa-form { margin-top: -5px; margin-bottom: 30px; }
+.checkout ul.checkout-options li .wa-form label input[type="radio"] { position: static; }
+
 .checkout .checkout-result { margin: 100px auto 200px; text-align: center; }
 .checkout .checkout-result h1 { font-size: 4em; margin-bottom: 50px; }
 .checkout .checkout-result.error h1 { color: red; }
 .checkout .checkout-result .back { margin-top: 50px; }
 .checkout .checkout-result .wa-form { margin: 10px auto 20px; width: 400px; float: none; }
+.checkout .checkout-step { padding-bottom: 30px; }
 .checkout .checkout-step ul.menu-v { margin-left: 0; margin-top: 20px; }
 .checkout .checkout-step #login-form h1 { display: none; }
 .checkout .comment { width: 100%; height: 100px; margin-bottom: 20px; }
@@ -353,6 +361,8 @@ table.features .name { min-width: 95px; color: #777; font-size: 0.95em; padding-
 .checkout blockquote ul.menu-v { margin: 0; }
 .checkout blockquote ul.menu-v li { font-size: 1.1em; margin: 0px 0; line-height: 2em; }
 .checkout blockquote ul.menu-v li input { margin-right: 5px; }
+
+.checkout .errormsg.inline { display: inline; margin-left: 10px; }
 
 /* Product reviews */
 
@@ -401,6 +411,13 @@ table.features .name { min-width: 95px; color: #777; font-size: 0.95em; padding-
 input.error, textarea.error { border: 2px solid red; }
 .errormsg { color: red; margin-left: 170px; display: block; }
 
+/* Dialog */
+
+.dialog { display: none; }
+.dialog-background { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; opacity: 0.8; filter: alpha(opacity=80); z-index: 99; }
+.dialog-window .cart { position: fixed; top: 15%; left: 0; right: 0; opacity: 1; z-index: 100; overflow-x: hidden; box-shadow: 0 3px 5px -3px #CCCCCC; margin: 0 auto; text-align: left; width: 400px; bottom: 15%; line-height: 1.5em; }
+.dialog-window .dialog-close { float: right; color: #cc8; text-decoration: none; font-size: 200%; margin-top: -3px; }
+
 /* Customer account */
 
 .order-status { padding: 2px 5px; color: #fff; }
@@ -427,3 +444,5 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
 .icon16.stock-green { background-position:-160px 0; }
 .icon16.stock-transparent { background-position:-176px 0; }
 .icon16.loading { background-image: url("img/loading16.gif"); background-position:0 0; }
+
+.icon16.color { border-radius: 50%; border: 1px solid rgba(0,0,0,0.2); width: 14px; height: 14px; }

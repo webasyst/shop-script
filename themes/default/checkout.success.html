@@ -3,6 +3,7 @@
 </style>
 
 <div class="checkout-result success">
+
     <h1>[`Thank you!`]</h1>
     <p>[`We successfully accepted your order, and will contact you asap.`]<br />
     [`Your order number is `] <strong>{$order.id}</strong>.</p>
@@ -20,4 +21,9 @@
     <p class="back">
         &larr; <a href="{$wa_app_url}">[`Back to the store`]</a>
     </p>
+    
+    <!-- plugin hook: 'frontend_checkout' -->
+    {* @event frontend_checkout.%plugin_id% *}
+    {foreach $frontend_checkout as $_}{$_}{/foreach}    
+    
 </div>

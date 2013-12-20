@@ -7,7 +7,12 @@ $(function () {
             $(".cart-discount").closest('tr').show();
         }
         $(".cart-discount").html('&minus; ' + data.discount);
-        $(".affiliate").hide();
+        
+        if (data.add_affiliate_bonus) {
+            $(".affiliate").show().html(data.add_affiliate_bonus);
+        } else {
+            $(".affiliate").hide();
+        }
     }
 
     // add to cart block: services
@@ -26,9 +31,13 @@ $(function () {
     $(".cart a.delete").click(function () {
         var tr = $(this).closest('tr');
         $.post('delete/', {id: tr.data('id')}, function (response) {
+            if (response.data.count == 0) {
+                location.reload();
+            }
             tr.remove();
             updateCart(response.data);
         }, "json");
+        return false;
     });
 
     $(".cart input.qty").change(function () {

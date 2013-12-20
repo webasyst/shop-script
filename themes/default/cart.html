@@ -38,7 +38,7 @@
                                 <!-- one option -->
                                 <div {if !empty($s.id)}data-id="{$s.id}"{/if}>
                                 <label>
-                                    <input {if !empty($s.id)}checked{/if} type="checkbox" name="services[{$item.id}][]" value="{$service_id}"> {$s.name|escape} {if $s.price && !isset($s.variants)}(<span>+{shop_currency($s.price, $s.currency)}</span>){/if}
+                                    <input {if !empty($s.id)}checked{/if} type="checkbox" name="services[{$item.id}][]" value="{$service_id}"> {$s.name|escape} {if $s.price && !isset($s.variants)}(<span>+{shop_currency_html($s.price, $s.currency)}</span>){/if}
                                 </label>
                                 {if isset($s.variants)}
                                 <select name="service_variant[{$item.id}][{$service_id}]" {if empty($s.id)}disabled{/if}>
@@ -52,10 +52,10 @@
 
                             </div>
                             {/if}
-                            {if !empty($item.error)}<script>alert('{$item.error|escape}');</script>{/if}
+                            {if !empty($item.error)}<script>alert({json_encode($item.error)});</script>{/if}
                         </td>
                         <td class="align-center nowrap"><span class="gray">&times;</span> <input type="text" name="quantity[{$item.id}]" value="{$item.quantity}" class="qty{if !empty($item.error)} error{/if}"></td>
-                        <td class="align-center item-total nowrap">{shop_currency($item.full_price, true)}</td>
+                        <td class="align-center item-total nowrap">{shop_currency_html($item.full_price, true)}</td>
                         <td><a class="delete" href="#" title="[`Remove from cart`]"><i class="icon16 remove"></i></a></td>
                     </tr>
                 {/foreach}
@@ -69,7 +69,7 @@
                         {/if}
                     </td>
                     <td class="align-center">[`Discount`]</td>
-                    <td class="align-center cart-discount nowrap">&minus; {shop_currency($discount, true)}</td>
+                    <td class="align-center cart-discount nowrap">&minus; {shop_currency_html($discount, true)}</td>
                     <td>&nbsp;</td>
                 </tr>
 
@@ -77,14 +77,14 @@
                 <!-- affiliate bonus -->
                 <tr class="no-border">
                     <td colspan="3" class="no-border">
-                        {sprintf('[`Your current affiliate bonus of %s points allows you to get an additonal discount of up to %s`]', $affiliate_bonus, shop_currency(shopAffiliate::convertBonus($affiliate_bonus)))}
+                        {sprintf('[`Your current affiliate bonus of %s points allows you to get an additonal discount of up to %s`]', $affiliate_bonus, shop_currency_html(shopAffiliate::convertBonus($affiliate_bonus)))}
                         {if $use_affiliate}
                         <a id="cancel-affiliate" href="#">[`Cancel`]</a>
                         {else}
                         <input type="submit" name="use_affiliate" value="[`Use bonus`]">
                         {/if}
                     </td>
-                    <td class="align-center">&minus; {if $use_affiliate}{shop_currency(shopAffiliate::convertBonus($used_affiliate_bonus))}{else}0{/if}</td>
+                    <td class="align-center">&minus; {if $use_affiliate}{shop_currency_html(shopAffiliate::convertBonus($used_affiliate_bonus))}{else}0{/if}</td>
                     <td>&nbsp;</td>
                 </tr>
                 {/if}
@@ -92,7 +92,7 @@
                 <!-- TOTAL -->
                 <tr class="large no-border">
                     <td colspan="3">[`Total`]</td>
-                    <td class="cart-total align-center total bold nowrap">{shop_currency($cart.total, true)}</td>
+                    <td class="cart-total align-center total bold nowrap">{shop_currency_html($cart.total, true)}</td>
                     <td>&nbsp;</td>
                 </tr>
                 
@@ -101,7 +101,7 @@
                     <td colspan="3">
                         <span class="gray">&larr;</span> <a href="{$wa_app_url}" class="gray">[`Back to the store`]</a>
 
-                        {if !empty($add_affiliate_bonus)}
+                        {if shopAffiliate::isEnabled() && !empty($add_affiliate_bonus)}
                         <em class="affiliate float-right">{sprintf("[`This order will add +%s points to your affiliate bonus.`]", $add_affiliate_bonus)}</em>
                         {/if}
                         

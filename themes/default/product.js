@@ -1,4 +1,4 @@
-function currency_format(number) {
+function currency_format(number, no_html) {
     // Format a number with grouped thousands
     //
     // +   original by: Jonas Raoni Soares Silva (http://www.jsfromhell.com)
@@ -36,17 +36,18 @@ function currency_format(number) {
 
 
     var number = km + kw + kd;
+    var s = no_html ? currency.sign : currency.sign_html;
     if (!currency.sign_position) {
-        return currency.sign + currency.sign_delim + number;
+        return s + currency.sign_delim + number;
     } else {
-        return number + currency.sign_delim + currency.sign;
+        return number + currency.sign_delim + s;
     }
 }
 
 $(function () {
 
     var service_variant_html = function (id, name, price) {
-        return '<option data-price="' + price + '" id="service-variant-' + id + '" value="' + id + '">' + name + ' (+' + currency_format(price) + ')</option>';
+        return '<option data-price="' + price + '" id="service-variant-' + id + '" value="' + id + '">' + name + ' (+' + currency_format(price, 1) + ')</option>';
     }
 
     var update_sku_services = function (sku_id) {
@@ -144,7 +145,7 @@ $(function () {
         } else {
             $(".add2cart .compare-at-price").hide();
         }
-        $(".cart .services input:checked").each(function () {
+        $("#cart-form .services input:checked").each(function () {
             var s = $(this).val();
             if ($('#service-' + s + '  .service-variants').length) {
                 price += parseFloat($('#service-' + s + '  .service-variants :selected').data('price'));
@@ -243,7 +244,13 @@ $(function () {
                 if ( $(window).scrollTop()>=45 ) {
               	     $("#cart-summary").addClass( "fixed" );
     	        }
-                cart_div.clone().insertAfter(cart_div).css({
+                var clone = $('<div class="cart"></div>').append($('#cart-form').clone());
+                if (cart_div.closest('.dialog').length) {
+                    clone.insertAfter(cart_div.closest('.dialog'));
+                } else {
+                    clone.insertAfter(cart_div);
+                }
+                clone.css({
                     top: cart_div.offset().top,
                     left: cart_div.offset().left,
                     width: cart_div.width()+'px',
@@ -260,6 +267,9 @@ $(function () {
                     $(this).remove();
                     cart_total.html(response.data.total);
                 });
+                if (cart_div.closest('.dialog').length) {
+                    cart_div.closest('.dialog').hide().find('.cart').empty();
+                }
             } else if (response.status == 'fail') {
                 alert(response.errors);
             }

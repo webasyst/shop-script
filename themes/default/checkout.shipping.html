@@ -6,7 +6,7 @@
             <div class="rate">
                 <span class="price nowrap">
                     {if $m.rate !== null}
-                    {shop_currency($m.rate, $m.currency)}
+                    {shop_currency_html($m.rate, $m.currency)}
                     {elseif $m.external}
                     {$external_methods[] = $m.id}
                     [`Loading...`] <i class="icon16 loading"></i>
@@ -37,15 +37,15 @@
             <h3>
                 <label>
                     {if !empty($m.logo)}<img src="{$m.logo}" class="method-logo">{/if}
-                    <input type="radio" name="shipping_id" value="{$m.id}" {if $m.id == $shipping.id}checked{/if}>
+                    <input type="radio" name="shipping_id" value="{$m.id}" {if $m.external || !empty($m.error)}disabled{/if} {if $m.id == $shipping.id}checked{/if}>
                     {$m.name|escape}
-                </label> 
-                    
+                </label>
+
                 {if empty($m.error) && !empty($m.rates)}
                     {if count($m.rates) > 1}
                         <select class="shipping-rates" name="rate_id[{$m.id}]">
                             {foreach $m.rates as $rate_id => $r}
-                                <option data-rate="{shop_currency($r.rate, $r.currency)}" data-est_delivery="{if !empty($r.est_delivery)}{$r.est_delivery}{/if}" {if !empty($r.comment)}data-comment="{$r.comment}"{/if} value="{$rate_id}"{if $rate_id == $shipping.rate_id} selected{/if}>{$r.name} ({shop_currency($r.rate, $r.currency)})</option>
+                                <option data-rate="{shop_currency_html($r.rate, $r.currency)}" data-est_delivery="{if !empty($r.est_delivery)}{$r.est_delivery}{/if}" {if !empty($r.comment)}data-comment="{$r.comment}"{/if} value="{$rate_id}"{if $rate_id == $shipping.rate_id} selected{/if}>{$r.name} ({shop_currency($r.rate, $r.currency)})</option>
                             {/foreach}
                         </select>
                     {else}
@@ -76,6 +76,9 @@
 
                 function responseCallback(shipping_id, data) {
                     var name = 'rate_id[' + shipping_id + ']';
+                    if (typeof(data) != 'string') {
+                        $(".shipping-" + shipping_id + ' input:radio').removeAttr('disabled');
+                    }
                     if (typeof(data) == 'string') {
                         $(".shipping-" + shipping_id + ' input[name="' + name + '"]').remove();
                         $(".shipping-" + shipping_id + ' select[name="' + name + '"]').remove();
@@ -89,19 +92,20 @@
                     } else if (data.length > 1) {
                         $(".shipping-" + shipping_id + ' input[name="' + name + '"]').remove();
                         var select = $(".shipping-" + shipping_id + ' select[name="' + name + '"]');
-                        var html = '<select class="shipping-rates" name="' + name + '">';
+                        var html = $('<select class="shipping-rates" name="' + name + '"></select>');
                         for (var i = 0; i < data.length; i++) {
                             var r = data[i];
-                            html += '<option data-rate="' + r.rate + '" data-comment="' + (r.comment || '') + '" data-est_delivery="' + (r.est_delivery || '') + '" value="' + r.id + '">' + r.name + ' (' + r.rate + ')</option>';
+                            html.append($('<option value="' + r.id + '">' + r.name + ' (' + r.rate + ')</option>')
+                                    .data('rate', r.rate_html).data('comment', r.comment || '')
+                                    .data('est_delivery', r.est_delivery || ''));
                         }
-                        html += '</select>';
                         if (select.length) {
                             var selected = select.val();
                             select.remove();
                         } else {
                             var selected = false;
                         }
-                        select = $(html);
+                        select = html;
                         $(".shipping-" + shipping_id + " h3").append(select);
                         if (selected) {
                             select.val(selected);
@@ -154,7 +158,7 @@
                     }
                 });
                 $(".checkout-options input:radio").change(function () {
-                    if ($(this).is(':checked')) {
+                    if ($(this).is(':checked') && !$(this).data('ignore')) {
                         $(".checkout-options .wa-address").hide();
                         $(this).closest('li').find('.wa-form').show();
                         if ($(this).data('changed')) {
@@ -194,3 +198,7 @@
             });
 
 </script>
+
+<!-- plugin hook: 'frontend_checkout' -->
+{* @event frontend_checkout.%plugin_id% *}
+{foreach $frontend_checkout as $_}{$_}{/foreach}
