@@ -1,27 +1,42 @@
 $(function() {
+    
     var paging = $('.lazyloading-paging');
     if (!paging.length) {
         return;
     }
+    // check need to initialize lazy-loading
     var current = paging.find('li.selected');
     if (current.children('a').text() != '1') {
-        return
+        return;
     }
-    var loading = $('<div><i class="icon16 loading"></i>Loading...</div>').hide().insertBefore(paging);
-
+    paging.hide();
     var win = $(window);
-    var product_list = $('#product-list .product-list');
-    var next = current.next();
-
+    
+    // prevent previous launched lazy-loading
     win.lazyLoad('stop');
+    
+    // check need to initialize lazy-loading
+    var next = current.next();
     if (next.length) {
         win.lazyLoad({
-            container: product_list,
+            container: '#product-list .product-list',
             load: function() {
                 win.lazyLoad('sleep');
+
+                var paging = $('.lazyloading-paging').hide();
+                
+                // determine actual current and next item for getting actual url
+                var current = paging.find('li.selected');
+                var next = current.next();
                 var url = next.find('a').attr('href');
                 if (!url) {
                     win.lazyLoad('stop');
+                }
+
+                var product_list = $('#product-list .product-list');
+                var loading = paging.parent().find('.loading').parent();
+                if (!loading.length) {
+                    loading = $('<div><i class="icon16 loading"></i>Loading...</div>').insertBefore(paging);
                 }
 
                 loading.show();
@@ -31,13 +46,16 @@ $(function() {
                     var tmp_paging = tmp.find('.lazyloading-paging').hide();
                     paging.replaceWith(tmp_paging);
                     paging = tmp_paging;
-                    current = paging.find('li.selected');
-                    next = current.next();
+                    
+                    // check need to stop lazy-loading
+                    var current = paging.find('li.selected');
+                    var next = current.next();
                     if (next.length) {
                         win.lazyLoad('wake');
                     } else {
                         win.lazyLoad('stop');
                     }
+                    
                     loading.hide();
                     tmp.remove();
                 });

@@ -7,6 +7,13 @@ $(function () {
             $(".cart-discount").closest('div.row').show();
         }
         $(".cart-discount").html('&minus; ' + data.discount);
+        
+        if (data.add_affiliate_bonus) {
+            $(".affiliate").show().html(data.add_affiliate_bonus);
+        } else {
+            $(".affiliate").hide();
+        }
+        
     }
 
     $(".cart a.delete").click(function () {
@@ -91,6 +98,22 @@ $(function () {
     });
 
     $("div.addtocart input:button").click(function () {
+        var f = $(this).closest('div.addtocart');
+        if (f.data('url')) {
+            var d = $('#dialog');
+            var c = d.find('.cart');
+            c.load(f.data('url'), function () {
+                c.prepend('<a href="#" class="dialog-close">&times;</a>');
+                c.find('form').data('cart', 1);
+                d.show();
+                if ((c.height() > c.find('form').height())) {
+                    c.css('bottom', 'auto');
+                } else {
+                    c.css('bottom', '15%');
+                }
+            });
+            return false;
+        }
         $.post($(this).data('url'), {product_id: $(this).data('product_id')}, function (response) {
             if (response.status == 'ok') {
                 var cart_total = $(".cart-total");

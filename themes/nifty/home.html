@@ -1,23 +1,36 @@
-<!-- plugin hook: 'frontend_homepage' -->
-{* @event frontend_homepage.%plugin_id% *}
-{foreach $frontend_homepage as $_}{$_}{/foreach}
-
-<!-- 'promo' product list -->
-{$promo = $wa->shop->productSet('promo')}
-{if $promo}
-    {include file="list-thumbs.html" products=$promo}
-{else}
-    <p class="hint align-center">{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','promo')}</p>
-{/if}
-
-<div class="clear-both"></div>
-
-<!-- … suggested place for greeting text here … -->
-
-<!-- 'bestsellers' product list -->
+<!-- get products from predefined product lists 'promo' and 'bestsellers' -->
+{$promos = $wa->shop->productSet('promo')}
 {$bestsellers = $wa->shop->productSet('bestsellers')}
-{if $bestsellers}
-    {include file="list-thumbs-mini.html" products=$bestsellers}
+
+{if (empty($promos) && empty($bestsellers))}
+
+    <div class="welcome">
+        <h1>[`Welcome to your new online store!`]</h1>
+        <p>{sprintf('[`Start by creating a product in your <a href="%s">store backend</a>.`]', $wa_backend_url)}</p>
+    </div>
+
 {else}
-    <p class="hint align-center">{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','bestsellers')}</p>
+
+    <!-- plugin hook: 'frontend_homepage' -->
+    {* @event frontend_homepage.%plugin_id% *}
+    {foreach $frontend_homepage as $_}{$_}{/foreach}
+    
+    <!-- 'promo' product list -->
+    {if $promos}
+        {include file="list-thumbs.html" products=$promos}
+    {else}
+        <p class="hint align-center"><em>{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','promo')}</em></p>
+    {/if}
+    
+    <div class="clear-both"></div>
+    
+    <!-- … suggested place for greeting text here … -->
+    
+    <!-- 'bestsellers' product list -->
+    {if $bestsellers}
+        {include file="list-thumbs-mini.html" products=$bestsellers}
+    {else}
+        <p class="hint align-center"><em>{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','bestsellers')}</em></p>
+    {/if}
+
 {/if}

@@ -1,4 +1,4 @@
-function currency_format(number) {
+function currency_format(number, no_html) {
     // Format a number with grouped thousands
     //
     // +   original by: Jonas Raoni Soares Silva (http://www.jsfromhell.com)
@@ -36,17 +36,18 @@ function currency_format(number) {
 
 
     var number = km + kw + kd;
+    var s = no_html ? currency.sign : currency.sign_html;
     if (!currency.sign_position) {
-        return currency.sign + currency.sign_delim + number;
+        return s + currency.sign_delim + number;
     } else {
-        return number + currency.sign_delim + currency.sign;
+        return number + currency.sign_delim + s;
     }
 }
 
 $(function () {
 
     var service_variant_html = function (id, name, price) {
-        return '<option data-price="' + price + '" id="service-variant-' + id + '" value="' + id + '">' + name + ' (+' + currency_format(price) + ')</option>';
+        return '<option data-price="' + price + '" id="service-variant-' + id + '" value="' + id + '">' + name + ' (+' + currency_format(price, 1) + ')</option>';
     }
 
     var update_sku_services = function (sku_id) {
@@ -135,32 +136,37 @@ $(function () {
                 $(".add2cart input[type=submit]").attr('disabled', 'disabled');
             }
             $(".add2cart .price").data('price', sku.price);
+            update_price(sku.price, sku.compare_price);
         } else {
             $("div.stocks div").hide();
             $("#sku-no-stock").show();
             $(".add2cart input[type=submit]").attr('disabled', 'disabled');
+            $(".add2cart .compare-at-price").hide();
+            $(".add2cart .price").empty();
         }
         cart_button_visibility(true);
-        update_price(sku.price);
     });
     $("select.sku-feature:first").change();
 
-    function update_price(price)
+    function update_price(price, compare_price)
     {
         if (price === undefined) {
             if ($("#product-skus input:radio:checked").length) {
                 var price = parseFloat($("#product-skus input:radio:checked").data('price'));
                 var compare_price = parseFloat($("#product-skus input:radio:checked").data('compare-price'));
-                if (compare_price) {
-                    $(".add2cart .compare-at-price").html(currency_format(compare_price)).show();
-                } else {
-                    $(".add2cart .compare-at-price").hide();
-                }
             } else {
                 var price = parseFloat($(".add2cart .price").data('price'));
             }
         }
-        $(".cart .services input:checked").each(function () {
+        if (compare_price) {
+            if (!$(".add2cart .compare-at-price").length) {
+                $(".add2cart").prepend('<span class="compare-at-price nowrap"></span>');
+            }
+            $(".add2cart .compare-at-price").html(currency_format(compare_price)).show();
+        } else {
+            $(".add2cart .compare-at-price").empty().hide();
+        }
+        $("#cart-form .services input:checked").each(function () {
             var s = $(this).val();
             if ($('#service-' + s + '  .service-variants').length) {
                 price += parseFloat($('#service-' + s + '  .service-variants :selected').data('price'));
@@ -175,7 +181,9 @@ $(function () {
         $("#product-skus input:radio:enabled:first").attr('checked', 'checked');
     }
 
-    $("a.easyzoom").easyZoom({parent: '#product-core-image'});
+    if ($("a.easyzoom").length) {
+        $("a.easyzoom").easyZoom({parent: '#product-core-image'});
+    }
 
     // product images
     $("#product-gallery a").click(function () {
@@ -271,6 +279,12 @@ $(function () {
                 cart_total.html(response.data.total);
 
                 cart_button_visibility(false);
+
+                if (f.data('cart')) {
+                    $("#cart-content").parent().load(location.href, function () {
+                        $("#dialog").hide().find('.cart').empty();
+                    });
+                }
                                 
             } else if (response.status == 'fail') {
                 alert(response.errors);
