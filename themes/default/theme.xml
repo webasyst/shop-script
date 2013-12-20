@@ -92,6 +92,10 @@
             <description locale="en_US">Checkout: error page</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
+        <file path="my.nav.html" custom="0">
+            <description locale="en_US">Customer account navigation menu</description>
+            <description locale="ru_RU">Меню навигации в личном кабинете покупателя</description>
+        </file>
         <file path="my.affiliate.html" custom="0">
             <description locale="en_US">Customer account interface: affiliate program</description>
             <description locale="ru_RU">Личный кабинет покупателя: партнерская программа</description>
