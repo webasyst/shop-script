@@ -12,7 +12,7 @@
 <div class="checkout-header">
     <div class="float-right large">
         {$cart_total = $wa->shop->cart->total()}
-        [`Order total`]: <strong>{shop_currency($cart_total, true)}</strong>
+        [`Order total`]: <strong>{shop_currency_html($cart_total, true)}</strong>
     </div>
     <h3><a href="{$wa_app_url}">{$wa->shop->settings("name")}</a></h3>
 </div>
@@ -155,9 +155,22 @@
         });
         $("form.checkout-form").on('submit', function () {
             var f = $(this);
+            var step = f.find('.checkout-content').data('step-id');
+            if (step == 'payment' || step == 'shipping') {
+                if (!f.find('input[name="' + step + '_id"]:checked').not(':disabled').length) {
+                    if (!f.find('em.errormsg').length) {
+                    $('<em class="errormsg inline">' + (step == 'payment' ? '[`Please select payment option`]' :
+                            '[`Please select shipping option`]') + '</em>').insertAfter(f.find('input:submit:last'));
+                    }
+                    return false;
+                } else {
+                    f.find('em.errormsg').remove();
+                }
+            }
             if (f.hasClass('last') || ($("#login-form").length && !$("#login-form input:submit").attr('disabled'))) {
                 return true;
             }
+            $('<span class="loading"> <i class="icon16 loading"></i></span>').insertAfter(f.find('input:submit:last').attr('disabled', 'disabled'));
             $.post(f.attr('action') || window.location, f.serialize(), function (response) {
                 var content = $(response);
                 var step_id = content.data('step-id');
@@ -182,6 +195,9 @@
                 $(".checkout-step.step-" + step_id).prev('.checkout-step').each(function () {
                     $(this).find('h2').removeClass('upcoming');
                 });
+            }).always(function () {
+                f.find('span.loading').remove();
+                f.find('input:submit:last').removeAttr('disabled');
             });
             return false;
         });
