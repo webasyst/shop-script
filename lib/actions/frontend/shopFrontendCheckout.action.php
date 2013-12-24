@@ -173,7 +173,7 @@ class shopFrontendCheckoutAction extends waViewAction
     {
         $checkout_data = $this->getStorage()->get('shop/checkout');
 
-        $contact = $this->getUser()->isAuth() ? $this->getUser() : $checkout_data['contact'];
+        $contact = $this->getUser()->isAuth() ? $this->getUser() : new waContact($checkout_data['contact']);
         $cart = new shopCart();
         $items = $cart->items(false);
         // remove id from item
