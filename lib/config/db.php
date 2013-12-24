@@ -1,5 +1,19 @@
 <?php
 return array(
+    'shop_checkout_flow' => array(
+        'id' => array('int', 11, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
+        'code' => array('varchar', 32),
+        'contact_id' => array('int', 11, 'unsigned' => 1, 'null' => 0),
+        'date' => array('date', 'null'),
+        'year' => array('smallint', 6, 'null'),
+        'quarter' => array('smallint', 6, 'null'),
+        'month' => array('smallint', 6, 'null'),
+        'step' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
+        'description' => array('text'),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+        ),
+    ),
     'shop_affiliate_transaction' => array(
         'id' => array('int', 11, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
         'contact_id' => array('int', 11, 'unsigned' => 1, 'null' => 0),
