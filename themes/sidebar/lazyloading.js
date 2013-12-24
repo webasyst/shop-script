@@ -31,6 +31,7 @@ $(function() {
                 var url = next.find('a').attr('href');
                 if (!url) {
                     win.lazyLoad('stop');
+                    return;
                 }
 
                 var product_list = $('#product-list .product-list');

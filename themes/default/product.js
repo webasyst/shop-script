@@ -236,7 +236,7 @@ $(function () {
 
     $("#cart-form").submit(function () {
         var f = $(this);
-        $.post(f.attr('action'), f.serialize(), function (response) {
+        $.post(f.attr('action') + '?html=1', f.serialize(), function (response) {
             if (response.status == 'ok') {
                 var cart_total = $(".cart-total");
                 var cart_div = f.closest('.cart');
