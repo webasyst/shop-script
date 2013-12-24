@@ -8,7 +8,7 @@
 </div>
 
 {if !$lazy}
-    <script type="text/javascript" src="{$wa_app_static_url}js/stocks_log.js"></script>
+    <script type="text/javascript" src="{$wa_app_static_url}js/stocks_log.js?v={$wa->version()}"></script>
     <script>
         $.stocks_log.init({
             total_count: {$total_count},

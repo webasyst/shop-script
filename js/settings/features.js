@@ -1292,7 +1292,7 @@ if (typeof($) != 'undefined') {
                                 item.find('option').each(function () {
                                     var option = $(this);
                                     var type = option.data('type');
-                                    if (f_type === type || isConvertBanned(f_type, type)) {
+                                    if (/*f_type === type || */isConvertBanned(f_type, type)) {
                                         option.attr('disabled', true);
                                     } else {
                                         option.attr('disabled', false);
@@ -1343,6 +1343,7 @@ if (typeof($) != 'undefined') {
                                 var feature = r.data[feature_id];
                                 var $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"]:first');
                                 $.shop.trace('$.settings.featuresFeatureType ', [$feature.length, $feature, feature]);
+                                feature.values = feature.values || {};
                                 feature.values_template = feature.values_template || (self.features_options.value_templates[feature.type] || '');
                                 $.shop.trace('$.settings.featuresFeatureType ', feature);
 

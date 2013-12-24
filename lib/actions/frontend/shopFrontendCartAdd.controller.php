@@ -16,6 +16,8 @@ class shopFrontendCartAddController extends waJsonController
 
         $data = waRequest::post();
 
+        $is_html = waRequest::request('html');
+
         if (isset($data['parent_id'])) {
             $parent = $cart_model->getById($data['parent_id']);
             unset($parent['id']);
@@ -36,10 +38,11 @@ class shopFrontendCartAddController extends waJsonController
             $discount = $cart->discount();
             
             $this->response['id'] = $id;
-            $this->response['total'] = shop_currency_html($total, true);
+            $this->response['total'] = $is_html ? shop_currency_html($total, true) : shop_currency($total, true);
             $this->response['count'] = $cart->count();
-            $this->response['discount'] = shop_currency_html($discount, true);
-            $this->response['item_total'] = shop_currency_html($cart->getItemTotal($data['parent_id']), true);
+            $this->response['discount'] = $is_html ? shop_currency_html($discount, true) : shop_currency($discount, true);
+            $item_total = $cart->getItemTotal($data['parent_id']);
+            $this->response['item_total'] = $is_html ? shop_currency_html($item_total, true) : shop_currency($item_total, true);
             
             if (shopAffiliate::isEnabled()) {
                 $add_affiliate_bonus = shopAffiliate::calculateBonus(array(
@@ -164,7 +167,7 @@ class shopFrontendCartAddController extends waJsonController
 
             if (waRequest::isXMLHttpRequest()) {
                 $this->response['item_id'] = $item_id;
-                $this->response['total'] = shop_currency_html($total, true);
+                $this->response['total'] = $is_html ? shop_currency_html($total, true) : shop_currency($total, true);
                 $this->response['count'] = $shop_cart->count();
             } else {
                 $this->redirect(waRequest::server('HTTP_REFERER'));

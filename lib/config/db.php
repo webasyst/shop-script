@@ -82,6 +82,20 @@ return array(
             'PRIMARY' => array('category_id', 'route'),
         ),
     ),
+    'shop_checkout_flow' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'code' => array('varchar', 32),
+        'contact_id' => array('int', 11),
+        'date' => array('date'),
+        'year' => array('smallint', 6),
+        'quarter' => array('smallint', 6),
+        'month' => array('smallint', 6),
+        'step' => array('tinyint', 2, 'null' => 0, 'default' => '0'),
+        'description' => array('text'),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+        ),
+    ),
     'shop_contact_category_discount' => array(
         'category_id' => array('int', 10, 'unsigned' => 1, 'null' => 0),
         'discount' => array('decimal', "15,4", 'null' => 0),

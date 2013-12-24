@@ -74,9 +74,10 @@ class shopFrontendShippingController extends waJsonController
         }
         $rates = $plugin->getRates($items, $address, array('total_price' => $total));
         if (is_array($rates)) {
+            $is_html = waRequest::request('html');
             foreach ($rates as $r_id => &$r) {
                 $r['id'] = $r_id;
-                $r['rate_html'] = shop_currency_html($r['rate'], $r['currency']);
+                $r['rate_html'] = $is_html ? shop_currency_html($r['rate'], $r['currency']) : shop_currency($r['rate'], $r['currency']);
                 $r['rate'] = shop_currency($r['rate'], $r['currency']);
             }
             unset($r);

@@ -284,7 +284,8 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
         var selector = ('' + plugin + ':' + profile ).replace(/([:#])/g, '\\\\$1');
         $.shop.trace('profileDelete', [plugin, profile, selector]);
         var $li = $('#s-importexport-profile').find('a[href^="#/' + selector + '/"]:first').parents('li:first');
-        $el.find('i.icon16.delete').removeClass('delete').addClass('loading');
+        var $delete = $el.find('i.icon16.delete');
+        $delete.removeClass('delete').addClass('loading');
         var self = this;
         $.ajax({url: '?module=importexport&action=delete',
             type: 'POST',
@@ -293,6 +294,8 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
             success: function (response) {
                 $.shop.trace('profileDelete', response.data);
                 if (response && (response.status == 'ok')) {
+                    $delete.removeClass('loading').addClass('delete');
+                    $el.parents('li:first').hide();
                     $li.remove();
                     $.shop.trace('profileDelete', [self.path, profile]);
                     if (self.profiles.list[plugin][profile]) {
@@ -602,7 +605,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                     this.hide();
                     $.importexport.profileAdd(key);
                 } else {
-                    var $delete = this.$profiles.find('> li.no-tab:last > a:first');
+                    var $delete = this.$profiles.find('> li.no-tab:last').show().find('> a:first');
                     $delete.attr('href', $delete.data('href').replace(/%plugin%/, key));
                     $delete.find('i.icon16.loading').removeClass('loading').addClass('delete');
                     this.show();

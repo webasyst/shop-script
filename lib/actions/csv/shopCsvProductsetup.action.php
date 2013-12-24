@@ -19,19 +19,23 @@ class shopCsvProductsetupAction extends waViewAction
                 'hash'      => '',
             );
 
-            $path = wa()->getTempPath('csv/download/'.$profile['id']);
-            $files = waFiles::listdir($path);
-
             $info = array();
-            foreach ($files as $file) {
-                $file_path = $path.'/'.$file;
-                $info[] = array(
-                    'name'  => $file,
-                    'mtime' => filemtime($file_path),
-                    'size'  => filesize($file_path),
-                );
+            if (!empty($profile['id'])) {
+                $path = wa()->getTempPath('csv/download/'.$profile['id']);
+                $files = waFiles::listdir($path);
+
+
+                foreach ($files as $file) {
+                    $file_path = $path.'/'.$file;
+                    $info[] = array(
+                        'name'  => $file,
+                        'mtime' => filemtime($file_path),
+                        'size'  => filesize($file_path),
+                    );
+                }
+
+                usort($info, create_function('$a, $b', 'return (max(-1, min(1, $a["mtime"] - $b["mtime"])));'));
             }
-            asort($info);
 
             $this->view->assign('info', array_slice($info, -5, 5, true));
 

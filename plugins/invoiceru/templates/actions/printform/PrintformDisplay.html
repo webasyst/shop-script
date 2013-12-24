@@ -218,7 +218,7 @@ var page_url = '';
     {$total_amount=$total_amount+$order_item.total}
 
 	<tr>
-		<td class="b_left b_top leftAlign inline_edit">{$order_item.name|default:"&nbsp;"}</td>
+		<td class="b_left b_top leftAlign inline_edit">{$order_item.name|default:"&nbsp;"}{if $order_item.sku} ({$order_item.sku}){/if}</td>
 		<td class="b_left b_top inline_edit">796</td>
 		<td class="b_left b_top inline_edit">шт</td>
 		<td class="b_left b_top">{$order_item.quantity|string_format:"%d"}</td>

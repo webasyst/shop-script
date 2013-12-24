@@ -894,13 +894,13 @@ class shopProductsCollection
             return $this->count;
         }
         $sql = $this->getSQL();
-        $sql = "SELECT COUNT(".($this->joins ? 'DISTINCT ' : '')."p.id) ".$sql;
+
         if ($this->having) {
-            // when make groub by p.id COUNT doesn't work correct
-            if ($this->group_by != 'p.id') {
-                $sql .= $this->_getGroupBy();
-            }
+            $sql .= $this->_getGroupBy();
             $sql .= " HAVING ".implode(' AND ', $this->having);
+            $sql = "SELECT COUNT(*) FROM (SELECT * ".$sql.") AS t";
+        } else {
+            $sql = "SELECT COUNT(".($this->joins ? 'DISTINCT ' : '')."p.id) ".$sql;
         }
         $count = (int) $this->getModel()->query($sql)->fetchField();
 

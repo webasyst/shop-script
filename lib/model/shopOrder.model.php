@@ -194,10 +194,14 @@ class shopOrderModel extends waModel
         if (!$storefronts) {
             return array();
         }
+        $escaped_urls = array();
+        foreach (array_keys($storefronts) as $url) {
+            $escaped_urls[] = $this->escape($url);
+        }
         $sql = "SELECT p.value, COUNT(p.order_id) AS cnt
             FROM `{$this->table}` AS o
             JOIN `shop_order_params` p ON o.id = p.order_id
-            WHERE p.name = 'storefront' AND p.value IN ('".implode("','", array_keys($storefronts))."')
+            WHERE p.name = 'storefront' AND p.value IN ('".implode("','", $escaped_urls)."')
             GROUP BY p.value";
         foreach ($this->query($sql)->fetchAll() as $row) {
             $storefronts[$row['value']] += $row['cnt'];

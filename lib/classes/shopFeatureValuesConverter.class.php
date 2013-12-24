@@ -27,6 +27,11 @@ class shopFeatureValuesConverter
      */
     private $product_features_model;
     
+    /**
+     * @var shopProductFeaturesSelectable
+     */
+    private $product_features_selectable_model;
+    
     private $feature_id;
     private $to;
     
@@ -42,6 +47,7 @@ class shopFeatureValuesConverter
     {
         $this->feature_model = new shopFeatureModel();
         $this->product_features_model = new shopProductFeaturesModel();
+        $this->product_features_selectable_model = new shopProductFeaturesSelectableModel();
         $this->feature_id = $feature_id;
         
         if (!is_array($to)) {
@@ -302,6 +308,13 @@ class shopFeatureValuesConverter
             }
             
             $this->product_features_model->updateByField($key, $value);
+
+            $key['value_id'] = $key['feature_value_id'];
+            unset($key['feature_value_id']);
+            $value['value_id'] = $value['feature_value_id'];
+            unset($value['feature_value_id']);
+            
+            $this->product_features_selectable_model->updateByField($key, $value);
         }
     }
 

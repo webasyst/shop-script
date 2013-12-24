@@ -8,6 +8,8 @@ class shopFrontendCartSaveController extends waJsonController
         $item_id = waRequest::post('id');
         $cart_items_model = new shopCartItemsModel();
         $item = $cart_items_model->getById($item_id);
+
+        $is_html = waRequest::request('html');
         if ($q = waRequest::post('quantity', 0, 'int')) {
             if (!wa()->getSetting('ignore_stock_count')) {
                 if ($item['type'] == 'product') {
@@ -25,17 +27,21 @@ class shopFrontendCartSaveController extends waJsonController
                 }
             }
             $cart->setQuantity($item_id, $q);
-            $this->response['item_total'] = shop_currency_html($cart->getItemTotal($item_id), true);
+            $this->response['item_total'] = $is_html ?
+                shop_currency_html($cart->getItemTotal($item_id), true) :
+                shop_currency($cart->getItemTotal($item_id), true);
         } elseif ($v = waRequest::post('service_variant_id')) {
             $cart->setServiceVariantId($item_id, $v);
-            $this->response['item_total'] = shop_currency_html($cart->getItemTotal($item['parent_id']), true);
+            $this->response['item_total'] = $is_html ?
+                shop_currency_html($cart->getItemTotal($item['parent_id']), true):
+                shop_currency($cart->getItemTotal($item['parent_id']), true);
         }
         
         $total = $cart->total();
         $discount = $cart->discount();
         
-        $this->response['total'] = shop_currency_html($total, true);
-        $this->response['discount'] = shop_currency_html($discount, true);
+        $this->response['total'] = $is_html ? shop_currency_html($total, true) : shop_currency($total, true);
+        $this->response['discount'] = $is_html ? shop_currency_html($discount, true) : shop_currency($discount, true);
         $this->response['discount_numeric'] = $discount;
         $this->response['count'] = $cart->count();
         

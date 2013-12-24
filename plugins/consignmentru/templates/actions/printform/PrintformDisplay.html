@@ -317,7 +317,7 @@ var page_url = '';
 
     <tr>
         <td class="b_left b_bottom">{$id+1}</td>
-        <td class="b_left b_bottom leftAlign inline_edit">{$item.name|default:"&nbsp;"}</td>
+        <td class="b_left b_bottom leftAlign inline_edit">{$item.name|default:"&nbsp;"}{if $item.sku} ({$item.sku}){/if}</td>
         <td class="b_left b_bottom">&nbsp;</td>
         <td class="b_left b_bottom">шт.</td>
         <td class="b_left b_bottom">796</td>

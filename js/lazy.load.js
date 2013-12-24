@@ -14,8 +14,8 @@
             if (settings) {
                 settings.stopped = false;
                 settings.loading = false;
-                this.onscroll = null;
-                $(this).lazyLoad(settings);
+                this.get(0).onscroll = null;
+                this.lazyLoad(settings);
             }
             return;
         }

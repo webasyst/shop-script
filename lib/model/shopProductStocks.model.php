@@ -515,11 +515,7 @@ class shopProductStocksModel extends waModel
             return false;
         }
         
-        $count = $data['count'];
-        if (is_numeric($count) && $count < 0) {
-            return false;
-        }
-        
+        $count = (int) $data['count'];
         if (empty($data['product_id'])) {
             $product_skus_model = new shopProductSkusModel();
             $data['product_id'] = $product_skus_model->select('product_id')->

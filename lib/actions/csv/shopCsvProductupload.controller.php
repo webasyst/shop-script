@@ -20,7 +20,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'description'      => _w('Description'),
                 'badge'            => _w('Badge'),
                 'status'           => _w('Status'),
-                'sort'             => _w('Product sort order'),
+                //'sort'             => _w('Product sort order'),
                 'tags'             => _w('Tags'),
                 'tax_name'         => _w('Taxable'),
 

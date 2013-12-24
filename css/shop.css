@@ -152,6 +152,7 @@ ul.tags { list-style-type: none; margin: 0; padding: 0; }
 .fields .field .value p label { display: block; margin: 0; }
 .fields .field .value p { line-height: 1.6em; margin-bottom: 13px; position: relative; }
 .fields .field .value p span { color: #777; font-size: 0.9em; display: block; }
+.fields .field .value p span.inline { display: inline; }
 .fields .field .value p span.field { clear: none; }
 .fields .field .value p i.icon16 { float: left; left: -20px; margin-top: 2px; position: absolute; }
 .fields .field .value p input { display: block; margin-bottom: 2px; }
@@ -269,7 +270,7 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
 .s-welcome h1 { font-weight: normal; font-size: 2.2em; color: #aaa; margin-top: 120px; margin-bottom: 20px; }
 .s-welcome p { color: #aaa; font-size: 1.2em; }
 .s-welcome .s-arrow-add-one { position: absolute; top: 42px; left: 0px; width: 100px; height: 80px; background: url('../img/start-here-tl.png') no-repeat; }
-.s-welcome .s-arrow-add-many { position: absolute; top: 10px; right: 180px; width: 80px; height: 100px; background: url('../img/start-here-tr.png') no-repeat; }
+.s-welcome .s-arrow-add-many { position: absolute; top: 20px; right: 180px; width: 80px; height: 100px; background: url('../img/start-here-tr.png') no-repeat; }
 
 .s-stock-warning-low { color: #b75; }
 .s-stock-warning-none { color: #e00; }

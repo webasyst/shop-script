@@ -169,7 +169,7 @@ class shopOrderListAction extends waViewAction
                 if ($use_gravatar) {
                     $o['contact']['photo_50x50'] = shopHelper::getGravatar($o['contact']['email'], 50, $gravatar_default);
                 } else {
-                    $o['contact']['photo_50x50'] = waContact::getPhotoUrl($o['contact']['id'], null, 50, 50);
+                    $o['contact']['photo_50x50'] = waContact::getPhotoUrl(null, null, 50, 50);
                 }
             }
         }

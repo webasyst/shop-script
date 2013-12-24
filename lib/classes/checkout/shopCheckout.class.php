@@ -47,9 +47,6 @@ abstract class shopCheckout
             if (!$contact->get('address.shipping') && $addresses = $contact->get('address')) {
                 $contact->set('address.shipping', $addresses[0]);
             }
-            if (!$contact->get('address.billing') && $addresses = $contact->get('address.shipping')) {
-                $contact->set('address.billing', $addresses[0]);
-            }
         }
         return $contact ? $contact : new waContact();
     }

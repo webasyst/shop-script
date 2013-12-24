@@ -1,49 +1,54 @@
 <div class="block double-padded s-csv-settings" id="s-csvproduct-form">
     {if $direction eq 'import'}
-    <h1>[`CSV product import`]</h1>
-    <p>
-        {sprintf('[`Import new products and update existing product information from a comma-separated values (CSV) file. CSV files can be created and managed using most modern spreadsheet applications such as Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-Script-supported CSV file structure, please <a href="%s" target="_blank">refer to the manual</a>.`]','[`http://www.webasyst.com/help/45/import-products-from-csv-file/`]')}
-        <i class="icon10 new-window"></i>
-    </p>
+        <h1>[`CSV product import`]</h1>
+        <p>
+            {sprintf('[`Import new products and update existing product information from a comma-separated values (CSV) file. CSV files can be created and managed using most modern spreadsheet applications such as Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-Script-supported CSV file structure, please <a href="%s" target="_blank">refer to the manual</a>.`]','[`http://www.webasyst.com/help/45/import-products-from-csv-file/`]')}
+            <i class="icon10 new-window"></i>
+        </p>
     {else}
-    <h1>[`CSV product export`]</h1>
-    <p>
-        {sprintf('[`Export products to a comma-separated values (CSV) file. CSV files can be created and managed using most modern spreadsheet applications such as Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-Script-supported CSV file structure, please <a href="%s" target="_blank">refer to the manual</a>.`]','[`http://www.webasyst.com/help/45/import-products-from-csv-file/`]')}
-        <i class="icon10 new-window"></i>
-    </p>
+        <h1>[`CSV product export`]</h1>
+        <p>
+            {sprintf('[`Export products to a comma-separated values (CSV) file. CSV files can be created and managed using most modern spreadsheet applications such as Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-Script-supported CSV file structure, please <a href="%s" target="_blank">refer to the manual</a>.`]','[`http://www.webasyst.com/help/45/import-products-from-csv-file/`]')}
+            <i class="icon10 new-window"></i>
+        </p>
     {/if}
+    
    <form id="s-csvproduct" method="post" action="?module=csv&action=productrun">
+   <div class="fields form">
    {$wa->csrf()}
    <input type="hidden" name="direction" value="{$direction|escape}">
    {if ($direction eq 'export')}
-   <div class="field js-profile-description">
-       <div class="name">Профиль</div>
-       <div class="value">
-           <input type="text" name="profile[name]" value="{$profile.name|escape}">
-           <input type="hidden" name="profile[id]" value="{$profile.id|default:'-1'}">
+    {if !empty($info)}
+        <div class="field-group" style="border-bottom: 1px solid #ccc;">
+            <div class="field">
+                <div class="name bold">
+                    [`Last export`]
+                </div>
+                {foreach $info as $f}
+                <div class="value" style="min-width: 300px;">
+                    <p>
+                        <a href="?module=csv&action=productdownload&profile={$profile.id|default:''}&file={$f.name|escape}" class="bold nowrap inline"><i class="icon16 download" style="margin-top: 0.3em;"></i>[`Download`]</a> <span class="small inline">{$f.name|escape}</span>
+                        <br>
+                        <span class="hint inline">{$f.size|wa_format_file_size}</span>
+                        <span class="hint inline">[`Updated`]: {$f.mtime|wa_datetime:"humandatetime"}</span>
+                    </p>
+                </div>
+                {/foreach}
+            </div>
+        </div>
+     {/if}   
+       <div class="field js-profile-description">
+           <div class="name">Профиль</div>
+           <div class="value">
+               <input type="text" name="profile[name]" value="{$profile.name|default:''|escape}">
+               <input type="hidden" name="profile[id]" value="{$profile.id|default:'-1'}">
+           </div>
+    
        </div>
-
-   </div>
    {/if}
 
     <div class="fields form">
     {if ($direction eq 'export')}
-        {if !empty($info)}
-            <div class="field-group block" style="background: #eee;">
-                <div class="field">
-                    <div class="name">
-                        [`Last export`]
-                    </div>
-                    {foreach $info as $f}
-                    <div class="value no-shift" style="min-width: 300px;">
-                        <a href="?module=csv&action=productdownload&profile={$profile.id|default:''}&file={$f.name|escape}" class="bold nowrap"><i class="icon16 download"></i>[`Download`]</a> <span class="small">{$f.name|escape}</span> <span class="hint">{$f.size|wa_format_file_size}</span>
-                        <br>
-                        <span class="hint">[`Updated`]: {$f.mtime|wa_datetime:"humandatetime"}</span>
-                    </div>
-                    {/foreach}
-                </div>
-            </div>
-         {/if}
 
         {if count($settlements)>1}
         <div class="field-group">
@@ -263,7 +268,8 @@
             </div>
         </div>
     </div>
-</form>
+    </div>
+    </form>
 </div>
 
 <div class="clear"></div>
