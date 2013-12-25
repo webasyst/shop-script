@@ -343,6 +343,9 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             }
             $this->updateById($id, $data);
         } else {
+            if (!isset($data['sku'])) {
+                $data['sku'] = '';
+            }
             $id = $this->insert($data);
         }
 

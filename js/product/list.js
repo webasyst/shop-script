@@ -900,11 +900,7 @@
             
             if (type === 'set') {
                 $('#s-embed-code').click(function() {
-                    $('#s-product-list-embed-dialog').waDialog({
-                        onLoad: function() {
-                            wa_editor.selectAll();
-                        }
-                    });
+                    $('#s-product-list-embed-dialog').waDialog();
                     return false;
                 });
             }

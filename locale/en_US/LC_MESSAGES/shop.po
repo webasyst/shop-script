@@ -6913,3 +6913,23 @@ msgstr ""
 #: /wa-apps/shop/themes/standalone_ss/index.html:103
 msgid "We are using <a href=\"http://www.shop-script.com/\">Shop-Script 5</a>"
 msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductListEmbed.html:10
+msgid "Embed into:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductListEmbed.html:12
+msgid "Design template"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductListEmbed.html:15
+msgid "Page or another Webasyst app"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductListEmbed.html:19
+msgid "For certain design theme changing <code>list-thumbs.html</code> to an appropriate template file name may be required (if embed code is not working properly, and you are not sure about the file name, please contact design theme developer)."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductListEmbed.html:20
+msgid "In the code below, replace <code>THEME_ID</code> with your design theme ID (get your theme ID in the design editor’s theme settings screen)."
+msgstr ""

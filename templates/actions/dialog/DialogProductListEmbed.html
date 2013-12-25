@@ -1,0 +1,103 @@
+<div  id="s-product-list-embed-dialog" class="dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="block double-padded" style="padding-bottom: 0;">
+                <h1>{$id}</h1>
+                <br>
+                <p>[`Full HTML/Smarty code for embedding this product set into a design template or a page of any app of this Webasyst installation.`]</p>
+                <ul class="menu-h choose-snippet">
+                    <li style="padding-left: 0;">[`Embed into:`]</li>
+                    <li class="selected tab-1">
+                        <a href="#" class="inline-link"><b><i>[`Design template`]</i></b></a>
+                    </li>
+                    <li class="tab-2">
+                        <a href="#" class="inline-link"><b><i>[`Page or another Webasyst app`]</i></b></a>
+                    </li>
+                </ul>                
+                <p class="small">
+                    [`For certain design theme changing <code>list-thumbs.html</code> to an appropriate template file name may be required (if embed code is not working properly, and you are not sure about the file name, please contact design theme developer).`]
+                    <span style="display: none;" class="text-2">[`In the code below, replace <code>THEME_ID</code> with your design theme ID (get your theme ID in the design editor’s theme settings screen).`]</span>
+                </p>
+                
+                <div id="s-product-list-embed-content-ace-1">{literal}{if $wa->shop}
+{$products = $wa->shop->productSet("{/literal}{$id}{literal}")}
+{include file="list-thumbs.html" products=$products}
+{/if}{/literal}</div>
+                
+                <div id="s-product-list-embed-content-ace-2" style="display:none;">{literal}{if $wa->shop}
+{$products = $wa->shop->productSet("{/literal}{$id}{literal}")}
+{include file="`$wa->shop->themePath('THEME_ID')`list-thumbs.html" products=$products}
+{/if}{/literal}</div>
+
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                <input class="button gray cancel" type="button" value="[`Close`]">
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        var wa_url = '{$wa_url}';
+        
+        
+        ace.config.set("basePath", wa_url + 'wa-content/js/ace/');
+        
+        function initEditor(i) {
+            var editor = ace.edit('s-product-list-embed-content-ace-' + i);
+            editor.setTheme("ace/theme/eclipse");
+            var session = editor.getSession();
+            session.setMode("ace/mode/css");
+            session.setMode("ace/mode/javascript");
+            session.setMode("ace/mode/smarty");
+            session.setUseWrapMode(true);
+            editor.renderer.setShowGutter(false);
+            editor.setShowPrintMargin(false);
+            editor.setFontSize(13);
+            editor.setHighlightActiveLine(false);
+            editor.setReadOnly(true);
+            editor.selectAll();
+
+            setTimeout(function () {
+                var newHeight = editor.getSession().getScreenLength() * editor.renderer.lineHeight + editor.renderer.scrollBar.getWidth();
+                newHeight *= 1.02;
+                if (newHeight < 100) {
+                    newHeight = 100;
+                }
+                $('#s-product-list-embed-content-ace-' + i).height(newHeight.toString() + "px");
+                editor.resize();
+            }, 50);
+        }
+        
+        // two tabs - two editors
+        initEditor(1);
+        initEditor(2);
+        
+        $('.choose-snippet a').click(function() {
+            var li = $(this).closest('li');
+            $('.choose-snippet li').removeClass('selected');
+            li.addClass('selected');
+            
+            var index = 1;
+            if (li.hasClass('tab-2')) {
+                index = 2;
+            }
+            
+            // show content related with current tab
+            $('#s-product-list-embed-content-ace-' + index).show();
+            $('.text-' + index).show();
+            
+            // hide content related with other tab
+            index = index == 1 ? 2 : 1;
+            $('#s-product-list-embed-content-ace-' + index).hide();
+            $('.text-' + index).hide();
+            
+            return false;
+            
+        });
+        
+    });
+</script>

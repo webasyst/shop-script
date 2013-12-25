@@ -8,11 +8,12 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)"
-">=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n"
+"%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.5.5\n"
+"X-Generator: Poedit 1.6.3\n"
+"Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -7922,19 +7923,37 @@ msgstr ""
 msgid "Browse import plugins"
 msgstr "Поиск плагинов импорта"
 
-#: /wa-apps/shop/templates/actions/settings/bufer.html:15
-msgid "Editable per product (input)"
-msgstr ""
+#: /wa-apps/shop/templates/actions/dialog/DialogProductListEmbed.html:10
+msgid "Embed into:"
+msgstr "Добавить в:"
 
-#: /wa-apps/shop/templates/actions/settings/bufer.html:25
-msgid "Editable per product (textarea)"
-msgstr ""
+#: /wa-apps/shop/templates/actions/dialog/DialogProductListEmbed.html:12
+msgid "Design template"
+msgstr "Шаблон дизайна"
 
-#: /wa-apps/shop/themes/buysimply/product.html:375
-#: /wa-apps/shop/themes/shoploop/product.html:240
-msgid "Read <a href=\"%s\">all %d reviews</a> on %s"
-msgstr ""
+#: /wa-apps/shop/templates/actions/dialog/DialogProductListEmbed.html:15
+msgid "Page or another Webasyst app"
+msgstr "Страницу или в другое приложение Webasyst"
 
-#: /wa-apps/shop/themes/shoploop/home.html:163
-msgid "bestsellers"
+#: /wa-apps/shop/templates/actions/dialog/DialogProductListEmbed.html:19
+msgid ""
+"For certain design theme changing <code>list-thumbs.html</code> to an "
+"appropriate template file name may be required (if embed code is not working "
+"properly, and you are not sure about the file name, please contact design "
+"theme developer)."
 msgstr ""
+"Для некоторых тем дизайна может потребоваться замена в приведенном коде "
+"имени файла шаблона вывода товаров <code>list-thumbs.html</code> на другое "
+"подходящее имя файла (если приведенный ниже код для вставки списка товаров "
+"не работает, и вы не уверены какое имя файла нужно указать, свяжитесь с "
+"разработчиком темы дизайна)."
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductListEmbed.html:20
+msgid ""
+"In the code below, replace <code>THEME_ID</code> with your design theme ID "
+"(get your theme ID in the design editor’s theme settings screen)."
+msgstr ""
+"В коде для вставки списка товаров необходимо заменить <code>THEME_ID</code> "
+"на идентификатор темы дизайна, которую вы используете для вашего интернет-"
+"магазина (идентификатор можно посмотреть в настройках темы дизайна в разделе "
+"«Витрина»)."

@@ -198,7 +198,7 @@
                 {/foreach}
             {elseif $info.hash == 'set'}
                 <span class="s-embed">
-                    <strong class="black">&#123;$wa->shop->productSet("{$id}")&#125;</strong>
+                    <strong class="black">&#123;$products = $wa->shop->productSet("{$id}")&#125;</strong>
                     <a href="#" id="s-embed-code">[`Get embed code`]</a>
                 </span>
             {/if}
@@ -271,56 +271,7 @@
     </div>
 
     {if $info.hash == 'set'}
-        <div class="dialog width800px height350px" id="s-product-list-embed-dialog">
-            <div class="dialog-background"></div>
-            <div class="dialog-window">
-                <div class="dialog-content">
-                    <div class="block double-padded" style="padding-bottom: 0;">
-                        <h1>{$id}</h1>
-                        <p>[`Full HTML/Smarty code for embedding this product set into a design template or a page of any app of this Webasyst installation.`]</p>
-                    </div>
-                    <textarea style="display:none" id="s-product-list-embed-content">{literal}
-{if $wa->shop}
-  {$products = $wa->shop->productSet("{{/literal}$id{literal}}")}
-  <ul class="thumbs li250px">
-    {foreach $products as $p}
-      <li itemscope itemtype ="http://schema.org/Product">
-        <div class="image">
-          <a href="{$p.frontend_url}" title="{$p.name}{if $p.summary} &mdash; {strip_tags($p.summary)}{/if}">
-            {$wa->shop->productImgHtml($p, '200', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
-            <h5 itemprop="name">{$p.name}</h5>
-          </a>
-        </div>
-        {if $p.summary}<p itemprop="description">{$p.summary}</p>{/if}
-        <div itemprop="offers" class="offers" itemscope itemtype="http://schema.org/Offer">
-          {if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency_html($p.compare_price)} </span>{/if}
-          <span class="price nowrap" itemprop="price">{shop_currency_html($p.price)}</span>
-        </div>
-      </li>
-    {/foreach}
-  </ul>
-{/if}
-                    {/literal}</textarea>
-                    <div class="ace">
-                        <div id="s-product-list-embed-content-ace" style="max-height: 350px;">
-                    </div>
-                </div>
-                <div class="dialog-buttons">
-                    <div class="dialog-buttons-gradient">
-                        {$wa->csrf()}
-                        <input class="button gray cancel" type="button" value="[`Close`]">
-                    </div>
-                </div>
-            </div>
-        </div>
-        <script>
-                wa_url = '{$wa_url}';
-                waEditorAceInit({
-                    'id': 's-product-list-embed-content',
-                    'ace_editor_container': 's-product-list-embed-content-ace'
-                });
-                wa_editor.selectAll();
-            </script>
+        {include '../dialog/DialogProductListEmbed.html' inline}
     {/if}
                     
 </div>

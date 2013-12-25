@@ -2179,12 +2179,16 @@ editClick:(function ($) {
         },
 
         profileInit: function () {
-
-            // wa_editor global variable, so has previous context
-//            if (wa_editor) {
-//                wa_editor = undefined;
-//            }
-
+            
+            if ($.product_list !== undefined && $.product_list.fixed_blocks !== undefined) {
+                if ($.product_list.fixed_blocks.set) {
+                    $.product_list.fixed_blocks.set.unsetFixed();
+                }
+                if ($.product_list.fixed_blocks.category) {
+                    $.product_list.fixed_blocks.category.unsetFixed();
+                }
+            }
+            
             if (this.options.edit_rights) {
 
                 var $product_name = $('#shop-productprofile').find('.s-product-name');
