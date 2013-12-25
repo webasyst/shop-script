@@ -52,4 +52,11 @@ class shopShopscriptredirectPlugin extends shopPlugin
             }
         }
     }
+
+    public function frontendSearch()
+    {
+        if (waRequest::get('searchstring') && !waRequest::get('query')) {
+            wa()->getResponse()->redirect('?query='.waRequest::get('searchstring'), 301);
+        }
+    }
 }

@@ -211,7 +211,7 @@ class shopCategories
         }
         unset($item);
         
-        // bind storefronts
+        // bind storefronts (routes)
         $category_routes_model = new shopCategoryRoutesModel();
         foreach ($category_routes_model->getRoutes(array_keys($categories)) as $category_id => $routes) {
             foreach ($routes as &$r) {

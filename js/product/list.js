@@ -365,7 +365,7 @@
                     return false;
                 });
                 
-                this.fixed_blocks = this.initFixedBlocks();
+                $.product_list.fixed_blocks = $.product_list.initFixedBlocks();
                 
                 this.initEditingControls();
                 this.initToolbar();
@@ -408,14 +408,19 @@
                 var dummy_id    = 's-category-list-dummy';
                 var handler_id = 's-category-list-handler';
 
-                var is_list_hidden;
                 var fixed = false;
+                var is_list_hidden;
+                var is_collapsed;
 
                 function setFixed() {
-
-                    var is_collapsed = $.categories_tree.isCollapsed('#' + handler_id);
+                    if (fixed) {
+                        return;
+                    }
+                    
+                    var h = $('#' + handler_id);
+                    is_collapsed = $.categories_tree.isCollapsed(h);
                     is_list_hidden = category_list.is(':hidden');
-
+                    
                     // insert instead of original block dummy with proper height
                     var d = $('<div id="' + dummy_id + '" class="block"></div>').css({
                         height: category_list_block.height()
@@ -425,19 +430,16 @@
                     fixed_blocks.show().append(category_list_block.hide());
                     category_list_block.find('.heading').before('<span class="hint float-right" style="margin-top: 3px;">' + $_('Drag products here') + '</span>');
 
-                    // because categories tree is ajax-oriented (load childs on demand) 
-                    // make sure first-level items is loaded
                     if (is_collapsed) {
-                        var h = $('#' + handler_id);
-                        $.categories_tree.expand(h);
-                        $.categories_tree.collapse(h);
+                        $.categories_tree.expand(h, null, function() {
+                            $.categories_tree.collapse(h);
+                        });
                     }
-
-                    category_list_block.show();
-
                     if (!is_list_hidden) {
                         category_list.hide();
                     }
+
+                    category_list_block.show();
 
                     // hide control (icon) for adding
                     $('i.add', category_list_block).hide();
@@ -502,6 +504,9 @@
                 }
 
                 function unsetFixed() {
+                    if (!fixed) {
+                        return;
+                    }
                     // place back original block
                     var d = $('#' + dummy_id);
                     d.replaceWith(category_list_block);
@@ -511,12 +516,16 @@
                         'overflow-y': ''
                     });
 
-                    category_list_block.find('.heading').prev('.hint').remove();
-
                     // back to previous collapse/expand status
+                    var h = $('#' + handler_id);
+                    if (is_collapsed) {
+                        $.categories_tree.collapse(h);
+                    }
                     if (!is_list_hidden) {
                         category_list.show();
                     }
+
+                    category_list_block.find('.heading').prev('.hint').remove();
 
                     // show back collapse/expand handler
                     $('#' + handler_id).show();
@@ -548,6 +557,9 @@
                 }
 
                 win.unbind('scroll.fixed_blocks.category').bind('scroll.fixed_blocks.category', function() {
+                    if (!fixed) {
+                        top_offset = category_list_block.offset().top;
+                    }
                     var bottom = top_offset;
                     if (dummyExists()) {
                         bottom += $('#' + dummy_id).height();
@@ -555,13 +567,9 @@
                         bottom += $('#' + block_id).height();
                     }
                     if (win.scrollTop() + mainmenu_offset + sensitivity >= bottom) {
-                        if (!fixed) {
-                            setFixed();
-                        }
+                        setFixed();
                     } else {
-                        if (fixed) {
-                            unsetFixed();
-                        }
+                        unsetFixed();
                     }
                 });
                 
@@ -581,10 +589,16 @@
 
                 var is_list_hidden;
                 var fixed = false;
+                
+                //var is_collapsed = $.categories_tree.isCollapsed('#' + handler_id);
 
                 function setFixed() {
+                    if (fixed) {
+                        return;
+                    }
+                    
                     is_list_hidden = set_list.is(':hidden');
-
+                    
                     // insert instead of original block dummy with proper height
                     var d = $('<div id="' + dummy_id + '" class="block"></div>').css({
                         height: set_list_block.height()
@@ -661,6 +675,9 @@
                 }
 
                 function unsetFixed() {
+                    if (!fixed) {
+                        return;
+                    }
                     // place back original block
                     var d = $('#' + dummy_id);
                     d.replaceWith(set_list_block);
@@ -707,6 +724,9 @@
                 }
 
                 win.unbind('scroll.fixed_blocks.set').bind('scroll.fixed_blocks.set', function() {
+                    if (!fixed) {
+                        top_offset = set_list_block.offset().top;
+                    }
                     var bottom = top_offset;
                     if (dummyExists()) {
                         bottom += $('#' + dummy_id).height();
@@ -714,13 +734,9 @@
                         bottom += $('#' + block_id).height();
                     }
                     if (win.scrollTop() + mainmenu_offset + sensitivity >= bottom) {
-                        if (!fixed) {
-                            setFixed();
-                        }
+                        setFixed();
                     } else {
-                        if (fixed) {
-                            unsetFixed();
-                        }
+                        unsetFixed();
                     }
                 });
 
@@ -734,10 +750,6 @@
                 category: fixed_category_block,
                 set: fixed_set_block
             };
-            
-        },
-        
-        resetFixedBlocks: function() {
             
         },
         
@@ -1262,6 +1274,13 @@
                             var hash = location.hash.replace(collection_hash[0] + '_id=' + collection_hash[1], collection_hash[0] + '_id=' + r.data.id);
                             var li = $('#' + collection_hash.join('-'));
                             li.find('.name:first').html(r.data.name);
+                            
+                            if ($.isArray(r.data.routes) && r.data.routes.length) {
+                                li.find('.routes:first').html(' ' + r.data.routes.join(' '));
+                            } else {
+                                li.find('.routes:first').html(' ');
+                            }
+                            
                             if (r.data.status == '0') {
                                 li.children('a').addClass('gray');
                             } else if (r.data.status == '1') {
@@ -1276,6 +1295,7 @@
                             } else {
                                 $.products.dispatch();
                             }
+                            wa_editor = undefined;
                             d.trigger('close');
                         };
                         var error = function(r) {
@@ -1286,6 +1306,7 @@
                                 }
                                 return false;
                             }
+                            wa_editor = undefined;
                         };
                         if ($('#s-category-description-content').length) {
                             waEditorUpdateSource({
@@ -1299,6 +1320,9 @@
                             $.shop.jsonPost(form.attr('action'), form.serialize(), success, error);
                             return false;
                         }
+                    },
+                    onCancel: function() {
+                        wa_editor = undefined;
                     }
                 });
             };

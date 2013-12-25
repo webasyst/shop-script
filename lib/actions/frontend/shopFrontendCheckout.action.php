@@ -51,6 +51,8 @@ class shopFrontendCheckoutAction extends waViewAction
                 }
                 $order['id'] = shopHelper::encodeOrderId($order_id);
                 $this->getResponse()->addGoogleAnalytics($this->getGoogleAnalytics($order));
+            } else {
+                $order['id'] = shopHelper::encodeOrderId($order_id);
             }
             $this->view->assign('order', $order);
             if (isset($payment)) {
@@ -58,7 +60,7 @@ class shopFrontendCheckoutAction extends waViewAction
             }
         } else {
             $cart = new shopCart();
-            if (!$cart->count()) {
+            if (!$cart->count() && $current_step != 'error') {
                 $current_step = 'error';
                 $this->view->assign('error', _w('Your shopping cart is empty. Please add some products to cart, and then proceed to checkout.'));
             }

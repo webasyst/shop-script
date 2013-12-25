@@ -281,6 +281,7 @@
                                 onCreate(r.data, type);
                             }
                             location.href = '#/products/' + type + '_id=' + r.data.id;
+                            wa_editor = undefined;
                             d.trigger('close');
                         };
                         var error = function(r) {
@@ -291,6 +292,7 @@
                                 }
                                 return false;
                             }
+                            wa_editor = undefined;
                         };
 
                         if ($('#s-category-description-content').length) {
@@ -305,7 +307,9 @@
                             $.shop.jsonPost(form.attr('action'), form.serialize(), success, error);
                             return false;
                         }
-
+                    },
+                    onCancel: function() {
+                        wa_editor = undefined;
                     }
                 });
             };

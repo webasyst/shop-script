@@ -443,6 +443,8 @@ editClick:(function ($) {
             h1.find('.s-product-name:first').text(data.name);
             h1.find('.s-product-id').show().text('id: ' + data.id);
             document.title = data.name + $.product.options.title_suffix;
+            
+            $('#product-stock-stat').html(tmpl('template-product-stock-stat', data.raw));
 
             var $container = tab_content.find(':input[name="product\\[type_id\\]"]').parents('.value');
             $container.data('type', data.type_id);

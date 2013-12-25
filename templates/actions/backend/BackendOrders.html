@@ -59,7 +59,7 @@
             {foreach $storefronts as $url => $cnt}
                 <li data-storefront="{$url|substr:0:-1}">
                     <span class="count">{$cnt}</span>
-                    <a href="#/orders/storefront={urlencode($url)}">{$url|substr:0:-1}</a>
+                    <a href="#/orders/storefront={urlencode($url)}">{if $url|substr:0:-1 == '/'}{$url|substr:0:-1}{else}{$url}{/if}</a>
                 </li>
             {/foreach}
         </ul>

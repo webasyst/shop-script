@@ -2,7 +2,7 @@
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
 <theme id="vk" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:vk" version="1.1.1">
     <name locale="en_US">VK</name>
-    <name locale="ru_RU">VK</name>
+    <name locale="ru_RU">Вконтакте</name>
     <files>
         <file path="index.html" custom="0" parent="1">
         </file>

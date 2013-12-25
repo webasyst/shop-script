@@ -26,7 +26,7 @@ class shopFeatureValuesColorModel extends shopFeatureValuesModel
 
     protected function getSearchCondition()
     {
-        return '`value` = "l:search_value"';
+        return "`value` = 'l:search_value'";
     }
 
     protected function parseValue($value, $type)

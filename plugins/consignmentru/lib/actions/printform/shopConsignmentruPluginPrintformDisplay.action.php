@@ -69,9 +69,13 @@ class shopConsignmentruPluginPrintformDisplayAction extends waViewAction
             'billing'  => $order->billing_address,
             'shipping' => $order->shipping_address,
         ), $order->currency);
-
+        
         if ($order->discount) {
-            $k = 1.0 - ($order->discount) / ($order->total + $order->discount - $order->shipping);
+            if ($order->total + $order->discount - $order->shipping > 0) {
+                $k = 1.0 - ($order->discount) / ($order->total + $order->discount - $order->shipping);
+            } else {
+                $k = 0.0;
+            }
 
             foreach ($items as & $item) {
                 if ($item['tax_included']) {

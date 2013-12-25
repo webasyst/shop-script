@@ -1212,6 +1212,21 @@ if (typeof($) != 'undefined') {
 
         featuresFeatureTypeIncompatible: function (feature_type, type_to) {
             var ban_rule = '';
+            
+            if (feature_type.type == type_to.type &&
+                feature_type.selectable == type_to.selectable &&
+                feature_type.multiple == type_to.multiple) 
+            {
+                return true;
+            }
+            
+            if (feature_type.multiple == '1' && type_to.multiple != '1') {
+                return true;
+            }
+            
+            feature_type = feature_type.type;
+            type_to = type_to.type;
+            
             var types = $.settings.features_incompatible_types || {};
             for (var type_from in types) {
                 var list = types[type_from];
@@ -1271,28 +1286,59 @@ if (typeof($) != 'undefined') {
                     var f = self.$features_list.find('tr[data-feature=' + feature_id + ']');
                     var old_type = $('.js-feature-type-name', f).text();
                     d.find('.feature-old-type').text(old_type);
-
-                    var f_type = f.data('type');
+                    
+                    var f_type = {
+                        type: f.data('type'),
+                        selectable: f.data('selectable'),
+                        multiple: f.data('multiple')
+                    };
                     var subtypes_selects = d.find('.js-feature-subtypes-control').hide();
-
+                    
                     var types_select = d.find('.js-feature-types-control');
+
+
+                    // disable some needed options in select of types
+                    types_select.find('option').each(function () {
+                        var item = $(this);
+                        var type = {
+                            type: item.data('type'),
+                            selectable: item.data('selectable'),
+                            multiple: item.data('multiple')
+                        };
+                        if (isConvertBanned(f_type, type) || type === 'divider') {
+                            item.attr('disabled', true);
+                        } else {
+                            item.attr('disabled', false);
+                        }
+                    }).not(':disabled').first().attr('selected', true);
+
                     types_select.unbind('change.value_type_edit').bind('change.value_type_edit', function () {
 
                         d.find('.errormsg').hide();
 
                         var el = $(this);
                         var selected = el.find('option:selected');
-                        var type = selected.data('type');
-                        subtypes_selects.each(function () {
+                        var type = {
+                            type: selected.data('type'),
+                            selectable: selected.data('selectable'),
+                            multiple: selected.data('multiple')
+                        };
+                        
+                        // try choose proper subtype select
+                        subtypes_selects.hide().each(function () {
                             var item = $(this);
-                            if (type === item.data('subtype')) {
+                            if (type.type === item.data('subtype')) {
                                 item.show().focus();
 
                                 // disable some needed options in select of subtypes
                                 item.find('option').each(function () {
                                     var option = $(this);
-                                    var type = option.data('type');
-                                    if (/*f_type === type || */isConvertBanned(f_type, type)) {
+                                    var subtype = {
+                                        type: option.data('type'),
+                                        selectable: type.selectable,
+                                        multiple: type.multiple
+                                    };
+                                    if (isConvertBanned(f_type, subtype)) {
                                         option.attr('disabled', true);
                                     } else {
                                         option.attr('disabled', false);
@@ -1300,24 +1346,10 @@ if (typeof($) != 'undefined') {
                                 }).not(':disabled').first().attr('selected', true);
 
                                 return false;
-                            } else {
-                                item.hide();
-                                return true;
                             }
                         });
                         return false;
-                    });
-
-                    // disable some needed options in select of types
-                    types_select.find('option').each(function () {
-                        var item = $(this);
-                        var type = item.data('type');
-                        if (f_type === type || isConvertBanned(f_type, type) || type === 'divider') {
-                            item.attr('disabled', true);
-                        } else {
-                            item.attr('disabled', false);
-                        }
-                    }).not(':disabled').first().attr('selected', true);
+                    }).trigger('change');
 
                     subtypes_selects.unbind('change.value_type_edit').bind('change.value_type_edit', function () {
                         d.find('.errormsg').hide();

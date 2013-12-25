@@ -48,9 +48,7 @@
 
         <a href="#/products/category_id={$category.id}" class="s-product-list{if !$category.status} gray{/if}">{strip}
             <i class="icon16 {if $category.type == shopCategoryModel::TYPE_DYNAMIC}folder-dynamic{else}folder{/if}"></i><span class="name">{$category.name|escape}</span>
-            {if !empty($category.routes)}
-                <span class="hint"> {implode(' ', $category.routes)}</span>
-            {/if}
+            <span class="hint routes"> {if !empty($category.routes)}{implode(' ', $category.routes)}{/if}</span>
             <strong class="small highlighted count-new"></strong>
             <span class="count"><i class="icon10 add s-new-list"></i></span>
         {/strip}</a>

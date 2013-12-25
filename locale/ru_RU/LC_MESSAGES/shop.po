@@ -4731,10 +4731,6 @@ msgstr "Порядок сортировки товаров"
 msgid "As defined in backend"
 msgstr "Как в бекенде"
 
-#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:69
-msgid "{$feature.name|escape}"
-msgstr ""
-
 #: /wa-apps/shop/templates/actions/settings/SettingsAffiliate.html:24
 msgid "worth of self placed orders"
 msgstr "своих заказов"
@@ -7925,3 +7921,20 @@ msgstr ""
 #: /wa-apps/shop/templates/actions/backend/BackendImportexport.html:41
 msgid "Browse import plugins"
 msgstr "Поиск плагинов импорта"
+
+#: /wa-apps/shop/templates/actions/settings/bufer.html:15
+msgid "Editable per product (input)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/bufer.html:25
+msgid "Editable per product (textarea)"
+msgstr ""
+
+#: /wa-apps/shop/themes/buysimply/product.html:375
+#: /wa-apps/shop/themes/shoploop/product.html:240
+msgid "Read <a href=\"%s\">all %d reviews</a> on %s"
+msgstr ""
+
+#: /wa-apps/shop/themes/shoploop/home.html:163
+msgid "bestsellers"
+msgstr ""

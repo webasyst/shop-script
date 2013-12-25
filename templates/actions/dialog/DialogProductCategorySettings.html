@@ -93,7 +93,7 @@
                         <i class="icon16 sort"></i> 
                         <label><input type="checkbox" name="filter[]" value="{$feature.id}"
                                             {if !empty($feature.checked) || ($feature.id == 'price' && !$settings.allow_filter)}checked="checked"{/if}>
-                                [`{$feature.name|escape}`]
+                                {$feature.name|escape}
                         </label>
                     </li>
                 {/foreach}

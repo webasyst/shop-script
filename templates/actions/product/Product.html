@@ -87,16 +87,18 @@
                     )}
                     </p>
                 {/if}
-                {* if $stocks_log}
-                    <ul>
-                    {foreach $stocks_log as $log_item}
-                        <li>
-                            <i class="icon10 status-red"></i> +{$log_item.diff_count} <span class="hint">@{$log_item.stock_name}</span></li>
-                    {/foreach}
-                    </ul>
-                    <a href="#/product/{$product.id}/edit/stocks_log/">[`View log`]</a>                    
-                {/if *}
             </div>
+            {capture name='template-product-stock-stat'}
+                <br>
+                <p class="align-center">
+                    [`Total stock balance`]: <strong>{literal}{% if (o.count !== null) { %}{%#o.count%}{% } else { %}∞{% } %}{/literal}</strong>
+                </p>
+                {literal}
+                {% if (!$.isEmptyObject(o.runout.product_str)) { %}
+                    <p>{%#o.runout.product_str%}</p>
+                {% } %}
+                {/literal}
+            {/capture}
 
             <div id="s-product-delete" class="block align-center">
                 <ul class="menu-h with-icons">
@@ -234,7 +236,7 @@
                             <td class="s-name">
                                 {%=sku.name%}
                                 <span class="hint">{%=sku.sku%}</span>
-                                {% if (sku.file_name || typeof sku.file_name === "undefined") { %}
+                                {% if (sku.file_name) { %}
                                     <i class="icon16 attachment-small"></i>
                                 {% } %}
                             </td>

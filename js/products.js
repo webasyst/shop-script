@@ -192,12 +192,16 @@
             $.storage.set('shop/products/view', params.view);
             this.list_hash = this.hash;
             this.list_params = params;
-            this.load('?module=products&' + this.buildProductsUrlComponent(params), function() {
-                if ($.product_list !== undefined && $.product_list.fixed_blocks !== undefined) {
+            
+            if ($.product_list !== undefined && $.product_list.fixed_blocks !== undefined) {
+                if ($.product_list.fixed_blocks.set) {
                     $.product_list.fixed_blocks.set.unsetFixed();
+                }
+                if ($.product_list.fixed_blocks.category) {
                     $.product_list.fixed_blocks.category.unsetFixed();
                 }
-            });
+            }
+            this.load('?module=products&' + this.buildProductsUrlComponent(params));
         },
 
         productAction: function (id, action, tab) {

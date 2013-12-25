@@ -26,18 +26,29 @@ class shopProductsSaveListSettingsController extends waJsonController
         $id = $this->saveSettings($hash, $data);
 
         if ($id) {
-            /*
-            if ($hash[0] == 'set') {    // now supported for sets only
-                $this->addProducts($id, $hash[0]);
-            }
-            */
-
+            
             $this->response = $this->getModel($hash[0])->getById($id);
             $this->response['name'] = htmlspecialchars($this->response['name'], ENT_NOQUOTES);
 
             // when use iframe-transport unescaped content bring errors when parseJSON
             if (!empty($this->response['description'])) {
                 $this->response['description'] = htmlspecialchars($this->response['description'], ENT_NOQUOTES);
+            }
+            
+            if ($hash[0] == 'category') {                
+                // bind storefronts (routes)
+                $category_routes_model = new shopCategoryRoutesModel();
+                $routes = $category_routes_model->getRoutes($id);
+                foreach ($routes as &$r) {
+                    if (substr($r, -1) === '*') {
+                        $r = substr($r, 0, -1);
+                    }
+                    if (substr($r, -1) === '/') {
+                        $r = substr($r, 0, -1);
+                    }
+                }
+                unset($r);
+                $this->response['routes'] = $routes;
             }
         }
     }

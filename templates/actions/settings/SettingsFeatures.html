@@ -159,7 +159,7 @@
 <!-- {/literal}{/capture} placeholder -->
 
 <!-- {capture name="edit-feature-template-js"}{literal} edit feature jquery template -->
-                <tr data-types="${feature.types.sort().join(" ")}" class="js-inline-edit" data-feature="${feature.id}" data-type="${feature.type}" {{if (feature.type=='divider')}} class="gray"{{/if}}>
+                <tr data-types="${feature.types.sort().join(" ")}" class="js-inline-edit" data-feature="${feature.id}" data-multiple="${feature.multiple}" data-selectable="${feature.selectable}" data-type="${feature.type}" {{if (feature.type=='divider')}} class="gray"{{/if}}>
                     <td class="min-width"><i class="icon16 sort"></i></td>
                     <td><input type="text" name="feature[${feature.id}][name]" value="${feature.name}"><br>
                     {{if feature.id>0}}

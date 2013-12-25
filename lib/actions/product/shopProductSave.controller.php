@@ -139,12 +139,20 @@ class shopProductSaveController extends waJsonController
                 
                 $this->response['frontend_urls'] = $frontend_urls;
                 $this->response['raw'] = $this->workupData($product->getData());
+                
                 $sales_rate = waRequest::post('sales_rate', 0, waRequest::TYPE_STRING_TRIM);
                 $sales_rate = (double) str_replace(',', '.', $sales_rate);
+                
                 $runout = $product->getRunout($sales_rate);
                 if (!empty($runout['product'])) {
                     $runout['product']['date_str'] = wa_date("humandate", $runout['product']['date']);
                     $runout['product']['days_str'] = _w('%d day', '%d days', $runout['product']['days']);
+                    if ($runout['product']['days'] < 3*365 && $runout['product']['days'] > 0) {
+                        $runout['product_str'] = 
+                            sprintf(_w('Based on last 30 days sales dynamic (%d items of %s sold during last 30 days), you will run out of %s in <strong>%d days</strong> (on %s)'),
+                                $sales_rate * 30, $product->name, $product->name, $runout['product']['days'], wa_date("humandate", $runout['product']['date'])
+                            );
+                    }
                 } else {
                     $runout['product'] = new stdClass();    /* {} */
                 }
@@ -318,7 +326,13 @@ class shopProductSaveController extends waJsonController
     public function workupData($data)
     {
         $currency = $data['currency'] ? $data['currency'] : $this->getConfig()->getCurrency();
-        foreach ($data['skus'] as & $sku) {
+        
+        $file_names = array();  // sku_id => filename of attachment
+        
+        foreach ($data['skus'] as &$sku) {
+            if (!isset($sku['file_name'])) {
+                $file_names[$sku['id']] = '';   // need to obtain filename
+            }
             $sku['price_str'] = wa_currency($sku['price'], $currency);
             $sku['stock_icon'] = array();
             $sku['stock_icon'][0] = shopHelper::getStockCountIcon($sku['count']);
@@ -329,6 +343,16 @@ class shopProductSaveController extends waJsonController
             }
         }
         unset($sku);
+        
+        // obtain filename
+        if ($file_names) {
+            $product_skus_model = new shopProductSkusModel();
+            $file_names = $product_skus_model->select('id, file_name')->where("id IN('".implode("','", array_keys($file_names))."')")->fetchAll('id', true);
+            foreach ($file_names as $sku_id => $file_name) {
+                $data['skus'][$sku_id]['file_name'] = $file_name;
+            }
+        }
+        
         return $data;
     }
 }

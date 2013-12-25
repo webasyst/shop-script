@@ -40,7 +40,7 @@ class shopCsvProductrunController extends waLongActionController
             $this->data['timestamp'] = time();
             $this->data['direction'] = waRequest::post('direction', 'import');
             $type_model = new shopTypeModel();
-            $this->data['types'] = array_keys($type_model->getTypes());
+            $this->data['types'] = array_map('intval', array_keys($type_model->getTypes()));
             switch ($this->data['direction']) {
 
                 case 'export':
@@ -76,12 +76,17 @@ class shopCsvProductrunController extends waLongActionController
     private function initRouting()
     {
         $routing = wa()->getRouting();
-        $domain_routes = $routing->getByApp('shop');
+        $app_id = $this->getAppId();
+        $domain_routes = $routing->getByApp($app_id);
         foreach ($domain_routes as $domain => $routes) {
             foreach ($routes as $route) {
                 if ($domain.'/'.$route['url'] == $this->data['config']['domain']) {
                     $routing->setRoute($route, $domain);
-                    waRequest::setParam($route);
+
+                    if ($types = ifempty($route['type_id'], array())) {
+                        $types = array_map('intval', $types);
+                        $this->data['types'] = array_intersect($this->data['types'], $types);
+                    }
                     $this->data['base_url'] = $domain;
                     break;
                 }
@@ -266,6 +271,7 @@ class shopCsvProductrunController extends waLongActionController
             }
         }
 
+
         $profile_helper = new shopImportexportHelper('csv:product:export');
         $profile = $profile_helper->setConfig($config);
 
@@ -279,6 +285,8 @@ class shopCsvProductrunController extends waLongActionController
         $this->data['config'] = $config;
         $this->data['options'] = $options;
 
+        $this->initRouting();
+
         $model = new shopCategoryModel();
         $this->data['count'] = array(
             self::STAGE_PRODUCT  => $this->getCollection()->count(),
@@ -287,7 +295,7 @@ class shopCsvProductrunController extends waLongActionController
             self::STAGE_IMAGE    => null,
         );
 
-        $this->initRouting();
+
     }
 
     private static function getData($data, $key)
@@ -336,8 +344,7 @@ class shopCsvProductrunController extends waLongActionController
             } else {
                 $hash = $this->data['hash'];
             }
-            $options = array(
-                'frontend' => true,
+            $options = array( //
             );
             $this->collection = new shopProductsCollection($hash, $options);
         }
@@ -1150,7 +1157,6 @@ class shopCsvProductrunController extends waLongActionController
                 $this->reader = unserialize($this->data['file']);
                 break;
             case 'export':
-                $this->initRouting();
                 $this->writer = unserialize($this->data['file']);
                 break;
         }
@@ -1216,7 +1222,7 @@ class shopCsvProductrunController extends waLongActionController
         );
         while (($chunk-- > 0) && ($product = reset($products))) {
             $exported = false;
-            /* check rights per product type */
+            /* check rights per product type && settlement options */
             $rights = empty($product['type_id']) || in_array($product['type_id'], $this->data['types']);
             /* check category match*/
             $category = !$this->data['export_category'] || ($product['category_id'] == $this->data['map'][self::STAGE_CATEGORY]);

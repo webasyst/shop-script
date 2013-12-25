@@ -188,6 +188,12 @@ class shopOrderModel extends waModel
                 if (substr($url, -1) == '*') {
                     $url = substr($url, 0, -1);
                 }
+                if (substr($url, -1) != '/') {
+                    $url .= '/';
+                }
+                if (substr_count($url, '/') == 1 && substr($url, -1) == '/') {
+                    $url = substr($url, 0, -1);
+                }
                 $storefronts[$url] = 0;
             }
         }
@@ -206,6 +212,7 @@ class shopOrderModel extends waModel
         foreach ($this->query($sql)->fetchAll() as $row) {
             $storefronts[$row['value']] += $row['cnt'];
         }
+        
         return $storefronts;
     }
 
