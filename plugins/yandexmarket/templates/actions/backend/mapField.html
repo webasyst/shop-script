@@ -1,0 +1,51 @@
+{strip}
+<div class="field">
+
+    <div class="name"><label for="s-plugin-yandexmarket-map-{$field}-source">{$info.name|escape}{if !empty($info.required)} *{/if}</label></div>
+    <div class="value no-shift">
+        <select name="map[{$type_id}][{$field}][source]" id="s-plugin-yandexmarket-map-{$field}-source">
+            {$selected = false}
+            <option value="skip:" class="gray"{if (ifset($info['source'])=="skip:")||empty($info['source'])}{$selected=true} selected="selected"{/if}>пропустить</option>
+                <optgroup label="Фиксированное значение">
+                    {if !empty($info.values)}
+                        {foreach $info.values as $value_id => $value}
+                            {if is_array($value)}
+                                {foreach $value as $unit_value}
+                                    <option value="value:{$value_id|escape}:{$unit_value|escape}"{if (ifset($info['source'])=="value:`$value_id`:`$unit_value`")}{$selected = true}selected="selected"{/if}>{$unit_value|escape} {_ws($value_id)|escape}</option>
+                                {/foreach}
+                            {else}
+                                <option value="value:{$value|escape}"{if (ifset($info['source'])=="value:`$value`")}{$selected = true}selected="selected"{/if}>{$value|escape}</option>
+                            {/if}
+                        {/foreach}
+                    {/if}
+                    <option value="text:%s"{if strpos(ifset($info['source']),'text:')===0}{$selected = true}selected="selected"{/if}>Пользовательское значение</option>
+
+                </optgroup>
+            <optgroup label="Основное свойство товара">
+                {foreach $fields as $fid=>$f}
+                    <option value="field:{$fid}"{if !$selected && (ifset($info['source']) eq "field:`$fid`")}{$selected = true} selected="selected" style="font-weight:bold;text-decoration:underline;"{/if}>{$f|escape}</option>
+                {/foreach}
+            </optgroup>
+            <optgroup label="Характеристика">
+                {if !empty($features_autocomplete)}
+                    <option value="feature:%s">Выбрать характеристику...</option>
+                {/if}
+
+                    {foreach $features as $feature}
+                        <option value="feature:{$feature.code}"{if !$selected && ((ifset($info['source']) eq "feature:`$feature['code']`")||($feature.code eq $field))}{$selected = true} selected="selected"{/if}>{$feature.name|escape}</option>
+                    {/foreach}
+            </optgroup>
+        </select>
+        {if !empty($features_autocomplete)}<input type="hidden" name="map[{$type_id}][{$field}][feature]" value="">
+        <input type="search" class="js-autocomplete-feature" title="Поиск характеристики по названию или коду" placeholder="Начните набирать название или код характеристики" style="display:none;">
+        {/if}
+        <input type="text" name="map[{$type_id}][{$field}][text]" class="js-value-custom" placeholder="Пользовательское значение"{if strpos(ifset($info['source']),'text:')!==0} value="" style="display: none;"{else} value="{$info['source']|regex_replace:'@^text:@':''|escape}"{/if}>
+        <a href="{$js_base_href|default:'#'}/source/select/{$type_id}/{$field}/" class="js-action" style="display: none;"><i class="icon16 close"></i></a>
+        &nbsp;&rarr; {$field|regex_replace:'/\..*$/':''}
+        {if !empty($info.description)}
+        <br>
+        <span class="hint">{$info.description|escape|nl2br}</span>
+        {/if}
+    </div>
+</div>
+{/strip}
