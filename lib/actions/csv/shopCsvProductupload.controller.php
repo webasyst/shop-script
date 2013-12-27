@@ -143,7 +143,7 @@ class shopCsvProductuploadController extends shopUploadController
             throw new waException(_w('Error file upload'));
         }
 
-        $f = new shopCsvReader($name, waRequest::post('delimeter'), waRequest::post('encoding'));
+        $f = new shopCsvReader($name, waRequest::post('delimiter'), waRequest::post('encoding'));
 
 
         $profile_helper = new shopImportexportHelper('csv:product:import');

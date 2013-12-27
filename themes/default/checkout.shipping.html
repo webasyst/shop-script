@@ -45,7 +45,7 @@
                     {if count($m.rates) > 1}
                         <select class="shipping-rates" name="rate_id[{$m.id}]">
                             {foreach $m.rates as $rate_id => $r}
-                                <option data-rate="{shop_currency_html($r.rate, $r.currency)}" data-est_delivery="{if !empty($r.est_delivery)}{$r.est_delivery}{/if}" {if !empty($r.comment)}data-comment="{$r.comment}"{/if} value="{$rate_id}"{if $rate_id == $shipping.rate_id} selected{/if}>{$r.name} ({shop_currency($r.rate, $r.currency)})</option>
+                                <option data-rate="{shop_currency($r.rate, $r.currency)}" data-est_delivery="{if !empty($r.est_delivery)}{$r.est_delivery}{/if}" {if !empty($r.comment)}data-comment="{$r.comment}"{/if} value="{$rate_id}"{if $rate_id == $shipping.rate_id} selected{/if}>{$r.name} ({shop_currency($r.rate, $r.currency)})</option>
                             {/foreach}
                         </select>
                     {else}

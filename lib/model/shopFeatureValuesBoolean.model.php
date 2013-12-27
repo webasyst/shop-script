@@ -12,7 +12,40 @@ class shopFeatureValuesBooleanModel extends shopFeatureValuesModel
 
     protected function parseValue($value, $type)
     {
-        return array('value' => ($value === "") ? null : (empty($value) ? self::VALUE_NO : self::VALUE_YES));
+        static $map;
+        if (empty($map)) {
+            $map = array(
+                array(
+                    'values' => array('', null, mb_strtolower(_w('Not defined')), 'not defined'),
+                    'value'  => null,
+                ),
+                array(
+                    'values' => array('0', false, 0, 'false', mb_strtolower(_w('No')), 'no'),
+                    'value'  => self::VALUE_NO,
+                ),
+                array(
+                    'values' => array('1', true, 1, 'true', mb_strtolower(_w('Yes')), 'yes'),
+                    'value'  => self::VALUE_YES,
+                ),
+            );
+        }
+
+
+        if (is_string($value)) {
+            $value = trim(mb_strtolower($value));
+        }
+        $matched = false;
+        foreach ($map as $value_map) {
+            if (in_array($value, $value_map['values'], true)) {
+                $value = $value_map['value'];
+                $matched = true;
+                break;
+            }
+        }
+        if (!$matched) {
+            $value = empty($value) ? self::VALUE_NO : self::VALUE_YES;
+        }
+        return array('value' => $value);
     }
 
     protected function getValue($row)

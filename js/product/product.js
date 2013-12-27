@@ -466,7 +466,9 @@ editClick:(function ($) {
                 
                 // update other frontend url
                 frontend_url.closest('div.value').find('.s-product-frontend-url').each(function(i) {
-                    $(this).attr('href', data.frontend_urls[i].url).text(data.frontend_urls[i].url);
+                    if (data.frontend_urls[i + 1]) {
+                        $(this).attr('href', data.frontend_urls[i + 1].url).text(data.frontend_urls[i + 1].url);
+                    }
                 });
 
                 $('.s-product-frontend-url-not-empty').show();

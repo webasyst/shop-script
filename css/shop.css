@@ -242,6 +242,8 @@ ul.s-coupon-list li.s-expired a { color: #aaa; }
 
 .s-order-aux-box .error { font-size: 0.8em; font-weight: bold; color: red; }
 
+.s-storefronts-filter li { word-break: break-all; }
+
 /* CUSTOMERS
 ------------ */
 

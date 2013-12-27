@@ -1,5 +1,6 @@
 <script type="text/javascript" src="{$wa_app_static_url}js/product/stocks.js?v={$wa->version()}"></script>
 <div class="block double-padded">
+
 {if !empty($product_stocks)}
 <h1>[`Stock`]</h1>
 <ul class="menu-h">
@@ -159,7 +160,7 @@
     </ul>
 </script>
 {/literal}
-{if !empty($product_stocks)}
+
 <script type="text/javascript">
     document.title = '{"[`Stocks`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     $.product_stocks.init({
@@ -173,4 +174,3 @@
         }
     });
 </script>
-{/if}

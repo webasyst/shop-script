@@ -486,7 +486,7 @@ class shopCsvReader implements SeekableIterator, Serializable
 
     private function utf8_bad_replace($str)
     {
-        return iconv('UTF-8', 'UTF-8//IGNORE', $str);
+        return @iconv('UTF-8', 'UTF-8//IGNORE', $str);
     }
 
     public function getCsvmapControl($name, $params = array())

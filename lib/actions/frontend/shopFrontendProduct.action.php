@@ -65,6 +65,11 @@ class shopFrontendProductAction extends shopFrontendAction
             $this->view->assign('canonical', wa()->getRouteUrl('/frontend/product', $url_params, true));
             if (isset($product->skus[waRequest::get('sku')])) {
                 $product['sku_id'] = waRequest::get('sku');
+                $s = $product->skus[$product['sku_id']];
+                if ($s['image_id'] && isset($product->images[$s['image_id']])) {
+                    $product['image_id'] = $s['image_id'];
+                    $product['ext'] = $product->images[$s['image_id']]['ext'];
+                }
             }
         }
         if (!isset($product->skus[$product->sku_id])) {
