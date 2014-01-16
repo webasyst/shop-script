@@ -250,7 +250,7 @@ class shopProductAction extends waViewAction
     protected function assignReportsData($product)
     {
         $order_model = new shopOrderModel();
-        $sales_total = $order_model->getTotalSalesByProduct($product['id']);
+        $sales_total = $order_model->getTotalSalesByProduct($product['id'], $product['currency']);
         $this->view->assign('sales', $sales_total);
         
         $profit = $sales_total['total'];
@@ -268,20 +268,20 @@ class shopProductAction extends waViewAction
 
         if (count($product['skus']) > 1) {
             $sku_sales_data = array();
-            $rows = $order_model->getTotalSkuSalesByProduct($product['id']);
+            $rows = $order_model->getTotalSkuSalesByProduct($product['id'], $product['currency']);
             foreach ($rows as $sku_id => $v) {
                 $sku_sales_data[] = array($product['skus'][$sku_id]['name'], (float) $v['total']);
-                if (!(double) $product['skus'][$sku_id]['purchase_price']) {
+                if (!(double)$v['purchase']) {
                     $profit = false;
                 } elseif ($profit) {
-                    $profit -= $v['quantity'] * $product['skus'][$sku_id]['purchase_price'];
+                    $profit -= $v['purchase'];
                 }
             }
             $this->view->assign('sku_plot_data', array($sku_sales_data));
         } else {
             $sku_id = $product['sku_id'];
-            if ($profit && (double) $product['skus'][$sku_id]['purchase_price']) {
-                $profit -= $sales_total['quantity'] * $product['skus'][$sku_id]['purchase_price'];
+            if ((double)$sales_total['purchase']) {
+                $profit -= $sales_total['purchase'];
             } else {
                 $profit = false;
             }

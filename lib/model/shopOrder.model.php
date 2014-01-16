@@ -601,10 +601,23 @@ class shopOrderModel extends waModel
         $this->query($sql);
     }
 
-    public function getTotalSalesByProduct($product_id)
+    public function getTotalSalesByProduct($product_id, $product_currency = null)
     {
-        $sql = "SELECT SUM(oi.price * o.rate * oi.quantity) total, SUM(oi.quantity) quantity FROM ".$this->table." o JOIN shop_order_items oi
+        if ($product_currency) {
+            $currency_model = new shopCurrencyModel();
+            $rate = $currency_model->getRate($product_currency);
+            if (!$rate) {
+                $rate = 1;
+            }
+        } else {
+            $rate = 1;
+        }
+        $sql = "SELECT SUM(oi.price * o.rate * oi.quantity) total, SUM(oi.quantity) quantity,
+                SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*".$this->escape($rate).")*oi.quantity) purchase
+                FROM ".$this->table." o
+                JOIN shop_order_items oi
                 ON o.id = oi.order_id AND oi.product_id = i:product_id AND oi.type = 'product'
+                JOIN shop_product_skus ps ON oi.sku_id = ps.id
                 WHERE paid_date >= DATE_SUB(DATE('".date('Y-m-d')."'), INTERVAL 30 DAY)";
         return $this->query($sql, array('product_id' => $product_id))->fetch();
     }
@@ -807,10 +820,22 @@ class shopOrderModel extends waModel
         }
     }
 
-    public function getTotalSkuSalesByProduct($product_id)
+    public function getTotalSkuSalesByProduct($product_id, $product_currency = null)
     {
-        $sql = "SELECT sku_id, SUM(oi.price * o.rate * oi.quantity) total, SUM(oi.quantity) quantity FROM ".$this->table." o JOIN shop_order_items oi
-                ON o.id = oi.order_id AND oi.product_id = i:product_id AND oi.type = 'product'
+        if ($product_currency) {
+            $currency_model = new shopCurrencyModel();
+            $rate = $currency_model->getRate($product_currency);
+            if (!$rate) {
+                $rate = 1;
+            }
+        } else {
+            $rate = 1;
+        }
+        $sql = "SELECT sku_id, SUM(oi.price * o.rate * oi.quantity) total, SUM(oi.quantity) quantity,
+                SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*".$this->escape($rate).")*oi.quantity) purchase
+                FROM ".$this->table." o
+                JOIN shop_order_items oi ON o.id = oi.order_id AND oi.product_id = i:product_id AND oi.type = 'product'
+                JOIN shop_product_skus ps ON oi.sku_id = ps.id
                 WHERE paid_date >= DATE_SUB(DATE('".date('Y-m-d')."'), INTERVAL 30 DAY)
                 GROUP BY oi.sku_id";
         return $this->query($sql, array('product_id' => $product_id))->fetchAll('sku_id');

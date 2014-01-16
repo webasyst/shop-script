@@ -15,7 +15,7 @@
     <!-- filtering by product features -->    
     {if !empty($filters)}
     <div class="filters{if !empty($theme_settings.ajax_filters)} ajax{/if}">
-        <form method="get" action="{$wa->currentUrl()}">
+        <form method="get" action="{$wa->currentUrl(0,1)}">
         {foreach $filters as $fid => $filter}
             <p>
             {if $fid == 'price'}

@@ -265,6 +265,7 @@ editClick:(function ($) {
             this.path.mode = null;
             this.path.tab = null;
             this.path.tail = null;
+            this.editorActive = false;
             $('*').off('.product');
             $('#mainmenu').find('.s-level2').show();
             $('#s-product-edit-menu, #s-product-edit-save-panel').hide();
@@ -443,7 +444,7 @@ editClick:(function ($) {
             h1.find('.s-product-name:first').text(data.name);
             h1.find('.s-product-id').show().text('id: ' + data.id);
             document.title = data.name + $.product.options.title_suffix;
-            
+
             $('#product-stock-stat').html(tmpl('template-product-stock-stat', data.raw));
 
             var $container = tab_content.find(':input[name="product\\[type_id\\]"]').parents('.value');
@@ -453,19 +454,19 @@ editClick:(function ($) {
                 // update frontend url widget in product edit page
                 var frontend_url = $('#s-product-frontend-url');
                 frontend_url.text(data.url);
-                
+
                 var frontend_url_input = $('#s-product-frontend-url-input');
                 frontend_url_input.val(data.url);
-                
+
                 frontend_url.trigger('readable');
-                
+
                 var frontend_url_link = frontend_url.parent();
                 frontend_url_link.attr('href', data.frontend_urls[0].url);
-                
+
                 frontend_url_link.contents(':eq(0)').replaceWith(data.frontend_urls[0].base);
-                
+
                 // update other frontend url
-                frontend_url.closest('div.value').find('.s-product-frontend-url').each(function(i) {
+                frontend_url.closest('div.value').find('.s-product-frontend-url').each(function (i) {
                     if (data.frontend_urls[i + 1]) {
                         $(this).attr('href', data.frontend_urls[i + 1].url).text(data.frontend_urls[i + 1].url);
                     }
@@ -475,10 +476,10 @@ editClick:(function ($) {
                 $('.s-product-frontend-url-empty').hide();
 
                 // update fronted url in product profile page
-                $('#s-product-frontend-links').find('a').each(function(i) {
+                $('#s-product-frontend-links').find('a').each(function (i) {
                     $(this).attr('href', data.frontend_urls[i].url).text(data.frontend_urls[i].url);
                 });
-                
+
 
             } else {
                 $('.s-product-frontend-url-not-empty').hide();
@@ -529,18 +530,18 @@ editClick:(function ($) {
                         parent.find('.s-product-delete-from-category').show();
                     }
                 }
-                
+
                 // storefront links
                 var category_id = parseInt(val, 10);
                 if (!$.isEmptyObject(data.storefront_map[category_id])) {
                     var html = '';
                     var storefront_links = data.storefront_map[category_id];
                     for (var i = 0; i < storefront_links.length; i += 1) {
-                        html += '<a class="hint" href="'+storefront_links[i]+'" target="_blank">'+storefront_links[i]+'</a> ';
+                        html += '<a class="hint" href="' + storefront_links[i] + '" target="_blank">' + storefront_links[i] + '</a> ';
                     }
                     parent.find('.s-storefront-map').html(html);
                 }
-                
+
             });
 
             $('#s-product-save table.s-product-skus > tbody > tr').each(function () {
@@ -894,9 +895,9 @@ editClick:(function ($) {
                 } else {
                     $.product.disableSkus(true, false);
                 }
-                
+
                 $(this.options.form_selector).find('.s-product-skus').closest('.field').find('.name').hide();
-                
+
                 // flat sku case
             } else {
                 feature_superposition.hide();
@@ -914,9 +915,9 @@ editClick:(function ($) {
                         product_skus.find('tr:not(.s-sku-virtual):first').find('input[name="product[sku_id]"]').attr('checked', true);
                     }
                 }
-                
+
                 $(this.options.form_selector).find('.s-product-skus').closest('.field').find('.name').show();
-                
+
             }
         },
 
@@ -1261,7 +1262,7 @@ editClick:(function ($) {
                 var val = self.val();
                 var parent = self.parent();
                 var del_button = parent.find('.s-product-delete-from-category');
-                
+
                 var category_id = parseInt(val, 10) || 0;
                 if (!category_id) {
                     del_button.hide();
@@ -1276,7 +1277,7 @@ editClick:(function ($) {
                     self.hide().attr('disabled', true).addClass('js-ignore-change');
                 } else {
                     parent.find('input.val').val(category_id);
-                }                
+                }
             });
 
             // Enter-press handler when foucus on input
@@ -2127,61 +2128,79 @@ editClick:(function ($) {
         },
 
         editorUpdateSource: function (options) {
-            waEditorUpdateSource(options);
-            if (wa_editor) {
-                this.description = wa_editor.getValue();
+            if (this.editorActive) {
+                waEditorUpdateSource(options);
+                if (wa_editor) {
+                    this.description = wa_editor.getValue();
+                }
             }
         },
+        editorActive: false,
 
         editTabDescriptionsBlur: function () {
             this.editorUpdateSource({
                 id: 's-product-description-content'
             });
+            this.editorActive = false;
         },
 
+
         editTabDescriptionsAction: function () {
-            try {
+            this.editTabDescriptionsInitDelayed();
+        },
+        editTabDescriptionsInitDelayed: function () {
+            if (!this.editorActive) {
                 var container = $('#s-product-description');
-                waEditorInit({
-                    id: 's-product-description-content',
-                    prefix: 's-product-description-',
-                    upload_url: "",
-                    lang: wa_lang,
-                    html_tab: 's-product-html',
-                    wysiwyg_tab: 's-product-wysiwyg',
-                    ace_editor_container: 's-product-ace-editor-container',
-                    save_button: 's-product-save-button',
-                    change_callback: function () {
-                        if ($.product.path.tab == 'descriptions') {
-                            $.product.helper.options.defaultChangedStatus = true;
-                            $.product.helper.onTabChanged($.product.path.tab, true);
+                if ($('#s-product-description-content').is(':visible')) {
+                    try {
+                        waEditorInit({
+                            id: 's-product-description-content',
+                            prefix: 's-product-description-',
+                            upload_url: "",
+                            lang: wa_lang,
+                            html_tab: 's-product-html',
+                            wysiwyg_tab: 's-product-wysiwyg',
+                            ace_editor_container: 's-product-ace-editor-container',
+                            save_button: 's-product-save-button',
+                            change_callback: function () {
+                                if ($.product.path.tab == 'descriptions') {
+                                    $.product.helper.options.defaultChangedStatus = true;
+                                    $.product.helper.onTabChanged($.product.path.tab, true);
+                                }
+                            }
+                        });
+
+                        var iframe = container.find('iframe');
+                        var workzone = iframe.parents('.workzone');
+                        var workzone_height = workzone.height();
+                        var height = iframe.contents().find('body').prop('scrollHeight');
+
+                        var maxHeight = $(window).height() - $('#mainmenu').height() - 160;
+                        if (height > maxHeight) {
+                            height = maxHeight;
                         }
+                        if (height > workzone_height) {
+                            workzone.height(height);
+                            iframe.height(height);
+                        }
+                        $('.ace_text-input').get(0).defaultValue = "\x01\x01";
+                        this.editorActive = true;
+                    } catch (e) {
+                        $.shop.error(e.message, e);
                     }
-                });
-
-                var iframe = container.find('iframe');
-                var workzone = iframe.parents('.workzone');
-                var workzone_height = workzone.height();
-                var height = iframe.contents().find('body').prop('scrollHeight');
-
-                var maxHeight = $(window).height() - $('#mainmenu').height() - 160;
-                if (height > maxHeight) {
-                    height = maxHeight;
+                } else {
+                    var self = this;
+                    $('#s-product-description-content').show();
+                    setTimeout(function () {
+                        self.editTabDescriptionsInitDelayed()
+                    }, 50);
                 }
-                if (height > workzone_height) {
-                    workzone.height(height);
-                    iframe.height(height);
-                }
-                $('.ace_text-input').get(0).defaultValue = "\x01\x01";
-
-            } catch (e) {
-                console.error(e.message);
-                console.dir(e.trace);
             }
+
         },
 
         profileInit: function () {
-            
+
             if ($.product_list !== undefined && $.product_list.fixed_blocks !== undefined) {
                 if ($.product_list.fixed_blocks.set) {
                     $.product_list.fixed_blocks.set.unsetFixed();
@@ -2190,7 +2209,7 @@ editClick:(function ($) {
                     $.product_list.fixed_blocks.category.unsetFixed();
                 }
             }
-            
+
             if (this.options.edit_rights) {
 
                 var $product_name = $('#shop-productprofile').find('.s-product-name');

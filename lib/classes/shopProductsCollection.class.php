@@ -160,6 +160,14 @@ class shopProductsCollection
         $this->order_by = 'orders_count DESC';
     }
 
+    protected function toFloat($value)
+    {
+        if (strpos($value, ',') !== false) {
+            $value = str_replace(',', '.', $value);
+        }
+        return str_replace(',', '.', (double) $value);
+    }
+
     public function filters($data)
     {
         if ($this->filtered) {
@@ -172,12 +180,15 @@ class shopProductsCollection
             }
         }
 
+        $config = wa('shop')->getConfig();
+
+
         if (isset($data['price_min']) && $data['price_min'] !== '') {
-            $this->where[] = 'p.price >= '.(int) $data['price_min'];
+            $this->where[] = 'p.price >= '.$this->toFloat(shop_currency($data['price_min'], true, $config->getCurrency(true), false));
             unset($data['price_min']);
         }
         if (isset($data['price_max']) && $data['price_max'] !== '') {
-            $this->where[] = 'p.price <= '.(int) $data['price_max'];
+            $this->where[] = 'p.price <= '.$this->toFloat(shop_currency($data['price_max'], true, $config->getCurrency(true), false));
             unset($data['price_max']);
         }
         $feature_model = new shopFeatureModel();
