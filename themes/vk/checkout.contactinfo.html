@@ -114,6 +114,7 @@
                         } else {
                             $("#create-user-div").hide().find('input').attr('disabled', 'disabled').val('');
                         }
+                        VK.callMethod("resizeWindow", $("body").outerWidth(), $("body").outerHeight());
                     }).change();
 
                 });

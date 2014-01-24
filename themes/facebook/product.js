@@ -308,7 +308,9 @@ $(function () {
                         $("#dialog").hide().find('.cart').empty();
                     });
                 }
-                                
+                if (response.data.error) {
+                    alert(response.data.error);
+                }
             } else if (response.status == 'fail') {
                 alert(response.errors);
             }

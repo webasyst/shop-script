@@ -170,10 +170,12 @@ class shopIndexSearch extends shopSearch
         foreach ($words as $i => $w) {
             if ($this->options['ignore']) {
                 $clear_w = str_replace($this->options['ignore'], '', $w);
+            } else {
+                $clear_w = $w;
             }
             if ($clear_w) {
                 $words[$i] = mb_strtolower($clear_w);
-                if ($word_forms = $this->getWordForms(mb_strtolower($w))) {
+                if ($word_forms = $this->getWordForms(mb_strtolower($w), $only_exist)) {
                     $additional_words = array_merge($additional_words, $word_forms);
                 }
             } else {
@@ -200,7 +202,7 @@ class shopIndexSearch extends shopSearch
         return array_unique($result);
     }
 
-    protected function getWordForms($word)
+    protected function getWordForms($word, $search = false)
     {
         $result = array();
         if (strpbrk($word, '/.!?|<>[]«»()-') !== false) {
@@ -217,6 +219,11 @@ class shopIndexSearch extends shopSearch
                 }
             }
         }
+
+        if ($search && preg_match("/[0-9]/", mb_substr($word, 0, 1))) {
+            return $result;
+        }
+
         if (preg_match_all('/[0-9]+/is', $word, $matches)) {
             foreach ($matches[0] as $w) {
                 $result[] = $w;

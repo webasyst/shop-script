@@ -37,7 +37,8 @@ if ($notifications_model->countAll() == 0) {
         $data = array(
             'name'      => $events[$event]['name'].' ('._w('Customer').')',
             'event'     => $event,
-            'transport' => 'email'
+            'transport' => 'email',
+            'status'    => 1,
         );
         $id = $notifications_model->insert($data);
         $params = $n;

@@ -151,6 +151,38 @@ class shopBackendWelcomeAction extends waViewAction
             'rule'  => 'rating DESC',
         ));
 
+
+// notifications
+        $notifications_model = new shopNotificationModel();
+        if ($notifications_model->countAll() == 0) {
+            $notifications_action = new shopSettingsNotificationsAddAction();
+            $notifications = $notifications_action->getTemplates();
+            $params_model = new shopNotificationParamsModel();
+            $events = $notifications_action->getEvents();
+            foreach ($notifications as $event => $n) {
+                if ($event == 'order') {
+                    continue;
+                }
+                $data = array(
+                    'name'      => $events[$event]['name'].' ('._w('Customer').')',
+                    'event'     => $event,
+                    'transport' => 'email',
+                    'status'    => 1,
+                );
+                $id = $notifications_model->insert($data);
+                $params = $n;
+                $params['to'] = 'customer';
+                $params_model->save($id, $params);
+
+                if ($event == 'order.create') {
+                    $data['name'] = $events[$event]['name'].' ('._w('Store admin').')';
+                    $id = $notifications_model->insert($data);
+                    $params['to'] = 'admin';
+                    $params_model->save($id, $params);
+                }
+            }
+        }
+
         /* !!! import commented out on welcome screen
          switch (waRequest::post('import')) {
          case 'demo':

@@ -8,6 +8,9 @@ class shopSettingsPaymentSaveController extends waJsonController
         }
         if ($plugin = waRequest::post('payment')) {
             try {
+                if (!isset($plugin['settings'])) {
+                    $plugin['settings'] = array();
+                }
                 shopPayment::savePlugin($plugin);
                 $this->response['message'] = _w('Saved');
             } catch (waException $ex) {

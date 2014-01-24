@@ -26,7 +26,7 @@ class shopFeatureValuesColorModel extends shopFeatureValuesModel
 
     protected function getSearchCondition()
     {
-        return "`value` = 'l:search_value'";
+        return "`value` LIKE 'l:search_value'";
     }
 
     protected function parseValue($value, $type)
@@ -39,11 +39,11 @@ class shopFeatureValuesColorModel extends shopFeatureValuesModel
             //rgb(r,g,b) #ABC #AABBCC;
             if ($code === '') {
                 $code = shopColorValue::getCode($value);
-            } elseif (preg_match('@^#?([0-9A-F]{3}|[0-9A-F]{6})@', $code)) {
+            } elseif (preg_match('@^#?([0-9A-F]{3}|[0-9A-F]{6})@ui', $code)) {
                 if ((strpos($code, '#') === 0)) {
                     $code = substr($code, 1);
                 }
-                if ($parsed = sscanf($code, '%03X%03X')) {
+                if ($parsed = sscanf(strtoupper($code), '%03X%03X')) {
                     if ($parsed[1] === null) {
                         $code = (0xF00 & $parsed[0]) << 12;
                         $code |= (0xFF0 & $parsed[0]) << 8;
@@ -66,7 +66,7 @@ class shopFeatureValuesColorModel extends shopFeatureValuesModel
 
         } else {
             $value = trim($value);
-            if (preg_match('@^#?(([0-9A-F]{3})|([0-9A-F]{6}))$@i', $value, $matches)) {
+            if (preg_match('@^#?(([0-9A-F]{3})|([0-9A-F]{6}))$@ui', $value, $matches)) {
                 if ($matches[2]) {
                     $value = sscanf(strtoupper($matches[2]), '%03X');
                     $code = reset($value);

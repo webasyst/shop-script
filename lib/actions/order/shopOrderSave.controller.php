@@ -360,11 +360,14 @@ class shopOrderSaveController extends waJsonController
             }
         }
 
+
         // summarize stock counts with old usage as if temporary return items to stocks
         foreach ($old_usage as $sku_id => $ou) {
             if (!is_array($counts[$sku_id])) {
                 $cnt = array_sum((array)$ou);
-                $counts[$sku_id] += $cnt;
+                if ($counts[$sku_id] !== null) {
+                    $counts[$sku_id] += $cnt;
+                }
             } else {
                 if (is_array($ou)) {
                     foreach ($ou as $stock_id => $cnt) {

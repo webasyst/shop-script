@@ -157,7 +157,6 @@ SQL;
 
         try { //store
             $data = $this->parseValue($value, $type);
-            $row['value'] = (string)$this->getValue($data);
             if (isset($data['code'])) {
                 $row['code'] = $data['code'];
             }
@@ -172,6 +171,7 @@ SQL;
                 $row['id'] = $this->insert($data);
                 $row['insert_id'] = $id;
             }
+            $row['value'] = (string)$this->getValue($data);
         } catch (waDbException $ex) {
             $row['error'] = $ex->getMessage();
             switch ($ex->getCode()) {

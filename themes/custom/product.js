@@ -282,6 +282,9 @@ $(function () {
                 if (cart_div.closest('.dialog').length) {
                     cart_div.closest('.dialog').hide().find('.cart').empty();
                 }
+                if (response.data.error) {
+                    alert(response.data.error);
+                }
             } else if (response.status == 'fail') {
                 alert(response.errors);
             }

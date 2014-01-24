@@ -497,11 +497,10 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
 
         $model = new shopProductModel();
 
-        if ($default_sku_id === null) {
-            $model->updateById($product->id, array('sku_id' => current(array_keys($result))));
-        } else {
-            $model->updateById($product->id, array('sku_id' => $default_sku_id));
+        if (($default_sku_id === null) && ($result)) {
+            $default_sku_id = current(array_keys($result));
         }
+        $model->updateById($product->id, array('sku_id' => $default_sku_id));
         $model->correct($product->id);
 
         $product_data = $model->getById($product->id);
@@ -511,6 +510,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         $product->compare_price = $product_data['compare_price'];
         $product->count = $product_data['count'];
         $product->sku_count = count($data);
+        $product->sku_id = $default_sku_id;
 
         return $result;
     }

@@ -32,6 +32,9 @@ class shopFrontendCheckoutAction extends waViewAction
             }
             $order_model = new shopOrderModel();
             $order = $order_model->getById($order_id);
+            if ($order) {
+                $order['_id'] = $order['id'];
+            }
             if (!$payment_success) {
                 $order_params_model = new shopOrderParamsModel();
                 $order['params'] = $order_params_model->get($order_id);

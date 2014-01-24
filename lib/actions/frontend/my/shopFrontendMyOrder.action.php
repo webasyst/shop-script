@@ -58,13 +58,13 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         $settings = wa('shop')->getConfig()->getCheckoutSettings();
         $form_fields = ifset($settings['contactinfo']['fields'], array());
         $formatter = new waContactAddressSeveralLinesFormatter();
-        if (isset($form_fields['address.shipping'])) {
-            $shipping_address = shopHelper::getOrderAddress($order['params'], 'shipping');
+
+        $shipping_address = shopHelper::getOrderAddress($order['params'], 'shipping');
+        if ($shipping_address) {
             $shipping_address = $formatter->format(array('data' => $shipping_address));
             $shipping_address = $shipping_address['value'];
-        } else {
-            $shipping_address = null;
         }
+
         if (isset($form_fields['address.billing'])) {
             $billing_address = shopHelper::getOrderAddress($order['params'], 'billing');
             $billing_address = $formatter->format(array('data' => $billing_address));
