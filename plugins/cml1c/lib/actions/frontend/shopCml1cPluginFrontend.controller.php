@@ -180,7 +180,7 @@ class shopCml1cPluginFrontendController extends waController
         if (isset($GLOBALS['HTTP_RAW_POST_DATA'])) {
             $data = !empty($GLOBALS['HTTP_RAW_POST_DATA']) ? $GLOBALS['HTTP_RAW_POST_DATA'] : null;
         } else {
-            $data = implode("\r\n", file('php://input'));
+            $data = implode("", file('php://input'));
         }
 
         if ($data !== false) {
