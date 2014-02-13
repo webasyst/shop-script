@@ -101,26 +101,14 @@ class shopCsvReader implements SeekableIterator, Serializable
                     }
                     break;
                 default:
+                    if (strtolower($this->encoding) != 'utf-8') {
+                        $this->file = waFiles::convert($this->file, $this->encoding);
+                        $this->encoding = 'utf-8';
+                    }
+                    
                     $this->fp = fopen($this->file, "rb");
                     $this->fsize = filesize($this->file);
 
-                    if (strtolower($this->encoding) != 'utf-8') {
-                        if (!@stream_filter_prepend($this->fp, 'convert.iconv.'.$this->encoding.'/UTF-8//IGNORE')) {
-                            throw new waException("error while register file filter");
-                        }
-                        $file = preg_replace('/\.csv$/', '.utf-8.csv', $file);
-                        if ($this->fp && ($dst = fopen($file, 'wb'))) {
-                            stream_copy_to_stream($this->fp, $dst);
-                            fclose($this->fp);
-                            fclose($dst);
-                            $this->encoding = 'utf-8';
-                            $this->file = $file;
-                            $this->open();
-                        } else {
-                            throw new waException("Error while convert file encoding");
-                        }
-
-                    }
                     break;
             }
         }
