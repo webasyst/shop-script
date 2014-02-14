@@ -113,7 +113,7 @@
                     <li>[`Order by`]:
                         {strip}
                         {$with_icon = true}
-                        <a href="#" class="inline-link"><b><i>
+                        <a href="javascript:void(0);" class="inline-link"><b><i>
                             {if $sort == 'name'}
                                 [`name`]
                             {else if $sort == 'price'}
@@ -178,10 +178,10 @@
             </li>
 
             <!-- view mode -->
-            <li{if $wa->get("view") != 'table'} class="selected"{/if}>
+            <li{if $view != 'table'} class="selected"{/if}>
                 <a href="#/products/view=thumbs{if $collection_param}&{$collection_param}{/if}&sort={$sort}"><i class="icon16 view-thumbs"></i></a>
             </li>
-            <li{if $wa->get("view") == 'table'} class="selected"{/if}>
+            <li{if $view == 'table'} class="selected"{/if}>
                 <a href="#/products/view=table{if $collection_param}&{$collection_param}{/if}&sort={$sort}"><i class="icon16 view-table"></i></a>
             </li>
 

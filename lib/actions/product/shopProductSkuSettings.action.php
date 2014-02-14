@@ -33,7 +33,7 @@ class shopProductSkuSettingsAction extends waViewAction
 
         $features = array();
         foreach ($features_model->getByType($product->type_id, 'code', true) as $f) {
-            if ($f['multiple']) {
+            if ($f['multiple'] || $f['code'] == 'weight') {
                 $features[$f['code']] = $f;
             }
         }

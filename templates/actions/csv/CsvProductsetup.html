@@ -27,10 +27,10 @@
                 {foreach $info as $f}
                 <div class="value" style="min-width: 300px;">
                     <p>
-                        <a href="?module=csv&action=productdownload&profile={$profile.id|default:''}&file={$f.name|escape}" class="bold nowrap inline"><i class="icon16 download" style="margin-top: 0.3em;"></i>[`Download`]</a> <span class="small inline">{$f.name|escape}</span>
-                        <br>
+                        <a href="?module=csv&action=productdownload&profile={$profile.id|default:''}&file={$f.name|escape}" class="bold nowrap inline"><i class="icon16 download" style="margin-top: 0.3em;"></i>[`Download`]</a>
                         <span class="hint inline">{$f.size|wa_format_file_size}</span>
-                        <span class="hint inline">[`Updated`]: {$f.mtime|wa_datetime:"humandatetime"}</span>
+                        <br>
+                        <span class="hint inline" style="color: #aaa;">[`Updated`]: {$f.mtime|wa_datetime:"humandatetime"}</span> 
                     </p>
                 </div>
                 {/foreach}

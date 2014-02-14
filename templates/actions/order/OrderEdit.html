@@ -166,11 +166,16 @@
                     </ul>
                 {else}
                     {$product_sku = $product.skus[$product.item.sku_id]}
-                    {if $product_sku && $product_sku.sku}
+                    {if $product_sku && empty($product_sku.fake) && $product_sku.sku}
                         <span class="hint">{$product_sku.sku}</span>
                     {/if}
                     {if !empty($product.fake)}
                         <p><input type="text" name="name[edit][{$product.item.id}]" value="{$product.item.name}" class="small"></p>
+                    {else if !empty($product_sku.fake)}
+                        <p class="small red">
+                            <i class="icon10 exclamation"></i> <span>{sprintf(_w('SKU %s no longer exists for this product'), $product_sku['name'])}</span>
+                        </p>
+                        <input type="hidden" name="name[edit][{$product.item.id}]" value="{$product.item.name}" class="small">
                     {/if}
                     <input type="hidden" name="sku[edit][{$product.item.id}]"   value="{$product.item.sku_id}">
                 {/if}
@@ -372,7 +377,8 @@
         currency: '{$currency}',
         stocks: {json_encode(array_values($stocks))},
         ignore_stock_count: {if $ignore_stock_count}true{else}false{/if},
-        title: title
+        title: title,
+        float_delimeter: {if strpos((string)3.14, ",") !== false}","{else}"."{/if}
     });
 
     {if $order && !$has_contacts_rights}

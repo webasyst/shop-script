@@ -62,7 +62,6 @@ class shopFrontendProductAction extends shopFrontendAction
             if ($product['category_url']) {
                 $url_params['category_url'] = $product['category_url'];
             }
-            $this->view->assign('canonical', wa()->getRouteUrl('/frontend/product', $url_params, true));
             if (isset($product->skus[waRequest::get('sku')])) {
                 $product['sku_id'] = waRequest::get('sku');
                 $s = $product->skus[$product['sku_id']];
@@ -202,7 +201,7 @@ class shopFrontendProductAction extends shopFrontendAction
         }
         $this->prepareProduct($product);
 
-
+        $this->addCanonical();
 
         // get services
         $type_services_model = new shopTypeServicesModel();
@@ -332,10 +331,11 @@ class shopFrontendProductAction extends shopFrontendAction
             $this->view->assign('reviews', $this->getTopReviews($product['id']));
             $this->view->assign('reviews_total_count', $this->getReviewsTotalCount($product['id']));
 
-            $title = $product['meta_title'] ? $product['meta_title'] : $product['name'];
+            $meta_fields = $this->getMetafields($product);
+            $title = $meta_fields['meta_title'] ? $meta_fields['meta_title'] : $product['name'];
             wa()->getResponse()->setTitle($title);
-            wa()->getResponse()->setMeta('keywords', $product['meta_keywords']);
-            wa()->getResponse()->setMeta('description', $product['meta_description']);
+            wa()->getResponse()->setMeta('keywords', $meta_fields['meta_keywords']);
+            wa()->getResponse()->setMeta('description', $meta_fields['meta_description']);
 
             $feature_codes = array_keys($product->features);
             $feature_model = new shopFeatureModel();
@@ -403,5 +403,30 @@ class shopFrontendProductAction extends shopFrontendAction
                 'datetime DESC',
                 array('escape' => true)
         );
+    }
+    
+    protected function getMetafields($product)
+    {
+        $search = array('{$name}', '{$price}', '{$summary}');
+        $replace = array();
+        foreach ($search as $i => $s) {
+            $r = substr($s, 2, -1);
+            if (isset($product[$r])) {
+                if ($r == 'price') {
+                    $replace[] = shop_currency_html($product[$r], null, null, true);
+                } else {
+                    $replace[] = $product[$r];
+                }
+            } else {
+                unset($search[$i]);
+            }
+        }
+        $res = array();
+        foreach (array('meta_title', 'meta_keywords', 'meta_description') as $f) {
+            if (isset($product[$f])) {
+                $res[$f] = str_replace($search, $replace, $product[$f]);
+            }
+        }
+        return $res;
     }
 }

@@ -112,9 +112,14 @@ class shopOrderEditAction extends waViewAction
         }
 
         foreach ($order['items'] as &$item) {
+            if (isset($values['skus'][$item['item']['sku_id']])) {
+                $w = $values['skus'][$item['item']['sku_id']];
+            } else {
+                $w = isset($values[$item['id']]) ? $values[$item['id']] : 0;
+            }
             $this->workupItems($item, $sku_stocks);
             $item['quantity'] = $item['item']['quantity'];
-            $item['weight'] = isset($values[$item['id']]) ? $values[$item['id']] : 0;
+            $item['weight'] = $w;
         }
         unset($item);
 

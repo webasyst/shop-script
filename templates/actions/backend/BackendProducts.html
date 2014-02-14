@@ -85,11 +85,11 @@
         </span>
         <h5 class="heading">
             <i class="icon16 loading" style="float:right; display:none;"></i>
-            <i class="icon16 {if $categories->isExpaned()}darr{else}rarr{/if} collapse-handler-ajax" id="s-category-list-handler"></i><a href="javascript:void(0);">[`Categories`]</a>
+            <i class="icon16 {if $categories->isExpanded()}darr{else}rarr{/if} collapse-handler-ajax" id="s-category-list-handler"></i><a href="javascript:void(0);">[`Categories`]</a>
         </h5>
         
         <div class="hierarchical s-collection-list" id="s-category-list" 
-            {if !$categories->isExpaned()}style="display:none;"{/if}
+            {if !$categories->isExpanded()}style="display:none;"{/if}
         >
             {include './include.categories.html' categories=$categories->getList() inline}
             <div class="block s-empty-list" {if $categories->count()}style="display:none;"{/if}>

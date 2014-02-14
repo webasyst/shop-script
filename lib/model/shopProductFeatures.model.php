@@ -97,6 +97,9 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         $data = $this->query($sql, $params);
         $result = array();
         foreach ($data as $row) {
+            if ($sku_id && $row['code'] == 'weight' && !$row['sku_id']) {
+                continue;
+            }
             $features[$row['feature_id']] = array(
                 'code'     => $row['code'],
                 'multiple' => $row['multiple'],

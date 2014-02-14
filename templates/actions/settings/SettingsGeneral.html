@@ -66,6 +66,7 @@
                                 <option value="wavatar" {if $gravatar_default == 'wavatar'}selected="selected"{/if}>[`generated faces with differing features and backgrounds`]</option>
                                 <option value="retro" {if $gravatar_default == 'retro'}selected="selected"{/if}>[`awesome generated, 8-bit arcade-style pixelated faces`]</option>
                             </select>
+                            <img id='s-settings-general-gravatar' {if $saved}src="{shopHelper::getGravatar($wa->user('email', 'default'), 50, $gravatar_default)}"{/if} style='width: 50px; {if !$saved}display:none;{else}display:block;{/if} margin-top: 10px;'>
                         </label>
                     </div>
                 </div>
@@ -100,18 +101,19 @@
                         <div class="value no-shift">
                             <input name="sms[{$i}][adapter]" type="hidden" value="{$a.id}">
                             <strong><i class="icon16" style="background-image: url('{$a.icon}');"></i>{$a.name}</strong><br>
-                            <div class="field" {if count($sms_adapters) == 1}style="display:none;"{/if}>
-                                <div class="name">[`Sender IDs`]</div>
+                            <div class="field">
+                                <div class="name">{if isset($a.controls.from.title)}{$a.controls.from.title}{else}[`Sender IDs`]{/if}</div>
                                 <div class="value">
                                     {strip}
                                     <textarea name="sms[{$i}][from]">
                                         {if !empty($a.config.from)}{implode("\n", $a.config.from)}{/if}
                                     </textarea>
                                     {/strip}
-                                    <p class="hint">[`Enter Sender IDs to use with this SMS gateway (Sender ID is either your phone number or up-to-11-characters text label). Enter * to use default Sender ID issued for your account by the gateway.`]</p>
+                                    <p class="hint">{if isset($a.controls.from.description)}{$a.controls.from.description}{else}[`Enter Sender IDs to use with this SMS gateway (Sender ID is either your phone number or up-to-11-characters text label). Enter * to use default Sender ID issued for your account by the gateway.`]{/if}</p>
                                 </div>
                             </div>
                             {foreach $a.controls as $k => $v}
+                            {if $k != 'from'}
                             <div class="field">
                                 <div class="name">{$v.title}</div>
                                 <div class="value">
@@ -121,11 +123,14 @@
                                     {/if}
                                 </div>
                             </div>
+                            {/if}
                             {/foreach}
                         </div>
                         <div class="value no-shift small">
                             <br>
                             {sprintf('[`Once gateway is setup, add new and edit existing SMS notifications using the <a href="%s">Notifications</a> settings screen.`]', '#/notifications/')}
+                            <br>
+                            {sprintf('[`For details <a href="%s" target="_blank">see documentation</a>.`]', '[`http://www.webasyst.com/help/1061/shop-script-5-sms-setup/`]')}
                         </div>
                         {/foreach}
                     {else}
@@ -165,4 +170,17 @@
             })
         );
     {/if}
+    
+    
+    form.find('[name="gravatar_default"]').change(function () {
+        $.get('?module=settings&action=generalGetGravatar', { 
+            'email': '{$wa->user('email', 'default')}',
+            'default': form.find('[name="gravatar_default"]').val() 
+            }, 
+            function(r) {
+                $('#s-settings-general-gravatar').css('display', 'block').attr('src', r.data);
+            }, 'json'
+        );
+    });
+    
 </script>

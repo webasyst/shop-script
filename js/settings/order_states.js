@@ -191,7 +191,7 @@ $.extend($.settings = $.settings || {}, {
             update: function(event, ui) {
                 var li = ui.item;
                 var id = li.attr('id').replace('state-', '');
-                var next, before_id = null;
+                var next, before_id = '';
                 if (id) {
                     next = li.nextAll('li.dr:first');
                     if (next.length) {

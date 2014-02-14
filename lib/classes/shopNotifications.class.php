@@ -39,9 +39,12 @@ class shopNotifications
 
         $source = 'backend';
         if (isset($data['order']['params']['storefront'])) {
-            $source = $data['order']['params']['storefront'].'*';
+            if (substr($data['order']['params']['storefront'], -1) === '/') {
+                $source = $data['order']['params']['storefront'].'*';
+            } else {
+                $source = $data['order']['params']['storefront'].'/*';
+            }
         }
-        
         foreach ($notifications as $n) {
             if (!$n['source'] || ($n['source'] == $source)) {
                 $method = 'send'.ucfirst($n['transport']);
@@ -137,6 +140,11 @@ class shopNotifications
 
         $message = new waMailMessage($subject, $body);
         $message->setTo($to);
+        if ($n['to'] == 'admin') {
+            if ($customer_email = $customer->get('email', 'default')) {
+                $message->addReplyTo($customer_email);
+            }
+        }
         if ($from) {
             $message->setFrom($from, $general['name']);
         }
@@ -190,8 +198,7 @@ class shopNotifications
         $text = $view->fetch('string:'.$n['text']);
         
         $sms = new waSMS();
-        $sms->setFrom(isset($n['from']) ? $n['from'] : null);
-        if ($sms->send($to, $text)) {
+        if ($sms->send($to, $text, isset($n['from']) ? $n['from'] : null)) {
             $order_log_model = new shopOrderLogModel();
             $order_log_model->add(array(
                 'order_id' => $order_id,

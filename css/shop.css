@@ -518,6 +518,7 @@ table#s-product-stocks.zebra td.drag-active.first{ border-left: 1px dashed #ccc;
 #s-settings-stocks-form .submit { margin-top: 20px; }
 
 table.zebra.s-stocks-log a { display: inline; color: #03c !important; }
+table.zebra.s-stocks-log i.icon16 { opacity: 0.4; }
 
 .s-stock-cell { cursor: pointer; }
 
@@ -545,6 +546,10 @@ ul.menu-h.s-reports-timeframe li.s-custom-timeframe input { width: 100px; }
 .s-profit { color: #a00; }
 
 .s-bar { width: 100px; height: 10px; display: inline-block; background: #9cf; }
+
+.s-checkoutflow td { padding: 5px 10px 15px 0; }
+.s-checkoutflow td .s-bar { width: 400px; height: 25px; margin-right: 3px; margin-left: 15px; }
+.s-checkoutflow td .s-bar-hint { display: inline-block; top: -7px; position: relative; margin-right: 15px; }
 
 /* STOREFRONTS
 -------------- */
@@ -713,7 +718,7 @@ ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
 .js-action .icon16.color { margin-top: 0.25em !important; }
 
 /* settings */
-.icon16.ss { background-image: url(../img/ss-icon16.png); }
+.icon16.ss { background-image: url('../img/ss-icon16.png?1402'); }
 .icon16.ss.star-bw { background-position:-16px 0; }
 .icon16.ss.shipping-bw { background-position:-32px 0; }
 .icon16.ss.camera-bw { background-position:-48px 0; }
@@ -734,6 +739,10 @@ ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
 .icon16.ss.discounts-bw { background-position:-288px 0; }
 .icon16.ss.affiliate-bw { background-position:-304px 0; }
 .icon16.ss.stopwatch-bw { background-position:-320px 0; }
+.icon16.ss.transfer-bw { background-position:-336px 0; }
+.icon16.ss.pencil-bw { background-position:-352px 0; }
+.icon16.ss.file-bw { background-position:-368px 0; }
+.icon16.ss.bug-bw { background-position:-384px 0; }
 
 /* order statuses */
 .icon16.ss.new { background-position:0 -32px; }

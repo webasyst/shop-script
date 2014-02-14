@@ -93,7 +93,7 @@
             <tbody>
                 <tr>
                     <td class="min-width">
-                        <input id="s-c-condition-price-interval" type="checkbox" name="condition[]" value="price">
+                        <input id="s-c-condition-price-interval" type="checkbox" name="condition[price]" value="price">
                     </td>
                     <td>
                         <label for="s-c-condition-price-interval">[`Price`]</label>
@@ -110,7 +110,7 @@
                 </tr>
                 <tr>
                     <td class="min-width">
-                        <input id="s-c-condition-rate" type="checkbox" name="condition[]" value="rating">
+                        <input id="s-c-condition-rate" type="checkbox" name="condition[rating]" value="rating">
                     </td>
                     <td>
                         <label for="s-c-condition-rate">[`Rating`]</label>
@@ -131,7 +131,7 @@
                 {if !empty($cloud)}
                 <tr>
                     <td class="min-width">
-                        <input id="s-c-condition-tag" type="checkbox" name="condition[]" value="tag">
+                        <input id="s-c-condition-tag" type="checkbox" name="condition[tag]" value="tag">
                     </td>
                     <td>
                         <label for="s-c-condition-tag">[`Tags`]</label>
@@ -145,6 +145,48 @@
                     </td>
                 </tr>
                 {/if}
+                <tr>
+                    <td class="min-width">
+                        <input id="s-c-condition-count" type="checkbox" name="condition[count]" value="count">
+                    </td>
+                    <td>
+                        <label for="s-c-condition-count">[`In stock`]</label>
+                    </td>
+                    <td>
+                        <select name="count[]">
+                            <option value=">=">[`is greater or equal`]</option>
+                            <option value="<=">[`is lesser or equal`]</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" name="count[]" value="" id="s-c-category-count-value">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="min-width">
+                        <input id="s-c-condition-compare_price" type="checkbox" name="condition[compare_price]" value="compare_price">
+                    </td>
+                    <td colspan="3">
+                        <label for="s-c-condition-compare_price">[`Compare at price`]</label>
+                    </td>
+                </tr>
+                {foreach $features as $f}
+                    <tr>
+                        <td class="min-width">
+                            <input id="s-c-condition-feature-{$f.code}" type="checkbox" name="condition[feature][]" value="{$f.code}">
+                        </td>
+                        <td>
+                            <label for="s-c-condition-feature-{$f.code}">{$f.name|escape}</label>
+                        </td>
+                        <td>
+                            <select name="feature_values[{$f.code}]" class="s-feature_value" data-feature-id="{$f.code}">
+                                {foreach $f.values as $v_id => $value}
+                                    <option value="{$v_id}"{if is_object($value)} style="{$value.style|default:''}"{/if}>{$value|escape}</option>
+                                {/foreach}
+                            </select>
+                        </td>
+                    </tr>
+                {/foreach}
             </tbody>
         </table>
     </div>
@@ -212,11 +254,20 @@
         $('#s-c-category-rate', d).click(function() {
             $('#s-c-condition-rate').attr('checked', true);
         });
+        $('select[name^=count]', d).change(function() {
+            $('#s-c-condition-count').attr('checked', true);
+        });
+        $('#s-c-category-count-value', d).click(function() {
+            $('#s-c-condition-count').attr('checked', true);
+        });
         d.on('change', 'input[name^=tag]', function() {
             $('#s-c-condition-tag').attr('checked', true);
         });
         d.on('keyup', 'input[name^=price]', function() {
             $('#s-c-condition-price-interval').attr('checked', true);
+        });
+        d.on('change', 'select.s-feature_value', function() {
+            $('#s-c-condition-feature-' + $(this).data('featureCode')).attr('checked', true);
         });
         
         // change meta title input placeholder automaticly on changing name of category

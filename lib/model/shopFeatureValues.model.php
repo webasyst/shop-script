@@ -58,10 +58,19 @@ SQL;
         } else {
             $fields = 'fv.'.$field;
         }
-        $sql = "SELECT pf.product_id, ".$fields." FROM shop_product_features pf
+        $sql = "SELECT pf.product_id, pf.sku_id, ".$fields." FROM shop_product_features pf
                 JOIN ".$this->table." fv ON pf.feature_value_id = fv.id
                 WHERE pf.product_id IN (i:0) AND pf.feature_id = i:1";
-        return $this->query($sql, $product_id, $feature_id)->fetchAll('product_id', true);
+        $query = $this->query($sql, $product_id, $feature_id);
+        $result = array();
+        foreach ($query as $row) {
+            if ($row['sku_id']) {
+                $result['skus'][$row['sku_id']] = is_array($field) ? $row : $row[$field];
+            } else {
+                $result[$row['product_id']] = is_array($field) ? $row : $row[$field];
+            }
+        }
+        return $result;
     }
 
     protected function getValue($row)

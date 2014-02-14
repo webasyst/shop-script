@@ -25,7 +25,7 @@
     <ul class="menu-h small" id="s-product-frontend-links">
         <li class="s-inline-mixed-string">
             [`Storefront link`]:
-            {foreach $frontend_urls as $frontend_url name=foo}
+            {foreach $frontend_urls as $frontend_url}
                 <span class="s-product-frontend-url-not-empty">
                     <a href="{$frontend_url.url}" target="_blank">{$frontend_url.url}</a><i class="icon10 new-window"></i>
                 </span>
@@ -778,7 +778,7 @@
                                             <input type="text" name="skus[{%=sku_id%}][name]" value="{%=sku.name%}" class="bold long" placeholder="[`SKU name`]">
                                         </td>
                                         <td class="s-price">
-                                            <input type="text" name="skus[{%=sku_id%}][price]" value="{%=sku.price%}" class="bold numerical">
+                                            <input type="text" name="skus[{%=sku_id%}][price]" value="{%=sku.price_loc%}" class="bold numerical">
                                             {/literal}
                                             {if $use_product_currency}
                                                 <select class="s-product-currency">
@@ -921,6 +921,8 @@
                     <div class="name">[`META Description`]</div>
                     <div class="value">
                         <textarea name="product[meta_description]">{$product.meta_description|escape}</textarea>
+                        <br>
+                        <span class="hint">{sprintf('[`Variables <strong>%s</strong> will be replaced with the actual product information when displaying it on the storefront. Can be used in title and META fields.`]','&#123;$name&#125;, &#123;$summary&#125;, &#123;$price&#125;')}</span>
                     </div>
                 </div>
               </div>

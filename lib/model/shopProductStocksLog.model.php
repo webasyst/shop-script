@@ -25,19 +25,19 @@ class shopProductStocksLogModel extends waModel {
     {
         switch ($type) {
             case self::TYPE_PRODUCT:
-                $icon = '<i class="icon16 edit"></i>';
+                $icon = '<i class="icon16 ss pencil-bw" title="'._w('Stock information was edited').'"></i>';
                 break;
             case self::TYPE_IMPORT:
-                $icon = '<i class="icon16 ss excel"></i>';
+                $icon = '<i class="icon16 ss file-bw" title="'._w('Stock information was updated during bulk product import').'"></i>';
                 break;
             case self::TYPE_ORDER:
-                $icon = '<i class="icon16 ss shop"></i>';
+                $icon = '<i class="icon16 ss cart-bw" title="'._w('Stock information was updated when processing an order').'"></i>';
                 break;
             case self::TYPE_STOCK:
-                $icon = '<i class="icon16 move"></i>';
+                $icon = '<i class="icon16 ss transfer-bw" title="'._w('Inventory transferred from one stock to another').'"></i>';
                 break;
-            default :
-                $icon = '<i class="icon16"></i>';
+            default:
+                $icon = '<i class="icon16 ss bug-bw" title="'._w('Unrecognized stock operation').'"></i>';
                 break;
         }
         return $icon;
@@ -131,7 +131,7 @@ class shopProductStocksLogModel extends waModel {
                 if ($v['type'] == self::TYPE_ORDER) {
                     $v['description'] = sprintf(
                             _w($v['description']), 
-                            '<a href="?action=orders#/orders/id='.$v['order_id'].'/">'.shopHelper::encodeOrderId($v['order_id']).'</a>'
+                            '<a href="?action=orders#/order/'.$v['order_id'].'/">'.shopHelper::encodeOrderId($v['order_id']).'</a>'
                     );
                 }
             }
@@ -194,8 +194,51 @@ class shopProductStocksLogModel extends waModel {
             
     }
     
+    /**
+     * @param array $data
+     *   Fields:
+     *   int $data['product_id']
+     *   int $data['sku_id']
+     *   int|null $data['stock_id']
+     *   int|null $data['before_count']
+     *   int|null $data['after_count']
+     *   int|null $data['diff_count']
+     * @return boolean
+     */
     public function add($data)
     {
+        // setting stock_name here is forbidden
+        if (array_key_exists('stock_name', $data)) {
+            unset($data['stock_name']);
+        }
+        
+        if (!array_key_exists('before_count', $data)) {
+            $data['before_count'] = null;
+        }
+        if (!array_key_exists('after_count', $data)) {
+            $data['after_count'] = null;
+        }
+        
+        if (
+            ($data['before_count'] === null && $data['after_count'] !== null) || 
+            ($data['after_count'] === null && $data['before_count'] !== null) ||
+            ($data['before_count'] != $data['after_count'])
+        )
+        {
+            if ($data['after_count'] === null || ($data['after_count'] == 0 && $data['before_count'] === null)) {
+                $data['diff_count'] = null;    
+            } else {
+                $data['diff_count'] = $data['after_count'] - (int) $data['before_count'];
+            }
+
+            // change happens
+            return $this->insert($data);
+        } else {
+            return false;
+        }
+    }
+    
+    public function insert($data, $type = 0) {
         $data['datetime'] = date('Y-m-d H:i:s');
         $data['description'] = self::$description;
         $data['type'] = self::$transaction_type;
@@ -204,7 +247,7 @@ class shopProductStocksLogModel extends waModel {
                 $data['order_id'] = self::$params['order_id'];
             }
         }
-        return $this->insert($data);
+        parent::insert($data, $type);
     }
     
 }

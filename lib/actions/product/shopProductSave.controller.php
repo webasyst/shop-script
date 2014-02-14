@@ -333,6 +333,8 @@ class shopProductSaveController extends waJsonController
             if (!isset($sku['file_name'])) {
                 $file_names[$sku['id']] = '';   // need to obtain filename
             }
+            // price in light of l18n: if ru - delimeter is ',', if en - delimeter is '.'
+            $sku['price_loc'] = (string) ((float) $sku['price']);
             $sku['price_str'] = wa_currency($sku['price'], $currency);
             $sku['stock_icon'] = array();
             $sku['stock_icon'][0] = shopHelper::getStockCountIcon($sku['count']);

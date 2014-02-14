@@ -49,6 +49,8 @@ class shopSettingsGeneralAction extends waViewAction
         
         $sms_adapters = $this->getSMSAdapters();
         $this->view->assign('sms_adapters', $sms_adapters);
+        
+        $this->view->assign('saved', waRequest::post());        
     }
 
     public function getData()

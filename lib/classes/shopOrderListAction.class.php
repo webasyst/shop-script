@@ -87,12 +87,10 @@ class shopOrderListAction extends waViewAction
                         if (substr($v, -1) == '*') {
                             $v = substr($v, 0, -1);
                         }
-                        if (substr($v, -1) != '/') {
-                            $v .= '/';
-                        }
-                        if (substr_count($v, '/') == 1 && substr($v, -1) == '/') {
+                        if (substr($v, -1) == '/') {
                             $v = substr($v, 0, -1);
                         }
+                        $v .= "||$v/";
                     }
                     if ($k == 'product_id') {
                         $k = 'items.'.$k;

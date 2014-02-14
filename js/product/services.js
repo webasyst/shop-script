@@ -444,6 +444,19 @@
                             check_checkbox_handler.call(checkbox.get(0));
                         }
                     });
+                    
+                // update sku default prices (placeholdres)
+                container.off('keyup change', 'tr.s-services-variant-product input[type=text]').
+                        on('keyup change', 'tr.s-services-variant-product input[type=text]', function() {
+                            var self = $(this);
+                            var tr = self.closest('tr');
+                            var variant_id = tr.attr('data-variant-id');
+                            var sku_inputs = container.find(
+                                    'tr.s-services-variant-sku[data-variant-id='+variant_id+'] input[type=text]'
+                            );
+                            var val = self.val();
+                            sku_inputs.attr('placeholder', val ? val : self.attr('placeholder'));
+                        });
             }
 
             if (!this.product_id) {

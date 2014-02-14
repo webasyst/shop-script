@@ -84,7 +84,11 @@ class shopCustomersInfoAction extends waViewAction
         $this->view->assign('contact_categories', $contact_categories);
         $this->view->assign('def_cur_tmpl', str_replace('0', '%s', waCurrency::format('%{s}', 0, wa()->getConfig()->getCurrency())));
         $this->view->assign('point_rate', str_replace(',', '.', (float) str_replace(',', '.', wa()->getSetting('affiliate_usage_rate'))));
-        $this->view->assign('fields', waContactFields::getAll('person'));
+        $fields = waContactFields::getAll('person');
+        if (isset($fields['name'])) {
+            unset($fields['name']);
+        }
+        $this->view->assign('fields', $fields);
         $this->view->assign('orders_default_view', $config->getOption('orders_default_view'));
     }
 }

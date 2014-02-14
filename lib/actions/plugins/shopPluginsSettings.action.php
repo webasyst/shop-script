@@ -16,7 +16,7 @@ class shopPluginsSettingsAction extends waViewAction
                 /**
                  * @var shopPlugin $plugin
                  */
-                $plugin = waSystem::getInstance()->getPlugin($plugin_id);
+                $plugin = waSystem::getInstance()->getPlugin($plugin_id, true);
                 $namespace = 'shop_'.$plugin_id;
 
                 $params = array();

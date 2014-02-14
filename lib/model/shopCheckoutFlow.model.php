@@ -64,15 +64,31 @@ class shopCheckoutFlowModel extends waModel
 
         $stat = $this->query($sql)->fetchAll('step');
         
-        $total = 0;
-        foreach ($stat as &$st) {
-            $total += $st['count'];
+        $step_names = array(
+            _w('Cart')
+        );
+        foreach (wa('shop')->getConfig()->getCheckoutSettings() as $item) {
+            $step_names[] = $item['name'];
+        }
+        $step_names[] = _w('Order was placed');
+        
+        foreach ($stat as $i => &$st) {
+            $st['name'] = $step_names[$i];
         }
         unset($st);
         
+        $cnt = count($stat);
+        for ($i = 0; $i < $cnt; $i += 1) {
+            $count = 0;
+            for ($j = $i; $j < $cnt; $j += 1) {
+                $count += $stat[$j]['count'];
+            }
+            $stat[$i]['count'] = $count;
+        }
+        
         // convert to percents
         foreach ($stat as &$st) {
-            $st['percents'] = round($st['count'] / $total, 5) * 100;
+            $st['percents'] = round($st['count'] / $stat[0]['count'], 5) * 100;
         }
         unset($st);
         

@@ -84,15 +84,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
         }
         unset($sc);
 
-        $get_vars = waRequest::get();
-        if (isset($get_vars['page'])) {
-            unset($get_vars['page']);
-        }
-
-        if ($get_vars) {
-            $this->view->assign('canonical', wa()->getRouteUrl('shop/frontend/category', array('category_url' =>
-                waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url']), true));
-        }
+        $this->addCanonical();
 
         $root_category_id = $category['id'];
 

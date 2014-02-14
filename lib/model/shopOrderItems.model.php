@@ -92,6 +92,22 @@ class shopOrderItemsModel extends waModel
                     $product['skus'][$sku_id]['price'] = $item['price'];
                 }
                 $product['item'] = $this->formatItem($item);
+                if (!empty($product['fake'])) {
+                    $product['price'] = $product['item']['price'];
+                }
+                if (!empty($product['skus'][$sku_id]['fake'])) {
+                    // parse string looks like this "ProductName (SkuName)"
+                    if (preg_match('!\(([\s\S]+)\)$!', $product['item']['name'], $m)) {
+                        // fake means deleted
+                        $name_of_fake_sku = $m[1];
+                        if ($product['item']['sku_code']) {
+                            $name_of_fake_sku .= ' ('.$product['item']['sku_code'].')';
+                        }
+                    } else {
+                        $name_of_fake_sku = $product['item']['sku_code'];
+                    }
+                    $product['skus'][$sku_id]['name'] = $name_of_fake_sku;
+                }
             }
             $service_id = $item['service_id'];
             $service_variant_id = $item['service_variant_id'];
@@ -107,6 +123,9 @@ class shopOrderItemsModel extends waModel
                     );
                 }
                 $product['services'][$service_id]['item'] = $this->formatItem($item);
+                if (!empty($product['services'][$service_id]['fake'])) {
+                    $product['services'][$service_id]['price'] = $product['services'][$service_id]['item']['price'];
+                }
             }
             if (empty($product['fake'])) {
                 $this->workupProduct($product, $order_id);
@@ -143,8 +162,8 @@ class shopOrderItemsModel extends waModel
         if ($sku_id === null) {
             $sku_id = count($data['skus']) > 1 ? $product->sku_id : null;
         }
-        
-        if ($sku_id) {
+
+        if ($sku_id && isset($data['skus'][$sku_id])) {
             $sku_price = $data['skus'][$sku_id]['price'];
         } else {
             $sku_price = $data['price'];
@@ -417,6 +436,7 @@ class shopOrderItemsModel extends waModel
         }
         $product_skus_model   = new shopProductSkusModel();
         $product_stocks_model = new shopProductStocksModel();
+        $stocks_log_model = new shopProductStocksLogModel();
 
         $sku_ids = array_map('intval', array_keys($data));
         if (!$sku_ids) {
@@ -452,10 +472,23 @@ class shopOrderItemsModel extends waModel
                         'count' => $item['count'] + $count
                     ));
                 } else {
+
+                    $old_count = $product_skus_model->select('count')->where('id=i:sku_id', array('sku_id' => $sku_id))->fetchField();
+                    if ($old_count !== null) {
+                        $log_data = array(
+                            'product_id' => $product_id,
+                            'sku_id' => $sku_id,
+                            'before_count' => $old_count,
+                            'after_count' => $old_count + $count,
+                            'diff_count' => $count
+                        );
+                        $stocks_log_model->insert($log_data);            
+                    }
                     $this->exec(
                         "UPDATE `shop_product_skus` SET count = count + ({$count})
                         WHERE id = $sku_id"
                     );
+
                 }
                 if (isset($skus[$sku_id]['product_id'])) {
                     $product_ids[] = $product_id;
@@ -506,5 +539,5 @@ class shopOrderItemsModel extends waModel
     {
         $item['price'] = (float)$item['price'];
         return $item;
-    }
+    }    
 }

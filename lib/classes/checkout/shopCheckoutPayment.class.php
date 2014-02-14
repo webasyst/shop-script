@@ -22,6 +22,7 @@ class shopCheckoutPayment extends shopCheckout
         }
 
         $currencies = wa('shop')->getConfig()->getCurrencies();
+        $selected = null;
         foreach ($methods as $method_id => $m) {
             if (in_array($method_id, $disabled)) {
                 unset($methods[$method_id]);
@@ -43,12 +44,14 @@ class shopCheckoutPayment extends shopCheckout
                     $methods[$method_id]['error'] = sprintf(_w('Payment procedure cannot be processed because required currency %s is not defined in your store settings.'), implode(', ', $allowed_currencies));
                 }
             }
+            if (!$selected && empty($methods[$method_id]['error'])) {
+                $selected = $method_id;
+            }
         }
 
         $view = wa()->getView();
         $view->assign('checkout_payment_methods', $methods);
-        $m = reset($methods);
-        $view->assign('payment_id', $this->getSessionData('payment', $m ? $m['id'] : null));
+        $view->assign('payment_id', $this->getSessionData('payment', $selected));
         
         $checkout_flow = new shopCheckoutFlowModel();
         $step_number = shopCheckout::getStepNumber('payment');

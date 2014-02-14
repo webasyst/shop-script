@@ -26,9 +26,6 @@
         hash: '',
         list_hash: '', // hash of last list
         list_params: {}, // params of last list
-        options: {
-            view: 'thumbs' // default view
-        },
         random: '',
         init: function (options) {
             $.extend(this.options, options);
@@ -177,19 +174,23 @@
         },
 
         buildProductsUrlComponent: function (params) {
-            return 'view=' + (params.view || this.options.view) + (params.category_id ? '&category_id=' + params.category_id : '')
-                + (params.set_id ? '&set_id=' + params.set_id : '') + (params.tag ? '&tag=' + params.tag : '') + (params.sort ? '&sort=' + params.sort : '')
-                + (params.order ? '&order=' + params.order : '') + (params.text ? '&text=' + params.text : '') + (params.edit ? '&edit=' + params.edit : '')
-                + (params.hash ? '&hash=' + params.hash : '') + (params.type_id ? '&type_id=' + params.type_id : '');
+            return ((params.view ? '&view=' + params.view : '')
+                + (params.category_id ? '&category_id=' + params.category_id : '')
+                + (params.set_id ? '&set_id=' + params.set_id : '') 
+                + (params.tag ? '&tag=' + params.tag : '') 
+                + (params.sort ? '&sort=' + params.sort : '')
+                + (params.order ? '&order=' + params.order : '') 
+                + (params.text ? '&text=' + params.text : '') 
+                + (params.edit ? '&edit=' + params.edit : '')
+                + (params.hash ? '&hash=' + params.hash : '') 
+                + (params.type_id ? '&type_id=' + params.type_id : '')).
+                slice(1) // cut of first '&'
+            ;
         },
 
         productsAction: function () {
             var params = Array.prototype.join.call(arguments, '/');
             params = $.shop.helper.parseParams(params || '');
-            if (!params.view) {
-                params.view = $.storage.get('shop/products/view') || this.options.view;
-            }
-            $.storage.set('shop/products/view', params.view);
             this.list_hash = this.hash;
             this.list_params = params;
             

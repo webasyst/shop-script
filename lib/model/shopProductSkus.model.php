@@ -317,6 +317,11 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
          * @var shopProductFeaturesModel $product_features_model
          */
         static $product_features_model;
+        
+        /**
+         * @var shopProductStocksLogModel $stocks_log_model
+         */
+        static $stocks_log_model = null;
 
 
         if (isset($data['price'])) {
@@ -360,10 +365,14 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                 $stocks = $stock_model->getAll($stock_model->getTableId());
                 $multi_stock = $stocks ? array_keys($stocks) : false;
             }
+
             // not multistocking
             if (!$multi_stock || isset($data['stock'][0])) {
                 $sku_count = self::castStock($data['stock'][0]);
                 unset($data['stock']);
+                
+                $this->logCount($data['product_id'], $id, $sku_count);
+                
                 // multistocking
             } else {
                 $sku_count = 0;
@@ -371,6 +380,13 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                 if (!$stocks_model) {
                     $stocks_model = new shopProductStocksModel();
                 }
+                
+                // need for track transition from aggregating mode to multistocking mode
+                $has_any_stocks = $stocks_model->hasAnyStocks($id);
+                if (!$has_any_stocks) {
+                    $this->writeOffCount($data['product_id'], $id);
+                }
+                
                 foreach ($data['stock'] as $stock_id => $count) {
                     if (($stock_id > 0) && isset($missed[$stock_id])) {
                         unset($missed[$stock_id]);
@@ -389,11 +405,11 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                                 $sku_count += $count;
                             }
                         }
+                        // there is taking into account stocks log inside this method
                         $stocks_model->set(array_merge($field, $stock));
                         $data['stock'][$stock_id] = $count;
                     }
                 }
-
                 //get stock_count for missed stocks
                 if (($sku_count !== null) && !empty($missed)) {
                     $search = array('stock_id' => $missed, 'sku_id' => $id, 'product_id' => $data['product_id']);
@@ -412,9 +428,10 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                 }
             }
         }
+        
         if ($sku_count !== false) {
             $data['count'] = $sku_count;
-            $this->updateById($id, array('count' => $sku_count));
+            $this->updateById($id, array('count' => $sku_count));            
         }
 
         if (isset($data['features'])) {
@@ -427,12 +444,6 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             }
 
             foreach ($data['features'] as $code => $value) {
-
-                // ignoring empty values
-                if (empty($value)) {
-                    continue;
-                }
-
                 if ($feature = $feature_model->getByField('code', $code)) {
                     $model = shopFeatureModel::getValuesModel($feature['type']);
                     $field = array(
@@ -441,6 +452,9 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                         'feature_id' => $feature['id'],
                     );
                     $product_features_model->deleteByField($field);
+                    if (empty($value) || (is_array($value) && empty($value['value']))) {
+                        continue;
+                    }
                     $field['feature_value_id'] = $model->getId($feature['id'], $value, $feature['type']);
                     $product_features_model->insert($field);
                 } elseif (is_numeric($code) && is_numeric($value)) {
@@ -450,6 +464,9 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                         'feature_id' => $code,
                     );
                     $product_features_model->deleteByField($field);
+                    if (empty($value)) {
+                        continue;
+                    }
                     $field['feature_value_id'] = $value;
                     $product_features_model->insert($field);
                 }
@@ -464,6 +481,55 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         return $data;
     }
 
+    /**
+     * 
+     * @staticvar shopProductStocksLogModel $log_model
+     * @param int $product_id
+     * @param int $sku_id
+     * @param int $count
+     */
+    public function logCount($product_id, $sku_id, $count)
+    {
+        /**
+         * @var shopProductStocksLogModel
+         */
+        static $log_model = null;
+        
+        $old_count = $this->select('count')->where('id=i:sku_id', array('sku_id' => $sku_id))->fetchField();
+        $log_data = array(
+            'product_id' => $product_id,
+            'sku_id' => $sku_id,
+            'before_count' => $old_count,
+            'after_count' => $count
+        );
+        if (!$log_model) {
+            $log_model = new shopProductStocksLogModel();
+        }
+        $log_model->add($log_data);
+    }
+    
+    private function writeOffCount($product_id, $sku_id)
+    {
+        /**
+         * @var shopProductStocksLogModel
+         */
+        static $log_model = null;
+        
+        $count = $this->select('count')->where('id=i:sku_id', array('sku_id' => $sku_id))->fetchField();
+        if ($count === null) {
+            return;
+        }
+        if (!$log_model) {
+            $log_model = new shopProductStocksLogModel();
+        }
+        $log_model->add(array(
+            'product_id' => $product_id,
+            'sku_id' => $sku_id,
+            'before_count' => $count,
+            'after_count' => 0
+        ));
+    }
+    
     public function setData(shopProduct $product, $data)
     {
         $primary_currency = wa()->getConfig()->getCurrency();

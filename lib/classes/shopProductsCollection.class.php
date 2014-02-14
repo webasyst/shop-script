@@ -182,13 +182,16 @@ class shopProductsCollection
 
         $config = wa('shop')->getConfig();
 
+        if (isset($data['in_stock_only'])) {
+            $this->where[] = '(p.count > 0 OR p.count IS NULL)';
+        }
 
         if (isset($data['price_min']) && $data['price_min'] !== '') {
-            $this->where[] = 'p.price >= '.$this->toFloat(shop_currency($data['price_min'], true, $config->getCurrency(true), false));
+            $this->where[] = 'p.min_price >= '.$this->toFloat(shop_currency($data['price_min'], true, $config->getCurrency(true), false));
             unset($data['price_min']);
         }
         if (isset($data['price_max']) && $data['price_max'] !== '') {
-            $this->where[] = 'p.price <= '.$this->toFloat(shop_currency($data['price_max'], true, $config->getCurrency(true), false));
+            $this->where[] = 'p.max_price <= '.$this->toFloat(shop_currency($data['price_max'], true, $config->getCurrency(true), false));
             unset($data['price_max']);
         }
         $feature_model = new shopFeatureModel();
@@ -263,11 +266,11 @@ class shopProductsCollection
 
         if (!waRequest::get('sort')) {
             if (!empty($this->info['sort_products'])) {
-                if ($this->info['sort_products'] == 'count') {
-                    $tmp = explode(' ', $this->info['sort_products']);
-                    if (!isset($tmp[1])) {
-                        $tmp[1] = 'DESC';
-                    }
+                $tmp = explode(' ', $this->info['sort_products']);
+                if (!isset($tmp[1])) {
+                    $tmp[1] = 'DESC';
+                }
+                if ($tmp[0] == 'count') {
                     $this->fields[] = 'IF(p.count IS NULL, 1, 0) count_null';
                     $this->order_by = 'count_null '.$tmp[1].', p.count '.$tmp[1];
                 } else {
@@ -333,9 +336,11 @@ class shopProductsCollection
 
         if ($set['type'] == shopSetModel::TYPE_STATIC) {
             $alias = $this->addJoin('shop_set_products', null, ":table.set_id = '".$set_model->escape($id)."'");
-            $this->order_by = $alias.'.sort ASC';
+            if (!waRequest::get('sort') || waRequest::get('sort') == 'sort') {
+                $this->order_by = $alias.'.sort ASC';
+            }
         } else {
-            if (!empty($set['rule'])) {
+            if (!waRequest::get('sort') && !empty($set['rule'])) {
                 $this->order_by = $set['rule'];
             }
         }
@@ -867,7 +872,7 @@ class shopProductsCollection
             $order[0] = strtolower($order[0]);
             $order[1] = strtolower($order[1]);
             $k = strpos($order[0], '.');
-            if ($k !== null) {
+            if ($k !== false) {
                 $order[0] = substr($order[0], $k + 1);
             }
             return $order;

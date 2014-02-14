@@ -239,7 +239,7 @@ class shopProductStocksModel extends waModel
             return false;
         }
         
-        $log_model->add(array(
+        $log_model->insert(array(
             'product_id' => $product_id,
             'sku_id' => $sku_id,
             'stock_id' => $src_id,
@@ -265,42 +265,6 @@ class shopProductStocksModel extends waModel
             'diff_count' => $count
         ));
         
-
-        /*
-        $src = $data[$src_id];
-        $dst = isset($data[$dst_id]) ? $data[$dst_id] : array();
-        $count = $count === null ? $src['count'] : min((int)$count, $src['count']);
-        if (!$count) {
-            return true;
-        }
-
-        if (empty($dst)) {
-            if (!$this->insert(array(
-                'sku_id' => $sku_id,
-                'stock_id' => $dst_id,
-                'product_id' => $src['product_id'],
-                'count' => $count
-            ))) {
-                return false;
-            }
-        } else {
-            if (!$this->updateByField(array(
-                    'sku_id' => $sku_id,
-                    'stock_id' => $dst_id
-                ), array('count' => $dst['count'] + $count)))
-            {
-                return false;
-            }
-        }
-        if (!$this->updateByField(array(
-                'sku_id' => $sku_id,
-                'stock_id' => $src_id
-            ), array('count' => $src['count'] - $count)))
-        {
-            return false;
-        }
-        */
-
         return true;
     }
 
@@ -452,6 +416,7 @@ class shopProductStocksModel extends waModel
     
     /**
      * Insert for NEW stock_id items with count = 0 FOR all existing skus in this table
+     * Take into account stocks log
      * @param int $stock_id
      * @param int|null $chunk_size Insert items by chunks of this size. If null make insert at a time
      */
@@ -460,13 +425,16 @@ class shopProductStocksModel extends waModel
         if ($chunk_size !== null && $chunk_size <= 0) {
             return;
         }
+        
         $sql = "SELECT COUNT(DISTINCT product_id, sku_id) FROM `shop_product_stocks`";
         $total_count = (int) $this->query($sql)->fetchField();
         if ($chunk_size === null) {
             $chunk_size = $total_count;
         }
         for ($offset = 0; $offset < $total_count; $offset += $chunk_size) {
+            
             $data = array();
+            
             $sql = "SELECT DISTINCT product_id, sku_id FROM `shop_product_stocks` 
                 ORDER BY product_id, sku_id
                 LIMIT {$offset}, {$chunk_size}";
@@ -478,6 +446,7 @@ class shopProductStocksModel extends waModel
                     'count' => 0
                 );
             }
+            // for product_stocks
             $this->multipleInsert($data);
         }
     }
@@ -543,16 +512,11 @@ class shopProductStocksModel extends waModel
             'sku_id' => $data['sku_id'],
             'stock_id' => $data['stock_id'],
             'before_count' => null,
-            'after_count' => $count,
-            'diff_count' => null
+            'after_count' => $count
         );
 
         if ($item) {
             $log_data['before_count'] = $item['count'];
-        }
-
-        if ($count !== null) {
-            $log_data['diff_count'] = $count - (int) $log_data['before_count'];
         }
         
         if ($count === null) {
@@ -578,5 +542,16 @@ class shopProductStocksModel extends waModel
         
         return true;
         
+    }
+    
+    /**
+     * @param int $sku_id
+     * @return boolean
+     */
+    public function hasAnyStocks($sku_id)
+    {
+        return !!$this->select('sku_id')->where('sku_id=:sku_id', array(
+            'sku_id' => $sku_id,
+        ))->limit(1)->fetchField();
     }
 }

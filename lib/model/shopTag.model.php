@@ -35,7 +35,13 @@ class shopTagModel extends waModel
             foreach ($tags as &$tag) {
                 $tag['size'] = ceil(self::CLOUD_MIN_SIZE + ($tag['count'] - $min_count) * $step_size);
                 $tag['opacity'] = number_format((self::CLOUD_MIN_OPACITY + ($tag['count'] - $min_count) * $step_opacity) / 100, 2, '.', '');
-                $tag['uri_name'] = urlencode($tag['name']);
+                if (strpos($tag['name'], '/') !== false) {
+                    $tag['uri_name'] = explode('/', $tag['name']);
+                    $tag['uri_name'] = array_map('urlencode', $tag['uri_name']);
+                    $tag['uri_name'] = implode('/', $tag['uri_name']);
+                } else {
+                    $tag['uri_name'] = urlencode($tag['name']);
+                }
             }
             unset($tag);
         }

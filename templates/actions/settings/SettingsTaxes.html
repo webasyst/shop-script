@@ -70,6 +70,9 @@
                             <option value="billing"{if $tax.address_type == 'billing'} selected{/if}>[`Billing address`]</option>
                         </select>
                     </div>
+                    {if !$billing_address_required}
+                        <div class="value no-shift billing-address-warning" {if $tax.address_type != 'billing'}style="display:none;"{/if}><p class="small errormsg">[`Billing address is configured not to be prompted during checkout, which means that tax by billing will not be calculated for most orders.`]</p></div>
+                    {/if}
                 </div>
                 <div class="field">
                     <div class="name">
@@ -208,5 +211,15 @@
             return false;
         });
     {/if}
-
+    
+    {if !$billing_address_required}
+        form.find('[name="tax[address_type]"]').change(function() {
+            if ($(this).val() == 'billing') {
+                form.find('.billing-address-warning').show();
+            } else {
+                form.find('.billing-address-warning').hide();
+            }
+        });
+    {/if}
+    
 })();</script>

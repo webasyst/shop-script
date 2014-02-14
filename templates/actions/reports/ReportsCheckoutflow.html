@@ -1,24 +1,28 @@
 <div class="block double-padded">
 
-    <h1>Checkout flow <span class="hint">&alpha;</span></h1>
+    <h1>[`Checkout flow`] <span class="hint">&alpha;</span></h1>
 
-    <p>Checkout flow report shows how many customers abandon their shopping carts during checkout process. Data mining for this report started in Shop-Script 5.2.0. This report is to be published in version 5.2.1 or later — as soon as enough data is available.</p>
+    <p>[`Checkout flow report shows how many customers abandon their orders during the checkout process based on unique shopping cart sessions.`]</p>
 
-    <table>
-    {foreach $stat as $key => $val}
+    <table class="s-checkoutflow">
+    {foreach $stat as $key => $val name=flow}
         <tr>        
-            <td>{$key}</td>
+            <td>{$val['name']}</td>
             <td>
-                <div style="width: 400px; height: 25px; background: #eee; margin: 15px;">
-                    <div style="width: {str_replace(',','.',$val['percents']/100*400)}px; height: 25px; background: #fc5;">
-                        
-                    </div>
+                <div class="s-bar"style="width: {str_replace(',','.',$val['percents']/100*400)}px;"></div>
+                <div class="s-bar-hint{if $smarty.foreach.flow.last} bold{/if}">
+                    {round($val['percents'])}%
                 </div>
             </td>
-            <td>
-                {$val['count']} passed
-                {if !empty($stat[$key+1])}
-                    <span class="hint">{$val['count'] - $stat[$key+1]['count']} abandoned checkout on this step</span>
+            <td{if $smarty.foreach.flow.last} class="bold"{/if}>
+                <span class="hint">
+                    {_w('%d customer','%d customers', $val['count'])}
+                </span>
+                {if !empty($stat[$key-1])}
+                    {$_change = $stat[$key-1]['count']-$val['count']}
+                    {if $_change > 0}
+                        <span class="red small" title="[`Change comparing to previous checkout step`]">-{$_change}</span>
+                    {/if}
                 {/if}
             </td>
         </tr>
@@ -26,23 +30,67 @@
     </table>
 
     {if $checkout_flow_changed}
-        <div>
-            <i class="icon16 exclamation"></i> {sprintf(_w('Warning. Checkout flow has changed from %s'), wa_date('humandatetime', $checkout_flow_changed))}
-            <a href="#" id="s-reports-checkoutflow-clear">[`Start again?`]</a>
-        </div>
+        <p>
+            <em><i class="icon16 exclamation"></i>{sprintf(_w('<strong>Checkout process settings were altered on %s.</strong> This report is based on data collected both before and after this change and thus may be unrepresentative.'), wa_date('humandatetime', $checkout_flow_changed))}</em>
+            <a href="#" id="s-reports-checkoutflow-clear" class="bold">[`Start over`]</a>
+            <a href="#" id="s-reports-checkoutflow-dismiss" class="inline-link gray"><b><i>[`Dismiss`]</i></b></a>
+        </p>
     {/if}
 </div>
-<hr>
+
+{* dialog section *}
+
+<div class="dialog width400px height200px" id="s-reports-checkoutflow-clear-dialog">
+    <div class="dialog-background"></div>
+    <form method="post" action="">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Reset checkout flow`]</h1>
+                <p><strong class="red">[`Entire checkout flow report data will be erased without the ability to restore.`]</strong></p>
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button red" type="submit" value="[`Reset`]">
+                <i class="icon16 loading" style="display:none;"></i>
+                [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+
 <div class="clear-both"></div>
 <script>
     $(function() {
+        document.title = '{"[`Checkout flow`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+
         $('#s-reports-checkoutflow-clear').click(function() {
-            $.post('?module=reports&action=checkoutflowClear', {
-                clear: 'all'
+            $('#s-reports-checkoutflow-clear-dialog').waDialog({
+                    disableButtonsOnSubmit: true,
+                    onSubmit: function(d) {
+                        d.find('.loading').show();
+                        $.post('?module=reports&action=checkoutflowClear', {
+                            clear: 'all'
+                        }, function() {
+                            $.reports.dispatch();
+                        });
+                        return false;
+                    }
+            });
+            return false;
+        });
+        
+        $('#s-reports-checkoutflow-dismiss').click(function() {
+            $.post('?module=reports&action=checkoutflowDismiss', {
+                dismiss: 1
             }, function() {
                 $.reports.dispatch();
             });
             return false;
         });
+        
     });
 </script>

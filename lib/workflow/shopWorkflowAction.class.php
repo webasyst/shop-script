@@ -104,10 +104,11 @@ class shopWorkflowAction extends waWorkflowAction
         }
         $order_model->updateById($order['id'], $update);
 
+        $order_params_model = new shopOrderParamsModel();
         if (isset($update['params'])) {
-            $order_params_model = new shopOrderParamsModel();
             $order_params_model->set($order['id'], $update['params'], false);
         }
+        $order['params'] = $order_params_model->get($order_id);
         // send notifications
         shopNotifications::send('order.'.$this->getId(), array(
             'order' => $order,

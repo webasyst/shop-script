@@ -180,7 +180,8 @@ class shopOrderModel extends waModel
 
     public function getStorefrontCounters()
     {
-        $storefronts = array();
+        $storefronts = array();           // collect counters
+        $aux_storefronts = array();     // maintain ambiguity of '/' at the end of urls
         $routes = wa()->getRouting()->getByApp('shop');
         foreach ($routes as $domain => $domain_routes) {
             foreach ($domain_routes as $route) {
@@ -188,20 +189,20 @@ class shopOrderModel extends waModel
                 if (substr($url, -1) == '*') {
                     $url = substr($url, 0, -1);
                 }
-                if (substr($url, -1) != '/') {
-                    $url .= '/';
-                }
-                if (substr_count($url, '/') == 1 && substr($url, -1) == '/') {
+                if (substr($url, -1) == '/') {
                     $url = substr($url, 0, -1);
                 }
-                $storefronts[$url] = 0;
+                $aux_storefronts[$url] = true;
+                $aux_storefronts[$url.'/'] = true;
+                $storefronts[$url.'/'] = 0;
             }
         }
         if (!$storefronts) {
             return array();
         }
+        
         $escaped_urls = array();
-        foreach (array_keys($storefronts) as $url) {
+        foreach (array_keys($aux_storefronts) as $url) {
             $escaped_urls[] = $this->escape($url);
         }
         $sql = "SELECT p.value, COUNT(p.order_id) AS cnt
@@ -209,10 +210,14 @@ class shopOrderModel extends waModel
             JOIN `shop_order_params` p ON o.id = p.order_id
             WHERE p.name = 'storefront' AND p.value IN ('".implode("','", $escaped_urls)."')
             GROUP BY p.value";
+
         foreach ($this->query($sql)->fetchAll() as $row) {
-            $storefronts[$row['value']] += $row['cnt'];
+            $url = $row['value'];
+            if (substr($url, -1) != '/') {
+                $url = $url.'/';
+            }
+            $storefronts[$url] += $row['cnt'];
         }
-        
         return $storefronts;
     }
 

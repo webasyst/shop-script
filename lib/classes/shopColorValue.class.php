@@ -139,10 +139,12 @@ HTML;
     {
         $like = 0;
         $code = null;
+        $name = mb_strtolower($name, 'utf-8');
         foreach (self::getColors() as $code_ => $code_name) {
             foreach ((array)$code_name as $name_) {
+                $name_ = mb_strtolower($name_, 'utf-8');
                 similar_text($name, $name_, $percent);
-                if (($percent > 60) && ($percent > $like)) {
+                if (($percent > 60.0) && ($percent > $like)) {
                     $like = $percent;
                     $code = $code_;
                 }

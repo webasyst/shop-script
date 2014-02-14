@@ -476,9 +476,16 @@ editClick:(function ($) {
                 $('.s-product-frontend-url-empty').hide();
 
                 // update fronted url in product profile page
-                $('#s-product-frontend-links').find('a').each(function (i) {
-                    $(this).attr('href', data.frontend_urls[i].url).text(data.frontend_urls[i].url);
-                });
+                var html = '';
+                for (var i = 0, len = data.frontend_urls.length; i < len; i += 1) {
+                    html += ' <span class="s-product-frontend-url-not-empty">' + 
+                        '<a href="'+data.frontend_urls[i].url+'" target="_blank">'+data.frontend_urls[i].url+'</a><i class="icon10 new-window"></i>' + 
+                    '</span> ';
+                }
+                if (html) {
+                    $('#s-product-frontend-links').find('.s-product-frontend-url-not-empty').
+                            wrapAll('<div></div>').closest('div').replaceWith(html);
+                }
 
 
             } else {
@@ -1617,7 +1624,11 @@ editClick:(function ($) {
                     if (el.is('input,textarea')) {
                         el.val(value);
                     } else if (html) {
-                        el.html(value);
+                        if (name === "product[summary]") {
+                            el.text(value);     // escaped
+                        } else {
+                            el.html(value);     // not escaped
+                        }
                     } else {
                         el.text(value);
                     }
@@ -1660,10 +1671,18 @@ editClick:(function ($) {
             try {
                 var $table = $('#s-product-edit-forms .s-product-form.main table.s-product-skus:first');
                 var $skus = $table.find('tbody:first');
+                
                 var price = 0;
+                var price_loc = '0';     // price in light of l18n (with ',' or '.')
 
                 $skus.find(':input[name$="\[price\]"]').each(function () {
-                    price = Math.max(price, parseFloat($(this).val()) || 0);
+                    var self = $(this);
+                    var v = self.val() ? self.val().replace(',', '.') : 0;
+                    var p = parseFloat(v);
+                    if (p > price) {
+                        price = p;
+                        price_loc = self.val() || '0';
+                    }
                 });
                 var purchase_price = 0;
                 $skus.find(':input[name$="\[purchase_price\]"]').each(function () {
@@ -1679,6 +1698,7 @@ editClick:(function ($) {
                     'available': 1,
                     'name': '',
                     'price': '' + price,
+                    'price_loc': price_loc,
                     'purchase_price': '' + purchase_price,
                     'stock_icon': {
                         0: "<i class='icon10 status-green' ></i>"
@@ -2141,7 +2161,7 @@ editClick:(function ($) {
             this.editorUpdateSource({
                 id: 's-product-description-content'
             });
-            this.editorActive = false;
+            //this.editorActive = false;
         },
 
 

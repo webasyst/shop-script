@@ -113,6 +113,11 @@ return array(
             'name' => _w('Force drop out-of-stock products to the bottom of all lists'),
             'description' => _w('When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more.'),
             'type' => 'checkbox',
+        ),
+        'ssl' => array(
+            'name' => _w('Use HTTPS for checkout and personal accounts'),
+            'description' => _w('Automatically redirect to secure https:// mode for checkout (/checkout/) and personal account (/my/) pages of your online storefront. Make sure you have valid SSL certificate installed for this domain name before enabling this option.'),
+            'type' => 'checkbox'
         )
     ),
 

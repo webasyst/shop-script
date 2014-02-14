@@ -14,8 +14,8 @@
             <div class="s-page-urls small">
                 {if $page}
                     {if !empty($url)}
-                        <a href="{$url}/{$page.url}/?preview={$preview_hash}" title="[`Preview`]" target="_blank">{$url}/{$page.url|escape}/</a>
-                        <a href="{$url}/{$page.url}/?preview={$preview_hash}" target="_blank"><i class="icon10 new-window"></i></a>
+                        <a href="{$url}/{$page.url|escape}/?preview={$preview_hash}" title="[`Preview`]" target="_blank">{$url}/{$page.url|escape}/</a>
+                        <a href="{$url}/{$page.url|escape}/?preview={$preview_hash}" target="_blank"><i class="icon10 new-window"></i></a>
                     {/if}
                 {/if}
                 <br />

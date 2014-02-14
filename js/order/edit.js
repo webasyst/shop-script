@@ -52,6 +52,12 @@ $.order_edit = {
         if (options.title) {
             document.title = title;
         }
+        
+        if (!options.float_delimeter) {
+            options.float_delimeter = '.';
+        }
+        
+        this.float_delimeter = options.float_delimeter;
 
         this.initView();
     },
@@ -254,12 +260,12 @@ $.order_edit = {
         this.container.
             off('change', '.s-orders-product-price input').
             on('change', '.s-orders-product-price input', function() {
-                var price = $(this).val();
+                var price = $.order_edit.parseFloat($(this).val());
                 $.order_edit.container.find('.s-orders-service-price').each(function() {
                     var item = $(this);
                     if (item.data('currency') === '%' && item.attr('data-price') === item.val()) {
                         var p = price * (item.data('percentPrice') / 100);
-                        item.val(p);
+                        item.val($.order_edit.formatFloat(p));
                         item.attr('data-price', p);
                     }
                 });
@@ -280,7 +286,7 @@ $.order_edit = {
         $("#shipping_methods").change(function() {
             var o = $(this).children(':selected');
             var rate = o.data('rate');
-            $("#shipping-rate").val(rate);
+            $("#shipping-rate").val($.order_edit.formatFloat(rate));
             if (o.data('error')) {
                 $("#shipping-rate").addClass('error');
                 $("#shipping-info").html('<span class="error">' + o.data('error') + '</span>').show();
@@ -346,13 +352,6 @@ $.order_edit = {
             $("#total").text(0);
             return;
         }
-        var extParseFloat = function(str) {
-            if (!str) {
-                return 0;
-            } else {
-                return parseFloat(('' + str).replace(',', '.'));
-            }
-        };
         var subtotal = 0;
 
         // Data for orderTotal controller
@@ -367,8 +366,8 @@ $.order_edit = {
             var tr = $(this);
             var product_id = tr.find('input[name^="product"]').val();
             var item_price = 0;
-            var price = extParseFloat(tr.find('.s-orders-product-price input').val());
-            var quantity = extParseFloat(tr.find('input.s-orders-quantity').val());
+            var price = $.order_edit.parseFloat(tr.find('.s-orders-product-price input').val());
+            var quantity = $.order_edit.parseFloat(tr.find('input.s-orders-quantity').val());
 
             subtotal   += price * quantity;
             item_price += price * quantity;
@@ -376,7 +375,7 @@ $.order_edit = {
             if (tr.find('.s-orders-services').length) {
                 tr.find('.s-orders-services input:checkbox:checked').each(function() {
                     var li = $(this).closest('li');
-                    price = extParseFloat(li.find('input.s-orders-service-price').val());
+                    price = $.order_edit.parseFloat(li.find('input.s-orders-service-price').val());
 
                     subtotal   += price * quantity;
                     item_price += price * quantity;
@@ -390,7 +389,7 @@ $.order_edit = {
             });
         });
         data.subtotal = subtotal;
-        var discount = extParseFloat($("#discount").val() || 0);
+        var discount = $.order_edit.parseFloat($("#discount").val() || 0);
         data.discount = discount;
         if ($.order_edit.id) {
             data.order_id =  $.order_edit.id;
@@ -439,8 +438,8 @@ $.order_edit = {
             }, 'json');
         }
 
-        $("#subtotal").text(Math.round(subtotal * 100) / 100);
-        var shipping = extParseFloat($("#shipping-rate").val().replace(',', '.')) || 0;
+        $("#subtotal").text($.order_edit.formatFloat(Math.round(subtotal * 100) / 100));
+        var shipping = $.order_edit.parseFloat($("#shipping-rate").val().replace(',', '.')) || 0;
         var undiscounted_total = subtotal + shipping;
 
         // correct discout by constraint: total must be >= 0
@@ -451,11 +450,11 @@ $.order_edit = {
             if (undiscounted_total - discount < 0) {
                 discount = undiscounted_total;
             }
-            $("#discount").val(Math.round(discount * 100) / 100);
+            $("#discount").val($.order_edit.formatFloat(Math.round(discount * 100) / 100));
         }
 
         var total = undiscounted_total - discount;
-        $("#total").text(Math.round(total * 100) / 100);
+        $("#total").text($.order_edit.formatFloat(Math.round(total * 100) / 100));
     },
 
     editSubmit : function() {
@@ -487,6 +486,21 @@ $.order_edit = {
                 return false;
             }
         });
+    },
+    
+    formatFloat: function(float) {
+        if (this.float_delimeter === ',') {
+            return ('' + float).replace('.', ',');
+        }
+        return '' + float;
+    },
+            
+    parseFloat: function(str) {
+        if (!str) {
+            return 0;
+        } else {
+            return parseFloat(('' + str).replace(',', '.'));
+        }
     },
 
     slideBack : function() {

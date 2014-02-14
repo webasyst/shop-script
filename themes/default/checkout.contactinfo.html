@@ -23,9 +23,8 @@
                     [`Email`]
                 </div>
                 <div class="wa-value">
-                    {if !empty($errors.email)}<p>{/if}
                     <input {if !empty($errors.email)}class="error"{/if} name="login" type="text" value="{$wa->post('login', $customer->get('email', 'default'))|escape}">
-                    {if !empty($errors.email)}</p>
+                    {if !empty($errors.email)}<br>
                         <em class="errormsg">{$errors.email}</em>
                     {/if}
                 </div>
@@ -35,7 +34,10 @@
                     [`Password`]
                 </div>
                 <div class="wa-value">
-                    <input name="password" type="password" value="{$wa->post('password')}">
+                    <input {if !empty($errors.password)}class="error"{/if} name="password" type="password" value="{$wa->post('password')}">
+                    {if !empty($errors.email)}<br>
+                    <em class="errormsg">{$errors.email}</em>
+                    {/if}
                 </div>
             </div>
         </div>

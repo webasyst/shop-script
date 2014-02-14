@@ -1261,7 +1261,9 @@
                         if ($('#s-category-description-content').length) {
                             $.product_sidebar.initCategoryDescriptionWysiwyg($(this));
                         }
-                        $('#s-product-list-name').focus();
+                        setTimeout(function() {
+                            $('#s-product-list-name').focus();
+                        }, 50);
                     },
                     onSubmit: function(d) {
                         var form = $(this);

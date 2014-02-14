@@ -26,7 +26,7 @@ class shopCategories
 
     /**
      * Not natural mode means that expanded just one item - root category (with # = 0)
-     * Otherwise all works in natural manner (if item has proper flag - it's expaned, if not - collapsed)
+     * Otherwise all works in natural manner (if item has proper flag - it's expanded, if not - collapsed)
      *
      * @var string
      */
@@ -41,7 +41,7 @@ class shopCategories
 
     private $list;
     private $count;
-    private $is_expaned;
+    private $is_expanded;
 
     public function __construct($root_id = 0)
     {
@@ -68,15 +68,15 @@ class shopCategories
         return $this->count;
     }
 
-    public function isExpaned()
+    public function isExpanded()
     {
-        if ($this->is_expaned === null) {
-            $this->is_expaned = $this->_isExpaned();
+        if ($this->is_expanded === null) {
+            $this->is_expanded = $this->_isExpanded();
         }
-        return $this->is_expaned;
+        return $this->is_expanded;
     }
 
-    private function _isExpaned()
+    private function _isExpanded()
     {
         $contact_id = wa('shop')->getUser()->getId();
         $settings_model = self::getSettingsModel();

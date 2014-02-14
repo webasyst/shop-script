@@ -93,7 +93,7 @@
                         }
                         var html = $('<li id="page-' + page.id + '" class="dr selected">' +
                                 '<a class="wa-page-link" href="' + $.product_pages.getUrl(page.id) + '">' +
-                                '<i class="icon16 notebook"></i>' + page.name + ' <span class="hint">/' + page.url +'</span>' + '</a></li>');
+                                '<i class="icon16 notebook"></i>' + page.name + ' <span class="hint">/' + page.url_escaped +'</span>' + '</a></li>');
                         if (!li.hasClass('s-add-page')) {
                             li.replaceWith(html);
                             li.remove();

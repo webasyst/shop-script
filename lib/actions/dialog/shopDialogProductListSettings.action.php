@@ -80,6 +80,9 @@ class shopDialogProductListSettingsAction extends waViewAction
             $settings['enable_sorting'] = 0;
         }
 
+        $feature_model = new shopFeatureModel();
+        $selectable_and_boolean_features = $feature_model->select('*')->where("selectable=1 OR type='boolean'")->fetchAll('id');
+        
         if ($settings['type'] == shopCategoryModel::TYPE_DYNAMIC) {
             if ($settings['conditions']) {
                 $settings['conditions'] = shopProductsCollection::parseConditions($settings['conditions']);
@@ -96,21 +99,27 @@ class shopDialogProductListSettingsAction extends waViewAction
             }
             $settings['cloud'] = $cloud;
 
+            // extract conditions for features
+            foreach ($settings['conditions'] as $name => $value) {
+                if (substr($name, -9) === '.value_id') {
+                    unset($settings['conditions'][$name]);
+                    $settings['conditions']['feature'][substr($name, 0, -9)] = $value;
+                }
+            }
+            
             $settings['custom_conditions'] = $this->extractCustomConditions($settings['conditions']);
-
+            
+            $settings['features'] = $selectable_and_boolean_features;
+            $settings['features'] = $feature_model->getValues($settings['features']);
         }
-
+                
         $filter = $settings['filter'] !== null ? explode(',', $settings['filter']) : null;
-
         $feature_filter = array();
-        
-        $feature_model = new shopFeatureModel();
         $features['price'] = array(
             'id' => 'price',
             'name' => 'Price'
         );
-        $features += $feature_model->getFeatures('selectable', 1);
-        $features += $feature_model->getFeatures('type', 'boolean');
+        $features += $selectable_and_boolean_features;
         if (!empty($filter)) {
             foreach ($filter as $feature_id) {
                 $feature_id = trim($feature_id);
@@ -126,14 +135,14 @@ class shopDialogProductListSettingsAction extends waViewAction
 
         return $settings;
     }
-
+    
     /**
      * @param array $conditions
      * @return string
      */
     protected function extractCustomConditions($conditions)
     {
-        foreach (array('price', 'tag', 'rating') as $name) {
+        foreach (array('price', 'tag', 'rating', 'feature', 'count', 'compare_price') as $name) {
             if (isset($conditions[$name])) {
                 unset($conditions[$name]);
             }

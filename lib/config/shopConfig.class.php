@@ -11,6 +11,20 @@ class shopConfig extends waAppConfig
         'crop_small' => '48x48'
     );
 
+
+    public function checkRights($module, $action)
+    {
+        if ($module == 'frontend' && waRequest::param('ssl') &&
+            (strpos($action, 'my') === 0 || $action === 'checkout')) {
+            $is_https = waRequest::server('HTTPS') && (strtolower(waRequest::server('HTTPS')) !== 'off');
+            if (!$is_https) {
+                $url = 'https://'.waRequest::server('HTTP_HOST').wa()->getConfig()->getCurrentUrl();
+                wa()->getResponse()->redirect($url, 301);
+            }
+        }
+        return true;
+    }
+
     public function getImageSize($name)
     {
         return isset($this->image_sizes[$name]) ? $this->image_sizes[$name] : null;

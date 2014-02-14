@@ -220,7 +220,7 @@
                 <tbody>
                     <tr>
                         <td class="min-width">
-                            <input id="s-condition-price-interval" type="checkbox" name="condition[]" value="price" {if isset($settings.conditions.price)}checked{/if}>
+                            <input id="s-condition-price-interval" type="checkbox" name="condition[price]" value="price" {if isset($settings.conditions.price)}checked{/if}>
                         </td>
                         <td>
                             <label for="s-condition-price-interval">[`Price`]</label>
@@ -239,7 +239,7 @@
                     </tr>
                     <tr>
                         <td class="min-width">
-                            <input id="s-condition-rate" type="checkbox" name="condition[]" value="rating" {if isset($settings.conditions.rating)}checked{/if}>
+                            <input id="s-condition-rate" type="checkbox" name="condition[rating]" value="rating" {if isset($settings.conditions.rating)}checked{/if}>
                         </td>
                         <td>
                             <label for="s-condition-rate">[`Rating`]</label>
@@ -260,7 +260,7 @@
                     {if !empty($settings.cloud)}
                     <tr>
                         <td class="min-width">
-                            <input id="s-condition-tag" type="checkbox" name="condition[]" value="tag" {if isset($settings.conditions.tag)}checked{/if}>
+                            <input id="s-condition-tag" type="checkbox" name="condition[tag]" value="tag" {if isset($settings.conditions.tag)}checked{/if}>
                         </td>
                         <td>
                             <label for="s-condition-tag">[`Tags`]</label>
@@ -274,6 +274,50 @@
                         </td>
                     </tr>
                     {/if}
+                    <tr>
+                        <td class="min-width">
+                            <input id="s-condition-count" type="checkbox" name="condition[count]" value="count" {if isset($settings.conditions.count)}checked{/if}>
+                        </td>
+                        <td>
+                            <label for="s-condition-count">[`In stock`]</label>
+                        </td>
+                        <td>
+                            <select name="count[]">
+                                <option value=">=" {if isset($settings.conditions.count[0]) && $settings.conditions.count[0] == '>='}selected{/if}>[`is greater or equal`]</option>
+                                <option value="<=" {if isset($settings.conditions.count[0]) && $settings.conditions.count[0] == '<='}selected{/if}>[`is lesser or equal`]</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="count[]" id="s-c-category-count-value" value="{if isset($settings.conditions.count[1])}{$settings.conditions.count[1]}{else}0{/if}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="min-width">
+                            <input id="s-condition-compare_price" type="checkbox" name="condition[compare_price]" value="compare_price" {if isset($settings.conditions.compare_price)}checked{/if}>
+                        </td>
+                        <td colspan="3">
+                            <label for="s-condition-compare_price">[`Compare at price`]</label>
+                        </td>
+                    </tr>
+                    {foreach $settings.features as $f}
+                        <tr>
+                            <td class="min-width">
+                                <input id="s-condition-feature-{$f.code}" type="checkbox" name="condition[feature][]" value="{$f.code}" {if isset($settings.conditions.feature[$f.code])}checked{/if}>
+                            </td>
+                            <td>
+                                <label for="s-condition-feature-{$f.code}">{$f.name|escape}</label>
+                            </td>
+                            <td>
+                                <select name="feature_values[{$f.code}]" class="s-feature_value" data-feature-id="{$f.code}">
+                                    {foreach $f.values as $v_id => $value}
+                                        <option value="{$v_id}"{if is_object($value)} style="{$value.style|default:''}"{/if} {if isset($settings.conditions.feature[$f.code][1]) && $settings.conditions.feature[$f.code][1] == $v_id}selected{/if}>
+                                            {$value|escape}
+                                        </option>
+                                    {/foreach}
+                                </select>
+                            </td>
+                        </tr>
+                    {/foreach}
                 </tbody>
             </table>
             <!-- extra custom condition items -->
@@ -307,11 +351,20 @@
         $('#s-category-rate', d).click(function() {
             $('#s-condition-rate').attr('checked', true);
         });
+        $('select[name^=count]', d).change(function() {
+            $('#s-c-condition-count').attr('checked', true);
+        });
+        $('#s-category-count-value', d).click(function() {
+            $('#s-condition-count').attr('checked', true);
+        });
         d.on('change', 'input[name^=tag]', function() {
             $('#s-condition-tag').attr('checked', true);
         });
         d.on('keyup', 'input[name^=price]', function() {
             $('#s-condition-price-interval').attr('checked', true);
+        });
+        d.on('change', 'select.s-feature_value', function() {
+            $('#s-c-condition-feature-' + $(this).data('featureCode')).attr('checked', true);
         });
     }
     $('#s-category-allow-filter', d).click(function() {

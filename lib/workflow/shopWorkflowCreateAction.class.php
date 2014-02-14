@@ -23,9 +23,9 @@ class shopWorkflowCreateAction extends shopWorkflowAction
 
             // storefront stock-id
             $stock_id = waRequest::param('stock_id');
-            if (!$stock_id) {
-                $stock_model = new shopStockModel();
-                $stock_id = $stock_model->select('id')->order('sort')->limit(1)->fetchField('id');
+            $stock_model = new shopStockModel();
+            if (!$stock_id || !$stock_model->stockExists($stock_id)) {
+                $stock_id = $stock_model->select('id')->order('sort')->limit(1)->fetchField();
             }
 
             foreach ($data['items'] as &$item) {
@@ -173,6 +173,8 @@ class shopWorkflowCreateAction extends shopWorkflowAction
 
         $order_model = new shopOrderModel();
         $order = $order_model->getById($order_id);
+        $params_model = new shopOrderParamsModel();
+        $order['params'] = $params_model->get($order_id);
         // send notifications
         shopNotifications::send('order.'.$this->getId(), array(
             'order' => $order,

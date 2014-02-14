@@ -24,8 +24,12 @@ class shopDiscounts
 
         // Discount by order total applicable?
         if (self::isEnabled('order_total')) {
+            $crm = new shopCurrencyModel();
             $dbsm = new shopDiscountBySumModel();
-            $applicable_discounts[] = max(0.0, min(100.0, (float) $dbsm->getDiscount('order_total', $order['total']))) * $order['total'] / 100.0;
+
+            // Order total in default currency
+            $order_total = (float) $crm->convert($order['total'], wa()->getConfig()->getCurrency(false), wa()->getConfig()->getCurrency());
+            $applicable_discounts[] = max(0.0, min(100.0, (float) $dbsm->getDiscount('order_total', $order_total))) * $order['total'] / 100.0;
         }
 
         // Discount by customer total spent applicable?

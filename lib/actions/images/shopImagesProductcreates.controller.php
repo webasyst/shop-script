@@ -77,6 +77,7 @@ class shopImagesProductcreatesController extends waJsonController
 
         $product['skus'][-1] =
             array(
+                'name' => '',
                 'sku' => '',
                 'price' => $product['price'],
                 'available' => 1

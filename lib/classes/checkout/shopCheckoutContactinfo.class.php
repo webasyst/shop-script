@@ -99,6 +99,12 @@ class shopCheckoutContactinfo extends shopCheckout
             $errors = array();
             if (waRequest::post('create_user')) {
                 $login = waRequest::post('login');
+                if (!$login) {
+                    $errors['email'][] = _ws('Required');
+                }
+                if (!waRequest::post('password')) {
+                    $errors['password'] = _ws('Required');
+                }
                 $email_validator = new waEmailValidator();
                 if (!$email_validator->isValid($login)) {
                     $errors['email'] = $email_validator->getErrors();

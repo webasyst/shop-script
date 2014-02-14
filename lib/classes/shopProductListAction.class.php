@@ -31,15 +31,14 @@ class shopProductListAction extends waViewAction
      * @var shopProductsCollection
      */
     protected $collection;
+    
+    private $product_view;
 
     public function __construct($params = null) {
         parent::__construct($params);
         $this->hash = $this->getHash();
 
         if (!$this->hash) {
-            // default sort method saved in contact_settings
-            $contact_settings_model = new waContactSettingsModel();
-
             if (waRequest::get('sort')) {
                 $this->getUser()->setSettings('shop', 'all:sort', waRequest::get('sort').' '.waRequest::get('order', 'desc'));
             } else {
@@ -189,5 +188,24 @@ class shopProductListAction extends waViewAction
     {
         $data = $this->preAssign($data);
         $this->view->assign($data);
+    }
+    
+    public function getProductView()
+    {
+        if (!$this->product_view) {
+            $config = $this->getConfig();
+            $default_view = $this->getUser()->getSettings('shop', 'products_default_view');
+            if (!$default_view) {
+                $default_view = $config->getOption('products_default_view');
+            }
+            $view = waRequest::get('view', $default_view, waRequest::TYPE_STRING_TRIM);
+            $include_path = $config->getAppPath() . '/templates/actions/products/product_list_' . $view . '.html';
+            if (!file_exists($include_path)) {
+                $view = $default_view;
+            }
+            $this->product_view = $view;
+            $this->getUser()->setSettings('shop', 'products_default_view', $view);
+        }
+        return $this->product_view;
     }
 }

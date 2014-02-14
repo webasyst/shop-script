@@ -148,8 +148,8 @@ class shopImage
                 } else {
                     $h = $image->height;
                     $w = $image->height * $width / $height;
-                }
-                $image->crop($w, $h)->resize($width, $height);
+                }                
+                $image->crop($w, $h)->resize($width, $height, waImage::INVERSE);
                 break;
             default:
                 throw new waException("Unknown type");

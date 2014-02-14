@@ -103,7 +103,7 @@ class shopCsvProductuploadController extends shopUploadController
 
             $feature_options[] = array(
                 'value' => 'features:%s',
-                'title' => _w('Выбрать характеристику'),
+                'title' => _w('Select feature'),
             );
 
             unset($option);

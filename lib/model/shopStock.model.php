@@ -97,4 +97,9 @@ class shopStockModel extends waModel
 
         return $this->deleteById($stock_id);
     }
+    
+    public function stockExists($stock_id)
+    {
+        return !!$this->select('id')->where('id=i:id', array('id' => $stock_id))->fetchField();
+    }
 }

@@ -22,6 +22,7 @@
         {/foreach}
     </ul>
     <script type="text/javascript">
+        VK.callMethod("resizeWindow", $("body").outerWidth(), $("body").outerHeight());
         $(".checkout-options.payment input:radio").change(function () {
             if ($(this).is(':checked')) {
                 $(".checkout-options.payment .wa-form").hide();

@@ -30,7 +30,11 @@ class shopProductModel extends waModel
     {
         $type_model = new shopTypeModel();
         $type_ids = array_keys($type_model->getTypes());
-        $delete_ids = $this->filterAllowedProductIds($product_ids);
+        if (wa()->getEnv() !== 'cli') {
+            $delete_ids = $this->filterAllowedProductIds($product_ids);
+        } else {
+            $delete_ids = $product_ids;
+        }
 
         // remove files
         foreach ($delete_ids as $product_id) {

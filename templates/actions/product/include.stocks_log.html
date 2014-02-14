@@ -7,7 +7,7 @@
             <td>
                 <div>
                     {if !$product_id}
-                        <a href="#/product/{$row['product_id']}/edit/">
+                        <a href="#/product/{$row['product_id']}/">
                             {$row['product_name']|escape}
                             <span class="hint">{$row['sku_name']|escape}</span>
                         </a>
@@ -22,7 +22,9 @@
             <td>
                 {shopHelper::getStockCountIcon($row['after_count'], $row['stock_id'])}
                 {if $row['after_count'] !== null}{$row['after_count']}{else}∞{/if}
-                <span class="hint">@{$row['stock_name']|escape}</span>
+                {if $row['stock_name'] !== null}
+                    <span class="hint">@{$row['stock_name']|escape}</span>
+                {/if}
             </td>
                         
             <td>
@@ -48,7 +50,7 @@
 {if !$lazy}
 
     {function name="get_url_params" stock_id=null order=null}{strip}
-        {if $stock_id}stock_id={$stock_id}&{/if}{if $order}order={$order}{/if}
+        {if $stock_id || ($stock_id === '0' || $stock_id === 0)}stock_id={$stock_id}&{/if}{if $order}order={$order}{/if}
     {/strip}{/function}
 
     {function name="get_url" stock_id=null order=null}{strip}
@@ -61,7 +63,7 @@
 
     {if $log}
         <ul class="p-log-filters menu-h float-right small">
-            <li {if !$stock_id}class="selected"{/if}><a href="{get_url order=$order}">[`All stocks`]</a></li>
+            <li {if !$stock_id && ($stock_id !== '0' && $stock_id !== 0)}class="selected"{/if}><a href="{get_url order=$order}">[`All stocks`]</a></li>
             {foreach $stocks as $stock}
                 <li {if $stock_id == $stock['id']}class="selected"{/if}><a href="{get_url stock_id=$stock['id'] order=$order}">{$stock['name']|escape}</a></li>
             {/foreach}
@@ -100,7 +102,7 @@
     {else}
         <p class="gray">
             {if isset($stocks[$stock_id])}
-                {sprintf('[`There are no stock update records on @%s yet.`]', $stocks[$stock_id]['name'])};
+                {sprintf('[`There are no stock update records on @%s yet.`]', $stocks[$stock_id]['name'])}
             {else}
                 [`There are no stock update records yet.`]
             {/if}

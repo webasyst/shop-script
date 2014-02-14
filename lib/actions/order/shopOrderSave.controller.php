@@ -159,7 +159,11 @@ class shopOrderSaveController extends waJsonController
 
         foreach ($items as &$item) {
             if ($item['type'] == 'product') {
-                $w = isset($values[$item['product_id']]) ? $values[$item['product_id']] : 0;
+                if (isset($values['skus'][$item['sku_id']])) {
+                    $w = $values['skus'][$item['sku_id']];
+                } else {
+                    $w = isset($values[$item['product_id']]) ? $values[$item['product_id']] : 0;
+                }
                 if ($m !== null) {
                     $w = $w / $m;
                 }
@@ -201,6 +205,10 @@ class shopOrderSaveController extends waJsonController
             // save address
             if ($plugin->allowedAddress() === false) {
                 $empty_address = true;
+            }
+            if (!$rates) {
+                $this->errors['order']['common'] = _w('Unknown region for delivery');
+                return;
             }
             if (!$rate_id) {
                 $rate = reset($rates);
@@ -352,7 +360,9 @@ class shopOrderSaveController extends waJsonController
         $counts = array();
         foreach ($sku_stocks as $sku_id => &$stock) {
             if (empty($stock)) {
-                $counts[$sku_id] = $skus[$sku_id]['count'];
+                if (isset($skus[$sku_id]['count'])) {
+                    $counts[$sku_id] = $skus[$sku_id]['count'];
+                }
             } else {
                 foreach ($stock as $stock_id => $st) {
                     $counts[$sku_id][$stock_id] = $st['count'];
@@ -363,6 +373,9 @@ class shopOrderSaveController extends waJsonController
 
         // summarize stock counts with old usage as if temporary return items to stocks
         foreach ($old_usage as $sku_id => $ou) {
+            if (!isset($counts[$sku_id])) {
+                continue;
+            }
             if (!is_array($counts[$sku_id])) {
                 $cnt = array_sum((array)$ou);
                 if ($counts[$sku_id] !== null) {
@@ -386,6 +399,9 @@ class shopOrderSaveController extends waJsonController
         // AND NOW check CURRENT USAGE does not exceed COUNTs in stocks
         $error_sku_id = null;
         foreach ($usage as $sku_id => $u) {
+            if (!isset($counts[$sku_id])) {
+                continue;
+            }
             if (is_array($u)) {
                 foreach ($u as $stock_id => $cnt) {
                     if (isset($counts[$sku_id][$stock_id]) && $cnt > $counts[$sku_id][$stock_id]) {
@@ -502,7 +518,7 @@ class shopOrderSaveController extends waJsonController
                             $variant_ids[] = $variants[$index][$service_id];
                             $pitem['service_variant_id'] = $variants[$index][$service_id];
                         }
-                        unset($pitems);
+                        unset($pitem);
                     }
                 }
             }

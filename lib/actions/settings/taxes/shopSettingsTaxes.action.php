@@ -48,6 +48,9 @@ class shopSettingsTaxesAction extends waViewAction
         $this->view->assign('countries', $countries);
         $this->view->assign('taxes', $taxes);
         $this->view->assign('tax', $tax);
+        
+        $checkout_settings = $this->getConfig()->getCheckoutSettings();
+        $this->view->assign('billing_address_required', isset($checkout_settings['contactinfo']['fields']['address.billing']));
     }
 
     protected function getTaxCountries($tax, $countries)

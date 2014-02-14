@@ -336,7 +336,6 @@ class shopProductsSaveListSettingsController extends waJsonController
     private function getConditions()
     {
         $raw_condition = waRequest::post('condition');
-        $raw_condition = array_fill_keys((array)$raw_condition, false);
 
         $conditions = array();
         if (isset($raw_condition['rating'])) {
@@ -359,10 +358,26 @@ class shopProductsSaveListSettingsController extends waJsonController
             }
         }
 
+        if (isset($raw_condition['feature'])) {
+            $feature_values = waRequest::post('feature_values');
+            foreach ($raw_condition['feature'] as $f_code) {
+                $conditions[] = $f_code.'.value_id='.$feature_values[$f_code];
+            }
+        }
+        
+        if (isset($raw_condition['count'])) {
+            $raw_condition['count'] = waRequest::post('count');
+            $conditions[] = 'count' . $raw_condition['count'][0] . $raw_condition['count'][1];
+        }
+
+        if (isset($raw_condition['compare_price'])) {
+            $conditions[] = 'compare_price>0';
+        }
+        
         if ($custom_conditions = waRequest::post('custom_conditions')) {
             $conditions[] = $custom_conditions;
         }
-
+        
         $conditions = implode('&', $conditions);
         return $conditions;
     }

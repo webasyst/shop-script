@@ -310,7 +310,11 @@ class shopCheckoutShipping extends shopCheckout
         }
 
         foreach ($cart_items as $item) {
-            $w = isset($values[$item['product_id']]) ? $values[$item['product_id']] : 0;
+            if (isset($values['skus'][$item['sku_id']])) {
+                $w = $values['skus'][$item['sku_id']];
+            } else {
+                $w = isset($values[$item['product_id']]) ? $values[$item['product_id']] : 0;
+            }
             if ($m !== null) {
                 $w = $w / $m;
             }
