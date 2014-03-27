@@ -24,7 +24,7 @@ $public_path = wa()->getDataPath('products/', true, 'shop');
 $main_thumb_file = false;
 $file = false;
 $size = false;
-if (preg_match('@((?:\d{2}/){2}([0-9]+)/images/([0-9]+))/\\3\.(\d+(?:x\d+)?)\.([a-z]{3,4})@i', $request_file, $matches)) {
+if (preg_match('@((?:\d{2}/){2}([0-9]+)/images/([0-9]+))/\\3\.(\d+(?:x\d+x?)?)\.([a-z]{3,4})@i', $request_file, $matches)) {
     $file = $matches[1].'.'.$matches[5];
     $size = $matches[4];
     $gen_thumbs = $app_config->getOption('image_thumbs_on_demand');
