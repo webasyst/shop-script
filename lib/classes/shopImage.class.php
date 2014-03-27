@@ -150,6 +150,9 @@ class shopImage
                 }
                 $image->crop($w, $h)->resize($width, $height);
                 break;
+            case 'rectangle_crop':
+                $image->resize($width, $height, waImage::INVERSE)->crop($width, $height);
+                break;
             default:
                 throw new waException("Unknown type");
                 break;
@@ -158,7 +161,7 @@ class shopImage
     }
 
     /**
-     * Parsing size-code (e.g. 500x400, 500, 96x96, 200x0) into key-value array with info about this size
+     * Parsing size-code (e.g. 500x400, 500, 96x96, 200x0, 220x100x) into key-value array with info about this size
      *
      * @param string $size
      * @returns array
@@ -177,7 +180,9 @@ class shopImage
             if ($width == $height) { // crop
                 $type = 'crop';
             } else {
-                if ($width && $height) { // rectange
+                if ((count($ar_size) == 3) && $width && $height) { // rectangle_crop
+                    $type = 'rectangle_crop';
+                } elseif ($width && $height) { // rectange
                     $type = 'rectangle';
                 } else
                     if (is_null($width)) {
