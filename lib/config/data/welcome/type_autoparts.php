@@ -17,7 +17,7 @@ return array(
         'suitable_models' => array(
             'name' => 'Suitable automobile models',
             'type' => shopFeatureModel::TYPE_VARCHAR,
-            'selecable' => true,
+            'selectable' => true,
             'multiple' => true
         ),
         'weight' => array(
