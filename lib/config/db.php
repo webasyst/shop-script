@@ -121,7 +121,7 @@ return array(
     ),
     'shop_currency' => array(
         'code' => array('char', 3, 'null' => 0),
-        'rate' => array('decimal', "15,8", 'null' => 0, 'default' => '1.00000000'),
+        'rate' => array('decimal', "18,10", 'null' => 0, 'default' => '1.0000000000'),
         'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'code',
@@ -435,6 +435,8 @@ return array(
         'badge' => array('varchar', 255),
         'sku_type' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
         'base_price_selectable' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
+        'compare_price_selectable' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
+        'purchase_price_selectable' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'sku_count' => array('int', 11, 'null' => 0, 'default' => '1'),
         ':keys' => array(
             'PRIMARY' => 'id',
@@ -563,7 +565,7 @@ return array(
         'product_id' => array('int', 11, 'null' => 0),
         'sku' => array('varchar', 255, 'null' => 0),
         'sort' => array('int', 11, 'null' => 0),
-        'name' => array('varchar', 255, 'null' => 0),
+        'name' => array('varchar', 255, 'null' => 0, 'default' => ''),
         'image_id' => array('int', 11),
         'price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'primary_price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),

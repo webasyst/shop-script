@@ -8,7 +8,7 @@ class shopOrdersInfoMobileAction extends shopMobileViewAction
     public function execute()
     {
         $id = waRequest::request('id', 0, 'int');
-        if (!$id) {
+        if (!$id || !wa()->getUser()->getRights('shop', 'orders')) {
             $this->redirect(wa()->getAppUrl());
         }
 
@@ -16,8 +16,8 @@ class shopOrdersInfoMobileAction extends shopMobileViewAction
         $om = new shopOrderModel();
         $order = $om->getOrder($id);
         shopHelper::workupOrders($order, true);
-        $order['tax'] = (float) $order['tax'];
-        $order['discount'] = (float) $order['discount'];
+        $order['tax'] = (float)$order['tax'];
+        $order['discount'] = (float)$order['discount'];
 
         // Order params
         $opm = new shopOrderParamsModel();
@@ -25,8 +25,8 @@ class shopOrdersInfoMobileAction extends shopMobileViewAction
 
         // Order subtotal
         $order_subtotal = 0;
-        foreach($order['items'] as $i) {
-            $order_subtotal += $i['price']*$i['quantity'];
+        foreach ($order['items'] as $i) {
+            $order_subtotal += $i['price'] * $i['quantity'];
         }
 
         // Format addresses
@@ -52,7 +52,7 @@ class shopOrdersInfoMobileAction extends shopMobileViewAction
         $log_model = new shopOrderLogModel();
         $log = $log_model->getLog($order['id']);
         $order_comment = '';
-        foreach($log as $l) {
+        foreach ($log as $l) {
             if ($l['action_id'] == 'create') {
                 $order_comment = $l['text'];
                 break;
@@ -63,10 +63,10 @@ class shopOrdersInfoMobileAction extends shopMobileViewAction
         $contact = $customer = self::getCustomer($order);
         $top = array();
         foreach (array('email', 'phone') as $f) {
-            if ( ( $v = $contact->get($f, 'top,html'))) {
+            if (($v = $contact->get($f, 'top,html'))) {
                 $top[] = array(
-                    'id' => $f,
-                    'name' => waContactFields::get($f)->getName(),
+                    'id'    => $f,
+                    'name'  => waContactFields::get($f)->getName(),
                     'value' => is_array($v) ? implode(', ', $v) : $v,
                 );
             }
@@ -117,7 +117,8 @@ class shopOrdersInfoMobileAction extends shopMobileViewAction
                 $customer['name'] = ifset($order['params']['contact_name'], '');
                 $customer['email'] = ifset($order['params']['contact_email'], '');
                 $customer['phone'] = ifset($order['params']['contact_phone'], '');
-            } catch (Exception $e) {}
+            } catch (Exception $e) {
+            }
         }
         return $customer;
     }

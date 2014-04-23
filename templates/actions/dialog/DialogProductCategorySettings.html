@@ -138,21 +138,17 @@
     <div class="field description">
         <div class="name">
             <label for="description">
-                [`Description`]<br><span class="hint">[`HTML`]</span>
+                [`Description`]
             </label>
         </div>
         <div class="value">
-            <i class="icon16 loading"></i>
-            <div class="s-editor-core-wrapper" style="display:none;">
-                <ul id="s-category-description-wysiwyg-html-toggle" class="s-wysiwyg-html-toggle">
-                    <li><a id="wysiwyg" href="#">[`WYSIWYG`]</a></li>
-                    <li class="selected"><a id="html" href="#">HTML</a></li>
+            <div class="wa-editor-core-wrapper s-editor-core-wrapper" style="display: none">
+                <ul class="wa-editor-wysiwyg-html-toggle s-wysiwyg-html-toggle">
+                    <li class="selected"><a class="wysiwyg" href="#">[s`WYSIWYG`]</a></li>
+                    <li><a class="html" href="#">HTML</a></li>
                 </ul>
                 <div>
                     <textarea style="display:none" id="s-category-description-content" name="description">{if $settings.description}{$settings.description}{/if}</textarea>
-                    <div class="ace">
-                        <div id="wa-ace-editor-container"></div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -307,7 +303,8 @@
                             <td>
                                 <label for="s-condition-feature-{$f.code}">{$f.name|escape}</label>
                             </td>
-                            <td>
+                            <td colspan="2">
+                                <div style="max-width: 600px; overflow: hidden;">
                                 <select name="feature_values[{$f.code}]" class="s-feature_value" data-feature-id="{$f.code}">
                                     {foreach $f.values as $v_id => $value}
                                         <option value="{$v_id}"{if is_object($value)} style="{$value.style|default:''}"{/if} {if isset($settings.conditions.feature[$f.code][1]) && $settings.conditions.feature[$f.code][1] == $v_id}selected{/if}>
@@ -315,6 +312,7 @@
                                         </option>
                                     {/foreach}
                                 </select>
+                                </div>
                             </td>
                         </tr>
                     {/foreach}
@@ -439,6 +437,10 @@
         handle: '.sort',
         cursor: 'move',
         tolerance: 'pointer'
+    });
+    
+    d.data('uploadFields', {
+        '_csrf': "{waRequest::cookie('_csrf', '')}"
     });
 
 </script>

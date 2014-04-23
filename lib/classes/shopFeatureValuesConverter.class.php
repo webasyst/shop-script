@@ -265,7 +265,7 @@ class shopFeatureValuesConverter
         if (is_array($feature)) {
             $feature_id = $feature['id'];
         } else {
-            $feature_id = (int) $feature_id;
+            $feature_id = (int) $feature;
             $feature = $this->feature_model->getById($feature_id);
         }
         

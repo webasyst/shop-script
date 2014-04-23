@@ -1,4 +1,5 @@
 <?php
+
 class shopProductFeaturesModel extends waModel implements shopProductStorageInterface
 {
     protected $table = 'shop_product_features';
@@ -6,7 +7,8 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
     //protected $id = array('product_id', 'sku_id', 'feature_id', 'feature_value_id', );
 
     /**
-     * @param array $product_ids
+     * @param int[] $product_ids
+     * @return bool
      */
     public function deleteByProducts(array $product_ids)
     {
@@ -26,7 +28,12 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         return $result;
     }
 
-    public function getSkuFeatures($product_id)
+    /**
+     * @param int $product_id
+     * @param string $key
+     * @return int[][] value_id[$key][sku_id]
+     */
+    public function getSkuFeatures($product_id, $key = 'feature_id')
     {
         if (!$product_id) {
             return array();
@@ -35,7 +42,12 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         $result = array();
         $rows = $this->query($sql, array('id' => $product_id))->fetchAll();
         foreach ($rows as $row) {
-            $result[$row['sku_id']][$row['feature_id']] = $row['feature_value_id'];
+            $row = array_map('intval', $row);
+            $result[$row['sku_id']][$row[$key]] = $row['feature_value_id'];
+        }
+        foreach ($result as &$sku) {
+            ksort($sku, SORT_NUMERIC);
+            unset($sku);
         }
         return $result;
     }
@@ -54,6 +66,35 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         }
         $sql .= " LIMIT 1";
         return $this->query($sql)->fetchField();
+    }
+
+    public function getSkusByFeatures($product_ids, $features)
+    {
+        if (!$product_ids || !$features) {
+            return array();
+        }
+        $sql = "SELECT s.id, s.product_id, s.price, s.compare_price, s.sort FROM ".$this->table." t0
+                JOIN shop_product_skus s ON t0.sku_id = s.id";
+        for ($i = 1; $i < count($features); $i++) {
+            $sql .= " JOIN ".$this->table." t".$i." ON t0.product_id = t".$i.".product_id AND t0.sku_id = t".$i.".sku_id";
+        }
+        $sql .= " WHERE t0.product_id IN (i:product_ids) AND t0.sku_id IS NOT NULL";
+        $i = 0;
+        foreach ($features as $f => $v) {
+            $sql .= " AND t".$i.".feature_id = ".(int)$f." AND t".$i.".feature_value_id ";
+            if (is_array($v)) {
+                $sql .= 'IN ('.implode(',', array_map('intval', $v)).')';
+            } else {
+                $sql .= '= '.(int)$v;
+            }
+            $i++;
+        }
+        $result = array();
+        $rows = $this->query($sql, array('product_ids' => $product_ids))->fetchAll();
+        foreach ($rows as $row) {
+            $result[$row['product_id']][] = $row;
+        }
+        return $result;
     }
 
     public function deleteByFeature($feature_id, $feature_value_id = null)
@@ -80,7 +121,12 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         }
         $sql .= " WHERE pf.product_id = i:id AND ";
         if ($sku_id) {
-            $sql .= '(pf.sku_id = i:sku_id OR pf.sku_id IS NULL) ORDER BY pf.sku_id';
+            if ($sku_id > 0) {
+                $sql .= '(pf.sku_id = i:sku_id OR pf.sku_id IS NULL) ORDER BY pf.sku_id';
+            } else {
+                $sql .= '(pf.sku_id = i:sku_id) ORDER BY pf.sku_id';
+                $sku_id = -$sku_id;
+            }
         } else {
             $sql .= 'pf.sku_id IS NULL';
         }
@@ -95,6 +141,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             'type_id' => $type_id,
         );
         $data = $this->query($sql, $params);
+
         $result = array();
         foreach ($data as $row) {
             if ($sku_id && $row['code'] == 'weight' && !$row['sku_id']) {
@@ -141,6 +188,8 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 if (isset($features[$feature_id])) {
                     $f = $features[$feature_id];
                     $result[$f['code']] = ($sku_id || empty($f['multiple'])) ? reset($values) : $values;
+                } else {
+                    //obsolete feature value
                 }
             }
         }
@@ -181,9 +230,10 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 $n = $matches[1];
                 $pattern = '/^'.implode('\\s*[×xX\\*]?\\s*', array_fill(0, $n, '([^\\s]+)')).'(\\s+.+)?$/u';
                 if (preg_match($pattern, trim($value), $matches)) {
+                    $unit = ifset($matches[$n + 1]);
                     for ($i = 0; $i < $n; $i++) {
                         $c_code = $code.'.'.$i;
-                        $data[$c_code] = $matches[$i + 1].$matches[$n + 1];
+                        $data[$c_code] = $matches[$i + 1].$unit;
                         $composite_codes[] = $c_code;
                     }
                     unset($features[$code]);

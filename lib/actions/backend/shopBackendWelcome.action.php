@@ -26,7 +26,10 @@ class shopBackendWelcomeAction extends waViewAction
                 $this->translate = array();
             }
         }
+
         if (waRequest::post()) {
+            $app_settings_model = new waAppSettingsModel();
+            $app_settings_model->del('shop', 'welcome');
             $this->setup();
         } else {
             $this->overview();

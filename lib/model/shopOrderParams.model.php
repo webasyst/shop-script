@@ -26,6 +26,8 @@ class shopOrderParamsModel extends waModel
                     }
                     if (!empty($shipping[$p['value']])) {
                         $params[$p['order_id']]['shipping_description'] = $shipping[$p['value']]['description'];
+                    } else {
+                        $params[$p['order_id']]['shipping_description'] = '';
                     }
                 }
                 if ($p['name'] == 'payment_id' && $p['value']) {
@@ -34,6 +36,8 @@ class shopOrderParamsModel extends waModel
                     }
                     if (!empty($payment[$p['value']])) {
                         $params[$p['order_id']]['payment_description'] = $payment[$p['value']]['description'];
+                    } else {
+                        $params[$p['order_id']]['payment_description'] = '';
                     }
                 }
             }

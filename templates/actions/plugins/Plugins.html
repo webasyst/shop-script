@@ -38,6 +38,14 @@
                     </li>
                 {/foreach}
             </ul>
+            {if empty($plugins1)}
+                {* nothing was displayed in foreach above *}
+                <div class="align-center hint hr block double-padded">
+                    <p>
+                        [`No plugins are installed.`]
+                    </p>
+                </div>
+            {/if}
         </div>
     </div>
     <div class="content left200px blank bordered-left">

@@ -9,6 +9,8 @@ class shopDiscounts
      */
     public static function calculate(&$order, $apply = false)
     {
+        $currency = isset($order['currency']) ? $order['currency'] :  wa()->getConfig()->getCurrency(false);
+
         $applicable_discounts = array();
         $contact = self::getContact($order);
 
@@ -28,7 +30,7 @@ class shopDiscounts
             $dbsm = new shopDiscountBySumModel();
 
             // Order total in default currency
-            $order_total = (float) $crm->convert($order['total'], wa()->getConfig()->getCurrency(false), wa()->getConfig()->getCurrency());
+            $order_total = (float) $crm->convert($order['total'], $currency, wa()->getConfig()->getCurrency());
             $applicable_discounts[] = max(0.0, min(100.0, (float) $dbsm->getDiscount('order_total', $order_total))) * $order['total'] / 100.0;
         }
 
@@ -113,6 +115,8 @@ class shopDiscounts
     /** Coupon discounts implementation. */
     protected static function byCoupons(&$order, $contact, $apply)
     {
+        $currency = isset($order['currency']) ? $order['currency'] :  wa()->getConfig()->getCurrency(false);
+
         $checkout_data = wa()->getStorage()->read('shop/checkout');
         if (empty($checkout_data['coupon_code'])) {
             return 0; // !!! Will this fail when recalculating existing order?
@@ -135,9 +139,9 @@ class shopDiscounts
             default:
                 // Flat value in currency
                 $result = max(0.0, (float) $coupon['value']);
-                if (wa()->getConfig()->getCurrency(false) != $coupon['type']) {
+                if ($currency != $coupon['type']) {
                     $crm = new shopCurrencyModel();
-                    $result = (float) $crm->convert($result, $coupon['type'], wa()->getConfig()->getCurrency(false));
+                    $result = (float) $crm->convert($result, $coupon['type'], $currency);
                 }
                 break;
         }

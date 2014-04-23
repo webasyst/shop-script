@@ -60,15 +60,15 @@
     <div class="field description">
         <div class="name">
             <label for="description">
-                [`Description`]<br><span class="hint">[`HTML`]</span>
+                [`Description`]
             </label>
         </div>
         <div class="value">
             <i class="icon16 loading"></i>
-            <div class="s-editor-core-wrapper" style="display:none;">
-                <ul id="s-category-description-wysiwyg-html-toggle" class="s-wysiwyg-html-toggle">
-                    <li><a id="wysiwyg" href="#">[`WYSIWYG`]</a></li>
-                    <li class="selected"><a id="html" href="#">HTML</a></li>
+            <div class="s-editor-core-wrapper wa-editor-core-wrapper" style="display:none;">
+                <ul class="wa-editor-wysiwyg-html-toggle s-wysiwyg-html-toggle">
+                    <li class="selected"><a class="wysiwyg" href="#">[s`WYSIWYG`]</a></li>
+                    <li><a class="html" href="#">HTML</a></li>
                 </ul>
                 <div>
                     <textarea style="display:none" id="s-category-description-content" name="description"></textarea>
@@ -288,6 +288,11 @@
         })();
         
         $.shop.makeFlexibleInput('s-c-meta-title');
+        
+        
+        d.data('uploadFields', {
+            '_csrf': "{waRequest::cookie('_csrf', '')}"
+        });
         
     });
 </script>

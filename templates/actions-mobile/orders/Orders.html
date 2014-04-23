@@ -4,6 +4,9 @@
 </div>
 
 <div data-role="content" class="content">
+    {if $orders === false}
+    <h3>[`You don't have enough access permissions to view order list.`]</h3>
+    {else}
     <ul data-role="listview">
         {foreach $orders as $o}
             <li><a href="?module=orders&action=infoMobile&id={$o.id}" style="{$o.style}">
@@ -12,5 +15,6 @@
         {/foreach}
     </ul>
     {*  !!! TODO: Lazy Loading?.. *}
+    {/if}
 </div>
 

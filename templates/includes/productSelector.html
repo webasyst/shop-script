@@ -6,28 +6,28 @@
 *}
 <div class="field">
     <div class="name">
-        [`Select products`]
+        {_wd('shop',"Select products")}
     </div>
     {$hash = shopImportexportHelper::parseHash($hash)}
     <div class="value">
         <div class="sidebar left200px">
             <ul class="menu-v">
                 <li>
-                    <label class="black"><input type="radio" value="" name="hash"{if empty($hash.type)} checked="checked"{/if}> [`All products`]</label>
+                    <label class="black"><input type="radio" value="" name="hash"{if empty($hash.type)} checked="checked"{/if}> {_wd('shop',"All products")}</label>
                 </li>
                 <li{if $hash.type neq 'id'} style="display: none;"{/if}>
                     <label class="black"><input type="radio" value="id" name="hash"{if $hash.type eq 'id'} checked="checked"{/if}>
-                        <input type="hidden" value="{$hash.product_ids|default:''}" name="product_ids"> <span>{if $hash.type eq 'id'}{$hash.count|string_format:"[`Selected products (%d)`]"}{else}[`Selected products (%d)`]{/if}</span></label>
+                        <input type="hidden" value="{$hash.product_ids|default:''}" name="product_ids"> <span>{if $hash.type eq 'id'}{$hash.count|string_format:"{_wd('shop',"Selected products (%d)")}"}{else}{_wd('shop',"Selected products (%d)")}{/if}</span></label>
                 </li>
                 <li{if $hash.type neq 'category'} style="display: none;"{/if}>
                     <label class="black"><input type="radio" value="category" name="hash"{if $hash.type eq 'category'} checked="checked"{/if}>
-                        <input type="hidden" value="{$hash.category_ids|default:''}" name="category_ids"> <span>{if $hash.type eq 'category'}{$hash.count|string_format:"[`Selected categories (%d)`]"}{else}[`Selected categories (%d)`]{/if}</span></label>
+                        <input type="hidden" value="{$hash.category_ids|default:''}" name="category_ids"> <span>{if $hash.type eq 'category'}{$hash.count|string_format:"{_wd('shop',"Selected categories (%d)")}"}{else}{_wd('shop',"Selected categories (%d)")}{/if}</span></label>
                 </li>
                 <li>
-                    <label class="black"><input type="radio" value="set" name="hash"{if $hash.type eq 'set'} checked="checked"{/if}> [`Sets`]</label>
+                    <label class="black"><input type="radio" value="set" name="hash"{if $hash.type eq 'set'} checked="checked"{/if}> {_wd('shop',"Sets")}</label>
                 </li>
                 <li>
-                    <label class="black"><input type="radio" value="type" name="hash"{if $hash.type eq 'type'} checked="checked"{/if}> [`Product types`]</label>
+                    <label class="black"><input type="radio" value="type" name="hash"{if $hash.type eq 'type'} checked="checked"{/if}> {_wd('shop',"Product types")}</label>
                 </li>
             </ul>
         </div>
@@ -45,7 +45,7 @@
                         </li>
                     {/foreach}
                 </ul>
-                {if !empty($hints.set)}<br/><span class="gray">{$hints.set}</span>{/if}
+                {if !empty($hints.set)}<br/><span class="small">{$hints.set}</span>{/if}
             </div>
         </div>
         <div class="value js-hash-values js-hash-type" style="width: 400px;">
@@ -61,7 +61,18 @@
                         </li>
                     {/if}{/foreach}
                 </ul>
-                {if !empty($hints.type)}<br/><span class="gray">{$hints.type}</span>{/if}
+                {if !empty($hints.type)}<br/><span class="small">{$hints.type}</span>{/if}
+            </div>
+        </div>
+        <div class="value js-hash-values js-hash-id" style="width: 400px;">
+            <div class="bordered-left" style="padding-left: 20px;">
+                {if !empty($hints.id)}<br/><span class="small">{$hints.id}</span>{/if}
+            </div>
+        </div>
+        <div class="value js-hash-values js-hash-category" style="width: 400px;">
+            <div class="bordered-left" style="padding-left: 20px;">
+                <label><input type="checkbox"> {_wd('shop','Include products from sub-categories')}</label>
+                {if !empty($hints.category)}<br/><span class="gray">{$hints.category}</span>{/if}
             </div>
         </div>
     </div>

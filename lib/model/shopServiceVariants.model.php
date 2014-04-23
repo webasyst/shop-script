@@ -24,6 +24,9 @@ class shopServiceVariantsModel extends waModel
 
     public function getWithPrice($ids)
     {
+        if (!$ids) {
+            return array();
+        }
         $sql = "SELECT v.*, IFNULL(v.price, s.price) price, s.currency FROM ".$this->table." v
                 JOIN shop_service s ON v.service_id = s.id
                 WHERE v.id IN (i:ids)";

@@ -18,7 +18,7 @@ class shopSettingsFeaturesTypeSaveController extends waJsonController
 
         $model = new shopTypeModel();
         if (!empty($data['id'])) {
-            $res = $model->updateById($data['id'], $data);
+            $model->updateById($data['id'], $data);
         } else {
             $data['sort'] = $model->select('MAX(sort)+1 as max_sort')->fetchField('max_sort');
             $data['id'] = $model->insert($data);

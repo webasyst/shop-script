@@ -329,7 +329,9 @@
                         &minus; <input type="text" class="numerical short" id="discount" name="discount" {if $order}value="{(float)$order.discount}"{/if}>
                         <span class="currency">{$currency}</span>
                     </td>
-                    <td></td>
+                    <td>
+                        {if $order}<a href="#" style="display: none" id="update-discount"><i class="icon16 update"></i></a>{/if}
+                    </td>
                 </tr>
 
                 <!-- total -->
@@ -362,7 +364,12 @@
 </form>
 
 <script type="text/javascript" src="{$wa_app_static_url}js/order/edit.js?v{$wa->version()}"></script>
-<script>
+<script type="text/javascript">
+    $('#update-discount').click(function () {
+        $('#discount').val($(this).data('value')).change();
+        $(this).hide();
+        return false;
+    });
     var count_new = {if !empty($count_new)}{$count_new}{else}0{/if};
     var title = {if !$order}'{"[`New order`]"|cat:" — ":{$wa->accountName(false)}|escape:"javascript"}'{else}'{$wa->shop->orderId($order.id)|cat:" — ":{$wa->accountName(false)}|escape:"javascript"}'{/if};
     if (title && count_new) {
@@ -378,7 +385,8 @@
         stocks: {json_encode(array_values($stocks))},
         ignore_stock_count: {if $ignore_stock_count}true{else}false{/if},
         title: title,
-        float_delimeter: {if strpos((string)3.14, ",") !== false}","{else}"."{/if}
+        float_delimeter: {if strpos((string)3.14, ",") !== false}","{else}"."{/if},
+        price_edit: true
     });
 
     {if $order && !$has_contacts_rights}

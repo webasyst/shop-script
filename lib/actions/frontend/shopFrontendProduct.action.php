@@ -7,7 +7,8 @@ class shopFrontendProductAction extends shopFrontendAction
      */
     protected $reviews_model;
 
-    public function __construct($params = null) {
+    public function __construct($params = null)
+    {
         $this->reviews_model = new shopProductReviewsModel();
         parent::__construct($params);
     }
@@ -32,17 +33,17 @@ class shopFrontendProductAction extends shopFrontendAction
             }
             foreach ($path as $row) {
                 $breadcrumbs[] = array(
-                    'url' => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $row['url'] : $row['full_url'])),
+                    'url'  => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $row['url'] : $row['full_url'])),
                     'name' => $row['name']
                 );
             }
             $breadcrumbs[] = array(
-                'url' => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'])),
+                'url'  => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'])),
                 'name' => $category['name']
             );
             if ($product_link) {
                 $breadcrumbs[] = array(
-                    'url' => wa()->getRouteUrl('/frontend/product', array('product_url' => $product['url'], 'category_url' => $product['category_url'])),
+                    'url'  => wa()->getRouteUrl('/frontend/product', array('product_url' => $product['url'], 'category_url' => $product['category_url'])),
                     'name' => $product['name']
                 );
             }
@@ -77,13 +78,13 @@ class shopFrontendProductAction extends shopFrontendAction
         if (!$product->skus) {
             $product->skus = array(
                 null => array(
-                    'name' => '',
-                    'sku' => '',
-                    'id' => null,
+                    'name'      => '',
+                    'sku'       => '',
+                    'id'        => null,
                     'available' => false,
-                    'count' => 0,
-                    'price' => null,
-                    'stock' => array()
+                    'count'     => 0,
+                    'price'     => null,
+                    'stock'     => array()
                 )
             );
         }
@@ -100,7 +101,7 @@ class shopFrontendProductAction extends shopFrontendAction
         // check categories
         if ($product['categories']) {
             $categories = $product['categories'];
-            $route = wa()->getRouting()->getDomain(null, true) . '/' . wa()->getRouting()->getRoute('url');
+            $route = wa()->getRouting()->getDomain(null, true).'/'.wa()->getRouting()->getRoute('url');
             $category_routes_model = new shopCategoryRoutesModel();
             $routes = $category_routes_model->getRoutes(array_keys($categories));
             foreach ($categories as $c) {
@@ -115,18 +116,7 @@ class shopFrontendProductAction extends shopFrontendAction
         $this->view->assign('product', $product);
 
         if ($product->sku_type == shopProductModel::SKU_TYPE_SELECTABLE) {
-            $features_selectable_model = new shopProductFeaturesSelectableModel();
-            $selectable = $features_selectable_model->getByProduct($product->id);
-            $feature_model = new shopFeatureModel();
-            $features_selectable = $feature_model->getById(array_keys($selectable));
-            $features_selectable = $feature_model->getValues($features_selectable);
-            foreach ($features_selectable as $f_id => $f) {
-                foreach ($f['values'] as $v_id => $v) {
-                    if (!in_array($v_id, $selectable[$f_id])) {
-                        unset($features_selectable[$f_id]['values'][$v_id]);
-                    }
-                }
-            }
+            $features_selectable = $product->features_selectable;
             $this->view->assign('features_selectable', $features_selectable);
 
             $product_features_model = new shopProductFeaturesModel();
@@ -145,11 +135,11 @@ class shopFrontendProductAction extends shopFrontendAction
                 }
                 $sku = $product->skus[$sku_id];
                 $sku_selectable[$sku_f] = array(
-                    'id' => $sku_id,
-                    'price' => (float)shop_currency($sku['price'], $product['currency'], null, false),
+                    'id'        => $sku_id,
+                    'price'     => (float)shop_currency($sku['price'], $product['currency'], null, false),
                     'available' => $product->status && $sku['available'] &&
                         ($this->getConfig()->getGeneralSettings('ignore_stock_count') || $sku['count'] === null || $sku['count'] > 0),
-                    'image_id' => (int)$sku['image_id']
+                    'image_id'  => (int)$sku['image_id']
                 );
                 if ($sku['compare_price']) {
                     $sku_selectable[$sku_f]['compare_price'] = (float)shop_currency($sku['compare_price'], $product['currency'], null, false);
@@ -237,7 +227,8 @@ class shopFrontendProductAction extends shopFrontendAction
                 } elseif ($row['price'] !== null) {
                     // update price
                     $services[$row['service_id']]['variants'][$row['service_variant_id']]['price'] = $row['price'];
-                } elseif ($row['status'] == shopProductServicesModel::STATUS_DEFAULT) {
+                }
+                if ($row['status'] == shopProductServicesModel::STATUS_DEFAULT) {
                     // update default
                     $services[$row['service_id']]['variant_id'] = $row['service_variant_id'];
                 }
@@ -297,7 +288,7 @@ class shopFrontendProductAction extends shopFrontendAction
             }
             if ($s['currency'] == '%') {
                 foreach ($s['variants'] as $v_id => $v) {
-                    $s['variants'][$v_id]['price'] = $v['price'] *  $product['skus'][$product['sku_id']]['price'] / 100;
+                    $s['variants'][$v_id]['price'] = $v['price'] * $product['skus'][$product['sku_id']]['price'] / 100;
                 }
                 $s['currency'] = $product['currency'];
             }
@@ -354,7 +345,7 @@ class shopFrontendProductAction extends shopFrontendAction
          * @return array[string][string]string $return[%plugin_id%]['block_aux'] html output
          * @return array[string][string]string $return[%plugin_id%]['block'] html output
          */
-        $this->view->assign('frontend_product', wa()->event('frontend_product', $product, array('menu','cart','block_aux','block')));
+        $this->view->assign('frontend_product', wa()->event('frontend_product', $product, array('menu', 'cart', 'block_aux', 'block')));
 
         $sku_stocks = array();
         foreach ($product->skus as $sku) {
@@ -371,13 +362,13 @@ class shopFrontendProductAction extends shopFrontendAction
         $currency = waCurrency::getInfo($this->getConfig()->getCurrency(false));
         $locale = waLocale::getInfo(wa()->getLocale());
         return array(
-            'code' => $currency['code'],
-            'sign' => $currency['sign'],
-            'sign_html' => !empty($currency['sign_html']) ? $currency['sign_html'] : $currency['sign'],
+            'code'          => $currency['code'],
+            'sign'          => $currency['sign'],
+            'sign_html'     => !empty($currency['sign_html']) ? $currency['sign_html'] : $currency['sign'],
             'sign_position' => isset($currency['sign_position']) ? $currency['sign_position'] : 1,
-            'sign_delim' => isset($currency['sign_delim']) ? $currency['sign_delim'] : ' ',
+            'sign_delim'    => isset($currency['sign_delim']) ? $currency['sign_delim'] : ' ',
             'decimal_point' => $locale['decimal_point'],
-            'frac_digits' => $locale['frac_digits'],
+            'frac_digits'   => $locale['frac_digits'],
             'thousands_sep' => $locale['thousands_sep'],
         );
     }
@@ -399,12 +390,12 @@ class shopFrontendProductAction extends shopFrontendAction
     protected function getTopReviews($product_id)
     {
         return $this->reviews_model->getReviews($product_id,
-                0, wa()->getConfig()->getOption('reviews_per_page_product'),
-                'datetime DESC',
-                array('escape' => true)
+            0, wa()->getConfig()->getOption('reviews_per_page_product'),
+            'datetime DESC',
+            array('escape' => true)
         );
     }
-    
+
     protected function getMetafields($product)
     {
         $search = array('{$name}', '{$price}', '{$summary}');

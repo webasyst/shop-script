@@ -297,6 +297,7 @@ class shopFrontendCartAction extends shopFrontendAction
                 $this->view->assign('used_affiliate_bonus', $order['params']['affiliate_bonus']);
             }
 
+            $order['currency'] = $this->getConfig()->getCurrency(false);
             $add_affiliate_bonus = shopAffiliate::calculateBonus($order);
             $this->view->assign('add_affiliate_bonus', round($add_affiliate_bonus, 2));
         }

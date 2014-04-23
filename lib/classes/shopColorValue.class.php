@@ -70,6 +70,9 @@ HTML;
 HTML;
                 }
                 break;
+            case 'compare':
+                return trim($this->value);
+                break;
             default:
                 return isset($this->$field) ? $this->$field : $this->convert($field);
                 break;

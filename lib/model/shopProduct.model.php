@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  * @author WebAsyst Team
@@ -28,13 +29,12 @@ class shopProductModel extends waModel
 
     public function delete(array $product_ids)
     {
-        $type_model = new shopTypeModel();
-        $type_ids = array_keys($type_model->getTypes());
         if (wa()->getEnv() !== 'cli') {
             $delete_ids = $this->filterAllowedProductIds($product_ids);
         } else {
             $delete_ids = $product_ids;
         }
+
 
         // remove files
         foreach ($delete_ids as $product_id) {
@@ -52,35 +52,41 @@ class shopProductModel extends waModel
         $params = array('ids' => $delete_ids);
         /**
          * @event product_delete
-         * @param array[string]mixed $params
-         * @param array[string]array $params['ids'] Array of IDs of deleted product entries
+         * @param array [string]mixed $params
+         * @param array [string]array $params['ids'] Array of IDs of deleted product entries
          * @return void
          */
         wa()->event('product_delete', $params);
 
         // remove from related models
         foreach (array(
-            new shopProductFeaturesModel(),
-            new shopProductImagesModel(),
-            new shopProductReviewsModel(),
-            new shopProductServicesModel(),
-            new shopProductSkusModel(),
-            new shopProductStocksModel(),
-            new shopProductStocksLogModel(),
-            new shopProductTagsModel(),
-            new shopCategoryProductsModel(),
-            new shopSetProductsModel(),
-            new shopSearchIndexModel(),
-            new shopProductFeaturesSelectableModel(),
-            new shopProductParamsModel(),
-            new shopCartItemsModel()
-        ) as $model) {
+                     new shopProductFeaturesModel(),
+                     new shopProductImagesModel(),
+                     new shopProductReviewsModel(),
+                     new shopProductServicesModel(),
+                     new shopProductSkusModel(),
+                     new shopProductStocksModel(),
+                     new shopProductStocksLogModel(),
+                     new shopProductTagsModel(),
+                     new shopCategoryProductsModel(),
+                     new shopSetProductsModel(),
+                     new shopSearchIndexModel(),
+                     new shopProductFeaturesSelectableModel(),
+                     new shopProductParamsModel(),
+                     new shopCartItemsModel()
+                 ) as $model) {
             $model->deleteByProducts($delete_ids);
         }
 
+        $type_ids = $this
+            ->select('DISTINCT `type_id`')
+            ->where($this->getWhereByField($this->id, $delete_ids))
+            ->fetchAll('type_id');
+
         // remove records
         if ($this->deleteById($delete_ids)) {
-            $type_model->recount($type_ids);
+            $type_model = new shopTypeModel();
+            $type_model->recount(array_keys($type_ids));
             return $delete_ids;
         }
         return false;
@@ -91,6 +97,7 @@ class shopProductModel extends waModel
      *
      * @param int $offset
      * @param int $count
+     * @param string $order default is 'desc'
      * @return array multilevel array
      *
      * First level: products
@@ -139,7 +146,7 @@ class shopProductModel extends waModel
         // get products ids
         $sql = "SELECT id, IF(count IS NULL, 1, 0) count_null FROM {$this->table}
         ORDER BY count_null $order, count $order
-        LIMIT ".(int) $offset.", ".(int) $count;
+        LIMIT ".(int)$offset.", ".(int)$count;
 
         $ids = array_keys($this->query($sql)->fetchAll('id'));
 
@@ -171,7 +178,7 @@ class shopProductModel extends waModel
         if (!$product_id) {
             return array();
         }
-        $product_ids = (array) $product_id;
+        $product_ids = (array)$product_id;
         $product_ids_str = implode(',', $product_ids);
 
         $order = ($order == 'desc' || $order == 'DESC') ? 'DESC' : 'ASC';
@@ -307,7 +314,7 @@ class shopProductModel extends waModel
     {
         $storefronts_map = array();
 
-        $product_id = (int) $product;
+        $product_id = (int)$product;
         $category_product_model = new shopCategoryProductsModel();
         $product_categories = $category_product_model->getByField('product_id', $product_id, 'category_id');
         $product_type = $this->select('type_id')->where('id='.$product_id)->fetchField();
@@ -315,7 +322,7 @@ class shopProductModel extends waModel
         if (!$product_categories || !$product_type) {
             return array();
         }
-        
+
         if ($category_id !== null) {
             if (isset($product_categories[$category_id])) {
                 $product_categories = array($category_id => $product_categories[$category_id]);
@@ -332,7 +339,7 @@ class shopProductModel extends waModel
             $category['routes'] = isset($category_routes[$c_id]) ? $category_routes[$c_id] : array();
         }
         unset($category);
-        
+
         foreach ($product_categories as $c_id => $category) {
             $storefronts_map[$c_id] = array();
             foreach ($domain_routes as $domain => $routes) {
@@ -340,11 +347,10 @@ class shopProductModel extends waModel
                     if (!empty($r['private'])) {
                         continue;
                     }
-                    
-                    if ((empty($r['type_id']) || (in_array($product_type, (array) $r['type_id']))) &&
-                        (!$category['routes'] || in_array($domain.'/'.$r['url'],$category['routes']))
-                    ) 
-                    {
+
+                    if ((empty($r['type_id']) || (in_array($product_type, (array)$r['type_id']))) &&
+                        (!$category['routes'] || in_array($domain.'/'.$r['url'], $category['routes']))
+                    ) {
                         $routing->setRoute($r, $domain);
                         $storefronts_map[$c_id][] = $routing->getUrl('shop/frontend', array(), true);
                     }
@@ -361,27 +367,27 @@ class shopProductModel extends waModel
                 $all_routes_count += 1;
             }
         }
-        
+
         foreach ($storefronts_map as $c_id => &$storefronts_list) {
             if (count($storefronts_list) == $all_routes_count) {
                 $storefronts_list = array();
             }
         }
         unset($storefronts_list);
-        
+
         if ($category_id !== null) {
             return $storefronts_map[$category_id];
         } else {
             return $storefronts_map;
         }
     }
-    
+
     /**
      * Correct main category of products
      *
      * The key point: if main category of product is corrected it is does not affect
      *
-     * @param null|int|array $product_ids  filter by product ID
+     * @param null|int|array $product_ids filter by product ID
      * @param null|int|array $category_ids filter by product.category_id
      * @return bool|resource
      */
@@ -389,10 +395,10 @@ class shopProductModel extends waModel
     {
         $where = array();
         if ($product_ids) {
-            $where[] = "p.id IN (".implode(',', (array) $product_ids).") ";
+            $where[] = "p.id IN (".implode(',', (array)$product_ids).") ";
         }
         if ($category_ids) {
-            $where[] = "p.category_id IN (".implode(',', (array) $category_ids).")";
+            $where[] = "p.category_id IN (".implode(',', (array)$category_ids).")";
         }
 
         // correct products with category_id IS NULL, but belonging to at least one category
@@ -490,7 +496,7 @@ class shopProductModel extends waModel
             $type_model = new shopTypeModel();
             $type_model->incCounters(array(
                 $item['type_id'] => '-1',
-                $type_id => '+1'
+                $type_id         => '+1'
             ));
         } else {
             if (!$this->updateById($id, array('type_id' => $type_id))) {
@@ -510,7 +516,7 @@ class shopProductModel extends waModel
      */
     public function changeType($from_type_id, $to_type_id)
     {
-        $sql = "UPDATE `{$this->table}` SET type_id = ".(int) $to_type_id." WHERE type_id = ".(int) $from_type_id;
+        $sql = "UPDATE `{$this->table}` SET type_id = ".(int)$to_type_id." WHERE type_id = ".(int)$from_type_id;
         if (!$this->exec($sql)) {
             return false;
         }
@@ -523,7 +529,7 @@ class shopProductModel extends waModel
 
     public function getCurrency($product_id)
     {
-        return $this->select('currency')->where('id='.(int) $product_id)->fetchField('currency');
+        return $this->select('currency')->where('id='.(int)$product_id)->fetchField('currency');
     }
 
     public function getTop($limit, $order = 'sales', $start_date = null, $end_date = null)
@@ -533,7 +539,7 @@ class shopProductModel extends waModel
         if ($order !== 'sales') {
             $order = 'profit';
         }
-        $limit = (int) $limit;
+        $limit = (int)$limit;
         $limit = ifempty($limit, 10);
 
         $sql = "SELECT
@@ -589,8 +595,8 @@ class shopProductModel extends waModel
         }
         $product_ids = array_keys($this->query("
             SELECT id FROM `{$this->table}`
-            WHERE id IN(" . implode(',', $product_ids) . ")
-                AND type_id IN (" . implode(',', $type_ids) . ")"
+            WHERE id IN(".implode(',', $product_ids).")
+                AND type_id IN (".implode(',', $type_ids).")"
         )->fetchAll('id'));
 
         return $product_ids;
@@ -606,7 +612,7 @@ class shopProductModel extends waModel
     public function checkRights($product)
     {
         if (is_numeric($product)) {
-            $type_id = $this->select('type_id')->where('id='.(int) $product)->fetchField('type_id');
+            $type_id = $this->select('type_id')->where('id='.(int)$product)->fetchField('type_id');
             if (!$type_id && false) {
                 throw new waException(_w("Unknown type"));
             }
@@ -621,7 +627,7 @@ class shopProductModel extends waModel
             $type_id = null;
             //throw new waException(_w("Unknown type"));
         }
-        return (boolean) wa()->getUser()->getRights('shop', 'type.'.$type_id);
+        return (boolean)wa()->getUser()->getRights('shop', 'type.'.$type_id);
     }
 
     /**
@@ -633,7 +639,7 @@ class shopProductModel extends waModel
         if (!$id) {
             return false;
         }
-        $id = (int) $id;
+        $id = (int)$id;
         $product = $this->getById($id);
 
         $product_skus_model = new shopProductSkusModel();
@@ -697,16 +703,16 @@ class shopProductModel extends waModel
         $update_product_data['min_price'] = $currency_model->convert(min($price), $product['currency'], $currency);
         $update_product_data['max_price'] = $currency_model->convert(max($price), $product['currency'], $currency);
         $update_product_data['price'] = $currency_model->convert(
-                $skus[$product['sku_id']]['price'],
-                $product['currency'],
-                $currency
-            );
+                                                       $skus[$product['sku_id']]['price'],
+                                                           $product['currency'],
+                                                           $currency
+        );
         if (isset($skus[$product['sku_id']]['compare_price'])) {
             $update_product_data['compare_price'] =
                 $currency_model->convert(
-                    $skus[$product['sku_id']]['compare_price'],
-                    $product['currency'],
-                    $currency
+                               $skus[$product['sku_id']]['compare_price'],
+                                   $product['currency'],
+                                   $currency
                 );
         }
 

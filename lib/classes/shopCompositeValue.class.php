@@ -25,7 +25,17 @@ class shopCompositeValue implements ArrayAccess
 
     public function __get($field)
     {
-        return array_key_exists($field, $this->values) ? $this->values[$field] : new shopDimensionValue(array());
+        if ($field === 'html') {
+            return $this->__toString();
+        }
+        if ($field === 'compare') {
+            $value = '';
+            foreach ($this->values as $v) {
+                $value .= ':'.trim(isset($v['compare']) ? $v['compare'] : $v);
+            }
+            return $value;
+        }
+        return isset($this->values[$field]) ? $this->values[$field] : new shopDimensionValue(array());
     }
 
     public function offsetGet($offset)

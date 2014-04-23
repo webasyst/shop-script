@@ -38,7 +38,7 @@
             </ul>
             <div class="align-center hint hr block double-padded">
                 <p>
-                    <a href="{$wa_backend_url|cat:'installer/#/plugins/shop/'}" class="bold">[`Browse import plugins`]</a><br>
+                    <a href="#/plugins/" data-url="{$wa_backend_url}installer/#/plugins&amp;tag=importexport/shop/" class="bold">[`Browse import/export plugins`]</a><br>
                     [`Install new plugins from the Webasyst Store using the Installer app`]
                 </p>
             </div>
@@ -69,10 +69,11 @@
 <script type="text/javascript">
 document.title = '{"[`Import / Export`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 $.importexport.init({
-    debug:true,
+    debug:{var_export(waSystemConfig::isDebug(),true)},
     loading : '<div class="block double-padded">[`Loading...`]<i class="icon16 loading"><'+'/i><'+'/div><div class="clear"><'+'/div>',
     title_suffix: '{" — "|cat:{$wa->accountName(false)}|escape:'javascript'}',
     plugin_names: {json_encode($plugin_names)},
-    plugin_profiles: {json_encode($plugin_profiles)}
+    plugin_profiles: {json_encode($plugin_profiles)},
+    backend_url:'{$wa_backend_url|escape:'javascript'}'
 });
 </script>

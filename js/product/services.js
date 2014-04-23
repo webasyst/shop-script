@@ -488,6 +488,8 @@
                                 $(this).find('input').attr('disabled', false);
                                 addNewOption.call(container.find('.s-add-new-option'));
                                 container.find('input[name=name\\[\\]]:first').focus();
+                                
+                                container.find('.s-service-currency:first').change();
 
                                 // process rows of deleted variants
                                 container.find('tr.s-services-variant-deleted').each(function() {

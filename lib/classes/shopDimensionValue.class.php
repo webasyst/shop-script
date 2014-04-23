@@ -35,8 +35,13 @@ class shopDimensionValue implements ArrayAccess
     public function __get($field)
     {
         switch ($field) {
+            case 'html':
+                return $this->__toString();
             case 'units':
                 return $this->getUnits();
+                break;
+            case 'compare':
+                return $this->value_base_unit;
                 break;
             case 'unit_name':
                 if (!isset($this->unit_name)) {
@@ -80,7 +85,7 @@ class shopDimensionValue implements ArrayAccess
 
     public function offsetExists($offset)
     {
-        in_array($offset, array(
+        return in_array($offset, array(
             'id',
             'feature_id',
             'sort',
@@ -89,6 +94,7 @@ class shopDimensionValue implements ArrayAccess
             'type',
             'value_base_unit',
             'units',
+            'compare',
         ), true);
     }
 

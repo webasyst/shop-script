@@ -14,7 +14,7 @@ class shopCouponsEditorAction extends waViewAction
         if ($coupon) {
             $coupon['value'] = (float) $coupon['value'];
             if (waRequest::request('delete')) {
-                $coupm->deleteById($id);
+                $coupm->delete($id);
                 exit;
             }
         } else if ($id) {

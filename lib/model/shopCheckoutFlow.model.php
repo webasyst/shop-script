@@ -60,10 +60,7 @@ class shopCheckoutFlowModel extends waModel
     public function getStat($start_date = null, $end_date = null)
     {
         $date_sql = self::getDateSql('date', $start_date, $end_date);
-        $sql = "SELECT step, COUNT(id) as count FROM `{$this->table}` WHERE {$date_sql} GROUP BY step";
 
-        $stat = $this->query($sql)->fetchAll('step');
-        
         $step_names = array(
             _w('Cart')
         );
@@ -71,30 +68,29 @@ class shopCheckoutFlowModel extends waModel
             $step_names[] = $item['name'];
         }
         $step_names[] = _w('Order was placed');
-        
-        foreach ($stat as $i => &$st) {
-            $st['name'] = $step_names[$i];
+
+        $n = count($step_names);
+        $stat = array();
+        for ($i = 0; $i < $n; $i += 1) {
+            $sql = "SELECT COUNT(*) FROM (
+                SELECT code, MAX(step) count FROM `{$this->table}`
+                WHERE {$date_sql}
+                GROUP BY code
+                HAVING count >= {$i}
+                ORDER BY code
+            ) r";
+            $stat[$i]['count'] = $this->query($sql)->fetchField();
+            $stat[$i]['name'] = $step_names[$i];
         }
-        unset($st);
-        
-        $cnt = count($stat);
-        for ($i = 0; $i < $cnt; $i += 1) {
-            $count = 0;
-            for ($j = $i; $j < $cnt; $j += 1) {
-                $count += $stat[$j]['count'];
-            }
-            $stat[$i]['count'] = $count;
-        }
-        
+
         // convert to percents
         foreach ($stat as &$st) {
             $st['percents'] = round($st['count'] / $stat[0]['count'], 5) * 100;
         }
         unset($st);
-        
+
         return $stat;
-        
-    }
+   }
     
     public function clear()
     {

@@ -155,7 +155,7 @@ class shopHelper
                     } else {
                         foreach ($items as $item) {
                             if (!empty($item['price'])) {
-                                $total += $item['price'];
+                                $total += $item['price'] * (isset($item['quantity']) ? $item['quantity'] : 1);
                             }
                             if ($total && !in_array($currency,$plugin_currency)) {
                                 $total = shop_currency($total, $currency, reset($plugin_currency), false);
@@ -512,7 +512,7 @@ class shopHelper
             }
         }
         $str = preg_replace('/[^a-zA-Z0-9_-]+/', '', $str);
-        if ($strict && !$str) {
+        if ($strict && !strlen($str)) {
             $str = date('Ymd');
         }
         return strtolower($str);

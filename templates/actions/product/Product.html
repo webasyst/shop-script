@@ -388,7 +388,7 @@
                                         </a>
                                         <i class="icon10 new-window"></i>
                                         <input type="text" class="s-product-url-input" id="s-product-frontend-url-input"
-                                                                    value="{$product.url}"
+                                                                    value="{$product.url|escape}"
                                                                     name="product[url]" style="display:none;"
                                                                 >
                                     {/strip}
@@ -430,7 +430,7 @@
                         <option data-icon="{shopHelper::getIcon(null)|escape}" value="" selected="selected" disabled="disabled"></option>
                         {/if}
                         {foreach $product_types as $id=>$type}
-                            <option data-icon="{shopHelper::getIcon($type.icon)|escape}" value="{$id}"{if $product.type.id == $id} selected="selected"{/if}>
+                            <option data-icon="{shopHelper::getIcon(ifempty($type.icon,'box'))|escape}" data-sku-type="{$type.sku_type}" value="{$id}"{if $product.type.id == $id} selected="selected"{/if}>
                             {$type.name|escape}
                             </option>
                         {/foreach}
@@ -516,10 +516,10 @@
                                 <li>
                                     <label>
                                         <input type="radio"
-                                            name="product[sku_type]"
-                                            value="{shopProductModel::SKU_TYPE_FLAT}"
-                                            {if empty($features) || $product.sku_type == shopProductModel::SKU_TYPE_FLAT}checked{/if}
-                                        /> [`SKUs`]
+                                               name="product[sku_type]"
+                                               value="{shopProductModel::SKU_TYPE_FLAT}"
+                                               {if empty($features) || $product.sku_type == shopProductModel::SKU_TYPE_FLAT}checked{/if}
+                                                /> [`Flat SKU list`]
                                         <i class="icon16 ss sku-type-flat"></i>
                                         <br>
                                         <span class="hint"><br>[`Best for single-priced products and products with a flat list of purchase options (SKUs). SKUs are added one-by-one arbitrarly. Customer selects individual SKU and adds it to shopping cart.`]</span>
@@ -528,134 +528,36 @@
                                 <li style="width: 400px; margin-left: 50px;">
                                     <label>
                                         <input type="radio"
-                                            name="product[sku_type]"
-                                            value="{shopProductModel::SKU_TYPE_SELECTABLE}"
-                                            {if !empty($features) && $product.sku_type == shopProductModel::SKU_TYPE_SELECTABLE}checked{/if}
-                                            {if empty($features)}disabled="disabled"{/if}
-                                        /> <span{if empty($features)} class="gray"{/if}>[`Features`]</span>
-                                        <i class="icon16 ss sku-type-selectable"></i>
-                                        <br>
-
-                                        <span class="hint"><br>
+                                               name="product[sku_type]"
+                                               value="{shopProductModel::SKU_TYPE_SELECTABLE}"
+                                               {if !empty($features) && $product.sku_type == shopProductModel::SKU_TYPE_SELECTABLE}checked{/if}
+                                                {if empty($features)}disabled="disabled"{/if}
+                                                /> <span{if empty($features)} class="gray"{/if}>[`Selectable features`]</span>
+                                        <i class="icon16 ss sku-type-selectable"></i><br>
+                                        <span class="hint">
+                                            <br>
                                             [`Best for multi-dimensional featured products, e.g. apparel or footwear which can vary in size and color. Flat SKU list is created automatically based on the combination of features offered for selection. Customer is prompted to choose preferable product feature values which unambiguously identifies SKU that is being added to shopping cart. `]
                                         </span>
-                                        
-                                        {if empty($features)}
-                                            <br>
-                                            <span class="small highlighted"><br>
+
+                                        <span class="small highlighted" data-sku-type="1" {if !empty($features)} style="display:none;"{/if}>
+                                            <br><br>
                                             [`To activate this mode, this particular product must be assigned a product type which offers at least one product feature with a <strong>multiple choice</strong> control, i.e. checkbox list. The list of available product types and features is configured on the <em>Settings &rarr; Product types &amp; features</em> screen.`]<br>
-                                            </span>
-                                        {/if}
-                                        
+                                        </span>
                                     </label>
                                 </li>
                             </ul>
                         </div>
                     </div>
                 </div>
+
             {/capture}
 
             {if $product.id == 'new'}
                 {$smarty.capture.sku_type_field_group}
             {/if}
-
-            {if !empty($features)}
-                <div class="field-group" id="s-product-feature-superposition-field-group" {if $product.sku_type == shopProductModel::SKU_TYPE_FLAT}style="display:none"{/if}>
-                    <div class="field">
-                        <!-- feature selection -->
-                        <div class="name">
-                            [`Pricing & availability`]
-                        </div>
-                        <div class="value s-product-feature-superposition" id="s-product-feature-superposition">
-                            <div class="sidebar left150px">
-                                <div class="block not-padded right-padded">
-                                    <ul class="menu-v with-icons features">
-                                        {foreach $features as $code => $f}
-                                            <li class="{if $f@first}selected{/if}" data-feature-id="{$f.id}">
-                                                <a href="#">
-                                                    <strong class="count">{if $f.count}{$f.count}{/if}</strong>
-                                                    <i class="icon16 {if $f.count}status-blue-tiny{else}status-gray-tiny{/if}"></i>{$f.name}
-                                                </a>
-                                            </li>
-                                        {/foreach}
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="content left150px bordered-left">
-                                {foreach $features as $code => $f}
-                                    <div class="sidebar left150px feature-values" data-feature-id="{$f.id}" {if !$f@first}style="display:none;"{/if}>
-                                        <div class="block not-padded right-padded left-padded">
-                                            <ul class="menu-v values">
-                                                {foreach $f['values'] as $v_id => $v}
-                                                    <li><label>
-                                                        <input type="checkbox" name="features_selectable[{$f['id']}][]" value="{$v_id}" {if $v.selected}checked{/if}> {$v.name}
-                                                    </label></li>
-                                                {/foreach}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                {/foreach}
-                                <div class="content left150px bordered-left">
-                                    <div class="block not-padded right-padded left-padded">
-                                        <div class="fields width100px">
-                                            <div class="field superposition-count">
-                                                {$features_total_count = array_product($features_counts)}
-                                                <div class="name options">
-                                                    {if $features_counts}
-                                                        {implode(' x ', $features_counts)}
-                                                    {/if}
-                                                </div>
-                                                <div class="value bold no-shift skus">
-                                                    {if $features_counts}
-                                                        <span class="highlighted">
-                                                            {_w('%d SKU in total', '%d SKUs in total', $features_total_count)}
-                                                        </span>
-                                                    {/if}
-                                                </div>
-                                            </div>
-                                            <div class="field">
-                                                <div class="name">
-                                                    [`Base price`]
-                                                </div>
-                                                <div class="value">
-                                                    <input name="product[base_price_selectable]" type="text"
-                                                        class="numerical short bold" placeholder="0"
-                                                        value="{(float)$product.base_price_selectable}"
-                                                    >
-                                                    <div class="s-base-price-selectable-currency">
-                                                        {if $use_product_currency}
-                                                            <select class="s-product-currency">
-                                                                {foreach $currencies as $code => $currency}
-                                                                    <option value="{$code}" {if $code == $product.currency}selected="selected"{/if}>{$code}</option>
-                                                                {/foreach}
-                                                            </select>
-                                                        {else}
-                                                            {if $product.currency !== null}{$product.currency}{else}{$primary_currency}{/if}
-                                                        {/if}
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                            <div class="field">
-                                                <div class="value">
-                                                    <p class="small">
-                                                        [`Base price is applied unless you override it for a particular SKU. A list of overrided SKUs is shown below. Stock level can be tracked on the level of individual SKUs only, not for the entire product.`]
-                                                    </p>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                        <div class="clear-both"></div>
-                                    </div>
-                                    <div class="clear-both"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {else}
-                <div class="field-group" id="s-product-feature-superposition-field-group"></div>
-            {/if}
+            <div class="field-group" id="s-product-feature-superposition-field-group" {if $product.sku_type == shopProductModel::SKU_TYPE_FLAT}style="display:none"{else}data-type="{$product.type_id}"{/if}>
+            {include file="./ProductFeaturesSelectable.html"}
+            </div>
 
             <div class="field-group">
 
@@ -928,20 +830,15 @@
               </div>
               <div class="field-group">
                 <div class="field description">
-                    <div class="name">[`Description`]
-                        <br><span class="hint">[`HTML`]</span>
-                    </div>
+                    <div class="name">[`Description`]</div>
                     <div class="value" id="s-product-description">
-                        <div class="s-editor-core-wrapper">
-                            <ul id="s-product-description-wysiwyg-html-toggle" class="s-wysiwyg-html-toggle">
-                                <li><a id="s-product-wysiwyg" href="#">[`WYSIWYG`]</a></li>
-                                <li><a id="s-product-html" href="#">HTML</a></li>
+                        <div class="wa-editor-core-wrapper s-editor-core-wrapper">
+                            <ul class="wa-editor-wysiwyg-html-toggle s-wysiwyg-html-toggle">
+                                <li class="selected"><a class="wysiwyg" href="#">[s`WYSIWYG`]</a></li>
+                                <li><a class="html" href="#">HTML</a></li>
                             </ul>
                             <div>
-                                <textarea style="display:none" id="s-product-description-content" name="product[description]">{$product.description|escape}</textarea>
-                                <div class="ace">
-                                    <div id="s-product-ace-editor-container"></div>
-                                </div>
+                                <textarea id="s-product-description-content" name="product[description]">{$product.description|escape}</textarea>
                             </div>
                         </div>
                     </div>
@@ -1002,6 +899,11 @@
 
 
     $(function() {
+    
+        $('#s-product-description-content').data('uploadFields', {
+            '_csrf': "{waRequest::cookie('_csrf', '')}"
+        });
+    
         $.product.setData('main','stocks',{$stocks|json_encode});
         $.product.setData('main','stock_ids', {array_keys($stocks)|json_encode})
         {if !empty($product.reviews)}

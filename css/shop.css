@@ -85,7 +85,7 @@ h1 input.s-title-h1-edit { font-weight: bold; font-family: Helvetica, Arial, san
 h1 i.icon16 { margin-top: 0.3em; }
 
 .s-wysiwyg-html-toggle,
-.s-page-wysiwyg-html-toggle { position: absolute; top: -34px; right: 17px; margin-bottom: 0; }
+.s-page-wysiwyg-html-toggle { position: absolute; top: -1px; right: 17px; margin-bottom: 0; }
 .s-wysiwyg-html-toggle li,
 .s-page-wysiwyg-html-toggle li { list-style: none;float: left; }
 .s-wysiwyg-html-toggle li a, .s-page-wysiwyg-html-toggle li a { display: block; color: #888; font-weight: bold; padding: 4px 12px 4px; text-decoration: none; font-size: 0.9em; }
@@ -282,10 +282,11 @@ ul.menu-v.with-icons a.rate-clear { margin: 0; padding: 0; }
 
 .s-tag { color: green; margin-right: 10px; }
 
+.fields .s-editor-core-wrapper { border: 1px solid #ccc; margin-top: 0; }
+
 .fields.s-dialog-form .value textarea { width: 400px; height: 100px; }
 .fields.s-dialog-form .name { width: 135px; }
 .fields.s-dialog-form .value { margin-left: 140px; }
-.fields.s-dialog-form .s-editor-core-wrapper { border: 1px solid #ccc; margin-top: 0; }
 .fields.s-dialog-form .el-rte .toolbar { background: #fff; border: 0; border-bottom: 1px solid #ccc; }
 .fields.s-dialog-form .el-rte .workzone,
 .fields.s-dialog-form .CodeMirror,
@@ -369,7 +370,7 @@ ul.s-product-image-crops li.selected img { border: 4px solid #FDDA3B; border-rad
 
 .s-product-id { display: block; text-align: center; width: 200px; }
 
-.s-base-price-selectable-currency { display: inline; }
+.s-price-selectable { display: inline; }
 tr.s-sku-virtual td,
 tr.s-sku-virtual td input { font-style: italic; color: #777; }
 
@@ -571,9 +572,43 @@ ul.menu-h.s-reports-timeframe li.s-custom-timeframe input { width: 100px; }
 .s-csv-settings table.zebra tr.selected.secondary td { background-color: #bfb !important;}
 .s-csv-settings table.zebra tr.selected td select { font-weight: bold; }
 .s-csv-settings table.zebra tr.gray td select { color: #aaa; }
+
+.s-csv-settings table tr td.selected { background-color: #ffb !important; font-weight: bold; }
+.s-csv-settings table tr td.selected.secondary { background-color: #bfb !important;}
+.s-csv-settings table tr td.selected select { font-weight: bold; }
+.s-csv-settings table tr td.gray select { color: #aaa; }
+.s-csv-settings table tr td.ignored { color: #ccc !important; text-decoration: line-through; }
+
 .s-csv-settings .value ul.menu-v { margin-top: 0; }
 .s-csv-primary-column-helper { background: #ffa; width: 16px; height: 16px; border-radius: 100%; border: 1px solid #ee6; position: absolute; }
 .s-csv-secondary-column-helper { background: #afa; width: 16px; height: 16px; border-radius: 100%; border: 1px solid #6e6; position: absolute; }
+
+table.s-csv { border: 0; background-color: #ECE9D8; font-size: 10pt; font-family: arial; border-spacing: 0px; white-space: nowrap; border-collapse: collapse; margin: 0 auto 0 0; }
+table.s-csv caption { color: #888888; font-size: 0.95em; text-align: left; }
+table.s-csv td { background-color: white; padding: 0 4px 0 2px; border-color: #e6e6e6 #e6e6e6 white; border-style: solid solid none; border-width: 1px 1px 0; overflow: hidden; max-width: 200px; display: inline-block; height: auto; }
+
+/*
+table.s-csv thead td,
+table.s-csv tbody td.heading { font-weight: normal; background-color: #ECE9D8 !important; text-align: center; border-color: #FFFFFF #ECE9D8 white; }
+*/
+
+table.s-csv tfoot td { color: #888888; background-color: #ECE9D8 !important; font-size: 0.95em; text-align: left; vertical-align: top; }
+table.s-csv thead td { color: #888888; background-color: #ECE9D8 !important; font-size: 0.95em; text-align: center; vertical-align: top; }
+table.s-csv thead td .s-csv-assigned-to { padding: 2px 5px 5px; font-size: 1.3em; }
+table.s-csv thead td .s-csv-assigned-to span.active { color: #000; }
+table.s-csv thead td .s-csv-assigned-to span.ignored { display: none; }
+table.s-csv thead td.ignored { text-decoration: none; }
+table.s-csv thead td.ignored .s-csv-assigned-to span.ignored { display: inline-block; }
+table.s-csv thead td.ignored .s-csv-assigned-to span.active { display: none; }
+
+.s-csv-header  { font-weight: bolder; color:#000;}
+.s-csv-header .selected { background-color: #ffb !important;}
+.s-csv-header .selected.secondary { background-color: #bfb !important;}
+.s-csv-header .ignored  { color: #ccc !important; }
+
+table.s-csv thead, table.s-csv tbody, table.s-csv tfoot { display: block; }
+
+table.s-csv tbody { max-height: 800px; overflow-y: auto; overflow-x: hidden; }
 
 table.s-bulk-image-uploader-map { margin-left: 0; }
 table.s-bulk-image-uploader-map .preload-files td { padding: 10px; }
@@ -582,6 +617,17 @@ table.s-bulk-image-uploader-map .preload-files td ul.s-product-image-crops li { 
 table.s-bulk-image-uploader-map .preload-files td.product { white-space: nowrap; }
 table.s-bulk-image-uploader-map .preload-files li.ui-state-highlight { line-height: 1.2em; border: none; border-left: 3px solid #fdda3b;}
 
+.s-csv-import-navigator { padding-left: 0; }
+.s-csv-import-navigator li { padding-bottom: 13px; color: #aaa; list-style-position: inside; }
+.s-csv-import-navigator li.s-passed,
+.s-csv-import-navigator li.s-current { color: #000; list-style: none; padding-left: 18px; }
+.s-csv-import-navigator li.s-passed { background: url('../img/glyph-checkmark.png') no-repeat; }
+.s-csv-import-navigator li.s-current { background: url('../img/glyph-rarr.png') no-repeat; font-weight: bold; }
+
+.s-csv-importexport-stats { font-style: italic; }
+.s-csv-importexport-stats.done { padding: 20px; color: green; background: #dfd; width: 70%; border: 1px solid #aca; box-shadow: 0 2px 7px #ddd; }
+.s-csv-importexport-stats h2 { color: green; }
+.s-csv-importexport-stats ul { list-style: none; padding-left: 0; }
 
 /* SETTINGS & PLUGINS
 --------------------- */

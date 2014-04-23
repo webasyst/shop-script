@@ -3,6 +3,16 @@ class shopBackendLayout extends waLayout
 {
     public function execute()
     {
+
+        $app_settings_model = new waAppSettingsModel();
+        if ($app_settings_model->get('shop', 'welcome')) {
+            if (waRequest::get('skipwelcome')) {
+                $app_settings_model->del('shop', 'welcome');
+            } else {
+                $this->redirect(wa()->getConfig()->getBackendUrl(true).'shop/?action=welcome');
+            }
+        }
+
         $user = wa()->getUser();
         $product_rights = $user->isAdmin('shop') || wa()->getUser()->getRights('shop', 'type.%');
 

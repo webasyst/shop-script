@@ -283,7 +283,6 @@
                                 onCreate(r.data, type);
                             }
                             location.href = '#/products/' + type + '_id=' + r.data.id;
-                            wa_editor = undefined;
                             d.trigger('close');
                         };
                         var error = function(r) {
@@ -294,13 +293,10 @@
                                 }
                                 return false;
                             }
-                            wa_editor = undefined;
                         };
 
                         if ($('#s-category-description-content').length) {
-                            waEditorUpdateSource({
-                                id: 's-category-description-content'
-                            });
+                            $('#s-category-description-content').waEditor('sync');
                         }
 
                         if (form.find('input:file').length) {
@@ -309,9 +305,6 @@
                             $.shop.jsonPost(form.attr('action'), form.serialize(), success, error);
                             return false;
                         }
-                    },
-                    onCancel: function() {
-                        wa_editor = undefined;
                     }
                 });
             };
@@ -329,11 +322,13 @@
             var field = d.find('.field.description');
             field.find('i').hide();
             field.find('.s-editor-core-wrapper').show();
-            waEditorInit({
-                id: 's-category-description-content',
-                prefix: 's-category-description-',
-                upload_url: "",
-                lang: wa_lang
+            var height = (d.find('.dialog-window').height() * 0.8) || 350;
+            $('#s-category-description-content').waEditor({
+                lang: wa_lang,
+                toolbarFixedBox: false,
+                maxHeight: height,
+                minHeight: height,
+                uploadFields: d.data('uploadFields')
             });
         }
         

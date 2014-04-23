@@ -46,10 +46,15 @@ if (typeof($) != 'undefined') {
                     }
                     self.paymentSort(id, after_id, $(this));
                 }
-            }).find(':not:input').disableSelection();
+            }).find(':not(:input)').disableSelection();
 
             $('#s-settings-payment-setup').on('submit', 'form', function () {
-                return self.paymentPluginSave($(this));
+                var $this = $(this);
+                if ($this.hasClass('js-installer')) {
+                    return (!$this.hasClass('js-confirm') || confirm($this.data('confirm-text') || $this.attr('title') || $_('Are you sure?')));
+                } else {
+                    return self.paymentPluginSave($this);
+                }
             })
 
         },
@@ -173,7 +178,7 @@ if (typeof($) != 'undefined') {
 
         paymentPlugins: function () {
             $('#s-settings-content #s-settings-payment').hide();
-            var url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/payment';
+            var url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/payment&return_hash=/payment/';
             $('#s-settings-payment-setup').show().html(this.payment_options.loading).load(url);
         },
 

@@ -5,44 +5,67 @@ class shopFrontendCompareAction extends waViewAction
     public function execute()
     {
         $ids = waRequest::param('id', array(), waRequest::TYPE_ARRAY_INT);
-        $products = array();
-        foreach ($ids as $id) {
-            $products[$id] = new shopProduct($id);
-        }
-
-
-        $feature_model = new shopFeatureModel();
-        $all_features = $feature_model->getAll('code');
+        $collection = new shopProductsCollection('id/'.implode(',', $ids));
+        $products = $collection->getProducts();
 
         $features = array();
         $i = 0;
 
         $compare_link = wa()->getRouteUrl('/frontend/compare', array('id' => '%ID%'));
-        foreach ($products as $p) {
+        foreach ($products as &$p) {
+            $p = new shopProduct($p);
             $temp_ids = $ids;
             unset($temp_ids[array_search($p['id'], $temp_ids)]);
             $p['delete_url'] = str_replace('%ID%', implode(',', $temp_ids), $compare_link);
-            foreach ($p['features'] as $f => $v) {
-                if (isset($features[$f]) && $features[$f]['same']) {
-                    if ($v !== $features[$f]['value']) {
-                        $features[$f]['same'] = false;
+            foreach ($p->features as $code => $v) {
+                if (is_object($v)) {
+                    $v = trim(isset($v['compare']) ? $v['compare'] : $v['value']);
+
+                } elseif (is_array($v)) {
+                    foreach ($v as &$_v) {
+                        if (is_object($_v)) {
+                            $_v = trim(isset($_v['compare']) ? $_v['compare'] : $_v['value']);
+                        } else {
+                            $_v = trim($_v);
+                        }
+                        unset($_v);
+                    }
+                    sort($v, SORT_STRING);
+                    $v = serialize($v);
+                } else {
+                    $v = trim($v);
+                }
+
+                if (isset($features[$code]) && $features[$code]['same']) {
+                    if ($v !== $features[$code]['value']) {
+                        $features[$code]['same'] = false;
                     }
                 } else {
-                    $features[$f] = $all_features[$f];
+                    if (!isset($features[$code])) {
+                        $features[$code] = array();
+                    }
+
                     if (!$i) {
-                        $features[$f]['same'] = true;
-                        $features[$f]['value'] = $v;
+                        $features[$code]['same'] = true;
+                        $features[$code]['value'] = $v;
                     } else {
-                        $features[$f]['same'] = false;
+                        $features[$code]['same'] = false;
                     }
                 }
             }
-            foreach ($features as $f => $v) {
-                if (!isset($p['features'][$f])) {
-                    $features[$f]['same'] = false;
+            foreach ($features as $code => $v) {
+                if (!isset($p->features[$code])) {
+                    $features[$code]['same'] = false;
                 }
             }
             $i++;
+            unset($p);
+        }
+        if ($features) {
+            $feature_model = new shopFeatureModel();
+            foreach ($all_features = $feature_model->getByCode(array_keys($features)) as $code => $f) {
+                $features[$code] += $f;
+            }
         }
 
         $this->view->assign('features', $features);

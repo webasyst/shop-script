@@ -5,6 +5,22 @@ class shopTypeFeaturesModel extends shopSortableModel
     protected $id = array('type_id', 'feature_id',);
     protected $context = 'type_id';
 
+    public function getSkuTypeSelectableTypes()
+    {
+        $sql = "SELECT DISTINCT type_id FROM " . $this->table . " tf JOIN
+                shop_feature f ON tf.feature_id = f.id
+                WHERE f.multiple
+                    AND f.selectable";
+        if($rows = $this->query($sql)->fetchAll($this->context)){
+            $rows = array_keys($rows);
+            $types = array_combine($rows,$rows);
+        } else {
+            $types = array();
+        }
+
+        return $types;
+    }
+
     public function getByType($type_id)
     {
         $sql = "SELECT * FROM " . $this->table . " tf JOIN

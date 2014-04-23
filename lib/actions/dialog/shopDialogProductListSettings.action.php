@@ -81,7 +81,8 @@ class shopDialogProductListSettingsAction extends waViewAction
         }
 
         $feature_model = new shopFeatureModel();
-        $selectable_and_boolean_features = $feature_model->select('*')->where("selectable=1 OR type='boolean'")->fetchAll('id');
+        $selectable_and_boolean_features = $feature_model->select('*')->
+            where("(selectable=1 OR type='boolean' OR type='double' OR type LIKE 'dimension\.%' OR type LIKE 'range\.%') AND parent_id IS NULL")->fetchAll('id');
         
         if ($settings['type'] == shopCategoryModel::TYPE_DYNAMIC) {
             if ($settings['conditions']) {

@@ -5,6 +5,10 @@
             <td>{$row['icon']}</td>
             
             <td>
+                <div>{$row['description']}<i class="shortener"></i></div>
+            </td>
+            
+            <td>
                 <div>
                     {if !$product_id}
                         <a href="#/product/{$row['product_id']}/">
@@ -27,9 +31,6 @@
                 {/if}
             </td>
                         
-            <td>
-                <div>{$row['description']}<i class="shortener"></i></div>
-            </td>
             <td class="gray align-right">{$row['datetime']|wa_datetime:humandatetime}</td>
             
             
@@ -88,10 +89,10 @@
         <table class="zebra s-stocks-log single-lined">
             <tr class="header">
                 <th class="min-width"></th> 
-                <th>[`Product`]</th>
+                <th>[`Description`]</th>
+                <th>{if $product_id}[`SKU name`]{else}[`Product`]{/if}</th>
                 <th></th>
                 <th>[`Balance`]</th>   
-                <th>[`Description`]</th>
                 <th></th>
             </tr>
             {$log_list}

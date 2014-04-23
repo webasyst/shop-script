@@ -218,7 +218,7 @@ if (typeof($) != 'undefined') {
                     'stop': function () {
                         $('.block.drop-target').removeClass('drag-active');
                     }
-                }).find(':not:input').disableSelection();
+                }).find(':not(:input)').disableSelection();
                 this.features_init.list_sortable = true;
             } else if (lazy) {
                 if (this.features_init.list_sortable) {
@@ -240,7 +240,7 @@ if (typeof($) != 'undefined') {
                     'stop': function () {
                         $('.block.drop-target').removeClass('drag-active');
                     }
-                }).find(':not:input').disableSelection();
+                }).find(':not(:input)').disableSelection();
 
                 this.features_init.list_dragable = true;
             } else if (lazy) {
@@ -495,7 +495,7 @@ if (typeof($) != 'undefined') {
             } else {
                 var hash = '#/features/';
                 var $types = this.$features_types.find('> li.js-type-item:first, > li[data-type=""]:first').last();
-                ;
+
                 if ($types.length) {
                     if ($types.data('type')) {
                         hash += $types.data('type') + '/';
@@ -636,6 +636,7 @@ if (typeof($) != 'undefined') {
          * Recursive apply filter conditions
          * @private
          * @param {Number} type
+         * @param {String} selector
          */
         featuresFilterApply: function (type, selector) {
             var counter = 50;

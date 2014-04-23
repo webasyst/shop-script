@@ -44,7 +44,7 @@ class shopFrontendAction extends waViewAction
 
     protected function setCollection(shopProductsCollection $collection)
     {
-        $collection->setOptions(array('filters' => true));
+        $collection->filters(waRequest::get());
         $limit = (int)waRequest::cookie('products_per_page');
         if (!$limit || $limit < 0 || $limit > 500) {
             $limit = $this->getConfig()->getOption('products_per_page');

@@ -315,6 +315,17 @@ class shopOrderModel extends waModel
         } else {
             $order['contact'] = $this->extractConctactInfo($order['params']);
         }
+        
+        if (!empty($order['params']['coupon_id'])) {
+            $coupon_model = new shopCouponModel();
+            $coupon = $coupon_model->getById($order['params']['coupon_id']);
+            $order['coupon'] = array();
+            if ($coupon) {
+                $order['coupon'] = $coupon;
+            } else if (!empty($order['params']['coupon_code'])) {
+                $order['coupon']['code'] = $order['params']['coupon_code'];
+            }
+        }
 
         $order_items_model = new shopOrderItemsModel();
         $order['items'] = $order_items_model->getItems($id, $extend);
@@ -872,7 +883,7 @@ class shopOrderModel extends waModel
                     JOIN wa_contact AS c
                         ON c.id=o.contact_id
                 WHERE o.id LIKE '$q'
-                ORDER BY o.id DESC
+                ORDER BY o.id ASC
                 LIMIT $limit";
         return $this->query($sql)->fetchAll();
     }

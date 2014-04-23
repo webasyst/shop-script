@@ -1,4 +1,5 @@
 <?php
+
 class shopCsvProductsetupAction extends waViewAction
 {
     public function execute()
@@ -67,9 +68,19 @@ class shopCsvProductsetupAction extends waViewAction
                 'map'       => array(),
             );
 
-            $upload_path = waSystem::getSetting('csv.upload_path', 'path/to/folder/with/source/images/');
-            $this->view->assign('upload_path', $upload_path);
-            $this->view->assign('upload_full_path', wa()->getDataPath($upload_path));
+            $base_path = wa()->getConfig()->getPath('root');
+            $app_path = array(
+                'shop' => wa()->getDataPath(null, false, 'shop'),
+                'site' => wa()->getDataPath(null, true, 'site'),
+            );
+            foreach ($app_path as &$path) {
+                $path = preg_replace('@^([\\\\/])@', '', str_replace($base_path, '', $path.'/'));
+            }
+            unset($path);
+
+            $this->view->assign('upload_path', waSystem::getSetting('csv.upload_path', 'path/to/folder/with/source/images/'));
+            $this->view->assign('upload_app', waSystem::getSetting('csv.upload_app', 'shop'));
+            $this->view->assign('app_path', $app_path);
         }
 
         $this->view->assign('profile', $profile);
@@ -78,11 +89,11 @@ class shopCsvProductsetupAction extends waViewAction
         $this->view->assign('types', $type_model->getTypes());
 
         $encoding = array_diff(mb_list_encodings(), array(
-            'pass', 'auto', 'wchar', 'byte2be', 'byte2le', 'byte4be', 'byte4le',
-            'BASE64', 'UUENCODE', 'HTML-ENTITIES', 'Quoted-Printable', '7bit', '8bit',
+            'pass', 'wchar', 'byte2be', 'byte2le', 'byte4be', 'byte4le',
+            'BASE64', 'UUENCODE', 'HTML-ENTITIES', 'Quoted-Printable', '7bit', '8bit', 'auto',
         ));
 
-        $popular = array_intersect(array('UTF-8', 'Windows-1251', 'ISO-8859-1'), $encoding);
+        $popular = array_intersect(array('UTF-8', 'Windows-1251', 'ISO-8859-1',), $encoding);
 
         asort($encoding);
         $encoding = array_unique(array_merge($popular, $encoding));

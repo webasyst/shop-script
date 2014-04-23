@@ -16,8 +16,7 @@ class shopConfig extends waAppConfig
     {
         if ($module == 'frontend' && waRequest::param('ssl') &&
             (strpos($action, 'my') === 0 || $action === 'checkout')) {
-            $is_https = waRequest::server('HTTPS') && (strtolower(waRequest::server('HTTPS')) !== 'off');
-            if (!$is_https) {
+            if (!waRequest::isHttps()) {
                 $url = 'https://'.waRequest::server('HTTP_HOST').wa()->getConfig()->getCurrentUrl();
                 wa()->getResponse()->redirect($url, 301);
             }
@@ -266,10 +265,10 @@ class shopConfig extends waAppConfig
         return $steps;
     }
     
-    public function getSaveQuality() {
-        $quality = $this->getOption('image_save_quality');
-        if(!$quality) {
-            $quality = 90;
+    public function getSaveQuality($for2x = false) {
+        $quality = $this->getOption('image_save_quality'.($for2x ? '_2x' : ''));
+        if (!$quality) {
+            $quality = $for2x ? 70 : 90;
         }
         return $quality;
     }

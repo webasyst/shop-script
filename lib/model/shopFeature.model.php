@@ -1,4 +1,5 @@
 <?php
+
 class shopFeatureModel extends waModel
 {
     const TYPE_VARCHAR = 'varchar';
@@ -164,6 +165,23 @@ SQL;
         return $fill_values ? $this->getValues($features, is_int($fill_values) ? $fill_values : null) : $features;
     }
 
+    /**
+     * @param int[]|int $product_id
+     * @return array
+     */
+    public function getByProduct($product_id)
+    {
+        $sql = "SELECT DISTINCT `f`.* FROM `{$this->table}` `f`
+        JOIN `shop_product_features` `pf` ON `pf`.`feature_id` = `f`.`id`
+        WHERE `pf`.`product_id` ".(is_array($product_id) ? 'IN (i:id)' : '= i:id');
+        $features = $this->query($sql, array('id' => $product_id))->fetchAll('id');
+        $sql = "SELECT DISTINCT `f`.* FROM `{$this->table}` `f`
+        JOIN `shop_product_features_selectable` `pf` ON `pf`.`feature_id` = `f`.`id`
+        WHERE `pf`.`product_id` ".(is_array($product_id) ? 'IN (i:id)' : '= i:id');
+        $features += $this->query($sql, array('id' => $product_id))->fetchAll('id');
+        return $features;
+    }
+
     public function getMultipleSelectableFeaturesByType($type_id, $key = null, $fill_values = false)
     {
         $features = array();
@@ -173,6 +191,18 @@ SQL;
             }
         }
         return $features;
+    }
+
+    public function isTypeMultipleSelectable($type_id)
+    {
+        $sql = "
+        SELECT 1
+        FROM `{$this->table}` `f`
+        JOIN `shop_type_features` `t` ON (`t`.`feature_id`=`f`.`id`)
+        WHERE `t`.`type_id` = i:type_id AND `f`.`parent_id` IS NULL
+        LIMIT 1";
+        $res = $this->query($sql, array('type_id' => $type_id))->fetchRow();
+        return !!$res;
     }
 
     /**
@@ -192,7 +222,20 @@ SQL;
                 $where .= ' AND `count`>0';
             }
             $features = $this->select('*')->where($where)->fetchAll($key);
+        } elseif ($field == 'name') {
+            $where = '`parent_id` IS NULL';
+            if ($value) {
+                $value = (array)$value;
+                foreach ($value as &$name) {
+                    $name = $this->escape($name, 'l');
+                }
+                unset($name);
+                $where .= " AND ((`name` LIKE '".implode("') OR (`name` LIKE '", $value)."'))";
+
+            }
+            $features = $this->select('*')->where($where)->fetchAll($key);
         } else {
+
             $features = $this->getByField($field, $value, $key);
         }
         if ($fill_values) {

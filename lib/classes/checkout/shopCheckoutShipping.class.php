@@ -423,6 +423,15 @@ class shopCheckoutShipping extends shopCheckout
                 }
                 if ($data && is_array($data)) {
                     foreach ($data as $field => $value) {
+                        if (is_array($value) && ($old = $contact->get($field))) {
+                            if (isset($old[0]['data'])) {
+                                foreach ($old[0]['data'] as $k => $v) {
+                                    if (!isset($value[$k])) {
+                                        $value[$k] = $v;
+                                    }
+                                }
+                            }
+                        }
                         $contact->set($field, $value);
                     }
                     if (wa()->getUser()->isAuth()) {

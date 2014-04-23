@@ -1,9 +1,23 @@
 <?php
+
 abstract class shopFeatureValuesModel extends shopSortableModel
 {
     protected $changed_fields = array();
 
     //TODO deleteByField = update related tables
+
+    /**
+     * @param int $value_id
+     * @return mixed
+     */
+    public function getFeatureValue($value_id)
+    {
+        if ($row = $this->getById($value_id)) {
+            return $this->getValue($row);
+        } else {
+            return null;
+        }
+    }
 
     /**
      * @param string $field
@@ -33,7 +47,11 @@ SQL;
                 uasort($data, array($this, 'sort'));
 
             } else {
-                $data = $this->getByField($field, $value, $this->id);
+                if (is_array($field)) {
+                    $data = $this->getByField($field, $this->id);
+                } else {
+                    $data = $this->getByField($field, $value, $this->id);
+                }
             }
         }
         $values = array();
@@ -70,6 +88,7 @@ SQL;
                 $result[$row['product_id']] = is_array($field) ? $row : $row[$field];
             }
         }
+
         return $result;
     }
 
@@ -99,41 +118,64 @@ SQL;
         $exists = array();
         $multi = false;
         $sort = null;
-        $op = $this->getSearchCondition();
-        if (is_array($value)) {
-            if (isset($value['value'])) {
-                $values = array($value);
-            } else {
-                $multi = true;
-                $values = $value;
-            }
-        } else {
-            $values = array($value);
-        }
-        if ($update) {
-            $sql = "SELECT (MAX(`sort`)+1) `max_sort` FROM ".$this->table." WHERE (`feature_id` = i:0)";
-            $sort = $this->query($sql, $feature_id)->fetchField('max_sort');
-        }
-        foreach ($values as $v) {
-            $data = $this->parseValue($v, $type);
-            $data['feature_id'] = $feature_id;
-            $data['sort'] = $sort;
-            $fields = array_unique(array_merge(array($this->id, $this->sort), $this->changed_fields));
-            $fields = '`'.implode('`, `', $fields).'`';
-            $sql = "SELECT {$fields} FROM ".$this->table." WHERE (`feature_id` = i:feature_id) AND (".$op.')';
-            $row = $this->query($sql, $data)->fetchAssoc();
-            if ($row) {
-                if ($changed = $this->isChanged($row, $data)) {
-                    $this->updateById($row['id'], $changed);
+
+        if (is_array($value) && isset($value['id'])) {
+            $result[] = $value['id'];
+            $result = array_unique(array_map('intval', array_filter($result)));
+        } elseif (is_array($value) && ($v = reset($value)) && is_array($v) && isset($v['id'])) {
+            foreach ($value as $v) {
+                if (isset($v['id'])) {
+                    $result[] = $v['id'];
                 }
-                $exists[$row['sort']] = intval($row['id']);
-            } elseif ($update) {
-                ++$sort;
-                array_unshift($result, intval($this->insert($data)));
             }
+            $result = array_unique(array_map('intval', array_filter($result)));
+            $multi = (count($result) > 1);
+        } else {
+            if (is_array($value)) {
+                if (isset($value['value'])) {
+                    $values = array($value);
+                } else {
+                    $multi = true;
+                    $values = $value;
+                }
+            } else {
+                $values = array($value);
+            }
+            if ($update) {
+                $sql = "SELECT (MAX(`sort`)+1) `max_sort` FROM ".$this->table." WHERE (`feature_id` = i:0)";
+                $sort = $this->query($sql, $feature_id)->fetchField('max_sort');
+            }
+            $op = $this->getSearchCondition();
+            foreach ($values as $v) {
+                $data = $this->parseValue($v, $type);
+                $data['feature_id'] = $feature_id;
+                $data['sort'] = $sort;
+                $fields = array_unique(array_merge(array($this->id, $this->sort), $this->changed_fields));
+                $fields = '`'.implode('`, `', $fields).'`';
+                $sql = "SELECT {$fields} FROM ".$this->table." WHERE (`feature_id` = i:feature_id) AND (".$op.')';
+                $row = $this->query($sql, $data)->fetchAssoc();
+                if ($row) {
+                    if ($changed = $this->isChanged($row, $data)) {
+                        $this->updateById($row['id'], $changed);
+                    }
+                    if (isset($exists[$row['sort']])) {
+                        $row['sort'] = ($sort === false) ? ($sort = 0) : ++$sort;
+                        $this->updateById($row['id'], array('sort' => $row['sort']));
+                    }
+                    $exists[$row['sort']] = intval($row['id']);
+
+                } elseif ($update) {
+                    $data['sort'] = ($sort === false) ? ($sort = 0) : ++$sort;;
+                    $data['id'] = intval($this->insert($data));;
+                    $result[$data['sort']] = $data['id'];
+                }
+            }
+            $result = array_map('intval', $result);
+            $exists = array_map('intval', $exists);
+            $result = array_unique(array_merge($exists, $result));
+
         }
-        ksort($exists);
-        $result = array_unique(array_merge($exists, $result));
+        ksort($result);
         return $multi ? $result : reset($result);
     }
 
@@ -148,6 +190,11 @@ SQL;
     public function getValueId($feature_id, $value, $type = null, $update = false)
     {
         return $this->getId($feature_id, $value, $type, $update);
+    }
+
+    public function getValueIdsByRange($feature_id, $min, $max)
+    {
+        return array();
     }
 
     /**
@@ -201,6 +248,7 @@ SQL;
                     break;
             }
         }
+
         return $row;
     }
 

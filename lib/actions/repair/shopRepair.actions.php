@@ -120,6 +120,9 @@ ORDER BY `sort`,`%2$s`';
                 print "\n\n";
             }
         }
+        if(empty($model)){
+            $model = new waModel();
+        }
 
         $tables = array(
             'shop_product_images'   => 'product_id',

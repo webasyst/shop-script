@@ -175,7 +175,7 @@ class shopIndexSearch extends shopSearch
             }
             if ($clear_w) {
                 $words[$i] = mb_strtolower($clear_w);
-                if ($word_forms = $this->getWordForms(mb_strtolower($w), $only_exist)) {
+                if ($word_forms = $this->getWordForms($words[$i], $only_exist)) {
                     $additional_words = array_merge($additional_words, $word_forms);
                 }
             } else {
@@ -205,6 +205,9 @@ class shopIndexSearch extends shopSearch
     protected function getWordForms($word, $search = false)
     {
         $result = array();
+        if (preg_match("/[0-9]/", mb_substr($word, 0, 1))) {
+            return $result;
+        }
         if (strpbrk($word, '/.!?|<>[]«»()-') !== false) {
             $result = preg_split("/[\/\.!\?|<>\[\]«»\(\)-]/u", $word, null, PREG_SPLIT_NO_EMPTY);
             if ($result) {
@@ -218,10 +221,6 @@ class shopIndexSearch extends shopSearch
                     }
                 }
             }
-        }
-
-        if ($search && preg_match("/[0-9]/", mb_substr($word, 0, 1))) {
-            return $result;
         }
 
         if (preg_match_all('/[0-9]+/is', $word, $matches)) {

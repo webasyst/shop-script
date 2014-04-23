@@ -119,7 +119,7 @@ class shopImage
         }
     }
 
-    public static function generateThumb($src_image_path, $size)
+    public static function generateThumb($src_image_path, $size, $max_size = false)
     {
         $image = waImage::factory($src_image_path);
         $width = $height = null;
@@ -130,25 +130,40 @@ class shopImage
 
         switch ($type) {
             case 'max':
+                if (is_numeric($max_size) && $width > $max_size) {
+                    return null;
+                }
                 $image->resize($width, $height);
                 break;
             case 'crop':
+                if (is_numeric($max_size) && $width > $max_size) {
+                    return null;
+                }
                 $image->resize($width, $height, waImage::INVERSE)->crop($width, $height);
                 break;
             case 'width':
+                if (is_numeric($max_size) && ($width > $max_size || $height > $max_size)) {
+                    return null;
+                }
                 $image->resize($width, $height);
                 break;
             case 'height':
+                if (is_numeric($max_size) && ($width > $max_size || $height > $max_size)) {
+                    return null;
+                }
                 $image->resize($width, $height);
                 break;
             case 'rectangle':
+                if (is_numeric($max_size) && ($width > $max_size || $height > $max_size)) {
+                    return null;
+                }
                 if ($width > $height) {
                     $w = $image->width;
                     $h = $image->width * $height / $width;
                 } else {
                     $h = $image->height;
                     $w = $image->height * $width / $height;
-                }                
+                }
                 $image->crop($w, $h)->resize($width, $height, waImage::INVERSE);
                 break;
             default:

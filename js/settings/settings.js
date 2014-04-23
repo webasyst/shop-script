@@ -191,7 +191,7 @@ $.extend($.settings = $.settings || {}, {
 
         if (method.name) {
             $.shop.trace('$.settings.click', method);
-            if (!$el.hasClass('js-confirm') || confirm($el.data('confirm-text') || $el.attr('title') || 'Are you sure?')) {
+            if (!$el.hasClass('js-confirm') || confirm($el.data('confirm-text') || $el.attr('title') || $_('Are you sure?'))) {
                 method.params.push($el);
                 this[method.name].apply(this, method.params);
             }

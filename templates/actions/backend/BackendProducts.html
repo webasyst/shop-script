@@ -29,6 +29,10 @@
 {/if}
 <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-wa/wa.elrte.ace.js"></script>
 
+<link type="text/css" rel="stylesheet" href="{$wa_url}wa-content/js/redactor/redactor.css">
+<script src="{$wa_url}wa-content/js/redactor/redactor.min.js"></script>
+{if $lang!='en'}<script src="{$wa_url}wa-content/js/redactor/{$lang}.js"></script>{/if}
+<script src="{$wa_url}wa-content/js/jquery-wa/editor.js?v{$wa->version()}"></script>
 
 {$view = $wa->get('view')|default:$default_view}
 <div class="sidebar left{$sidebar_width}px" id="s-sidebar">

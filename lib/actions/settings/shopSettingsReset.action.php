@@ -156,6 +156,8 @@ class shopSettingsResetAction extends waViewAction
         $paths[] = wa()->getDataPath('products', false, 'shop');
         $paths[] = wa()->getDataPath('products', true, 'shop');
 
+        $paths[] = wa()->getTempPath();
+
         $config_path = wa()->getConfigPath('shop');
         foreach (waFiles::listdir($config_path, true) as $path) {
             if (!in_array($path, array('plugins.php', '..', '.'))) {

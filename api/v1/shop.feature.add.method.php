@@ -22,7 +22,8 @@ class shopFeatureAddMethod extends waAPIMethod
             shopFeatureModel::TYPE_BOOLEAN,
             shopFeatureModel::TYPE_DOUBLE,
             shopFeatureModel::TYPE_TEXT,
-            shopFeatureModel::TYPE_VARCHAR
+            shopFeatureModel::TYPE_VARCHAR,
+            shopFeatureModel::TYPE_COLOR,
         );
 
         if (!in_array($type, $types)) {

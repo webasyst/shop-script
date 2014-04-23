@@ -1,5 +1,5 @@
 <?php
-class shopSortableModel extends waModel
+abstract class shopSortableModel extends waModel
 {
     protected $sort = 'sort';
     protected $context = null;

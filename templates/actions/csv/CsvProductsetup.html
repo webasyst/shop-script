@@ -1,274 +1,10 @@
 <div class="block double-padded s-csv-settings" id="s-csvproduct-form">
-    {if $direction eq 'import'}
-        <h1>[`CSV product import`]</h1>
-        <p>
-            {sprintf('[`Import new products and update existing product information from a comma-separated values (CSV) file. CSV files can be created and managed using most modern spreadsheet applications such as Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-Script-supported CSV file structure, please <a href="%s" target="_blank">refer to the manual</a>.`]','[`http://www.webasyst.com/help/45/import-products-from-csv-file/`]')}
-            <i class="icon10 new-window"></i>
-        </p>
-    {else}
-        <h1>[`CSV product export`]</h1>
-        <p>
-            {sprintf('[`Export products to a comma-separated values (CSV) file. CSV files can be created and managed using most modern spreadsheet applications such as Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-Script-supported CSV file structure, please <a href="%s" target="_blank">refer to the manual</a>.`]','[`http://www.webasyst.com/help/45/import-products-from-csv-file/`]')}
-            <i class="icon10 new-window"></i>
-        </p>
-    {/if}
-    
-   <form id="s-csvproduct" method="post" action="?module=csv&action=productrun">
-   <div class="fields form">
-   {$wa->csrf()}
-   <input type="hidden" name="direction" value="{$direction|escape}">
-   {if ($direction eq 'export')}
-    {if !empty($info)}
-        <div class="field-group" style="border-bottom: 1px solid #ccc;">
-            <div class="field">
-                <div class="name bold">
-                    [`Last export`]
-                </div>
-                {foreach $info as $f}
-                <div class="value" style="min-width: 300px;">
-                    <p>
-                        <a href="?module=csv&action=productdownload&profile={$profile.id|default:''}&file={$f.name|escape}" class="bold nowrap inline"><i class="icon16 download" style="margin-top: 0.3em;"></i>[`Download`]</a>
-                        <span class="hint inline">{$f.size|wa_format_file_size}</span>
-                        <br>
-                        <span class="hint inline" style="color: #aaa;">[`Updated`]: {$f.mtime|wa_datetime:"humandatetime"}</span> 
-                    </p>
-                </div>
-                {/foreach}
-            </div>
+    <form id="s-csvproduct" method="post" action="?module=csv&action=productrun">
+        <input type="hidden" name="direction" value="{$direction|escape}">
+        {$wa->csrf()}
+        <div class="fields form" style="width: 100%;">
+            {include file="./CsvProductsetup.{$direction|default:'import'}.html"}
         </div>
-     {/if}   
-       <div class="field js-profile-description">
-           <div class="name">Профиль</div>
-           <div class="value">
-               <input type="text" name="profile[name]" value="{$profile.name|default:''|escape}">
-               <input type="hidden" name="profile[id]" value="{$profile.id|default:'-1'}">
-           </div>
-    
-       </div>
-   {/if}
-
-    <div class="fields form">
-    {if ($direction eq 'export')}
-
-        {if count($settlements)>1}
-        <div class="field-group">
-            <div class="field">
-                <div class="name">
-                    [`Storefront`]
-                </div>
-                <div class="value no-shift">
-                    <select name="domain">
-                        {foreach $settlements as $route}
-                            <option value="{$route|escape}"{if $route eq $current_domain} selected="selected"{/if}>{$route|escape}</option>
-                        {/foreach}
-                    </select>
-                    <p class="hint">[`Select storefront to make product image URLs exported properly`]</p>
-                </div>
-            </div>
-        </div>
-        {elseif ($route = reset($settlements))}
-        <input type="hidden" value="{$route|escape}" name="domain">
-        {/if}
-        {/if}
-            <div class="field-group">
-            {if $direction eq 'import'}
-                <h2 class="gray">1. [`Upload CSV file`]</h2>
-            {/if}
-            <div class="field">
-                <div class="name">
-                   [`Encoding`]
-                </div>
-                <div class="value">
-                    <select name="encoding">
-                    {foreach $encoding as $enc}<option{if $enc == $profile.config.encoding} selected="selected"{/if}>{$enc|escape}</option>{/foreach}
-                    </select>
-                </div>
-            </div>
-            <div class="field">
-                <div class="name">
-                   [`Separator`]
-                </div>
-                <div class="value">
-                    <select name="delimiter">
-                        <option value=";"{if $profile.config.delimiter eq ';'} selected="selected"{/if}>[`Semicolon`] (;)</option>
-                        <option value=","{if $profile.config.delimiter eq ','} selected="selected"{/if}>[`Comma`] (,)</option>
-                        <option value="tab"{if $profile.config.delimiter eq 'tab'} selected="selected"{/if}>[`Tab`]</option>
-                    </select>
-                </div>
-            </div>
-
-                {if ($direction eq 'export')}
-                <div class="field">
-                    <div class="name">
-                        [`Features`]
-                    </div>
-                    <div class="value no-shift">
-                        <label><input type="checkbox" name="features"{if !empty($profile.config.features)} checked="checked"{/if}> [`Export product feature values`]</label>
-                    </div>
-                </div>
-                    <div class="field">
-                        <div class="name">
-                            [`Images`]
-                        </div>
-                        <div class="value no-shift">
-                            <label><input type="checkbox" name="images"{if !empty($profile.config.images)} checked="checked"{/if}> [`Export product image filenames`]</label>
-                        </div>
-                    </div>{*
-                    <div class="field">
-                        <div class="name">
-                            [`Plugin fields`]
-                        </div>
-                        <div class="value"><label><input type="checkbox" name="extra"{if !empty($profile.config.extra)} checked="checked"{/if}> [`Export product extra fields`]</label></div>
-                    </div>*}
-                {/if}
-            {if $direction eq 'import'}
-            <div class="field">
-                <div class="name">
-                [`File`]
-                </div>
-                <div class="value no-shift">
-                    <input type="file" name="" class="fileupload">
-                    <div class="js-fileupload-progress" style="display:none;">
-                        <i class="icon16 loading"></i><span><!-- upload progress handler --></span>
-                    </div>
-                    <span class="errormsg" style="display:none;"><br><br><i class="icon10 no"></i> <span></span></span>
-
-                    <!-- {capture name="file-info-template-js"}{literal} -->
-                    {% file=o.file; %}
-                    <input type="hidden" name="file" value="{%=file.name%}">
-                    <i class="icon16 yes"></i>
-                    <strong{% if(file.name != file.original_name){ %} title="{%=file.name%}"{% } %}>{%=file.original_name%}</strong><br>
-                    <span class="hint">{% if(file.size != file.original_size){ %}{%=file.original_size%} &rarr; {% } %}{%=file.size%}</span>
-                    {% if(file.header){ %}
-                    <p><br>[`Following columns were located in the uploaded file:`]</p>
-                    <ul class="menu-h hint">
-                        {% for (var column in file.header){if(file.header.hasOwnProperty(column)){ %}
-                        <li title="{%=column%}">{%=file.header[column]%}</li>
-                        {% }} %}
-                    </ul>
-                    {% } %}
-                    <!-- {/literal}{/capture} -->
-
-                </div>
-            </div>
-            {/if}
-        </div>
-		{if $direction eq 'import'}
-        <div class="field-group">
-            <h2 class="gray">2. [`Import options`]</h2>
-            <div class="field">
-                <div class="name">
-                   [`Product identification column`]
-                </div>
-                <div class="value no-shift">
-                    <select name="primary" class="bold">
-                        <option value="name">[`Product name`]</option>
-                        <option value="url">[`Storefront link`]</option>
-                        <option value="null" class="italic">[`(none)`]</option>
-                    </select>
-                    &nbsp;
-                    <span class="s-csv-primary-column-helper"></span>
-                    <br>
-                    <span class="hint">[`Select the product identification column (property) which uniquely identifies each product. Based on the identification column value in the CSV file uploaded, the import routine will either update existing product info, or create a new product.`]</span>
-                </div>
-            </div>
-            <div class="field">
-                <div class="name">
-                   [`SKU identification column`]
-                </div>
-                <div class="value no-shift">
-                    <select name="secondary" class="bold">
-                        <option value="skus:-1:sku">[`SKU code`]</option>
-                        <option value="skus:-1:name">[`SKU name`]</option>
-                    </select>
-                    &nbsp;
-                    <span class="s-csv-secondary-column-helper"></span>
-                    <br>
-                    <span class="hint">[`Similar to product, select the SKU identification column (property) which uniquely identifies each product SKU. Based on the identification column value in the CSV file uploaded, the import routine will either update existing SKU info, or create a new SKU for the product.`]</span>
-                </div>
-
-                <div class="value no-shift">
-                <label><input type="checkbox" name="ignore_category" value="1" checked="checked"> [`Ignore category nesting when searching for matching products (recommended)`]</label>
-                <br>
-                <span class="hint">[`When importing a product and searching if it exists in the store already, product search will be performed only within the category as defined in a CSV file.`]</span>
-                </div>
-            </div>
-            <div class="field">
-                <div class="name">[`Product type`]</div>
-                <div class="value">
-                    <select name="type_id">
-                        {foreach $types as $type_id => $type}
-                        <option value="{$type_id}">{$type.name|escape}</option>
-                        {/foreach}
-                    </select>
-                    <br>
-                    <span class="hint">[`If no particular product type column was specified in the uploaded CSV file, selected product type will be applied to all new products, created during the import.`]</span>
-                </div>
-            </div>
-            <div class="field">
-                <div class="name">[`Product images import local path`]</div>
-                <div class="value">
-                    wa-data/protected/shop/<input type="text" class="long" name="upload_path" value="{$upload_path|escape}" placeholder="path/to/folder/with/source/images/">
-                    <br>
-                    <span class="hint">[`If your CSV file contains links to product images to be imported, import routine will attempt to automatically attach them to imported products. A link to an image file can be either global (a full image URL) or local (image file name). For local image import, indicate path to the folder where all source images are stored, i.e. where you uploaded them into. If linked image was not found, no image will be attached to the product.`]</span>
-                </div>
-            </div>
-
-        </div>
-        {else}
-
-        <div class="field-group">
-            {include file="templates/includes/productSelector.html" hints=['set'=>'[`Categories will not be exported`]'] hash=$profile.config.hash}
-        </div>
-        {/if}
-
-
-        <div class="clear-left"></div>
-
-        <div class="field-group" id="s-csvproduct-submit">
-            <div class="field">
-                <div class="value submit">
-                    <input type="submit" class="button green" value="{if $direction eq 'import'}[`Start import`]{else}[`Start export`]{/if}">
-                    {if $direction eq 'export'}
-                        <br><br>
-                        <em class="small js-profile-notice">[`Profile settings will be automatically saved and applied to all future data exports.`]</em>
-                    {/if}
-                    <div class="js-progressbar-container" style="display:none;">
-                        <div class="progressbar blue float-left" style="display: none; width: 70%;">
-                            <div class="progressbar-outer">
-                                <div class="progressbar-inner" style="width: 0%;"></div>
-                            </div>
-                        </div>
-                        <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
-                        <div class="clear"></div>
-                            <span class="progressbar-description"></span>
-                        <br clear="left" />
-                        <br>
-                        <span class="small italic">
-                        {if $direction eq 'import'}
-                            [`Please do not close your browser window and do not leave this page until the entire import process is finished.`]
-                        {else}
-                            [`Please do not close your browser window and do not leave this page until the entire export process is finished.`]
-                        {/if}
-                        </span>
-                    </div><br><br>
-                    <em class="errormsg"></em>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="field-group" id="s-csvproduct-report" style="display: none;">
-            <div class="field">
-                <div class="value"></div>
-                {if $direction eq 'export'}
-                <div class="value"><br><a href="?module=csv&action=productdownload&profile={$profile.id|default:''}" class="bold nowrap"><i class="icon16 download"></i>[`Download`]</a>
-                </div>
-                {/if}
-            </div>
-        </div>
-    </div>
-    </div>
     </form>
 </div>
 
@@ -276,27 +12,27 @@
 
 
 {if $direction eq 'import'}
-<script type="text/javascript" src="{$wa_app_static_url}js/tmpl.min.js"></script>
-<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.iframe-transport.js"></script>
-<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.fileupload.js"></script>
+    <script type="text/javascript" src="{$wa_app_static_url}js/tmpl.min.js"></script>
+    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.iframe-transport.js"></script>
+    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.fileupload.js"></script>
+{/if}
 
-{if !empty($smarty.capture)}
-{foreach $smarty.capture as $name => $template} {if strpos($name,'template-js')}
-<script type="text/x-jquery-tmpl" id="{$name}">
+{if !empty($smarty.capture)}{foreach $smarty.capture as $name => $template} {if strpos($name,'template-js')}
+    <script type="text/x-jquery-tmpl" id="{$name}">
 <!-- begin {$name} {$template|replace:'</':'<\\/'} end {$name} -->
-</script>
-{/if} {/foreach}
-{/if}
-{/if}
+
+    </script>
+{/if} {/foreach}{/if}
+
 <script type="text/javascript">
     {* generic code for plugins with profiles support *}
     if ($.importexport.csv_productInit) {
         $.importexport.csv_productInit();
-    }else {
-        $.getScript('{$wa_app_static_url}js/csv/csvproduct.js?{$wa->version()}',function(){
+    } else {
+        $.getScript('{$wa_app_static_url}js/csv/csvproduct.js?{$wa->version()}', function () {
             $.importexport.csv_productInit();
         });
     }
-    $.importexport.profiles.set('csv:product:{$direction|escape}',{$profiles|json_encode});
+    $.importexport.profiles.set('csv:product:{$direction|escape}', {$profiles|json_encode});
 
 </script>

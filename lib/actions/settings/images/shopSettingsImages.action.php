@@ -113,19 +113,23 @@ class shopSettingsImagesAction extends waViewAction
 
         $settings['image_sizes'] = array_values((array)$settings['image_sizes']);
         $config_file = $config->getConfigPath('config.php');
-        
-        $settings['image_save_quality'] = waRequest::post('image_save_quality', '', waRequest::TYPE_STRING_TRIM);
-        if ($settings['image_save_quality'] == '') {
-            $settings['image_save_quality'] = 90;
-        } else {
-            $settings['image_save_quality'] = (float) $settings['image_save_quality'];
-            if ($settings['image_save_quality'] < 0) {
-                $settings['image_save_quality'] = 0;
+
+        $settings['enable_2x'] = waRequest::post('enable_2x') ? 1 : 0;
+        foreach (array('image_save_quality', 'image_save_quality_2x') as $k) {
+            $settings[$k] = waRequest::post($k, '', waRequest::TYPE_STRING_TRIM);
+
+            if ($settings[$k] == '') {
+                $settings[$k] = ($k == 'image_save_quality_2x') ? 70 : 90;
+            } else {
+                $settings[$k] = (float) $settings[$k];
+                if ($settings[$k] < 0) {
+                    $settings[$k] = 0;
+                }
+                if ($settings[$k] > 100) {
+                    $settings[$k] = 100;
+                }
+                $settings[$k] = str_replace(',', '.', $settings[$k]);
             }
-            if ($settings['image_save_quality'] > 100) {
-                $settings['image_save_quality'] = 100;
-            }
-            $settings['image_save_quality'] = str_replace(',', '.', $settings['image_save_quality']);
         }
         
         waUtils::varExportToFile($settings, $config_file);

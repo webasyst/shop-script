@@ -13,9 +13,8 @@
     </div>
 
     <h1>{$plugin_info.name|default:$plugin_id|string_format:'%s'}</h1>
-    
-</div>
 
+</div>
 {if isset($plugin_id)}
     <ul class="tabs s-settings-tabs">
         <li {if $wa->get('tab') !== 'template'}class="selected"{/if} style="margin-left: 10px;"><a href="#/printform/{$plugin_id}/">[`Settings`]</a></li>
@@ -90,9 +89,8 @@
             });
         </script>
 
-{else if $plugins_count > 0}
+{elseif ($plugins_count > 0)}
     [`Unknown plugin`]
 {/if}
 
     <div class="clear-left"></div>
-</div>

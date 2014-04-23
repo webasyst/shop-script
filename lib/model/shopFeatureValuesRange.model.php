@@ -1,4 +1,5 @@
 <?php
+
 class shopFeatureValuesRangeModel extends shopFeatureValuesModel
 {
     protected $table = 'shop_feature_values_range';
@@ -90,6 +91,19 @@ class shopFeatureValuesRangeModel extends shopFeatureValuesModel
     {
         return '(`begin`= :begin) AND (`end`=:end) AND (`unit` = s:unit)';
     }
+
+    public function getValueIdsByRange($feature_id, $min, $max)
+    {
+        $sql = 'SELECT id FROM '.$this->table.'
+                WHERE feature_id = i:0';
+        if ($min !== null && $min !== '') {
+            $sql .= ' AND end_base_unit >= f:1';
+        }
+        if ($max !== null && $max !== '') {
+            $sql .= ' AND begin_base_unit <= f:2';
+        }
+        return $this->query($sql, $feature_id, $min, $max)->fetchAll(null, true);
+    }
 }
 
 
@@ -160,12 +174,13 @@ class shopRangeValue implements ArrayAccess
      */
     public function offsetExists($offset)
     {
-
+        return in_array($offset, array('value', 'units', 'compare')) || isset($this->{$offset});
     }
 
 
     public function offsetGet($offset)
     {
+        return $this->__get($offset);
 
     }
 
@@ -192,6 +207,9 @@ class shopRangeValue implements ArrayAccess
         if ($field == 'units') {
             return shopDimension::getUnits($this->type);
         }
+        if ($field == 'compare') {
+            return trim($this->begin_base_unit.':'.$this->end_base_unit);
+        }
         if ($field == 'value') {
             $str = array();
             if ($this->begin !== null) {
@@ -206,9 +224,6 @@ class shopRangeValue implements ArrayAccess
             }
             return implode(' ', $str);
         }
-        if (!isset($this->$field)) {
-            var_dump($field);
-        }
-        return isset($this->$field) ? $this->$field : '!!!'.$field.var_dump($field);
+        return isset($this->{$field}) ? $this->$field : null;
     }
 }

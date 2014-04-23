@@ -100,14 +100,14 @@ class shopProductsCollection
                     $params = array(
                         'collection' => $this,
                         'auto_title' => $auto_title,
-                        'add' => $add,
+                        'add'        => $add,
                     );
                     /**
                      * @event products_collection
-                     * @param array[string]mixed $params
-                     * @param array[string]shopProductsCollection $params['collection']
-                     * @param array[string]boolean $params['auto_title']
-                     * @param array[string]boolean $params['add']
+                     * @param array [string]mixed $params
+                     * @param array [string]shopProductsCollection $params['collection']
+                     * @param array [string]boolean $params['auto_title']
+                     * @param array [string]boolean $params['add']
                      * @return bool null if ignored, true when something changed in the collection
                      */
                     $processed = wa()->event('products_collection', $params);
@@ -139,7 +139,7 @@ class shopProductsCollection
 
         if (($type_id = waRequest::param('type_id')) && is_array($type_id)) {
             foreach ($type_id as & $t) {
-                $t = (int) $t;
+                $t = (int)$t;
             }
             if ($type_id) {
                 $this->where[] = 'p.type_id IN ('.implode(',', $type_id).')';
@@ -165,7 +165,7 @@ class shopProductsCollection
         if (strpos($value, ',') !== false) {
             $value = str_replace(',', '.', $value);
         }
-        return str_replace(',', '.', (double) $value);
+        return str_replace(',', '.', (double)$value);
     }
 
     public function filters($data)
@@ -187,30 +187,43 @@ class shopProductsCollection
         }
 
         if (isset($data['price_min']) && $data['price_min'] !== '') {
-            $this->where[] = 'p.min_price >= '.$this->toFloat(shop_currency($data['price_min'], true, $config->getCurrency(true), false));
+            $this->where[] = 'p.max_price >= '.$this->toFloat(shop_currency($data['price_min'], true, $config->getCurrency(true), false));
             unset($data['price_min']);
         }
         if (isset($data['price_max']) && $data['price_max'] !== '') {
-            $this->where[] = 'p.max_price <= '.$this->toFloat(shop_currency($data['price_max'], true, $config->getCurrency(true), false));
+            $this->where[] = 'p.min_price <= '.$this->toFloat(shop_currency($data['price_max'], true, $config->getCurrency(true), false));
             unset($data['price_max']);
         }
         $feature_model = new shopFeatureModel();
         $features = $feature_model->getByField('code', array_keys($data), 'code');
-        foreach ($data as $feature_id => $values) {
+        foreach ($data as $feature_code => $values) {
             if (!is_array($values)) {
                 if ($values === '') {
                     continue;
                 }
                 $values = array($values);
             }
-            if (isset($features[$feature_id])) {
-                foreach ($values as & $v) {
-                    $v = (int) $v;
+            if (isset($features[$feature_code])) {
+                if (isset($values['min']) || isset($values['max'])) {
+                    if (ifset($values['min'], '') === '' && ifset($values['max'], '') === '') {
+                        continue;
+                    } else {
+                        $fm = $feature_model->getValuesModel($features[$feature_code]['type']);
+                        $values = $fm->getValueIdsByRange($features[$feature_code]['id'], ifset($values['min']), ifset($values['max']));
+                    }
+                } else {
+                    foreach ($values as & $v) {
+                        $v = (int)$v;
+                    }
                 }
-                $this->addJoin('shop_product_features',
-                    'p.id = :table.product_id AND :table.feature_id = '.(int) $features[$feature_id]['id'],
-                    ':table.feature_value_id IN ('.implode(',', $values).')');
-                $this->group_by = 'p.id';
+                if ($values) {
+                    $this->addJoin('shop_product_features',
+                        'p.id = :table.product_id AND :table.feature_id = '.(int)$features[$feature_code]['id'],
+                        ':table.feature_value_id IN ('.implode(',', $values).')');
+                    $this->group_by = 'p.id';
+                } else {
+                    $this->where[] = '0';
+                }
             }
         }
         $this->filtered = true;
@@ -225,7 +238,7 @@ class shopProductsCollection
             'on'    => 'p.id = pr.related_product_id'
         );
         $this->where[] = "pr.type = '".$this->getModel()->escape($type)."'";
-        $this->where[] = 'pr.product_id = '.(int) $product_id;
+        $this->where[] = 'pr.product_id = '.(int)$product_id;
     }
 
     /**
@@ -251,7 +264,8 @@ class shopProductsCollection
         $this->info['hash'] = 'category';
         if ($this->is_frontend) {
             $this->info['frontend_url'] = wa()->getRouteUrl('shop/frontend/category', array(
-                'category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url']), true);
+                'category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url']
+            ), true);
         } else {
             $frontend_urls = $category_model->getFrontendUrls($id);
             if ($frontend_urls) {
@@ -282,14 +296,16 @@ class shopProductsCollection
 
         if ($this->info['type'] == shopCategoryModel::TYPE_STATIC) {
             $alias = $this->addJoin('shop_category_products');
-            if (/*wa()->getEnv() == 'frontend' && */$this->info['include_sub_categories']) {
+            if ( /*wa()->getEnv() == 'frontend' && */
+            $this->info['include_sub_categories']
+            ) {
                 $this->info['subcategories'] = $category_model->descendants($this->info, true)->where('type = '.shopCategoryModel::TYPE_STATIC)->fetchAll('id');
                 $descendant_ids = array_keys($this->info['subcategories']);
                 if ($descendant_ids) {
                     $this->where[] = $alias.".category_id IN(".implode(',', $descendant_ids).")";
                 }
             } else {
-                $this->where[] = $alias.".category_id = ".(int) $id;
+                $this->where[] = $alias.".category_id = ".(int)$id;
             }
             if ((empty($this->info['sort_products']) && !waRequest::get('sort')) || waRequest::get('sort') == 'sort') {
                 $this->order_by = $alias.'.sort ASC';
@@ -299,13 +315,13 @@ class shopProductsCollection
             $this->setHash('/search/'.$this->info['conditions']);
             $this->prepare(false, false);
             $info = $this->info;
-            while ($info['parent_id']/* && $this->info['conditions']*/) {
+            while ($info['parent_id'] /* && $this->info['conditions']*/) {
                 $info = $category_model->getByid($info['parent_id']);
                 if ($info['type'] == shopCategoryModel::TYPE_DYNAMIC) {
                     $this->setHash('/search/'.$info['conditions']);
                     $this->prepare(true, false);
                 } else {
-                    $this->addJoin('shop_category_products', null, ':table.category_id = '.(int) $info['id']);
+                    $this->addJoin('shop_category_products', null, ':table.category_id = '.(int)$info['id']);
                     break;
                 }
             }
@@ -353,7 +369,7 @@ class shopProductsCollection
         );
         $ids = array();
         foreach (explode(',', $ids_str) as $id) {
-            $ids[] = (int) $id;
+            $ids[] = (int)$id;
         }
         if (!$ids) {
             $this->where[] = '0';
@@ -381,7 +397,7 @@ class shopProductsCollection
             $this->addTitle($type['name']);
         }
 
-        $this->where[] = "p.type_id = ".(int) $id;
+        $this->where[] = "p.type_id = ".(int)$id;
     }
 
     /**
@@ -464,7 +480,7 @@ class shopProductsCollection
             $conditions = $type_upselling_model->getByField('type_id', $product['type'], true);
         }
 
-        $this->where[] = 'p.id != '.(int) $product_id;
+        $this->where[] = 'p.id != '.(int)$product_id;
 
         $sum = array();
 
@@ -473,7 +489,7 @@ class shopProductsCollection
                 $tag_model = new shopTagModel();
                 $tag = $tag_model->getByName($row['value']);
                 if ($tag) {
-                    $this->where[] = 'pt.tag_id = '.(int) $tag['id'];
+                    $this->where[] = 'pt.tag_id = '.(int)$tag['id'];
                     $this->joins[] = array(
                         'table' => 'shop_product_tags',
                         'alias' => 'pt'
@@ -501,8 +517,8 @@ class shopProductsCollection
                     if (!$v) {
                         continue;
                     }
-                    $min = $v * (float) (100 + $min) / 100;
-                    $max = $v * (float) (100 + $max) / 100;
+                    $min = $v * (float)(100 + $min) / 100;
+                    $max = $v * (float)(100 + $max) / 100;
                     $v = str_replace(',', '.', $v);
                     if ($model->fieldExists($row['feature'])) {
                         $this->where[] = 'p.'.$row['feature'].' > '.str_replace(',', '.', $min);
@@ -541,7 +557,7 @@ class shopProductsCollection
                         $product_features_model = new shopProductFeaturesModel();
                         $rows = $product_features_model->getByField(array(
                             'product_id' => $product['id'],
-                            'sku_id' => null,
+                            'sku_id'     => null,
                             'feature_id' => $row['feature_id']
                         ), true);
                         $values = array();
@@ -720,8 +736,8 @@ class shopProductsCollection
                 return " LIKE '%".$model->escape($value, 'like')."%'";
             case "==":
             case "=";
-        default:
-            return " = '".$model->escape($value)."'";
+            default:
+                return " = '".$model->escape($value)."'";
         }
     }
 
@@ -918,7 +934,7 @@ class shopProductsCollection
         } else {
             $sql = "SELECT COUNT(".($this->joins ? 'DISTINCT ' : '')."p.id) ".$sql;
         }
-        $count = (int) $this->getModel()->query($sql)->fetchField();
+        $count = (int)$this->getModel()->query($sql)->fetchField();
 
         if ($this->hash[0] == 'category' && !empty($this->info['id']) && $this->info['type'] == shopCategoryModel::TYPE_DYNAMIC) {
             if ($this->info['count'] != $count && !$this->is_frontend) {
@@ -953,7 +969,7 @@ class shopProductsCollection
         }
         $split_fields = array_map('trim', explode(',', $fields));
         if (in_array('frontend_url', $split_fields) && !in_array('*', $split_fields)) {
-            if ($dependent_fields = array_diff(array('url', 'category_id', ), $split_fields)) {
+            if ($dependent_fields = array_diff(array('url', 'category_id',), $split_fields)) {
                 $fields .= ','.implode(',', $dependent_fields);
             }
         }
@@ -974,7 +990,7 @@ class shopProductsCollection
             $sql .= " HAVING ".implode(' AND ', $this->having);
         }
         $sql .= $this->_getOrderBy();
-        $sql .= " LIMIT ".($offset ? $offset.',' : '').(int) $limit;
+        $sql .= " LIMIT ".($offset ? $offset.',' : '').(int)$limit;
 
         $data = $this->getModel()->query($sql)->fetchAll('id');
         if (!$data) {
@@ -987,13 +1003,21 @@ class shopProductsCollection
     private function workupProducts(&$products = array(), $escape)
     {
         foreach ($products as & $p) {
-            $p['min_price'] = (float) $p['min_price'];
-            $p['max_price'] = (float) $p['max_price'];
-            $p['total_sales'] = (float) $p['total_sales'];
-            $p['base_price_selectable'] = (float) $p['base_price_selectable'];
-            $p['rating'] = (float) $p['rating'];
-            $p['price'] = (float) $p['price'];
-            $p['compare_price'] = (float) $p['compare_price'];
+            $float = array(
+                'min_price',
+                'max_price',
+                'total_sales',
+                'base_price_selectable',
+                'rating',
+                'price',
+                'compare_price',
+
+            );
+            foreach ($float as $field) {
+                if (isset($p[$field])) {
+                    $p[$field] = (float)$p[$field];
+                }
+            }
 
             if ($this->is_frontend && $p['compare_price'] && $p['compare_price'] <= $p['price']) {
                 $p['compare_price'] = 0;
@@ -1195,6 +1219,49 @@ class shopProductsCollection
     public function getHash()
     {
         return $this->hash;
+    }
+
+    /**
+     * @return array
+     * array(
+     *     feature1_id => array(feature1_value1_id, feature1_value2_id, ...),
+     *     feature2_id => array(feature2_value1_id, feature2_value2_id, ...),
+     *     ...
+     * )
+     */
+    public function getFeatureValueIds()
+    {
+        $alias = $this->addJoin('shop_product_features');
+        $sql = $this->getSQL();
+        $sql = 'SELECT DISTINCT '.$alias.'.feature_id, '.$alias.'.feature_value_id '.$sql;
+        $rows = $this->getModel()->query($sql);
+        if (!$rows) {
+            return array();
+        }
+        $result = array();
+        foreach ($rows as $row) {
+            $result[$row['feature_id']][] = $row['feature_value_id'];
+        }
+        return $result;
+    }
+
+    /**
+     * Returns min and max prices of the products collection
+     * @return array
+     * array(
+     *    'min' => MIN PRICE,
+     *    'max' => MAX PRICE
+     * )
+     */
+    public function getPriceRange()
+    {
+        $sql = $this->getSQL();
+        $sql = "SELECT MIN(p.min_price) min, MAX(p.max_price) max ".$sql;
+        $data = $this->getModel()->query($sql)->fetch();
+        return array(
+            'min' => (double)(isset($data['min']) ? $data['min'] : 0),
+            'max' => (double)(isset($data['max']) ? $data['max'] : 0)
+        );
     }
 }
 

@@ -8,7 +8,8 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
          * @type {Array} plugin_id=>bool
          */
         plugin_profiles: {},
-        title_suffix: ''
+        title_suffix: '',
+        backend_url: '/webasyst/'
     },
     /**
      * @type {string}
@@ -218,8 +219,10 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                 }
 
                 var self = this;
-                $content.load(this.helper.buildUrl(path), function () {
-
+                $content.load(this.helper.buildUrl(path), function (responseText, textStatus, XMLHttpRequest) {
+                    if (!$content.find('>div.block.double-padded').length) {
+                        $content.wrapInner('<div class="block double-padded"></div>');
+                    }
                     self.importexportLoad($content, path);
                 });
             }
@@ -240,7 +243,14 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
     click: function ($el) {
         try {
             var args = $el.attr('href').replace(/.*#\/?/, '').replace(/\/$/, '').split('/');
-            var method = $.shop.getMethod(args, this);
+            var name = args.shift();
+            //TODO determine scope for plugins
+            var matches;
+            scope = null;
+            if (matches = name.match(/^(\w+(:\w+)?)(:\d+)?$/)) {
+
+            }
+            var method = $.shop.getMethod(args, true ? this : this.plugins[scope], name);
 
             if (method.name) {
                 $.shop.trace('$.importexport.click', method);
@@ -363,9 +373,6 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
         this.path.profile = path.profile;
         this.path.tail = path.tail;
         $.shop.trace('$.importexport.importexportLoad', path);
-        // update title
-        var plugin_name = $content.find('h1:first').hide().text() || this.options.plugin_names[this.path.plugin];
-        window.document.title = plugin_name + this.options.title_suffix;
 
         //update selected plugin
         this.$menu.find('li.selected').removeClass('selected');
@@ -380,7 +387,17 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
             href += '/';
         }
 
-        this.$menu.find('a[href^="\#\/' + href + '"]').parents('li').addClass('selected');
+        var $a = this.$menu.find('a[href^="\#\/' + href + '"]');
+        $a.parents('li').addClass('selected');
+
+        // update title
+        var plugin_name = $content.find('h1:first').hide().text() || this.options.plugin_names[this.path.plugin] || ($a
+            .clone()    //clone the element
+            .children() //select all the children
+            .remove()   //remove all the children
+            .end()  //again go back to selected element
+            .text()) || '';
+        window.document.title = plugin_name + this.options.title_suffix;
         this.$header.find('> h1:first').text(plugin_name);
 
         this.$header.find('> p:first').html($content.find('p:first').hide().html());
@@ -581,7 +598,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
             //redraw list of available configs & load default one
             var id;
             var counter = 0;
-            this.$profiles.find('> li:not(.no-tab').remove();
+            this.$profiles.find('> li:not(.no-tab)').remove();
             this.$profiles.find('> li.no-tab').show();
             var key = this.key();
             $.shop.trace('profiles.draw', [key, $.importexport.options.plugin_profiles[key]]);
@@ -728,8 +745,8 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
         },
         handler: function ($this) {
             var $container = $this.parents('div.field');
-            $container.find('.js-hash-values:visible').hide();
             if ($this.is(':checked')) {
+                $container.find('.js-hash-values:visible').hide();
                 $container.find('.js-hash-values.js-hash-' + $this.val()).show();
             }
         }
@@ -739,6 +756,9 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
         buildUrl: function (path) {
             var url = [];
             if (path.plugin) {
+                if (path.plugin == 'plugins') {
+                    return $.importexport.options.backend_url + 'installer/?module=plugins&action=view&slug=shop&filter[tag]=importexport';
+                }
                 url.push('plugin=' + path.plugin);
             }
             if (path.module && (path.module != 'backend')) {

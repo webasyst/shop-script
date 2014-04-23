@@ -1,4 +1,4 @@
-{$more = (!empty($values_per_feature) && ($feature.count>($values_per_feature+2)))?($feature.count-count($feature.values)):null}
+{$more = (!empty($values_per_feature) && (($feature.count>($values_per_feature+2))||($feature.count>count($feature.values))))?($feature.count-count($feature.values)):null}
 {foreach $feature.values as $value_id => $value}
         <li data-value-id="{$value_id}">{if is_object($value) && isset($value['icon'])}{$value['icon']|default:''}{/if}{$value|escape}</li>
 {/foreach}

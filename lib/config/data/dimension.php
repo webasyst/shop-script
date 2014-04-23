@@ -213,7 +213,15 @@ return array(
             'week' => array(
                 'name' => _w('weeks'),
                 'multiplier' => 604800
-            )
+            ),
+            'month' => array(
+                'name' => _w('months'),
+                'multiplier' => 2592000
+            ),
+            'year' => array(
+                'name' => _w('years'),
+                'multiplier' => 31536000
+            ),
         )
     )
 

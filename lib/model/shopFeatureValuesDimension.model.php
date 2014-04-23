@@ -68,4 +68,17 @@ class shopFeatureValuesDimensionModel extends shopFeatureValuesModel
     {
         return '(`value`= :value) AND (`unit` = s:unit)';
     }
+
+    public function getValueIdsByRange($feature_id, $min, $max)
+    {
+        $sql = 'SELECT id FROM '.$this->table.'
+                WHERE feature_id = i:0';
+        if ($min !== null && $min !== '') {
+            $sql .= ' AND value_base_unit >= f:1';
+        }
+        if ($max !== null && $max !== '') {
+            $sql .= ' AND value_base_unit <= f:2';
+        }
+        return $this->query($sql, $feature_id, $min, $max)->fetchAll(null, true);
+    }
 }

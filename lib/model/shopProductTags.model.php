@@ -6,7 +6,8 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
 
     /**
      * Method triggered when deleting product through shopProductModel
-     * @param array $product_ids
+     * @param int[] $product_ids
+     * @return bool
      */
     public function deleteByProducts(array $product_ids)
     {
@@ -16,11 +17,10 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         foreach ($this->query("SELECT tag_id, count(product_id) cnt FROM {$this->table}
             WHERE product_id IN (".implode(',', $product_ids).")
             GROUP BY tag_id")
-            as $item)
-        {
+                 as $item) {
             $count += 1;
             $tag_model->query(
-                "UPDATE ".$tag_model->getTableName()." SET count = count - {$item['cnt']}
+                      "UPDATE ".$tag_model->getTableName()." SET count = count - {$item['cnt']}
                 WHERE id = {$item['tag_id']}"
             );
         }
@@ -28,7 +28,7 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
             $tag_model->query("DELETE FROM ".$tag_model->getTableName()." WHERE count <= 0");
         }
 
-        $this->deleteByField('product_id', $product_ids);
+        return $this->deleteByField('product_id', $product_ids);
     }
 
 
@@ -184,7 +184,7 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         if (!$product_id) {
             return false;
         }
-        $product_id = (array) $product_id;
+        $product_id = (array)$product_id;
 
         // delete tags
         $this->deleteByField(array('product_id' => $product_id, 'tag_id' => $tag_id));

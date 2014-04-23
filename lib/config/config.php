@@ -19,11 +19,11 @@ return array(
     'products_per_page'        => 30,
     'reviews_per_page_total'   => 30,
     'reviews_per_page_product' => 5,
-    'review_highlight_time'       => 180,
-    'products_default_view'    => 'table',
+    'review_highlight_time'    => 180,
+    'products_default_view'    => 'thumbs',/* 'table' or 'thumbs' */
     'orders_default_view'      => 'split',
     'orders_per_page'          => array('split' => 15, 'table' => 30),
-    'types_per_page'          => 25,
+    'types_per_page'           => 25,
     'features_per_page'        =>200,
     'orders_update_list'       => 60000, // miliseconds
 
@@ -34,7 +34,10 @@ return array(
     'image_sharpen'            => 1,
     'image_thumbs_on_demand'   => 1,
     'image_save_original'      => 1,
-    'image_save_quality'    => 90,
+    'image_save_quality'       => 90,
+
+    'enable_2x'                => 1,
+    'image_save_quality_2x'    => 70,
 
     // search weights
     'search_weights' => array(

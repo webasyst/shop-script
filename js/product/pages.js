@@ -71,18 +71,14 @@
                 button.removeClass('yellow green').addClass($.product_pages.button_color);
                 $.product_pages.button_color = null;
                 $.product_pages.container.find("#s-page-container").html('');
-                
-                if (wa_editor && $.product.description !== undefined) {
-                    wa_editor.setValue($.product.description);
-                }
             };
 
             $.product.editTabPagesSave = function() {
                 var form = $("#s-page-form");
+                if (!form.length) {
+                    return;
+                }
                 var li = $.product_pages.sidebar.find("li.selected");
-                waEditorUpdateSource({
-                    id: 's-page-content'
-                });
                 $.product.refresh('submit');
                 $.shop.jsonPost(form.attr('action'), form.serialize(),
                     function(r) {

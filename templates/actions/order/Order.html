@@ -161,12 +161,16 @@
         {/if}
     
         {if !empty($params.payment_name)}
-        <h3><span class="gray">[`Payment`] &mdash;</span> <strong>{$params.payment_name}</strong></h3>
-        {if $billing_address !== null}
-            <p class="s-order-address">
-                {$billing_address}
-            </p>
+            <h3><span class="gray">[`Payment`] &mdash;</span> <strong>{$params.payment_name}</strong></h3>
+            {if $billing_address !== null}
+                <p class="s-order-address">
+                    {$billing_address}
+                </p>
+            {/if}
         {/if}
+        
+        {if !empty($order.coupon)}
+            <h3><span class="gray">[`Discount`] </span> <strong>({$order.coupon.code})</strong></h3>
         {/if}
     
         <div class="clear-right"></div>

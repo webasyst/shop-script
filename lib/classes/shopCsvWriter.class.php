@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Class shopCsvWriter
+ * @property-read string $encoding
+ * @property-read string $delimiter
+ * @property-read string $enclosure
+ */
 class shopCsvWriter implements Serializable
 {
     /**
@@ -11,11 +18,18 @@ class shopCsvWriter implements Serializable
     protected $data_mapping = array();
     private $delimiter = ';';
     private $encoding;
+    private $method;
 
     private $offset = 0;
     private $file;
 
-    public function __construct($file, $delimiter = ';', $encoding = 'utf-8')
+    /**
+     * @param string $file CSV file path
+     * @param string $delimiter
+     * @param string $encoding
+     * @param string $method mb or iconv encoding method (default is iconv)
+     */
+    public function __construct($file, $delimiter = ';', $encoding = 'utf-8', $method = 'iconv')
     {
         $this->file = ifempty($file);
         $this->delimiter = ifempty($delimiter, ';');
@@ -23,6 +37,7 @@ class shopCsvWriter implements Serializable
             $this->delimiter = "\t";
         }
         $this->encoding = ifempty($encoding, 'utf-8');
+        $this->method = in_array($method, array('mb', 'icon'), true) ? $method : 'iconv';
         if ($this->file()) {
             waFiles::create($this->file);
         }
@@ -36,12 +51,30 @@ class shopCsvWriter implements Serializable
         }
     }
 
+    public function __get($name)
+    {
+        $value = null;
+        switch ($name) {
+            case 'delimiter':
+                $value = $this->delimiter;
+                break;
+            case 'encoding':
+                $value = $this->encoding;
+                break;
+            case 'enclosure':
+                $value = '"';
+                break;
+        }
+        return $value;
+    }
+
     public function serialize()
     {
         return serialize(array(
             'file'         => $this->file,
             'delimiter'    => $this->delimiter,
             'encoding'     => $this->encoding,
+            'method'       => $this->method,
             'data_mapping' => $this->data_mapping,
             'offset'       => $this->offset,
         ));
@@ -53,6 +86,7 @@ class shopCsvWriter implements Serializable
         $this->file = ifset($data['file']);
         $this->delimiter = ifempty($data['delimiter'], ';');
         $this->encoding = ifempty($data['encoding'], 'utf-8');
+        $this->method = ifempty($data['method'], 'iconv');
         $this->data_mapping = ifset($data['data_mapping']);
         $this->offset = ifset($data['offset'], 0);
 
@@ -95,9 +129,25 @@ class shopCsvWriter implements Serializable
             fseek($this->fp, 0, SEEK_END);
 
             if (strtolower($this->encoding) != 'utf-8') {
-                if (!@stream_filter_prepend($this->fp, 'convert.iconv.UTF-8/'.$this->encoding.'//IGNORE')) {
-                    throw new waException("error while register file filter");
+                switch ($this->method) {
+                    case 'mb':
+                        if (class_exists('waFilesFilter')) {
+                            waFilesFilter::register();
+                            if (!@stream_filter_prepend($this->fp, 'convert.mb.UTF-8/'.$this->encoding)) {
+                                throw new waException("error while register file filter");
+                            }
+                        } else {
+                            throw new waException("error while search filter class");
+                        }
+                        break;
+                    case 'iconv':
+                    default:
+                        if (!@stream_filter_prepend($this->fp, 'convert.iconv.UTF-8/'.$this->encoding.'//TRANSLIT//IGNORE')) {
+                            throw new waException("error while register file filter");
+                        }
+                        break;
                 }
+
             }
 
             if (!$this->offset) {
@@ -161,7 +211,7 @@ class shopCsvWriter implements Serializable
                         $value = '';
                     }
                 }
-                $mapped[] = $value;
+                $mapped[] = str_replace("\r\n", "\r", $value);
             }
         }
 

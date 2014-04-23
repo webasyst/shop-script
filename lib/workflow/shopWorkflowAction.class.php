@@ -126,6 +126,13 @@ class shopWorkflowAction extends waWorkflowAction
          * @event order_action.restore
          * @event order_action.complete
          * @event order_action.comment
+         *
+         * @param array[string]mixed $data
+         * @param array[string]int $data['order_id']
+         * @param array[string]int $data['action_id']
+         * @param array[string]int $data['before_state_id']
+         * @param array[string]int $data['after_state_id']
+         * @param array[string]int $data['id'] Order log record id
          */
         wa('shop')->event('order_action.'.$this->getId(), $data);
         return $data;

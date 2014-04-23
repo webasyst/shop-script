@@ -23,7 +23,8 @@ class shopCheckoutPayment extends shopCheckout
 
         $currencies = wa('shop')->getConfig()->getCurrencies();
         $selected = null;
-        foreach ($methods as $method_id => $m) {
+        foreach ($methods as $m) {
+            $method_id  = $m['id'];
             if (in_array($method_id, $disabled)) {
                 unset($methods[$method_id]);
                 continue;

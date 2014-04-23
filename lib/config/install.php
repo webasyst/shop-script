@@ -11,6 +11,8 @@ if (file_exists($file)) {
 ');
 waFiles::copy(wa()->getAppPath('lib/config/data/.htaccess', 'shop'), $path.'/.htaccess');
 $currency_model = new shopCurrencyModel();
+$model = new waAppSettingsModel();
+$model->set('shop', 'welcome', 1);
 if ($currency_model->countAll() == 0) {
     $currency_model->insert(array(
         'code' => 'USD',
@@ -18,7 +20,6 @@ if ($currency_model->countAll() == 0) {
         'sort' => 1,
     ), 2);
 
-    $model = new waAppSettingsModel();
     $model->set('shop', 'currency', 'USD');
     $model->set('shop', 'use_product_currency', 'true');
 }
@@ -53,5 +54,8 @@ if ($notifications_model->countAll() == 0) {
         }
     }
 }
-// redirect to welcome
-header("Location: ".wa()->getConfig()->getBackendUrl(true).'shop/?action=welcome');
+
+if (wa()->getEnv() == 'backend') {
+    // redirect to welcome
+    header("Location: ".wa()->getConfig()->getBackendUrl(true).'shop/?action=welcome');
+}

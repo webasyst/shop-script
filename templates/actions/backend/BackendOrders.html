@@ -161,7 +161,7 @@
             {% } %}
         </td>
         <input type="hidden" name="product[add][{%#index%}]" value="{%#product.id%}">
-        <td class="valign-top nowrap">
+        <td class="valign-top nowrap{% if (options.price_edit) { %} align-right{% } %}">
             <span style="padding-top: 2px;" class="gray">&times;</span>
             <input type="text"
                 name="quantity[add][{%#index%}][product]"
