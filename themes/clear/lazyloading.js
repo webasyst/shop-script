@@ -43,6 +43,9 @@ $(function() {
                 loading.show();
                 $.get(url, function(html) {
                     var tmp = $('<div></div>').html(html);
+                    if ($.Retina) {
+                        tmp.find('#product-list .product-list img').retina();
+                    }
                     product_list.append(tmp.find('#product-list .product-list').children());
                     var tmp_paging = tmp.find('.lazyloading-paging').hide();
                     paging.replaceWith(tmp_paging);
