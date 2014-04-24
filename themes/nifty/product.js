@@ -1,4 +1,109 @@
-function currency_format(number, no_html) {
+function Product(form, options) {
+    this.form = $(form);
+    this.add2cart = this.form.find(".add2cart");
+    this.button = this.add2cart.find("input[type=submit]");
+    for (var k in options) {
+        this[k] = options[k];
+    }
+    var self = this;
+    // add to cart block: services
+    this.form.find(".services input[type=checkbox]").click(function () {
+        var obj = $('select[name="service_variant[' + $(this).val() + ']"]');
+        if (obj.length) {
+            if ($(this).is(':checked')) {
+                obj.removeAttr('disabled');
+            } else {
+                obj.attr('disabled', 'disabled');
+            }
+        }
+        self.cartButtonVisibility(true);
+        self.updatePrice();
+    });
+
+    this.form.find(".services .service-variants").on('change', function () {
+        self.cartButtonVisibility(true);
+        self.updatePrice();
+    });
+
+    this.form.find(".skus input[type=radio]").click(function () {
+        if ($(this).data('image-id')) {
+            $("#product-image-" + $(this).data('image-id')).click();
+        }
+        if ($(this).data('disabled')) {
+            self.button.attr('disabled', 'disabled');
+        } else {
+            self.button.removeAttr('disabled');
+        }
+        var sku_id = $(this).val();
+        self.updateSkuServices(sku_id);
+        self.cartButtonVisibility(true);
+        self.updatePrice();
+    });
+    $("#product-skus input[type=radio]:checked").click();
+
+    this.form.find("select.sku-feature").change(function () {
+        var key = "";
+        self.form.find("select.sku-feature").each(function () {
+            key += $(this).data('feature-id') + ':' + $(this).val() + ';';
+        });
+        var sku = self.features[key];
+        if (sku) {
+            if (sku.image_id) {
+                $("#product-image-" + sku.image_id).click();
+            }
+            self.updateSkuServices(sku.id);
+            if (sku.available) {
+                self.button.removeAttr('disabled');
+            } else {
+                self.button.attr('disabled', 'disabled');
+            }
+            self.add2cart.find(".price").data('price', sku.price);
+            self.updatePrice(sku.price, sku.compare_price);
+        } else {
+            self.form.find("div.stocks div").hide();
+            self.form.find(".sku-no-stock").show();
+            self.button.attr('disabled', 'disabled');
+            self.add2cart(".compare-at-price").hide();
+            self.add2cart(".price").empty();
+        }
+        self.cartButtonVisibility(true);
+    });
+    this.form.find("select.sku-feature:first").change();
+
+    if (!this.form.find(".skus input:radio:checked").length) {
+        this.form.find(".skus input:radio:enabled:first").attr('checked', 'checked');
+    }
+
+    this.form.submit(function () {
+        var f = $(this);
+        $.post(f.attr('action') + '?html=1', f.serialize(), function (response) {
+            if (response.status == 'ok') {
+                var cart_total = $(".cart-total");
+                var cart_div = f.closest('.cart');
+
+                cart_total.closest('#cart').removeClass('empty');
+                cart_total.html(response.data.total);
+
+                self.cartButtonVisibility(false);
+
+                if (f.data('cart')) {
+                    $("#cart-content").parent().load(location.href, function () {
+                        $("#dialog").hide().find('.cart').empty();
+                    });
+                }
+                if (response.data.error) {
+                    alert(response.data.error);
+                }
+            } else if (response.status == 'fail') {
+                alert(response.errors);
+            }
+        }, "json");
+        return false;
+    });
+
+}
+
+Product.prototype.currencyFormat = function (number, no_html) {
     // Format a number with grouped thousands
     //
     // +   original by: Jonas Raoni Soares Silva (http://www.jsfromhell.com)
@@ -6,9 +111,9 @@ function currency_format(number, no_html) {
     // +	 bugfix by: Michael White (http://crestidg.com)
 
     var i, j, kw, kd, km;
-    var decimals = currency.frac_digits;
-    var dec_point = currency.decimal_point;
-    var thousands_sep = currency.thousands_sep;
+    var decimals = this.currency.frac_digits;
+    var dec_point = this.currency.decimal_point;
+    var thousands_sep = this.currency.thousands_sep;
 
     // input sanitation & defaults
     if( isNaN(decimals = Math.abs(decimals)) ){
@@ -36,150 +141,101 @@ function currency_format(number, no_html) {
 
 
     var number = km + kw + kd;
-    var s = no_html ? currency.sign : currency.sign_html;
-    if (!currency.sign_position) {
-        return s + currency.sign_delim + number;
+    var s = no_html ? this.currency.sign : this.currency.sign_html;
+    if (!this.currency.sign_position) {
+        return s + this.currency.sign_delim + number;
     } else {
-        return number + currency.sign_delim + s;
+        return number + this.currency.sign_delim + s;
+    }
+};
+
+
+Product.prototype.serviceVariantHtml= function (id, name, price) {
+    return $('<option data-price="' + price + '" value="' + id + '"></option>').text(name + ' (+' + this.currencyFormat(price, 1) + ')');
+};
+
+Product.prototype.updateSkuServices = function (sku_id) {
+    this.form.find("div.stocks div").hide();
+    this.form.find(".sku-" + sku_id + "-stock").show();
+    for (var service_id in this.services[sku_id]) {
+        var v = this.services[sku_id][service_id];
+        if (v === false) {
+            this.form.find(".service-" + service_id).hide().find('input,select').attr('disabled', 'disabled').removeAttr('checked');
+        } else {
+            this.form.find(".service-" + service_id).show().find('input').removeAttr('disabled');
+            if (typeof (v) == 'string') {
+                this.form.find(".service-" + service_id + ' .service-price').html(this.currencyFormat(v));
+                this.form.find(".service-" + service_id + ' input').data('price', v);
+            } else {
+                var select = this.form.find(".service-" + service_id + ' .service-variants');
+                var selected_variant_id = select.val();
+                for (var variant_id in v) {
+                    var obj = select.find('option[value=' + variant_id + ']');
+                    if (v[variant_id] === false) {
+                        obj.hide();
+                        if (obj.attr('value') == selected_variant_id) {
+                            selected_variant_id = false;
+                        }
+                    } else {
+                        if (!selected_variant_id) {
+                            selected_variant_id = variant_id;
+                        }
+                        obj.replaceWith(this.serviceVariantHtml(variant_id, v[variant_id][0], v[variant_id][1]));
+                    }
+                }
+                this.form.find(".service-" + service_id + ' .service-variants').val(selected_variant_id);
+            }
+        }
+    }
+};
+Product.prototype.updatePrice = function (price, compare_price) {
+    if (price === undefined) {
+        var input_checked = this.form.find(".skus input:radio:checked");
+        if (input_checked.length) {
+            var price = parseFloat(input_checked.data('price'));
+            var compare_price = parseFloat(input_checked.data('compare-price'));
+        } else {
+            var price = parseFloat(this.add2cart.find(".price").data('price'));
+        }
+    }
+    if (compare_price) {
+        if (!this.add2cart.find(".compare-at-price").length) {
+            this.add2cart.prepend('<span class="compare-at-price nowrap"></span>');
+        }
+        this.add2cart.find(".compare-at-price").html(this.currencyFormat(compare_price)).show();
+    } else {
+        this.add2cart.find(".compare-at-price").hide();
+    }
+    var self = this;
+    this.form.find(".services input:checked").each(function () {
+        var s = $(this).val();
+        if (self.form.find('.service-' + s + '  .service-variants').length) {
+            price += parseFloat(self.form.find('.service-' + s + '  .service-variants :selected').data('price'));
+        } else {
+            price += parseFloat($(this).data('price'));
+        }
+    });
+    this.add2cart.find(".price").html(this.currencyFormat(price));
+}
+
+Product.prototype.cartButtonVisibility = function (visible) {
+    //toggles "Add to cart" / "%s is now in your shopping cart" visibility status
+    if (visible) {
+        this.add2cart.find('.compare-at-price').show();
+        this.add2cart.find('input[type="submit"]').show();
+        this.add2cart.find('.price').show();
+        this.add2cart.find('.qty').show();
+        this.add2cart.find('span.added2cart').hide();
+    } else {
+        this.add2cart.find('.compare-at-price').hide();
+        this.add2cart.find('input[type="submit"]').hide();
+        this.add2cart.find('.price').hide();
+        this.add2cart.find('.qty').hide();
+        this.add2cart.find('span.added2cart').show();
     }
 }
 
 $(function () {
-
-    var service_variant_html = function (id, name, price) {
-        return '<option data-price="' + price + '" id="service-variant-' + id + '" value="' + id + '">' + name + ' (+' + currency_format(price, 1) + ')</option>';
-    }
-
-    var update_sku_services = function (sku_id) {
-        $("div.stocks div").hide();
-        $("#sku-" + sku_id + "-stock").show();
-        for (var service_id in sku_services[sku_id]) {
-            var v = sku_services[sku_id][service_id];
-            if (v === false) {
-                $("#service-" + service_id).hide().find('input,select').attr('disabled', 'disabled').removeAttr('checked');
-            } else {
-                $("#service-" + service_id).show().find('input').removeAttr('disabled');
-                if (typeof (v) == 'string') {
-                    $("#service-" + service_id + ' .service-price').html(currency_format(v));
-                    $("#service-" + service_id + ' input').data('price', v);
-                } else {
-                    var selected_variant_id = $("#service-" + service_id + ' .service-variants').data('variant-id');
-                    for (var variant_id in v) {
-                        var obj = $("#service-variant-" + variant_id);
-                        if (v[variant_id] === false) {
-                            obj.hide();
-                        } else {
-                            if (!selected_variant_id) {
-                                selected_variant_id = variant_id;
-                            }
-                            obj.replaceWith(service_variant_html(variant_id, v[variant_id][0], v[variant_id][1]));
-                        }
-                    }
-                    $("#service-" + service_id + ' .service-variants').val(selected_variant_id);
-                }
-            }
-        }
-    }
-
-    function cart_button_visibility(visible)
-    {
-        //toggles "Add to cart" / "%s is now in your shopping cart" visibility status
-        if (visible)
-        {
-            $('.add2cart .compare-at-price').show();
-            $('.add2cart input[type="submit"]').show();
-            $('.add2cart .price').show();
-            $('.add2cart .qty').show();
-            $('.add2cart span.added2cart').hide();
-        }
-        else
-        {
-            $('.add2cart .compare-at-price').hide();
-            $('.add2cart input[type="submit"]').hide();
-            $('.add2cart .price').hide();
-            $('.add2cart .qty').hide();
-            $('.add2cart span.added2cart').show();
-        }
-    }
-
-    $("#product-skus input[type=radio]").click(function () {
-        if ($(this).data('image-id')) {
-            $("#product-image-" + $(this).data('image-id')).click();
-        }
-        if ($(this).data('disabled')) {
-            $(".add2cart input[type=submit]").attr('disabled', 'disabled');
-        } else {
-            $(".add2cart input[type=submit]").removeAttr('disabled');
-        }
-        var sku_id = $(this).val();
-        update_sku_services(sku_id);
-        cart_button_visibility(true);
-        update_price();
-    });
-    $("#product-skus input[type=radio]:checked").click();
-
-
-    $("select.sku-feature").change(function () {
-        var key = "";
-        $("select.sku-feature").each(function () {
-            key += $(this).data('feature-id') + ':' + $(this).val() + ';';
-        });
-        var sku = sku_features[key];
-        if (sku) {
-            if (sku.image_id) {
-                $("#product-image-" + sku.image_id).click();
-            }
-            update_sku_services(sku.id);
-            if (sku.available) {
-                $(".add2cart input[type=submit]").removeAttr('disabled');
-            } else {
-                $(".add2cart input[type=submit]").attr('disabled', 'disabled');
-            }
-            $(".add2cart .price").data('price', sku.price);
-            update_price(sku.price, sku.compare_price);
-        } else {
-            $("div.stocks div").hide();
-            $("#sku-no-stock").show();
-            $(".add2cart input[type=submit]").attr('disabled', 'disabled');
-            $(".add2cart .compare-at-price").hide();
-            $(".add2cart .price").empty();
-        }
-        cart_button_visibility(true);
-    });
-    $("select.sku-feature:first").change();
-
-    function update_price(price, compare_price)
-    {
-        if (price === undefined) {
-            if ($("#product-skus input:radio:checked").length) {
-                var price = parseFloat($("#product-skus input:radio:checked").data('price'));
-                var compare_price = parseFloat($("#product-skus input:radio:checked").data('compare-price'));
-            } else {
-                var price = parseFloat($(".add2cart .price").data('price'));
-            }
-        }
-        if (compare_price) {
-            if (!$(".add2cart .compare-at-price").length) {
-                $(".add2cart").prepend('<span class="compare-at-price nowrap"></span>');
-            }
-            $(".add2cart .compare-at-price").html(currency_format(compare_price)).show();
-        } else {
-            $(".add2cart .compare-at-price").empty().hide();
-        }
-        $("#cart-form .services input:checked").each(function () {
-            var s = $(this).val();
-            if ($('#service-' + s + '  .service-variants').length) {
-                price += parseFloat($('#service-' + s + '  .service-variants :selected').data('price'));
-            } else {
-                price += parseFloat($(this).data('price'));
-            }
-        });
-        $(".add2cart .price").html(currency_format(price));
-    }
-
-    if (!$("#product-skus input:radio:checked").length) {
-        $("#product-skus input:radio:enabled:first").attr('checked', 'checked');
-    }
 
     if ($("a.easyzoom").length) {
         $("a.easyzoom").easyZoom({parent: '#product-core-image'});
@@ -192,7 +248,7 @@ $(function () {
 
         $("#product-core-image div.loading").remove();
         $("#product-core-image").append('<div class="loading" style="position: absolute; left: 192px; top: ' + (($("#product-image").height() - 16)/2) + 'px"><i class="icon16 loading"></i></div>');
-        
+
         var img = $(this).find('img');
         var size = $("#product-image").attr('src').replace(/^.*\/[0-9]+\.(.*)\..*$/, '$1');
         var src = img.attr('src').replace(/^(.*\/[0-9]+\.)(.*)(\..*)$/, '$1' + size + '$3');
@@ -200,33 +256,14 @@ $(function () {
             $("#product-image").attr('src', src);
             $("#product-core-image div.loading").remove();
         }).each(function() {
-            //ensure image load is fired. Fixes opera loading bug
-            if (this.complete) { $(this).trigger("load"); }
-        });
+                //ensure image load is fired. Fixes opera loading bug
+                if (this.complete) { $(this).trigger("load"); }
+            });
         var size = $("#product-image").parent().attr('href').replace(/^.*\/[0-9]+\.(.*)\..*$/, '$1');
         var href = img.attr('src').replace(/^(.*\/[0-9]+\.)(.*)(\..*)$/, '$1' + size + '$3');
         $("#product-image").parent().attr('href', href);
         $("a.easyzoom").easyZoom({parent: '#product-core-image'});
         return false;
-    });
-
-    // add to cart block: services
-    $(".cart .services input[type=checkbox]").click(function () {
-        var obj = $('select[name="service_variant[' + $(this).val() + ']"]');
-        if (obj.length) {
-            if ($(this).is(':checked')) {
-                obj.removeAttr('disabled');
-            } else {
-                obj.attr('disabled', 'disabled');
-            }
-        }
-        cart_button_visibility(true);
-        update_price();
-    });
-
-    $(".cart .services .service-variants").on('change', function () {
-        cart_button_visibility(true);
-        update_price();
     });
 
     // compare block
@@ -265,33 +302,6 @@ $(function () {
         }
         $(this).hide();
         $("a.compare-add").show();
-        return false;
-    });
-
-    $("#cart-form").submit(function () {
-        var f = $(this);
-        $.post(f.attr('action') + '?html=1', f.serialize(), function (response) {
-            if (response.status == 'ok') {
-                var cart_total = $(".cart-total");
-                var cart_div = f.closest('.cart');
-                
-                cart_total.closest('#cart').removeClass('empty');
-                cart_total.html(response.data.total);
-
-                cart_button_visibility(false);
-
-                if (f.data('cart')) {
-                    $("#cart-content").parent().load(location.href, function () {
-                        $("#dialog").hide().find('.cart').empty();
-                    });
-                }
-                if (response.data.error) {
-                    alert(response.data.error);
-                }
-            } else if (response.status == 'fail') {
-                alert(response.errors);
-            }
-        }, "json");
         return false;
     });
 });

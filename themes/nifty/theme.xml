@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="nifty" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:nifty" version="1.1.1">
+<theme id="nifty" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:nifty" version="1.1.2">
     <name locale="en_US">Nifty</name>
     <name locale="ru_RU">Nifty</name>
     <files>
@@ -30,9 +30,9 @@
             <description locale="en_US">Shop-Script's &lt;head&gt; instructions</description>
             <description locale="en_US">Блок &lt;head&gt; приложения Shop-Script</description>
         </file>
-    	<file path="footer.html" custom="0">
-    		<description locale="en_US">App specific footer content</description>
-    		<description locale="ru_RU">Содержимое футера приложения</description>
+        <file path="footer.html" custom="0">
+            <description locale="en_US">App specific footer content</description>
+            <description locale="ru_RU">Содержимое футера приложения</description>
         </file>       
         <file path="category.html" custom="0">
             <description locale="en_US">Wrapper for a category page</description>
@@ -68,7 +68,7 @@
         </file>
         <file path="reviews.html" custom="0">
             <description locale="en_US">Product review list</description>
-            <description locale="ru_RU">Список отывов о товаре</description>
+            <description locale="ru_RU">Список отзывов о товаре</description>
         </file>
         <file path="compare.html" custom="0">
             <description locale="en_US">Product comparison</description>
@@ -173,7 +173,11 @@
         <file path="navigation.html" custom="0">
             <description locale="en_US">Internal storefront navigation</description>
             <description locale="ru_RU">Внутренняя навигация по витрине магазина</description>
-        </file>        
+        </file>
+        <file path="reviews.js">
+            <description locale="en_US">Reviews JS</description>
+            <description locale="ru_RU">Скрипты отзывов</description>
+        </file>
     </files>
     <about locale="en_US">
 <![CDATA[
