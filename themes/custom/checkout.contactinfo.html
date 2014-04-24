@@ -1,11 +1,11 @@
 <div class="checkout-content" data-step-id="contactinfo">
     <div id="checkout-contact-form">
-        {if !$wa->user()->isAuth()}
+        {if $wa->isAuthEnabled() && !$wa->user()->isAuth()}
             {$wa->authAdapters()}
         {/if}
         <div class="wa-form">
             {$checkout_contact_form->html()}
-            {if !$wa->user()->isAuth()}
+            {if $wa->isAuthEnabled() && !$wa->user()->isAuth()}
             <div class="wa-field">
                 <div class="wa-value">
                     <label><input type="checkbox" {if $wa->post('create_user')}checked{/if} id="create-user" name="create_user" value="1"> [`Create permanent user account`]</label>
@@ -26,11 +26,8 @@
                         [`Email`]
                     </div>
                     <div class="wa-value">
-                        {if !empty($errors.email)}<p>{/if}
                         <input {if !empty($errors.email)}class="error"{/if} name="login" type="text" value="{$wa->post('login', $customer->get('email', 'default'))|escape}">
-                        {if !empty($errors.email)}</p>
-                        <em class="errormsg">{$errors.email}</em>
-                        {/if}
+                        {if !empty($errors.email)}<em class="errormsg">{$errors.email}</em>{/if}
                     </div>
                 </div>
                 <div class="wa-field">
@@ -38,7 +35,8 @@
                         [`Password`]
                     </div>
                     <div class="wa-value">
-                        <input name="password" type="password" value="{$wa->post('password')}">
+                        <input {if !empty($errors.password)}class="error"{/if} name="password" type="password" value="{$wa->post('password')|escape}">
+                        {if !empty($errors.password)}<br><em class="errormsg">{$errors.password}</em>{/if}
                     </div>
                 </div>
             </div>

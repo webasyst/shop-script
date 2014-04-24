@@ -31,7 +31,7 @@
                             <span class="name">{$p.name}</span>
                         </h2>
                         <p>{if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency_html($p.compare_price)} </span>{/if}<span class="price nowrap">{shop_currency_html($p.price)}</span></p>
-                        {if $p.summary}<p itemprop="description">{strip_tags($p.summary)}</p>{/if}
+                        {if $p.summary}<p itemprop="description">{strip_tags($p.summary|truncate:255)}</p>{/if}
                         
                     </div>
                 </a>

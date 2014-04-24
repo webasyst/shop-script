@@ -161,7 +161,7 @@
     });
     $(".checkout-options input:radio").change(function () {
         if ($(this).is(':checked') && !$(this).data('ignore')) {
-            $(".checkout-options .wa-address").hide();
+            $(".checkout-options .wa-form").hide();
             $(this).closest('li').find('.wa-form').show();
             if ($(this).data('changed')) {
                 $(this).closest('li').find('.wa-form').find('input,select').data('ignore', 1).change().removeData('ignore');

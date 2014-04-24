@@ -29,7 +29,7 @@
                     <a href="#"><span class="gray">{$s@iteration}.</span> {$s.name}</a>
                 </h2>
 
-                {if $s@first}
+                {if $s@first && $wa->isAuthEnabled()}
                     <div class="checkout-step-content auth" {if $checkout_current_step != $step_id}style="display:none"{/if}>
                         {if !$wa->user()->isAuth()}
                             <!-- authorized / not authorized selector -->
@@ -77,7 +77,7 @@
                     </div>
                 {/if}
 
-                <div class="checkout-step-content" style="{if $s@first}margin-top: {if $step_id == 'contactinfo'}-53px;{else}-23px;{/if}{/if}{if $checkout_current_step != $step_id || $wa->post('wa_auth_login')} display:none;{/if}">
+                <div class="checkout-step-content" style="{if $wa->isAuthEnabled() && $s@first}margin-top: {if $step_id == 'contactinfo'}-53px;{else}-23px;{/if}{/if}{if $checkout_current_step != $step_id || $wa->post('wa_auth_login')} display:none;{/if}">
                     {if $checkout_current_step == $step_id}
                         {if in_array($step_id,['contactinfo', 'shipping', 'payment', 'confirmation'])}
                             {include file="checkout.`$step_id`.html"}

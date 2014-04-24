@@ -37,7 +37,7 @@
             </a>
         </div><br>
 
-        {if $p.summary}<p itemprop="description">{$p.summary}</p>{/if}
+        {if $p.summary}<p itemprop="description">{$p.summary|truncate:255}</p>{/if}
         
         <div itemprop="offers" class="offers" itemscope itemtype="http://schema.org/Offer">
             {if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency_html($p.compare_price)} </span>{/if}

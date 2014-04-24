@@ -1,4 +1,4 @@
-<form id="cart-form" method="post" action="{$wa->getUrl('/frontendCart/add')}">
+<form id="cart-form{if $wa->get('cart')}-dialog{/if}" method="post" action="{$wa->getUrl('/frontendCart/add')}">
 
     <!-- sku -->
     <h4>{sprintf('[`Buy %s`]',$product.name|escape)}</h4>
@@ -27,7 +27,7 @@
 
     {* SKU selector *}
 
-    <ul class="skus" id="product-skus">
+    <ul class="skus">
         {foreach $product.skus as $sku}
         {$sku_available =  $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
         <li itemprop="offers" itemscope itemtype="http://schema.org/Offer">
@@ -86,7 +86,7 @@
         {/if}
         {/function}
         {foreach $product.skus as $sku}
-        <div {if $sku.id != $product.sku_id}style="display:none"{/if} id="sku-{$sku.id}-stock">
+        <div {if $sku.id != $product.sku_id}style="display:none"{/if} class="sku-{$sku.id}-stock">
         {if $sku.stock}
         {foreach $stocks as $stock_id => $stock}
         {if isset($sku.stock[$stock_id])}
@@ -102,7 +102,7 @@
     </div>
     {/foreach}
     {if $product.sku_type}
-    <div id="sku-no-stock">
+    <div class="sku-no-stock">
         <strong class="stock-none">[`Product with the selected option combination is not available for purchase`]</strong>
     </div>
     {/if}
@@ -113,14 +113,14 @@
     <!-- services -->
     <div class="services">
         {foreach $services as $s}
-        <div id="service-{$s.id}">
+        <div class="service-{$s.id}">
             <label>
                 <input data-price="{shop_currency($s.price, $s.currency, null, 0)}" {if !$product_available}disabled="disabled"{/if} type="checkbox" name="services[]" value="{$s.id}"> {$s.name|escape} {if $s.price && !isset($s.variants)}(+<span class="service-price">{shop_currency_html($s.price, $s.currency)}</span>){/if}
             </label>
             {if isset($s.variants)}
             <select data-variant-id="{$s.variant_id}" class="service-variants" name="service_variant[{$s.id}]" disabled>
                 {foreach $s.variants as $v}
-                <option {if $s.variant_id == $v.id}selected{/if} data-price="{shop_currency($v.price, $s.currency, null, 0)}" id="service-variant-{$v.id}" value="{$v.id}">{$v.name|escape} (+{shop_currency($v.price, $s.currency)})</option>
+                <option {if $s.variant_id == $v.id}selected{/if} data-price="{shop_currency($v.price, $s.currency, null, 0)}" value="{$v.id}">{$v.name|escape} (+{shop_currency($v.price, $s.currency)})</option>
                 {/foreach}
             </select>
             {else}
@@ -142,13 +142,17 @@
 
 </form>
 
+<script type="text/javascript" src="{$wa_theme_url}product.js?v{$wa_theme_version}"></script>
 <script type="text/javascript">
-    var currency = {json_encode($currency_info)};
-    {if count($product.skus) > 1 or $product.sku_type}
-    var sku_services = {json_encode($sku_services)};
-    {/if}
-        {if $product.sku_type}
-            var sku_features = {json_encode($sku_features_selectable)};
+    $(function () {
+        new Product('#cart-form{if $wa->get('cart')}-dialog{/if}', {
+            currency: {json_encode($currency_info)}
+            {if count($product.skus) > 1 or $product.sku_type}
+            ,services: {json_encode($sku_services)}
             {/if}
+            {if $product.sku_type}
+            ,features: {json_encode($sku_features_selectable)}
+            {/if}
+        });
+    });
 </script>
-<script type="text/javascript" src="{$wa_theme_url}product.js"></script>
