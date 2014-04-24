@@ -9,7 +9,7 @@ class shopDiscounts
      */
     public static function calculate(&$order, $apply = false)
     {
-        $currency = isset($order['currency']) ? $order['currency'] :  wa()->getConfig()->getCurrency(false);
+        $currency = isset($order['currency']) ? $order['currency'] :  wa('shop')->getConfig()->getCurrency(false);
 
         $applicable_discounts = array();
         $contact = self::getContact($order);
@@ -30,7 +30,7 @@ class shopDiscounts
             $dbsm = new shopDiscountBySumModel();
 
             // Order total in default currency
-            $order_total = (float) $crm->convert($order['total'], $currency, wa()->getConfig()->getCurrency());
+            $order_total = (float) $crm->convert($order['total'], $currency, wa('shop')->getConfig()->getCurrency());
             $applicable_discounts[] = max(0.0, min(100.0, (float) $dbsm->getDiscount('order_total', $order_total))) * $order['total'] / 100.0;
         }
 
@@ -48,7 +48,7 @@ class shopDiscounts
          * @return float discount
          */
         $event_params = array('order' => &$order, 'contact' => $contact, 'apply' => $apply);
-        $plugins_discounts = wa()->event('order_calculate_discount', $event_params);
+        $plugins_discounts = wa('shop')->event('order_calculate_discount', $event_params);
         foreach ($plugins_discounts as $plugin_discount) {
             $applicable_discounts[] = $plugin_discount;
         }
@@ -56,7 +56,7 @@ class shopDiscounts
         // Select max discount or sum depending on global setting.
         $discount = 0.0;
         if ( ( $applicable_discounts = array_filter($applicable_discounts, 'is_numeric'))) {
-            if (wa()->getSetting('discounts_combine') == 'sum') {
+            if (wa('shop')->getSetting('discounts_combine') == 'sum') {
                 $discount = (float) array_sum($applicable_discounts);
             } else {
                 $discount = (float) max($applicable_discounts);
@@ -82,7 +82,7 @@ class shopDiscounts
 
     public static function isEnabled($discount_type)
     {
-        return !empty($discount_type) && wa()->getSetting('discount_'.$discount_type);
+        return !empty($discount_type) && wa('shop')->getSetting('discount_'.$discount_type);
     }
 
     /** Discounts by amount of money previously spent by this customer. */
@@ -115,9 +115,9 @@ class shopDiscounts
     /** Coupon discounts implementation. */
     protected static function byCoupons(&$order, $contact, $apply)
     {
-        $currency = isset($order['currency']) ? $order['currency'] :  wa()->getConfig()->getCurrency(false);
+        $currency = isset($order['currency']) ? $order['currency'] :  wa('shop')->getConfig()->getCurrency(false);
 
-        $checkout_data = wa()->getStorage()->read('shop/checkout');
+        $checkout_data = wa('shop')->getStorage()->read('shop/checkout');
         if (empty($checkout_data['coupon_code'])) {
             return 0; // !!! Will this fail when recalculating existing order?
         }

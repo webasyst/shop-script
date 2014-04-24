@@ -90,6 +90,8 @@ h1 i.icon16 { margin-top: 0.3em; }
 .s-page-wysiwyg-html-toggle li { list-style: none;float: left; }
 .s-wysiwyg-html-toggle li a, .s-page-wysiwyg-html-toggle li a { display: block; color: #888; font-weight: bold; padding: 4px 12px 4px; text-decoration: none; font-size: 0.9em; }
 .s-wysiwyg-html-toggle li.selected, .s-page-wysiwyg-html-toggle li.selected { background: #fff; padding-bottom: 1px; border: 1px solid #ccc; border-bottom: 0;  }
+.s-wysiwyg-html-toggle {top: -34px}
+.wa-editor-core-wrapper .s-wysiwyg-html-toggle {top: -1px}
 
 table.s-big-table { border-spacing:0; border-collapse:collapse; }
 table.s-big-table td { padding: 20px 15px 15px; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; }

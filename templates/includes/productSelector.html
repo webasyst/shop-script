@@ -3,6 +3,7 @@
 @var array $types array of available product types
 @var array $hint array of hash hints
 @var string $hash
+@var boolean $subcategory
 *}
 <div class="field">
     <div class="name">
@@ -69,12 +70,14 @@
                 {if !empty($hints.id)}<br/><span class="small">{$hints.id}</span>{/if}
             </div>
         </div>
+        {if !empty($subcategory)}
         <div class="value js-hash-values js-hash-category" style="width: 400px;">
             <div class="bordered-left" style="padding-left: 20px;">
-                <label><input type="checkbox"> {_wd('shop','Include products from sub-categories')}</label>
+                <label><input type="checkbox" value="1"> {_wd('shop','Include products from sub-categories')}</label>
                 {if !empty($hints.category)}<br/><span class="gray">{$hints.category}</span>{/if}
             </div>
         </div>
+        {/if}
     </div>
     <div class="clear-left"></div>
 </div>

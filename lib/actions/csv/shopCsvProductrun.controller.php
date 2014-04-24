@@ -124,6 +124,9 @@ class shopCsvProductrunController extends waLongActionController
 
         if ($this->emulate()) {
             $this->reader = shopCsvReader::snapshot($file);
+            if(!$this->reader){
+                throw new waException('CSV file not found');
+            }
             $this->reader->rewind();
         } else {
             /*, waRequest::post('encoding', 'utf-8')*/
@@ -458,7 +461,7 @@ class shopCsvProductrunController extends waLongActionController
                     ('%d product to be updated', '%d products to be updated',
                     ),
                     self::STAGE_SKU      => array /*_w*/
-                    ('%d product variant to be updated', '%d product variants to be updated',
+                    ('%d SKU to be updated', '%d SKUs to be updated',
                     ),
                     'icon'               => 'yes',
                 ),
@@ -534,7 +537,7 @@ class shopCsvProductrunController extends waLongActionController
                 ),
                 'error'     => array(
                     self::STAGE_CATEGORY => array /*_w*/
-                    ('Error occurred during import %d category', 'Error occurred during import %d categories',
+                    ('%d category imported with errors', '%d categories imported with errors',
                     ),
                     'icon'               => 'no',
                 ),
@@ -923,6 +926,7 @@ class shopCsvProductrunController extends waLongActionController
                         $types[$type] = $data['type_id'] = false;
                     } else {
                         $types[$type] = $model->insert(array('name' => $data['type_name']));
+                        $this->data['types'][] = intval($types[$type]);
                     }
 
                 }
@@ -937,7 +941,7 @@ class shopCsvProductrunController extends waLongActionController
 
         /* check rights per product type */
 
-        return empty($data['type_id']) || in_array($data['type_id'], $this->data['types']);
+        return in_array($data['type_id'], $this->data['types']);
     }
 
     private function findTax(&$data)

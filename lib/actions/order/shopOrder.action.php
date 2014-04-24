@@ -145,8 +145,11 @@ class shopOrderAction extends waViewAction
          * @return array[string][string]string $return[%plugin_id%]['title_suffix'] html output
          * @return array[string][string]string $return[%plugin_id%]['action_button'] html output
          * @return array[string][string]string $return[%plugin_id%]['action_link'] html output
+         * @return array[string][string]string $return[%plugin_id%]['info_section'] html output
          */
-        $this->view->assign('backend_order', wa()->event('backend_order', $order));
+        $this->view->assign('backend_order', wa()->event('backend_order', $order, array(
+            'title_suffix', 'action_button', 'action_link', 'info_section'
+        )));
     }
 
     public function getOrder()

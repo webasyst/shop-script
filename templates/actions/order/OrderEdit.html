@@ -363,6 +363,10 @@
 {$wa->csrf()}
 </form>
 
+<!-- plugin hook: 'backend_order_edit' -->
+{* @event backend_order_edit.%plugin_id% *}
+{if !empty($backend_order_edit)}{foreach $backend_order_edit as $plugin_id => $plugin_html}{$plugin_html}{/foreach}{/if}
+
 <script type="text/javascript" src="{$wa_app_static_url}js/order/edit.js?v{$wa->version()}"></script>
 <script type="text/javascript">
     $('#update-discount').click(function () {

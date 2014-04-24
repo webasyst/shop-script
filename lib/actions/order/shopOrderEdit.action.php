@@ -61,6 +61,14 @@ class shopOrderEditAction extends waViewAction
 
         $count_new = $this->order_model->getStateCounters('new');
 
+        /**
+         * Backend order edit page
+         * @event backend_order_edit
+         * @param array $order
+         * @return array[string][string] $return[%plugin_id%] html output
+         */
+        $this->view->assign('backend_order_edit', wa()->event('backend_order_edit', $order));
+
         $this->view->assign(array(
             'form'     => $form,
             'order'    => $order,

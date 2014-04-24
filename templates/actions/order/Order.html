@@ -120,7 +120,11 @@
                 {/if}
             </div>
         </div>
-    
+
+        <!-- plugin hook: 'backend_order.info_section' -->
+        {* @event backend_order.%plugin_id%.info_section *}
+        {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.info_section))}<li>{$_.info_section}</li>{/if}{/foreach}{/if}
+
         <div class="clear-right"></div>
     
         <!-- order comment -->
