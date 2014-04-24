@@ -118,7 +118,7 @@ class shopMigratePluginBackendRunController extends waLongActionController
         if (!empty($this->data['timestamp'])) {
             $interval = time() - $this->data['timestamp'];
             $interval = sprintf(_wp('%02d hr %02d min %02d sec'), floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);
-            $report .= ' ' . sprintf(_wp('(total time: %s)'), $interval);
+            $report .= ' '.sprintf(_wp('(total time: %s)'), $interval);
         }
         $report .= '</div>';
         return $report;
@@ -131,13 +131,13 @@ class shopMigratePluginBackendRunController extends waLongActionController
             $interval = time() - $this->data['timestamp'];
         }
         $response = array(
-            'time' => sprintf('%d:%02d:%02d', floor($interval / 3600), floor($interval / 60) % 60, $interval % 60),
-            'processId' => $this->processId,
-            'stage' => false,
-            'progress' => 0.0,
-            'ready' => $this->isDone(),
-            'count' => empty($this->data['count']) ? false : $this->data['count'],
-            'memory' => sprintf('%0.2fMByte', $this->data['memory'] / 1048576),
+            'time'       => sprintf('%d:%02d:%02d', floor($interval / 3600), floor($interval / 60) % 60, $interval % 60),
+            'processId'  => $this->processId,
+            'stage'      => false,
+            'progress'   => 0.0,
+            'ready'      => $this->isDone(),
+            'count'      => empty($this->data['count']) ? false : $this->data['count'],
+            'memory'     => sprintf('%0.2fMByte', $this->data['memory'] / 1048576),
             'memory_avg' => sprintf('%0.2fMByte', $this->data['memory_avg'] / 1048576),
         );
 
@@ -156,7 +156,7 @@ class shopMigratePluginBackendRunController extends waLongActionController
         $response['stage_count'] = $stage_count;
         $response['current_count'] = $this->data['current'];
         $response['processed_count'] = $this->data['processed_count'];
-        if ($this->getRequest()->post('cleanup')) {
+        if ($response['ready']) {
             $response['report'] = $this->report();
         }
         echo json_encode($response);

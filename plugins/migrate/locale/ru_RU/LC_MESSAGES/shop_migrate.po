@@ -117,7 +117,7 @@ msgstr "Неверный ответ сервера"
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystsameTransport.class.php:18
 msgid "Path to folder"
-msgstr "Путь к папке"
+msgstr "Путь к установке"
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystsameTransport.class.php:20
 msgid "Path to folder of the WebAsyst (old version) installation"
@@ -159,6 +159,10 @@ msgstr "Обновление иерархии категорий..."
 msgid "Importing products..."
 msgstr "Импорт товаров..."
 
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:27
+msgid "Importing pages..."
+msgstr "Импорт страниц..."
+
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:30
 msgid "Importing customers..."
 msgstr "Импорт покупателей..."
@@ -181,7 +185,7 @@ msgstr "Импорт отзывов о товарах..."
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:45
 msgid "Importing product images (this is the longest part, please be patient)..."
-msgstr "Импорт изображений товаров (самая длинная часть, подождите, пожалуйста)..."
+msgstr "Импорт изображений товаров (самая длинная часть, подождите, пожалуйста)…"
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:48
 msgid "Creating product thumbnails..."
@@ -209,7 +213,7 @@ msgstr "Тип товаров"
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:197
 msgid "Selected product type will be applied to all imported products"
-msgstr "Выбранный тип товаров будет применен ко всем импортированным товарам"
+msgstr "Выбранный тип будет присвоен всем импортированным товарам."
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:217
 msgid "Custom parameters"
@@ -217,7 +221,7 @@ msgstr "Дополнительные параметры"
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:225
 msgid "Contact fields map"
-msgstr "Карта полей контактов"
+msgstr "Контактные данные покупателей"
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1197
 msgid "There no options to import"
@@ -298,4 +302,139 @@ msgstr "Если товар (или категория) с заданным ID �
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:64
 msgid "Importing coupons..."
 msgstr "Импорт купонов..."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:230
+msgid "PHP extension curl not loaded"
+msgstr "Для работы импорта требуется поддержка PHP-расширения curl"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:233
+msgid "Error while init Curl"
+msgstr "Ошибка инициализации Curl"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:237
+msgid "Curl error %d#:%s"
+msgstr "Ошибка Curl %d#:%s"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:80
+msgid "%d tax"
+msgid_plural "%d taxes"
+msgstr[0] "%d налоговое правило"
+msgstr[1] "%d налоговых правила"
+msgstr[2] "%d налоговых правил"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:83
+msgid "%d category"
+msgid_plural "%d categories"
+msgstr[0] "%d категория"
+msgstr[1] "%d категории"
+msgstr[2] "%d категорий"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:86
+msgid "%d product"
+msgid_plural "%d products"
+msgstr[0] "%d товар"
+msgstr[1] "%d товара"
+msgstr[2] "%d товаров"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:89
+msgid "%d product review"
+msgid_plural "%d product reviews"
+msgstr[0] "%d отзыв о товарах"
+msgstr[1] "%d отзыва о товарах"
+msgstr[2] "%d отзывов о товарах"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:92
+msgid "%d customer"
+msgid_plural "%d customers"
+msgstr[0] "%d покупатель"
+msgstr[1] "%d покупателя"
+msgstr[2] "%d покупателей"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:95
+msgid "%d customer category"
+msgid_plural "%d customer categories"
+msgstr[0] "%d группа покупателей"
+msgstr[1] "%d группы покупателей"
+msgstr[2] "%d групп покупателей"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:98
+msgid "%d image"
+msgid_plural "%d images"
+msgstr[0] "%d изображение товаров"
+msgstr[1] "%d изображения товаров"
+msgstr[2] "%d изображений товаров"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:101
+msgid "%d product file"
+msgid_plural "%d product files"
+msgstr[0] "%d файл товаров"
+msgstr[1] "%d файла товаров"
+msgstr[2] "%d файлов товаров"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:104
+msgid "%d order"
+msgid_plural "%d orders"
+msgstr[0] "%d заказ"
+msgstr[1] "%d заказа"
+msgstr[2] "%d заказов"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:107
+msgid "%d coupon"
+msgid_plural "%d coupons"
+msgstr[0] "%d купон на скидку"
+msgstr[1] "%d купона на скидку"
+msgstr[2] "%d купонов на скидку"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:111
+msgid "%d page"
+msgid_plural "%d pages"
+msgstr[0] "%d страница"
+msgstr[1] "%d страницы"
+msgstr[2] "%d страниц"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:288
+msgid "Default product type"
+msgstr "Обычный товар"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:2660
+msgid "Add as new order state"
+msgstr "Добавить как новый статус заказа"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:2747
+msgid "Without dimension"
+msgstr "Без размерности"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:2564
+msgid "Add as new product type"
+msgstr "Добавить новый тип товаров"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:2430
+msgid "Add as a new contact field"
+msgstr "Добавить как новое поле контакта"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:141
+msgid "Storefront"
+msgstr "Витрина"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:142
+msgid "Shop-Script settlement for static info pages"
+msgstr "Витрина для публикации информационных страниц"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:307
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:313
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1688
+msgid "Weight"
+msgstr "Вес"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:308
+msgid "Select feature defining product weight."
+msgstr "Выберите характеристику, соответствующую весу товара."
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:342
+msgid "Source weight unit: <strong>%s</strong>"
+msgstr "Исходная единица веса: <strong>%s</strong>."
+
+#: /wa-apps/shop/plugins/migrate/lib/shopMigrate.plugin.php:9
+msgid "Migrate aux pages, categories, products with params, features, images and eproduct files"
+msgstr "Перенос информационных страниц, товаров, характеристик, изображений и категорий товаров"
 

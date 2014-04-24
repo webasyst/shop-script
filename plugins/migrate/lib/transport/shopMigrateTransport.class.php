@@ -233,9 +233,9 @@ abstract class shopMigrateTransport implements Serializable
                     }
                     $properties['class'] = array_merge((array) $properties['class'], array('error'));
                     if (!isset($properties['description'])) {
-                        $properties['description'] = '';
+                        $properties['description'] = '</span><span class="errormsg">';
                     } else {
-                        $properties['description'] .= "\n";
+                        $properties['description'] .= '</span><span class="errormsg">';
                     }
                     $properties['description'] .= $errors[$field];
                 }

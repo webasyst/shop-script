@@ -9,21 +9,21 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
     {
         parent::initOptions();
         $this->addOption('url', array(
-            'title' => _wp('Data access URL'),
-            'description' => _wp('For WebAsyst <strong>PHP software</strong> installed on your server:<br /> 1. Download data access script <a href="http://www.webasyst.com/wa-data/public/site/downloads/old-webasyst-export-php.zip">export.php</a>, and upload it to your Webasyst published/ folder via FTP.<br /> 2. Enter the complete URL to this file, which should look like this: <strong>http://YOUR_WEBASYST_ROOT_URL/published/export.php</strong><br /><br /> For <strong>hosted accounts</strong>: get your Secure Data Access URL in your ACCOUNT.webasyst.net backend’s “Account (link in the top right corner) &gt; System Settings” page.'),
-            'value' => 'http://',
+            'title'        => _wp('Data access URL'),
+            'description'  => _wp('For WebAsyst <strong>PHP software</strong> installed on your server:<br /> 1. Download data access script <a href="http://www.webasyst.com/wa-data/public/site/downloads/old-webasyst-export-php.zip">export.php</a>, and upload it to your Webasyst published/ folder via FTP.<br /> 2. Enter the complete URL to this file, which should look like this: <strong>http://YOUR_WEBASYST_ROOT_URL/published/export.php</strong><br /><br /> For <strong>hosted accounts</strong>: get your Secure Data Access URL in your ACCOUNT.webasyst.net backend’s “Account (link in the top right corner) &gt; System Settings” page.'),
+            'value'        => 'http://',
             'control_type' => waHtmlControl::INPUT,
         ));
         $this->addOption('login', array(
-            'title' => _wp('Login'),
-            'value' => '',
-            'description' => _wp('WebAsyst user login'),
+            'title'        => _wp('Login'),
+            'value'        => '',
+            'description'  => _wp('WebAsyst user login'),
             'control_type' => waHtmlControl::INPUT,
         ));
         $this->addOption('password', array(
-            'title' => _wp('Password'),
-            'value' => '',
-            'description' => _wp('WebAsyst user password'),
+            'title'        => _wp('Password'),
+            'value'        => '',
+            'description'  => _wp('WebAsyst user password'),
             'control_type' => waHtmlControl::PASSWORD,
         ));
     }
@@ -58,7 +58,7 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
         $debug = array();
         try {
             $sql = trim(preg_replace("/^select/is", '', $sql));
-            $url = $this->getURL("sql=" . ($one ? '1' : '0') . urlencode(base64_encode($sql)));
+            $url = $this->getURL("sql=".($one ? '1' : '0').urlencode(base64_encode($sql)));
             $debug['URL'] = self::logURL($url);
             $debug['method'] = __METHOD__;
             $result = '';
@@ -91,11 +91,11 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
 
     protected function moveFile($path, $target, $public = true)
     {
-        $url = $this->getURL("file=SC" . urlencode(base64_encode($path)));
+        $url = $this->getURL("file=SC".urlencode(base64_encode($path)));
         if ($public) {
             $url .= '&public=1';
         }
-        $this->log('URL:' . self::logURL($url), self::LOG_DEBUG);
+        $this->log('URL:'.self::logURL($url), self::LOG_DEBUG);
         $target_stream = @fopen($target, 'wb');
 
         try {
@@ -103,9 +103,10 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
         } catch (Exception $ex) {
             if ($ex->getCode() == 502) {
                 $this->log(array(
-                    'url' => self::logURL($url),
+                    'url'     => self::logURL($url),
                     'message' => $ex->getMessage(),
-                    $url), self::LOG_ERROR);
+                    $url
+                ), self::LOG_ERROR);
                 sleep(5);
                 return $this->moveFile($path, $target, $public);
             } else {
@@ -128,8 +129,8 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
         } else {
             $url .= '&';
         }
-        $url .= 'auth=' . urlencode(base64_encode($this->getOption('login') . ':' . $this->getOption('password')));
-        $url .= '&' . $params;
+        $url .= 'auth='.urlencode(base64_encode($this->getOption('login').':'.$this->getOption('password')));
+        $url .= '&'.$params;
         return $url;
     }
 
@@ -137,18 +138,18 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
     {
         $ch = null;
         try {
-            $this->log(__METHOD__ . ' :download via cURL', self::LOG_DEBUG, array('source' => self::logURL($url),));
+            $this->log(__METHOD__.' :download via cURL', self::LOG_DEBUG, array('source' => self::logURL($url),));
             $content_length = 0;
             $download_content_length = 0;
             $ch = $this->getCurl($url);
 
             $this->stage_data_stack = array(
-                'stream' => & $target_stream,
-                'stage_value' => & $content_length,
+                'stream'              => & $target_stream,
+                'stage_value'         => & $content_length,
                 'stage_current_value' => & $download_content_length,
             );
             $post = array();
-            parse_str(parse_url($url, PHP_URL_QUERY), $post);
+            @parse_str(parse_url($url, PHP_URL_QUERY), $post);
             if (!empty($post['sql'])) {
                 curl_setopt($ch, CURLOPT_POST, true);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, array('sql' => $post['sql']));
@@ -157,7 +158,7 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
             curl_exec($ch);
             if ($errno = curl_errno($ch)) {
                 $url = self::logURL($url);
-                $message = "Curl error: {$errno}# " . curl_error($ch) . " at [{$url}]";
+                $message = "Curl error: {$errno}# ".curl_error($ch)." at [{$url}]";
                 throw new waException($message);
             }
 
@@ -241,14 +242,14 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
         }
         $curl_default_options = array(
             // CURLOPT_MAXCONNECTS => 10,
-            CURLOPT_HEADER => 0,
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_TIMEOUT => self::TIMEOUT_SOCKET * 60,
-            CURLOPT_CONNECTTIMEOUT => self::TIMEOUT_SOCKET,
+            CURLOPT_HEADER            => 0,
+            CURLOPT_RETURNTRANSFER    => 1,
+            CURLOPT_TIMEOUT           => self::TIMEOUT_SOCKET * 60,
+            CURLOPT_CONNECTTIMEOUT    => self::TIMEOUT_SOCKET,
             CURLE_OPERATION_TIMEOUTED => self::TIMEOUT_SOCKET * 60,
-            CURLOPT_BINARYTRANSFER => true,
-            CURLOPT_WRITEFUNCTION => array(&$this, 'curlWriteHandler'),
-            CURLOPT_HEADERFUNCTION => array(&$this, 'curlHeaderHandler'),
+            CURLOPT_BINARYTRANSFER    => true,
+            CURLOPT_WRITEFUNCTION     => array(&$this, 'curlWriteHandler'),
+            CURLOPT_HEADERFUNCTION    => array(&$this, 'curlHeaderHandler'),
         );
 
         if ((version_compare(PHP_VERSION, '5.4', '>=') || !ini_get('safe_mode')) && !ini_get('open_basedir')) {
@@ -264,7 +265,7 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
 
         if (isset($options['host']) && strlen($options['host'])) {
             $curl_options[CURLOPT_HTTPPROXYTUNNEL] = true;
-            $curl_options[CURLOPT_PROXY] = sprintf("%s%s", $options['host'], (isset($options['port']) && $options['port']) ? ':' . $options['port'] : '');
+            $curl_options[CURLOPT_PROXY] = sprintf("%s%s", $options['host'], (isset($options['port']) && $options['port']) ? ':'.$options['port'] : '');
 
             if (isset($options['user']) && strlen($options['user'])) {
                 $curl_options[CURLOPT_PROXYUSERPWD] = sprintf("%s:%s", $options['user'], $options['password']);
