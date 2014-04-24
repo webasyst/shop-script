@@ -1231,8 +1231,12 @@ class shopProductsCollection
      */
     public function getFeatureValueIds()
     {
+        $this->prepare();
+        // add join
         $alias = $this->addJoin('shop_product_features');
         $sql = $this->getSQL();
+        // remove join
+        unset($this->joins[count($this->joins) - 1]);
         $sql = 'SELECT DISTINCT '.$alias.'.feature_id, '.$alias.'.feature_value_id '.$sql;
         $rows = $this->getModel()->query($sql);
         if (!$rows) {
