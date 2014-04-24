@@ -50,6 +50,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
     protected function init()
     {
         try {
+            $backend = (wa()->getEnv() == 'backend');
             $profiles = new shopImportexportHelper('yandexmarket');
             switch ($this->encoding) {
                 case 'windows-1251':
@@ -61,17 +62,11 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 'offers' => 0,
             );
 
-            $hash = shopImportexportHelper::getCollectionHash();
-            $this->data['timestamp'] = time();
-            $this->data['hash'] = $hash['hash'];
-            $model = new shopCategoryModel();
-            $this->data['count'] = array(
-                'category' => $model->select('COUNT(1) as `cnt`')->fetchField('cnt'),
-                'product'  => $this->getCollection()->count(),
-            );
-            $stages = array_keys($this->data['count']);
 
-            if (wa()->getEnv() == 'backend') {
+            $this->data['timestamp'] = time();
+
+            if ($backend) {
+                $hash = shopImportexportHelper::getCollectionHash();
                 $profile_config = array(
                     'hash'     => $hash['hash'],
                     'domain'   => waRequest::post('domain'),
@@ -129,6 +124,8 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 unset($offer_map);
             }
 
+            $this->data['hash'] = $profile_config['hash'];
+
 
             $this->data['export'] = $profile_config['export'];
             $this->data['domain'] = $profile_config['domain'];
@@ -141,6 +138,12 @@ class shopYandexmarketPluginRunController extends waLongActionController
 
             $this->initRouting();
 
+            $model = new shopCategoryModel();
+            $this->data['count'] = array(
+                'category' => $model->select('COUNT(1) as `cnt`')->fetchField('cnt'),
+                'product'  => $this->getCollection()->count(),
+            );
+            $stages = array_keys($this->data['count']);
 
             $this->data['current'] = array_fill_keys($stages, 0);
             $this->data['processed_count'] = array_fill_keys($stages, 0);
@@ -238,7 +241,7 @@ XML;
                 $this->data['primary_currency'] = reset($this->data['currency']);
             }
 
-            if (wa()->getEnv() == 'backend') {
+            if ($backend) {
                 $profile_id = $profiles->setConfig($profile_config);
                 $this->plugin()->getHash($profile_id);
             }
@@ -404,8 +407,8 @@ XML;
         $report .= implode(', ', $chunks);
         if (!empty($this->data['timestamp'])) {
             $interval = time() - $this->data['timestamp'];
-            $interval = sprintf(_wp('%02d hr %02d min %02d sec'), floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);
-            $report .= ' '.sprintf(_wp('(total time: %s)'), $interval);
+            $interval = sprintf(_w('%02d hr %02d min %02d sec'), floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);
+            $report .= ' '.sprintf(_w('(total time: %s)'), $interval);
         }
         $report .= '</div>';
         return $report;
@@ -539,8 +542,7 @@ XML;
     {
         if (!$this->collection) {
             $options = array(
-                'frontend' => true, //XXX 15.2041 & 15.2016 & 15.2163 &featureRequest @shopProductsCollection
-                //15.2165?
+                'frontend' => true,
             );
 
             $hash = $this->data['hash'];
@@ -714,6 +716,11 @@ XML;
                         $value = ifset($product[$param]);
                         if (!empty($this->data['export']['sku'])) {
                             switch ($param) {
+                                case 'id':
+                                    if (!empty($sku['id']) && ($sku['id'] != $product['sku_id'])) {
+                                        $value .= 's'.$sku['id'];
+                                    }
+                                    break;
                                 case 'frontend_url':
                                     if (!empty($sku['id']) && ($sku['id'] != $product['sku_id'])) {
                                         if (strpos($value, '?')) {
@@ -843,6 +850,14 @@ XML;
         return $result;
     }
 
+    /**
+     * @param string $field
+     * @param mixed $value
+     * @param array $info
+     * @param array $data
+     * @param null $sku_data
+     * @return mixed|string
+     */
     private function format($field, $value, $info = array(), $data = array(), $sku_data = null)
     {
         /**
@@ -1160,6 +1175,9 @@ XML;
                     }
 
                 } else {
+                    /**
+                     * @var $value shopDimensionValue
+                     */
                     if (preg_match('@^(year|month)s?:(\d+)$@', trim($value), $matches)) {
                         $value = array(
                             'unit'  => $matches[1],
@@ -1243,6 +1261,9 @@ XML;
         }
         $format = ifempty($info['format'], '%s');
         if (is_array($value)) {
+            /**
+             * @var $value array
+             */
             reset($value);
             if (key($value) == 0) {
                 foreach ($value as & $item) {
@@ -1253,6 +1274,9 @@ XML;
                 unset($item);
             }
         } elseif ($value !== null) {
+            /**
+             * @var $value string
+             */
             $value = str_replace('&nbsp;', ' ', $value);
             $value = str_replace('&', '&amp;', $value);
             $value = $this->sprintf($format, $value);

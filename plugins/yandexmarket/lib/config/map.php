@@ -8,6 +8,7 @@ return array(
             'name'   => 'Упрощенное описание',
             'fields' => array(
                 'available'             => true,
+                'id'                    => true,
 
                 'url'                   => true,
                 'price'                 => true,
@@ -38,6 +39,7 @@ return array(
             'name'   => 'Произвольный товар (vendor.model)',
             'fields' => array(
                 'available'             => true,
+                'id'                    => true,
 
                 'url'                   => true,
                 'price'                 => true,
@@ -104,6 +106,7 @@ return array(
             'name'   => 'Книги (book)',
             'fields' => array(
                 'available'           => true,
+                'id'                  => true,
 
                 'url'                 => true,
                 'price'               => true,
@@ -137,6 +140,7 @@ return array(
             'name'   => 'Аудиокниги (audiobook)',
             'fields' => array(
                 'available'         => true,
+                'id'                => true,
 
                 'url'               => true,
                 'price'             => true,
@@ -169,6 +173,7 @@ return array(
             'name'   => 'Музыкальная и видео продукция (artist.title)',
             'fields' => array(
                 'available'       => true,
+                'id'              => true,
 
                 'url'             => true,
                 'price'           => true,
@@ -212,6 +217,7 @@ return array(
             'name'   => 'Туры (tour)',
             'fields' => array(
                 'available'       => true,
+                'id'              => true,
 
                 'url'             => true,
                 'price'           => true,
@@ -251,6 +257,7 @@ return array(
             'name'   => 'Билеты на мероприятие (event-ticket)',
             'fields' => array(
                 'available'       => true,
+                'id'              => true,
 
                 'url'             => true,
                 'price'           => true,
@@ -535,7 +542,7 @@ return array(
         ),
         'cpa'                   => array(
             'type'   => 'fixed',
-            'source' => 'text:0'
+            'source' => 'skip:'
         ),
         'series'                => array(
             'type' => 'adjustable',

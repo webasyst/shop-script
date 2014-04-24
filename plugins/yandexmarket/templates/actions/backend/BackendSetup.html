@@ -9,12 +9,13 @@
         <div class="field-group" style="border-bottom: 1px solid #ccc;">
             <div class="field">
                 <div class="name bold">
-                    <label for="s-plugin-yandexmarket-last-export">Последний экспорт</label>
+                    <label for="s-plugin-yandexmarket-last-export">YML-файл</label>
                 </div>
                 <div class="value">
                     <input id="s-plugin-yandexmarket-last-export" type="text" value="{$info.url|escape}" readonly="readonly" class="long bold large" style="width: 75% !important;">
                     <a href="{$info.url}?download=1" class="bold nowrap inline"><i class="icon16 download no-overhanging" style="margin-top: 0.4em;"></i>Скачать</a>
-                    <p class="hint">Файл обновлен: {$info.mtime|wa_datetime:"humandatetime"}</p>
+                    <p class="small">Файл обновлен: {$info.mtime|wa_datetime:"humandatetime"}</p>
+                    <p class="hint">Ссылка на YML-файл является постоянной и не меняется при повторном экспорте товаров. Для включения автоматического экспорта товаров укажите период обновления с помощью настройки «Обновление файла» ниже и сохраните настройку, повторно экспортировав товары. Чтобы сделать ссылку недействительной, удалите профиль.</p>
                 </div>
             </div>
         </div>
