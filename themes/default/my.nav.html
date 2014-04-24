@@ -19,3 +19,5 @@
 {foreach $frontend_my_nav as $_plugin => $_}
 <li class="shop {if waRequest::param('plugin') == str_replace('-plugin', '', $_plugin)}selected{/if}">{$_}</li>
 {/foreach}
+
+{$wa->globals('isMyAccount', true)}

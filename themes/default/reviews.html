@@ -1,68 +1,62 @@
 <script type="text/javascript" src="{$wa_app_static_url}js/rate.widget.js"></script>
 <script type="text/javascript" src="{$wa_theme_url}reviews.js"></script>
 
-{$wa->title(sprintf('[`%s reviews`]', $product.name))}
-<h1>{sprintf('[`%s reviews`]', $product.name|escape)}</h1>
-
-<!-- product page navigation -->
-<ul class="menu-h">
-    <li><a href="{$wa->shop->productUrl($product)}">[`Overview`]</a></li>
-    <li class="selected">
-        <a href="{$wa->shop->productUrl($product, 'reviews')}">[`Reviews`]</a>
-        <span class="hint reviews-count" itemprop="reviewCount">{$reviews_count}</span>
-    </li>
-    {foreach $product.pages as $page}
-    <li><a href="{$wa->shop->productUrl($product, 'page', ['page_url' => $page.url])}">{$page.name|escape}</a></li>
-    {/foreach}
-
-    <!-- plugin hook: 'frontend_product.menu' -->
-    {* @event frontend_product.%plugin_id%.menu *}
-    {foreach $frontend_product as $_}{$_.menu}{/foreach}
-</ul>
-
-<br clear="left">
-
-<!-- reviews begin -->
-{function review_reviews}
-    {$depth=-1}
-    {foreach $reviews as $review}
-      {if $review.depth < $depth}
-      
-        {$loop=($depth-$review.depth)}
-        {section name="end-review" loop=$loop}
-            <ul class="menu-v with-icons reviews-branch"></ul>
-            </li>
-          </ul>
-        {/section}
-        
-        {$depth=$review.depth}
-      {/if}
-      
-      {if $review.depth == $depth}
-        </li>
-        <li data-id="{$review.id}" data-parent-id="{$review.parent_id}">
-      {/if}
-      
-      {if $review.depth > $depth}
-        <ul class="menu-v with-icons reviews-branch">
-          <li data-id={$review.id} data-parent-id="{$review.parent_id}">
-          {$depth=$review.depth}
-      {/if}
-        {include file="review.html" inline reply_allowed=$reply_allowed single_view=true review=$review}
-        <!-- sub review placeholder -->
-    {/foreach}
+<article>
     
-    {section name="end-review" loop=$depth}
-          <ul class="menu-v with-icons reviews-branch"></ul>
-          </li>
-        </ul>
-    {/section}
-{/function}
-
-<div class="content right300px">
-
-    <div class="reviews">
-
+    {$wa->title(sprintf('[`%s reviews`]', $product.name))}
+    <h1>{sprintf('[`%s reviews`]', $product.name|escape)}</h1>
+    
+    <!-- product page navigation -->
+    <ul class="product-nav">
+        <li><a href="{$wa->shop->productUrl($product)}">[`Overview`]</a></li>
+        <li class="selected">
+            <a href="{$wa->shop->productUrl($product, 'reviews')}">[`Reviews`]</a>
+            <span class="hint reviews-count" itemprop="reviewCount">{$reviews_count}</span>
+        </li>
+        {foreach $product.pages as $page}
+        <li><a href="{$wa->shop->productUrl($product, 'page', ['page_url' => $page.url])}">{$page.name|escape}</a></li>
+        {/foreach}
+    </ul>
+    
+    <!-- reviews begin -->
+    {function review_reviews}
+        {$depth=-1}
+        {foreach $reviews as $review}
+          {if $review.depth < $depth}
+          
+            {$loop=($depth-$review.depth)}
+            {section name="end-review" loop=$loop}
+                <ul class="reviews-branch"></ul>
+                </li>
+              </ul>
+            {/section}
+            
+            {$depth=$review.depth}
+          {/if}
+          
+          {if $review.depth == $depth}
+            </li>
+            <li data-id="{$review.id}" data-parent-id="{$review.parent_id}">
+          {/if}
+          
+          {if $review.depth > $depth}
+            <ul class="reviews-branch">
+              <li data-id={$review.id} data-parent-id="{$review.parent_id}">
+              {$depth=$review.depth}
+          {/if}
+            {include file="review.html" inline reply_allowed=$reply_allowed single_view=true review=$review}
+            <!-- sub review placeholder -->
+        {/foreach}
+        
+        {section name="end-review" loop=$depth}
+              <ul class="reviews-branch"></ul>
+              </li>
+            </ul>
+        {/section}
+    {/function}
+    
+    <section class="reviews">
+    
         <a name="reviewheader"></a>
         <h3 class="reviews-count-text" {if $reviews_count == 0}style="display: none;"{/if}>
             {_w('%d review for ','%d reviews for ', $reviews_count)|cat:$product.name|escape}
@@ -73,7 +67,7 @@
             <a href="#" class="inline-link"><b><i>[`Write a review`]</i></b></a>
         </h4>
         
-        <div class="review-form" id="product-reivew-form" {if $reviews_count > 0}style="display:none;"{/if}>
+        <div class="review-form" id="product-review-form" {if $reviews_count > 0}style="display:none;"{/if}>
             
             {$current_user_id = $wa->userId()}
             
@@ -175,18 +169,20 @@
         </div>
         
         <!-- existing reviews list -->
-        <ul class="menu-v with-icons reviews-branch">
+        <ul class="reviews-branch">
         {foreach $reviews as $review}
             <li data-id={$review.id} data-parent-id="0">
                 {include file="review.html" reply_allowed=$reply_allowed inline}
                 {if !empty($review.comments)}
                     {review_reviews reviews=$review.comments}
                 {else}
-                    <ul class="menu-v with-icons reviews-branch"></ul>
+                    <ul class="reviews-branch"></ul>
                 {/if}
             </li>
         {/foreach}
         </ul>
-    </div>
+        
+    </section>
     <!-- reviews end -->
-</div>
+
+</article>

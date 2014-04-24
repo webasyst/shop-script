@@ -41,8 +41,10 @@
         </td>
     </tr>
 {foreachelse}
-    <tr class="no-border">
+	<tr class="no-border">
         <td>[`You have no order history yet.`]</td>
-    </tr>
+  	</tr>
 {/foreach}
 </table>
+
+{$wa->globals('isMyAccount', true)}

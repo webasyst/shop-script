@@ -19,9 +19,10 @@ $(function() {
     var next = current.next();
     if (next.length) {
         win.lazyLoad({
-            container: '#main',
+            container: '#product-list .product-list',
             load: function() {
                 win.lazyLoad('sleep');
+
                 var paging = $('.lazyloading-paging').hide();
                 
                 // determine actual current and next item for getting actual url
@@ -42,6 +43,9 @@ $(function() {
                 loading.show();
                 $.get(url, function(html) {
                     var tmp = $('<div></div>').html(html);
+                    if ($.Retina) {
+                        tmp.find('#product-list .product-list img').retina();
+                    }
                     product_list.append(tmp.find('#product-list .product-list').children());
                     var tmp_paging = tmp.find('.lazyloading-paging').hide();
                     paging.replaceWith(tmp_paging);

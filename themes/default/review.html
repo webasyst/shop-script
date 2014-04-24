@@ -2,7 +2,7 @@
 
 {if !empty($ajax_append)}<li data-id={$review.id} data-parent-id="{$review.parent_id}">{/if}
 
-<div class="review" itemprop="review" itemscope itemtype="http://schema.org/Review">
+<figure class="review" itemprop="review" itemscope itemtype="http://schema.org/Review">
     <div class="summary">
         <h6>
             {if !$review.parent_id && !empty($review.rate)}
@@ -35,6 +35,6 @@
             <a href="{if isset($reply_link)}{$reply_link}{else}#{/if}" class="review-reply inline-link"><b><i>[`reply`]</i></b></a>
         </div>
     {/if}
-</div>
+</figure>
 
-{if !empty($ajax_append)}<ul class="menu-v with-icons reviews-branch"></ul></li>{/if}
+{if !empty($ajax_append)}<ul class="reviews-branch"></ul></li>{/if}

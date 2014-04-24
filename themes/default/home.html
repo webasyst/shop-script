@@ -4,62 +4,76 @@
 
 {if (empty($promos) && empty($bestsellers))}
 
-    <div class="welcome">
+    <article class="welcome">
         <h1>[`Welcome to your new online store!`]</h1>
         <p>{sprintf('[`Start by creating a product in your <a href="%s">store backend</a>.`]', $wa_backend_url|cat:'shop/?action=products#/welcome/')}</p>
-    </div>
+    </article>
 
 {else}
-    
-    <!-- top promo products -->
-    {if $promos && count($promos)}
-        <div class="align-center">
-            {include file="list-thumbs.html" products=$promos}
-        </div>
-    {else}
-        <p class="hint align-center"><em>{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','promo')}</em></p>
-    {/if}
+
+    <!-- TOP PROMOS -->
+    <article class="promo">
+        {if $promos && count($promos)}
+            <ul class="homepage-bxslider">
+            {foreach $promos as $p}
+            <li itemscope itemtype ="http://schema.org/Product">
+                <a href="{$p.frontend_url}" title="{$p.name}{if $p.summary} &ndash; {strip_tags($p.summary)|escape}{/if}">
+                    <div class="info">
+                        <h2 itemprop="name">
+                            <span class="name">{$p.name}</span>
+                        </h2>
+                        {if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency_html($p.compare_price)} </span>{/if}
+                        <p class="purchase"><span class="price nowrap">{shop_currency_html($p.price)}</span></p>
+                        {if $p.summary}<p itemprop="description">{strip_tags($p.summary)|truncate:255}</p>{/if}
+                    </div>
+                    <div class="image">
+                            {$badge_html = $wa->shop->badgeHtml($p.badge)}
+                            {if $badge_html}
+                                <div class="corner top right">{$badge_html}</div>
+                            {/if}
+                            {$wa->shop->productImgHtml($p, '0x320', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
+                    </div>
+                </a>
+            </li>
+            {/foreach}
+            </ul>
+        {else}
+            <p class="hint align-center"><br><em>{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','promo')}</em><br><br></p>
+        {/if}
+    </article>
     
     <!-- plugin hook: 'frontend_homepage' -->
     {* @event frontend_homepage.%plugin_id% *}
     {foreach $frontend_homepage as $_}{$_}{/foreach}
     
-    <div class="clear-both"></div>
+    <!-- BULLETS -->
+    <section class="bullets">
+        <figure class="bullet">
+            <h4><span class="b-glyph b-shipping"></span> Lorem Ipsum</h4>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed pharetra orci a lacus convallis pellentesque. Pellentesque quis dui sem. Proin nec tempus risus.</p>
+        </figure>
+        <figure class="bullet">
+            <h4><span class="b-glyph b-payment"></span> Lorem Ipsum</h4>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed pharetra orci a lacus convallis pellentesque. Pellentesque quis dui sem. Proin nec tempus risus.</p>
+        </figure>
+        <figure class="bullet">
+            <h4><span class="b-glyph b-location"></span> Lorem Ipsum</h4>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed pharetra orci a lacus convallis pellentesque. Pellentesque quis dui sem. Proin nec tempus risus.</p>
+        </figure>
+    </section>
     
-    <div class="sidebar left300px">
-        <!-- NAVIGATION -->
-        {include file="sidebar.html"}
-    </div>
+    <!-- BESTSELLERS product list -->
+    {if $bestsellers}
+        {include file="list-thumbs.html" products=$bestsellers}
+    {else}
+        <p class="hint align-center"><em>{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','bestsellers')}</em></p>
+    {/if}
     
-    <div class="content left300px">
-    
-        <!-- GENERAL WELCOME TEXT -->
-        <div itemscope itemtype="http://schema.org/Store">
-            <h1 class="align-center"><span itemprop="name">{sprintf('[`%s online store`]', $wa->shop->settings('name'))}</span></h1>
-            <meta itemprop="description" content="{$wa->meta('description')|escape}">
-    
-            {if $wa->shop->settings('phone')}
-                <p class="align-center large">[`Contact us`]: <strong itemprop="telephone">{$wa->shop->settings('phone')}</strong></p>
-            {/if}
-            <div itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
-                <meta itemprop="streetAddress" content="">
-                <meta itemprop="addressLocality" content="">
-                <meta itemprop="addressRegion" content="">
-                <meta itemprop="postalCode" content="">
-                <meta itemprop="addressCountry" content="{$wa->shop->settings('country')|upper}">
-            </div>
-      
-            <p class="align-center gray">[`Edit this information in the <strong>home.html</strong> template file using built-in design editor in the store backend.`]</p>
-            
-        </div>
-    
-        {$bestsellers = $wa->shop->productSet('bestsellers')}
-        {if $bestsellers}
-            {include file="list-table.html" products=$bestsellers}
-        {else}
-            <p class="hint align-center"><em>{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','bestsellers')}</em></p>
-        {/if}
-        
-    </div>
+    <!-- DISCOUNT OFFER -->
+    <aside class="coupon">
+        <div class="scissors"></div>
+        <h4>PROMO CODE</h4>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed pharetra orci a lacus convallis pellentesque. Pellentesque quis dui sem. Proin nec tempus risus. Cras mollis nibh non augue luctus dictum. Morbi tellus diam, porta eu lobortis vitae, venenatis vitae arcu. Pellentesque tincidunt eros sit amet arcu rutrum, at viverra felis elementum. Nulla nec auctor sem, sit amet eleifend sapien. In lacinia eleifend adipiscing. Cras pulvinar lectus ligula. Morbi et nisl pharetra, malesuada erat eu, tempus dolor. Nullam at eros vestibulum magna pellentesque bibendum sed non mauris. Ut risus ligula, scelerisque vitae viverra vitae, interdum ut metus. Nam vitae tincidunt risus.</p>
+    </aside>
 
 {/if}
