@@ -1,0 +1,23 @@
+<h1>{$page.title|escape}</h1>
+
+<!-- product page navigation -->
+<ul class="menu-h">
+    <li><a href="{$wa->shop->productUrl($product)}">[`Overview`]</a></li>
+    <li>
+        <a href="{$wa->shop->productUrl($product, 'reviews')}">[`Reviews`]</a>
+        <span class="hint" itemprop="reviewCount">{$reviews_total_count}</span>
+    </li>
+    {foreach $product.pages as $p}
+    <li{if $page.id == $p.id} class="selected"{/if}><a href="{$wa->shop->productUrl($product, 'page', ['page_url' => $p.url])}">{$p.name|escape}</a></li>
+    {/foreach}
+
+    <!-- plugin hook: 'frontend_product.menu' -->
+    {* @event frontend_product.%plugin_id%.menu *}
+    {foreach $frontend_product as $_}{$_.menu}{/foreach}
+</ul>
+
+<br clear="left">
+
+<div class="content right300px">
+    {$page.content}
+</div>
