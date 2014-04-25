@@ -151,16 +151,18 @@ ul.tags { list-style-type: none; margin: 0; padding: 0; }
 .s-order .s-tracking { margin-right: 220px; }
 
 /* override paddings for .fields * because of complex composite fields */
-.fields .field .value p label { display: block; margin: 0; }
-.fields .field .value p { line-height: 1.6em; margin-bottom: 13px; position: relative; }
-.fields .field .value p span { color: #777; font-size: 0.9em; display: block; }
+
 .fields .field .value p span.inline { display: inline; }
 .fields .field .value p span.field { clear: none; }
 .fields .field .value p i.icon16 { float: left; left: -20px; margin-top: 2px; position: absolute; }
-.fields .field .value p input { display: block; margin-bottom: 2px; }
-.fields .field .value p input[type="radio"],
-.fields .field .value p input[type="checkbox"] { display: inline; }
 .fields .field.divider { border-bottom: 1px solid #ccc; height: 25px; margin-bottom: 20px; margin-top: 30px; }
+
+.s-order-customer-details .fields .field .value p label { display: block; margin: 0; }
+.s-order-customer-details .fields .field .value p { line-height: 1.6em; margin-bottom: 13px; position: relative; }
+.s-order-customer-details .fields .field .value p span { color: #777; font-size: 0.9em; display: block; }
+.s-order-customer-details .fields .field .value p input { display: block; margin-bottom: 2px; }
+.s-order-customer-details .fields .field .value p input[type="radio"],
+.s-order-customer-details .fields .field .value p input[type="checkbox"] { display: inline; }
 
 .s-order-add-customer .field .value textarea { min-width: 200px; }
 #s-orders { margin-bottom: -32767px; padding-bottom: 32767px; }

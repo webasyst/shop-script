@@ -124,7 +124,7 @@ class shopCsvProductrunController extends waLongActionController
 
         if ($this->emulate()) {
             $this->reader = shopCsvReader::snapshot($file);
-            if(!$this->reader){
+            if (!$this->reader) {
                 throw new waException('CSV file not found');
             }
             $this->reader->rewind();
@@ -906,6 +906,21 @@ class shopCsvProductrunController extends waLongActionController
         return $access ? $product : null;
     }
 
+    private function castSku(&$sku)
+    {
+        $prices = array(
+            'price',
+            'compare_price',
+            'purchase_price',
+        );
+        foreach ($prices as $field) {
+            if (isset($sku[$field]) && (trim($sku[$field]) === '')) {
+                unset($sku[$field]);
+            }
+        }
+
+    }
+
     private function findType(&$data)
     {
         static $types = array();
@@ -1055,6 +1070,8 @@ class shopCsvProductrunController extends waLongActionController
                 }
 
                 $sku = $data['skus'][-1] + $empty_sku;
+                $this->castSku($sku);
+
                 unset($data['skus'][-1]);
                 $item_sku_id = -1;
                 $matches = 0;

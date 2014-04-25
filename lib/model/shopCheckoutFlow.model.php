@@ -85,7 +85,7 @@ class shopCheckoutFlowModel extends waModel
 
         // convert to percents
         foreach ($stat as &$st) {
-            $st['percents'] = round($st['count'] / $stat[0]['count'], 5) * 100;
+            $st['percents'] = $stat[0]['count'] ? round($st['count'] / $stat[0]['count'], 5) * 100 : 0;
         }
         unset($st);
 

@@ -58,6 +58,24 @@ class shopViewHelper extends waAppViewHelper
         return $this->products('set/'.$set_id, $offset, $limit, $options);
     }
 
+    /**
+     * @param array $product_ids
+     * @return array
+     */
+    public function skus($product_ids)
+    {
+        if (!$product_ids) {
+            return array();
+        }
+        $skus_model = new shopProductSkusModel();
+        $rows = $skus_model->select('*')->where('product_id IN (i:ids)', array('ids' => $product_ids))->order('sort')->fetchAll();
+        $skus = array();
+        foreach ($rows as $row) {
+            $skus[$row['product_id']][] = $row;
+        }
+        return $skus;
+    }
+
     public function settings($name, $escape = true)
     {
         $result = wa('shop')->getConfig()->getGeneralSettings($name);
