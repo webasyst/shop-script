@@ -19,7 +19,7 @@
                 
             <div class="nav-sidebar-body">
         
-                <div class="{if $theme_settings.page_nav_mode == 'slidemenu'}slidemenu{else}dropdown{/if}">
+                <div{if $theme_settings.page_nav_mode == 'slidemenu'} class="slidemenu" data-back-lbl="[s`Back`]"{else} class="dropdown"{/if}>
                     {if isset($category)}{$selected_category=$category.id}{else}{$selected_category=null}{/if}
                     {$categories = $wa->shop->categories(0, null, true)}
                    

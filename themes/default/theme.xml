@@ -163,16 +163,16 @@
             <description locale="ru_RU">404 и другие ошибки</description>
         </file>
         <file path="default.shop.js" custom="0">
-            <description locale="en_US">CUSTOM theme JS</description>
-            <description locale="ru_RU">Скрипты темы CUSTOM</description>
+            <description locale="en_US">Default Shop-Script theme JS</description>
+            <description locale="ru_RU">Скрипты темы Default для Shop-Script</description>
+        </file>
+        <file path="default.js" custom="0">
+            <description locale="en_US">Core Default theme JS</description>
+            <description locale="ru_RU">Скрипты темы Default</description>
         </file>
         <file path="lazyloading.js" custom="0">
             <description locale="en_US">Lazy loading JS</description>
             <description locale="ru_RU">Скрипты загрузки контента «на лету»</description>
-        </file>
-        <file path="easyzoom.js" custom="0">
-            <description locale="en_US">Product image zoom JS</description>
-            <description locale="ru_RU">Скрипты увеличения изображения товара</description>
         </file>
         <file path="reviews.js">
             <description locale="en_US">Reviews JS</description>
