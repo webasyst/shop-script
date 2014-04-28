@@ -85,27 +85,44 @@ $(document).ready(function () {
             }
             var min = $(this).find('.min');
             var max = $(this).find('.max');
+            var step = 1;
             var slider = $(this).find('.filter-slider');
+            if (slider.data('step')) {
+                step = parseFloat(slider.data('step'));
+            } else {
+                var diff = parseFloat(max.attr('placeholder')) - parseFloat(min.attr('placeholder'));
+                if (diff >= 10) {
+                    step = 1;
+                } else if (Math.round(diff) != diff) {
+                    step = diff / 10;
+                    var tmp = 0;
+                    while (step < 1) {
+                        step *= 10;
+                        tmp += 1;
+                    }
+                    step = Math.pow(10, -tmp);
+                }
+            }
             slider.slider({
                 range: true,
                 min: parseFloat(min.attr('placeholder')),
                 max: parseFloat(max.attr('placeholder')),
-                step: (parseFloat(max.attr('placeholder')) - parseFloat(min.attr('placeholder'))) <= 5 ? 0.1 : 1,
+                step: step,
                 values: [parseFloat(min.val().length ? min.val() : min.attr('placeholder')),
                     parseFloat(max.val().length ? max.val() : max.attr('placeholder'))],
                 slide: function( event, ui ) {
                     var v = ui.values[0] == $(this).slider('option', 'min') ? '' : ui.values[0];
-                    min.val(v ? v : '');
+                    min.val(v);
                     v = ui.values[1] == $(this).slider('option', 'max') ? '' : ui.values[1];
-                    max.val(v ? v : '');
+                    max.val(v);
                 },
                 stop: function (event, ui) {
                     min.change();
                 }
             });
             min.add(max).change(function () {
-                var v_min = parseFloat(min.val()) || slider.slider('option', 'min');
-                var v_max = parseFloat(max.val()) || slider.slider('option', 'max');
+                var v_min =  min.val() === '' ? slider.slider('option', 'min') : parseFloat(min.val());
+                var v_max = max.val() === '' ? slider.slider('option', 'max') : parseFloat(max.val());
                 if (v_max >= v_min) {
                     slider.slider('option', 'values', [v_min, v_max]);
                 }
