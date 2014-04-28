@@ -52,6 +52,8 @@ function Product(form, options) {
             if (sku.available) {
                 self.button.removeAttr('disabled');
             } else {
+                self.form.find("div.stocks div").hide();
+                self.form.find(".sku-no-stock").show();
                 self.button.attr('disabled', 'disabled');
             }
             self.add2cart.find(".price").data('price', sku.price);
