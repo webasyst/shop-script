@@ -27,7 +27,10 @@
                 {$_v = $wa->get($filter.code)}
                 [`from`] <input type="text" class="min" name="{$filter.code}[min]" placeholder="{$filter.min}" {if !empty($_v.min)}value="{$_v.min}"{/if}>
                 [`to`] <input type="text" class="max" name="{$filter.code}[max]" placeholder="{$filter.max}" {if !empty($_v.max)}value="{$_v.max}"{/if}>
-                {if !empty($filter.unit)}{$filter.unit.title}{/if}
+                {if !empty($filter.unit)}
+                    {$filter.unit.title}
+                    {if $filter.unit.value != $filter.base_unit.value}<input type="hidden" name="{$filter.code}[unit]" value="{$filter.unit.value}">{/if}
+                {/if}
             {else}
             {foreach $filter.values as $v_id => $v}
                 <label>
