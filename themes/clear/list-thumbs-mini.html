@@ -20,12 +20,12 @@
 
             {if $available}
                 {if !empty($without_form)}
-                <div class="purshase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}?cart=1"{/if}>
+                <div class="purshase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if}>
                     <span class="price nowrap" itemprop="price">{shop_currency_html($p.price)}</span>
                     <input type="button" data-product_id="{$p.id}" data-url="{$wa->getUrl('shop/frontendCart/add')}" value="[`Add to cart`]">
                 </div>
                 {else}
-                <form class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}?cart=1"{/if} method="post" action="{$wa->getUrl('shop/frontendCart/add')}">
+                <form class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('shop/frontendCart/add')}">
                     <span class="price nowrap" itemprop="price">{shop_currency_html($p.price)}</span>
                     <input type="hidden" name="product_id" value="{$p.id}">
                     <input type="submit" value="[`Add to cart`]">
