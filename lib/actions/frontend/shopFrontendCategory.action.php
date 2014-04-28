@@ -127,33 +127,33 @@ class shopFrontendCategoryAction extends shopFrontendAction
                     }
                 } elseif (isset($features[$fid]) && isset($category_value_ids[$fid])) {
                     $filters[$fid] = $features[$fid];
-                    $min = $max = null;
+                    $min = $max = $unit = null;
                     foreach ($filters[$fid]['values'] as $v_id => $v) {
                         if (!in_array($v_id, $category_value_ids[$fid])) {
                             unset($filters[$fid]['values'][$v_id]);
                         } else {
                             if ($v instanceof shopRangeValue) {
-                                $begin = is_object($v->begin) ? $v->begin->value : $v->begin;
+                                $begin = $this->getFeatureValue($v->begin);
                                 if ($min === null || $begin < $min) {
                                     $min = $begin;
                                 }
-                                $end = is_object($v->end) ? $v->end->value : $v->end;
+                                $end = $this->getFeatureValue($v->end);
                                 if ($max === null || $end > $max) {
                                     $max = $end;
-                                }
-                            } elseif (is_object($v)) {
-                                if ($min === null || $v->value < $min) {
-                                    $min = $v->value;
-                                }
-                                if ($max === null || $v->value > $max) {
-                                    $max = $v->value;
+                                    if ($v->end instanceof shopDimensionValue) {
+                                        $unit = $v->end->unit;
+                                    }
                                 }
                             } else {
-                                if ($min === null || $v < $min) {
-                                    $min = $v;
+                                $tmp_v = $this->getFeatureValue($v);
+                                if ($min === null || $tmp_v < $min) {
+                                    $min = $tmp_v;
                                 }
-                                if ($max === null || $v > $max) {
-                                    $max = $v;
+                                if ($max === null || $tmp_v > $max) {
+                                    $max = $tmp_v;
+                                    if ($v instanceof shopDimensionValue) {
+                                        $unit = $v->unit;
+                                    }
                                 }
                             }
                         }
@@ -166,7 +166,13 @@ class shopFrontendCategoryAction extends shopFrontendAction
                         } else {
                             $type = preg_replace('/^[^\.]*\./', '', $filters[$fid]['type']);
                             if ($type != 'double') {
-                                $filters[$fid]['unit'] = shopDimension::getBaseUnit($type);
+                                $filters[$fid]['base_unit'] = shopDimension::getBaseUnit($type);
+                                $filters[$fid]['unit'] = shopDimension::getUnit($type, $unit);
+                                if ($filters[$fid]['base_unit']['value'] != $filters[$fid]['unit']['value']) {
+                                    $dimension = shopDimension::getInstance();
+                                    $min = $dimension->convert($min, $type, $filters[$fid]['unit']['value']);
+                                    $max = $dimension->convert($max, $type, $filters[$fid]['unit']['value']);
+                                }
                             }
                             $filters[$fid]['min'] = $min;
                             $filters[$fid]['max'] = $max;
@@ -274,6 +280,21 @@ class shopFrontendCategoryAction extends shopFrontendAction
          */
         $this->view->assign('frontend_category', wa()->event('frontend_category', $category));
         $this->setThemeTemplate('category.html');
+    }
+
+    /**
+     * @param shopDimensionValue|double $v
+     * @return double
+     */
+    protected function getFeatureValue($v)
+    {
+        if ($v instanceof shopDimensionValue) {
+            return $v->value_base_unit;
+        }
+        if (is_object($v)) {
+            return $v->value;
+        }
+        return $v;
     }
 
     protected function sortSkus($a, $b)

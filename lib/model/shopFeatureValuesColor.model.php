@@ -1,4 +1,5 @@
 <?php
+
 class shopFeatureValuesColorModel extends shopFeatureValuesModel
 {
     protected $table = 'shop_feature_values_color';
@@ -16,7 +17,7 @@ class shopFeatureValuesColorModel extends shopFeatureValuesModel
     protected function isChanged($row, $data)
     {
         $changed = false;
-        if (isset($data['code']) && ($data['code'] != $row['code'])) {
+        if (isset($data['code']) && empty($data['suggest']) && ($data['code'] != $row['code'])) {
             $changed = array(
                 'code' => $data['code'],
             );
@@ -33,6 +34,7 @@ class shopFeatureValuesColorModel extends shopFeatureValuesModel
     {
 
         $code = null;
+        $suggest = false;
         if (is_array($value)) {
             $code = ifset($value['code']);
             $value = trim(ifset($value['value']));
@@ -61,6 +63,7 @@ class shopFeatureValuesColorModel extends shopFeatureValuesModel
                 $code = intval($code);
             }
             if (($value === '') && ($code !== null)) {
+                $suggest = true;
                 $value = shopColorValue::getName($code);
             }
 
@@ -78,12 +81,14 @@ class shopFeatureValuesColorModel extends shopFeatureValuesModel
                 }
                 $value = shopColorValue::getName($code);
             } else {
+                $suggest = true;
                 $code = shopColorValue::getCode($value);
             }
         }
         $data = array(
             'value'        => $value,
             'search_value' => $value,
+            'suggest'      => $suggest,
         );
         if ($code !== null) {
             $data['code'] = $code;

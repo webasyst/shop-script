@@ -124,7 +124,9 @@ $.order_edit = {
                     var table = $('#order-items');
                     var index = parseInt(table.find('.s-order-item:last').attr('data-index'), 10) + 1 || 1;
                     var product = r.data.product;
-                    product.skus[product.sku_id].checked = true;
+                    if (product.sku_id && product.skus[product.sku_id]) {
+                        product.skus[product.sku_id].checked = true;
+                    }
                     var add_row = $('#s-orders-add-row');
                     add_row.before(tmpl('template-order', {
                         data: r.data, options: {

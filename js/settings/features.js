@@ -218,7 +218,7 @@ if (typeof($) != 'undefined') {
                     'stop': function () {
                         $('.block.drop-target').removeClass('drag-active');
                     }
-                }).find(':not(:input)').disableSelection();
+                }); //.find(':not(:input)').disableSelection();
                 this.features_init.list_sortable = true;
             } else if (lazy) {
                 if (this.features_init.list_sortable) {
@@ -1000,20 +1000,20 @@ if (typeof($) != 'undefined') {
 
                 $.shop.trace('$.settings.featuresFeatureAdd', feature);
                 var self = this;
-                $.when($.tmpl('edit-feature', {
+                var $feature = $.tmpl('edit-feature', {
                         'types': this.featuresHelper.types(),
                         'feature': feature
-                    }).prependTo(self.$features_list.find('> tbody:first'))).done(function () {
-                        var $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + self.features_data.feature_id + '"]:first');
-                        self.featuresFeatureChange($feature, feature);
-                        if (!self.featuresHelper.type()) {
-                            $feature.find(' > td > .sort').hide()
-                        }
+                });
+                self.$features_list.find('> tbody:first').prepend($feature);
+                
+                self.featuresFeatureChange($feature, feature);
+                if (!self.featuresHelper.type()) {
+                    $feature.find(' > td > .sort').hide()
+                }
 
-                        var $el = $feature.find(':input:checkbox[name$="\\]\\[types\\]\\[0\\]"][name^="feature\\["]');
-                        self.featuresFeatureTypesChange($el);
-                        $feature.find(':input[name$="\\[name\\]"]:first').focus();
-                    });
+                var $el = $feature.find(':input:checkbox[name$="\\]\\[types\\]\\[0\\]"][name^="feature\\["]');
+                self.featuresFeatureTypesChange($el);
+                $feature.find(':input[name$="\\[name\\]"]:first').focus();
             } catch (e) {
                 $.shop.error('exception', e);
             }
@@ -1050,17 +1050,19 @@ if (typeof($) != 'undefined') {
                     'values_template': this.features_options.value_templates[type] || ''
                 };
                 $feature.find('ul.js-feature-values li').each(function () {
-                    var id = parseInt($(this).data('value-id'));
+                    var $this = $(this);
+                    var id = parseInt($this.data('value-id'));
                     if (id) {
-                        var rgbString = $(this).find('> .icon16').css('background-color') || 'rgb(255,255,255)';
+                        var rgbString = $this.find('> .icon16').css('background-color') || 'rgb(255,255,255)';
                         var parts = rgbString.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
                         var code = 0;
                         for (var i = 1; i <= 3; i++) {
                             code = (code << 8) + parseInt(parts[i]);
                         }
+                        var value = $this.text().replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, '');
                         feature.values.push({
                             'id': id,
-                            'value': $(this).text().replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, ''),
+                            'value': $this.text().replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, ''),
                             'code': code
                         });
                     }
@@ -1765,7 +1767,7 @@ if (typeof($) != 'undefined') {
                 if (typeof(value) != 'object') {
                     if (field) {
                         value = {
-                            'value': value.replace(/\s+.*$/, ''),
+                            'value': value.replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, ''),
                             'unit': value.replace(/^[^\s]\s+/, ''),
                             'hex': '',
                             'color': '#FFFFFF'
@@ -1777,7 +1779,7 @@ if (typeof($) != 'undefined') {
                     }
                 } else {
                     value['unit'] = value['unit'] || value.value.replace(/^[^\s]+\s+/, '');
-                    value['value'] = value.value.replace(/\s+.*$/, '');
+                    value['value'] = value.value.replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, '');
                     value['code'] = parseInt(value['code'] || 0, 10);
                     value['hex'] = (0xF000000 | value['code']).toString(16).toUpperCase().replace(/^F/, '');
                     value['color'] = '#' + value['hex'];

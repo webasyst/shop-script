@@ -142,6 +142,10 @@ return array(
                 'name'       => _w('GB'),
                 'multiplier' => 1000,
             ),
+            'TB'  => array(
+                'name'       => _w('TB'),
+                'multiplier' => 1000000,
+            ),
         ),
     ),
     'area' => array(

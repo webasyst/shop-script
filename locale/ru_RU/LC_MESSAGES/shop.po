@@ -2984,6 +2984,9 @@ msgstr "МБ"
 msgid "GB"
 msgstr "ГБ"
 
+msgid "TB"
+msgstr "ТБ"
+
 #: /wa-apps/shop/lib/config/data/dimension.php:148
 msgid "Area"
 msgstr "Площадь"

@@ -941,6 +941,9 @@ class shopCsvProductrunController extends waLongActionController
                         $types[$type] = $data['type_id'] = false;
                     } else {
                         $types[$type] = $model->insert(array('name' => $data['type_name']));
+                        if (empty($this->data['types'])) {
+                            $this->data['types'] = array();
+                        }
                         $this->data['types'][] = intval($types[$type]);
                     }
 

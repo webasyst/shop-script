@@ -71,6 +71,9 @@ SQL;
 
     public function getProductValues($product_id, $feature_id, $field = 'value')
     {
+        if (!$product_id) {
+            return array();
+        }
         if (is_array($field)) {
             $fields = 'fv.'.implode(', fv.', $field);
         } else {
@@ -88,7 +91,6 @@ SQL;
                 $result[$row['product_id']] = is_array($field) ? $row : $row[$field];
             }
         }
-
         return $result;
     }
 

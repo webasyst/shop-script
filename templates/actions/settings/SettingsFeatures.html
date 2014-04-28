@@ -335,9 +335,11 @@ $.settings.featuresInit();
 <script>document.title = '{"[`Product types & Features`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';</script>
 
 {foreach $smarty.capture as $name => $template} {if strpos($name,'template-js')}
+<!-- begin {$name} -->
 <script type="text/x-jquery-tmpl" id="{$name}">
-<!-- begin {$name} {$template|replace:'</':'<\/'} end {$name} -->
+{$template|regex_replace:'@(^.*-->)|(<!\-\-.*$)@m':''|replace:'</':'<\/'}
 </script>
+<!-- end {$name} -->
 {/if} {/foreach}
 
 {* dialog *}

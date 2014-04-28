@@ -204,12 +204,28 @@ class shopProductsCollection
                 $values = array($values);
             }
             if (isset($features[$feature_code])) {
-                if (isset($values['min']) || isset($values['max'])) {
+                if (isset($values['min']) || isset($values['max']) || isset($values['unit'])) {
                     if (ifset($values['min'], '') === '' && ifset($values['max'], '') === '') {
                         continue;
                     } else {
+                        $unit = ifset($values['unit']);
+                        $min = $max = null;
+                        if (isset($values['min'])) {
+                            $min = $values['min'];
+                            if ($unit) {
+                                $min = shopDimension::getInstance()->convert($min, $features[$feature_code]['type'], null,
+                                    $unit);
+                            }
+                        }
+                        if (isset($values['max'])) {
+                            $max = $values['max'];
+                            if ($unit) {
+                                $max = shopDimension::getInstance()->convert($max, $features[$feature_code]['type'],
+                                    null, $unit);
+                            }
+                        }
                         $fm = $feature_model->getValuesModel($features[$feature_code]['type']);
-                        $values = $fm->getValueIdsByRange($features[$feature_code]['id'], ifset($values['min']), ifset($values['max']));
+                        $values = $fm->getValueIdsByRange($features[$feature_code]['id'], $min, $max);
                     }
                 } else {
                     foreach ($values as & $v) {

@@ -149,7 +149,7 @@ class shopCsvProductuploadController extends shopUploadController
             }
         }
 
-        $limit = 200;
+        $limit = $this->getConfig()->getOption('features_per_page');
         $group = 'feature';
         $auto_complete = false;
         $feature_model = new shopFeatureModel();

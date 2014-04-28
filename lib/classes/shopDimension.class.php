@@ -117,6 +117,10 @@ class shopDimension
 
     }
 
+    /**
+     * @param $type
+     * @return array
+     */
     public static function getBaseUnit($type)
     {
         $instance = self::getInstance();
@@ -124,6 +128,23 @@ class shopDimension
             $units = self::getUnits($type);
             if (isset($units[$d['base_unit']])) {
                 return $units[$d['base_unit']];
+            }
+        }
+        return array();
+    }
+
+    /**
+     * @param $type
+     * @param $unit
+     * @return array
+     */
+    public static function getUnit($type, $unit)
+    {
+        $instance = self::getInstance();
+        if ($type && ($d = $instance->getDimension($type))) {
+            $units = self::getUnits($type);
+            if (isset($units[$unit])) {
+                return $units[$unit];
             }
         }
         return array();
