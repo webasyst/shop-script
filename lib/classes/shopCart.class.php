@@ -9,9 +9,13 @@ class shopCart
      */
     protected $model;
 
-    public function __construct()
+    /**
+     * Constructor
+     * @param string $code Cart unique ID
+     */
+    public function __construct($code='')
     {
-        $this->code = waRequest::cookie(self::COOKIE_KEY, '');
+        $this->code = waRequest::cookie(self::COOKIE_KEY, $code);
         $this->model = new shopCartItemsModel();
     }
 

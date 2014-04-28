@@ -31,7 +31,7 @@ class shopFrontendCartAddController extends waJsonController
                 $service = $service_model->getById($data['service_id']);
                 $parent['service_variant_id'] = $service['variant_id'];
             }
-            $cart = new shopCart();
+            $cart = new shopCart($code);
             
             $id = $cart->addItem($parent);
             $total = $cart->total();
@@ -161,7 +161,7 @@ class shopFrontendCartAddController extends waJsonController
                 }
             }
             // update shop cart session data
-            $shop_cart = new shopCart();
+            $shop_cart = new shopCart($code);
             wa()->getStorage()->remove('shop/cart');
             $total = $shop_cart->total();
 
