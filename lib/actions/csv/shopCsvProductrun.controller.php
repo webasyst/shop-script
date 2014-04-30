@@ -383,7 +383,7 @@ class shopCsvProductrunController extends waLongActionController
     private static function getData($data, $key)
     {
         $value = null;
-        if (strpos($key, ':')) {
+        if (is_string($key) && strpos($key, ':')) {
             $key = explode(':', $key);
         }
         if (is_array($key)) {
@@ -762,6 +762,7 @@ class shopCsvProductrunController extends waLongActionController
                 $primary      => ifset($data[$primary], ''),
             );
         }
+
         if ($fields && $this->data['ignore_category']) {
             unset($fields['category_id']);
         }
@@ -1892,10 +1893,19 @@ class shopCsvProductrunController extends waLongActionController
                                         }
                                     }
                                 }
-                                $product['features'] += $sku['features'];
-                            } else {
-                                $product['features'] = $sku['features'];
+
+                                $virtual_product = $product;
+                                if (isset($skus[$product['sku_id']])) {
+                                    $virtual_product['skus'] = array(-1 => $skus[$product['sku_id']]);
+                                } else {
+                                    $virtual_product['skus'] = array(-1 => $sku);
+                                }
+
+                                $virtual_product['skus'][-1]['stock'] = array(0 => $product['count']);
+                                $this->writer->write($virtual_product);
                             }
+
+                            $product['features'] = $sku['features'];
                         } else {
                             if (!$exported) {
                                 foreach ($product['features'] as $code => &$values) {

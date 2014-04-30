@@ -309,9 +309,10 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
      * @param int $id
      * @param array $data
      * @param bool $correct
+     * @param shopProduct $product
      * @return array
      */
-    protected function updateSku($id = 0, $data, $correct = true)
+    protected function updateSku($id = 0, $data, $correct = true, shopProduct $product = null)
     {
         /**
          * @var shopProductStocksModel $stocks_model
@@ -330,12 +331,6 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
          */
         static $product_features_model;
 
-        /**
-         * @var shopProductStocksLogModel $stocks_log_model
-         */
-        static $stocks_log_model = null;
-
-
         if (isset($data['price'])) {
             $data['price'] = $this->castValue('double', $data['price']);
         }
@@ -347,6 +342,38 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         }
 
         if ($id > 0) {
+            if ($product && (!isset($data['virtual']) || !empty($data['virtual']))) {
+                #check changes for virtual SKU
+                $virtual_sku_defaults = array(
+                    'price'          => $product->base_price_selectable,
+                    'purchase_price' => $product->purchase_price_selectable,
+                    'compare_price'  => $product->compare_price_selectable,
+                    'count'          => 0,
+                );
+                $virtual = null;
+                foreach ($virtual_sku_defaults as $field => $default) {
+                    if (isset($data[$field])) {
+                        $value = $data[$field];
+                        if (is_array($value)) {
+                            $value = max($value);
+                        }
+                        if ($value != $default) {
+                            if ($virtual === null) {
+                                $virtual = isset($product->skus[$id]) && !empty($product->skus[$id]['virtual']);
+                            }
+                            if ($virtual) {
+                                $data['virtual'] = 0;
+                                $virtual = false;
+                            }
+                            if (!$virtual) {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+
             if (empty($data['eproduct']) && !empty($data['file_name'])) {
                 $file_path = shopProduct::getPath(
                                         $data['product_id'],
@@ -458,7 +485,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             $features = $data['features'];
             $data['features'] = array();
 
-            $skip_values = array('',false,null);
+            $skip_values = array('', false, null);
 
             foreach ($features as $code => $value) {
                 if ($feature = $feature_model->getByField('code', $code)) {
@@ -472,10 +499,10 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                     if (is_array($value)) {
                         if (!empty($value['id'])) {
                             $field['feature_value_id'] = $value['id'];
-                        } elseif (isset($value['value']) && !in_array($value['value'],$skip_values,true)) {
+                        } elseif (isset($value['value']) && !in_array($value['value'], $skip_values, true)) {
                             $field['feature_value_id'] = $model->getId($feature['id'], $value['value'], $feature['type']);
                         }
-                    } elseif (!in_array($value,$skip_values,true)) {
+                    } elseif (!in_array($value, $skip_values, true)) {
                         $field['feature_value_id'] = $model->getId($feature['id'], $value, $feature['type']);
                         $value = array(
                             'value' => $value,
@@ -569,6 +596,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
 
         $sort = 0;
         $default_sku_id = null;
+        $result = array();
 
         foreach ($data as $sku_id => $sku) {
             $sku['sort'] = ++$sort;
@@ -586,7 +614,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             }
             $sku['product_id'] = $product->id;
 
-            $sku = $this->updateSku($sku_id > 0 ? $sku_id : 0, $sku, false);
+            $sku = $this->updateSku($sku_id > 0 ? $sku_id : 0, $sku, false, $product);
             $result[$sku['id']] = $sku;
 
             if (!empty($sku['features'])) {

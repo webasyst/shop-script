@@ -44,6 +44,7 @@
  * $product->features['feature_code'];
  * @property array $features_selectable
  * @property array $skus
+ * @property-read int $sku_count
  * @property array $categories
  * @property array $tags
  * @property array $params
@@ -77,7 +78,7 @@ class shopProduct implements ArrayAccess
             self::$data_storages = array(
                 'tags'                => true,
                 'features_selectable' => 'shopProductFeaturesSelectableModel', //should be before skus
-                'skus'                => true,//should be before features
+                'skus'                => true, //should be before features
                 'features'            => true,
                 'params'              => true,
                 'categories'          => 'shopCategoryProductsModel'
@@ -240,10 +241,26 @@ class shopProduct implements ArrayAccess
 
     protected function saveData(&$errors = array())
     {
+        #fix empty SKUs
+        if (!$this->sku_count && empty($this->is_dirty) && empty($this->data['skus'])) {
+            $this->setData('skus', array(
+                -1 => array(
+                    'name' => '',
+                )
+            ));
+        }
         if ($this->is_dirty) {
             $this->getStorage(null);
             //save external data in right storage order
             foreach (array_keys(self::$data_storages) as $field) {
+                if (($field == 'skus') && !$this->sku_count && empty($this->is_dirty[$field]) && empty($this->data['skus'])) {
+                    #fix empty SKUs on missed virtual SKUs
+                    $this->setData('skus', array(
+                        -1 => array(
+                            'name' => '',
+                        )
+                    ));
+                }
                 if (!empty($this->is_dirty[$field]) && ($storage = $this->getStorage($field))) {
                     $this->data[$field] = $storage->setData($this, $raw = $this->data[$field]);
                 }

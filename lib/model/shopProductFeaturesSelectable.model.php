@@ -11,10 +11,8 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
 
     /**
      * Insert(update) data for this product ID
-     * @param array $data If empty - delete all records for this product ID
-     * @param int $product_id product ID
      */
-    private function save($product_id, $added, $deleted, $obsolete)
+    private function save($product, $added, $deleted, $obsolete)
     {
         if ($obsolete) {
             $product_skus_model = new shopProductSkusModel();
@@ -24,15 +22,15 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
             if ($obsolete !== true) {
                 $params['id'] = $obsolete;
             }
-            $product_skus_model->deleteJoin('shop_product_features', $product_id, $params);
-            $product_skus_model->deleteByField(array('product_id' => $product_id,) + $params);
+            $product_skus_model->deleteJoin('shop_product_features', $product->id, $params);
+            $product_skus_model->deleteByField(array('product_id' => $product->id,) + $params);
         }
 
         $insert = array();
         foreach ($added as $f_id => $values) {
             foreach ($values as $v_id) {
                 $insert[] = array(
-                    'product_id' => (int)$product_id,
+                    'product_id' => (int)$product->id,
                     'feature_id' => $f_id,
                     'value_id'   => $v_id
                 );
@@ -44,18 +42,18 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
         }
         if ($deleted === true) {
             $this->deleteByField(array(
-                'product_id' => (int)$product_id,
+                'product_id' => (int)$product->id,
             ));
         } else {
             foreach ($deleted as $f_id => $values) {
                 if ($values === true) {
                     $this->deleteByField(array(
-                        'product_id' => (int)$product_id,
+                        'product_id' => (int)$product->id,
                         'feature_id' => $f_id,
                     ));
                 } else {
                     $this->deleteByField(array(
-                        'product_id' => (int)$product_id,
+                        'product_id' => (int)$product->id,
                         'feature_id' => $f_id,
                         'value_id'   => $values,
                     ));
@@ -163,9 +161,9 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
                     }
                 }
 
-                $this->save($product->id, $added, $deleted, $sku_map);
+                $this->save($product, $added, $deleted, $sku_map);
             } else {
-                //Or just update prices
+                //Or just update prices & stock
                 $skus = $product->skus;
                 $prices = array(
                     'price'          => $product->base_price_selectable,
@@ -184,7 +182,7 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
         } else {
             // empty selectable features data
             $data = array();
-            $this->save($product->id, array(), true, true);
+            $this->save($product, array(), true, true);
         }
 
         return $data;
@@ -249,13 +247,17 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
 
     /**
      * @todo use delta/absolute price
-     * @param $product
-     * @param $data
+     * @param shopProduct $product
+     * @param array $selected
+     * @param array $data
      * @return array
      */
-    private function generateSku(shopProduct $product, $selected, &$data, $exists)
+    private function generateSku(shopProduct $product, $selected, &$data)
     {
         $skus = $product->skus;
+        if(empty($skus)){
+            $skus = array();
+        }
 
         #build features map for exists SKUs
         $sku_map = array();

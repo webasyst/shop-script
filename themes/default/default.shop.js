@@ -54,8 +54,7 @@ $(document).ready(function () {
 
     var f = function () {
         //product filtering
-        $('.filters.ajax form input').change(function () {
-            var f = $(this).closest('form');
+        var ajax_form_callback = function (f) {
             var fields = f.serializeArray();
             var params = [];
             for (var i = 0; i < fields.length; i++) {
@@ -74,8 +73,15 @@ $(document).ready(function () {
                 }
                 $(window).lazyLoad && $(window).lazyLoad('reload');
             });
-        });
+        };
 
+        $('.filters.ajax form input').change(function () {
+            ajax_form_callback($(this).closest('form'));
+        });
+        $('.filters.ajax form').submit(function () {
+            ajax_form_callback($(this));
+            return false;
+        });
 
         $('.filters .slider').each(function () {
             if (!$(this).find('.filter-slider').length) {
@@ -85,15 +91,15 @@ $(document).ready(function () {
             }
             var min = $(this).find('.min');
             var max = $(this).find('.max');
+            var min_value = parseFloat(min.attr('placeholder'));
+            var max_value = parseFloat(max.attr('placeholder'));
             var step = 1;
             var slider = $(this).find('.filter-slider');
             if (slider.data('step')) {
                 step = parseFloat(slider.data('step'));
             } else {
-                var diff = parseFloat(max.attr('placeholder')) - parseFloat(min.attr('placeholder'));
-                if (diff >= 10) {
-                    step = 1;
-                } else if (Math.round(diff) != diff) {
+                var diff = max_value - min_value;
+                if (Math.round(min_value) != min_value || Math.round(max_value) != max_value) {
                     step = diff / 10;
                     var tmp = 0;
                     while (step < 1) {
@@ -101,6 +107,14 @@ $(document).ready(function () {
                         tmp += 1;
                     }
                     step = Math.pow(10, -tmp);
+                    tmp = Math.round(100000 * Math.abs(Math.round(min_value) - min_value)) / 100000;
+                    if (tmp && tmp < step) {
+                        step = tmp;
+                    }
+                    tmp = Math.round(100000 * Math.abs(Math.round(max_value) - max_value)) / 100000;
+                    if (tmp && tmp < step) {
+                        step = tmp;
+                    }
                 }
             }
             slider.slider({

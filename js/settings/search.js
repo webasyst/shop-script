@@ -19,18 +19,15 @@ if (typeof($) != 'undefined') {
                     submit_message.show();
                 }
             };
-            var resetFormChanged = function() {
-                if (form_changed) {
-                    form_changed = false;
-                    $(':submit', form).removeClass('yellow').addClass('green');
-                    submit_message.hide();
-                }
-            };
 
             form.submit(function() {
                 var self = $(this);
                 $.post(self.attr('action'), self.serialize(), function() {
-                    resetFormChanged();
+                    if (form_changed) {
+                        form_changed = false;
+                        $(':submit', form).removeClass('yellow').addClass('green');
+                        submit_message.show().fadeOut(5000);
+                    }
                     $('.s-mgs-after-button').show().animate({ opacity: 0 }, 2000, function() {
                         $(this).hide();
                     });

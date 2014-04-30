@@ -97,6 +97,8 @@ class shopOrderListAction extends waViewAction
                     }
                     $hash = "search/{$k}={$v}";
                 }
+            } elseif (waRequest::get('hash')) {
+                $hash = waRequest::get('hash');
             }
             $this->hash = $hash;
         }

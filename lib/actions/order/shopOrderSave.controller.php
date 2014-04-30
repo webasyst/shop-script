@@ -565,6 +565,9 @@ class shopOrderSaveController extends waJsonController
                     } else {
                         $item['tax_id'] = null;
                     }
+                    if (isset($skus[$item['sku_id']])) {
+                        $item['sku_code'] = $skus[$item['sku_id']]['sku'];
+                    }
                 } else {
                     if ($item['service_id']) {
                         if ($variants[$item['service_variant_id']]['name']) {
