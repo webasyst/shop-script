@@ -1027,7 +1027,6 @@ class shopProductsCollection
             'rating',
             'price',
             'compare_price',
-
         );
 
         foreach ($products as & $p) {
