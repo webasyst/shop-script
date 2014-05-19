@@ -21,6 +21,10 @@ class shopTypeFeaturesModel extends shopSortableModel
         return $types;
     }
 
+    /**
+     * @param int $type_id Product Type ID
+     * @return array Features
+     */
     public function getByType($type_id)
     {
         $sql = "SELECT * FROM " . $this->table . " tf JOIN
