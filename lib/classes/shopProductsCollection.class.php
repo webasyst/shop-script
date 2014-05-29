@@ -337,7 +337,12 @@ class shopProductsCollection
                     $this->setHash('/search/'.$info['conditions']);
                     $this->prepare(true, false);
                 } else {
-                    $this->addJoin('shop_category_products', null, ':table.category_id = '.(int)$info['id']);
+                    $alias = $this->addJoin('shop_category_products');
+                    $info['subcategories'] = $category_model->descendants($info, true)->where('type = '.shopCategoryModel::TYPE_STATIC)->fetchAll('id');
+                    $descendant_ids = array_keys($info['subcategories']);
+                    if ($descendant_ids) {
+                        $this->where[] = $alias.".category_id IN(".implode(',', $descendant_ids).")";
+                    }
                     break;
                 }
             }
@@ -710,7 +715,7 @@ class shopProductsCollection
                             $values_model = $feature_model->getValuesModel($f['type']);
                             $value_id = $values_model->getValueId($f['id'], $parts[2]);
                         }
-                        $this->addJoin('shop_product_features', null, ':table.feature_id = '.$f['id'].' AND :table.feature_value_id = '.(int)$value_id);
+                        $this->addJoin('shop_product_features', null, ':table.feature_id = '.$f['id'].' AND :table.feature_value_id IN ('.$value_id.')');
                         $this->group_by = 'p.id';
                     }
                 }
