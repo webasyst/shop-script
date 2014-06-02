@@ -46,10 +46,11 @@ class shopOrderTotalController extends waJsonController
             );
         }
 
-        if (waRequest::post('order_id')) {
+        $order_id = waRequest::post('order_id');
+        if ($order_id) {
             $order_model = new shopOrderModel();
-            $order = $order_model->getById(waRequest::post('order_id'));
-            $currency = $order['currency'];
+            $order_info = $order_model->getById($order_id);
+            $currency = $order_info['currency'];
         } else {
             $currency = $this->getConfig()->getCurrency();
         }
@@ -62,7 +63,10 @@ class shopOrderTotalController extends waJsonController
             'items'   => $items,
             'total'   => waRequest::post('subtotal'),
         );
-        $this->response['discount'] = shopDiscounts::calculate($order);
+        if ($order_id) {
+            $order['id'] = $order_info['id'];
+        }
+        $this->response['discount'] = shopDiscounts::calculate($order_info);
 
         $this->response['shipping_methods'] = shopHelper::getShippingMethods($shipping_address, $shipping_items,
             array('currency' => $currency, 'total_price' => $total));

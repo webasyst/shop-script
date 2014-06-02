@@ -12,8 +12,7 @@ class shopRepairActions extends waActions
 
     public function defaultAction()
     {
-
-        $methods = get_class_methods(get_class($this));
+        $methods = array_diff(get_class_methods(get_class($this)), get_class_methods(get_parent_class($this)));
         $callback = create_function('$n', 'return preg_match("@^(\w+)Action$@",$n,$m)?($m[1]!="default"?$m[1]:false):false;');
         $actions = array_filter($methods, $callback);
         $actions = array_map($callback, $actions);
@@ -120,7 +119,7 @@ ORDER BY `sort`,`%2$s`';
                 print "\n\n";
             }
         }
-        if(empty($model)){
+        if (empty($model)) {
             $model = new waModel();
         }
 
@@ -185,6 +184,43 @@ ORDER BY `sort`,`{$id}`";
             if (!$sqls) {
                 print "OK\n\n";
             }
+        }
+    }
+
+    public function skuAction()
+    {
+        $repaired = false;
+        $model = new waModel();
+        $sql = <<<SQL
+UPDATE `shop_product` `p`
+LEFT JOIN `shop_product_skus` `s` ON
+  (`s`.`product_id`=`p`.`id`)
+  AND
+  (`s`.`id`=`p`.`sku_id`)
+SET `p`.`sku_id`=NULL
+WHERE `s`.`id` IS NULL
+SQL;
+
+        $model->query($sql);
+        if ($count = $model->affected()) {
+            $repaired = true;
+            print sprintf("%d product(s) with invalid default SKU ID restored\n", $count);
+        }
+
+        $sql = <<<SQL
+UPDATE `shop_product` `p`
+JOIN `shop_product_skus` `s`
+ON (`s`.`product_id`=`p`.`id`)
+SET `p`.`sku_id`=`s`.`id`
+WHERE `p`.`sku_id` IS NULL
+SQL;
+        $model->query($sql);
+        if ($count = $model->affected()) {
+            $repaired = true;
+            print sprintf("%d product(s) with missed default SKU ID restored\n", $count);
+        }
+        if (!$repaired) {
+            print "nothing to repair";
         }
     }
 }

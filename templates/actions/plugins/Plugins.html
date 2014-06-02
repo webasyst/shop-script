@@ -31,14 +31,14 @@
                     <li id="plugin-{$plugin.id}" {if !empty($plugin.shop_settings)}data-settings="1"{/if}>
                         <a href="#/{$plugin.id}/">
                             <i class="icon16{if !isset($plugin.img)} plugins{else}" style="background-image: url('{wa_url()}{$plugin.img}');{/if}"></i>{$plugin.name|escape}
-                            {if $plugin.description}
+                            {if !empty($plugin.description)}
                                 <span class="hint">{$plugin.description|escape}</span>
                             {/if}
                         </a>
                     </li>
                 {/foreach}
             </ul>
-            {if empty($plugins1)}
+            {if empty($plugins)}
                 {* nothing was displayed in foreach above *}
                 <div class="align-center hint hr block double-padded">
                     <p>

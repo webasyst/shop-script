@@ -70,6 +70,8 @@ class shopContactsMergeHandler extends waEventHandler
             shopCustomers::recalculateTotalSpent($master_id);
         }
 
+        wa('shop')->event('customers_merge', $params);
+
         return null;
     }
 }

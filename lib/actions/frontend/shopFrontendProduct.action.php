@@ -320,6 +320,7 @@ class shopFrontendProductAction extends shopFrontendAction
 
         if (!$is_cart) {
             $this->view->assign('reviews', $this->getTopReviews($product['id']));
+            $this->view->assign('rates', $this->reviews_model->getProductRates($product['id']));
             $this->view->assign('reviews_total_count', $this->getReviewsTotalCount($product['id']));
 
             $meta_fields = $this->getMetafields($product);

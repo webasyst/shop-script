@@ -7,7 +7,7 @@ class shopCustomer extends waContact
     public function affiliateBonus()
     {
         if ($this->getId()) {
-            return (int)$this->getCustomerData('affiliate_bonus');
+            return (float)$this->getCustomerData('affiliate_bonus');
         }
         return 0;
     }

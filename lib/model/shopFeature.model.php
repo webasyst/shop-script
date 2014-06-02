@@ -144,6 +144,7 @@ SQL;
         return $this->getByField('code', $code);
     }
 
+
     public function getByType($type_id, $key = null, $fill_values = false)
     {
         if (!in_array($type_id, array(false, null), true)) {
@@ -185,7 +186,7 @@ SQL;
     public function getMultipleSelectableFeaturesByType($type_id, $key = null, $fill_values = false)
     {
         $features = array();
-        foreach ($this->getByType($type_id) as $f) {
+        foreach ($this->getByType($type_id, $key, $fill_values) as $f) {
             if ($f['multiple'] && $f['selectable']) {
                 $features[$f['code']] = $f;
             }
@@ -234,6 +235,20 @@ SQL;
 
             }
             $features = $this->select('*')->where($where)->fetchAll($key);
+        } elseif ($field == 'lname') {
+            $where = '`parent_id` IS NULL';
+            $params = array();
+            if ($value) {
+                $value = (array)$value;
+                foreach ($value as &$name) {
+                    $name = mb_strtolower($name, 'utf-8');
+                }
+                unset($name);
+                $params['name'] = $value;
+                $where .= " AND (LOWER(`name`) IN (s:name))";
+
+            }
+            $features = $this->select('*')->where($where, $params)->fetchAll($key);
         } else {
 
             $features = $this->getByField($field, $value, $key);

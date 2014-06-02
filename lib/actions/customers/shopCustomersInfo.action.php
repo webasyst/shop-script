@@ -90,6 +90,16 @@ class shopCustomersInfoAction extends waViewAction
         }
         $this->view->assign('fields', $fields);
         $this->view->assign('orders_default_view', $config->getOption('orders_default_view'));
+
+        /*
+         * @event backend_customer
+         * @return array[string]array $return[%plugin_id%] array of html output
+         * @return array[string][string]string $return[%plugin_id%]['info_section'] html output
+         * @return array[string][string]string $return[%plugin_id%]['name_suffix'] html output
+         * @return array[string][string]string $return[%plugin_id%]['header'] html output
+         * @return array[string][string]string $return[%plugin_id%]['action_link'] html output
+         */
+        $this->view->assign('backend_customer', wa()->event('backend_customer', $customer));
     }
 }
 

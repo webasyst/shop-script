@@ -160,7 +160,7 @@ SQL;
                     if ($changed = $this->isChanged($row, $data)) {
                         $this->updateById($row['id'], $changed);
                     }
-                    if (isset($exists[$row['sort']])) {
+                    if (isset($exists[$row['sort']]) && ($exists[$row['sort']] != $row['id'])) {
                         $row['sort'] = ($sort === false) ? ($sort = 0) : ++$sort;
                         $this->updateById($row['id'], array('sort' => $row['sort']));
                     }

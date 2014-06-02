@@ -32,7 +32,7 @@ abstract class shopPlugin extends waPlugin
             }
             $row = array_merge($row, $params);
             $row['value'] = $this->getSettings($name);
-            if (isset($row['control_type'])) {
+            if (!empty($row['control_type'])) {
                 $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
             }
         }
@@ -50,7 +50,8 @@ abstract class shopPlugin extends waPlugin
             $this->settings = $model->get($this->getSettingsKey());
             foreach ($this->settings as $key => $value) {
                 #decode non string values
-                if (($json = json_decode($value, true)) && is_array($json)) {
+                $json = json_decode($value, true);
+                if (is_array($json)) {
                     $this->settings[$key] = $json;
                 }
             }
@@ -98,9 +99,9 @@ abstract class shopPlugin extends waPlugin
         $settings_config = $this->getSettingsConfig();
         foreach ($settings_config as $name => $row) {
             if (!isset($settings[$name])) {
-                if (($row['control_type'] == waHtmlControl::CHECKBOX) && !empty($row['value'])) {
+                if ((ifset($row['control_type']) == waHtmlControl::CHECKBOX) && !empty($row['value'])) {
                     $settings[$name] = false;
-                } else {
+                } elseif (!empty($row['control_type']) || isset($row['value'])) {
                     $this->settings[$name] = isset($row['value']) ? $row['value'] : null;
                     $this->getSettingsModel()->del($this->getSettingsKey(), $name);
                 }

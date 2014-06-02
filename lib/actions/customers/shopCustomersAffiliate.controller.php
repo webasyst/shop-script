@@ -15,8 +15,16 @@ class shopCustomersAffiliateController extends waJsonController
             return;
         }
 
+        if (!$comment) {
+            if ($amount < 0) {
+                $comment = _w('Bonus pay out');
+            } else {
+                $comment = _w('Bonus credit');
+            }
+        }
+
         $atm = new shopAffiliateTransactionModel();
-        $atm->applyBonus($contact_id, $amount, null, ifempty($comment));
+        $atm->applyBonus($contact_id, $amount, null, ifempty($comment), $amount > 0 ? $atm::TYPE_DEPOSIT : $atm::TYPE_WITHDRAWAL);
     }
 }
 

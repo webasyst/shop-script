@@ -4,20 +4,22 @@ class shopAffiliate
 {
     public static function isEnabled()
     {
-        return wa()->getSetting('affiliate');
+        return wa()->getSetting('affiliate', '', 'shop');
     }
 
     /**
      * Amount of affiliation points given order worths.
      * @param array|int $order_or_id
      */
-    public static function calculateBonus($order_or_id)
+    public static function calculateBonus($order_or_id, $credit_rate = null)
     {
         if (!self::isEnabled()) {
             return 0;
         }
 
-        $credit_rate = wa()->getSetting('affiliate_credit_rate', 0, 'shop');
+        if ($credit_rate === null) {
+            $credit_rate = wa()->getSetting('affiliate_credit_rate', 0, 'shop');
+        }
         if (!$credit_rate) {
             return 0;
         }
@@ -131,7 +133,7 @@ class shopAffiliate
         }
 
         $atm = new shopAffiliateTransactionModel();
-        $atm->applyBonus($order['contact_id'], -self::calculateBonus($order), $order_id);
+        $atm->applyBonus($order['contact_id'], -self::calculateBonus($order), $order_id, '', $atm::TYPE_ORDER_CANCEL);
     }
 
     /** Convert affiliate bonus into default currency. */

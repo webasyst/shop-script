@@ -59,7 +59,7 @@
             {foreach $storefronts as $url => $cnt}
                 <li data-storefront="{if $url|substr:-1 == '/'}{$url|substr:0:-1}{else}{$url}{/if}">
                     <span class="count">{$cnt}</span>
-                    <a href="#/orders/storefront={urlencode($url)}">{if $url|substr:-1 == '/'}{str_replace('www.','',$url|substr:0:-1)}{else}{str_replace('www.','',$url)}{/if}</a>
+                    <a href="#/orders/storefront={urlencode($url)}" style="margin-right: 1em;">{if $url|substr:-1 == '/'}{str_replace('www.','',$url|substr:0:-1)}{else}{str_replace('www.','',$url)}{/if}</a>
                 </li>
             {/foreach}
         </ul>

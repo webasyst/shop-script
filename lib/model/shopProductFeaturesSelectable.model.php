@@ -255,7 +255,7 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
     private function generateSku(shopProduct $product, $selected, &$data)
     {
         $skus = $product->skus;
-        if(empty($skus)){
+        if (empty($skus)) {
             $skus = array();
         }
 
@@ -395,6 +395,17 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
                 $features = $feature_model->getMultipleSelectableFeaturesByType($product->type_id);
             } else {
                 $features = $feature_model->getById(array_keys($selected));
+                if ($product->type_id) {
+                    $types = array($product->type_id => true);
+                    $type_features_model = new shopTypeFeaturesModel();
+                    $type_features_model->fillTypes($features, $types);
+                    foreach ($features as &$feature) {
+                        unset($feature['types']);
+                        $feature['sort'] = ifset($feature['sort'][$product->type_id]);
+                        unset($feature);
+                    }
+                    uasort($features, create_function('$a,$b', 'return max(-1,min(1,$a["sort"]-$b["sort"]));'));
+                }
             }
 
             // attach values

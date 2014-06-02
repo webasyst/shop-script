@@ -500,7 +500,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                         if (!empty($value['id'])) {
                             $field['feature_value_id'] = $value['id'];
                         } elseif (isset($value['value']) && !in_array($value['value'], $skip_values, true)) {
-                            $field['feature_value_id'] = $model->getId($feature['id'], $value['value'], $feature['type']);
+                            $field['feature_value_id'] = $model->getId($feature['id'], ($code == 'weight') ? $value : $value['value'], $feature['type']);
                         }
                     } elseif (!in_array($value, $skip_values, true)) {
                         $field['feature_value_id'] = $model->getId($feature['id'], $value, $feature['type']);

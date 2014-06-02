@@ -21,7 +21,8 @@ class shopPluginSettingsModel extends waModel implements waiPluginSettings
             $where = $this->getWhereByField('id', $key);
             self::$settings[$key] = $this->select('name, value')->where($where)->fetchAll('name', true);
             foreach (self::$settings[$key] as & $value) {
-                if (($json = json_decode($value, true)) && is_array($json)) {
+                $json = json_decode($value, true);
+                if (is_array($json)) {
                     $value = $json;
                 }
             }

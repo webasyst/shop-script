@@ -8,16 +8,13 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n"
-"%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
 "X-Generator: Poedit 1.6.3\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
-
-
 
 #: /wa-apps/shop/lib/config/app.php:3
 msgid "Shop"
@@ -2495,7 +2492,7 @@ msgstr "Контактная информация"
 
 #: /wa-apps/shop/lib/actions/customers/shopCustomersList.action.php:103
 msgid "Affiliate bonus"
-msgstr "Бонус партнера"
+msgstr "Партнерский бонус"
 
 msgid "Bonus for the order %s totalling %s"
 msgstr "Бонус за заказ %s суммой %s"
@@ -4306,7 +4303,7 @@ msgstr "Покупатель может оформить заказ, даже е
 
 #: /wa-apps/shop/themes/default/cart.html:79
 msgid "Your current affiliate bonus of %s points allows you to get an additonal discount of up to %s"
-msgstr "Вы можете использовать ваш партнерский бонус в %s баллов для получения дополнительной скидки в размере %s"
+msgstr "Вы можете использовать свой партнерский бонус в %s баллов для получения дополнительной скидки в размере %s"
 
 #: /wa-apps/shop/themes/default/cart.html:83
 msgid "Use bonus"
@@ -5405,7 +5402,8 @@ msgstr "Все доступные способы оплаты"
 
 # msgid "Shipping options"
 # msgstr "Способы доставки"
-#: /wa-apps/shop/lib/config/site.php:87 /wa-apps/shop/lib/config/site.php:91
+#: /wa-apps/shop/lib/config/site.php:87
+#: /wa-apps/shop/lib/config/site.php:91
 msgid "All available shipping options"
 msgstr "Все доступные способы доставки"
 
@@ -6468,7 +6466,8 @@ msgstr "Новый профиль"
 msgid "Perform action to all selected orders?"
 msgstr "Выполнить действие со всеми выбранными заказами?"
 
-#: /wa-apps/shop/js/product/list.js:407 /wa-apps/shop/js/product/list.js:568
+#: /wa-apps/shop/js/product/list.js:407
+#: /wa-apps/shop/js/product/list.js:568
 msgid "Drag products here"
 msgstr "Перетащите товары сюда"
 
@@ -6571,7 +6570,8 @@ msgstr "Автоматически перемещать товар вниз сп
 msgid "When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more."
 msgstr "Товары, которых нет на складе, будут автоматически перемещены вниз всех списков товаров на витрине интернет-магазина: в результатах поиска, в списках товаров внутри категорий, в результатах фильтрации товаров и т. д."
 
-#: /wa-apps/shop/lib/config/site.php:177 /wa-apps/shop/lib/config/site.php:181
+#: /wa-apps/shop/lib/config/site.php:177
+#: /wa-apps/shop/lib/config/site.php:181
 #: /wa-apps/shop/lib/config/site.php:182
 msgid "Setting <em>$available_only = true</em> will automatically exclude all out-of-stock products from the return"
 msgstr "Настройка <em>$available_only = true</em> автоматически исключит из результата все товары, которых нет на складе."
@@ -6789,7 +6789,7 @@ msgstr[2] "%d покупателей"
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCheckoutflow.html:32
 msgid "<strong>Checkout process settings were altered on %s.</strong> This report is based on data collected both before and after this change and thus may be unrepresentative."
-msgstr "<strong>Настройки процесса оформления заказа были изменены %s.</strong> Воронка формируется на основании данных, которые были собраны и до, и после этого изменения, поэтому информация в этом отчете может быть непрезентативной."
+msgstr "<strong>Настройки процесса оформления заказа были изменены %s.</strong> Воронка формируется на основании данных, которые были собраны и до, и после этого изменения, поэтому информация в этом отчете может быть нерепрезентативной."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsTaxes.html:74
 msgid "Billing address is configured not to be prompted during checkout, which means that tax by billing will not be calculated for most orders."
@@ -6888,7 +6888,7 @@ msgstr "Не импортировать складские остатки для
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:182
 msgid "Column assignment map"
-msgstr "Таблица соответствия столбцов"
+msgstr "Список столбцов"
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:197
 msgid "Upload and assign columns"
@@ -7181,3 +7181,52 @@ msgstr[0] "%d артикул"
 msgstr[1] "%d артикула"
 msgstr[2] "%d артикулов"
 
+
+#: /wa-apps/shop/templates/actions/settings/SettingsAffiliate.html:7
+#: /wa-apps/shop/templates/actions/settings/SettingsAffiliate.html:32
+#: /wa-apps/shop/templates/actions/settings/SettingsAffiliate.html:38
+#: /wa-apps/shop/templates/actions/settings/SettingsAffiliate.html:124
+msgid "Loyalty program"
+msgstr "Бонусная программа"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsAffiliate.html:33
+msgid "Loyalty program allows you to stimulate customers returning order activity by rewarding customers bonus points for each paid order. Depending on your business model, you may offer additional discounts in exchange to earned points, or pay out earned bonuses to your customers directly."
+msgstr "Бонусная программа позволяет стимулировать покупателей к оформлению повторных заказов за счет начисления бонусов за каждый оплаченный заказ. В зависимости от специфики работы вашего интернет-магазина вы можете предложить покупателям использовать бонусы для получения скидок на последующие заказы или же выплачивать покупателям заработанные бонусы и фиксировать выплату в истории работы с покупателем."
+
+#: /wa-apps/shop/themes/ascetic/my.affiliate.html:14
+#: /wa-apps/shop/themes/clear/my.affiliate.html:14
+#: /wa-apps/shop/themes/custom/my.affiliate.html:14
+#: /wa-apps/shop/themes/default/my.affiliate.html:14
+#: /wa-apps/shop/themes/facebook/my.affiliate.html:14
+#: /wa-apps/shop/themes/nifty/my.affiliate.html:14
+#: /wa-apps/shop/themes/pinboard/my.affiliate.html:14
+#: /wa-apps/shop/themes/sidebar/my.affiliate.html:14
+#: /wa-apps/shop/themes/vk/my.affiliate.html:14
+msgid "Bonus activity log"
+msgstr "Журнал начисления бонусов"
+
+#: /wa-apps/shop/themes/default/home.html:57
+msgid "Remove this helper text in your store backend &gt; Storefronts &gt; Design &gt; <strong>home.html</strong> template file.<br>Search for <b>REMOVE THIS!</b> to locate this block in the template file."
+msgstr "Удалите этот текст в бекенде вашего интернет-магазина в разделе <i>Витрины</i> &gt; <i>Дизайн</i> &gt; <strong>home.html</strong>. Найдите строку <b>REMOVE THIS!</b> и полностью удалите этот вспомогательный блок."
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:270
+#: /wa-apps/shop/lib/actions/customers/shopCustomersAffiliate.controller.php:22
+msgid "Bonus credit"
+msgstr "Начисление бонусных баллов"
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:287
+#: /wa-apps/shop/lib/actions/customers/shopCustomersAffiliate.controller.php:20
+msgid "Bonus pay out"
+msgstr "Выплата бонусных баллов"
+
+#: /wa-apps/shop/themes/default/product.html:161
+msgid "Average customer rating:"
+msgstr "Средняя оценка покупателей:"
+
+#: /wa-apps/shop/themes/default/product.html:163
+msgid "%s out of 5 stars"
+msgstr "%s из 5 звезд"
+
+#: /wa-apps/shop/themes/default/product.html:182
+msgid "no rate"
+msgstr "без оценки"

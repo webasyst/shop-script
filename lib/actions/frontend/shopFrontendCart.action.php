@@ -104,7 +104,9 @@ class shopFrontendCartAction extends shopFrontendAction
                     }
                 }
                 $item['sku_name'] = $sku['name'];
+                $item['sku_code'] = $sku['sku'];
                 $item['price'] = $sku['price'];
+                $item['compare_price'] = $sku['compare_price'];
                 $item['currency'] = $item['product']['currency'];
                 $type_ids[] = $item['product']['type_id'];
                 if (isset($errors[$item_id])) {

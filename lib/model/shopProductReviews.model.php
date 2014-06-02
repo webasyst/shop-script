@@ -92,6 +92,19 @@ class shopProductReviewsModel extends waNestedSetModel
         return $reviews;
     }
 
+    public function getProductRates($product_id)
+    {
+        $sql = "SELECT rate, COUNT(*) c FROM ".$this->table."
+                WHERE product_id = i:0 AND status = '".self::STATUS_PUBLISHED."'
+                GROUP BY rate
+                ORDER BY rate DESC";
+        $result = array();
+        foreach ($this->query($sql, $product_id) as $row) {
+            $result[round($row['rate'])] = $row['c'];
+        }
+        return $result;
+    }
+
     public function getListDefaultOptions()
     {
         return array(
@@ -400,7 +413,7 @@ class shopProductReviewsModel extends waNestedSetModel
      */
     static public function getAuthorInfo($contact_id)
     {
-        $fields = 'id,name,photo_url_50,photo_url_20';
+        $fields = 'id,name,photo_url_50,photo_url_20,is_user';
         $contact_ids = (array)$contact_id;
         $collection = new waContactsCollection('id/'.implode(',', $contact_ids));
         $contacts = $collection->getContacts($fields, 0, count($contact_ids));

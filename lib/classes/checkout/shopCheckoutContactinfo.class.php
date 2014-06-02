@@ -164,9 +164,12 @@ class shopCheckoutContactinfo extends shopCheckout
             $field_ext = empty($fld_id_no_ext[1]) ? '' : '.'.$fld_id_no_ext[1];
             $fld_id_no_ext = $fld_id_no_ext[0];
 
+            $field = ifset($fields_unsorted[$fld_id_no_ext]);
+
             // Special treatment for subfields of shipping and billing address:
             // copy actual settings from address field.
             if ($field_ext && $fld_id_no_ext == 'address') {
+                $existing_subfields = $field->getFields();
                 // Sanity check
                 if (!is_array($opts) || empty($options['address']) || !is_array($options['address']) || empty($options['address']['fields']) || !is_array($options['address']['fields'])) {
                     continue;
@@ -176,13 +179,14 @@ class shopCheckoutContactinfo extends shopCheckout
                 $fields = array();
                 foreach($options['address']['fields'] as $sf_id => $sf_opts) {
                     if (!empty($sf_opts['required']) || ( !empty($sf_opts['_disabled']) && !empty($sf_opts['_default_value_enabled']) && empty($sf_opts['_deleted']) ) || !empty($opts['fields'][$sf_id])) {
-                        $fields[$sf_id] = $sf_opts;
+                        if (!$field_ext || isset($existing_subfields[$sf_id])) {
+                            $fields[$sf_id] = $sf_opts;
+                        }
                     }
                 }
                 $opts['fields'] = $fields;
             }
 
-            $field = ifset($fields_unsorted[$fld_id_no_ext]);
             if ($field) {
                 if (!empty($opts['_deleted'])) {
                     waContactFields::deleteField($field);
@@ -204,7 +208,6 @@ class shopCheckoutContactinfo extends shopCheckout
                 $fld_id = $field->getId().$field_ext;
                 $new_field = true;
             }
-
             list($local_opts, $sys_opts) = self::tidyOpts($field, $fld_id, $opts);
             if ($local_opts === null || $sys_opts === null) {
                 continue;
@@ -213,6 +216,7 @@ class shopCheckoutContactinfo extends shopCheckout
             // Write to system config.
             if (!$field_ext) {
                 $field->setParameters($sys_opts);
+                $fields_unsorted[$fld_id_no_ext] = $field;
                 if ($new_field) {
                     waContactFields::createField($field);
                     waContactFields::enableField($field, 'person');

@@ -246,17 +246,21 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
             var name = args.shift();
             //TODO determine scope for plugins
             var matches;
-            scope = null;
+            scope = this;
             if (matches = name.match(/^(\w+(:\w+)?)(:\d+)?$/)) {
-
+                if (this.plugins[ matches[1]]) {
+                    scope = this.plugins[ matches[1]];
+                    name = null;
+                }
             }
-            var method = $.shop.getMethod(args, true ? this : this.plugins[scope], name);
+
+            var method = $.shop.getMethod(args, scope, name);
 
             if (method.name) {
                 $.shop.trace('$.importexport.click', method);
                 if (!$el.hasClass('js-confirm') || confirm($el.data('confirm-text') || $el.attr('title') || 'Are you sure?')) {
                     method.params.push($el);
-                    this[method.name].apply(this, method.params);
+                    scope[method.name].apply(scope, method.params);
                 }
             } else {
                 $.shop.error('Not found js handler for link', [method, args, $el])
@@ -534,6 +538,8 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                     (($.shop && $.shop.error) || console.log)('Exception at $.importexport.' + action + ': ' + e.message, e);
                 }
                 $.shop && $.shop.trace('$.settings.call complete ' + plugin + '.' + action, [$.shop.time.interval(start) + 's', result, args]);
+            } else {
+                $.shop.error('method not found at call', [name, action]);
             }
         }
         return result;

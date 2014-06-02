@@ -5,15 +5,15 @@ return array(
         'base_unit' => 'm',
         'units'     => array(
             'm'  => array(
-                'name'       => _w('m'), //metre
+                'name'       => _w('m'), //meter
                 'multiplier' => 1,
             ),
             'cm' => array(
-                'name'       => _w('cm'), //cantimetre
+                'name'       => _w('cm'), //centimeter
                 'multiplier' => 0.01,
             ),
             'mm' => array(
-                'name'       => _w('mm'), //milimetre
+                'name'       => _w('mm'), //millimeter
                 'multiplier' => 0.001,
             ),
             'in' => array(
@@ -65,15 +65,15 @@ return array(
         'base_unit' => 'l',
         'units'     => array(
             'l'  => array(
-                'name'       => _w('l'), //litre
+                'name'       => _w('l'), //liter
                 'multiplier' => 1,
             ),
             'ml' => array(
-                'name'       => _w('ml'), //mililitre
+                'name'       => _w('ml'), //milliliter
                 'multiplier' => 0.001,
             ),
             'cl' => array(
-                'name'       => _w('cl'), //cantilitre
+                'name'       => _w('cl'), //centiliter
                 'multiplier' => 0.4536,
             ),
         ),

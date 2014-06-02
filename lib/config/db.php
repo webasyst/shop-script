@@ -8,6 +8,7 @@ return array(
         'amount' => array('decimal', "15,4", 'null' => 0),
         'balance' => array('decimal', "15,4", 'null' => 0),
         'comment' => array('text'),
+        'type' => array('varchar', 32),
         ':keys' => array(
             'PRIMARY' => 'id',
             'contact_id' => 'contact_id',

@@ -98,6 +98,7 @@ class shopWorkflowAction extends waWorkflowAction
 
         $update = isset($result['update']) ? $result['update'] : array();
         $update['update_datetime'] = date('Y-m-d H:i:s');
+        $data['update'] = $update;
 
         if ($this->state_id) {
             $update['state_id'] = $this->state_id;

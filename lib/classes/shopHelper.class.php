@@ -1,4 +1,5 @@
 <?php
+
 class shopHelper
 {
     /**
@@ -7,6 +8,8 @@ class shopHelper
      * @param string $icon type
      * @param string $default icon type
      * @param int $size 10|16
+     * @param mixed[] $params
+     * @param string [string] $params['class']
      * @return string HTML
      */
     public static function getIcon($icon, $default = null, $size = 16, $params = array())
@@ -57,7 +60,9 @@ class shopHelper
                     if (!empty($order_params['payment_id']) && ($m['id'] == $order_params['payment_id']) && isset($order_params['payment_params_'.$name])) {
                         $row['value'] = $order_params['payment_params_'.$name];
                     }
-                    $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
+                    if(!empty($row['control_type'])){
+                        $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
+                    }
                 }
                 if ($controls) {
                     $custom_html = '';
@@ -99,13 +104,13 @@ class shopHelper
      * Get available shipping methods and rates
      * @param array $address
      * @param array $items array of package items
-     * @param array[string]double $items['weight'] package item weight in base unit
-     * @param array[string]int $items['quantity']
-     * @param array[string]double $items['price'] package item price in default currency
+     * @param array [string]double $items['weight'] package item weight in base unit
+     * @param array [string]int $items['quantity']
+     * @param array [string]double $items['price'] package item price in default currency
      * @param array $params optional params
-     * @param array[string]string $params['currency'] result currency code
-     * @param array[string]double $params['total_price'] precalculated total package price
-     * @param array[string]int $params['payment'] selected payment instance ID
+     * @param array [string]string $params['currency'] result currency code
+     * @param array [string]double $params['total_price'] precalculated total package price
+     * @param array [string]int $params['payment'] selected payment instance ID
      * @return array[integer]
      */
     public static function getShippingMethods($address = null, $items = array(), $params = array())
@@ -131,15 +136,15 @@ class shopHelper
                     $plugin_currency = (array)$plugin->allowedCurrency();
 
                     $total = null;
-                    if($plugin_currency != $currency){
-                        if(!$config->getCurrencies($plugin_currency)){
+                    if ($plugin_currency != $currency) {
+                        if (!$config->getCurrencies($plugin_currency)) {
                             $result[$m['id']] = array(
                                 'plugin'   => $m['plugin'],
                                 'logo'     => $m['logo'],
                                 'icon'     => $plugin_info['icon'],
                                 'img'      => $plugin_info['img'],
                                 'name'     => $m['name'],
-                                'error'    => sprintf(_w('Shipping rate was not calculated because required currency %s is not defined in your store settings.'), implode(', ',$plugin_currency)),
+                                'error'    => sprintf(_w('Shipping rate was not calculated because required currency %s is not defined in your store settings.'), implode(', ', $plugin_currency)),
                                 'rate'     => '',
                                 'currency' => $currency,
                             );
@@ -147,7 +152,7 @@ class shopHelper
                         }
                     }
                     if (isset($params['total_price'])) {
-                        if (!in_array($currency,$plugin_currency)) {
+                        if (!in_array($currency, $plugin_currency)) {
                             $total = shop_currency($params['total_price'], $currency, reset($plugin_currency), false);
                         } else {
                             $total = $params['total_price'];
@@ -157,7 +162,7 @@ class shopHelper
                             if (!empty($item['price'])) {
                                 $total += $item['price'] * (isset($item['quantity']) ? $item['quantity'] : 1);
                             }
-                            if ($total && !in_array($currency,$plugin_currency)) {
+                            if ($total && !in_array($currency, $plugin_currency)) {
                                 $total = shop_currency($total, $currency, reset($plugin_currency), false);
                             }
                         }
@@ -174,7 +179,7 @@ class shopHelper
                         foreach ($rates as $rate_id => $info) {
                             if (is_array($info)) {
                                 $rate = is_array($info['rate']) ? max($info['rate']) : $info['rate'];
-                                $rate = (float) shop_currency($rate, reset($plugin_currency), $currency, false);
+                                $rate = (float)shop_currency($rate, reset($plugin_currency), $currency, false);
                                 $result[$m['id'].'.'.$rate_id] = array(
                                     'plugin'   => $m['plugin'],
                                     'logo'     => $m['logo'],
@@ -303,8 +308,6 @@ class shopHelper
         }
 
 
-        $currency = wa('shop')->getConfig()->getCurrency();
-
         $workflow = new shopWorkflow();
         $states = $workflow->getAllStates();
         foreach ($orders as & $order) {
@@ -318,6 +321,9 @@ class shopHelper
             $icon = '';
             $style = '';
             if ($state) {
+                /**
+                 * @var shopWorkflowState $state
+                 */
                 $icon = $state->getOption('icon');
                 $style = $state->getStyle();
             }
@@ -415,7 +421,6 @@ class shopHelper
         }
         if ($count === null) {
             $icon = "<i class='icon10 status-green' title='"._w("In stock")."'></i>";
-            $warn = '';
         } else {
             if (!$stock_id || empty($stocks[$stock_id])) {
                 $bounds = array(
@@ -462,8 +467,7 @@ class shopHelper
             // new order
             if (!isset($fields_config['address.shipping']) || !$id) {
                 $fields_config['address.shipping'] = array();
-            }
-            // edit order
+            } // edit order
             elseif (!empty($fields_config['address.shipping']) && $id && $id instanceof waContact) {
                 $address = $id->getFirst('address.shipping');
                 if ($address && !empty($address['data'])) {

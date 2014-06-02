@@ -50,10 +50,14 @@
             <!-- order aux info -->
             <p class="gray">
                 [`Order created`]: <strong>{$order.create_datetime|wa_datetime:"humandatetime"}</strong><br>
+                {if !empty($order.params.referer)}[`Referrer`]: <strong><a href="{$order.params.referer}" target="_blank" style="color: #03c;">{$order.params.referer|truncate:42}</a></strong><br>{/if}
                 {if !empty($order.params.storefront)}[`Storefront`]: <strong>{$order.params.storefront}</strong><br>{/if}
-                {if !empty($order.params.referer)}[`Referrer`]: <strong>{$order.params.referer}</strong><br>{/if}
                 {if !empty($order.params.keyword)}[`Keyword`]: <strong>{$order.params.keyword}</strong><br>{/if}
                 {if !empty($order.params.ip)}[`IP`]: <strong>{$order.params.ip}</strong><br>{/if}
+
+                <!-- plugin hook: 'backend_order.aux_info' -->
+                {* @event backend_order.%plugin_id%.aux_info *}
+                {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.aux_info))}{$_.aux_info}<br>{/if}{/foreach}{/if}
             </p>
     
         </div>
