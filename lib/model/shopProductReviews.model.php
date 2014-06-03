@@ -95,7 +95,7 @@ class shopProductReviewsModel extends waNestedSetModel
     public function getProductRates($product_id)
     {
         $sql = "SELECT rate, COUNT(*) c FROM ".$this->table."
-                WHERE product_id = i:0 AND status = '".self::STATUS_PUBLISHED."'
+                WHERE product_id = i:0 AND review_id = 0 AND status = '".self::STATUS_PUBLISHED."'
                 GROUP BY rate
                 ORDER BY rate DESC";
         $result = array();

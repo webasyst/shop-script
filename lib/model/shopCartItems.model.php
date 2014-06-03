@@ -198,9 +198,13 @@ class shopCartItemsModel extends waModel
                 }
             }
 
-            foreach ($items as &$item) {
+            foreach ($items as $item_key => &$item) {
                 if ($item['type'] == 'product' && isset($products[$item['product_id']])) {
                     $item['product'] = $products[$item['product_id']];
+                    if (!isset($skus[$item['sku_id']])) {
+                        unset($items[$item_key]);
+                        continue;
+                    }
                     $sku = $skus[$item['sku_id']];
                     $item['sku_code'] = $sku['sku'];
                     $item['purchase_price'] = $sku['purchase_price'];

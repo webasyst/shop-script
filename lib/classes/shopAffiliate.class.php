@@ -133,7 +133,8 @@ class shopAffiliate
         }
 
         $atm = new shopAffiliateTransactionModel();
-        $atm->applyBonus($order['contact_id'], -self::calculateBonus($order), $order_id, '', $atm::TYPE_ORDER_CANCEL);
+        $atm->applyBonus($order['contact_id'], -self::calculateBonus($order), $order_id, '',
+            shopAffiliateTransactionModel::TYPE_ORDER_CANCEL);
     }
 
     /** Convert affiliate bonus into default currency. */

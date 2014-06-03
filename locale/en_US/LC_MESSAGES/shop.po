@@ -8264,3 +8264,7 @@ msgstr ""
 #: /wa-apps/shop/themes/default/product.html:182
 msgid "no rate"
 msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:17
+msgid "Default value: %d"
+msgstr ""

@@ -34,7 +34,9 @@
     {/section}
 {/function}
 
+{if empty($no_wrapped)}
 <ul class="menu-v with-icons">
+{/if}
 {foreach $reviews as $review}
     <li data-id={$review.id} data-parent-id="0">
         {include file="./include.review.html" reply_allowed=$reply_allowed inline single_view=true}
@@ -43,5 +45,7 @@
         {/if}
     </li>
 {/foreach}
+{if empty($no_wrapped)}
 </ul>
+{/if}
 <!-- reviews end -->

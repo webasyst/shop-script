@@ -26,7 +26,7 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
         $this->view->assign(array(
             'product' => $product,
             'reviews' => $reviews,
-            'reviews_count' => $reviews_model->count($product['id'], false),
+            'reviews_count' => $reviews_model->count($product['id']),
             'reply_allowed' => true,
             'auth_adapters' => $adapters = wa()->getAuthAdapters(),
             'request_captcha' => $config->getGeneralSettings('require_captcha'),

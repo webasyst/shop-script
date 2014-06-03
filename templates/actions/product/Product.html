@@ -285,7 +285,7 @@
                 {$reviews = $product.reviews}
                 <div id="s-reviews-block" {if empty($reviews)}style="display: none;"{/if}>
                     <a name="reviews"></a>
-                    <h3 class="s-reviews-header">[`Customer reviews`] (<span class="s-reviews-count">{count($reviews)}</span>)</h3>
+                    <h3 class="s-reviews-header">[`Customer reviews`] (<span class="s-reviews-count">{if !empty($counters['reviews'])}{$counters['reviews']}{else}0{/if}</span>)</h3>
                     <div class="s-reviews" id="s-product-profile-reviews">
                         <ul class="menu-v with-icons">
                             {foreach $reviews as $review}

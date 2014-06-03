@@ -24,7 +24,8 @@ class shopCustomersAffiliateController extends waJsonController
         }
 
         $atm = new shopAffiliateTransactionModel();
-        $atm->applyBonus($contact_id, $amount, null, ifempty($comment), $amount > 0 ? $atm::TYPE_DEPOSIT : $atm::TYPE_WITHDRAWAL);
+        $atm->applyBonus($contact_id, $amount, null, ifempty($comment),
+            $amount > 0 ? shopAffiliateTransactionModel::TYPE_DEPOSIT : shopAffiliateTransactionModel::TYPE_WITHDRAWAL);
     }
 }
 

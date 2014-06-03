@@ -7230,3 +7230,7 @@ msgstr "%s из 5 звезд"
 #: /wa-apps/shop/themes/default/product.html:182
 msgid "no rate"
 msgstr "без оценки"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:17
+msgid "Default value: %d"
+msgstr "Значение по умолчанию: %d"

@@ -385,7 +385,7 @@ class shopFrontendProductAction extends shopFrontendAction
 
     protected function getReviewsTotalCount($product_id)
     {
-        return $this->reviews_model->count($product_id, false);
+        return $this->reviews_model->count($product_id, true);
     }
 
     protected function getTopReviews($product_id)
