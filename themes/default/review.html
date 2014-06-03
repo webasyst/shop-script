@@ -23,6 +23,10 @@
             <a href="{$review.site}" class="username" itemprop="author">{$review.author.name}</a>
         {/if}
         
+        {if !empty($review.author.is_user)}
+            <span class="staff">{$wa->shop->settings('name')}</span>
+        {/if}
+        
         <meta itemprop="datePublished" content="{$review.datetime|date_format:'Y-m-d'}">
         <span class="date" title="{$review.datetime|wa_datetime}">{$review.datetime|wa_datetime:"humandatetime"}</span>
     </div>

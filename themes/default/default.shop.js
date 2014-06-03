@@ -142,10 +142,11 @@ $(document).ready(function () {
                 }
             });
         });
-    }
+    };
     f();
     $('.slidemenu').on('afterLoadDone.waSlideMenu', function () {
-        $(window).lazyLoad && $(window).lazyLoad('reload');
         f();
+        $('img').retina();
+        $(window).lazyLoad && $(window).lazyLoad('reload');
     });
 });

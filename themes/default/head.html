@@ -1,6 +1,7 @@
 <!-- shop app css -->
 <link href="{$wa_active_theme_url}default.shop.css?v{$wa_theme_version}" rel="stylesheet" type="text/css">
 <link href="{$wa_active_theme_url}jquery.bxslider.css?v{$wa_theme_version}" rel="stylesheet" />
+<link href="{$wa_active_theme_url}default.shop.tablet.css?v{$wa_theme_version}" media="screen and (min-width: 760px) and (max-width: 1024px)" rel="stylesheet" type="text/css"/>
 <link href="{$wa_active_theme_url}default.shop.mobile.css?v{$wa_theme_version}"{if !$wa->isMobile()} media="screen and (max-width: 760px)"{/if} rel="stylesheet" type="text/css">
 
 <!-- js -->
@@ -13,7 +14,8 @@
 <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/jquery.retina.js?v{$wa->version(true)}"></script>
 <script type="text/javascript">$(window).load(function() { 
     $('.promo img').retina({ force_original_dimensions: false });
-    $('.product-list img,.product-info img,.cart img').retina();
+    $('.product-list img,.product-info img,.cart img').retina();;
+    $('.bestsellers img').retina();
 });
 </script>
 {/if}

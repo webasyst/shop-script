@@ -25,6 +25,14 @@ function Product(form, options) {
         self.updatePrice();
     });
 
+    this.form.find('.inline-select a').click(function () {
+        var d = $(this).closest('.inline-select');
+        d.find('a.selected').removeClass('selected');
+        $(this).addClass('selected');
+        d.find('.sku-feature').val($(this).data('value')).change();
+        return false;
+    });
+
     this.form.find(".skus input[type=radio]").click(function () {
         if ($(this).data('image-id')) {
             $("#product-image-" + $(this).data('image-id')).click();
@@ -41,9 +49,9 @@ function Product(form, options) {
     });
     $("#product-skus input[type=radio]:checked").click();
 
-    this.form.find("select.sku-feature").change(function () {
+    this.form.find(".sku-feature").change(function () {
         var key = "";
-        self.form.find("select.sku-feature").each(function () {
+        self.form.find(".sku-feature").each(function () {
             key += $(this).data('feature-id') + ':' + $(this).val() + ';';
         });
         var sku = self.features[key];
@@ -65,12 +73,12 @@ function Product(form, options) {
             self.form.find("div.stocks div").hide();
             self.form.find(".sku-no-stock").show();
             self.button.attr('disabled', 'disabled');
-            self.add2cart(".compare-at-price").hide();
-            self.add2cart(".price").empty();
+            self.add2cart.find(".compare-at-price").hide();
+            self.add2cart.find(".price").empty();
         }
         self.cartButtonVisibility(true);
     });
-    this.form.find("select.sku-feature:first").change();
+    this.form.find(".sku-feature:first").change();
 
     if (!this.form.find(".skus input:radio:checked").length) {
         this.form.find(".skus input:radio:enabled:first").attr('checked', 'checked');

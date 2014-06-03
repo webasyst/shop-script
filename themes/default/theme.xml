@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="2.0.0">
+<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="2.0.1">
     <name locale="en_US">Default 2.0</name>
-    <name locale="ru_RU">Default 2.0</name>
+    <name locale="ru_RU">Дефолт 2.0</name>
     <files>
         <file path="index.html" custom="0" parent="1">
         </file>
@@ -17,6 +17,10 @@
         <file path="default.shop.css" custom="0">
             <description locale="en_US">Core storefront CSS</description>
             <description locale="ru_RU">Основной CSS интернет-магазина</description>
+        </file>
+        <file path="default.shop.tablet.css" custom="0">
+            <description locale="en_US">Additional storefront CSS for multi-touch tablet devices</description>
+            <description locale="ru_RU">Дополнительный CSS интернет-магазина для планшетов</description>
         </file>
         <file path="default.shop.mobile.css" custom="0">
             <description locale="en_US">Additional storefront CSS for multi-touch mobile devices</description>
@@ -201,6 +205,25 @@
             <name locale="en_US">AJAX-enabled product by-feature filtering</name>
             <name locale="ru_RU">AJAX-фильтры товаров по характеристикам</name>
         </setting>
+        <setting var="selectable_features_control" control_type="radio">
+            <value>inline</value>
+            <name locale="ru_RU">Выбор характеристик</name>
+            <name locale="en_US">Selectable features</name>
+            <options>
+                <option value="inline">
+                    <name locale="ru_RU">Показать все значения в ряд</name>
+                    <name locale="en_US">Display all values inline</name>
+                    <description locale="ru_RU">Для товаров в режиме продажи «Выбор характеристик» значения характеристик будут показаны одной строкой друг за другом. Рекомендуется, если названия значений относительно короткие и по ним однозначно можно определить, о какой характеристике товара идет речь, например, XL, 16 GB, 13”.</description>
+                    <description locale="en_US">For products which are sold in selectable features mode, all feature values will be displayed inline. Great if feature value names are self-explanatory and expliciy in context of a product, e.g. XL, 16 GB, 13”.</description>
+                </option>
+                <option value="select">
+                    <name locale="ru_RU"><![CDATA[Выбор из списка &lt;select&gt;]]></name>
+                    <name locale="en_US"><![CDATA[&lt;select&gt; HTML control]]></name>
+                    <description locale="ru_RU"><![CDATA[Для товаров в режиме продажи «Выбор характеристик» значения характеристик будут предложены на выбор с помощью стандартного выбора &lt;select&gt;. Рекомендуется, если названия значений характеристик содержат более одного-двух слов или по значениям нельзя однозначно понять, о какой характеристике товара идет речь, например, «до 10 часов», «не предусмотрено».]]></description>
+                    <description locale="en_US"><![CDATA[For products which are sold in selectable features mode, feature values will be displayed using a &lt;select&gt; HTML control. Recommended if value names are either too long or ambiguous in context of a product, e.g. “up to 10 hours”, “yes”.]]></description>
+                </option>
+            </options>
+        </setting>        
     </settings>
     <thumbs>
         <thumb>48x48</thumb>

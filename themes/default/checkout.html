@@ -38,7 +38,7 @@
                     <a href="#"><span class="gray">{$s@iteration}.</span> {$s.name}</a>
                 </h2>
 
-                {if $s@first}
+                {if $s@first && $wa->isAuthEnabled()}
                     <div class="checkout-step-content auth" {if $checkout_current_step != $step_id}style="display:none"{/if}>
                         {if !$wa->user()->isAuth()}
                             <!-- authorized / not authorized selector -->
@@ -86,7 +86,7 @@
                     </div>
                 {/if}
 
-                <div class="checkout-step-content" style="{if $s@first}margin-top: {if $step_id == 'contactinfo'}-53px;{else}-23px;{/if}{/if}{if $checkout_current_step != $step_id || $wa->post('wa_auth_login')} display:none;{/if}">
+                <div class="checkout-step-content" style="{if $wa->isAuthEnabled() && $s@first}margin-top: {if $step_id == 'contactinfo'}-40px;{else}-23px;{/if}{/if}{if $checkout_current_step != $step_id || $wa->post('wa_auth_login')} display:none;{/if}">
                     {if $checkout_current_step == $step_id}
                         {if in_array($step_id,['contactinfo', 'shipping', 'payment', 'confirmation'])}
                             {include file="checkout.`$step_id`.html"}
@@ -180,12 +180,16 @@
                 }
             }
             if (f.hasClass('last') || ($("#login-form").length && !$("#login-form input:submit").attr('disabled'))) {
+                $('<span class="loading"> <i class="icon16 loading"></i></span>').insertBefore(f.find('input:submit:last'));
                 return true;
             }
             $('<span class="loading"> <i class="icon16 loading"></i></span>').insertAfter(f.find('input:submit:last').attr('disabled', 'disabled'));
             $.post(f.attr('action') || window.location, f.serialize(), function (response) {
                 var content = $(response);
                 var step_id = content.data('step-id');
+                if (!step_id) {
+                    step_id = content.filter('.checkout-content').data('step-id');
+                }
                 var current = $(".checkout-step .checkout-step-content:visible");
                 var current_step_id =  current.find(".checkout-content").data('step-id');
                 if (current_step_id != step_id) {
