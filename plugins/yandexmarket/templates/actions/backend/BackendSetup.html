@@ -15,16 +15,16 @@
                     <input id="s-plugin-yandexmarket-last-export" type="text" value="{$info.url|escape}" readonly="readonly" class="long bold large" style="width: 75% !important;">
                     <a href="{$info.url}?download=1" class="bold nowrap inline"><i class="icon16 download no-overhanging" style="margin-top: 0.4em;"></i>Скачать</a>
                     <p class="small">Файл обновлен: {$info.mtime|wa_datetime:"humandatetime"}</p>
-                    <p class="hint">Ссылка на YML-файл является постоянной и не меняется при повторном экспорте товаров. Для включения автоматического экспорта товаров укажите период обновления с помощью настройки «Обновление файла» ниже и сохраните настройку, повторно экспортировав товары. Чтобы сделать ссылку недействительной, удалите профиль.</p>
+                    <p class="small"><i class="icon10 yes"></i> Ссылка на YML-файл является постоянной и не меняется при повторном экспорте товаров. Для включения автоматического экспорта товаров укажите период обновления с помощью настройки «Обновление файла» ниже и сохраните настройку, повторно экспортировав товары. Чтобы сделать ссылку недействительной, удалите профиль.</p>
                 </div>
             </div>
         </div>
     {/if}
 
         <div class="field js-profile-description">
-            <div class="name">Название профиля</div>
+            <div class="name"><label for="s-plugin-yandexmarket-profile-name">Название профиля</label></div>
             <div class="value">
-                <input type="text" name="profile[name]" value="{$profile.name|escape}">
+                <input type="text" name="profile[name]" value="{$profile.name|default:''|escape}" placeholder="Название профиля" id="s-plugin-yandexmarket-profile-name">
                 <input type="hidden" name="profile[id]" value="{$profile.id|default:'-1'}">
             </div>
 
@@ -55,6 +55,24 @@
                 {else}
                     <span class="errormsg">Не удалось обнаружить витрину магазина. Проверьте настройки поселения магазина.</span>
                 {/if}
+            </div>
+            <div class="field js-profile-description">
+                <div class="name">UTM-метки</div>
+                <div class="value no-shift">
+                    Источник (utm_source):<br>
+                    <input type="text" name="utm_source" placeholder="yandexmarket" value="{$profile.config.utm_source|default:''|escape}" >
+                </div>
+                <div class="value no-shift">
+                    Канал (utm_medium):<br>
+                    <input type="text" name="utm_medium" placeholder="cpc" value="{$profile.config.utm_medium|default:''|escape}" >
+                </div>
+                <div class="value no-shift">
+                    Кампания (utm_campaign):<br>
+                    <input type="text" name="utm_campaign" placeholder="{$profile.name|default:''|escape}" value="{$profile.config.utm_campaign|default:''|escape}" >
+                </div>
+                <div class="value">
+                    <p class="hint">Ко всем адресам (URL), содержащимся в файле, будут автоматически добавлены UTM-метки, которые позволят средствам веб-аналитики отследить открытия страниц по этим адресам.  Если вы не используете UTM-метки, просто оставьте поля пустыми.</p>
+                </div>
             </div>
             
             <div class="field">
@@ -112,9 +130,10 @@
                             <label class="black"><input type="radio" value="type" name="hash"{if $hash.type eq 'type'} checked="checked"{/if}> {_wd('shop',"Product types")}</label>
                         </li>
                     </ul>
+                    <p class="hint"><br><i class="icon10 exclamation"></i> Если товар не принадлежит ни одной категории, то он не будет экспортирован в YML-файл.</p>
                 </div>
                 <div class="value js-hash-values js-hash-set" style="width: 400px;">
-                    <div class="bordered-left" style="padding-left: 20px;">
+                    <div class="bordered-left" style="padding-left: 20px; margin-left: 20px;">
                         <ul class="menu-v with-icons">
                             {foreach $sets as $set}
                                 <li>
@@ -131,7 +150,7 @@
                     </div>
                 </div>
                 <div class="value js-hash-values js-hash-type" style="width: 400px;">
-                    <div class="bordered-left" style="padding-left: 20px;">
+                    <div class="bordered-left" style="padding-left: 20px; margin-left: 20px;">
                         <ul class="menu-v with-icons">
                             {foreach $types as $type}{if $type.count}
                                 <li>

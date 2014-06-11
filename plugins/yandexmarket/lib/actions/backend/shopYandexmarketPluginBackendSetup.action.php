@@ -1,4 +1,5 @@
 <?php
+
 class shopYandexmarketPluginBackendSetupAction extends waViewAction
 {
     private $plugin_id = 'yandexmarket';
@@ -93,8 +94,13 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
 
 
         $feature_model = new shopFeatureModel();
-        if ($feature_model->countByField(array('parent_id' => null)) < 200) {
-            $features = $feature_model->getFeatures(true);/*, true*/
+        $config = wa('shop')->getConfig();
+        /**
+         * @var shopConfig $config
+         */
+        $limit = $config->getOption('features_per_page');
+        if ($feature_model->countByField(array('parent_id' => null)) < $limit) {
+            $features = $feature_model->getFeatures(true); /*, true*/
             foreach ($features as $id => $feature) {
                 if (!empty($feature['multiple'])
                     // || (strpos($feature['type'], shopFeatureModel::TYPE_RANGE.'.') === 0)

@@ -1,4 +1,5 @@
 <?php
+
 class shopYandexmarketPluginFrontendActions extends waActions
 {
     public function catalogAction()
@@ -39,7 +40,7 @@ class shopYandexmarketPluginFrontendActions extends waActions
                     $runner->execute();
                     $out = ob_get_clean();
                     $result = json_decode($out, true);
-                    $ready = ifempty($result['ready']);
+                    $ready = !empty($result) && is_array($result) && ifempty($result['ready']);
                 } while (!$ready || !$moved);
                 //TODO check errors
             }

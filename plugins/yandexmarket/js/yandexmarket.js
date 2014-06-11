@@ -10,13 +10,20 @@ $.extend($.importexport.plugins, {
         },
         $form: null,
         init: function () {
-            $.shop.trace('$.importexport.plugins.yandexmarket.init');
             this.$form = $("#s-plugin-yandexmarket");
         },
 
         hashAction: function (hash) {
             $.importexport.products.action(hash);
             window.location.hash = window.location.hash.replace(/\/hash\/.+$/, '/');
+        },
+
+        action: function () {
+
+        },
+
+        blur: function () {
+
         },
 
         initForm: function () {
@@ -59,7 +66,6 @@ $.extend($.importexport.plugins, {
                     var $el = $(this);
                     var args = $el.attr('href').replace(/.*#\/?/, '').replace(/\/$/, '').split('/');
                     args.shift();
-                    //TODO determine scope for plugins
                     var method = $.shop.getMethod(args, self);
 
                     if (method.name) {
@@ -86,7 +92,6 @@ $.extend($.importexport.plugins, {
                  * @this HTMLInputElement
                  */
 
-                $.shop.trace('selector', this.value);
                 var $this = $(this);
                 var checked = $this.is(':checked');
                 $type_map.filter('[value="' + this.value + '"]').each(function () {
@@ -156,6 +161,7 @@ $.extend($.importexport.plugins, {
         },
 
         initFormLazy: function () {
+            var self = this;
             /**
              * feature autocomplete handler
              */
@@ -181,9 +187,11 @@ $.extend($.importexport.plugins, {
             /**
              * @this {HTMLInputElement}
              */
+            $.shop.trace('autocomplete',ui.item);
             this.value = ui.item.name;
-            $.shop.trace('feature autocomplete', [ui.item.value, $(this).parent('div').find(':input[name$="\\[feature\\]"]')]);
-            $(this).parent('div').find(':input[name$="\\[feature\\]"]').val(ui.item.value);
+            var $this = $(this);
+            $this.attr('title',ui.item.value);
+            $this.parent('div').find(':input[name$="\\[feature\\]"]').val(ui.item.value);
             return false;
         },
 
@@ -195,7 +203,6 @@ $.extend($.importexport.plugins, {
             var self = this;
             self.progress = true;
             self.form = $(element);
-            $.shop.trace('$.importexport.plugins.yandexmarket.yandexmarketHandler', [element]);
             var data = self.form.serialize();
             self.form.find('.errormsg').text('');
             self.form.find(':input').attr('disabled', true);
@@ -286,7 +293,7 @@ $.extend($.importexport.plugins, {
                             $report.find(".value:first").html(response.report);
                         }
                         $.storage.del('shop/hash');
-                    },
+                    }
                 });
 
             } else if (response && response.error) {

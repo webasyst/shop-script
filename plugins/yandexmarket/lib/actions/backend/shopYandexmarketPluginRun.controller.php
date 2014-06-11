@@ -68,17 +68,20 @@ class shopYandexmarketPluginRunController extends waLongActionController
             if ($backend) {
                 $hash = shopImportexportHelper::getCollectionHash();
                 $profile_config = array(
-                    'hash'     => $hash['hash'],
-                    'domain'   => waRequest::post('domain'),
-                    'map'      => array(),
-                    'types'    => array_filter((array)waRequest::post('types')),
-                    'export'   => (array)waRequest::post('export', array()) + array(
+                    'hash'         => $hash['hash'],
+                    'domain'       => waRequest::post('domain'),
+                    'map'          => array(),
+                    'types'        => array_filter((array)waRequest::post('types')),
+                    'export'       => (array)waRequest::post('export', array()) + array(
                             'zero_stock' => 0,
                             'sku'        => 0,
                         ),
-                    'company'  => waRequest::post('company'),
-                    'shop'     => waRequest::post('shop'),
-                    'lifetime' => waRequest::post('lifetime', 0, waRequest::TYPE_INT),
+                    'company'      => waRequest::post('company'),
+                    'shop'         => waRequest::post('shop'),
+                    'lifetime'     => waRequest::post('lifetime', 0, waRequest::TYPE_INT),
+                    'utm_source'   => waRequest::post('utm_source'),
+                    'utm_medium'   => waRequest::post('utm_medium'),
+                    'utm_campaign' => waRequest::post('utm_campaign'),
                 );
                 $this->data['map'] = $this->plugin()->map(waRequest::post('map', array()), $profile_config['types']);
                 foreach ($this->data['map'] as $type => $offer_map) {
@@ -92,6 +95,8 @@ class shopYandexmarketPluginRunController extends waLongActionController
                         unset($profile_config['map'][$type]);
                     }
                 }
+
+
                 foreach ($this->data['map'] as $type => &$offer_map) {
                     if ($type != 'simple') {
                         $offer_map['fields']['type'] = array(
@@ -101,7 +106,8 @@ class shopYandexmarketPluginRunController extends waLongActionController
                     }
                     unset($offer_map);
                 }
-
+                $profile_id = $profiles->setConfig($profile_config);
+                $this->plugin()->getHash($profile_id);
             } else {
                 $profile_id = waRequest::param('profile_id');;
                 if (!$profile_id || !($profile = $profiles->getConfig($profile_id))) {
@@ -129,7 +135,15 @@ class shopYandexmarketPluginRunController extends waLongActionController
 
             $this->data['export'] = $profile_config['export'];
             $this->data['domain'] = $profile_config['domain'];
-
+            $this->data['utm'] = array();
+            foreach (array('utm_source', 'utm_medium', 'utm_campaign',) as $field) {
+                if (!empty($profile_config[$field])) {
+                    $this->data['utm'][$field] = $profile_config[$field];
+                }
+            }
+            if ($this->data['utm']) {
+                $this->data['utm'] = http_build_query(array_map('rawurlencode', $this->data['utm']));
+            }
 
             $this->data['types'] = array();
             foreach ($profile_config['types'] as $type => $type_map) {
@@ -140,7 +154,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
 
             $model = new shopCategoryModel();
             $this->data['count'] = array(
-                'category' => $model->select('COUNT(1) as `cnt`')->fetchField('cnt'),
+                'category' => $model->select('COUNT(1) as `cnt`')->where('`type`='.shopCategoryModel::TYPE_STATIC)->fetchField('cnt'),
                 'product'  => $this->getCollection()->count(),
             );
             $stages = array_keys($this->data['count']);
@@ -151,6 +165,10 @@ class shopYandexmarketPluginRunController extends waLongActionController
             $this->data['stage_name'] = $this->getStageName($this->data['stage']);
             $this->data['memory'] = memory_get_peak_usage();
             $this->data['memory_avg'] = memory_get_usage();
+
+            if (!class_exists('DOMDocument')) {
+                throw new waException('PHP extension DOM required');
+            }
 
             $this->dom = new DOMDocument("1.0", $this->encoding);
             /**
@@ -188,8 +206,8 @@ XML;
                 $shop->appendChild($this->dom->createElement('phone', $phone));
             }
 
-            $this->addDomValue($shop, 'platform', 'Webasyst Shop-Script '.wa()->getVersion('shop'));
-            $this->addDomValue($shop, 'version', $this->plugin()->getVersion());
+            $this->addDomValue($shop, 'platform', 'Shop-Script');
+            $this->addDomValue($shop, 'version', wa()->getVersion('shop'));
 
             $currencies = $this->dom->createElement('currencies');
 
@@ -239,11 +257,6 @@ XML;
             }
             if (!in_array($this->data['primary_currency'], $this->data['currency'])) {
                 $this->data['primary_currency'] = reset($this->data['currency']);
-            }
-
-            if ($backend) {
-                $profile_id = $profiles->setConfig($profile_config);
-                $this->plugin()->getHash($profile_id);
             }
 
             $this->data['path'] = array(
@@ -384,7 +397,27 @@ XML;
                 );
             }
             foreach ($r as $er) {
-                $this->data['error'][] = $er;
+                /**
+                 * @var libXMLError $er
+                 */
+
+                $level_name = '';
+                switch ($er->level) {
+                    case LIBXML_ERR_WARNING:
+                        $level_name = 'LIBXML_ERR_WARNING';
+                        break;
+                    case LIBXML_ERR_ERROR:
+                        $level_name = 'LIBXML_ERR_ERROR';
+                        break;
+                    case LIBXML_ERR_FATAL:
+                        $level_name = 'LIBXML_ERR_FATAL';
+                        break;
+
+                }
+                $this->data['error'][] = array(
+                    'level'   => $valid?'warning':'error',
+                    'message' => "{$level_name} #{$er->code} [{$er->line}:{$er->column}]: {$er->message}",
+                );
                 $error[] = "Error #{$er->code}[{$er->level}] at [{$er->line}:{$er->column}]: {$er->message}";
 
             }
@@ -512,6 +545,9 @@ XML;
             $path = $this->getTempPath();
         }
         if (!$this->dom) {
+            if (!class_exists('DOMDocument')) {
+                throw new waException('PHP extension DOM required');
+            }
             $this->dom = new DOMDocument("1.0", $this->encoding);
             $this->dom->encoding = $this->encoding;
             $this->dom->preserveWhiteSpace = false;
@@ -549,6 +585,7 @@ XML;
             if ($hash == '*') {
                 $hash = '';
             }
+
             $this->collection = new shopProductsCollection($hash, $options);
         }
         return $this->collection;
@@ -580,7 +617,7 @@ XML;
         static $categories;
         if (!$categories) {
             $model = new shopCategoryModel();
-            $categories = $model->getFullTree('*');
+            $categories = $model->getFullTree('*', true);
             if ($current_stage) {
                 $categories = array_slice($categories, $current_stage);
             }
@@ -664,7 +701,7 @@ XML;
             $check_type = empty($this->data['type_id']) || in_array($product['type_id'], $this->data['type_id']);
 
 
-            $check_price = $product['price'] > 0;
+            $check_price = $product['price'] >= 0.5;
             $check_category = !empty($product['category_id']);
             if ($check_type && $check_price && $check_category) {
                 if (!empty($this->data['export']['sku'])) {
@@ -673,7 +710,11 @@ XML;
                     }
                     $skus = $sku_model->getDataByProductId($product['id']);
                     foreach ($skus as $sku) {
-                        if ($check_stock || ($sku['count'] === null) || ($sku['count'] > 0)) {
+                        $check_sku_price = $sku['price'] >= 0.5;
+                        if ($check_sku_price && ($check_stock || ($sku['count'] === null) || ($sku['count'] > 0))) {
+                            if (count($skus) == 1) {
+                                $product['price'] = $sku['price'];
+                            }
                             $this->addOffer($product, ifempty($this->data['types'][$product['type_id']], 'simple'), (count($skus) > 1) ? $sku : null);
                             ++$processed;
                         }
@@ -729,6 +770,7 @@ XML;
                                             $value .= '?sku='.$sku['id'];
                                         }
                                     }
+
                                     break;
                                 case 'name':
                                     if ($sku_value = ifset($sku[$param])) {
@@ -788,7 +830,7 @@ XML;
         if (is_array($value)) {
             reset($value);
             if (key($value) !== 0) {
-                $element = $this->dom->createElement($field, ifset($value['value']));
+                $element = $this->dom->createElement($field, trim(ifset($value['value'])));
                 unset($value['value']);
 
                 foreach ($value as $attribute => $attribute_value) {
@@ -797,17 +839,17 @@ XML;
                 $dom->appendChild($element);
             } else {
                 foreach ($value as $value_item) {
-                    $dom->appendChild($this->dom->createElement($field, $value_item));
+                    $dom->appendChild($this->dom->createElement($field, trim($value_item)));
                 }
             }
         } elseif (!$is_attribute) {
-            $child = $this->dom->createElement($field, $value);
+            $child = $this->dom->createElement($field, trim($value));
             if ($field == 'categoryId') {
                 $child->setAttribute('type', 'Own');
             }
             $dom->appendChild($child);
         } else {
-            $dom->setAttribute($field, $value);
+            $dom->setAttribute($field, trim($value));
         }
     }
 
@@ -893,6 +935,7 @@ XML;
                 $value = preg_replace("/[\r\n]+/", "\n", $value);
                 $value = strip_tags($value);
 
+                $value = trim($value);
                 if (mb_strlen($value) > 255) {
                     $value = mb_substr($value, 0, 252).'...';
                 }
@@ -902,6 +945,7 @@ XML;
                 $value = preg_replace("/[\r\n]+/", "\n", $value);
                 $value = strip_tags($value);
 
+                $value = trim($value);
                 if (mb_strlen($value) > 512) {
                     $value = mb_substr($value, 0, 509).'...';
                 }
@@ -914,6 +958,7 @@ XML;
                 }
                 break;
             case 'sales_notes':
+                $value = trim($value);
                 if (mb_strlen($value) > 50) {
                     $value = mb_substr($value, 0, 50);
                 }
@@ -926,7 +971,10 @@ XML;
                 break;
             case 'url':
                 //max 512
-                $value = preg_replace_callback('@([^\w\d_/-\?=%]+)@i', array(__CLASS__, '_rawurlencode'), $value);
+                $value = preg_replace_callback('@([^\w\d_/-\?=%&]+)@i', array(__CLASS__, '_rawurlencode'), $value);
+                if ($this->data['utm']) {
+                    $value .= (strpos($value, '?') ? '&' : '?').$this->data['utm'];
+                }
                 $value = 'http://'.ifempty($this->data['base_url'], 'localhost').$value;
 
                 break;
@@ -942,9 +990,12 @@ XML;
                     }
                 } else {
                     if (!in_array($data['currency'], $this->data['currency'])) {
+                        if (!$currency_model) {
+                            $currency_model = new shopCurrencyModel();
+                        }
+                        $value = $currency_model->convert($value, $this->data['primary_currency'], $data['currency']);
                         $data['currency'] = $this->data['primary_currency'];
-                    }
-                    if ($data['currency'] != $this->data['primary_currency']) {
+                    } elseif ($this->data['primary_currency'] != $data['currency']) {
                         if (!$currency_model) {
                             $currency_model = new shopCurrencyModel();
                         }
@@ -961,7 +1012,17 @@ XML;
                 $info['format'] = '%0.2f';
                 break;
             case 'available':
-                $value = ((($value <= 0) || ($value === 'false')) && ($value !== null)) ? 'false' : 'true';
+                if (is_object($value)) {
+                    switch (get_class($value)) {
+                        case 'shopBooleanValue':
+                            /**
+                             * @var $value shopBooleanValue
+                             */
+                            $value = $value->value ? 'true' : 'false';
+                            break;
+                    }
+                }
+                $value = ((($value <= 0) || ($value === 'false') || empty($value)) && ($value !== null) && ($value !== 'true')) ? 'false' : 'true';
                 break;
             case 'store':
             case 'pickup':
@@ -1304,7 +1365,7 @@ XML;
         waLog::log($message, 'shop/plugins/yandexmarket.log');
     }
 
-    private function _rawurlencode($a)
+    private static function _rawurlencode($a)
     {
         return rawurlencode(reset($a));
     }
