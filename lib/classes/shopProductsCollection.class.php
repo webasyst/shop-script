@@ -1,28 +1,102 @@
 <?php
-
+/**
+ * Class, representing produest search functions and acting as a container of found products
+ */ 
 class shopProductsCollection
 {
+    /**
+     * @var array Hash of the collection. $hash[0] could take values 'text','tag','category_id','set_id','type_id',
+     * and user-defined value. It's first set by a shopProductListAction::getHash.
+     * $hash[1] is usually a neccecarily parameter, for example a value of 'category_id'
+     *      
+     */ 
     protected $hash;
+    
+    /**
+     * @var array Info is an array that usually used internally to store data of a linked model. If this collection represents 
+     * the products of some category ($hash=='category_id'), then $info would contain an array of data, given from shopCategoryModel::getById()
+     * If collection represents the product of some tag - $info would contain of data of this tag, and so on. For each
+     * $hash value, it would store apropriate data
+     */ 
     protected $info = array();
 
     protected $options = array(
         'check_rights' => true
     );
+    
+    /**
+     * @var boolean Is prepare() function already called ?
+     * 
+     */ 
     protected $prepared = false;
+    
+    /**
+     *  @var boolean Is filters, (usually taken from waRequest::get()) already applied?
+     */ 
     protected $filtered = false;
+    
+    /**
+     *  @var string The title of products' collection. For example "All products" or some name of category, like "Plasma TV's"
+     */ 
     protected $title;
 
+    /**
+     *  @var array() An array of MYSQL query fields, that would be parts of sql query. It contains normally fields, 
+     *              like "si.weight", and computable fields, like "IF(p.count IS NULL, 1, 0) count_null", all of it
+     *              are merged into a single string by a getFields function.
+     */ 
     protected $fields = array();
+    
+    /**
+     *  @var string A WHERE part of sql query
+     */ 
     protected $where;
+    
+    /**
+     *  @var string HAVING part of sql query
+     */ 
     protected $having = array();
+    
+    /**
+     *  @var integer variable to store count of records, that are satisfies WHERE and all the other conditions of query 
+     */ 
     protected $count;
+    
+    /**
+     *  @var string ORDER BY part of sql query
+     */ 
     protected $order_by = 'p.create_datetime DESC';
+    
+    /**
+     *  @var sring GROUP BY part of the query
+     */  
     protected $group_by;
+    
+    /**
+     *  @var array An array of tables, that should be joined. Each element of an array - is an array itself, and it 
+     *             represents array('table'=>'some_table_name', 'alias'=>'s1', 'on'=>'the ON part of the sql JOIN')
+     *              where 's1' - is a first letter of 'some_table_name' plus number of usage of this table in the JOIN
+     *              
+     */ 
     protected $joins;
+    
+    /**
+     *   @var array An array of counters, the keys are JOINed table_names, 
+     *              and the values are counters of usage of this table_names in JOINs.
+     *              For example, if there are table "some_table", and it's user in JOINs twise - the join_index would have
+     *              item 'some_table'=>2, and the aliases of that JOINing table would be 's1' and 's2' - the first letter
+     *              and number of usage of some_table in JOIN.
+     */ 
     protected $join_index = array();
 
+    /**
+     * @var array
+     */ 
     protected $post_fields = array();
 
+    /**
+     * @var waModel[] an array of model objects, cached for fast access by function getModel()
+     */ 
     protected $models = array();
     protected $is_frontend;
 
@@ -41,6 +115,11 @@ class shopProductsCollection
         $this->setHash($hash);
     }
 
+    /**
+     * Set options array of this collection
+     * @param array $options An array of options, that should be set.
+     * If $options has 'frontend' key, it would by saved into $frontend variable of the collection'
+     */ 
     public function setOptions($options)
     {
         foreach ($options as $k => $v) {
@@ -51,6 +130,11 @@ class shopProductsCollection
         }
     }
 
+    /**
+     * Function, that parses hash, usually transferred from shopProductsListAction::$hash during creation of collection object 
+     * After parsing it saves it into shopProductsCollection::$hash
+     * @param array|string $hash Hash to parse
+     */ 
     protected function setHash($hash)
     {
         if (is_array($hash)) {
@@ -66,6 +150,19 @@ class shopProductsCollection
         $this->hash = explode('/', $this->hash, 2);
     }
 
+    /**
+    * Function, that prepares all needed fields of the object to be ready to make a query
+    * It applies conditions, sort order, adding special fields like 'count_null', and run 
+    * appropriate preparation method, according to a shopProductsCollection::$hash[0] value,
+    * if it's not a customer's value, and raising "products_collection" event, is $hash[0]
+    * has custom value.
+    * Also, it sets $title property, if no of the others runned methods had set it.
+    * 
+    * @param boolean $add It's set to true, when collection consists of products in a dinamical category 
+    * @param boolean $auto_title If it's true, the title would be set automatically by this function or some of the
+    *                other preparation methods.'
+    * 
+    */ 
     protected function prepare($add = false, $auto_title = true)
     {
         if (!$this->prepared || $add) {
@@ -131,6 +228,11 @@ class shopProductsCollection
         }
     }
 
+    /**
+     * Function, than applies frontend conditions
+     * It uses shopProductsCollection::options['filters'] to determine, 
+     * 
+     */ 
     protected function frontendConditions()
     {
         if (!empty($this->options['filters'])) {
