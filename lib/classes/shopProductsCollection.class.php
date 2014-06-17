@@ -1,28 +1,102 @@
 <?php
-
+/**
+ * Class, representing products search and counting functions and acting as a container of found products
+ */ 
 class shopProductsCollection
 {
+    /**
+     * @var array Hash of the collection. $hash[0] could take values 'text','tag','category_id','set_id','type_id',
+     * and user-defined value. It's first set by a shopProductListAction::getHash.
+     * $hash[1] is usually a neccecarily parameter, for example a value of 'category_id'
+     *      
+     */ 
     protected $hash;
+    
+    /**
+     * @var array Info is an array that usually used internally to store data of a linked model. If this collection represents 
+     * the products of some category ($hash=='category_id'), then $info would contain an array of data, given from shopCategoryModel::getById()
+     * If collection represents the product of some tag - $info would contain of data of this tag, and so on. For each
+     * $hash value, it would store apropriate data
+     */ 
     protected $info = array();
 
     protected $options = array(
         'check_rights' => true
     );
+    
+    /**
+     * @var boolean Is prepare() function already called ?
+     * 
+     */ 
     protected $prepared = false;
+    
+    /**
+     *  @var boolean Is filters, (usually taken from waRequest::get()) already applied?
+     */ 
     protected $filtered = false;
+    
+    /**
+     *  @var string The title of products' collection. For example "All products" or some name of category, like "Plasma TV's"
+     */ 
     protected $title;
 
+    /**
+     *  @var array() An array of MYSQL query fields, that would be parts of sql query. It contains normally fields, 
+     *              like "si.weight", and computable fields, like "IF(p.count IS NULL, 1, 0) count_null", all of it
+     *              are merged into a single string by a getFields function.
+     */ 
     protected $fields = array();
+    
+    /**
+     *  @var string A WHERE part of sql query
+     */ 
     protected $where;
+    
+    /**
+     *  @var string HAVING part of sql query
+     */ 
     protected $having = array();
+    
+    /**
+     *  @var integer variable to store count of records, that are satisfies WHERE and all the other conditions of query 
+     */ 
     protected $count;
+    
+    /**
+     *  @var string ORDER BY part of sql query
+     */ 
     protected $order_by = 'p.create_datetime DESC';
+    
+    /**
+     *  @var sring GROUP BY part of the query
+     */  
     protected $group_by;
+    
+    /**
+     *  @var array An array of tables, that should be joined. Each element of an array - is an array itself, and it 
+     *             represents array('table'=>'some_table_name', 'alias'=>'s1', 'on'=>'the ON part of the sql JOIN')
+     *              where 's1' - is a first letter of 'some_table_name' plus number of usage of this table in the JOIN
+     *              
+     */ 
     protected $joins;
+    
+    /**
+     *   @var array An array of counters, the keys are JOINed table_names, 
+     *              and the values are counters of usage of this table_names in JOINs.
+     *              For example, if there are table "some_table", and it's user in JOINs twise - the join_index would have
+     *              item 'some_table'=>2, and the aliases of that JOINing table would be 's1' and 's2' - the first letter
+     *              and number of usage of some_table in JOIN.
+     */ 
     protected $join_index = array();
 
+    /**
+     * @var array
+     */ 
     protected $post_fields = array();
 
+    /**
+     * @var waModel[] an array of model objects, cached for fast access by function getModel()
+     */ 
     protected $models = array();
     protected $is_frontend;
 
@@ -41,6 +115,11 @@ class shopProductsCollection
         $this->setHash($hash);
     }
 
+    /**
+     * Set options array of this collection
+     * @param array $options An array of options, that should be set.
+     * If $options has 'frontend' key, it would by saved into $frontend variable of the collection'
+     */ 
     public function setOptions($options)
     {
         foreach ($options as $k => $v) {
@@ -51,6 +130,11 @@ class shopProductsCollection
         }
     }
 
+    /**
+     * Function, that parses hash, usually transferred from shopProductsListAction::$hash during creation of collection object 
+     * After parsing it saves it into shopProductsCollection::$hash
+     * @param array|string $hash Hash to parse
+     */ 
     protected function setHash($hash)
     {
         if (is_array($hash)) {
@@ -66,6 +150,19 @@ class shopProductsCollection
         $this->hash = explode('/', $this->hash, 2);
     }
 
+    /**
+    * Function, that prepares all needed fields of the object to be ready to make a query
+    * It applies conditions, sort order, adding special fields like 'count_null', and run 
+    * appropriate preparation method, according to a shopProductsCollection::$hash[0] value,
+    * if it's not a customer's value, and raising "products_collection" event, is $hash[0]
+    * has custom value.
+    * Also, it sets $title property, if no of the others runned methods had set it.
+    * 
+    * @param boolean $add It's set to true, when collection consists of products in a dinamical category 
+    * @param boolean $auto_title If it's true, the title would be set automatically by this function or some of the
+    *                other preparation methods.'
+    * 
+    */ 
     protected function prepare($add = false, $auto_title = true)
     {
         if (!$this->prepared || $add) {
@@ -131,6 +228,12 @@ class shopProductsCollection
         }
     }
 
+    /**
+     * Function, than applies frontend conditions
+     * It uses shopProductsCollection::options['filters'] to determine, are there any need of using waRequest::get()
+     * as a filter parameters. Also, it adds type_id filtering to WHERE part of sql query
+     * 
+     */ 
     protected function frontendConditions()
     {
         if (!empty($this->options['filters'])) {
@@ -151,6 +254,11 @@ class shopProductsCollection
         $this->where[] = 'p.status = 1';
     }
 
+    /**
+     * Function, used to prepare JOIN, fields, group_by and order_by variables to search products, 
+     * that are "Also byed with a product, specified by $id"
+     * @param integer $id ID of a product, which also byed items function should prepare for
+     */ 
     protected function alsoboughtPrepare($id)
     {
         $alias = $this->addJoin('shop_order_items', null, ':table.product_id != '.(int)$id." AND :table.type = 'product'");
@@ -160,6 +268,12 @@ class shopProductsCollection
         $this->order_by = 'orders_count DESC';
     }
 
+    /**
+     * Function, used to convert a value to a float-point number.
+     * If can take a value with "." or "," as a dot
+     * @param string|integer|double $value
+     * @return double
+     */
     protected function toFloat($value)
     {
         if (strpos($value, ',') !== false) {
@@ -168,6 +282,17 @@ class shopProductsCollection
         return str_replace(',', '.', (double)$value);
     }
 
+    /**
+     * Function, that applies filters array to a collection variables, that are used to construct sql query
+     * It operates with shopProductCollection::$filtered flag, to ignore filters, when they are already applied
+     * @param array $data An array of filters key=>value pairs. Keys "page","sort", and "order" would be ignored.
+     *                    Usually this array is given from waRequest::get(), and it's keys can take this:
+     *                      'in_stock_only' - is set, would result in filtering only if product have some (or infinite) cmount on store
+     *                      'price_min', 'price_max' - controlling filtering by price
+     *                      other $data's keys would be interpreted as a features codes of the goods.
+     *                      For example, a color or size or some other property of good.
+     *                      In this case, value of a $data should be an array with keys 'min', 'max' and 'unit' (one or all)
+     */ 
     public function filters($data)
     {
         if ($this->filtered) {
@@ -245,6 +370,11 @@ class shopProductsCollection
         $this->filtered = true;
     }
 
+    /**
+     *  Preparation function, used for "related products"
+     *  @param string $hash - a hash, containing type of products, and product_id, for which one related products should be taken
+     *  @param boolean $auto_title Do we need to automatically create title? (Variable is'n in use for now)
+     */ 
     protected function relatedPrepare($hash, $auto_title = false)
     {
         list($type, $product_id) = explode('/', $hash, 2);
@@ -258,8 +388,9 @@ class shopProductsCollection
     }
 
     /**
+     * Preparation function, that used, than the collection is representing goods of a single category
      * @param int $id - ID of the category
-     * @param bool $auto_title
+     * @param bool $auto_title Create auto title ?
      */
     protected function categoryPrepare($id, $auto_title = true)
     {
@@ -346,6 +477,7 @@ class shopProductsCollection
     }
 
     /**
+     * Prepration function, that is used when collection is representing some "set" of products (such as "Sale")
      * @param int $id - ID of the set
      * @param bool $auto_title
      */
@@ -378,6 +510,10 @@ class shopProductsCollection
         }
     }
 
+    /**
+     *  Preparation function, used when collection represents list of products, pointed by ID's
+     * @param string $ids_str list of ID's delimited by comma  (for ex. "1,2,3,4,5")
+     */ 
     protected function idPrepare($ids_str)
     {
         $this->info = array(
@@ -394,6 +530,7 @@ class shopProductsCollection
     }
 
     /**
+     * Preparation function, used when collection represents some type of products
      * Collections /type/1
      *
      * @param int $id - type_id
@@ -417,6 +554,7 @@ class shopProductsCollection
     }
 
     /**
+     * Preparation function, used when collection represents goods, that all have some tag attached.
      * Collections /tag/iphone or /tag/1
      *
      * @param int|string $id - tag_id or tag
@@ -445,6 +583,11 @@ class shopProductsCollection
         }
     }
 
+    /**
+     * Static function, that used to parse conditions from query
+     * @param string query The query is a part of an URL after the "?" mark
+     * @return array returns array of key=>value pairs parsed from query
+     */ 
     public static function parseConditions($query)
     {
         $escapedBS = 'ESCAPED_BACKSLASH';
@@ -484,6 +627,9 @@ class shopProductsCollection
         return $result;
     }
 
+    /**
+     * 
+     */  
     protected function upsellingPrepare($product_id, $auto_title = false)
     {
         $model = $this->getModel();
@@ -597,6 +743,13 @@ class shopProductsCollection
         }
     }
 
+
+    /**
+     * Preparation function, used when collection represents products, that are results of search.
+     * Looks like this function partly duplicates function parseConditions.
+     * @param array $query part of URL after the "?" mark
+     * @param string $auto_title 
+     */ 
     protected function searchPrepare($query, $auto_title = true)
     {
         $query = urldecode($query);
@@ -891,6 +1044,11 @@ class shopProductsCollection
         return '';
     }
 
+    /**
+     *  Cuts last ORDER_BY field from $this->order_by variable and represents it as an array
+     *  For example, $this->order_by can contain "field1 ASC, field2 DESC, table1.field3 ASC" 
+     *  @return array would return array(0=>'field3', 1=>'asc')
+     */ 
     public function getOrderBy()
     {
         if (!$this->order_by) {
@@ -911,6 +1069,10 @@ class shopProductsCollection
         }
     }
 
+
+    /**
+     * Function, that constructs full SQL to get the products data
+     */ 
     public function getSQL()
     {
         $this->prepare();
@@ -936,6 +1098,11 @@ class shopProductsCollection
         return $sql;
     }
 
+    /**
+     *  Function, that counts number of records, that would be queried by a sql query, constructed by a getSQL() function
+     *  count value is cached in $this->count, so, only first run would make some query.
+     * @return integer count
+     */ 
     public function count()
     {
         if ($this->count !== null) {
@@ -966,6 +1133,15 @@ class shopProductsCollection
         return $this->count = $count;
     }
 
+
+    /**
+     * Function, that actually queries products from database
+     * @param string $fields fields, that should be queried (default - ALL)
+     * @param integer $offset equivalent of Mysql OFFSET option
+     * @param integer|boolean $limit if set to true/false, this value fall down to the $escape parameter
+     * @param boolean $escape variable used to call ::workupProducts function
+     * @return array data set of the products
+     */ 
     public function getProducts($fields = "*", $offset = 0, $limit = null, $escape = true)
     {
         if (is_bool($limit)) {
@@ -1016,6 +1192,12 @@ class shopProductsCollection
         return $data;
     }
 
+    /**
+     * Function, that adds additional fields to the products data array 
+     * Editing data array, given by a reference in place
+     * @param array &$products oroginal products array, taken from database
+     * @param boolean $escape should some filed be ascaped? If true, uses htmlspecialchars() on some of the data fields
+     */ 
     private function workupProducts(&$products = array(), $escape)
     {
         foreach ($products as & $p) {
@@ -1122,6 +1304,8 @@ class shopProductsCollection
     }
 
     /**
+     * Returns cached (or created just now) object of shopProductModel (by default)
+     * or some other model (showCategoryModel, shopTagModel, shopSetModel or shopFeatureModel)
      * @return shopProductModel
      */
     protected function getModel($name = 'product')
@@ -1135,6 +1319,10 @@ class shopProductsCollection
         return $this->models[$name];
     }
 
+    /**
+     * Returns the title of a collection
+     * @return string title
+     */ 
     public function getTitle()
     {
         if ($this->title === null) {
@@ -1143,6 +1331,10 @@ class shopProductsCollection
         return $this->title;
     }
 
+    /**
+     * Returns info - the data, stored in shopProductsCollection::$info variable
+     * @return array info
+     */ 
     public function getInfo()
     {
         if (empty($this->info)) {
@@ -1154,6 +1346,12 @@ class shopProductsCollection
         return $this->info;
     }
 
+
+    /**
+     * Adds a text to a title
+     * @param string $title What have to be added?
+     * @param string $delim what delimiter should be added between new and existsing part of text, if there are any
+     */ 
     public function addTitle($title, $delim = ', ')
     {
         if (!$title) {
@@ -1165,14 +1363,22 @@ class shopProductsCollection
         $this->title .= $title;
     }
 
-    /** Set GROUP BY clause. Primarily for plugins that extend this collection. */
+    /** 
+    *  Set GROUP BY clause. Primarily for plugins that extend this collection. 
+    * @param string $clause this will overwrite group_by variable in the object
+    * @return shopProductsCollection this object
+    */
     public function groupBy($clause)
     {
         $this->group_by = $clause;
         return $this;
     }
 
-    /** Add WHERE condition. Primarily for plugins that extend this collection. */
+    /** 
+    *  Add WHERE condition. Primarily for plugins that extend this collection. 
+    * @param string $condition this will be added to the $where[] array of the object
+    * @return shopProductsCollection this object
+    */
     public function addWhere($condition)
     {
         $this->where[] = $condition;
@@ -1182,10 +1388,10 @@ class shopProductsCollection
     /**
      * Add JOIN clause
      *
-     * @param string|array $table
-     * @param string $on
-     * @param string $where
-     * @return string - alias
+     * @param string|array $table which should be joined
+     * @param string $on ON clause
+     * @param string $where additional WHERE
+     * @return string generated alias of a joined table
      */
     public function addJoin($table, $on = null, $where = null)
     {
@@ -1232,12 +1438,19 @@ class shopProductsCollection
         return $alias;
     }
 
+    /**
+     *  Returns Hash of a collection
+     * @return array|string Hash
+     */ 
     public function getHash()
     {
         return $this->hash;
     }
 
     /**
+     * Returns ID's of values of features. For example, feature "Colors" with ID "123" with values "Red","Green","Blue"
+     * and Id's for values = 7,8,9 would look like '123'=>array(7,8,9)
+     * 
      * @return array
      * array(
      *     feature1_id => array(feature1_value1_id, feature1_value2_id, ...),
