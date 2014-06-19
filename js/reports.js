@@ -314,7 +314,7 @@
                     },
                     y2axis:{
                         min: 0,
-                        shopTicks: false,
+                        showTicks: false,
                         showTickMarks: false,
                         tickOptions:{
                             formatString:'%.2f'
