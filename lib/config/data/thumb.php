@@ -63,7 +63,16 @@ if ($file && file_exists($original_path) && !file_exists($thumb_path)) {
         $max_size *= 2;
     }
     $image = shopImage::generateThumb($original_path, $size, $max_size);
+    
     if ($image) {
+        
+        /**
+         * Extend thumbs for product images
+         * Make extra workup
+         * @event image_thumb
+         */
+        wa()->event('image_thumb', $image);
+    
         $image->save($thumb_path, $app_config->getSaveQuality($enable_2x));
         clearstatcache();
     }
