@@ -170,6 +170,14 @@ class shopImage
                 throw new waException("Unknown type");
                 break;
         }
+
+        /**
+         * Extend thumbs for product images
+         * Make extra workup
+         * @event image_thumb
+         */
+        wa()->event('image_thumb', $image);
+        
         return $image;
     }
 
