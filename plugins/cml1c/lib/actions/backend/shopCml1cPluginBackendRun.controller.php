@@ -2401,7 +2401,7 @@ SQL;
                 break;
 
         }
-        if ($product->id && ($categories !== false)) {
+        if (!$product->id || ($categories !== false)) {
             foreach ($this->xpath($element, '//Группы/Ид') as $category) {
                 if ($category = ifset($map[(string)$category])) {
                     $categories[] = intval($category['id']);
