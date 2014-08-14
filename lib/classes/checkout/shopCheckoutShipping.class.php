@@ -358,7 +358,7 @@ class shopCheckoutShipping extends shopCheckout
         if (is_string($rates)) {
             return $rates;
         }
-        if ($rate_id) {
+        if ($rate_id && isset($rates[$rate_id])) {
             $result = $rates[$rate_id];
         } else {
             $result = array('rate' => 0);
