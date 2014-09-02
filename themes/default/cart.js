@@ -96,6 +96,14 @@ $(function () {
         $(this).closest('form').append('<input type="hidden" name="use_affiliate" value="0">').submit();
         return false;
     });
+    
+    $("#use-coupon").click(function () {
+        $('#discount-row:hidden').slideToggle(200);
+        $('#discount-row').addClass('highlighted');
+        $('#apply-coupon-code:hidden').show();        
+        $('#apply-coupon-code input[type="text"]').focus();
+        return false;
+    });
 
     $("div.addtocart input:button").click(function () {
         var f = $(this).closest('div.addtocart');

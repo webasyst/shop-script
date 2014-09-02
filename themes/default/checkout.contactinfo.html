@@ -8,7 +8,7 @@
             {if $wa->isAuthEnabled() && !$wa->user()->isAuth()}
             <div class="wa-field">
                 <div class="wa-value">
-                    <label><input type="checkbox" {if $wa->post('create_user')}checked{/if} id="create-user" name="create_user" value="1"> [`Create permanent user account`]</label>
+                    <label><input type="checkbox" {if $wa->post('create_user')}checked{/if} id="create-user" name="create_user" value="1"> [`Create permanent user account`] <i class="icon16 like"></i></label>
                     {if shopAffiliate::isEnabled()}
                         <p class="hint">
                             [`Registered customers apply for affiliate bonuses and discounts on future orders.`]                    

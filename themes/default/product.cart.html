@@ -1,10 +1,13 @@
 <form id="cart-form{if $wa->get('cart')}-dialog{/if}" method="post" action="{$wa->getUrl('/frontendCart/add')}">
 
     <h4>{sprintf('[`Buy %s`]',$product.name|escape)}</h4>
+    {if $wa->get('cart')}
+        {$wa->shop->productImgHtml($product, '96x96', [ 'itemprop' => 'image', 'id' => 'product-image', 'alt' => $product.name|escape ])}
+    {/if}
     {if $product.summary}
         <p>{$product.summary|truncate:512}</p>
     {/if}
-
+    
     {if $product.sku_type}
 
         <!-- SELECTABLE FEATURES selling mode -->
@@ -18,6 +21,7 @@
                         {foreach $f.values as $v_id => $v}
                             {if !isset($default_sku_features[$f.id])}{$default_sku_features[$f.id]=$v_id}{/if}
                             <a data-value="{$v_id}" href="#"{if $v_id == ifset($default_sku_features[$f.id])} class="selected"{/if}{if $f.type == 'color'} style="{$v->style}; margin-bottom: 20px;"{/if}>
+                                {if $f.type == 'color'}&nbsp;<i class="icon16 checkmark color_checkmark"></i>{/if}
                                 {if $f.type == 'color'}&nbsp;<span class="color_name">{strip_tags($v)}</span>{else}{$v}{/if}
                             </a>
                         {/foreach}
@@ -40,6 +44,21 @@
             </div>
         {/if}
         
+        <!-- list all SKUs for Schema.org markup -->
+        {foreach $product.skus as $sku}
+            <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                {$sku_available =  $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
+                {if $sku.name}<meta itemprop="name" content="{$sku.name|escape}">{/if}
+                <meta itemprop="price" content="{$sku.price}">
+                <meta itemprop="priceCurrency" content="{$product.currency}">
+                {if (!($sku.count === null) && $sku.count <= 0)}
+                    <link itemprop="availability" href="http://schema.org/OutOfStock" />
+                {else}
+                    <link itemprop="availability" href="http://schema.org/InStock" />
+                {/if}
+            </div>
+        {/foreach}
+        
     {else}
 
         <!-- FLAT SKU LIST selling mode -->
@@ -54,13 +73,14 @@
                 <li itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                     <label{if !$sku.available} class="disabled"{/if}>
                     <input name="sku_id" type="radio" value="{$sku.id}"{if !$sku.available} disabled="true"{/if}{if !$sku_available}data-disabled="1"{/if}{if $sku.id == $product.sku_id} checked="checked"{/if} data-compare-price="{shop_currency($sku.compare_price, $product.currency, null, 0)}" data-price="{shop_currency($sku.price, $product.currency, null, 0)}"{if $sku.image_id} data-image-id="{$sku.image_id}"{/if}> <span itemprop="name">{$sku.name|escape}</span>
-                    {if $sku.sku}<span class="hint" itemprop="name">{$sku.sku|escape}</span>{/if}
-                    <meta itemprop="price" content="{shop_currency($sku.price, $product.currency)}">
+                    {if $sku.sku}<span class="hint">{$sku.sku|escape}</span>{/if}
+                    <meta itemprop="price" content="{$sku.price}">
+                    <meta itemprop="priceCurrency" content="{$product.currency}">
                     <span class="price tiny nowrap">{shop_currency_html($sku.price, $product.currency)}</span>
                     {if (!($sku.count === null) && $sku.count <= 0)}
-                    <link itemprop="availability" href="http://schema.org/OutOfStock" />
+                        <link itemprop="availability" href="http://schema.org/OutOfStock" />
                     {else}
-                    <link itemprop="availability" href="http://schema.org/InStock" />
+                        <link itemprop="availability" href="http://schema.org/InStock" />
                     {/if}
                     </label>
                 </li>
@@ -71,11 +91,12 @@
         {else}
     
             {* in case there is only one SKU, don't display the selector *}
-        
             <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                 {$sku = $product.skus[$product.sku_id]}
-                {if $sku.sku}<span class="hint" itemprop="name">{$sku.sku|escape}</span>{/if}
-                <meta itemprop="price" content="{shop_currency($sku.price, $product.currency)}">
+                {if $sku.sku}<span class="hint">{$sku.sku|escape}</span>{/if}
+                {if $sku.name}<meta itemprop="name" content="{$sku.name|escape}">{/if}
+                <meta itemprop="price" content="{$sku.price}">
+                <meta itemprop="priceCurrency" content="{$product.currency}">
                 {if !$sku.available}
                 <link itemprop="availability" href="http://schema.org/Discontinued" />
                 <p><em class="bold error">[`This product is not available for purchase`]</em></p>
@@ -100,7 +121,7 @@
                 {if $n > $low or $n === null}
                     <strong class="stock-high"><i class="icon16 stock-green"></i>[`In stock`]</strong>
                 {elseif $n > $critical}
-                    <strong class="stock-low"><i class="icon16 stock-yellow"></i>{_w("Only %d left in stock", "Only %d left in stock", $n)}</strong>
+                    <strong class="stock-low"><i class="icon16 stock-yellow"></i>{* _w("Only %d left in stock", "Only %d left in stock", $n) *}{_w("Only a few items left")}</strong>
                 {elseif $n > 0}
                     <strong class="stock-critical"><i class="icon16 stock-red"></i>{_w("Only %d left in stock", "Only %d left in stock", $n)}</strong>
                 {else}
@@ -160,10 +181,14 @@
             {if $product.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency_html($product.compare_price)} </span>{/if}
             <span data-price="{shop_currency($product.price, null, null, 0)}" class="price nowrap">{shop_currency_html($product.price)}</span>
             <input type="hidden" name="product_id" value="{$product.id}">
-                        <span class="qty">
-                            &times; <input type="text" name="quantity" value="1">
-                        </span>
-            <input type="submit" {if !$product_available}disabled="disabled"{/if} value="[`Add to cart`]">
+            {*
+                UNCOMMENT FOR QUANTITY INPUT
+                <span class="qty">
+                    &times; <input type="text" name="quantity" value="1">
+                </span>
+            *}
+            <input type="submit" {if !$product_available}disabled="disabled"{/if} value="{if $wa->shop->cart->total() > 0}[`Add to cart`]{else}[`Buy now`]{/if}">
+            <i class="adding2cart"></i>
             <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $product.name|escape, $wa->getUrl('shop/frontend/cart'))}</span>
         </div>
     </div>

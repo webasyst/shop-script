@@ -1,9 +1,11 @@
 <script type="text/javascript" src="{$wa_theme_url}cart.js"></script>
 
 {if !$cart.count}
-
-    <h1>[`Shopping cart`]</h1>
-    <p>[`Your shopping cart is empty.`]</p>
+    
+    <div class="cart your-cart-is-empty">
+        <h1>[`Shopping cart`]</h1>
+        <p>[`Your shopping cart is empty.`]</p>
+    </div>
 
 {else}
 
@@ -51,30 +53,37 @@
                     </div>
                     {/if}
 
-                    {if $item@index < 3}
-                    {$related = $wa->shop->crossSelling($item.product.id)}
-                    {if $related}
-                    <!-- cross-selling -->
-                    <div class="clear-both" data-id="{$item.id}">
-                        <div class="col w1 item-thumb">&nbsp;</div>
-                        <div class="col w15 small related">
-                            <h4>{sprintf('[`Customers who bought %s also bought`]', $item.product.name|escape)}:</h4>
-                            {include file="list-thumbs-mini.html" products=$related without_form=true}
-                        </div>
-                    </div>
+                    {if $theme_settings.cart_crossselling == 'many'}
+                        {if $item@index < 3}
+                            {$related = $wa->shop->crossSelling($item.product.id)}
+                            {if $related}
+                                <!-- cross-selling -->
+                                <div class="clear-both" data-id="{$item.id}">
+                                    <div class="col w1 item-thumb">&nbsp;</div>
+                                    <div class="col w15 small related">
+                                        <h4><strong>[`Recommended!`]</strong> {sprintf('[`Customers who bought %s also bought`]', $item.product.name|escape)}:</h4>
+                                        {include file="list-thumbs-mini.html" products=$related without_form=true}
+                                    </div>
+                                </div>
+                            {/if}
+                        {/if}
                     {/if}
-                    {/if}
+                    
                 </div>
                 {if !empty($item.error)}<script>alert({json_encode($item.error)});</script>{/if}
             {/foreach}
             
-            <!-- discount coupon -->
-            <div class="row no-border" {if !shopDiscounts::isEnabled('coupons') && !$discount}style="display:none"{/if}>
+            <!-- discount -->
+            <div class="row no-border" {if !shopDiscounts::isEnabled('coupons') && !$discount}style="display:none"{/if} id="discount-row">
                 <div class="col w10 cart-coupon no-border">
+
                     {if shopDiscounts::isEnabled('coupons')}
-                    [`Discount coupon (if you have one)`]:
-                    <input type="text" name="coupon_code" value="{$coupon_code|escape}"> <input type="submit"  value="[`Apply`]">
+                        <div {if !$coupon_code}style="display: none;"{/if} id="apply-coupon-code">
+                            [`Coupon code`]:
+                            <input type="text" name="coupon_code" value="{$coupon_code|escape}"> <input type="submit"  value="[`Apply`]" class="gray small">
+                        </div>
                     {/if}
+                    
                 </div>
                 <div class="col w2 align-center">[`Discount`]</div>
                 <div class="col w3 align-center cart-discount nowrap">&minus; {shop_currency_html($discount, true)}</div>
@@ -87,9 +96,9 @@
                 <div class="col w12 no-border">
                     {sprintf('[`Your current affiliate bonus of %s points allows you to get an additonal discount of up to %s`]', $affiliate_bonus, shop_currency_html(shopAffiliate::convertBonus($affiliate_bonus)))}
                     {if $use_affiliate}
-                    <a id="cancel-affiliate" href="#">[`Cancel`]</a>
+                    <a id="cancel-affiliate" href="#">[`Don’t use bonus discount`]</a>
                     {else}
-                    <input type="submit" name="use_affiliate" value="[`Use bonus`]">
+                    <input type="submit" name="use_affiliate" class="small gray" value="[`Use bonus`]">
                     {/if}
                 </div>
                 <div class="col w3 align-center affiliate-discount">&minus; {if $use_affiliate}{shop_currency_html(shopAffiliate::convertBonus($used_affiliate_bonus))}{else}0{/if}</div>
@@ -99,26 +108,55 @@
             
             <!-- TOTAL -->
             <div class="row large no-border">
-                <div class="col w12 no-border non-mobile-only">[`Total`]</div>
+                <div class="col w12 no-border">
+                    [`Total`]
+                    {if shopDiscounts::isEnabled('coupons') && !$coupon_code}<a href="#" class="small inline-link not-visited" id="use-coupon"><b><i>[`I have a coupon!`]</i></b></a>{/if}
+                </div>
                 <div class="col w3 cart-total align-center total bold nowrap">{shop_currency_html($cart.total, true)}</div>
                 <div class="col w1">&nbsp;</div>
             </div>
             
-            <!-- checkout -->
+            {if shopAffiliate::isEnabled() && !empty($add_affiliate_bonus)}
             <div class="row no-border">
-                <div class="col w12 no-border non-mobile-only">
-                    <span class="gray">&larr;</span> <a href="{$wa_app_url}" class="gray">[`Back to the store`]</a>
-                    {if shopAffiliate::isEnabled() && !empty($add_affiliate_bonus)}
-                    <em class="float-right affiliate">{sprintf("[`This order will add +%s points to your affiliate bonus.`]", $add_affiliate_bonus)}</em>
-                    {/if}
+                <div class="col w16 no-border">
+                    <p class="affiliate"><i class="icon16 like"></i> {sprintf("[`This order will add <strong>+%s bonuses</strong> to  your account, which you will be able to spend on getting additional discounts later.`]", $add_affiliate_bonus)}</p>
                 </div>
-                <div class="col w3 align-center bold cart-checkout">
+            </div>
+            {/if}
+            
+            <!-- CHECKOUT -->
+            <div class="row no-border">
+                <div class="col w10 no-border featured-shipping-and-payment">
+                    {*
+                        display up to 8 logos of available payment options;
+                        replave $wa->shop->payment() with $wa->shop->shipping() if you prefer shipping options logos
+                    *}
+                    {$availabe_options = $wa->shop->payment()}
+                    {$_cnt = 0}
+                    {foreach $availabe_options as $option name=options}
+                        {if $_cnt == 8}{break}{/if}
+                        {if $option.logo}
+                            <img src="{$option.logo}" alt="{$option.name}">
+                            {$_cnt = $_cnt + 1}
+                        {/if}
+                    {/foreach}
+                </div>
+                <div class="col w6 align-center bold cart-checkout">
                     <input name="checkout" type="submit" value="[`Proceed to checkout`] &rarr;" class="button large">
                 </div>
-                <div class="col w1">&nbsp;</div>
             </div>
             
-            
+            {$related = $wa->shop->crossSelling($cart.items, 'product_id')}
+            {if $theme_settings.cart_crossselling == 'common' && $related}
+                <div class="row no-border">
+                    <div class="col w16 related">
+
+                        <h4><strong>[`Recommended!`]</strong> {sprintf('[`Customers who bought %s also bought`]', $item.product.name|escape)}:</h4>
+                        {include file="list-thumbs-mini.html" products=$related without_form=true}
+                        <div class="clear-both"></div>
+                    </div>
+                </div>
+            {/if}
             
         </div>
 

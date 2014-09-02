@@ -1,205 +1,199 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="2.0.1">
+<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="2.1.0">
     <name locale="en_US">Default 2.0</name>
     <name locale="ru_RU">Дефолт 2.0</name>
     <files>
-        <file path="index.html" custom="0" parent="1">
+        <file path="index.html" parent="1">
         </file>
-        <file path="default.css" custom="0" parent="1">
+        <file path="default.css" parent="1">
         </file>
-        <file path="default.mobile.css" custom="0" parent="1">
+        <file path="default.shop.css">
         </file>
-        <file path="default.tablet.css" custom="0" parent="1">
+        <file path="default.shop.js">
         </file>
-        <file path="default.wide.css" custom="0" parent="1">
-        </file>
-        <file path="default.shop.css" custom="0">
-            <description locale="en_US">Core storefront CSS</description>
-            <description locale="ru_RU">Основной CSS интернет-магазина</description>
-        </file>
-        <file path="default.shop.tablet.css" custom="0">
-            <description locale="en_US">Additional storefront CSS for multi-touch tablet devices</description>
-            <description locale="ru_RU">Дополнительный CSS интернет-магазина для планшетов</description>
-        </file>
-        <file path="default.shop.mobile.css" custom="0">
-            <description locale="en_US">Additional storefront CSS for multi-touch mobile devices</description>
-            <description locale="ru_RU">Дополнительный CSS интернет-магазина для мобильных устройств</description>
-        </file>
-        <file path="main.html" custom="0">
-            <description locale="en_US">Main storefront layout and navigation</description>
-            <description locale="ru_RU">Основное макет вывода содержимого и навигации в интернет-магазине</description>
-        </file>
-        <file path="head.html" custom="0">
+        <file path="head.html">
             <description locale="en_US">Shop-Script's &lt;head&gt; instructions</description>
             <description locale="en_US">Блок &lt;head&gt; приложения Shop-Script</description>
         </file>
-        <file path="footer.html" custom="0">
+        <file path="header.html" custom="0">
+    		<description locale="en_US">App specific header content</description>
+    		<description locale="ru_RU">Содержимое «шапки» приложения</description>
+    	</file>
+    	<file path="main.html">
+            <description locale="en_US">Main storefront layout and navigation</description>
+            <description locale="ru_RU">Основное макет вывода содержимого и навигации в интернет-магазине</description>
+        </file>
+        <file path="footer.html">
             <description locale="en_US">App specific footer content</description>
             <description locale="ru_RU">Содержимое футера приложения</description>
         </file>       
-        <file path="category.html" custom="0">
+        <file path="category.html">
             <description locale="en_US">Wrapper for a category page</description>
             <description locale="ru_RU">Обертка для страницы категории</description>
         </file>
-        <file path="list-thumbs.html" custom="0">
+        <file path="list-thumbs.html">
             <description locale="en_US">Product list thumbnail view</description>
             <description locale="ru_RU">Список товаров эскизами</description>
         </file>
-        <file path="list-thumbs-mini.html" custom="0">
+        <file path="list-thumbs-mini.html">
             <description locale="en_US">Recommended product list (mini thumbnails)</description>
             <description locale="ru_RU">Список рекомендуемых товаров (маленькими эскизами)</description>
         </file>
-        <file path="product.html" custom="0">
+        <file path="product.html">
             <description locale="en_US">Dedicated product page</description>
             <description locale="ru_RU">Шаблон основной страницы товара</description>
         </file>
-        <file path="product.cart.html" custom="0">
+        <file path="product.cart.html">
             <description locale="en_US">Product add to cart block</description>
             <description locale="ru_RU">Блок добавления товара в корзину</description>
         </file>
-        <file path="product.js" custom="0">
+        <file path="product.js">
             <description locale="en_US">Product page JS</description>
             <description locale="ru_RU">JS-скрипты страницы товара</description>
         </file>
-        <file path="product.page.html" custom="0">
+        <file path="product.page.html">
             <description locale="en_US">Product static subpage content</description>
             <description locale="ru_RU">Информационная подстраница товара</description>
         </file>
-        <file path="review.html" custom="0">
+        <file path="review.html">
             <description locale="en_US">A single product review template</description>
             <description locale="ru_RU">Шаблон вывода одного отзыва о товаре</description>
         </file>
-        <file path="reviews.html" custom="0">
+        <file path="reviews.html">
             <description locale="en_US">Product review list</description>
             <description locale="ru_RU">Список отзывов о товаре</description>
         </file>
-        <file path="compare.html" custom="0">
+        <file path="compare.html">
             <description locale="en_US">Product comparison</description>
             <description locale="ru_RU">Сравнение товаров</description>
         </file>
-        <file path="cart.html" custom="0">
+        <file path="cart.html">
             <description locale="en_US">Shopping cart page</description>
             <description locale="ru_RU">Страница с товарами корзины</description>
         </file>
-        <file path="cart.js" custom="0">
+        <file path="cart.js">
             <description locale="en_US">Cart JS</description>
             <description locale="ru_RU">JS-скрипты корзины</description>
         </file>
-        <file path="checkout.html" custom="0">
+        <file path="checkout.html">
             <description locale="en_US">Checkout core wrapper</description>
             <description locale="ru_RU">Единый шаблон страниц оформления заказа</description>
         </file>
-        <file path="checkout.shipping.html" custom="0">
+        <file path="checkout.shipping.html">
             <description locale="en_US">Checkout: shipping option selection</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
-        <file path="checkout.payment.html" custom="0">
+        <file path="checkout.payment.html">
             <description locale="en_US">Checkout: payment option selection</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
-        <file path="checkout.contactinfo.html" custom="0">
+        <file path="checkout.contactinfo.html">
             <description locale="en_US">Checkout: customer contact information form</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
-        <file path="checkout.confirmation.html" custom="0">
+        <file path="checkout.confirmation.html">
             <description locale="en_US">Checkout: order confirmation</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
-        <file path="checkout.success.html" custom="0">
+        <file path="checkout.success.html">
             <description locale="en_US">Checkout: thank you page</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
-        <file path="checkout.error.html" custom="0">
+        <file path="checkout.error.html">
             <description locale="en_US">Checkout: error page</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
-        <file path="my.nav.html" custom="0">
+        <file path="my.nav.html">
             <description locale="en_US">Customer account navigation menu</description>
             <description locale="ru_RU">Меню навигации в личном кабинете покупателя</description>
         </file>
-        <file path="my.affiliate.html" custom="0">
+        <file path="my.affiliate.html">
             <description locale="en_US">Customer account interface: affiliate program</description>
             <description locale="ru_RU">Личный кабинет покупателя: партнерская программа</description>
         </file>
-        <file path="my.profile.html" custom="0">
-            <description locale="en_US">Customer account interface: contact info editing form</description>
-            <description locale="ru_RU">Личный кабинет покупателя: редактирование контактной информации</description>
+        <file path="my.profile.html" parent="1">
         </file>
-        <file path="my.orders.html" custom="0">
+        <file path="my.orders.html">
             <description locale="en_US">Customer account interface: order list</description>
             <description locale="ru_RU">Личный кабинет покупателя: список заказов</description>
         </file>
-        <file path="my.order.html" custom="0">
+        <file path="my.order.html">
             <description locale="en_US">Customer account interface: single order information</description>
             <description locale="ru_RU">Личный кабинет покупателя: информация о заказе</description>
         </file>
-        <file path="home.html" custom="0">
+        <file path="home.html">
             <description locale="en_US">Storefront homepage</description>
             <description locale="ru_RU">Главная витрина магазина</description>
         </file>
-        <file path="search.html" custom="0">
+        <file path="search.html">
             <description locale="en_US">Wrapper for product search (filtering) results, e.g. by name, tag, or manufacturer</description>
             <description locale="ru_RU">Обертка для страницы поиска (фильтрации) товаров, например, по тегу, ключевому слову или производителю</description>
         </file>
-        <file path="page.html" custom="0">
+        <file path="page.html">
             <description locale="en_US">Static page content</description>
             <description locale="ru_RU">Содержимое информационной страницы</description>
         </file>
-        <file path="navigation.html" custom="0">
-            <description locale="en_US">Internal storefront navigation</description>
-            <description locale="ru_RU">Внутренняя навигация по витрине магазина</description>
+        <file path="login.html" parent="1">
         </file>
-        <file path="login.html" custom="0">
-            <description locale="en_US">Login page</description>
-            <description locale="ru_RU">Страница входа для пользователей</description>
+        <file path="signup.html" parent="1">
         </file>
-        <file path="signup.html" custom="0">
-            <description locale="en_US">Sign up page</description>
-            <description locale="ru_RU">Страница регистрации пользователей</description>
+        <file path="forgotpassword.html" parent="1">
         </file>
-        <file path="forgotpassword.html" custom="0">
-            <description locale="en_US">Forgot password page</description>
-            <description locale="ru_RU">Страница сброса пароля</description>
+        <file path="error.html" parent="1">
         </file>
-        <file path="error.html" custom="0">
-            <description locale="en_US">404 and other errors</description>
-            <description locale="ru_RU">404 и другие ошибки</description>
-        </file>
-        <file path="default.shop.js" custom="0">
-            <description locale="en_US">Default Shop-Script theme JS</description>
-            <description locale="ru_RU">Скрипты темы Default для Shop-Script</description>
-        </file>
-        <file path="default.js" custom="0">
-            <description locale="en_US">Core Default theme JS</description>
-            <description locale="ru_RU">Скрипты темы Default</description>
-        </file>
-        <file path="lazyloading.js" custom="0">
-            <description locale="en_US">Lazy loading JS</description>
-            <description locale="ru_RU">Скрипты загрузки контента «на лету»</description>
+        <file path="default.js" parent="1">
         </file>
         <file path="reviews.js">
             <description locale="en_US">Reviews JS</description>
             <description locale="ru_RU">Скрипты отзывов</description>
         </file>
     </files>
-    <about locale="en_US">
-<![CDATA[
-<p><b>Default</b> is a universal adaptive design theme family for all basic Webasyst apps: Site, Blog, Photos, Shop-Script, and others. The parent (main) theme of the family, which includes the basic set of CSS rules and the common layout template index.html, is the Default theme for the Site application. All Default design themes used in other applications (e.g., Blog, Shop or Photos) link common CSS and index.html layout file from the main theme.</p>
-<p>Default design themes automatically link CSS depending on a visitor's device. Supported devices and platforms: iOS or Android based mobile devices, tablet computers such as iPad, common desktop computers and laptops.</p>
-<h3>Product thumbnails</h3>
-<p>Default design theme links <b>400px</b> product thumbnail in the product.html file (.400.jpg). If you are using the Default theme for your online store, make sure you have the “Allow on demand generation of custom-sized thumbnails” option enabled in your store settings (Images screen). This is required for proper product thumbnails generation and output. In case this setting is turned off, broken images will appear on your storefront's product pages.</p>
-]]>
-    </about>
-    <about locale="ru_RU">
-<![CDATA[
-<p><b>Default</b> — это универсальное семейство адаптивных тем дизайна для всех базовых приложений фреймворка Вебасист: Сайт, Блог, Фото, Shop-Script и других. Родительской (основной) темой семейства, включающей в себя базовый набор CSS-стилей и общий макет дизайна index.html, является тема Default для приложения «Сайт». Все темы дизайна Default для других приложений (Блог, Фото, Магазин и других) используют базовый CSS и index.html из родительской (основной) темы.</p>
-<p>Темы дизайна семейства Default оптимизированы для всех современных браузеров, планшетных компьютеров и мобильных устройств на основе iOS и Android. CSS-стили подключаются в зависимости от разрешения и типа устройства, которым пользуется посетитель сайта.</p>
-<h3>Изображения товаров</h3>
-<p>В шаблоне product.html подключается изображение товара нестандартного размера <b>400px</b> (.400.jpg). Если вы используете тему Default для вашего интернет-магазина, то в настройках магазина в разделе «Изображения» должна быть включена опция создания эскизов произвольного размера по требованию («на лету»). Если данная опция будет выключена, то на странице товара вместо изображения товара будут публиковать «битые» изображения.</p>
-]]>
-    </about>
     <settings>
+        <setting var="category_nav_mode" control_type="radio">
+            <value>dropdown</value>
+            <name locale="ru_RU">Меню категорий товаров</name>
+            <name locale="en_US">Category navigation menu</name>
+            <options>
+                <option value="dropdown">
+                    <name locale="ru_RU">Выпадающее</name>
+                    <name locale="en_US">Drop-down</name>
+                    <description locale="ru_RU">Рекомендуется, если в корне не более пяти-шести элементов, и все они помещаются в один ряд</description>
+                    <description locale="en_US">Great for menus with up to five or six elements on the top level</description>
+                </option>
+                <option value="sidebar">
+                    <name locale="ru_RU">Боковое</name>
+                    <name locale="en_US">Sidebar</name>
+                    <description locale="ru_RU">Рекомендуется для многоуровневых деревьев категорий</description>
+                    <description locale="en_US">Great for multi-level category hierarchical menus</description>
+                </option>
+            </options>
+        </setting>
+        <setting var="homepage_bxslider_mode" control_type="radio">
+            <value>products</value>
+            <name locale="ru_RU">Слайдер на витрине интернет-магазина</name>
+            <name locale="en_US">Storefront homepage slider</name>
+            <options>
+                <option value="products">
+                    <name locale="ru_RU">Товары-бестселлеры</name>
+                    <name locale="en_US">Best-selling products</name>
+                    <description locale="ru_RU">В слайдере будут показаны товары из списка с идентификатором bestsellers. Заменить идентификатор на любой другой можно в шаблоне дизайна home.html.</description>
+                    <description locale="en_US">Products will be taken from a product set with “bestsellers” ID. Replace bestsellers with any other product set ID in home.html template.</description>
+                </option>
+                <option value="products_last_photo_as_background">
+                    <name locale="ru_RU">Товары-бестселлеры: последняя фото в качестве фона</name>
+                    <name locale="en_US">Best-selling products: last photo as a background</name>
+                    <description locale="ru_RU">В слайдере также будут показаны товары из списка с идентификатором bestsellers, но в качестве изображения будет взята не основная, а последняя по счету фотография товара, причем отображаться она будет как фоновое изображение по площади всего слайдера.</description>
+                    <description locale="en_US">Products will be also taken from a product set with “bestsellers” ID, but instead of product primary image the last image from the product gallery will be displayed as a background of entire slider area.</description>
+                </option>
+                <option value="photos">
+                    <name locale="ru_RU">Фотографии из приложения «Фото»</name>
+                    <name locale="en_US">Latest photos from Photos apps</name>
+                    <description locale="ru_RU">В слайдере будут показаны последние 10 фотографий, загруженные в приложении «Фото». Поменять условие выбора фотографий для слайдера (фото из определенного альбома, с определенным тегом и т.д.) можно в шаблоне дизайна интернет-магазина home.html. Приложение «Фото» должно быть установлено.</description>
+                    <description locale="en_US">Last 10 uploaded photos will be fetched from Photos app and displayed on the slider. Customize photo fetching criteria in home.html template of this storefront design theme. Photos app must be installed for this setting to work.</description>
+                </option>
+            </options>
+        </setting>
         <setting var="ajax_filters" control_type="checkbox">
             <value>1</value>
             <name locale="en_US">AJAX-enabled product by-feature filtering</name>
@@ -211,10 +205,10 @@
             <name locale="en_US">Selectable features</name>
             <options>
                 <option value="inline">
-                    <name locale="ru_RU">Показать все значения в ряд</name>
+                    <name locale="ru_RU">Показывать все значения крупно в ряд</name>
                     <name locale="en_US">Display all values inline</name>
                     <description locale="ru_RU">Для товаров в режиме продажи «Выбор характеристик» значения характеристик будут показаны одной строкой друг за другом. Рекомендуется, если названия значений относительно короткие и по ним однозначно можно определить, о какой характеристике товара идет речь, например, XL, 16 GB, 13”.</description>
-                    <description locale="en_US">For products which are sold in selectable features mode, all feature values will be displayed inline. Great if feature value names are self-explanatory and expliciy in context of a product, e.g. XL, 16 GB, 13”.</description>
+                    <description locale="en_US">For products which are sold in selectable features mode, all feature values will be displayed inline. Great if feature value names are self-explanatory and explicit in context of a product, e.g. XL, 16 GB, 13”.</description>
                 </option>
                 <option value="select">
                     <name locale="ru_RU"><![CDATA[Выбор из списка &lt;select&gt;]]></name>
@@ -223,7 +217,70 @@
                     <description locale="en_US"><![CDATA[For products which are sold in selectable features mode, feature values will be displayed using a &lt;select&gt; HTML control. Recommended if value names are either too long or ambiguous in context of a product, e.g. “up to 10 hours”, “yes”.]]></description>
                 </option>
             </options>
-        </setting>        
+        </setting>
+        <setting var="cart_crossselling" control_type="select">
+            <value>common</value>
+            <name locale="ru_RU">Рекомендуемые товары в корзине</name>
+            <name locale="en_US">Cross-selling in cart</name>
+            <options>
+                <option value="single">
+                    <name locale="ru_RU">Единый список рекомендуемых товаров на основе всего содержимого корзины</name>
+                    <name locale="en_US">Common recommended product list based on entire cart content</name>
+                </option>
+                <option value="many">
+                    <name locale="ru_RU">Отдельные списки рекомендуемых товаров отдельно для каждого товара</name>
+                    <name locale="en_US">Separate recommended product lists for each item</name>
+                </option>
+            </options>
+        </setting>
+        <setting var="homepage_bullet_title_1" control_type="text">
+            <value locale="en_US">Faster delivery</value>
+            <value locale="ru_RU">Доставка по России</value>
+            <name locale="en_US">Storefront bullet #1 title</name>
+            <name locale="ru_RU">Подзаголовок на главной странице №1</name>
+        </setting>
+        <setting var="homepage_bullet_body_1" control_type="text">
+            <value locale="en_US">We offer domestic and international shipping via all major shipping carriers.</value>
+            <value locale="ru_RU">Мы доставим ваш заказ курьером по Москве и Петербургу или службой экспресс-доставки по всей России.</value>
+            <name locale="en_US">Storefront homepage bullet #1 body</name>
+            <name locale="ru_RU">Текст на главной странице №1</name>
+        </setting>
+        <setting var="homepage_bullet_title_2" control_type="text">
+            <value locale="en_US">Secure payment</value>
+            <value locale="ru_RU">Оплата онлайн</value>
+            <name locale="en_US">Storefront bullet #2 title</name>
+            <name locale="ru_RU">Подзаголовок на главной странице №2</name>
+        </setting>
+        <setting var="homepage_bullet_body_2" control_type="text">
+            <value locale="en_US">We accept all major credit cards and PayPal payments. All orders are paid online.</value>
+            <value locale="ru_RU">Оплатите заказ банковской картой, наличными в ближайшем платежном терминале или наличными.</value>
+            <name locale="en_US">Storefront homepage bullet #2 body</name>
+            <name locale="ru_RU">Текст на главной странице №2</name>
+        </setting>
+        <setting var="homepage_bullet_title_3" control_type="text">
+            <value locale="en_US">Contact us</value>
+            <value locale="ru_RU">Магазин в Москве</value>
+            <name locale="en_US">Storefront bullet #3 title</name>
+            <name locale="ru_RU">Подзаголовок на главной странице №3</name>
+        </setting>
+        <setting var="homepage_bullet_body_3" control_type="text">
+            <value locale="en_US">If you are in SF or LA, you may pick up an order in one of our stores. Give us a call!</value>
+            <value locale="ru_RU">Будем рады видеть вас в нашем магазине по адресу г. Москва, ул. Крымский Вал, д. 3. +7 (495) 123-45-00</value>
+            <name locale="en_US">Storefront homepage bullet #3 body</name>
+            <name locale="ru_RU">Текст на главной странице №3</name>
+        </setting>
+        <setting var="homepage_promo_title" control_type="text">
+            <value locale="en_US">Free shipping on all orders over $100</value>
+            <value locale="ru_RU">Бесплатная доставка при заказе от 3000 рублей</value>
+            <name locale="en_US">Storefront homepage promo block title</name>
+            <name locale="ru_RU">Заголовок в промо-блоке на главной странице</name>
+        </setting>
+        <setting var="homepage_promo_body" control_type="text">
+            <value locale="en_US">Order today and get your order shipped in just few days! All $100+ orders are shipped free of charge.</value>
+            <value locale="ru_RU">Не пропустите выгодное предложение! Закажите сегодня, и уже завтра заказ будет у вас.</value>
+            <name locale="en_US">Storefront homepage promo block body</name>
+            <name locale="ru_RU">Текст в промо-блоке на главной странице</name>
+        </setting>
     </settings>
     <thumbs>
         <thumb>48x48</thumb>
@@ -233,4 +290,16 @@
         <thumb>750</thumb>
         <thumb>970</thumb>
     </thumbs>
+    <about locale="en_US">
+<![CDATA[
+<p><b>Default</b> is a universal adaptive design theme family for all basic Webasyst apps: Site, Blog, Photos, Shop-Script, and others. The parent (main) theme of the family, which includes the basic set of CSS rules and the common layout template index.html, is the Default theme for the Site application. All Default design themes used in other applications (e.g., Blog, Shop-Script or Photos) link common CSS and index.html layout file from the main theme.</p>
+<p>Default design themes automatically link CSS depending on a visitor's device. Supported devices and platforms: iOS or Android based mobile devices, tablet computers such as iPad, common desktop computers and laptops.</p>
+]]>
+    </about>
+    <about locale="ru_RU">
+<![CDATA[
+<p><b>Default</b> — это универсальное семейство адаптивных тем дизайна для всех базовых приложений фреймворка Вебасист: Сайт, Блог, Фото, Shop-Script и других. Родительской (основной) темой семейства, включающей в себя базовый набор CSS-стилей и общий макет дизайна index.html, является тема Default для приложения «Сайт». Все темы дизайна Default для других приложений (Блог, Фото, Shop-Script и других) используют базовый CSS и index.html из родительской (основной) темы.</p>
+<p>Темы дизайна семейства Default оптимизированы для всех современных браузеров, планшетных компьютеров и мобильных устройств на основе iOS и Android. CSS-стили подключаются в зависимости от разрешения и типа устройства, которым пользуется посетитель сайта.</p>
+]]>
+    </about>
 </theme>

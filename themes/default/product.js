@@ -86,15 +86,55 @@ function Product(form, options) {
 
     this.form.submit(function () {
         var f = $(this);
+        f.find('.adding2cart').addClass('icon24 loading').show();
+        
         $.post(f.attr('action') + '?html=1', f.serialize(), function (response) {
+            f.find('.adding2cart').hide();
             if (response.status == 'ok') {
                 var cart_total = $(".cart-total");
                 var cart_div = f.closest('.cart');
+                if( $(window).scrollTop() >= 110 )
+                    $('#cart').addClass('fixed');
 
                 cart_total.closest('#cart').removeClass('empty');
-                cart_total.html(response.data.total);
 
                 self.cartButtonVisibility(false);
+                if (!window.matchMedia("only screen and (max-width: 760px)").matches) {
+                
+                    // flying cart
+                    var clone = $('<div class="cart"></div>').append(f.clone());
+                    clone.appendTo('body');
+                    clone.css({
+                        'z-index': 100500,
+                        background: cart_div.closest('.dialog').length ? '#fff' : cart_div.parent().css('background'),
+                        top: cart_div.offset().top,
+                        left: cart_div.offset().left,
+                        width: cart_div.width() + 'px',
+                        height: cart_div.height() + 'px',
+                        position: 'absolute',
+                        overflow: 'hidden'
+                    }).css({'border':'2px solid #eee','padding':'20px','background':'#fff'}).animate({
+                        top: cart_total.offset().top,
+                        left: cart_total.offset().left,
+                        width: '10px',
+                        height: '10px',
+                        opacity: 0.7
+                    }, 600, function () {
+                        $(this).remove();
+                        cart_total.html(response.data.total);
+                        $('#cart-content').append($('<div class="cart-just-added"></div>').html(self.add2cart.find('span.added2cart').text()));
+                        if ($('#cart').hasClass('fixed'))
+                            $('.cart-to-checkout').slideDown(200);
+                    });
+                    if (cart_div.closest('.dialog').length) {
+                        cart_div.closest('.dialog').hide().find('.cart').empty();
+                    }
+                    
+                } else {
+                
+                    // mobile: added to cart message
+                    cart_total.html(response.data.total);
+                }
 
                 if (f.data('cart')) {
                     $("#page-content").load(location.href, function () {
@@ -108,6 +148,7 @@ function Product(form, options) {
                 alert(response.errors);
             }
         }, "json");
+
         return false;
     });
 
@@ -237,14 +278,18 @@ Product.prototype.cartButtonVisibility = function (visible) {
         this.add2cart.find('.qty').show();
         this.add2cart.find('span.added2cart').hide();
     } else {
-        this.add2cart.find('.compare-at-price').hide();
-        this.add2cart.find('input[type="submit"]').hide();
-        this.add2cart.find('.price').hide();
-        this.add2cart.find('.qty').hide();
-        this.add2cart.find('span.added2cart').show();
-        $('#cart').addClass('fixed');
-        $('#cart-content').append($('<div class="cart-just-added"></div>').html(this.add2cart.find('span.added2cart').text()));
-        $('.cart-to-checkout').slideDown(200);
+        if (window.matchMedia("only screen and (max-width: 760px)").matches) {
+            this.add2cart.find('.compare-at-price').hide();
+            this.add2cart.find('input[type="submit"]').hide();
+            this.add2cart.find('.price').hide();
+            this.add2cart.find('.qty').hide();
+            this.add2cart.find('span.added2cart').show();
+            if( $(window).scrollTop() >= 110 )
+                $('#cart').addClass('fixed');
+            $('#cart-content').append($('<div class="cart-just-added"></div>').html(this.add2cart.find('span.added2cart').text()));
+            if ($('#cart').hasClass('fixed'))
+                $('.cart-to-checkout').slideDown(200);
+        }
     }
 }
 
@@ -304,9 +349,22 @@ $(function () {
         } else {
             compare = '' + $(this).data('product');
         }
-        if (compare.split(',').length > 1) {
-            var url = $("#compare-link").attr('href').replace(/compare\/.*$/, 'compare/' + compare + '/');
-            $("#compare-link").attr('href', url).show().find('span.count').html(compare.split(',').length);
+        if (compare.split(',').length > 0) {
+            if (!$('#compare-leash').is(":visible")) {
+                $('#compare-leash').css('height', 0).show().animate({height: 39},function(){
+                    var _blinked = 0;
+                    setInterval(function(){
+                        if (_blinked < 4)
+                            $("#compare-leash a").toggleClass("just-added");
+                        _blinked++;
+                    },500);
+                });
+            }
+            var url = $("#compare-leash a").attr('href').replace(/compare\/.*$/, 'compare/' + compare + '/');
+            $('#compare-leash a').attr('href', url).show().find('strong').html(compare.split(',').length);
+            if (compare.split(',').length > 1) {
+                $("#compare-link").attr('href', url).show().find('span.count').html(compare.split(',').length);
+            }
         }
         $.cookie('shop_compare', compare, { expires: 30, path: '/'});
         $(this).hide();
@@ -325,10 +383,13 @@ $(function () {
             compare.splice(i, 1)
         }
         $("#compare-link").hide();
-        if (compare) {
+        if (compare.length > 0) {
             $.cookie('shop_compare', compare.join(','), { expires: 30, path: '/'});
+            var url = $("#compare-leash a").attr('href').replace(/compare\/.*$/, 'compare/' + compare.join(',') + '/');
+            $('#compare-leash a').attr('href', url).show().find('strong').html(compare.length);
         } else {
-            $.cookie('shop_compare', null);
+            $('#compare-leash').hide();
+            $.cookie('shop_compare', null, {path: '/'});
         }
         $(this).hide();
         $("a.compare-add").show();

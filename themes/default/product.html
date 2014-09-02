@@ -1,11 +1,10 @@
-<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/jquery.cookie.js"></script>
 <link href="{$wa_theme_url}swipebox/css/swipebox.min.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" src="{$wa_theme_url}swipebox/js/jquery.swipebox.js"></script>
 
 <article itemscope itemtype="http://schema.org/Product">
     
-    <h1 itemprop="name">
-        {$product.name|escape}
+    <h1>
+        <span itemprop="name">{$product.name|escape}</span>
         {if !empty($product.rating) && $product.rating > 0}
             <span class="rating nowrap" itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating" title="{sprintf('[`Average user rating: %s / 5`]', $product.rating)}">
                 {$wa->shop->ratingHtml($product.rating, 16)}
@@ -17,7 +16,7 @@
 
     <!-- product internal nav -->
     <nav>
-        <ul class="product-nav top-padded" role="navigation">
+        <ul class="product-nav top-padded">
             <li class="selected"><a href="{$wa->shop->productUrl($product)}">[`Overview`]</a></li>
             <li>
                 <a href="{$wa->shop->productUrl($product, 'reviews')}">[`Reviews`]</a>
@@ -35,7 +34,7 @@
     </nav>
 
     <!-- purchase -->
-    <aside class="product-sidebar">
+    <div class="product-sidebar">
     
         <div class="cart" id="cart-flyer">
         
@@ -62,14 +61,14 @@
             </div>
         {/if}
         
-    </aside>    
+    </div>    
     
     <!-- product info & gallery -->
     <div class="product-info" id="overview">
 
         {if $product.images}
         
-            <section class="product-gallery">
+            <figure class="product-gallery">
             
                 <!-- main image -->
                 <div class="image" id="product-core-image">
@@ -95,7 +94,7 @@
                     </div>
                 {/if}
                 
-            </section>
+            </figure>
     
         {/if}
 
@@ -104,7 +103,7 @@
         {foreach $frontend_product as $_}{$_.block}{/foreach}
 
         {if $product.description}
-            <section class="description" id="product-description" itemprop="description">{$product.description}</section>
+            <div class="description" id="product-description" itemprop="description">{$product.description}</div>
         {/if}
 
         <!-- product features -->
@@ -132,13 +131,13 @@
         {/if}
 
         <!-- categories -->
-        {if $product.categories}
-            <p id="product-categories">
+        {if count($product.categories) > 1}
+            <ul class="menu-h compact" id="product-categories">
             [`Categories`]:
                 {foreach $product.categories as $c}{if $c.status}
-                    <span class=""><a href="{$wa->getUrl('/frontend/category', ['category_url' => $c.full_url])}">{$c.name|escape}</a></span>
+                    <li><a href="{$wa->getUrl('/frontend/category', ['category_url' => $c.full_url])}">{$c.name|escape}</a></li>
                 {/if}{/foreach}
-            </p>
+            </ul>
         {/if}
 
         <!-- tags -->
@@ -220,14 +219,14 @@
     <div class="product-info">
 
         {if $crossselling}
-            <figure class="related">
+            <section class="related">
                 <h3>{sprintf('[`Customers who bought %s also bought`]', $product.name|escape)}</h3>
                 {include file="list-thumbs-mini.html" products=$crossselling ulclass="related-bxslider"}
-            </figure>
+            </section>
         {/if}
         
         {if $upselling}
-            <figure class="related">
+            <section class="related">
                 <h3>
                     [`See also`]
                     {$compare_ids = array_merge(array($product.id), array_keys($upselling))}
@@ -235,7 +234,7 @@
                     
                 </h3>
                 {include file="list-thumbs-mini.html" products=$upselling ulclass="related-bxslider"}
-            </figure>
+            </section>
         {/if}  
 
     </div>

@@ -1,17 +1,21 @@
 <!-- following CSS hides top navigation menu; remove <style>…</style> to unhide -->
 <style>
-    header h2,
-    header nav,
-    header .banner h3,
-    header .banner .search,
+    body { background: #555; padding-top: 0; }
+    header,
+    .banner h3,
+    .banner .search,
+    .banner ul.menu-h,
     .page-nav,
-    .currency-toggle { display: none; }
-    header .banner { margin-top: -10px; padding-bottom: 60px; }
-    .page-content { margin-left: 0; padding: 0; border-left: 0; }
+    .currency-toggle,
+    .followus,
+    .poweredby { display: none; }
+    .banner { margin-top: -10px; padding-bottom: 60px; }
+    .page-content { margin-left: 0 !important; padding: 0; border-left: 0 !important; }
     .float-right { float: right; }
     .container { max-width: 800px; }
-    .apps-toggle { display: none !important; }
+    #mobile-nav-toggle { display: none !important; }
     .footer-block { display: none; }
+    .banner { min-height: 60px; }
 </style>
 
 <div class="checkout-header">
@@ -47,7 +51,7 @@
                                 <li><label><input name="user_type" type="radio" {if $wa->post('wa_auth_login')}checked{/if} value="1"> [`I already have an account`]</label></li>
                             </ul>
                             <div id="login-form"{if !$wa->post('wa_auth_login')} style="display:none"{/if}>
-                                {include file="login.html" without_form=true}
+                                {include file="`$wa_parent_theme_path`/login.html" without_form=true}
                             </div>
                             <script type="text/javascript">
                                 $(function () {
@@ -99,11 +103,9 @@
                     <div class="clear-both"></div>
                     <input type="hidden" name="step" value="{$step_id}">
                     {if $s@last}
-                    {if empty($error)}
                     <div class="float-right">
                         <input type="submit" class="large bold" value="[`Place order`]">
                     </div>
-                    {/if}
                     {else}
                     <input type="submit" class="large bold" value="[`Next &rarr;`]">
                     {/if}
@@ -180,10 +182,10 @@
                 }
             }
             if (f.hasClass('last') || ($("#login-form").length && !$("#login-form input:submit").attr('disabled'))) {
-                $('<span class="loading"> <i class="icon16 loading"></i></span>').insertBefore(f.find('input:submit:last'));
+                $('<span class="loading"> <i class="icon24 loading"></i></span>').insertBefore(f.find('input:submit:last'));
                 return true;
             }
-            $('<span class="loading"> <i class="icon16 loading"></i></span>').insertAfter(f.find('input:submit:last').attr('disabled', 'disabled'));
+            $('<span class="loading"> <i class="icon24 loading"></i></span>').insertAfter(f.find('input:submit:last').attr('disabled', 'disabled'));
             $.post(f.attr('action') || window.location, f.serialize(), function (response) {
                 var content = $(response);
                 var step_id = content.data('step-id');

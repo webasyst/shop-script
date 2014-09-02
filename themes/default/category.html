@@ -70,7 +70,7 @@
 
 <!-- subcategories -->
 {if $category.subcategories}
-    <ul class="sub-categories">
+    <ul class="sub-links">
         {foreach $category.subcategories as $sc}
             <li><a href="{$sc.url}">{$sc.name|escape}</a></li>
         {/foreach}

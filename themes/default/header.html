@@ -1,0 +1,29 @@
+{if $shop_pages = $wa->shop->pages()}
+        <ul class="menu-h">
+        
+            <!-- pages -->
+            {foreach $shop_pages as $page}
+                <li{if strlen($page.url)>1 && $wa->currentUrl()|strstr:$page.url} class="selected"{/if}><a href="{$page.url}">{$page.name}</a></li>
+            {/foreach}
+            
+        </ul>
+
+{/if}
+
+
+<!-- checkout navigation -->
+{if isset($checkout_steps) && count($checkout_steps) > 1}
+    <ul class="checkout-navigation">
+        <li>
+            <a href="{$wa->getUrl('/frontend/cart')}">[`Cart`]</a>
+        </li>
+        <li>&rarr;</li>
+        {foreach $checkout_steps as $step_id => $s}
+            <li class="{if isset($_upcoming_flag)} upcoming{/if}{if $step_id == $checkout_current_step} selected{$_upcoming_flag = 1}{/if}">
+                <a href="{if $s@first}{$wa->getUrl('/frontend/checkout')}{else}{$wa->getUrl('/frontend/checkout', ['step' => $step_id])}{/if}">{$s.name}</a>
+            </li>
+            {if not $s@last}<li>&rarr;</li>{/if}
+        {/foreach}
+    </ul>
+    <br>
+{/if}
