@@ -4,18 +4,18 @@
 {foreach $products as $p}
     {$available = $wa->shop->settings('ignore_stock_count') || $p.count === null || $p.count > 0}
     <li itemscope itemtype ="http://schema.org/Product">
-        <div class="image">
-            <a href="{$p.frontend_url}" title="{$p.name}">
+        <a href="{$p.frontend_url}" title="{$p.name}">
+            <div class="image">
                 {* $badge_html = $wa->shop->badgeHtml($p.badge)}
                 {if $badge_html}
                     <div class="corner top right">{$badge_html}</div>
                 {/if *}
                 {$wa->shop->productImgHtml($p, '96x96', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy96.png"])}
                 <h5 itemprop="name">
-                    {$p.name}
+                    {$p.name|truncate:32}
                 </h5>
-            </a>
-        </div>
+            </div>
+        </a>
         <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
             {* if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency($p.compare_price)} </span>{/if *}
 

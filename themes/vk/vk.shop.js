@@ -15,9 +15,11 @@ $(document).ready(function () {
 
     $(".content").on('submit', '.product-list form.addtocart', function () {
         var f = $(this);
+        f.find('input[type="submit"]').after('<i class="icon16 loading adding2cart"></i>');
         if (f.data('url')) {
             var d = $('#dialog');
             var c = d.find('.cart');
+            f.find('.adding2cart').hide();
             c.load(f.data('url'), function () {
                 c.prepend('<a href="#" class="dialog-close">&times;</a>');
                 d.show();
@@ -37,8 +39,10 @@ $(document).ready(function () {
 
                 f.find('input[type="submit"]').hide();
                 f.find('.price').hide();
+                f.find('.adding2cart').hide();
                 f.find('span.added2cart').show();
             } else if (response.status == 'fail') {
+                f.find('.adding2cart').hide();
                 alert(response.errors);
             }
         }, "json");

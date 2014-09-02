@@ -78,6 +78,7 @@ function Product(form, options) {
 
     this.form.submit(function () {
         var f = $(this);
+        f.find('input[type="submit"]').after('<i class="icon16 loading adding2cart"></i>');
         $.post(f.attr('action') + '?html=1', f.serialize(), function (response) {
             if (response.status == 'ok') {
                 var cart_total = $(".cart-total");
@@ -94,9 +95,11 @@ function Product(form, options) {
                     });
                 }
                 if (response.data.error) {
+                    f.find('.adding2cart').hide();
                     alert(response.data.error);
                 }
             } else if (response.status == 'fail') {
+                f.find('.adding2cart').hide();
                 alert(response.errors);
             }
         }, "json");
@@ -229,6 +232,7 @@ Product.prototype.cartButtonVisibility = function (visible) {
         this.add2cart.find('.qty').show();
         this.add2cart.find('span.added2cart').hide();
     } else {
+        this.add2cart.find('.adding2cart').hide();
         this.add2cart.find('.compare-at-price').hide();
         this.add2cart.find('input[type="submit"]').hide();
         this.add2cart.find('.price').hide();
