@@ -1,5 +1,9 @@
 <form id="cart-form{if $wa->get('cart')}-dialog{/if}" method="post" action="{$wa->getUrl('/frontendCart/add')}">
 
+    {if $wa->get('cart')}
+        {$wa->shop->productImgHtml($product, '96x96', [ 'itemprop' => 'image', 'id' => 'product-image', 'alt' => $product.name|escape ])}
+    {/if}
+    
     {if $product.sku_type}
 
     <!-- SELECTABLE FEATURES selling mode -->

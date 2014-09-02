@@ -183,28 +183,26 @@
 {$crossselling = $product->crossSelling()}
 
 {if $upselling || $crossselling}
-    <div class="content right double">
 
-        {if $upselling}
-            <div class="related">
-                <h3>
-                    [`See also`]
-                    {$compare_ids = array_merge(array($product.id), array_keys($upselling))}
-                    <input type="button" onClick="javascript:window.location='{$wa->getUrl('/frontend/compare', ['id' => implode(',', $compare_ids)])}';" value="[`Compare all`]" />
-                    
-                </h3>
-                {include file="list-thumbs-mini.html" products=$upselling}
-            </div>
-        {/if}
+    {if $upselling}
+        <div class="related">
+            <h3>
+                [`See also`]
+                {$compare_ids = array_merge(array($product.id), array_keys($upselling))}
+                <input type="button" onClick="javascript:window.location='{$wa->getUrl('/frontend/compare', ['id' => implode(',', $compare_ids)])}';" value="[`Compare all`]" />
+                
+            </h3>
+            {include file="list-thumbs-mini.html" products=$upselling}
+        </div>
+    {/if}
 
-        {if $crossselling}
-            <div class="related">
-                <h3>{sprintf('[`Customers who bought %s also bought`]', $product.name|escape)}</h3>
-                {include file="list-thumbs-mini.html" products=$crossselling}
-            </div>
-        {/if}
+    {if $crossselling}
+        <div class="related">
+            <h3>{sprintf('[`Customers who bought %s also bought`]', $product.name|escape)}</h3>
+            {include file="list-thumbs-mini.html" products=$crossselling}
+        </div>
+    {/if}
 
-    </div>
 {/if}
 
 <div class="facebook-photo-zoom"><a id="facebook-photo-zoom" href="#"></a></div>

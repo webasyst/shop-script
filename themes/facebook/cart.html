@@ -63,19 +63,6 @@
                         </div>
                         {/if}
 
-                        {if $item@index < 3}
-                        {$related = $wa->shop->crossSelling($item.product.id)}
-                        {if $related}
-                        <!-- cross-selling -->
-                        <div class="clear-both related" data-id="{$item.id}">
-                            <div class="col w1 item-thumb">&nbsp;</div>
-                            <div class="col w15 small">
-                                <h2>{sprintf('[`Customers who bought %s also bought`]', $item.product.name|escape)}:</h2>
-                                {include file="list-thumbs-mini.html" products=$related without_form=true}
-                            </div>
-                        </div>
-                        {/if}
-                        {/if}
                     </div>
                     {if !empty($item.error)}<script>alert({json_encode($item.error)});</script>{/if}
                 {/foreach}
@@ -108,6 +95,14 @@
                     <div class="col w1">&nbsp;</div>
                 </div>
                 {/if}
+
+                {if shopAffiliate::isEnabled() && !empty($add_affiliate_bonus)}
+                <div class="row no-border">
+                    <div class="col w16 no-border align-center">
+                        <p class="affiliate"><i class="icon16 like"></i> {sprintf("[`This order will add <strong>+%s bonuses</strong> to  your account, which you will be able to spend on getting additional discounts later.`]", $add_affiliate_bonus)}</p>
+                    </div>
+                </div>
+                {/if}
                 
                 <!-- TOTAL -->
                 <div class="row large no-border">
@@ -120,9 +115,6 @@
                 <div class="row no-border">
                     <div class="col w12 no-border non-mobile-only">
                         <span class="gray">&larr;</span> <a href="{$wa_app_url}" class="gray">[`Back to the store`]</a>
-                        {if shopAffiliate::isEnabled() && !empty($add_affiliate_bonus)}
-                        <em class="float-right affiliate">{sprintf("[`This order will add +%s points to your affiliate bonus.`]", $add_affiliate_bonus)}</em>
-                        {/if}
                     </div>
                     <div class="col w3 align-center bold cart-checkout">
                         <input name="checkout" type="submit" value="[`Proceed to checkout`]" class="button large">
@@ -130,7 +122,16 @@
                     <div class="col w1">&nbsp;</div>
                 </div>
                 
-                
+                {if $related = $wa->shop->crossSelling($cart.items, 'product_id')}
+                    <div class="row no-border">
+                        <div class="col w16 related">
+    
+                            <h4><strong>[`Recommended!`]</strong> {sprintf('[`Customers who bought %s also bought`]', $item.product.name|escape)}:</h4>
+                            {include file="list-thumbs-mini.html" products=$related without_form=true}
+                            <div class="clear-both"></div>
+                        </div>
+                    </div>
+                {/if}
                 
             </div>
 

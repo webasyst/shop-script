@@ -78,11 +78,14 @@ function Product(form, options) {
 
     this.form.submit(function () {
         var f = $(this);
+        f.find('input[type="submit"]').after('<i class="icon16 loading adding2cart"></i>');
         $.post(f.attr('action') + '?html=1', f.serialize(), function (response) {
+
             if (response.status == 'ok') {
                 var cart_total = $(".cart-total");
                 var cart_div = f.closest('.cart');
 
+                f.find('.adding2cart').hide();
                 cart_total.closest('#cart').removeClass('empty');
                 cart_total.html(response.data.total);
 
@@ -94,12 +97,15 @@ function Product(form, options) {
                     });
                 }
                 if (response.data.error) {
+                    f.find('.adding2cart').hide();
                     alert(response.data.error);
                 }
             } else if (response.status == 'fail') {
+                f.find('.adding2cart').hide();
                 alert(response.errors);
             }
         }, "json");
+
         return false;
     });
 
