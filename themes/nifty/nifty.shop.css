@@ -292,3 +292,26 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
 .dialog-window .cart { position: fixed; top: 15%; left: 0; right: 0; opacity: 1; z-index: 100; overflow-x: hidden; box-shadow: 0 3px 15px #ddd; margin: 0 auto; text-align: left; width: 400px; bottom: 15%; background: #fff; padding: 25px; }
 .dialog-window .cart .added2cart { font-size: 1.1em; font-style: italic; }
 .dialog-window .dialog-close { float: right; color: #cc8; text-decoration: none; font-size: 200%; margin-top: -3px; }
+
+
+/* TABLET
+========= */
+
+@media screen and (min-width: 760px) and (max-width: 1024px) {
+    
+}
+
+/* MOBILE
+========= */
+
+@media screen and (max-width: 760px) {
+
+}
+
+/* WIDE
+========= */
+
+@media screen and (min-width: 1300px) {
+
+
+}
