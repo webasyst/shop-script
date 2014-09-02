@@ -2,7 +2,7 @@
 
 /**
  *
- * @author WebAsyst Team
+ * @author Webasyst
  * @version SVN: $Id: shopProduct.model.php 2031 2012-08-17 16:18:20Z vlad $
  *
  */

@@ -12,5 +12,4 @@ class shopSettingsPaymentAction extends waViewAction
         $this->view->assign('plugins', waPayment::enumerate());
         $this->view->assign('installer', $this->getUser()->getRights('installer', 'backend'));
     }
-
 }

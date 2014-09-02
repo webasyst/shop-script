@@ -45,7 +45,7 @@
 #mainmenu .s-search-form i.icon16.search-bw { position: absolute; opacity: 0.4; top: 4px; left: -24px; }
 
 #maincontent { padding: 0 5px; margin-top: 84px /* #mainmenu offset */; }
-.s-no-level2 #maincontent { margin-top: 39px; padding: 0; /* when there is no 2nd level menu, and #mainmenu is not fixed */ }
+.s-no-level2 #maincontent { margin-top: 43px; padding: 0; /* when there is no 2nd level menu, and #mainmenu is not fixed */ }
 
 #s-sidebar { padding-top: 42px; position: relative; padding-bottom: 60px; }
 #s-sidebar .s-sidebar-width-control { position: fixed; bottom: 0; left: 0; opacity: 0; box-shadow: 0 -10px 15px -15px rgba(0,0,0,0.3); background: #fff; text-align: right; padding-bottom: 25px; }
@@ -646,10 +646,9 @@ table.s-bulk-image-uploader-map .preload-files li.ui-state-highlight { line-heig
 .s-nolevel2-sidebar ul.menu-v li a { color: #777; }
 .s-nolevel2-sidebar ul.menu-v li a:hover { color: #333 !important; }
 .s-nolevel2-sidebar ul.menu-v li.selected a { background: #e1e1e1; font-weight: bold; color: #000; font-size: 1.03em; }
-.s-nolevel2-sidebar.s-storefronts ul.menu-v li { margin-bottom: 6px; }
-.s-nolevel2-sidebar.s-storefronts ul.menu-v li a { color: #03c; font-size: 0.9em; }
-.s-nolevel2-sidebar.s-storefronts ul.menu-v li.larger a { font-size: 1.1em; }
-.s-nolevel2-box { /* position: relative; */ z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); background: #f7f7f7; border: 1px solid #ccc; border-top: 0; margin-bottom: 70px; }
+.s-nolevel2-sidebar.s-storefronts ul.menu-v li { margin-bottom: 6px; word-break: break-all; }
+.s-nolevel2-sidebar.s-storefronts ul.menu-v li a { color: #03c; }
+.s-nolevel2-box { position: relative; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); background: #f7f7f7; border: 1px solid #ccc; border-top: 0; margin-bottom: 70px; }
 .s-nolevel2-box table.zebra td.hover-only-links { min-width: 100px; }
 ul#s-settings-menu li a i.icon16 { opacity: 0.4; }
 ul#s-settings-menu li a:hover i.icon16 { opacity: 0.8; }
@@ -751,6 +750,9 @@ ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
 #send-test-dialog .successmsg { display: inline-block; }
 
 .s-settings-editor-bottom-fixed-panel { position: fixed; bottom: 0; left: 0; right: 0; padding-left: 410px; background: #f7f7f7; border-top: 1px solid #ddd; z-index: 1234; }
+
+ul.menu-h.s-workhours li { margin-right: 0; }
+ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 
 /* ICONS
 -------- */

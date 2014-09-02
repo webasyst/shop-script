@@ -9,6 +9,5 @@ class shopPluginsController extends waViewController
         } else {
             $this->executeAction(new shopPluginsAction());
         }
-
     }
 }

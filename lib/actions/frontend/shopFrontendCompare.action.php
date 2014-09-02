@@ -5,6 +5,9 @@ class shopFrontendCompareAction extends waViewAction
     public function execute()
     {
         $ids = waRequest::param('id', array(), waRequest::TYPE_ARRAY_INT);
+        if (!$ids) {
+            $ids = waRequest::cookie('shop_compare', array(), waRequest::TYPE_ARRAY_INT);
+        }
         $collection = new shopProductsCollection('id/'.implode(',', $ids));
         $products = $collection->getProducts();
 
@@ -17,6 +20,9 @@ class shopFrontendCompareAction extends waViewAction
             $temp_ids = $ids;
             unset($temp_ids[array_search($p['id'], $temp_ids)]);
             $p['delete_url'] = str_replace('%ID%', implode(',', $temp_ids), $compare_link);
+            if (!$temp_ids) {
+                $p['delete_url'] = substr($p['delete_url'], 0, -1);
+            }
             foreach ($p->features as $code => $v) {
                 if (is_object($v)) {
                     $v = trim(isset($v['compare']) ? $v['compare'] : $v['value']);

@@ -3,14 +3,14 @@
 class shopHelper
 {
     /**
-     *
-     * Get HTML icon view
-     * @param string $icon type
-     * @param string $default icon type
-     * @param int $size 10|16
-     * @param mixed[] $params
-     * @param string [string] $params['class']
-     * @return string HTML
+     * Returns HTML code of a Webasyst icon.
+     * 
+     * @param string|null $icon Icon type
+     * @param string|null $default Default icon type to be used if $icon is empty.
+     * @param int $size Icon size in pixels. Available sizes: 10, 16.
+     * @param array $params Extra parameters:
+     *     'class' => class name tp be added to icon's HTML code
+     * @return string
      */
     public static function getIcon($icon, $default = null, $size = 16, $params = array())
     {
@@ -34,6 +34,12 @@ class shopHelper
         return $icon;
     }
 
+    /**
+     * Returns array of payment methods.
+     * 
+     * @param array $order Array of order data whose parameters must be pre-filled in payment method's custom fields.
+     * @return array
+     */
     public static function getPaymentMethods($order = array())
     {
         $plugin_model = new shopPluginModel();
@@ -76,6 +82,13 @@ class shopHelper
         return $methods;
     }
 
+    /**
+     * Returns unavailable payment methods for specified shipping method or shipping methods for which specified payment method is unavailable. 
+     * 
+     * @param string $type Method type for which other type will be considered as complimentary; acceptable values: 'payment' or 'shipping'
+     * @param int $id Id of method for which methods of other type must be returned
+     * @return array Method ids
+     */
     public static function getDisabledMethods($type, $id)
     {
         $map = wa()->getSetting('shipping_payment_disabled', null, 'shop');
@@ -100,18 +113,15 @@ class shopHelper
     }
 
     /**
-     *
-     * Get available shipping methods and rates
-     * @param array $address
-     * @param array $items array of package items
-     * @param array [string]double $items['weight'] package item weight in base unit
-     * @param array [string]int $items['quantity']
-     * @param array [string]double $items['price'] package item price in default currency
-     * @param array $params optional params
-     * @param array [string]string $params['currency'] result currency code
-     * @param array [string]double $params['total_price'] precalculated total package price
-     * @param array [string]int $params['payment'] selected payment instance ID
-     * @return array[integer]
+     * Returns available shipping methods and rates for specified address.
+     * 
+     * @param array $address Address data
+     * @param array $items Order items
+     * @param array $params Optional extra parameters:
+     *     'payment'     => [int] payment method id for which available shipping methods must be returned
+     *     'currency'    => [string] currency code to convert shipping rates to
+     *     'total_price' => [float] arbitrary total order items cost to be taken into account for obtaining shipping rates
+     * @return array
      */
     public static function getShippingMethods($address = null, $items = array(), $params = array())
     {
@@ -211,6 +221,12 @@ class shopHelper
         }
     }
 
+    /**
+     * Returns array of print forms available for specified order.
+     * 
+     * @param array|null $order Order data; if not specified, print forms applicable to any orders are returned
+     * @return array
+     */
     public static function getPrintForms($order = null)
     {
         $plugins = wa('shop')->getConfig()->getPlugins();
@@ -261,6 +277,12 @@ class shopHelper
 
     protected static $badges = array();
 
+    /**
+     * Returns HTML code for displaying one of default product image badges.
+     * 
+     * @param string $code Badge code: 'new', 'bestseller', or 'lowprice'
+     * @return string
+     */
     public static function getBadgeHtml($code)
     {
         if (!self::$badges) {
@@ -272,6 +294,12 @@ class shopHelper
         return $code;
     }
 
+    /**
+     * Returns HTML code of product image badge.
+     * 
+     * @param array $image Image data array containing elements 'badge_type' and, optionally, 'badge_code' (for custom badges).
+     * @return string
+     */
     public static function getImageBadgeHtml($image)
     {
         if (!isset($image['badge_type'])) {
@@ -284,13 +312,13 @@ class shopHelper
     }
 
     /**
-     * Get either a Gravatar URL or complete image tag for a specified email address.
+     * Returns Gravatar URL for specified email address.
+     * @see http://gravatar.com/site/implement/images/php/
      *
-     * @param string $email The email address
+     * @param string $email Email address
      * @param int $size Size in pixels, defaults to 50
-     * @param string $default Default imageset to use [ custom | 404 | mm | identicon | monsterid | wavatar ]
-     * @return String containing either just a URL or a complete image tag
-     * @source http://gravatar.com/site/implement/images/php/
+     * @param string $default Default image set to use. Available image sets: 'custom', '404', 'mm', 'identicon', 'monsterid', 'wavatar'.
+     * @return string
      */
     public static function getGravatar($email, $size = 50, $default = 'mm')
     {
@@ -301,6 +329,13 @@ class shopHelper
         return '//www.gravatar.com/avatar/'.md5(strtolower(trim($email)))."?size=$size&default=$default";
     }
 
+    /**
+     * Adds various extra data to specified orders.
+     * 
+     * @param array $orders Orders array
+     * @param bool $single Whether only one order is specified; only in this case modified order data array is returned  
+     * @return null|array
+     */
     public static function workupOrders(&$orders, $single = false)
     {
         if ($single) {
@@ -357,6 +392,13 @@ class shopHelper
         }
     }
 
+    /**
+     * Returns customer address data for specified order.
+     * 
+     * @param array $order_params Array of order address parameters with keys of the form 'shipping_address.***' or 'payment_address.***' 
+     * @param string $addr_type Address type: 'shipping' or 'payment'
+     * @return array
+     */
     public static function getOrderAddress($order_params, $addr_type)
     {
         $address = array();
@@ -366,6 +408,13 @@ class shopHelper
         return $address;
     }
 
+    /**
+     * Returns customer's shipping address written in one string.
+     * 
+     * @param array $order_params 'params' element of order data array returned by getOrder() method of shopOrderModel class
+     * @param bool $for_map Whether full or brief address information must be returned; defaults to true
+     * @return string
+     */
     public static function getShippingAddressText($order_params, $for_map = true)
     {
         $address = array();
@@ -397,11 +446,23 @@ class shopHelper
         return implode(', ', $address);
     }
 
+    /**
+     * Returns order id formatted in accordance with custom format specified in store settings.
+     *
+     * @param int $id
+     * @return string
+     */
     public static function encodeOrderId($id)
     {
         return str_replace('{$order.id}', $id, wa('shop')->getConfig()->getOrderFormat());
     }
 
+    /**
+     * Returns 'clean' order id without custom format applied which is specified in store settings.
+     *
+     * @param string $id
+     * @return string Decoded order id, or empty string on failure
+     */
     public static function decodeOrderId($id)
     {
         $format = wa('shop')->getConfig()->getOrderFormat();
@@ -412,6 +473,14 @@ class shopHelper
         return '';
     }
 
+    /**
+     * Returns HTML code of stock icon (normal, low, critical).
+     * 
+     * @param int|null $count SKU stock count; if not specified, normal icon is returned
+     * @param int|null $stock_id Id of stock whose limit settings must be taken into account; if not specified, default values 5 and 2 are used
+     * @param bool $include_text Whether text '*** items left' must be added to icon
+     * @return string
+     */
     public static function getStockCountIcon($count, $stock_id = null, $include_text = false)
     {
         static $stocks = array();
@@ -448,8 +517,10 @@ class shopHelper
     }
 
     /**
-     * @param int|waContact $id
-     * @param bool $ensure_address
+     * Returns instance of class waContactForm.
+     * 
+     * @param int|waContact|null $id Optional id of contact or contact object whose data must be pre-filled in contact form.
+     * @param bool $ensure_address Whether address fields must be included regardless of store's contact fields settings.
      * @return waContactForm
      */
     public static function getCustomerForm($id = null, $ensure_address = false)
@@ -502,9 +573,10 @@ class shopHelper
     }
 
     /**
-     * Suggest url from string
-     * @param string $str
-     * @param boolean $strict
+     * Suggests a URL part generated from specified string.
+     * 
+     * @param string $str Specified string
+     * @param boolean $strict Whether a default value must be generated if provided string results in an empty URL 
      * @return string
      */
     public static function transliterate($str, $strict = true)
@@ -522,6 +594,12 @@ class shopHelper
         return strtolower($str);
     }
 
+    /**
+     * Verifies current user's access rights to contact with specified id.
+     * 
+     * @param int|null $contact_id Contact id. If not specified, access rights to all contacts are verified.
+     * @return bool
+     */
     public static function getContactRights($contact_id = null)
     {
         $rights = false;
@@ -540,6 +618,14 @@ class shopHelper
         return $rights;
     }
 
+    /**
+     * Returns HTML code of product rating control.
+     * 
+     * @param int $rating Current rating value
+     * @param int $size Rating icons size: 10 or 16; defaults to 10
+     * @param bool $show_when_zero Whether HTML code must be returned for zero current rating
+     * @return string  
+     */
     public static function getRatingHtml($rating, $size = 10, $show_when_zero = false)
     {
         $rating = round($rating * 2) / 2;

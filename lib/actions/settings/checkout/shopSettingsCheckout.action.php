@@ -23,5 +23,4 @@ class shopSettingsCheckoutAction extends waViewAction
         $this->view->assign('steps', $steps);
 
     }
-
 }

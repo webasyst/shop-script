@@ -140,7 +140,6 @@ class shopCheckoutConfirmation extends shopCheckout
                 <div class="value">
                     <p class="hint">'._w('If you want your customers to be prompted to read and agree to your company’s terms of service, refund and privacy policies or any other legal information during the checkout, enter the text to the field above. A checkbox to agree and a link to read this legal information will be shown on the Confirmation checkout step.').'
                     <a id="confirmation-generate-terms" href="#" class="inline-link"><b><i>'._w('Generate sample policy').'</i></b></a></p>
-                    <p id="confirmation-terms-red" class="red small"'.(!empty($config['terms']) ? '' : ' style="display:none"').'>'._w('For Terms of service to work, make sure you updated <strong>checkout.confirmation.html</strong> template file from the original design theme (either Default or CUSTOM). In case there is no checkbox to agree to the Terms of service in the template file along with the terms legal text entered in the backend, order checkout may stop accepting orders due to the lack of a checkbox user could click, and an error message output. The original checkout.confirmation.html template file contains both checkbox and error output text. Please make sure to update it.').'</p>
                 </div>
                 <div style="display:none" id="confirmation-terms-sample">'.$terms[$locale].'</div>
                 <script>

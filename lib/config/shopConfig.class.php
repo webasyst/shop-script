@@ -191,6 +191,38 @@ class shopConfig extends waAppConfig
                      ) as $k => $value) {
                 $settings[$k] = isset($all_settings[$k]) ? $all_settings[$k] : $value;
             }
+            if (isset($all_settings['workhours'])) {
+                if ($all_settings['workhours']) {
+                    $workhours = json_decode($all_settings['workhours'], true);
+                    $settings['workhours'] = array(
+                        'hours_from' => $workhours['from'],
+                        'hours_to' => $workhours['to'],
+                        'days' => array(),
+                        'days_from_to' => '',
+                    );
+                    $strings = array(
+                        _ws('Sun'),
+                        _ws('Mon'),
+                        _ws('Tue'),
+                        _ws('Wed'),
+                        _ws('Thu'),
+                        _ws('Fri'),
+                        _ws('Sat'),
+                    );
+                    if ($workhours['days']) {
+                        foreach ($workhours['days'] as $d) {
+                            $settings['workhours']['days'][$d] = $strings[$d];
+                        }
+                        if (count($workhours['days']) > 1) {
+                            $settings['workhours']['days_from_to'] = $strings[$workhours['days'][0]].'—'.$strings[end($workhours['days'])];
+                        }
+                    }
+                } else {
+                    $settings['workhours'] = $all_settings['workhours'];
+                }
+            } else {
+                $settings['workhours'] = null;
+            }
         }
         if ($field) {
             if (isset($settings[$field])) {

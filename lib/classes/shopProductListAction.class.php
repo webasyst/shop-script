@@ -84,7 +84,7 @@ class shopProductListAction extends waViewAction
         if ($text) {
             $this->text = urldecode($text);
             $this->collection_param = 'text='.$this->text;
-            return array('search', 'query='.$this->text);
+            return array('search', 'query='.str_replace('&' ,'\&', $this->text));
         }
         $tag  = waRequest::get('tag', null, waRequest::TYPE_STRING_TRIM);
         if ($tag) {

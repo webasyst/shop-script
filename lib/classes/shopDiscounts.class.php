@@ -3,9 +3,11 @@
 class shopDiscounts
 {
     /**
-     * @param array $order items, total
-     * @param bool $apply
-     * @return float total discount value in currency of the order
+     * Returns aggregate discount amount applicable to order.
+     * 
+     * @param array $order Order data array
+     * @param bool $apply Whether discount-related information must be added to order parameters (where appropriate)
+     * @return float Total discount value expressed in order currency
      */
     public static function calculate(&$order, $apply = false)
     {
@@ -72,14 +74,22 @@ class shopDiscounts
     }
 
     /**
-     * @param array $order
-     * @return float total discount value in currency of the order
+     * Returns aggregate discount amount applicable to order and adds discount-related information to order parameters where appropriate.
+     * 
+     * @param array $order Order data array
+     * @return float Total discount value expressed in order currency
      */
     public static function apply(&$order)
     {
         return self::calculate($order, true);
     }
 
+    /**
+     * Determines whether specified discount type is enabled in store settings field 'discount_%type%'.
+     * 
+     * @param string $discount_type Discount type id
+     * @return bool
+     */
     public static function isEnabled($discount_type)
     {
         return !empty($discount_type) && wa('shop')->getSetting('discount_'.$discount_type);

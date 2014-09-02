@@ -59,8 +59,6 @@ class shopBackendLayout extends waLayout
          * @return array[string]array $return[%plugin_id%]
          * @return array[string][string]string $return[%plugin_id%]['aux_li'] Single menu items
          * @return array[string][string]string $return[%plugin_id%]['core_li'] Single menu items
-         * @return array[string][string]string $return[%plugin_id%]['reports_li'] Single menu items
-         * @return array[string][string]string $return[%plugin_id%]['orders_viewmode_li'] Single menu items
          */
         $this->assign('backend_menu', wa()->event('backend_menu' /*,$page*/));
     }

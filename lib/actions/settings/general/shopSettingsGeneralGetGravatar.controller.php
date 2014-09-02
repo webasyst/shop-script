@@ -2,7 +2,7 @@
 
 class shopSettingsGeneralGetGravatarController extends waJsonController
 {
-    public function execute() 
+    public function execute()
     {
         $email = waRequest::get('email');
         $default = waRequest::get('default');

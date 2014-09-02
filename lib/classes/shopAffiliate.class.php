@@ -10,6 +10,8 @@ class shopAffiliate
     /**
      * Amount of affiliation points given order worths.
      * @param array|int $order_or_id
+     * @param float $credit_rate
+     * @return float
      */
     public static function calculateBonus($order_or_id, $credit_rate = null)
     {

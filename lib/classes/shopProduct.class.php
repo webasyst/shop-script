@@ -60,7 +60,9 @@ class shopProduct implements ArrayAccess
     protected $model;
 
     /**
-     * @param int|array $data id or data array
+     * Creates a new product object or a product object corresponding to existing product. 
+     * 
+     * @param int|array $data Product id or product data array
      */
     public function __construct($data = array())
     {
@@ -103,6 +105,8 @@ class shopProduct implements ArrayAccess
     }
 
     /**
+     * Returns product id.
+     * 
      * @return int
      */
     public function getId()
@@ -110,6 +114,17 @@ class shopProduct implements ArrayAccess
         return $this->getData('id');
     }
 
+    /**
+     * Returns information about product's images.
+     * 
+     * @param string|array $sizes Image size id or array of size ids.
+     *     Acceptable values: 'big', 'default', 'thumb', 'crop', 'crop_small'. If empty, 'crop' is assumed by default. 
+     * @param bool $absolute Whether absolute or relative image URLs must be returned.
+     * 
+     * @see shopConfig::$image_sizes — actual image size values correspondings to size ids
+     * 
+     * @return array Array containing sub-arrays of individual product images
+     */
     public function getImages($sizes = array(), $absolute = false)
     {
         if ($this->getId()) {
@@ -123,6 +138,11 @@ class shopProduct implements ArrayAccess
         }
     }
 
+    /**
+     * Returns product's subpages.
+     * 
+     * @return array
+     */
     public function getPages()
     {
         $product_pages_model = new shopProductPagesModel();
@@ -130,6 +150,8 @@ class shopProduct implements ArrayAccess
     }
 
     /**
+     * Returns the contact who has created the product.
+     * 
      * @return waContact
      */
     public function getContact()
@@ -137,6 +159,12 @@ class shopProduct implements ArrayAccess
         return new waContact($this->contact_id);
     }
 
+    /**
+     * Saves product data to database.
+     * 
+     * @param array $data
+     * @return bool Whether saved successfully
+     */
     public function save($data = array(), $validate = true, &$errors = array())
     {
         $result = false;
@@ -226,7 +254,7 @@ class shopProduct implements ArrayAccess
         );
 
         /**
-         * Handle product entry save
+         * Plugin hook for handling product entry saving event
          * @event product_save
          *
          * @param array [string]mixed $params
@@ -269,8 +297,11 @@ class shopProduct implements ArrayAccess
     }
 
     /**
-     * @param string $name
-     * @return mixed
+     * Executed on attempts to retrieve product property values.
+     * @see http://www.php.net/manual/en/language.oop5.overloading.php
+     * 
+     * @param string $name Property name
+     * @return mixed|null Property value or null on failure
      */
     public function __get($name)
     {
@@ -290,8 +321,9 @@ class shopProduct implements ArrayAccess
     }
 
     /**
-     * @param string|null $name
-     *   If $name is comma-separated enumeration of fields, than preloading corresponding data first
+     * Returns product property value.
+     * 
+     * @param string|null $name Value name. If not specified, all properties' values are returned. 
      * @return mixed
      */
     public function getData($name = null)
@@ -304,15 +336,25 @@ class shopProduct implements ArrayAccess
     }
 
     /**
-     * @param string $name
-     * @param mixed $value
-     * @return mixed
+     * Executed on attempts to change product property values.
+     * @see http://www.php.net/manual/en/language.oop5.overloading.php
+     * 
+     * @param string $name Property name
+     * @param mixed $value New value
+     * @return mixed New value
      */
     public function __set($name, $value)
     {
         return $this->setData($name, $value);
     }
 
+    /**
+     * Changes product property values without saving them to database. 
+     * 
+     * @param string $name Property name
+     * @param mixed $value New value
+     * @return mixed New value
+     */
     public function setData($name, $value)
     {
         if ($this->getData($name) !== $value) {
@@ -369,7 +411,8 @@ class shopProduct implements ArrayAccess
     }
 
     /**
-     * Folder of product files
+     * Returns relative path to directory containing specified product's files.
+     * 
      * @param int $product_id
      * @return string
      */
@@ -380,10 +423,11 @@ class shopProduct implements ArrayAccess
     }
 
     /**
-     * Path of product file
+     * Returns path to specified product's data file or directory.
+     * 
      * @param int $product_id
-     * @param string $file subpath of the file
-     * @param bool $public
+     * @param string $file Sub-path of file or directory
+     * @param bool $public Whether path to either directly available or authorization-protected file/directory must be returned
      * @return string
      */
     public static function getPath($product_id, $file = null, $public = false)
@@ -392,12 +436,25 @@ class shopProduct implements ArrayAccess
         return wa()->getDataPath($path, $public, 'shop');
     }
 
+    /**
+     * Returns information on product's type.
+     * 
+     * @return array|null Product type info array, or null if product has no type
+     */
     public function getType()
     {
         $model = new shopTypeModel();
         return $this->type_id ? $model->getById($this->type_id) : null;
     }
 
+    /**
+     * Returns products identified as upselling items for current product.
+     *
+     * @param int $limit Maximum number of items to be returned
+     * @param bool $available_only Whether only products with positive or unlimited stock count must be returned
+     *
+     * @return array Array of upselling products' data sub-arrays
+     */
     public function upSelling($limit = 5, $available_only = false)
     {
         $upselling = $this->getData('upselling');
@@ -426,6 +483,14 @@ class shopProduct implements ArrayAccess
         }
     }
 
+    /**
+     * Returns products identified as cross-selling items for current product.
+     * 
+     * @param int $limit Maximum number of items to be returned
+     * @param bool $available_only Whether only products with positive or unlimited stock count must be returned
+     * 
+     * @return array Array of cross-selling products' data sub-arrays
+     */
     public function crossSelling($limit = 5, $available_only = false)
     {
         $cross_selling = $this->getData('cross_selling');
@@ -460,8 +525,9 @@ class shopProduct implements ArrayAccess
     }
 
     /**
+     * Returns estimated information on product's sales based on specified sales rate
      *
-     * @param double $rate Number of sold products in one day
+     * @param double $rate Average number of product's sales per day
      * @return array
      */
     public function getRunout($rate)
@@ -498,7 +564,7 @@ class shopProduct implements ArrayAccess
     }
 
     /**
-     * Check current user rights to product with its type id
+     * Verifies current user's access rights to product by its type id.
      *
      * @throws waException
      * @return boolean

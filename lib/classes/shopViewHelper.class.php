@@ -4,6 +4,7 @@ class shopViewHelper extends waAppViewHelper
 {
     protected $_cart;
     protected $_customer;
+    protected $_currency;
 
     /**
      *
@@ -75,11 +76,21 @@ class shopViewHelper extends waAppViewHelper
         }
         return $skus;
     }
+    
+    public function images($product_ids, $size = array(), $absolute = false)
+    {
+        if (!$product_ids) {
+            return array();
+        }
+        $product_ids = array_map('intval', (array) $product_ids);
+        $product_images_model = new shopProductImagesModel();
+        return $product_images_model->getImages($product_ids, $size, 'product_id', $absolute);
+    }
 
     public function settings($name, $escape = true)
     {
         $result = wa('shop')->getConfig()->getGeneralSettings($name);
-        return $escape ? htmlspecialchars($result) : $result;
+        return $escape && !is_array($result) ? htmlspecialchars($result) : $result;
     }
 
     public function sortUrl($sort, $name, $active_sort = null)
@@ -113,6 +124,14 @@ class shopViewHelper extends waAppViewHelper
             $this->_cart = new shopCart();
         }
         return $this->_cart;
+    }
+
+    public function primaryCurrency()
+    {
+        if (!$this->_currency) {
+            $this->_currency = $this->wa->getConfig()->getCurrency(true);
+        }
+        return $this->_currency;
     }
 
     public function currency($full_info = false)
@@ -407,7 +426,8 @@ class shopViewHelper extends waAppViewHelper
 
     public function payment()
     {
-        return array();
+        $plugin_model = new shopPluginModel();
+        return $plugin_model->listPlugins('payment');
     }
 
     public function orderId($id)
@@ -433,5 +453,24 @@ class shopViewHelper extends waAppViewHelper
     public function ratingHtml($rating, $size = 10, $show_when_zero = false)
     {
         return shopHelper::getRatingHtml($rating, $size, $show_when_zero);
+    }
+
+    public function shipping()
+    {
+        $plugin_model = new shopPluginModel();
+        return $plugin_model->listPlugins('shipping');
+    }
+
+    /**
+     * @param $product_id
+     * @return array - return array ids in comparison or array()
+     */
+    public function inComparison($product_id = null)
+    {
+        $ids = waRequest::cookie('shop_compare', array(), waRequest::TYPE_ARRAY_INT);
+        if (!$product_id) {
+            return $ids;
+        }
+        return in_array($product_id, $ids) ? $ids : array();
     }
 }

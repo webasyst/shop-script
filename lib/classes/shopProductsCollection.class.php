@@ -27,10 +27,26 @@ class shopProductsCollection
     protected $is_frontend;
 
     /**
-     * Constructor for collections of products
-     *
-     * @param string|array $hash
-     * @param array $options
+     * Creates a new product collection.
+     * 
+     * @param string|array $hash Product selection conditions. Examples:
+     *     array(12,23,34) or 'id/12,23,34' — explicitely specified product ids
+     *     'related/cross_selling/12' — cross-selling items for product with id = 12
+     *     'related/upselling/23' — upselling items for product with id = 23
+     *     'category/208' — search by category id
+     *     'search/query=style' — search results by query 'style'
+     *     'search/tag=style' — search results by tag 'style'
+     *     'tag/style' — alternative form of search by tag 
+     *     'search/type_id=1' — search results by any field of shop_product table; e.g., type_id
+     *     'type/2' — search by type_id
+     *     'search/name=SuperProduct' — search by 'name' field (exact match)
+     *     'search/color.value_id=6' — search by value with id=6 of 'checkboxes'-type feature with code 'color'
+     * @param array $options Extra options:
+     *     'filters'    => whether products must be filtered according to GET request conditions
+     *     'product'    => shopProduct object to select upselling items for; for upselling-type collections only
+     *     'conditions' => upselling items selection conditions; for upselling-type collections only
+     *     'params'     => whether extra product params must be included in collection products
+     *     'absolute'   => whether absolute product image URLs must be returned for collection products
      */
     public function __construct($hash = '', $options = array())
     {
@@ -41,6 +57,12 @@ class shopProductsCollection
         $this->setHash($hash);
     }
 
+    /**
+     * Extra collection options
+     * @see __construct()
+     * 
+     * @param array $options
+     */
     public function setOptions($options)
     {
         foreach ($options as $k => $v) {
@@ -168,6 +190,15 @@ class shopProductsCollection
         return str_replace(',', '.', (double)$value);
     }
 
+    /**
+     * Filters collection products by specified conditions. 
+     * 
+     * @param array $data Product filtering conditions:
+     *     'in_stock_only'     => whether only products with positive or unlimited stock count must be returned
+     *     'price_min'         => minimum price limit
+     *     'price_max'         => maximum price limit
+     *     '%feature_code%'    => feature value
+     */
     public function filters($data)
     {
         if ($this->filtered) {
@@ -605,12 +636,12 @@ class shopProductsCollection
         while (($j = strpos($query, '&', $offset)) !== false) {
             // escaped &
             if ($query[$j - 1] != '\\') {
-                $query_parts[] = substr($query, $i, $j - $i);
+                $query_parts[] = str_replace('\&', '&', substr($query, $i, $j - $i));
                 $i = $j + 1;
             }
             $offset = $j + 1;
         }
-        $query_parts[] = substr($query, $i);
+        $query_parts[] = str_replace('\&', '&', substr($query, $i));
 
         $model = $this->getModel();
         $title = array();
@@ -816,7 +847,8 @@ class shopProductsCollection
     }
 
     /**
-     * Returns ORDER BY clause
+     * Returns ORDER BY clause.
+     * 
      * @return string
      */
     protected function _getOrderBy()
@@ -829,8 +861,9 @@ class shopProductsCollection
     }
 
     /**
-     * Returns GROUP BY clause
-     * @return string
+     * Returns GROUP BY clause.
+     * 
+     * @return string 
      */
     protected function _getGroupBy()
     {
@@ -842,11 +875,14 @@ class shopProductsCollection
     }
 
     /**
-     * Set order by clause for select
+     * Changes ORDER BY clause of product selection query.
      *
-     * @param string|array $field It is possible pass array with field and order
-     * @param string $order
-     * @return string
+     * @param string|array $field Name of field in 'shop_product' table. Alternative value options:
+     *     'sort' (ignored)
+     *     'rand()' or 'RAND()' — sets 'RAND()' condition for ORDER BY clause
+     *     array($field, $order) — in this case $order parameter is ignored
+     * @param string $order 'ASC' or 'DESC' modifier
+     * @return string New ORDER BY clause or empty string (for 'rand()' $field value)
      */
     public function orderBy($field, $order = 'ASC')
     {
@@ -891,6 +927,11 @@ class shopProductsCollection
         return '';
     }
 
+    /**
+     * Returns array of conditions used in ORDER BY clause.
+     * 
+     * @return array
+     */
     public function getOrderBy()
     {
         if (!$this->order_by) {
@@ -911,6 +952,11 @@ class shopProductsCollection
         }
     }
 
+    /**
+     * Returns product selection SQL query
+     * 
+     * @return string
+     */
     public function getSQL()
     {
         $this->prepare();
@@ -936,6 +982,11 @@ class shopProductsCollection
         return $sql;
     }
 
+    /**
+     * Returns number of products included in collection.
+     * 
+     * @return int
+     */
     public function count()
     {
         if ($this->count !== null) {
@@ -966,6 +1017,19 @@ class shopProductsCollection
         return $this->count = $count;
     }
 
+    /**
+     * Returns array of products included in collection.
+     * 
+     * @param string $fields List of product properties, comma-separated, to be included in returned array 
+     * @param int $offset Initial position in returned product array, 0 means first product in collection
+     * @param int|bool $limit Maximum product limit. 
+     *     If a Boolean value is specified, then $escape = $limit and $limit = null
+     *     If no value is specified, then $limit = 0.
+     *     If no value is specified and $offset is non-zero, then $limit = $offset and $offset = 50   
+     * @param bool $escape Whether product names and urls must be escaped using htmlspecialchars() function, defaults to true
+     * 
+     * @return array Array of collection products' sub-arrays
+     */
     public function getProducts($fields = "*", $offset = 0, $limit = null, $escape = true)
     {
         if (is_bool($limit)) {
@@ -1135,6 +1199,11 @@ class shopProductsCollection
         return $this->models[$name];
     }
 
+    /**
+     * Returns collection title.
+     * 
+     * @return string
+     */
     public function getTitle()
     {
         if ($this->title === null) {
@@ -1143,6 +1212,11 @@ class shopProductsCollection
         return $this->title;
     }
 
+    /**
+     * Returns various useful information about collection.
+     * 
+     * @return array
+     */
     public function getInfo()
     {
         if (empty($this->info)) {
@@ -1154,6 +1228,12 @@ class shopProductsCollection
         return $this->info;
     }
 
+    /**
+     * Adds custom string to current collection title, separated by optional delimiter. 
+     * 
+     * @param string $title Custom string to be added
+     * @param string $delim Delimiter
+     */
     public function addTitle($title, $delim = ', ')
     {
         if (!$title) {
@@ -1165,14 +1245,24 @@ class shopProductsCollection
         $this->title .= $title;
     }
 
-    /** Set GROUP BY clause. Primarily for plugins that extend this collection. */
+    /**
+     * Adds a GROUP BY clause to product selection query.
+     * 
+     * @param string $clause
+     * @return self
+     */
     public function groupBy($clause)
     {
         $this->group_by = $clause;
         return $this;
     }
 
-    /** Add WHERE condition. Primarily for plugins that extend this collection. */
+    /**
+     * Adds a WHERE condition to product selection query.
+     * 
+     * @param string $condition Additional WHERE condition; WHERE keyword must not be specified
+     * @return self
+     */
     public function addWhere($condition)
     {
         $this->where[] = $condition;
@@ -1180,12 +1270,14 @@ class shopProductsCollection
     }
 
     /**
-     * Add JOIN clause
+     * Adds a simple JOIN clause to product selection query.
      *
-     * @param string|array $table
-     * @param string $on
-     * @param string $where
-     * @return string - alias
+     * @param string|array $table Table name to be used in JOIN clause.
+     *     Alternatively an associative array may be specified containing values for all method parameters.
+     *     In this case $on and $where parameters are ignored.
+     * @param string $on ON condition FOR JOIN, must not include 'ON' keyword
+     * @param string $where WHERE condition for SELECT, must not include 'WHERE' keyword
+     * @return string Specified table's alias to be used in SQL query
      */
     public function addJoin($table, $on = null, $where = null)
     {
@@ -1232,12 +1324,19 @@ class shopProductsCollection
         return $alias;
     }
 
+    /**
+     * Returns collection hash.
+     * 
+     * @return string
+     */
     public function getHash()
     {
         return $this->hash;
     }
 
     /**
+     * Returns value ids of product's features   
+     * 
      * @return array
      * array(
      *     feature1_id => array(feature1_value1_id, feature1_value2_id, ...),
@@ -1266,7 +1365,8 @@ class shopProductsCollection
     }
 
     /**
-     * Returns min and max prices of the products collection
+     * Returns collection's minimum and maximum product prices
+     * 
      * @return array
      * array(
      *    'min' => MIN PRICE,

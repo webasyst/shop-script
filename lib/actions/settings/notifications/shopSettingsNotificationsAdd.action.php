@@ -99,10 +99,10 @@ pre { word-wrap: break-word; }
 {if !empty($order.params.auth_pin)}<br>'._w('PIN').': <strong>{$order.params.auth_pin}</strong>{/if}
 </p>
 
-<p>'.sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")|escape}').'</p>
+<p>'.sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}').'</p>
 
 <p>--<br>
-{$wa->shop->settings("name")|escape}<br>
+{$wa->shop->settings("name")}<br>
 <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a><br>
 {$wa->shop->settings("phone")}<br></p>';
         $result['order.create']['sms'] = _w('We successfully accepted your order, and will contact you asap.') . ' ' . sprintf( _w('Your order number is %s. Order total: %s'), '{$order.id}', '{wa_currency($order.total, $order.currency)}');
@@ -114,10 +114,10 @@ pre { word-wrap: break-word; }
 
 <p>'.sprintf( _w('Your order %s has been confirmed and accepted for processing.'), '{$order.id}').'</p>
 
-<p>'.sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")|escape}').'</p>
+<p>'.sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}').'</p>
 
 <p>--<br>
-{$wa->shop->settings("name")|escape}<br>
+{$wa->shop->settings("name")}<br>
 <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a><br>
 {$wa->shop->settings("phone")}<br></p>';
         $result['order.process']['sms'] = sprintf( _w('Your order %s has been confirmed and accepted for processing.'), '{$order.id}');
@@ -140,10 +140,10 @@ pre { word-wrap: break-word; }
     {/if}
 {/if}
 
-<p>'.sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")|escape}' ).'</p>
+<p>'.sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}' ).'</p>
 
 <p>--<br>
-{$wa->shop->settings("name")|escape}<br>
+{$wa->shop->settings("name")}<br>
 <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a><br>
 {$wa->shop->settings("phone")}<br></p>';
         $result['order.ship']['sms'] = sprintf( _w('Your order %s has been sent out!'), '{$order.id}' ) . '{if !empty($action_data.params.tracking_number)} '. _w('Tracking number').': {$action_data.params.tracking_number}' . '{/if}';
@@ -155,10 +155,10 @@ pre { word-wrap: break-word; }
 
 <p>'.sprintf( _w('Your order %s has been cancelled. If you want your order to be re-opened, please contact us.'), '{$order.id}').'</p>
 
-<p>'.sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")|escape}').'</p>
+<p>'.sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}').'</p>
 
 <p>--<br>
-{$wa->shop->settings("name")|escape}<br>
+{$wa->shop->settings("name")}<br>
 <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a><br>
 {$wa->shop->settings("phone")}<br></p>';
         $result['order.delete']['sms'] = sprintf( _w('Your order %s has been cancelled'), '{$order.id}');
@@ -170,10 +170,10 @@ pre { word-wrap: break-word; }
 
 <p>'.sprintf( _w('Your order %s status has been updated to <strong>%s</strong>'), '{$order.id}', '{$status}').'</p>
 
-<p>'.sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")|escape}').'</p>
+<p>'.sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}').'</p>
 
 <p>--<br>
-{$wa->shop->settings("name")|escape}<br>
+{$wa->shop->settings("name")}<br>
 <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a><br>
 {$wa->shop->settings("phone")}<br></p>';
 

@@ -20,8 +20,15 @@ class shopProductImagesModel extends waModel
         }
         if (!$sizes) {
             $sizes = array('crop' => wa('shop')->getConfig()->getImageSize('crop'));
+        } else if (is_numeric($sizes)) {
+            $sizes = array($sizes => $sizes);
         } elseif (is_string($sizes)) {
             $sizes = array((string)$sizes => wa('shop')->getConfig()->getImageSize((string)$sizes));
+            foreach ($sizes as $k => $s) {
+                if ($s === null) {
+                    $sizes[$k] = $k;
+                }
+            }
         }
 
         if ($key != 'product_id') {

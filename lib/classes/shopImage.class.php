@@ -28,6 +28,11 @@ class shopImage
      */
     protected $image;
 
+    /**
+     * Constructor of an image object.
+     * 
+     * @param string $file Full path to image file
+     */
     public function __construct($file)
     {
         $this->file = $file;
@@ -39,6 +44,13 @@ class shopImage
         $this->image->__destruct();
     }
 
+    /**
+     * Saves image to file.
+     * 
+     * @param string|null $file Path to save file. If not specified, image is saved at its original path.
+     * @param int|null $quality Image quality: from 1 to 100; defaults to 100.
+     * @return bool Whether file was saved successfully
+     */
     public function save($file = null, $quality = null)
     {
         $config = wa('shop')->getConfig();
@@ -86,10 +98,11 @@ class shopImage
     }
 
     /**
-     * @param array $image
-     * @param array $sizes (optional)
-     * generateThumbs
-     * @param bool $force
+     * Creates thumbnails of specified sizes for a product image.
+     * 
+     * @param array $image Key-value image data object
+     * @param array $sizes Array of image size values; e.g., '200x0', '96x96', etc.
+     * @param bool $force Whether missing image thumbnail files must be created
      * @throws waException
      */
     public static function generateThumbs($image, $sizes = array(), $force = true)
@@ -100,7 +113,7 @@ class shopImage
         if (!empty($sizes) && !empty($image) && $product_id) {
             $thumbs_path = self::getThumbsPath($image);
             if (!file_exists($thumbs_path) && !waFiles::create($thumbs_path)) {
-                throw new waException("The insufficient file write permissions for the $thumbs_path dir.");
+                throw new waException("Insufficient write permissions for the $thumbs_path dir.");
             }
             $image_path = self::getPath($image);
             foreach ($sizes as $size) {
@@ -119,6 +132,15 @@ class shopImage
         }
     }
 
+    /**
+     * Returns image object for specified original image.
+     * 
+     * @param string $src_image_path Path to original image
+     * @param string $size Size value string of the form '200x0', '96x96', etc.
+     * @param int|bool $max_size Optional maximum size limit
+     * @throws waException
+     * @return waImageImagick|waImageGd
+     */
     public static function generateThumb($src_image_path, $size, $max_size = false)
     {
         $image = waImage::factory($src_image_path);
@@ -174,10 +196,10 @@ class shopImage
     }
 
     /**
-     * Parsing size-code (e.g. 500x400, 500, 96x96, 200x0) into key-value array with info about this size
+     * Parses image size value string and returns size info array.
      *
-     * @param string $size
-     * @returns array
+     * @param string $size Size value string (e.g., '500x400', '500', '96x96', '200x0')
+     * @returns array Size info array ('type', 'width', 'height')
      */
     public static function parseSize($size)
     {
@@ -197,10 +219,10 @@ class shopImage
                     $type = 'rectangle';
                 } else
                     if (is_null($width)) {
-                        $type = 'height';
-                    } else
+                           $type = 'height';
+                       } else
                         if (is_null($height)) {
-                            $type = 'width';
+                           $type = 'width';
                         }
             }
         }
@@ -211,6 +233,12 @@ class shopImage
         );
     }
 
+    /**
+     * Returns path to product image
+     * 
+     * @param array $image Key-value image data object
+     * @return string
+     */
     public static function getPath($image)
     {
         return shopProduct::getPath($image['product_id'], "images/{$image['id']}.{$image['ext']}");
@@ -218,12 +246,25 @@ class shopImage
 
     /**
      * TODO change
+     * 
+     * Returns path to original product image
+     * 
+     * @param array $image Key-value image data object
+     * @return string
      */
     public static function getOriginalPath($image)
     {
         return shopProduct::getPath($image['product_id'], "images/{$image['id']}.original.{$image['ext']}");
     }
 
+    /**
+     * Returns path to product image directory or individual product image file. 
+     * 
+     * @param int|array $image Key-value image data object
+     * @param string $size Optional size value string (e.g., '200x0', '96x96', etc.).
+     *     If specified, path to corresponding thumbnail file is returned instead of path to image sdirectory.  
+     * @return string
+     */
     public static function getThumbsPath($image, $size = null)
     {
         $path = shopProduct::getFolder($image['product_id'])."/{$image['product_id']}/";
@@ -238,6 +279,14 @@ class shopImage
         }
     }
 
+    /**
+     * Returns URL of a product image. 
+     * 
+     * @param array $image Key-value image data object
+     * @param string $size Size value string (e.g., '200x0', '96x96', etc.)
+     * @param bool $absolute Whether absolute URL must be returned
+     * @return string
+     */
     public static function getUrl($image, $size = null, $absolute = false)
     {
         $path = shopProduct::getFolder($image['product_id'])."/{$image['product_id']}/images/{$image['id']}/{$image['id']}.{$size}.{$image['ext']}";
@@ -255,11 +304,13 @@ class shopImage
     }
 
     /**
-     * Calculate dimensions of thumbnail
+     * Calculates dimensions of image thumbnail.
      *
-     * @param array $image Key-value object with image info
-     * @param string $size string size-code or key-value object returned by parseSize
-     * @return array Key-value object with width and height values
+     * @param array $image Key-value image data object
+     * @param string|array|null $size Size value string (e.g., '200x0', '96x96', etc.) or size data array returned by method parseSize()
+     *     If empty, default value of 'thumb' size is used as defined in class shopConfig
+     * @see shopConfig
+     * @return array Array containing width and height values
      */
     public static function getThumbDimensions($image, $size = null)
     {

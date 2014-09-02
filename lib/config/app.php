@@ -16,7 +16,7 @@ return array(
     'pages'       => true,
     'mobile'      => true,
     'my_account'  => true,
-    'version'     => '5.2.2',
+    'version'     => '5.2.3',
     'critical'    => '5.0.0.0',
     'vendor'      => 'webasyst',
     'csrf'        => true,

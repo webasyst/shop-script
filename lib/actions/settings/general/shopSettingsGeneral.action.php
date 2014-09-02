@@ -46,11 +46,16 @@ class shopSettingsGeneralAction extends waViewAction
         $cm = new waCountryModel();
         $this->view->assign('countries', $cm->all());
         $this->view->assign($this->getConfig()->getGeneralSettings());
+        $workhours = wa()->getSetting('workhours', null);
+        if ($workhours) {
+            $workhours = json_decode($workhours, true);
+        }
+        $this->view->assign('workhours', $workhours);
         
         $sms_adapters = $this->getSMSAdapters();
         $this->view->assign('sms_adapters', $sms_adapters);
         
-        $this->view->assign('saved', waRequest::post());        
+        $this->view->assign('saved', waRequest::post());
     }
 
     public function getData()
@@ -66,6 +71,17 @@ class shopSettingsGeneralAction extends waViewAction
             'require_captcha'  => waRequest::post('require_captcha', 0, waRequest::TYPE_INT),
             'require_authorization' => waRequest::post('require_authorization', 0, waRequest::TYPE_INT)
         );
+        if (waRequest::post('workhours_type') !== null) {
+            if (waRequest::post('workhours_type')) {
+                $data['workhours'] = array();
+                $data['workhours']['days'] = waRequest::post('workhours_days');
+                $data['workhours']['from'] = waRequest::post('workhours_from');
+                $data['workhours']['to'] = waRequest::post('workhours_to');
+                $data['workhours'] = json_encode($data['workhours']);
+            } else {
+                $data['workhours'] = '';
+            }
+        }
         return $data;
     }
     
@@ -116,7 +132,7 @@ class shopSettingsGeneralAction extends waViewAction
                 continue;
             }
             $result[] = $this->getSMSAdapaterInfo($a);
-        }        
+        }
         return $result;
 
     }
@@ -128,6 +144,4 @@ class shopSettingsGeneralAction extends waViewAction
         $temp['controls'] = $a->getControls();
         return $temp;
     }
-
 }
-

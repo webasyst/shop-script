@@ -614,9 +614,10 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
 
                 var selected = null;
                 if (this.list[key]) {
+                    var $end = this.$profiles.find('> li.no-tab:first');
                     for (id in this.list[key]) {
                         if (this.list[key].hasOwnProperty(id)) {
-                            this.$profiles.prepend(this.html(id, key));
+                            $end.before(this.html(id, key));
                             if (id == path.profile) {
                                 selected = id;
                             }

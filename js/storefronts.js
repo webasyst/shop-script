@@ -111,6 +111,10 @@
             }
         },
 
+        designPagesAction: function () {
+            this.designAction('pages');
+        },
+
         designThemesAction: function (params) {
             if ($('#wa-design-container').length) {
                 waDesignLoad();

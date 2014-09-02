@@ -51,4 +51,3 @@ class shopSettingsFollowupsTestController extends waJsonController
         $this->response = 'ok';
     }
 }
-

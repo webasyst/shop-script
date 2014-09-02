@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * @author WebAsyst Team
+ * @author Webasyst
  * @version SVN: $Id: shopCategory.model.php 2026 2012-08-14 14:39:28Z vlad $
  */
 class shopCategoryModel extends waNestedSetModel

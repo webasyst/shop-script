@@ -79,6 +79,11 @@ HTML;
         }
     }
 
+    /**
+     * Returns properties of current color object: id, code, value, sort order.
+     * 
+     * @return array
+     */
     public function getRaw()
     {
         return array(
@@ -109,6 +114,12 @@ HTML;
         return ifset($color_spaces[$locale], reset($color_spaces));
     }
 
+    /**
+     * Returns color name written in human language (English or Russian depending on current locale).
+     * 
+     * @param int $code
+     * @return string
+     */
     public static function getName($code)
     {
         $name = '#'.$code;
@@ -138,6 +149,12 @@ HTML;
 
     }
 
+    /**
+     * Returns numerical color code by its name. 
+     * 
+     * @param string $name Color name written in human language (English or Russian); e.g., 'blue', 'pink', 'yellow', etc.
+     * @return int
+     */
     public static function getCode($name)
     {
         $like = 0;
@@ -162,6 +179,14 @@ HTML;
         return (wa()->getEnv() == 'frontend') ? $this->html : $this->value;
     }
 
+    /**
+     * Returns numerical color code in specified format.
+     * 
+     * @param string $format Format string: 'rgb', 'hex', 'cmyk', 'hsv'.
+     * @param int $value Color code stored in database table 'shop_feature_values_color'.
+     * @param bool $raw Whether numerical color value parts must be returned as an array instead of a string; defaults to false 
+     * @return string|array
+     */
     public function convert($format, $value = null, $raw = false)
     {
         if ($value === null) {
@@ -236,7 +261,7 @@ HTML;
                                 if ($hsv['hue'] < 0.0) {
                                     $hsv['hue'] += 360.0;
                                 }
-                            } else if ($rgb_max == $g) {
+                            } elseif ($rgb_max == $g) {
                                 $hsv['hue'] = 120.0 + 60.0 * ($b - $r);
                             } else /* rgb_max == $b */ {
                                 $hsv['hue'] = 240.0 + 60.0 * ($r - $g);
@@ -279,5 +304,4 @@ HTML;
     {
         return true;
     }
-
 }

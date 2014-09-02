@@ -50,7 +50,7 @@ class shopCsvProductviewController extends waJsonController
         }
         if ($data) {
 
-            return '<td data-rows="'.htmlentities($data, ENT_QUOTES,'utf-8').'">'.$value.'</td>';
+            return '<td data-rows="'.htmlentities($data, ENT_QUOTES, 'utf-8').'">'.$value.'</td>';
         } else {
             return '<td>&nbsp;</td>';
         }
@@ -61,11 +61,11 @@ class shopCsvProductviewController extends waJsonController
     {
         switch (shopCsvProductrunController::getDataType($data)) {
             case shopCsvProductrunController::STAGE_CATEGORY:
-                $td = '<i class="icon16 folder" title="'.htmlentities(_w('Will be imported as category'), ENT_QUOTES,'utf-8').'"></i>';
+                $td = '<i class="icon16 folder" title="'.htmlentities(_w('Will be imported as category'), ENT_QUOTES, 'utf-8').'"></i>';
                 break;
             case shopCsvProductrunController::STAGE_PRODUCT:
             case shopCsvProductrunController::STAGE_SKU:
-                $td = '<i class="icon16 box" title="'.htmlentities(_w('Will be imported as product'), ENT_QUOTES,'utf-8').'"></i>';
+                $td = '<i class="icon16 box" title="'.htmlentities(_w('Will be imported as product'), ENT_QUOTES, 'utf-8').'"></i>';
                 break;
             default:
                 $td = '<i class="icon16 no"></i>';

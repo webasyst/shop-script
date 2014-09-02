@@ -15,6 +15,12 @@ class shopNotifications
         return self::$model;
     }
 
+    /**
+     * Sends a notification set up for specified event in store settings.
+     * 
+     * @param string $event Event type id; e.g., 'order.create', 'order.ship'
+     * @param array $data Order data array
+     */
     public static function send($event, $data)
     {
         $notifications = self::getModel()->getByEvent($event, true);
@@ -56,10 +62,11 @@ class shopNotifications
     }
 
     /**
+     * Sends a test notification.
      * 
-     * @param int $id
-     * @param array $data
-     * @param string|null $to For test send. If null get real info from notification params
+     * @param int $id Notification id stored in table shop_notification
+     * @param array $data Order data array
+     * @param string|null $to Recipient address/number. If not specified, recipient address/number from notification parameters is used.
      */
     public static function sendOne($id, $data, $to = null)
     {

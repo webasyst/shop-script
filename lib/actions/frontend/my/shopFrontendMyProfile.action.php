@@ -22,6 +22,16 @@ class shopFrontendMyProfileAction extends waMyProfileAction
 
     protected function getForm()
     {
+        $domain = wa()->getRouting()->getDomain();
+        $domain_config_path = wa()->getConfig()->getConfigPath('domains/'.$domain.'.php', true, 'site');
+        if (file_exists($domain_config_path)) {
+            $domain_config = include($domain_config_path);
+        } else {
+            $domain_config = array();
+        }
+        if (!empty($domain_config['personal_fields'])) {
+            return parent::getForm();
+        }
         return shopHelper::getCustomerForm(null, true);
     }
 

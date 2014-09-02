@@ -25,10 +25,25 @@ class shopOrdersCollection
     protected $models = array();
 
     /**
-     * Constructor for collections of orders
+     * Creates a new order collection.
      *
-     * @param string|array $hash
-     * @param array $options
+     * @param string|array $hash Order selection conditions. Examples:
+     *     array(12,23,34) or 'id/12,23,34' — explicitely specified order ids
+     *     'search/state_id=new||processing||paid' — search by 'state' field of shop_order table; supported comparison/matching operators:
+     *         $=    inexact matching by value end (LIKE 'value%')
+     *         ^=    inexact matching by value start (LIKE '%value')
+     *         *=    inexact matching (LIKE '%value%') 
+     *         ==    exact matching; if NULL is specified, IS NULL condition is used
+     *         =     the same
+     *         !=    non-matching
+     *         >=    greater or equal
+     *         <=    less or equal
+     *         >     greater
+     *         <     less
+     *     'search/state_id=new||processing&total>=100' — search by several fields of shop_order table; multiple conditions are separated by ampersand &
+     *     'search/params.shipping_id=64' — search by values stored in table shop_order_params 
+     *     'search/items.service_id=2' — search by values stored in table shop_order_items
+     * @param array $options Extra options
      */
     public function __construct($hash = '', $options = array())
     {
@@ -145,6 +160,16 @@ class shopOrdersCollection
         return $alias;
     }
 
+    /**
+     * Adds a simple JOIN clause to order selection query.
+     *
+     * @param string|array $table Table name to be used in JOIN clause.
+     *     Alternatively an associative array may be specified containing values for all method parameters.
+     *     In this case $on and $where parameters are ignored.
+     * @param string $on ON condition FOR JOIN, must not include 'ON' keyword
+     * @param string $where WHERE condition for SELECT, must not include 'WHERE' keyword
+     * @return string Specified table's alias to be used in SQL query
+     */
     public function addJoin($table, $on = null, $where = null)
     {
         $type = '';
@@ -185,12 +210,23 @@ class shopOrdersCollection
         return $alias;
     }
 
+    /**
+     * Adds a WHERE condition to order selection query.
+     *
+     * @param string $condition Additional WHERE condition; WHERE keyword must not be specified
+     * @return self
+     */
     public function addWhere($condition)
     {
         $this->where[] = $condition;
         return $this;
     }
 
+    /**
+     * Returns order selection SQL query
+     *
+     * @return string
+     */
     public function getSQL()
     {
         $this->prepare();
@@ -215,6 +251,11 @@ class shopOrdersCollection
         return $sql;
     }
 
+    /**
+     * Returns number of orders included in collection.
+     *
+     * @return int
+     */
     public function count()
     {
         if ($this->count !== null) {
@@ -240,7 +281,23 @@ class shopOrdersCollection
         return $this->models[$name];
     }
 
-
+    /**
+     * Parses order selection condition string of the form acceptable by class constructor.
+     * @see __constructor()
+     * 
+     * @param string $query Order selection query; e.g., 'total>=3&state_id>=new||paid'
+     * @return array Parsed condition data; e.g.:
+     *     total => Array
+     *     (
+     *         [0] => '>='
+     *         [1] => '3'
+     *     )
+     *     state_id => Array
+     *     (
+     *         [0] => '>='
+     *         [1] => 'new||paid'
+     *     )
+     */
     public static function parseConditions($query)
     {
         $escapedBS = 'ESCAPED_BACKSLASH';
@@ -326,6 +383,21 @@ class shopOrdersCollection
         }
     }
 
+    /**
+     * Returns array of orders included in collection.
+     * 
+     * @param string $fields List of order properties, comma-separated, to be included in returned array:
+     *     '*' — values from shop_order table
+     *     '*,params,items,contact' (different combinations are acceptable) — values from tables shop_order, shop_order_items, shop_order_params, wa_contact
+     * @param int $offset Initial position in returned order array, 0 means first order in collection
+     * @param int|bool $limit Maximum order limit. 
+     *     If a Boolean value is specified, then $escape = $limit and $limit = null
+     *     If no value is specified, then $limit = 0.
+     *     If no value is specified and $offset is non-zero, then $limit = $offset and $offset = 50   
+     * @param bool $escape Whether order parameters and contact names must be escaped using htmlspecialchars() function, defaults to true
+     * 
+     * @return array Array of collection orders' sub-arrays
+     */
     public function getOrders($fields = "*", $offset = 0, $limit = null, $escape = true)
     {
         if (is_bool($limit)) {
@@ -398,6 +470,12 @@ class shopOrdersCollection
         return $data;
     }
     
+    /**
+     * Returns position of specified order in collection.
+     * 
+     * @param int $order Order id
+     * @return int
+     */
     public function getOrderOffset($order)
     {
         $model = $this->getModel();
@@ -480,6 +558,11 @@ class shopOrdersCollection
         }
     }
 
+    /**
+     * Returns collection type by order selection method: 'id' or 'search'.
+     *
+     * @return string
+     */
     public function getType()
     {
         return $this->hash[0];
@@ -498,12 +581,24 @@ class shopOrdersCollection
         }
     }
 
+    /**
+     * Changes ORDER BY clause of order selection query.
+     *
+     * @param string $field Name of field in 'shop_order' table
+     * @param string $order 'ASC' or 'DESC' modifier, defaults to 'ASC'
+     */
     public function orderBy($field, $order = 'ASC')
     {
         $alias = 'o';
         $this->order_by = "{$alias}.{$field} {$order}";
     }
 
+    /**
+     * Adds custom string to current collection title, separated by optional delimiter.
+     *
+     * @param string $title Custom string to be added
+     * @param string $delim Delimiter
+     */
     public function addTitle($title, $delim = ', ')
     {
         if (!$title) {
@@ -515,6 +610,11 @@ class shopOrdersCollection
         $this->title .= $title;
     }
 
+    /**
+     * Returns collection title.
+     *
+     * @return string
+     */
     public function getTitle()
     {
         return $this->title;

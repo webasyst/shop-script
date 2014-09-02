@@ -3,8 +3,6 @@ class shopSettingsFeaturesFeatureListAction extends waViewAction
 {
     public function execute()
     {
-
-
         if (!$this->getUser()->getRights('shop', 'settings')) {
             throw new waRightsException(_w('Access denied'));
         }
@@ -35,4 +33,3 @@ class shopSettingsFeaturesFeatureListAction extends waViewAction
         $this->view->assign('values_per_feature', $values_per_feature);
     }
 }
-

@@ -175,7 +175,7 @@ return array(
         '$wa' => array(
             '$wa->shop->badgeHtml(<em>$product.code</em>)' => _w('Displays badge of the specified product (<em>$product</em> object)'),
             '$wa->shop->cart()' => _w('Returns current cart object'),
-            '$wa->shop->categories(<em>$parent_id = 0</em>)' => _w('Returns array of subcategories of the specified category. Omit parent category for the entire array of categories'),
+            '$wa->shop->categories(<em>$id = 0, $depth = null, $tree = false, $params = false, $route = null</em>)' => _w('Returns array of subcategories of the specified category. Omit parent category for the entire array of categories'),
             '$wa->shop->category(<em>$category_id</em>)' => _w('Returns category object by <em>$category_id</em>'),
             '<em>$category</em>.params()' => _w('Array of custom category parameters'),
             '$wa->shop->compare()' => _w('Returns array of products currently added into a comparison list'),

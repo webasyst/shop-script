@@ -99,10 +99,10 @@ class shopSettingsFollowupsAction extends waViewAction
             $test_orders = $om->where("paid_date IS NOT NULL AND state_id <> 'deleted'")->order('id DESC')->limit(10)->fetchAll('id');
             shopHelper::workupOrders($test_orders);
             $im = new shopOrderItemsModel();
-            foreach($im->getByField('order_id', array_keys($test_orders), true) as $i) {
+            foreach ($im->getByField('order_id', array_keys($test_orders), true) as $i) {
                 $test_orders[$i['order_id']]['items'][] = $i;
             }
-            foreach($test_orders as &$o) {
+            foreach ($test_orders as &$o) {
                 $o['items'] = ifset($o['items'], array());
                 $o['total_formatted'] = waCurrency::format('%{s}', $o['total'], $o['currency']);
             }
@@ -127,10 +127,9 @@ class shopSettingsFollowupsAction extends waViewAction
 <p>'._w('We hope that you are happy with your purchase, and that the overall shopping experience was pleasant. Please let us know if you have any questions on your order, or if there is anything we can assist you with. We will be glad working with you again!').'</p>
 
 <p>--<br>
-{$wa->shop->settings("name")|escape}<br>
+{$wa->shop->settings("name")}<br>
 <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a><br>
 {$wa->shop->settings("phone")}<br></p>';
 
     }
 }
-

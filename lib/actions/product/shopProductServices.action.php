@@ -67,11 +67,13 @@ class shopProductServicesAction extends waViewAction
         return $this->model;
     }
 
-    public function assign($data = array()) {
+    public function assign($data = array())
+    {
         $this->view->assign($data + $this->getDefaultData());
     }
 
-    public function getDefaultData() {
+    public function getDefaultData()
+    {
         return array(
             'services' => array(),
             'service'  => array(),
