@@ -2,6 +2,18 @@
 <script type="text/javascript" src="{$wa_theme_url}easyzoom.js"></script>
 
 <div itemscope itemtype="http://schema.org/Product" class="float-left">
+
+    <!-- sku -->
+    <h1>
+        <span itemprop="name">{$product.name|escape}</span>
+        {if !empty($product.rating) && $product.rating > 0}
+            <span class="rating nowrap" itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating" title="{sprintf('[`Average user rating: %s / 5`]', $product.rating)}">
+                {$wa->shop->ratingHtml($product.rating, 16)}
+                <span itemprop="ratingValue" style="display: none;">{$product.rating}</span>
+                <span itemprop="reviewCount" style="display: none;">{$reviews_total_count}</span>
+            </span>
+        {/if}
+    </h1>
     
     <!-- GALLERY -->
     {if $product.images}
@@ -143,6 +155,39 @@
         <!-- product reviews -->
         <div class="reviews">
             <h2>{sprintf('[`%s reviews`]', $product.name|escape)}</h2>
+            
+            {if !empty($rates)}
+                <p class="rating">
+                    [`Average customer rating:`]
+                    {$wa->shop->ratingHtml($product.rating, 16)} (<a href="reviews/">{$reviews_total_count}</a>)
+                    {if $product.rating > 0}<span class="hint">{sprintf('[`%s out of 5 stars`]', $product.rating)}</span>{/if}
+                </p>
+                
+                <table class="rating-distribution">
+                    {$_total_count = 0}
+                    {foreach $rates as $_rate => $_count}
+                        {$_total_count = $_total_count + $_count}
+                    {/foreach}
+                    {* foreach $rates as $_rate => $_count *}
+                    {for $i = 5 to 0 step -1}
+                        {if empty($rates[$i]) || !$rates[$i]}{$_count = 0}{else}{$_count = $rates[$i]}{/if}
+                        {if $i || $_count}
+                            <tr>
+                                <td class="min-width hint">{$_count}</td>
+                                <td>
+                                    <div class="bar">
+                                        <div class="filling" style="width: {if $_total_count > 0}{str_replace(',','.', 100*$_count/$_total_count)}{else}0{/if}%;{if !$i} background: #ddd;{/if}"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="rating">{for $j=1 to $i}<i class="icon10 star"></i>{forelse}<span class="hint">[`no rate`]</span>{/for}</span>
+                                </td>
+                            </tr>
+                        {/if}
+                    {/for}
+                </table>
+            {/if}
+            
             <ul class="menu-v with-icons">
                 {foreach $reviews as $review}
                     <li data-id={$review.id} data-parent-id="0">

@@ -1,60 +1,65 @@
 <form id="cart-form{if $wa->get('cart')}-dialog{/if}" method="post" action="{$wa->getUrl('/frontendCart/add')}">
 
-    <!-- sku -->
-    <h1 itemprop="name">
-        {$product.name|escape}
-        {if !empty($product.rating) && $product.rating > 0}
-                    <span class="rating nowrap" itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating" title="{sprintf('[`Average user rating: %s / 5`]', $product.rating)}">
-                        {$wa->shop->ratingHtml($product.rating, 16)}
-                        <span itemprop="ratingValue" style="display: none;">{$product.rating}</span>
-                        <span itemprop="reviewCount" style="display: none;">{$reviews_total_count}</span>
-                    </span>
-        {/if}
-    </h1>
-
     {if $product.sku_type}
 
-    <!-- SELECTABLE FEATURES selling mode -->
-    {$default_sku_features = $product.sku_features}
-    {$product_available = $product.status}
-    <div class="options">
-        {foreach $features_selectable as $f}
-        {$f.name}:
-        <select data-feature-id="{$f.id}" class="sku-feature" name="features[{$f.id}]">
-            {foreach $f.values as $v_id => $v}
-            <option value="{$v_id}" {if $v_id == ifset($default_sku_features[$f.id])}selected{/if}>{$v}</option>
+        <!-- SELECTABLE FEATURES selling mode -->
+        {$default_sku_features = $product.sku_features}
+        {$product_available = $product.status}
+        <div class="options">
+            {foreach $features_selectable as $f}
+            {$f.name}:
+            <select data-feature-id="{$f.id}" class="sku-feature" name="features[{$f.id}]">
+                {foreach $f.values as $v_id => $v}
+                <option value="{$v_id}" {if $v_id == ifset($default_sku_features[$f.id])}selected{/if}>{$v}</option>
+                {/foreach}
+            </select>
+            <br>
             {/foreach}
-        </select>
-        <br>
+        </div>
+        
+        <!-- list all SKUs for Schema.org markup -->
+        {foreach $product.skus as $sku}
+            <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                {$sku_available =  $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
+                {if $sku.name}<meta itemprop="name" content="{$sku.name|escape}">{/if}
+                <meta itemprop="price" content="{$sku.price}">
+                <meta itemprop="priceCurrency" content="{$product.currency}">
+                {if (!($sku.count === null) && $sku.count <= 0)}
+                    <link itemprop="availability" href="http://schema.org/OutOfStock" />
+                {else}
+                    <link itemprop="availability" href="http://schema.org/InStock" />
+                {/if}
+            </div>
         {/foreach}
-    </div>
+        
     {else}
 
     <!-- FLAT SKU LIST selling mode -->
     {$product_available = false}
     {if count($product.skus) > 1}
 
-    {* SKU selector *}
-
-    <ul class="skus">
-        {foreach $product.skus as $sku}
-        {$sku_available =  $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
-        <li itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-            <label{if !$sku.available} class="disabled"{/if}>
-            <input name="sku_id" type="radio" value="{$sku.id}"{if !$sku.available} disabled="true"{/if}{if !$sku_available}data-disabled="1"{/if}{if $sku.id == $product.sku_id} checked="checked"{/if} data-compare-price="{shop_currency($sku.compare_price, $product.currency, null, 0)}" data-price="{shop_currency($sku.price, $product.currency, null, 0)}"{if $sku.image_id} data-image-id="{$sku.image_id}"{/if}> <span itemprop="name">{$sku.name|escape}</span>
-            {if $sku.sku}<span class="hint" itemprop="name">{$sku.sku|escape}</span>{/if}
-            <meta itemprop="price" content="{shop_currency($sku.price, $product.currency)}">
-            <span class="price tiny nowrap">{shop_currency_html($sku.price, $product.currency)}</span>
-            {if (!($sku.count === null) && $sku.count <= 0)}
-            <link itemprop="availability" href="http://schema.org/OutOfStock" />
-            {else}
-            <link itemprop="availability" href="http://schema.org/InStock" />
-            {/if}
-            </label>
-        </li>
-        {$product_available = $product_available or $sku_available}
-        {/foreach}
-    </ul>
+        {* SKU selector *}
+    
+        <ul class="skus">
+            {foreach $product.skus as $sku}
+                {$sku_available =  $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
+                <li itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                    <label{if !$sku.available} class="disabled"{/if}>
+                    <input name="sku_id" type="radio" value="{$sku.id}"{if !$sku.available} disabled="true"{/if}{if !$sku_available}data-disabled="1"{/if}{if $sku.id == $product.sku_id} checked="checked"{/if} data-compare-price="{shop_currency($sku.compare_price, $product.currency, null, 0)}" data-price="{shop_currency($sku.price, $product.currency, null, 0)}"{if $sku.image_id} data-image-id="{$sku.image_id}"{/if}> <span itemprop="name">{$sku.name|escape}</span>
+                    {if $sku.sku}<span class="hint" itemprop="name">{$sku.sku|escape}</span>{/if}
+                    <meta itemprop="price" content="{$sku.price}">
+                    <meta itemprop="priceCurrency" content="{$product.currency}">
+                    <span class="price tiny nowrap">{shop_currency_html($sku.price, $product.currency)}</span>
+                    {if (!($sku.count === null) && $sku.count <= 0)}
+                    <link itemprop="availability" href="http://schema.org/OutOfStock" />
+                    {else}
+                    <link itemprop="availability" href="http://schema.org/InStock" />
+                    {/if}
+                    </label>
+                </li>
+                {$product_available = $product_available or $sku_available}
+            {/foreach}
+        </ul>
     {else}
 
     {* in case there is only one SKU, don't display the selector *}
@@ -62,7 +67,8 @@
     <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
         {$sku = $product.skus[$product.sku_id]}
         {if $sku.sku}<span class="hint" itemprop="name">{$sku.sku|escape}</span>{/if}
-        <meta itemprop="price" content="{shop_currency($sku.price, $product.currency)}">
+        <meta itemprop="price" content="{$sku.price}">
+        <meta itemprop="priceCurrency" content="{$product.currency}">
         {if !$sku.available}
         <link itemprop="availability" href="http://schema.org/Discontinued" />
         <p><em class="bold error">[`This product is not available for purchase`]</em></p>
@@ -150,7 +156,8 @@
                         <span class="qty">
                             &times; <input type="text" name="quantity" value="1">
                         </span>
-            <input type="submit" {if !$product_available}disabled="disabled"{/if} value="[`Add to cart`]">
+            <input type="submit" {if !$product_available}disabled="disabled"{/if} value="{if !$wa->shop->cart->total()}[`Buy now`]{else}[`Add to cart`]{/if}">
+            <i class="adding2cart"></i>
             <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $product.name|escape, $wa->getUrl('shop/frontend/cart'))}</span>
         </div>
 

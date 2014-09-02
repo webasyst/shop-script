@@ -1,176 +1,156 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="sidebar" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:sidebar" version="1.1.2">
-    <name locale="en_US">Sidebar</name>
-    <name locale="ru_RU">Sidebar</name>
+<theme id="sidebar" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:sidebar" version="2.0.0">
+    <name locale="en_US">Sidebar 2.0</name>
+    <name locale="ru_RU">Sidebar 2.0</name>
     <files>
-        <file path="index.html" custom="0" parent="1">
+        <file path="index.html" parent="1">
         </file>
-        <file path="sidebar.css" custom="0" parent="1">
+        <file path="sidebar.css" parent="1">
         </file>
-        <file path="sidebar.mobile.css" custom="0" parent="1">
-        </file>
-        <file path="sidebar.tablet.css" custom="0" parent="1">
-        </file>
-        <file path="sidebar.wide.css" custom="0" parent="1">
-        </file>
-        <file path="sidebar.shop.css" custom="0">
+        <file path="sidebar.shop.css">
             <description locale="en_US">Core storefront CSS</description>
             <description locale="ru_RU">Основной CSS интернет-магазина</description>
         </file>
-        <file path="sidebar.shop.mobile.css" custom="0">
-            <description locale="en_US">Additional storefront CSS for multi-touch mobile devices</description>
-            <description locale="ru_RU">Дополнительный CSS интернет-магазина для мобильных устройств</description>
-        </file>
-        <file path="content.html" custom="0">
+        <file path="main.html">
             <description locale="en_US">Main storefront layout and navigation</description>
             <description locale="ru_RU">Основное макет вывода содержимого и навигации в интернет-магазине</description>
         </file>
-        <file path="head.html" custom="0">
+        <file path="head.html">
             <description locale="en_US">Shop-Script's &lt;head&gt; instructions</description>
             <description locale="en_US">Блок &lt;head&gt; приложения Shop-Script</description>
         </file>
-        <file path="footer.html" custom="0">
+        <file path="footer.html">
             <description locale="en_US">App specific footer content</description>
             <description locale="ru_RU">Содержимое футера приложения</description>
         </file>       
-        <file path="category.html" custom="0">
+        <file path="category.html">
             <description locale="en_US">Wrapper for a category page</description>
             <description locale="ru_RU">Обертка для страницы категории</description>
         </file>
-        <file path="list-thumbs.html" custom="0">
+        <file path="list-thumbs.html">
             <description locale="en_US">Product list thumbnail view</description>
             <description locale="ru_RU">Список товаров эскизами</description>
         </file>
-        <file path="list-thumbs-mini.html" custom="0">
+        <file path="list-thumbs-mini.html">
             <description locale="en_US">Recommended product list (mini thumbnails)</description>
             <description locale="ru_RU">Список рекомендуемых товаров (маленькими эскизами)</description>
         </file>
-        <file path="product.html" custom="0">
+        <file path="product.html">
             <description locale="en_US">Dedicated product page</description>
             <description locale="ru_RU">Шаблон основной страницы товара</description>
         </file>
-        <file path="product.cart.html" custom="0">
+        <file path="product.cart.html">
             <description locale="en_US">Product add to cart block</description>
             <description locale="ru_RU">Блок добавления товара в корзину</description>
         </file>
-        <file path="product.js" custom="0">
+        <file path="product.js">
             <description locale="en_US">Product page JS</description>
             <description locale="ru_RU">JS-скрипты страницы товара</description>
         </file>
-        <file path="product.page.html" custom="0">
+        <file path="product.page.html">
             <description locale="en_US">Product static subpage content</description>
             <description locale="ru_RU">Информационная подстраница товара</description>
         </file>
-        <file path="review.html" custom="0">
+        <file path="review.html">
             <description locale="en_US">A single product review template</description>
             <description locale="ru_RU">Шаблон вывода одного отзыва о товаре</description>
         </file>
-        <file path="reviews.html" custom="0">
+        <file path="reviews.html">
             <description locale="en_US">Product review list</description>
             <description locale="ru_RU">Список отзывов о товаре</description>
         </file>
-        <file path="compare.html" custom="0">
+        <file path="compare.html">
             <description locale="en_US">Product comparison</description>
             <description locale="ru_RU">Сравнение товаров</description>
         </file>
-        <file path="cart.html" custom="0">
+        <file path="cart.html">
             <description locale="en_US">Shopping cart page</description>
             <description locale="ru_RU">Страница с товарами корзины</description>
         </file>
-        <file path="cart.js" custom="0">
+        <file path="cart.js">
             <description locale="en_US">Cart JS</description>
             <description locale="ru_RU">JS-скрипты корзины</description>
         </file>
-        <file path="checkout.html" custom="0">
+        <file path="checkout.html">
             <description locale="en_US">Checkout core wrapper</description>
             <description locale="ru_RU">Единый шаблон страниц оформления заказа</description>
         </file>
-        <file path="checkout.shipping.html" custom="0">
+        <file path="checkout.shipping.html">
             <description locale="en_US">Checkout: shipping option selection</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
-        <file path="checkout.payment.html" custom="0">
+        <file path="checkout.payment.html">
             <description locale="en_US">Checkout: payment option selection</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
-        <file path="checkout.contactinfo.html" custom="0">
+        <file path="checkout.contactinfo.html">
             <description locale="en_US">Checkout: customer contact information form</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
-        <file path="checkout.confirmation.html" custom="0">
+        <file path="checkout.confirmation.html">
             <description locale="en_US">Checkout: order confirmation</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
-        <file path="checkout.success.html" custom="0">
+        <file path="checkout.success.html">
             <description locale="en_US">Checkout: thank you page</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
-        <file path="checkout.error.html" custom="0">
+        <file path="checkout.error.html">
             <description locale="en_US">Checkout: error page</description>
             <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
         </file>
-        <file path="my.nav.html" custom="0">
+        <file path="my.nav.html">
             <description locale="en_US">Customer account navigation menu</description>
             <description locale="ru_RU">Меню навигации в личном кабинете покупателя</description>
         </file>
-        <file path="my.affiliate.html" custom="0">
+        <file path="my.affiliate.html">
             <description locale="en_US">Customer account interface: affiliate program</description>
             <description locale="ru_RU">Личный кабинет покупателя: партнерская программа</description>
         </file>
-        <file path="my.profile.html" custom="0">
-            <description locale="en_US">Customer account interface: contact info editing form</description>
-            <description locale="ru_RU">Личный кабинет покупателя: редактирование контактной информации</description>
-        </file>
-        <file path="my.orders.html" custom="0">
+        <file path="my.orders.html">
             <description locale="en_US">Customer account interface: order list</description>
             <description locale="ru_RU">Личный кабинет покупателя: список заказов</description>
         </file>
-        <file path="my.order.html" custom="0">
+        <file path="my.order.html">
             <description locale="en_US">Customer account interface: single order information</description>
             <description locale="ru_RU">Личный кабинет покупателя: информация о заказе</description>
         </file>
-        <file path="home.html" custom="0">
+        <file path="home.html">
             <description locale="en_US">Storefront homepage</description>
             <description locale="ru_RU">Главная витрина магазина</description>
         </file>
-        <file path="search.html" custom="0">
+        <file path="search.html">
             <description locale="en_US">Wrapper for product search (filtering) results, e.g. by name, tag, or manufacturer</description>
             <description locale="ru_RU">Обертка для страницы поиска (фильтрации) товаров, например, по тегу, ключевому слову или производителю</description>
         </file>
-        <file path="page.html" custom="0">
+        <file path="page.html">
             <description locale="en_US">Static page content</description>
             <description locale="ru_RU">Содержимое информационной страницы</description>
         </file>
-        <file path="pagelist.html" custom="0">
-            <description locale="en_US">Internal app page tree</description>
-            <description locale="ru_RU">Внутренняя навигация по информационным страницам приложения</description>
+        <file path="nav.sidebar.html" custom="0">
+            <description locale="en_US">Internal app navigation tree</description>
+            <description locale="ru_RU">Внутренняя навигация приложения</description>
         </file>
-        <file path="login.html" custom="0">
-            <description locale="en_US">Login page</description>
-            <description locale="ru_RU">Страница входа для пользователей</description>
+        <file path="my.profile.html" parent="1">
         </file>
-        <file path="signup.html" custom="0">
-            <description locale="en_US">Sign up page</description>
-            <description locale="ru_RU">Страница регистрации пользователей</description>
+        <file path="login.html" parent="1">
         </file>
-        <file path="forgotpassword.html" custom="0">
-            <description locale="en_US">Forgot password page</description>
-            <description locale="ru_RU">Страница сброса пароля</description>
+        <file path="signup.html" parent="1">
         </file>
-        <file path="error.html" custom="0">
-            <description locale="en_US">404 and other errors</description>
-            <description locale="ru_RU">404 и другие ошибки</description>
+        <file path="forgotpassword.html" parent="1">
         </file>
-        <file path="sidebar.shop.js" custom="0">
+        <file path="error.html" parent="1">
+        </file>
+        <file path="sidebar.shop.js">
             <description locale="en_US">CUSTOM theme JS</description>
             <description locale="ru_RU">Скрипты темы CUSTOM</description>
         </file>
-        <file path="lazyloading.js" custom="0">
+        <file path="lazyloading.js">
             <description locale="en_US">Lazy loading JS</description>
             <description locale="ru_RU">Скрипты загрузки контента «на лету»</description>
         </file>
-        <file path="easyzoom.js" custom="0">
+        <file path="easyzoom.js">
             <description locale="en_US">Product image zoom JS</description>
             <description locale="ru_RU">Скрипты увеличения изображения товара</description>
         </file>
@@ -181,7 +161,7 @@
     </files>
     <about locale="en_US">
 <![CDATA[
-<p><b>Sidebar</b> is a universal adaptive design theme family for all basic Webasyst apps: Site, Blog, Photos, Shop-Script, and others. The parent (main) theme of the family, which includes the basic set of CSS rules and the common layout template index.html, is the Sidebar theme for the Site application. All Sidebar design themes used in other applications (e.g., Blog, Shop or Photos) link common CSS and index.html layout file from the main theme.</p>
+<p><b>Sidebar 2.0</b> is a universal adaptive design theme family for all basic Webasyst apps: Site, Blog, Photos, Shop-Script, and others. The parent (main) theme of the family, which includes the basic set of CSS rules and the common layout template index.html, is the Sidebar theme for the Site application. All Sidebar design themes used in other applications (e.g., Blog, Shop or Photos) link common CSS and index.html layout file from the main theme.</p>
 <p>Sidebar design themes automatically link CSS depending on a visitor's device. Supported devices and platforms: iOS or Android based mobile devices, tablet computers such as iPad, common desktop computers and laptops.</p>
 <h3>Product thumbnails</h3>
 <p>Sidebar design theme links <b>400px</b> product thumbnail in the product.html file (.400.jpg). If you are using the Sidebar theme for your online store, make sure you have the “Allow on demand generation of custom-sized thumbnails” option enabled in your store settings (Images screen). This is required for proper product thumbnails generation and output. In case this setting is turned off, broken images will appear on your storefront's product pages.</p>
@@ -189,13 +169,49 @@
     </about>
     <about locale="ru_RU">
 <![CDATA[
-<p><b>Sidebar</b> — это универсальное семейство адаптивных тем дизайна для всех базовых приложений фреймворка Вебасист: Сайт, Блог, Фото, Shop-Script и других. Родительской (основной) темой семейства, включающей в себя базовый набор CSS-стилей и общий макет дизайна index.html, является тема Sidebar для приложения «Сайт». Все темы дизайна Sidebar для других приложений (Блог, Фото, Магазин и других) используют базовый CSS и index.html из родительской (основной) темы.</p>
+<p><b>Sidebar 2.0</b> — это универсальное семейство адаптивных тем дизайна для всех базовых приложений фреймворка Вебасист: Сайт, Блог, Фото, Shop-Script и других. Родительской (основной) темой семейства, включающей в себя базовый набор CSS-стилей и общий макет дизайна index.html, является тема Sidebar для приложения «Сайт». Все темы дизайна Sidebar для других приложений (Блог, Фото, Магазин и других) используют базовый CSS и index.html из родительской (основной) темы.</p>
 <p>Темы дизайна семейства Sidebar оптимизированы для всех современных браузеров, планшетных компьютеров и мобильных устройств на основе iOS и Android. CSS-стили подключаются в зависимости от разрешения и типа устройства, которым пользуется посетитель сайта.</p>
 <h3>Изображения товаров</h3>
 <p>В шаблоне product.html подключается изображение товара нестандартного размера <b>400px</b> (.400.jpg). Если вы используете тему Sidebar для вашего интернет-магазина, то в настройках магазина в разделе «Изображения» должна быть включена опция создания эскизов произвольного размера по требованию («на лету»). Если данная опция будет выключена, то на странице товара вместо изображения товара будут публиковать «битые» изображения.</p>
 ]]>
     </about>
     <settings>
+        <setting var="homepage_bullet_title_1" control_type="text">
+            <value locale="en_US">Faster delivery</value>
+            <value locale="ru_RU">Доставка по России</value>
+            <name locale="en_US">Storefront bullet #1 title</name>
+            <name locale="ru_RU">Подзаголовок на главной странице №1</name>
+        </setting>
+        <setting var="homepage_bullet_body_1" control_type="text">
+            <value locale="en_US">We offer domestic and international shipping via all major shipping carriers.</value>
+            <value locale="ru_RU">Мы доставим ваш заказ курьером по Москве и Петербургу или службой экспресс-доставки по всей России.</value>
+            <name locale="en_US">Storefront homepage bullet #1 body</name>
+            <name locale="ru_RU">Текст на главной странице №1</name>
+        </setting>
+        <setting var="homepage_bullet_title_2" control_type="text">
+            <value locale="en_US">Secure payment</value>
+            <value locale="ru_RU">Оплата онлайн</value>
+            <name locale="en_US">Storefront bullet #2 title</name>
+            <name locale="ru_RU">Подзаголовок на главной странице №2</name>
+        </setting>
+        <setting var="homepage_bullet_body_2" control_type="text">
+            <value locale="en_US">We accept all major credit cards and PayPal payments. All orders are paid online.</value>
+            <value locale="ru_RU">Оплатите заказ банковской картой, наличными в ближайшем платежном терминале или наличными.</value>
+            <name locale="en_US">Storefront homepage bullet #2 body</name>
+            <name locale="ru_RU">Текст на главной странице №2</name>
+        </setting>
+        <setting var="homepage_bullet_title_3" control_type="text">
+            <value locale="en_US">Contact us</value>
+            <value locale="ru_RU">Магазин в Москве</value>
+            <name locale="en_US">Storefront bullet #3 title</name>
+            <name locale="ru_RU">Подзаголовок на главной странице №3</name>
+        </setting>
+        <setting var="homepage_bullet_body_3" control_type="text">
+            <value locale="en_US">If you are in SF or LA, you may pick up an order in one of our stores. Give us a call!</value>
+            <value locale="ru_RU">Будем рады видеть вас в нашем магазине по адресу г. Москва, ул. Крымский Вал, д. 3. +7 (495) 123-45-00</value>
+            <name locale="en_US">Storefront homepage bullet #3 body</name>
+            <name locale="ru_RU">Текст на главной странице №3</name>
+        </setting>
         <setting var="ajax_filters" control_type="checkbox">
             <value>1</value>
             <name locale="en_US">AJAX-enabled product by-feature filtering</name>

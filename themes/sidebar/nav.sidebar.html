@@ -1,0 +1,24 @@
+<!-- categories -->
+{if isset($category)}{$selected_category=$category.id}{else}{$selected_category=null}{/if}
+{if $categories = $wa->shop->categories(0, null, true)}
+    <div class="block">
+        {wa_print_tree tree=$categories selected=$selected_category unfolded=$theme_settings.sidebar_unfolded_nav collapsible_class='collapsible' class="menu-v" elem ='<a href=":url" title=":name">:name</a>'}
+    </div>
+{/if}
+
+<!-- plugin hook: 'frontend_nav' -->
+{* @event frontend_nav.%plugin_id% *}
+{foreach $frontend_nav as $_key => $_}
+    <div class="block {$_key}">
+        {$_}          
+    </div>
+{/foreach}
+
+{if $cloud = $wa->shop->tags()}
+    <!-- tags -->            
+    <div class="tags block align-center">
+        {foreach $cloud as $tag}
+            <a href="{$wa_app_url}tag/{$tag.uri_name}/" style="font-size: {$tag.size}%; opacity: {$tag.opacity}">{$tag.name|escape}</a>
+        {/foreach}
+    </div>
+{/if}

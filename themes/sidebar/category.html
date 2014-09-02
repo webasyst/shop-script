@@ -55,11 +55,11 @@
 
 <!-- subcategories -->
 {if $category.subcategories}
-    <div class="sub-categories">
+    <ul class="sub-links">
         {foreach $category.subcategories as $sc}
-            <a href="{$sc.url}">{$sc.name|escape}</a><br />
+            <li><a href="{$sc.url}">{$sc.name|escape}</a><br /></li>
         {/foreach}
-    </div>
+    </ul>
 {/if}
 
 <div id="product-list">

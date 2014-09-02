@@ -6,7 +6,7 @@
 
     <div class="welcome">
         <h1>[`Welcome to your new online store!`]</h1>
-        <p>{sprintf('[`Start by creating a product in your <a href="%s">store backend</a>.`]', $wa_backend_url|cat:'shop/?action=products#/welcome/')}</p>
+        <p>{sprintf('[`Start by <a href="%s">creating a product</a> in your store backend.`]', $wa_backend_url|cat:'shop/?action=products#/welcome/')}</p>
     </div>
 
 {else}
@@ -19,19 +19,26 @@
             <li itemscope itemtype ="http://schema.org/Product">
                 <a href="{$p.frontend_url}" title="{$p.name}{if $p.summary} &ndash; {strip_tags($p.summary)|escape}{/if}">
                     <div class="info">
-                        <h2 itemprop="name">
-                            <span class="name">{$p.name}</span>
+                        <h2>
+                            <span class="name" itemprop="name">{$p.name}</span>
                         </h2>
-                        {if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency($p.compare_price)} </span>{/if}
-                        <p class="purchase"><span class="price nowrap">{shop_currency_html($p.price)}</span></p>
+
+                        <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                            {if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency_html($p.compare_price)} </span>{/if}
+                            <p class="purchase"><span class="price nowrap">{shop_currency_html($p.price)}</span></p>
+                            <meta itemprop="price" content="{$p.price}">
+                            <meta itemprop="priceCurrency" content="{$wa->shop->primaryCurrency()}">
+                        </div>
+                    
                         {if $p.summary}<p itemprop="description">{strip_tags($p.summary)}</p>{/if}
+                           
                     </div>
                     <div class="image">
-                            {$badge_html = $wa->shop->badgeHtml($p.badge)}
-                            {if $badge_html}
-                                <div class="corner top right">{$badge_html}</div>
-                            {/if}
-                            {$wa->shop->productImgHtml($p, '400', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
+                        {$badge_html = $wa->shop->badgeHtml($p.badge)}
+                        {if $badge_html}
+                            <div class="corner top right">{$badge_html}</div>
+                        {/if}
+                        {$wa->shop->productImgHtml($p, '400', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
                     </div>
     
                 </a>
@@ -46,7 +53,22 @@
     <!-- plugin hook: 'frontend_homepage' -->
     {* @event frontend_homepage.%plugin_id% *}
     {foreach $frontend_homepage as $_}{$_}{/foreach}
-    
+        
+    <!-- BULLETS -->
+    <section class="bullets">
+        <figure class="bullet">
+            <h4><span class="b-glyph b-shipping"></span> {$theme_settings.homepage_bullet_title_1}</h4>
+            <p>{$theme_settings.homepage_bullet_body_1}</p>
+        </figure>
+        <figure class="bullet">
+            <h4><span class="b-glyph b-payment"></span> {$theme_settings.homepage_bullet_title_2}</h4>
+            <p>{$theme_settings.homepage_bullet_body_2}</p>
+        </figure>
+        <figure class="bullet">
+            <h4><span class="b-glyph b-location"></span> {$theme_settings.homepage_bullet_title_3}</h4>
+            <p>{$theme_settings.homepage_bullet_body_3}</p>
+        </figure>
+    </section>
     
     <div class="content">
     
