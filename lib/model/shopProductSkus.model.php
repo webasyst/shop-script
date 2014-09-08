@@ -262,7 +262,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         }
 
         $product_model = new shopProductModel();
-        $product = $product_model->getById('id', $data['product_id']);
+        $product = $product_model->getById($data['product_id']);
         $primary_currency = wa()->getConfig()->getCurrency();
 
         if ($product['currency'] == $primary_currency) {
@@ -287,7 +287,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         }
 
         $product_model = new shopProductModel();
-        $product = $product_model->getById('id', $data['product_id']);
+        $product = $product_model->getById($data['product_id']);
         $primary_currency = wa()->getConfig()->getCurrency();
 
         if ($product['currency'] == $primary_currency) {
