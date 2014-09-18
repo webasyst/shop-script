@@ -18,8 +18,10 @@ class shopCustomersAffiliateController extends waJsonController
         if (!$comment) {
             if ($amount < 0) {
                 $comment = _w('Bonus pay out');
+                $this->logAction('affiliate_payout', -$amount, $contact_id);
             } else {
                 $comment = _w('Bonus credit');
+                $this->logAction('affiliate_credit', $amount, $contact_id);
             }
         }
 

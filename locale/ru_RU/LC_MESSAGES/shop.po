@@ -8667,3 +8667,91 @@ msgstr "Очистить список сравнения"
 #: /wa-apps/shop/themes/default/compare.html:127
 msgid "Product comparison list is empty."
 msgstr "Список товаров для сравнения пуст."
+
+#: /wa-apps/shop/lib/config/logs.php:5
+msgid "added a product"
+msgstr "добавил товар"
+
+#: /wa-apps/shop/lib/config/logs.php:8
+msgid "edited a product"
+msgstr "отредактировал товар"
+
+#: /wa-apps/shop/lib/config/logs.php:11
+msgid "deleted a product"
+msgstr "удалил товар"
+
+#: /wa-apps/shop/lib/config/logs.php:14
+msgid "performed catalog import"
+msgstr "произвел импорт товаров"
+
+#: /wa-apps/shop/lib/config/logs.php:17
+msgid "performed catalog export"
+msgstr "произвел экспорт товаров"
+
+#: /wa-apps/shop/lib/config/logs.php:20
+msgid "posted a product review"
+msgstr "добавил отзыв о товаре"
+
+#: /wa-apps/shop/lib/config/logs.php:24
+msgid "added a category"
+msgstr "добавил категорию товаров"
+
+#: /wa-apps/shop/lib/config/logs.php:27
+msgid "edited a category"
+msgstr "отредактировал категорию товаров"
+
+#: /wa-apps/shop/lib/config/logs.php:30
+msgid "deleted a category"
+msgstr "удалил категорию товаров"
+
+#: /wa-apps/shop/lib/config/logs.php:34
+msgid "placed an order"
+msgstr "оформил заказ"
+
+#: /wa-apps/shop/lib/config/logs.php:37
+msgid "accepted an order for processing"
+msgstr "принял заказ в обработку"
+
+#: /wa-apps/shop/lib/config/logs.php:40
+msgid "marked an order as paid"
+msgstr "отметил заказ как выполненный"
+
+#: /wa-apps/shop/lib/config/logs.php:43
+msgid "paid an order"
+msgstr "оплатил заказ"
+
+#: /wa-apps/shop/lib/config/logs.php:46
+msgid "shipped an order"
+msgstr "отправил заказ"
+
+#: /wa-apps/shop/lib/config/logs.php:49
+msgid "refunded an order"
+msgstr "выполнил возврат оплаты по заказу"
+
+#: /wa-apps/shop/lib/config/logs.php:52
+msgid "edited an order"
+msgstr "отредактировал заказ"
+
+#: /wa-apps/shop/lib/config/logs.php:55
+msgid "deleted an order"
+msgstr "удалил заказ"
+
+#: /wa-apps/shop/lib/config/logs.php:58
+msgid "restored an order"
+msgstr "восстановил заказ"
+
+#: /wa-apps/shop/lib/config/logs.php:61
+msgid "marked an order as completed"
+msgstr "отметил заказ как выполненный"
+
+#: /wa-apps/shop/lib/config/logs.php:64
+msgid "posted an order comment"
+msgstr "добавил комментарий к заказу"
+
+#: /wa-apps/shop/lib/config/logs.php:69
+msgid "added an affiliate credit"
+msgstr "добавил бонусное начисление партнеру"
+
+#: /wa-apps/shop/lib/config/logs.php:72
+msgid "registered an affiliate payout"
+msgstr "осуществил выплату партнеру"

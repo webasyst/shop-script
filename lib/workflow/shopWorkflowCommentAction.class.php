@@ -12,6 +12,8 @@ class shopWorkflowCommentAction extends shopWorkflowAction
 
     public function execute($params = null)
     {
+        $log_model = new waLogModel();
+        $log_model->add('order_create', $params);
         return array(
             'text' => waRequest::post('text')
         );

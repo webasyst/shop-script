@@ -29,12 +29,18 @@ class shopTagModel extends waModel
                 }
             }
             $diff = $max_count - $min_count;
-            $diff = $diff <= 0 ? 1 : $diff;
-            $step_size = (self::CLOUD_MAX_SIZE - self::CLOUD_MIN_SIZE) / $diff;
-            $step_opacity = (self::CLOUD_MAX_OPACITY - self::CLOUD_MIN_OPACITY) / $diff;
+            if ($diff > 0) {
+                $step_size = (self::CLOUD_MAX_SIZE - self::CLOUD_MIN_SIZE) / $diff;
+                $step_opacity = (self::CLOUD_MAX_OPACITY - self::CLOUD_MIN_OPACITY) / $diff;
+            }
             foreach ($tags as &$tag) {
-                $tag['size'] = ceil(self::CLOUD_MIN_SIZE + ($tag['count'] - $min_count) * $step_size);
-                $tag['opacity'] = number_format((self::CLOUD_MIN_OPACITY + ($tag['count'] - $min_count) * $step_opacity) / 100, 2, '.', '');
+                if ($diff > 0) {
+                    $tag['size'] = ceil(self::CLOUD_MIN_SIZE + ($tag['count'] - $min_count) * $step_size);
+                    $tag['opacity'] = number_format((self::CLOUD_MIN_OPACITY + ($tag['count'] - $min_count) * $step_opacity) / 100, 2, '.', '');
+                } else {
+                    $tag['size'] = ceil((self::CLOUD_MAX_SIZE + self::CLOUD_MIN_SIZE) / 2);
+                    $tag['opacity'] = number_format(self::CLOUD_MAX_OPACITY, 2, '.', '');
+                }
                 if (strpos($tag['name'], '/') !== false) {
                     $tag['uri_name'] = explode('/', $tag['name']);
                     $tag['uri_name'] = array_map('urlencode', $tag['uri_name']);

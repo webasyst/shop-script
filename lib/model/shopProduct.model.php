@@ -87,6 +87,9 @@ class shopProductModel extends waModel
         if ($this->deleteById($delete_ids)) {
             $type_model = new shopTypeModel();
             $type_model->recount(array_keys($type_ids));
+            if ($cache = wa('shop')->getCache()) {
+                $cache->deleteGroup('sets');
+            }
             return $delete_ids;
         }
         return false;
@@ -721,5 +724,13 @@ class shopProductModel extends waModel
         $this->updateById($product['id'], $update_product_data);
 
         return true;
+    }
+
+    public function updateById($id, $data, $options = null, $return_object = false)
+    {
+        if ($cache = wa('shop')->getCache()) {
+            $cache->deleteGroup('sets');
+        }
+        return parent::updateById($id, $data, $options, $return_object);
     }
 }

@@ -17,6 +17,8 @@ class shopWorkflowRefundAction extends shopWorkflowAction
         shopCustomers::recalculateTotalSpent($order['contact_id']);
 
         if ($order_id != null) {
+            $log_model = new waLogModel();
+            $log_model->add('order_refund', $order_id);
             $order_model = new shopOrderModel();
             $order_model->updateById($order_id, array(
                 'paid_date' => null,

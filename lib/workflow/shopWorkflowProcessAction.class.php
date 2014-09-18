@@ -6,6 +6,8 @@ class shopWorkflowProcessAction extends shopWorkflowAction
     {
         $data = parent::postExecute($order_id, $result);
         if ($order_id != null) {
+            $log_model = new waLogModel();
+            $log_model->add('order_process', $order_id);
             $app_settings_model = new waAppSettingsModel();
             if (!$app_settings_model->get('shop', 'update_stock_count_on_create_order')) {
                 

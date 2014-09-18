@@ -47,6 +47,9 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             if (is_numeric($data['contact'])) {
                 $contact = new waContact($data['contact']);
             } else {
+                /**
+                 * @var waContact $contact
+                 */
                 $contact = $data['contact'];
                 if (!$contact->getId()) {
                     $contact->save();
@@ -150,6 +153,9 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         // Save params
         $params_model = new shopOrderParamsModel();
         $params_model->set($order_id, $data['params']);
+
+        $log_model = new waLogModel();
+        $log_model->add('order_create', $order_id);
         
         return array(
             'order_id' => $order_id,

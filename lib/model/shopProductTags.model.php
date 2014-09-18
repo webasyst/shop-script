@@ -28,6 +28,9 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
             $tag_model->query("DELETE FROM ".$tag_model->getTableName()." WHERE count <= 0");
         }
 
+        if ($cache = wa()->getCache()) {
+            $cache->delete('tags');
+        }
         return $this->deleteByField('product_id', $product_ids);
     }
 
@@ -78,6 +81,12 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
             $this->deleteByField(array('product_id' => $product_id, 'tag_id' => $remove_tag_ids));
             $tag_model->incCounters($remove_tag_ids, -1);
         }
+
+        if ($add_tag_ids || $remove_tag_ids) {
+            if ($cache = wa()->getCache()) {
+                $cache->delete('tags');
+            }
+        }
         // return new tags
         return $this->getData($product);
     }
@@ -96,6 +105,9 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
             $this->multipleInsert(array('product_id' => $product_id, 'tag_id' => $add_tag_ids));
             $tag_model->incCounters($add_tag_ids);
         }
+        if ($cache = wa()->getCache()) {
+            $cache->delete('tags');
+        }
         return true;
     }
 
@@ -112,6 +124,9 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         if ($delete_tag_ids) {
             $this->deleteByField(array('product_id' => $product_id, 'tag_id' => $delete_tag_ids));
             $tag_model->incCounters($delete_tag_ids, -1);
+        }
+        if ($cache = wa()->getCache()) {
+            $cache->delete('tags');
         }
         return true;
     }
@@ -172,6 +187,10 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         // recounting counters for this tags
         $tag_model = new shopTagModel();
         $tag_model->recount($tag_id);
+        // clear cache
+        if ($cache = wa()->getCache()) {
+            $cache->delete('tags');
+        }
     }
 
 
@@ -191,5 +210,9 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         // decrease count for tags
         $tag_model = new shopTagModel();
         $tag_model->recount($tag_id);
+        // clear cache
+        if ($cache = wa()->getCache()) {
+            $cache->delete('tags');
+        }
     }
 }

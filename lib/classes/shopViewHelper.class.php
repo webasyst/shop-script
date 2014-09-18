@@ -56,7 +56,17 @@ class shopViewHelper extends waAppViewHelper
      */
     public function productSet($set_id, $offset = null, $limit = null, $options = array())
     {
-        return $this->products('set/'.$set_id, $offset, $limit, $options);
+        if (!$offset && !$limit && !$options && ($cache = $this->wa->getCache())) {
+            $products = $cache->get('set_'.$set_id, 'sets');
+            if ($products !== null) {
+                return $products;
+            }
+        }
+        $products = $this->products('set/'.$set_id, $offset, $limit, $options);
+        if (!empty($cache)) {
+            $cache->set('set_'.$set_id, $products, 1200, 'sets');
+        }
+        return $products;
     }
 
     /**
@@ -142,6 +152,11 @@ class shopViewHelper extends waAppViewHelper
         } else {
             return $currency;
         }
+    }
+
+    public function currencies()
+    {
+        return $this->wa->getConfig()->getCurrencies();
     }
 
     public function productUrl($product, $key = '', $route_params = array())
@@ -420,8 +435,18 @@ class shopViewHelper extends waAppViewHelper
 
     public function tags($limit = 50)
     {
+        if ($limit == 50 && ($cache = $this->wa->getCache())) {
+            $tags = $cache->get('tags');
+            if ($tags !== null) {
+                return $tags;
+            }
+        }
         $tag_model = new shopTagModel();
-        return $tag_model->getCloud(null, $limit);
+        $tags = $tag_model->getCloud(null, $limit);
+        if (!empty($cache)) {
+            $cache->set('tags', $tags, 7200);
+        }
+        return $tags;
     }
 
     public function payment()

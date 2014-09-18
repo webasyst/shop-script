@@ -83,6 +83,7 @@ class shopProductsSaveListSettingsController extends waJsonController
                 $data['name'] = _w('(no-name)');
             }
             $id = $model->add($data, $data['parent_id']);
+            $this->logAction('category_add', $id);
         } else {
             $category = $model->getById($id);
             if (!$this->categorySettingsValidate($category, $data)) {
@@ -97,6 +98,7 @@ class shopProductsSaveListSettingsController extends waJsonController
             unset($data['parent_id']);
             $data['edit_datetime'] = date('Y-m-d H:i:s');
             $model->update($id, $data);
+            $this->logAction('category_edit', $id);
         }
         if ($id) {
             if (waRequest::post('enable_sorting')) {

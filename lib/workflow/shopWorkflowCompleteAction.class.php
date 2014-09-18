@@ -34,6 +34,9 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
     {
         $data = parent::postExecute($order_id, $result);
 
+        $log_model = new waLogModel();
+        $log_model->add('order_complete', $order_id);
+
         $order_model = new shopOrderModel();
         if (is_array($order_id)) {
             $order = $order_id;

@@ -35,22 +35,32 @@ class shopCurrencyModel extends waModel
 
     public function getCurrencies($codes = null)
     {
-        $cache = new waRuntimeCache('shop_currencies');
-        if ($cache->isCached()) {
-            $data = $cache->get();
+        $runtime_cache = new waRuntimeCache('shop_currencies');
+        if ($runtime_cache->isCached()) {
+            $data = $runtime_cache->get();
         } else {
             $data = array();
-            $primary = $this->getPrimaryCurrency();
-            $currencies = waCurrency::getAll(true);
-            foreach ($this->query("SELECT * FROM ".$this->table." ORDER BY sort") as $c) {
-                $code = $c['code'];
-                if (isset($currencies[$code])) {
-                    $c['rate'] = (double) $c['rate'];
-                    $data[$code] = $currencies[$code] + $c;
-                    $data[$code]['is_primary'] = $primary == $code;
+            if ($cache = wa('shop')->getCache()) {
+                $data = $cache->get('currencies');
+            }
+            if (!$data) {
+                $data = array();
+                $primary = $this->getPrimaryCurrency();
+                $currencies = waCurrency::getAll(true);
+
+                foreach ($this->query("SELECT * FROM " . $this->table . " ORDER BY sort") as $c) {
+                    $code = $c['code'];
+                    if (isset($currencies[$code])) {
+                        $c['rate'] = (double)$c['rate'];
+                        $data[$code] = $currencies[$code] + $c;
+                        $data[$code]['is_primary'] = $primary == $code;
+                    }
+                }
+                if (!empty($cache)) {
+                    $cache->set('currencies', $data, 86400);
                 }
             }
-            $cache->set($data);
+            $runtime_cache->set($data);
         }
 
         if ($codes) {
@@ -138,6 +148,9 @@ class shopCurrencyModel extends waModel
         $this->recalcProductPrimaryPrices($convert_to);
         $this->recalcServicePrimaryPrices($convert_to);
 
+        if ($cache = wa('shop')->getCache()) {
+            $cache->delete('currencies');
+        }
         return $this->deleteById($code);
     }
 
@@ -210,7 +223,10 @@ class shopCurrencyModel extends waModel
             
             $cache = new waRuntimeCache('shop_currencies');
             $cache->delete();
-            
+
+            if ($cache = wa('shop')->getCache()) {
+                $cache->delete('currencies');
+            }
         }
         return true;
     }
@@ -284,6 +300,9 @@ class shopCurrencyModel extends waModel
         ));
         $cache = new waRuntimeCache('shop_currencies');
         $cache->delete();
+        if ($cache = wa('shop')->getCache()) {
+            $cache->delete('currencies');
+        }
         return $result;
     }
 
@@ -317,6 +336,9 @@ class shopCurrencyModel extends waModel
 
             $cache = new waRuntimeCache('shop_currencies');
             $cache->delete();
+            if ($cache = wa('shop')->getCache()) {
+                $cache->delete('currencies');
+            }
             return $result;
         }
         return true;
@@ -419,6 +441,9 @@ class shopCurrencyModel extends waModel
             $sort = $items[$before_code]['sort'];
             $this->exec("UPDATE {$this->table} SET sort = sort + 1 WHERE sort >= $sort");
             $this->updateById($code, array('sort' => $sort));
+        }
+        if ($cache = wa('shop')->getCache()) {
+            $cache->delete('currencies');
         }
         return true;
     }

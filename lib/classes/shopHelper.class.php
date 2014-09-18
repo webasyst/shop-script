@@ -466,7 +466,7 @@ class shopHelper
     public static function decodeOrderId($id)
     {
         $format = wa('shop')->getConfig()->getOrderFormat();
-        $format = '/^'.str_replace('\{\$order\.id\}', '(\d+)', preg_quote($format)).'$/';
+        $format = '/^'.str_replace('\{\$order\.id\}', '(\d+)', preg_quote($format,'/')).'$/';
         if (preg_match($format, $id, $m)) {
             return $m[1];
         }

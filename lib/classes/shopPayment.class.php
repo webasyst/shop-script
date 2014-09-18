@@ -199,7 +199,6 @@ class shopPayment extends waAppPayment
                     'price'       => $item['price'],
                     'quantity'    => ifset($item['quantity'], 0),
                     'total'       => $item['price'] * $item['quantity'],
-
                     'type'        => ifset($item['type'], 'product'),
                     'product_id'  => ifset($item['product_id']),
                 );
@@ -233,7 +232,7 @@ class shopPayment extends waAppPayment
             $order['shipping'] = shop_currency($order['shipping'], $order['currency'], $currency_id, false);
             $order['discount'] = shop_currency($order['discount'], $order['currency'], $currency_id, false);
         }
-        $wa_order = waOrder::factory(array(
+        $order_data = array(
             'id_str'           => ifempty($order['id_str'], $order['id']),
             'id'               => $order['id'],
             'contact_id'       => $order['contact_id'],
@@ -253,8 +252,8 @@ class shopPayment extends waAppPayment
             'items'            => $items,
             'comment'          => ifempty($order['comment'], ''),
             'params'           => $order['params'],
-        ));
-        return $wa_order;
+        );
+        return waOrder::factory($order_data);
     }
 
     public function getDataPath($order_id, $path = null)
@@ -266,6 +265,7 @@ class shopPayment extends waAppPayment
 
     public function getSettings($payment_id, $merchant_key)
     {
+        $this->merchant_id = max(0, intval($merchant_key));
         return $this->model()->get($merchant_key);
     }
 
@@ -361,6 +361,11 @@ class shopPayment extends waAppPayment
         if (!$order) {
             return array('error' => 'Order not found');
         }
+        $appropriate = $this->isSuitable($order['id']);
+        if ($appropriate !== true) {
+            return array('error' => $appropriate);
+        }
+
         $result = array();
         if (empty($transaction_data['customer_id'])) {
             $result['customer_id'] = $order['contact_id'];
@@ -369,6 +374,33 @@ class shopPayment extends waAppPayment
         $workflow->getActionById($method)->run($transaction_data);
 
         return $result;
+    }
+
+    /**
+     * Verify that the plugin is suitable for payment of the order
+     * @param int $order_id
+     * @return bool|string
+     */
+    private function isSuitable($order_id)
+    {
+        $order_params_model = new shopOrderParamsModel();
+        if (!$this->merchant_id) {
+            return 'Invalid plugin id';
+        } else {
+            if ($this->merchant_id != $order_params_model->getOne($order_id, 'payment_id')) {
+                return 'Plugin does not suitable to payment of the order';
+            }
+
+            $shop_plugin_model = new shopPluginModel();
+            if ($plugin = $shop_plugin_model->getById($this->merchant_id)) {
+                if (!$plugin['status']) {
+                    return 'Plugin status is disabled';
+                }
+            } else {
+                return 'Plugin deleted';
+            }
+        }
+        return true;
     }
 
     /**

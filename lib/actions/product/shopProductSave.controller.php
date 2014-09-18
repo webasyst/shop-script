@@ -108,6 +108,11 @@ class shopProductSaveController extends waJsonController
 
                 shopProductStocksLogModel::clearContext();
 
+                if ($id) {
+                    $this->logAction('product_edit', $id);
+                } else {
+                    $this->logAction('product_add', $product->getId());
+                }
                 $this->response['id'] = $product->getId();
                 $this->response['name'] = $product->name;
                 $this->response['url'] = $product->url;
@@ -180,6 +185,7 @@ class shopProductSaveController extends waJsonController
         }
         if ($update) {
             $product_model->updateById($id, $update);
+            $this->logAction('product_edit', $id);
         }
     }
 

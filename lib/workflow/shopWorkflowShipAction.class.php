@@ -37,6 +37,9 @@ class shopWorkflowShipAction extends shopWorkflowAction
         }
         $data = parent::postExecute($order_id, $result);
 
+        $log_model = new waLogModel();
+        $log_model->add('order_ship', $order_id);
+
         $log_model = new shopOrderLogModel();
         $state_id = $log_model->getPreviousState($order_id);
 

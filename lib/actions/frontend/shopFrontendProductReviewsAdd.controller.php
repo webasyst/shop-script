@@ -36,6 +36,8 @@ class shopFrontendProductReviewsAddController extends waJsonController
         $id = $this->model->add($data, $data['parent_id']);
         if (!$id) {
             throw new waException("Error in adding review");
+        } else {
+            $this->logAction('product_review_add', $product['id']);
         }
 
         $count = waRequest::post('count', 0, waRequest::TYPE_INT) + 1;

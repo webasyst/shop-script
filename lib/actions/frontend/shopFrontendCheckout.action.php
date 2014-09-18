@@ -241,7 +241,7 @@ class shopFrontendCheckoutAction extends waViewAction
         $routing_url = wa()->getRouting()->getRootUrl();
         $order['params']['storefront'] = wa()->getConfig()->getDomain().($routing_url ? '/'.$routing_url : '');
 
-        if ($ref = wa()->getStorage()->get('shop/referer')) {
+        if (($ref = wa()->getStorage()->get('shop/referer')) || ($ref = waRequest::cookie('referer'))) {
             $order['params']['referer'] = $ref;
             $ref_parts = parse_url($ref);
             $order['params']['referer_host'] = $ref_parts['host'];
@@ -269,7 +269,15 @@ class shopFrontendCheckoutAction extends waViewAction
                     $order['params']['keyword'] = $query[$q_var];
                 }
             }
+        }
 
+        if ($utm = waRequest::cookie('utm')) {
+            $utm = json_decode($utm, true);
+            if ($utm && is_array($utm)) {
+                foreach ($utm as $k => $v) {
+                    $order['params']['utm_'.$k] = $v;
+                }
+            }
         }
 
         $order['params']['ip'] = waRequest::getIp();

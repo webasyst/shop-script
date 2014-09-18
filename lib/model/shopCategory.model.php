@@ -72,29 +72,40 @@ class shopCategoryModel extends waNestedSetModel
         } else {
             $left = $right = 0;
         }
-        $sql = "SELECT c.* FROM {$this->table} c";
-        if ($id) {
-            $where[] = "c.`{$this->left}` >= i:left";
-            $where[] = "c.`{$this->right}` <= i:right";
-        }
-        if ($depth !== null) {
-            $depth = max(0, intval($depth));
-            if ($id && $parent) {
-                $depth += (int) $parent[$this->depth];
-            }
-            $where[] = "c.`{$this->depth}` <= i:depth";
-        }
-        if ($route) {
-            $sql .= " LEFT JOIN shop_category_routes cr ON c.id = cr.category_id";
-            $where[] = "c.status = 1";
-            $where[] = "cr.route IS NULL OR cr.route = '".$this->escape($route)."'";
-        }
-        if ($where) {
-            $sql .= " WHERE (".implode(') AND (', $where).')';
-        }
-        $sql .= " ORDER BY c.`{$this->left}`";
 
-        $data = $this->query($sql, array('left' => $left, 'right' => $right,'depth'=> $depth))->fetchAll($this->id);
+
+        if (!$id && $depth == null && $route && ($cache = wa('shop')->getCache())) {
+            $cache_key = waRouting::clearUrl($route);
+            $data = $cache->get($cache_key, 'categories');
+        }
+        if (empty($data)) {
+            $sql = "SELECT c.* FROM {$this->table} c";
+            if ($id) {
+                $where[] = "c.`{$this->left}` >= i:left";
+                $where[] = "c.`{$this->right}` <= i:right";
+            }
+            if ($depth !== null) {
+                $depth = max(0, intval($depth));
+                if ($id && $parent) {
+                    $depth += (int)$parent[$this->depth];
+                }
+                $where[] = "c.`{$this->depth}` <= i:depth";
+            }
+            if ($route) {
+                $sql .= " LEFT JOIN shop_category_routes cr ON c.id = cr.category_id";
+                $where[] = "c.status = 1";
+                $where[] = "cr.route IS NULL OR cr.route = '" . $this->escape($route) . "'";
+            }
+            if ($where) {
+                $sql .= " WHERE (" . implode(') AND (', $where) . ')';
+            }
+            $sql .= " ORDER BY c.`{$this->left}`";
+
+            $data = $this->query($sql, array('left' => $left, 'right' => $right, 'depth' => $depth))->fetchAll($this->id);
+            if (!$id && $depth == null && $route && $cache) {
+                $cache->set($cache_key, $data, 3600, 'categories');
+            }
+        }
 
         if ($escape) {
             foreach ($data as &$item) {
@@ -158,6 +169,13 @@ class shopCategoryModel extends waNestedSetModel
         ))->fetchAll($this->id);
     }
 
+    protected function clearCache()
+    {
+        if ($cache = wa('shop')->getCache()) {
+            $cache->deleteGroup('categories');
+        }
+    }
+
     /**
      * @param int $id
      * @param int|null $before_id If null than inserted back of the level
@@ -196,6 +214,7 @@ class shopCategoryModel extends waNestedSetModel
             $this->correctFullUrlOfDescendants($id, $full_url);
             
         }
+        $this->clearCache();
         
         return true;
     }
@@ -253,6 +272,7 @@ class shopCategoryModel extends waNestedSetModel
         $product_model->correctMainCategory(null, $id);
 
         shopCategories::clear($id);
+        $this->clearCache();
 
         return true;
         
@@ -325,6 +345,7 @@ class shopCategoryModel extends waNestedSetModel
             }
             $this->updateById($id, $data);
         }
+        $this->clearCache();
         return $id;
     }
 
@@ -355,6 +376,7 @@ class shopCategoryModel extends waNestedSetModel
         if (!$this->updateById($id, $data)) {
             return false;
         }
+        $this->clearCache();
         return true;
     }
 

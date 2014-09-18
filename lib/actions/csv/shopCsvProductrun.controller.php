@@ -55,7 +55,13 @@ class shopCsvProductrunController extends waLongActionController
 
             $stages = array_keys($this->data['count']);
             $this->data['current'] = array_fill_keys($stages, 0);
-            $value = ($this->data['direction'] == 'import') ? ($this->emulate(null) ? array('add' => 0, 'found' => 0, 'skip' => 0, 'rights' => 0, 'currency' => 0) : array('new' => 0, 'update' => 0, 'skip' => 0, 'error' => 0, 'rights' => 0, 'currency' => 0)) : 0;
+            $value = ($this->data['direction'] == 'import') ? ($this->emulate(null) ? array(
+                'add'      => 0,
+                'found'    => 0,
+                'skip'     => 0,
+                'rights'   => 0,
+                'currency' => 0
+            ) : array('new' => 0, 'update' => 0, 'skip' => 0, 'error' => 0, 'rights' => 0, 'currency' => 0)) : 0;
             $this->data['processed_count'] = array_fill_keys($stages, $value);
 
             $this->data['map'] = array();
@@ -66,9 +72,11 @@ class shopCsvProductrunController extends waLongActionController
             $this->data['timestamp'] = time();
         } catch (waException $ex) {
             $this->error($ex->getMessage());
-            echo $this->json(array(
-                'error' => $ex->getMessage(),
-            ));
+            echo $this->json(
+                array(
+                    'error' => $ex->getMessage(),
+                )
+            );
             exit;
         }
     }
@@ -442,117 +450,173 @@ class shopCsvProductrunController extends waLongActionController
             $strings = array(
                 'add'       => array(
                     self::STAGE_CATEGORY => array /*_w*/
-                    ('%d new category to be added', '%d new categories to be added',
+                    (
+                                                  '%d new category to be added',
+                                                  '%d new categories to be added',
                     ),
                     self::STAGE_PRODUCT  => array /*_w*/
-                    ('%d new product to be added', '%d new products to be added',
+                    (
+                                                  '%d new product to be added',
+                                                  '%d new products to be added',
                     ),
                     self::STAGE_SKU      => array /*_w*/
-                    ('%d new SKU to be added', '%d new SKUs to be added',
+                    (
+                                                  '%d new SKU to be added',
+                                                  '%d new SKUs to be added',
                     ),
                     'icon'               => 'yes',
 
                 ),
                 'found'     => array(
                     self::STAGE_CATEGORY => array /*_w*/
-                    ('%d category to be updated', '%d categories to be updated',
+                    (
+                                                  '%d category to be updated',
+                                                  '%d categories to be updated',
                     ),
                     self::STAGE_PRODUCT  => array /*_w*/
-                    ('%d product to be updated', '%d products to be updated',
+                    (
+                                                  '%d product to be updated',
+                                                  '%d products to be updated',
                     ),
                     self::STAGE_SKU      => array /*_w*/
-                    ('%d SKU to be updated', '%d SKUs to be updated',
+                    (
+                                                  '%d SKU to be updated',
+                                                  '%d SKUs to be updated',
                     ),
                     'icon'               => 'yes',
                 ),
                 'collision' => array(
                     self::STAGE_CATEGORY => array /*_w*/
-                    ('Excessive declaration for a category on %d line', 'Excessive declaration for a category on %d lines',
+                    (
+                                                  'Excessive declaration for a category on %d line',
+                                                  'Excessive declaration for a category on %d lines',
                     ),
                     self::STAGE_PRODUCT  => array /*_w*/
-                    ('Excessive declaration for a product on %d line', 'Excessive declaration for a product on %d lines',
+                    (
+                                                  'Excessive declaration for a product on %d line',
+                                                  'Excessive declaration for a product on %d lines',
                     ),
                     self::STAGE_SKU      => array /*_w*/
-                    ('Excessive declaration for a SKU on %d line', 'Excessive declaration for a SKU on %d lines',
+                    (
+                                                  'Excessive declaration for a SKU on %d line',
+                                                  'Excessive declaration for a SKU on %d lines',
                     ),
                     'icon'               => 'exclamation',
                 ),
                 'new'       => array(
                     self::STAGE_CATEGORY => array /*_w*/
-                    ('Added %d category', 'Added %d categories',
+                    (
+                                                  'Added %d category',
+                                                  'Added %d categories',
                     ),
                     self::STAGE_PRODUCT  => array /*_w*/
-                    ('Added %d product', 'Added %d products',
+                    (
+                                                  'Added %d product',
+                                                  'Added %d products',
                     ),
                     self::STAGE_SKU      => array /*_w*/
-                    ('Added %d SKU', 'Added %d SKUs'
+                    (
+                                                  'Added %d SKU',
+                                                  'Added %d SKUs'
                     ),
                     self::STAGE_IMAGE    => array /*_w*/
-                    ('Linked %d product image', 'Linked %d product images',
+                    (
+                                                  'Linked %d product image',
+                                                  'Linked %d product images',
                     ),
                     'icon'               => 'yes',
 
                 ),
                 'update'    => array(
                     self::STAGE_CATEGORY => array /*_w*/
-                    ('Updated %d category', 'Updated %d categories',
+                    (
+                                                  'Updated %d category',
+                                                  'Updated %d categories',
                     ),
                     self::STAGE_PRODUCT  => array /*_w*/
-                    ('Updated %d product', 'Updated %d products',
+                    (
+                                                  'Updated %d product',
+                                                  'Updated %d products',
                     ),
                     self::STAGE_SKU      => array /*_w*/
-                    ('Updated %d SKU', 'Updated %d SKUs',
+                    (
+                                                  'Updated %d SKU',
+                                                  'Updated %d SKUs',
                     ),
                     self::STAGE_IMAGE    => array /*_w*/
-                    ('Updated %d product image', 'Updated %d product images',
+                    (
+                                                  'Updated %d product image',
+                                                  'Updated %d product images',
                     ),
                     'icon'               => 'yes',
                 ),
                 'skip'      => array(
                     self::STAGE_CATEGORY => array /*_w*/
-                    ('Ambiguous identification conditions for %d category', 'Ambiguous identification conditions for %d categories',
+                    (
+                                                  'Ambiguous identification conditions for %d category',
+                                                  'Ambiguous identification conditions for %d categories',
                     ),
                     self::STAGE_PRODUCT  => array /*_w*/
-                    ('Ambiguous identification conditions for %d product', 'Ambiguous identification conditions for %d products',
+                    (
+                                                  'Ambiguous identification conditions for %d product',
+                                                  'Ambiguous identification conditions for %d products',
                     ),
                     self::STAGE_SKU      => array /*_w*/
-                    ('Ambiguous identification conditions for %d SKU', 'Ambiguous identification conditions for %d SKUs',
+                    (
+                                                  'Ambiguous identification conditions for %d SKU',
+                                                  'Ambiguous identification conditions for %d SKUs',
                     ),
                     self::STAGE_IMAGE    => array /*_w*/
-                    ('Ambiguous identification conditions for %d product image', 'Ambiguous identification conditions for %d product images',
+                    (
+                                                  'Ambiguous identification conditions for %d product image',
+                                                  'Ambiguous identification conditions for %d product images',
                     ),
                     'icon'               => 'no-bw',
                 ),
                 'rights'    => array(
                     self::STAGE_PRODUCT => array /*_w*/
-                    ('%d product record was not updated due to insufficient access rights for you as Webasyst user', '%d product records were not updated due to insufficient access rights for you as Webasyst user',
+                    (
+                                                 '%d product record was not updated due to insufficient access rights for you as Webasyst user',
+                                                 '%d product records were not updated due to insufficient access rights for you as Webasyst user',
                     ),
                     'icon'              => 'no-bw',
                 ),
                 'currency'  => array(
                     self::STAGE_PRODUCT => array /*_w*/
-                    ('%d product has unknown currency', '%d products have unknown currency',
+                    (
+                                                 '%d product has unknown currency',
+                                                 '%d products have unknown currency',
                     ),
                     'icon'              => 'no-bw',
                 ),
                 'error'     => array(
                     self::STAGE_CATEGORY => array /*_w*/
-                    ('%d category imported with errors', '%d categories imported with errors',
+                    (
+                                                  '%d category imported with errors',
+                                                  '%d categories imported with errors',
                     ),
                     'icon'               => 'no',
                 ),
                 0           => array(
                     self::STAGE_CATEGORY => array /*_w*/
-                    ('%d category', '%d categories',
+                    (
+                                                  '%d category',
+                                                  '%d categories',
                     ),
                     self::STAGE_PRODUCT  => array /*_w*/
-                    ('%d product', '%d products',
+                    (
+                                                  '%d product',
+                                                  '%d products',
                     ),
                     self::STAGE_SKU      => array /*_w*/
-                    ('%d SKU', '%d SKUs',
+                    (
+                                                  '%d SKU',
+                                                  '%d SKUs',
                     ),
                     self::STAGE_IMAGE    => array /*_w*/
-                    ('%d product image', '%d product images',
+                    (
+                                                  '%d product image',
+                                                  '%d product images',
                     ),
                     'icon'               => 'yes'
                 ),
@@ -1115,10 +1179,12 @@ class shopCsvProductrunController extends waLongActionController
                         $key .= 'u:'.$item_sku_id;
                     } else {
                         $key .= 'i:';
-                        $key .= $this->getKey(array(
-                            $sku_primary => ifset($sku[$sku_primary], ''),
-                            //   $sku_secondary => $sku[$sku_secondary],
-                        ));
+                        $key .= $this->getKey(
+                            array(
+                                $sku_primary => ifset($sku[$sku_primary], ''),
+                                //   $sku_secondary => $sku[$sku_secondary],
+                            )
+                        );
 
                     }
                 } else {
@@ -1134,10 +1200,12 @@ class shopCsvProductrunController extends waLongActionController
                 $sku = $data['skus'][-1] + $empty_sku;
                 $key = 's:';
                 $key .= 'i:';
-                $key .= $this->getKey(array(
-                    $sku_primary => ifset($sku[$sku_primary], ''),
-                    //$sku_secondary => $sku[$sku_secondary],
-                ));
+                $key .= $this->getKey(
+                    array(
+                        $sku_primary => ifset($sku[$sku_primary], ''),
+                        //$sku_secondary => $sku[$sku_secondary],
+                    )
+                );
             } elseif (!empty($data['features_selectable'])) {
                 if ($product_exists) {
                     $target = $this->emulate() ? 'found' : 'update';
@@ -1334,7 +1402,9 @@ class shopCsvProductrunController extends waLongActionController
                         $image_path = shopImage::getPath($data);
                         if ((file_exists($image_path) && !is_writable($image_path)) || (!file_exists($image_path) && !waFiles::create($image_path))) {
                             $model->deleteById($image_id);
-                            throw new waException(sprintf("The insufficient file write permissions for the %s folder.", substr($image_path, strlen($this->getConfig()->getRootPath()))));
+                            throw new waException(
+                                sprintf("The insufficient file write permissions for the %s folder.", substr($image_path, strlen($this->getConfig()->getRootPath())))
+                            );
                         }
 
                         if ($image_changed) {
@@ -1518,8 +1588,27 @@ class shopCsvProductrunController extends waLongActionController
     protected function finish($filename)
     {
         $cleanup = !!$this->getRequest()->post('cleanup');
-        if ($cleanup && !$this->emulate() && $this->reader) {
-            $this->reader->delete(true);
+        if ($cleanup && !$this->emulate()) {
+            if (!empty($this->data['processed_count'][self::STAGE_PRODUCT])) {
+                $params = array(
+                    'type' => 'CSV',
+                );
+                switch ($this->data['direction']) {
+                    case 'import':
+                        $action = 'catalog_import';
+                        break;
+                    case 'export':
+                        $action = 'catalog_export';
+                        break;
+                }
+                if (!empty($action)) {
+                    $this->logAction($action, $params);
+                }
+
+            }
+            if ($this->reader) {
+                $this->reader->delete(true);
+            }
         }
 
         return $cleanup;
@@ -1870,10 +1959,12 @@ class shopCsvProductrunController extends waLongActionController
                                     $enclosure = $this->writer->enclosure;
                                     $pattern = sprintf("/(?:%s|%s|%s)/", preg_quote(',', '/'), preg_quote($enclosure, '/'), preg_quote($enclosure, '/'));
                                     foreach ($features as $feature_id => $feature) {
-                                        $values = shopFeatureModel::getValuesModel($feature['type'])->getValues(array(
-                                            'feature_id' => $feature_id,
-                                            'id'         => $selected[$feature_id],
-                                        ));
+                                        $values = shopFeatureModel::getValuesModel($feature['type'])->getValues(
+                                            array(
+                                                'feature_id' => $feature_id,
+                                                'id'         => $selected[$feature_id],
+                                            )
+                                        );
                                         if (!empty($values[$feature['id']])) {
                                             $f_values = $values[$feature['id']];
                                             if (!isset($product['features'])) {

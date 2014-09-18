@@ -86,6 +86,9 @@ class shopWorkflowEditAction extends shopWorkflowAction
         
         // update
         $order_model->update($data, $data['id']);
+
+        $log_model = new waLogModel();
+        $log_model->add('order_edit', $data['id']);
         
         shopProductStocksLogModel::clearContext();
 

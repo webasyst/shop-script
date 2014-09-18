@@ -8366,3 +8366,178 @@ msgstr ""
 #: /wa-apps/shop/themes/default/compare.html:127
 msgid "Product comparison list is empty."
 msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:5
+msgid "product_add"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:8
+msgid "product_edit"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:11
+msgid "product_delete"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:14
+msgid "catalog_import"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:17
+msgid "catalog_export"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:20
+msgid "product_review_add"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:24
+msgid "category_add"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:27
+msgid "category_edit"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:30
+msgid "category_delete"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:34
+msgid "order_create"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:37
+msgid "order_process"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:40
+msgid "order_pay"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:43
+msgid "order_pay_callback"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:46
+msgid "order_ship"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:49
+msgid "order_refund"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:52
+msgid "order_edit"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:55
+msgid "order_delete"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:58
+msgid "order_restore"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:61
+msgid "order_complete"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:64
+msgid "order_comment"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:69
+msgid "affiliate_credit"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:72
+msgid "affiliate_payout"
+msgstr ""
+#: /wa-apps/shop/lib/config/logs.php:5
+msgid "added a product"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:8
+msgid "edited a product"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:11
+msgid "deleted a product"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:14
+msgid "performed catalog import"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:17
+msgid "performed catalog export"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:20
+msgid "posted a product review"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:24
+msgid "added a category"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:27
+msgid "edited a category"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:30
+msgid "deleted a category"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:34
+msgid "placed an order"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:37
+msgid "accepted an order for processing"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:40
+msgid "marked an order as paid"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:43
+msgid "paid an order"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:46
+msgid "shipped an order"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:49
+msgid "refunded an order"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:52
+msgid "edited an order"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:55
+msgid "deleted an order"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:58
+msgid "restored an order"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:61
+msgid "marked an order as completed"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:64
+msgid "posted an order comment"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:69
+msgid "added an affiliate credit"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:72
+msgid "registered an affiliate payout"
+msgstr ""

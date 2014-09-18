@@ -30,6 +30,10 @@ class shopWorkflowRestoreAction extends shopWorkflowAction
         $data = parent::postExecute($order_id, $result);
 
         if ($order_id != null) {
+
+            $log_model = new waLogModel();
+            $log_model->add('order_restore', $order_id);
+
             $order_model = new shopOrderModel();
             $app_settings_model = new waAppSettingsModel();
 

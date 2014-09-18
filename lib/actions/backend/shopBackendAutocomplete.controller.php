@@ -252,7 +252,7 @@ class shopBackendAutocompleteController extends waController
             return '';
         }
 
-        $format = '/^'.str_replace('%', '(\d+)', preg_quote($format)).'$/';
+        $format = '/^'.str_replace('%', '(\d+)', preg_quote($format,'/')).'$/';
         if (!preg_match($format, $encoded_id, $m)) {
             return '';
         }
@@ -338,7 +338,7 @@ class shopBackendAutocompleteController extends waController
             $c['label'] = "<i class='icon16 userpic20' style='background-image: url(\"".$contact->getPhoto(20)."\");'></i>" . $c['label'];
         }
         unset($c);
-        
+
         return array_values($result);
     }
 
@@ -348,16 +348,22 @@ class shopBackendAutocompleteController extends waController
         $model = new shopFeatureModel();
         $value = $model->escape($q, 'like');
         $table = $model->getTableName();
+        $options = (array)waRequest::get('options',array());
+        $where = array('1');
+        if(!empty($options['single'])){
+            $where[] = '`multiple`=0';
+        }
+        $where = ' AND (('.implode(') AND (',$where).'))';
         $sql = <<<SQL
 SELECT `id`,`name`,`code`,`type`,`count` FROM {$table}
 WHERE
-  `parent_id` IS NULL
+  (`parent_id` IS NULL
   AND
   (
   (`name` LIKE '%{$value}%')
   OR
   (`code` LIKE '%{$value}%')
-  )
+  )){$where}
 ORDER BY `count` DESC
 LIMIT 20
 SQL;
@@ -430,13 +436,13 @@ SQL;
                 'id' => $c['id'],
             );
         }
-        
+
         foreach ($result as &$c) {
             $contact = new waContact($c['id']);
             $c['label'] = "<i class='icon16 userpic20' style='background-image: url(\"".$contact->getPhoto(20)."\");'></i>" . $c['label'];
         }
         unset($c);
-        
+
         return $result;
     }
 }

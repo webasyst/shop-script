@@ -453,11 +453,11 @@ class shopOrdersCollection
                             $c = $contacts[$o['contact_id']];
                             $o['contact'] = array(
                                 'id' => $c['id'],
-                                'name' => $c['name'],
+                                'name' => waContactNameField::formatName($c),
                                 'photo' => $c['photo']
                             );
                             if ($escape) {
-                                $o['contact']['name'] = htmlspecialchars($c['name']);
+                                $o['contact']['name'] = htmlspecialchars($o['contact']['name']);
                             }
                         }
                     }

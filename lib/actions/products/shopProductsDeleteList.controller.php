@@ -79,6 +79,7 @@ class shopProductsDeleteListController extends waJsonController
             }
 
             if ($hash[0] == 'category') {
+                $this->logAction('category_delete', $hash[1]);
                 if ($item['parent_id']) {
                     $count = $model->countByField('parent_id', $item['parent_id']);
                     $this->response['old_parent_category'] = array(
@@ -99,6 +100,7 @@ class shopProductsDeleteListController extends waJsonController
     {
         if ($product_ids) {
             $product_model = new shopProductModel();
+            $this->logAction('product_delete', $product_ids);
             return $product_model->delete($product_ids);
         }
         return false;

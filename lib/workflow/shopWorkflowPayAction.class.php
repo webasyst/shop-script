@@ -26,6 +26,14 @@ class shopWorkflowPayAction extends shopWorkflowAction
         }
         $order_model = new shopOrderModel();
         $order = $order_model->getById($order_id);
+
+        $log_model = new waLogModel();
+        if (wa()->getEnv() == 'backend') {
+            $log_model->add('order_pay', $order_id);
+        } else {
+            $log_model->add('order_pay_callback', $order_id, $order['contact_id']);
+        }
+
         if (!$order['paid_year']) {
             shopAffiliate::applyBonus($order_id);
             if (wa('shop')->getConfig()->getOption('order_paid_date') == 'create') {
