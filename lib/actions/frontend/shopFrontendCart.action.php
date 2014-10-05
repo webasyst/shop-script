@@ -11,12 +11,8 @@ class shopFrontendCartAction extends shopFrontendAction
             $data = wa()->getStorage()->get('shop/checkout', array());
             if ($coupon_code = waRequest::post('coupon_code')) {
                 $data['coupon_code'] = $coupon_code;
-                wa()->getStorage()->set('shop/checkout', $data);
-                wa()->getStorage()->remove('shop/cart');
             } elseif (isset($data['coupon_code'])) {
                 unset($data['coupon_code']);
-                wa()->getStorage()->set('shop/checkout', $data);
-                wa()->getStorage()->remove('shop/cart');
             }
 
             if (($use = waRequest::post('use_affiliate')) !== null) {
@@ -25,6 +21,9 @@ class shopFrontendCartAction extends shopFrontendAction
                 } elseif (isset($data['use_affiliate'])) {
                     unset($data['use_affiliate']);
                 }
+            }
+            
+            if($coupon_code || $use) {
                 wa()->getStorage()->set('shop/checkout', $data);
                 wa()->getStorage()->remove('shop/cart');
             }
