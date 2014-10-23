@@ -9,6 +9,10 @@ class shopOrderSaveController extends waJsonController
 
     protected function setAddress(waContact $contact, $params, $ext)
     {
+        if (!wa()->getUser()->getRights('shop', 'orders')) {
+            throw new waException(_w("Access denied"));
+        }
+        
         $address = shopHelper::getOrderAddress($params, $ext);
         if ($contact['address.'.$ext]) {
             $flag = false;
