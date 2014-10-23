@@ -26,6 +26,19 @@ class shopProductsDeleteListController extends waJsonController
 
     private function delete($hash, $count, $del_list = false) {
         $collection = new shopProductsCollection(implode('/', $hash));
+        
+        // check rights to prevent infinite ajax-polling
+        $types = $this->getModel('type')->getTypes(false);
+        if (is_array($types)) {
+            if (empty($types)) {
+                $this->response['rest_count'] = 0;
+                $this->response['count'] = $count;
+                return true;
+            } else {
+                $collection->addWhere('p.type_id IN ('.implode(',', array_keys($types)).')');
+            }
+        }
+        
         if ($count) {
             $product_ids = array_keys($collection->getProducts('*', 0, $count, false));
             $this->deleteProducts($product_ids);
@@ -59,14 +72,6 @@ class shopProductsDeleteListController extends waJsonController
             return true;
         }
         $item = null;
-        if ($hash[0] == 'category') {
-            /**
-             * @event category_delete
-             * @param int category_id
-             */
-            wa()->event('category_delete', $hash[1]);
-            $item = $model->getById($hash[1]);
-        }
 
         if ($model = $this->getModel($hash[0])) {
             if (!$model->delete($hash[1])) {
@@ -74,6 +79,7 @@ class shopProductsDeleteListController extends waJsonController
             }
 
             if ($hash[0] == 'category') {
+                $this->logAction('category_delete', $hash[1]);
                 if ($item['parent_id']) {
                     $count = $model->countByField('parent_id', $item['parent_id']);
                     $this->response['old_parent_category'] = array(
@@ -94,6 +100,7 @@ class shopProductsDeleteListController extends waJsonController
     {
         if ($product_ids) {
             $product_model = new shopProductModel();
+            $this->logAction('product_delete', $product_ids);
             return $product_model->delete($product_ids);
         }
         return false;

@@ -4,8 +4,8 @@
     {/foreach}
 {/capture}
 {if !$lazy}
-<script type="text/javascript" src="{$wa_app_static_url}js/rate.widget.js"></script>
-<script type="text/javascript" src="{$wa_app_static_url}js/product/reviews.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/rate.widget.js?v={$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/product/reviews.js?v={$wa->version()}"></script>
 <div class="block double-padded">
     <h1>[`Reviews`]</h1>
     <div class="s-reviews">
@@ -23,7 +23,7 @@
     </div>
 </div>
 <script>
-    document.title = '{"[`Reviews`]"|cat:" — ":{$wa->accountName()}}';
+    document.title = '{"[`Reviews`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     $.product_reviews.init({
         statuses: {
             deleted: '{shopProductReviewsModel::STATUS_DELETED}',

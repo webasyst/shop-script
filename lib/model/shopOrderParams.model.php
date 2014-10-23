@@ -9,11 +9,38 @@ class shopOrderParamsModel extends waModel
      * @param array|int $ids order ID
      * @return array params in key=>value format
      */
-    public function get($ids)
+    public function get($ids, $full = false)
     {
+        if (!$ids) {
+            return array();
+        }
         $params = array();
+        $payment = $shipping = array();
+        $plugin_model = new shopPluginModel();
         foreach ($this->getByField('order_id', $ids, true) as $p) {
             $params[$p['order_id']][$p['name']] = $p['value'];
+            if ($full) {
+                if ($p['name'] == 'shipping_id' && $p['value']) {
+                    if (!isset($shipping[$p['value']])) {
+                        $shipping[$p['value']] = $plugin_model->getById($p['value']);
+                    }
+                    if (!empty($shipping[$p['value']])) {
+                        $params[$p['order_id']]['shipping_description'] = $shipping[$p['value']]['description'];
+                    } else {
+                        $params[$p['order_id']]['shipping_description'] = '';
+                    }
+                }
+                if ($p['name'] == 'payment_id' && $p['value']) {
+                    if (!isset($payment[$p['value']])) {
+                        $payment[$p['value']] = $plugin_model->getById($p['value']);
+                    }
+                    if (!empty($payment[$p['value']])) {
+                        $params[$p['order_id']]['payment_description'] = $payment[$p['value']]['description'];
+                    } else {
+                        $params[$p['order_id']]['payment_description'] = '';
+                    }
+                }
+            }
         }
         if (is_numeric($ids)) {
             $params = isset($params[$ids]) ? $params[$ids] : array();
@@ -25,6 +52,31 @@ class shopOrderParamsModel extends waModel
             }
         }
         return $params;
+    }
+    
+    /**
+     * Get value of one custom param on order
+     * @param int $order_id
+     * @param string $name
+     */
+    public function getOne($order_id, $name)
+    {
+        $item = $this->getByField(array(
+            'order_id' => $order_id,
+            'name' => $name
+        ));
+        return $item ? $item['value'] : null;
+    }
+    
+    /**
+     * 
+     * @param int $order_id
+     * @param string $name
+     * @param string $value
+     */
+    public function setOne($order_id, $name, $value)
+    {
+        return $this->set($order_id, array($name => $value), false);
     }
 
     /**
@@ -93,7 +145,7 @@ class shopOrderParamsModel extends waModel
                     }
                 }
             }
-
+            
             // add new params
             if ($add_params) {
                 $this->multipleInsert($add_params);

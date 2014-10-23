@@ -46,14 +46,22 @@ class shopBackendLocAction extends waViewAction
             'Products added:',
             'Images uploaded:',
             'New product',
-            'This will delete this order state. Are you sure?'
+            'This will delete this order state. Are you sure?',
+            'Perform action to all selected orders?',
+            "There are no orders in this view.",
+            "Please save changes to be able to send tests.",
+            "A product must have at least one SKU.",
+            "Drag products here",
         ) as $s) {
             $strings[$s] = _w($s);
         }
 
+        $n = 5;
         // plural forms hack
-        $strings['options'] = _w('option', 'options', 5);
-        $strings['%d SKUs in total'] = str_replace(5, '%d', _w('%d SKU in total', '%d SKUs in total', 5));
+        $strings['options'] = _w('option', 'options', $n);
+        $strings['%d SKUs in total'] = str_replace($n, '%d', _w('%d SKU in total', '%d SKUs in total', $n));
+        $strings['%d column will be processed'] = str_replace($n, '%d', _w('%d column will be processed', '%d columns will be processed', $n));
+        $strings['%d column will be ignored'] = str_replace($n, '%d', _w('%d column will be ignored', '%d columns will be ignored', $n));
 
         $this->view->assign('strings', $strings ? $strings : new stdClass()); // stdClass is used to show {} instead of [] when there's no strings
 

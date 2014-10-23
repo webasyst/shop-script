@@ -122,5 +122,9 @@ return array(
                 '4256 x 2832',
             ),
         ),
+        'weight' => array(
+            'name' => 'Weight',
+            'type' => shopFeatureModel::TYPE_DIMENSION.'.weight'
+        ),
     ),
 );

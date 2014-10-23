@@ -26,7 +26,7 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
         $this->view->assign(array(
             'product' => $product,
             'reviews' => $reviews,
-            'reviews_count' => $reviews_model->count($product['id'], false),
+            'reviews_count' => $reviews_model->count($product['id']),
             'reply_allowed' => true,
             'auth_adapters' => $adapters = wa()->getAuthAdapters(),
             'request_captcha' => $config->getGeneralSettings('require_captcha'),
@@ -39,6 +39,16 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
 
         $this->view->assign('current_auth_source', $current_auth_source);
         $this->view->assign('current_auth', $current_auth, true);
+
+        /**
+         * @event frontend_product
+         * @param shopProduct $product
+         * @return array[string][string]string $return[%plugin_id%]['menu'] html output
+         * @return array[string][string]string $return[%plugin_id%]['cart'] html output
+         * @return array[string][string]string $return[%plugin_id%]['block_aux'] html output
+         * @return array[string][string]string $return[%plugin_id%]['block'] html output
+         */
+        $this->view->assign('frontend_product', wa()->event('frontend_product', $product, array('menu','cart','block_aux','block')));
 
         $this->setThemeTemplate('reviews.html');
     }

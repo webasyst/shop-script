@@ -7,11 +7,18 @@ $(function () {
             $(".cart-discount").closest('div.row').show();
         }
         $(".cart-discount").html('&minus; ' + data.discount);
+        
+        if (data.add_affiliate_bonus) {
+            $(".affiliate").show().html(data.add_affiliate_bonus);
+        } else {
+            $(".affiliate").hide();
+        }
+        
     }
 
     $(".cart a.delete").click(function () {
         var row = $(this).closest('div.row');
-        $.post('delete/', {id: row.data('id')}, function (response) {
+        $.post('delete/', {html: 1, id: row.data('id')}, function (response) {
             if (response.data.count == 0) {
                 location.reload();
             }
@@ -26,7 +33,7 @@ $(function () {
         if (that.val() > 0) {
             var row = that.closest('div.row');
             if (that.val()) {
-                $.post('save/', {id: row.data('id'), quantity: that.val()}, function (response) {
+                $.post('save/', {html: 1, id: row.data('id'), quantity: that.val()}, function (response) {
                     row.find('.item-total').html(response.data.item_total);
                     if (response.data.q) {
                         that.val(response.data.q);
@@ -58,7 +65,7 @@ $(function () {
         var row = $(this).closest('div.row');
         if ($(this).is(':checked')) {
            var parent_id = row.data('id')
-           var data = {parent_id: parent_id, service_id: $(this).val()};
+           var data = {html: 1, parent_id: parent_id, service_id: $(this).val()};
            var variants = $('select[name="service_variant[' + parent_id + '][' + $(this).val() + ']"]');
            if (variants.length) {
                data['service_variant_id'] = variants.val();
@@ -69,7 +76,7 @@ $(function () {
                updateCart(response.data);
            }, "json");
         } else {
-           $.post('delete/', {id: div.data('id')}, function (response) {
+           $.post('delete/', {html: 1, id: div.data('id')}, function (response) {
                div.data('id', null);
                row.find('.item-total').html(response.data.item_total);
                updateCart(response.data);
@@ -79,7 +86,7 @@ $(function () {
 
     $(".cart .services select").change(function () {
         var row = $(this).closest('div.row');
-        $.post('save/', {id: $(this).closest('div').data('id'), 'service_variant_id': $(this).val()}, function (response) {
+        $.post('save/', {html: 1, id: $(this).closest('div').data('id'), 'service_variant_id': $(this).val()}, function (response) {
             row.find('.item-total').html(response.data.item_total);
             updateCart(response.data);
         }, "json");
@@ -91,7 +98,23 @@ $(function () {
     });
 
     $("div.addtocart input:button").click(function () {
-        $.post($(this).data('url'), {product_id: $(this).data('product_id')}, function (response) {
+        var f = $(this).closest('div.addtocart');
+        if (f.data('url')) {
+            var d = $('#dialog');
+            var c = d.find('.cart');
+            c.load(f.data('url'), function () {
+                c.prepend('<a href="#" class="dialog-close">&times;</a>');
+                c.find('form').data('cart', 1);
+                d.show();
+                if ((c.height() > c.find('form').height())) {
+                    c.css('bottom', 'auto');
+                } else {
+                    c.css('bottom', '15%');
+                }
+            });
+            return false;
+        }
+        $.post($(this).data('url'), {html: 1, product_id: $(this).data('product_id')}, function (response) {
             if (response.status == 'ok') {
                 var cart_total = $(".cart-total");
                 $("#cart-content").parent().load(location.href, function () {

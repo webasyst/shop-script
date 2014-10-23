@@ -1,4 +1,5 @@
 <?php
+
 class shopCml1cPluginFrontendController extends waController
 {
 
@@ -41,6 +42,7 @@ class shopCml1cPluginFrontendController extends waController
     {
         @set_time_limit(0);
         wa()->setLocale('ru_RU');
+        ignore_user_abort(true);
 
         /**
          * @var shopCml1cPlugin $plugin
@@ -52,7 +54,6 @@ class shopCml1cPluginFrontendController extends waController
         }
 
         try {
-
             switch (waRequest::get('type')) {
                 case 'catalog':
                     /*Выгрузка каталогов продукции*/
@@ -92,9 +93,19 @@ class shopCml1cPluginFrontendController extends waController
                             $this->checkAuth();
                             break;
 
+                        case "init":
+                            /* B. Уточнение параметров сеанса*/
+                            $this->initFile();
+                            break;
+
                         case 'query':
                             /* C. Получение файла обмена с сайта*/
                             $this->exportSale();
+                            break;
+
+                        case 'file':
+                            /* D. Отправка файла обмена на сайт*/
+                            $this->importSale();
                             break;
 
                         case 'success':
@@ -106,22 +117,15 @@ class shopCml1cPluginFrontendController extends waController
                                 $_POST['processId'] = $id;
                                 $_POST['direction'] = 'export';
                                 $_POST['cleanup'] = true;
+                                ob_start();
                                 $this->runner()->run();
-                                $this->response('success', 'OK');
+                                ob_get_clean();
+                                $this->response('success', "OK");
+                                //TODO update export timestamp
                             } else {
                                 $this->response('success', 'already deleted');
                             }
 
-                            break;
-
-                        case "init":
-                            /* B. Уточнение параметров сеанса*/
-                            $this->initFile();
-                            break;
-
-                        case 'file':
-                            /* D. Отправка файла обмена на сайт*/
-                            $this->importSale();
                             break;
 
                         default:
@@ -151,7 +155,7 @@ class shopCml1cPluginFrontendController extends waController
         $this->getStorage()->del('processId');
         if (!ini_get('file_uploads')) {
             /*@todo check rights*/
-            $this->response("failure");
+            $this->response("failure", 'Check php.ini setting "file_upload"');
         } else {
             if ($clean) {
                 try {
@@ -180,7 +184,7 @@ class shopCml1cPluginFrontendController extends waController
         if (isset($GLOBALS['HTTP_RAW_POST_DATA'])) {
             $data = !empty($GLOBALS['HTTP_RAW_POST_DATA']) ? $GLOBALS['HTTP_RAW_POST_DATA'] : null;
         } else {
-            $data = implode("\r\n", file('php://input'));
+            $data = implode("", file('php://input'));
         }
 
         if ($data !== false) {
@@ -191,6 +195,7 @@ class shopCml1cPluginFrontendController extends waController
                 if ($result !== mb_strlen($data, 'latin1')) {
                     throw new waException("Error while write file");
                 }
+
             } else {
                 throw new waException("Error while open file");
             }
@@ -220,10 +225,13 @@ class shopCml1cPluginFrontendController extends waController
     private function importCatalog($filename)
     {
         $s = $this->getStorage();
+
+        #init required POST fields
         $_POST['processId'] = $s->get('processId'.$filename);
         $_POST['direction'] = 'import';
         $_POST['filename'] = $filename;
         $_POST['zipfile'] = $s->get('filename');
+
         if (empty($_POST['processId'])) {
             ob_start();
             $this->runner()->run();
@@ -232,6 +240,7 @@ class shopCml1cPluginFrontendController extends waController
             $this->response('progress', $out);
         } else {
             ob_start();
+            $s->close();
             $this->runner()->run();
             $out = ob_get_clean();
             if (strpos($out, 'success') === 0) {
@@ -252,24 +261,37 @@ class shopCml1cPluginFrontendController extends waController
             $response = array('success');
         }
         $this->getResponse()->addHeader('Content-type', 'text/plain');
+        $this->getResponse()->addHeader('Encoding', 'Windows-1251');
         $this->getResponse()->sendHeaders();
-        print(implode("\r\n", $response));
+        print(iconv('UTF-8', 'Windows-1251', implode("\r\n", $response)));
     }
 
     private function importSale()
     {
-        return $this->response('success', 'ignore orders from 1C');
-        $filename = $this->uploadFile();
-        $this->response('success', basename($filename));
+        if (true) {
+            $this->response('success', 'Заказы из 1С на сайте игнорируются', 'Orders from 1C are ignored');
+        } else {
+            //once it will be enabled
+            $filename = $this->uploadFile();
+            $this->response('success', basename($filename));
+        }
     }
 
     private function exportSale()
     {
         $_POST['direction'] = 'export';
         $_POST['export'] = array(
-            'order'     => true,
-            'new_order' => false,
+            'order' => true,
         );
+
+
+        switch ($this->plugin()->getSettings('export_orders')) {
+            case 'all':
+                break;
+            case 'changed':
+                $_POST['export']['new_order'] = true;
+                break;
+        }
 
         $limit = 10;
         do {

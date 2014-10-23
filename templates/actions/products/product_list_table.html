@@ -1,0 +1,58 @@
+<table class="zebra" id="product-list">
+    <tr class="header">
+        {if $manual && $sort == 'sort'}<th class="min-width"></th>{/if}
+        <th class="min-width"><input type="checkbox" class="s-select-all" data-count={$total_count}></th>
+        <th>
+            <span class="sort">
+                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}" class="inline-link selected">
+                    [`Name`]
+                </a>{if $sort=='name'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
+            </span>
+        </th>
+        <th class="short align-right">
+            <span class="sort">
+                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=price&order={if $order == 'asc' && $sort=='price'}desc{else}asc{/if}" class="inline-link selected">
+                    [`Price`]
+                </a>{if $sort=='price'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
+            </span>
+        </th>
+        <th class="short align-right">
+            <span class="sort">
+                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=count&order={if $order == 'asc' && $sort=='count'}desc{else}asc{/if}" class="inline-link selected">
+                    [`In stock`]
+                </a>{if $sort=='count'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
+            </span>
+        </th>
+    </tr>
+</table>
+<script id="template-product-list-table" type="text/html">
+    {literal}
+    {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
+    <tr class="product {% if (i == n-1) { %}last{% } %} 
+        {% if (p.status == '0') { %}gray{% } %} 
+        {% if (o.check_all) { %}selected{% } %}
+        {% if (p.alien) { %}s-alien{% } %}"
+        data-product-id="{%#p.id%}"
+        {% if (p.alien) { %}title="[`This is a subcategory product`]"{% } %}
+    >
+        {/literal}
+        {if $manual && $sort == 'sort'}
+            {literal}
+                <td class="min-width drag-handle">{% if (!p.alien) { %}<i class="icon16 sort"></i>{% } %}</td>
+            {/literal}
+        {/if}
+        {literal}
+        <td class="min-width">
+            <input type="checkbox" {% if (o.check_all) { %}checked{% } %}>
+        </td>
+        <td class="drag-handle">
+            <a href="#/product/{%#p.id%}/">{%#p.name%}</a>
+        </td>
+        <td class="short nowrap align-right"><span>{%#p.price_range%}</span></td>
+        <td class="short nowrap align-right">
+            <span>{%#((p.count === null)?'<span class="gray">∞</span>':p.count)%}</span>
+        </td>
+    </tr>
+    {% } %}
+    {/literal}
+</script>

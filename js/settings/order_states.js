@@ -109,6 +109,32 @@ $.extend($.settings = $.settings || {}, {
                 form.find('input.error').removeClass('error');
                 form.find('.errormsg').remove();
             };
+            
+            var showSuccessIcon = function() {
+                var icon = $('#s-settings-order-states-submit').parent().find('i.yes').show();
+                setTimeout(function() {
+                    icon.hide();
+                }, 3000);
+            };
+            var showLoadingIcon = function() {
+                var p = $('#s-settings-order-states-submit').parent();
+                p.find('i.yes').hide();
+                p.find('i.loading').show();
+            };
+            
+            // after update services hash, dispathing and load proper content
+            // 'afterOrderStatesInit' will be called. Extend this handler
+            var prevHandler = $.settings.afterOrderStatesInit;
+            $.settings.afterOrderStatesInit = function() {
+                showSuccessIcon();
+                if (typeof prevHandler == 'function') {
+                    prevHandler();
+                }
+                $.settings.afterOrderStatesInit = prevHandler;
+            };
+            
+            // send post
+            showLoadingIcon();
             $.shop.jsonPost(self.attr('action'), data,
                 function(r) {
                     clear();
@@ -126,7 +152,8 @@ $.extend($.settings = $.settings || {}, {
                         if (!$.isEmptyObject(r.errors.actions)) {
                             for (var id in r.errors.actions) {
                                 var input = form.find('input[name^=new_action_id]').filter('[data-action-id='+id+']');
-                                input.addClass('error').after('<em class="errormsg">'+r.errors.actions[id]+'</em>');
+                                input.parent().find('input').addClass('error');
+                                input.after('<em class="errormsg">'+r.errors.actions[id]+'</em>');
                             }
                         }
                     }
@@ -136,6 +163,10 @@ $.extend($.settings = $.settings || {}, {
         });
 
         this.orderStatesSortableInit();
+
+        if (typeof $.settings.afterOrderStatesInit == "function") {
+            $.settings.afterOrderStatesInit();
+        }
     },
 
     orderStatesAction: function(path) {
@@ -160,7 +191,7 @@ $.extend($.settings = $.settings || {}, {
             update: function(event, ui) {
                 var li = ui.item;
                 var id = li.attr('id').replace('state-', '');
-                var next, before_id = null;
+                var next, before_id = '';
                 if (id) {
                     next = li.nextAll('li.dr:first');
                     if (next.length) {

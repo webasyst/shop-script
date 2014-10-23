@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Class shopCsvWriter
+ * @property-read string $encoding
+ * @property-read string $delimiter
+ * @property-read string $enclosure
+ */
 class shopCsvWriter implements Serializable
 {
     /**
@@ -9,20 +16,31 @@ class shopCsvWriter implements Serializable
     private $fp = null;
 
     protected $data_mapping = array();
-    private $delimeter = ';';
+    private $delimiter = ';';
     private $encoding;
+    private $method;
 
     private $offset = 0;
     private $file;
 
-    public function __construct($file, $delimeter = ';', $encoding = 'utf-8')
+    /**
+     * @param string $file CSV file path
+     * @param string $delimiter
+     * @param string $encoding
+     * @param string $method mb or iconv encoding method (default is iconv)
+     */
+    public function __construct($file, $delimiter = ';', $encoding = 'utf-8', $method = 'iconv')
     {
         $this->file = ifempty($file);
-        $this->delimeter = ifempty($delimeter, ';');
-        if ($this->delimeter == 'tab') {
-            $this->delimeter = "\t";
+        $this->delimiter = ifempty($delimiter, ';');
+        if ($this->delimiter == 'tab') {
+            $this->delimiter = "\t";
         }
         $this->encoding = ifempty($encoding, 'utf-8');
+        $this->method = in_array($method, array('mb', 'icon'), true) ? $method : 'iconv';
+        if ($this->file()) {
+            waFiles::create($this->file);
+        }
         $this->restore();
     }
 
@@ -33,12 +51,30 @@ class shopCsvWriter implements Serializable
         }
     }
 
+    public function __get($name)
+    {
+        $value = null;
+        switch ($name) {
+            case 'delimiter':
+                $value = $this->delimiter;
+                break;
+            case 'encoding':
+                $value = $this->encoding;
+                break;
+            case 'enclosure':
+                $value = '"';
+                break;
+        }
+        return $value;
+    }
+
     public function serialize()
     {
         return serialize(array(
             'file'         => $this->file,
-            'delimeter'    => $this->delimeter,
+            'delimiter'    => $this->delimiter,
             'encoding'     => $this->encoding,
+            'method'       => $this->method,
             'data_mapping' => $this->data_mapping,
             'offset'       => $this->offset,
         ));
@@ -48,8 +84,9 @@ class shopCsvWriter implements Serializable
     {
         $data = unserialize($serialized);
         $this->file = ifset($data['file']);
-        $this->delimeter = ifempty($data['delimeter'], ';');
+        $this->delimiter = ifempty($data['delimiter'], ';');
         $this->encoding = ifempty($data['encoding'], 'utf-8');
+        $this->method = ifempty($data['method'], 'iconv');
         $this->data_mapping = ifset($data['data_mapping']);
         $this->offset = ifset($data['offset'], 0);
 
@@ -75,7 +112,7 @@ class shopCsvWriter implements Serializable
 
     public function write($data, $raw = false)
     {
-        fputcsv($this->fp, $raw ? $data : $this->applyDataMapping($data), $this->delimeter);
+        fputcsv($this->fp, $raw ? $data : $this->applyDataMapping($data), $this->delimiter);
         $this->offset = ftell($this->fp);
     }
 
@@ -83,6 +120,7 @@ class shopCsvWriter implements Serializable
     {
         setlocale(LC_CTYPE, 'ru_RU.UTF-8', 'en_US.UTF-8');
         if ($this->file) {
+
             $fsize = file_exists($this->file) ? filesize($this->file) : false;
             $this->fp = @fopen($this->file, 'a');
             if (!$this->fp) {
@@ -91,9 +129,25 @@ class shopCsvWriter implements Serializable
             fseek($this->fp, 0, SEEK_END);
 
             if (strtolower($this->encoding) != 'utf-8') {
-                if (!@stream_filter_prepend($this->fp, 'convert.iconv.UTF-8/'.$this->encoding.'//IGNORE')) {
-                    throw new waException("error while register file filter");
+                switch ($this->method) {
+                    case 'mb':
+                        if (class_exists('waFilesFilter')) {
+                            waFilesFilter::register();
+                            if (!@stream_filter_prepend($this->fp, 'convert.mb.UTF-8/'.$this->encoding)) {
+                                throw new waException("error while register file filter");
+                            }
+                        } else {
+                            throw new waException("error while search filter class");
+                        }
+                        break;
+                    case 'iconv':
+                    default:
+                        if (!@stream_filter_prepend($this->fp, 'convert.iconv.UTF-8/'.$this->encoding.'//TRANSLIT//IGNORE')) {
+                            throw new waException("error while register file filter");
+                        }
+                        break;
                 }
+
             }
 
             if (!$this->offset) {
@@ -123,10 +177,10 @@ class shopCsvWriter implements Serializable
     private function applyDataMapping($data)
     {
         $enclosure = '"';
-        $pattern = sprintf("/(?:%s|%s|%s|\s)/", preg_quote($this->delimeter, '/'), preg_quote(',', '/'), preg_quote($enclosure, '/'));
-        $maped = array();
+        $pattern = sprintf("/(?:%s|%s|%s|\s)/", preg_quote($this->delimiter, '/'), preg_quote(',', '/'), preg_quote($enclosure, '/'));
+        $mapped = array();
         if (empty($this->data_mapping)) {
-            $maped = $data;
+            $mapped = $data;
         } else {
             foreach ($this->data_mapping as $key => $column) {
                 $value = null;
@@ -157,9 +211,10 @@ class shopCsvWriter implements Serializable
                         $value = '';
                     }
                 }
-                $maped[] = $value;
+                $mapped[] = str_replace("\r\n", "\r", $value);
             }
         }
-        return $maped;
+
+        return $mapped;
     }
 }

@@ -74,9 +74,23 @@ class shopWorkflowEditAction extends shopWorkflowAction
 
         $data['tax'] = $tax_included + $tax;
         $data['total'] = $subtotal + $tax + $this->price($data['shipping']) - $this->price($data['discount']);
-
+        
+        // for logging changes in stocks
+        shopProductStocksLogModel::setContext(
+                shopProductStocksLogModel::TYPE_ORDER, 
+                'Order %s was edited',
+                array(
+                    'order_id' => $data['id']
+                )
+        );
+        
         // update
         $order_model->update($data, $data['id']);
+
+        $log_model = new waLogModel();
+        $log_model->add('order_edit', $data['id']);
+        
+        shopProductStocksLogModel::clearContext();
 
         if (!empty($data['params'])) {
             $params_model = new shopOrderParamsModel();

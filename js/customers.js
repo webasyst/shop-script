@@ -80,6 +80,7 @@
                 delay: 300,
                 select: function(event, ui) {
                     $.wa.setHash('#/id/' + ui.item.id);
+                    search_field.val('');
                     return false;
                 }
             });

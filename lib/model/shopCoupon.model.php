@@ -26,5 +26,22 @@ class shopCouponModel extends waModel
                     AND ((`expire_datetime` IS NULL) OR (`expire_datetime` > ?))";
         return (int) $this->query($sql, date('Y-m-d H:i:s'))->fetchField();
     }
+    
+    public function delete($id)
+    {
+        $coupon = $this->getById($id);
+        if ($coupon) {
+            $opm = new shopOrderParamsModel();
+            $order_ids = array_keys($opm->getByField(array(
+                'name' => 'coupon_id', 'value' => $id
+            ), 'order_id'));
+            if ($order_ids) {
+                $opm->set($order_ids, array(
+                    'coupon_code' => $coupon['code']
+                ), false);
+            }
+            $this->deleteById($id);
+        }
+    }
 }
 

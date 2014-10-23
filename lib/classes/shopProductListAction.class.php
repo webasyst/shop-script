@@ -31,12 +31,30 @@ class shopProductListAction extends waViewAction
      * @var shopProductsCollection
      */
     protected $collection;
+    
+    private $product_view;
 
     public function __construct($params = null) {
         parent::__construct($params);
         $this->hash = $this->getHash();
+
+        if (!$this->hash) {
+            if (waRequest::get('sort')) {
+                $this->getUser()->setSettings('shop', 'all:sort', waRequest::get('sort').' '.waRequest::get('order', 'desc'));
+            } else {
+                $sort = $this->getUser()->getSettings('shop', 'all:sort');
+                if ($sort) {
+                    $sort = explode(' ', $sort);
+                    $this->sort = $_GET['sort'] = $sort[0];
+                    $this->order = $_GET['order'] = $sort[1];
+                }
+            }
+        }
+
         $this->collection = $this->getCollection($this->hash ? implode('/', $this->hash) : '');
         $info = $this->collection->getInfo();
+
+        list($this->sort, $this->order) = $this->collection->getOrderBy();
 
         if ($info['hash'] == 'category' && empty($info['id'])) {
             throw new waException("Unkown category", 404);
@@ -44,8 +62,6 @@ class shopProductListAction extends waViewAction
         if ($info['hash'] == 'set' && empty($info['id'])) {
             throw new waException("Unknown list", 404);
         }
-
-        $this->setSort();
     }
 
     protected function getCollection($hash)
@@ -68,7 +84,7 @@ class shopProductListAction extends waViewAction
         if ($text) {
             $this->text = urldecode($text);
             $this->collection_param = 'text='.$this->text;
-            return array('search', 'query='.$this->text);
+            return array('search', 'query='.str_replace('&' ,'\&', $this->text));
         }
         $tag  = waRequest::get('tag', null, waRequest::TYPE_STRING_TRIM);
         if ($tag) {
@@ -94,38 +110,6 @@ class shopProductListAction extends waViewAction
         return null;
     }
 
-    protected function setSort()
-    {
-        $info  = $this->collection->getInfo();
-        $sort  = waRequest::get('sort',  '', waRequest::TYPE_STRING_TRIM);
-        $order = waRequest::get('order', 'desc', waRequest::TYPE_STRING_TRIM);
-
-        // 'all products' collection
-        if (!$info['hash'] || $info['hash'] == 'all') {
-
-            // default sort method saved in contact_settings
-            $contact_settings_model = new waContactSettingsModel();
-            $contact_id = $this->getUser()->getId();
-
-            if (!$sort) {
-                $default = $contact_settings_model->getOne($contact_id, 'shop', 'all:sort');
-                if ($default) {
-                    $chunks = explode(' ', $default);
-                    $sort   = $chunks[0];
-                    $order  = isset($chunks[1]) ? $chunks[1] : $order;
-                } else {
-                    $sort = 'create_datetime';
-                }
-            }
-
-            // save current sort as default for next usage
-            $contact_settings_model->set($contact_id, 'shop', 'all:sort', $sort.' '.$order);
-
-        }
-        list($this->sort, $this->order) = $sort ? array($sort, $order) : $this->collection->getOrderBy();
-        $this->collection->orderBy($this->sort, $this->order);
-    }
-
     protected function workupProducts(&$products)
     {
         $currency = $this->getConfig()->getCurrency();
@@ -138,6 +122,15 @@ class shopProductListAction extends waViewAction
             if ($p['badge']) {
                 $p['badge'] = shopHelper::getBadgeHtml($p['badge']);
             }
+            
+            unset(
+                $p['meta_description'],
+                $p['meta_keywords'],
+                $p['meta_title'],
+                $p['description'],
+                $p['summary']
+            );
+            
         }
         unset($p);
 
@@ -160,6 +153,20 @@ class shopProductListAction extends waViewAction
             }
         }
         unset($p);
+        
+        $info = $this->collection->getInfo();
+        if ($info['hash'] == 'category') {
+            $product_ids = array_keys($products);
+            $category_products_model = new shopCategoryProductsModel();
+            $ids = $category_products_model->filterByEnteringInCategories(
+                    $product_ids, $info['id']
+            );
+            $ids = array_flip($ids);
+            foreach ($products as $id => &$product) {
+                $product['alien'] = $info['type'] == shopCategoryModel::TYPE_STATIC && !isset($ids[$id]);
+            }
+            unset($product);
+        }
     }
 
     protected function preAssign($data)
@@ -181,5 +188,24 @@ class shopProductListAction extends waViewAction
     {
         $data = $this->preAssign($data);
         $this->view->assign($data);
+    }
+    
+    public function getProductView()
+    {
+        if (!$this->product_view) {
+            $config = $this->getConfig();
+            $default_view = $this->getUser()->getSettings('shop', 'products_default_view');
+            if (!$default_view) {
+                $default_view = $config->getOption('products_default_view');
+            }
+            $view = waRequest::get('view', $default_view, waRequest::TYPE_STRING_TRIM);
+            $include_path = $config->getAppPath() . '/templates/actions/products/product_list_' . $view . '.html';
+            if (!file_exists($include_path)) {
+                $view = $default_view;
+            }
+            $this->product_view = $view;
+            $this->getUser()->setSettings('shop', 'products_default_view', $view);
+        }
+        return $this->product_view;
     }
 }

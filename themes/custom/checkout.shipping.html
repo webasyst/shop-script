@@ -7,7 +7,7 @@
             <div class="rate">
                 <span class="price nowrap">
                     {if $m.rate !== null}
-                    {shop_currency($m.rate, $m.currency)}
+                    {shop_currency_html($m.rate, $m.currency)}
                     {elseif $m.external}
                     {$external_methods[] = $m.id}
                     [`Loading...`] <i class="icon16 loading"></i>
@@ -37,7 +37,7 @@
             <h3>
                 <label>
                     {if !empty($m.logo)}<img src="{$m.logo}" class="method-logo">{/if}
-                    <input type="radio" name="shipping_id" value="{$m.id}" {if $m.id == $shipping.id}checked{/if}>
+                    <input type="radio" name="shipping_id" value="{$m.id}" {if $m.external || !empty($m.error)}disabled{/if} {if $m.id == $shipping.id}checked{/if}>
                     {$m.name|escape}
                 </label> 
                     
@@ -79,7 +79,12 @@
 
     function responseCallback(shipping_id, data) {
         var name = 'rate_id[' + shipping_id + ']';
+        if (typeof(data) != 'string') {
+            $(".shipping-" + shipping_id + ' input:radio').removeAttr('disabled');
+        }
         if (typeof(data) == 'string') {
+            $(".shipping-" + shipping_id + ' input[name="' + name + '"]').remove();
+            $(".shipping-" + shipping_id + ' select[name="' + name + '"]').remove();
             var el = $(".shipping-" + shipping_id).find('.rate');
             if (el.hasClass('error')) {
                 el.find('em').html(data);
@@ -155,8 +160,8 @@
         }
     });
     $(".checkout-options input:radio").change(function () {
-        if ($(this).is(':checked')) {
-            $(".checkout-options .wa-address").hide();
+        if ($(this).is(':checked') && !$(this).data('ignore')) {
+            $(".checkout-options .wa-form").hide();
             $(this).closest('li').find('.wa-form').show();
             if ($(this).data('changed')) {
                 $(this).closest('li').find('.wa-form').find('input,select').data('ignore', 1).change().removeData('ignore');
@@ -195,4 +200,9 @@
     });
 
 </script>
+
+<!-- plugin hook: 'frontend_checkout' -->
+{* @event frontend_checkout.%plugin_id% *}
+{foreach $frontend_checkout as $_}{$_}{/foreach}
+
 </div>

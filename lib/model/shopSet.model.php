@@ -58,6 +58,11 @@ class shopSetModel extends waModel
             return false;
         }
 
+        /**
+         * @event set_delete
+         */
+        wa()->event('set_delete', $item);
+
         $this->deleteById($id);
 
         // delete related info

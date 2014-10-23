@@ -19,12 +19,11 @@ class shopProductReviewsModel extends waNestedSetModel
         $reviews = $this->getReviews($product_id, $offset, $count, $order, $options);
         if (!empty($reviews)) {
             
+            $is_frontend = wa()->getEnv() == 'frontend';
+            
             // extract reviews to reviews (comments)
             $sql = "SELECT * FROM {$this->table} WHERE product_id = ".(int)$product_id.
                     " AND review_id IN(".implode(',', array_keys($reviews)).")";
-            if (wa()->getEnv() == 'frontend') {
-                $sql .= " AND status = '".self::STATUS_PUBLISHED."'";
-            }
             $sql .= " ORDER BY review_id, {$this->left}";
             
             foreach ($this->query($sql) as $item) {
@@ -32,6 +31,9 @@ class shopProductReviewsModel extends waNestedSetModel
             }
             foreach ($reviews as &$review) {
                 if (!empty($review['comments'])) {
+                    if ($is_frontend) {
+                        $this->cutOffDeleted($review['comments']);
+                    }
                     $this->extendItems($review['comments'], $options);
                 }
             }
@@ -41,6 +43,29 @@ class shopProductReviewsModel extends waNestedSetModel
         return $reviews;
     }
 
+    private function cutOffDeleted(&$items)
+    {
+        // need for cutting deleted reviews and its children in frontend
+        $max_depth = 1000;
+        if (!empty($items)) {
+            $depth = $max_depth;
+            foreach ($items as $id => $item) {
+                if ($item['status'] == self::STATUS_DELETED) {
+                    if ($item[$this->depth] < $depth) {
+                        $depth = $item[$this->depth];
+                    }
+                    unset($items[$id]);
+                    continue;
+                }
+                if ($item[$this->depth] > $depth) {
+                    unset($items[$id]);
+                } else {
+                    $depth = $max_depth;
+                }
+            }
+        }        
+    }
+    
     /**
      * @param int $product_id
      * @param int $offset
@@ -65,6 +90,19 @@ class shopProductReviewsModel extends waNestedSetModel
         $reviews = $this->query($sql)->fetchAll('id');
         $this->extendItems($reviews, $options);
         return $reviews;
+    }
+
+    public function getProductRates($product_id)
+    {
+        $sql = "SELECT rate, COUNT(*) c FROM ".$this->table."
+                WHERE product_id = i:0 AND review_id = 0 AND status = '".self::STATUS_PUBLISHED."'
+                GROUP BY rate
+                ORDER BY rate DESC";
+        $result = array();
+        foreach ($this->query($sql, $product_id) as $row) {
+            $result[round($row['rate'])] = $row['c'];
+        }
+        return $result;
     }
 
     public function getListDefaultOptions()
@@ -115,7 +153,7 @@ class shopProductReviewsModel extends waNestedSetModel
         foreach ($data as &$item) {
             $item['datetime_ts'] = strtotime($item['datetime']);
             if ($options['escape']) {
-                $item['text'] = nl2br(htmlspecialchars($item['text']));
+                $item['text'] = $item['text'];
                 $item['title'] = htmlspecialchars($item['title']);
             }
         }
@@ -203,6 +241,10 @@ class shopProductReviewsModel extends waNestedSetModel
 
     public function count($product_id = null, $reviews_only = true)
     {
+        if (wa()->getEnv() == 'frontend') {
+            return $this->countInFrontend($product_id, $reviews_only);
+        }
+        
         $sql = "SELECT COUNT(id) AS cnt FROM `{$this->table}` ";
 
         $where = array();
@@ -212,13 +254,42 @@ class shopProductReviewsModel extends waNestedSetModel
         if ($reviews_only) {
             $where[] = "review_id = 0";
         }
-        if (wa()->getEnv() == 'frontend') {
-            $where[] = "status = '".self::STATUS_PUBLISHED."'";
-        }
         if ($where) {
             $sql .= " WHERE ".implode(' AND ', $where);
         }
         return $this->query($sql)->fetchField('cnt');
+    }
+    
+    private function countInFrontend($product_id = null, $reviews_only = true)
+    {
+        if ($product_id) {
+            $where = "product_id = ".(int)$product_id;
+        } else {
+            $where = "";
+        }
+        
+        if ($reviews_only) {
+            $sql = "SELECT COUNT(id) AS cnt FROM `{$this->table}` AS r
+                WHERE review_id = 0 AND status = '".self::STATUS_PUBLISHED."' ".
+                                ($where ? " AND " . $where : "");
+            return $this->query($sql)->fetchField('cnt');
+        }
+        
+        $fields = array();
+        $fields[] = 'id';
+        $fields[] = $this->left;
+        $fields[] = $this->right;
+        $fields[] = $this->depth;
+        $fields[] = 'status';
+        $sql = "SELECT " .  implode(',', $fields) . " 
+                FROM `{$this->table}` ".
+                        ($where ? "WHERE $where " : " ").
+                        "ORDER BY `{$this->left}`";
+                
+        $reviews = $this->query($sql)->fetchAll('id');
+        $this->cutOffDeleted($reviews);
+        
+        return count($reviews);
     }
 
     public function countNew($recalc = false)
@@ -284,7 +355,7 @@ class shopProductReviewsModel extends waNestedSetModel
         return true;
     }
 
-    public function add($review, $parent_id = null)
+    public function add($review, $parent_id = null, $before_id = null)
     {
         if (empty($review['product_id'])) {
             return false;
@@ -324,7 +395,8 @@ class shopProductReviewsModel extends waNestedSetModel
                 $review['site'] = 'http://'.$review['site'];
             }
         }
-        $id = parent::add($review, $parent_id);
+        $before_id = null;
+        $id = parent::add($review, $parent_id, $before_id);
         if (!$id) {
             return false;
         }
@@ -341,7 +413,7 @@ class shopProductReviewsModel extends waNestedSetModel
      */
     static public function getAuthorInfo($contact_id)
     {
-        $fields = 'id,name,photo_url_50,photo_url_20';
+        $fields = 'id,name,photo_url_50,photo_url_20,is_user';
         $contact_ids = (array)$contact_id;
         $collection = new waContactsCollection('id/'.implode(',', $contact_ids));
         $contacts = $collection->getContacts($fields, 0, count($contact_ids));

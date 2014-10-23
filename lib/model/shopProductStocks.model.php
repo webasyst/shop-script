@@ -5,7 +5,6 @@ class shopProductStocksModel extends waModel
     protected $id = array('sku_id','stock_id');
 
     /**
-     * TODO: realize
      * @param array $product_ids
      */
     public function deleteByProducts(array $product_ids)
@@ -22,6 +21,11 @@ class shopProductStocksModel extends waModel
     public function deleteStock($stock_id, $recount = true)
     {
         $stock_id = (int)$stock_id;
+        
+        $stock_model = new shopStockModel();
+        $stock = $stock_model->getById($stock_id);
+        $stock_name = $stock ? $stock['name'] : '';
+        
         if ($stock_id) {
             if ($recount) {
 
@@ -49,6 +53,15 @@ class shopProductStocksModel extends waModel
                 $product_model->correctCount();
 
             }
+            
+            $log_model = new shopProductStocksLogModel();
+            $log_model->updateByField(array(
+                'stock_id' => $stock_id
+            ), array(
+                'stock_id' => null,
+                'stock_name' => $stock_name
+            ));
+            
             return $this->deleteByField('stock_id', $stock_id);
         }
         return false;
@@ -62,6 +75,11 @@ class shopProductStocksModel extends waModel
      */
     public function move($src_id, $dst_id)
     {
+        $src_id = (int) $src_id;
+        $dst_id = (int) $dst_id;
+        
+        $this->logMove($src_id, $dst_id);
+        
         // increase counts of destination stock for intersecting skus
         $sql = "UPDATE `{$this->table}` dst
                 JOIN `{$this->table}` src ON src.sku_id = dst.sku_id
@@ -84,6 +102,78 @@ class shopProductStocksModel extends waModel
     }
 
     /**
+     * Insert to log info about moving
+     * @param int $stock_id
+     * @param int|null $chunk_size Insert items by chunks of this size. If null make insert at a time
+     */
+    private function logMove($src_id, $dst_id, $chunk_size = 100)
+    {
+        if ($chunk_size !== null && $chunk_size <= 0) {
+            return;
+        }
+        
+        $stock_model = new shopStockModel();
+        $src_stock = $stock_model->getById($src_id);
+        $dst_stock = $stock_model->getById($dst_id);
+        $src_name = $src_stock ? '@'.$src_stock['name'] : '';
+        $dst_name = $dst_stock ? '@'.$dst_stock['name'] : '';
+        
+        $log_model = new shopProductStocksLogModel();
+        
+        $sql = "SELECT COUNT(src.stock_id) FROM `shop_product_stocks` src
+            LEFT JOIN `shop_product_stocks` dst ON dst.sku_id = src.sku_id AND 
+                dst.stock_id = {$dst_id}
+            WHERE src.stock_id = {$src_id}";
+        $total_count = (int) $this->query($sql)->fetchField();
+        if ($chunk_size === null) {
+            $chunk_size = $total_count;
+        }
+        for ($offset = 0; $offset < $total_count; $offset += $chunk_size) {
+            $data_1 = array();
+            $data_2 = array();
+                
+            $sql = "SELECT 
+                    src.sku_id, src.product_id, src.count AS src_count,
+                    dst.count AS dst_count
+                FROM `shop_product_stocks` src
+                LEFT JOIN `shop_product_stocks` dst ON dst.sku_id = src.sku_id AND 
+                    dst.stock_id = {$dst_id}
+                WHERE src.stock_id = {$src_id}
+                ORDER BY src.sku_id
+                LIMIT {$offset}, {$chunk_size}";
+
+            foreach ($this->query($sql) as $row) {
+                if ($row['src_count'] == 0) {
+                    // nothing to move, ignore insert to log
+                    continue;
+                }
+                $data_1[] = array(
+                    'product_id' => $row['product_id'],
+                    'sku_id' => $row['sku_id'],
+                    'stock_id' => $src_id,
+                    'before_count' => $row['src_count'],
+                    'after_count' => 0,
+                    'diff_count' => -$row['src_count'],
+                    'type' => shopProductStocksLogModel::TYPE_STOCK,
+                    'datetime' => date('Y-m-d H:i:s')
+                );
+                $data_2[] = array(
+                    'product_id' => $row['product_id'],
+                    'sku_id' => $row['sku_id'],
+                    'stock_id' => $dst_id,
+                    'before_count' => $row['dst_count'],
+                    'after_count' => $row['src_count'] + (int) $row['dst_count'],
+                    'diff_count' => $row['src_count'],
+                    'type' => shopProductStocksLogModel::TYPE_STOCK,
+                    'datetime' => date('Y-m-d H:i:s')
+                );
+            }
+            $log_model->multipleInsert($data_1);
+            $log_model->multipleInsert($data_2);
+        }
+    }
+    
+    /**
      * Transfer sku from one stock (src) to another (dst)
      *
      * @param int $src_id
@@ -105,16 +195,18 @@ class shopProductStocksModel extends waModel
 
         // count data
         $data = $this->query("
-            SELECT stock_id, count
+            SELECT stock_id, count, product_id
             FROM {$this->table}
             WHERE sku_id = $sku_id AND stock_id IN($src_id, $dst_id)"
         )->fetchAll('stock_id', true);
 
-        $src_count = isset($data[$src_id]) ? $data[$src_id] : null;
-        $dst_count = isset($data[$dst_id]) ? $data[$dst_id] : null;
+        $src_count = isset($data[$src_id]) ? $data[$src_id]['count'] : null;
+        $dst_count = isset($data[$dst_id]) ? $data[$dst_id]['count'] : null;
         if ($dst_count === null) {
             return true;
         }
+        
+        $product_id = $data[$dst_id]['product_id'];
 
         if ($count === null) {
             // get all from src if src has numeric count
@@ -137,14 +229,8 @@ class shopProductStocksModel extends waModel
             return true;
         }
 
-        if (!$this->updateByField(
-            array('sku_id' => $sku_id, 'stock_id' => $dst_id),
-            array('count' => $dst_count + $count)
-        ))
-        {
-            return false;
-        }
-
+        $log_model = new shopProductStocksLogModel();
+        
         if (!$this->updateByField(
             array('sku_id' => $sku_id, 'stock_id' => $src_id),
             array('count' => $src_count - $count)
@@ -152,42 +238,33 @@ class shopProductStocksModel extends waModel
         {
             return false;
         }
-
-        /*
-        $src = $data[$src_id];
-        $dst = isset($data[$dst_id]) ? $data[$dst_id] : array();
-        $count = $count === null ? $src['count'] : min((int)$count, $src['count']);
-        if (!$count) {
-            return true;
-        }
-
-        if (empty($dst)) {
-            if (!$this->insert(array(
-                'sku_id' => $sku_id,
-                'stock_id' => $dst_id,
-                'product_id' => $src['product_id'],
-                'count' => $count
-            ))) {
-                return false;
-            }
-        } else {
-            if (!$this->updateByField(array(
-                    'sku_id' => $sku_id,
-                    'stock_id' => $dst_id
-                ), array('count' => $dst['count'] + $count)))
-            {
-                return false;
-            }
-        }
-        if (!$this->updateByField(array(
-                'sku_id' => $sku_id,
-                'stock_id' => $src_id
-            ), array('count' => $src['count'] - $count)))
+        
+        $log_model->insert(array(
+            'product_id' => $product_id,
+            'sku_id' => $sku_id,
+            'stock_id' => $src_id,
+            'before_count' => $src_count,
+            'after_count' => $src_count - $count,
+            'diff_count' => -$count
+        ));
+        
+        if (!$this->updateByField(
+            array('sku_id' => $sku_id, 'stock_id' => $dst_id),
+            array('count' => $dst_count + $count)
+        ))
         {
             return false;
         }
-        */
-
+        
+        $log_model->add(array(
+            'product_id' => $product_id,
+            'sku_id' => $sku_id,
+            'stock_id' => $dst_id,
+            'before_count' => $dst_count,
+            'after_count' => $dst_count + $count,
+            'diff_count' => $count
+        ));
+        
         return true;
     }
 
@@ -335,5 +412,146 @@ class shopProductStocksModel extends waModel
             }
         }
         return $data;
+    }
+    
+    /**
+     * Insert for NEW stock_id items with count = 0 FOR all existing skus in this table
+     * Take into account stocks log
+     * @param int $stock_id
+     * @param int|null $chunk_size Insert items by chunks of this size. If null make insert at a time
+     */
+    public function insertZeros($stock_id, $chunk_size = 100)
+    {
+        if ($chunk_size !== null && $chunk_size <= 0) {
+            return;
+        }
+        
+        $sql = "SELECT COUNT(DISTINCT product_id, sku_id) FROM `shop_product_stocks`";
+        $total_count = (int) $this->query($sql)->fetchField();
+        if ($chunk_size === null) {
+            $chunk_size = $total_count;
+        }
+        for ($offset = 0; $offset < $total_count; $offset += $chunk_size) {
+            
+            $data = array();
+            
+            $sql = "SELECT DISTINCT product_id, sku_id FROM `shop_product_stocks` 
+                ORDER BY product_id, sku_id
+                LIMIT {$offset}, {$chunk_size}";
+            foreach ($this->query($sql) as $row) {
+                $data[] = array(
+                    'sku_id' => $row['sku_id'],
+                    'stock_id' => $stock_id,
+                    'product_id' => $row['product_id'],
+                    'count' => 0
+                );
+            }
+            // for product_stocks
+            $this->multipleInsert($data);
+        }
+    }
+    
+    /**
+     * Set count for stock and sku. 
+     * Make insert, update or delete depending on input parameters and current state (sku-stock record in table)
+     * Take into account stocking log (@see shopProductStocksLog)
+     * 
+     * @param string[mixed] $data Specify sku ID, stock ID, count
+     * @param int           $data['sku_id'] sku ID, obligatory
+     * @param int           $data['product_id'] product ID, optional
+     * @param int           $data['stock_id'] stock ID, obligatory
+     * @param int|null      $data['count'] count, obligatory. 
+     * 
+     * <code>
+     * array(
+     *     'sku_id' => 123,      // sku ID, obligatory
+     *     'product_id' => 111,  // product ID, optional
+     *     'stock_id' => 23,     // stock ID, obligatory
+     *     'count' => 12,        // Maybe null or integer greater or equals 0
+     * )
+     * </code>
+     * 
+     * @return boolean
+     */
+    public function set($data)
+    {
+        if (empty($data['sku_id']) || empty($data['stock_id'])) {
+            return false;
+        }
+        
+         // isset doesn't work correctly with null
+        if (!array_key_exists('count', $data)) {
+            return false;
+        }
+        
+        $count = $data['count'];
+        if (empty($data['product_id'])) {
+            $product_skus_model = new shopProductSkusModel();
+            $data['product_id'] = $product_skus_model->select('product_id')->
+                    where('sku_id = :sku_id', array(
+                        'sku_id' => $data['sku_id']
+                    ))->fetchField();
+        }
+        if (empty($data['product_id'])) {
+            return false;
+        }
+        
+        $key = array(
+            'sku_id' => $data['sku_id'],
+            'stock_id' => $data['stock_id']
+        );
+        
+        $item = $this->getByField($key);
+        if (($item && $count !== null && $count == $item['count']) || (!$item && $count === null)) {
+            // nothing to update
+            return true;
+        }
+        
+        $log_data = array(
+            'product_id' => $data['product_id'],
+            'sku_id' => $data['sku_id'],
+            'stock_id' => $data['stock_id'],
+            'before_count' => null,
+            'after_count' => $count
+        );
+
+        if ($item) {
+            $log_data['before_count'] = $item['count'];
+        }
+        
+        if ($count === null) {
+            $op = 'delete';
+        } else {
+            if ($item) {
+                $op = 'update';
+            } else {
+                $op = 'insert';
+            }
+        }
+        
+        if ($op == 'delete') {
+            $this->deleteByField($key);
+        } else if ($op == 'update') {
+            $this->updateByField($key, $data);
+        } else {
+            $this->insert($data);
+        }
+
+        $log_model = new shopProductStocksLogModel();
+        $log_model->add($log_data);
+        
+        return true;
+        
+    }
+    
+    /**
+     * @param int $sku_id
+     * @return boolean
+     */
+    public function hasAnyStocks($sku_id)
+    {
+        return !!$this->select('sku_id')->where('sku_id=:sku_id', array(
+            'sku_id' => $sku_id,
+        ))->limit(1)->fetchField();
     }
 }

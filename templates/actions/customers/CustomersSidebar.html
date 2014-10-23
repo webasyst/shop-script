@@ -65,13 +65,16 @@
             if (!customer_id || !category_id) {
                 return;
             }
-            $.post('?module=customers&action=category', { customer_id: customer_id, category_id: category_id }, function() {
+            $.post('?module=customers&action=category', { customer_id: customer_id, category_id: category_id }, function(r) {
                 li.children('a').append(
-                    $('<span><i class="icon10 yes" style="margin-left:10px"></i>'+"[`added`]"+'</span>').animate({ 'opacity': 0 }, 1000, function() {
+                    $('<span><i class="icon10 yes" style="margin-left:10px"></i>'+'</span>').animate({ 'opacity': 0 }, 1000, function() {
                         $(this).remove();
                     })
                 );
-            });
+                if (r.data && 'count' in r.data) {
+                    $('#customer-categories li[data-category-id='+category_id+'] .count').text(r.data.count);
+                }
+            }, 'json');
         }
     });
 });</script>

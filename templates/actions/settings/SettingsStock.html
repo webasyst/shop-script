@@ -1,6 +1,6 @@
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/stocks.js?{$wa->version()}"></script>
 <div class="blank block double-padded s-settings-form">
-    <h1 style="margin-bottom: 1em;">[`Stocking`]</h1>
+    <h1 style="margin-bottom: 0.75em;">[`Stocking`]</h1>
     <p>[`Inventory tracking is performed by stocks (warehouses) listed below. Yellow and red indicators are used to visually display low and critical stock levels in both backend and storefront.`]</p>
     <form action="?module=settings&action=saveStock" method="post" id="s-settings-stocks-form">
         <div class="block bottom-padded">
@@ -18,8 +18,9 @@
                 </td>
                 <td>
                     <h3 class="value"><span class="hint">@</span> {$stock.name|escape}</h3>
-                    <input type="text" name="edit[name][]" class="large bold" value="{$stock.name|escape}" style="display: none;" disabled="disabled">
+                    <input type="text" name="edit[name][]" data-name="name" class="large bold" value="{$stock.name|escape}" style="display: none;" disabled="disabled">
                     <input type="hidden" name="edit[id][]" value="{$stock.id}" disabled="disabled">
+                    <span class="errormsg" style="display:none"></span>
                 </td>
                 <td class="short">
                     <span class="value s-count"><i class="icon10 status-yellow"></i>≤<span>{$stock.low_count}</span></span>
@@ -44,7 +45,9 @@
                     <a style="display: inline;" href="javascript: void(0)"><i class="icon16 sort"></i></a>
                 </td>
                 <td class="nowrap bold smaller">
-                    <span class="gray">@</span> <input type="text" name="add[name][]" value="" class="bold large">
+                    <span class="gray">@</span>
+                    <input type="text" data-name="name" name="add[name][]" value="[`New stock`]" class="bold large">
+                    <span class="errormsg" style="display:none"></span>
                 </td>
                 <td class="nowrap short">
                     <i class="icon10 status-yellow"></i><span>≤<input class="short" data-name="low_count" type="text" name="add[low_count][]" value="{shopStockModel::LOW_DEFAULT}">
@@ -169,12 +172,13 @@
 </div>
 
 <script>
-document.title = '{"[`Stocking`]"|cat:" — ":{$wa->accountName()}}';
+document.title = '{"[`Stocking`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 $.settings.stocksInit({
     validate_errors: {
         number: '[`Value must be a positive number`]',
         no_less: '[`This value must be no less than next field count`]',
-        no_greater: '[`This value must be no greater than previous field count`]'
+        no_greater: '[`This value must be no greater than previous field count`]',
+        empty: '[`Empty value`]'
     },
     new_stock: '{$smarty.capture.new_stock}'
 });

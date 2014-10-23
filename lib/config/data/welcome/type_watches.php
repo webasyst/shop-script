@@ -162,6 +162,10 @@ return array(
                 '24 hours',
                 '12/24 hours',
             ),
-        )
+        ),
+        'weight' => array(
+            'name' => 'Weight',
+            'type' => shopFeatureModel::TYPE_DIMENSION.'.weight'
+        ),
     ),
 );

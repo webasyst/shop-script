@@ -57,17 +57,9 @@ class shopStockModel extends waModel
         }
         $data['sort'] = $sort;
         $id = $this->insert($data);
-
-        // After insert new stock, for all skus with stocks this invariant is broken:
-        // in multistocking if at least one stock is "infinity" for sku, sku count must be NULL
-        $sql = "
-            UPDATE `shop_product_skus` s JOIN (
-                SELECT sk.id FROM `shop_product_skus` sk
-                JOIN `shop_product_stocks` st ON sk.id = st.sku_id
-            ) r ON s.id = r.id
-            SET s.count = NULL
-        ";
-        $this->exec($sql);
+        
+        $product_stocks_model = new shopProductStocksModel();
+        $product_stocks_model->insertZeros($id);
 
         $product_model = new shopProductModel();
         $product_model->correctCount();
@@ -75,43 +67,12 @@ class shopStockModel extends waModel
         return $id;
     }
 
-    /*
-    public function add($data, $before_id = null)
-    {
-        if (empty($data)) {
-            return false;
-        }
-        $before = null;
-        if ($before_id) {
-            $before = $this->getById($before_id);
-        }
-        if (!$before) {
-            $sort = $this->query("SELECT MAX(sort) AS sort FROM {$this->table}")->fetchField('sort') + 1;
-        } else {
-            $this->query("UPDATE {$this->table} SET sort = sort + ".count($data)." WHERE sort >= {$before['sort']}");
-            $sort = (int)$before['sort'];
-        }
-        foreach ($data as &$item) {
-            if (empty($item['low_count'])) {
-                $item['low_count'] = shopStockModel::LOW_DEFAULT;
-            }
-            if (empty($item['critical_count'])) {
-                $item['critical_count'] = shopStockModel::CRITICAL_DEFAULT;
-            }
-            $item['sort'] = $sort;
-            $sort += 1;
-        }
-        unset($item);
-
-        $this->multipleInsert($data);
-    }
-    */
-
     /**
      * Delete stock with or not writing-off products
      *
      * @param int $stock_id
      * @param int|null $dst_stock If null than writing-off products else move products to $dst_stock
+     * @return bool
      */
     public function delete($stock_id, $dst_stock = null)
     {
@@ -135,5 +96,10 @@ class shopStockModel extends waModel
         }
 
         return $this->deleteById($stock_id);
+    }
+    
+    public function stockExists($stock_id)
+    {
+        return !!$this->select('id')->where('id=i:id', array('id' => $stock_id))->fetchField();
     }
 }

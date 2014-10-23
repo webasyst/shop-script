@@ -24,19 +24,19 @@ class shopServiceSaveController extends waJsonController
                 return;
             }
         }
-
+        
         if ($id) {
             // delete products
             $delete_products = waRequest::post('delete_product', array(), waRequest::TYPE_ARRAY_INT);
             $service_product_model->deleteByProducts($delete_products, $id);
         }
-
+        
         $id = $service_model->save($this->getData(), $id, true);
         $this->response = array(
             'id' => $id
         );
     }
-
+    
     public function getData()
     {
         $data = array(
@@ -45,6 +45,10 @@ class shopServiceSaveController extends waJsonController
             'variants' => array()
         );
 
+        $data['currency'] = !$data['currency'] ? 
+                wa('shop')->getConfig()->getCurrency() : 
+                $data['currency'];
+        
         $variants = waRequest::post('variant', array(), waRequest::TYPE_ARRAY_INT);
         $names    = waRequest::post('name', array());
         $prices   = waRequest::post('price', array());

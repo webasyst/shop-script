@@ -1,5 +1,5 @@
 <?php
-class shopSortableModel extends waModel
+abstract class shopSortableModel extends waModel
 {
     protected $sort = 'sort';
     protected $context = null;
@@ -32,13 +32,13 @@ class shopSortableModel extends waModel
         }
         if ($sql) {
             $params = array('sort' => $sort, 'sort_old' => $entry[$this->sort]);
-            if ($context) {
+            if ($context !== null) {
                 $sql .= ' AND ' . $this->getWhereByField($this->context, $context);
             }
             $this->exec($sql, $params);
             $this->updateById($id, array($this->sort => (int)$sort));
         }
-
+        return $sort;
     }
 
     public function getAll($key = null, $normalize = false)
@@ -134,6 +134,11 @@ class shopSortableModel extends waModel
     {
         $sort = intval($a[$this->sort]) - intval($b[$this->sort]);
         return max(-1, min(1, $sort));
+    }
+
+    protected function sortRows(&$rows)
+    {
+        uasort($rows, array($this, 'sort'));
     }
 
     public function getTableContext()

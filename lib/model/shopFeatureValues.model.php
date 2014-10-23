@@ -1,7 +1,23 @@
 <?php
+
 abstract class shopFeatureValuesModel extends shopSortableModel
 {
+    protected $changed_fields = array();
+
     //TODO deleteByField = update related tables
+
+    /**
+     * @param int $value_id
+     * @return mixed
+     */
+    public function getFeatureValue($value_id)
+    {
+        if ($row = $this->getById($value_id)) {
+            return $this->getValue($row);
+        } else {
+            return null;
+        }
+    }
 
     /**
      * @param string $field
@@ -31,7 +47,11 @@ SQL;
                 uasort($data, array($this, 'sort'));
 
             } else {
-                $data = $this->getByField($field, $value, $this->id);
+                if (is_array($field)) {
+                    $data = $this->getByField($field, $this->id);
+                } else {
+                    $data = $this->getByField($field, $value, $this->id);
+                }
             }
         }
         $values = array();
@@ -51,20 +71,37 @@ SQL;
 
     public function getProductValues($product_id, $feature_id, $field = 'value')
     {
-        if (is_array($field)) {
-            $fields = 'fv.' . implode(', fv.', $field);
-        } else {
-            $fields = 'fv.' . $field;
+        if (!$product_id) {
+            return array();
         }
-        $sql = "SELECT pf.product_id, " . $fields . " FROM shop_product_features pf
-                JOIN " . $this->table . " fv ON pf.feature_value_id = fv.id
+        if (is_array($field)) {
+            $fields = 'fv.'.implode(', fv.', $field);
+        } else {
+            $fields = 'fv.'.$field;
+        }
+        $sql = "SELECT pf.product_id, pf.sku_id, ".$fields." FROM shop_product_features pf
+                JOIN ".$this->table." fv ON pf.feature_value_id = fv.id
                 WHERE pf.product_id IN (i:0) AND pf.feature_id = i:1";
-        return $this->query($sql, $product_id, $feature_id)->fetchAll('product_id', true);
+        $query = $this->query($sql, $product_id, $feature_id);
+        $result = array();
+        foreach ($query as $row) {
+            if ($row['sku_id']) {
+                $result['skus'][$row['sku_id']] = is_array($field) ? $row : $row[$field];
+            } else {
+                $result[$row['product_id']] = is_array($field) ? $row : $row[$field];
+            }
+        }
+        return $result;
     }
 
     protected function getValue($row)
     {
         return $row['value'];
+    }
+
+    protected function isChanged($row, $data)
+    {
+        return false;
     }
 
     /**
@@ -83,37 +120,64 @@ SQL;
         $exists = array();
         $multi = false;
         $sort = null;
-        $op = $this->getSearchCondition();
-        if (is_array($value)) {
-            if (isset($value['value'])) {
-                $values = array($value);
-            } else {
-                $multi = true;
-                $values = $value;
-            }
-        } else {
-            $values = array($value);
-        }
-        if ($update) {
-            $sql = "SELECT (MAX(`sort`)+1) `max_sort` FROM " . $this->table . " WHERE (`feature_id` = i:0)";
-            $sort = $this->query($sql, $feature_id)->fetchField('max_sort');
-        }
-        foreach ($values as $v) {
-            $data = $this->parseValue($v, $type);
-            $data['feature_id'] = $feature_id;
-            $data['sort'] = $sort;
 
-            $sql = "SELECT `id`,`sort` FROM " . $this->table . " WHERE (`feature_id` = i:feature_id) AND (" . $op . ')';
-            $row = $this->query($sql, $data)->fetchAssoc();
-            if ($row) {
-                $exists[$row['sort']] = intval($row['id']);
-            } elseif ($update) {
-                ++$sort;
-                array_unshift($result, intval($this->insert($data)));
+        if (is_array($value) && isset($value['id'])) {
+            $result[] = $value['id'];
+            $result = array_unique(array_map('intval', array_filter($result)));
+        } elseif (is_array($value) && ($v = reset($value)) && is_array($v) && isset($v['id'])) {
+            foreach ($value as $v) {
+                if (isset($v['id'])) {
+                    $result[] = $v['id'];
+                }
             }
+            $result = array_unique(array_map('intval', array_filter($result)));
+            $multi = (count($result) > 1);
+        } else {
+            if (is_array($value)) {
+                if (isset($value['value'])) {
+                    $values = array($value);
+                } else {
+                    $multi = true;
+                    $values = $value;
+                }
+            } else {
+                $values = array($value);
+            }
+            if ($update) {
+                $sql = "SELECT (MAX(`sort`)+1) `max_sort` FROM ".$this->table." WHERE (`feature_id` = i:0)";
+                $sort = $this->query($sql, $feature_id)->fetchField('max_sort');
+            }
+            $op = $this->getSearchCondition();
+            foreach ($values as $v) {
+                $data = $this->parseValue($v, $type);
+                $data['feature_id'] = $feature_id;
+                $data['sort'] = $sort;
+                $fields = array_unique(array_merge(array($this->id, $this->sort), $this->changed_fields));
+                $fields = '`'.implode('`, `', $fields).'`';
+                $sql = "SELECT {$fields} FROM ".$this->table." WHERE (`feature_id` = i:feature_id) AND (".$op.')';
+                $row = $this->query($sql, $data)->fetchAssoc();
+                if ($row) {
+                    if ($changed = $this->isChanged($row, $data)) {
+                        $this->updateById($row['id'], $changed);
+                    }
+                    if (isset($exists[$row['sort']]) && ($exists[$row['sort']] != $row['id'])) {
+                        $row['sort'] = ($sort === false) ? ($sort = 0) : ++$sort;
+                        $this->updateById($row['id'], array('sort' => $row['sort']));
+                    }
+                    $exists[$row['sort']] = intval($row['id']);
+
+                } elseif ($update) {
+                    $data['sort'] = ($sort === false) ? ($sort = 0) : ++$sort;;
+                    $data['id'] = intval($this->insert($data));;
+                    $result[$data['sort']] = $data['id'];
+                }
+            }
+            $result = array_map('intval', $result);
+            $exists = array_map('intval', $exists);
+            $result = array_unique(array_merge($exists, $result));
+
         }
-        ksort($exists);
-        $result = array_unique(array_merge($exists, $result));
+        ksort($result);
         return $multi ? $result : reset($result);
     }
 
@@ -128,6 +192,11 @@ SQL;
     public function getValueId($feature_id, $value, $type = null, $update = false)
     {
         return $this->getId($feature_id, $value, $type, $update);
+    }
+
+    public function getValueIdsByRange($feature_id, $min, $max)
+    {
+        return array();
     }
 
     /**
@@ -146,7 +215,9 @@ SQL;
 
         try { //store
             $data = $this->parseValue($value, $type);
-            $row['value'] = (string)$this->getValue($data);
+            if (isset($data['code'])) {
+                $row['code'] = $data['code'];
+            }
             if ($sort !== null) {
                 $row['sort'] = $sort;
                 $data['sort'] = $sort;
@@ -158,13 +229,14 @@ SQL;
                 $row['id'] = $this->insert($data);
                 $row['insert_id'] = $id;
             }
+            $row['value'] = (string)$this->getValue($data);
         } catch (waDbException $ex) {
             $row['error'] = $ex->getMessage();
             switch ($ex->getCode()) {
                 case '1062':
                     $id = $this->getId($feature_id, $value, $type);
                     $row['error'] = array(
-                        'message' => _w('Not unique value'),
+                        'message'     => _w('Not unique value'),
                         'original_id' => $id,
                     );
 
@@ -172,12 +244,13 @@ SQL;
                     break;
                 default:
                     $row['error'] = array(
-                        'message' => wa()->getConfig()->isDebug() ? $ex->getMessage() : _w('Error while insert'),
+                        'message'     => wa()->getConfig()->isDebug() ? $ex->getMessage() : _w('Error while insert'),
                         'original_id' => 0,
                     );
                     break;
             }
         }
+
         return $row;
     }
 

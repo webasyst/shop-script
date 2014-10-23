@@ -1,13 +1,13 @@
 <?php
 /**
- * @author WebAsyst Team
+ * @author Webasyst
  *
  */
 class shopPluginsSortController extends waJsonController
 {
     public function execute()
     {
-        if (!$this->getUser()->isAdmin($this->getApp())) {
+        if (!$this->getUser()->getRights('shop', 'settings')) {
             throw new waRightsException(_w('Access denied'));
         }
 

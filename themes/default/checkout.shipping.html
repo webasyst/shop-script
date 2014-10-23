@@ -1,3 +1,4 @@
+<div class="checkout-content" data-step-id="shipping">
 <ul class="checkout-options">
     {$external_methods = []}
     {foreach $checkout_shipping_methods as $m}
@@ -6,21 +7,20 @@
             <div class="rate">
                 <span class="price nowrap">
                     {if $m.rate !== null}
-                    {shop_currency($m.rate, $m.currency)}
+                    {shop_currency_html($m.rate, $m.currency)}
                     {elseif $m.external}
                     {$external_methods[] = $m.id}
                     [`Loading...`] <i class="icon16 loading"></i>
                     {/if}
                 </span>
                 <em class="hint error comment" {if empty($m.comment)}style="display:none"{/if}>
-                <br>{if !empty($m.comment)}{$m.comment}{/if}
+                    <br>{if !empty($m.comment)}{$m.comment}{/if}
                 </em>
                 <span class="hint" {if empty($m.est_delivery)}style="display:none"{/if}>
-                    <br>
-                    [`Estimated delivery`]:<br>
-                    <strong class="est_delivery">{if !empty($m.est_delivery)}{$m.est_delivery}{/if}</strong>
+                <br>
+                [`Estimated delivery`]:<br>
+                <strong class="est_delivery">{if !empty($m.est_delivery)}{$m.est_delivery}{/if}</strong>
                 </span>
-
             </div>
             {else}
             <div class="rate error">
@@ -37,7 +37,7 @@
             <h3>
                 <label>
                     {if !empty($m.logo)}<img src="{$m.logo}" class="method-logo">{/if}
-                    <input type="radio" name="shipping_id" value="{$m.id}" {if $m.id == $shipping.id}checked{/if}>
+                    <input type="radio" name="shipping_id" value="{$m.id}" {if $m.external || !empty($m.error)}disabled{/if} {if $m.id == $shipping.id}checked{/if}>
                     {$m.name|escape}
                 </label> 
                     
@@ -45,7 +45,7 @@
                     {if count($m.rates) > 1}
                         <select class="shipping-rates" name="rate_id[{$m.id}]">
                             {foreach $m.rates as $rate_id => $r}
-                                <option data-rate="{shop_currency($r.rate, $r.currency)}" data-est_delivery="{if !empty($r.est_delivery)}{$r.est_delivery}{/if}" {if !empty($r.comment)}data-comment="{$r.comment}"{/if} value="{$rate_id}"{if $rate_id == $shipping.rate_id} selected{/if}>{$r.name} ({shop_currency($r.rate, $r.currency)})</option>
+                                <option data-rate="{shop_currency($r.rate, $r.currency)}" {if !empty($r.est_delivery)}data-est_delivery="{$r.est_delivery}"{/if} {if !empty($r.comment)}data-comment="{$r.comment}"{/if} value="{$rate_id}"{if $rate_id == $shipping.rate_id} selected{/if}>{$r.name} ({shop_currency($r.rate, $r.currency)})</option>
                             {/foreach}
                         </select>
                     {else}
@@ -55,7 +55,10 @@
             </h3>
             {if $m.description}<p>{$m.description}</p>{/if}
             {if !empty($m.form)}<div class="wa-form wa-address" {if $m.id != $shipping.id}style="display:none"{/if}>{$m.form->html()}</div>{/if}
-            {if !empty($m.custom_html)}<div class="wa-form" {if $m.id != $shipping.id}style="display:none"{/if}>{$m.custom_html}</div>{/if}
+            {if !empty($m.custom_html)}
+                <div class="clear-both"></div>
+                <div class="wa-form" {if $m.id != $shipping.id}style="display:none"{/if}>{$m.custom_html}</div>
+            {/if}
         </li>
     {foreachelse}
         <li>
@@ -65,18 +68,22 @@
 </ul>
 <script type="text/javascript">
     $(function () {
-
         {if $external_methods}
             $.get("{$wa->getUrl('/frontend/shipping')}", { shipping_id: [{implode(',', $external_methods)}]}, function (response) {
                 for (var shipping_id in response.data) {
                     responseCallback(shipping_id, response.data[shipping_id]);
                 }
             }, "json");
-            {/if}
+        {/if}
 
                 function responseCallback(shipping_id, data) {
                     var name = 'rate_id[' + shipping_id + ']';
+                    if (typeof(data) != 'string') {
+                        $(".shipping-" + shipping_id + ' input:radio').removeAttr('disabled');
+                    }
                     if (typeof(data) == 'string') {
+                        $(".shipping-" + shipping_id + ' input[name="' + name + '"]').remove();
+                        $(".shipping-" + shipping_id + ' select[name="' + name + '"]').remove();
                         var el = $(".shipping-" + shipping_id).find('.rate');
                         if (el.hasClass('error')) {
                             el.find('em').html(data);
@@ -152,8 +159,8 @@
                     }
                 });
                 $(".checkout-options input:radio").change(function () {
-                    if ($(this).is(':checked')) {
-                        $(".checkout-options .wa-address").hide();
+                    if ($(this).is(':checked') && !$(this).data('ignore')) {
+                        $(".checkout-options .wa-form").hide();
                         $(this).closest('li').find('.wa-form').show();
                         if ($(this).data('changed')) {
                             $(this).closest('li').find('.wa-form').find('input,select').data('ignore', 1).change().removeData('ignore');
@@ -192,3 +199,9 @@
             });
 
 </script>
+
+<!-- plugin hook: 'frontend_checkout' -->
+{* @event frontend_checkout.%plugin_id% *}
+{foreach $frontend_checkout as $_}{$_}{/foreach}
+
+</div>

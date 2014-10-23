@@ -1,11 +1,12 @@
 <div class="block double-padded" style="padding-bottom: 10px;">
     <h1>1С: Управление торговлей</h1>
-    <p>Обмен данными с «1С: Управление торговлей» через файлы формата <a href="http://www.1c.ru/rus/products/1c/integration/cml1c.htm">CommerceML</a>. Документация по настройке интеграции: <a href="http://www.shop-script.ru/help/1c/" target="_blank">http://www.shop-script.ru/help/1c/</a><i class="icon16 new-window"></i></p>
+    <p>Обмен данными с «1С: Управление торговлей» через файлы формата <a href="http://www.1c.ru/rus/products/1c/integration/cml1c.htm">CommerceML</a>. Документация по настройке интеграции: <a href="http://www.webasyst.ru/help/25/shop-script-5-cml1c/" target="_blank">http://www.webasyst.ru/help/25/shop-script-5-cml1c/</a><i class="icon16 new-window"></i></p>
 </div>
 <div id="s-cml1c-form">
     <ul class="tabs" style="padding-left: 10px;">
-       <li class="selected"><a href="#/cml1c/tab/auto/">Автоматический обмен</a></li>
-       <li><a href="#/cml1c/tab/manual/">Ручной обмен</a></li>
+        <li class="selected"><a href="#/cml1c/tab/auto/">Автоматический обмен</a></li>
+        <li><a href="#/cml1c/tab/manual/">Ручной обмен</a></li>
+        <li class="no-tab"><a href="?action=plugins#/cml1c/" class="no-underline"><i class="icon16 settings"></i>Настройки обмена</a></li>       
     </ul>
 
     <div class="tab-content">
@@ -100,12 +101,22 @@
                             <div class="value no-shift">
                             {$wa->csrf()}
                             <input type="file" name="files">
-                            <input type="hidden" name="filename" value="">
+                                <input type="hidden" name="filename" value="">
+                                <input type="hidden" name="zipfile" value="">
                             <span id="s-plugin-cml1c-import-upload-status" style="display:none">
-                                <i style="vertical-align:middle" class="icon16 loading"></i><span></span>
+                                <i style="vertical-align:middle" class="icon16 loading"></i>
+                                <span></span>
                             </span>
                             <br><br>
                             <p class="small">Импорт из файла CommerceML поддерживает только импорт информации о товарах (добавление новых товаров, обновление цен и характеристик). Импорт заказов из файла CommerceML не поддерживается.</p>
+                            </div>
+                        </div>
+                        <div class="field js-cml1c-zip" style="display: none;">
+                            <div class="name">Файл</div>
+                            <div class="value">
+                                <ul class="menu-v with-icons">
+                                <li class="js-cml1c-template"><label><i class="icon16 zip"></i><input type="radio" name="filename" value="" disabled="disabled"><span></span></label></li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -140,6 +151,7 @@
                     <div class="field-group plugin-cml1c-report" id="plugin-cml1c-report-import" style="display: none;">
                         <div class="field">
                             <div class="value"></div>
+                            <div class="value"><a href="#cml1c/upload/repeat/" class="js-action"><i class="icon16 update"></i>Импортировать еще файлы</a></div>
                         </div>
                     </div>
                 </div>
@@ -156,5 +168,4 @@
 
 <script type="text/javascript">
 {include file="../../../js/cml1c.js"}
-$.importexport.cml1cInit();
 </script>

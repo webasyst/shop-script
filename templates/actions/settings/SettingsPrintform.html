@@ -5,13 +5,7 @@
                 {foreach $plugins as $info}
                 <li>
                     <a href="#/printform/{$info.id}/">
-                        {if empty($info.icon.16)}
-                            {shopHelper::getIcon('ss print-forms-bw')}
-                        {else}
-                            {shopHelper::getIcon($info.icon.16)}
-                        {/if}
-                        {$info.name|default:$info.id|escape}
-                        <span class="hint">{$info.description|default:''|escape}</span>
+                        <i class="icon16{if !isset($info.img)} plugins{else}" style="background-image: url('{wa_url()}{$info.img}');{/if}"></i>{$info.name|escape}
                     </a>
                 </li>
                 {foreachelse}
@@ -19,12 +13,17 @@
                     [`There no printforms`]
                 </li>
                 {/foreach}
-            </ul>
-            <div class="align-center hint hr block double-padded">
-                <p>
-                    {sprintf('[`<a href="%s">Browse for new plugins</a> and install them using the Installer app.`]', {$wa_backend_url}|cat:'installer/?module=plugins&slug=shop')}
-                </p>
-            </div>
+        
+        </ul>
+            
+        {if !empty($installer)}
+        <div class="align-center hint hr block double-padded">
+            <p>
+                <a href="#/printform/plugins/" data-url="{$wa_backend_url|cat:'installer/#/plugins/shop/'}" class="bold">[`Browse plugins`]</a><br>
+                [`Install new plugins from the Webasyst Store using the Installer app`]
+            </p>
+        </div>
+        {/if}
 
         </div>
     </div>
@@ -45,15 +44,18 @@
 </div>
 
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/printform.js?{$wa->version()}"></script>
-
+<script type="text/javascript" src="{$wa_url}wa-content/js/ace/ace.js"></script>
+<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-wa/wa.elrte.ace.js"></script>
 <script type="text/javascript">
-document.title = '{"[`Printable forms`]"|cat:" — ":{$wa->accountName()}}';
-{literal}
+document.title = '{"[`Printable forms`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+
 $.settings.settingsOptions({
-    'loading' : '<div class="block double-padded">[`Loading...`]<i class="icon16 loading"><i></div>'
+    loading : '<div class="block double-padded">[`Loading...`]<i class="icon16 loading"><i></div>',
+    backend_url:'{$wa_backend_url|escape:'javascript'}',
+    plugins_header:'<h1>[`Printable forms`]</h1>'
 })
 if(typeof($)!='undefined') {
     $.settings.printformInit();
 }
-{/literal}
+
 </script>

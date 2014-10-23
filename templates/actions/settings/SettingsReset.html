@@ -29,7 +29,7 @@
 
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/reset.js?{$wa->version()}"></script>
 <script type="text/javascript">
-document.title = '{"[`Reset`]"|cat:" — ":{$wa->accountName()}}';
+document.title = '{"[`Reset`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 if(typeof($)!='undefined') {
 $.settings.resetInit();
 }

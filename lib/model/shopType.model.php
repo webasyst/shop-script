@@ -8,13 +8,21 @@ class shopTypeModel extends shopSortableModel
         $sql = "SELECT * FROM `{$this->table}` WHERE `name` LIKE s:0";
         return $this->query($sql, $name)->fetch();
     }
+    
     /**
      * Take into account rights
+     * 
+     * @param boolean $get_all In case user has rights to all types return this types or just return true
+     * @return boolean|array
      */
-    public function getTypes()
+    public function getTypes($get_all = true)
     {
         if (wa('shop')->getUser()->getRights('shop', 'type.all')) {
-            return $this->getAll('id');
+            if ($get_all) {
+                return $this->getAll('id');
+            } else {
+                return true;
+            }
         } else {
             $types = array();
             $all_types = $this->getAll('id');

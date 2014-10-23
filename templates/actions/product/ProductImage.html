@@ -1,5 +1,5 @@
-<script src="{$wa_app_static_url}js/photo.stream.slider.js" type="text/javascript"></script>
-<script src="{$wa_app_static_url}js/loupe.widget.js" type="text/javascript"></script>
+<script src="{$wa_app_static_url}js/photo.stream.slider.js?v={$wa->version()}" type="text/javascript"></script>
+<script src="{$wa_app_static_url}js/loupe.widget.js?v={$wa->version()}" type="text/javascript"></script>
 
 {$image_name = "Image_"|cat:{$product_id}:"_":{$image.id}:".":{$image.ext}}
 
@@ -74,11 +74,16 @@
     <div class="block s-image-original">
     [`Full size`]:  <a href="?module=product&action=ImageDownload&id={$image.id}"><strong id="photo-name-original">{$image_name}</strong></a><br>
     [`Dimensions`]: <strong>{$image.width}x{$image.height}</strong><br>
-    {if $image.size}[`Size`]: <strong>{waFiles::formatSize($image.size, '%0.2f', 'B,KB,MB,GB')}</strong><br>{/if}
+    {if $image.size}[`Size`]: <strong>{$image.size}</strong><br>{/if}
 
     {if $original_exists}
         <br>
-        <a href="javascript:void(0);" id="s-restore-image-original" class="hint">[`Revert to original`]</a>
+        <ul class="menu-h original-info">
+            <li>[`Original image`]: </li>
+            <li><a href="?module=product&action=ImageDownload&id={$image.id}&original=1"><i class="icon10 lock-bw"></i> {$image_name}</a>
+                <br><a href="javascript:void(0);" id="s-restore-image-original" class="hint">Восстановить</a>
+            </li>
+        </ul>
     {/if}
 
     </div>

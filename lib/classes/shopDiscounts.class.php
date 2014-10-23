@@ -3,12 +3,16 @@
 class shopDiscounts
 {
     /**
-     * @param array $order items, total
-     * @param bool $apply
-     * @return float total discount value in currency of the order
+     * Returns aggregate discount amount applicable to order.
+     * 
+     * @param array $order Order data array
+     * @param bool $apply Whether discount-related information must be added to order parameters (where appropriate)
+     * @return float Total discount value expressed in order currency
      */
     public static function calculate(&$order, $apply = false)
     {
+        $currency = isset($order['currency']) ? $order['currency'] :  wa('shop')->getConfig()->getCurrency(false);
+
         $applicable_discounts = array();
         $contact = self::getContact($order);
 
@@ -24,8 +28,12 @@ class shopDiscounts
 
         // Discount by order total applicable?
         if (self::isEnabled('order_total')) {
+            $crm = new shopCurrencyModel();
             $dbsm = new shopDiscountBySumModel();
-            $applicable_discounts[] = max(0.0, min(100.0, (float) $dbsm->getDiscount('order_total', $order['total']))) * $order['total'] / 100.0;
+
+            // Order total in default currency
+            $order_total = (float) $crm->convert($order['total'], $currency, wa('shop')->getConfig()->getCurrency());
+            $applicable_discounts[] = max(0.0, min(100.0, (float) $dbsm->getDiscount('order_total', $order_total))) * $order['total'] / 100.0;
         }
 
         // Discount by customer total spent applicable?
@@ -35,14 +43,14 @@ class shopDiscounts
 
         /**
          * @event order_calculate_discount
-         * @param array
-         * @param array['order'] - order info array('total' => '', 'items' => array(...))
-         * @param array['contact'] - contact info
-         * @param array['apply'] - calculate or apply discount
-         * @return float - discount
+         * @param array $params
+         * @param array[string] $params['order'] order info array('total' => '', 'items' => array(...))
+         * @param array[string] $params['contact'] contact info
+         * @param array[string] $params['apply'] calculate or apply discount
+         * @return float discount
          */
-        $event_params = array('order' => $order, 'contact' => $contact, 'apply' => $apply);
-        $plugins_discounts = wa()->event('order_calculate_discount', $event_params);
+        $event_params = array('order' => &$order, 'contact' => $contact, 'apply' => $apply);
+        $plugins_discounts = wa('shop')->event('order_calculate_discount', $event_params);
         foreach ($plugins_discounts as $plugin_discount) {
             $applicable_discounts[] = $plugin_discount;
         }
@@ -50,7 +58,7 @@ class shopDiscounts
         // Select max discount or sum depending on global setting.
         $discount = 0.0;
         if ( ( $applicable_discounts = array_filter($applicable_discounts, 'is_numeric'))) {
-            if (wa()->getSetting('discounts_combine') == 'sum') {
+            if (wa('shop')->getSetting('discounts_combine') == 'sum') {
                 $discount = (float) array_sum($applicable_discounts);
             } else {
                 $discount = (float) max($applicable_discounts);
@@ -66,17 +74,25 @@ class shopDiscounts
     }
 
     /**
-     * @param array $order
-     * @return float total discount value in currency of the order
+     * Returns aggregate discount amount applicable to order and adds discount-related information to order parameters where appropriate.
+     * 
+     * @param array $order Order data array
+     * @return float Total discount value expressed in order currency
      */
     public static function apply(&$order)
     {
         return self::calculate($order, true);
     }
 
+    /**
+     * Determines whether specified discount type is enabled in store settings field 'discount_%type%'.
+     * 
+     * @param string $discount_type Discount type id
+     * @return bool
+     */
     public static function isEnabled($discount_type)
     {
-        return !empty($discount_type) && wa()->getSetting('discount_'.$discount_type);
+        return !empty($discount_type) && wa('shop')->getSetting('discount_'.$discount_type);
     }
 
     /** Discounts by amount of money previously spent by this customer. */
@@ -109,7 +125,9 @@ class shopDiscounts
     /** Coupon discounts implementation. */
     protected static function byCoupons(&$order, $contact, $apply)
     {
-        $checkout_data = wa()->getStorage()->read('shop/checkout');
+        $currency = isset($order['currency']) ? $order['currency'] :  wa('shop')->getConfig()->getCurrency(false);
+
+        $checkout_data = wa('shop')->getStorage()->read('shop/checkout');
         if (empty($checkout_data['coupon_code'])) {
             return 0; // !!! Will this fail when recalculating existing order?
         }
@@ -130,12 +148,11 @@ class shopDiscounts
                 break;
             default:
                 // Flat value in currency
-                $coupon['value'] = max(0.0, (float) $coupon['value']);
-                if (wa()->getConfig()->getCurrency(false) == $coupon['type']) {
-                    return $coupon['value'];
+                $result = max(0.0, (float) $coupon['value']);
+                if ($currency != $coupon['type']) {
+                    $crm = new shopCurrencyModel();
+                    $result = (float) $crm->convert($result, $coupon['type'], $currency);
                 }
-                $crm = new shopCurrencyModel();
-                $result = (float) $crm->convert($coupon['value'], $coupon['type'], wa()->getConfig()->getCurrency(false));
                 break;
         }
 

@@ -146,10 +146,10 @@
             this.ordersAction();
         },
 
-        buildProductsUrlComponent: function(params) {
+        buildOrdersUrlComponent: function(params) {
             var params_str = '';
             for (var name in params) {
-                if (params.hasOwnProperty(name)) {
+                if (params.hasOwnProperty(name) && name !== 'view') {
                     params_str += '&' + name + '=' + params[name];
                 }
             }
@@ -205,6 +205,9 @@
         },
 
         ordersAction: function(params) {
+            if (arguments.length > 1) {
+                params = Array.prototype.join.call(arguments, '/');
+            }
             if (!params) {
                 // default params
                 params = "state_id=new|processing|paid";
@@ -216,7 +219,6 @@
                 params.view = $.storage.get('shop/orders/view') || this.options.view;
             }
             $.storage.set('shop/orders/view', params.view);
-
             if ($.order_edit) {
                 $.order_edit.slideBack();
             }
@@ -224,7 +226,7 @@
                 if ($.order_list) {
                     $.order_list.finit();
                 }
-                this.load('?module=orders&'+this.buildProductsUrlComponent(params), function() {
+                this.load('?module=orders&'+this.buildOrdersUrlComponent(params), function() {
                     if ($.order_list) {
                         $.order_list.dispatch(params);
                     }
@@ -244,7 +246,7 @@
             if ($.order_edit) {
                 $.order_edit.slideBack();
             }
-            this.load('?module=order&id='+encodeURIComponent(id)+'&'+this.buildProductsUrlComponent(params), function() {
+            this.load('?module=order&id='+encodeURIComponent(id)+'&'+this.buildOrdersUrlComponent(params), function() {
                 $("#s-content").find('h1 .back.order-list').show();
             });
             if ($.order_list) {
@@ -254,30 +256,65 @@
 
         initSearch: function() {
             var search_input = $("#s-orders-search");
-
+            
+            var autocomplete_url = '?action=autocomplete&type=order';
+            var last_response = [];            
+            
+            var onSelect = function(autocomplete_item) {
+                switch (autocomplete_item.autocomplete_item_type) {
+                    case 'order':
+                        location.hash = '#/order/' + autocomplete_item.id + '/';
+                        search_input.val(autocomplete_item.value);
+                        break;
+                    case 'contact':
+                        location.hash = '#/orders/contact_id=' + autocomplete_item.id + '/';
+                        search_input.val(autocomplete_item.value);
+                        break;
+                    case 'product':
+                        location.hash = '#/orders/product_id=' + autocomplete_item.id + '/';
+                        search_input.val(autocomplete_item.value);
+                        break;
+                    default:
+                        // search
+                        break;
+                }
+            };
+            
             search_input.unbind('keydown').
                 bind('keydown', function(event) {
                     if (event.keyCode == 13 || event.keyCode == 10) { // 'Enter'
                         var self = $(this);
-                        var order_id = self.val();
-                        if (order_id) {
-                            location.hash = '#/order/'+order_id+'/';
+                        if (!$(this).val()) {
+                            location.hash = '#/orders/all/';
+                            self.autocomplete("close");
+                            return false;
+                        } else {
+                            if (last_response && $.isArray(last_response) && last_response.length) {
+                                onSelect(last_response[0]);
+                                setTimeout(function() {
+                                    self.autocomplete("close");    
+                                }, 150);
+                                return false;
+                            }
                         }
-                        self.autocomplete("close");
-                        return false;
                     }
                 });
 
             search_input.autocomplete({
-                source: '?action=autocomplete&type=order',
                 minLength: 1,
                 delay: 300,
                 html: true,
                 select: function(event, ui) {
-                    location.hash = '#/order/'+ui.item.id+'/';
-                    search_input.val('');
+                    //location.hash = '#/order/'+ui.item.id+'/';
+                    onSelect(ui.item);
                     return false;
-                }
+                },
+                source : function(request, response) {
+                    $.getJSON(autocomplete_url, request, function(r) {
+                        last_response = r;
+                        response(r);
+                    });
+                },
             });
         },
 

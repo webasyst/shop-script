@@ -20,9 +20,11 @@
 
                         </li>
                         {/foreach}
-                        <li class="bordered-top">
-                            <a href="{$wa_backend_url|cat:'installer/?module=plugins&subject=systemplugins&slug=payment'}" class="small" style="padding-left: 28px;">[`Browse for more payment modules in the Installer app…`]</a>
+                        {if !empty($installer)}
+                        <li class="bordered-top" style="padding-top: 10px; padding-bottom: 10px; margin-top: 7px;">
+                            <a href="#/payment/plugins/" style="text-align: center;">[`Browse payment plugins...`]</a>
                         </li>
+                        {/if}
                     </ul>
                 </li>
             </ul>
@@ -78,7 +80,7 @@
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/payment.js?{$wa->version()}"></script>
 
 <script type="text/javascript">
-document.title = '{"[`Payment`]"|cat:" — ":{$wa->accountName()}}';
+document.title = '{"[`Payment`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 if(typeof($)!='undefined') {
 $.settings.paymentInit();
 }

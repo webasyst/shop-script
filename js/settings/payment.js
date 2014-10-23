@@ -1,6 +1,6 @@
 /**
  * {literal}
- * 
+ *
  * @names payment*
  * @property {} payment_options
  * @method paymentInit
@@ -12,31 +12,31 @@ if (typeof($) != 'undefined') {
 
     $.extend($.settings = $.settings || {}, {
 
-        payment_options : {
-            'null' : null,
-            'loading' : 'Loading...<i class="icon16 loading"><i>'
+        payment_options: {
+            null: null,
+            loading: 'Loading...<i class="icon16 loading"><i>'
         },
         /**
          * Init section
-         * 
+         *
          * @param string tail
          */
-        paymentInit : function() {
+        paymentInit: function () {
             $.shop.trace('$.settings.paymentInit');
             /* init settings */
             var self = this;
-            $('#s-settings-content').on('click', 'a.js-action', function() {
+            $('#s-settings-content').on('click', 'a.js-action', function () {
                 return self.click($(this));
             });
 
             $('#s-settings-payment').sortable({
-                'distance' : 5,
-                'opacity' : 0.75,
-                'items' : '> tbody > tr:visible',
-                'handle' : '.sort',
-                'cursor' : 'move',
-                'tolerance' : 'pointer',
-                'update' : function(event, ui) {
+                distance: 5,
+                opacity: 0.75,
+                items: '> tbody > tr:visible',
+                handle: '.sort',
+                cursor: 'move',
+                tolerance: 'pointer',
+                update: function (event, ui) {
                     var id = parseInt($(ui.item).data('id'));
                     var after_id = $(ui.item).prev().data('id');
                     if (after_id === undefined) {
@@ -46,23 +46,28 @@ if (typeof($) != 'undefined') {
                     }
                     self.paymentSort(id, after_id, $(this));
                 }
-            }).find(':not:input').disableSelection();
+            }).find(':not(:input)').disableSelection();
 
-            $('#s-settings-payment-setup').on('submit', 'form', function() {
-                return self.paymentPluginSave($(this));
+            $('#s-settings-payment-setup').on('submit', 'form', function () {
+                var $this = $(this);
+                if ($this.hasClass('js-installer')) {
+                    return (!$this.hasClass('js-confirm') || confirm($this.data('confirm-text') || $this.attr('title') || $_('Are you sure?')));
+                } else {
+                    return self.paymentPluginSave($this);
+                }
             })
 
         },
 
-        payment_data : {
-            'null' : null
+        payment_data: {
+            'null': null
 
         },
 
         /**
          * Disable section event handlers
          */
-        paymentBlur : function() {
+        paymentBlur: function () {
             $('#s-settings-payment-type-dialog').off('click', 'a.js-action');
             $('#s-settings-payment-type-dialog').remove();
             $('#s-settings-content').off('click', 'a.js-action');
@@ -70,10 +75,10 @@ if (typeof($) != 'undefined') {
         },
 
         /**
-         * 
+         *
          * @param {String} tail
          */
-        paymentAction : function(tail) {
+        paymentAction: function (tail) {
             var method = $.shop.getMethod(tail.split('/'), this, 'payment');
             $.shop.trace('$.settings.paymentAction', [method, this.path, tail]);
             if (method.name) {
@@ -87,11 +92,11 @@ if (typeof($) != 'undefined') {
             }
         },
 
-        paymentSort : function(id, after_id, list) {
+        paymentSort: function (id, after_id, list) {
             $.post('?module=settings&action=paymentSort', {
-                'module_id' : id,
-                'after_id' : after_id
-            }, function(response) {
+                module_id: id,
+                after_id: after_id
+            },function (response) {
                 $.shop.trace('$.settings.paymentSort result', response);
                 if (response.error) {
                     $.shop.error('Error occurred while sorting payment plugins', 'error');
@@ -100,18 +105,18 @@ if (typeof($) != 'undefined') {
                     $.shop.error('Error occurred while sorting payment plugins', response.errors);
                     list.sortable('cancel');
                 }
-            }, 'json').error(function(response) {
-                $.shop.trace('$.settings.paymentSort cancel', [list, response]);
-                list.sortable('cancel');
-                $.shop.error('Error occurred while sorting payment plugins', 'error');
-                return false;
-            });
+            }, 'json').error(function (response) {
+                    $.shop.trace('$.settings.paymentSort cancel', [list, response]);
+                    list.sortable('cancel');
+                    $.shop.error('Error occurred while sorting payment plugins', 'error');
+                    return false;
+                });
         },
 
-        paymentPluginAdd : function(plugin_id, $el) {
+        paymentPluginAdd: function (plugin_id, $el) {
             $.wa.dropdownsClose();
-            this.paymentPluginShow(plugin_id, function() {
-               var $title = $('#s-settings-content h1.js-bread-crumbs:first');
+            this.paymentPluginShow(plugin_id, function () {
+                var $title = $('#s-settings-content h1.js-bread-crumbs:first');
                 $title.hide();
                 var $plugin_name = $('#s-settings-payment-setup .field-group:first h1.js-bread-crumbs:first');
                 $title.after($plugin_name);
@@ -121,12 +126,12 @@ if (typeof($) != 'undefined') {
 
         /**
          * Show plugin setup options
-         * 
+         *
          * @param {String} plugin_id
          * @param {JQuery} $el
          */
-        paymentPluginSetup : function(plugin_id, $el) {
-            this.paymentPluginShow(plugin_id, function() {
+        paymentPluginSetup: function (plugin_id, $el) {
+            this.paymentPluginShow(plugin_id, function () {
                 var $title = $('#s-settings-content h1.js-bread-crumbs:first');
                 var $plugin_name = $('#s-settings-payment-setup .field-group:first h1.js-bread-crumbs:first');
                 $title.after($plugin_name);
@@ -135,12 +140,12 @@ if (typeof($) != 'undefined') {
 
         },
 
-        paymentPluginShow : function(plugin_id, callback) {
+        paymentPluginShow: function (plugin_id, callback) {
             $('#s-settings-content #s-payment-menu').hide();
             var $plugins = $('#s-settings-content #s-settings-payment');
             $plugins.hide();
             var url = '?module=settings&action=paymentSetup&plugin_id=' + plugin_id;
-            $('#s-settings-payment-setup').show().html(this.payment_options.loading).load(url, function() {
+            $('#s-settings-payment-setup').show().html(this.payment_options.loading).load(url, function () {
                 if (typeof(callback) == 'function') {
                     callback();
                 }
@@ -150,29 +155,35 @@ if (typeof($) != 'undefined') {
         /**
          * @param {JQuery} $el
          */
-        paymentPluginSave : function($el) {
+        paymentPluginSave: function ($el) {
             var data = $el.serialize();
             var self = this;
             var url = '?module=settings&action=paymentSave';
-            $.post(url, data, function(data, textStatus, jqXHR) {
+            $.post(url, data, function (data, textStatus, jqXHR) {
                 self.dispatch('#/payment/', true);
             });
             return false;
         },
 
-        paymentPluginDelete : function(plugin_id) {
+        paymentPluginDelete: function (plugin_id) {
             var url = '?module=settings&action=paymentDelete';
             var self = this;
             $.post(url, {
-                'plugin_id' : plugin_id
-            }, function(data, textStatus, jqXHR) {
+                plugin_id: plugin_id
+            }, function (data, textStatus, jqXHR) {
                 self.dispatch('#/payment/', true);
             });
 
         },
 
-        paymentHelper : {
-            parent : $.settings
+        paymentPlugins: function () {
+            $('#s-settings-content #s-settings-payment').hide();
+            var url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/payment&return_hash=/payment/';
+            $('#s-settings-payment-setup').show().html(this.payment_options.loading).load(url);
+        },
+
+        paymentHelper: {
+            parent: $.settings
         }
 
     });

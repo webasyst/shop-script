@@ -6,39 +6,60 @@ abstract class shopPlugin extends waPlugin
      */
     protected static $app_settings_model;
 
+    /**
+     * @var mixed[string]
+     */
     protected $settings;
+    /**
+     * @var mixed[string]
+     */
+    private $settings_config;
 
+    /**
+     * @param array $params Control items params (see waHtmlControl::getControl for details)
+     * @return string[string] Html code of control
+     */
     public function getControls($params = array())
     {
         $controls = array();
         $settings_config = $this->getSettingsConfig();
         foreach ($settings_config as $name => $row) {
-            if (!empty($params['subject']) && !empty($row['subject']) && !in_array($row['subject'], (array) $params['subject'])) {
+            if (!is_array($row)) {
+                continue;
+            }
+            if (!empty($params['subject']) && !empty($row['subject']) && !in_array($row['subject'], (array)$params['subject'])) {
                 continue;
             }
             $row = array_merge($row, $params);
             $row['value'] = $this->getSettings($name);
-            if (isset($row['control_type'])) {
+            if (!empty($row['control_type'])) {
                 $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
             }
         }
         return $controls;
     }
 
+    /**
+     * @param null $name
+     * @return array|mixed|null|string
+     */
     public function getSettings($name = null)
     {
         if ($this->settings === null) {
             $model = $this->getSettingsModel();
-            $this->settings = $model->get(array($this->app_id, $this->id));
+            $this->settings = $model->get($this->getSettingsKey());
             foreach ($this->settings as $key => $value) {
-                if (($json = json_decode($value,true)) && is_array($json)) {
+                #decode non string values
+                $json = json_decode($value, true);
+                if (is_array($json)) {
                     $this->settings[$key] = $json;
                 }
             }
+            #merge user settings from database with raw default settings
             if ($settings_config = $this->getSettingsConfig()) {
                 foreach ($settings_config as $key => $row) {
                     if (!isset($this->settings[$key])) {
-                        $this->settings[$key] = isset($row['value']) ? $row['value'] : null;
+                        $this->settings[$key] = is_array($row) ? (isset($row['value']) ? $row['value'] : null) : $row;
                     }
                 }
             }
@@ -50,30 +71,46 @@ abstract class shopPlugin extends waPlugin
         }
     }
 
+    /**
+     * Get raw settings config
+     * @return array
+     */
     protected function getSettingsConfig()
     {
-        $path = $this->path.'/lib/config/settings.php';
-        if (file_exists($path)) {
-            return include($path);
-        } else {
-            return array();
+        if (is_null($this->settings_config)) {
+            $path = $this->path.'/lib/config/settings.php';
+            if (file_exists($path)) {
+                $this->settings_config = include($path);
+                if (!is_array($this->settings_config)) {
+                    $this->settings_config = array();
+                }
+            } else {
+                $this->settings_config = array();
+            }
         }
+        return $this->settings_config;
     }
 
+    /**
+     * @param mixed[string] $settings Array of settings key=>value
+     */
     public function saveSettings($settings = array())
     {
         $settings_config = $this->getSettingsConfig();
         foreach ($settings_config as $name => $row) {
-            // remove
             if (!isset($settings[$name])) {
-                $this->settings[$name] = isset($row['value']) ? $row['value'] : null;
-                $this->getSettingsModel()->del(array($this->app_id, $this->id), $name);
+                if ((ifset($row['control_type']) == waHtmlControl::CHECKBOX) && !empty($row['value'])) {
+                    $settings[$name] = false;
+                } elseif (!empty($row['control_type']) || isset($row['value'])) {
+                    $this->settings[$name] = isset($row['value']) ? $row['value'] : null;
+                    $this->getSettingsModel()->del($this->getSettingsKey(), $name);
+                }
             }
         }
         foreach ($settings as $name => $value) {
             $this->settings[$name] = $value;
             // save to db
-            $this->getSettingsModel()->set(array($this->app_id, $this->id), $name, is_array($value) ? json_encode($value) : $value);
+            $this->getSettingsModel()->set($this->getSettingsKey(), $name, is_array($value) ? json_encode($value) : $value);
         }
     }
 
@@ -86,5 +123,10 @@ abstract class shopPlugin extends waPlugin
             self::$app_settings_model = new waAppSettingsModel();
         }
         return self::$app_settings_model;
+    }
+
+    protected function getSettingsKey()
+    {
+        return array($this->app_id, $this->id);
     }
 }

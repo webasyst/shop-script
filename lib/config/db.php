@@ -8,6 +8,7 @@ return array(
         'amount' => array('decimal', "15,4", 'null' => 0),
         'balance' => array('decimal', "15,4", 'null' => 0),
         'comment' => array('text'),
+        'type' => array('varchar', 32),
         ':keys' => array(
             'PRIMARY' => 'id',
             'contact_id' => 'contact_id',
@@ -56,9 +57,7 @@ return array(
             'PRIMARY' => 'id',
             'url' => array('parent_id', 'url', 'unique' => 1),
             'full_url' => array('full_url', 'unique' => 1),
-            'parent_id' => 'parent_id',
-            'left_key' => 'left_key',
-            'right_key' => 'right_key',
+            'ns_keys' => array('left_key', 'right_key'),
         ),
     ),
     'shop_category_params' => array(
@@ -82,6 +81,20 @@ return array(
         'route' => array('varchar', 255, 'null' => 0),
         ':keys' => array(
             'PRIMARY' => array('category_id', 'route'),
+        ),
+    ),
+    'shop_checkout_flow' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'code' => array('varchar', 32),
+        'contact_id' => array('int', 11),
+        'date' => array('date'),
+        'year' => array('smallint', 6),
+        'quarter' => array('smallint', 6),
+        'month' => array('smallint', 6),
+        'step' => array('tinyint', 2, 'null' => 0, 'default' => '0'),
+        'description' => array('text'),
+        ':keys' => array(
+            'PRIMARY' => 'id',
         ),
     ),
     'shop_contact_category_discount' => array(
@@ -109,7 +122,7 @@ return array(
     ),
     'shop_currency' => array(
         'code' => array('char', 3, 'null' => 0),
-        'rate' => array('decimal', "15,8", 'null' => 0, 'default' => '1.00000000'),
+        'rate' => array('decimal', "18,10", 'null' => 0, 'default' => '1.0000000000'),
         'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'code',
@@ -145,6 +158,17 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
             'code' => array('code', 'unique' => 1),
+        ),
+    ),
+    'shop_feature_values_color' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'feature_id' => array('int', 11, 'null' => 0),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
+        'code' => array('mediumint', 8, 'unsigned' => 1),
+        'value' => array('varchar', 255, 'null' => 0),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+            'values' => array('feature_id', 'value', 'unique' => 1),
         ),
     ),
     'shop_feature_values_dimension' => array(
@@ -212,8 +236,23 @@ return array(
         'subject' => array('text', 'null' => 0),
         'body' => array('text', 'null' => 0),
         'last_cron_time' => array('datetime', 'null' => 0),
+        'from' => array('varchar', 32),
+        'source' => array('varchar', 64),
+        'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         ':keys' => array(
             'PRIMARY' => 'id',
+        ),
+    ),
+    'shop_importexport' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'plugin' => array('varchar', 64, 'null' => 0),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
+        'name' => array('varchar', 255),
+        'description' => array('text'),
+        'config' => array('text'),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+            'id' => array('plugin', 'id', 'sort', 'unique' => 1),
         ),
     ),
     'shop_notification' => array(
@@ -221,6 +260,8 @@ return array(
         'name' => array('varchar', 128, 'null' => 0),
         'event' => array('varchar', 64, 'null' => 0),
         'transport' => array('enum', "'email','sms','http'", 'null' => 0, 'default' => 'email'),
+        'source' => array('varchar', 64),
+        'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'event' => 'event',
@@ -276,6 +317,8 @@ return array(
         'purchase_price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         ':keys' => array(
             'PRIMARY' => 'id',
+            'order_type' => array('order_id', 'type'),
+            'product_order' => array('product_id', 'order_id'),
         ),
     ),
     'shop_order_log' => array(
@@ -286,9 +329,10 @@ return array(
         'datetime' => array('datetime', 'null' => 0),
         'before_state_id' => array('varchar', 16, 'null' => 0),
         'after_state_id' => array('varchar', 16, 'null' => 0),
-        'text' => array('text', 'null' => 1),
+        'text' => array('text'),
         ':keys' => array(
             'PRIMARY' => 'id',
+            'order_id' => 'order_id',
         ),
     ),
     'shop_order_log_params' => array(
@@ -392,6 +436,9 @@ return array(
         'badge' => array('varchar', 255),
         'sku_type' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
         'base_price_selectable' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
+        'compare_price_selectable' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
+        'purchase_price_selectable' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
+        'sku_count' => array('int', 11, 'null' => 0, 'default' => '1'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'url' => 'url',
@@ -407,6 +454,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
             'feature' => array('product_id', 'sku_id', 'feature_id', 'feature_value_id', 'unique' => 1),
+            'product_feature' => array('product_id', 'feature_id', 'feature_value_id'),
         ),
     ),
     'shop_product_features_selectable' => array(
@@ -518,7 +566,7 @@ return array(
         'product_id' => array('int', 11, 'null' => 0),
         'sku' => array('varchar', 255, 'null' => 0),
         'sort' => array('int', 11, 'null' => 0),
-        'name' => array('varchar', 255, 'null' => 0),
+        'name' => array('varchar', 255, 'null' => 0, 'default' => ''),
         'image_id' => array('int', 11),
         'price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'primary_price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
@@ -544,6 +592,25 @@ return array(
         ':keys' => array(
             'PRIMARY' => array('sku_id', 'stock_id'),
             'product_id' => array('product_id', 'sku_id'),
+        ),
+    ),
+    'shop_product_stocks_log' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'product_id' => array('int', 11, 'null' => 0),
+        'sku_id' => array('int', 11, 'null' => 0),
+        'stock_id' => array('int', 11),
+        'stock_name' => array('varchar', 255),
+        'before_count' => array('int', 11),
+        'after_count' => array('int', 11),
+        'diff_count' => array('int', 11),
+        'type' => array('varchar', 32, 'null' => 0),
+        'description' => array('text'),
+        'datetime' => array('datetime', 'null' => 0),
+        'order_id' => array('int', 11),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+            'product_id' => array('product_id', 'sku_id'),
+            'stock_id' => 'stock_id',
         ),
     ),
     'shop_product_tags' => array(
@@ -578,6 +645,7 @@ return array(
         'currency' => array('char', 3),
         'variant_id' => array('int', 11, 'null' => 0),
         'tax_id' => array('int', 11, 'default' => '0'),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
@@ -588,6 +656,7 @@ return array(
         'name' => array('varchar', 255),
         'price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'primary_price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'service_id' => 'service_id',

@@ -8,10 +8,15 @@ class shopFrontendCartAddController extends waJsonController
         $code = waRequest::cookie('shop_cart');
         if (!$code) {
             $code = md5(uniqid(time(), true));
+            // header for IE
+            wa()->getResponse()->addHeader('P3P', 'CP="NOI ADM DEV COM NAV OUR STP"');
+            // set cart cookie
             wa()->getResponse()->setCookie('shop_cart', $code, time() + 30 * 86400, null, '', false, true);
         }
 
         $data = waRequest::post();
+
+        $is_html = waRequest::request('html');
 
         if (isset($data['parent_id'])) {
             $parent = $cart_model->getById($data['parent_id']);
@@ -26,12 +31,31 @@ class shopFrontendCartAddController extends waJsonController
                 $service = $service_model->getById($data['service_id']);
                 $parent['service_variant_id'] = $service['variant_id'];
             }
-            $cart = new shopCart();
-            $this->response['id'] = $cart->addItem($parent);
-            $this->response['total'] = shop_currency($cart->total(), true);
-            $this->response['count'] = shop_currency($cart->count());
-            $this->response['discount'] = shop_currency($cart->discount(), true);
-            $this->response['item_total'] = shop_currency($cart->getItemTotal($data['parent_id']), true);
+            $cart = new shopCart($code);
+            
+            $id = $cart->addItem($parent);
+            $total = $cart->total();
+            $discount = $cart->discount();
+            
+            $this->response['id'] = $id;
+            $this->response['total'] = $is_html ? shop_currency_html($total, true) : shop_currency($total, true);
+            $this->response['count'] = $cart->count();
+            $this->response['discount'] = $is_html ? shop_currency_html($discount, true) : shop_currency($discount, true);
+            $item_total = $cart->getItemTotal($data['parent_id']);
+            $this->response['item_total'] = $is_html ? shop_currency_html($item_total, true) : shop_currency($item_total, true);
+            
+            if (shopAffiliate::isEnabled()) {
+                $add_affiliate_bonus = shopAffiliate::calculateBonus(array(
+                    'total' => $total,
+                    'discount' => $discount,
+                    'items' => $cart->items(false)
+                ));
+                $this->response['add_affiliate_bonus'] = sprintf(
+                    _w("This order will add +%s points to your affiliate bonus."), 
+                    round($add_affiliate_bonus, 2)
+                );
+            }
+            
             return;
         }
 
@@ -58,6 +82,11 @@ class shopFrontendCartAddController extends waJsonController
                     if (!$sku['available']) {
                         $sku = $sku_model->getByField(array('product_id' => $product['id'], 'available' => 1));
                     }
+
+                    if (!$sku) {
+                        $this->errors = _w('This product is not available for purchase');
+                        return;
+                    }
                 }
             }
         }
@@ -70,11 +99,12 @@ class shopFrontendCartAddController extends waJsonController
                 $c = $cart_model->countSku($code, $sku['id']);
                 if ($sku['count'] !== null && $c + $quantity > $sku['count']) {
                     $quantity = $sku['count'] - $c;
+                    $name = $product['name'].($sku['name'] ? ' ('.$sku['name'].')' : '');
                     if (!$quantity) {
-                        $this->errors = sprintf(_w('Only %d left in stock. Sorry.'), $sku['count']);
+                        $this->errors = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
                         return;
                     } else {
-                        $this->response['error'] = sprintf(_w('Only %d left in stock. Sorry.'), $sku['count']);
+                        $this->response['error'] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
                     }
                 }
             }
@@ -131,13 +161,13 @@ class shopFrontendCartAddController extends waJsonController
                 }
             }
             // update shop cart session data
-            $shop_cart = new shopCart();
+            $shop_cart = new shopCart($code);
             wa()->getStorage()->remove('shop/cart');
             $total = $shop_cart->total();
 
             if (waRequest::isXMLHttpRequest()) {
                 $this->response['item_id'] = $item_id;
-                $this->response['total'] = shop_currency($total, true);
+                $this->response['total'] = $is_html ? shop_currency_html($total, true) : shop_currency($total, true);
                 $this->response['count'] = $shop_cart->count();
             } else {
                 $this->redirect(waRequest::server('HTTP_REFERER'));

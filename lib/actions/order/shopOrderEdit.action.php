@@ -27,10 +27,17 @@ class shopOrderEditAction extends waViewAction
             $currency = $order['currency'];
             if ($order['contact_id']) {
                 $has_contacts_rights = shopHelper::getContactRights($order['contact_id']);
+                
+
                 $shipping_address = shopHelper::getOrderAddress($order['params'], 'shipping');
+
                 if (!empty($order['contact_id'])) {
                     try {
-                        $form = shopHelper::getCustomerForm($order['contact_id']);
+                        $c = new waContact($order['contact_id']);
+                        if ($shipping_address) {
+                            $c['address.shipping'] = $shipping_address;
+                        }
+                        $form = shopHelper::getCustomerForm($c);
                     } catch (waException $e) {
                         // Contact does not exist; ignore. When $form is null, customer data saved in order is shown.
                     }
@@ -53,6 +60,14 @@ class shopOrderEditAction extends waViewAction
         $taxes_count = $tax_model->countAll();
 
         $count_new = $this->order_model->getStateCounters('new');
+
+        /**
+         * Backend order edit page
+         * @event backend_order_edit
+         * @param array $order
+         * @return array[string][string] $return[%plugin_id%] html output
+         */
+        $this->view->assign('backend_order_edit', wa()->event('backend_order_edit', $order));
 
         $this->view->assign(array(
             'form'     => $form,
@@ -105,9 +120,14 @@ class shopOrderEditAction extends waViewAction
         }
 
         foreach ($order['items'] as &$item) {
+            if (isset($values['skus'][$item['item']['sku_id']])) {
+                $w = $values['skus'][$item['item']['sku_id']];
+            } else {
+                $w = isset($values[$item['id']]) ? $values[$item['id']] : 0;
+            }
             $this->workupItems($item, $sku_stocks);
             $item['quantity'] = $item['item']['quantity'];
-            $item['weight'] = isset($values[$item['id']]) ? $values[$item['id']] : 0;
+            $item['weight'] = $w;
         }
         unset($item);
 

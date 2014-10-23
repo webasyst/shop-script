@@ -108,8 +108,17 @@ return array(
             'description' => _w('Select primary stock to which this storefront is associated with. When you process orders from placed via this storefront, selected stock will be automatically offered for product stock update.'),
             'type' => 'select',
             'items' => $stocks
+        ),
+        'drop_out_of_stock' => array(
+            'name' => _w('Force drop out-of-stock products to the bottom of all lists'),
+            'description' => _w('When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more.'),
+            'type' => 'checkbox',
+        ),
+        'ssl' => array(
+            'name' => _w('Use HTTPS for checkout and personal accounts'),
+            'description' => _w('Automatically redirect to secure https:// mode for checkout (/checkout/) and personal account (/my/) pages of your online storefront. Make sure you have valid SSL certificate installed for this domain name before enabling this option.'),
+            'type' => 'checkbox'
         )
-
     ),
 
     'vars' => array(
@@ -166,15 +175,16 @@ return array(
         '$wa' => array(
             '$wa->shop->badgeHtml(<em>$product.code</em>)' => _w('Displays badge of the specified product (<em>$product</em> object)'),
             '$wa->shop->cart()' => _w('Returns current cart object'),
-            '$wa->shop->categories(<em>$parent_id = 0</em>)' => _w('Returns array of subcategories of the specified category. Omit parent category for the entire array of categories'),
+            '$wa->shop->categories(<em>$id = 0, $depth = null, $tree = false, $params = false, $route = null</em>)' => _w('Returns array of subcategories of the specified category. Omit parent category for the entire array of categories'),
             '$wa->shop->category(<em>$category_id</em>)' => _w('Returns category object by <em>$category_id</em>'),
             '<em>$category</em>.params()' => _w('Array of custom category parameters'),
             '$wa->shop->compare()' => _w('Returns array of products currently added into a comparison list'),
-            '$wa->shop->crossSelling(<em>$product_id</em>, <em>$limit = 5</em>)' => _w('Returns array of cross-sell products.<em>$product_id</em> can be either a number (ID of the specified base product) or an array of products IDs'),
+            '$wa->shop->crossSelling(<em>$product_id</em>, <em>$limit = 5</em>, <em>$available_only = false</em>)' => _w('Returns array of cross-sell products.<em>$product_id</em> can be either a number (ID of the specified base product) or an array of products IDs').'. '._w('Setting <em>$available_only = true</em> will automatically exclude all out-of-stock products from the return'),
             '$wa->shop->currency()' => _w('Returns current currency object'),
             '$wa->shop->product(<em>$product_id</em>)' => _w('Returns product object by <em>$product_id</em>').'<br><br> '.
                 '$product-><strong>productUrl()</strong>: '._w('Returns valid product page URL').'<br>'.
-                '$product-><strong>upSelling()</strong>:'._w('Returns array of upsell products for the specified product').'<br><br>'.
+                '$product-><strong>upSelling</strong>(<em>$limit = 5</em>, <em>$available_only = false</em>):'._w('Returns array of upsell products for the specified product').'. '._w('Setting <em>$available_only = true</em> will automatically exclude all out-of-stock products from the return').'<br>'.
+                '$product-><strong>crossSelling</strong>(<em>$limit = 5</em>, <em>$available_only = false</em>):'._w('Returns array of upsell products for the specified product').'. '._w('Setting <em>$available_only = true</em> will automatically exclude all out-of-stock products from the return').'<br><br>'.
                 '$product.<strong>id</strong>: '._w('Product id. Other elements of <em>$product</em> available in this template are listed below').'<br>'.
                 '$product.<strong>name</strong>: '._w('Product name').'<br>'.
                 '$product.<strong>description</strong>: '._w('Product summary (brief description)').'<br>'.
@@ -193,6 +203,7 @@ return array(
             '$wa->shop->productSet(<em>set_id</em>)' => _w('Returns array of products from the specified set.').' '._w('Optional <em>options</em> parameter indicates additional product options, e.g. <em>["params" => 1]</em> to include product custom parameter values into the output.'),
             '$wa->shop->ratingHtml(<em>$rating, $size = 10, $show_when_zero = false</em>)' => _w('Displays 1—5 stars rating. $size indicates icon size and can be either 10 or 16'),
             '$wa->shop->settings("<em>option_id</em>")' => _w('Returns store’s general setting option by <em>option_id</em>, e.g. "name", "email", "country"'),
+            '$wa->shop->themePath("<em>theme_id</em>")' => _ws('Returns path to theme folder by <em>theme_id</em>'),
         ),
     ),
     'blocks' => array(

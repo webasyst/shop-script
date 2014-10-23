@@ -1,0 +1,96 @@
+<div class="block double-padded">
+
+    <h1>[`Checkout flow`] <span class="hint">&alpha;</span></h1>
+
+    <p>[`Checkout flow report shows how many customers abandon their orders during the checkout process based on unique shopping cart sessions.`]</p>
+
+    <table class="s-checkoutflow">
+    {foreach $stat as $key => $val name=flow}
+        <tr>        
+            <td>{$val['name']}</td>
+            <td>
+                <div class="s-bar"style="width: {str_replace(',','.',$val['percents']/100*400)}px;"></div>
+                <div class="s-bar-hint{if $smarty.foreach.flow.last} bold{/if}">
+                    {round($val['percents'])}%
+                </div>
+            </td>
+            <td{if $smarty.foreach.flow.last} class="bold"{/if}>
+                <span class="hint">
+                    {_w('%d customer','%d customers', $val['count'])}
+                </span>
+                {if !empty($stat[$key-1])}
+                    {$_change = $stat[$key-1]['count']-$val['count']}
+                    {if $_change > 0}
+                        <span class="red small" title="[`Change comparing to previous checkout step`]">-{$_change}</span>
+                    {/if}
+                {/if}
+            </td>
+        </tr>
+    {/foreach}
+    </table>
+
+    {if $checkout_flow_changed}
+        <p>
+            <em><i class="icon16 exclamation"></i>{sprintf(_w('<strong>Checkout process settings were altered on %s.</strong> This report is based on data collected both before and after this change and thus may be unrepresentative.'), wa_date('humandatetime', $checkout_flow_changed))}</em>
+            <a href="#" id="s-reports-checkoutflow-clear" class="bold">[`Start over`]</a>
+            <a href="#" id="s-reports-checkoutflow-dismiss" class="inline-link gray"><b><i>[`Dismiss`]</i></b></a>
+        </p>
+    {/if}
+</div>
+
+{* dialog section *}
+
+<div class="dialog width400px height200px" id="s-reports-checkoutflow-clear-dialog">
+    <div class="dialog-background"></div>
+    <form method="post" action="">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Reset checkout flow`]</h1>
+                <p><strong class="red">[`Entire checkout flow report data will be erased without the ability to restore.`]</strong></p>
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button red" type="submit" value="[`Reset`]">
+                <i class="icon16 loading" style="display:none;"></i>
+                [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+
+<div class="clear-both"></div>
+<script>
+    $(function() {
+        document.title = '{"[`Checkout flow`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+
+        $('#s-reports-checkoutflow-clear').click(function() {
+            $('#s-reports-checkoutflow-clear-dialog').waDialog({
+                    disableButtonsOnSubmit: true,
+                    onSubmit: function(d) {
+                        d.find('.loading').show();
+                        $.post('?module=reports&action=checkoutflowClear', {
+                            clear: 'all'
+                        }, function() {
+                            $.reports.dispatch();
+                        });
+                        return false;
+                    }
+            });
+            return false;
+        });
+        
+        $('#s-reports-checkoutflow-dismiss').click(function() {
+            $.post('?module=reports&action=checkoutflowDismiss', {
+                dismiss: 1
+            }, function() {
+                $.reports.dispatch();
+            });
+            return false;
+        });
+        
+    });
+</script>

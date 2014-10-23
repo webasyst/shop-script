@@ -1,33 +1,33 @@
 <!-- products mini thumbnail list view: related products, etc. -->
-    
+
 <ul class="thumbs li150px product-list mini">
 {foreach $products as $p}
     {$available = $wa->shop->settings('ignore_stock_count') || $p.count === null || $p.count > 0}
     <li itemscope itemtype ="http://schema.org/Product">
-        <div class="image">
-            <a href="{$p.frontend_url}" title="{$p.name}">
+        <a href="{$p.frontend_url}" title="{$p.name}">
+            <div class="image">
                 {* $badge_html = $wa->shop->badgeHtml($p.badge)}
                 {if $badge_html}
                     <div class="corner top right">{$badge_html}</div>
                 {/if *}
                 {$wa->shop->productImgHtml($p, '96x96', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy96.png"])}
                 <h5 itemprop="name">
-                    {$p.name}
+                    {$p.name|truncate:32}
                 </h5>
-            </a>
-        </div>
+            </div>
+        </a>
         <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
             {* if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency($p.compare_price)} </span>{/if *}
 
             {if $available}
                 {if !empty($without_form)}
-                <div class="purshase addtocart">
-                    <span class="price nowrap" itemprop="price">{shop_currency($p.price)}</span>
+                <div class="purshase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if}>
+                    <span class="price nowrap" itemprop="price">{shop_currency_html($p.price)}</span>
                     <input type="button" data-product_id="{$p.id}" data-url="{$wa->getUrl('shop/frontendCart/add')}" value="[`Add to cart`]" class="vk-button">
                 </div>
                 {else}
-                <form class="purchase addtocart" method="post" action="{$wa->getUrl('shop/frontendCart/add')}">
-                    <span class="price nowrap" itemprop="price">{shop_currency($p.price)}</span>
+                <form class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('shop/frontendCart/add')}">
+                    <span class="price nowrap" itemprop="price">{shop_currency_html($p.price)}</span>
                     <input type="hidden" name="product_id" value="{$p.id}">
                     <input type="submit" value="[`Add to cart`]" class="vk-button">
                     <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $wa->getUrl('shop/frontend/cart'))}</span>
@@ -35,8 +35,8 @@
                 {/if}
                 <link itemprop="availability" href="http://schema.org/InStock" />
             {else}
-                <span class="price nowrap" itemprop="price">{shop_currency($p.price)}</span>
-                <div class="out-of-stock"><strong>[`Out of stock`]</strong></div>
+                <span class="price nowrap" itemprop="price">{shop_currency_html($p.price)}</span>
+                <div class="out-of-stock"><strong>{if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}</strong></div>
                 <link itemprop="availability" href="http://schema.org/OutOfStock" />
             {/if}
         </div>

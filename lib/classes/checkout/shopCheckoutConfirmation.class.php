@@ -18,7 +18,7 @@ class shopCheckoutConfirmation extends shopCheckout
         $items = $cart->items(false);
 
         $subtotal = $cart->total(false);
-        $order = array('contact' => $this->getContact(), 'total' => $subtotal);
+        $order = array('contact' => $this->getContact(), 'total' => $subtotal, 'items' => $items);
         $order['discount'] = shopDiscounts::calculate($order);
 
         $contact = $this->getContact();
@@ -38,7 +38,7 @@ class shopCheckoutConfirmation extends shopCheckout
             $billing_address = array('data' => array(), 'value' => '');
         }
 
-        $discount_rate = $subtotal ? ($order['discount'] / $subtotal) : 0;
+        $discount_rate = ((float)$subtotal) ? ($order['discount'] / $subtotal) : 0;
         $taxes = shopTaxes::apply($items, array('shipping' => $shipping_address['data'],
             'billing' => $billing_address['data'], 'discount_rate' => $discount_rate));
 
@@ -63,20 +63,25 @@ class shopCheckoutConfirmation extends shopCheckout
             }
         }
 
+        $plugin_model = new shopPluginModel();
 
         $params = array();
         if ($shipping = $this->getSessionData('shipping')) {
             $params['shipping_id'] = $shipping['id'];
-            $params['shipping_rate_id'] = $shipping['rate_id'];
-            $params['shipping_name'] = $shipping['name'];
+            if ($shipping['id']) {
+                $plugin_info = $plugin_model->getById($shipping['id']);
+                $params['shipping_rate_id'] = $shipping['rate_id'];
+                $params['shipping_name'] = $shipping['name'];
+                $params['shipping_description'] = $plugin_info['description'];
+            }
         }
 
         if ($payment_id = $this->getSessionData('payment')) {
             $params['payment_id'] = $payment_id;
-            $plugin_model = new shopPluginModel();
             $plugin_info = $plugin_model->getById($payment_id);
             $params['payment_name'] = $plugin_info['name'];
             $params['payment_plugin'] = $plugin_info['plugin'];
+            $params['payment_description'] = $plugin_info['description'];
         }
 
         $view->assign(array(
@@ -92,6 +97,19 @@ class shopCheckoutConfirmation extends shopCheckout
             'billing_address' => !empty($settings['contactinfo']['fields']['address.billing']) ? $billing_address : false,
             'terms' => !empty($settings['confirmation']['terms']) ? $settings['confirmation']['terms'] : false
         ));
+
+        $checkout_flow = new shopCheckoutFlowModel();
+        $step_number = shopCheckout::getStepNumber('confirmation');
+        // IF no errors
+        $checkout_flow->add(array(
+            'step' => $step_number
+        ));
+        // ELSE
+//        $checkout_flow->add(array(
+//            'step' => $step_number,
+//            'description' => ERROR MESSAGE HERE
+//        ));
+
     }
 
 
@@ -122,7 +140,6 @@ class shopCheckoutConfirmation extends shopCheckout
                 <div class="value">
                     <p class="hint">'._w('If you want your customers to be prompted to read and agree to your company’s terms of service, refund and privacy policies or any other legal information during the checkout, enter the text to the field above. A checkbox to agree and a link to read this legal information will be shown on the Confirmation checkout step.').'
                     <a id="confirmation-generate-terms" href="#" class="inline-link"><b><i>'._w('Generate sample policy').'</i></b></a></p>
-                    <p id="confirmation-terms-red" class="red small"'.(!empty($config['terms']) ? '' : ' style="display:none"').'>'._w('For Terms of service to work, make sure you updated <strong>checkout.confirmation.html</strong> template file from the original design theme (either Default or CUSTOM). In case there is no checkbox to agree to the Terms of service in the template file along with the terms legal text entered in the backend, order checkout may stop accepting orders due to the lack of a checkbox user could click, and an error message output. The original checkout.confirmation.html template file contains both checkbox and error output text. Please make sure to update it.').'</p>
                 </div>
                 <div style="display:none" id="confirmation-terms-sample">'.$terms[$locale].'</div>
                 <script>

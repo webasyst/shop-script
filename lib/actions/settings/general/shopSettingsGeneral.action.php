@@ -32,18 +32,30 @@ class shopSettingsGeneralAction extends waViewAction
                     if (!$from) {
                         $from = '*';
                     }
-                    $save[$from] = $s;
-                    $save[$from]['adapter'] = $adapter;
+                    foreach (explode("\n", $from) as $from) {
+                        $from = trim($from);
+                        $save[$from] = $s;
+                        $save[$from]['adapter'] = $adapter;
+                    }
                 }
             }
             waUtils::varExportToFile($save, $path);
 
         }
-
+        
         $cm = new waCountryModel();
         $this->view->assign('countries', $cm->all());
         $this->view->assign($this->getConfig()->getGeneralSettings());
-        $this->view->assign('sms_adapters', $this->getSMSAdapters());
+        $workhours = wa()->getSetting('workhours', null);
+        if ($workhours) {
+            $workhours = json_decode($workhours, true);
+        }
+        $this->view->assign('workhours', $workhours);
+        
+        $sms_adapters = $this->getSMSAdapters();
+        $this->view->assign('sms_adapters', $sms_adapters);
+        
+        $this->view->assign('saved', waRequest::post());
     }
 
     public function getData()
@@ -59,9 +71,20 @@ class shopSettingsGeneralAction extends waViewAction
             'require_captcha'  => waRequest::post('require_captcha', 0, waRequest::TYPE_INT),
             'require_authorization' => waRequest::post('require_authorization', 0, waRequest::TYPE_INT)
         );
+        if (waRequest::post('workhours_type') !== null) {
+            if (waRequest::post('workhours_type')) {
+                $data['workhours'] = array();
+                $data['workhours']['days'] = waRequest::post('workhours_days');
+                $data['workhours']['from'] = waRequest::post('workhours_from');
+                $data['workhours']['to'] = waRequest::post('workhours_to');
+                $data['workhours'] = json_encode($data['workhours']);
+            } else {
+                $data['workhours'] = '';
+            }
+        }
         return $data;
     }
-
+    
     protected function getSMSAdapters()
     {
         $path = $this->getConfig()->getPath('plugins').'/sms/';
@@ -89,12 +112,18 @@ class shopSettingsGeneralAction extends waViewAction
         foreach ($config as $c_from => $c) {
             if (isset($adapters[$c['adapter']])) {
                 $used[$c['adapter']] = 1;
-                $temp = $this->getSMSAdapaterInfo($adapters[$c['adapter']]);
-                $temp['config'] = $c;
-                $temp['config']['from'] = $c_from;
-                $result[] = $temp;
+                if (!isset($result[$c['adapter']])) {
+                    $temp = $this->getSMSAdapaterInfo($adapters[$c['adapter']]);
+                    $temp['config'] = $c;
+                    $temp['config']['from'] = array($c_from);
+                    $result[$c['adapter']] = $temp;
+                } else {
+                    $result[$c['adapter']]['config']['from'][] = $c_from;
+                }
             }
         }
+        $result = array_values($result);
+        
         foreach ($adapters as $a) {
             /**
              * @var waSMSAdapter $a
@@ -115,6 +144,4 @@ class shopSettingsGeneralAction extends waViewAction
         $temp['controls'] = $a->getControls();
         return $temp;
     }
-
 }
-

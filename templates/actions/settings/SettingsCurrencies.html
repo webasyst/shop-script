@@ -166,7 +166,7 @@
 {/foreach}
 
 <script type="text/javascript">
-    document.title = '{"[`Currencies`]"|cat:" — ":{$wa->accountName()}}';
+    document.title = '{"[`Currencies`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     $.settings.currenciesInit({
         primary: '{$primary}',
         remove_text: '[`Click “Save” button below to commit the delete.`]',

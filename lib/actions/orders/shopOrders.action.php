@@ -11,20 +11,52 @@ class shopOrdersAction extends shopOrderListAction
 
         $orders = $this->getOrders(0, $this->getCount());
 
-        $action_ids = array_flip(array('process', 'pay', 'ship', 'complete', 'delete'));
+        $action_ids = array_flip(array('process', 'pay', 'ship', 'complete', 'delete', 'restore'));
         $workflow = new shopWorkflow();
         $actions = array();
         foreach ($workflow->getAllActions() as $action) {
             if (isset($action_ids[$action->id])) {
-                $actions[$action->id] = $action->name;
+                $actions[$action->id] = array(
+                    'name' => $action->name,
+                    'style' => $action->getOption('style')
+                );
             }
         }
-
+        
         $state_names = array();
         foreach ($workflow->getAvailableStates() as $state_id => $state) {
             $state_names[$state_id] = $state['name'];
         }
-
+        
+        $counters = array(
+            'state_counters' => array(
+                'new' => $this->model->getStateCounters('new')
+            )
+        );
+        
+        $filter_params = $this->getFilterParams();
+        if (isset($filter_params['state_id'])) {
+            $filter_params['state_id'] = (array) $filter_params['state_id'];
+            sort($filter_params['state_id']);
+            if ($filter_params['state_id'] == array('new', 'paid', 'processing')) {
+                $total = 0;
+                foreach ($filter_params['state_id'] as $st) {
+                    $total += (int) $this->model->getStateCounters($st);
+                }
+                $counters['common_counters'] = array(
+                    'pending' => $total
+                );
+            } else {
+                foreach ($filter_params['state_id'] as $st) {
+                    $counters['state_counters'][$st] = (int) $this->model->getStateCounters($st);
+                }
+            }
+        } else {
+            $counters['common_counters'] = array(
+                'all' => $this->model->countAll()
+            );
+        }
+        
         $this->assign(array(
             'orders' => array_values($orders),
             'total_count' => $this->getTotalCount(),
@@ -35,9 +67,9 @@ class shopOrdersAction extends shopOrderListAction
             'params' => $this->getFilterParams(),
             'params_str' => $this->getFilterParams(true),
             'view' => $view,
-            'count_new' => $this->model->getStateCounters('new'),
             'timeout' => $config->getOption('orders_update_list'),
-            'actions' => $actions
+            'actions' => $actions,
+            'counters' => $counters
         ));
     }
 

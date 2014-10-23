@@ -1,6 +1,6 @@
 {if in_array($ftype, array('select', 'checklist', 'radio', 'branch'))}{* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
 
-<table id="{$uniqid}" style="margin-bottom:0.5em; width: 1%;"><tbody>
+<table id="{$uniqid}" style="margin-bottom:0.5em;width:1%;min-width:120px;"><tbody>
     {if $f->getParameter('options')}
         {if $ftype == 'branch'}
             {$hide = $f->getParameter('hide')}
@@ -11,7 +11,7 @@
                 <td>
                     <input type="text" name="{$prefix}[{$fid}][options][]" value="{$value|escape}" class="small short">
                     {if $ftype == 'branch'}
-                        <input type="hidden" name="{$prefix}[{$fid}][hide][]" value="{implode(',', ifempty($hide[$value], array()))}" class="small short">
+                        <input type="hidden" name="{$prefix}[{$fid}][hide][]" value="{implode(',', ifempty($hide[$value], array()))}">
                     {/if}
                 </td>
                 <td class="min-width"><a href="#" title="[`Delete`]" onClick="return false;"><i class="icon10 delete"></i></a></td>
@@ -20,7 +20,12 @@
     {/if}
     <tr class="hidden item-row template">
         <td class="min-width"><i class="icon16 sort"></i></td>
-        <td><input type="text" name="{$prefix}[{$fid}][options][]" class="small short"></td>
+        <td>
+            <input type="text" name="{$prefix}[{$fid}][options][]" class="small short">
+            {if $ftype == 'branch'}
+                <input type="hidden" name="{$prefix}[{$fid}][hide][]" value="">
+            {/if}
+        </td>
         <td class="min-width"><a href="#" title="[`Delete`]" onClick="return false;"><i class="icon10 delete"></i></a></td>
     </tr>
     <tr class="add-item">
@@ -103,6 +108,35 @@
             }
         })();
     {/if}
+
+    // Form validation: do not allow empty list of values
+    (function() {
+        var form = table.closest('form');
+        var h;
+        form.on('submit', h = function(e) {
+            if (!table.parents('html').length) {
+                form.off('submit', h);
+                return;
+            }
+
+            table.find('.errormsg').remove();
+            table.find('.error').removeClass('error');
+            var valid = true;
+
+            if (table.closest('tr').find('[name$="[_disabled]"]:checked').length) {
+                if (!table.find('tr:not(.template) [name$="[options][]"]').length) {
+                    table.find('a.add-item').parent().append($('<em class="errormsg"></em>').text("[`Please specify options for multiple choice field.`]"));
+                    valid = false;
+                }
+            }
+
+            if (!valid) {
+                e.validation_failed = true;
+            }
+
+            return false;
+        });
+    })();
 
     {if $ftype == 'branch'}
         (function() {
@@ -188,7 +222,6 @@
                     var self = $(this);
                     var option_id = $(this).val();
                     var hide_fields = {};
-
                     self.closest('tr').find('[name$="[hide][]"]').val().split(',').forEach(function(field_id) {
                         hide_fields[field_id] = true;
                     });

@@ -12,7 +12,7 @@ class shopOrderModel extends waModel
             'offset' => 0,
             'limit'  => 50,
             'escape' => true,
-            'where'  => array()
+            'where'  => array(),
         );
     }
 
@@ -178,6 +178,49 @@ class shopOrderModel extends waModel
         return $counters ? $counters : array();
     }
 
+    public function getStorefrontCounters()
+    {
+        $storefronts = array();           // collect counters
+        $aux_storefronts = array();     // maintain ambiguity of '/' at the end of urls
+        $routes = wa()->getRouting()->getByApp('shop');
+        foreach ($routes as $domain => $domain_routes) {
+            foreach ($domain_routes as $route) {
+                $url = $domain.'/'.$route['url'];
+                if (substr($url, -1) == '*') {
+                    $url = substr($url, 0, -1);
+                }
+                if (substr($url, -1) == '/') {
+                    $url = substr($url, 0, -1);
+                }
+                $aux_storefronts[$url] = true;
+                $aux_storefronts[$url.'/'] = true;
+                $storefronts[$url.'/'] = 0;
+            }
+        }
+        if (!$storefronts) {
+            return array();
+        }
+        
+        $escaped_urls = array();
+        foreach (array_keys($aux_storefronts) as $url) {
+            $escaped_urls[] = $this->escape($url);
+        }
+        $sql = "SELECT p.value, COUNT(p.order_id) AS cnt
+            FROM `{$this->table}` AS o
+            JOIN `shop_order_params` p ON o.id = p.order_id
+            WHERE p.name = 'storefront' AND p.value IN ('".implode("','", $escaped_urls)."')
+            GROUP BY p.value";
+
+        foreach ($this->query($sql)->fetchAll() as $row) {
+            $url = $row['value'];
+            if (substr($url, -1) != '/') {
+                $url = $url.'/';
+            }
+            $storefronts[$url] += $row['cnt'];
+        }
+        return $storefronts;
+    }
+
     public function getContactCounters()
     {
         $counters = $this->query("
@@ -230,17 +273,6 @@ class shopOrderModel extends waModel
         $use_gravatar     = $config->getGeneralSettings('use_gravatar');
         $gravatar_default = $config->getGeneralSettings('gravatar_default');
 
-        /*
-        // Get addresses and other additonal fields
-        $addr_field = waContactFields::get('address');
-        $info_fields = array();
-        foreach($addr_field->getFields() as $k => $v) {
-            $info_fields[] = 'address:'.$k;
-        }
-        $cdm = new waContactDataModel();
-        $additional_fields = $cdm->getData($ids, $info_fields);
-        */
-
         // Put everything into one array
         foreach ($contacts as &$c) {
             $contact = new waContact($c['id']);
@@ -253,30 +285,6 @@ class shopOrderModel extends waModel
         }
         return $contacts;
     }
-
-//     public function getContacts()
-//     {
-//         if ($this->contacts === null) {
-//             $contact_model = new waContactModel();
-//             $this->contacts = array();
-//             foreach ($contact_model->query("
-//                     SELECT * FROM `".$contact_model->getTableName()."`
-//                     WHERE is_user = 1
-//             ") as $c)
-//             {
-//                 $id = $c['id'];
-//                 $contact = new waContact($id);
-//                 if (!$contact->getRights('shop', 'orders')) {
-//                     continue;
-//                 }
-//                 $c['rights'] = true;
-//                 $c['photo_20x20'] = $contact->getPhoto(20);
-//                 $c['photo_50x50'] = $contact->getPhoto(50);
-//                 $this->contacts[$id] = $c;
-//             }
-//         }
-//         return $this->contacts;
-//     }
 
     public function getOrder($id, $extend = false, $escape = true)
     {
@@ -306,6 +314,17 @@ class shopOrderModel extends waModel
             }
         } else {
             $order['contact'] = $this->extractConctactInfo($order['params']);
+        }
+        
+        if (!empty($order['params']['coupon_id'])) {
+            $coupon_model = new shopCouponModel();
+            $coupon = $coupon_model->getById($order['params']['coupon_id']);
+            $order['coupon'] = array();
+            if ($coupon) {
+                $order['coupon'] = $coupon;
+            } else if (!empty($order['params']['coupon_code'])) {
+                $order['coupon']['code'] = $order['params']['coupon_code'];
+            }
         }
 
         $order_items_model = new shopOrderItemsModel();
@@ -534,8 +553,13 @@ class shopOrderModel extends waModel
 
     public function returnProductsToStocks($order_id)
     {
+        $order_params_model = new shopOrderParamsModel();
+        $reduced = $order_params_model->getOne($order_id, 'reduced');
+        if (!$reduced && $reduced !== null) {
+            return;
+        }
         $items_model = new shopOrderItemsModel();
-        $items = $items_model->select('*')->where('type="product" AND order_id = '.(int) $order_id)->fetchAll();
+        $items = $items_model->select('*')->where("type='product' AND order_id = ".(int) $order_id)->fetchAll();
         $sku_stock = array();
         foreach ($items as $item) {
             if (!isset($sku_stock[$item['sku_id']][$item['stock_id']])) {
@@ -544,12 +568,18 @@ class shopOrderModel extends waModel
             $sku_stock[$item['sku_id']][$item['stock_id']] += $item['quantity'];
         }
         $items_model->updateStockCount($sku_stock);
+        $order_params_model->setOne($order_id, 'reduced', 0);
     }
 
     public function reduceProductsFromStocks($order_id)
     {
+        $order_params_model = new shopOrderParamsModel();
+        $reduced = $order_params_model->getOne($order_id, 'reduced');
+        if ($reduced) {
+            return;
+        }
         $items_model = new shopOrderItemsModel();
-        $items = $items_model->select('*')->where('type="product" AND order_id = '.(int) $order_id)->fetchAll();
+        $items = $items_model->select('*')->where("type='product' AND order_id = ".(int) $order_id)->fetchAll();
         $sku_stock = array();
         foreach ($items as $item) {
             if (!isset($sku_stock[$item['sku_id']][$item['stock_id']])) {
@@ -558,6 +588,7 @@ class shopOrderModel extends waModel
             $sku_stock[$item['sku_id']][$item['stock_id']] -= $item['quantity'];
         }
         $items_model->updateStockCount($sku_stock);
+        $order_params_model->setOne($order_id, 'reduced', 1);
     }
 
     /**
@@ -568,13 +599,9 @@ class shopOrderModel extends waModel
         $product_ids = array();
         if ($order_id !== null) {
             $order_id = (array)$order_id;
-            $product_ids =
-                array_keys($this->query("
-                    SELECT product_id FROM shop_order_items WHERE type = 'product' AND order_id IN (".implode(',', $order_id).")
-                ")->fetchAll('product_id')
-            );
+            $product_ids = $this->query("SELECT DISTINCT product_id FROM shop_order_items
+                WHERE type = 'product' AND order_id IN (i:order_id)", array('order_id' => $order_id))->fetchAll(null, true);
         }
-        $product_model = new shopProductModel();
         $sql = "SELECT oi.product_id AS id, SUM(oi.price * o.rate * oi.quantity) total_sales FROM ".$this->table." o JOIN shop_order_items oi
                 ON o.id = oi.order_id AND oi.type = 'product'
                 WHERE paid_date IS NOT NULL
@@ -590,10 +617,23 @@ class shopOrderModel extends waModel
         $this->query($sql);
     }
 
-    public function getTotalSalesByProduct($product_id)
+    public function getTotalSalesByProduct($product_id, $product_currency = null)
     {
-        $sql = "SELECT SUM(oi.price * o.rate * oi.quantity) total, SUM(oi.quantity) quantity FROM ".$this->table." o JOIN shop_order_items oi
+        if ($product_currency) {
+            $currency_model = new shopCurrencyModel();
+            $rate = $currency_model->getRate($product_currency);
+            if (!$rate) {
+                $rate = 1;
+            }
+        } else {
+            $rate = 1;
+        }
+        $sql = "SELECT SUM(oi.price * o.rate * oi.quantity) total, SUM(oi.quantity) quantity,
+                SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*".$this->escape($rate).")*oi.quantity) purchase
+                FROM ".$this->table." o
+                JOIN shop_order_items oi
                 ON o.id = oi.order_id AND oi.product_id = i:product_id AND oi.type = 'product'
+                JOIN shop_product_skus ps ON oi.sku_id = ps.id
                 WHERE paid_date >= DATE_SUB(DATE('".date('Y-m-d')."'), INTERVAL 30 DAY)";
         return $this->query($sql, array('product_id' => $product_id))->fetch();
     }
@@ -638,7 +678,7 @@ class shopOrderModel extends waModel
         // Total purchases
         $sql = "SELECT
                     {$date_col} as `date`,
-                    SUM(ps.purchase_price*pcur.rate*oi.quantity) AS purchase
+                    SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*pcur.rate)*oi.quantity) AS purchase
                 FROM ".$this->table." AS o
                     JOIN shop_order_items AS oi
                         ON oi.order_id=o.id
@@ -648,7 +688,8 @@ class shopOrderModel extends waModel
                         ON oi.sku_id=ps.id
                     JOIN shop_currency AS pcur
                         ON pcur.code=p.currency
-                WHERE $paid_date_sql
+                WHERE oi.type='product'
+                    AND $paid_date_sql
                 GROUP BY {$date_col}";
         foreach($this->query($sql) as $row) {
             $sales_by_date[$row['date']]['purchase'] = $row['purchase'];
@@ -669,6 +710,8 @@ class shopOrderModel extends waModel
             $start_ts = strtotime($start_date);
         } else if ($min_date) {
             $start_ts = strtotime(ifempty($min_date, date('Y-m-d'))) - 48*3600;
+        } else {
+            $start_ts = strtotime(date('Y-m-01', strtotime("-1 months")));
         }
         $end_ts = strtotime(ifempty($end_date, date('Y-m-d')));
         for ($t = $start_ts; $t <= $end_ts; $t += 3600*24) {
@@ -717,7 +760,10 @@ class shopOrderModel extends waModel
             $start_ts = strtotime($start_date);
         } else if ($min_date) {
             $start_ts = strtotime(ifempty($min_date, date('Y-m-d'))) - 48*3600;
+        } else {
+            $start_ts = strtotime(date('Y-m-01', strtotime("-1 months")));
         }
+
         $end_ts = strtotime(ifempty($end_date, date('Y-m-d')));
         for ($t = $start_ts; $t <= $end_ts; $t += 3600*24) {
             $date = date(($group == 'months') ? 'Y-m-01' : 'Y-m-d', $t);
@@ -758,7 +804,7 @@ class shopOrderModel extends waModel
                 WHERE $paid_date_sql";
         $r1 = $this->query($sql)->fetchAssoc();
 
-        $sql = "SELECT SUM(ps.purchase_price*pcur.rate*oi.quantity) AS purchase
+        $sql = "SELECT SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*pcur.rate)*oi.quantity) AS purchase
                 FROM ".$this->table." AS o
                     JOIN shop_order_items AS oi
                         ON oi.order_id=o.id
@@ -790,10 +836,22 @@ class shopOrderModel extends waModel
         }
     }
 
-    public function getTotalSkuSalesByProduct($product_id)
+    public function getTotalSkuSalesByProduct($product_id, $product_currency = null)
     {
-        $sql = "SELECT sku_id, SUM(oi.price * o.rate * oi.quantity) total, SUM(oi.quantity) quantity FROM ".$this->table." o JOIN shop_order_items oi
-                ON o.id = oi.order_id AND oi.product_id = i:product_id AND oi.type = 'product'
+        if ($product_currency) {
+            $currency_model = new shopCurrencyModel();
+            $rate = $currency_model->getRate($product_currency);
+            if (!$rate) {
+                $rate = 1;
+            }
+        } else {
+            $rate = 1;
+        }
+        $sql = "SELECT sku_id, SUM(oi.price * o.rate * oi.quantity) total, SUM(oi.quantity) quantity,
+                SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*".$this->escape($rate).")*oi.quantity) purchase
+                FROM ".$this->table." o
+                JOIN shop_order_items oi ON o.id = oi.order_id AND oi.product_id = i:product_id AND oi.type = 'product'
+                JOIN shop_product_skus ps ON oi.sku_id = ps.id
                 WHERE paid_date >= DATE_SUB(DATE('".date('Y-m-d')."'), INTERVAL 30 DAY)
                 GROUP BY oi.sku_id";
         return $this->query($sql, array('product_id' => $product_id))->fetchAll('sku_id');
@@ -825,7 +883,7 @@ class shopOrderModel extends waModel
                     JOIN wa_contact AS c
                         ON c.id=o.contact_id
                 WHERE o.id LIKE '$q'
-                ORDER BY o.id DESC
+                ORDER BY o.id ASC
                 LIMIT $limit";
         return $this->query($sql)->fetchAll();
     }

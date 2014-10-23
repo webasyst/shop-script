@@ -68,21 +68,19 @@
         $.get('?action=categoryExpand&id=' + getId(el) + '&collapsed=1');
     };
 
-    var expand = function(el, func) {
+    var expand = function(el, onExpandFunc, afterExpandFunc) {
         if (el.data('loading_content')) {
             return;
         }
         var context = getContext(el);
-        var icon = context.parent.find('.loading:first');
         if (!context.ul.length) {
             setLoadingIcon(context, true);
         } else {
-            onExpand(el, func);
+            onExpand(el, onExpandFunc);
         }
 
         var loading_content = !context.ul.length;
         el.data('loading_content', loading_content);
-
         $.get('?action=categoryExpand&id=' + getId(el) + (loading_content ? '&tree=1' : ''),
             function(html) {
                 if (loading_content) {
@@ -92,8 +90,15 @@
                         context.parent.append(html);
                     }
                     setLoadingIcon(context, false);
-                    onExpand(el, func);
+                    onExpand(el, onExpandFunc);
                     el.data('loading_content', false);
+                    if (typeof afterExpandFunc === 'function') {
+                        afterExpandFunc();
+                    }
+                } else {
+                    if (typeof afterExpandFunc === 'function') {
+                        afterExpandFunc();
+                    }                    
                 }
             }
         );
@@ -102,8 +107,7 @@
     $.categories_tree = {
 
         init: function() {
-            var parent = $("#s-category-list-handler").parent().parent();
-            parent.off('click', '.collapse-handler-ajax').on('click', '.collapse-handler-ajax',
+            $('#s-sidebar').off('click', '.collapse-handler-ajax').on('click', '.collapse-handler-ajax',
                 function() {
                     var self = $(this);
                     if (self.hasClass('darr')) {
@@ -124,13 +128,22 @@
             }
         },
 
-        expand: function(handler, func) {
+        expand: function(handler, onExpand, afterExpand) {
             handler = $(handler);
             if (handler.hasClass('rarr')) {
-                expand(handler, func);
-            } else if (typeof func === 'function') {
-                func(handler);
+                expand(handler, onExpand, afterExpand);
+            } else {
+                if (typeof onExpand === 'function') {
+                    onExpand(handler);
+                }
+                if (typeof afterExpand === 'function') {
+                    afterExpand(handler);
+                }
             }
+        },
+                
+        isCollapsed: function(handler) {
+            return $(handler).hasClass('rarr');
         },
 
         setExpanded: function(category_id) {

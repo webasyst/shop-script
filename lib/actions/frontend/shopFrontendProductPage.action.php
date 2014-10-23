@@ -45,7 +45,15 @@ class shopFrontendProductPageAction extends shopFrontendProductAction
             'description' => isset($page['description']) ? $page['description'] : ''
         ));
 
-
+        /**
+         * @event frontend_product
+         * @param shopProduct $product
+         * @return array[string][string]string $return[%plugin_id%]['menu'] html output
+         * @return array[string][string]string $return[%plugin_id%]['cart'] html output
+         * @return array[string][string]string $return[%plugin_id%]['block_aux'] html output
+         * @return array[string][string]string $return[%plugin_id%]['block'] html output
+         */
+        $this->view->assign('frontend_product', wa()->event('frontend_product', $product, array('menu','cart','block_aux','block')));
 
         $this->setThemeTemplate('product.page.html');
     }

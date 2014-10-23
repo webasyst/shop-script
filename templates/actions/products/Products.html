@@ -22,7 +22,7 @@
             <span class="count indicator" style="display:none"></span>
             [`Export`]
         </h6>
-        <ul class="menu-v with-icons compact p-no-photo-selected123 thumbs-view-menu" id="share-menu">
+        <ul class="menu-v with-icons compact p-no-photo-selected123 thumbs-view-menu">
             <li data-action="export" data-plugin="csv:product:export"><a href="#"><i class="icon16 ss excel"></i>[`CSV`]</a></li>
 
             <!-- plugin hook: 'backend_products.toolbar_export_li' -->
@@ -37,7 +37,7 @@
             <span class="count indicator" style="display:none"></span>
             [`Organize`]
         </h6>
-        <ul class="menu-v with-icons compact p-no-photo-selected123 thumbs-view-menu" id="share-menu">
+        <ul class="menu-v with-icons compact p-no-photo-selected123 thumbs-view-menu" id="organize-menu">
 
             <!-- plugin hook: 'backend_products.toolbar_organize_li' -->
             {* @event backend_products.%plugin_id%.toolbar_organize_li *}
@@ -70,6 +70,15 @@
 
         </ul>
     </div>
+            
+    <div class="block" id="hint-menu-block" style="display:none;">
+        <p class="p-sort-order-error-disclaimer create_datetime" style="display:none;">[`Products in this view are sorted <strong>by date added</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer name" style="display:none;">[`Products in this view are sorted <strong>by name</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer price" style="display:none;">[`Products in this view are sorted <strong>by price</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer count" style="display:none;">[`Products in this view are sorted <strong>by count in stocks</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer rating" style="display:none;">[`Products in this view are sorted <strong>by rating</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer total_sales" style="display:none;">[`Products in this view are sorted <strong>by total sales value</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+    </div>
 
     <!-- plugin hook: 'backend_products.toolbar_section' -->
     {* @event backend_products.%plugin_id%.toolbar_section *}
@@ -98,14 +107,13 @@
 
         </h1>
         <ul class="menu-h small s-product-nav">
-            {if $view != 'table'}
-            <!-- order -->
+            <!-- sort order -->
             <li class="s-inline-mixed-string float-right" id="s-sort-control">
                 <ul class="menu-v dropdown">
                     <li>[`Order by`]:
                         {strip}
                         {$with_icon = true}
-                        <a href="#" class="inline-link"><b><i>
+                        <a href="javascript:void(0);" class="inline-link"><b><i>
                             {if $sort == 'name'}
                                 [`name`]
                             {else if $sort == 'price'}
@@ -168,13 +176,12 @@
                     </li>
                 </ul>
             </li>
-            {/if}
 
             <!-- view mode -->
-            <li{if $wa->get("view") != 'table'} class="selected"{/if}>
+            <li{if $view != 'table'} class="selected"{/if}>
                 <a href="#/products/view=thumbs{if $collection_param}&{$collection_param}{/if}&sort={$sort}"><i class="icon16 view-thumbs"></i></a>
             </li>
-            <li{if $wa->get("view") == 'table'} class="selected"{/if}>
+            <li{if $view == 'table'} class="selected"{/if}>
                 <a href="#/products/view=table{if $collection_param}&{$collection_param}{/if}&sort={$sort}"><i class="icon16 view-table"></i></a>
             </li>
 
@@ -184,117 +191,23 @@
 
             <!-- frontend link -->
             <li class="s-inline-mixed-string">
-            {if !empty($info.frontend_url)}
-                [`Storefront link`]: <a id="s-category-frontend-link" href="{$info.frontend_url}" target="_blank">{$info.frontend_url}</a> <i class="icon10 new-window"></i>
+            {if !empty($info.frontend_urls)}
+                [`Storefront link`]:
+                {foreach $info.frontend_urls as $frontend_url}
+                    <a id="s-category-frontend-link" href="{$frontend_url}" target="_blank">{$frontend_url}</a> <i class="icon10 new-window"></i>
+                {/foreach}
             {elseif $info.hash == 'set'}
-                <span class="s-embed">[`Embed into template or page`]:
-                    <strong class="s-embed-code" id="s-embed-code">&#123;$wa-&gt;shop-&gt;productSet("{$id}")&#125;</strong>
-                    <input id="s-embed-code-input" value="&#123;$wa-&gt;shop-&gt;productSet("{$id}")&#125;" class="s-embed-code-input" readonly="readonly" style="display: none;">
+                <span class="s-embed">
+                    <strong class="black">&#123;$products = $wa->shop->productSet("{$id}")&#125;</strong>
+                    <a href="#" id="s-embed-code">[`Get embed code`]</a>
                 </span>
             {/if}
             </li>
 
         </ul>
 
-        {if $wa->get("view") == 'table'}
-        <table class="zebra" id="product-list">
-            <tr class="header">
-                {if $manual && $sort == 'sort'}<th class="min-width"></th>{/if}
-                <th class="min-width"><input type="checkbox" class="s-select-all" data-count={$total_count}></th>
-                <th>
-                    <span class="sort">
-                        <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}" class="inline-link selected">
-                            [`Name`]
-                        </a>{if $sort=='name'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
-                    </span>
-                </th>
-                <th class="short align-right">
-                    <span class="sort">
-                        <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=price&order={if $order == 'asc' && $sort=='price'}desc{else}asc{/if}" class="inline-link selected">
-                            [`Price`]
-                        </a>{if $sort=='price'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
-                    </span>
-                </th>
-                <th class="short align-right">
-                    <span class="sort">
-                        <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=count&order={if $order == 'asc' && $sort=='count'}desc{else}asc{/if}" class="inline-link selected">
-                            [`In stock`]
-                        </a>{if $sort=='count'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
-                    </span>
-                </th>
-            </tr>
-        </table>
-        <script id="template-product-list-table" type="text/html">
-            {literal}
-            {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
-            <tr class="product {% if (i == n-1) { %}last{% } %} {% if (p.status == '0') { %}gray{% } %} {% if (o.check_all) { %}selected{% } %}" data-product-id="{%#p.id%}">
-                {/literal}
-                {if $manual && $sort == 'sort'}<td class="min-width drag-handle"><i class="icon16 sort"></i></td>{/if}
-                {literal}
-                <td class="min-width">
-                    <input type="checkbox" {% if (o.check_all) { %}checked{% } %}>
-                </td>
-                <td class="drag-handle">
-                    <a href="#/product/{%#p.id%}/">{%#p.name%}</a>
-                </td>
-                <td class="short nowrap align-right">{%#p.price_range%}</td>
-                <td class="short nowrap align-right">
-                    {%#((p.count === null)?'<span class="gray">∞</span>':p.count)%}
-                </td>
-            </tr>
-            {% } %}
-            {/literal}
-        </script>
-        {else}
-        <ul class="thumbs li250px" id="product-list">
-            <script id="template-product-list-thumbs" type="text/html">
-            {literal}
-            {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
-            <li class="product {% if (i == n-1) { %}last{% } %} {% if (p.status == '0') { %}gray{% } %}" data-product-id="{%#p.id%}">
-                <div class="s-product-image s-image">
-                    <a href="#/product/{%#p.id%}/">
-                        {% if (p.badge) { %}
-                            <div class="s-image-corner top right">{%#p.badge%}</div>
-                        {% } %}
-                        {% if (p.image) { %}
-                            <img src="{%#p.image.thumb_url%}" class="drag-handle">
-                        {% } else { %}
-                            <img src="{/literal}{$wa_app_static_url}{literal}img/image-dummy.png" class="drag-handle not-found">
-                        {% } %}
-                    </a>
-                </div>
-                <div class="s-product-details">
-                    <input type="checkbox" id="s-product-checkbox-{%#p.id%}">
-                    <label for="s-product-checkbox-{%#p.id%}">
-                        <strong>{%#p.name%}</strong>
-                    </label>
-                    <span class="small nowrap">{%#p.price_range%}</span>
-                    <!-- extend info according to sorting method -->
-                    {% if (o.sort == 'rating') { %}
-                        <span class="rate nowrap" title="{%#'[`Average user rating: %s / 5`]'.replace('%s', p.rating)%}">
-                            {%#p.rating_str%}
-                        </span>
-                    {% } else if (o.sort == 'total_sales') { %}
-                        <span class="hint total-sales nowrap">
-                            [`Total sales`]: <strong>{%#p.total_sales_str%}</strong>
-                        </span>
-                    {% } else if (o.sort == 'count') { %}
-                        <span class="small stock nowrap">
-                            {%#p.icon%} {%#((p.count === null)?'<span class="gray">∞</span>':''+p.count)%}
-                        </span>
-                    {% } else if (o.sort == 'create_datetime') { %}
-                        <br>
-                        <span class="hint stock nowrap">
-                            {%#'[`Added %s`]'.replace('%s', p.create_datetime_str)%}
-                        </span>
-                    {% } %}
-                </div>
-            </li>
-            {% } %}
-            {/literal}
-            </script>
-        </ul>
-        {/if}
+        {$include_name = './product_list_'|cat:$view:'.html'}
+        {include file=$include_name}
 
         <div class="lazyloading-wrapper">
             <div class="lazyloading-progress-string">{_w('%d product','%d products', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
@@ -356,10 +269,15 @@
         </div>
         </form>
     </div>
+
+    {if $info.hash == 'set'}
+        {include '../dialog/DialogProductListEmbed.html' inline}
+    {/if}
+                    
 </div>
-{$title = $title|cat:" — ":{$wa->accountName()}}
+{$title = $title|cat:" — ":{$wa->accountName(false)}}
 <script type="text/javascript">
-    document.title = '{$title|escape}';
+    document.title = '{$title|escape:'javascript'}';
     $.product_list.init({
         view: '{$view}',
         collection_hash: {json_encode($collection_hash)},
@@ -368,6 +286,7 @@
         order: '{$order}',
         products: {json_encode($products)},
         total_count: {$total_count},
+        category_count: {if $info && $info['hash'] == 'category' && $info['type'] == shopCategoryModel::TYPE_STATIC && !$info['include_sub_categories']}{$info['count']}{else}null{/if},
         edit: '{$wa->get("edit")}',
         sortable: {if $manual && $sort == 'sort'}true{else}false{/if},
         lazy_loading: {

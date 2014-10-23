@@ -17,6 +17,8 @@ class shopWorkflowRefundAction extends shopWorkflowAction
         shopCustomers::recalculateTotalSpent($order['contact_id']);
 
         if ($order_id != null) {
+            $log_model = new waLogModel();
+            $log_model->add('order_refund', $order_id);
             $order_model = new shopOrderModel();
             $order_model->updateById($order_id, array(
                 'paid_date' => null,
@@ -24,6 +26,16 @@ class shopWorkflowRefundAction extends shopWorkflowAction
                 'paid_month' => null,
                 'paid_quarter' => null,
             ));
+            
+            // for logging changes in stocks
+            shopProductStocksLogModel::setContext(
+                    shopProductStocksLogModel::TYPE_ORDER,
+                    'Order %s was refunded',
+                    array(
+                        'order_id' => $order_id
+                    )
+            );
+            
             $order_model->returnProductsToStocks($order_id);
             shopAffiliate::cancelBonus($order_id);
             $order_model->recalculateProductsTotalSales($order_id);

@@ -48,7 +48,7 @@ $.order = {
             if (!self.data('confirm') || confirm(self.data('confirm'))) {
                 self.after('<i class="icon16 loading"></i>');
                 $.post('?module=workflow&action=prepare', {
-                    action_id : self.data('action-id'),
+                    action_id : self.attr('data-action-id'),
                     id : $.order.id
                 }, function(response) {
                     self.parent().find('.loading').remove();
@@ -81,7 +81,7 @@ $.order = {
         });
     },
 
-    initView : function() {
+    initView: function() {
         var edit_order_link = this.container.find('.s-edit-order');
         edit_order_link.attr('href', '#/orders/edit/' + $.order.id + '/');
         edit_order_link.click(function() {
@@ -92,9 +92,13 @@ $.order = {
             return false;
         });
         if (this.options.order) {
-            $.order_list.updateListItem(this.options.order, this.id);
+            $.order_list.updateListItems(this.options.order);
+            var container = ($.order_list.container ||  $("#s-content"));
+            container.find('.selected').removeClass('selected');
+            container.find('.order[data-order-id='+this.options.order.id+']').
+                    addClass('selected');
             if (this.options.offset === false) {
-                $.order_list.hideListItem(this.id);
+                $.order_list.hideListItems(this.id);
             };
 
         }
@@ -105,17 +109,19 @@ $.order = {
             (function() {
                 var win       = $(window);
                 var container = $('#s-order').find('.s-order');
-                var top       = container.offset().top;
-                var height    = win.height() - top;   // height of view-port
-                if (height > container.height()) {
-                    container.height(height);
-                }
-                win.bind('resize.order', function() {
-                    var height    = $(this).height() - top;   // height of view-port
+                if (container.length) {
+                    var top       = container.offset().top;
+                    var height    = win.height() - top;   // height of view-port
                     if (height > container.height()) {
                         container.height(height);
                     }
-                });
+                    win.bind('resize.order', function() {
+                        var height    = $(this).height() - top;   // height of view-port
+                        if (height > container.height()) {
+                            container.height(height);
+                        }
+                    });
+                }
             })();
         }
     },

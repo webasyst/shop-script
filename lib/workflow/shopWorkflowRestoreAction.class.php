@@ -6,6 +6,7 @@ class shopWorkflowRestoreAction extends shopWorkflowAction
     {
         // Restore previous state
         $log_model = new shopOrderLogModel();
+        $params = array();
         $this->state_id = $log_model->getPreviousState($oder_id, $params);
 
         // Restore order.paid_*, customer.total_spent and customer.affiliation_bonus
@@ -29,16 +30,33 @@ class shopWorkflowRestoreAction extends shopWorkflowAction
         $data = parent::postExecute($order_id, $result);
 
         if ($order_id != null) {
+
+            $log_model = new waLogModel();
+            $log_model->add('order_restore', $order_id);
+
             $order_model = new shopOrderModel();
             $app_settings_model = new waAppSettingsModel();
 
             if ($this->state_id != 'refunded') {
+                
+                // for logging changes in stocks
+                shopProductStocksLogModel::setContext(
+                        shopProductStocksLogModel::TYPE_ORDER,
+                        'Order %s was restored',
+                        array(
+                            'order_id' => $order_id
+                        )
+                );
+                
                 $update_on_create = $app_settings_model->get('shop', 'update_stock_count_on_create_order');
                 if ($update_on_create) {
                     $order_model->reduceProductsFromStocks($order_id);
                 } else if (!$update_on_create && $this->state_id != 'new') {
                     $order_model->reduceProductsFromStocks($order_id);
                 }
+                
+                shopProductStocksLogModel::clearContext();
+                
             }
 
             $order = $order_model->getById($order_id);

@@ -8,4 +8,3 @@ class shopSettingsAffiliateEnableController extends waJsonController
         $asm->set('shop', 'affiliate', waRequest::post('enable') ? '1' : null);
     }
 }
-

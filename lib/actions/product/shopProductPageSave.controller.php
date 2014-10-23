@@ -60,7 +60,7 @@ class shopProductPageSaveController extends waJsonController
             ), true
         ), '/');
         $page['preview_hash'] = $this->pages_model->getPreviewHash();
-
+        $page['url_escaped'] = htmlspecialchars($data['url']);
         $this->response = $page;
     }
 

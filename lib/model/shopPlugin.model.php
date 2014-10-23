@@ -8,9 +8,10 @@ class shopPluginModel extends shopSortableModel
 
     /**
      *
-     * List availail
+     * List available plugins of specified type
      * @param string $type plugin type
      * @param array $options
+     * @return array[]
      */
     public function listPlugins($type, $options = array())
     {

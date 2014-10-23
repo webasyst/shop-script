@@ -44,6 +44,9 @@ class shopSettingsOrderStateSaveController extends waJsonController
         if (!preg_match("/^[a-z0-9\._-]+$/i", $data['state']['id'])) {
             $this->errors['state']['id'] = _w('Only Latin characters, numbers, underscore and hyphen symbols are allowed');
         }
+        if (strlen($data['state']['id']) > 16) {
+            $this->errors['state']['id'] = _w('Length of state ID more then 16 symbols');
+        }
 
         if ($add) {
             $states = !empty($this->config['states']) ? $this->config['states'] : array();
@@ -60,6 +63,15 @@ class shopSettingsOrderStateSaveController extends waJsonController
         if (!empty($data['actions'])) {
             foreach (array_unique(array_keys($data['actions'])) as $action_id)
             {
+                if (!$action_id) {
+                    $this->errors['actions'][$action_id] = _w('Empty action ID');
+                }
+                if (!$data['actions'][$action_id]['name']) {
+                    $this->errors['actions'][$action_id] = _w('Empty action name');
+                }
+                if (strlen($action_id) > 32) {
+                    $this->errors['actions'][$action_id] = _w('Length of action ID is more then 32 symbols');
+                }
                 if (in_array($action_id, $ids)) {
                     $this->errors['actions'][$action_id] = _w('Same action ID alreay exists');
                 }
@@ -103,13 +115,7 @@ class shopSettingsOrderStateSaveController extends waJsonController
         $checked = waRequest::post('new_action', array());
         foreach (waRequest::post('new_action_id', array()) as $k => $action_id) {
             $action_id = strtolower(trim($action_id));
-            if (!$action_id) {
-                continue;
-            }
             $name = trim($names[$k]);
-            if (!$name) {
-                continue;
-            }
             $actions[$action_id] = array(
                 'classname' => 'shopWorkflowAction',
                 'name' => $name

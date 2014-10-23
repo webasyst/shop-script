@@ -33,16 +33,15 @@ class shopSearchWordModel extends waModel
         return $id;
     }
 
-    public function getByString($string)
+    public function getIds($words, $by_part = 0)
     {
-        $words = preg_split("/[\s,]+/u", $string);
         $where = array();
         foreach ($words as $w) {
             $w = trim($w);
             if ($w) {
-                $where[] = "name LIKE '".$this->escape(shopSearch::stem($w), 'like')."'";
+                $w = shopSearch::stem($w);
+                $where[] = "name LIKE '".$this->escape($w, 'like').($by_part && mb_strlen($w) >= $by_part ? '%' : '')."'";
             }
-
         }
         if ($where) {
             $sql = "SELECT id FROM ".$this->table." WHERE ".implode(' OR ', $where);

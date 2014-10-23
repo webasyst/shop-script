@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
 <style type="text/css">
-{include file="../../../css/printform.css" inline}
+{include file="./css/printform.css" inline}
 </style>
 {if empty($strict)}
 {literal}
@@ -20,7 +20,7 @@ var page_url = '';
 </script>
 
 <script type="text/javascript">
-{include file="../../../../../js/plugins/printform.js" inline}
+{include file="./js/printform.js" inline}
 </script>
 {/if}
 </head>
@@ -218,7 +218,7 @@ var page_url = '';
     {$total_amount=$total_amount+$order_item.total}
 
 	<tr>
-		<td class="b_left b_top leftAlign inline_edit">{$order_item.name|default:"&nbsp;"}</td>
+		<td class="b_left b_top leftAlign inline_edit">{$order_item.name|default:"&nbsp;"}{if $order_item.sku} ({$order_item.sku}){/if}</td>
 		<td class="b_left b_top inline_edit">796</td>
 		<td class="b_left b_top inline_edit">шт</td>
 		<td class="b_left b_top">{$order_item.quantity|string_format:"%d"}</td>

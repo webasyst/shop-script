@@ -10,7 +10,8 @@ return array(
         16 => 'img/redirect.png',
     ),
     'handlers' => array(
-        'frontend_error' => 'frontendError'
+        'frontend_error' => 'frontendError',
+        'frontend_search' => 'frontendSearch'
     ),
 );
 //EOF

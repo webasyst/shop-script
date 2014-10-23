@@ -155,6 +155,19 @@ class shopCheckoutShipping extends shopCheckout
             }
         }
         $view->assign('shipping', $selected_shipping ? $selected_shipping : array('id' => $default_method, 'rate_id' => ''));
+        
+        $checkout_flow = new shopCheckoutFlowModel();
+        $step_number = shopCheckout::getStepNumber('shipping');
+        // IF no errors 
+        $checkout_flow->add(array(
+            'step' => $step_number
+        ));
+        // ELSE
+//        $checkout_flow->add(array(
+//            'step' => $step_number,
+//            'description' => ERROR MESSAGE HERE
+//        ));
+        
     }
 
     public function getAddressForm($method_id, waShipping $plugin, $config, $contact_address, $address_form)
@@ -297,7 +310,11 @@ class shopCheckoutShipping extends shopCheckout
         }
 
         foreach ($cart_items as $item) {
-            $w = isset($values[$item['product_id']]) ? $values[$item['product_id']] : 0;
+            if (isset($values['skus'][$item['sku_id']])) {
+                $w = $values['skus'][$item['sku_id']];
+            } else {
+                $w = isset($values[$item['product_id']]) ? $values[$item['product_id']] : 0;
+            }
             if ($m !== null) {
                 $w = $w / $m;
             }
@@ -341,7 +358,7 @@ class shopCheckoutShipping extends shopCheckout
         if (is_string($rates)) {
             return $rates;
         }
-        if ($rate_id) {
+        if ($rate_id && isset($rates[$rate_id])) {
             $result = $rates[$rate_id];
         } else {
             $result = array('rate' => 0);
@@ -406,6 +423,15 @@ class shopCheckoutShipping extends shopCheckout
                 }
                 if ($data && is_array($data)) {
                     foreach ($data as $field => $value) {
+                        if (is_array($value) && ($old = $contact->get($field))) {
+                            if (isset($old[0]['data'])) {
+                                foreach ($old[0]['data'] as $k => $v) {
+                                    if (!isset($value[$k])) {
+                                        $value[$k] = $v;
+                                    }
+                                }
+                            }
+                        }
                         $contact->set($field, $value);
                     }
                     if (wa()->getUser()->isAuth()) {
@@ -419,6 +445,9 @@ class shopCheckoutShipping extends shopCheckout
             $rates = waRequest::post('rate_id');
             $rate_id = isset($rates[$shipping_id]) ? $rates[$shipping_id] : null;
             $rate = $this->getRate($shipping_id, $rate_id);
+            if (is_string($rate)) {
+                $rate = false;
+            }
             $this->setSessionData('shipping', array(
                 'id' => $shipping_id,
                 'rate_id' => $rate_id,
@@ -454,7 +483,7 @@ class shopCheckoutShipping extends shopCheckout
         <p>'._w('During the “Shipping” checkout step, when customer selects a preferred shipping option but shipping address was not yet entered, instantly prompt customer to provide:').'</p>
     </div>
     <div class="value no-shift">
-        <label><input '.(empty($config['prompt_type']) ? 'checked' : '').' name="config[prompt_type]" type="radio" value="0"> '._w('All required address fields').'</label>
+        <label><input '.(empty($config['prompt_type']) ? 'checked' : '').' name="config[prompt_type]" type="radio" value="0"> '._w('All address fields required by the selected shipping option').'</label>
         <p class="hint">'._w('Prompt for all address fields according to the selected shipping option implementation. If you use this option and have “Shipping” prior to “Contact info” in the checkout step order, it is advisable to hide (disable) shipping address form on the “Contact Info” checkout step to avoid asking for address twice.').'</p>
     </div>
     <div class="value no-shift">

@@ -79,7 +79,6 @@ class shopMigrateWebasystsameTransport extends shopMigrateWebasystTransport
                 'password' => (string) $dblist->DBSETTINGS['DB_PASSWORD'],
                 'database' => (string) $dblist->DBSETTINGS['DB_NAME'],
             );
-
             $this->source = new waModel($this->sql_options);
         }
         return $this->source;

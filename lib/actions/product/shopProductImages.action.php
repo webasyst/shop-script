@@ -21,6 +21,9 @@ class shopProductImagesAction extends waViewAction
         $image_id = !empty($param[0]) ? $param[0] : 0;
         if (isset($images[$image_id])) {
             $image = $images[$image_id];
+            if ($image['size']) {
+                $image['size'] = waFiles::formatSize($image['size'], '%0.2f', 'B,KB,MB,GB');
+            }
             $this->setTemplate('ProductImage');
 
             $images = array_values($images);

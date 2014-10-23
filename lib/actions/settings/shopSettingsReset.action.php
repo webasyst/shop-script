@@ -3,6 +3,9 @@ class shopSettingsResetAction extends waViewAction
 {
     public function execute()
     {
+        if (!$this->getUser()->isAdmin('shop')) {
+            throw new waRightsException(_w('Access denied'));
+        }
         if (waRequest::post('reset')) {
             $confirm = waRequest::post('confirm');
             if ($confirm !== null) {
@@ -30,14 +33,27 @@ class shopSettingsResetAction extends waViewAction
 
     private function reset()
     {
+        /**
+         * @event reset
+         *
+         * Notify plugins about reset all settings
+         *
+         * @param void
+         * @return void
+         */
+        wa()->event('reset');
+
         //XXX hardcode
         $tables = array(
             'shop_page',
+            'shop_page_params',
 
             'shop_category',
             'shop_category_params',
             'shop_category_products',
+            'shop_category_routes',
             'shop_product',
+            'shop_product_params',
             'shop_product_features',
             'shop_product_features_selectable',
             'shop_product_images',
@@ -47,6 +63,7 @@ class shopSettingsResetAction extends waViewAction
             'shop_product_services',
             'shop_product_skus',
             'shop_product_stocks',
+            'shop_product_stocks_log',
             'shop_search_index',
             'shop_search_word',
 
@@ -63,6 +80,8 @@ class shopSettingsResetAction extends waViewAction
             'shop_feature_values_double',
             'shop_feature_values_text',
             'shop_feature_values_varchar',
+            'shop_feature_values_color',
+            'shop_feature_values_range',
 
             'shop_type',
             'shop_type_features',
@@ -81,12 +100,22 @@ class shopSettingsResetAction extends waViewAction
             'shop_order_log',
             'shop_order_log_params',
             'shop_order_params',
+            'shop_affiliate_transaction',
+
+            'shop_checkout_flow',
+            'shop_notification',
+            'shop_notification_params',
 
             'shop_coupon',
+            'shop_discount_by_sum',
 
             'shop_tax',
             'shop_tax_regions',
             'shop_tax_zip_codes',
+
+            'shop_affiliate_transaction',
+
+            'shop_importexport',
         );
         $model = new waModel();
         foreach ($tables as $table) {
@@ -124,16 +153,28 @@ class shopSettingsResetAction extends waViewAction
         $app_settings_model->set('shop', 'use_product_currency', true);
 
         $paths = array();
-
         $paths[] = wa()->getDataPath('products', false, 'shop');
         $paths[] = wa()->getDataPath('products', true, 'shop');
+
+        $paths[] = wa()->getTempPath();
+
+        $config_path = wa()->getConfigPath('shop');
+        foreach (waFiles::listdir($config_path, true) as $path) {
+            if (!in_array($path, array('plugins.php', '..', '.'))) {
+                $paths[] = $config_path.'/'.$path;
+            }
+        }
+        $paths[] = wa()->getCachePath(null, 'shop');
+
 
         foreach ($paths as $path) {
             waFiles::delete($path, true);
         }
 
         $path = wa()->getDataPath('products', true, 'shop');
-        waFiles::write($path.'/thumb.php', '<?php
+        waFiles::write(
+            $path.'/thumb.php',
+            '<?php
 $file = realpath(dirname(__FILE__)."/../../../../")."/wa-apps/shop/lib/config/data/thumb.php";
 
 if (file_exists($file)) {
@@ -141,8 +182,8 @@ if (file_exists($file)) {
 } else {
     header("HTTP/1.0 404 Not Found");
 }
-
-');
+'
+        );
         waFiles::copy($this->getConfig()->getAppPath('lib/config/data/.htaccess'), $path.'/.htaccess');
         echo json_encode(array('result' => 'ok', 'redirect' => '?action=welcome'));
         exit;

@@ -14,7 +14,7 @@ class shopCouponsEditorAction extends waViewAction
         if ($coupon) {
             $coupon['value'] = (float) $coupon['value'];
             if (waRequest::request('delete')) {
-                $coupm->deleteById($id);
+                $coupm->delete($id);
                 exit;
             }
         } else if ($id) {
@@ -51,6 +51,10 @@ class shopCouponsEditorAction extends waViewAction
                     $post_coupon['expire_datetime'] .= ' 23:59:59';
                 }
 
+                if ($post_coupon['type'] == '%') {
+                    $post_coupon['value'] = min(max($post_coupon['value'], 0), 100);
+                }
+                
                 if ($id) {
                     $coupm->updateById($id, $post_coupon);
                     echo '<script>window.location.hash = "#/coupons/'.$id.'";$.orders.dispatch();</script>';
@@ -60,7 +64,12 @@ class shopCouponsEditorAction extends waViewAction
                     $post_coupon['create_datetime'] = date('Y-m-d H:i:s');
                     try {
                         $id = $coupm->insert($post_coupon);
-                        echo '<script>window.location.hash = "#/coupons/'.$id.'";</script>';
+                        echo '<script>'.
+                                    'var counter = $("#s-coupons .count");'.
+                                    'var cnt = parseInt(counter.text(), 10) || 0;'.
+                                    'counter.text(cnt + 1);'.
+                                    'window.location.hash = "#/coupons/'.$id.'";'.
+                                '</script>';
                         exit;
                     } catch (waDbException $e) {
                         // Duplicate code. Show error in form.

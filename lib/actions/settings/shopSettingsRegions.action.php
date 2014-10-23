@@ -6,6 +6,9 @@ class shopSettingsRegionsAction extends waViewAction
 {
     public function execute()
     {
+        if (!$this->getUser()->getRights('shop', 'settings')) {
+            throw new waRightsException(_w('Access denied'));
+        }
         $cm = new waCountryModel();
         $rm = new waRegionModel();
 

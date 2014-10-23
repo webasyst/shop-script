@@ -73,7 +73,11 @@
         },
 
         defaultAction: function () {
-            this.designAction();
+            if ($('#s-link-design').length) {
+                this.designAction();
+            } else {
+                this.pagesAction();
+            }
         },
 
         setActive: function (id) {
@@ -96,8 +100,8 @@
                 if ($('#wa-design-container').length) {
                     waDesignLoad();
                 } else {
-                    $("#s-storefronts-content").load('?module=design&' + params, function () {
-                        waDesignLoad();
+                    $("#s-storefronts-content").load('?module=design', function () {
+                        waDesignLoad(params);
                     });
                 }
             } else {
@@ -105,6 +109,10 @@
                     waDesignLoad('');
                 });
             }
+        },
+
+        designPagesAction: function () {
+            this.designAction('pages');
         },
 
         designThemesAction: function (params) {

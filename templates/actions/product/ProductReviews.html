@@ -59,7 +59,7 @@
     {/if}
 {else}
     <div class="s-reviews">
-        {include './include.reviews.html' inline}
+        {include './include.reviews.html' inline no_wrapped=1}
     </div>
     <div class="lazyloading-progress-string">{_w('%d review','%d reviews', $offset + $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
     <span class="lazyloading-progress" style="display:none">

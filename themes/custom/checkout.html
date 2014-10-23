@@ -8,7 +8,7 @@
 <div class="checkout-header">
     <div class="float-right large">
         {$cart_total = $wa->shop->cart->total()}
-        [`Order total`]: <strong>{shop_currency($cart_total, true)}</strong>
+        [`Order total`]: <strong>{shop_currency_html($cart_total, true)}</strong>
     </div>
     <h3><a href="{$wa_app_url}">{$wa->shop->settings("name")}</a></h3>
 </div>
@@ -29,7 +29,7 @@
                     <a href="#"><span class="gray">{$s@iteration}.</span> {$s.name}</a>
                 </h2>
 
-                {if $s@first}
+                {if $s@first && $wa->isAuthEnabled()}
                     <div class="checkout-step-content auth" {if $checkout_current_step != $step_id}style="display:none"{/if}>
                         {if !$wa->user()->isAuth()}
                             <!-- authorized / not authorized selector -->
@@ -38,7 +38,7 @@
                                 <li><label><input name="user_type" type="radio" {if $wa->post('wa_auth_login')}checked{/if} value="1"> [`I already have an account`]</label></li>
                             </ul>
                             <div id="login-form"{if !$wa->post('wa_auth_login')} style="display:none"{/if}>
-                                {include file="login.html" without_form=true}
+                                {include file="`$wa_parent_theme_path`/login.html" without_form=true}
                             </div>
                             <script type="text/javascript">
                                 $(function () {
@@ -77,7 +77,7 @@
                     </div>
                 {/if}
 
-                <div class="checkout-step-content" style="{if $s@first}margin-top: {if $step_id == 'contactinfo'}-53px;{else}-23px;{/if}{/if}{if $checkout_current_step != $step_id || $wa->post('wa_auth_login')} display:none;{/if}">
+                <div class="checkout-step-content" style="{if $wa->isAuthEnabled() && $s@first}margin-top: {if $step_id == 'contactinfo'}-53px;{else}-23px;{/if}{/if}{if $checkout_current_step != $step_id || $wa->post('wa_auth_login')} display:none;{/if}">
                     {if $checkout_current_step == $step_id}
                         {if in_array($step_id,['contactinfo', 'shipping', 'payment', 'confirmation'])}
                             {include file="checkout.`$step_id`.html"}
@@ -154,16 +154,34 @@
         });
         $("form.checkout-form").on('submit', function () {
             var f = $(this);
+            var step = f.find('.checkout-content').data('step-id');
+            if (step == 'payment' || step == 'shipping') {
+                if (!f.find('input[name="' + step + '_id"]:checked').not(':disabled').length) {
+                    if (!f.find('em.errormsg').length) {
+                    $('<em class="errormsg inline">' + (step == 'payment' ? '[`Please select payment option`]' :
+                            '[`Please select shipping option`]') + '</em>').insertAfter(f.find('input:submit:last'));
+                    }
+                    return false;
+                } else {
+                    f.find('em.errormsg').remove();
+                }
+            }
             if (f.hasClass('last') || ($("#login-form").length && !$("#login-form input:submit").attr('disabled'))) {
                 return true;
             }
+            $('<span class="loading"> <i class="icon16 loading"></i></span>').insertAfter(f.find('input:submit:last').attr('disabled', 'disabled'));
             $.post(f.attr('action') || window.location, f.serialize(), function (response) {
                 var content = $(response);
                 var step_id = content.data('step-id');
                 var current = $(".checkout-step .checkout-step-content:visible");
                 var current_step_id =  current.find(".checkout-content").data('step-id');
                 if (current_step_id != step_id) {
-                    current.animate({ height: 0}, 200, function() { $(this).hide(); } );
+                    current.animate({ height: 0}, 200, function() {
+                        $(this).hide();
+                    });
+                    $(".checkout-step.step-" + step_id + " .checkout-step-content").css({ height: 'auto'}).show(200, function () {
+                        $(document).scrollTop($(".checkout-step.step-" + step_id).offset().top);
+                    });
                     current.parent().find('a.back').hide();
                 }
                 $(".checkout-step.step-" + step_id + " .checkout-content").replaceWith(content);
@@ -179,6 +197,9 @@
                 $(".checkout-step.step-" + step_id).prev('.checkout-step').each(function () {
                     $(this).find('h2').removeClass('upcoming');
                 });
+            }).always(function () {
+                f.find('span.loading').remove();
+                f.find('input:submit:last').removeAttr('disabled');
             });
             return false;
         });

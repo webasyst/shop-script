@@ -1,0 +1,68 @@
+<!-- plugin hook: 'frontend_header' -->
+{* @event frontend_header.%plugin_id% *}
+{foreach $frontend_header as $_}{$_}{/foreach}            
+
+{if !$wa->globals('isMyAccount')}
+    <nav class="app-navigation" role="navigation">
+       
+        <!-- cart -->
+        {$cart_total = $wa->shop->cart->total()}
+        <div id="cart" class="float-right{if !$cart_total} empty{/if}">
+            <i class="icon16 cart"></i>
+            <a href="{$wa->getUrl('shop/frontend/cart')}" class="cart-total">
+                {wa_currency_html($cart_total, $wa->shop->currency())}
+            </a>
+        </div>
+        
+        <!-- product search -->
+        <form method="get" action="{$wa->getUrl('shop/frontend/search')}" class="search float-right">
+            <input type="search" name="query" {if !empty($query)}value="{$query}"{/if} id="search" placeholder="[s`Find products`]">
+        </form>
+        
+        {if $shop_pages = $wa->shop->pages()}
+            <ul class="menu-h dropdown">
+            
+                <!-- static page list -->                
+                {foreach $shop_pages as $page}
+                    <li{if strlen($page.url)>1 && $wa->currentUrl()|strstr:$page.url} class="selected"{/if}><a href="{$page.url}">{$page.name}</a></li>
+                {/foreach}        
+            
+            </ul>
+        {/if}
+    	
+    </nav>
+{/if}
+   
+<div class="container">
+    <main class="content">
+        <!-- integrnal navigation breadcrumbs -->
+        {if isset($breadcrumbs)}
+            {if $wa->globals('isMyAccount')}
+                {* within My Account we exclude first node from navigation because links are on the page already *}
+                {$breadcrumbs[0] = null}
+            {/if}
+            <div class="breadcrumbs">
+                {foreach $breadcrumbs as $breadcrumb}
+                    {if $breadcrumb}
+                        <a href="{$breadcrumb.url}">{$breadcrumb.name|escape}</a> <span class="rarr">&rarr;</span>
+                    {/if}
+                {/foreach}
+            </div>
+        {/if}
+        {$content}  
+    </main>
+</div>
+
+<div class="clear-both"></div>
+
+<div id="dialog" class="dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <!-- common part -->
+        <div class="cart">
+
+        </div>
+        <!-- /common part -->
+
+    </div>
+</div>

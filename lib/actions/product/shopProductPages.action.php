@@ -24,11 +24,13 @@ class shopProductPagesAction extends waViewAction
             $page_id = $param[0];
         }
 
+        $pages = $this->getPages($product_id);
         $this->view->assign(array(
             'lang' => substr(wa()->getLocale(), 0, 2),
-            'pages' => $this->getPages($product_id),
+            'pages' => $pages,
             'product_id' => $product_id,
-            'page_id' => $page_id
+            'page_id' => $page_id,
+            'count' => count($pages)
         ));
     }
 

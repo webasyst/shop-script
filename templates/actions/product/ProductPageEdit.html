@@ -14,8 +14,8 @@
             <div class="s-page-urls small">
                 {if $page}
                     {if !empty($url)}
-                        <a href="{$url}/{$page.url}/?preview={$preview_hash}" title="[`Preview`]" target="_blank">{$url}/{$page.url|escape}/</a>
-                        <a href="{$url}/{$page.url}/?preview={$preview_hash}" target="_blank"><i class="icon10 new-window"></i></a>
+                        <a href="{$url}/{$page.url|escape}/?preview={$preview_hash}" title="[`Preview`]" target="_blank">{$url}/{$page.url|escape}/</a>
+                        <a href="{$url}/{$page.url|escape}/?preview={$preview_hash}" target="_blank"><i class="icon10 new-window"></i></a>
                     {/if}
                 {/if}
                 <br />
@@ -81,12 +81,12 @@
             <br clear="left" />
         </div>
     </div>
-    <div class="s-editor-core-wrapper">
-        <ul class="s-page-wysiwyg-html-toggle">
-            <li><a id="wysiwyg" href="#">[`WYSIWYG`]</a></li>
-            <li class="selected"><a id="html" href="#">HTML</a></li>
+    <div class="wa-editor-core-wrapper s-editor-core-wrapper">
+        <ul class="wa-editor-wysiwyg-html-toggle s-wysiwyg-html-toggle">
+            <li class="selected"><a class="wysiwyg" href="#">[s`WYSIWYG`]</a></li>
+            <li><a class="html" href="#">HTML</a></li>
         </ul>
-        <div style="clear:both">
+        <div>
             <textarea style="display:none" id="s-page-content" name="info[content]">{if $page}{$page.content|escape}{/if}</textarea>
         </div>
     </div>
@@ -94,12 +94,19 @@
 
 <script type="text/javascript">
     $(function () {
-        waEditorInit({
-            id: 's-page-content',
-            prefix: 's-page-',
-            upload_url: "",
+        
+        $('#s-page-content').waEditor({
             lang: "{$lang}",
-            save_button: 's-product-save-button'
+            toolbarFixedTopOffset: $('#mainmenu').length ? $('#mainmenu').height() : 0,
+            changeCallback: function() {
+                if ($('#s-product-save-button').hasClass('green')) {
+                    $('#s-product-save-button').addClass('yellow');
+                    $('#s-page-content').waEditor('sync');
+                }
+            },
+            uploadFields: {
+                '_csrf': "{waRequest::cookie('_csrf', '')}"
+            }
         });
         
         var page_settings_container = $('#s-page-settings');

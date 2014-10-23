@@ -35,7 +35,7 @@ class shopProductImagesAddMethod extends shopProductUpdateMethod
 
             $image_path = shopImage::getPath($data);
             if ((file_exists($image_path) && !is_writable($image_path)) || (!file_exists($image_path) && !waFiles::create($image_path))) {
-                $this->model->deleteById($image_id);
+                $product_images_model->deleteById($image_id);
                 throw new waAPIException(
                     sprintf("The insufficient file write permissions for the %s folder.",
                         substr($image_path, strlen($config->getRootPath()))
@@ -49,7 +49,7 @@ class shopProductImagesAddMethod extends shopProductUpdateMethod
             $_GET['id'] = $image_id;
             $this->response = $method->getResponse(true);
         } else {
-            throw new waAPIException('server_error', $image->error);
+            throw new waAPIException('server_error', $file->error);
         }
 
     }

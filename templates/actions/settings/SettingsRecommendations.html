@@ -32,6 +32,8 @@
                 </div>
             </div>
         </div>
+        {foreachelse}
+            <p><em>[`Create at least one product type to setup product recommendations.`]</em></p>
         {/foreach}
 
     </div>
@@ -62,6 +64,8 @@
                 </div>
             </div>
         </div>
+        {foreachelse}
+            <p><em>[`Create at least one product type to setup product recommendations.`]</em></p>
         {/foreach}
     </div>
 
@@ -69,9 +73,9 @@
 
 </div>
 <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js"></script>
-<script type="text/javascript" src="{$wa_app_static_url}js/settings/recommendations.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/recommendations.js?v={$wa->version()}"></script>
 <script type="text/javascript">
-    document.title = '{"[`Recommendations`]"|cat:" — ":{$wa->accountName()}}';
+    document.title = '{"[`Recommendations`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     $.settings.recommendationsInit({
         features: {json_encode($features)},
         data: {json_encode($data)}

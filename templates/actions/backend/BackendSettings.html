@@ -35,6 +35,11 @@
                     <i class="icon16 ss cube-bw"></i>[`Stocking`]
                 </a>
             </li>
+            <li>
+                <a href="?action=settings#/search/">
+                    <i class="icon16 ss search-bw"></i>[`Product search`]
+                </a>
+            </li>
             <!-- plugin hook: 'backend_settings.sidebar_middle_li' -->
             {* @event backend_settings.%plugin_id%.sidebar_middle_li *}
             {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_middle_li)}{/foreach}{/if}
@@ -125,9 +130,11 @@
 </div>
 
     <div class="clear"></div>
-    <script type="text/javascript">
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/settings.js?v={$wa->version()}"></script>
+<script type="text/javascript">
     $.settings.init({
-        'debug':true,
-        'loading' : '[`Loading...`]<i class="icon16 loading"><'+'/i>',
+        debug:true,
+        loading : '[`Loading...`]<i class="icon16 loading"><'+'/i>',
+        backend_url:'{$wa_backend_url|escape:'javascript'}'
     });
-    </script>
+</script>

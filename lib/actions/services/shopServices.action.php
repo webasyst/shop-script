@@ -107,7 +107,8 @@ class shopServicesAction extends waViewAction
             'name' => _w('New service'),
             'price' => 0,
             'variant_id' => 0,
-            'tax_id' => 0
+            'tax_id' => 0,
+            'currency' => '%'
         );
     }
 
@@ -115,7 +116,8 @@ class shopServicesAction extends waViewAction
         return array(
             'id' => 0,
             'name' => '',
-            'price' => 0
+            'price' => 0,
+            'type_of_price' => 'p'
         );
     }
 }

@@ -5,7 +5,7 @@ class shopFrontendSearchAction extends shopFrontendAction
     public function execute()
     {
         $query = waRequest::get('query');
-        $this->setCollection(new shopProductsCollection('search/query='.$query));
+        $this->setCollection(new shopProductsCollection('search/query='.str_replace('&', '\&', $query)));
 
         $query = htmlspecialchars($query);
         $this->view->assign('title', $query);

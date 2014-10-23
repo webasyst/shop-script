@@ -16,7 +16,7 @@
             if (options.stocks && options.stocks.length > 1) {
                 this.initDragndrop();
             }
-            if (this.options.lazy_loading) {
+            if (this.options.lazy_loading && this.options.product_stocks.length > 0) {
                 this.initLazyLoad(this.options.lazy_loading);
             }
         },
@@ -89,12 +89,12 @@
         },
 
         initView: function() {
-            if (!this.append({ product_stocks: this.options.product_stocks, stocks: this.stocks })) {
-                return this;
-            }
             var sidebar = $('#s-sidebar');
             sidebar.find('li.selected').removeClass('selected');
             sidebar.find('#s-product-stocks-info').addClass('selected');
+            if (!this.append({ product_stocks: this.options.product_stocks, stocks: this.stocks })) {
+                return this;
+            }
         },
 
         initDragndrop: function() {

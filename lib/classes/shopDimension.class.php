@@ -12,8 +12,9 @@ class shopDimension
     {
         $config = wa('shop')->getConfig();
         $files = array(
-            $config->getPath('config').'/apps/'.$config->getApplication().'/dimension.php',
-            $config->getAppPath().'/lib/config/data/dimension.php',
+            $config->getConfigPath('dimension.php'),
+            $config->getConfigPath('data/dimension.php', false),
+
         );
         foreach ($files as $file_path) {
             if (file_exists($file_path)) {
@@ -116,6 +117,39 @@ class shopDimension
 
     }
 
+    /**
+     * @param $type
+     * @return array
+     */
+    public static function getBaseUnit($type)
+    {
+        $instance = self::getInstance();
+        if ($type && ($d = $instance->getDimension($type))) {
+            $units = self::getUnits($type);
+            if (isset($units[$d['base_unit']])) {
+                return $units[$d['base_unit']];
+            }
+        }
+        return array();
+    }
+
+    /**
+     * @param $type
+     * @param $unit
+     * @return array
+     */
+    public static function getUnit($type, $unit)
+    {
+        $instance = self::getInstance();
+        if ($type && ($d = $instance->getDimension($type))) {
+            $units = self::getUnits($type);
+            if (isset($units[$unit])) {
+                return $units[$unit];
+            }
+        }
+        return array();
+    }
+
     public static function getUnits($type)
     {
         $units = array();
@@ -156,10 +190,12 @@ class shopDimension
     /**
      *
      * Convert dimension values
+     *
      * @param double $value
      * @param string $type dimension type
      * @param string $unit target dimension unit, default is base_unit
      * @param string $value_unit value dimension unit, default is base_unit
+     *
      * @return double
      */
     public function convert($value, $type, $unit, $value_unit = null)

@@ -22,33 +22,50 @@ class shopCheckoutPayment extends shopCheckout
         }
 
         $currencies = wa('shop')->getConfig()->getCurrencies();
-        foreach ($methods as $method_id => $m) {
+        $selected = null;
+        foreach ($methods as $key => $m) {
+            $method_id  = $m['id'];
             if (in_array($method_id, $disabled)) {
-                unset($methods[$method_id]);
+                unset($methods[$key]);
                 continue;
             }
             $plugin = shopPayment::getPlugin($m['plugin'], $m['id']);
             $plugin_info = $plugin->info($m['plugin']);
-            $methods[$method_id]['icon'] = $plugin_info['icon'];
+            $methods[$key]['icon'] = $plugin_info['icon'];
             $custom_fields = $this->getCustomFields($method_id, $plugin);
             $custom_html = '';
             foreach ($custom_fields as $c) {
                 $custom_html .= '<div class="wa-field">'.$c.'</div>';
             }
-            $methods[$method_id]['custom_html'] = $custom_html;
+            $methods[$key]['custom_html'] = $custom_html;
             $allowed_currencies = $plugin->allowedCurrency();
             if ($allowed_currencies !== true) {
                 $allowed_currencies = (array) $allowed_currencies;
                 if (!array_intersect($allowed_currencies, array_keys($currencies))) {
-                    $methods[$method_id]['error'] = sprintf(_w('Payment procedure cannot be processed because required currency %s is not defined in your store settings.'), implode(', ', $allowed_currencies));
+                    $methods[$key]['error'] = sprintf(_w('Payment procedure cannot be processed because required currency %s is not defined in your store settings.'), implode(', ', $allowed_currencies));
                 }
+            }
+            if (!$selected && empty($methods[$key]['error'])) {
+                $selected = $method_id;
             }
         }
 
         $view = wa()->getView();
         $view->assign('checkout_payment_methods', $methods);
-        $m = reset($methods);
-        $view->assign('payment_id', $this->getSessionData('payment', $m ? $m['id'] : null));
+        $view->assign('payment_id', $this->getSessionData('payment', $selected));
+        
+        $checkout_flow = new shopCheckoutFlowModel();
+        $step_number = shopCheckout::getStepNumber('payment');
+        // IF no errors 
+        $checkout_flow->add(array(
+            'step' => $step_number
+        ));
+        // ELSE
+//        $checkout_flow->add(array(
+//            'step' => $step_number,
+//            'description' => ERROR MESSAGE HERE
+//        ));
+        
     }
 
     protected function getCustomFields($id, waPayment $plugin)

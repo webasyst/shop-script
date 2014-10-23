@@ -64,5 +64,9 @@ return array(
                 'Zuiko Digital',
             ),
         ),
+        'weight' => array(
+            'name' => 'Packaging weight',
+            'type' => shopFeatureModel::TYPE_DIMENSION.'.weight'
+        ),
     ),
 );

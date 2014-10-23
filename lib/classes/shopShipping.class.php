@@ -2,6 +2,7 @@
 class shopShipping extends waAppShipping
 {
     private static $instance;
+
     public static function getInstance()
     {
         if (!isset(self::$instance)) {
@@ -80,6 +81,11 @@ class shopShipping extends waAppShipping
             'status' => 0,
         );
         $plugin = array_merge($default, $plugin);
+        if (!intval(ifempty($plugin['id'])) && isset($plugin['settings'])) {
+            $instance = waShipping::factory($plugin['plugin'], null, self::getInstance());
+            $instance->saveSettings($plugin['settings']);
+        }
+
         $model = new shopPluginModel();
         if (!empty($plugin['id']) && ($id = max(0, intval($plugin['id']))) && ($row = $model->getByField(array('id' => $id, 'type' => shopPluginModel::TYPE_SHIPPING)))) {
             $plugin['plugin'] = $row['plugin'];
@@ -91,12 +97,6 @@ class shopShipping extends waAppShipping
         if (!empty($plugin['id']) && isset($plugin['settings'])) {
             $instance = waShipping::factory($plugin['plugin'], $plugin['id'], self::getInstance());
             $instance->saveSettings($plugin['settings']);
-            /*
-             $settings_model = new shopPluginSettingsModel();
-             foreach ($plugin['settings'] as $name => $value) {
-             $settings_model->set($plugin['id'], $name, is_array($value) ? json_encode($value) : $value);
-             }
-             */
         }
         return $plugin;
     }
@@ -123,6 +123,8 @@ class shopShipping extends waAppShipping
 
     public function setSettings($plugin_id, $key, $name, $value)
     {
-        $this->model()->set($key, $name, $value);
+        if (!empty($key)) {
+            $this->model()->set($key, $name, $value);
+        }
     }
 }

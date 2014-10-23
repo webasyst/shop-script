@@ -35,8 +35,13 @@
                   (name, vendor?, vendorCode?)
                  ),
                  aliases?, additional*, description?, sales_notes?, promo?,
-                 manufacturer_warranty?, country_of_origin?, downloadable?, adult?, age?,
+                 manufacturer_warranty?,seller_warranty?, country_of_origin?, downloadable?, adult?,
+                 age?,
                  barcode*,
+                 cpa?,
+                 expiry?,
+                 weight?,
+                 dimensions?,
                  param*,
                  related_offer*
                 )>
@@ -64,7 +69,7 @@
 <!ELEMENT onstock EMPTY>
 <!ELEMENT ordering (#PCDATA)>
 <!ATTLIST ordering
-  hours CDATA #IMPLIED>
+    hours CDATA #IMPLIED>
 
 <!ELEMENT deliveryTime EMPTY>
 <!ELEMENT price (#PCDATA)>
@@ -124,11 +129,18 @@
 <!ELEMENT price_max (#PCDATA)>
 <!ELEMENT options (#PCDATA)>
 <!ELEMENT manufacturer_warranty (#PCDATA)>
+<!ELEMENT seller_warranty (#PCDATA)>
 <!ELEMENT country_of_origin (#PCDATA)>
 <!ELEMENT downloadable (#PCDATA)>
 <!ELEMENT adult (#PCDATA)>
 <!ELEMENT age (#PCDATA)>
+<!ATTLIST age
+    unit (month|year) "year">
+<!ELEMENT expiry (#PCDATA)>
+<!ELEMENT weight (#PCDATA)>
+<!ELEMENT dimensions (#PCDATA)>
 <!ELEMENT barcode (#PCDATA)>
+<!ELEMENT cpa (#PCDATA)>
 <!ELEMENT param (#PCDATA)>
 <!ATTLIST param
     name CDATA #REQUIRED
@@ -144,3 +156,5 @@
 <!ELEMENT is_premiere (#PCDATA)>
 <!ELEMENT is_kids (#PCDATA)>
 <!ELEMENT date (#PCDATA)>
+
+

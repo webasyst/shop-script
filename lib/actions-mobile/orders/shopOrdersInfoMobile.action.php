@@ -8,7 +8,7 @@ class shopOrdersInfoMobileAction extends shopMobileViewAction
     public function execute()
     {
         $id = waRequest::request('id', 0, 'int');
-        if (!$id) {
+        if (!$id || !wa()->getUser()->getRights('shop', 'orders')) {
             $this->redirect(wa()->getAppUrl());
         }
 
@@ -16,8 +16,8 @@ class shopOrdersInfoMobileAction extends shopMobileViewAction
         $om = new shopOrderModel();
         $order = $om->getOrder($id);
         shopHelper::workupOrders($order, true);
-        $order['tax'] = (float) $order['tax'];
-        $order['discount'] = (float) $order['discount'];
+        $order['tax'] = (float)$order['tax'];
+        $order['discount'] = (float)$order['discount'];
 
         // Order params
         $opm = new shopOrderParamsModel();
@@ -25,25 +25,25 @@ class shopOrdersInfoMobileAction extends shopMobileViewAction
 
         // Order subtotal
         $order_subtotal = 0;
-        foreach($order['items'] as $i) {
-            $order_subtotal += $i['price']*$i['quantity'];
+        foreach ($order['items'] as $i) {
+            $order_subtotal += $i['price'] * $i['quantity'];
         }
 
         // Format addresses
         $settings = wa('shop')->getConfig()->getCheckoutSettings();
         $form_fields = ifset($settings['contactinfo']['fields'], array());
-        $formatter = new waContactAddressOneLineFormatter();
-        if (isset($form_fields['address.shipping'])) {
-            $shipping_address = shopHelper::getOrderAddress($order['params'], 'shipping');
-            $shipping_address = $formatter->format(array('data' => $shipping_address));
-            $shipping_address = $shipping_address['value'];
-        } else {
-            $shipping_address = null;
-        }
+        $formatter = new waContactAddressSeveralLinesFormatter();
+        $shipping_address = shopHelper::getOrderAddress($order['params'], 'shipping');
+        $shipping_address = $formatter->format(array('data' => $shipping_address));
+        $shipping_address = $shipping_address['value'];
+
         if (isset($form_fields['address.billing'])) {
             $billing_address = shopHelper::getOrderAddress($order['params'], 'billing');
             $billing_address = $formatter->format(array('data' => $billing_address));
             $billing_address = $billing_address['value'];
+            if ($billing_address === $shipping_address) {
+                $billing_address = null;
+            }
         } else {
             $billing_address = null;
         }
@@ -51,22 +51,15 @@ class shopOrdersInfoMobileAction extends shopMobileViewAction
         // Order history
         $log_model = new shopOrderLogModel();
         $log = $log_model->getLog($order['id']);
-        $order_comment = '';
-        foreach($log as $l) {
-            if ($l['action_id'] == 'create') {
-                $order_comment = $l['text'];
-                break;
-            }
-        }
 
         // Customer
         $contact = $customer = self::getCustomer($order);
         $top = array();
         foreach (array('email', 'phone') as $f) {
-            if ( ( $v = $contact->get($f, 'top,html'))) {
+            if (($v = $contact->get($f, 'top,html'))) {
                 $top[] = array(
-                    'id' => $f,
-                    'name' => waContactFields::get($f)->getName(),
+                    'id'    => $f,
+                    'name'  => waContactFields::get($f)->getName(),
                     'value' => is_array($v) ? implode(', ', $v) : $v,
                 );
             }
@@ -88,7 +81,6 @@ class shopOrdersInfoMobileAction extends shopMobileViewAction
         $this->view->assign('order', $order);
         $this->view->assign('uniqid', uniqid('f'));
         $this->view->assign('customer', $customer);
-        $this->view->assign('order_comment', $order_comment);
         $this->view->assign('workflow_state', $workflow_state);
         $this->view->assign('workflow_buttons', $workflow_buttons);
         $this->view->assign('shipping_address', $shipping_address);
@@ -117,7 +109,8 @@ class shopOrdersInfoMobileAction extends shopMobileViewAction
                 $customer['name'] = ifset($order['params']['contact_name'], '');
                 $customer['email'] = ifset($order['params']['contact_email'], '');
                 $customer['phone'] = ifset($order['params']['contact_phone'], '');
-            } catch (Exception $e) {}
+            } catch (Exception $e) {
+            }
         }
         return $customer;
     }

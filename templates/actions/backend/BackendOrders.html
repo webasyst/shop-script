@@ -1,8 +1,8 @@
-<script type="text/javascript" src="{$wa_app_static_url}js/tmpl.min.js"></script>
-<script type="text/javascript" src="{$wa_app_static_url}js/lazy.load.js"></script>
-<script type="text/javascript" src="{$wa_app_static_url}js/orders.js?v{$wa->version()}"></script>
-<script type="text/javascript" src="{$wa_app_static_url}js/order/list.js"></script>
-<script type="text/javascript" src="{$wa_app_static_url}js/order/edit.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/tmpl.min.js?v={$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/lazy.load.js?v={$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/orders.js?v={$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/order/list.js?v={$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/order/edit.js?v={$wa->version()}"></script>
 
 <div class="sidebar left200px s-inner-sidebar" id="s-sidebar">
     <div class="block">
@@ -50,20 +50,17 @@
         </ul>
     </div>
 
-    {if !empty($contacts)}
+    {if !empty($storefronts) && count($storefronts) > 1}
     <div class="block">
         <h5 class="heading collapse-handler">
-            [`Processed by`]
+            [`Storefronts`]
         </h5>
-        <ul class="menu-v with-icons collapsible">
-            {foreach $contacts as $id => $contact}
-            <li data-contact-id="{$id}" class="list">
-                <span class="count">{if isset($contact_counters[$id])}{$contact_counters[$id]}{else}0{/if}</span>
-                <a href="#/orders/contact_id={$id}/">
-                    <i class="icon16 userpic20" style="background-image: url('{$contact.photo_20x20}');"></i>{if $id == $user_id}[`Me`]{else}{$contact.name}{/if}
-                    <strong class="small highlighted count-new"></strong>
-                </a>
-            </li>
+        <ul class="menu-v with-icons s-storefronts-filter">
+            {foreach $storefronts as $url => $cnt}
+                <li data-storefront="{if $url|substr:-1 == '/'}{$url|substr:0:-1}{else}{$url}{/if}">
+                    <span class="count">{$cnt}</span>
+                    <a href="#/orders/storefront={urlencode($url)}" style="margin-right: 1em;">{if $url|substr:-1 == '/'}{str_replace('www.','',$url|substr:0:-1)}{else}{str_replace('www.','',$url)}{/if}</a>
+                </li>
             {/foreach}
         </ul>
     </div>
@@ -72,7 +69,7 @@
 
     <div class="block">
         <ul class="menu-v with-icons">
-            <li>
+            <li id="s-coupons">
                 <span class="count">{$coupons_count}</span>
                 <a href="#/coupons/"><i class="icon16 ss coupon"></i>[`Discount coupons`]</a>
             </li>
@@ -101,44 +98,48 @@
 {capture name="template-order"}
     {literal}
     {% var options = o.options || {}; %}
+    {% var product = o.data.product; %}
+    {% var sku_ids = o.data.sku_ids; %}
     {% var index = options.index || '0'; %}
-    {% var sku_count = $.shop.helper.size(o.data.skus); %}
-    {% var chosen_sku_id = o.data.sku_id; %}
+    {% var sku_count = $.shop.helper.size(product.skus); %}
+    {% var chosen_sku_id = product.sku_id; %}
     {% var currency = options.currency; %}
     {% var product_sku = null; %}
     {% var stocks = o.options.stocks || {}; %}
-    <tr data-product-id="{%#o.data.id%}" data-index={%#index%} class="s-order-item">
-        <td class="min-width valign-top">{% include('template-order-product-img', { url: o.data.url_crop_small }); %}</td>
+    <tr data-product-id="{%#product.id%}" data-index={%#index%} class="s-order-item">
+        <td class="min-width valign-top">{% include('template-order-product-img', { url: product.url_crop_small }); %}</td>
         <td>
-            <strong class="large">{%=o.data.name%}</strong>
-            <span class="gray">{%#o.data.price_str%}</span>
+            <strong class="large">{%=product.name%}</strong>
+            <span class="gray">{%#product.price_str%}</span>
 
             {% if (sku_count == 1) { %}
                 <span class="s-orders-stock-icon-aggregate">
-                    {%#o.data.icon%}
+                    {%#product.icon%}
                 </span>
                 <span class="s-orders-stock-icon"></span>
             {% } else { %}
-                {%#o.data.icon%}
+                {%#product.icon%}
             {% } %}
 
             {% if (sku_count > 1) { %}
                 <p>
                     <ul class="menu-v compact small s-orders-skus">
-                        {% for (var sku_id in o.data.skus) { %}
-                            {% if (o.data.skus[sku_id].checked) { %}
-                                {% product_sku = o.data.skus[sku_id]; %}
+                        {% for (var i = 0, n = sku_ids.length; i < n; i += 1) { %}
+                            {% var sku_id = sku_ids[i]; %}
+                            {% if (product.skus[sku_id].checked) { %}
+                                {% product_sku = product.skus[sku_id]; %}
                             {% } %}
                             <li>
                                 <label>
                                     <input type="radio" name="sku[add][{%#index%}]" value="{%#sku_id%}"
-                                        {% if (o.data.skus[sku_id].checked) { %}
+                                                                {% if (product.skus[sku_id].checked) { %}
                                             checked="checked" {% chosen_sku_id = sku_id; %}
                                         {% } %}
-                                    >{%=o.data.skus[sku_id].name%}
-                                    <strong>{%#o.data.skus[sku_id].price_str%}</strong>
+                                    >{%=product.skus[sku_id].name%}
+                                    {% if (product.skus[sku_id].sku) { %}<span class="gray">{%=product.skus[sku_id].name%}</span>{% } %}
+                                    <strong>{%#product.skus[sku_id].price_str%}</strong>
                                     <span class="s-orders-stock-icon-aggregate">
-                                        {%#o.data.skus[sku_id].icon%}
+                                        {%#product.skus[sku_id].icon%}
                                     </span>
                                     <span class="s-orders-stock-icon" style="display:none;"></span>
                                 </label>
@@ -147,32 +148,35 @@
                     </ul>
                 </p>
             {% } else { %}
-                {% product_sku = o.data.skus[o.data.sku_id]; %}
-                <input type="hidden" name="sku[add][{%#index%}]" value="{%#o.data.sku_id%}">
+                {% product_sku = product.skus[product.sku_id]; %}
+                <input type="hidden" name="sku[add][{%#index%}]" value="{%#product.sku_id%}">
             {% } %}
 
-            {% if (!$.isEmptyObject(o.data.services)) { %}
-                <p>{% include('template-order-services', { services: o.data.services, options: options }); %}</p>
+            {% if (!$.isEmptyObject(product.services)) { %}
+                <p>{% include('template-order-services', { 
+                        services: product.services,
+                        service_ids: o.data.service_ids,
+                        options: options 
+                    }); %}</p>
             {% } %}
         </td>
-        <input type="hidden" name="product[add][{%#index%}]" value="{%#o.data.id%}">
-        <td class="valign-top nowrap">
+        <input type="hidden" name="product[add][{%#index%}]" value="{%#product.id%}">
+        <td class="valign-top nowrap{% if (options.price_edit) { %} align-right{% } %}">
             <span style="padding-top: 2px;" class="gray">&times;</span>
             <input type="text"
                 name="quantity[add][{%#index%}][product]"
                 class="s-orders-quantity short numerical"
                 value="1"
-                data-max-value="{% if (product_sku.count !== null) { %}{%#''+product_sku.count%}{% } %}"
             >
         </td>
 
         {% include('template-order-stocks-add', { sku: product_sku, stocks: stocks, index: index }); %}
         <td class="valign-top align-right s-orders-product-price">
             {% if (!options.price_edit) { %}
-                <span>{%#o.data.skus[chosen_sku_id].price_str%}</span>
-                <input type="hidden" name="price[add][{%#index%}][product]" value="{%#''+o.data.skus[chosen_sku_id].price%}" class="short">
+                <span>{%#product.skus[chosen_sku_id].price_str%}</span>
+                <input type="hidden" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short">
             {% } else { %}
-                <input type="text" name="price[add][{%#index%}][product]" value="{%#''+o.data.skus[chosen_sku_id].price%}" class="short"><span style="padding-top: 2px;">{%#currency%}</span>
+                <input type="text" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short"><span style="padding-top: 2px;">{%#currency%}</span>
             {% } %}
         </td>
         <td class="valign-top min-width"><a href="#" class="s-order-item-delete"><i class="icon16 delete"></i></a></td>
@@ -184,13 +188,14 @@
         {% var sku = o.sku; %}
         {% var stocks = o.stocks; %}
         {% var item_id = o.item_id; %}
-
         <td class="valign-top align-right nowrap s-orders-product-stocks">
             {% if (sku && !$.isEmptyObject(sku.stock)) { %}
                 @ <select name="stock[edit][{%#item_id%}]" class="s-orders-stock">
                     {% for (var i = 0; i < stocks.length; i += 1) { %}
                         {% var stock_id = stocks[i].id; %}
-                        <option value="{%#stock_id%}" data-icon="{%#''+sku.icons[stock_id]%}">
+                        <option value="{%#stock_id%}" 
+                                           data-icon="{%#''+sku.icons[stock_id]%}"
+                                      >
                             {%#stocks[i].name%}
                         </option>
                     {% } %}
@@ -213,7 +218,9 @@
                 @ <select name="stock[add][{%#index%}][product]" class="s-orders-stock">
                     {% for (var i = 0; i < stocks.length; i += 1) { %}
                         {% var stock_id = stocks[i].id; %}
-                        <option value="{%#stocks[i].id%}" data-icon="{%#''+sku.icons[stock_id]%}">
+                        <option value="{%#stocks[i].id%}" 
+                                          data-icon="{%#''+sku.icons[stock_id]%}"
+                                      >
                             {%#stocks[i].name%}
                         </option>
                     {% } %}
@@ -231,22 +238,30 @@
         {% var options = o.options || {}; %}
         {% var index = options.index || '0'; %}
         {% var currency = options.currency; %}
-        {% for (var service_id in o.services) { %}
-            {% var service = o.services[service_id]; %}
+        {% var services = o.services; %}
+        {% var service_ids = o.service_ids; %}
+        {% for (var i = 0, n = service_ids.length; i < n; i += 1) { %}
+            {% var service_id = service_ids[i]; %}
+            {% var service = services[service_id]; %}
             {% var multi_variants = $.shop.helper.size(service.variants) > 1; %}
             <li>
                 <label>
-                    <input type="checkbox" name="service[add][{%#index%}][]" value="{%#service_id%}" {% if (service.checked) { %}checked="checked"{% } %}>
-                    {%=service.name%}
-                    {% if (!multi_variants) { %}
-                        <strong>{%#service.variants[service.variant_id].price_str%}</strong>
-                    {% } %}
+                    <input type="checkbox" name="service[add][{%#index%}][]" value="{%#service_id%}" 
+                                          {% if (service.checked) { %}checked="checked"{% } %}>
+                          {%=service.name%}
+                          {% if (!multi_variants) { %}
+                              <strong>{%#service.variants[service.variant_id].price_str%}</strong>
+                          {% } %}
                 </label>
                 {% if (multi_variants) { %}
                     <select name="variant[add][{%#index%}][{%#service_id%}]" class="s-orders-service-variant">
                         {% for (var variant_id in service.variants) { %}
                             {% var variant = service.variants[variant_id]; %}
-                            <option value="{%#variant.id%}" data-price="{%#''+variant.price%}" {% if (variant.status == {/literal}{shopProductServicesModel::STATUS_DEFAULT}{literal}) { %}selected="selected"{% } %}>
+                            <option value="{%#variant.id%}" data-price="{%#''+variant.price%}" 
+                                                   data-currency="{%#variant.currency%}"
+                                                   data-price="{%#variant.price%}"
+                                                   {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#variant.percent_price%}"{% } %}
+                                {% if (variant.status == {/literal}{shopProductServicesModel::STATUS_DEFAULT}{literal}) { %}selected="selected"{% } %}>
                                 {%=variant.name%} ({%#variant.price_str%})
                             </option>
                         {% } %}
@@ -254,8 +269,11 @@
                 {% } else { %}
                     <input type="hidden" name="variant[add][{%#index%}][{%#service_id%}]" value="{%#service.variant_id%}">
                 {% } %}
-                <input type="text" name="price[add][{%#index%}][service][{%#service_id%}]"
-                    value="{%#''+service.price%}" class="short s-orders-service-price" >{%#currency%}
+                <input type="text" name="price[add][{%#index%}][service][{%#service_id%}]" value="{%#''+service.price%}" 
+                                      data-currency="{%#service.currency%}"
+                                      data-price="{%#service.price%}"
+                                      {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#service.percent_price%}"{% } %}
+                        class="short s-orders-service-price" >{%#currency%}
             </li>
         {% } %}
     </ul>

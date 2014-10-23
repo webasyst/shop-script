@@ -6,9 +6,32 @@
 
     {foreach $features as $code => $feature}
         <div class="field">
+            {if ($code == 'weight') && empty($feature.multiple) && (strpos($feature.type,'dimension.') === 0)}
             <div class="name">{$feature.name|escape}<br><span class="hint">{$code|escape}</span></div>
             <div class="value">
-                <select name="product[skus][{$sku_id}][features][{$code}]">
+            {$units = shopDimension::getUnits($feature.type)}
+            <input type="text" value="{if isset($sku_features[$code])}{$sku_features[$code]->value|escape}{/if}"
+                {if !isset($sku_features[$code]) && isset($product.features[$code])}placeholder="{$product.features[$code]->value|escape}"{/if}
+                   name="skus[{$sku_id}][features][{$code}][value]">
+            <select name="skus[{$sku_id}][features][{$code}][unit]">
+                {foreach $units as $unit}
+                {if !isset($sku_features[$code]) && isset($product.features[$code])}
+                {$selected_ = ($product.features[$code]->unit == $unit.value)}
+                {else}
+                {$selected_ = (!isset($sku_features[$code]) && $unit@first)||(isset($sku_features[$code]) && ($sku_features[$code]->unit == $unit.value))}
+                {/if}
+                <option value="{$unit.value|escape}"
+                        title="{$unit.title|escape}"{if $selected_} selected="selected"{/if}>{$unit.title|escape}</option>
+                {/foreach}
+            </select>
+            {if !empty($product.features[$code])}
+                <p class="hint">{sprintf('[`Set this SKU weight in case it differs from the product default weight value (%s)`]', $product.features.weight)}</p>
+            {/if}
+            </div>
+            {else}
+            <div class="name">{$feature.name|escape}<br><span class="hint">{$code|escape}</span></div>
+            <div class="value">
+                <select name="skus[{$sku_id}][features][{$code}]">
                     <option value=""></option>
                     {foreach $feature.values as $value}
                         <option value="{$value|escape}" {if !empty($sku_features[$code]) && ($value == (string)$sku_features[$code])}selected="selected"{/if}>
@@ -17,13 +40,14 @@
                     {/foreach}
                 </select>
             </div>
+            {/if}
         </div>
     {/foreach}
 
     <div class="field s-product-sku-images" {if count($product->images) <= 1}style="display:none"{/if}>
         <div class="name">[`SKU image`]</div>
         <div class="value">
-        <input type="text" name="product[skus][{$sku_id}][image_id]" value="{$sku.image_id}" style="display:none;">
+        <input type="text" name="skus[{$sku_id}][image_id]" value="{$sku.image_id}" style="display:none;">
         <ul class="s-product-image-crops">
         
             {* @see js-template int Product.html template *}
@@ -40,18 +64,18 @@
     
     <div class="field">
         <div class="name">[`Available for purchase`]</div>
-        <div class="value"><input type="checkbox" name="product[skus][{$sku_id}][available]" {if !empty($sku.available)} checked="checked"{/if} value="1"></div>
+        <div class="value"><input type="checkbox" name="skus[{$sku_id}][available]" {if !empty($sku.available)} checked="checked"{/if} value="1"></div>
     </div>
     <div class="field">
         <div class="name">[`Purchase price`]</div>
         <div class="value">
-            <input type="text" name="product[skus][{$sku_id}][purchase_price]" value="{$sku.purchase_price|escape}" class="short numerical"><span class="s-product-currency-readonly">{$product.currency}</span>
+            <input type="text" name="skus[{$sku_id}][purchase_price]" value="{$sku.purchase_price|escape}" class="short numerical"><span class="s-product-currency-readonly">{$product.currency}</span>
         </div>
     </div>
     <div class="field">
         <div class="name">[`Compare at price`]</div>
         <div class="value strike">
-            <input type="text" name="product[skus][{$sku_id}][compare_price]" value="{$sku.compare_price|escape}" class="short numerical"><span class="s-product-currency-readonly">{$product.currency}</span>
+            <input type="text" name="skus[{$sku_id}][compare_price]" value="{$sku.compare_price|escape}" class="short numerical"><span class="s-product-currency-readonly">{$product.currency}</span>
         </div>
     </div>
 
@@ -75,7 +99,7 @@
             </div>
             
             <div class="s-sku-attachment" {if empty($sku.file_name)} style="display: none;"{/if}>
-                <input type="checkbox" name="product[skus][{$sku_id}][eproduct]" value="1" {if !empty($sku.file_name)} checked="checked"{/if}>
+                <input type="checkbox" name="skus[{$sku_id}][eproduct]" value="1" {if !empty($sku.file_name)} checked="checked"{/if}>
                 <strong class="s-file-name">
                     {if !empty($sku.file_name)}
                         {$sku.file_name|escape}
@@ -86,10 +110,10 @@
                         {$sku.file_size|wa_format_file_size}
                     {/if}
                 </span>
-                <input type="hidden" name="product[skus][{$sku_id}][file_name]" class="s-input-file-name" value="{if !empty($sku.file_name)}{$sku.file_name|escape}{/if}">
+                <input type="hidden" name="skus[{$sku_id}][file_name]" class="s-input-file-name" value="{if !empty($sku.file_name)}{$sku.file_name|escape}{/if}">
                 <p class="hint">[`A link to download attached file will be sent to customer in the order notification email. The link will be functional only when the order is paid.`]</p>
                 <p class="small">[`Optional file description`]:<br>
-                    <textarea rows="5" cols="40" name="product[skus][{$sku_id}][file_description]" class="s-file-description">{strip}
+                    <textarea rows="5" cols="40" name="skus[{$sku_id}][file_description]" class="s-file-description">{strip}
                         {if !empty($sku.file_description)}{$sku.file_description|escape}{/if}
                     {/strip}</textarea>
                 </p>

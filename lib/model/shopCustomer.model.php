@@ -43,16 +43,29 @@ class shopCustomerModel extends waModel
 
         $join = array();
         $where = array();
+        $select = array(
+            'sc.*, c.*, o.create_datetime AS last_order_datetime'
+        );
 
         if ($category_id) {
             $join[] = 'JOIN wa_contact_categories AS cc ON cc.contact_id=c.id';
             $where[] = 'cc.category_id='.((int)$category_id);
         }
         if ($search) {
-            $search_escaped = $this->escape($search, 'like');
-            $join[] = 'LEFT JOIN wa_contact_emails AS e ON e.contact_id=c.id';
-            $join[] = 'LEFT JOIN wa_contact_data AS p ON p.contact_id=c.id AND p.field="phone"';
-            $where[] = "CONCAT(c.name, ' ', IFNULL(e.email, ''), ' ', IFNULL(p.value, '')) LIKE '%{$search_escaped}%'";
+            // When input looks like a phone, look up by phone.
+            // Otherwise, loop up by name and email.
+            if (preg_match('~^[0-9\s\-\(\)]+$~', $search)) {
+                $search_escaped = $this->escape(preg_replace('~[^0-9]~', '', $search), 'like');
+                if ($search_escaped) {
+                    $join[] = "LEFT JOIN wa_contact_data AS p ON p.contact_id=c.id AND p.field='phone'";
+                    $where[] = "p.value LIKE '%{$search_escaped}%'";
+                    $select[] = 'p.value AS phone';
+                }
+            } else {
+                $search_escaped = $this->escape($search, 'like');
+                $join[] = 'LEFT JOIN wa_contact_emails AS e ON e.contact_id=c.id';
+                $where[] = "CONCAT(c.name, ' ', IFNULL(e.email, '')) LIKE '%{$search_escaped}%'";
+            }
         }
 
         if ($where) {
@@ -88,7 +101,7 @@ class shopCustomerModel extends waModel
         $order = 'ORDER BY '.$possible_orders[$order];
 
         // Fetch basic contact and customer info
-        $sql = "SELECT SQL_CALC_FOUND_ROWS sc.*, c.*, o.create_datetime AS last_order_datetime
+        $sql = "SELECT SQL_CALC_FOUND_ROWS ".implode(', ', $select)."
                 FROM wa_contact AS c
                     JOIN shop_customer AS sc
                         ON c.id=sc.contact_id
@@ -140,14 +153,21 @@ class shopCustomerModel extends waModel
         return array($customers, $total);
     }
 
-    public function getCategoryCounts()
+    public function getCategoryCounts($category_id = null)
     {
-        $sql = "SELECT cc.category_id, count(*)
+        $where = $category_id !== null ? "WHERE cc.category_id=".(int)$category_id : "";
+        $sql = "SELECT cc.category_id, count(*) AS cnt
                 FROM wa_contact_categories AS cc
                     JOIN shop_customer AS sc
                         ON cc.contact_id=sc.contact_id
+                {$where}
                 GROUP BY cc.category_id";
-        return $this->query($sql)->fetchAll('category_id', true);
+        if ($category_id !== null) {
+            $f = $this->query($sql)->fetchAssoc();
+            return $f ? $f['cnt'] : 0;
+        } else {
+            return $this->query($sql)->fetchAll('category_id', true);
+        }
     }
 }
 

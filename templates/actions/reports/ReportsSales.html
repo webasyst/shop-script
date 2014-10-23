@@ -51,7 +51,11 @@
                         <div class="value small">{$stat.avg_total_returning_formatted} [`Returning`]</div>
                     </div>
                     <div class="field">
-                        <div class="name">[`Average daily sales`]</div>
+                        {if $group_by == 'months'}
+                            <div class="name">[`Average monthly sales`]</div>
+                        {else}
+                            <div class="name">[`Average daily sales`]</div>
+                        {/if}
                         <div class="value bold">{sprintf_wp('%s/day', $stat.avg_total_daily_formatted)}</div>
                     </div>
                 </div>
@@ -95,8 +99,14 @@
 <div class="clear-both"></div>
 
 <script type="text/javascript">(function() { "use strict";
-    document.title = '[`Sales`] — {$wa->accountName()}';
-    $.reports.graph('reports-sales-graph', {json_encode($sales_data)}, {if $group_by == 'days'}0{else}1{/if});
+    document.title = '{"[`Sales`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+    {$cnt = count($sales_data)};
+    {$scale = floor($cnt/35) + 1}
+    $.reports.graph('reports-sales-graph', 
+        {json_encode($sales_data)}, 
+        {if $group_by == 'days'}0{else}1{/if},
+        "{if $cnt <= 35}1 {if $group_by != 'days'}month{else}day{/if}{else}{$scale} {if $group_by != 'days'}months{else}days{/if}{/if}"
+    );
     $.reports.pie('reports-customers-pie', [[
         ["[`New customers`] ({$stat.percent_new}%)", {ifempty($stat.percent_new, 0.01)|replace:',':'.'}],
         ["[`Returning customers`] ({$stat.percent_returning}%)", {ifempty($stat.percent_returning, 0.01)|replace:',':'.'}]

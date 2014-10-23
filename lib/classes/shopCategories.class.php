@@ -26,7 +26,7 @@ class shopCategories
 
     /**
      * Not natural mode means that expanded just one item - root category (with # = 0)
-     * Otherwise all works in natural manner (if item has proper flag - it's expaned, if not - collapsed)
+     * Otherwise all works in natural manner (if item has proper flag - it's expanded, if not - collapsed)
      *
      * @var string
      */
@@ -41,7 +41,7 @@ class shopCategories
 
     private $list;
     private $count;
-    private $is_expaned;
+    private $is_expanded;
 
     public function __construct($root_id = 0)
     {
@@ -68,15 +68,15 @@ class shopCategories
         return $this->count;
     }
 
-    public function isExpaned()
+    public function isExpanded()
     {
-        if ($this->is_expaned === null) {
-            $this->is_expaned = $this->_isExpaned();
+        if ($this->is_expanded === null) {
+            $this->is_expanded = $this->_isExpanded();
         }
-        return $this->is_expaned;
+        return $this->is_expanded;
     }
 
-    private function _isExpaned()
+    private function _isExpanded()
     {
         $contact_id = wa('shop')->getUser()->getId();
         $settings_model = self::getSettingsModel();
@@ -192,7 +192,7 @@ class shopCategories
         if ($parent_id) {
             $categories = $category_model->getTree($parent_id);
         } else {
-            $categories = $category_model->getFullTree();
+            $categories = $category_model->getFullTree('id, left_key, right_key, parent_id, depth, name, count, type, status, include_sub_categories');
         }
 
         // children_count is number of children of category
@@ -210,6 +210,21 @@ class shopCategories
             }
         }
         unset($item);
+        
+        // bind storefronts (routes)
+        $category_routes_model = new shopCategoryRoutesModel();
+        foreach ($category_routes_model->getRoutes(array_keys($categories)) as $category_id => $routes) {
+            foreach ($routes as &$r) {
+                if (substr($r, -1) === '*') {
+                    $r = substr($r, 0, -1);
+                }
+                if (substr($r, -1) === '/') {
+                    $r = substr($r, 0, -1);
+                }
+            }
+            unset($r);  
+            $categories[$category_id]['routes'] = $routes;
+        }
 
         // form intermediate utility data structure
         $stack = array();

@@ -12,7 +12,40 @@ class shopFeatureValuesBooleanModel extends shopFeatureValuesModel
 
     protected function parseValue($value, $type)
     {
-        return array('value' => ($value === "") ? null : (empty($value) ? self::VALUE_NO : self::VALUE_YES));
+        static $map;
+        if (empty($map)) {
+            $map = array(
+                array(
+                    'values' => array('', null, mb_strtolower(_w('Not defined')), 'not defined'),
+                    'value'  => null,
+                ),
+                array(
+                    'values' => array('0', false, 0, 'false', mb_strtolower(_w('No')), 'no'),
+                    'value'  => self::VALUE_NO,
+                ),
+                array(
+                    'values' => array('1', true, 1, 'true', mb_strtolower(_w('Yes')), 'yes'),
+                    'value'  => self::VALUE_YES,
+                ),
+            );
+        }
+
+
+        if (is_string($value)) {
+            $value = trim(mb_strtolower($value));
+        }
+        $matched = false;
+        foreach ($map as $value_map) {
+            if (in_array($value, $value_map['values'], true)) {
+                $value = $value_map['value'];
+                $matched = true;
+                break;
+            }
+        }
+        if (!$matched) {
+            $value = empty($value) ? self::VALUE_NO : self::VALUE_YES;
+        }
+        return array('value' => $value);
     }
 
     protected function getValue($row)
@@ -89,7 +122,7 @@ class shopFeatureValuesBooleanModel extends shopFeatureValuesModel
      */
     public function getProductValues($product_id, $feature_id, $field = 'value')
     {
-        $sql = "SELECT pf.product_id, pf.value_id  " . $field . " FROM shop_product_features pf
+        $sql = "SELECT pf.product_id, pf.value_id  ".$field." FROM shop_product_features pf
                 WHERE pf.product_id IN (i:0) AND pf.feature_id = i:1";
         return $this->query($sql, $product_id, $feature_id)->fetchAll('product_id', true);
     }
@@ -110,56 +143,5 @@ class shopFeatureValuesBooleanModel extends shopFeatureValuesModel
     public function deleteByField($field, $value = null)
     {
         return true;
-    }
-
-}
-
-
-class shopBooleanValue implements ArrayAccess
-{
-    private $value;
-    private $feature_id;
-    private $sort;
-
-    public function __construct($row)
-    {
-        foreach ($row as $field => $value) {
-            $this->$field = $value;
-        }
-    }
-
-    public function __set($field, $value)
-    {
-        return $this->$field = $value;
-    }
-
-    public function __get($field)
-    {
-        return isset($this->$field) ? $this->$field : null;
-    }
-
-    public function offsetGet($offset)
-    {
-        return $this->__get($offset);
-    }
-
-    public function offsetSet($offset, $value)
-    {
-        return $this->__set($offset, $value);
-    }
-
-    public function offsetUnset($offset)
-    {
-
-    }
-
-    public function offsetExists($offset)
-    {
-        return in_array($offset, array('value', 'feature_id', 'sort'));
-    }
-
-    public function __toString()
-    {
-        return ($this->value === null) ? _w('Not defined') : ($this->value ? _w('Yes') : _w('No'));
     }
 }

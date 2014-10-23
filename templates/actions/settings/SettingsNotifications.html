@@ -1,4 +1,7 @@
-<script type="text/javascript" src="{$wa_app_static_url}js/settings/notifications.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/notifications.js?v={$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_url}wa-content/js/ace/ace.js"></script>
+<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-wa/wa.elrte.ace.js"></script>
+
 <div class="sidebar left200px s-settings-order-states">
     <div class="s-inner-sidebar">
         <ul class="menu-v stack with-icons" id="notifications">
@@ -48,4 +51,4 @@
     </div>
 </div>
 
-<script>document.title = '{"[`Notifications`]"|cat:" — ":{$wa->accountName()}}';</script>
+<script>document.title = '{"[`Notifications`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';</script>

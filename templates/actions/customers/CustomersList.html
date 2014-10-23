@@ -17,10 +17,8 @@
     </h1>
 
     {if empty($customers)}
-        <div class="block double-padded align-center">
-            <br><br>
-            <span class="gray">[`You don't have any customers here.`]</span>
-        </div>
+            <br>
+            <p>[`There are no customers in this view.`]</p>
     {else}
         <table class="zebra s-customers">
             <thead><tr>
@@ -38,7 +36,7 @@
                         <a href="#/id/{$c.id}"><img src="{$c.photo|escape}"></a>
                     </td>
                     <td class="align-left">
-                        <h3 class="large"><a href="#/id/{$c.id}">{$c.name|escape}
+                        <h3 class="large name"><a href="#/id/{$c.id}">{$c.name|escape}
                             {foreach $c.categories as $cc}
                                 {if $cc.icon}
                                     {$wa->shop->icon16($cc.icon)}
@@ -82,7 +80,6 @@
     </p>
 </div>
 
-
 <script>(function() { "use strict";
 
     // Set up breadcrumbs
@@ -124,7 +121,8 @@
     // Drag-and-drop customers into categories
     var draggable_params = {
         distance: 5,
-        handle: '.s-userpic img',
+        opacity: 0.75,
+        handle: '.s-userpic img, .name',
         helper: function(event) {
             var cloned_tr = $(event.target).closest('tr').clone();
             cloned_tr.children().each(function() { $(this).width($(this).width()); });
@@ -158,5 +156,6 @@
             $('#s-content').html('<div class="triple-padded block">'+"[`Category has beed deleted.`]"+'</div>');
         });
     {/if}
+    
 })();</script>
 

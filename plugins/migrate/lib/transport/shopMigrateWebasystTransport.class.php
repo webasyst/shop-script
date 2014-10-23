@@ -16,6 +16,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
     const STAGE_PRODUCT_SET = 'productSet';
     const STAGE_COUPON = 'coupon';
     const STAGE_ORDER = 'order';
+    const STAGE_PAGES = 'pages';
 
     public function getStageName($stage)
     {
@@ -66,6 +67,9 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
             case self::STAGE_PRODUCT_SET:
                 $name = _wp('Creating product sets...');
                 break;
+            case self::STAGE_PAGES:
+                $name = _wp('Importing pages...');
+                break;
         }
         return $name;
     }
@@ -98,13 +102,16 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
                     $report = _wp('%d image', '%d images', $count);
                     break;
                 case self::STAGE_PRODUCT_FILE:
-                    $report = _wp('%d product file', '%d files', $count);
+                    $report = _wp('%d product file', '%d product files', $count);
                     break;
                 case self::STAGE_ORDER:
                     $report = _wp('%d order', '%d orders', $count);
                     break;
                 case self::STAGE_COUPON:
                     $report = _wp('%d coupon', '%d coupons', $count);
+                    break;
+                case self::STAGE_PAGES:
+                    $report = _wp('%d page', '%d pages', $count);
                     break;
             }
         }
@@ -125,7 +132,36 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
     {
         if ($result) {
 
-            #default_language
+#settlement
+            $routing = wa()->getRouting();
+            $option = array(
+                'value'        => false,
+                'control_type' => waHtmlControl::SELECT,
+                'title'        => _wp('Storefront'),
+                'description'  => _wp('Shop-Script settlement for static info pages'),
+                'options'      => array(),
+            );
+            $domain_routes = $routing->getByApp('shop');
+            foreach ($domain_routes as $domain => $routes) {
+                foreach ($routes as $route) {
+                    $option['options'][] = array(
+                        'value' => $domain.':'.$route['url'],
+                        'title' => $domain.'/'.$route['url'],
+                    );
+                }
+            }
+
+            if (count($option['options']) == 1) {
+                $option['control_type'] = waHtmlControl::HIDDEN;
+                $value = reset($option['options']);
+                $option['value'] = $value['value'];
+            } else {
+                $sort_callback = create_function('$a,$b', 'return strcasecmp($a["value"],$b["value"]);');
+                usort($option['options'], $sort_callback);
+            }
+            $this->addOption('domain', $option);
+
+
             $option = array(
                 'value'        => false,
                 'control_type' => waHtmlControl::CHECKBOX,
@@ -177,6 +213,8 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
                 'title'        => _wp('Currency'),
                 'options'      => array(),
             );
+
+            //TODO add hint for 1C plugin
 
             $option['description_wrapper'] = '%s &nbsp;→&nbsp;';
 
@@ -238,9 +276,13 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
                 'description'  => _wp('Selected product type will be applied to all imported products'),
                 'options'      => array(),
             );
-
+            $option['options'][] = array(
+                'value' => -1,
+                'title' => _wp('Add as new product type'),
+            );
             $type_model = new shopTypeModel();
             if ($types = $type_model->getAll()) {
+
                 foreach ($types as $type) {
                     $option['options'][] = array(
                         'value' => $type['id'],
@@ -249,8 +291,60 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
                 }
                 $this->addOption('type', $option);
             } else {
-                $this->addOption('type', false);
+                $type = array(
+                    'name' => _wp('Default product type'),
+                    'icon' => 'box',
+                );
+                $option = array(
+                    'control_type' => waHtmlControl::HIDDEN,
+                    'value'        => $type_model->insert($type),
+                );
+                $this->addOption('type', $option);
             }
+
+            #weight control
+            $suggests_features = array();
+            $option = array(
+                'value'        => '',
+                'control_type' => waHtmlControl::SELECT,
+                'title'        => _wp('Weight'),
+                'description'  => _wp('Select feature defining product weight.'),
+                'checked'      => 'true',
+            );
+            $suggests = array(
+                'weight',
+                mb_strtolower(_wp('Weight')),
+            );
+            $feature_options_model = new shopFeatureModel();
+            if ($feature = $feature_options_model->getByCode('weight')) {
+                array_unshift($suggests, mb_strtolower($feature['name']));
+            }
+            $feature_options = $this->getFeaturesOptions($suggests_features, true, false);
+
+            $option['options'] = $feature_options;
+            foreach ($suggests as $suggest) {
+                if ($option['value'] = array_search($suggest, $suggests_features)) {
+                    break;
+                }
+            }
+
+
+            $row = $this->query('SELECT `settings_value` `value` FROM `SC_settings` WHERE `settings_constant_name` = "CONF_WEIGHT_UNIT"');
+            if (!$row) {
+                $row = array('value' => '');
+            }
+
+            if ($option['value']) {
+                $option['value'] = $row['value'].':'.$option['value'];
+            }
+            foreach ($option['options'] as &$o) {
+                $o['value'] = $row['value'].':'.$o['value'];
+            }
+            unset($o);
+            if (!empty($row['value'])) {
+                $option['description'] .= " ".sprintf(_wp('Source weight unit: <strong>%s</strong>'), $row['value']);
+            }
+            $this->addOption('weight', $option);
 
             #options map
             $option = array(
@@ -326,9 +420,21 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
             $sql = 'SELECT `iso2` FROM `SC_language` WHERE `id` = %d';
             if ($language = $this->query(sprintf($sql, $settings['lang']))) {
                 $this->setOption('locale', $language['iso2']);
+                $this->setOption('locale_id', $settings['lang']);
             } elseif ($language = $this->query('SELECT `iso2` FROM `SC_language` ORDER BY `priority` LIMIT 1')) {
                 $this->setOption('locale', $language['iso2']);
+                $this->setOption('locale_id', $settings['lang']);
             }
+        }
+
+        $type = $this->getOption('type');
+        if ($type == -1) {
+            $type_model = new shopTypeModel();
+            $type = array(
+                'name' => 'WebAsyst Shop-Script',
+                'icon' => 'box',
+            );
+            $this->setOption('type', $type_model->insert($type));
         }
 
         if (!$this->getOption('locale')) {
@@ -362,31 +468,24 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
             }
         }
 
-        //weight
-        $features_model = new shopFeatureModel();
-        if ($features_model->getByField('code', 'weight')) {
-            if ($row = $this->query('SELECT `settings_value` `value` FROM `SC_settings` WHERE `settings_constant_name` = "CONF_WEIGHT_UNIT"')) {
-                $this->setOption('weight', $row['value']);
-            }
-        }
-
         $counts = array();
         $count_sqls = array(
-            self::STAGE_TAX => '`SC_tax_classes`',
-            self::STAGE_CATEGORY => '`SC_categories` WHERE `categoryID`>1',
-            self::STAGE_CATEGORY_REBUILD => 0,
+            self::STAGE_PAGES                => '`SC_aux_pages`',
+            self::STAGE_TAX                  => '`SC_tax_classes`',
+            self::STAGE_CATEGORY             => '`SC_categories` WHERE `categoryID`>1',
+            self::STAGE_CATEGORY_REBUILD     => 0,
 
-            self::STAGE_OPTIONS => '`SC_product_options`',
-            self::STAGE_OPTION_VALUES => 0,
-            self::STAGE_CUSTOMER_CATEGORY => '`SC_custgroups`',
-            self::STAGE_CUSTOMER => '`SC_customers`',
-            self::STAGE_PRODUCT => '`SC_products`',
-            self::STAGE_PRODUCT_REVIEW => '`SC_discussions` WHERE `productID`>0',
-            self::STAGE_PRODUCT_SET => '`SC_product_list` WHERE `id`="specialoffers"',
-            self::STAGE_COUPON => '`SC_discount_coupons`',
-            self::STAGE_ORDER => '`SC_orders`',
-            self::STAGE_PRODUCT_IMAGE => '`SC_product_pictures` `i` JOIN `SC_products` `p` ON (`p`.`productID` = `i`.`productID`)',
-            self::STAGE_PRODUCT_FILE => '`SC_products` WHERE (`eproduct_filename` != "")',
+            self::STAGE_OPTIONS              => '`SC_product_options`',
+            self::STAGE_OPTION_VALUES        => 0,
+            self::STAGE_CUSTOMER_CATEGORY    => '`SC_custgroups`',
+            self::STAGE_CUSTOMER             => '`SC_customers`',
+            self::STAGE_PRODUCT              => '`SC_products`',
+            self::STAGE_PRODUCT_REVIEW       => '`SC_discussions` WHERE `productID`>0',
+            self::STAGE_PRODUCT_SET          => '`SC_product_list` WHERE `id`="specialoffers"',
+            self::STAGE_COUPON               => '`SC_discount_coupons`',
+            self::STAGE_ORDER                => '`SC_orders`',
+            self::STAGE_PRODUCT_IMAGE        => '`SC_product_pictures` `i` JOIN `SC_products` `p` ON (`p`.`productID` = `i`.`productID`)',
+            self::STAGE_PRODUCT_FILE         => '`SC_products` WHERE (`eproduct_filename` != "")',
             self::STAGE_PRODUCT_IMAGE_RESIZE => 0,
         );
 
@@ -410,6 +509,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
         }
         return $counts;
     }
+
     public function step(&$current, &$count, &$processed, $stage, &$error)
     {
         $method_name = 'step'.ucfirst($stage);
@@ -441,8 +541,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
                 'counter'   => 0,
 
             );
-        }
-        catch (Exception $ex) {
+        } catch (Exception $ex) {
             sleep(5);
             $this->log($stage.': '.$ex->getMessage().(empty($error) ? 'first' : 'repeat')."\n".$ex->getTraceAsString(), self::LOG_ERROR);
             if (!empty($error)) {
@@ -508,7 +607,9 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
 
                 'id'               => intval($data['categoryID']),
             );
-
+            if (!empty($data['id_1c'])) {
+                $category_data['id_1c'] = mb_substr($data['id_1c'], 0, 36);
+            }
             if ($category->countByField('id', $category_data['id'])) {
                 if ($this->getOption('preserve')) {
                     $category->delete($category_data['id']);
@@ -592,9 +693,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
                 'name'         => $data['name'],
                 'included'     => false,
                 'address_type' => empty($data['address_type']) ? 'billing' : 'shipping',
-                'countries'    => array(
-
-                    //                    'rus' => array(
+                'countries'    => array( //                    'rus' => array(
                     //                        'global_rate' => 18, // %
                     //                        'regions'     => array(
                     //                            'code' => 'value',
@@ -621,8 +720,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
             (isGrouped=0)';
             $rates_per_country = $this->query(sprintf($sql, $id), false);
             foreach ($rates_per_country as $rate) {
-                $country_tax = array(
-                );
+                $country_tax = array();
                 if (empty($rate['isByZone'])) {
                     $country_tax['global_rate'] = $rate['value'];
                 } else {
@@ -642,7 +740,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
             #by zip
             $sql = 'SELECT `t`.`zip_template` `code`, `t`.`value`
             FROM `SC_tax_zip` `t`
-			WHERE (`classID` IN (%s))';
+            WHERE (`classID` IN (%s))';
 
             $rates_per_zip = $this->query(sprintf($sql, $id), false);
             foreach ($rates_per_zip as $rate) {
@@ -651,7 +749,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
 
             #by region
 
-            $sql = 'select LOWER(`c`.`country_iso_3`) `country`,`t`.`classID`, `z`.`zone_code` `region`, LOWER(`z`.`zone_name_%s`) `region_name`, `t`.`value`
+            $sql = 'SELECT LOWER(`c`.`country_iso_3`) `country`,`t`.`classID`, `z`.`zone_code` `region`, LOWER(`z`.`zone_name_%s`) `region_name`, `t`.`value`
             FROM `SC_tax_rates__zones` `t`
             LEFT JOIN `SC_zones` `z`
             ON (`z`.`zoneID`=`t`.`zoneID`)
@@ -704,7 +802,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
                 unset($country_tax);
             }
 
-            $sql = 'select `t`.`classID`, `t`.`value`
+            $sql = 'SELECT `t`.`classID`, `t`.`value`
             FROM `SC_tax_rates__zones` `t`
             WHERE
             (classID IN (%s))
@@ -730,6 +828,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
         }
         return $result;
     }
+
     private function stepCustomerCategory(&$current_stage, &$count, &$processed)
     {
         static $customer_data_cache = array();
@@ -785,6 +884,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
         static $customer_data_cache = array();
         static $customer_fields_cache = array();
         static $customer_address_cache = array();
+        static $map;
         $result = false;
 
         if (!$current_stage) {
@@ -832,8 +932,70 @@ LIMIT 100';
                 }
             }
             unset($data);
+            if (!isset($map)) {
+                $map = array_filter($this->getOption('customer', array()), 'strlen');
+                $map_ids = array();
+                foreach ($map as $map_id => $target) {
+                    if ($target == '::new') {
+                        $map_ids[] = $map_id;
+                    }
+                }
+                if ($map_ids) {
+                    $sql = 'SELECT `reg_field_ID`,`reg_field_required`, `reg_field_name_%s` `name` FROM `SC_customer_reg_fields`
+            WHERE `reg_field_ID` IN (%s)
+            ORDER BY `sort_order`
 
-            $map = array_filter($this->getOption('customer', array()), 'strlen');
+            ';
+                    $exists_contact_fields = array_keys(waContactFields::getAll());
+                    if ($fields = $this->query(sprintf($sql, $this->getOption('locale'), implode(',', $map_ids)), false)) {
+                        $checkout_config_path = wa()->getConfig()->getConfigPath('checkout.php', true, 'shop');
+                        $checkout_config = false;
+                        if (file_exists($checkout_config_path)) {
+                            $checkout_config = include($checkout_config_path);
+                        }
+
+                        while ($field = array_shift($fields)) {
+
+                            $field_id = waLocale::transliterate(mb_strtolower($field['name']), 'ru_RU');
+                            $field_id = preg_replace('([^a-z_])', '_', $field_id);
+                            $field_id = substr(preg_replace('([_]{2,})', '_', $field_id), 0, 64);
+
+
+                            $counter = 0;
+                            while (in_array($field_id, $exists_contact_fields)) {
+                                $field_id = substr($field_id, 0, 60);
+                                $field_id .= $counter;
+                                $field_id = preg_replace("@{$counter}\$@", $counter++, $field_id);
+                            }
+
+                            $options = array(
+                                'app_id' => 'shop',
+                            );
+                            if (!empty($field['reg_field_required'])) {
+                                $options['required'] = true;
+                            }
+
+                            $new_field = new waContactStringField($field_id, $field['name'], $options);
+                            waContactFields::updateField($new_field);
+                            waContactFields::enableField($new_field, 'person');
+                            $map[$field['reg_field_ID']] = $field_id;
+                            $exists_contact_fields[] = $field_id;
+                            if (!empty($checkout_config)) {
+                                $checkout_config['contactinfo']['fields'][$field_id] = array(
+                                    'localized_names' => $field['name'],
+                                    'required'        => !empty($options['required']),
+                                );
+                            }
+                        }
+                        if (!empty($checkout_config)) {
+                            waUtils::varExportToFile($checkout_config, $checkout_config_path);
+                        }
+                    }
+                }
+
+                $this->setOption('customer', $map);
+            }
+            //TODO add new customer text fields
             $customer_fields_cache = array();
             $customer_address_cache = array();
             if ($ids && $map) {
@@ -869,7 +1031,7 @@ LIMIT 100';
                     while ($address = array_shift($addresses)) {
                         $id = intval($address['customerID']);
                         $customer_address_cache[$id] = array();
-                        $address_fields = array('country', 'region', 'zip', 'city', `street`);
+                        $address_fields = array('country', 'region', 'zip', 'city', 'street');
                         foreach ($address_fields as $field) {
                             if (!empty($address[$field])) {
                                 $customer_address_cache[$id][$field] = $address[$field];
@@ -891,7 +1053,7 @@ LIMIT 100';
             $customer['create_app_id'] = 'shop';
 
             if (!empty($data['Login']) && !empty($data['cust_password'])) {
-                $customer['password'] = waContact::getPasswordHash(base64_decode($data['cust_password']));
+                $customer['password'] = base64_decode($data['cust_password']);
             }
             if (!empty($customer_fields_cache[$id])) {
                 foreach ($customer_fields_cache[$id] as $field => $value) {
@@ -926,6 +1088,9 @@ LIMIT 100';
     {
         static $product_data_cache = array();
         static $product_options_cache = array();
+        static $product_tags_cache = array();
+
+        static $services_model;
         $result = false;
 
         if (!$current_stage) {
@@ -950,15 +1115,16 @@ LIMIT 100';
             }
             $sql = 'SELECT
             `o`.`productID`,`o`.`optionID`,  IF(`o`.`option_type`, `v`.`option_value_%1$s`,`o`.`option_value_%1$s`) `value`,
-            `s`.`price_surplus` `price`,  IF(`o`.`variantID` = `s`.`variantID`, 1, 0) `is_default`
+            `s`.`price_surplus` `price`,  IF(`o`.`option_type` AND `o`.`variantID` = `s`.`variantID`, 1, 0) `is_default`
             FROM `SC_product_options_values` `o`
             LEFT JOIN `SC_product_options_set` `s`
             ON (`o`.`productID` = `s`.`productID`) AND (`o`.`optionID` = `s`.`optionID`)
             LEFT JOIN `SC_products_opt_val_variants` `v`
             ON (`o`.`optionID` = `v`.`optionID`) AND (`s`.`variantID` = `v`.`variantID`)
             WHERE (`o`.`productID` IN (%2$s))
-            ORDER BY `o`.`productID`
+            ORDER BY `o`.`productID`,`o`.`optionID`, `v`.`sort_order`, `value`
             ';
+
             $product_options_cache = array();
             if ($ids && ($options = $this->query(sprintf($sql, $this->getOption('locale'), implode(',', $ids)), false))) {
                 while ($option = array_shift($options)) {
@@ -970,6 +1136,32 @@ LIMIT 100';
                     $product_options_cache[$id][] = $option;
                 }
             }
+
+            $sql = <<<SQL
+SELECT `o`.`object_id` `productID`, `t`.`name` `tag`
+            FROM SC_tagged_objects o
+            JOIN SC_tags t
+            ON (t.id = o.tag_id)
+            WHERE
+             o.object_type='product'
+             AND
+             o.language_id = %1\$d
+             AND
+              o.object_id IN (%2\$s)
+SQL;
+
+            $product_tags_cache = array();
+            if ($ids && ($tags = $this->query($s = sprintf($sql, $this->getOption('locale_id'), implode(',', $ids)), false))) {
+                while ($tag = array_shift($tags)) {
+                    $id = intval($tag['productID']);
+                    if (!isset($product_tags_cache[$id])) {
+                        $product_tags_cache[$id] = array();
+                    }
+                    $product_tags_cache[$id][] = $tag['tag'];
+                }
+            }
+
+
             if ($ids && $this->getOption('preserve')) {
                 $product_model->delete($ids);
             }
@@ -983,6 +1175,7 @@ LIMIT 100';
 
             $locale = $this->getOption('locale');
             $product->type_id = $this->getOption('type');
+
             $product->name = $data['name_'.$locale];
             $product->summary = $data['brief_description_'.$locale];
 
@@ -996,10 +1189,25 @@ LIMIT 100';
 
             $product->description = $data['description_'.$locale];
             $product->url = ifempty($data['slug'], $data['productID']);
-            $product->create_datetime = $data['date_added'];
-            $product->edit_datetime = $data['date_modified'];
+            if (!empty($data['date_added']) && ($data['date_added'] != '0000-00-00 00:00:00')) {
+                $product->create_datetime = $data['date_added'];
+            }
+            if (!empty($data['date_modified']) && ($data['date_modified'] != '0000-00-00 00:00:00')) {
+                $product->edit_datetime = $data['date_modified'];
+            }
+
+            if (!empty($data['id_1c'])) {
+                $product->setData('id_1c', mb_substr($data['id_1c'], 0, 36));
+            }
             $categories = array_map('intval', explode(',', $data['extra_category']));
-            $categories[] = intval($data['categoryID']);
+            //insert primary category first
+            if ($category_id = intval($data['categoryID'])) {
+                $id = array_search($category_id, $categories);
+                if ($id !== false) {
+                    unset($categories[$category_id]);
+                }
+                array_unshift($categories, $category_id);
+            }
 
             foreach ($categories as $id => & $category_id) {
                 if (isset($this->map[self::STAGE_CATEGORY][$category_id])) {
@@ -1007,15 +1215,25 @@ LIMIT 100';
                 } else {
                     unset($categories[$id]);
                 }
+                unset($category_id);
             }
             $product->categories = $categories;
+            if (!empty($product_tags_cache[$data['productID']])) {
+                $product->tags = $product_tags_cache[$data['productID']];
+            }
             $product->currency = $this->getOption('currency');
 
             $product->tax_id = ifempty($this->map[self::STAGE_TAX][$data['classID']], null);
 
+            $product->status = empty($data['enabled']) ? 0 : 1;
+
             $features = array();
             if (($weight = $this->getOption('weight')) && !empty($data['weight'])) {
-                $features['weight'] = array($data['weight'].' '.$weight);
+                $f = null;
+                @list($weight, $f, $code) = explode(':', $weight, 3);
+                if ($code) {
+                    $features[$code] = $data['weight'].' '.$weight;
+                }
             }
             $services = array();
 
@@ -1035,38 +1253,52 @@ LIMIT 100';
                             case 'f':
                                 if ($option['value'] !== '') {
                                     $code = $target[1];
+                                    if (strpos($code, ':')) {
+                                        @list($code, $dimension) = explode(':', $code, 2);
+                                        if ($dimension && !preg_match('@\d\s+\w+$@', $option['value'])) {
+                                            $option['value'] = doubleval($option['value']).' '.$dimension;
+                                        }
+                                    }
+
                                     if (!isset($features[$code])) {
                                         $features[$code] = array();
                                     }
-                                    $features[$code][] = $option['value'];
+
+                                    if (intval($option['is_default'])) {
+                                        array_unshift($features[$code], $option['value']);
+                                    } else {
+                                        $features[$code][] = $option['value'];
+                                    }
+
                                 }
                                 break;
                             case 's':
                                 if (($option['value'] !== null) && ($option['value'] !== '')) {
                                     $service_id = $target[1];
-                                    if (!isset($services[$service_id])) {
-                                        $services[$service_id] = array();
-                                    }
                                     $service_variants_model = new shopServiceVariantsModel();
                                     //TODO check currency
                                     $variant_field = array(
                                         'service_id' => $service_id,
                                         'name'       => $option['value'],
                                     );
-                                    if ($variant = $service_variants_model->getByField($variant_field)) {
-                                        if ($variant['price'] == $option['price']) {
-                                            $variant['price'] = null;
-                                        }
-
-                                        $variant['status'] = $option['is_default'] ? shopProductServicesModel::STATUS_DEFAULT : shopProductServicesModel::STATUS_PERMITTED;
-                                        $services[$service_id][$variant['id']] = $variant;
-                                    } else {
-                                        $this->log('Service variant not found', self::LOG_WARNING, $variant_field);
-                                    }
-                                    if (empty($services[$service_id])) {
-                                        unset($services[$service_id]);
+                                    $variant = $service_variants_model->getByField($variant_field);
+                                    if (!$variant) {
+                                        $variant = $variant_field;
+                                        $variant['price'] = $option['price'];
+                                        $variant['id'] = $service_variants_model->insert($variant_field);
+                                        $service_variants_model->move($service_id, $variant['id']);
                                     }
 
+
+                                    if (!isset($services[$service_id])) {
+                                        $services[$service_id] = array();
+                                    }
+
+                                    $services[$service_id][$variant['id']] = array(
+                                        'price'  => ($variant['price'] == $option['price']) ? null : $option['price'],
+                                        'status' => intval($option['is_default']) ? shopProductServicesModel::STATUS_DEFAULT : shopProductServicesModel::STATUS_PERMITTED,
+                                        'skus'   => array(),
+                                    );
                                 }
                                 break;
                             case 'sku':
@@ -1086,10 +1318,9 @@ LIMIT 100';
             }
 
             //skus
-            $product->sku_id = -1;
             $in_stock = sprintf('%d', intval($data['in_stock']));
             $skus = array(-1 => array(
-                'name'          => $sku_options? $data['name_'.$locale]:'',
+                'name'          => $sku_options ? $data['name_'.$locale] : '',
                 'sku'           => ifempty($data['product_code'], ''),
                 'stock'         => array(
                     0 => $in_stock,
@@ -1098,29 +1329,29 @@ LIMIT 100';
                 'price'         => $data['Price'],
                 'available'     => $data['enabled'] ? 1 : 0,
                 'compare_price' => $data['list_price'],
-            ));
+            )
+            );
+            $product->sku_id = -1;
             if ($sku_options) {
                 $sku_level = 0;
                 foreach ($sku_options as $sku_option) {
-
+                    $id = 0;
                     $sku_buffer = $skus;
                     $skus = array();
-                    $id = 0;
+
+                    $updated = false;
+                    $_sku_id = $product->sku_id;
+
                     foreach ($sku_option as $option) {
                         foreach ($sku_buffer as $sku_id => $sku) {
-                            if ($sku_level) {
-                                $sku['name'] .= ($sku['name'] ? ', ' : '').$option['value'];
-                            } else {
-                                $sku['name'] = $option['value'];
-                            }
+                            $sku['name'] = ($sku_level && $sku['name'] ? $sku['name'].', ' : '').$option['value'];
+                            $sku['price'] += doubleval($option['price']);
 
-                            $sku['price'] += $option['price'];
                             $skus[--$id] = $sku;
-                            if ($product->sku_id == $sku_id) {
-                                if ($option['is_default']) {
-                                    // update default sku_id
-                                    $product->sku_id = $sku_id;
-                                }
+
+                            if (!$updated && ($sku_id == $_sku_id) && intval($option['is_default'])) {
+                                $updated = true;
+                                $product->sku_id = $id;
                             }
                         }
                     }
@@ -1128,7 +1359,6 @@ LIMIT 100';
                 }
             }
             if (count($skus) > 1) {
-
                 $sku_instock = floor($in_stock / count($skus));
                 foreach ($skus as $sku_id => & $sku) {
                     if ($product->sku_id != $sku_id) {
@@ -1142,8 +1372,8 @@ LIMIT 100';
                     }
                 }
                 unset($sku);
-                $this->log('Import product options as SKU', self::LOG_INFO, $skus);
             }
+
             $product->skus = $skus;
 
             if ($features) {
@@ -1156,9 +1386,11 @@ LIMIT 100';
             }
 
             if ($services) {
-                $services_model = new shopProductServicesModel();
+                if (empty($services_model)) {
+                    $services_model = new shopProductServicesModel();
+                }
                 foreach ($services as $service_id => $variants) {
-                    $this->log('Import product services', self::LOG_INFO, array('product_id' => $product->getId(), 'service_id' => $service_id, 'data' => $variants, 'skus' => $product->skus));
+                    $this->log('Import product services', self::LOG_INFO, array('product_id' => $product->getId(), 'name' => $product->name, 'service_id' => $service_id, 'data' => $variants,));
                     //TODO add services for SKUs
                     $services_model->save($product->getId(), $service_id, $variants);
                 }
@@ -1166,9 +1398,10 @@ LIMIT 100';
 
             // update internal offset
             $this->offset[self::STAGE_PRODUCT] = intval($data['productID']);
+
             $this->map[self::STAGE_PRODUCT][$this->offset[self::STAGE_PRODUCT]] = array(
                 'id'     => $product->getId(),
-                'sku_id' => $product->sku_id,
+                'sku_id' => array_keys($product->skus),
             );
             $result = true;
             array_shift($product_data_cache);
@@ -1246,14 +1479,26 @@ LIMIT 100';
                 try {
                     $file = $product_data['eproduct_filename'];
                     $model = new shopProductSkusModel();
-                    $file_path = shopProduct::getPath($product['id'], "sku_file/{$product['sku_id']}.".pathinfo($file, PATHINFO_EXTENSION));
-                    $this->moveFile('products_files/'.$file, $file_path, false);
+                    $exists_file = null;
+                    foreach ((array)$product['sku_id'] as $sku_id) {
+                        $file_path = shopProduct::getPath($product['id'], "sku_file/{$sku_id}.".pathinfo($file, PATHINFO_EXTENSION));
+                        if (!$exists_file) {
+                            $exists_file = $file_path;
+                        }
+                        if (file_exists($exists_file)) {
+                            if ($exists_file != $file_path) {
+                                waFiles::copy($exists_file, $file_path);
+                            }
+                        } else {
+                            $this->moveFile('products_files/'.$file, $file_path, false);
+                        }
 
-                    $data = array(
-                        'file_size' => filesize($file_path),
-                        'file_name' => $file,
-                    );
-                    $model->updateById($product['sku_id'], $data);
+                        $data = array(
+                            'file_size' => filesize($file_path),
+                            'file_name' => $file,
+                        );
+                        $model->updateById($sku_id, $data);
+                    }
                     ++$processed;
                 } catch (Exception $ex) {
                     $this->log($ex->getMessage(), self::LOG_ERROR);
@@ -1265,23 +1510,24 @@ LIMIT 100';
         }
         return $result;
     }
+
     private function stepProductImage(&$current_stage, &$count, &$processed)
     {
         static $picture_data;
         $sql = 'SELECT
-	`p`.`productID`,
-	`p`.`default_picture`,
-	`i`.`photoID`,
-	`i`.`filename`,
-	`i`.`enlarged`
+    `p`.`productID`,
+    `p`.`default_picture`,
+    `i`.`photoID`,
+    `i`.`filename`,
+    `i`.`enlarged`
 FROM
-	`SC_products` `p`
+    `SC_products` `p`
 JOIN
-	`SC_product_pictures` `i`
-	ON
-		(`p`.`productID`=`i`.`productID`)
+    `SC_product_pictures` `i`
+    ON
+        (`p`.`productID`=`i`.`productID`)
 WHERE
-	(`photoID` > %d)
+    (`photoID` > %d)
 ORDER BY `i`.`PhotoID` LIMIT 10';
         $result = false;
         if (!$current_stage) {
@@ -1307,10 +1553,33 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                 $product = $this->map[self::STAGE_PRODUCT][$product_id];
                 $image_id = null;
                 try {
-                    $original_name = empty($data['enlarged']) ? $data['filename'] : $data['enlarged'];
+                    $original_names = array();
+                    if (!empty($data['enlarged'])) {
+                        $original_names[] = $data['enlarged'];
+                    }
+                    if (!empty($data['filename'])) {
+                        $original_names[] = $data['filename'];
+                    }
 
+                    $original_names = array_unique($original_names);
                     $path = $this->getTempPath('pi');
-                    $this->moveFile('products_pictures/'.$original_name, $path);
+                    $ex = null;
+                    while ($original_name = array_shift($original_names)) {
+                        try {
+                            $this->moveFile('products_pictures/'.$original_name, $path);
+                            $ex = null;
+                            break;
+                        } catch (Exception $e) {
+                            $ex = $e;
+                        }
+                    }
+                    if ($ex) {
+                        throw $ex;
+                    }
+                    if (empty($original_name)) {
+                        throw new waException('Missed image');
+                    }
+
                     if (!($image = new waImage($path))) {
                         throw new waException('Incorrect image');
                     }
@@ -1404,12 +1673,12 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
 
         }
         ++$current_stage;
-        return true;
+        return false;
     }
 
     private function stepOptions(&$current_stage, &$count)
     {
-        static $cache =null;
+        static $cache = null;
         $result = false;
         if (!$current_stage) {
             $this->offset[self::STAGE_OPTIONS] = 0;
@@ -1422,6 +1691,37 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
             $sql = 'SELECT * FROM `SC_product_options` WHERE (`optionID`> %d) ORDER BY `optionID` LIMIT 30';
             $cache = $this->query(sprintf($sql, $offset), false);
         }
+        static $feature_model;
+        static $type_features_model;
+        static $service_model;
+
+
+        if ($weight = $this->getOption('weight')) {
+            @list($base, $target, $code) = explode(':', $weight, 3);
+            if ($target == 'f+') {
+                $feature = array(
+                    'name'       => _wp('Weight'),
+                    'code'       => 'weight',
+                    'type'       => shopFeatureModel::TYPE_VARCHAR,
+                    'multiple'   => 0,
+                    'selectable' => 0,
+                );
+                @list($feature['type'], $feature['multiple'], $feature['selectable']) = explode(':', $code);
+                if (empty($feature_model)) {
+                    $feature_model = new shopFeatureModel();
+                }
+                if (empty($type_features_model)) {
+                    $type_features_model = new shopTypeFeaturesModel();
+                }
+                $feature['id'] = $feature_model->save($feature);
+                $target = 'f';
+                $type_features_model->insert(array('feature_id' => $feature['id'], 'type_id' => $this->getOption('type', 0)), 2);
+                $this->setOption('weight', implode(':', array($base, $target, $feature['code'])));
+                $this->log('Import weight as feature', self::LOG_INFO, $feature);
+            }
+        }
+
+
         if ($option = reset($cache)) {
             $id = intval($option['optionID']);
             $options = $this->getOption('options');
@@ -1442,18 +1742,21 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                             'selectable' => 0,
                         );
                         list($feature['type'], $feature['multiple'], $feature['selectable']) = explode(':', $target[1]);
-
-                        $feature_model = new shopFeatureModel();
-                        $type_features_model = new shopTypeFeaturesModel();
+                        if (empty($feature_model)) {
+                            $feature_model = new shopFeatureModel();
+                        }
+                        if (empty($type_features_model)) {
+                            $type_features_model = new shopTypeFeaturesModel();
+                        }
                         $feature['id'] = $feature_model->save($feature);
 
                         $type_features_model->insert(array('feature_id' => $feature['id'], 'type_id' => $this->getOption('type', 0)), 2);
-                        $map = 'f:'.$feature['code'];
+                        $map = 'f:'.$feature['code'].':'.ifempty($options[$id]['dimension']);
 
                         $this->log('Import option as feature', self::LOG_INFO, $feature);
                         break;
                     case 'f':
-                        $map = 'f:'.$target[1];
+                        $map = 'f:'.$target[1].':'.ifempty($options[$id]['dimension']);
                         break;
 
                     case 's+':
@@ -1464,8 +1767,9 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                             'types'    => array(),
                             'products' => array(),
                         );
-
-                        $service_model = new shopServiceModel();
+                        if (empty($service_model)) {
+                            $service_model = new shopServiceModel();
+                        }
                         $service['id'] = $service_model->save($service);
                         $map = 's:'.$service['id'];
 
@@ -1484,7 +1788,7 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                 if ($map) {
 
                     $this->map[self::STAGE_OPTIONS][$id] = $map;
-                    if (strpos($map, 'sku:') !== 0) {
+                    if ((strpos($map, 'sku:') !== 0) && (strpos($map, 'type:') !== 0)) {
                         $this->map[self::STAGE_OPTION_VALUES][$id] = $map;
                         $count[self::STAGE_OPTION_VALUES] = count($this->map[self::STAGE_OPTION_VALUES]);
                         $this->log('Add option values map', self::LOG_INFO, array($id => $map));
@@ -1508,16 +1812,26 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
         if ($map = reset($this->map[self::STAGE_OPTION_VALUES])) {
             $option_id = key($this->map[self::STAGE_OPTION_VALUES]);
             $this->log('Import option values', self::LOG_INFO, array($option_id => $map));
-            list($target, $id) = explode(':', $map);
+            @list($target, $id) = explode(':', $map, 2);
             switch ($target) {
                 case 'f':
-                    $sql = 'SELECT DISTINCT `option_value_%s` `value` FROM `SC_products_opt_val_variants` WHERE `optionID`=%d ORDER BY `sort_order`';
+                    $dimension = '';
+                    if (strpos($id, ':')) {
+                        @list($id, $dimension) = explode(':', $id, 2);
+                    }
+                    $sql = 'SELECT DISTINCT `option_value_%s` `value`
+                    FROM `SC_products_opt_val_variants`
+                    WHERE `optionID`=%d ORDER BY `sort_order`, `value`';
                     if ($raw_values = $this->query(sprintf($sql, $this->getOption('locale'), $option_id), false)) {
                         $feature_model = new shopFeatureModel();
                         if ($feature = $feature_model->getByField('code', $id)) {
                             $values = array();
-                            while ($value = array_shift($raw_values)) {
-                                $values[] = trim($value['value']);
+                            foreach ($raw_values as $value) {
+                                $value = trim($value['value']);
+                                if ($dimension && !preg_match('@\d\s+\w+$@u', $value)) {
+                                    $value = doubleval($value).' '.$dimension;
+                                }
+                                $values[] = $value;
                             }
                             $feature_model->setValues($feature, array_unique($values), false, true);
                         } else {
@@ -1531,9 +1845,9 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                     MAX(`s`.`price_surplus`) `price`
                     FROM `SC_products_opt_val_variants` `v`
                     LEFT JOIN `SC_product_options_set` `s`
-		            ON (`v`.`optionID` = `s`.`optionID`) AND (`v`.`variantID` = `s`.`variantID`)
+                    ON (`v`.`optionID` = `s`.`optionID`) AND (`v`.`variantID` = `s`.`variantID`)
                     WHERE `v`.`optionID`=%d
-					GROUP BY `v`.`variantID`
+                    GROUP BY `v`.`variantID`
                     ORDER BY `v`.`sort_order`';
                     if ($raw_values = $this->query(sprintf($sql, $this->getOption('locale'), $option_id), false)) {
                         $service_variants_model = new shopServiceVariantsModel();
@@ -1638,7 +1952,7 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
             ++$current_stage;
         }
 
-        return $result;
+        return false && $result;
     }
 
     private function stepOrder(&$current_stage, &$count, &$processed)
@@ -1663,17 +1977,61 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
             if (($rate = $currency_model->getById($currency_value = $this->getOption('currency'))) && ($rate['rate'])) {
                 $this->map[self::STAGE_ORDER]['currency_rate'] = doubleval($rate['rate']);
             }
-            $sql = 'SELECT `status_name_%s` `name`,`statusID` FROM `SC_order_status` ORDER BY `sort_order`';
+            //color bold italic
+            $sql = 'SELECT `status_name_%s` `name`,`color`,`bold`,`italic`,`statusID` FROM `SC_order_status` ORDER BY `sort_order`';
             $state_map =& $this->map[self::STAGE_ORDER]['state'];
-            if ($status_names = $this->query(sprintf($sql, $this->getOption('locale')), false)) {
-                $states = $this->getOption('status');
 
+
+            $workflow_config = shopWorkflow::getConfig();
+            $states = $this->getOption('status');
+            if ($status_names = $this->query(sprintf($sql, $this->getOption('locale')), false)) {
                 foreach ($status_names as $status) {
+                    if (!empty($states[$status['statusID']])) {
+                        $status_id = $states[$status['statusID']];
+                        $style = array();
+
+                        if (!empty($status['color'])) {
+                            $style['color'] = '#'.$status['color'];
+                        }
+                        if (!empty($status['bold'])) {
+                            $style['font-weight'] = 'bold';
+                        }
+                        if (!empty($status['italic'])) {
+                            $style['font-style'] = 'italic';
+                        }
+                        if ($status_id === '::new') {
+                            $workflow_status = array(
+                                'name'              => $status['name'],
+                                'options'           => array(
+                                    'icon'  => 'icon16 ss flag-white',
+                                    'style' => $style,
+                                ),
+                                'available_actions' => array(),
+
+                            );
+                            $status_id = waLocale::transliterate(mb_strtolower($status['name']), 'ru_RU');
+                            $status_id = preg_replace('([^a-z_])', '_', $status_id);
+                            $status_id = substr(preg_replace('([_]{2,})', '_', $status_id), 0, 16);
+                            while (isset($workflow_config['states'][$status_id])) {
+                                $status_id = substr(uniqid(substr($status_id, 0, 10)), 0, 16);
+                            }
+
+                            $states[$status['statusID']] = $status_id;
+                            $workflow_config['states'][$status_id] = $workflow_status;
+                        } else {
+                            $workflow_config['states'][$status_id]['options']['style'] = $style;
+                        }
+                    }
+                    $this->setOption('status', $states);
+                    shopWorkflow::setConfig($workflow_config);
+                }
+                foreach ($status_names as $status) {
+
                     if (!empty($states[$status['statusID']])) {
                         $state_map[$status['name']] = $states[$status['statusID']];
                     }
-
                 }
+
             }
 
             $this->log('state_name_map', self::LOG_INFO, $state_map);
@@ -1863,23 +2221,9 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
             } else {
                 $map['source'] = '';
             }
-            foreach ($map as $field => $target) {
-                if ($target && isset($data[$field])) {
-                    if (strpos($target, ':')) {
-                        if (!empty($data[$field])) {
-                            list($target, $sub_target) = explode(':', $target, 2);
-                            if (empty($order[$target][$sub_target])) {
-                                $order[$target][$sub_target] = '';
-                            } else {
-                                $order[$target][$sub_target] .= ' ';
-                            }
-                            $order[$target][$sub_target] .= $data[$field];
-                        }
-                    } else {
-                        $order[$target] = $data[$field];
-                    }
-                }
-            }
+
+            self::dataMap($order, $data, $map);
+
             if (!empty($this->map[self::STAGE_CUSTOMER][$customer_id])) {
                 $order['contact_id'] = $customer_id = $this->map[self::STAGE_CUSTOMER][$customer_id];
             } else {
@@ -1942,6 +2286,9 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
             }
 
             //order params
+
+            $order['params']['auth_code'] = shopWorkflowCreateAction::generateAuthCode($order['id']);
+            $order['params']['auth_pin'] = shopWorkflowCreateAction::generateAuthPin();
             if (!empty($order['params'])) {
 
                 $params = array_map('trim', $order['params']);
@@ -1969,7 +2316,6 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                             }
                         }
                         $params['shipping_address.country'] = $map['country'];
-                        ;
                     }
                 }
 
@@ -2044,16 +2390,72 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
             if ($current_stage == $count[self::STAGE_ORDER]) {
                 $model->recalculateProductsTotalSales();
                 $model->query('UPDATE shop_order o
-        JOIN (SELECT contact_id, MIN(id) id FROM `shop_order` WHERE paid_date IS NOT NULL GROUP BY contact_id) as f
+        JOIN (SELECT contact_id, MIN(id) id FROM `shop_order` WHERE paid_date IS NOT NULL GROUP BY contact_id) AS f
         ON o.id = f.id
         SET o.is_first = 1');
             }
         } else {
 
             $model->query('UPDATE shop_order o
-        JOIN (SELECT contact_id, MIN(id) id FROM `shop_order` WHERE paid_date IS NOT NULL GROUP BY contact_id) as f
+        JOIN (SELECT contact_id, MIN(id) id FROM `shop_order` WHERE paid_date IS NOT NULL GROUP BY contact_id) AS f
         ON o.id = f.id
         SET o.is_first = 1');
+        }
+        return $result;
+    }
+
+    private function stepPages(&$current_stage, &$count, &$processed)
+    {
+        static $data_cache = array();
+        static $pages_model;
+        $result = false;
+
+        if (!$data_cache) {
+            $sql = <<<SQL
+SELECT * FROM SC_aux_pages
+WHERE `aux_page_ID`>%d
+ORDER BY `aux_page_ID`
+LIMIT 20
+SQL;
+            if (!isset($this->offset[self::STAGE_PAGES])) {
+                $this->offset[self::STAGE_PAGES] = -1;
+            }
+            $data_cache = $this->query(sprintf($sql, intval($this->offset[self::STAGE_PAGES])), false);
+        }
+        if ($row = reset($data_cache)) {
+            $locale = $this->getOption('locale');
+
+            $params = array(
+                'keywords'    => ifset($row['meta_keywords_'.$locale]),
+                'description' => ifset($row['meta_description_'.$locale]),
+            );
+
+
+            $data = array(
+                'domain'   => 'localhost',
+                'route'    => '*',
+                'name'     => ifset($row['aux_page_name_'.$locale]),
+                'url'      => $row['aux_page_slug'].'/',
+                'full_url' => $row['aux_page_slug'].'/',
+                'content'  => ifset($row['aux_page_text_'.$locale]),
+                'status'   => !empty($row['aux_page_enabled']),
+
+            );
+            @list($data['domain'], $data['route']) = explode(':', $this->getOption('domain', 'localhost:*'));
+            if (empty($pages_model)) {
+                $pages_model = new shopPageModel();
+            }
+            $data['id'] = $pages_model->add($data);
+            if ($params = array_filter($params)) {
+                $pages_model->setParams($data['id'], $params);
+            }
+            $this->offset[self::STAGE_PAGES] = intval($row['aux_page_priority']);
+
+            $result = true;
+            $this->offset[self::STAGE_PAGES] = $row['aux_page_ID'];
+            array_shift($data_cache);
+            ++$current_stage;
+            ++$processed;
         }
         return $result;
     }
@@ -2085,7 +2487,7 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                 $name = $option['optionID'];
                 $option_params = $params;
                 $option_params['title'] = $option['name_'.$locale];
-                $option_params['value'] = isset($params['value'][$name]) ? $params['value'][$name] : array('target' => null, );
+                $option_params['value'] = isset($params['value'][$name]) ? $params['value'][$name] : array('target' => null,);
                 $control .= waHtmlControl::getControl('OptionMapControl', $name, $option_params);
             }
             $control .= "</tbody>";
@@ -2126,6 +2528,13 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                 'value' => '',
                 'title' => _wp('Ignore this field'),
             );
+
+
+            $params['options'][] = array(
+                'value' => '::new',
+                'title' => _wp('Add as a new contact field'),
+            );
+
 
             foreach (waContactFields::getAll() as $contact_field) {
 
@@ -2262,6 +2671,9 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
             $feature_control = waHtmlControl::HIDDEN;
         }
 
+        $dimension_params = $params;
+        $dimension_params['options'] = self::getFeatureDimensions();
+
         $service_options = $this->getServicesOptions($suggests_services);
 
         $service_params = $params;
@@ -2293,15 +2705,58 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
         $target_params['options'] = array_slice($target_options, 0, 1);
         $control .= waHtmlControl::getControl(waHtmlControl::RADIOGROUP, 'target', $target_params);
         $control .= waHtmlControl::getControl($feature_control, 'feature', $feature_params);
+        $control .= waHtmlControl::getControl(waHtmlControl::SELECT, 'dimension', $dimension_params);
         $control .= $params['control_separator'];
 
         $target_params['options'] = array_slice($target_options, 1, 1);
         $control .= waHtmlControl::getControl(waHtmlControl::RADIOGROUP, 'target', $target_params);
         $control .= waHtmlControl::getControl($service_control, 'service', $service_params);
         $control .= $params['control_separator'];
-
         $target_params['options'] = array_slice($target_options, 2);
         $control .= waHtmlControl::getControl(waHtmlControl::RADIOGROUP, 'target', $target_params);
+
+        $feature_name = preg_replace("@([\[\]])@", '\\\\$1', waHtmlControl::getName($feature_params, 'feature'));
+        $dimension_name = preg_replace("@([\[\]])@", '\\\\$1', waHtmlControl::getName($dimension_params, 'dimension'));
+
+        $control .= <<<HTML
+<script type="text/javascript">
+if(typeof(\$) == 'function') {
+
+$(':input[name="{$feature_name}"]:first').unbind('change.migrate').bind('change.migrate',function(){
+    var input = $(this);
+    var type = input.val().match(/(dimension\.){1,}([^:]+)/);
+    var option = input.find('option:selected:first');
+    if(type && type[2]){
+        type = type[2]
+    } else if (option.length && (type = (''+option.prop('class')).match(/\bjs-type-dimension\.([\w]+)\b/)) && type[1]) {
+        type = type[1];
+    } else {
+        type = 'none';
+    }
+
+
+    var dimension = $(':input[name="{$dimension_name}"]:first');
+    dimension.val('');
+    dimension.find('option').each(function(){
+        var option =$(this);
+        var disabled = (option.hasClass('js-type-null') || option.hasClass('js-type-'+type))?null:true;
+        option.attr('disabled',disabled);
+        if(disabled){
+            option.hide();
+        } else {
+            option.show();
+            if(option.hasClass('js-base-type')){
+                dimension.val(option.val());
+            }
+        }
+    })
+
+}).trigger('change');
+}
+</script>
+HTML;
+
+
         return $control;
     }
 
@@ -2328,19 +2783,32 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
         $source_states = $params['options'];
         $params['options'] = array();
         $params['options'][] = _wp('Select target order state');
+
+        $params['options']['::new'] = _wp('Add as new order state');
+
         foreach ($states as $id => $state) {
             $params['options'][$id] = $state['name'];
         }
 
+        $predefined = array(
+            2  => 'new',
+            3  => 'processing',
+            1  => 'deleted',
+            14 => 'paid',
+            5  => 'shipped',
+            15 => 'refunded',
+        );
         foreach ($source_states as $id => $state) {
-            $params['value'] = null;
-            $params['title'] = $state['name'];
+            $control_params = $params;
+            $control_params['value'] = (isset($predefined[$id]) && isset($states[$predefined[$id]])) ? $predefined[$id] : null;
+            $control_params['title'] = $state['name'];
             if (!empty($state['wrapper'])) {
-                $params['title_wrapper'] = $state['wrapper'];
+                $control_params['title_wrapper'] = $state['wrapper'];
             } else {
-                $params['title_wrapper'] = '%s';
+                $control_params['title_wrapper'] = '%s';
             }
-            $control .= waHtmlControl::getControl(waHtmlControl::SELECT, $id, $params);
+            $control_params['value'] = self::findSimilar($control_params, null, array('similar' => true));
+            $control .= waHtmlControl::getControl(waHtmlControl::SELECT, $id, $control_params);
         }
         $control .= "</table>";
 
@@ -2348,7 +2816,7 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
 
     }
 
-    private function getFeaturesOptions(&$suggests, $full = false)
+    private function getFeaturesOptions(&$suggests, $full = false, $multiple = true)
     {
         static $features_options = null;
         if ($features_options === null) {
@@ -2362,21 +2830,25 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                 foreach ($z as $f) {
                     if ($f['available']) {
                         if (empty($f['subtype'])) {
-                            $features_options[] = array(
-                                'group' => & $translates['Add as new feature'],
-                                'value' => sprintf("f+:%s:%d:%d", $f['type'], $f['multiple'], $f['selectable']),
-                                'title' => empty($f['group']) ? $f['name'] : ($f['group'].': '.$f['name']),
-                            );
+                            if ($multiple || (empty($f['multiple']) && !preg_match('@^(range|2d|3d)\.@', $f['type']))) {
+                                $features_options[] = array(
+                                    'group' => & $translates['Add as new feature'],
+                                    'value' => sprintf("f+:%s:%d:%d", $f['type'], $f['multiple'], $f['selectable']),
+                                    'title' => empty($f['group']) ? $f['name'] : ($f['group'].': '.$f['name']),
+                                );
+                            }
                         } else {
                             foreach ($f['subtype'] as $sf) {
                                 if ($sf['available']) {
                                     $type = str_replace('*', $sf['type'], $f['type']);
-                                    $features_options[] = $op = array(
+                                    if ($multiple || (empty($f['multiple']) && !preg_match('@^(range|2d|3d)\.@', $type))) {
+                                        $features_options[] = array(
+                                            'group' => & $translates['Add as new feature'],
+                                            'value' => sprintf("f+:%s:%d:%d", $type, $f['multiple'], $f['selectable']),
+                                            'title' => (empty($f['group']) ? $f['name'] : ($f['group'].': '.$f['name']))." — {$sf['name']}",
 
-                                        'group' => & $translates['Add as new feature'],
-                                        'value' => sprintf("f+:%s:%d:%d", $type, $f['multiple'], $f['selectable']),
-                                        'title' => (empty($f['group']) ? $f['name'] : ($f['group'].': '.$f['name']))." — {$sf['name']}",
-                                    );
+                                        );
+                                    }
                                 }
                             }
                         }
@@ -2395,15 +2867,66 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
             $features = $features_model->getAll();
             $suggests = array();
             foreach ($features as $feature) {
-                $features_options[] = array(
-                    'group' => & $translates['Feature'],
-                    'value' => sprintf('f:%s', $feature['code']),
-                    'title' => $feature['name'],
-                );
+                if (empty($feature['parent_id']) && ($multiple || (empty($feature['multiple']) && !preg_match('@^(range|2d|3d)\.@', $feature['type'])))) {
+                    $features_options[] = array(
+                        'group'       => & $translates['Feature'],
+                        'value'       => sprintf('f:%s', $feature['code']),
+                        'title'       => $feature['name'],
+                        'description' => $feature['code'],
+                        'class'       => 'js-type-'.$feature['type'],
+                    );
+                }
                 $suggests[sprintf('f:%s', $feature['code'])] = mb_strtolower($feature['name']);
             }
         }
         return $features_options;
+    }
+
+    private static function getFeatureDimensions()
+    {
+        static $options = null;
+        if ($options === null) {
+            $options = array();
+            $options[] = array(
+                'title' => _wp('Without dimension'),
+                'value' => '',
+                'class' => 'js-type-null',
+            );
+            $dimension = shopDimension::getInstance();
+            foreach ($dimension->getList() as $type => $info) {
+                foreach ($info['units'] as $code => $unit) {
+                    $options[] = array(
+                        //          'group' => $info['name'],
+                        'value' => $code,
+                        'title' => $unit['name'],
+                        'class' => 'js-type-'.$type.(($info['base_unit'] == $code) ? ' js-base-type' : ''),
+                        'style' => ($info['base_unit'] == $code) ? 'font-weight:bold;' : '',
+                    );
+                }
+            }
+        }
+        return $options;
+    }
+
+    private static function dataMap(&$result, $data, $map)
+    {
+        foreach ($map as $field => $target) {
+            if ($target && isset($data[$field])) {
+                if (strpos($target, ':')) {
+                    if (!empty($data[$field])) {
+                        list($target, $sub_target) = explode(':', $target, 2);
+                        if (empty($result[$target][$sub_target])) {
+                            $result[$target][$sub_target] = '';
+                        } else {
+                            $result[$target][$sub_target] .= ' ';
+                        }
+                        $result[$target][$sub_target] .= $data[$field];
+                    }
+                } else {
+                    $result[$target] = $data[$field];
+                }
+            }
+        }
     }
 
     private function getServicesOptions(&$suggests)
@@ -2429,6 +2952,71 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
         return $service_options;
     }
 
+
+    private static function findSimilar(&$params, $target = null, $options = array())
+    {
+        if ($target === null) {
+            $target = empty($params['title']) ? ifset($params['description']) : $params['title'];
+        }
+        $selected = null;
+        if ($target && empty($params['value'])) {
+            $max = $p = 0;
+            //init data structure
+            foreach ($params['options'] as $id => & $column) {
+                if (!is_array($column)) {
+                    $column = array(
+                        'title' => $column,
+                        'value' => $id,
+                    );
+                }
+                $column['like'] = 0;
+            }
+
+            if (!empty($options['similar'])) {
+                foreach ($params['options'] as & $column) {
+                    similar_text($column['title'], $target, $column['like']);
+                    if ($column['like'] >= 90) {
+                        $max = $column['like'];
+                        $selected =& $column;
+                    } else {
+                        $column['like'] = 0;
+                    }
+                    unset($column);
+                }
+            }
+
+            if ($max < 90) {
+                unset($selected);
+                $max = 0;
+                $to = mb_strtolower($target);
+                foreach ($params['options'] as & $column) {
+                    if ($column['like'] < 90) {
+                        $from = mb_strtolower($column['title']);
+                        if ($from && $to && ((strpos($from, $to) === 0) || (strpos($to, $from) === 0))) {
+                            $l_from = mb_strlen($from);
+                            $l_to = mb_strlen($to);
+                            $column['like'] = 100 * min($l_from, $l_to) / max($l_from, $l_to, 1);
+                            if ($column['like'] > $max) {
+                                $selected =& $column;
+                                $max = $column['like'];
+                            }
+                        }
+                    }
+                    unset($column);
+                }
+            }
+
+            if (!empty($selected)) {
+                $selected['style'] = 'font-weight:bold;text-decoration:underline;';
+                $params['value'] = $selected['value'];
+            } elseif ((func_num_args() < 2) && !empty($params['title']) && !empty($params['description'])) {
+                self::findSimilar($params, $params['description'], $options);
+            }
+        }
+        return $params['value'];
+    }
+
     abstract protected function query($sql, $one = true);
+
     abstract protected function moveFile($path, $target, $public = true);
 }

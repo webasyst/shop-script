@@ -1,14 +1,16 @@
 <!-- shop app css -->
-<link href="{$wa_active_theme_url}sidebar.shop.css?{$wa->version()}" rel="stylesheet" type="text/css">
-<link href="{$wa_active_theme_url}jquery.bxslider.css" rel="stylesheet" />
-<link href="{$wa_active_theme_url}sidebar.shop.mobile.css?{$wa->version()}" media="screen and (max-width: 760px)" rel="stylesheet" type="text/css">
+<link href="{$wa_active_theme_url}sidebar.shop.css?v{$wa_theme_version}" rel="stylesheet" type="text/css">
+<link href="{$wa_active_theme_url}jquery.bxslider.css?v{$wa_theme_version}" rel="stylesheet" />
 
 <!-- js -->
-<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-wa/wa.core.js"></script>
-<script type="text/javascript" src="{$wa_active_theme_url}lazyloading.js"></script>
-<script src="{$wa_active_theme_url}jquery.bxslider.min.js"></script>
-<script type="text/javascript" src="{$wa_app_static_url}js/lazy.load.js?v={$wa->version()}"></script>
-<script type="text/javascript" src="{$wa_active_theme_url}sidebar.shop.js"></script>
+<script src="{$wa_active_theme_url}jquery.bxslider.min.js?v{$wa_theme_version}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/lazy.load.js?v{$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_active_theme_url}sidebar.shop.js?v{$wa_theme_version}"></script>
+
+{if $wa->shop->config('enable_2x')}
+<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/jquery.retina.min.js?v{$wa->version(true)}"></script>
+<script type="text/javascript">$(window).load(function(){ $('.promo img,.product-list img,.product-page img,.cart img').retina()});</script>
+{/if}
 
 {if !empty($nofollow)}
     <!-- "nofollow" for pages not to be indexed, e.g. customer account -->

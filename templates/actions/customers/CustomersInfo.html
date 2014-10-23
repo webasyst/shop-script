@@ -87,9 +87,11 @@
                 </td>
                 <td>{$o.create_datetime|wa_date:'humandate'}</td>
                 <td>
-                    {foreach $o.items as $i}
-                        {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
-                    {/foreach}
+                    {if isset($o.items)}
+                        {foreach $o.items as $i}
+                            {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
+                        {/foreach}
+                    {/if}
                 </td>
                 <td>
                     {* !!! TODO: shipping icon *}
@@ -135,7 +137,7 @@
     
     <br><br>
 
-    <h2>[`Affiliate bonus`]</h2>
+    <h2>[`Affiliate program`]</h2>
     <ul class="tabs">
         <li class="s-aff-bonus-total"><strong class="large bold">{if $customer.affiliate_bonus>=0}+{/if}{$customer.affiliate_bonus|wa_format_number:false}</strong></li>
         <li class="no-tab"><a href="javascript:void(0)" id="add-credit" class="inline-link"><i class="icon16 ss chart-up"></i><b><i>[`Add credit`]</i></b></a></li>
@@ -180,10 +182,7 @@
                 <td class="gray">{$h.create_datetime|wa_date:'humandatetime'}</td>
                 <td>
                     {if $h.order_id}
-                        <a href="?action=orders#/orders/id={$h.order_id}/">[`Order`] {$wa->shop->orderId($h.order_id)}</a>
-                    {/if}
-                    {if $h.order_id && $h.comment}
-                        <br>
+                        <a href="?action=orders#/orders/id={$h.order_id}/" class="inline">[`Order`] {$wa->shop->orderId($h.order_id)}</a>
                     {/if}
                     {if $h.comment}
                         {$h.comment|escape}
@@ -215,9 +214,9 @@
     <p>{sprintf('[`%s did not post any product reviews in your storefront yet.`]',$contact.name|escape)}</p>
     *}
     
-    <!-- plugin hook: 'backend_customer.footer' -->
-    {* @event backend_customer.%plugin_id%.footer *}
-    {if !empty($backend_customer)}{foreach $backend_customer as $_}{ifset($_.footer)}{/foreach}{/if}
+    <!-- plugin hook: 'backend_customer.info_section' -->
+    {* @event backend_customer.%plugin_id%.info_section *}
+    {if !empty($backend_customer)}{foreach $backend_customer as $_}{ifset($_.info_section)}{/foreach}{/if}
 
 </div>
 <script>(function() { "use strict";
@@ -243,7 +242,7 @@
         var add_payment_link = $('#add-payment');
         var amount_hint = wrapper.find('.amount-hint');
         
-        document.title = '{$contact.name|escape|cat:' — ':$wa->accountName()}';
+        document.title = '{$contact.name|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 
         // Changing the field makes hint with amount in default currency appear
         var h;
@@ -268,6 +267,7 @@
             add_payment_link.find('b').removeClass('bold');
             form_state = 'credit';
             header.text("[`Credit amount`]");
+            textarea.attr('placeholder', '[`Bonus credit`]');
             submit.removeClass('blue').addClass('green');
             wrapper.show();
         });
@@ -284,6 +284,7 @@
             add_payment_link.find('b').addClass('bold');
             form_state = 'payment';
             header.text("[`Payment amount`]");
+            textarea.attr('placeholder', '[`Bonus pay out`]');
             submit.removeClass('green').addClass('blue');
             wrapper.show();
         });

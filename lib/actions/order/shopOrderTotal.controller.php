@@ -24,42 +24,65 @@ class shopOrderTotalController extends waJsonController
             $values = $values_model->getProductValues($product_ids, $f['id']);
         }
 
-        $shipping_address = $this->getAddress();
+        $contact = $this->getContact();
+        $shipping_address = $contact->getFirst('address.shipping');
+        if ($shipping_address) {
+            $shipping_address = $shipping_address['data'];
+        }
+
 
         $shipping_items = array();
         foreach ($items as $i) {
+            if (isset($values['skus'][$i['sku_id']])) {
+                $w = $values['skus'][$i['sku_id']];
+            } else {
+                $w = isset($values[$i['product_id']]) ? $values[$i['product_id']] : 0;
+            }
             $shipping_items[] = array(
                 'name' => '',
                 'price' => $i['price'],
                 'quantity' => $i['quantity'],
-                'weight' => isset($values[$i['product_id']]) ? $values[$i['product_id']] : 0
+                'weight' => $w
             );
         }
 
-        if (waRequest::post('order_id')) {
+        $order_id = waRequest::post('order_id');
+        if ($order_id) {
             $order_model = new shopOrderModel();
-            $order = $order_model->getById(waRequest::post('order_id'));
-            $currency = $order['currency'];
+            $order_info = $order_model->getById($order_id);
+            $currency = $order_info['currency'];
         } else {
             $currency = $this->getConfig()->getCurrency();
         }
 
         $total = waRequest::post('subtotal') - waRequest::post('discount');
 
+        $order = array(
+            'currency' => $currency,
+            'contact' => $contact,
+            'items'   => $items,
+            'total'   => waRequest::post('subtotal'),
+        );
+        if ($order_id) {
+            $order['id'] = $order_info['id'];
+        }
+        $this->response['discount'] = shopDiscounts::calculate($order_info);
+
         $this->response['shipping_methods'] = shopHelper::getShippingMethods($shipping_address, $shipping_items,
             array('currency' => $currency, 'total_price' => $total));
+        // for saving order in js
+        $this->response['shipping_method_ids'] = array_keys($this->response['shipping_methods']);
     }
 
-    protected function getAddress()
+    /**
+     * @return waContact
+     */
+    protected function getContact()
     {
         $customer = waRequest::post('customer');
         if ($customer) {
-            $c = new waContact($customer);
-            $address = $c->getFirst('address.shipping');
-            if ($address) {
-                return $address['data'];
-            }
+            return new waContact($customer);
         }
-        return array();
+        return new waContact();
     }
 }

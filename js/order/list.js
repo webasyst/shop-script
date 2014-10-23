@@ -69,6 +69,7 @@ $.order_list = {
     },
 
     init: function(options) {
+
         this.options = options || {};
         this.filter_params = options.filter_params || {};
         this.filter_params_str = options.filter_params_str || '';
@@ -87,6 +88,7 @@ $.order_list = {
                         orders: options.orders
                     }, true
                 ));
+                this.container.trigger('append_order_list', [options.orders]);
             } catch (e) {
                 if (console) {
                     console.log(e.stack);
@@ -101,11 +103,9 @@ $.order_list = {
             this.initLazyLoad(options.lazy_loading);
         }
 
-        this.updateCounters({
-            state_counters: {
-                'new': options.count_new
-            }
-        });
+        if (options.counters) {
+            this.updateCounters(options.counters);
+        }
 
         if (options.update_process && options.count) {
             this.updateProcess('run', options.update_process);
@@ -149,6 +149,7 @@ $.order_list = {
                                                     check_all: self.options.view == 'table' ? self.select_all_input.attr('checked') : false
                                                 }
                                             ));
+                                            self.container.trigger('append_order_list', [r.data.orders]);
                                             var order = self.container.find('[data-order-id='+self.options.id+']');
                                             if (order.length) {
                                                 self.container.find('.selected').removeClass('selected');
@@ -180,9 +181,15 @@ $.order_list = {
                                         win.lazyLoad('stop');
                                     }
                                 }
-                            ).error(function() {
+                            ).error(function(r) {
                                 if (console) {
-                                    console.log('Error when loading orders: ' + r.errors);
+                                    if (r && r.errors) {
+                                        console.log('Error when loading orders: ' + r.errors);
+                                    } else if (r) {
+                                        console.log(r);
+                                    } else {
+                                        console.log('Error when loading orders');
+                                    }
                                 }
                                 win.lazyLoad('stop');
                             });
@@ -208,11 +215,9 @@ $.order_list = {
 
     initView: function() {
         this.initSidebar();
-        /*
         if (this.options.view == 'table') {
             this.initSelecting();
         }
-        */
         if (this.options.id) {
             this.loadOrder(this.options.id);
         }
@@ -225,16 +230,89 @@ $.order_list = {
             self.attr('href', '#/orders/view=' + li.attr('data-view') + ($.order_list.options.filter_params_str ? '&'+$.order_list.options.filter_params_str : '') + '/');
         });
 
-        /*
+        
+        var peformAction = function(action_id, selected_orders) {
+            var finish = function(r, onFinish) {
+                $.order_list.updateCounters({
+                    state_counters: r.data.state_counters,
+                    common_counters: {
+                        pending: r.data.pending_count
+                    }
+                });
+                
+                if (!$.isEmptyObject(r.data.orders)) {
+                    $.order_list.updateListItems(r.data.orders);
+                }
+                $.order_list.select_all_input.trigger('select', false);
+                
+                var ids = [];
+                var filter_params = $.order_list.filter_params;
+                if (!$.isEmptyObject(r.data.orders)) {
+                    for (var i = 0, n = r.data.orders.length; i < n; i++) {
+                        if (!$.isEmptyObject(filter_params) && filter_params.state_id) {
+                            if ($.type(filter_params.state_id) === 'string' && filter_params.state_id !== r.data.orders[i].state_id) {
+                                ids.push(r.data.orders[i].id);
+                            } else if ($.type(filter_params.state_id) === 'array' && filter_params.state_id.indexOf(r.data.orders[i].state_id) !== -1) {
+                                ids.push(r.data.orders[i].id);
+                            }
+                        }
+                    }
+                }
+                if (!$.isEmptyObject(ids)) {
+                    $.order_list.hideListItems(ids).done(function() {
+                        if (!$.order_list.container.find('.order:not(:hidden):first').length) {
+                            var html = '<div class="block double-padded align-center blank"><br><br><br><br><span class="gray large">'+$_("There are no orders in this view.")+'</span><div class="clear-left"></div></div></div>';
+                            $('#s-content').html(html);
+                        }
+                    });
+                }
+                
+                if (onFinish instanceof Function) {
+                    onFinish(r);
+                }
+            };
+            var step = function(offset, onFinish) {
+                offset = offset || 0;
+                $.shop.jsonPost(
+                    '?module=orders&action=performAction' + 
+                        '&id='+action_id + 
+                        '&offset=' + offset + 
+                        '&' + $.order_list.options.filter_params_str,
+                    selected_orders, 
+                    function(r) {
+                        if (r.status == 'ok') {
+                            if (r.data.offset < r.data.total_count) {
+                                step(r.data.offset, finish);
+                            } else {
+                                finish(r, onFinish);
+                            }
+                        } else {
+                            finish(r, onFinish);
+                        }
+                    }
+                );
+            };
+            step(0, function() {
+                $.orders.dispatch();
+            });
+        };
+        
         $('#order-list').find('.wf-actions a').click(function() {
             var self = $(this);
             var id = self.attr('data-action-id');
-            $.shop.jsonPost('?module=orders&action=performAction&id='+id, $.order_list.getSelectedOrders(), function() {
-                $.orders.dispatch();
-            });
+            if (id) {
+                var selected_orders = $.order_list.getSelectedOrders();
+                if (!selected_orders.order_id) { // means all orders
+                    if (confirm($_('Perform action to all selected orders?'))) {
+                        peformAction(id, selected_orders);
+                    }
+                } else {
+                    peformAction(id, selected_orders);
+                }
+            }
             return false;
         });
-        */
+        
     },
 
     loadOrder: function(order_id) {
@@ -252,7 +330,6 @@ $.order_list = {
         );
     },
 
-    /*
     getSelectedOrders: function(serialize) {
         serialize = serialize || false;
         var data = { count: 0 };
@@ -286,7 +363,7 @@ $.order_list = {
         }
         return data;
     },
-    */
+
 
     initSidebar: function() {
         var sidebar = this.sidebar;
@@ -299,6 +376,12 @@ $.order_list = {
             }
         } else if (this.filter_params.contact_id) {
             sidebar.find('li[data-contact-id='+this.filter_params.contact_id+']').addClass('selected');
+        } else if (this.filter_params.storefront) {
+            var decoded_url = decodeURIComponent(this.filter_params.storefront);
+            if (decoded_url.slice(-1) === '/') {
+                decoded_url = decoded_url.slice(0, -1);
+            }
+            sidebar.find('li[data-storefront="'+decoded_url+'"]').addClass('selected');
         } else {
             $('#s-all-orders').addClass('selected');
         }
@@ -334,7 +417,7 @@ $.order_list = {
             });
     },
 
-    /*
+
     initSelecting: function() {
         var container = this.container;
         var select_all_input = this.select_all_input;
@@ -451,8 +534,6 @@ $.order_list = {
         });
     },
 
-*/
-
     updateTitle: function(title_suffix, count) {
         count = parseInt(count, 10) || 0;
 
@@ -494,6 +575,9 @@ $.order_list = {
      */
     updateCounters: function(counters) {
         var sidebar = this.sidebar;
+        if (!sidebar) {
+            sidebar = $('#s-sidebar');
+        }
         var ext_new_counter = $('#s-pending-orders .small');
         for (var name in counters) {
             if (counters.hasOwnProperty(name)) {
@@ -504,7 +588,11 @@ $.order_list = {
                         if (name == 'common_counters') {
                             item = $('#s-' + id + '-orders .count');
                         } else {
-                            item = sidebar.find('li[data-'+name.replace('_counters', '')+'-id='+id+'] .count');
+                            if (name !== 'storefront_counters') {
+                                item = sidebar.find('li[data-'+name.replace('_counters', '')+'-id='+id+'] .count');
+                            } else {
+                                item = sidebar.find('li[data-'+name.replace('_counters', '')+'="'+id+'"] .count');
+                            }
                         }
                         var prev_cnt = parseInt(item.text(), 10) || 0;
                         var cnt = 0;
@@ -531,37 +619,53 @@ $.order_list = {
         }
     },
 
-    updateListItem: function(data, id, select) {
-        select = typeof select === 'undefined' ? true : select;
+    updateListItems: function(data) {
         var self = this;
-
         var tmpl_name = 'template-order-list-'+this.options.view;
         if (document.getElementById(tmpl_name)) {
             var container = this.container;
-            var li = container.find('li.order[data-order-id='+id+']');
-            if (li.length) {
-                li.replaceWith(tmpl(tmpl_name, {
-                    orders: [data],
-                    check_all: self.options.view == 'table' ? self.select_all_input.attr('checked') : false
-                }));
-                if (select) {
-                    container.find('li.selected').removeClass('selected');
-                    container.find('li.order[data-order-id='+id+']').addClass('selected');
-                }
+            if (!$.isArray(data)) {
+                data = [data];
             }
+            var rendered = $('<div></div>').append(tmpl(tmpl_name, {
+                orders: data,
+                check_all: self.options.view == 'table' ? self.select_all_input.attr('checked') : false
+            }));
+            var context = $('.order', container);
+            $('.order', rendered).each(function() {
+                var item = $(this);
+                context.filter('[data-order-id='+item.attr('data-order-id')+']').replaceWith(item);
+            });
+            rendered.remove();
         }
     },
 
-    hideListItem: function(id) {
+    hideListItems: function(id) {
         // deffered fiber
-        (function(id) {
-            setTimeout(function() {
-                if ($.order_list && $.order_list.container && $.order_list.container.length) {
-                    var li = $.order_list.container.find('li.order[data-order-id='+id+']');
-                    li.slideUp(450);
+        var d = $.Deferred();
+        setTimeout(function() {
+            if ($.order_list && $.order_list.container && $.order_list.container.length) {
+                if (!$.isArray(id)) {
+                    var items = $.order_list.container.find('.order[data-order-id='+id+']');
+                } else {
+                    var context = $.order_list.container.find('.order');
+                    var items = $();
+                    for (var i = 0; i < id.length; i++) {
+                        var item = context.filter('[data-order-id='+id[i]+']');
+                        items = items.add(item);
+                    }
                 }
-            }, 1000);
-        })(id);
+                var length = items.length;
+                var count = 0;
+                items.slideUp(450, function() {
+                    count++;
+                    if (count >= length) {
+                        d.resolve();
+                    }
+                });
+            }
+        }, 1000);
+        return d.promise();
     },
 
     dispatch: function(params, hard) {
@@ -571,7 +675,7 @@ $.order_list = {
         var loaders = {
             list: function() {
                 $.order_list.finit();
-                $.orders.load('?module=orders&' + $.orders.buildProductsUrlComponent(params), function() {
+                $.orders.load('?module=orders&' + $.orders.buildOrdersUrlComponent(params), function() {
                     $.order_list.dispatch(params);
                 });
             },

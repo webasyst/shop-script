@@ -1,322 +1,393 @@
+{strip}
 <div class="block double-padded" id="s-yandexmarket-form">
-    <h1>Яндекс.Маркет</h1>
-    <p>Экспорт товаров в YML-файл для Яндекс.Маркета.</p>
-    {if $settlements}
-   <form id="s-plugin-yandexmarket" method="post" action="?plugin=yandexmarket&module=run">
+<p>Экспорт каталога товаров в формате YML</p>
+{if $settlements}
+    <form id="s-plugin-yandexmarket" method="post" action="?plugin=yandexmarket&module=run">
     <div class="fields form">
-        {if $info.exists}
-        <div class="field-group block" style="background: #eee;">
+
+    {if $info.exists}
+        <div class="field-group" style="border-bottom: 1px solid #ccc;">
             <div class="field">
-                <div class="name">
-                    Последний экспорт
+                <div class="name bold">
+                    <label for="s-plugin-yandexmarket-last-export">YML-файл</label>
                 </div>
                 <div class="value">
-                    <input type="text" value="{$info.url|escape}" readonly="readonly" class="long bold large">
-                    <a href="{$info.url}?download=1" class="bold nowrap"><i class="icon16 download" style="margin-top: 0.4em;"></i>Скачать</a>
-                    <br>
-                    <span class="hint">Обновлен: {$info.mtime|wa_datetime:"humandatetime"}</span>
+                    <input id="s-plugin-yandexmarket-last-export" type="text" value="{$info.url|escape}" readonly="readonly" class="long bold large" style="width: 75% !important;">
+                    <a href="{$info.url}?download=1" class="bold nowrap inline"><i class="icon16 download no-overhanging" style="margin-top: 0.4em;"></i>Скачать</a>
+                    <p class="small">Файл обновлен: {$info.mtime|wa_datetime:"humandatetime"}</p>
+                    <p class="small"><i class="icon10 yes"></i> Ссылка на YML-файл является постоянной и не меняется при повторном экспорте товаров. Для включения автоматического экспорта товаров укажите период обновления с помощью настройки «Обновление файла» ниже и сохраните настройку, повторно экспортировав товары. Чтобы сделать ссылку недействительной, удалите профиль.</p>
                 </div>
             </div>
         </div>
+    {/if}
 
-        {if count($settlements)>1}
+        <div class="field js-profile-description">
+            <div class="name"><label for="s-plugin-yandexmarket-profile-name">Название профиля</label></div>
+            <div class="value">
+                <input type="text" name="profile[name]" value="{$profile.name|default:''|escape}" placeholder="Название профиля" id="s-plugin-yandexmarket-profile-name">
+                <input type="hidden" name="profile[id]" value="{$profile.id|default:'-1'}">
+            </div>
+
+        </div>
+
         <div class="field-group">
             <div class="field">
                 <div class="name">
-                    Выберите витрину магазина
+                    <label for="s-plugin-yandexmarket-domain">Витрина</label>
+                </div>
+                {if count($settlements)>1}
+                    <div class="value no-shift">
+                        <select name="domain" id="s-plugin-yandexmarket-domain">
+                            {foreach $settlements as $route}
+                                <option value="{$route|escape}"{if $route eq $current_domain} selected="selected"{/if}>{$route|escape}</option>
+                            {/foreach}
+                        </select>
+
+                        <p class="hint">Витрину необходимо указать для правильного указания адресов страниц товаров в YML-файле и отбора товаров для экспорта.</p>
+                    </div>
+                {elseif reset($settlements)}
+                    <div class="value no-shift">
+                        {$route = reset($settlements)}
+                        <input type="text" readonly="readonly" value="{$route|escape}" name="domain" id="s-plugin-yandexmarket-domain">
+
+                        <p class="hint">Витрину необходимо указать для правильного указания адресов страниц товаров в YML-файле и отбора товаров для экспорта</p>
+                    </div>
+                {else}
+                    <span class="errormsg">Не удалось обнаружить витрину магазина. Проверьте настройки поселения магазина.</span>
+                {/if}
+            </div>
+            <div class="field js-profile-description">
+                <div class="name">UTM-метки</div>
+                <div class="value no-shift">
+                    Источник (utm_source):<br>
+                    <input type="text" name="utm_source" placeholder="yandexmarket" value="{$profile.config.utm_source|default:''|escape}" >
                 </div>
                 <div class="value no-shift">
-                    <select name="domain">
-                        {foreach $settlements as $route}
-                            <option value="{$route|escape}"{if $route eq $current_domain} selected="selected"{/if}>{$route|escape}</option>
-                        {/foreach}
-                    </select>
-                    <p class="hint">Витрину необходимо указать для правильного указания адресов страниц товаров в YML-файле</p>
+                    Канал (utm_medium):<br>
+                    <input type="text" name="utm_medium" placeholder="cpc" value="{$profile.config.utm_medium|default:''|escape}" >
+                </div>
+                <div class="value no-shift">
+                    Кампания (utm_campaign):<br>
+                    <input type="text" name="utm_campaign" placeholder="{$profile.name|default:''|escape}" value="{$profile.config.utm_campaign|default:''|escape}" >
+                </div>
+                <div class="value">
+                    <p class="hint">Ко всем адресам (URL), содержащимся в файле, будут автоматически добавлены UTM-метки, которые позволят средствам веб-аналитики отследить открытия страниц по этим адресам.  Если вы не используете UTM-метки, просто оставьте поля пустыми.</p>
                 </div>
             </div>
+            
+            <div class="field">
+                <div class="name">
+                    <label for="s-plugin-yandexmarket-ondemand-update">Обновление файла</label>
+                </div>
+                <div class="value no-shift">
+                    <select name="lifetime" id="s-plugin-yandexmarket-ondemand-update">
+                        <option value="0"{if $profile.config.lifetime ==0} selected="selected"{/if}>Обновление только вручную</option>
+                        <option value="60"{if $profile.config.lifetime ==60} selected="selected"{/if}>Автоматически при каждом запросе</option>
+                        <option value="3600"{if $profile.config.lifetime ==3600} selected="selected"{/if}>Автоматически, но не чаще чем раз в час</option>
+                        <option value="86400"{if $profile.config.lifetime ==86400} selected="selected"{/if}>Автоматически, но не чаще чем раз в день</option>
+                        <option value="604800"{if $profile.config.lifetime ==604800} selected="selected"{/if}>Автоматически, но не чаще чем раз в неделю</option>
+                    </select>
+                    <p class="hint">Эта настройка позволяет включить <em>повторный автоматический экспорт</em> товаров в файл при запросе уникального адреса (адрес формируется в момент первого экспорта для каждого профиля). Обновление файла выполняется каждый раз при запросе его уникального адреса, если возраст файла превышает выбранное значение. Если автоматическое обновление не выбрано, то по уникальному адресу файла всегда будет отдаваться его последняя версия, экспортированная вручную.</p>
+                </div>
+            </div>
+            
         </div>
-        {elseif reset($settlements)}
-        {$route = reset($settlements)}
-        <input type="hidden" value="{$route|escape}" name="domain">
-        {/if}
         <div class="clear-left"></div>
-        {/if}
-        <div class="field-group">
-            <h2 class="gray">1. Выберите товары</h2>
-            <div class="field">
-                <div class="name">
-                    <ul class="menu-v with-icons">
-                        <li>
-                            <label class="black"><input type="radio" value="" name="hash" checked="checked"> Все товары</label>
-                        </li>
-                        <li>
-                            <label class="black"><input type="radio" value="sets" name="hash"> Списки</label>
-                        </li>
-                        <li>
-                            <label class="black"><input type="radio" value="types" name="hash"> Типы</label>
-                        </li>
-                    </ul>
-                </div>
-                <div class="value js-hash-values js-hash-sets" style="width: 400px;">
-                    <div class="bordered-left" style="padding-left: 20px;">
-                        <ul class="menu-v with-icons">
-                        {foreach $sets as $set}
-                            <li>
-                            <label title="{$set.id|escape}">
-                                <span class="count">{$set.count}</span>
-                                <i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}funnel{else}ss set{/if}"></i>
-                                <input type="radio" name="set_id" value="{$set.id}"{if $set@first} checked="checked"{/if}>
-                                {$set.name|escape}
-                            </label>
-                            </li>
-                        {/foreach}
-                        </ul>
-                    </div>
-                </div>
-                <div class="value js-hash-values js-hash-types" style="width: 400px;">
-                    <div class="bordered-left" style="padding-left: 20px;">
-                        <ul class="menu-v with-icons">
-                        {foreach $types as $type}{if $type.count}
-                            <li>
-                                <label>
-                                    <span class="count">{$type.count}</span>
-                                    {shopHelper::getIcon($type.icon)}
-                                    <input type="radio" name="type_id" value="{$type.id}"{if $type@first} checked="checked"{/if}>
-                                    {$type.name|escape}
-                                </label>
-                            </li>
-                        {/if}{/foreach}
-                        </ul>
-                    </div>
-                </div>
-                <div class="clear-left"></div>
-            </div>
-        </div>
+    <div class="field-group">
+        <h2 class="gray">1. Выберите товары</h2>
+        {$hash = $profile.config.hash}
+{*BEGIN*}
 
-        <div class="field-group">
-            <h2 class="gray">2. Общие параметры экспорта</h2>
-
-
-            <div class="field">
-                <div class="name">Компания</div>
-                <div class="value">
-                    <input name="company" placeholder="Компания" value="{$company|escape}"><br>
-                    <p class="hint">Полное наименование компании, владеющей магазином. Не публикуется, используется для внутренней идентификации.</p>
-                </div>
-            </div>
-
-
-            <div class="field">
-                <div class="name">Покупка в офлайне<br><span class="hint">(общая настройка)</span></div>
-                <div class="value">
-                    <select name="shop[store]">
-                        <option value=""> </option>
-                        <option value="true">Да</option>
-                        <option value="false">Нет</option>
-                    </select>
-                    <p class="hint">Возможность приобрести товар в точке продаж без предварительного заказа по интернету</p>
-                </div>
-            </div>
-
-
-            <div class="field">
-                <div class="name">Самовывоз<br><span class="hint">(общая настройка)</span></div>
-                <div class="value">
-                    <select name="shop[pickup]">
-                        <option value=""> </option>
-                        <option value="true">Да</option>
-                        <option value="false">Нет</option>
-                    </select>
-                    <p class="hint">Возможность предварительно заказать товар и забрать его в точке продаж</p>
-                </div>
-            </div>
-
-
-            <div class="field">
-                <div class="name">Доставка<br><span class="hint">(общая настройка)</span></div>
-                <div class="value">
-                    <select name="shop[delivery]">
-                        <option value=""> </option>
-                        <option value="true">Да</option>
-                        <option value="false">Нет</option>
-                    </select>
-                    <p class="hint">Осуществляет ли ваш магазин доставку</p>
-                </div>
-            </div>
-
-
-            <div class="field">
-                <div class="name">Доставка включена</div>
-                <div class="value no-shift">
-                    <label><input type="checkbox" name="shop[deliveryIncluded]" value="true"> Доставка уже включена в стоимость товара</label>
-                </div>
-            </div>
-
-
-            <div class="field">
-                <div class="name">Стоимость доставки</div>
-                <div class="value"><input type="text" name="shop[local_delivery_cost]" value="" placeholder="0" class="numerical short"> {$primary_currency|escape}</div>
-            </div>
-
-
-            <div class="field">
-                <div class="name">Товары для взрослых</div>
-                <div class="value">
-                <select name="shop[adult]">
-                    <option value=""></option>
-                    <option value="true">Да</option>
-                    <option value="false">Нет</option>
-                </select>
-                </div>
-            </div>
-{*
-            <div class="field">
-                <div class="name">Остатки</div>
-                <div class="value no-shift">
-                    <label><input type="checkbox"> Не экспортировать товары с нулевым остатком на складе</label><br>
-                </div>
-            </div>
+        {*
+@var array $set array of available sets
+@var array $types array of available product types
+@var array $hint array of hash hints
+@var string $hash
 *}
-        </div>
-        <div class="field-group">
-            <h2 class="gray">3. Экспорт характеристик товаров</h2>
-            {foreach $map as $field => $info}
-                {if (!ifempty($info.category) || in_array('simple',$info.category)) && ifempty($info.type) eq 'adjustable'}
-
-            <div class="field">
-                <div class="name">{$info.name|escape}</div>
-                <div class="value no-shift">
-                    <select name="map[{$field}][source]">
-                        {$selected = false}
-                        <option value="skip:"></option>
-                        {if !empty($info.values)}
-                        <optgroup label="Фиксированное значение">
-                            {if !empty($info.values)}
-                            {foreach $info.values as $value}
-                            <option value="value:{$value|escape}">{$value|escape}</option>
-                            {/foreach}
-                            {else}
-
-                            {*<option value="text:">Пользовательский текст</option>*}
-                            {/if}
-                        </optgroup>
-                        {/if}
-                        <optgroup label="Основное свойство товара">
-                        {foreach $fields as $fid=>$f}
-                            <option value="field:{$fid}"{if !$selected && (ifset($info['source']) eq "field:`$fid`")}{$selected = true} selected="selected"{/if}>{$f|escape}</option>
-                        {/foreach}
-                        </optgroup>
-                        <optgroup label="Характеристика">
-                        {foreach $features as $feature}
-                            <option value="feature:{$feature.code}"{if !$selected && ((ifset($info['source']) eq "feature:`$feature['code']`")||($feature.code eq $field))}{$selected = true} selected="selected"{/if}>{$feature.name|escape}</option>
-                        {/foreach}
-                        </optgroup>
-                    </select> &rarr; {$field|regex_replace:'/\..*$/':''}
-                    <br>
-                    <span class="hint">{$info.description|escape}</span>
-                </div>
+        <div class="field">
+            <div class="name">
+                {_wd('shop',"Select products")}
             </div>
-                {/if}
-            {/foreach}
-        </div>
-        <div class="clear-left"></div>
-        {foreach $map_categories as $category_id =>$category_name}
-
-        <div class="field-group">
-            <h4>2.{$category_name@iteration+1}. Настройки экспорта товаров для типа "{$category_name|escape}"</h4>
-            <div class="field">
-                <div class="name">Типы товаров, относящиеся к группе</div>
-                <div class="value">
-                <ul class="menu-v with-icons">
-                    {foreach $types as $type}{if $type.count}
+            {$hash = shopImportexportHelper::parseHash($hash)}
+            <div class="value">
+                <div class="sidebar left200px">
+                    <ul class="menu-v">
                         <li>
-                        <label>
-                        <span class="count">{$type.count}</span>
-                        {shopHelper::getIcon($type.icon)}
-                        <input type="checkbox" name="types[{$category_id}][]" value="{$type.id}">
-                        {$type.name|escape}
-                        </label>
+                            <label class="black"><input type="radio" value="" name="hash"{if empty($hash.type)} checked="checked"{/if}> {_wd('shop',"All products")}</label>
                         </li>
-                    {/if}{/foreach}
+                        <li{if $hash.type neq 'id'} style="display: none;"{/if}>
+                            <label class="black"><input type="radio" value="id" name="hash"{if $hash.type eq 'id'} checked="checked"{/if}>
+                                <input type="hidden" value="{$hash.product_ids|default:''}" name="product_ids"> <span>{if $hash.type eq 'id'}{$hash.count|string_format:"{_wd('shop',"Selected products (%d)")}"}{else}{_wd('shop',"Selected products (%d)")}{/if}</span></label>
+                        </li>
+                        <li{if $hash.type neq 'category'} style="display: none;"{/if}>
+                            <label class="black"><input type="radio" value="category" name="hash"{if $hash.type eq 'category'} checked="checked"{/if}>
+                                <input type="hidden" value="{$hash.category_ids|default:''}" name="category_ids"> <span>{if $hash.type eq 'category'}{$hash.count|string_format:"{_wd('shop',"Selected categories (%d)")}"}{else}{_wd('shop',"Selected categories (%d)")}{/if}</span></label>
+                        </li>
+                        <li>
+                            <label class="black"><input type="radio" value="set" name="hash"{if $hash.type eq 'set'} checked="checked"{/if}> {_wd('shop',"Sets")}</label>
+                        </li>
+                        <li>
+                            <label class="black"><input type="radio" value="type" name="hash"{if $hash.type eq 'type'} checked="checked"{/if}> {_wd('shop',"Product types")}</label>
+                        </li>
                     </ul>
+                    <p class="hint"><br><i class="icon10 exclamation"></i> Если товар не принадлежит ни одной категории, то он не будет экспортирован в YML-файл.</p>
                 </div>
-            </div>
-
-            {foreach $map as $field => $info}
-                {if in_array($category_id,ifempty($info.category,array())) && (ifempty($info.type) eq 'adjustable')}
-
-            <div class="field">
-                <div class="name">{$info.name|escape}</div>
-                <div class="value no-shift">
-                    <select name="map[{$field}][source]">
-
-                        <option value="skip:">пропустить</option>
-                        <optgroup label="Фиксированное значение">
-                            {if !empty($info.values)}
-                            {foreach $info.values as $value}
-                            <option value="value:{$value|escape}">{$value|escape}</option>
+                <div class="value js-hash-values js-hash-set" style="width: 400px;">
+                    <div class="bordered-left" style="padding-left: 20px; margin-left: 20px;">
+                        <ul class="menu-v with-icons">
+                            {foreach $sets as $set}
+                                <li>
+                                    <label title="{$set.id|escape}">
+                                        <span class="count">{if !empty($set.type)}&le;{/if}{$set.count}</span>
+                                        <i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}ss set-dynamic{else}ss set{/if}"></i>
+                                        <input type="radio" name="set_id" value="{$set.id}"{if ($set@first && empty($hash.set_id))||($hash.set_id eq $set.id)} checked="checked"{/if}>
+                                        {$set.name|escape}
+                                    </label>
+                                </li>
                             {/foreach}
-                            {else}
-                            <option value="text:">Пользовательский текст</option>
-                            {/if}
-                        </optgroup>
-                        <optgroup label="Характеристика">
-                        {foreach $features as $feature}
-                            <option value="feature:{$feature.code}"{if $feature.code eq $field} selected="selected"{/if}>{$feature.name|escape}</option>
-                        {/foreach}
-                        </optgroup>
-                    </select>→{$field|regex_replace:'/\..*$/':''}
-                    {if !empty($info.description)}
-                    <br>
-                    <span class="hint">{$info.description|escape}</span>{/if}
+                        </ul>
+                        {if !empty($hints.set)}<br/><span class="gray">{$hints.set}</span>{/if}
+                    </div>
+                </div>
+                <div class="value js-hash-values js-hash-type" style="width: 400px;">
+                    <div class="bordered-left" style="padding-left: 20px; margin-left: 20px;">
+                        <ul class="menu-v with-icons">
+                            {foreach $types as $type}{if $type.count}
+                                <li>
+                                    <label>
+                                        <span class="count">{$type.count}</span>
+                                        {shopHelper::getIcon($type.icon)}
+                                        <input type="radio" name="type_id" value="{$type.id}" {if ($type@first && empty($hash.type_id))||($hash.type_id eq $type.id)} checked="checked"{/if}> {$type.name|escape}
+                                    </label>
+                                </li>
+                            {/if}{/foreach}
+                        </ul>
+                        {if !empty($hints.type)}<br/><span class="gray">{$hints.type}</span>{/if}
+                    </div>
                 </div>
             </div>
-                {/if}
-            {/foreach}
-
+            <div class="clear-left"></div>
         </div>
 
-        <div class="clear-left"></div>
-        {/foreach}
+{*END*}
+    </div>
 
-        <div class="field-group" id="plugin-yandexmarket-submit">
-            <div class="field">
-                <div class="value submit">
-                    <input type="submit" class="button green" value="Экспортировать">
-                    <div class="js-progressbar-container" style="display:none;">
-                        <div class="progressbar blue float-left" style="display: none; width: 70%;">
-                            <div class="progressbar-outer">
-                                <div class="progressbar-inner" style="width: 0;"></div>
-                            </div>
-                        </div>
-                        <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
-                        <div class="clear"></div>
-                            <span class="progressbar-description"></span>
-                        <br style="clear:left;" />
-                        <br>
-                        <span class="small italic">
-                            Не закрывайте окно браузера и не покидайте страницу до тех пор, пока процесс экспорта не будет завершен
-                        </span>
-                    </div><br><br>
-                    <em class="errormsg"></em>
-                </div>
+    <div class="field-group">
+        <h2 class="gray">2. Общие параметры экспорта</h2>
+
+        <div class="field">
+            <div class="name"><label for="s-plugin-yandexmarket-company">Компания</label></div>
+            <div class="value">
+                <input name="company" placeholder="Компания" value="{$company|escape}" id="s-plugin-yandexmarket-company"><br>
+
+                <p class="hint">Полное наименование компании, владеющей магазином. Не публикуется, используется для внутренней идентификации.</p>
             </div>
         </div>
-        <div class="field-group" id="plugin-yandexmarket-report" style="display: none;">
-            <div class="field">
-                <div class="value"></div>
-                <div class="value"><br><a href="#/yandexmarket/" onclick="window.location.reload();" class="bold">Получить ссылку на файл</a></div>
+
+
+        <div class="field">
+            <div class="name"><label for="s-plugin-yandexmarket-export-zero-stock">Остатки</label></div>
+            <div class="value no-shift"><label for="s-plugin-yandexmarket-export-zero-stock">
+                <input name="export[zero_stock]" id="s-plugin-yandexmarket-export-zero-stock" type="checkbox" value="1"{if !empty($export.zero_stock) || !empty($app_settings.ignore_stock_count)} checked="checked" {/if} {if !empty($app_settings.ignore_stock_count)} readonly="readonly"{/if}> Выгружать товары с нулевым остатком
+                </label>
+                <p class="hint">Товары с нулевым остатком экспортируются как доступные под заказ</p>
+                {if !empty($app_settings.ignore_stock_count)}<p class="hint">Для отключения этой настройки в настройках складов должен быть выбран вариант «Максимальное количество товаров, которое может быть добавлено в корзину, не может превышать остаток на складе.</p>{/if}
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">
+                <label for="s-plugin-yandexmarket-export-sku">Артикулы</label>
+            </div>
+            <div class="value no-shift">
+                <label for="s-plugin-yandexmarket-export-sku">
+                    <input name="export[sku]" id="s-plugin-yandexmarket-export-sku" type="checkbox" value="1"{if !empty($export.sku)} checked="checked" {/if}> Экспортировать каждый артикул товара как отдельную позицию
+                </label>
+                <p class="hint"> Каждый артикул будет экспортирован отдельно как отдельное товарное предложение. Значения для полей «наименование» и «количество» будут браться из соответствующих полей артикулов.</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">
+                <label for="s-plugin-yandexmarket-shop-store">Покупка в офлайне</label><br>
+                <span class="hint">(общая настройка)</span>
+            </div>
+            <div class="value no-shift">
+                <select name="shop[store]" id="s-plugin-yandexmarket-shop-store">
+                    <option value=""></option>
+                    <option value="true"{if ifempty($profile.config.shop.store) eq 'true'} selected="selected"{/if}>Да</option>
+                    <option value="false"{if ifempty($profile.config.shop.store) eq 'false'} selected="selected"{/if}>Нет</option>
+                </select>
+
+                <p class="hint">Возможность приобрести товар в точке продаж без предварительного заказа по интернету</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">
+                <label for="s-plugin-yandexmarket-shop-pickup">Самовывоз</label><br>
+                <span class="hint">(общая настройка)</span>
+            </div>
+            <div class="value no-shift">
+                <select name="shop[pickup]" id="s-plugin-yandexmarket-shop-pickup">
+                    <option value=""></option>
+                    <option value="true"{if ifempty($profile.config.shop.pickup) eq 'true'} selected="selected"{/if}>Да</option>
+                    <option value="false"{if ifempty($profile.config.shop.pickup) eq 'false'} selected="selected"{/if}>Нет</option>
+                </select>
+
+                <p class="hint">Возможность предварительно заказать товар и забрать его в точке продаж</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">
+                <label for="s-plugin-yandexmarket-shop-delivery">Доставка</label><br>
+                <span class="hint">(общая настройка)</span>
+            </div>
+            <div class="value no-shift">
+                <select name="shop[delivery]" id="s-plugin-yandexmarket-shop-delivery">
+                    <option value=""></option>
+                    <option value="true"{if ifempty($profile.config.shop.delivery) eq 'true'} selected="selected"{/if}>Да</option>
+                    <option value="false"{if ifempty($profile.config.shop.delivery) eq 'false'} selected="selected"{/if}>Нет</option>
+                </select>
+
+                <p class="hint">Осуществляет ли ваш магазин доставку</p>
+            </div>
+        </div>
+
+
+        <div class="field">
+            <div class="name">Доставка включена</div>
+            <div class="value no-shift">
+                <label><input type="checkbox" name="shop[deliveryIncluded]" value="true"{if ifempty($profile.config.shop.deliveryIncluded) eq 'true'} checked="checked"{/if}> Доставка уже включена в стоимость товара</label>
+            </div>
+        </div>
+
+
+        <div class="field">
+            <div class="name">
+                <label for="s-plugin-yandexmarket-shop-local_delivery_cost">Стоимость доставки</label>
+            </div>
+            <div class="value">
+                <input type="text" name="shop[local_delivery_cost]" value="{ifset($profile.config.shop.local_delivery_cost)|escape}" placeholder="0" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_cost"> {$primary_currency|escape}
+            </div>
+        </div>
+
+
+        <div class="field">
+            <div class="name"><label for="s-plugin-yandexmarket-shop-adult">Товары для взрослых</label></div>
+            <div class="value no-shift">
+                <select name="shop[adult]" id="s-plugin-yandexmarket-shop-adult">
+                    <option value=""></option>
+                    <option value="true"{if ifempty($profile.config.shop.adult) eq 'true'} selected="selected"{/if}>Да</option>
+                    <option value="false"{if ifempty($profile.config.shop.adult) eq 'false'} selected="selected"{/if}>Нет</option>
+                </select>
             </div>
         </div>
     </div>
-</form>
+    <div class="field-group">
+        <h2 class="gray">3. Экспорт характеристик товаров</h2>
+        <p class="hint">Базовое соответствие характеристик магазина параметрам товарных предложений Яндекс.Маркета. Для отдельных групп товарных предложений Яндекс.Маркета можно задать дополнительные правила соответствий ниже.</p>
+        {$type_info = $type_map.simple}
+        {$map=$type_info.fields}
+        {$type_id='simple'}
+        {$js_base_href="#/yandexmarket:`$profile.id`"}
+        {foreach $map as $field => $info}
+            {if (ifempty($info.type) eq 'adjustable')}
+                {include file="./mapField.html" inline}
+            {/if}
+        {/foreach}
+
+    {foreach $type_map as $type_id =>$type_info}
+        {if $type_id neq 'simple'}
+        {$map=$type_info.fields}
+        <div class="field-group" style="margin-top: 30px;">
+            <h3 class="gray"><label>{*3.{$type_info@iteration-1}. *}<input type="checkbox" class="js-types" value="{$type_id}"{if !empty($types_map[$type_id])} checked="checked"{/if}> {$type_info.name|escape}</label></h3>
+
+            <div class="field">
+                <div class="name">Типы товаров, относящиеся к этой группе товарных предложений Яндекс.Маркета</div>
+                <div class="value">
+                    <ul class="menu-v with-icons">
+                        {foreach $types as $type}{if $type.count}
+                            <li>
+                                <label>
+                                    {shopHelper::getIcon($type.icon)}
+                                    <input class="js-type-map" type="checkbox" name="types[{$type_id}][]" value="{$type.id}" {if !empty($types_map[$type_id]) && in_array($type.id,$types_map[$type_id])} checked="checked"{/if}>
+                                    &nbsp;{$type.name|escape}
+                                </label>
+                            </li>
+                        {/if}{/foreach}
+                    </ul>
+                </div>
+            </div>
+            {foreach $map as $field => $info}
+                {if (ifempty($info.type) eq 'adjustable')}
+                    {include file="./mapField.html" inline}
+                {/if}
+            {/foreach}
+
+        </div>
+        {/if}
+    {/foreach}
+    </div>
+    <div class="clear-left"></div>
+
+    <div class="field-group" id="plugin-yandexmarket-submit">
+        <div class="field">
+            <div class="value submit">
+                <input type="submit" class="button green" value="Экспортировать">
+                <br><br>
+                <em class="small js-profile-notice">При экспорте изменения в настройках профиля будут сохранены и применены к последующим экспортам автоматически</em>
+
+                <div class="js-progressbar-container" style="display:none;">
+                    <div class="progressbar blue float-left" style="display: none; width: 70%;">
+                        <div class="progressbar-outer">
+                            <div class="progressbar-inner" style="width: 0;"></div>
+                        </div>
+                    </div>
+                    <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif"/>
+
+                    <div class="clear"></div>
+                    <span class="progressbar-description"></span>
+                    <br style="clear:left;"/>
+                    <br>
+                        <span class="small italic">
+                            Не закрывайте окно браузера и не покидайте страницу до тех пор, пока процесс экспорта не будет завершен
+                        </span>
+                </div>
+                <br><br>
+                <em class="errormsg"></em>
+            </div>
+        </div>
+    </div>
+    <div class="field-group" id="plugin-yandexmarket-report" style="display: none;">
+        <div class="field">
+            <div class="value"></div>
+            <div class="value"><br><a href="#/yandexmarket{if !empty($profile.id)}:{$profile.id}{/if}/" name="/yandexmarket/" onclick="window.location.reload();" class="bold">Получить ссылку на файл</a></div>
+        </div>
+    </div>
+    </div>
+    </form>
 {else}
-    Не определено ни одного поселения магазина. Для работы модуля экспорта товаров в Яндекс.Маркет необходимо создать хотя бы одно поселение магазина на сайте, чтобы правильно указывать адреса страниц товаров в YML-файле для Яндекс.Маркета.
+    <p>
+    <span class="errormsg">Не определено ни одного поселения магазина.</span>
+        Для работы модуля экспорта товаров в Яндекс.Маркет необходимо создать хотя бы одно поселение магазина на сайте, чтобы правильно указывать адреса страниц товаров в YML-файле для Яндекс.Маркета.
+    </p>
 {/if}
 </div>
 
 <div class="clear"></div>
+{/strip}
 
 <script type="text/javascript">
-{include file="../../../js/yandexmarket.js"}
+    if ($.importexport.plugins.yandexmarket) {
+        $.importexport.plugins.yandexmarket.init();
+    } else {
+        $.getScript('{$wa_app_static_url}plugins/yandexmarket/js/yandexmarket.js',function(){
+            $.importexport.plugins.yandexmarket.init();
+            $.importexport.plugins.yandexmarket.initForm();
+        });
+    }
+    {* generic code for plugins with profiles support *}
+    $.importexport.profiles.set('yandexmarket',{$profiles|json_encode});
 </script>

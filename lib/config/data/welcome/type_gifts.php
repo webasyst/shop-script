@@ -63,6 +63,10 @@ return array(
                 'tourism',
                 'automobile'
             )
-        )
+        ),
+        'weight' => array(
+            'name' => 'Weight',
+            'type' => shopFeatureModel::TYPE_DIMENSION.'.weight'
+        ),
     )
 );

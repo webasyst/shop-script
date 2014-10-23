@@ -8,28 +8,29 @@
  */
 $.product = $.extend(true, $.product, {
     features_options: {
-        'inline_values': false,
-        'value_templates': {
+        inline_values: false,
+        value_templates: {
             '': '',
-            'text': '-text'
+            color: '-color',
+            text: '-text'
         }
     },
 
     features_data: {
-        'feature_id': 0,
-        'value_id': 0
+        feature_id: 0,
+        value_id: 0
     },
     editTabFeaturesHelper: {
-
     },
 
     editTabFeaturesInit: function () {
-        var $tab = $('#s-product-edit-menu > li.features > a');
+        var $tab = $('#s-product-edit-menu').find('> li.features > a');
         $tab.attr('href', $tab.attr('href').replace(/\/features\/.*$/, '/features/'));
+
     },
 
     editTabFeaturesAction: function (path) {
-        for (field in this.features_values) {
+        for (var field in this.features_values) {
             var value = this.features_values[field];
             if (typeof(value) == 'object') {
                 if ((typeof(value.indexOf) !== 'function') && (typeof(value.value) != 'undefined')) {
@@ -66,12 +67,23 @@ $.product = $.extend(true, $.product, {
                 }
             }
         }
+        var timer = {};
+        $(':input[name^="product\\[features\\]"][name$="\\[code\\]"]').unbind('keydown.features').bind('keydown.features', function () {
+            if (timer[this.name]) {
+                clearTimeout(timer[this.name]);
+            }
+            var input = this;
+            timer[this.name] = setTimeout(function () {
+                var $color = $(input).parent().find('.icon16.color');
+                $.product.editTabFeaturesValueColorChange(input, $color);
+            }, 300);
+        });
     },
 
     /**
      * Show feature value type selector
      *
-     * @param {} $el
+     * @param {jQuery} $el
      */
     editTabFeaturesFeatureType: function ($el) {
         $.shop.trace('$.product.editTabFeaturesFeatureType', $el);
@@ -93,21 +105,19 @@ $.product = $.extend(true, $.product, {
         var $selected = $el.find('option:selected');
         var $feature = $el.parents('div.field');
         var feature = {
-            'code': $feature.data('code'),
-
-            'type': $selected.data('type'),
-            'selectable': $selected.data('selectable'),
-            'multiple': $selected.data('multiple'),
-            'type_name': $selected.text()
+            code: $feature.data('code'),
+            type: $selected.data('type'),
+            selectable: $selected.data('selectable'),
+            multiple: $selected.data('multiple'),
+            type_name: $selected.text()
         };
-        // feature.type = $el.val();
 
         $feature.find(':input[name$="\[type\]"]').val(feature.type);
         $feature.find(':input[name$="\[selectable\]"]').val(feature.selectable);
         $feature.find(':input[name$="\[multiple\]"]').val(feature.multiple);
 
         var subtype = false;
-        var $select = $feature.find(':input.js-feature-subtypes-control').each(function () {
+        $feature.find(':input.js-feature-subtypes-control').each(function () {
             if (feature.type == $(this).data('subtype')) {
                 $(this).show().focus();
                 subtype = true;
@@ -127,16 +137,13 @@ $.product = $.extend(true, $.product, {
         var $selected = $el.find('option:selected');
         var $feature = $el.parents('div.field');
         var feature = {
-            'code': $feature.data('code'),
-            'type': $feature.find(':input[name$="\[type\]"]').val(),
-            'selectable': $feature.find(':input[name$="\[selectable\]"]').val(),
-            'multiple': $feature.find(':input[name$="\[multiple\]"]').val(),
-
-
-            'type_name': $selected.text()
+            code: $feature.data('code'),
+            type: $feature.find(':input[name$="\[type\]"]').val(),
+            selectable: $feature.find(':input[name$="\[selectable\]"]').val(),
+            multiple: $feature.find(':input[name$="\[multiple\]"]').val(),
+            type_name: $selected.text()
         };
 
-        var $selected = $el.find('option:selected');
         if (!$selected.length) {
             $selected = $el.find('option:first');
         }
@@ -162,10 +169,31 @@ $.product = $.extend(true, $.product, {
             var data = {
                 'feature': feature
             };
-            $.when($feature.replaceWith(tmpl('feature-add-template-js', data))).done(function ($c) {
+            $.when($feature.replaceWith(tmpl('feature-add-template-js', data))).done(function () {
                 $feature = $container.find('> div[data-code="' + feature.code + '"]:first');
                 $feature.find('.js-action').attr('title', feature.type_name);
-                $feature.find('div.value :text:first').focus();
+
+                var $value = $feature.find('div.value:last');
+                switch (data.feature.type) {
+                    case 'color':
+                        var $color = $value.find('.icon16.color');
+                        var timer = null;
+                        $value.find(':input[name$="\\[code\\]"]:first').unbind('keydown.features').bind('keydown.features', function () {
+                            if (timer) {
+                                clearTimeout(timer);
+                            }
+                            var input = this;
+                            timer = setTimeout(function () {
+                                $.product.editTabFeaturesValueColorChange(input, $color);
+                            }, 300);
+                        });
+                        $value.find(':input[name$="\\[value\\]"]:first').focus();
+                        break;
+                    default:
+                        $value.find(':text:first').focus();
+                        break;
+                }
+
             });
         } catch (e) {
             $.shop.error('Exception ' + e.message, e);
@@ -175,12 +203,6 @@ $.product = $.extend(true, $.product, {
         return false;
     },
 
-    editTabFeaturesSave: function () {
-        // convert extra features inputs
-        /*
-         * [][name] -> code; [][value] -> value || [][value] && [][unit]-> [value];
-         */
-    },
     editTabFeaturesSaved: function () {
         // reload tab while extra features added
         $.shop.trace('$.product.editTabFeaturesSaved', this.features_data);
@@ -201,8 +223,7 @@ $.product = $.extend(true, $.product, {
             id: this.path.id,
             mode: 'edit',
             tab: 'features'
-
-        }
+        };
         $.shop.trace('$.product.editTabFeaturesReload', [type, params]);
         $.product.editTabLoadContent(path, params);
     },
@@ -210,8 +231,8 @@ $.product = $.extend(true, $.product, {
     /**
      * Append to feature selector new available value
      *
-     * @param String code
-     * @param String value
+     * @param {String} code
+     * @param {String} value
      */
     editTabFeaturesAppendValue: function (code, value) {
         var selector = ':input[name^="product\[features\]\[' + code + '\]"]:first';
@@ -236,16 +257,14 @@ $.product = $.extend(true, $.product, {
     /**
      * Show dialog for insert new feature value
      *
-     * @param String code
-     * @param data type
+     * @param {jQuery} $el
      */
     editTabFeaturesValueAdd: function ($el) {
-        var self = this;
         if ($el) {
             var $feature = $el.parents('div.field');
             var feature = $feature.data();
             feature['value_template'] = 'feature-value' + (this.features_options.value_templates[feature.type] || '') + '-template-js';
-            $.shop.trace('$.product.editTabFeaturesValueAdd', [feature]);
+            $.shop.trace('$.product.editTabFeaturesValueAdd', feature);
 
             try {
                 if (feature.multiple) {
@@ -256,16 +275,55 @@ $.product = $.extend(true, $.product, {
                 }
 
                 var data = {
-                    'feature': feature
+                    feature: feature
                 };
+                var $target;
                 if (feature.multiple) {
-                    $.when($feature.find('div.value:first > a.js-action:first').before(tmpl('feature-value-multiple-template-js', data))).done(
+                    $.when($target = $feature.find('div.value:last').before(tmpl('feature-value-multiple-template-js', data))).done(
                         function () {
-                            $feature.find('div.value:first :checkbox:last+:input:first').focus();
+                            switch (feature.type) {
+                                case 'color':
+                                    var $value = $target.prev();
+                                    var $color = $value.find('.icon16.color');
+                                    var timer = null;
+                                    $value.find(':input[name$="\\[code\\]"]:first').unbind('keydown.features').bind('keydown.features', function () {
+                                        if (timer) {
+                                            clearTimeout(timer);
+                                        }
+                                        var input = this;
+                                        timer = setTimeout(function () {
+                                            $.product.editTabFeaturesValueColorChange(input, $color);
+                                        }, 300);
+                                    });
+                                    $value.find(':input[name$="\\[value\\]"]:first').focus();
+                                    break;
+                                default:
+                                    $target.prev().find(':checkbox:last+:input:first').focus();
+                                    break;
+                            }
                         });
                 } else {
-                    $.when($feature.find('div.value :input:first').attr('disabled', true).after(tmpl(feature.value_template, data))).done(function () {
-                        $feature.find('div.value :input:first').focus();
+                    $.when($target = $feature.find('div.value:first').append(tmpl(feature.value_template, data))).done(function () {
+                        $target.find(':input:first').attr('disabled', true);
+                        switch (feature.type) {
+                            case 'color':
+                                var $color = $target.find('.icon16.color');
+                                var timer = null;
+                                $target.find(':input[name$="\\[code\\]"]:first').unbind('keydown.features').bind('keydown.features', function () {
+                                    if (timer) {
+                                        clearTimeout(timer);
+                                    }
+                                    var input = this;
+                                    timer = setTimeout(function () {
+                                        $.product.editTabFeaturesValueColorChange(input, $color);
+                                    }, 300);
+                                });
+                                $target.find(':input[name$="\\[value\\]"]:first').focus();
+                                break;
+                            default:
+                                $target.next().find(':input:not(:disabled):first').focus();
+                                break;
+                        }
                     });
                     $el.hide();
                 }
@@ -274,6 +332,53 @@ $.product = $.extend(true, $.product, {
             }
         }
 
+    },
+
+    editTabFeaturesValueColor: function ($el) {
+        if ($el) {
+            var $value = $el.parents('label:first');
+            if (!$value.length) {
+                $value = $el.parents('div.value:first');
+            }
+
+            var $input = $value.find(':input[name$="\\[code\\]"]:first');
+            var $color = $el.find('> i.icon16.color');
+
+            var $colorpicker = $value.find('.js-colorpicker');
+
+            if ($colorpicker.length == 0) {
+                $value.append('<div class="js-colorpicker" style="display:none;"></div>');
+
+                $colorpicker = $value.find('.js-colorpicker');
+                var farbtastic = $.farbtastic($colorpicker, function (color) {
+                    $color.css('background', color);
+                    $input.val(color.substr(1).toUpperCase());
+                });
+
+                farbtastic.setColor('#' + $input.val());
+                $colorpicker.slideToggle(200);
+                var timer_id;
+                $input.unbind('keydown').bind('keydown.farbtastic', function () {
+                    if (timer_id) {
+                        clearTimeout(timer_id);
+                    }
+                    if ($input.val().match(/^[0-9A-F]{6}$/gi)) {
+                        timer_id = setTimeout(function () {
+                            var color = ('' + $input.val() + 'FFFFFF').replace(/[^0-9A-F]+/gi, '').substr(0, 6);
+                            $.shop.trace('farbtasticcolor', color);
+                            farbtastic.setColor('#' + color);
+                        }, 250);
+                    }
+                });
+            } else {
+                $colorpicker.slideToggle(200);
+            }
+        }
+    },
+
+    editTabFeaturesValueColorChange: function (input, $color) {
+        var color = 0xFFFFFF & parseInt(('' + input.value + 'FFFFFF').replace(/[^0-9A-F]+/gi, '').substr(0, 6), 16);
+        $color.css('background', (0xF000000 | color).toString(16).toUpperCase().replace(/^F/, '#'));
     },
 
     editTabFeaturesValueDelete: function ($el) {
@@ -286,22 +391,21 @@ $.product = $.extend(true, $.product, {
         if ($el) {
             try {
                 var data = {
-                    'feature': {
-                        'name': '',
-                        'selectable': '0',
-                        'multiple': '0',
-                        'type': 'varchar',
-                        'code': --this.features_data.feature_id,
-                        'input': this.features_data.feature_id,
-                        'value_template': 'feature-value-template-js'
+                    feature: {
+                        name: '',
+                        selectable: '0',
+                        multiple: '0',
+                        type: 'varchar',
+                        code: --this.features_data.feature_id,
+                        input: this.features_data.feature_id,
+                        value_template: 'feature-value-template-js'
                     }
-                }
-                // TODO check uniqie code
+                };
+                // TODO check unique code
                 var $container = $el.parents('div.field');
                 $.when($container.before(tmpl('feature-add-template-js', data))).done(function () {
                     $container.parent().find('div.field[data-code="' + data.feature.code + '"]:last :text:first').focus();
-
-                })
+                });
             } catch (e) {
                 $.shop.error('Exception ' + e.message, e);
             }

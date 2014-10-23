@@ -23,10 +23,19 @@ abstract class shopCheckout
     protected function setSessionData($key, $value)
     {
         $data = wa()->getStorage()->get('shop/checkout', array());
-        $data[$key] = $value;
+        if ($value === null) {
+            if (isset($data[$key])) {
+                unset($data[$key]);
+            }
+        } else {
+            $data[$key] = $value;
+        }
         wa()->getStorage()->set('shop/checkout', $data);
     }
 
+    /**
+     * @return waContact
+     */
     protected function getContact()
     {
         if (wa()->getUser()->isAuth()) {
@@ -38,11 +47,8 @@ abstract class shopCheckout
             if (!$contact->get('address.shipping') && $addresses = $contact->get('address')) {
                 $contact->set('address.shipping', $addresses[0]);
             }
-            if (!$contact->get('address.billing') && $addresses = $contact->get('address.shipping')) {
-                $contact->set('address.billing', $addresses[0]);
-            }
         }
-        return $contact;
+        return $contact ? $contact : new waContact();
     }
 
 
@@ -54,6 +60,24 @@ abstract class shopCheckout
     public function setOptions($config)
     {
         return $config;
+    }
+    
+    /**
+     * Get number of step in checkout by ID of step. 
+     * @param string|null $step_id If null get number of last step + 1
+     * @return int|false
+     */
+    public static function getStepNumber($step_id = null)
+    {
+        $steps = array_keys(wa('shop')->getConfig()->getCheckoutSettings());
+        if ($step_id === null) {
+            return count($steps) + 1;
+        }
+        $n = array_search($step_id, $steps);
+        if ($n === false) {
+            return false;   // or throw Exception?
+        }
+        return $n + 1;
     }
 
 }

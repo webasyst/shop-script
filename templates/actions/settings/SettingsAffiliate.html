@@ -1,10 +1,41 @@
-<div class="blank block double-padded s-settings-form">
-    <h1>[`Affiliate program`]</h1>
+{if $plugins || !empty($installer)}
+<div class="sidebar left200px s-settings-order-states">
+    <div class="s-inner-sidebar" id="affiliate-plugins">
+
+        <ul class="menu-v stack with-icons">
+            <li>
+                <a href="#/affiliate/"><i class="icon16 medal"></i>[`Loyalty program`]</a>
+            </li>
+            {foreach $plugins as $p}
+            <li>
+                <a href="#/affiliate/{$p.id}/" data-url="{$p.url}"><i class="icon16 {if !isset($p.img)} plugins{else}" style="background-image: url('{$wa_url}{$p.img}');{/if}"></i>{$p.name}</a>
+            </li>
+            {/foreach}
+        </ul>
+        {if !empty($installer)}
+        <div class="align-center hint hr block double-padded">
+            <p>
+                <a href="#/affiliate/plugins/" data-url="{$wa_backend_url|cat:'installer/?module=plugins&action=view&slug=shop&filter[tag]=affiliate&return_hash=/affiliate/'}" class="bold">[`Browse plugins`]</a><br>
+                [`Install new plugins from the Webasyst Store using the Installer app`]
+            </p>
+        </div>
+        {/if}
+    </div>
+</div>
+
+{/if}
+<div class="{if $plugins || !empty($installer)}content left200px bordered-left {/if}blank block double-padded s-settings-form">
+    {if $plugins||$installer}
+    <div id="affiliate-settings-plugin"></div>
+    <div id="affiliate-settings" style="display: none">
+    {/if}
+    <h1 style="margin-bottom: 0.75em;">[`Loyalty program`]</h1>
+    <p>[`Loyalty program allows you to stimulate customers returning order activity by rewarding customers bonus points for each paid order. Depending on your business model, you may offer additional discounts in exchange to earned points, or pay out earned bonuses to your customers directly.`]</p>
     <form id="s-settings-affiliate-form" action="?module=settings&action=affiliate">
         <div class="fields form">
             <div class="field-group">
                 <div class="field">
-                    <div class="name">[`Affiliate program`]</div>
+                    <div class="name">[`Loyalty program`]</div>
                     <div class="value no-shift s-ibutton-checkbox">
                         <ul class="menu-h">
                             <li><span class="gray" id="s-toggle-disabled-label">[`Disabled`]</span></li>
@@ -65,10 +96,32 @@
             </div>
         </div>
     </form>
+    {if $plugins}</div>{/if}
     <div class="clear"></div>
 </div>
 <script type="text/javascript">(function() { "use strict";
-    document.title = '[`Affiliate programs`] — {$wa->accountName()}';
+    $('#affiliate-plugins a').click(function () {
+        var $this = $(this);
+        var $parent =$this.parents('li');
+        if ($parent.hasClass('selected')) {
+            return false;
+        }
+        $('#affiliate-plugins li.selected').removeClass('selected');
+        $parent.addClass('selected');
+        $.shop.trace('url',[$('#affiliate-settings-plugin').length,$this.data('url')]);
+        if ($this.data('url')) {
+            $('#affiliate-settings').hide();
+            $('#affiliate-settings-plugin').html('<i class="icon16 loading"></i>').show().load($this.data('url'));
+        } else {
+            $('#affiliate-settings-plugin').hide();
+            $('#affiliate-settings').show();
+        }
+    });
+
+    var hash = window.location.hash;
+    $('#affiliate-plugins a[href="' + hash + '"]').click();
+
+    document.title = '{"[`Loyalty program`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 
     var form = $('#s-settings-affiliate-form');
 

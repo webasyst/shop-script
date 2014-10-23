@@ -1,0 +1,83 @@
+{*
+@var array $set array of available sets
+@var array $types array of available product types
+@var array $hint array of hash hints
+@var string $hash
+@var boolean $subcategory
+*}
+<div class="field">
+    <div class="name">
+        {_wd('shop',"Select products")}
+    </div>
+    {$hash = shopImportexportHelper::parseHash($hash)}
+    <div class="value">
+        <div class="sidebar left200px">
+            <ul class="menu-v">
+                <li>
+                    <label class="black"><input type="radio" value="" name="hash"{if empty($hash.type)} checked="checked"{/if}> {_wd('shop',"All products")}</label>
+                </li>
+                <li{if $hash.type neq 'id'} style="display: none;"{/if}>
+                    <label class="black"><input type="radio" value="id" name="hash"{if $hash.type eq 'id'} checked="checked"{/if}>
+                        <input type="hidden" value="{$hash.product_ids|default:''}" name="product_ids"> <span>{if $hash.type eq 'id'}{$hash.count|string_format:"{_wd('shop',"Selected products (%d)")}"}{else}{_wd('shop',"Selected products (%d)")}{/if}</span></label>
+                </li>
+                <li{if $hash.type neq 'category'} style="display: none;"{/if}>
+                    <label class="black"><input type="radio" value="category" name="hash"{if $hash.type eq 'category'} checked="checked"{/if}>
+                        <input type="hidden" value="{$hash.category_ids|default:''}" name="category_ids"> <span>{if $hash.type eq 'category'}{$hash.count|string_format:"{_wd('shop',"Selected categories (%d)")}"}{else}{_wd('shop',"Selected categories (%d)")}{/if}</span></label>
+                </li>
+                <li>
+                    <label class="black"><input type="radio" value="set" name="hash"{if $hash.type eq 'set'} checked="checked"{/if}> {_wd('shop',"Sets")}</label>
+                </li>
+                <li>
+                    <label class="black"><input type="radio" value="type" name="hash"{if $hash.type eq 'type'} checked="checked"{/if}> {_wd('shop',"Product types")}</label>
+                </li>
+            </ul>
+        </div>
+        <div class="value js-hash-values js-hash-set" style="width: 400px;">
+            <div class="bordered-left" style="padding-left: 20px;">
+                <ul class="menu-v with-icons">
+                    {foreach $sets as $set}
+                        <li>
+                            <label title="{$set.id|escape}">
+                                <span class="count">{$set.count}</span>
+                                <i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}ss set-dynamic{else}ss set{/if}"></i>
+                                <input type="radio" name="set_id" value="{$set.id}"{if ($set@first && empty($hash.set_id))||($hash.set_id eq $set.id)} checked="checked"{/if}>
+                                {$set.name|escape}
+                            </label>
+                        </li>
+                    {/foreach}
+                </ul>
+                {if !empty($hints.set)}<br/><span class="small">{$hints.set}</span>{/if}
+            </div>
+        </div>
+        <div class="value js-hash-values js-hash-type" style="width: 400px;">
+            <div class="bordered-left" style="padding-left: 20px;">
+                <ul class="menu-v with-icons">
+                    {foreach $types as $type}{if $type.count}
+                        <li>
+                            <label>
+                                <span class="count">{$type.count}</span>
+                                {shopHelper::getIcon($type.icon)}
+                                <input type="radio" name="type_id" value="{$type.id}" {if ($type@first && empty($hash.type_id))||($hash.type_id eq $type.id)} checked="checked"{/if}> {$type.name|escape}
+                            </label>
+                        </li>
+                    {/if}{/foreach}
+                </ul>
+                {if !empty($hints.type)}<br/><span class="small">{$hints.type}</span>{/if}
+            </div>
+        </div>
+        <div class="value js-hash-values js-hash-id" style="width: 400px;">
+            <div class="bordered-left" style="padding-left: 20px;">
+                {if !empty($hints.id)}<br/><span class="small">{$hints.id}</span>{/if}
+            </div>
+        </div>
+        {if !empty($subcategory)}
+        <div class="value js-hash-values js-hash-category" style="width: 400px;">
+            <div class="bordered-left" style="padding-left: 20px;">
+                <label><input type="checkbox" value="1"> {_wd('shop','Include products from sub-categories')}</label>
+                {if !empty($hints.category)}<br/><span class="gray">{$hints.category}</span>{/if}
+            </div>
+        </div>
+        {/if}
+    </div>
+    <div class="clear-left"></div>
+</div>

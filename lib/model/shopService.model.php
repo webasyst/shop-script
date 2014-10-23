@@ -26,8 +26,6 @@ class shopServiceModel extends waModel
             $data['currency'] = $primary_currency;
         }
 
-        $service_variants_model = new shopServiceVariantsModel();
-
         $just_inserted = false;
         if (!$id) {
             $id = $this->insert(array(
@@ -35,11 +33,14 @@ class shopServiceModel extends waModel
                 'price'    => 0,
                 'currency' => $data['currency'],
                 'tax_id'   => isset($data['tax_id']) ? $data['tax_id'] : ($data['tax_id'] === null ? null : 0),
+                'variant_id' => 0,
             ));
             if (!$id) {
                 return false;
             }
             $just_inserted = true;
+        } else {
+            $id = (int)$id;
         }
         if ($id) {
             $this->updateVariants($id, $data['variants']);
@@ -66,11 +67,14 @@ class shopServiceModel extends waModel
             }
         }
 
-        // convert inner pirce (primary_price) of itself and relate items (variants, products)
-
-        $currency_model = new shopCurrencyModel();
         $currency = $data['currency'];
-        $rate = $currency_model->getRate($currency);
+        // update primary price
+        if ($currency != '%') {
+            $currency_model = new shopCurrencyModel();
+            $rate = $currency_model->getRate($currency);
+        } else {
+            $rate = 1;  // hack for percents
+        }
 
         $sql = "UPDATE `shop_service_variants`
                 SET primary_price = price*$rate
@@ -95,33 +99,32 @@ class shopServiceModel extends waModel
     {
         $add = array();
         $update = array();
-
+        
         $variants_model = new shopServiceVariantsModel();
         $products_model = new shopProductServicesModel();
 
         $old_variants = $variants_model->getByField('service_id', $service_id, 'id');
 
+        $sort = 0;
         foreach ($variants as $item) {
+            $item['sort'] = $sort;
+            $sort += 1;
             if (empty($item['id']) || empty($old_variants[$item['id']])) {
                 $item['service_id'] = $service_id;
                 $add[] = $item;
             } else {
                 $variant_id = $item['id'];
-                $item = array_diff_assoc($item, $old_variants[$variant_id]);
-                if (!empty($item)) {
-                    $update[$variant_id] = $item;
-                }
+                $update[$variant_id] = $item;
                 unset($old_variants[$variant_id]);
             }
         }
-
+        
         $default_id = null;
         foreach ($add as $item) {
+            $added_id = $variants_model->insert($item);
             if (!empty($item['default'])) {
-                $default_id = $variants_model->insert($item);
-                continue;
+                $default_id = $added_id;
             }
-            $variants_model->insert($item);
         }
 
         foreach ($update as $id => $item) {
@@ -147,7 +150,7 @@ class shopServiceModel extends waModel
         $this->updateById($service_id, array(
             'variant_id' => $default_id
         ));
-
+        
         return array_keys($variants_model->getByField('service_id', $service_id, 'id'));
     }
 
@@ -232,10 +235,10 @@ class shopServiceModel extends waModel
     {
         $paid_date_sql = array();
         if ($start_date) {
-            $paid_date_sql[] = "o.paid_date >= DATE('".$start_date."')";
+            $paid_date_sql[] = "o.paid_date >= DATE('".$this->escape($start_date)."')";
         }
         if ($end_date) {
-            $paid_date_sql[] = "o.paid_date <= DATE('".$end_date."')";
+            $paid_date_sql[] = "o.paid_date <= DATE('".$this->escape($end_date)."')";
         }
         if ($paid_date_sql) {
             $paid_date_sql = implode(' AND ', $paid_date_sql);
@@ -248,16 +251,12 @@ class shopServiceModel extends waModel
 
         $sql = "SELECT
                     s.*,
-                    SUM(sv.price*cur.rate*oi.quantity) AS total
+                    SUM(oi.price*o.rate*oi.quantity) AS total
                 FROM shop_order AS o
                     JOIN shop_order_items AS oi
                         ON oi.order_id=o.id
                     JOIN shop_service AS s
                         ON oi.service_id=s.id
-                    JOIN shop_service_variants AS sv
-                        ON oi.service_variant_id=sv.id
-                    JOIN shop_currency AS cur
-                        ON cur.code=s.currency
                 WHERE $paid_date_sql
                     AND oi.type = 'service'
                 GROUP BY s.id
@@ -269,6 +268,38 @@ class shopServiceModel extends waModel
 
     public function getAll($key = null, $normalize = false)
     {
-        return $this->query("SELECT * FROM `{$this->table}` ORDER BY id")->fetchAll($key, $normalize);
+        return $this->query("SELECT * FROM `{$this->table}` ORDER BY sort")->fetchAll($key, $normalize);
     }
+    
+    public function move($id, $before_id = null)
+    {
+        $id = (int) $id;
+        if (!$before_id) {
+            $item = $this->getById($id);
+            if (!$item) {
+                return false;
+            }
+            $sort = $this->query("SELECT MAX(sort) sort FROM {$this->table}")->fetchField('sort') + 1;
+            $this->updateById($id, array('sort' => $sort));
+        } else {
+            $before_id = $this->escape($before_id);
+            $items = $this->query("SELECT * FROM {$this->table} WHERE id IN ('$id', '$before_id')")->fetchAll('id');
+            if (!$items || count($items) != 2) {
+                return false;
+            }
+            $sort = $items[$before_id]['sort'];
+            $this->query("UPDATE {$this->table} SET sort = sort + 1 WHERE sort >= $sort");
+            $this->updateById($id, array('sort' => $sort));
+        }
+        return true;
+    }
+
+    public static function sortServices($a, $b)
+    {
+        if ($a['sort'] == $b['sort']) {
+            return 0;
+        }
+        return ($a['sort'] < $b['sort']) ? -1 : 1;
+    }
+
 }

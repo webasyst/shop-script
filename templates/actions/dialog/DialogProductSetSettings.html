@@ -1,4 +1,7 @@
-{$title_text = $settings.name|escape}
+{capture assign="title_text"}
+    {$settings.name|escape}
+    <i class="icon16 ss {if $settings.type == shopSetModel::TYPE_STATIC}set{else}set-dynamic{/if}"></i>
+{/capture}
 {$name_text = "[`Name`]"}
 {capture frontend_url}{/capture}
 {capture frontend_display}{/capture}

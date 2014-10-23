@@ -27,6 +27,7 @@ class shopProductsSetTypesController extends waJsonController
         $hash = waRequest::post('hash', '', waRequest::TYPE_STRING_TRIM);
         if (!$hash) {
             $product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
+            $product_ids = $this->product_model->filterAllowedProductIds($product_ids);
             if (!$product_ids) {
                 return;
             }
@@ -40,7 +41,8 @@ class shopProductsSetTypesController extends waJsonController
             $total_count = $collection->count();
             while ($offset < $total_count) {
                 $ids = array_keys($collection->getProducts('*', $offset, $count));
-                $this->product_model->updateType($ids, $type_id);
+                $filtered = $this->product_model->filterAllowedProductIds($ids);
+                $this->product_model->updateType($filtered, $type_id);
                 $offset += count($ids);
             }
             $this->response['types'] = $this->type_model->getTypes();

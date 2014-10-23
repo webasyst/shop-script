@@ -1,4 +1,5 @@
 <?php
+
 class shopProductAction extends waViewAction
 {
     /**
@@ -20,39 +21,30 @@ class shopProductAction extends waViewAction
         }
 
         $counters = array(
-            'reviews'  => 0, 'images'   => 0, 'pages'    => 0, 'services' => 0
+            'reviews' => 0, 'images' => 0, 'pages' => 0, 'services' => 0
         );
         $sidebar_counters = array();
         $config = $this->getConfig();
+        /**
+         * @var shopConfig $config
+         */
 
         #load product types
         $type_model = new shopTypeModel();
-        $product_types = $type_model->getAll($type_model->getTableId(), true);
-        $product_types_count = count($product_types);
 
-        if ($product_types) {
-            if (!$this->getUser()->isAdmin($this->getAppId())) {
-                $rights = $this->getUser()->getRights($this->getAppId(), 'type.%');
-                if (empty($rights['all'])) {
-                    foreach ($product_types as $id => $type) {
-                        if (empty($rights[$id])) {
-                            unset($product_types[$id]);
-                        }
-                    }
-                }
-            }
-        }
+        $product_types = $type_model->getTypes(true);
+        $product_types_count = count($product_types);
 
         if (intval($product->id)) {
             # 1 fill extra product data
             # 1.1 fill product reviews
             $product_reviews_model = new shopProductReviewsModel();
             $product['reviews'] = $product_reviews_model->getReviews(
-                $product->id,
-                0,
-                $config->getOption('reviews_per_page_product'),
-                'datetime DESC',
-                array('is_new' => true)
+                                                        $product->id,
+                                                            0,
+                                                            $config->getOption('reviews_per_page_product'),
+                                                            'datetime DESC',
+                                                            array('is_new' => true)
             );
             $counters['reviews'] = $product_reviews_model->count($product->id);
             $sidebar_counters['reviews'] = array(
@@ -66,6 +58,9 @@ class shopProductAction extends waViewAction
 
             $product_services_model = new shopProductServicesModel();
             $counters['services'] = $product_services_model->countServices($product->id);
+
+            $product_stocks_log_model = new shopProductStocksLogModel();
+            $counters['stocks_log'] = $product_stocks_log_model->countByField('product_id', $product->id);
 
             $this->view->assign('edit_rights', $product->checkRights());
         } else {
@@ -88,7 +83,7 @@ class shopProductAction extends waViewAction
 
             $product['skus'] = array(
                 '-1' => array(
-                    'id'             => - 1,
+                    'id'             => -1,
                     'sku'            => '',
                     'available'      => 1,
                     'name'           => '',
@@ -118,46 +113,50 @@ class shopProductAction extends waViewAction
 
         $category_model = new shopCategoryModel();
         $categories = $category_model->getFullTree('id, name, depth, url, full_url', true);
+        $frontend_urls = array();
 
-        // %product_url% - stuff used only when creating new product
-        $stuff = $product->url ? $product->url : '%product_url%';
-        $frontend_url = null;
-        $fontend_base_url = null;
-
-        if ($product->id) {
+        if (intval($product->id)) {
             $routing = wa()->getRouting();
             $domain_routes = $routing->getByApp($this->getAppId());
             foreach ($domain_routes as $domain => $routes) {
                 foreach ($routes as $r) {
-                    if (empty($r['type_id']) || (in_array($product->type_id, (array) $r['type_id']))) {
+                    if (!empty($r['private'])) {
+                        continue;
+                    }
+                    if (empty($r['type_id']) || (in_array($product->type_id, (array)$r['type_id']))) {
                         $routing->setRoute($r, $domain);
-                        $params = array('product_url' => $stuff);
+                        $params = array('product_url' => $product->url);
                         if ($product->category_id && isset($categories[$product->category_id])) {
-                            if (!empty($r['url_type']) && ($r['url_type'] == 1)) {
+                            if (!empty($r['url_type']) && $r['url_type'] == 1) {
                                 $params['category_url'] = $categories[$product->category_id]['url'];
                             } else {
                                 $params['category_url'] = $categories[$product->category_id]['full_url'];
                             }
                         }
                         $frontend_url = $routing->getUrl('/frontend/product', $params, true);
-                        if (empty($r['private'])) {
-                            break 2;
-                        }
+                        $frontend_urls[] = array(
+                            'url' => $frontend_url
+                        );
                     }
                 }
             }
-        }
-        if (empty($frontend_url) && !$product->id) {
-            $frontend_url = wa()->getRouteUrl('/frontend/product', array('product_url' => $stuff), true);
-        }
-        if (!empty($frontend_url)) {
-            $pos = strrpos($frontend_url, $stuff);
-            $fontend_base_url = $pos !== false ? rtrim(substr($frontend_url, 0, $pos), '/').'/' : $frontend_url;
+        } else {
+            $frontend_urls[] = array(
+                'url' => wa()->getRouteUrl('/frontend/product', array('product_url' => '%product_url%'), true),
+            );
         }
 
+        $stuff = intval($product->id) ? $product->url : '%product_url%';
+        foreach ($frontend_urls as &$frontend_url) {
+            $pos = strrpos($frontend_url['url'], $stuff);
+            $frontend_url['base'] = $pos !== false ? rtrim(substr($frontend_url['url'], 0, $pos), '/').'/' : $frontend_url['url'];
+        }
+        unset($frontend_url);
+
+        $product_model = new shopProductModel();
+        $this->view->assign('storefront_map', $product_model->getStorefrontMap($product->id));
+
         /**
-         * !!! FIXME: update this description?.. E.g. include title_suffix. Or remove it...
-         *
          * Backend product profile page
          * UI hook allow extends product profile page
          * @event backend_product
@@ -183,64 +182,43 @@ class shopProductAction extends waViewAction
         $this->view->assign('review_allowed', true);
         $this->view->assign('sidebar_counters', $sidebar_counters);
         $this->view->assign('lang', substr(wa()->getLocale(), 0, 2));
-        $this->view->assign('frontend_url', $frontend_url);
-        $this->view->assign('frontend_base_url', $fontend_base_url);
+        $this->view->assign('frontend_urls', $frontend_urls);
 
-        // Selectable features
-        $selectable_features = $this->getSelectableFeatures($product);
+        $tag_model = new shopTagModel();
+        $this->view->assign('popular_tags', $tag_model->popularTags());
 
         $counts = array();
-        foreach ($selectable_features as $f) {
-            if ($f['count']) {
-                $counts[] = $f['count'];
+        // Selectable features
+        $features_selectable = $product->features_selectable;
+        if (is_array($features_selectable)) {
+            foreach ($features_selectable as $f) {
+                if ($f['selected']) {
+                    $counts[] = $f['selected'];
+                }
             }
         }
-        $this->view->assign('features', $selectable_features);
+
+        $feature_model = new shopTypeFeaturesModel();
+        $features_selectable_types = $feature_model->getSkuTypeSelectableTypes();
+        foreach ($product_types as $type_id => &$type) {
+            $type['sku_type'] = empty($features_selectable_types[$type_id]) ? shopProductModel::SKU_TYPE_FLAT : shopProductModel::SKU_TYPE_SELECTABLE;
+        }
+
+        $this->view->assign('features', $features_selectable);
         $this->view->assign('features_counts', $counts);
 
         #load product types
         $this->view->assign('product_types', $product_types);
+
+        $this->view->assign('sidebar_width', $config->getSidebarWidth());
     }
 
-    /**
-     * Get only multiple type features
-     * @param shopProduct $product
-     */
-    protected function getSelectableFeatures(shopProduct $product)
-    {
-        $features_model = new shopFeatureModel();
-        $features = $features_model->getMultipleSelectableFeaturesByType($product->type_id);
-
-        // attach values
-        $features = $features_model->getValues($features);
-
-        $features_selectable_model = new shopProductFeaturesSelectableModel();
-        $selected = array();
-        foreach ($features_selectable_model->getByField('product_id', $product->id, true) as $item) {
-            $selected[$item['feature_id']][$item['value_id']] = true;
-        }
-        foreach ($features as $code => $f) {
-            $count = 0;
-            foreach ($f['values'] as $v_id => $v) {
-                $is_selected = isset($selected[$f['id']][$v_id]);
-                $features[$code]['values'][$v_id] = array(
-                    'name'     => (string) $v,
-                    'selected' => $is_selected
-                );
-                if ($is_selected) {
-                    $count += 1;
-                }
-            }
-            $features[$code]['count'] = $count;
-        }
-        return $features;
-    }
-
-    protected function assignReportsData($product)
+    protected function assignReportsData(shopProduct $product)
     {
         $order_model = new shopOrderModel();
-        $sales_total = $order_model->getTotalSalesByProduct($product['id']);
-        $this->view->assign('sales', $sales_total['total']);
+        $sales_total = $order_model->getTotalSalesByProduct($product['id'], $product['currency']);
+        $this->view->assign('sales', $sales_total);
+
         $profit = $sales_total['total'];
 
         $rows = $order_model->getSalesByProduct($product['id']);
@@ -249,27 +227,26 @@ class shopProductAction extends waViewAction
         $i = 0;
         while ($date < time()) {
             $date = date('Y-m-d', $date);
-            $sales_data[] = array($i++, isset($rows[$date]) ? (float) $rows[$date] : 0);
+            $sales_data[] = array($i++, isset($rows[$date]) ? (float)$rows[$date] : 0);
             $date = strtotime($date." +1 day");
         }
         $this->view->assign('sales_plot_data', array($sales_data));
 
         if (count($product['skus']) > 1) {
             $sku_sales_data = array();
-            $rows = $order_model->getTotalSkuSalesByProduct($product['id']);
+            $rows = $order_model->getTotalSkuSalesByProduct($product['id'], $product['currency']);
             foreach ($rows as $sku_id => $v) {
-                $sku_sales_data[] = array($product['skus'][$sku_id]['name'], (float) $v['total']);
-                if (!(double) $product['skus'][$sku_id]['purchase_price']) {
+                $sku_sales_data[] = array($product['skus'][$sku_id]['name'], (float)$v['total']);
+                if (!(double)$v['purchase']) {
                     $profit = false;
                 } elseif ($profit) {
-                    $profit -= $v['quantity'] * $product['skus'][$sku_id]['purchase_price'];
+                    $profit -= $v['purchase'];
                 }
             }
             $this->view->assign('sku_plot_data', array($sku_sales_data));
         } else {
-            $sku_id = $product['sku_id'];
-            if ($profit && (double) $product['skus'][$sku_id]['purchase_price']) {
-                $profit -= $sales_total['quantity'] * $product['skus'][$sku_id]['purchase_price'];
+            if ((double)$sales_total['purchase']) {
+                $profit -= $sales_total['purchase'];
             } else {
                 $profit = false;
             }
@@ -278,6 +255,24 @@ class shopProductAction extends waViewAction
         if ($profit) {
             $this->view->assign('profit', $profit);
         }
+
+        $runout = array();
+        $sales_rate = 0;
+        if ($sales_total['quantity'] >= 3) { // < 3 means not enough data for proper statistic
+            $sales_rate = $sales_total['quantity'] / 30;
+            $runout = $product->getRunout($sales_rate);
+        }
+        $this->view->assign('runout', $runout);
+        $this->view->assign('sales_rate', $sales_rate);
+
+        $stocks_log_model = new shopProductStocksLogModel();
+        $stocks_log = $stocks_log_model->getList('*,stock_name,sku_name,product_name', array(
+            'where' => array('product_id' => $product->id),
+            'limit' => 5,
+            'order' => 'datetime DESC'
+        ));
+        $this->view->assign('stocks_log', $stocks_log);
+
     }
 
     protected function getCurrencies()

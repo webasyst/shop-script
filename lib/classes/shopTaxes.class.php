@@ -58,11 +58,6 @@ class shopTaxes
                 'sum' => 0.0,
             );
 
-            // Make sure tax is applicable: check address type
-            if (empty($addresses[$t['address_type']])) {
-                continue;
-            }
-
             // Check if there are rates based on country and region
             $result[$t['id']]['rate'] = $trm->getByTaxAddress($t['id'], $addresses[$t['address_type']]);
         }

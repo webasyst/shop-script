@@ -90,6 +90,9 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
                 SELECT sort FROM {$this->table}
                 WHERE product_id = $before_id AND category_id = $category_id"
             )->fetchField('sort');
+            if ($sort === false) {
+                return false;
+            }
             $this->exec("
                 UPDATE {$this->table} SET sort = sort + ".count($product_ids)."
                 WHERE sort >= $sort AND category_id = $category_id"
@@ -247,7 +250,29 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
         } else {
             $product->category_id = null;
         }
+        $product_model = new shopProductModel();
+        $product_model->updateById($product->id, array(
+            'category_id' => $product->category_id
+        ));
 
         return $data;
+    }
+    
+    /**
+     * Check for each product if is in any categories and return proper ids
+     * @param array|int $product_ids
+     * @param array|int $category_ids
+     */
+    public function filterByEnteringInCategories($product_ids, $category_ids)
+    {
+        $product_ids = (array) $product_ids;
+        $category_ids = (array) $category_ids;
+        if (empty($product_ids) || empty($category_ids)) {
+            return array();
+        }
+        $sql = "SELECT product_id FROM `{$this->table}` 
+            WHERE product_id IN(" . implode(',', $product_ids) . ") 
+                AND category_id IN(" . implode(',', $category_ids) . ")";
+        return array_keys($this->query($sql)->fetchAll('product_id'));
     }
 }

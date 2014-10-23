@@ -44,12 +44,14 @@ class shopFrontendMyOrdersAction extends shopFrontendAction
 
         $this->view->assign('orders', array_values($orders));
 
+        $this->view->assign('my_nav_selected', 'orders');
+
         // Set up layout and template from theme
         $this->setThemeTemplate('my.orders.html');
         if (!waRequest::isXMLHttpRequest()) {
             $this->setLayout(new shopFrontendLayout());
             $this->getResponse()->setTitle(_w('Orders'));
-            $this->layout->assign('breadcrumbs', self::getBreadcrumbs());
+            $this->view->assign('breadcrumbs', self::getBreadcrumbs());
             $this->layout->assign('nofollow', true);
         }
     }

@@ -15,6 +15,9 @@ if (!file_exists($config_path)) {
 require_once($config_path);
 $config = new SystemConfig();
 waSystem::getInstance(null, $config);
+/**
+ * @var shopConfig $app_config
+ */
 $app_config = wa('shop')->getConfig();
 $request_file = $app_config->getRequestUrl(true, true);
 $request_file = preg_replace("@^thumb.php(/products)?/?@", '', $request_file);
@@ -24,8 +27,9 @@ $public_path = wa()->getDataPath('products/', true, 'shop');
 $main_thumb_file = false;
 $file = false;
 $size = false;
-if (preg_match('@((?:\d{2}/){2}([0-9]+)/images/([0-9]+))/\\3\.(\d+(?:x\d+)?)\.([a-z]{3,4})@i', $request_file, $matches)) {
-    $file = $matches[1].'.'.$matches[5];
+$enable_2x = false;
+if (preg_match('#((?:\d{2}/){2}([0-9]+)/images/([0-9]+))/\\3\.(\d+(?:x\d+)?)(@2x)?\.([a-z]{3,4})#i', $request_file, $matches)) {
+    $file = $matches[1].'.'.$matches[6];
     $size = $matches[4];
     $gen_thumbs = $app_config->getOption('image_thumbs_on_demand');
 
@@ -34,6 +38,15 @@ if (preg_match('@((?:\d{2}/){2}([0-9]+)/images/([0-9]+))/\\3\.(\d+(?:x\d+)?)\.([
         if (in_array($size, $thumbnail_sizes) === false) {
             $file = false;
         }
+    }
+    if ($matches[5] && $app_config->getOption('enable_2x')) {
+        $enable_2x = true;
+        $size = explode('x', $size);
+        foreach ($size as &$s) {
+            $s *= 2;
+        }
+        unset($s);
+        $size = implode('x', $size);
     }
 }
 wa()->getStorage()->close();
@@ -45,8 +58,15 @@ if ($file && file_exists($original_path) && !file_exists($thumb_path)) {
     if (!file_exists($thumbs_dir)) {
         waFiles::create($thumbs_dir);
     }
-    shopImage::generateThumb($original_path, $size, $app_config->getOption('max_size'))->save($thumb_path);
-    clearstatcache();
+    $max_size = $app_config->getOption('image_max_size');
+    if ($max_size && $enable_2x) {
+        $max_size *= 2;
+    }
+    $image = shopImage::generateThumb($original_path, $size, $max_size);
+    if ($image) {
+        $image->save($thumb_path, $app_config->getSaveQuality($enable_2x));
+        clearstatcache();
+    }
 }
 
 if ($file && file_exists($thumb_path)) {

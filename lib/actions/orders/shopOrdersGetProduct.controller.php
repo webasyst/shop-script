@@ -20,9 +20,14 @@ class shopOrdersGetProductController extends waJsonController
 
         $sku_id = waRequest::get('sku_id', 0, waRequest::TYPE_INT);
         if ($sku_id) {
-            $this->response = $this->getSku($sku_id, $order_id);
+            $sku = $this->getSku($sku_id, $order_id);
+            $this->response['sku'] = $sku;
+            $this->response['service_ids'] = array_keys($sku['services']);
         } else {
-            $this->response = $this->getProduct($product_id, $order_id);
+            $product = $this->getProduct($product_id, $order_id);
+            $this->response['product'] = $product;
+            $this->response['sku_ids'] = array_keys($product['skus']);
+            $this->response['service_ids'] = array_keys($product['services']);
         }
     }
 

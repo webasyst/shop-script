@@ -40,10 +40,10 @@
             {if $p.summary}<p itemprop="description">{$p.summary}</p>{/if}
         </td>
         <td class="align-center" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-            {if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency($p.compare_price)} </span><br>{/if}
-            <span class="price nowrap" itemprop="price">{shop_currency($p.price)}</span>
+            {if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency_html($p.compare_price)} </span><br>{/if}
+            <span class="price nowrap" itemprop="price">{shop_currency_html($p.price)}</span>
             {if $wa->shop->settings('ignore_stock_count') || $p.count === null || $p.count > 0}
-                <form class="addtocart" method="post" action="{$wa->getUrl('/frontendCart/add')}">
+                <form class="addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('/frontendCart/add')}">
                     <input type="hidden" name="product_id" value="{$p.id}">
                     <input type="submit" value="[`Add to cart`]">
                 </form>

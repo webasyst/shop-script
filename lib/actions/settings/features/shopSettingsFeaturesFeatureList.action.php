@@ -3,20 +3,24 @@ class shopSettingsFeaturesFeatureListAction extends waViewAction
 {
     public function execute()
     {
-        $values_per_feature = 7;
+        if (!$this->getUser()->getRights('shop', 'settings')) {
+            throw new waRightsException(_w('Access denied'));
+        }
+
         $feature_model = new shopFeatureModel();
 
-        $type = waRequest::get('type', waRequest::TYPE_INT);
-        if ($type) {
-            $features = $feature_model->getByType($type, 'id', $values_per_feature);
+        $values_per_feature = 7;
+        $type = waRequest::get('type', waRequest::TYPE_STRING, '');
+        if ($type_id = intval($type)) {
+            $features = $feature_model->getByType($type_id, 'id', $values_per_feature);
         } else {
-            $type_model = new shopTypeModel();
-            $types_per_page = $this->getConfig()->getOption('types_per_page');
-            $show_all_types = (($type_model->countAll() - $types_per_page) < 3);
-            if ($show_all_types) {
+
+            if ($type === 'empty') {
+                $features = $feature_model->getByType(null, 'id', $values_per_feature);
+            } elseif ($type === '') {
                 $features = $feature_model->getFeatures(true, null, 'id', $values_per_feature);
             } else {
-                $features = $feature_model->getByType($type, 'id', $values_per_feature);
+                $features = $feature_model->getByType(0, 'id', $values_per_feature);
             }
         }
         if ($features) {
@@ -24,9 +28,8 @@ class shopSettingsFeaturesFeatureListAction extends waViewAction
             $type_features_model = new shopTypeFeaturesModel();
             $type_features_model->fillTypes($features);
         }
+
         $this->view->assign('features', $features);
         $this->view->assign('values_per_feature', $values_per_feature);
-
     }
 }
-

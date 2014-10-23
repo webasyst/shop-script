@@ -39,6 +39,25 @@
                 </label>
             </div>
             {/foreach}
+        </div>        
+    </div>
+        
+    <div class="field-group">
+        <div class="field">
+            <div class="name">[`Order source`]</div>
+            <div class="value no-shift">
+                <select name="data[source]">
+                    <option value="">[`All order sources`]</option>
+                    <option value="backend">[`Backend orders only`]</option>
+                    {foreach $routes as $domain => $domain_routes}
+                        {foreach $domain_routes as $route}
+                            {$url = $domain|cat:"/":$route.url}
+                            <option value="{$url}">{$url}</option>
+                        {/foreach}
+                    {/foreach}
+                </select>
+                <p class="hint">[`Notification will be sent only for orders placed via the selected source.`]</p>
+            </div>
         </div>
     </div>
 
@@ -73,8 +92,17 @@
                 $("#notifications-settings-content").show();
                 var t = notification_templates[e] || notification_templates['order'];
                 $("#email-content .subject").val(t[0]);
-                $("#email-content .body").val(t[1]).change();
-                $("#n-sms-text").val(t[2]).change();
+                
+                var email_body = $('#n-email-body');
+                email_body.val(t[1]).change();
+                email_body.data('wa_editor').getSession().setValue(email_body.val());
+
+                var sms_text = $("#n-sms-text");
+                sms_text.val(t[2]).change();
+                sms_text.data('wa_editor').getSession().setValue(sms_text.val());
+
+                $('#n-send-button').removeClass('yellow').addClass('green');
+                
             } else {
                 $("#notifications-settings-content").hide();
             }

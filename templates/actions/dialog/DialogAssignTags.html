@@ -21,6 +21,17 @@
                         </ul>
                     </div>
                     {/if}
+                    
+                    <p id="s-popular-tags" class="tags small">
+                        {if $popular_tags}
+                            [`Popular tags`]:
+                            {foreach $popular_tags as $tag}
+                                <span><a data-tag-id="{$tag.id}" href="javascript:void(0);" class="inline-link"><b><i>{$tag.name|escape}</i></b></a></span>
+                            {/foreach}
+                            <br>
+                        {/if}
+                    </p>
+                    
                </div>
             </div>
             <div class="dialog-buttons">
@@ -31,10 +42,22 @@
         </form>
     </div>
 </div>
+                    
 <script>
-$('#s-assign-tags-list').tagsInput({
-    autocomplete_url: '?module=product&action=tagsAutocomplete',
-    height: 120,
-    defaultText: ''
+$(function() {
+    $('#s-assign-tags-list').tagsInput({
+        autocomplete_url: '?module=product&action=tagsAutocomplete',
+        height: 120,
+        defaultText: ''
+    });
+
+    $('#s-popular-tags').off('click.shop', 'a').
+            on('click.shop', 'a', function() {
+                var name = $(this).text();
+                var tags_input = $('#s-assign-tags-list');
+                tags_input.removeTag(name);
+                tags_input.addTag(name);
+        }
+    );
 });
 </script>

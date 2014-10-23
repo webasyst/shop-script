@@ -14,5 +14,11 @@
 class shopFollowupModel extends waModel
 {
     protected $table = 'shop_followup';
+    
+    public function getAllEnabled($key = null, $normalize = false) {
+        $sql = "SELECT * FROM ".$this->table . " WHERE status = 1";
+        return $this->query($sql)->fetchAll($key, $normalize);
+    }
+    
 }
 

@@ -1,4 +1,4 @@
-<div class="dialog width650px {if $hash[0] == 'set'}height300px{else}height500px{/if}" id="s-product-list-settings-dialog">
+<div class="dialog {if $hash[0] == 'set'}width650px height300px{else}large{/if}" id="s-product-list-settings-dialog">
     <div class="dialog-background"></div>
     <form id="s-product-list-settings-form" method="post"
           action="?module=products&action=saveListSettings&{implode('_id=', $hash)}"
@@ -13,7 +13,12 @@
                         <div class="field">
                             <div class="name">{$name_text}</div>
                             <div class="value">
-                                <input type="text" name="name" class="large long s-full-width-input" value="{$settings.name|escape}">
+                                
+                                <input type="text" name="name" 
+                                                       class="large long s-full-width-input" 
+                                                       value="{$settings.name|escape}" 
+                                                       id="s-product-list-name"
+                                                   >
                             </div>
                         </div>
                         {$smarty.capture.frontend_url}

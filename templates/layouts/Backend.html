@@ -2,24 +2,23 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     {$title=$wa->title()}
-    <title>{if $title}{$title|escape}{else}{$wa->appName()}{/if} &mdash; {$wa->accountName()}</title>
+    <title>{{$title|default:$wa->appName()}|cat:" — ":{$wa->accountName(false)}|escape}</title>
 
     {$wa->css()}
 
     <link href="{$wa_url}wa-content/css/jquery-ui/base/jquery.ui.autocomplete.css" rel="stylesheet" type="text/css" />
     <link href="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/jquery.jqplot.min.css" rel="stylesheet" type="text/css" />
     <link href="{$wa_url}wa-content/js/jquery-plugins/ibutton/jquery.ibutton.min.css" rel="stylesheet" type="text/css" />
-    <link href="{$wa_url}wa-content/js/codemirror/lib/codemirror.css" type="text/css" rel="stylesheet"/>
+
     <link href="{$wa_app_static_url}css/shop.css?v{$wa->version()}" rel="stylesheet" type="text/css" />
     <!-- link your CSS files here -->
-    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery/jquery-1.7.1.min.js"></script>
-    <script type="text/javascript" src="{$wa_url}wa-content/js/codemirror/lib/codemirror.js"></script>
+    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery/jquery-1.8.2.min.js"></script>
+    
     <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/jquery.jqplot.min.js"></script>
     <!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/excanvas.min.js"></script><![endif]-->
     {wa_js file="js/shop-jquery.min.js"}
         {$wa_url}wa-content/js/jquery-wa/wa.core.js
         {$wa_url}wa-content/js/jquery-wa/wa.dialog.js
-        {$wa_url}wa-content/js/jquery-ui/jquery-ui.custom.min.js
         {$wa_url}wa-content/js/jquery-plugins/ibutton/jquery.ibutton.min.js
         {$wa_url}wa-content/js/jquery-plugins/jquery.history.js
         {$wa_url}wa-content/js/jquery-plugins/jquery.store.js
@@ -34,12 +33,6 @@
         {$wa_url}wa-content/js/jquery-ui/jquery.ui.datepicker.min.js
 
         {$wa_url}wa-content/js/jquery-plugins/jquery.tmpl.min.js
-
-        {$wa_url}wa-content/js/codemirror/mode/xml/xml.js
-        {$wa_url}wa-content/js/codemirror/mode/javascript/javascript.js
-        {$wa_url}wa-content/js/codemirror/mode/css/css.js
-        {$wa_url}wa-content/js/codemirror/mode/htmlmixed/htmlmixed.js
-        {$wa_url}wa-content/js/jquery-wa/wa.editor.js
 
         {$wa_url}wa-content/js/jquery-plugins/jquery-plot/plugins/jqplot.highlighter.min.js
         {$wa_url}wa-content/js/jquery-plugins/jquery-plot/plugins/jqplot.cursor.min.js
@@ -86,9 +79,11 @@
                     <a href="?action=settings">[`Settings`]</a>
                 </li>
                 {/if}
+                {if $product_rights}
                 <li class="small float-right{if $page=='importexport'} selected{else} no-tab{/if}">
                     <a href="?action=importexport">[`Import / Export`]</a>
                 </li>
+                {/if}
 
                 <!-- plugin hook: 'backend_menu.aux_li' -->
                 {* @event backend_menu.%plugin_id%.aux_li *}
@@ -116,7 +111,7 @@
                     </li>
                 {/if}
                 
-                {if $wa->userRights('design')}
+                {if $wa->userRights('design') || $wa->userRights('pages')}
                     <li class="{if $page=='storefronts'}selected{else}no-tab{/if} s-storefronts-tab">
                         <a href="?action=storefronts">[`Storefront`]</a>
                     </li>
@@ -186,6 +181,9 @@
                             <li>
                                 <a href="#/top/">[`Top products`]</a>
                             </li>
+                            <li>
+                                <a href="#/checkoutflow/">[`Checkout flow`]</a>
+                            </li>
                             {*
                             <li>
                                 <span class="gray">[`Efficiency`]</span>
@@ -195,9 +193,9 @@
                             </li>
                             *}
 
-                            <!-- plugin hook: 'backend_menu.reports_li' -->
-                            {* @event backend_menu.%plugin_id%.reports_li *}
-                            {foreach $backend_menu as $_}{ifset($_.reports_li)}{/foreach}
+                            <!-- plugin hook: 'backend_reports.menu_li' -->
+                            {* @event backend_reports.%plugin_id%.menu_li *}
+                            {foreach $backend_reports as $_}{ifset($_.menu_li)}{/foreach}
 
                         </ul>
 
@@ -211,14 +209,14 @@
                                 <a href="#"><i class="icon16 view-table"></i></a>
                             </li>
 
-                            <!-- plugin hook: 'backend_menu.orders_viewmode_li' -->
-                            {* @event backend_menu.%plugin_id%.orders_viewmode_li *}
-                            {foreach $backend_menu as $_}{ifset($_.orders_viewmode_li)}{/foreach}
+                            <!-- plugin hook: 'backend_orders.viewmode_li' -->
+                            {* @event backend_orders.%plugin_id%.viewmode_li *}
+                            {foreach $backend_orders as $_}{ifset($_.viewmode_li)}{/foreach}
 
                         </ul>
                         <div class="s-search-form">
                             <i class="icon16 ss search-bw"></i>
-                            <input type="search" placeholder="[`Search orders by ID`]" id="s-orders-search">
+                            <input type="search" placeholder="[`Search orders`]" id="s-orders-search">
                         </div>
 
                     {/if}

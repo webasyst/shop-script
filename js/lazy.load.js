@@ -1,11 +1,21 @@
 (function($) {
 
     $.fn.lazyLoad = function(options, ext) {
-
         if (options == 'stop') {
             var settings = this.data('lazyLoadSettings');
             if (settings) {
                 settings.stopped = true;
+            }
+            return;
+        }
+        
+        if (options == 'reload') {
+            var settings = this.data('lazyLoadSettings');
+            if (settings) {
+                settings.stopped = false;
+                settings.loading = false;
+                this.get(0).onscroll = null;
+                this.lazyLoad(settings);
             }
             return;
         }
@@ -50,7 +60,7 @@
         settings.stopped = false;
 
         var win = this;
-        var container = typeof settings.container === 'string' ? $(settings.container) : settings.container;
+        var container = settings.container;
 
         init();
 
@@ -116,6 +126,7 @@
         var distanceBetweenBottoms = typeof settings.distanceBetweenBottoms === 'function' ?
             settings.distanceBetweenBottoms :
             function (container, win, offset) {
+                container = typeof container === 'string' ? $(container) : container;
                 offset = offset || 0;
                 return (container.position().top + container.outerHeight() - offset) - (win.scrollTop() + win.height());
             };

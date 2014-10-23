@@ -7,7 +7,7 @@ class shopCustomersInfoAction extends waViewAction
 {
     public function execute()
     {
-        $id = waRequest::request('id');
+        $id = waRequest::request('id', null, waRequest::TYPE_INT);
 
         $scm = new shopCustomerModel();
         $customer = $scm->getById($id);
@@ -50,20 +50,12 @@ class shopCustomersInfoAction extends waViewAction
         $contact['photo'] = $photo;
 
         // Customer orders
-        $om = new shopOrderModel();
         $im = new shopOrderItemsModel();
-        $orders = $om->getList('*,params', array( // shipping_name,shipping_plugin_id,payment_name,payment_plugin_id
-            'where' => array('contact_id' => $id),
-        ));
+        $orders_collection = new shopOrdersCollection('search/contact_id='.$id);
+        $total_count = $orders_collection->count();
+        $orders = $orders_collection->getOrders('*,items,params', 0, $total_count);
         shopHelper::workupOrders($orders);
         foreach($orders as &$o) {
-            $o['items'] = array();
-            foreach($im->getItems($o['id'], true) as $i) {
-                $o['items'][] = array(
-                    'name' => $i['item']['name'],
-                    'quantity' => $i['item']['quantity'],
-                );
-            }
             $o['total_formatted'] = waCurrency::format('%{s}', $o['total'], $o['currency']);
             $o['shipping_name'] = ifset($o['params']['shipping_name'], '');
             $o['payment_name'] = ifset($o['params']['payment_name'], '');
@@ -92,8 +84,22 @@ class shopCustomersInfoAction extends waViewAction
         $this->view->assign('contact_categories', $contact_categories);
         $this->view->assign('def_cur_tmpl', str_replace('0', '%s', waCurrency::format('%{s}', 0, wa()->getConfig()->getCurrency())));
         $this->view->assign('point_rate', str_replace(',', '.', (float) str_replace(',', '.', wa()->getSetting('affiliate_usage_rate'))));
-        $this->view->assign('fields', waContactFields::getAll('person'));
+        $fields = waContactFields::getAll('person');
+        if (isset($fields['name'])) {
+            unset($fields['name']);
+        }
+        $this->view->assign('fields', $fields);
         $this->view->assign('orders_default_view', $config->getOption('orders_default_view'));
+
+        /*
+         * @event backend_customer
+         * @return array[string]array $return[%plugin_id%] array of html output
+         * @return array[string][string]string $return[%plugin_id%]['info_section'] html output
+         * @return array[string][string]string $return[%plugin_id%]['name_suffix'] html output
+         * @return array[string][string]string $return[%plugin_id%]['header'] html output
+         * @return array[string][string]string $return[%plugin_id%]['action_link'] html output
+         */
+        $this->view->assign('backend_customer', wa()->event('backend_customer', $customer));
     }
 }
 

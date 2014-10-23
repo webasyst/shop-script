@@ -5,6 +5,7 @@ class shopBackendWelcomeAction extends waViewAction
     private $countries = array();
     private $types = array();
     private $translate = array();
+
     public function execute()
     {
         $path = $this->getConfig()->getConfigPath('data/welcome/', false);
@@ -25,7 +26,10 @@ class shopBackendWelcomeAction extends waViewAction
                 $this->translate = array();
             }
         }
+
         if (waRequest::post()) {
+            $app_settings_model = new waAppSettingsModel();
+            $app_settings_model->del('shop', 'welcome');
             $this->setup();
         } else {
             $this->overview();
@@ -86,7 +90,13 @@ class shopBackendWelcomeAction extends waViewAction
             $feature_model = new shopFeatureModel();
             $type_features_model = new shopTypeFeaturesModel();
 
-            if ($types = waRequest::post('types')) {
+            $types = waRequest::post('types');
+            if (empty($types)) {
+                if (!$type_features_model->countAll()) {
+                    $types[] = 'default';
+                }
+            }
+            if ($types) {
                 foreach ($types as $type) {
                     if (!empty($this->types[$type])) {
                         $type = $this->types[$type];
@@ -115,6 +125,8 @@ class shopBackendWelcomeAction extends waViewAction
                                     foreach ($feature['values'] as & $value) {
                                         if (is_string($value)) {
                                             $value = ifempty($this->translate[$value], $value);
+                                        } elseif (isset($value['value'])) {
+                                            $value['value'] = ifempty($this->translate[$value['value']], $value['value']);
                                         }
                                     }
                                     unset($value);
@@ -142,6 +154,38 @@ class shopBackendWelcomeAction extends waViewAction
             'rule'  => 'rating DESC',
         ));
 
+
+// notifications
+        $notifications_model = new shopNotificationModel();
+        if ($notifications_model->countAll() == 0) {
+            $notifications_action = new shopSettingsNotificationsAddAction();
+            $notifications = $notifications_action->getTemplates();
+            $params_model = new shopNotificationParamsModel();
+            $events = $notifications_action->getEvents();
+            foreach ($notifications as $event => $n) {
+                if ($event == 'order') {
+                    continue;
+                }
+                $data = array(
+                    'name'      => $events[$event]['name'].' ('._w('Customer').')',
+                    'event'     => $event,
+                    'transport' => 'email',
+                    'status'    => 1,
+                );
+                $id = $notifications_model->insert($data);
+                $params = $n;
+                $params['to'] = 'customer';
+                $params_model->save($id, $params);
+
+                if ($event == 'order.create') {
+                    $data['name'] = $events[$event]['name'].' ('._w('Store admin').')';
+                    $id = $notifications_model->insert($data);
+                    $params['to'] = 'admin';
+                    $params_model->save($id, $params);
+                }
+            }
+        }
+
         /* !!! import commented out on welcome screen
          switch (waRequest::post('import')) {
          case 'demo':
@@ -159,10 +203,11 @@ class shopBackendWelcomeAction extends waViewAction
          break;
          case 'scratch':
          default: */
-        $this->redirect('?action=products');
+        $this->redirect('?action=products#/welcome/');
         //        break;
         //}
-        }
+    }
+
     private function overview()
     {
         $this->setLayout(new shopWelcomeLayout());
@@ -197,12 +242,14 @@ class shopBackendWelcomeAction extends waViewAction
         $types = array();
         if (!empty($this->types)) {
             foreach ($this->types as $id => $type) {
-                $name = ifempty($type['name'], $id);
-                $types[$id] = array(
-                    'name'        => ifempty($this->translate[$name], $name),
-                    'icon'        => ifempty($type['icon'], ''),
-                    'description' => '',
-                );
+                if ($id != 'default') {
+                    $name = ifempty($type['name'], $id);
+                    $types[$id] = array(
+                        'name'        => ifempty($this->translate[$name], $name),
+                        'icon'        => ifempty($type['icon'], ''),
+                        'description' => '',
+                    );
+                }
             }
         }
         $this->view->assign('types', $types);

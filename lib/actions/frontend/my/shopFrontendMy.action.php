@@ -13,12 +13,19 @@ class shopFrontendMyAction extends shopFrontendAction
          * @return array[string]string $return[%plugin_id%] html output
          */
         $this->view->assign('frontend_my', wa()->event('frontend_my'));
+
+
+
         // Set up layout and template from theme
         $this->setThemeTemplate('my.html');
+
+        if (!file_exists($this->getTheme()->path.'/my.html')) {
+            $this->redirect(wa()->getRouteUrl('/frontend/myOrders'));
+        }
         if (!waRequest::isXMLHttpRequest()) {
             $this->setLayout(new shopFrontendLayout());
             $this->getResponse()->setTitle(_w('My account'));
-            $this->layout->assign('breadcrumbs', self::getBreadcrumbs());
+            $this->view->assign('breadcrumbs', self::getBreadcrumbs());
             $this->layout->assign('nofollow', true);
         }
     }

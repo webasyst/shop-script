@@ -6,7 +6,7 @@
 <div class="content">
 
     <!-- integrnal navigation breadcrumbs -->
-    {if isset($breadcrumbs)}
+    {if !empty($breadcrumbs)}
         <div class="breadcrumbs">
             {foreach $breadcrumbs as $breadcrumb}
                 <a href="{$breadcrumb.url}">{$breadcrumb.name|escape}</a> <span class="rarr">&rarr;</span>
@@ -19,3 +19,15 @@
 </div>
 
 <div class="clear-both"></div>
+
+<div id="dialog" class="dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <!-- common part -->
+        <div class="cart">
+
+        </div>
+        <!-- /common part -->
+
+    </div>
+</div>

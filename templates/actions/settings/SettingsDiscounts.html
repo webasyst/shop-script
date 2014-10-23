@@ -4,9 +4,8 @@
         <ul id="discount-types" class="menu-v stack with-icons">
             {foreach $types as $t}
                 <li><a href="javascript:void(0)" rel="{$t.id}">
-                    <i class="icon16 {if $t.enabled}status-blue-tiny{else}status-gray-tiny{/if}"></i>{$t.name}
-                    </a>
-                </li>
+                    <i class="icon16 {if $t.status}status-blue-tiny{else}status-gray-tiny{/if}"></i>{$t.name}
+                </a></li>
             {/foreach}
         </ul>
 
@@ -26,22 +25,17 @@
 
 <div id="s-discounts-content" class="content left200px s-settings-form blank bordered-left"></div>
 
-{* Allow plugins to insert their own content into types menu, and register for JS events. *}
-{foreach $plugin_html as $block}
-    {$block}
-{/foreach}
+{* Allow plugins to insert their own custom content, e.g. to hack into JS if they like. *}
+{foreach $types as $t}{ifempty($t.html)}{/foreach}
 
 <script>$(function() { "use strict";
 
     var types_ul = $('#discount-types');
     var discounts_content = $('#s-discounts-content');
 
-    //
     // Controller for sub-pages.
-    // When user clicks a link in inner sidebar, or when changes an URL hash,
+    // When user clicks a link in inner sidebar, or when changes a URL hash,
     // this controller triggers event 'wa.dicount.<type>' on #discount-types.
-    // Plugins are expected to catch events of their types and load HTML into #s-discounts-content.
-    //
     types_ul.on('click', 'a[rel]', function() {
         var a = $(this);
         var type = a.attr('rel');
@@ -49,7 +43,7 @@
             return;
         }
 
-        if (window.location.hash.toString() != '#/discounts/'+type) {
+        if (window.location.hash.toString() != '#/discounts/'+type+'/') {
             $.settings.stopDispatch(1);
             window.location.hash = '#/discounts/'+type+'/';
         }
@@ -58,33 +52,18 @@
         types_ul.trigger('wa.discount.'+type);
     });
 
-    // Implementation for 'coupons' discount type.
-    types_ul.bind('wa.discount.coupons', function() {
-        $.get('?module=settings&action=discountsCoupons', function(r) {
-            discounts_content.html(r);
-        });
-    });
-
-    // Implementation for 'category' discount type.
-    types_ul.bind('wa.discount.category', function() {
-        $.get('?module=settings&action=discountsCategory', function(r) {
-            discounts_content.html(r);
-        });
-    });
-
-    // Implementation for 'order_total' discount type.
-    types_ul.bind('wa.discount.order_total', function() {
-        $.get('?module=settings&action=discountsOrderTotal', function(r) {
-            discounts_content.html(r);
-        });
-    });
-
-    // Implementation for 'customer_total' discount type.
-    types_ul.bind('wa.discount.customer_total', function() {
-        $.get('?module=settings&action=discountsCustomerTotal', function(r) {
-            discounts_content.html(r);
-        });
-    });
+    // Dispatching for known discount types.
+    // This code catches 'wa.dicount.<type>' events on #discount-types and loads content from content url if it is specified.
+    // If a plugin does not like this behaviour for some reason, it may omit url parameter and catch this event by itself.
+    {foreach $types as $t}
+        {if !empty($t.url)}
+            types_ul.bind('wa.discount.{$t.id}', function() {
+                $.get('{$t.url}', function(r) {
+                    discounts_content.html(r);
+                });
+            });
+        {/if}
+    {/foreach}
 
     // Open sub-page: either take id from hash, or use the first one in sidebar list (if exists)
     (function() {
@@ -117,5 +96,5 @@
         });
     })();
 
-    document.title = "[`Discounts`] — {$wa->accountName()}";
+    document.title = '{"[`Discounts`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 });</script>

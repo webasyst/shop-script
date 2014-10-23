@@ -24,9 +24,11 @@
 
                         </li>
                         {/foreach}
-                        <li class="bordered-top">
-                            <a href="{$wa_backend_url|cat:'installer/?module=plugins&subject=systemplugins&slug=shipping'}" class="small" style="padding-left: 28px;">[`Browse for more shipping modules in the Installer app…`]</a>
+                        {if !empty($installer)}
+                        <li class="bordered-top" style="padding-top: 10px; padding-bottom: 10px; margin-top: 7px;">
+                            <a href="#/shipping/plugins/" style="text-align: center;">[`Browse shipping plugins...`]</a>
                         </li>
+                        {/if}
                     </ul>
                 </li>
             </ul>
@@ -82,7 +84,7 @@
 
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/shipping.js?{$wa->version()}"></script>
 <script type="text/javascript">
-document.title = '{"[`Shipping`]"|cat:" — ":{$wa->accountName()}}';
+document.title = '{"[`Shipping`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 if(typeof($)!='undefined') {
 $.settings.shippingInit();
 }

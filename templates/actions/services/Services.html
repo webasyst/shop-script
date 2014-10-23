@@ -1,9 +1,9 @@
-<script type="text/javascript" src="{$wa_app_static_url}js/product/services.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/product/services.js?v={$wa->version()}"></script>
 <div class="sidebar left250px s-inner-sidebar">
         <ul class="menu-v with-icons stack" id="s-services-list">
             {foreach $services as $item}
-                <li {if $service.id == $item.id}class="selected"{/if}>
-                    <a href="#/services/{$item.id}/"><i class="icon16 ss service"></i><span class="name">{$item.name|escape}</span></a>
+                <li {if $service.id == $item.id}class="selected"{/if} data-service-id="{$item.id}">
+                    <a href="#/services/{$item.id}/"><i class="icon16 sort"></i><i class="icon16 ss service no-overhanging"></i> <span class="name">{$item.name|escape}</span></a>
                 </li>
             {/foreach}
             <li class="top-padded small">
@@ -46,6 +46,7 @@
                         {/if}
                         {foreach $variants as $variant}
                             <tr class="s-services-variant">
+                                <td class="min-width s-services-ext-cell" {if !$multi_variants}style="display:none;"{/if}><i class="icon16 sort"></i></td>
                                 <td class="min-width s-services-ext-cell" {if !$multi_variants}style="display:none;"{/if}>
                                     <input type="radio" name="default" value="{$variant@index}" {if $variant.id === $service.variant_id}checked="checked"{/if}>
                                 </td>
@@ -54,15 +55,19 @@
                                 </td>
                                 <td class="s-price-surplus">
                                     +<input type="text" name="price[]" value="{(double)$variant.price}" placeholder="{(double)$service.price}" class="s-price-surplus">
-                                    {if $use_product_currency}
+                                    <div class="s-services-choose-currency">
                                         <select class="s-service-currency">
-                                            {foreach $currencies as $code => $currency}
-                                            <option value="{$code}" {if !empty($service.currency) && $code == $service.currency}selected="selected"{/if}>{$code}</option>
-                                            {/foreach}
+                                            {if $use_product_currency}
+                                                {foreach $currencies as $code => $currency}
+                                                    <option value="{$code}" {if $service.currency == $code}selected="selected"{/if}>{$code}</option>
+                                                {/foreach}
+                                                <option value="%" {if $service.currency == '%'}selected="selected"{/if}>%</option>
+                                            {else}
+                                                <option value="{$primary_currency}">{$primary_currency}</option>
+                                                <option value="%" {if $service.currency == '%'}selected="selected"{/if}>%</option>
+                                            {/if}
                                         </select>
-                                    {else}
-                                        {if !empty($service.currency)}{$service.currency}{else}{$primary_currency}{/if}
-                                    {/if}
+                                    </div>
                                 </td>
                                 <td class="s-service-actions-cell">
                                     <a href="#" class="small inline-link s-multiple-options-toggle" {if $multi_variants}style="display:none"{/if}>
@@ -83,9 +88,11 @@
                                 </a>
                             </td>
                         </tr>
-                        {if !empty($service.currency)}
-                            <input type="hidden" value="{$service.currency}" name="currency" id="s-service-currency-code">
-                        {/if}
+                        <input type="hidden" 
+                                          value="{$service.currency}" 
+                                          name="currency" 
+                                          id="s-service-currency-code"
+                                      >
                     </table>
                     <span class="hint">[`Price you charge for this service can be customized for every product or SKU. Base price is used if the custom price for a particular product is not set.`]</span>
                 </div>
@@ -213,6 +220,17 @@
     </form>
 </div>
 
+<script>
+    $(function() {
+        document.title = '{$service.name|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+        $.product_services.init({
+            container: '#s-content',
+            service_id: {$service.id},
+            count: {$count}
+        });
+    });
+</script>
+                
 {* js templates block*}
 {foreach $smarty.capture as $template => $template_content}
 {if $template_content && (strpos($template, 'template-')===0)}
@@ -221,11 +239,3 @@
     </script>
 {/if}
 {/foreach}
-<script type="text/javascript">
-    document.title = '{$service.name|cat:" — ":{$wa->accountName()}}';
-    $.product_services.init({
-        container: '#s-content',
-        service_id: {$service.id},
-        count: {$count},
-    });
-</script>

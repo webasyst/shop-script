@@ -1,36 +1,36 @@
 /**
  *
  */
-(function($) {
+(function ($) {
     $.plugins = {
         options: {
-            'loading': '<i class="icon16 loading"></i>',
-            'path': '#/',
-            'useIframeTransport': false
+            loading: '<i class="icon16 loading"></i>',
+            path: '#/',
+            useIframeTransport: false
         },
         path: {
-            'plugin': false,
-            'tail': null,
-            'params': {}
+            plugin: false,
+            tail: null,
+            params: {}
         },
         icon: {
-            'submit': '<i style="vertical-align:middle" class="icon16 loading"></i>',
-            'success': '<i style="vertical-align:middle" class="icon16 yes"></i>',
-            'error': '<i style="vertical-align:middle" class="icon16 no"></i>'
+            submit: '<i style="vertical-align:middle" class="icon16 loading"></i>',
+            success: '<i style="vertical-align:middle" class="icon16 yes"></i>',
+            error: '<i style="vertical-align:middle" class="icon16 no"></i>'
         },
 
         ready: false,
-        menu: null,
+        $menu: null,
         timer: null,
 
         /**
-         * @param {} options
+         * @param options {object}
          */
-        init: function(options) {
+        init: function (options) {
             this.options = $.extend(this.options, options || {});
             if (!this.ready) {
                 this.ready = true;
-                this.menu = $('#plugin-list');
+                this.$menu = $('#plugin-list');
 
                 // Set up AJAX to never use cache
                 $.ajaxSetup({
@@ -38,11 +38,11 @@
                 });
 
                 if (typeof($.History) != "undefined") {
-                    $.History.bind(function() {
+                    $.History.bind(function () {
                         $.plugins.dispatch();
                     });
                 }
-                $.wa.errorHandler = function(xhr) {
+                $.wa.errorHandler = function (xhr) {
                     if ((xhr.status === 403) || (xhr.status === 404)) {
                         var text = $(xhr.responseText);
                         if (text.find('.dialog-content').length) {
@@ -63,14 +63,14 @@
                     $.wa.setHash(hash);
                 }
 
-                if (this.menu.find('> li > a').length) {
+                if (this.$menu.find('> li:not(#plugins-list) > a').length) {
 
-                    this.menu.sortable({
-                        'containment': this.menu.parent(),
-                        'distance': 5,
-                        'items': ' >li',
-                        'tolerance': 'pointer',
-                        'update': $.plugins.sortHandler
+                    this.$menu.sortable({
+                        containment: 'parent',
+                        distance: 5,
+                        items: '> li:not(#plugins-list)',
+                        tolerance: 'pointer',
+                        update: $.plugins.sortHandler
                     });
                 }
             }
@@ -78,27 +78,27 @@
 
         /**
          *
-         * @param {String} path
-         * @return { 'section':String, 'tail':String,'raw':String,'params':object }
+         * @param {string} path
+         * @return {}
          */
-        parsePath: function(path) {
+        parsePath: function (path) {
             path = path.replace(/^.*#\//, '');
             return {
-                'plugin': path.replace(/\/.*$/, '') || '',
-                'tail': path.replace(/^[^\/]+\//, '').replace(/[\w_\-]+=.*$/, '').replace(/\/$/, ''),
-                'raw': path
+                plugin: path.replace(/\/.*$/, '') || null,
+                tail: path.replace(/^[^\/]+\//, '').replace(/[\w_\-]+=.*$/, '').replace(/\/$/, '') || null,
+                raw: path
             };
         },
 
         /**
          * Dispatch location hash changes
          *
-         * @param {String} hash
-         * @param {Boolean} load Force reload if need
-         * @return {Boolean}
+         * @param {String=} hash
+         * @param {Boolean=} force Force reload if need
+         * @return {void}
          */
-        dispatch: function(hash, force) {
-
+        dispatch: function (hash, force) {
+            var $plugin;
             // in specific plugin inline script set it flag to true for iframe form posting
             this.options.useIframeTransport = false;
 
@@ -106,7 +106,7 @@
                 hash = window.location.hash;
             }
             if (!hash) {
-                var $plugin = this.menu.find('li:first > a:first');
+                $plugin = this.$menu.find('li:first > a:first');
                 if ($plugin.length) {
                     window.location.hash = hash = $plugin.attr('href');
                 }
@@ -114,54 +114,57 @@
 
             var path = this.parsePath(hash.replace(/^[^#]*#\/*/, ''));
             this.path.dispatch = path;
+            var load = force || (path.plugin !== this.path.plugin);
 
-            $.shop.trace('$.plugins.dispatch ' + this.path.plugin + ' -> ' + path.plugin + ' # ' + path.tail);
+            $.shop.trace('$.plugins.dispatch ' + this.path.plugin + ' -> ' + path.plugin + ' # ' + path.tail, load);
 
             /* change plugins section */
-            if (path.plugin && (force || path.plugin != this.path.plugin)) {
+            if (load) {
                 var $content = $('#s-plugins-content');
                 this.path.tail = null;
-                $content.html(this.options.loading);
 
-                var self = this;
-                var url = '';
+                $plugin = $(path.plugin ? ("#plugin-" + path.plugin) : '#plugins-list');
+                if ($plugin.length) {
+                    var url = this.helper.getContentUrl($plugin, path);
+                    if (url) {
+                        var self = this;
+                        $content.html(this.options.loading);
+                        $.shop.trace('$.plugins.dispatch: Load URL', [url, $content.length]);
+                        $content.load(url, function () {
+                            self.path.plugin = path.plugin;
 
-                if ($("#plugin-" + path.plugin).attr('data-settings')) {
-                    url = '?plugin=' + path.plugin + '&module=settings';
-                } else {
-                    url = '?module=plugins&id=' + path.plugin;
-                }
+                            // update title
+                            if (self.path.plugin) {
+                                document.title = self.options.plugin_names[self.path.plugin] + self.options.title_suffix;
+                            } else {
+                                document.title = $_('Plugins') + self.options.title_suffix;
+                            }
 
-                $.shop.trace('$.plugins.dispatch: Load URL', [url, $content.length]);
-                $content.load(url, function() {
-                    self.path.plugin = path.plugin || self.path.plugin;
+                            self.$menu.find('li.selected').removeClass('selected');
+                            var href = '\\#\\/' + (self.path.plugin ? self.path.plugin + '\\/' : '');
+                            self.$menu.find('a[href="' + href + '"]').parents('li').addClass('selected');
 
-                    // update title
-                    document.title = self.options.plugin_names[self.path.plugin] + self.options.title_suffix;
+                            if (!self.options.useIframeTransport) {
+                                $('#plugins-settings-form').submit(function () {
+                                    self.saveHandlerAjax(this);
+                                    return false;
+                                });
+                            } else {
+                                $('#plugins-settings-form').submit(function () {
+                                    self.saveHandlerIframe(this);
+                                });
+                            }
 
-                    self.menu.find('li.selected').removeClass('selected');
-                    self.menu.find('a[href*="\\#\/' + self.path.plugin + '\/"]').parents('li').addClass('selected');
-
-                    if (!self.options.useIframeTransport) {
-                        $('#plugins-settings-form').submit(function() {
-                            self.saveHandlerAjax(this);
-                            return false;
-                        });
-                    } else {
-                        $('#plugins-settings-form').submit(function() {
-                            self.saveHandlerIframe(this);
                         });
                     }
-
-                });
-                return true;
+                }
             }
         },
 
-        saveHandlerIframe: function(form) {
+        saveHandlerIframe: function (form) {
             var self = this;
             this.message('submit');
-            $("#plugins-settings-iframe").one('load', function() {
+            $("#plugins-settings-iframe").one('load', function () {
                 var r = null;
                 try {
                     r = $.parseJSON($(this).contents().find('body').html());
@@ -181,7 +184,7 @@
             });
         },
 
-        saveHandlerAjax: function(form) {
+        saveHandlerAjax: function (form) {
             var self = this;
             this.message('submit');
             var $form = $(form);
@@ -191,7 +194,7 @@
                 data: $form.serializeArray(),
                 iframe: true,
                 dataType: 'json',
-                success: function(data, textStatus, jqXHR) {
+                success: function (data, textStatus, jqXHR) {
                     if (data && (data.status == 'ok')) {
                         var message = 'Saved';
                         if (data.data && data.data.message) {
@@ -204,14 +207,31 @@
                         $(self).trigger('error', [data]);
                     }
                 },
-                error: function(jqXHR, errorText) {
-                    self.message('error', [[errorText]]);
+                error: function (jqXHR, errorText) {
+                    self.message('error', [
+                        [errorText]
+                    ]);
                     $(self).trigger('error', [errorText]);
                 }
             });
         },
 
-        message: function(status, message) {
+        helper: {
+            getContentUrl: function ($item, path) {
+
+                var url = '';
+                if ($item.data('url')) {
+                    url = $item.data('url');
+                } else if ($item.data('settings')) {
+                    url = '?plugin=' + path.plugin + '&module=settings';
+                } else if (path.plugin) {
+                    url = '?module=plugins&id=' + path.plugin;
+                }
+                return url;
+            }
+        },
+
+        message: function (status, message) {
             /* enable previos disabled inputs */
 
             var $container = $('#plugins-settings-form-status');
@@ -225,35 +245,32 @@
             var timeout = null;
             $container.append(this.icon[status] || '');
             switch (status) {
-                case 'submit': {
+                case 'submit':
                     $parent.addClass('status');
                     break;
-                }
-                case 'error': {
+                case 'error':
                     $parent.addClass('errormsg');
                     for (var i = 0; i < message.length; i++) {
                         $container.append(message[i][0]);
                     }
                     timeout = 20000;
                     break;
-                }
-                case 'success': {
+                case 'success':
                     if (message) {
                         $parent.addClass('successmsg');
                         $container.append(message);
                     }
                     timeout = 3000;
                     break;
-                }
             }
             if (timeout) {
-                this.timer = setTimeout(function() {
+                this.timer = setTimeout(function () {
                     $parent.removeClass('errormsg successmsg status');
                     $container.empty().show();
                 }, timeout);
             }
         },
-        sortHandler: function(event, ui) {
+        sortHandler: function (event, ui) {
             var self = this;
             $.ajax({
                 type: 'POST',
@@ -262,13 +279,13 @@
                     slug: $(ui.item).attr('id').replace(/^plugin-/, ''),
                     pos: $(ui.item).index()
                 },
-                success: function(data, textStatus, jqXHR) {
+                success: function (data, textStatus, jqXHR) {
                     if (!data || !data.status || (data.status != "ok") || !data.data || (data.data != "ok")) {
-                        self.menu.sortable('cancel');
+                        self.$menu.sortable('cancel');
                     }
                 },
-                error: function() {
-                    self.menu.sortable('cancel');
+                error: function () {
+                    self.$menu.sortable('cancel');
                 }
             });
         }

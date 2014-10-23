@@ -1,63 +1,54 @@
 <?php
-
 /**
  * User profile form in customer account, and submit controller for it.
  */
-class shopFrontendMyProfileAction extends shopFrontendAction
+class shopFrontendMyProfileAction extends waMyProfileAction
 {
     public function execute()
     {
-        $form = shopHelper::getCustomerForm(null, true);
-        $this->setValues($form);
+        parent::execute();
 
-        $saved = $this->saveFromPost($form, wa()->getUser());
-
-        $this->view->assign('form', $form);
-        $this->view->assign('saved', $saved);
+        $this->view->assign('my_nav_selected', 'profile');
 
         // Set up layout and template from theme
         $this->setThemeTemplate('my.profile.html');
         if (!waRequest::isXMLHttpRequest()) {
             $this->setLayout(new shopFrontendLayout());
             $this->getResponse()->setTitle(_w('Account'));
-            $this->layout->assign('breadcrumbs', self::getBreadcrumbs());
+            $this->view->assign('breadcrumbs', self::getBreadcrumbs());
             $this->layout->assign('nofollow', true);
         }
     }
 
-    protected function setValues($form)
+    protected function getForm()
+    {
+        $domain = wa()->getRouting()->getDomain();
+        $domain_config_path = wa()->getConfig()->getConfigPath('domains/'.$domain.'.php', true, 'site');
+        if (file_exists($domain_config_path)) {
+            $domain_config = include($domain_config_path);
+        } else {
+            $domain_config = array();
+        }
+        if (!empty($domain_config['personal_fields'])) {
+            return parent::getForm();
+        }
+        return shopHelper::getCustomerForm(null, true);
+    }
+
+    protected function getContact()
     {
         // Create new temporary waContact object
         $contact = new waContact(wa()->getUser()->getId());
 
         // Assign address with the right extension, if no extension is set
-        if (!$contact->get('address.shipping') && $addresses = $contact->get('address')) {
+        if ($this->form->fields('address.shipping') && !$contact->get('address.shipping') && $addresses = $contact->get('address')) {
             $contact->set('address.shipping', $addresses[0]);
         }
-        if (!$contact->get('address.billing') && $addresses = $contact->get('address.shipping')) {
+        if ($this->form->fields('address.billing') && !$contact->get('address.billing') && $addresses = $contact->get('address.shipping')) {
             $contact->set('address.billing', $addresses[0]);
         }
 
-        $form->setValue($contact);
-    }
-
-    protected function saveFromPost($form, $contact)
-    {
-        if (!waRequest::post() || !$form->isValid($contact)) {
-            return false;
-        }
-
-        $data = $form->post();
-        if (!$data || !is_array($data)) {
-            return false;
-        }
-
-        foreach ($data as $field => $value) {
-            $contact->set($field, $value);
-        }
-        $contact->save();
-
-        return true;
+        return $contact;
     }
 
     public static function getBreadcrumbs()

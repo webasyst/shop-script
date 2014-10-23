@@ -4,6 +4,9 @@ class shopPluginsSettingsAction extends waViewAction
 {
     public function execute()
     {
+        if (!$this->getUser()->getRights('shop', 'settings')) {
+            throw new waException(_w('Access denied'));
+        }
         $plugin_id = waRequest::get('id', null);
         $plugins_count = 0;
         if ($plugin_id) {
@@ -13,7 +16,7 @@ class shopPluginsSettingsAction extends waViewAction
                 /**
                  * @var shopPlugin $plugin
                  */
-                $plugin = waSystem::getInstance()->getPlugin($plugin_id);
+                $plugin = waSystem::getInstance()->getPlugin($plugin_id, true);
                 $namespace = 'shop_'.$plugin_id;
 
                 $params = array();

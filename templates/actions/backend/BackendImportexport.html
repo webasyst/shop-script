@@ -18,12 +18,6 @@
                         <span class="hint">[`Add new and update existing products via CSV files`]</span>
                     </a>
                 </li>
-                <li>
-                    <a href="#/csv:product:export/">
-                        <i class="icon16 ss excel"></i>[`Export products to CSV`]
-                        <span class="hint">[`Save your existing products information in a CSV file`]</span>
-                    </a>
-                </li>
                 
                 <li>
                     <a href="#/images:product/">
@@ -35,8 +29,8 @@
                 {foreach $plugins as $info}
                 {$plugin_names[$info.id] = $info.name|default:$info.id|escape}
                 <li>
-                    <a href="#/{$info.id}/">
-                        {if empty($info.img)}<i class="icon16 plugins"></i>{else}<i class="icon16" style="background: url('{$wa_url}{$info.img|escape}');"></i>{/if}{$info.name|default:$info.id|escape}
+                    <a href="#/{$info.id}{if isset($info.default_profile)}:{$info.default_profile}{/if}/">
+                        {if empty($info.img)}<i class="icon16 {$info.icon|default:'plugins'}"></i>{else}<i class="icon16" style="background: url('{$wa_url}{$info.img|escape}');"></i>{/if}{$info.name|default:$info.id|escape}
                         <span class="hint">{$info.description|default:''|escape}</span>
                     </a>
                 </li>
@@ -44,25 +38,42 @@
             </ul>
             <div class="align-center hint hr block double-padded">
                 <p>
-                    {sprintf('[`<a href="%s">Browse for new plugins</a> and install them using the Installer app.`]', {$wa_backend_url}|cat:'installer/?module=plugins&slug=shop')}
+                    <a href="#/plugins/" data-url="{$wa_backend_url}installer/#/plugins&amp;tag=importexport/shop/" class="bold">[`Browse import/export plugins`]</a><br>
+                    [`Install new plugins from the Webasyst Store using the Installer app`]
                 </p>
             </div>
 
         </div>
     </div>
-    <div class="content left200px blank bordered-left" id="s-importexport-content">
-        <div class="block double-padded">{if $plugins}[`Loading...`]<i class="icon16 loading"></i>{/if}</div>
-        <div class="clear-both"></div>
+    <div class="content left200px blank bordered-left">
+        <div class="block double-padded" id="s-importexport-header">
+        <h1><!-- title placeholder --></h1>
+        <p><!-- description placeholder --></p>
+        </div>
+
+        <ul class="tabs" id="s-importexport-profile" style="display: none; padding-left: 10px;">
+            <li class="no-tab float-right small" style="display: none;"><a href="#/profile/delete/" data-href="#/profile/delete/%plugin%/" class="js-action js-confirm" data-confirm-text="[`Delete current profile settings and all its exported files?`]"><i class="icon16 delete"></i>[`Delete this profile`]</a></li>
+            <li class="no-tab"><a href="#/profile/add/" data-href="#/profile/add/%plugin%/" class="js-action"><i class="icon16 add"></i>[`New profile`]</a></li>
+        </ul>
+        <div id="s-importexport-content">
+            <div class="block double-padded">{if $plugins}[`Loading...`]<i class="icon16 loading"></i>{/if}</div>
+            <div class="clear-both"></div>
+        </div>
     </div>
 
 </div>
+{wa_js file="js/importexport/importexport.min.js"}
+{$wa_app_static_url}js/importexport/importexport.js
+{/wa_js}
 
 <script type="text/javascript">
-document.title = '{"[`Import / Export`]"|cat:" — ":{$wa->accountName()}}';
+document.title = '{"[`Import / Export`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 $.importexport.init({
-    'debug':true,
-    'loading' : '[`Loading...`]<i class="icon16 loading"><'+'/i>',
-    'title_suffix': ' — {$wa->accountName()}',
-    'plugin_names': {json_encode($plugin_names)}
+    debug:{var_export(waSystemConfig::isDebug(),true)},
+    loading : '<div class="block double-padded">[`Loading...`]<i class="icon16 loading"><'+'/i><'+'/div><div class="clear"><'+'/div>',
+    title_suffix: '{" — "|cat:{$wa->accountName(false)}|escape:'javascript'}',
+    plugin_names: {json_encode($plugin_names)},
+    plugin_profiles: {json_encode($plugin_profiles)},
+    backend_url:'{$wa_backend_url|escape:'javascript'}'
 });
 </script>

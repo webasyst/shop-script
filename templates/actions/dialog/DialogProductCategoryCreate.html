@@ -39,7 +39,7 @@
     <div class="field">
         <div class="name">[`Title`]</div>
         <div class="value">
-            <input value="" name="meta_title" class="long bold" placeholder="">
+            <input value="" name="meta_title" class="long bold" placeholder="" id="s-c-meta-title">
         </div>
     </div>
     <div class="field">
@@ -60,18 +60,21 @@
     <div class="field description">
         <div class="name">
             <label for="description">
-                [`Description`]<br><span class="hint">[`HTML`]</span>
+                [`Description`]
             </label>
         </div>
         <div class="value">
             <i class="icon16 loading"></i>
-            <div class="s-editor-core-wrapper" style="display:none;">
-                <ul id="s-category-description-wysiwyg-html-toggle" class="s-wysiwyg-html-toggle">
-                    <li><a id="wysiwyg" href="#">[`WYSIWYG`]</a></li>
-                    <li class="selected"><a id="html" href="#">HTML</a></li>
+            <div class="s-editor-core-wrapper wa-editor-core-wrapper" style="display:none;">
+                <ul class="wa-editor-wysiwyg-html-toggle s-wysiwyg-html-toggle">
+                    <li class="selected"><a class="wysiwyg" href="#">[s`WYSIWYG`]</a></li>
+                    <li><a class="html" href="#">HTML</a></li>
                 </ul>
                 <div>
                     <textarea style="display:none" id="s-category-description-content" name="description"></textarea>
+                    <div class="ace">
+                        <div id="wa-ace-editor-container"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -80,7 +83,7 @@
 {/capture}
 
 {capture dynamic_settings}
-<script type="text/javascript" src="{$wa_app_static_url}js/rate.widget.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/rate.widget.js?v={$wa->version()}"></script>
 <div class="field">
     <div class="name">
         [`Product filtering`]
@@ -90,7 +93,7 @@
             <tbody>
                 <tr>
                     <td class="min-width">
-                        <input id="s-c-condition-price-interval" type="checkbox" name="condition[]" value="price">
+                        <input id="s-c-condition-price-interval" type="checkbox" name="condition[price]" value="price">
                     </td>
                     <td>
                         <label for="s-c-condition-price-interval">[`Price`]</label>
@@ -107,7 +110,7 @@
                 </tr>
                 <tr>
                     <td class="min-width">
-                        <input id="s-c-condition-rate" type="checkbox" name="condition[]" value="rating">
+                        <input id="s-c-condition-rate" type="checkbox" name="condition[rating]" value="rating">
                     </td>
                     <td>
                         <label for="s-c-condition-rate">[`Rating`]</label>
@@ -128,7 +131,7 @@
                 {if !empty($cloud)}
                 <tr>
                     <td class="min-width">
-                        <input id="s-c-condition-tag" type="checkbox" name="condition[]" value="tag">
+                        <input id="s-c-condition-tag" type="checkbox" name="condition[tag]" value="tag">
                     </td>
                     <td>
                         <label for="s-c-condition-tag">[`Tags`]</label>
@@ -142,6 +145,48 @@
                     </td>
                 </tr>
                 {/if}
+                <tr>
+                    <td class="min-width">
+                        <input id="s-c-condition-count" type="checkbox" name="condition[count]" value="count">
+                    </td>
+                    <td>
+                        <label for="s-c-condition-count">[`In stock`]</label>
+                    </td>
+                    <td>
+                        <select name="count[]">
+                            <option value=">=">[`is greater or equal`]</option>
+                            <option value="<=">[`is lesser or equal`]</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" name="count[]" value="" id="s-c-category-count-value">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="min-width">
+                        <input id="s-c-condition-compare_price" type="checkbox" name="condition[compare_price]" value="compare_price">
+                    </td>
+                    <td colspan="3">
+                        <label for="s-c-condition-compare_price">[`Compare at price`]</label>
+                    </td>
+                </tr>
+                {foreach $features as $f}
+                    <tr>
+                        <td class="min-width">
+                            <input id="s-c-condition-feature-{$f.code}" type="checkbox" name="condition[feature][]" value="{$f.code}">
+                        </td>
+                        <td>
+                            <label for="s-c-condition-feature-{$f.code}">{$f.name|escape}</label>
+                        </td>
+                        <td>
+                            <select name="feature_values[{$f.code}]" class="s-feature_value" data-feature-id="{$f.code}">
+                                {foreach $f.values as $v_id => $value}
+                                    <option value="{$v_id}"{if is_object($value)} style="{$value.style|default:''}"{/if}>{$value|escape}</option>
+                                {/foreach}
+                            </select>
+                        </td>
+                    </tr>
+                {/foreach}
             </tbody>
         </table>
     </div>
@@ -159,7 +204,7 @@
         
         var d = $('#s-product-list-create-dialog');
 
-        var product_list_name = $("#s-product-list-name");
+        var product_list_name = $("#s-c-product-list-name");
         var product_list_url  = $("#s-product-list-url");
 
         var state = { name: '', url: '', timer_id: null };
@@ -209,11 +254,20 @@
         $('#s-c-category-rate', d).click(function() {
             $('#s-c-condition-rate').attr('checked', true);
         });
+        $('select[name^=count]', d).change(function() {
+            $('#s-c-condition-count').attr('checked', true);
+        });
+        $('#s-c-category-count-value', d).click(function() {
+            $('#s-c-condition-count').attr('checked', true);
+        });
         d.on('change', 'input[name^=tag]', function() {
             $('#s-c-condition-tag').attr('checked', true);
         });
         d.on('keyup', 'input[name^=price]', function() {
             $('#s-c-condition-price-interval').attr('checked', true);
+        });
+        d.on('change', 'select.s-feature_value', function() {
+            $('#s-c-condition-feature-' + $(this).data('featureCode')).attr('checked', true);
         });
         
         // change meta title input placeholder automaticly on changing name of category
@@ -232,6 +286,14 @@
                 }, timeout);
             });
         })();
+        
+        $.shop.makeFlexibleInput('s-c-meta-title');
+        
+        
+        d.data('uploadFields', {
+            '_csrf': "{waRequest::cookie('_csrf', '')}"
+        });
+        
     });
 </script>
 {/capture}

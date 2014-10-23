@@ -32,6 +32,8 @@ class shopOrderItemsModel extends waModel
             ORDER BY oi.id
         ")->fetchAll('id');
 
+        $service_items = array();
+        
         $parent_id = 0;
         foreach ($this->query("
             SELECT * FROM `{$this->table}`
@@ -40,12 +42,20 @@ class shopOrderItemsModel extends waModel
         ") as $item) {
             if ($parent_id != $item['parent_id']) {
                 $parent_id = $item['parent_id'];
-                $items[$parent_id] = $product_items[$parent_id];
-                unset($product_items[$parent_id]);
+                $service_items[$parent_id] = array();
             }
-            $items[$item['id']] = $item;
+            $service_items[$parent_id][$item['id']] = $item;
         }
-        return $items + $product_items;
+        
+        $data = array();
+        foreach ($product_items as $product_item) {
+            $data[$product_item['id']] = $product_item;
+            if (!empty($service_items[$product_item['id']])) {
+                $data += $service_items[$product_item['id']];
+            }
+        }
+        
+        return $data;
     }
 
     public function getItems($order_id, $extend = false)
@@ -82,6 +92,22 @@ class shopOrderItemsModel extends waModel
                     $product['skus'][$sku_id]['price'] = $item['price'];
                 }
                 $product['item'] = $this->formatItem($item);
+                if (!empty($product['fake'])) {
+                    $product['price'] = $product['item']['price'];
+                }
+                if (!empty($product['skus'][$sku_id]['fake'])) {
+                    // parse string looks like this "ProductName (SkuName)"
+                    if (preg_match('!\(([\s\S]+)\)$!', $product['item']['name'], $m)) {
+                        // fake means deleted
+                        $name_of_fake_sku = $m[1];
+                        if ($product['item']['sku_code']) {
+                            $name_of_fake_sku .= ' ('.$product['item']['sku_code'].')';
+                        }
+                    } else {
+                        $name_of_fake_sku = $product['item']['sku_code'];
+                    }
+                    $product['skus'][$sku_id]['name'] = $name_of_fake_sku;
+                }
             }
             $service_id = $item['service_id'];
             $service_variant_id = $item['service_variant_id'];
@@ -97,6 +123,9 @@ class shopOrderItemsModel extends waModel
                     );
                 }
                 $product['services'][$service_id]['item'] = $this->formatItem($item);
+                if (!empty($product['services'][$service_id]['fake'])) {
+                    $product['services'][$service_id]['price'] = $product['services'][$service_id]['item']['price'];
+                }
             }
             if (empty($product['fake'])) {
                 $this->workupProduct($product, $order_id);
@@ -133,11 +162,18 @@ class shopOrderItemsModel extends waModel
         if ($sku_id === null) {
             $sku_id = count($data['skus']) > 1 ? $product->sku_id : null;
         }
-        $data['services'] = $this->getServices($product_id, $sku_id, $order_id);
+
+        if ($sku_id && isset($data['skus'][$sku_id])) {
+            $sku_price = $data['skus'][$sku_id]['price'];
+        } else {
+            $sku_price = $data['price'];
+        }
+        
+        $data['services'] = $this->getServices($product_id, $sku_id, $order_id, $sku_price);
         return $data;
     }
 
-    private function getServices($product_id, $sku_id, $order_id = null)
+    private function getServices($product_id, $sku_id, $order_id, $sku_price)
     {
         $rate = 1;
         $currency_model = $this->getModel('currency');
@@ -148,9 +184,19 @@ class shopOrderItemsModel extends waModel
 
         $services = $this->getModel('service')->getAvailableServicesFullInfo($product_id, $sku_id);
         foreach ($services as &$service) {
-            $service['price'] = (float) $currency_model->convertByRate($service['price'], 1, $rate);
+            if ($service['currency'] == '%') {
+                $service['percent_price'] = $service['price'];
+                $service['price'] = (float) ($service['price']/100) * $sku_price;
+            } else {
+                $service['price'] = (float) $currency_model->convertByRate($service['price'], 1, $rate);
+            }
             foreach ($service['variants'] as &$variant) {
-                $variant['price'] = (float) $currency_model->convertByRate($variant['primary_price'], 1, $rate);
+                if ($service['currency'] == '%') {
+                    $variant['percent_price'] = $variant['price'];
+                    $variant['price'] = (float) ($variant['price']/100) * $sku_price;
+                } else {
+                    $variant['price'] = (float) $currency_model->convertByRate($variant['primary_price'], 1, $rate);
+                }
             }
             unset($variant);
         }
@@ -161,7 +207,7 @@ class shopOrderItemsModel extends waModel
 
     public function getProduct($product_id, $order_id = null)
     {
-        $data = $this->getProductInfo($product_id, $order_id);
+        $data = $this->getProductInfo($product_id, null, $order_id);
         $this->workupProduct($data, $order_id);
         return $data;
     }
@@ -201,22 +247,35 @@ class shopOrderItemsModel extends waModel
         }
         foreach ($services as &$service) {
             $default_price = null;
+            $default_percent_price = null;
             foreach ($service['variants'] as &$variant) {
                 $variant['price_str'] = ($variant['price'] >= 0 ? '+' : '-').wa_currency($variant['price'], $currency);
                 if ($variant['status'] == shopProductServicesModel::STATUS_DEFAULT) {
                     $default_price = $variant['price'];
+                    if ($service['currency'] == '%') {
+                        $default_percent_price = $variant['percent_price'];
+                    }
                 }
             }
             if ($default_price === null) {
                 if (isset($service['variants'][$service['variant_id']])) {
                     $default_price = $service['variants'][$service['variant_id']]['price'];
+                    if ($service['currency'] == '%') {
+                        $default_percent_price = $service['variants'][$service['variant_id']]['percent_price'];
+                    }
                 } else {
                     reset($service['variants']);
                     $first = current($service['variants']);
                     $default_price = $first['price'];
+                    if ($service['currency'] == '%') {
+                        $default_percent_price = $first['percent_price'];
+                    }
                 }
             }
             $service['price'] = $default_price;
+            if ($service['currency'] == '%') {
+                $service['percent_price'] = $default_percent_price;
+            }
             unset($variant);
         }
         unset($service);
@@ -236,7 +295,8 @@ class shopOrderItemsModel extends waModel
         $data = $this->getModel('sku')->getSku($sku_id);
         $data['price']     = (float) $currency_model->convertByRate($data['primary_price'], 1, $rate);
         $data['price_str'] = wa_currency($data['price'], $currency);
-        $data['services'] = $this->getServices($data['product_id'], $sku_id, $order_id);
+        
+        $data['services'] = $this->getServices($data['product_id'], $sku_id, $order_id, $data['price']);
         $this->workupServices($data['services'], $order_id);
 
         return $data;
@@ -371,60 +431,100 @@ class shopOrderItemsModel extends waModel
 
     public function updateStockCount($data)
     {
-        $product_model        = new shopProductModel();
-        $product_stocks_model = new shopProductStocksModel();
+        if (!$data) {
+            return;
+        }
         $product_skus_model   = new shopProductSkusModel();
+        $product_stocks_model = new shopProductStocksModel();
+        $stocks_log_model = new shopProductStocksLogModel();
 
-        $sku_ids = array();
+        $sku_ids = array_map('intval', array_keys($data));
+        if (!$sku_ids) {
+            return;
+        }
+        $skus = $product_skus_model->select('id,product_id')->where("id IN(".implode(',', $sku_ids).")")->fetchAll('id');
+        $sku_ids = array_keys($skus);
+        if (!$sku_ids) {
+            return;
+        }
+        $product_ids = array();
+        
         foreach ($data as $sku_id => $sku_stock) {
             $sku_id = (int) $sku_id;
-            $sku_ids[] = $sku_id;
+            if (!isset($skus[$sku_id]['product_id'])) {
+                continue;
+            }
+            $product_id = $skus[$sku_id]['product_id'];
             foreach ($sku_stock as $stock_id => $count) {
                 $stock_id = (int) $stock_id;
                 if ($stock_id) {
-                    $this->exec(
-                        "UPDATE `shop_product_stocks` SET count = count + ({$count})
-                        WHERE sku_id = $sku_id AND stock_id = $stock_id"
-                    );
+                    $item = $product_stocks_model->getByField(array(
+                        'sku_id' => $sku_id,
+                        'stock_id' => $stock_id
+                    ));
+                    if (!$item) {
+                        continue;
+                    }
+                    $product_stocks_model->set(array(
+                        'sku_id' => $sku_id,
+                        'product_id' => $product_id,
+                        'stock_id' => $stock_id,
+                        'count' => $item['count'] + $count
+                    ));
                 } else {
+
+                    $old_count = $product_skus_model->select('count')->where('id=i:sku_id', array('sku_id' => $sku_id))->fetchField();
+                    if ($old_count !== null) {
+                        $log_data = array(
+                            'product_id' => $product_id,
+                            'sku_id' => $sku_id,
+                            'before_count' => $old_count,
+                            'after_count' => $old_count + $count,
+                            'diff_count' => $count
+                        );
+                        $stocks_log_model->insert($log_data);            
+                    }
                     $this->exec(
                         "UPDATE `shop_product_skus` SET count = count + ({$count})
                         WHERE id = $sku_id"
                     );
+
+                }
+                if (isset($skus[$sku_id]['product_id'])) {
+                    $product_ids[] = $product_id;
                 }
             }
         }
-
-        if ($sku_ids) {
-            // correct sku counters
-            $sql = "
-                UPDATE `shop_product_skus` sk JOIN (
-                    SELECT sk.id, SUM(st.count) AS count FROM `shop_product_skus` sk
-                    JOIN `shop_product_stocks` st ON sk.id = st.sku_id
-                    WHERE sk.id IN(".implode(',', $sku_ids).")
-                    GROUP BY sk.id
-                    ORDER BY sk.id
-                ) r ON sk.id = r.id
-                SET sk.count = r.count
-                WHERE sk.count IS NOT NULL";
-            $this->exec($sql);
-
-            // correct product counters
-            $product_ids = array_keys($product_skus_model->getByField('id', $sku_ids, 'product_id'));
-            if ($product_ids) {
-                $sql = "
-                    UPDATE `shop_product` p JOIN (
-                        SELECT p.id, SUM(sk.count) AS count FROM `shop_product` p
-                        JOIN `shop_product_skus` sk ON p.id = sk.product_id
-                        WHERE p.id IN(".implode(',', $product_ids).") AND sk.available = 1
-                        GROUP BY p.id
-                        ORDER BY p.id
-                    ) r ON p.id = r.id
-                    SET p.count = r.count
-                    WHERE p.count IS NOT NULL";
-                $this->exec($sql);
-            }
+        
+        if (!$product_ids) {
+            return;
         }
+
+        // correct sku counters
+        $sql = "
+            UPDATE `shop_product_skus` sk JOIN (
+                SELECT sk.id, SUM(st.count) AS count FROM `shop_product_skus` sk
+                JOIN `shop_product_stocks` st ON sk.id = st.sku_id
+                WHERE sk.id IN(".implode(',', $sku_ids).")
+                GROUP BY sk.id
+                ORDER BY sk.id
+            ) r ON sk.id = r.id
+            SET sk.count = r.count
+            WHERE sk.count IS NOT NULL";
+        $this->exec($sql);
+
+        // correct product counters
+        $sql = "
+            UPDATE `shop_product` p JOIN (
+                SELECT p.id, SUM(sk.count) AS count FROM `shop_product` p
+                JOIN `shop_product_skus` sk ON p.id = sk.product_id
+                WHERE p.id IN(".implode(',', array_unique($product_ids)).") AND sk.available = 1
+                GROUP BY p.id
+                ORDER BY p.id
+            ) r ON p.id = r.id
+            SET p.count = r.count
+            WHERE p.count IS NOT NULL";
+        $this->exec($sql);
     }
 
     public function getCurrency()
@@ -439,5 +539,5 @@ class shopOrderItemsModel extends waModel
     {
         $item['price'] = (float)$item['price'];
         return $item;
-    }
+    }    
 }

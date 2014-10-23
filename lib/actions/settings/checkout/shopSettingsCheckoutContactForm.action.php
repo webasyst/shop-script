@@ -46,16 +46,30 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
             foreach($opts as $k => $v) {
                 if ($fields[$fld_id] instanceof waContactCompositeField && $k == 'fields') {
                     if (is_array($v)) {
-                        $cloned_subfields = array();
+                        $cloned_subfields = $v;
+                        $unknown_subfields = array();
+                        foreach ($cloned_subfields as $sf_id => $sf) {
+                            $unknown_subfields[$sf_id] = true;
+                        }
                         foreach($fields[$fld_id]->getFields() as $sf) {
                             $sf = clone $sf;
                             $o = ifset($v[$sf->getId()]);
+                            if (isset($unknown_subfields[$sf->getId()])) {
+                                unset($unknown_subfields[$sf->getId()]);
+                            }
                             if ($o && is_array($o) && empty($o['hidden'])) {
                                 $sf->setParameters($o);
+                                $cloned_subfields[$sf->getId()] = $sf;
                             } else {
+                                if (isset($cloned_subfields[$sf->getId()])) {
+                                    unset($cloned_subfields[$sf->getId()]);
+                                }
                                 $sf->setParameter('_disabled', true);
+                                $cloned_subfields[] = $sf;
                             }
-                            $cloned_subfields[] = $sf;
+                        }
+                        foreach ($unknown_subfields as $sf_id => $flag) {
+                            unset($cloned_subfields[$sf_id]);
                         }
                         $fields[$fld_id]->setParameter('fields', $cloned_subfields);
                     }

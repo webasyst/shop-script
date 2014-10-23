@@ -8,8 +8,7 @@ class shopCml1cPluginBackendDownloadController extends waController
         /**
          * @var shopCml1cPlugin $plugin
          */
-        $plugin =wa()->getPlugin('cml1c');
-        $file = $plugin->path($name);
-        waFiles::readFile($file, (waRequest::get('mode') == 'view') ? null : $name);
+        $plugin = wa()->getPlugin('cml1c');
+        waFiles::readFile($plugin->path($name), (waRequest::get('mode') == 'view') ? null : $name);
     }
 }

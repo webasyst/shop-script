@@ -36,6 +36,8 @@ class shopFrontendProductReviewsAddController extends waJsonController
         $id = $this->model->add($data, $data['parent_id']);
         if (!$id) {
             throw new waException("Error in adding review");
+        } else {
+            $this->logAction('product_review_add', $product['id']);
         }
 
         $count = waRequest::post('count', 0, waRequest::TYPE_INT) + 1;
@@ -44,7 +46,7 @@ class shopFrontendProductReviewsAddController extends waJsonController
             'id' => $id,
             'parent_id' => $this->getParentId(),
             'count' => $count,
-            'html' => $this->renderTempate(array(
+            'html' => $this->renderTemplate(array(
                     'review' => $this->model->getReview($id, true),
                     'reply_allowed' => true,
                     'ajax_append' => true),
@@ -58,7 +60,7 @@ class shopFrontendProductReviewsAddController extends waJsonController
         );
     }
 
-    private function renderTempate($assign, $template)
+    private function renderTemplate($assign, $template)
     {
         $theme = waRequest::param('theme', 'default');
         $theme_path = wa()->getDataPath('themes', true).'/'.$theme;

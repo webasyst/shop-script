@@ -39,7 +39,9 @@ class shopOrderLogModel extends waModel
 
     public function getPreviousState($order_id, &$params=null)
     {
-        $sql = "SELECT id, before_state_id FROM ".$this->table." WHERE order_id = i:id ORDER BY id DESC LIMIT 1";
+        $sql = "SELECT id, before_state_id FROM ".$this->table." WHERE order_id = i:id AND 
+            before_state_id != after_state_id
+            ORDER BY id DESC LIMIT 1";
         $row = $this->query($sql, array('id' => $order_id))->fetchAssoc();
 
         // Load additional data from shop_order_log_params

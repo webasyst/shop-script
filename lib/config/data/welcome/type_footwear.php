@@ -11,7 +11,7 @@ return array (
         ),
         'color' => array(
             'name' => 'Color',
-            'type' => shopFeatureModel::TYPE_VARCHAR,
+            'type' => shopFeatureModel::TYPE_COLOR,
             'selectable' => true,
             'multiple' => true,
             'values' => array(
@@ -24,7 +24,7 @@ return array (
                 'orange',
                 'yellow',
                 'gray',
-                'pink',
+               array('value'=> 'pink','code'=>'#FF1493',),
             ),
         ),
         'top_material' => array(

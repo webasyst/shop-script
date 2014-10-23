@@ -1,13 +1,5 @@
-<style type="text/css">
-#wa .CodeMirror{
-    border: 1px solid #eee;
-}
-.CodeMirror-scroll {
-    height: auto;
-    overflow-y: hidden;
-    overflow-x: auto;
-}
-</style>
+<script type="text/javascript" src="{$wa_url}wa-content/js/ace/ace.js"></script>
+<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-wa/wa.elrte.ace.js"></script>
 
 <div class="sidebar left200px">
     <div class="s-inner-sidebar">
@@ -28,14 +20,13 @@
                     <i class="icon10 yes"></i> {$last_cron|wa_datetime:'humandatetime'|string_format:"[`Follow-ups are configured properly. Latest Cron execution time: <strong>%s</strong>`]"}
                 </p>
             {else}
-                <p class="red bold small">
+                <p class="red bold small s-cron-error">
                     <i class="icon10 no"></i>
                     [`Follow-ups will not be sent, because cron is not properly configured.`]
                     <br>
                     <a id="cron-message-link" href="javascript:void(0)">[`What is cron?`]</a>
                 </p>
             {/if}
-            </p>
         </div>
     </div>
 </div>
@@ -77,8 +68,14 @@
                             <span class="hint">[`This name is for your convenience only. It will never be shown to customers.`]</span>
                         </div>
                     </div>
+                    <div class="field">
+                        <div class="name">[`Enabled`]</div>
+                        <div class="value">
+                            <input type="checkbox" name="followup[status]" value="1" {if $followup.status}checked{/if}>
+                        </div>
+                    </div>
                 </div>
-
+                            
                 <div class="field-group">
                     <div class="field">
                         <div class="name">[`Sending rules`]</div>
@@ -99,6 +96,37 @@
 
                 <div class="field-group">
                     <div class="field">
+                        <div class="name">[`Source`]</div>
+                        <div class="value no-shift">
+                            <select name="followup[source]">
+                                <option value="" {if !$followup.source}selected{/if}>[`All orders`]</option>
+                                <option value="backend" {if $followup.source == 'backend'}selected{/if}>[`Backend orders`]</option>
+                                {foreach $routes as $domain => $domain_routes}
+                                    {foreach $domain_routes as $route}
+                                        {$url = $domain|cat:"/":$route.url}
+                                        <option {if $url == $followup.source}selected{/if} value="{$url}">{$url}</option>
+                                    {/foreach}
+                                {/foreach}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                                
+                <div class="field">
+                    <div class="name">[`Send from`]</div>
+                    <div class="value no-shift">
+                        <select id="followup-from" name="followup[from]">
+                            <option value="" {if !$followup.from}selected{/if}>{$default_email_from}</option>
+                            <option value="other" {if $followup.from}selected{/if}>[`Other email...`]</option>
+                        </select>
+                        {if $followup.from}
+                            <input type="text" name="from" value="{$followup.from}">
+                        {/if}
+                    </div>
+                </div>
+                                
+                <div class="field-group">
+                    <div class="field">
                         <div class="name">[`Email subject`]</div>
                         <div class="value">
                             <input type="text" class="bold long subject" name="followup[subject]" value="{$followup.subject|escape}">
@@ -106,9 +134,10 @@
                     </div>
                     <div class="field">
                         <div class="name">[`Email body`]<br><span class="hint">[`HTML + Smarty`]</span></div>
-                        <div class="value no-shift">
-                            <div class="s-editor-core-wrapper">
-                                <textarea id="f-email-body" class="body" name="followup[body]">{$followup.body|escape}</textarea>
+                        <div class="value no-shift ace-fix">
+                            <textarea id="f-email-body" class="body" name="followup[body]">{$followup.body|escape}</textarea>
+                            <div class="ace bordered">
+                                <div id="f-email-body-container"></div>
                             </div>
                         </div>
                     </div>
@@ -122,9 +151,9 @@
                             </ul>
                         </div>
 
-                        <input type="submit" class="button green" value="[`Save`]">
+                        <input type="submit" id="f-email-button" class="button green" value="[`Save`]">
                         {if $followup.id}
-                            <input type="button" id="send-test-button" class="button blue" value="[`Send test`]">
+                            <input type="button" id="send-test-button" class="button" value="[`Send test`]">
                         {/if}
                     </div>
                 </div>
@@ -137,52 +166,73 @@
     </div>
 </div>
 
-<div id="send-test-dialog" style="display:none">
-    <h1>[`Test follow-up`]</h1>
-    {if empty($test_orders)}
-        <p>[`Follow-up testing requires at least one paid or complete order for sample data.`]</p>
-    {else}
-        <div class="fields form">
-            <div class="field">
-                <div class="name">[`Send to`]</div>
-                <div class="value">
-                    <input type="text" value="{$wa->user()->get('email', 'default')|escape}" class="bold">
+<div id="send-test-dialog" class="dialog" style="display:none">
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Test follow-up`]</h1>
+                {if empty($test_orders)}
+                    <p>[`Follow-up testing requires at least one paid or complete order for sample data.`]</p>
+                {else}
+                    <div class="fields form">
+                        <div class="field">
+                            <div class="name">[`Send to`]</div>
+                            <div class="value">
+                                <input type="text" value="{$wa->user()->get('email', 'default')|escape}" class="bold">
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="clear-left message">[`Select an order to fetch sample data from`]</p>
+                    <table class="zebra">
+                    {foreach $test_orders as $o}
+                        <tr>
+                            <td>
+                                <input type="radio" name="order_selector" value="{$o.id|escape}">
+                            </td>
+                            <td class="nowrap">
+                                <span style="{$o.style|escape}">
+                                    <i class="{$o.icon}"></i>{$o.id_str}
+                                </span>
+                            </td>
+                            <td>{$o.create_datetime|wa_date:'humandate'}</td>
+                            <td>
+                                {foreach $o.items as $i}
+                                    {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
+                                {/foreach}
+                            </td>
+                            <td class="bold nowrap align-right">{$o.total_formatted}</td>
+                        </tr>
+                    {/foreach}
+                    </table>
+                {/if}
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                <div class="before-send">
+                    <input type="submit" class="button blue" value="[`Send test`]">
+                    <span class="s-mgs-after-button" style="display:none;"><i class="icon16 loading"></i></span>
+                    <span> [`or`] </span><a href="#" class="cancel">[`cancel`]</a>
+                </div>
+                <div class="after-send">
+                    <input class="button cancel" type="button" value="[`Close`]">
+                    <em class="bold successmsg"><i class="icon16 yes"></i>[`Test message sent!`]</em>
                 </div>
             </div>
         </div>
-
-        <p class="clear-left select-order-message">[`Select an order to fetch sample data from`]</p>
-        <table class="zebra">
-        {foreach $test_orders as $o}
-            <tr>
-                <td>
-                    <input type="radio" name="order_selector" value="{$o.id|escape}">
-                </td>
-                <td class="nowrap">
-                    <span style="{$o.style|escape}">
-                        <i class="{$o.icon}"></i>{$o.id_str}
-                    </span>
-                </td>
-                <td>{$o.create_datetime|wa_date:'humandate'}</td>
-                <td>
-                    {foreach $o.items as $i}
-                        {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
-                    {/foreach}
-                </td>
-                <td class="bold nowrap align-right">{$o.total_formatted}</td>
-            </tr>
-        {/foreach}
-        </table>
-    {/if}
+    </div>
 </div>
 
-<script>(function() { "use strict";
-    document.title = "[`Follow-ups`] — {$wa->accountName()}";
+<script>(function() {
+    document.title = '{"[`Follow-ups`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     var settings_content = $('#s-settings-content');
     var form = $('#s-followup-form');
     var followup_id = "{$followup.id}" || null;
     var submit = form.find('input:submit');
     var send_test_button = $('#send-test-button');
+    var send_button = $('#f-email-button');
     var template_modified = false;
 
     // Fix the hash. Needed when new follow-up is just created, or user clicks sidebar link with no id in URL.
@@ -227,7 +277,7 @@
 
             // Actual send: called when user clicks "send test" button in dialog
             var sendTest = function() {
-                dialog.find('.select-order-message').removeClass('errormsg');
+                dialog.find('.message').text('[`Select an order to fetch sample data from`]').removeClass('errormsg');
 
                 var email_field = dialog.find('input:text').removeClass('error');
                 var email = email_field.val();
@@ -238,29 +288,29 @@
 
                 var order_id = dialog.find('input:radio:checked').val();
                 if (!order_id) {
-                    dialog.find('.select-order-message').addClass('errormsg');
+                    dialog.find('.message').addClass('errormsg');
                     return false;
                 }
 
-                buttons.find(':submit').after('<span class="s-mgs-after-button"><i class="icon16 loading"></i></span>');
+                dialog.find('.s-mgs-after-button').show();
                 $.post('?module=settings&action=followupsTest', { order_id: order_id, followup_id: '{$followup.id}', email: email }, function(r) {
-                    buttons.find('.s-mgs-after-button').remove();
-                    dialog.trigger('close');
+                    dialog.find(':input').attr('disabled', false);
+                    dialog.find('.s-mgs-after-button').hide();
+                    if (r.status !== 'ok' && r.errors) {
+                        dialog.find('.message').text(r.errors).addClass('errormsg');
+                    } else {
+                        dialog.find('.before-send').hide();
+                        dialog.find('.after-send').show();                    
+                    }
                 }, 'json');
 
                 return false;
             };
 
-            // Dialog buttons block
-            var buttons = $('<div></div>');
-            buttons.append($('<button class="button green"></button>').text("[`Send test`]").click(sendTest));
-            buttons.append('<span> '+"[`or`]"+' </span>');
-            buttons.append(
-                $('<a href="#"></a>').text("[`cancel`]").click(function() {
-                    dialog.trigger('close');
-                    return false;
-                })
-            );
+            dialog.find(':submit').click(function() {
+                sendTest();
+                return false;
+            });
 
             // Show dialog when user clicks "Send test" button in main form
             send_test_button.click(function() {
@@ -269,9 +319,11 @@
                     return false;
                 }
                 dialog.waDialog({
-                    //'height': '200px',
-                    //'width': '400px',
-                    'buttons': buttons
+                    onLoad: function() {
+                        dialog.find(':input').attr('disabled', false);
+                        dialog.find('.before-send').show();
+                        dialog.find('.after-send').hide();
+                    }
                 });
                 return false;
             });
@@ -280,23 +332,31 @@
 
     // Disallow sending tests when email template is modified
     var formModified = function() {
-        template_modified = true;
-        send_test_button.removeClass('blue');
+        if (!template_modified) {
+            template_modified = true;
+            send_test_button.removeClass('blue');
+            send_button.removeClass('green').addClass('yellow');
+        }
     };
     form.find('[name="followup[subject]"]').keyup(formModified);
+    form.find('select').change(formModified);
+    form.find('input').keyup(formModified).change(formModified);
 
-    // WYSIWYG
-    var codemirror = CodeMirror.fromTextArea(document.getElementById('f-email-body'), {
-        mode: "text/html",
-        tabMode: "indent",
-        height: "dynamic",
-        lineWrapping: true,
-        onKeyEvent: formModified
+    wa_url = '{$wa_url}';
+    waEditorAceInit({
+        'prefix': 'f-email-',
+        'id': 'f-email-body',
+        'ace_editor_container': 'f-email-body-container'
     });
+    wa_editor.on('change', formModified);
 
     // Form submission via XHR
     form.submit(function() {
         // !!! Validation?..
+
+        waEditorUpdateSource({
+            'id': 'f-email-body'
+        });
 
         // Submit
         submit.parent().append('<span class="s-mgs-after-button"><i class="icon16 loading"></i></span>');
@@ -306,6 +366,16 @@
 
         return false;
     });
+
+    if ($("#followup-from").length) {
+        $("#followup-from").change(function() {
+            if ($(this).val() === 'other') {
+                $('<input type="text" name="from" value="">').insertAfter(this).focus();
+            } else {
+                $(this).next('input').remove();
+            }
+        });
+    }
 
     {if !$cron_ok}
         // Dialog with info how to set up cron
@@ -319,4 +389,5 @@
             })
         });
     {/if}
-})();</script>
+})();
+</script>

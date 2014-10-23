@@ -1,0 +1,22 @@
+<div class="block double-padded">
+    <h1>[`Stock`]</h1>
+    <ul class="menu-h float-left">
+        <li><a href="#/stocks/">[`Stock balance`]</a></li>
+        <li class="selected"><a href="#/stockslog/">[`Stock updates`]</a></li>
+    </ul>
+    {include './../product/include.stocks_log.html' inline}
+</div>
+
+{if !$lazy}
+    <script type="text/javascript" src="{$wa_app_static_url}js/stocks_log.js?v={$wa->version()}"></script>
+    <script>
+        $.stocks_log.init({
+            total_count: {$total_count},
+            lazy_loading: {
+                auto: true,
+                count: {$count},
+                url: '?module=stocksLog&{get_url_params stock_id=$stock_id order=$order}'
+            }
+        });
+       </script>
+{/if}

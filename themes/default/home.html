@@ -1,51 +1,151 @@
-<!-- top products -->
+{*
+    get products from predefined product set 'promo' and 'bestsellers';
+    feel free to replace these with any other product set IDs
+*}
 {$promos = $wa->shop->productSet('promo')}
-{if $promos && count($promos)}
-    <div class="align-center">
-        {include file="list-thumbs.html" products=$promos}
-    </div>
+{if $theme_settings.homepage_bxslider_mode != 'photos'}
+    {$bestsellers = $wa->shop->productSet('bestsellers')}
+{/if}
+
+{if ($theme_settings.homepage_bxslider_mode != 'photos' && empty($promos) && empty($bestsellers))}
+
+    <article class="welcome">
+        <h1>[`Welcome to your new online store!`]</h1>
+        <p>{sprintf('[`Start by <a href="%s">creating a product</a> in your store backend.`]', $wa_backend_url|cat:'shop/?action=products#/welcome/')}</p>
+        <style>
+            .page-content.with-sidebar { margin-left: 0; border-left: 0; }
+        </style>
+    </article>
+
 {else}
-    <p class="hint align-center">{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','promo')}</p>
+
+    <!-- HOMEPAGE SLIDER -->
+    <article class="bestsellers{if $theme_settings.homepage_bxslider_mode == 'photos' || $theme_settings.homepage_bxslider_mode == 'products_last_photo_as_background'} fill-entire-area{/if}">
+    
+        {if $theme_settings.homepage_bxslider_mode == 'photos'}
+        
+            {* latest PHOTOS from Photos app *}
+            
+            {if $wa->photos}
+            
+                {*
+                    change search $criteria = '' to any you like, e.g. 'tag/shop', 'album/1';
+                    $size sets photo size in pixels;
+                    see Photos app manual for details
+                *}
+                {$criteria = ''}
+                {$size = '970'}
+                {$offset = null}
+                {$limit = 10}
+                {if $slider_photos = $wa->photos->photos($criteria, $size, $offset, $limit)}
+                
+                    <ul class="homepage-bxslider">
+                        {foreach $slider_photos as $photo}
+                            <li style="background-image: url('{$photo['thumb_'|cat:$size].url}'); height: {$photo['thumb_'|cat:$size].size.height}px;" >
+                                {$url = ''}
+                                {* if you want photo links to be clickable, set URL above, e.g. $url = 'http://...your promo page link .../' or $url = $photo.frontend_link*}
+                                {if $url}<a href="{$url}" style="height: {$photo['thumb_'|cat:$size].size.height - 70}px;"></a>{/if}
+                            </li>
+                        {/foreach}
+                    </ul>
+                
+                {else}
+                    <p class="hint align-center"><br><em>[`Photos app returned no photos, so there is nothing to show in your storefront homepage promo slider.`]</em></p>
+                {/if}
+            
+            {else}
+            
+                <p class="hint align-center"><br><em>[`Install Photos app to make your storefront homepage promo slider display last uploaded photos.`]</em></p>
+            
+            {/if}
+        
+        {else}
+        
+            {* best selling PRODUCTS *}
+            
+            {if $theme_settings.homepage_bxslider_mode == 'products_last_photo_as_background'}
+            
+                {if $wa->photos->config('enable_2x')}
+                    {$size = '970@2x'}
+                {else}
+                    {$size = '970'}
+                {/if}
+                
+                {$slider_photos = $wa->shop->images( array_keys($bestsellers), $size )}
+                {* leave only last photos for each product *}
+                {foreach $slider_photos as $product_id => $_photos}
+                    {$slider_photos[$product_id] = end($_photos)}
+                {/foreach}
+
+            {/if}
+            
+            {if $bestsellers && count($bestsellers)}
+                <ul class="homepage-bxslider">
+                    {foreach $bestsellers as $b}
+                        <li itemscope itemtype ="http://schema.org/Product"{if $theme_settings.homepage_bxslider_mode == 'products_last_photo_as_background'} style="background-image: url('{$slider_photos[ $b.id ]['url_'|cat:$size]}'); height: auto{* $slider_photos[ $b.id ].height|cat:'px' *};"{/if}>
+                            <a href="{$b.frontend_url}" title="{$b.name}{if $b.summary} &ndash; {strip_tags($b.summary)|escape}{/if}">
+                                <h2 itemprop="name">
+                                    <span class="name">{$b.name}</span>
+                                </h2>
+                                
+                                <div class="image">
+                                        {$badge_html = $wa->shop->badgeHtml($b.badge)}
+                                        {if $badge_html}
+                                            <div class="corner top right">{$badge_html}</div>
+                                        {/if}
+                                        {if $theme_settings.homepage_bxslider_mode == 'products'}
+                                            {$wa->shop->productImgHtml($b, '0x320', ['itemprop' => 'image', 'alt' => $b.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
+                                        {/if}
+                                </div>
+                                <div itemprop="offers" class="info" itemscope itemtype="http://schema.org/Offer">
+                                    {if $b.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency_html($b.compare_price)} </span>{/if} <span class="price nowrap">{shop_currency_html($b.price)}</span>
+                                    <meta itemprop="price" content="{$b.price}">
+                                    <meta itemprop="priceCurrency" content="{$wa->shop->primaryCurrency()}">
+                                </div>
+                                {if $b.summary}<p itemprop="description">{strip_tags($b.summary)|truncate:255}</p>{/if}
+                            </a>
+                        </li>
+                    {/foreach}
+                </ul>
+            {else}
+                <p class="hint align-center"><br><em>{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','bestsellers')}</em><br><br></p>
+            {/if}
+            
+        {/if}
+    </article>
+
 {/if}
 
 <!-- plugin hook: 'frontend_homepage' -->
 {* @event frontend_homepage.%plugin_id% *}
 {foreach $frontend_homepage as $_}{$_}{/foreach}
 
-<div class="clear-both"></div>
+<!-- BULLETS -->
+<section class="bullets">
+    <figure class="bullet">
+        <h4><span class="b-glyph b-shipping"></span> {$theme_settings.homepage_bullet_title_1}</h4>
+        <p>{$theme_settings.homepage_bullet_body_1}</p>
+    </figure>
+    <figure class="bullet">
+        <h4><span class="b-glyph b-payment"></span> {$theme_settings.homepage_bullet_title_2}</h4>
+        <p>{$theme_settings.homepage_bullet_body_2}</p>
+    </figure>
+    <figure class="bullet">
+        <h4><span class="b-glyph b-location"></span> {$theme_settings.homepage_bullet_title_3}</h4>
+        <p>{$theme_settings.homepage_bullet_body_3}</p>
+    </figure>
+</section>
 
-<div class="sidebar left300px">
-    <!-- storefront navigation -->
-    {include file="sidebar.html"}
-</div>
+<!-- PROMOS product list -->
+{if $promos}
+    {include file="list-thumbs.html" products=$promos disable_compare=true}
+{else}
+    <p class="hint align-center"><em>{sprintf('[`In your store backend, drag some products into <strong>%s</strong> product list (which is in the left sidebar of the Products screen), and these products will be automatically published here — right on your storefront homepage.`]','promo')}</em></p>
+{/if}
 
-<div class="content left300px">
-
-    <!-- GENERAL WELCOME TEXT -->
-    <div itemscope itemtype="http://schema.org/Store">
-        <h1 class="align-center"><span itemprop="name">{sprintf('[`%s online store`]', $wa->shop->settings('name'))}</span></h1>
-        <meta itemprop="description" content="{$wa->meta('description')|escape}">
-
-        {if $wa->shop->settings('phone')}
-            <p class="align-center large">[`Contact us`]: <strong itemprop="telephone">{$wa->shop->settings('phone')}</strong></p>
-        {/if}
-        <div itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
-            <meta itemprop="streetAddress" content="">
-            <meta itemprop="addressLocality" content="">
-            <meta itemprop="addressRegion" content="">
-            <meta itemprop="postalCode" content="">
-            <meta itemprop="addressCountry" content="{$wa->shop->settings('country')|upper}">
-        </div>
-  
-        <p class="align-center gray">[`Edit this information in the <strong>home.html</strong> template file using built-in design editor in the store backend.`]</p>
-        
-    </div>
-
-    {$bestsellers = $wa->shop->productSet('bestsellers')}
-    {if $bestsellers}
-        {include file="list-table.html" products=$bestsellers}
-    {else}
-        <p class="hint align-center">{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','bestsellers')}</p>
-    {/if}
-    
-</div>
+<!-- DISCOUNT OFFER -->
+<aside class="coupon">
+    <div class="scissors"></div>
+    <h4>{$theme_settings.homepage_promo_title}</h4>
+    <p>{$theme_settings.homepage_promo_body}</p>
+</aside>

@@ -1,40 +1,54 @@
-{$show_all_types=((count($product_types)-$types_per_page)<3)}
+<script type="text/javascript" src="{$wa_url}wa-content/js/farbtastic/farbtastic.js"></script>
+<link rel="stylesheet" href="{$wa_url}wa-content/js/farbtastic/farbtastic.css" type="text/css" />
+
 <div class="sidebar left200px s-settings-internal-sidebar">
     <div class="s-inner-sidebar">
         <ul class="menu-v with-icons stack block drop-target" id="s-settings-feature-types">
-            {if !$show_all_types}
-                <li class="bottom-padded not-sortable" id="s-settings-feature-type-filter">
+            {if empty($show_all_types)}
+                <li class="not-sortable s-inner-search" id="s-settings-feature-type-filter">
                     <i class="icon16 ss search-bw"></i>
                     <input type="search" placeholder="[`Type product type name to filter`]" class="js-type-filter">
                     <i class="icon16 loading" style="display:none;"></i>
                 </li>
+            {/if}
 
-                <li class="bottom-padded not-sortable" data-type="0">
-                    <a href="#/features/0/">
-                        <span class="count"><!-- count --></span>
-                        <i class="icon16 box"></i>
-                        <span class="js-type-name">[`Empty type`]</span>
-                    </a>
-                </li>
-            {else}
-                <li class="bottom-padded not-sortable" data-type="0">
+            {if $show_all_features}
+                <li class="not-sortable bottom-padded" data-type="">
                     <a href="#/features/">
-                        <span class="count"><!-- count --></span>
-                        <i class="icon16 box"></i>
-                        <span class="js-type-name">[`All product types`]</span>
+                        <span class="count">{if ($show_all_features !== true)}{$show_all_features}{else}0{/if}</span>
+                        <i class="icon16 box"></i><span class="js-type-name">[`All features`]</span>
                     </a>
                 </li>
             {/if}
+            {*
+            <li class="not-sortable" data-type="0">
+                <a href="#/features/0/">
+                    <span class="count"><!-- count --></span>
+                    <i class="icon16 box"></i>
+                    <span class="js-type-name">[`All product types`]</span>
+                </a>
+            </li>
+            *}
+
+            {*
+            <li class="bottom-padded not-sortable" data-type="empty">
+                <a href="#/features/empty/">
+                    <span class="count"><!-- count --></span>
+                    <i class="icon16 box"></i>
+                    <span class="js-type-name">[`Empty type`]</span>
+                </a>
+            </li>
+            *}
 
             {foreach $product_types as $id => $type}{strip}
-            <li data-type="{$id}" data-icon="{$type.icon|escape}" class="js-type-item" data-name="{$type.name|escape}"{if !$show_all_types && ($type@iteration>$types_per_page)} style="display:none"{/if}>
+            <li data-type="{$id}" data-icon="{$type.icon|escape}" class="js-type-item" data-name="{$type.name|escape}"{if empty($show_all_types) && ($type@iteration>$types_per_page)} style="display:none"{/if}>
                 <a href="#/features/{$id}/">
                     <span class="count">{$type.features_count|default:'0'}</span>
                     <span class="js-type-icon">{shopHelper::getIcon($type.icon, 'icon.box')}</span>
                     <span class="js-type-name">{$type.name|escape}</span>
                  </a>
             </li>{/strip}{/foreach}
-            {if !$show_all_types}
+            {if empty($show_all_types)}
             <li class="not-sortable js-type-show-all">
                 <a href="#/features/type/show/" class="js-action inline-link small">
                     <b><i>{($type@total-$types_per_page)|string_format:"[`Show %d more`]"}</i></b>
@@ -69,16 +83,16 @@
 
 <div class="content left200px bordered-left s-settings-form blank">
     <div class="s-settings-header" style="display:none;">
-        <ul class="menu-h with-icons float-right" id="s-settings-features-type-menu">
+        <ul class="menu-h with-icons float-right" id="s-settings-features-type-menu" style="display: none;">
             <li><a href="#/features/type/edit/" class="js-action"> <i class="icon16 edit"></i>[`Edit product type`]</a>
             </li>
-            <li><a href="#/features/type/delete/" class="js-action js-confirm"{* data-confirm-text="[`This will delete the entire product type, leaving all its products untyped. Are you sure?`]"*}> <i class="icon16 delete"></i>[`Delete`] </a>
+            <li><a href="#/features/type/delete/" class="js-action js-confirm" data-confirm-text="[`This will delete the entire product type, leaving all its products untyped. Are you sure?`]"> <i class="icon16 delete"></i>[`Delete`] </a>
             </li>
         </ul>
         <h1 id="s-settings-features-type-name">
             <!-- Type name placeholder -->
         </h1>
-        <ul class="menu-h with-icons">
+        <ul class="menu-h with-icons" id="s-settings-features-feature-menu" style="display: none;">
             <li>
                 <a href="#/features/feature/add/" class="inline-link js-action"><i class="icon16 add"></i><b><i>[`New feature`]</i> </b> </a>
             </li>
@@ -101,11 +115,11 @@
 
             <tbody style="vertical-align: top !important;">
                 {if $features}
-                {include file="./SettingsFeaturesFeatureList.html.html" inline}
+                {include file="./SettingsFeaturesFeatureList.html" inline}
                 {/if}
 
 <!-- {capture name="feature-template-js"}{literal} feature jquery template -->
-                <tr data-types="${feature.types.join(" ")}" data-feature="${feature.id}" data-type="${feature.type}" data-selectable="${feature.selectable}" data-multiple="${feature.multiple}">
+                <tr data-types="${feature.types.join(" ")}" data-feature="${feature.id}" data-type="${feature.type}" data-selectable="${feature.selectable}" data-multiple="${feature.multiple}" {{if (feature.type=='divider')}} class="gray"{{/if}}>
                     <td class="min-width"><i class="icon16 sort"></i></td>
                     <td>
                         <span class="js-feature-name">${feature.name}</span><br>
@@ -118,7 +132,12 @@
                         {{if feature.values.length}}
                             <ul class="menu-v compact with-icons small s-feature-values js-feature-values">
                                 {{each(value_id, value_value) feature.values}}
-                                    <li data-value-id="${value_value.id||value_id}">${(typeof(value_value) == 'object')?value_value.value:value_value}</li>
+                                    <li data-value-id="${value_value.id||value_id}">
+                                        {{if ((typeof(value_value) == 'object') && (typeof(value_value.code) !='undefined'))}}
+                                        <i class="icon16 color" style="background: ${(0xF000000 | value_value.code ).toString(16).toUpperCase().replace(/^F/,"#")};"></i>
+                                        {{/if}}
+                                        ${(typeof(value_value) == 'object')?value_value.value:value_value}
+                                    </li>
                                 {{/each}}
                             </ul>
                         {{else}}
@@ -140,7 +159,7 @@
 <!-- {/literal}{/capture} placeholder -->
 
 <!-- {capture name="edit-feature-template-js"}{literal} edit feature jquery template -->
-                <tr data-types="${feature.types.join(" ")}" class="js-inline-edit" data-feature="${feature.id}">
+                <tr data-types="${feature.types.sort().join(" ")}" class="js-inline-edit" data-feature="${feature.id}" data-multiple="${feature.multiple}" data-selectable="${feature.selectable}" data-type="${feature.type}" {{if (feature.type=='divider')}} class="gray"{{/if}}>
                     <td class="min-width"><i class="icon16 sort"></i></td>
                     <td><input type="text" name="feature[${feature.id}][name]" value="${feature.name}"><br>
                     {{if feature.id>0}}
@@ -170,6 +189,25 @@ action=''
                             <ul class="menu-v compact with-icons small s-feature-values js-feature-values" data-values_template="${feature.values_template}">
                                 {{each(id, feature_value) feature.values}}
 {/literal}
+{literal}{{if feature.type == 'color'}}{/literal}
+
+<!-- {capture name="edit-feature-value-color-template-js"} edit feature value color jquery template{literal}   -->
+<li data-value-id="${id}">
+    <i class="icon16 sort"></i>
+
+    <input name="feature[${feature.id}][values][${id}][value]" type="text" value="${$.settings.featuresHelper.value(feature_value,"value")}" placeholder="[`color name`]">
+
+    <a href="#/features/feature/value/color/${feature.id}/${id}/" class="js-action" style="display: inline;padding-left: 20px;">
+        <i class="icon16 color" style="background: ${$.settings.featuresHelper.value(feature_value,"color")}"></i>
+    </a>
+
+    #<input name="feature[${feature.id}][values][${id}][code]" type="text" value="${$.settings.featuresHelper.value(feature_value,"hex")}" placeholder="FFFFFF">
+    <a href="#/features/feature/value/delete/${feature.id}/${id}/" class="js-action" style="display: inline;">
+        <i class="icon10 delete no-overhanging"></i>
+    </a>
+</li>
+<!-- {/literal}{/capture}{$smarty.capture["edit-feature-value-color-template-js"]} -->
+{literal}{{/if}}{/literal}
 {$dimension = shopDimension::getInstance()}
 {$dimensions = $dimension->getList()}
 {foreach $dimensions as $code=>$units}
@@ -202,8 +240,8 @@ action=''
 {{if !feature.values_template}}
 
 <!-- {/literal}{capture name="edit-feature-value-template-js"}{literal} edit feature value jquery template -->
-                                <li data-value-id="${id}">
 
+                                <li data-value-id="${id}">
                                     <i class="icon16 sort"></i>
                                     <input type="text" name="feature[${feature.id}][values][${id}]" value="{{if typeof(feature_value) == 'object'}}${feature_value.value}{{else}}${feature_value}{{/if}}"{{if feature_value.error}} class="error" title="${feature_value.error.message}" data-original-id="${feature_value.error.original_id}"{{/if}}>
                                     <a href="#/features/feature/value/delete/${feature.id}/${id}/" class="js-action" style="display: inline;">
@@ -213,9 +251,24 @@ action=''
 <!-- {/literal}{/capture}{$smarty.capture["edit-feature-value-template-js"]}{literal}-->
 {{/if}}
                                 {{/each}}
-                                <li><a href="#/features/feature/value/add/${feature.id}/" class="inline-link js-action"><i class="icon10 add"></i><b><i>[`Add feature value`]</i></b></a></li>
+                                <li>
+                                    <a href="#/features/feature/value/add/${feature.id}/" class="inline-link js-action">
+                                        <i class="icon10 add"></i><b><i>[`Add feature value`]</i></b>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
+
+                        {{if feature.id > 0}}
+                        <ul class="menu-v compact with-icons small">
+                            <li>
+                                <a href="#/features/feature/type/${feature.id}/" class="js-action">
+                                    <i class="icon10 settings"></i>[`Change this feature type`]
+                                </a>
+                            </li>
+                        </ul>
+                        {{/if}}
+
                     </td>
                     <td>
                         <ul class="menu-v compact collapsible small s-feature-values js-types" style="max-height: 500px;overflow-y: auto;overflow-x: hidden;">
@@ -262,28 +315,31 @@ action=''
 if(typeof($)!='undefined') {
 
 $.settings.settingsOptions({
-    'value_templates':{
+    value_templates:{
 {/literal}
 {$dimensions = $dimension->getList()}
+        'color':'-color'{if $dimensions},{/if}
 {foreach $dimensions as $code => $var}'dimension.{$code|escape}':'-dimension-{$code|escape}'{if !$var@last},{/if}
 
 {/foreach}
     },
-    'show_all_types':{var_export($show_all_types,true)|escape},
-    'show_all_features':{var_export($show_all_types,true)|escape},
-    'types_per_page':{var_export($types_per_page,true)|escape}
+    show_all_types:{var_export($show_all_types,true)|escape},
+    show_all_features:{var_export(!!$show_all_features,true)|escape},
+    types_per_page:{var_export($types_per_page,true)|escape}
 });
 $.settings.featuresInit();
 }
 
 </script>
 
-<script>document.title = '{"[`Product types & Features`]"|cat:" — ":{$wa->accountName()}}';</script>
+<script>document.title = '{"[`Product types & Features`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';</script>
 
 {foreach $smarty.capture as $name => $template} {if strpos($name,'template-js')}
+<!-- begin {$name} -->
 <script type="text/x-jquery-tmpl" id="{$name}">
-<!-- begin {$name} {$template|replace:'</':'<\/'} end {$name} -->
+{$template|regex_replace:'@(^.*-->)|(<!\-\-.*$)@m':''|replace:'</':'<\/'}
 </script>
+<!-- end {$name} -->
 {/if} {/foreach}
 
 {* dialog *}
@@ -324,6 +380,52 @@ $.settings.featuresInit();
                     <input class="button green" type="submit" value="[`Save`]"> [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
                 </div>
             </div>
+        </form>
+    </div>
+</div>
+
+<div id="s-settings-features-feature-type-dialog"  class="dialog width600px height350px">
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <form action="?module=settings&action=featuresValuesTypeConvert" method="post">
+            <input type="hidden" name="id" value="">
+            <div class="dialog-content">
+                <div class="dialog-content-indent">
+                    <h1>[`Change feature type`]</h1>
+                    <div class="fields form">
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="name">[`Current data type`]</div>
+                                <div class="value feature-old-type no-shift">
+                                    /* Old feature type */
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`New data type`]</div>
+                                <div class="value features no-shift">
+                                    {include file="../../includes/featuresValuesTypes.html"
+                                        class="js-action"
+                                        available=1
+                                        action=''
+                                    inline}
+                                </div>
+                                <div class="value features no-shift">
+                                    <p class="small">
+                                        <i class="icon10 exclamation"></i> [`When altering feature data type,  product feature values will be automatically converted to the new data type. Conversion routine will attempt to convert all product feature values automatically, but still some data may be lost when conversion is not feasible. Example: when altering feature type from Text (string) to Value (numerical), product feature values such as "100" and "200" will be converted to numbers properly, and values that do not have a numerical representation (e.g. "hello", "none", "red") will be converted to 0. In case of data loss, there will be no way to roll back.`]
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <em class="errormsg"></em>
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-buttons">
+                <div class="dialog-buttons-gradient">
+                    <input class="button green" type="submit" value="[`Save`]"> [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+                </div>
+            </div>
+            {$wa->csrf()}
         </form>
     </div>
 </div>

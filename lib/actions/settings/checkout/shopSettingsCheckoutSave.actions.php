@@ -34,6 +34,8 @@ class shopSettingsCheckoutSaveActions extends waJsonActions
                 unset($data[$step_id]);
             }
         }
+        $app_settings_model = new waAppSettingsModel();
+        $app_settings_model->set('shop', 'checkout_flow_changed', time());
         $this->save($data);
     }
 
@@ -56,6 +58,8 @@ class shopSettingsCheckoutSaveActions extends waJsonActions
                 $result[$step_id] = $step;
             }
         }
+        $app_settings_model = new waAppSettingsModel();
+        $app_settings_model->set('shop', 'checkout_flow_changed', time());
         $this->save($result);
     }
 

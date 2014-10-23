@@ -1,4 +1,4 @@
-<div class="dialog width650px {if $type == 'set'}height350px{else}height500px{/if}" id="s-product-list-create-dialog">
+<div class="dialog {if $type == 'set'}width650px height350px{else}large{/if}" id="s-product-list-create-dialog">
     <div class="dialog-background"></div>
     <form id="s-product-list-create-form" method="post"
           action="?module=products&action=saveListSettings&{$type}_id=0&parent_id={if !empty($parent)}{$parent.id}{else}0{/if}"
@@ -13,7 +13,7 @@
                         <div class="field">
                             <div class="name">{$name_text}</div>
                             <div class="value">
-                                <input type="text" name="name" class="large long s-full-width-input" value="" id="s-product-list-name">
+                                <input type="text" name="name" class="large long s-full-width-input" value="" id="s-c-product-list-name">
                             </div>
                         </div>
                         {$smarty.capture.frontend_url}
@@ -39,7 +39,7 @@
                                         <label>
                                             <input id="s-type-dynamic" type="radio" name="type" value="1">
                                             <strong>[`Dynamic`]</strong>
-                                            <i class="icon16 {if $type == 'category'}folder-dynamic{else}funnel{/if}"></i>
+                                            <i class="icon16 {if $type == 'category'}folder-dynamic{else}ss set-dynamic{/if}"></i>
                                             <br><br>
                                             <span class="hint">{$dynamic_type_text}</span>
                                         </label>
@@ -69,15 +69,11 @@
 <script type="text/javascript">
     $(function() {
         var d = $('#s-product-list-create-dialog');
-        var height_static = $('.dialog-window', d).height();
-        var height_dynamic = height_static + 100;
         $('#s-product-list-create-dialog input[name=type]').click(function() {
             if ($(this).val() == '0') {
                 $('#s-dynamic-field-group').hide();
-                $('.dialog-window', d).height(height_static);
             } else {
                 $('#s-dynamic-field-group').show();
-                $('.dialog-window', d).height(height_dynamic);
                 d.trigger('dynamic_settings');
             }
         });

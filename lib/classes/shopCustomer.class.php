@@ -4,10 +4,15 @@ class shopCustomer extends waContact
 {
     protected $customer_data;
 
+    /**
+     * Returns current customer's affiliate bonus points.
+     * 
+     * @return int
+     */
     public function affiliateBonus()
     {
         if ($this->getId()) {
-            return (int)$this->getCustomerData('affiliate_bonus');
+            return (float)$this->getCustomerData('affiliate_bonus');
         }
         return 0;
     }

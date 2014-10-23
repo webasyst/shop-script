@@ -1,5 +1,5 @@
-<script src="{$wa_app_static_url}js/live.dragndrop.js" type="text/javascript"></script>
-<script src="{$wa_app_static_url}js/product/pages.js" type="text/javascript"></script>
+<script src="{$wa_app_static_url}js/live.dragndrop.js?v={$wa->version()}" type="text/javascript"></script>
+<script src="{$wa_app_static_url}js/product/pages.js?v={$wa->version()}" type="text/javascript"></script>
 
 <div class="s-pages">
     <div class="sidebar left250px s-internal-sidebar" style="min-height: 300px;">
@@ -31,7 +31,8 @@
     $.product_pages.init({
         container: '.s-product-form.pages',
         product_id: {$product_id},
-        page_id: '{$page_id}'
+        page_id: '{$page_id}',
+        count: {$count},
     });
     $.wa.locale['New page'] = '[s`New page`]';
 </script>

@@ -238,9 +238,47 @@
                         return false;
                     }
                 });
+                
+                
+                $('#s-services-list').sortable({
+                    distance: 5,
+                    opacity: 0.75,
+                    items: 'li:not(:last)',
+                    handle: '.sort',
+                    cursor: 'move',
+                    tolerance: 'pointer',
+                    update: function (event, ui) {
+                        var item = ui.item;
+                        var next = item.next();
+                        var id = item.attr('data-service-id');
+                        var before_id = next.attr('data-service-id');
+                        $.shop.jsonPost('?module=service&action=move', {
+                            id: id, before_id: before_id
+                        });
+                    }
+                });
+                
+                $('.s-services-variants').sortable({
+                    distance: 5,
+                    opacity: 0.75,
+                    items: 'tr.s-services-variant',
+                    handle: '.sort',
+                    cursor: 'move',
+                    tolerance: 'pointer',
+                    update: function (event, ui) {
+                        var item = ui.item;
+                        var next = item.next();
+                        var id = item.find('input[name="variant[]"]').val();
+                        var before_id = next.find('input[name="variant[]"]').val();
+                        $.shop.jsonPost('?module=service&action=move&service_id=' + $.product_services.service_id, {
+                            id: id, before_id: before_id
+                        });
+                    }
+                });
 
                 // save service info for services page
                 $('#s-save-service-submit').click(function() {
+                    $(this).attr('disabled', true);
                     var showSuccessIcon = function() {
                         var icon = $('#s-save-service-submit').parent().find('i.yes').show();
                         setTimeout(function() {
@@ -275,7 +313,7 @@
                     );
                     return false;
                 });
-                form.off('change').on('change', '.s-service-currency', function() {
+                form.off('change', '.s-service-currency').on('change', '.s-service-currency', function() {
                     var self = $(this), val = self.val();
                     form.find('.s-service-currency').val(val);
                     $('#s-service-currency-code').val(val);
@@ -295,7 +333,9 @@
                     if (!data.changed) {
                         return false;
                     }
-                    if ($.product_services.service_id) {
+                    if (!$.product_services.service_id) {
+                        $('#s-save-service-submit').click();
+                    } else {
                         var name = $(input).val();
                         $.products.jsonPost('?module=service&action=save&edit=name&id='+$.product_services.service_id, {
                             name: name
@@ -404,6 +444,19 @@
                             check_checkbox_handler.call(checkbox.get(0));
                         }
                     });
+                    
+                // update sku default prices (placeholdres)
+                container.off('keyup change', 'tr.s-services-variant-product input[type=text]').
+                        on('keyup change', 'tr.s-services-variant-product input[type=text]', function() {
+                            var self = $(this);
+                            var tr = self.closest('tr');
+                            var variant_id = tr.attr('data-variant-id');
+                            var sku_inputs = container.find(
+                                    'tr.s-services-variant-sku[data-variant-id='+variant_id+'] input[type=text]'
+                            );
+                            var val = self.val();
+                            sku_inputs.attr('placeholder', val ? val : self.attr('placeholder'));
+                        });
             }
 
             if (!this.product_id) {
@@ -411,6 +464,11 @@
                     var row = container.find('.s-services-variant:last').clone();
                     row.find('input[name=name\\[\\]]').val('');
                     row.find('input[name=variant\\[\\]]').val(0);
+                    row.find('.s-services-type-of-price input[type=radio]').each(function() {
+                        var item = $(this);
+                        var index = item.attr('name').replace('type_of_price_', '');
+                        item.attr('name', 'type_of_price_' + (index + 1));
+                    });
                     var input = row.find('input[name=default]');
                     input.attr('checked', false);
                     input.val((parseInt(input.val()) || 0) + 1);
@@ -430,6 +488,8 @@
                                 $(this).find('input').attr('disabled', false);
                                 addNewOption.call(container.find('.s-add-new-option'));
                                 container.find('input[name=name\\[\\]]:first').focus();
+                                
+                                container.find('.s-service-currency:first').change();
 
                                 // process rows of deleted variants
                                 container.find('tr.s-services-variant-deleted').each(function() {

@@ -7,7 +7,13 @@ $(function () {
             $(".cart-discount").closest('tr').show();
         }
         $(".cart-discount").html('&minus; ' + data.discount);
-        $(".affiliate").hide();
+        
+        if (data.add_affiliate_bonus) {
+            $(".affiliate").show().html(data.add_affiliate_bonus);
+        } else {
+            $(".affiliate").hide();
+        }
+        
     }
 
     // add to cart block: services
@@ -25,7 +31,7 @@ $(function () {
 
     $(".cart a.delete").click(function () {
         var tr = $(this).closest('tr');
-        $.post('delete/', {id: tr.data('id')}, function (response) {
+        $.post('delete/', {html: 1, id: tr.data('id')}, function (response) {
             if (response.data.count == 0) {
                 location.reload();
             }
@@ -40,7 +46,7 @@ $(function () {
         if (that.val() > 0) {
             var tr = that.closest('tr');
             if (that.val()) {
-                $.post('save/', {id: tr.data('id'), quantity: that.val()}, function (response) {
+                $.post('save/', {html: 1, id: tr.data('id'), quantity: that.val()}, function (response) {
                     tr.find('.item-total').html(response.data.item_total);
                     if (response.data.q) {
                         that.val(response.data.q);
@@ -63,7 +69,7 @@ $(function () {
         var tr = $(this).closest('tr');
         if ($(this).is(':checked')) {
            var parent_id = $(this).closest('tr').data('id')
-           var data = {parent_id: parent_id, service_id: $(this).val()};
+           var data = {html: 1, parent_id: parent_id, service_id: $(this).val()};
            var variants = $('select[name="service_variant[' + parent_id + '][' + $(this).val() + ']"]');
            if (variants.length) {
                data['service_variant_id'] = variants.val();
@@ -74,7 +80,7 @@ $(function () {
                updateCart(response.data);
            }, "json");
         } else {
-           $.post('delete/', {id: div.data('id')}, function (response) {
+           $.post('delete/', {html: 1, id: div.data('id')}, function (response) {
                div.data('id', null);
                tr.find('.item-total').html(response.data.item_total);
                updateCart(response.data);
@@ -84,7 +90,7 @@ $(function () {
 
     $(".cart .services select").change(function () {
         var tr = $(this).closest('tr');
-        $.post('save/', {id: $(this).closest('div').data('id'), 'service_variant_id': $(this).val()}, function (response) {
+        $.post('save/', {html: 1, id: $(this).closest('div').data('id'), 'service_variant_id': $(this).val()}, function (response) {
             tr.find('.item-total').html(response.data.item_total);
             updateCart(response.data);
         }, "json");

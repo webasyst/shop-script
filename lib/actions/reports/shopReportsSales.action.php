@@ -75,7 +75,7 @@ class shopReportsSalesAction extends waViewAction
             $to = waRequest::request('to', 0, 'int');
             $end_date = $to ? date('Y-m-d', $to) : null;
         } else {
-            if (!int_ok($timeframe)) {
+            if (!wa_is_int($timeframe)) {
                 $timeframe = 30;
             }
             $start_date = date('Y-m-d', time() - $timeframe*24*3600);

@@ -75,6 +75,10 @@ class shopSetProductsModel extends waModel
                     $this->query("UPDATE `shop_set` SET `count` = `count` + i:count WHERE `id` = s:id", $data);
                 }
             }
+
+            if ($cache = wa('shop')->getCache()) {
+                $cache->deleteGroup('sets');
+            }
         }
     }
 
@@ -108,6 +112,9 @@ class shopSetProductsModel extends waModel
                 'set_id' => $set_id
             ), array('sort' => $sort++));
         }
+        if ($cache = wa('shop')->getCache()) {
+            $cache->deleteGroup('sets');
+        }
         return true;
     }
 
@@ -133,6 +140,9 @@ class shopSetProductsModel extends waModel
             }
         }
         $set_model = new shopSetModel();
+        if ($cache = wa('shop')->getCache()) {
+            $cache->deleteGroup('sets');
+        }
         if ($product_ids === true) {
             return $set_model->updateById($set_id, array('count' => 0));
         } else {
@@ -147,6 +157,9 @@ class shopSetProductsModel extends waModel
      */
     public function clearSet($set_id)
     {
+        if ($cache = wa('shop')->getCache()) {
+            $cache->deleteGroup('sets');
+        }
         return $this->deleteProducts($set_id, true);
     }
 

@@ -5,7 +5,7 @@
 {/if}
 
 <div class="block double-padded blank s-settings-form">
-    <h1>[`Product images`]</h1>
+    <h1 style="margin-bottom: 1em;">[`Product images`]</h1>
     <div id="s-settings-block">
         <form action="?module=settings&action=images" method="post" id="s-settings-form">
             <div class="fields form">
@@ -111,6 +111,16 @@
                         </div>
 
                     </div>
+                    <div class="field">
+                        <div class="name">
+                            [`Thumbnail quality`]
+                        </div>
+                        <div class="value">
+                            <input type="input" name="image_save_quality" value="{if !empty($settings.image_save_quality)}{str_replace(',', '.', $settings.image_save_quality)}{/if}"><br>
+                            <span class="hint">[`JPEG compression quality for photo thumbnails. From 0 (min quality, min file size) to 100 (max quality, max file size). 90 is recommended.`]</span>
+                        </div>
+
+                    </div>
                 </div>
                 <h6 class="heading">[`Originals`]</h6>
                 <div class="field-group">
@@ -125,94 +135,109 @@
                         </div>
 
                     </div>
+                </div>
+
+                <h6 class="heading">@2x</h6>
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">
+                            [`@2x image thumbnail generation`]
+                        </div>
+                        <div class="value no-shift">
+                            <label><input type="checkbox" name="enable_2x" value="1" {if !empty($settings.enable_2x)}checked{/if}> [`Automatic @2x image thumbnail generation (recommended)`]</label>
+                            <br>
+                            <span class="hint">[`Enabling this option will allow automatic creation of image thumbnails on-fly for devices with high pixel density displays, e.g. Retina displays. Generating bigger images require more memory resources for image generation, requires more disk space for storing images, but significantly improves user experience on devices with high-end displays`]</span>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">
+                            [`Thumbnail quality @2x`]
+                        </div>
+                        <div class="value">
+                            <input type="input" name="image_save_quality_2x" value="{if !empty($settings.image_save_quality_2x)}{str_replace(',', '.', $settings.image_save_quality_2x)}{/if}"><br>
+                            <span class="hint">[`JPEG compression quality for photo thumbnails. From 0 (min quality, min file size) to 100 (max quality, max file size). 70 is recommended.`]</span>
+                        </div>
+                    </div>
                     <div class="field">
                         <div class="value submit">
                             <input type="submit" name="save" class="button green" value="[`Save`]">
                         </div>
+                        <div class="value no-shift" id="submit-message" style="display:none;">
+                            <p class="small"><em class="highlighted">[`Updated settings will be applied only to newly created thumbnails. To apply updated settings to all existing product thumbnails, start thumbnail re-generation process.`]</em></p>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="value">
+                            <hr>
+                        </div>
                     </div>
                 </div>
+
+                <div class="field-group">
+                    <div class="field">
+                        <div></div>
+                        <div class="value">
+                            <a class="inline-link" href="#" id="s-regenerate-thumbs">[`Re-generate all product image thumbnails`]</a><br>
+                            <span class="hint">[`Re-generating all public product image thumbnails allows you to save some disk space on server and to optimize images after thumbnail generation settings such as sharpening and JPEG compression quality were changed. Depending on the number of products, the entire process may take from few seconds to few minutes or even hours for very large product databases.`]</span>
+                        </div>
+                    </div>
+                </div>
+                
             </div>
             {$wa->csrf()}
         </form>
     </div>
 </div>
 
+{* dialogs section *}
+
+<div class="dialog width600px height450px" id="s-regenerate-thumbs-dialog">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=settings&action=imagesRegenerate">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Re-generate product image thumbnails`]</h1>
+                <p>[`This will start the process of deleting all existing product thumbnails and re-generating them from fullsize versions according to latest thumbnail generation settings such as sharpening and JPEG compression quality. Depending on the number of products, re-generation may take some time to complete and may free some disk space on your server.`]</p>
+                <p class="hint">[`While thumbnails are re-generated, your storefront visitors should see no difference in your storefront functioning, and there should be no broken images, because new thumbnails are created by Webasyst automatically upon user request. However, since creating new thumbnails consume server resources, your server may experience above-average load while new thumbnails are created. The overload depends on the number of requests on thumbnails generation, i.e. on your storefront traffic. It is recommended to perform thumbnail re-generation when your storefront traffic is at its lowest.`]</p>
+                <p>
+                    <label><input type="checkbox" name="create_thumbnails" value="1"> [`Automatically create thumbnails of predefined custom sizes (enable this in case you are sure about the list of your custom thumbnail sizes, or if custom-sized on-fly thumbnail generation is disabled; otherwise it is safe to have this option turned off)`]</label>
+                </p>
+                <div id="s-regenerate-progressbar" style="display:none; margin-top: 20px;">
+                    
+                    <div class="progressbar blue float-left" style="display: none; width: 70%;">
+                        <div class="progressbar-outer">
+                            <div class="progressbar-inner" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
+                    <div class="clear"></div>
+                    <span class="progressbar-description">0.000%</span>
+                    <em class="hint">[`Please don't close your browser window until re-generation is over.`]</em>
+                    <br clear="left" />
+                    <em class="errormsg"></em>                    
+                </div>
+                
+                <div id="s-regenerate-report" style="display: none; margin-top: 20px;">
+                </div>
+                
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button green" type="submit" value="[`Start re-generation process`]">
+                [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+        
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/images.js?{$wa->version()}"></script>
 <script type="text/javascript">
-    document.title = '{"[`Product images`]"|cat:" — ":{$wa->accountName()}}';
-    $(function() {
-        var form = $('#s-settings-form');
-
-        form.off('click', '.s-size-set label').
-            on('click', '.s-size-set label', function(e) {
-                var self = $(this);
-                var target = self.find('input:radio:first');
-                var parent = self.parents('.s-size-set:first');
-                var prev = parent.find('input:radio:checked');
-
-                prev.nextAll().filter('span.star').show().end().
-                    filter('input').hide().
-                    attr('disabled', true);
-                prev.attr('checked', false);
-
-                target.nextAll().filter('span.star').hide().end().
-                    filter('input').show().
-                    attr('disabled', false);
-                target.attr('checked', true);
-
-                return false;
-            }
-        );
-
-        $('#s-add-action').click(function() {
-            var size_set = $('#s-size-set');
-            if (size_set.is(':hidden')) {
-                size_set.show()
-                if ($('#s-saved-size').length) {
-                    size_set.before('<br>');
-                }
-                return false;
-            }
-            var last_set = form.find('.s-size-set:last');
-            var new_set = last_set.clone();
-            new_set.attr('id', null);
-
-            new_set.find('input[type=radio], input[type=text]').each(function() {
-                this.name = this.name.replace(/(\d+)/, function(m) {
-                    return parseInt(m[0], 10) + 1;
-                });
-            });
-            last_set.after(new_set).after('<br>');
-            return false;
-        });
-
-        form.off('click', '.s-delete-action').
-            on('click', '.s-delete-action', function() {
-                var self = $(this),
-                    li = self.parents('li:first');
-                if (li.find('span.strike').length) {
-                    return;
-                }
-                form.append('<input type="hidden" name="delete[]" value="' + self.attr('data-key') + '">');
-
-                var inner_html = li.html();
-                li.html('<span class="strike gray">'+inner_html+'</span>').append('<em class="small">'+$_('Click “Save” button below to apply this change.')+'</em>');
-            }
-        );
-
-        $('#s-thumbs_on_demand').unbind('click').bind('click', function() {
-            if (this.checked) {
-                $('#s-max-size').show(200);
-            } else {
-                $('#s-max-size').hide(200);
-            }
-        });
-
-        form.unbind('submit').bind('submit', function() {
-            var self = $(this);
-            $.post(self.attr('action'), self.serialize(), function(html) {
-                $('#s-settings-content').html(html);
-            });
-            return false;
-        });
-    });
+document.title = '{"[`Product images`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+if(typeof($)!='undefined') {
+    $.settings.imagesInit();
+}
 </script>

@@ -3,10 +3,12 @@
  * Class shopDimensionValue
  * @property-read string $value
  * @property-read string $unit
- * @property-read string $unit_name
+ *
  * @property-read string $type
  * @property-read string $value_base_unit
- * @property-read string $base_code
+ *
+ * @property-read string $unit_name
+ * @property-read string $units
  */
 class shopDimensionValue implements ArrayAccess
 {
@@ -21,28 +23,32 @@ class shopDimensionValue implements ArrayAccess
     public function __construct($row)
     {
         foreach ($row as $field => $value) {
-            $this->$field = $value;
+            $this->{$field} = $value;
         }
     }
 
     public function __set($field, $value)
     {
-        return $this->$field = $value;
+        return $this->{$field} = $value;
     }
 
     public function __get($field)
     {
         switch ($field) {
+            case 'html':
+                return $this->__toString();
             case 'units':
                 return $this->getUnits();
+                break;
+            case 'compare':
+                return $this->value_base_unit;
                 break;
             case 'unit_name':
                 if (!isset($this->unit_name)) {
                     $this->unit_name = $this->getUnitName($this->unit);
                 }
-
             default:
-                return isset($this->$field) ? $this->$field : $this->convert($field);
+                return isset($this->{$field}) ? $this->{$field} : $this->convert($field);
                 break;
         }
     }
@@ -79,7 +85,17 @@ class shopDimensionValue implements ArrayAccess
 
     public function offsetExists($offset)
     {
-        return true;
+        return in_array($offset, array(
+            'id',
+            'feature_id',
+            'sort',
+            'value',
+            'unit',
+            'type',
+            'value_base_unit',
+            'units',
+            'compare',
+        ), true);
     }
 
     public function __toString()

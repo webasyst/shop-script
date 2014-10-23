@@ -17,7 +17,7 @@
 <div class="content block{if !empty($shop_pages[ $wa->param('page_id') ].childs)} right{/if}">
 
     <!-- integrnal navigation breadcrumbs -->
-    {if isset($breadcrumbs) && $action!='page'}
+    {if !empty($breadcrumbs) && $action!='page'}
         <div class="breadcrumbs">
             {foreach $breadcrumbs as $breadcrumb}
                 <a href="{$breadcrumb.url}">{$breadcrumb.name|escape}</a> <span class="rarr">&rarr;</span>
@@ -30,3 +30,15 @@
 </div>
 
 <div class="clear-both"></div>
+
+<div id="dialog" class="dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <!-- common part -->
+        <div class="cart">
+
+        </div>
+        <!-- /common part -->
+
+    </div>
+</div>

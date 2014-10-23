@@ -1,0 +1,116 @@
+{capture assign="log_list"}
+    {foreach $log as $row}
+        <tr>
+            
+            <td>{$row['icon']}</td>
+            
+            <td>
+                <div>{$row['description']}<i class="shortener"></i></div>
+            </td>
+            
+            <td>
+                <div>
+                    {if !$product_id}
+                        <a href="#/product/{$row['product_id']}/">
+                            {$row['product_name']|escape}
+                            <span class="hint">{$row['sku_name']|escape}</span>
+                        </a>
+                    {else}
+                        {$row['sku_name']|escape}
+                    {/if}
+                    <i class="shortener"></i>
+                </div>
+            </td>
+            
+            <td class="gray align-right">{if $row['diff_count'] > 0}+{$row['diff_count']}{else}{$row['diff_count']}{/if}</td>
+            <td>
+                {shopHelper::getStockCountIcon($row['after_count'], $row['stock_id'])}
+                {if $row['after_count'] !== null}{$row['after_count']}{else}∞{/if}
+                {if $row['stock_name'] !== null}
+                    <span class="hint">@{$row['stock_name']|escape}</span>
+                {/if}
+            </td>
+                        
+            <td class="gray align-right">{$row['datetime']|wa_datetime:humandatetime}</td>
+            
+            
+        </tr>
+    {/foreach}
+{/capture}
+
+{capture assign="lazy_loading_footer"}
+<div class="block half-padded">
+    <br>
+    <div class="lazyloading-progress-string">{_w('%d log item','%d log items', $offset + $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+    <span class="lazyloading-progress" style="display:none">
+        <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d log item', '%d log items', min($total_count - $offset - $count, $count))}...</span>
+    </span>
+</div>
+{/capture}
+
+{if !$lazy}
+
+    {function name="get_url_params" stock_id=null order=null}{strip}
+        {if $stock_id || ($stock_id === '0' || $stock_id === 0)}stock_id={$stock_id}&{/if}{if $order}order={$order}{/if}
+    {/strip}{/function}
+
+    {function name="get_url" stock_id=null order=null}{strip}
+        {if $product_id}
+            #/product/{$product_id}/edit/stockslog/{get_url_params stock_id=$stock_id order=$order}
+        {else}
+            #/stockslog/{get_url_params stock_id=$stock_id order=$order}
+        {/if}
+    {/strip}{/function}
+
+    {if $log}
+        <ul class="p-log-filters menu-h float-right small">
+            <li {if !$stock_id && ($stock_id !== '0' && $stock_id !== 0)}class="selected"{/if}><a href="{get_url order=$order}">[`All stocks`]</a></li>
+            {foreach $stocks as $stock}
+                <li {if $stock_id == $stock['id']}class="selected"{/if}><a href="{get_url stock_id=$stock['id'] order=$order}">{$stock['name']|escape}</a></li>
+            {/foreach}
+        </ul>
+    {else}
+        <br><br><br>
+    {/if}
+    <div class="clear-right"></div>
+    
+    {*
+    <ul class="p-log-order menu-h small">
+        <li {if $order == 'desc'}class="selected"{/if}>
+            <a href="{get_url stock_id=$stock_id}" class="inline-link"><b><i>[`Newest`]</i></b></a>
+        </li>
+        <li {if $order == 'asc'}class="selected"{/if}>
+            <a class="inline-link" href="{get_url stock_id=$stock_id order='asc'}"><b><i>[`Oldest`]</i></b></a>
+        </li>
+    </ul>
+    *}
+
+    {if $log}
+        <table class="zebra s-stocks-log single-lined">
+            <tr class="header">
+                <th class="min-width"></th> 
+                <th>[`Description`]</th>
+                <th>{if $product_id}[`SKU name`]{else}[`Product`]{/if}</th>
+                <th></th>
+                <th>[`Balance`]</th>   
+                <th></th>
+            </tr>
+            {$log_list}
+        </table>
+
+        {$lazy_loading_footer}
+
+    {else}
+        <p class="gray">
+            {if isset($stocks[$stock_id])}
+                {sprintf('[`There are no stock update records on @%s yet.`]', $stocks[$stock_id]['name'])}
+            {else}
+                [`There are no stock update records yet.`]
+            {/if}
+        </p>
+    {/if}
+
+{else}
+    <table>{$log_list}</table>
+    {$lazy_loading_footer}
+{/if}

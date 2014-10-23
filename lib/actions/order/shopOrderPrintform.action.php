@@ -68,7 +68,11 @@ class shopOrderPrintformAction extends waViewAction
                 }
                 foreach ($order['items'] as &$item) {
                     if ($item['type'] == 'product') {
-                        $w = isset($weights[$item['product_id']]) ? $weights[$item['product_id']] : 0;
+                        if (isset($weights['skus'][$item['sku_id']])) {
+                            $w = $weights['skus'][$item['sku_id']];
+                        } else {
+                            $w = isset($weights[$item['product_id']]) ? $weights[$item['product_id']] : 0;
+                        }
                         if ($m !== null) {
                             $w = $w / $m;
                         }

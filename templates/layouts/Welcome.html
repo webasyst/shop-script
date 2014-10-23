@@ -2,7 +2,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     {$title=$wa->title()}
-    <title>{if $title}{$title|escape}{else}{$wa->appName()}{/if} &mdash; {$wa->accountName()}</title>
+    <title>{{$title|default:$wa->appName()}|cat:" — ":{$wa->accountName(false)}|escape}</title>
 
     {$wa->css()}
 

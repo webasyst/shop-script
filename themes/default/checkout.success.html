@@ -1,5 +1,5 @@
 <style>
-    h2 { display: none; }
+    .checkout-header { display: none; }
 </style>
 
 <div class="checkout-result success">
@@ -20,4 +20,9 @@
     <p class="back">
         &larr; <a href="{$wa_app_url}">[`Back to the store`]</a>
     </p>
+    
+    <!-- plugin hook: 'frontend_checkout' -->
+    {* @event frontend_checkout.%plugin_id% *}
+    {foreach $frontend_checkout as $_}{$_}{/foreach}
+        
 </div>

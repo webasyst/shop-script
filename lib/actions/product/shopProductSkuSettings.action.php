@@ -23,7 +23,7 @@ class shopProductSkuSettingsAction extends waViewAction
         $this->view->assign('sku', $sku);
         //$this->view->assign('features', $features_model->getByType($product->type_id, 'code', true));
         $this->view->assign('features', $this->getFeatures($product));
-        $this->view->assign('sku_features', $product_features_model->getValues($product_id, $sku_id));
+        $this->view->assign('sku_features', $product_features_model->getValues($product_id, -$sku_id));
     }
 
     public function getFeatures(shopProduct $product)
@@ -33,7 +33,7 @@ class shopProductSkuSettingsAction extends waViewAction
 
         $features = array();
         foreach ($features_model->getByType($product->type_id, 'code', true) as $f) {
-            if ($f['multiple']) {
+            if ($f['multiple'] || $f['code'] == 'weight') {
                 $features[$f['code']] = $f;
             }
         }

@@ -26,18 +26,29 @@ class shopProductsSaveListSettingsController extends waJsonController
         $id = $this->saveSettings($hash, $data);
 
         if ($id) {
-            /*
-            if ($hash[0] == 'set') {    // now supported for sets only
-                $this->addProducts($id, $hash[0]);
-            }
-            */
-
+            
             $this->response = $this->getModel($hash[0])->getById($id);
-            $this->response['name'] = htmlspecialchars($this->response['name']);
+            $this->response['name'] = htmlspecialchars($this->response['name'], ENT_NOQUOTES);
 
             // when use iframe-transport unescaped content bring errors when parseJSON
             if (!empty($this->response['description'])) {
-                $this->response['description'] = htmlspecialchars($this->response['description']);
+                $this->response['description'] = htmlspecialchars($this->response['description'], ENT_NOQUOTES);
+            }
+            
+            if ($hash[0] == 'category') {                
+                // bind storefronts (routes)
+                $category_routes_model = new shopCategoryRoutesModel();
+                $routes = $category_routes_model->getRoutes($id);
+                foreach ($routes as &$r) {
+                    if (substr($r, -1) === '*') {
+                        $r = substr($r, 0, -1);
+                    }
+                    if (substr($r, -1) === '/') {
+                        $r = substr($r, 0, -1);
+                    }
+                }
+                unset($r);
+                $this->response['routes'] = $routes;
             }
         }
     }
@@ -72,6 +83,7 @@ class shopProductsSaveListSettingsController extends waJsonController
                 $data['name'] = _w('(no-name)');
             }
             $id = $model->add($data, $data['parent_id']);
+            $this->logAction('category_add', $id);
         } else {
             $category = $model->getById($id);
             if (!$this->categorySettingsValidate($category, $data)) {
@@ -86,6 +98,7 @@ class shopProductsSaveListSettingsController extends waJsonController
             unset($data['parent_id']);
             $data['edit_datetime'] = date('Y-m-d H:i:s');
             $model->update($id, $data);
+            $this->logAction('category_edit', $id);
         }
         if ($id) {
             if (waRequest::post('enable_sorting')) {
@@ -162,6 +175,15 @@ class shopProductsSaveListSettingsController extends waJsonController
             }
             $data['edit_datetime'] = date('Y-m-d H:i:s');
             $model->update($set['id'], $data);
+        }
+        if ($id) {
+            $data['id'] = $data;
+            /**
+             * @event set_save
+             * @param array $set
+             * @return void
+             */
+            wa()->event('set_save', $data);
         }
         return $id;
     }
@@ -316,7 +338,6 @@ class shopProductsSaveListSettingsController extends waJsonController
     private function getConditions()
     {
         $raw_condition = waRequest::post('condition');
-        $raw_condition = array_fill_keys((array)$raw_condition, false);
 
         $conditions = array();
         if (isset($raw_condition['rating'])) {
@@ -339,10 +360,26 @@ class shopProductsSaveListSettingsController extends waJsonController
             }
         }
 
+        if (isset($raw_condition['feature'])) {
+            $feature_values = waRequest::post('feature_values');
+            foreach ($raw_condition['feature'] as $f_code) {
+                $conditions[] = $f_code.'.value_id='.$feature_values[$f_code];
+            }
+        }
+        
+        if (isset($raw_condition['count'])) {
+            $raw_condition['count'] = waRequest::post('count');
+            $conditions[] = 'count' . $raw_condition['count'][0] . $raw_condition['count'][1];
+        }
+
+        if (isset($raw_condition['compare_price'])) {
+            $conditions[] = 'compare_price>0';
+        }
+        
         if ($custom_conditions = waRequest::post('custom_conditions')) {
             $conditions[] = $custom_conditions;
         }
-
+        
         $conditions = implode('&', $conditions);
         return $conditions;
     }

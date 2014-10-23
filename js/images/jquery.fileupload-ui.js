@@ -452,8 +452,10 @@
                 ($(this).data('blueimp-fileupload') || $(this).data('fileupload'))._clear();
             },
 
-            paste: function() {
-                return false;
+            paste: function(e) {
+                if (!$(e.srcElement).is(':input')) {
+                    return false;    
+                }
                 //($(this).data('blueimp-fileupload') || $(this).data('fileupload'))._clear();
             },
 

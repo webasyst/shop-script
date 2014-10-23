@@ -1,4 +1,5 @@
 <?php
+
 class shopPayment extends waAppPayment
 {
     private static $instance;
@@ -34,6 +35,7 @@ class shopPayment extends waAppPayment
      *
      * @param string $plugin plugin identity string (e.g. PayPal/WebMoney)
      * @param int $plugin_id plugin instance id
+     * @throws waException
      * @return waPayment
      */
     public static function getPlugin($plugin, $plugin_id = null)
@@ -93,7 +95,7 @@ class shopPayment extends waAppPayment
             waPayment::factory($plugin['plugin'], $plugin['id'], self::getInstance())->saveSettings($plugin['settings']);
         }
         if (!empty($plugin['id'])) {
-            $shipping = ifset($plugin['shipping'], array());
+            ifset($plugin['shipping'], array());
             $plugins = $model->listPlugins(shopPluginModel::TYPE_SHIPPING, array('all' => true,));
             $app_settings = new waAppSettingsModel();
             $settings = json_decode($app_settings->get('shop', 'shipping_payment_disabled', '{}'), true);
@@ -138,7 +140,7 @@ class shopPayment extends waAppPayment
      * @param waPayment $payment_plugin
      * @return waOrder
      */
-    public static function getOrderData($order = array(), $payment_plugin = null)
+    public static function getOrderData($order, $payment_plugin = null)
     {
         if (!is_array($order)) {
             $order_id = shopHelper::decodeOrderId($encoded_order_id = $order);
@@ -177,6 +179,9 @@ class shopPayment extends waAppPayment
 
                 }
             }
+        } else {
+            $currency_id = $order['currency'];
+            $total = $order['total'];
         }
         $items = array();
         if (!empty($order['items'])) {
@@ -189,11 +194,11 @@ class shopPayment extends waAppPayment
                 $items[] = array(
                     'id'          => ifset($item['id']),
                     'name'        => ifset($item['name']),
+                    'sku'         => ifset($item['sku_code']),
                     'description' => '',
                     'price'       => $item['price'],
                     'quantity'    => ifset($item['quantity'], 0),
                     'total'       => $item['price'] * $item['quantity'],
-
                     'type'        => ifset($item['type'], 'product'),
                     'product_id'  => ifset($item['product_id']),
                 );
@@ -227,7 +232,7 @@ class shopPayment extends waAppPayment
             $order['shipping'] = shop_currency($order['shipping'], $order['currency'], $currency_id, false);
             $order['discount'] = shop_currency($order['discount'], $order['currency'], $currency_id, false);
         }
-        $wa_order = waOrder::factory(array(
+        $order_data = array(
             'id_str'           => ifempty($order['id_str'], $order['id']),
             'id'               => $order['id'],
             'contact_id'       => $order['contact_id'],
@@ -247,8 +252,8 @@ class shopPayment extends waAppPayment
             'items'            => $items,
             'comment'          => ifempty($order['comment'], ''),
             'params'           => $order['params'],
-        ));
-        return $wa_order;
+        );
+        return waOrder::factory($order_data);
     }
 
     public function getDataPath($order_id, $path = null)
@@ -260,6 +265,7 @@ class shopPayment extends waAppPayment
 
     public function getSettings($payment_id, $merchant_key)
     {
+        $this->merchant_id = max(0, intval($merchant_key));
         return $this->model()->get($merchant_key);
     }
 
@@ -306,15 +312,25 @@ class shopPayment extends waAppPayment
 
     public function getBackUrl($type = self::URL_SUCCESS, $transaction_data = array())
     {
+        if (!empty($transaction_data['order_id'])) {
+            //TODO set routing params for request (domain & etc)
+        }
         switch ($type) {
             case self::URL_PRINTFORM:
                 ifempty($transaction_data['printform'], 0);
                 $params = array(
                     'id'        => $transaction_data['order_id'],
+                    'code'      => waRequest::param('code'),
                     'form_type' => 'payment',
                     'form_id'   => ifempty($transaction_data['printform'], 'payment'),
                 );
-                $url = wa()->getRouteUrl('shop/frontend/myOrderPrintform', $params, true);
+
+                if (empty($params['code'])) {
+                    unset($params['code']);
+                }
+                $action = 'shop/frontend/myOrderPrintform';
+
+                $url = wa()->getRouteUrl($action, $params, true);
                 break;
 
             case self::URL_SUCCESS:
@@ -330,6 +346,9 @@ class shopPayment extends waAppPayment
                     $url .= '?order_id='.$transaction_data['order_id'];
                 }
                 break;
+            default:
+                $url = wa()->getRouteUrl('shop/frontend', true);
+                break;
         }
         return $url;
     }
@@ -342,6 +361,11 @@ class shopPayment extends waAppPayment
         if (!$order) {
             return array('error' => 'Order not found');
         }
+        $appropriate = $this->isSuitable($order['id']);
+        if ($appropriate !== true) {
+            return array('error' => $appropriate);
+        }
+
         $result = array();
         if (empty($transaction_data['customer_id'])) {
             $result['customer_id'] = $order['contact_id'];
@@ -350,6 +374,33 @@ class shopPayment extends waAppPayment
         $workflow->getActionById($method)->run($transaction_data);
 
         return $result;
+    }
+
+    /**
+     * Verify that the plugin is suitable for payment of the order
+     * @param int $order_id
+     * @return bool|string
+     */
+    private function isSuitable($order_id)
+    {
+        $order_params_model = new shopOrderParamsModel();
+        if (!$this->merchant_id) {
+            return 'Invalid plugin id';
+        } else {
+            if ($this->merchant_id != $order_params_model->getOne($order_id, 'payment_id')) {
+                return 'Plugin does not suitable to payment of the order';
+            }
+
+            $shop_plugin_model = new shopPluginModel();
+            if ($plugin = $shop_plugin_model->getById($this->merchant_id)) {
+                if (!$plugin['status']) {
+                    return 'Plugin status is disabled';
+                }
+            } else {
+                return 'Plugin deleted';
+            }
+        }
+        return true;
     }
 
     /**
@@ -424,9 +475,31 @@ class shopPayment extends waAppPayment
     {
         $result = $this->workflowAction('callback', $transaction_data);
         if (empty($result['error'])) {
-            $workflow = new shopWorkflow();
-            $workflow->getActionById('process')->run($transaction_data['order_id']);
+            $order_model = new shopOrderModel();
+            $order = $order_model->getById($transaction_data['order_id']);
+            $result['result'] = true;
+            $total = $transaction_data['amount'];
+
+            if ($transaction_data['currency_id'] != $order['currency']) {
+                $total = shop_currency($total, $transaction_data['currency_id'], $order['currency'], false);
+            }
+            if (abs($order['total'] - $total) > 0.01) {
+                $result['result'] = false;
+                $result['error'] = sprintf('Invalid order amount: expect %f, but get %f', $order['total'], $total);
+            } else {
+                $workflow = new shopWorkflow();
+                $workflow->getActionById('process')->run($transaction_data['order_id']);
+            }
         }
         return $result;
+    }
+
+    /**
+     * @param array $transaction_data
+     * @return array
+     */
+    public function callbackNotifyHandler($transaction_data)
+    {
+        return $this->workflowAction('callback', $transaction_data);
     }
 }

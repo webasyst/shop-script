@@ -4,26 +4,27 @@
 
 $.extend($.settings = $.settings || {}, {
     options: {
-        'loading': '<i class="icon16 loading"></i>',
-        'path': '#/'
+        backend_url: '/webasyst/',
+        loading: '<i class="icon16 loading"></i>',
+        path: '#/'
     },
 
     path: {
         /**
          * @type {String}
          */
-        'section': null,
+        section: null,
 
         /**
          * @type {String}
          */
-        'tail': null,
+        tail: null,
 
         /**
          * @type {Object}
          */
-        'params': {},
-        'dispatch': null
+        params: {},
+        dispatch: null
     },
 
     ready: false,
@@ -74,15 +75,15 @@ $.extend($.settings = $.settings || {}, {
     /**
      *
      * @param {String} path
-     * @return {{section:String, tail:String,raw:String,params:Object}}
+     * @return {{section:String, tail:String,params:Object,raw:String}}
      */
     parsePath: function (path) {
         path = path.replace(/^.*#\//, '');
         return {
-            'section': path.replace(/\/.*$/, '') || 'general',
-            'tail': path.replace(/^[^\/]+\//, '').replace(/[\w_\-]+=.*$/, '').replace(/\/$/, ''),
-            'params': path.match(/(^|\/)[\w_\-]+=/) ? $.shop.helper.parseParams(path.replace(/(^|^.*\/)([\w_\-]+=.*$)/, '$2').replace(/\/$/, '')) : {},
-            'raw': path
+            section: path.replace(/\/.*$/, '') || 'general',
+            tail: path.replace(/^[^\/]+\//, '').replace(/[\w_\-]+=.*$/, '').replace(/\/$/, ''),
+            params: path.match(/(^|\/)[\w_\-]+=/) ? $.shop.helper.parseParams(path.replace(/(^|^.*\/)([\w_\-]+=.*$)/, '$2').replace(/\/$/, '')) : {},
+            raw: path
         };
     },
 
@@ -190,7 +191,7 @@ $.extend($.settings = $.settings || {}, {
 
         if (method.name) {
             $.shop.trace('$.settings.click', method);
-            if (!$el.hasClass('js-confirm') || confirm($el.data('confirm-text') || $el.attr('title') || 'Are you sure?')) {
+            if (!$el.hasClass('js-confirm') || confirm($el.data('confirm-text') || $el.attr('title') || $_('Are you sure?'))) {
                 method.params.push($el);
                 this[method.name].apply(this, method.params);
             }
@@ -207,7 +208,7 @@ $.extend($.settings = $.settings || {}, {
      */
     settingsOptions: function (options) {
         var section = this.path.dispatch.section || this.path.section;
-        $.shop && $.shop.trace('$.settings.settingsOptions', section);
+        $.shop && $.shop.trace('$.settings.settingsOptions', [section,options]);
         if (typeof(this[section + '_options']) == 'undefined') {
             this[section + '_options'] = {};
         }
@@ -218,7 +219,7 @@ $.extend($.settings = $.settings || {}, {
      * Handler call focus out section
      *
      * @param {String} section
-     * @param {{section:String, tail:String,raw:String,params:Object}=} path
+     * @param {{section:String, tail:String,params:Object,raw:String}} path
      */
     settingsBlur: function (section, path) {
         section = section || this.path.section;

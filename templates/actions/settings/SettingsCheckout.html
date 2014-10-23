@@ -65,11 +65,13 @@
                             <div class="field system">
                                 <div class="value submit">
                                     <br>
+                                    {if $step_id != 'contactinfo'}
                                     <div class="float-right">
                                         <ul class="menu-h with-icons">
                                             <li><a href="#" class="link-disable"><i class="icon16 no"></i>[`Disable this step`]</a></li>
                                         </ul>
                                     </div>
+                                    {/if}
                                     <input type="submit" class="button green submit" value="[`Save`]">
                                 </div>
                             </div>
@@ -88,11 +90,11 @@
                 <div class="name">[`Required fields validation`]</div>
                 <div class="value s-ibutton-checkbox">
                     <ul class="menu-h">
-                        <li><span class="gray" id="s-toggle-backend-validation-disabled-label">[`Disabled`]</span></li>
+                        <li><span {if empty($disable_backend_customer_form_validation)} class="gray"{/if} id="s-toggle-backend-validation-disabled-label">[`Disabled`]</span></li>
                         <li>
                             <input type="checkbox" id="s-toggle-backend-validation-status" name="enabled" value="1"{if empty($disable_backend_customer_form_validation)} checked{/if}>
                         </li>
-                        <li><span id="s-toggle-backend-validation-enabled-label">[`Enabled`]</span></li>
+                        <li><span id="s-toggle-backend-validation-enabled-label" {if !empty($disable_backend_customer_form_validation)} class="gray"{/if}>[`Enabled`]</span></li>
                     </ul>
                 </div>
                 <div class="value description"{if empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
@@ -116,7 +118,7 @@
 
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/checkout.js?{$wa->version()}"></script> {* !!! move to layout? *}
 <script type="text/javascript">
-    document.title = "[`Checkout`] — {$wa->accountName()|escape}";
+    document.title ='{"[`Checkout`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     $.settings.checkoutInit({
         loc: {
             field_is_required: "[`This field is required.`]",
@@ -128,6 +130,13 @@
     $('#s-toggle-backend-validation-status').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
         var self = $(this);
         self.closest('.value').siblings('.value.description').toggle(200);
+        if (this.checked) {
+            $('#s-toggle-backend-validation-disabled-label').addClass('gray');
+            $('#s-toggle-backend-validation-enabled-label').removeClass('gray');
+        } else {
+            $('#s-toggle-backend-validation-disabled-label').removeClass('gray');
+            $('#s-toggle-backend-validation-enabled-label').addClass('gray');
+        }
         $.post('?module=settingsCheckoutSave&action=backendCustomerFormValidation', { enable: self.is(':checked') ? '1' : '0' }, function() {
             setTimeout(function(){
                 self.closest('.value').siblings('.value.saved').animate({ 'opacity': 0.8 }, 200).delay(500).animate({ 'opacity': 0 }, 800);

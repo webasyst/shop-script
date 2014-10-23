@@ -7,7 +7,7 @@
                 title="
                     {if isset($product)}
                         {$product.name|escape}
-                    {else if ($review.product_name)}
+                    {else if (!empty($review.product_name))}
                         {$review.product_name|escape}
                     {/if}
                 "
@@ -31,20 +31,6 @@
                     {$review.title|escape|nl2br}
                 </h5>
             {/if}
-            {*
-            <span class="s-review-auth-user">
-                {if isset($review.product) && $review.product && (!isset($single_view) || !$single_view)}
-                    <span class="hint">
-                      [`on`]
-                      {if isset($review.product) && $reivew.product && (true || $review.editable) || (isset($review.product) && $review.product)}
-                          {$review.product.title|escape}
-                      {else}
-                          [`unknown product`]
-                      {/if}
-                    </span>
-                {/if}
-            </span>
-            *}
 
             <span class="hint">
 
@@ -82,7 +68,7 @@
                     <p class="s-review-text">[`Review for unknown product`]</p>
                 {else}
                     <p class="s-review-text">
-                        <span{if isset($review.is_new)} class="highlighted"{/if}>{$review.text|escape|nl2br}</span>
+                        <span{if !empty($review.is_new)} class="highlighted"{/if}>{$review.text|escape|nl2br}</span>
                     </p>
                     {if $review.parent_id && isset($review.parent_text)}
                         <span class="hint">[`in reply to`] <strong>{if $review.parent_status == shopProductReviewsModel::STATUS_DELETED && !(true || $review.editable)}<strike>[`Review deleted`]</strike>{else}{$review.parent_text|escape}{/if}</strong></span>

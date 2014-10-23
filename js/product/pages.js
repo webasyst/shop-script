@@ -32,6 +32,9 @@
             this.tab_counter = $('#s-product-edit-menu').find('li.pages .hint:first');
             this.product_id = options.product_id;
             this.page_id = options.page_id || 0;
+            if (options.count) {
+                this.tab_counter.text(options.count);
+            }
 
             $.product.editTabPagesAction = function(path) {
                 var button = $('#s-product-save-button');
@@ -54,21 +57,28 @@
 
             $.product.editTabPagesBlur = function() {
                 var button = $('#s-product-save-button');
+                if (button.hasClass('yellow')) {
+                    var form = $('#s-page-form');
+                    $.shop.jsonPost(form.attr('action'), form.serialize(), function(r) {
+                        if (!$.product_pages.page_id) {
+                            $.product_pages.tab_counter.text(
+                                    parseInt($.product_pages.tab_counter.text(), 10) + 1 || 0
+                            );
+                        }
+                    });
+                    $.product_pages.container.remove();
+                }
                 button.removeClass('yellow green').addClass($.product_pages.button_color);
                 $.product_pages.button_color = null;
                 $.product_pages.container.find("#s-page-container").html('');
-
-                if (wa_editor && $.product.description !== undefined) {
-                    wa_editor.setValue($.product.description);
-                }
             };
 
             $.product.editTabPagesSave = function() {
                 var form = $("#s-page-form");
+                if (!form.length) {
+                    return;
+                }
                 var li = $.product_pages.sidebar.find("li.selected");
-                waEditorUpdateSource({
-                    id: 's-page-content'
-                });
                 $.product.refresh('submit');
                 $.shop.jsonPost(form.attr('action'), form.serialize(),
                     function(r) {
@@ -79,7 +89,7 @@
                         }
                         var html = $('<li id="page-' + page.id + '" class="dr selected">' +
                                 '<a class="wa-page-link" href="' + $.product_pages.getUrl(page.id) + '">' +
-                                '<i class="icon16 notebook"></i>' + page.name + ' <span class="hint">/' + page.url +'</span>' + '</a></li>');
+                                '<i class="icon16 notebook"></i>' + page.name + ' <span class="hint">/' + page.url_escaped +'</span>' + '</a></li>');
                         if (!li.hasClass('s-add-page')) {
                             li.replaceWith(html);
                             li.remove();
@@ -173,29 +183,18 @@
         loadPage: function(id) {
             this.page_id = id || 0;
             var self  = this;
-            var count = 10;
             var onLoad = function(html) {
-                if ($.product.ajax.cached['elrte-wa.js'] && $.product.ajax.cached['elrte.min.js']) {
-                    self.container.find("#s-page-container").html(html);
-                    self.sidebar.find('li.selected').removeClass('selected');
-                    if (self.page_id) {
-                        var li = self.sidebar.find('#page-' + self.page_id);
-                        if (li.length) {
-                            li.addClass('selected');
-                            return;
-                        }
-                    }
-                    self.page_id = 0;
-                    self.sidebar.find('li:last').addClass('selected');
-                } else {
-                    count -= 1;
-                    if (count > 0) {
-                        $.shop.trace('$.product_pages wait while js are loading');
-                        setTimeout(function() {
-                            onLoad(html);
-                        }, 500);
+                self.container.find("#s-page-container").html(html);
+                self.sidebar.find('li.selected').removeClass('selected');
+                if (self.page_id) {
+                    var li = self.sidebar.find('#page-' + self.page_id);
+                    if (li.length) {
+                        li.addClass('selected');
+                        return;
                     }
                 }
+                self.page_id = 0;
+                self.sidebar.find('li:last').addClass('selected');
             };
 
             $.get("?module=product&action=pageEdit&id="+this.page_id+'&product_id='+this.product_id, function(html) {

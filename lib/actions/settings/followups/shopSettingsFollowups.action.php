@@ -39,7 +39,14 @@ class shopSettingsFollowupsAction extends waViewAction
                 if (empty($followup['name'])) {
                     $followup['name'] = _w('<no name>');
                 }
-
+                
+                $followup['from']    = $followup['from'] ? $followup['from'] : null;
+                $followup['source'] = $followup['source'] ? $followup['source'] : null;
+                
+                if ($followup['from'] === 'other') {
+                    $followup['from'] = waRequest::post('from');
+                }
+                
                 if ($id && $id !== 'new') {
                     unset($followup['last_cron_time']);
                     $fm->updateById($id, $followup);
@@ -55,10 +62,8 @@ class shopSettingsFollowupsAction extends waViewAction
                     $f['just_created'] = $just_created;
 
                     /**
-                     * @event followup_save
-                     *
                      * Notify plugins about created or modified followup
-                     *
+                     * @event followup_save
                      * @param array[string]int $params['id'] followup_id
                      * @param array[string]bool $params['just_created']
                      * @return void
@@ -94,21 +99,23 @@ class shopSettingsFollowupsAction extends waViewAction
             $test_orders = $om->where("paid_date IS NOT NULL AND state_id <> 'deleted'")->order('id DESC')->limit(10)->fetchAll('id');
             shopHelper::workupOrders($test_orders);
             $im = new shopOrderItemsModel();
-            foreach($im->getByField('order_id', array_keys($test_orders), true) as $i) {
+            foreach ($im->getByField('order_id', array_keys($test_orders), true) as $i) {
                 $test_orders[$i['order_id']]['items'][] = $i;
             }
-            foreach($test_orders as &$o) {
+            foreach ($test_orders as &$o) {
                 $o['items'] = ifset($o['items'], array());
                 $o['total_formatted'] = waCurrency::format('%{s}', $o['total'], $o['currency']);
             }
         }
-
+        
         $this->view->assign('followup', $followup);
         $this->view->assign('followups', $followups);
         $this->view->assign('test_orders', $test_orders);
         $this->view->assign('last_cron', wa()->getSetting('last_followup_cli'));
         $this->view->assign('cron_ok', wa()->getSetting('last_followup_cli') + 3600*36 > time());
         $this->view->assign('cron_command', 'php '.wa()->getConfig()->getRootPath().'/cli.php shop followup');
+        $this->view->assign('default_email_from', $this->getConfig()->getGeneralSettings('email'));
+        $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
     }
 
     public static function getDefaultBody()
@@ -120,10 +127,9 @@ class shopSettingsFollowupsAction extends waViewAction
 <p>'._w('We hope that you are happy with your purchase, and that the overall shopping experience was pleasant. Please let us know if you have any questions on your order, or if there is anything we can assist you with. We will be glad working with you again!').'</p>
 
 <p>--<br>
-{$wa->shop->settings("name")|escape}<br>
+{$wa->shop->settings("name")}<br>
 <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a><br>
 {$wa->shop->settings("phone")}<br></p>';
 
     }
 }
-

@@ -24,6 +24,7 @@ $.extend($.settings = $.settings || {}, {
           }
 
           content.prepend(new_tr);
+          new_tr.find('input[data-name="name"]').select();
           form.find('input[type=submit]').show();
           return false;
       });
@@ -56,12 +57,9 @@ $.extend($.settings = $.settings || {}, {
                        onLoad: function() {
                            var form = d.find('form:first');
                            var dst_stock = form.find('select[name=dst_stock]');
-                           dst_stock.find('option').show();
-                           dst_stock.find('option[value='+stock_id+']').hide();
-                           var first = dst_stock.find('option:first');
-                           if (first.is(':hidden')) {
-                               first = first.next();
-                           }
+                           dst_stock.find('option').attr('disabled', false).show();
+                           dst_stock.find('option[value='+stock_id+']').attr('disabled', true).hide();
+                           var first = dst_stock.find('option:not(:disabled):first');
                            first.attr('selected', true);
                            if (!d.data('inited')) {
                                form.find('input[name=delete_stock]').change(function() {
@@ -129,7 +127,7 @@ $.extend($.settings = $.settings || {}, {
            return false;
        });
 
-       var validate = function(input, name) {
+       var validateBoundary = function(input, name) {
            var val = parseInt(input.val(), 10);
            var tr = input.parents('tr:first');
            var other = name == 'low_count' ? tr.find('input[data-name=critical_count]') : tr.find('input[data-name=low_count]');
@@ -157,32 +155,40 @@ $.extend($.settings = $.settings || {}, {
            }
        };
 
-       var changeHandler = function(item) {
-           var name = item.attr('data-name');
-           if (name != 'low_count' && name != 'critical_count') {
-               return;
-           }
-           var other = name == 'low_count' ?
-                   item.parents('tr:first').find('input[data-name=critical_count]') :
-                   item.parents('tr:first').find('input[data-name=low_count]');
-           validate(item, name);
-           validate(other, other.attr('data-name'));
-
-           if (form.find('.error:first').length) {
-               form.find('input[type=submit]').attr('disabled', true);
-           } else {
-               form.find('input[type=submit]').attr('disabled', false);
-           }
-       };
-
        content.off('keydown', 'input[type=text]').on('keydown', 'input[type=text]', function() {
-           var self = $(this);
-           var timer_id = self.data('timer_id');
+           var item = $(this);
+           var timer_id = item.data('timer_id');
            if (timer_id) {
                clearTimeout(timer_id);
            }
-           self.data('timer_id', setTimeout(function() {
-               changeHandler(self);
+           item.data('timer_id', setTimeout(function() {
+               var name = item.attr('data-name');
+               
+               if (name === 'name') {
+                   if (!item.val()) {
+                       item.addClass('error').nextAll('.errormsg:first').text(
+                           $.settings.stock_options.validate_errors.empty
+                       ).show();
+                   } else {
+                       item.removeClass('error').nextAll('.errormsg:first').text('').hide();
+                   }
+                   return;
+               }
+               if (name === 'low_count' || name === 'critical_count') {
+                   var other = name == 'low_count' ?
+                        item.parents('tr:first').find('input[data-name=critical_count]') :
+                        item.parents('tr:first').find('input[data-name=low_count]');
+                    validateBoundary(item, name);
+                    validateBoundary(other, other.attr('data-name'));
+
+                    if (form.find('.error:first').length) {
+                        form.find('input[type=submit]').attr('disabled', true);
+                    } else {
+                        form.find('input[type=submit]').attr('disabled', false);
+                    }
+                    return;
+               }
+               
            }, 450));
        });
 

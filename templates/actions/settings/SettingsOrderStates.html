@@ -1,7 +1,7 @@
-<script type="text/javascript" src="{$wa_app_static_url}js/live.dragndrop.js"></script>
-<script type="text/javascript" src="{$wa_app_static_url}js/settings/order_states.js"></script>
-<script type="text/javascript" src="{$wa_app_static_url}js/farbtastic/farbtastic.js"></script>
-<link rel="stylesheet" href="{$wa_app_static_url}js/farbtastic/farbtastic.css" type="text/css" />
+<script type="text/javascript" src="{$wa_app_static_url}js/live.dragndrop.js?v={$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/order_states.js?v={$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_url}wa-content/js/farbtastic/farbtastic.js"></script>
+<link rel="stylesheet" href="{$wa_url}wa-content/js/farbtastic/farbtastic.css" type="text/css" />
 
 <div class="sidebar left200px s-settings-order-states">
     <div class="s-inner-sidebar">
@@ -62,7 +62,7 @@
                     <div class="value">
                         #<input type="text" name="style[color]" value="{if !empty($info.options.style.color)}{$info.options.style.color|substr:'1'|lower}{/if}" id="s-color" class="short">
                         <span class="s-color-replacer">
-                            <i class="icon16" style="background: #{$info.options.style.color|substr:'1'|lower};"></i>
+                            <i class="icon16 color" style="background: #{$info.options.style.color|substr:'1'|lower};"></i>
                         </span>
                         <div id="s-colorpicker" style="display:none;"></div>
                         <br><br>
@@ -164,7 +164,9 @@
               <div class="field-group">
                 <div class="field">
                     <div class="value">
-                        <input type="submit" class="button green" value="[`Save`]">
+                        <input type="submit" class="button green" value="[`Save`]"  id="s-settings-order-states-submit">
+                        <i class="icon16 loading" style="display:none;"></i>
+                        <i class="icon16 yes" style="display:none;"></i>
                     </div>
                 </div>
               </div>
@@ -175,7 +177,7 @@
     <div class="clear"></div>
 </div>
 <script type="text/javascript">
-    document.title = '{"[`Order States`]"|cat:" — ":{$wa->accountName()}}'; 
+    document.title = '{"[`Order States`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     $.settings.orderStatesInit({
         id: "{$info.id}"
     });

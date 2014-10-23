@@ -11,6 +11,19 @@ class shopConfig extends waAppConfig
         'crop_small' => '48x48'
     );
 
+
+    public function checkRights($module, $action)
+    {
+        if ($module == 'frontend' && waRequest::param('ssl') &&
+            (strpos($action, 'my') === 0 || $action === 'checkout')) {
+            if (!waRequest::isHttps()) {
+                $url = 'https://'.waRequest::server('HTTP_HOST').wa()->getConfig()->getCurrentUrl();
+                wa()->getResponse()->redirect($url, 301);
+            }
+        }
+        return true;
+    }
+
     public function getImageSize($name)
     {
         return isset($this->image_sizes[$name]) ? $this->image_sizes[$name] : null;
@@ -34,9 +47,12 @@ class shopConfig extends waAppConfig
         $storage = wa()->getStorage();
         $shop_last_datetime = $storage->get('shop_last_datetime');
         if (!$shop_last_datetime) {
-            $shop_last_datetime = time();
             $contact_model = new waContactSettingsModel();
-            $contact_model->set(wa()->getUser()->getId(), 'shop', 'shop_last_datetime', $shop_last_datetime);
+            $shop_last_datetime = (int)$contact_model->getOne(wa()->getUser()->getId(), 'shop', 'shop_last_datetime');
+            if (!$shop_last_datetime) {
+                $shop_last_datetime = time();
+            }
+            $contact_model->set(wa()->getUser()->getId(), 'shop', 'shop_last_datetime', time());
             $storage->set('shop_last_datetime', $shop_last_datetime);
         }
         return $shop_last_datetime;
@@ -66,7 +82,7 @@ class shopConfig extends waAppConfig
             // for URL <category_url>/<product_url>/
             if ($dispatch && $url_type == 2) {
                 $category_model = new shopCategoryModel();
-                $categories = $category_model->getAll();
+                $categories = $category_model->getByRoute(wa()->getRouting()->getDomain(null, true).'/'.$route['url']);
                 $categories_routes = array();
                 foreach ($categories as $c) {
                     $categories_routes[$c['full_url'].'/'] = array(
@@ -81,9 +97,9 @@ class shopConfig extends waAppConfig
              * Extend routing via plugin routes
              * @event routing
              * @param array $routes
-             * @return array routes collected for every plugin
+             * @return array $routes routes collected for every plugin
              */
-            $result = wa()->event(array($this->application, 'routing'), $routes);
+            $result = wa()->event(array($this->application, 'routing'), $route);
             $all_plugins_routes = array();
             foreach ($result as $plugin_id => $routing_rules) {
                 if ($routing_rules) {
@@ -163,17 +179,49 @@ class shopConfig extends waAppConfig
         if (!$settings) {
             $all_settings = wa()->getSetting(null, '', 'shop');
             foreach (array(
-                'name'             => wa()->accountName(),
-                'email'            => wa()->getSetting('email', '', 'webasyst'),
-                'phone'            => '+1 (212) 555-1234',
-                'country'          => '',
-                'order_format'     => $this->getOrderFormat(),
-                'use_gravatar'     => 1,
-                'gravatar_default' => 'custom',
-                'require_captcha' => 1,    // is captcha is required for add reviews
-                'require_authorization' => 0  // is authorization is required for add reviews
-            ) as $k => $value) {
+                         'name'                  => wa()->accountName(),
+                         'email'                 => wa()->getSetting('email', '', 'webasyst'),
+                         'phone'                 => '+1 (212) 555-1234',
+                         'country'               => '',
+                         'order_format'          => $this->getOrderFormat(),
+                         'use_gravatar'          => 1,
+                         'gravatar_default'      => 'custom',
+                         'require_captcha'       => 1, // is captcha is required for add reviews
+                         'require_authorization' => 0 // is authorization is required for add reviews
+                     ) as $k => $value) {
                 $settings[$k] = isset($all_settings[$k]) ? $all_settings[$k] : $value;
+            }
+            if (isset($all_settings['workhours'])) {
+                if ($all_settings['workhours']) {
+                    $workhours = json_decode($all_settings['workhours'], true);
+                    $settings['workhours'] = array(
+                        'hours_from' => $workhours['from'],
+                        'hours_to' => $workhours['to'],
+                        'days' => array(),
+                        'days_from_to' => '',
+                    );
+                    $strings = array(
+                        _ws('Sun'),
+                        _ws('Mon'),
+                        _ws('Tue'),
+                        _ws('Wed'),
+                        _ws('Thu'),
+                        _ws('Fri'),
+                        _ws('Sat'),
+                    );
+                    if ($workhours['days']) {
+                        foreach ($workhours['days'] as $d) {
+                            $settings['workhours']['days'][$d] = $strings[$d];
+                        }
+                        if (count($workhours['days']) > 1) {
+                            $settings['workhours']['days_from_to'] = $strings[$workhours['days'][0]].'—'.$strings[end($workhours['days'])];
+                        }
+                    }
+                } else {
+                    $settings['workhours'] = $all_settings['workhours'];
+                }
+            } else {
+                $settings['workhours'] = null;
             }
         }
         if ($field) {
@@ -185,6 +233,32 @@ class shopConfig extends waAppConfig
         } else {
             return $settings;
         }
+    }
+
+    public function getSidebarWidth()
+    {
+        $settings_model = new waContactSettingsModel();
+        $width = (int)$settings_model->getOne(
+            wa()->getUser()->getId(),
+            'shop',
+            'sidebar_width'
+        );
+        if (!$width) {
+            return 250;
+        }
+        return max(min($width, 400), 200);
+    }
+
+    public function setSidebarWidth($width)
+    {
+        $width = max(min((int)$width, 400), 200);
+        $settings_model = new waContactSettingsModel();
+        $settings_model->set(
+            wa()->getUser()->getId(),
+            'shop',
+            'sidebar_width',
+            $width
+        );
     }
 
     /**
@@ -222,6 +296,14 @@ class shopConfig extends waAppConfig
         reset($steps);
         return $steps;
     }
+    
+    public function getSaveQuality($for2x = false) {
+        $quality = $this->getOption('image_save_quality'.($for2x ? '_2x' : ''));
+        if (!$quality) {
+            $quality = $for2x ? 70 : 90;
+        }
+        return $quality;
+    }
 
 }
 
@@ -250,13 +332,20 @@ function shop_currency($n, $in_currency = null, $out_currency = null, $format = 
             $n = $n * $currencies[$in_currency]['rate'];
         }
         if ($out_currency != $primary) {
-            $n = $n / $currencies[$out_currency]['rate'];
+            $n = $n / ifempty($currencies[$out_currency]['rate'], 1.0);
         }
     }
-    if ($format) {
+    if ($format === 'h') {
+        return wa_currency_html($n, $out_currency);
+    } elseif ($format) {
         return wa_currency($n, $out_currency);
     } else {
         return str_replace(',', '.', $n);
     }
 
+}
+
+function shop_currency_html($n, $in_currency = null, $out_currency = null, $format = 'h')
+{
+    return shop_currency($n, $in_currency, $out_currency, $format);
 }

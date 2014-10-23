@@ -6,7 +6,8 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
 
     /**
      * Method triggered when deleting product through shopProductModel
-     * @param array $product_ids
+     * @param int[] $product_ids
+     * @return bool
      */
     public function deleteByProducts(array $product_ids)
     {
@@ -16,11 +17,10 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         foreach ($this->query("SELECT tag_id, count(product_id) cnt FROM {$this->table}
             WHERE product_id IN (".implode(',', $product_ids).")
             GROUP BY tag_id")
-            as $item)
-        {
+                 as $item) {
             $count += 1;
             $tag_model->query(
-                "UPDATE ".$tag_model->getTableName()." SET count = count - {$item['cnt']}
+                      "UPDATE ".$tag_model->getTableName()." SET count = count - {$item['cnt']}
                 WHERE id = {$item['tag_id']}"
             );
         }
@@ -28,7 +28,10 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
             $tag_model->query("DELETE FROM ".$tag_model->getTableName()." WHERE count <= 0");
         }
 
-        $this->deleteByField('product_id', $product_ids);
+        if ($cache = wa()->getCache()) {
+            $cache->delete('tags');
+        }
+        return $this->deleteByField('product_id', $product_ids);
     }
 
 
@@ -78,6 +81,12 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
             $this->deleteByField(array('product_id' => $product_id, 'tag_id' => $remove_tag_ids));
             $tag_model->incCounters($remove_tag_ids, -1);
         }
+
+        if ($add_tag_ids || $remove_tag_ids) {
+            if ($cache = wa()->getCache()) {
+                $cache->delete('tags');
+            }
+        }
         // return new tags
         return $this->getData($product);
     }
@@ -96,6 +105,9 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
             $this->multipleInsert(array('product_id' => $product_id, 'tag_id' => $add_tag_ids));
             $tag_model->incCounters($add_tag_ids);
         }
+        if ($cache = wa()->getCache()) {
+            $cache->delete('tags');
+        }
         return true;
     }
 
@@ -112,6 +124,9 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         if ($delete_tag_ids) {
             $this->deleteByField(array('product_id' => $product_id, 'tag_id' => $delete_tag_ids));
             $tag_model->incCounters($delete_tag_ids, -1);
+        }
+        if ($cache = wa()->getCache()) {
+            $cache->delete('tags');
         }
         return true;
     }
@@ -172,6 +187,10 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         // recounting counters for this tags
         $tag_model = new shopTagModel();
         $tag_model->recount($tag_id);
+        // clear cache
+        if ($cache = wa()->getCache()) {
+            $cache->delete('tags');
+        }
     }
 
 
@@ -184,12 +203,16 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         if (!$product_id) {
             return false;
         }
-        $product_id = (array) $product_id;
+        $product_id = (array)$product_id;
 
         // delete tags
         $this->deleteByField(array('product_id' => $product_id, 'tag_id' => $tag_id));
         // decrease count for tags
         $tag_model = new shopTagModel();
         $tag_model->recount($tag_id);
+        // clear cache
+        if ($cache = wa()->getCache()) {
+            $cache->delete('tags');
+        }
     }
 }

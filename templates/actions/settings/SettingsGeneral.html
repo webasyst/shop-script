@@ -10,17 +10,44 @@
                     </div>
                 </div>
                 <div class="field">
-                    <div class="name">[`Primary email`]</div>
+                    <div class="name">[`Phone number and work hours`]</div>
                     <div class="value">
-                        <input type="text" name="email" value="{$email|escape}"><br />
-                        <span class="hint">[`Primary email address is used as a reply-to address in email notifications sent to your customers`]</span>
+                        <input type="text" name="phone" value="{$phone|escape}" placeholder="[`+1 212-555-1312`]"><br />
+                        <span class="hint">[`Phone number is published in the storefront and included in email notification`]</span>
+                    </div>
+                    <div class="value no-shift">
+                        <label><input type="radio" name="workhours_type" value="0" {if $workhours === ''}checked{/if}> [`Always open (24/7)`]</label>
+                    </div>
+                    <div class="value no-shift">
+                        <label><input type="radio" name="workhours_type" value="1" {if is_array($workhours)}checked{/if}> [`Define work hours`]</label>
+                    </div>
+                    <div id="workhours-div"{if !is_array($workhours)} style="display:none"{/if}>
+                        <div class="value">
+                            <ul class="menu-h s-workhours">
+                                <li><label><input value="1" type="checkbox" name="workhours_days[]" {if $workhours && in_array(1, $workhours.days)}checked="checked"{/if}> [s`Mon`]</label></li>
+                                <li><label><input value="2" type="checkbox" name="workhours_days[]" {if $workhours && in_array(2, $workhours.days)}checked="checked"{/if}> [s`Tue`]</label></li>
+                                <li><label><input value="3" type="checkbox" name="workhours_days[]" {if $workhours && in_array(3, $workhours.days)}checked="checked"{/if}> [s`Wed`]</label></li>
+                                <li><label><input value="4" type="checkbox" name="workhours_days[]" {if $workhours && in_array(4, $workhours.days)}checked="checked"{/if}> [s`Thu`]</label></li>
+                                <li><label><input value="5" type="checkbox" name="workhours_days[]" {if $workhours && in_array(5, $workhours.days)}checked="checked"{/if}> [s`Fri`]</label></li>
+                                <li><label><input value="6" type="checkbox" name="workhours_days[]" {if $workhours && in_array(6, $workhours.days)}checked="checked"{/if}> [s`Sat`]</label></li>
+                                <li><label><input value="0" type="checkbox" name="workhours_days[]" {if $workhours && in_array(0, $workhours.days)}checked="checked"{/if}> [s`Sun`]</label></li>
+                            </ul>
+                        </div>
+                        <div class="value">
+                            <input type="text" class="short" name="workhours_from" placeholder="[`9:00 am`]" {if $workhours}value="{$workhours.from|escape}"{/if}>
+                            &mdash;
+                            <input type="text" class="short" name="workhours_to" placeholder="[`5:00 pm`]" {if $workhours}value="{$workhours.to|escape}"{/if}>
+                        </div>
+                    </div>
+                    <div class="value">
+                        <span class="hint">[`Work hours are displayed in the storefront and help your customers to know which is the best time to call you`]</span>
                     </div>
                 </div>
                 <div class="field">
-                    <div class="name">[`Phone number`]</div>
+                    <div class="name">[`Primary email`]</div>
                     <div class="value">
-                        <input type="text" name="phone" value="{$phone|escape}"><br />
-                        <span class="hint">[`Phone number is published in the storefront and included in email notification`]</span>
+                        <input type="text" name="email" value="{$email|escape}"><br />
+                        <span class="hint">[`All email notifications sent to store customers will be sent from the primary email address`]</span>
                     </div>
                 </div>
                 <div class="field">
@@ -60,12 +87,13 @@
                         [`In case there were no Gravatar userpic uploaded`]:
                             <select name="gravatar_default">
                                 <option value="custom" {if $gravatar_default == 'custom'}selected="selected""{/if}>[`Use default userpic`]</option>
-                                <option value="mm" {if $gravatar_default == 'mm'}selected="selected""{/if}>(mystery-man) a simple, cartoon-style silhouetted outline of a person (does not vary by email hash)</option>
-                                <option value="identicon" {if $gravatar_default == 'identicon'}selected="selected""{/if}>a geometric pattern based on an email hash</option>
-                                <option value="monsterid" {if $gravatar_default == 'monsterid'}selected="selected""{/if}>a generated 'monster' with different colors, faces, etc</option>
-                                <option value="wavatar" {if $gravatar_default == 'wavatar'}selected="selected""{/if}>generated faces with differing features and backgrounds</option>
-                                <option value="retro" {if $gravatar_default == 'retro'}selected="selected""{/if}>awesome generated, 8-bit arcade-style pixelated faces</option>
+                                <option value="mm" {if $gravatar_default == 'mm'}selected="selected"{/if}>[`(mystery-man) a simple, cartoon-style silhouetted outline of a person (does not vary by email hash)`]</option>
+                                <option value="identicon" {if $gravatar_default == 'identicon'}selected="selected"{/if}>[`a geometric pattern based on an email hash`]</option>
+                                <option value="monsterid" {if $gravatar_default == 'monsterid'}selected="selected"{/if}>[`a generated 'monster' with different colors, faces, etc`]</option>
+                                <option value="wavatar" {if $gravatar_default == 'wavatar'}selected="selected"{/if}>[`generated faces with differing features and backgrounds`]</option>
+                                <option value="retro" {if $gravatar_default == 'retro'}selected="selected"{/if}>[`awesome generated, 8-bit arcade-style pixelated faces`]</option>
                             </select>
+                            <img id='s-settings-general-gravatar' {if $saved}src="{shopHelper::getGravatar($wa->user('email', 'default'), 50, $gravatar_default)}"{/if} style='width: 50px; {if !$saved}display:none;{else}display:block;{/if} margin-top: 10px;'>
                         </label>
                     </div>
                 </div>
@@ -98,35 +126,43 @@
                     {if count($sms_adapters)}
                         {foreach $sms_adapters as $i => $a}
                         <div class="value no-shift">
-                            <input name="sms[$i][adapter]" type="hidden" value="{$a.id}">
+                            <input name="sms[{$i}][adapter]" type="hidden" value="{$a.id}">
                             <strong><i class="icon16" style="background-image: url('{$a.icon}');"></i>{$a.name}</strong><br>
                             <div class="field">
-                                <div class="name">[`Sender ID`]</div>
+                                <div class="name">{if isset($a.controls.from.title)}{$a.controls.from.title}{else}[`Sender IDs`]{/if}</div>
                                 <div class="value">
-                                    <input name="sms[$i][from]" value="{if !empty($a.config.from)}{$a.config.from}{/if}">
-                                    <p class="hint">[`Enter Sender ID to use with this SMS gateway (Sender ID is either your phone number or up-to-11-characters text label). Enter * to use default Sender ID issued for your account by the gateway.`]</p>
+                                    {strip}
+                                    <textarea name="sms[{$i}][from]">
+                                        {if !empty($a.config.from)}{implode("\n", $a.config.from)}{/if}
+                                    </textarea>
+                                    {/strip}
+                                    <p class="hint">{if isset($a.controls.from.description)}{$a.controls.from.description}{else}[`Enter Sender IDs to use with this SMS gateway (Sender ID is either your phone number or up-to-11-characters text label). Enter * to use default Sender ID issued for your account by the gateway.`]{/if}</p>
                                 </div>
                             </div>
                             {foreach $a.controls as $k => $v}
+                            {if $k != 'from'}
                             <div class="field">
                                 <div class="name">{$v.title}</div>
                                 <div class="value">
-                                    <input name="sms[$i][{$k}]" value="{if !empty($a.config[$k])}{$a.config[$k]}{/if}">
+                                    <input name="sms[{$i}][{$k}]" value="{if !empty($a.config[$k])}{$a.config[$k]|escape}{/if}">
                                     {if !empty($v.description)}
                                     <p class="hint">{$v.description}</p>
                                     {/if}
                                 </div>
                             </div>
+                            {/if}
                             {/foreach}
                         </div>
                         <div class="value no-shift small">
                             <br>
                             {sprintf('[`Once gateway is setup, add new and edit existing SMS notifications using the <a href="%s">Notifications</a> settings screen.`]', '#/notifications/')}
+                            <br>
+                            {sprintf('[`For details <a href="%s" target="_blank">see documentation</a>.`]', '[`http://www.webasyst.com/help/1061/shop-script-5-sms-setup/`]')}
                         </div>
                         {/foreach}
                     {else}
                         <div class="value no-shift">
-                            {sprintf('[`To enable SMS message sending, install and configure sending module for your preferred SMS gateway.<br /> Browse for SMS gateway modules <a href="%s">in the Installer app</a>.`]', $wa_backend_url|cat:'installer/?module=plugins&subject=systemplugins&slug=sms')}
+                            {sprintf('[`To enable SMS message sending, install and configure sending module for your preferred SMS gateway.<br /> Browse for SMS gateway modules <a href="%s">in the Installer app</a>.`]', $wa_backend_url|cat:'installer/#/plugins/wa-plugins/sms/')}
                         </div>
                     {/if}
                 </div>
@@ -143,8 +179,17 @@
     <div class="clear"></div>
 </div>
 <script type="text/javascript">
+
+    $('input[name="workhours_type"]').change(function () {
+       if ($(this).val() == '1') {
+           $('#workhours-div').show();
+       } else {
+           $('#workhours-div').hide();
+       }
+    });
+
     var form = $('#s-settings-general-form');
-    document.title = '{"[`General settings`]"|cat:" — ":{$wa->accountName()}}';
+    document.title = '{"[`General settings`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     form.submit(function() {
         var self = $(this);
         form.find(':submit').after('<span class="s-mgs-after-button"><i class="icon16 loading"></i></span>');
@@ -161,4 +206,17 @@
             })
         );
     {/if}
+    
+    
+    form.find('[name="gravatar_default"]').change(function () {
+        $.get('?module=settings&action=generalGetGravatar', { 
+            'email': '{$wa->user('email', 'default')}',
+            'default': form.find('[name="gravatar_default"]').val() 
+            }, 
+            function(r) {
+                $('#s-settings-general-gravatar').css('display', 'block').attr('src', r.data);
+            }, 'json'
+        );
+    });
+    
 </script>

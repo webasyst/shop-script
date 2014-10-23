@@ -507,4 +507,6 @@ return array (
     'yellow' => 'желтый',
     'zinc-aluminum alloy' => 'цинково-алюминиевый сплав',
     'zircon' => 'циркон',
+    'Default product type'=>'Обычный товар',
+    'Length'=>'Длина',
 );
