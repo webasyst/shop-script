@@ -15,6 +15,10 @@ class shopOrderEditAction extends waViewAction
 
     public function execute()
     {
+        if (!wa()->getUser()->getRights('shop', 'orders')) {
+            throw new waException(_w("Access denied"));
+        }
+        
         $order_id = waRequest::get('id', null, waRequest::TYPE_INT);
 
         $form = null;
