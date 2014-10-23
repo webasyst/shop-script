@@ -14,6 +14,10 @@ class shopOrderPrintformAction extends waViewAction
 
     public function execute()
     {
+        if (!wa()->getUser()->getRights('shop', 'orders')) {
+            throw new waException(_w("Access denied"));
+        }
+        
         $id = waRequest::get('order_id');
         if (!$id) {
             throw new waException("Unknown order", 404);
