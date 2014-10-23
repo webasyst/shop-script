@@ -14,6 +14,10 @@ class shopOrderAction extends waViewAction
 
     public function execute()
     {
+        if (!wa()->getUser()->getRights('shop', 'orders')) {
+            throw new waException(_w("Access denied"));
+        }
+        
         $order = $this->getOrder();
         if (!$order) {
             $this->view->assign('order', $order);
