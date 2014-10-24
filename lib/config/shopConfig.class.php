@@ -20,6 +20,8 @@ class shopConfig extends waAppConfig
                 $url = 'https://'.waRequest::server('HTTP_HOST').wa()->getConfig()->getCurrentUrl();
                 wa()->getResponse()->redirect($url, 301);
             }
+        } elseif ($module == 'order' || $module == 'orders') {
+            return wa()->getUser()->getRights('shop', 'orders');
         }
         return true;
     }
