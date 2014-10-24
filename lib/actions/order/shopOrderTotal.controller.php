@@ -9,6 +9,10 @@ class shopOrderTotalController extends waJsonController
 {
     public function execute()
     {
+        if (!wa()->getUser()->getRights('shop', 'orders')) {
+            throw new waException(_w("Access denied"));
+        }
+        
         $items = waRequest::post('items');
         $product_ids = array();
         foreach ($items as $i) {
