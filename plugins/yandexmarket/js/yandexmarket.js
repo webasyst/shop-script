@@ -8,9 +8,13 @@ $.extend($.importexport.plugins, {
             'memory': 0.0,
             'memory_avg': 0.0
         },
+        data: {
+            'params': {}
+        },
         $form: null,
-        init: function () {
+        init: function (data) {
             this.$form = $("#s-plugin-yandexmarket");
+            $.extend(this.data, data);
         },
 
         hashAction: function (hash) {
@@ -26,6 +30,62 @@ $.extend($.importexport.plugins, {
 
         },
 
+        /**
+         *
+         * @param el {HTMLSelectElement}
+         */
+        selectChangeHandler: function (el) {
+            var $el = $(el);
+            var $parent = $el.parent('div');
+
+            if (el.value == 'feature:%s') {
+                $parent.find('select').hide();
+                $parent.find('.js-value-custom:visible').hide();
+                $parent.find('a.js-action').show();
+                $parent.find('.ui-autocomplete-input:hidden').show().focus();
+                if (el.name.match(/\[param\.[^\]]+\]\[source\]$/)) {
+                    this.setParamName($parent, '', '');
+                }
+            } else if (el.value == 'text:%s') {
+                $parent.find('select').hide();
+                $parent.find('.ui-autocomplete-input:visible').hide();
+                $parent.find('a.js-action').show();
+                $parent.find('.js-value-custom:hidden').show().focus();
+            } else {
+                $parent.find('.ui-autocomplete-input:visible').hide();
+                $parent.find('.js-value-custom:visible').hide();
+                $parent.find('a.js-action').hide();
+                $parent.find('select').show();
+
+                if (el.name.match(/\[param\.[^\]]+\]\[source\]$/)) {
+                    var $selected = $el.find(':selected');
+                    this.setParamName($parent, $selected.val() == 'skip:' ? '' : $selected.text(), $selected.data('unit') || '');
+                }
+            }
+        },
+
+        actionHandler: function ($el) {
+            try {
+                var args = $el.attr('href').replace(/.*#\/?/, '').replace(/\/$/, '').split('/');
+                args.shift();
+                var method = $.shop.getMethod(args, this);
+
+                if (method.name) {
+                    $.shop.trace('$.importexport.plugins.yandexmarket', method);
+                    if (!$el.hasClass('js-confirm') || confirm($el.data('confirm-text') || $el.attr('title') || 'Are you sure?')) {
+                        method.params.unshift($el);
+                        this[method.name].apply(this, method.params);
+                    }
+                } else {
+                    $.shop.error('Not found js handler for link', [method, args, $el])
+                }
+            } catch (e) {
+                $.shop.error('Exception ' + e.message, e);
+            }
+            return false;
+        },
+
+
         initForm: function () {
             /**
              * collection control
@@ -39,48 +99,11 @@ $.extend($.importexport.plugins, {
              * source mapping control
              */
             this.$form.find(':input[name$="\\[source\\]"]').change(function () {
-                /**
-                 * @this {HTMLSelectElement}
-                 */
-                var $parent = $(this).parent('div');
-                if (this.value == 'feature:%s') {
-                    $parent.find('select').hide();
-                    $parent.find('.js-value-custom:visible').hide();
-                    $parent.find('a.js-action').show();
-                    $parent.find('.ui-autocomplete-input:hidden').show().focus();
-                } else if (this.value == 'text:%s') {
-                    $parent.find('select').hide();
-                    $parent.find('.ui-autocomplete-input:visible').hide();
-                    $parent.find('a.js-action').show();
-                    $parent.find('.js-value-custom:hidden').show().focus();
-                } else {
-                    $parent.find('.ui-autocomplete-input:visible').hide();
-                    $parent.find('.js-value-custom:visible').hide();
-                    $parent.find('a.js-action').hide();
-                    $parent.find('select').show();
-                }
+                self.selectChangeHandler(this);
             });
 
             this.$form.find('a.js-action').unbind('click').bind('click.yandexmarket', function () {
-                try {
-                    var $el = $(this);
-                    var args = $el.attr('href').replace(/.*#\/?/, '').replace(/\/$/, '').split('/');
-                    args.shift();
-                    var method = $.shop.getMethod(args, self);
-
-                    if (method.name) {
-                        $.shop.trace('$.importexport.plugins.yandexmarket', method);
-                        if (!$el.hasClass('js-confirm') || confirm($el.data('confirm-text') || $el.attr('title') || 'Are you sure?')) {
-                            method.params.unshift($el);
-                            self[method.name].apply(self, method.params);
-                        }
-                    } else {
-                        $.shop.error('Not found js handler for link', [method, args, $el])
-                    }
-                } catch (e) {
-                    $.shop.error('Exception ' + e.message, e);
-                }
-                return false;
+                return self.actionHandler($(this));
             });
 
             /**
@@ -160,18 +183,24 @@ $.extend($.importexport.plugins, {
             }, 500);
         },
 
-        initFormLazy: function () {
+        initFormLazy: function ($scope) {
             var self = this;
             /**
              * feature autocomplete handler
              */
-            this.$form.find(':input.js-autocomplete-feature').autocomplete({
+
+            if (!$scope) {
+                $scope = this.$form;
+                this.helpers.compileTemplates();
+            }
+            $scope.find(':input.js-autocomplete-feature').autocomplete({
                 source: '?action=autocomplete&type=feature&options[single]=1',
                 minLength: 2,
                 delay: 300,
                 select: self.autocompleteFeature,
                 focus: self.autocompleteFeature
             });
+
         },
 
         onInit: function () {
@@ -187,13 +216,50 @@ $.extend($.importexport.plugins, {
             /**
              * @this {HTMLInputElement}
              */
-            $.shop.trace('autocomplete',ui.item);
+            $.shop.trace('autocomplete', ui.item);
             this.value = ui.item.name;
             var $this = $(this);
-            $this.attr('title',ui.item.value);
-            $this.parent('div').find(':input[name$="\\[feature\\]"]').val(ui.item.value);
+            $this.attr('title', ui.item.value);
+            var $div = $this.parent('div');
+            var $input = $div.find(':input[name$="\\[feature\\]"]');
+            $input.val(ui.item.value);
+            $.shop.trace('aut', $input.attr('name'));
+            if ($input.attr('name').match(/\[param\.[^\]]+\]\[feature\]$/)) {
+                var unit = ui.item.label.match(/\(([^\)]+)\);/);
+                $.importexport.plugins.yandexmarket.setParamName($div, this.value, unit[1] || '');
+            }
+
             return false;
         },
+
+        paramAdd: function (el, type_id) {
+            var $target = $(el).parents('div.field');
+            $.tmpl('yandexmarket-' + type_id, {id: ++this.data.params[type_id]}).insertBefore($target);
+            var $scope = $target.prev('div');
+            var self = this;
+            $scope.find(':input[name$="\\[source\\]"]').change(function () {
+                self.selectChangeHandler(this);
+            }).trigger('change');
+
+            $scope.find('a.js-action').unbind('click').bind('click.yandexmarket', function () {
+                return self.actionHandler($(this));
+            });
+            this.initFormLazy($scope);
+            return false;
+        },
+
+        setParamName: function ($div, name, unit) {
+            var $container = $div.find('.js-target');
+            if (name) {
+                $container.removeClass('grey');
+            } else {
+                $container.addClass('grey');
+            }
+            $container.find('.js-target-name').text(name.replace(/\([^\)]+\)$/, ''));
+            $container.find('.js-target-unit').text(unit);
+            $.shop.trace('setParamName', [name, unit]);
+        },
+
 
         sourceSelect: function ($el) {
             $el.parent('div').find(':input[name$="\\[source\\]"]:first').val('slip:').trigger('change');
@@ -350,6 +416,28 @@ $.extend($.importexport.plugins, {
                         }
                     });
                 }, 500));
+            }
+        },
+        helpers: {
+            /**
+             * Compile jquery templates
+             *
+             * @param {String=} selector optional selector of template container
+             */
+            compileTemplates: function (selector) {
+                var pattern = /<\\\/(\w+)/g;
+                var replace = '</$1';
+
+                $(selector || '*').find("script[type$='x-jquery-tmpl']").each(function () {
+                    var id = $(this).attr('id').replace(/-template-js$/, '');
+                    var template = $(this).html().replace(pattern, replace);
+                    try {
+                        $.template(id, template);
+                        $.shop && $.shop.trace('$.importexport.plugins.helper.compileTemplates', [selector, id]);
+                    } catch (e) {
+                        (($.shop && $.shop.error) || console.log)('compile template ' + id + ' at ' + selector + ' (' + e.message + ')', template);
+                    }
+                });
             }
         }
     }

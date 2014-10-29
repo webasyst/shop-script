@@ -19,7 +19,7 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
             'domain'   => '',
             'lifetime' => 0,
         );
-        $current_domain = & $profile['config']['domain'];
+        $current_domain = &$profile['config']['domain'];
 
         $this->view->assign('current_domain', $current_domain);
         $domain_routes = $routing->getByApp('shop');
@@ -71,26 +71,46 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
         $export = ifset($profile['config']['export'], array());
         $set_model = new shopSetModel();
         $map = $this->plugin()->map(array(), null, true);
+        $params = array();
         if ($profile_map) {
             foreach ($map as $type => &$type_map) {
                 foreach ($type_map['fields'] as $field => &$info) {
                     $info['source'] = ifempty($profile_map[$type][$field], 'skip:');
+                    unset($profile_map[$type][$field]);
                     unset($info);
+                }
+                if (!empty($type_map['fields']['param.*'])) {
+                    $params[$type] = -1;
                 }
                 unset($type_map);
             }
+            foreach ($profile_map as $type => $fields) {
+                foreach ($fields as $field => $source) {
+                    $info_field = (strpos($field, 'param.') === 0) ? 'param.*' : $field;
+                    if (isset($map[$type]['fields'][$info_field])) {
+                        $info = $map[$type]['fields'][$info_field];
+                        $info['source'] = ifempty($source, 'skip:');
+
+                        $map[$type]['fields'][$field] = $info;
+                        $params[$type] = max(ifset($params[$type], -1), intval(preg_replace('@\D+@', '', $field)));
+                    }
+                }
+            }
         }
+
         $this->view->assign('sets', $set_model->getAll());
         $this->view->assign('type_map', $map);
+        $this->view->assign('params', array('params' => $params));
         $this->view->assign('export', $export);
 
 
         $this->view->assign('types_map', ifset($profile['config']['types'], array()));
 
         $app_settings_model = new waAppSettingsModel();
-        $this->view->assign('app_settings', array(
+        $app_settings = array(
             'ignore_stock_count' => $app_settings_model->get('shop', 'ignore_stock_count', 0),
-        ));
+        );
+        $this->view->assign('app_settings', $app_settings);
 
 
         $feature_model = new shopFeatureModel();
@@ -111,7 +131,6 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
                     unset($features[$id]);
                 }
             }
-            $this->view->assign('features', $features);
         } else {
             $this->view->assign('features_autocomplete', true);
             $features = array();
@@ -124,11 +143,29 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
             }
 
             if ($features = array_unique($features)) {
-                $this->view->assign('features', $features = $feature_model->getFeatures('code', $features));
+                $features = $feature_model->getFeatures('code', $features);
             } else {
-                $this->view->assign('features', array());
+                $features = array();
             }
         }
+
+        foreach ($features as $id => &$feature) {
+
+            if (strpos($feature['type'], shopFeatureModel::TYPE_DIMENSION.'.') === 0) {
+                $units = shopDimension::getUnits($feature['type']);
+
+                $feature['units'] = array();
+                foreach ($units as $unit) {
+                    $feature['units'][] = $unit['title'];
+                }
+                $feature['units'] = implode(', ', $feature['units']);
+            } elseif (preg_match('@\(([^\)]+)\)$@', $feature['name'], $matches)) {
+                $feature['units'] = trim($matches[1]);
+            }
+            unset($feature);
+        }
+
+        $this->view->assign('features', $features);
 
         $fields = array(
             'name'        => _w('Product name'),

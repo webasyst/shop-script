@@ -9,7 +9,7 @@
         <div class="field-group" style="border-bottom: 1px solid #ccc;">
             <div class="field">
                 <div class="name bold">
-                    <label for="s-plugin-yandexmarket-last-export">YML-файл</label>
+                    YML-файл
                 </div>
                 <div class="value">
                     <input id="s-plugin-yandexmarket-last-export" type="text" value="{$info.url|escape}" readonly="readonly" class="long bold large" style="width: 75% !important;">
@@ -22,7 +22,7 @@
     {/if}
 
         <div class="field js-profile-description">
-            <div class="name"><label for="s-plugin-yandexmarket-profile-name">Название профиля</label></div>
+            <div class="name">Название профиля</div>
             <div class="value">
                 <input type="text" name="profile[name]" value="{$profile.name|default:''|escape}" placeholder="Название профиля" id="s-plugin-yandexmarket-profile-name">
                 <input type="hidden" name="profile[id]" value="{$profile.id|default:'-1'}">
@@ -33,7 +33,7 @@
         <div class="field-group">
             <div class="field">
                 <div class="name">
-                    <label for="s-plugin-yandexmarket-domain">Витрина</label>
+                    Витрина
                 </div>
                 {if count($settlements)>1}
                     <div class="value no-shift">
@@ -77,7 +77,7 @@
             
             <div class="field">
                 <div class="name">
-                    <label for="s-plugin-yandexmarket-ondemand-update">Обновление файла</label>
+                    Обновление файла
                 </div>
                 <div class="value no-shift">
                     <select name="lifetime" id="s-plugin-yandexmarket-ondemand-update">
@@ -176,7 +176,7 @@
         <h2 class="gray">2. Общие параметры экспорта</h2>
 
         <div class="field">
-            <div class="name"><label for="s-plugin-yandexmarket-company">Компания</label></div>
+            <div class="name">Компания</div>
             <div class="value">
                 <input name="company" placeholder="Компания" value="{$company|escape}" id="s-plugin-yandexmarket-company"><br>
 
@@ -186,7 +186,7 @@
 
 
         <div class="field">
-            <div class="name"><label for="s-plugin-yandexmarket-export-zero-stock">Остатки</label></div>
+            <div class="name">Остатки</div>
             <div class="value no-shift"><label for="s-plugin-yandexmarket-export-zero-stock">
                 <input name="export[zero_stock]" id="s-plugin-yandexmarket-export-zero-stock" type="checkbox" value="1"{if !empty($export.zero_stock) || !empty($app_settings.ignore_stock_count)} checked="checked" {/if} {if !empty($app_settings.ignore_stock_count)} readonly="readonly"{/if}> Выгружать товары с нулевым остатком
                 </label>
@@ -197,7 +197,7 @@
 
         <div class="field">
             <div class="name">
-                <label for="s-plugin-yandexmarket-export-sku">Артикулы</label>
+                Артикулы
             </div>
             <div class="value no-shift">
                 <label for="s-plugin-yandexmarket-export-sku">
@@ -209,7 +209,7 @@
 
         <div class="field">
             <div class="name">
-                <label for="s-plugin-yandexmarket-shop-store">Покупка в офлайне</label><br>
+                Покупка в офлайне<br>
                 <span class="hint">(общая настройка)</span>
             </div>
             <div class="value no-shift">
@@ -225,7 +225,7 @@
 
         <div class="field">
             <div class="name">
-                <label for="s-plugin-yandexmarket-shop-pickup">Самовывоз</label><br>
+                Самовывоз<br>
                 <span class="hint">(общая настройка)</span>
             </div>
             <div class="value no-shift">
@@ -241,7 +241,7 @@
 
         <div class="field">
             <div class="name">
-                <label for="s-plugin-yandexmarket-shop-delivery">Доставка</label><br>
+                Доставка<br>
                 <span class="hint">(общая настройка)</span>
             </div>
             <div class="value no-shift">
@@ -266,7 +266,7 @@
 
         <div class="field">
             <div class="name">
-                <label for="s-plugin-yandexmarket-shop-local_delivery_cost">Стоимость доставки</label>
+                Стоимость доставки
             </div>
             <div class="value">
                 <input type="text" name="shop[local_delivery_cost]" value="{ifset($profile.config.shop.local_delivery_cost)|escape}" placeholder="0" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_cost"> {$primary_currency|escape}
@@ -275,7 +275,7 @@
 
 
         <div class="field">
-            <div class="name"><label for="s-plugin-yandexmarket-shop-adult">Товары для взрослых</label></div>
+            <div class="name">Товары для взрослых</div>
             <div class="value no-shift">
                 <select name="shop[adult]" id="s-plugin-yandexmarket-shop-adult">
                     <option value=""></option>
@@ -292,15 +292,35 @@
         {$map=$type_info.fields}
         {$type_id='simple'}
         {$js_base_href="#/yandexmarket:`$profile.id`"}
+        {$_params=false}
         {foreach $map as $field => $info}
             {if (ifempty($info.type) eq 'adjustable')}
+                {if $field=='param.*'}
+                    {$field='param.${id}'}
+                    {$_params=true}
+                <!-- jquery template {capture name="yandexmarket-`$type_id`-template-js"} -->
                 {include file="./mapField.html" inline}
+                <!-- {/capture} placeholder -->
+                {else}
+                    {include file="./mapField.html" inline}
+                {/if}
             {/if}
         {/foreach}
+
+        {if $_params}
+        <div class="field">
+            <div class="value">
+                <a href="{$js_base_href|default:'#'}/param/add/{$type_id}/" class="inline-link js-action small">
+                    <i class="icon10 add"></i> Добавить характеристику &lt;param&gt;
+                </a>
+            </div>
+        </div>
+        {/if}
 
     {foreach $type_map as $type_id =>$type_info}
         {if $type_id neq 'simple'}
         {$map=$type_info.fields}
+        {$_params=false}
         <div class="field-group" style="margin-top: 30px;">
             <h3 class="gray"><label>{*3.{$type_info@iteration-1}. *}<input type="checkbox" class="js-types" value="{$type_id}"{if !empty($types_map[$type_id])} checked="checked"{/if}> {$type_info.name|escape}</label></h3>
 
@@ -322,9 +342,28 @@
             </div>
             {foreach $map as $field => $info}
                 {if (ifempty($info.type) eq 'adjustable')}
-                    {include file="./mapField.html" inline}
+                    {if $field=='param.*'}
+                        {$_params=true}
+                        {$field='param.${id}'}
+                        <!-- jquery template {capture name="yandexmarket-`$type_id`-template-js"} -->
+                        {include file="./mapField.html" inline}
+                        <!-- {/capture} placeholder -->
+                    {else}
+                        {include file="./mapField.html" inline}
+                    {/if}
                 {/if}
             {/foreach}
+            {if $_params}
+                <div class="field">
+                    <div class="value">
+                        <a href="{$js_base_href|default:'#'}/param/add/{$type_id}/" class="inline-link js-action small">
+                            <i class="icon10 add"></i> Добавить характеристику &lt;param&gt;
+                        </a>
+                    </div>
+                </div>
+            {/if}
+
+
 
         </div>
         {/if}
@@ -378,16 +417,24 @@
 
 <div class="clear"></div>
 {/strip}
-
 <script type="text/javascript">
     if ($.importexport.plugins.yandexmarket) {
-        $.importexport.plugins.yandexmarket.init();
+        $.importexport.plugins.yandexmarket.init({$params|json_encode});
     } else {
+
         $.getScript('{$wa_app_static_url}plugins/yandexmarket/js/yandexmarket.js',function(){
-            $.importexport.plugins.yandexmarket.init();
+            $.importexport.plugins.yandexmarket.init({$params|json_encode});
             $.importexport.plugins.yandexmarket.initForm();
         });
     }
     {* generic code for plugins with profiles support *}
     $.importexport.profiles.set('yandexmarket',{$profiles|json_encode});
 </script>
+
+{foreach $smarty.capture as $name => $template} {if strpos($name,'template-js')}
+    <!-- begin {$name} -->
+    <script type="text/x-jquery-tmpl" id="{$name}">
+{$template|regex_replace:'@(^.*-->)|(<!\-\-.*$)@m':''|replace:'</':'<\/'}
+</script>
+    <!-- end {$name} -->
+{/if} {/foreach}

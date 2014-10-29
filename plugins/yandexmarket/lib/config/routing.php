@@ -11,6 +11,3 @@ return array(
         'action' => 'catalog',
     ),
 );
-
-
-

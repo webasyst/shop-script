@@ -5,7 +5,7 @@ return array(
     'description'    => 'Экспорт каталога товаров в формате YML',
     'img'            => 'img/yandexmarket.png',
     'vendor'         => 'webasyst',
-    'version'        => '1.2.1',
+    'version'        => '1.2.2',
     'importexport'   => 'profiles',
     'export_profile' => true,
     'frontend'       => true,
@@ -13,5 +13,4 @@ return array(
         'backend_products' => 'backendProductsEvent',
     ),
 );
-
 //EOF

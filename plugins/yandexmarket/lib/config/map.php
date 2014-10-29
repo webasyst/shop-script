@@ -9,7 +9,6 @@ return array(
             'fields' => array(
                 'available'             => true,
                 'id'                    => true,
-
                 'url'                   => true,
                 'price'                 => true,
                 'currencyId'            => true,
@@ -31,16 +30,14 @@ return array(
                 'age'                   => false,
                 'barcode'               => false,
                 'cpa'                   => false,
-                'param'                 => false,
+                'param.*'               => false,
             ),
         ),
-
         'vendor.model' => array(
             'name'   => 'Произвольный товар (vendor.model)',
             'fields' => array(
                 'available'             => true,
                 'id'                    => true,
-
                 'url'                   => true,
                 'price'                 => true,
                 'currencyId'            => true,
@@ -49,9 +46,12 @@ return array(
                 'picture'               => true,
                 /**
                  *
-                 * Ссылка на картинку соответствующего товарного предложения. Недопустимо давать ссылку на «заглушку», т.е. на страницу, где написано «картинка отсутствует», или на логотип магазина. Максимальная длина URL — 512 символов.
+                 * Ссылка на картинку соответствующего товарного предложения. Недопустимо давать ссылку на «заглушку»,
+                 * т.е. на страницу, где написано «картинка отсутствует», или на логотип магазина.
+                 * Максимальная длина URL — 512 символов.
                  *
-                 * Для товарных предложений, относящихся к категории «Одежда и обувь», является обязательным элементом. Для всех остальных категорий – необязательный элемент.
+                 * Для товарных предложений, относящихся к категории «Одежда и обувь», является обязательным элементом.
+                 * Для всех остальных категорий – необязательный элемент.
                  **/
                 'store'                 => false,
                 'pickup'                => false,
@@ -93,10 +93,11 @@ return array(
                 'expiry'                => false,
                 'weight'                => false,
                 'dimensions'            => true,
-                'param'                 => true,
+                'param.*'               => false,
                 /**
                  *
-                 * Элемент предназначен для указания характеристик товара. Для описания каждого параметра используется отдельный элемент <param>.
+                 * Элемент предназначен для указания характеристик товара. Для описания каждого параметра используется
+                 * отдельный элемент <param>.
                  *
                  * Необязательный элемент. Элемент <offer> может содержать несколько элементов <param>.
                  */
@@ -107,7 +108,6 @@ return array(
             'fields' => array(
                 'available'           => true,
                 'id'                  => true,
-
                 'url'                 => true,
                 'price'               => true,
                 'currencyId'          => true,
@@ -141,7 +141,6 @@ return array(
             'fields' => array(
                 'available'         => true,
                 'id'                => true,
-
                 'url'               => true,
                 'price'             => true,
                 'currencyId'        => true,
@@ -174,7 +173,6 @@ return array(
             'fields' => array(
                 'available'       => true,
                 'id'              => true,
-
                 'url'             => true,
                 'price'           => true,
                 'currencyId'      => true,
@@ -188,7 +186,6 @@ return array(
                 'title'           => true,
                 'year'            => false,
                 'media'           => false,
-
                 'starring'        => false,
                 /**
                  * Актеры.
@@ -218,7 +215,6 @@ return array(
             'fields' => array(
                 'available'       => true,
                 'id'              => true,
-
                 'url'             => true,
                 'price'           => true,
                 'currencyId'      => true,
@@ -258,7 +254,6 @@ return array(
             'fields' => array(
                 'available'       => true,
                 'id'              => true,
-
                 'url'             => true,
                 'price'           => true,
                 'currencyId'      => true,
@@ -287,7 +282,6 @@ return array(
             ),
         ),
     ),
-
     'fields' => array(
 
         /**
@@ -306,8 +300,8 @@ return array(
             'description' => '',
             'attribute'   => true,
             'source'      => 'field:id',
+            'field'       => 'offer',
         ),
-
         'url'                   => array(
             'type'        => 'fixed',
             'name'        => 'URL — адрес страницы товара',
@@ -315,7 +309,6 @@ return array(
             'format'      => '%0.512s',
             'source'      => 'field:frontend_url',
         ),
-
         'price'                 => array(
             'type'        => 'fixed',
             'name'        => 'Цена',
@@ -323,17 +316,20 @@ return array(
             'format'      => '%0.2f',
             'source'      => 'field:price',
         ),
-
         'currencyId'            => array(
             'type'        => 'fixed',
             'name'        => 'Идентификатор валюты товара',
             'description' => 'Для корректного отображения цены в национальной валюте необходимо использовать идентификатор с соответствующим значением цены',
             'values'      => array(
-                'RUB', 'USD', 'UAH', 'KZT', 'BYR', 'EUR',
+                'RUB',
+                'USD',
+                'UAH',
+                'KZT',
+                'BYR',
+                'EUR',
             ),
             'source'      => 'field:currency',
         ),
-
         'categoryId'            => array(
             'type'        => 'fixed',
             'name'        => 'Идентификатор категории товара ',
@@ -346,19 +342,17 @@ return array(
             'description' => '',
             'source'      => 'field:market_category',
         ),
-
         'picture'               => array(
             'type'   => 'fixed',
             'name'   => 'Ссылка на изображение соответствующего товарного предложения',
             'source' => 'field:images',
         ),
-
         'downloadable'          => array(
             'type'        => 'fixed',
             'name'        => 'Цифровой товар',
             'description' => 'Обозначение товара, который можно скачать',
+            'source'      => 'field:file_name',
         ),
-
         /**
          * adjustable
          */
@@ -369,13 +363,11 @@ return array(
             'name'        => 'Производитель',
             'description' => 'Не отображается в названии предложения',
         ),
-
         'vendorCode'            => array(
             'type'        => 'adjustable',
             'name'        => 'Код',
             'description' => 'Код товара (указывается код производителя).',
         ),
-
         'model'                 => array(
             'type'        => 'adjustable',
             'name'        => 'Модель',
@@ -387,33 +379,27 @@ return array(
             'description' => 'Название фильма или альбома',
             'source'      => 'field:name',
         ),
-
         'name'                  => array(
             'type'        => 'adjustable',
             'name'        => 'Название',
             'description' => 'Наименование товарного предложения',
             'source'      => 'field:name',
         ),
-
-
         'artist'                => array(
             'type'   => 'adjustable',
             'name'   => 'Исполнитель',
             'source' => 'feature:artist',
         ),
-
         'author'                => array(
             'type'   => 'adjustable',
             'name'   => 'Автор произведения',
             'source' => 'feature:author'
         ),
-
         'days'                  => array(
             'type'   => 'adjustable',
             'name'   => 'Количество дней тура',
             'source' => '',
         ),
-
         'place'                 => array(
             'type'        => 'adjustable',
             'name'        => 'Место проведения',
@@ -428,20 +414,19 @@ return array(
             'format'      => '',
             'source'      => 'feature:date',
         ),
-
         'description'           => array(
             'type'        => 'adjustable',
             'name'        => 'Описание',
             'description' => 'Описание товарного предложения',
             'source'      => 'field:summary',
         ),
-
         'available'             => array(
             'type'        => 'adjustable',
             'name'        => 'Наличие',
             'description' => 'Статус доступности товара в наличии/на заказ',
             'source'      => 'field:count',
             'attribute'   => true,
+            'field'       => 'offer',
             'values'      => array(
                 /**
                  * товарное предложение на заказ. Магазин готов осуществить поставку товара на указанных условиях в течение месяца
@@ -461,20 +446,17 @@ return array(
             'name'   => 'Издательство',
             'source' => 'feature:publisher',
         ),
-
         'typePrefix'            => array(
             'type'   => 'adjustable',
             'name'   => 'Группа товаров/категория',
             'source' => 'field:type_id',
         ),
-
         'sales_notes'           => array(
             'type'        => 'adjustable',
             'name'        => 'Примечания',
             'description' => 'Информация о минимальной сумме заказа, минимальной партии товара или необходимости предоплаты, а также описания акций, скидок и распродаж',
             'format'      => '%50s',
         ),
-
         'manufacturer_warranty' => array(
             'type'        => 'adjustable',
             'name'        => 'Гарантия производителя',
@@ -491,8 +473,6 @@ return array(
                 true  => 'true',
             ),
         ),
-
-
         'seller_warranty'       => array(
             'type'        => 'adjustable',
             'name'        => 'Гарантия продавца',
@@ -523,7 +503,6 @@ return array(
             'name'        => 'Страна производитель',
             'description' => '',
         ),
-
         'adult'                 => array(
             'type'        => 'adjustable',
             'name'        => 'Товары для взрослых',
@@ -533,7 +512,6 @@ return array(
                 true  => 'true',
             ),
         ),
-
         'barcode'               => array(
             'type'        => 'adjustable',
             'name'        => 'Штрихкод',
@@ -727,21 +705,35 @@ return array(
             'format'      => '',
             'source'      => '',
         ),
-
         'age'                   => array(
             'type'        => 'adjustable',
             'name'        => 'Возрастная категория',
             'description' => '',
             'values'      => array(
                 'month' => array(
-                    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    9,
+                    10,
+                    11,
+                    12
                 ),
                 'year'  => array(
-                    0, 6, 12, 16, 18,
+                    0,
+                    6,
+                    12,
+                    16,
+                    18,
                 ),
             ),
         ),
-
         'store'                 => array(
             'type'        => 'adjustable',
             'name'        => 'Покупка в офлайне',
@@ -751,7 +743,6 @@ return array(
                 true  => 'true',
             ),
         ),
-
         'pickup'                => array(
             'type'        => 'adjustable',
             'name'        => 'Самовывоз',
@@ -761,7 +752,6 @@ return array(
                 true  => 'true',
             ),
         ),
-
         'delivery'              => array(
             'type'        => 'adjustable',
             'name'        => 'Доставка',
@@ -779,11 +769,15 @@ return array(
             ),
 
         ),
-
         'local_delivery_cost'   => array(
             'type'        => 'adjustable',
             'name'        => 'Стоимость доставки',
             'description' => 'Стоимость доставки данного товара в своем регионе',
+        ),
+        'param'                 => array(
+            'type'        => 'adjustable',
+            'name'        => '<param>',
+            'description' => 'Дополнительные произвольные характеристики товара. Если тип характеристики магазина не имеет единицы измерения, но ее необходимо передать в Яндекс.Маркет, то можно задать название единицы измерения (параметр unit) в названии характеристики в скобках, например, «Вес (кг)».',
         ),
 
     )

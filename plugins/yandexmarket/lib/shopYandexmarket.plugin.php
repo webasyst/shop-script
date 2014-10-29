@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Class shopYandexmarketPlugin
  * @see http://help.yandex.ru/partnermarket/yml/about-yml.xml
@@ -20,14 +21,15 @@ class shopYandexmarketPlugin extends shopPlugin
             $sort = array_flip(array_keys($data['fields']));
             foreach ($data['types'] as &$type) {
                 foreach ($type['fields'] as $field => $required) {
-                    if (empty($data['fields'][$field])) {
+                    $field_type = (strpos($field, 'param.') === 0) ? 'param' : $field;
+                    if (empty($data['fields'][$field_type])) {
                         $missed[] = $field;
                     }
                     $type['fields'][$field] = array(
                         'required' => $required,
-                        'sort'     => ifset($sort[$field], 0),
+                        'sort'     => ifset($sort[$field_type], 0),
                     );
-                    $type['fields'][$field] += ifempty($data['fields'][$field], array());
+                    $type['fields'][$field] += ifempty($data['fields'][$field_type], array());
                 }
                 unset($type);
             }
@@ -38,8 +40,17 @@ class shopYandexmarketPlugin extends shopPlugin
     }
 
 
+    /**
+     * @param array $post
+     * @param null $types
+     * @param bool $sort
+     * @return array[]
+     */
     public function map($post = array(), $types = null, $sort = false)
     {
+        /**
+         * array $map[%type%]['fields'][%field%]
+         */
         $this->initTypes();
         $map = $this->types;
 
@@ -52,13 +63,14 @@ class shopYandexmarketPlugin extends shopPlugin
                 }
             }
         }
-        $pattern = '@^(.+):%s$@';
+        $source_pattern = '@^(.+):%s$@';
         if (!empty($post)) {
             foreach ($post as $type => $info) {
                 if (isset($map[$type])) {
                     foreach ($info as $field => $post_data) {
-                        if (isset($map[$type]['fields'][$field]) && !empty($post_data['source'])) {
-                            if (preg_match($pattern, $post_data['source'], $matches)) {
+                        $field_type = (strpos($field, 'param.') === 0) ? 'param.*' : $field;
+                        if (isset($map[$type]['fields'][$field_type]) && !empty($post_data['source'])) {
+                            if (preg_match($source_pattern, $post_data['source'], $matches)) {
                                 switch ($source = $matches[1]) {
                                     case 'feature':
                                     case 'text':
@@ -204,15 +216,20 @@ HTML;
 
     private static function uuid()
     {
-        $uuid = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x', // 32 bits for "time_low"
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff), // 16 bits for "time_mid"
+        $uuid = sprintf(
+            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x', // 32 bits for "time_low"
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff), // 16 bits for "time_mid"
             mt_rand(0, 0xffff), // 16 bits for "time_hi_and_version",
             // four most significant bits holds version number 4
             mt_rand(0, 0x0fff) | 0x4000, // 16 bits, 8 bits for "clk_seq_hi_res",
             // 8 bits for "clk_seq_low",
             // two most significant bits holds zero and one for variant DCE1.1
             mt_rand(0, 0x3fff) | 0x8000, // 48 bits for "node"
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff));
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff)
+        );
         return $uuid;
     }
 }
