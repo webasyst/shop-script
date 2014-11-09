@@ -34,5 +34,6 @@ class shopSignupAction extends waSignupAction
     public function afterSignup(waContact $contact)
     {
         $contact->addToCategory($this->getAppId());
+        wa()->event('customer_signup', $contact);
     }
 }
