@@ -159,7 +159,7 @@ $(document).ready(function () {
                     cart_total.html(response.data.total);
                     $('#cart-content').append($('<div class="cart-just-added"></div>').html(f.find('span.added2cart').text()));
                     if ($('#cart').hasClass('fixed'))
-                        $('.cart-to-checkout').slideDown(200);
+                        $('.cart-to-checkout').hide();
                 } else {
                 
                     // flying cart
@@ -185,7 +185,7 @@ $(document).ready(function () {
                         cart_total.html(response.data.total);
                         $('#cart-content').append($('<div class="cart-just-added"></div>').html(f.find('span.added2cart').text()));
                         if ($('#cart').hasClass('fixed'))
-                            $('.cart-to-checkout').slideDown(200);
+                            $('.cart-to-checkout').show();
                     });
                 }
             } else if (response.status == 'fail') {

@@ -65,7 +65,7 @@
             
             {if $theme_settings.homepage_bxslider_mode == 'products_last_photo_as_background'}
             
-                {if $wa->photos->config('enable_2x')}
+                {if $wa->shop->config('enable_2x')}
                     {$size = '970@2x'}
                 {else}
                     {$size = '970'}
