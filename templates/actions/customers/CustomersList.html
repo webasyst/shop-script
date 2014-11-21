@@ -33,7 +33,7 @@
             {foreach $customers as $c}
                 <tr class="s-customer" data-customer-id="{$c.id}">
                     <td class="min-width valign-top s-userpic">
-                        <a href="#/id/{$c.id}"><img src="{$c.photo|escape}"></a>
+                        <a href="#/id/{$c.id}"><img src="{$c.photo|escape}" class="userpic"></a>
                     </td>
                     <td class="align-left">
                         <h3 class="large name"><a href="#/id/{$c.id}">{$c.name|escape}

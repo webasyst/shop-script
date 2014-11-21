@@ -64,8 +64,8 @@ class shopFollowupCli extends waCliController
                         $o['params'] = ifset($params[$o['id']], array());
 
                         $source = 'backend';
-                        if (isset($o['params']['storefront'])) {
-                            $source = $o['params']['storefront'].'*';
+                        if (!empty($o['params']['storefront'])) {
+                            $source = rtrim($o['params']['storefront'], '/').'/*';
                         }
 
                         if ($f['source'] && $f['source'] != $source) {

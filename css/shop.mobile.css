@@ -10,6 +10,7 @@
 .sm-order-comment { background: #eed; }
 .sm-order-log { background: transparent; border: none; }
 .sm-order-customer img { margin-right: 10px; margin-bottom: 10px; }
+.sm-order-customer img.userpic { width: 50px; float: left; }
 .sm-order-customer h4 { margin-top: 0; }
 .sm-order-customer p { clear: both; }
 .sm-order-customer p img.overhanging { margin: 0; }
@@ -27,7 +28,7 @@
 /** 
  * Copied from wa-1.0.css 
  */
-i.icon16 { background-repeat:no-repeat; background-image: url(../../../wa-content/img/icon16.png); height:16px; width:16px; display:inline-block; text-indent:-9999px; text-decoration:none!important; }
+i.icon16 { background-repeat:no-repeat; background-image: url(../../../wa-content/img/icon16@2x.png); background-size: 512px 128px; height:16px; width:16px; display:inline-block; text-indent:-9999px; text-decoration:none!important; }
 * i.icon16 { text-decoration:none!important; vertical-align:top; margin: 0em 0.25em 0 0; }
 .heading i.icon16 { vertical-align:top; margin:-0.1em 0.1em 0 -0.5em; }
 .hint i.icon10 { vertical-align:top; margin:0.15em 0.15em 0 0; }
@@ -50,7 +51,7 @@ ul.tabs .icon16 { margin-top: 8px; }
  */
 
 /* settings */
-.icon16.ss { background-image: url(../img/ss-icon16.png); }
+.icon16.ss { background-image: url(../img/ss-icon16@2x.png); background-size: 400px 180px; }
 .icon16.ss.star-bw { background-position:-16px 0; }
 .icon16.ss.shipping-bw { background-position:-32px 0; }
 .icon16.ss.camera-bw { background-position:-48px 0; }

@@ -16,9 +16,12 @@ return array(
     'pages'       => true,
     'mobile'      => true,
     'my_account'  => true,
-    'version'     => '5.2.3',
+    'version'     => '5.2.4',
     'critical'    => '5.0.0.0',
     'vendor'      => 'webasyst',
     'csrf'        => true,
+    'payment_plugins' => true,
+    'shipping_plugins' => true,
+    'sms_plugins' => true,
     'license'     => 'commercial',
 );

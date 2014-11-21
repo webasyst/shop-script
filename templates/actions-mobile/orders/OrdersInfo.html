@@ -25,7 +25,7 @@
  * Customer info
  *}
 <div data-role="content" class="content sm-order-customer">
-    <img src="{$customer->getPhoto(50)}" class="float-left ">
+    <img class="userpic" src="{$customer->getPhoto(50)}" class="float-left ">
     <h4>{$customer->getName()|escape}</h4>
     {if $top}
         {foreach from=$top item=top_field}

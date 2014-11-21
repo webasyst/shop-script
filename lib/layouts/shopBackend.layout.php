@@ -1,4 +1,5 @@
 <?php
+
 class shopBackendLayout extends waLayout
 {
     public function execute()
@@ -18,13 +19,13 @@ class shopBackendLayout extends waLayout
 
         if (wa()->getUser()->getRights('shop', 'orders')) {
             $default_page = 'orders';
-        } else if ($product_rights) {
+        } elseif ($product_rights) {
             $default_page = 'products';
-        } else if (wa()->getUser()->getRights('shop', 'design') || wa()->getUser()->getRights('shop', 'pages')) {
+        } elseif (wa()->getUser()->getRights('shop', 'design') || wa()->getUser()->getRights('shop', 'pages')) {
             $default_page = 'storefronts';
-        } else if (wa()->getUser()->getRights('shop', 'reports')) {
+        } elseif (wa()->getUser()->getRights('shop', 'reports')) {
             $default_page = 'reports';
-        } else if (wa()->getUser()->getRights('shop', 'settings')) {
+        } elseif (wa()->getUser()->getRights('shop', 'settings')) {
             $default_page = 'settings';
         } else {
             throw new waRightsException(_w("Access denied"));
@@ -36,10 +37,18 @@ class shopBackendLayout extends waLayout
         $this->assign('new_orders_count', $order_model->getStateCounters('new'));
 
         $module = waRequest::get('module', 'backend');
+        $plugin = waRequest::get('plugin');
+
         $this->assign('default_page', $default_page);
         $page = waRequest::get('action', ($module == 'backend') ? $default_page : 'default');
         if ($module != 'backend') {
             $page = $module.':'.$page;
+        }
+        if ($plugin) {
+            if ($module == 'backend') {
+                $page = ':'.$page;
+            }
+            $page = $plugin.':'.$page;
         }
         $this->assign('page', $page);
         $submenu_class = 'shopBackend'.ucfirst($page).'SubmenuAction';

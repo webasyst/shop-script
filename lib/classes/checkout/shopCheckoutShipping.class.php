@@ -126,7 +126,7 @@ class shopCheckoutShipping extends shopCheckout
                 continue;
             }
 
-            $custom_fields = $this->getCustomFields($method_id, $plugin);
+            $custom_fields = $this->getCustomFields($m['id'], $plugin);
             $custom_html = '';
             foreach ($custom_fields as $c) {
                 $custom_html .= '<div class="wa-field">'.$c.'</div>';
@@ -516,7 +516,6 @@ class shopCheckoutShipping extends shopCheckout
         if (!$custom_fields) {
             return $custom_fields;
         }
-
         $params = array();
         $params['namespace'] = 'shipping_'.$id;
         $params['title_wrapper'] = '%s';

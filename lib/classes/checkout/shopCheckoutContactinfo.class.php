@@ -267,6 +267,7 @@ class shopCheckoutContactinfo extends shopCheckout
         switch($ftype) {
             case 'textarea':
                 $class = 'waContactStringField';
+                $options['storage'] = 'waContactDataStorage';
                 $options['input_height'] = 5;
                 break;
             case 'radio':

@@ -22,7 +22,7 @@
                             {% if (!$.isEmptyObject(order.contact)) { %}
                                 <div class="profile image50px">
                                     <div class="image">
-                                        <img src="{%#order.contact.photo_50x50%}">
+                                        <img src="{%#order.contact.photo_50x50%}" class="userpic">
                                     </div>
                                     <div class="details nowrap">
                                         {% include('template-order-list-split-details', { order: order }); %}

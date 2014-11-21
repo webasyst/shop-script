@@ -16,7 +16,7 @@
 
 #mainmenu { position: absolute; width: 100%; z-index: 101; min-width: 600px; top: 0; }
 #mainmenu.s-fixed { position: fixed; top: 0; }
-#mainmenu ul.tabs { font-size: 1.08em; background: url('../img/grey-noisy-bg.jpg') repeat; margin: 0; padding-left: 10px; padding-top: 5px; box-shadow: 0 -3px 5px rgba(0, 0, 0, 0.04) inset; border-bottom: 1px solid #ccc; height: 38px; }
+#mainmenu ul.tabs { font-size: 15px; background: url('../img/grey-noisy-bg.jpg') repeat; margin: 0; padding-left: 10px; padding-top: 5px; box-shadow: 0 -3px 5px rgba(0, 0, 0, 0.04) inset; border-bottom: 1px solid #ccc; height: 38px; font-family: 'Helvetica Neue', Arial, sans-serif; }
 #mainmenu ul.tabs li { background: transparent !important; border-bottom: none !important; }
 #mainmenu ul.tabs li a { height: 35px; line-height: 35px;  }
 #mainmenu ul.tabs li a sup { position: relative; line-height: 1.2em; }
@@ -80,7 +80,7 @@
 ---------------- */
 
 h1 .button { font-family: 'Lucida Grande', sans-serif; position: relative; top: -3px; }
-h1 input.s-title-h1-edit { font-weight: bold; font-family: Helvetica, Arial, sans-serif; }
+h1 input.s-title-h1-edit { font-weight: bold; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
 .s-embed-code-input { border: 1px solid #ccc; font-weight: bold; }
 h1 i.icon16 { margin-top: 0.3em; }
 
@@ -259,6 +259,7 @@ table.zebra.s-customers th.align-left,
 table.zebra.s-customers td.align-left { text-align: left; }
 table.zebra.s-customers td.valign-top { vertical-align: top; }
 table.zebra.s-customers td.s-userpic { padding-left: 10px; }
+table.zebra.s-customers td.s-userpic img { width: 50px; }
 table.zebra.s-customers tr:hover td { background: inherit !important; }
 table.zebra.s-customers th a { display: inline; padding: 2px 4px; }
 table.zebra.s-customers th a.selected { background: #eee; }
@@ -766,11 +767,10 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
  * If built-in icons are not enough for your plugin or extension, we encourage you to use icons from Fugue and Diagona icon sets.
 */
 
-.icon16.color { border-radius: 50%; border: 1px solid rgba(0,0,0,0.2); width: 14px; height: 14px; }
 .js-action .icon16.color { margin-top: 0.25em !important; }
 
 /* settings */
-.icon16.ss { background-image: url('../img/ss-icon16.png?1402'); }
+.icon16.ss { background-image: url('../img/ss-icon16.png?1412'); }
 .icon16.ss.star-bw { background-position:-16px 0; }
 .icon16.ss.shipping-bw { background-position:-32px 0; }
 .icon16.ss.camera-bw { background-position:-48px 0; }
@@ -904,3 +904,21 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 .referral-channels-report { margin-top: 10px; }
 .referral-channels-report th { color: #aaa; padding: 10px; }
 .referral-channels-report td { padding: 10px; }
+
+/* High-density displays
+------------------------ */
+
+@media 
+(-webkit-min-device-pixel-ratio: 2), 
+(min-resolution: 192dpi) {
+    i.icon16.ss { background-image: url('../img/ss-icon16@2x.png?1412'); background-size: 400px 180px; }
+}
+
+/* TABLET
+========= */
+
+@media screen and (max-width: 1024px) {
+    
+    #mainmenu ul.tabs li a { padding-left: 0.2em; padding-right: 0.2em; }
+    
+}
