@@ -1,11 +1,10 @@
-{if $shop_pages = $wa->shop->pages()}
-    <ul class="pages">
-        {foreach $shop_pages as $page}
-            <li{if strlen($page.url)>1 && $wa->currentUrl()|strstr:$page.url} class="selected"{/if}><a href="{$page.url}">{$page.name}</a></li>
-        {/foreach}
-    </ul>
-{/if}
-
+<!-- product search -->
+<form method="get" action="{$wa->getUrl('shop/frontend/search')}" class="search">
+    <div class="search-wrapper">
+        <input id="search" type="search" name="query" {if !empty($query)}value="{$query}"{/if} placeholder="[s`Find products`]">
+        <button type="submit"></button>
+    </div>
+</form>
 
 <!-- checkout navigation -->
 {if isset($checkout_steps) && count($checkout_steps) > 1}

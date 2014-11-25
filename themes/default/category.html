@@ -1,7 +1,3 @@
-{if waRequest::isXMLHttpRequest() && waRequest::get('page', 1) == 1}
-<script type="text/javascript" src="{$wa_active_theme_url}lazyloading.js?v{$wa_theme_version}"></script>
-{/if}
-
 <h1 class="category-name">
     {$category.name|escape}
 </h1>

@@ -78,16 +78,16 @@ ul.related-bxslider li { list-style: none; }
 /* Homepage
 ----------- */
 
-ul.homepage-bxslider { height: 365px; padding: 0; margin: 0; overflow: hidden; position: relative; }
-ul.homepage-bxslider li { list-style: none; }
+ul.homepage-bxslider { height: 325px; padding: 0; margin: 0; overflow: hidden; position: relative; }
+ul.homepage-bxslider li { list-style: none; margin: 0; padding: 0; max-height: 460px; }
 
 .bestsellers { padding: 0; overflow: hidden; background: #fff; }
-.bestsellers a { display: block; height: 400px; margin-bottom: 80px; text-decoration: none; }
+.bestsellers a { display: block; height: 360px; margin-bottom: 40px; text-decoration: none; }
 .bestsellers a .image { float: right; margin-right: 60px; margin-left: 20px; position: relative; max-width: 70%; }
-.bestsellers a .image img { max-height: 400px; }
+.bestsellers a .image img { max-height: 320px; }
 .bestsellers a .image .corner.right { right: 30px; }
 .bestsellers a .image .corner.top { top: 20px; }
-.bestsellers a h2 { font-size: 2.8em; color: #000; line-height: 1.2em; margin-bottom: 0.4em; margin-left: 60px; }
+.bestsellers a h2 { font-size: 2.8em; color: #000; line-height: 1.2em; margin-bottom: 0.4em; margin-left: 60px; margin-right: 60px; }
 .bestsellers a .info { margin-left: 60px; z-index: 183; }
 .bestsellers a p { margin-left: 60px; color: #555; margin-top: 15px; }
 .bestsellers .compare-at-price { font-size: 120%; margin-right: 10px; }
@@ -97,8 +97,8 @@ ul.homepage-bxslider li { list-style: none; }
 .bestsellers .bx-wrapper .bx-viewport { border: none; box-shadow: none; left: 0; }
 .bestsellers .bx-wrapper .bx-pager,
 .bestsellers .bx-wrapper .bx-controls-auto { bottom: 20px; }
-.bestsellers .bx-wrapper .bx-prev { left: -35px; background: url('img/bx-controls.png') no-repeat; background-size: 192px 96px; }
-.bestsellers .bx-wrapper .bx-next { right: -35px; background: url('img/bx-controls.png') no-repeat; background-size: 192px 96px; background-position: -96px 0 !important; }
+.bestsellers .bx-wrapper .bx-prev { left: -32px; background: url('img/bx-controls.png') no-repeat; background-size: 192px 96px; }
+.bestsellers .bx-wrapper .bx-next { right: -32px; background: url('img/bx-controls.png') no-repeat; background-size: 192px 96px; background-position: -96px 0 !important; }
 .bestsellers .bx-wrapper .bx-controls-direction a { z-index: 99; width: 96px; height: 96px; top: 40%; opacity: 0.5; }
 .bestsellers .bx-wrapper .bx-controls-direction a:hover { transition: none; opacity: 1; }
 
