@@ -467,7 +467,7 @@ editClick:(function ($) {
                 var frontend_url_link = frontend_url.parent();
                 frontend_url_link.attr('href', data.frontend_urls[0].url);
 
-                frontend_url_link.contents(':eq(0)').replaceWith(data.frontend_urls[0].base);
+                frontend_url_link.find('span:first').html(data.frontend_urls[0].base);
 
                 // update other frontend url
                 frontend_url.closest('div.value').find('.s-product-frontend-url').each(function (i) {
