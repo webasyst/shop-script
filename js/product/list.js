@@ -135,8 +135,8 @@
                         $('.lazyloading-link').hide();
                         $('.lazyloading-progress').show();
                         $.get('?module=products&action=loadList&offset=' + offset + ('&total_count=' + total_count) +
-                            (self.collection_param ? '&' + self.collection_param : '') + (self.sort ? '&sort=' + self.sort : '') +
-                            (self.order ? '&order=' + self.order : ''), function (r) {
+                        (self.collection_param ? '&' + self.collection_param : '') + (self.sort ? '&sort=' + self.sort : '') +
+                        (self.order ? '&order=' + self.order : ''), function (r) {
                             if (r.status == 'ok' && r.data.count) {
                                 offset += r.data.count;
 
@@ -910,12 +910,12 @@
                 products: true,
                 view: this.options.view,
                 sort: this.options.sort
-            }).bind('move_product',function (options) {
+            }).bind('move_product', function (options) {
                 $.shop.jsonPost('?module=product&action=move&' + $.product_list.collection_param, {
                     product_ids: options.product_ids,
                     before_id: options.before_id || null
                 }, options.success, options.error);
-            }).bind('is_product_sortable',function () {
+            }).bind('is_product_sortable', function () {
                 return $.product_list.sortable;
             }).bind('add_to_list', function (options) {
                 var data = {};
@@ -962,6 +962,8 @@
                     $.product_list.deleteFromCategory(products);
                 } else if (action == 'export') {
                     $.product_list.exportProducts(products, $(this).attr('data-plugin'));
+                } else if (action == 'duplicate') {
+                    $.product_list.duplicateProducts(products, $(this));
                 }
                 return false;
             });
@@ -1368,6 +1370,66 @@
                 url += '/hash/id/' + ids.join(',');
                 window.location = url;
             }
+        },
+
+        duplicateProducts: function (products, $link) {
+            var ids = [];
+            var product;
+            var hash = false;
+            while (product = products.serialized.pop()) {
+                if (product.name) {
+                    if (product.name == 'product_id[]') {
+                        ids.push(parseInt(product.value, 10));
+                    } else if (product.name == 'hash') {
+                        hash = product.value;
+                    }
+                }
+            }
+            if (!hash && ids.length) {
+                hash = 'id/' + ids.join(',');
+            }
+            if (hash) {
+                $link.find('i.icon16').removeClass('split').addClass('loading');
+                this.duplicate(hash, {
+                    'progress': function (data) {
+                        $link.attr('title', Math.round(100.0 * data.offset / data.total_count) + '%');
+                    },
+                    'finish': function (data) {
+                        $link.attr('title', null);
+                        var $icon = $link.find('i.icon16');
+                        $icon.removeClass('loading').addClass('yes');
+                        setTimeout(function () {
+                            $icon.removeClass('yes').addClass('split');
+                        }, 3000);
+                        $.products.dispatch();
+                    },
+                    'error': function (data) {
+
+                    }
+                });
+            }
+        },
+
+        duplicate: function (hash, options) {
+            var params = {
+                'hash': hash,
+                'limit': 50,
+                'offset': options.offset || 0
+            };
+            var url = '?module=products&action=duplicate';
+            var self = this;
+
+            $.shop.jsonPost(url, params, function (response) {
+                if ((response.status || 'error') == 'ok') {
+                    if (response.data.offset < response.data.total_count) {
+                        options.offset = response.data.offset;
+                        self.duplicate(hash, options);
+                        options.progress(response.data || {});
+                    } else {
+                        options.finish(response.data || {});
+                    }
+                }
+            });
         },
 
         remove: function (options, finish) {

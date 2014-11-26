@@ -155,7 +155,7 @@
     </files>
     <settings>
         <setting var="category_nav_mode" control_type="radio">
-            <value>sidebar</value>
+            <value>dropdown</value>
             <name locale="ru_RU">Меню категорий товаров</name>
             <name locale="en_US">Category navigation menu</name>
             <options>

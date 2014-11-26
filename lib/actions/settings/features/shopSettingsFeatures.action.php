@@ -30,6 +30,8 @@ class shopSettingsFeaturesAction extends waViewAction
             $features = array();
         }
 
+        $this->view->assign('type_templates', shopTypeModel::getTemplates());
+
         $this->view->assign('show_all_features', $show_all_features);
         $this->view->assign('show_all_types', (count($types) - $types_per_page) < 3);
         $this->view->assign('types_per_page', $types_per_page);

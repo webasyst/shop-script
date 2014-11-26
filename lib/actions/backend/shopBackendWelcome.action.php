@@ -1,4 +1,5 @@
 <?php
+
 class shopBackendWelcomeAction extends waViewAction
 {
     private $config;
@@ -11,11 +12,10 @@ class shopBackendWelcomeAction extends waViewAction
         $path = $this->getConfig()->getConfigPath('data/welcome/', false);
         if (file_exists($path)) {
             $files = waFiles::listdir($path, false);
+            $this->types = shopTypeModel::getTemplates();
             foreach ($files as $file) {
                 if (preg_match('/^country_([a-z]{3})\.php$/', $file, $matches)) {
                     $this->countries[$matches[1]] = $matches[1];
-                } elseif (preg_match('/^type_([a-z]\w+)\.php$/', $file, $matches)) {
-                    $this->types[$matches[1]] = include($path.$file);
                 }
             }
         }
@@ -87,7 +87,6 @@ class shopBackendWelcomeAction extends waViewAction
 
         if (!empty($this->types)) {
             $type_model = new shopTypeModel();
-            $feature_model = new shopFeatureModel();
             $type_features_model = new shopTypeFeaturesModel();
 
             $types = waRequest::post('types');
@@ -98,61 +97,28 @@ class shopBackendWelcomeAction extends waViewAction
             }
             if ($types) {
                 foreach ($types as $type) {
-                    if (!empty($this->types[$type])) {
-                        $type = $this->types[$type];
-                        $type['name'] = ifempty($this->translate[$type['name']], $type['name']);
-                        $type['id'] = $type_model->insert($type);
-                        if ($type['id'] && !empty($type['features'])) {
-                            foreach ($type['features'] as $code => $feature) {
-                                $feature += array(
-                                    'type'       => 'varchar',
-                                    'selectable' => false,
-                                    'multiple'   => false,
-                                );
-                                $feature['types'] = array($type['id']);
-                                $feature['name'] = ifempty($this->translate[$feature['name']], $feature['name']);
-                                $feature['code'] = $code;
-                                $id = null;
-                                if ($data = $feature_model->getByField('code', $code)) {
-                                    if (($feature['type'] == $data['type']) && ($feature['selectable'] == $data['selectable']) && ($feature['multiple'] == $data['multiple'])) {
-                                        $id = $data['id'];
-                                    }
-
-                                }
-                                $feature['id'] = $feature_model->save($feature, $id);
-
-                                if ($feature['id'] && !empty($feature['selectable']) && !empty($feature['values'])) {
-                                    foreach ($feature['values'] as & $value) {
-                                        if (is_string($value)) {
-                                            $value = ifempty($this->translate[$value], $value);
-                                        } elseif (isset($value['value'])) {
-                                            $value['value'] = ifempty($this->translate[$value['value']], $value['value']);
-                                        }
-                                    }
-                                    unset($value);
-                                    $feature_model->setValues($feature, $feature['values'], false, true);
-                                }
-                                $type_features_model->updateByFeature($feature['id'], $feature['types'], false);
-                            }
-                        }
-                    }
+                    $type_model->insertTemplate($type);
                 }
             }
         }
 
         $set_model = new shopSetModel();
-        $set_model->add(array(
-            'id'   => 'promo',
-            'name' => _w('Featured on homepage'),
-            'type' => shopSetModel::TYPE_STATIC,
-        ));
-        $set_model->add(array(
-            'id'    => 'bestsellers',
-            'name'  => _w('Bestsellers'),
-            'type'  => shopSetModel::TYPE_DYNAMIC,
-            'count' => 8,
-            'rule'  => 'rating DESC',
-        ));
+        $set_model->add(
+            array(
+                'id'   => 'promo',
+                'name' => _w('Featured on homepage'),
+                'type' => shopSetModel::TYPE_STATIC,
+            )
+        );
+        $set_model->add(
+            array(
+                'id'    => 'bestsellers',
+                'name'  => _w('Bestsellers'),
+                'type'  => shopSetModel::TYPE_DYNAMIC,
+                'count' => 8,
+                'rule'  => 'rating DESC',
+            )
+        );
 
 
 // notifications

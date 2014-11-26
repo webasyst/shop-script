@@ -27,7 +27,7 @@
             [`Storefront link`]:
             {foreach $frontend_urls as $frontend_url}
                 <span class="s-product-frontend-url-not-empty">
-                    <a href="{$frontend_url.url}" target="_blank">{$frontend_url.url}</a><i class="icon10 new-window"></i>
+                    <a href="{$frontend_url.url}" target="_blank"><span>{$frontend_url.url}</span></a><i class="icon10 new-window"></i>
                 </span>
             {/foreach}
             <span class="s-product-frontend-url-empty gray" {if !empty($frontend_urls)}style="display:none;"{/if}>
@@ -290,7 +290,7 @@
                         <ul class="menu-v with-icons">
                             {foreach $reviews as $review}
                                 <li data-id="{$review.id}" data-parent-id="0">
-                                {include file="./include.review.html" inline reply_allowed=true reply_link="#/product/{$product.id}/edit/reviews/{$review.id}/" single_view=true}
+                                {include file="./include.review.html" reply_allowed=true reply_link="#/product/{$product.id}/edit/reviews/{$review.id}/" single_view=true inline}
                                 </li>
                             {/foreach}
                         </ul>
@@ -382,7 +382,7 @@
                                             {$frontend_url.base}
                                         </span>
                                         <a href="{$frontend_url.url}"  class="s-frontend-base-url" target="_blank">
-                                            {$frontend_url.base}
+                                            <span>{$frontend_url.base}</span>
                                             <span id="s-product-frontend-url">{$product.url}</span>
                                             <span class="slash">/</span>
                                         </a>
@@ -441,48 +441,79 @@
                 <input type="hidden" name="product[type_id]" value="">
                 {/if}
                 <div class="field">
-                    <div class="name">[`Categories`]</div>
+                    <div class="name">[`Categories`]</div>{$_time=microtime(true)}
+                    {$_show_selects=(count($product.categories)*count($categories) < 200)}
+
+                    {function categories_select category_id=0}
+                        <select name="product[categories][]" class="s-product-categories">
+                            {if !empty($categories)}
+                                <option value="select" {if !$category_id}selected="selected"{/if}>
+                                    [`Please select a category`]
+                                </option>
+                                <option value="create">[`Create new category...`]</option>
+                                <option class="separator" value="---" disabled="disabled">---</option>
+                                {foreach $categories as $category}
+                                    <option class="category" value="{$category.id}" {if $category_id == $category.id} selected="selected"{/if}>{"-"|str_repeat:$category.depth}{$category.name|escape}</option>
+                                {/foreach}
+                            {else}
+                                <option value="">[`No category exists`]</option>
+                                <option value="create">[`Create new category...`]</option>
+                                <option class="separator" value="---" disabled="disabled" style="display:none;">---</option>
+                            {/if}
+                        </select>
+                        <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$category_id}style="display:none;"{/if}><i class="icon10 delete-bw no-overhanging"></i></a>
+
+                        <span class="s-storefront-map">
+                            {if isset($storefront_map[$category_id])}
+                                {foreach $storefront_map[$category_id] as $storefront}
+                                    <a class="hint" href="{$storefront}" target="_blank">{$storefront}</a>
+                                {/foreach}
+                            {/if}
+                        </span>
+                    {/function}
+
+                {foreach $product.categories as $category_id => $c}
                     <div class="value s-product-categories no-shift">
-                        {function categories_select category_id=0}
-                            <select name="product[categories][]" class="s-product-categories">
-                                {if !empty($categories)}
-                                    <option value="select" {if !$category_id}selected="selected"{/if}>
-                                        [`Please select a category`]
-                                    </option>
-                                    <option value="create">[`Create new category...`]</option>
-                                    <option class="separator" value="---" disabled="disabled">---</option>
-                                    {foreach $categories as $category}
-                                        <option class="category" value="{$category.id}" {if $category_id == $category.id} selected="selected"{/if}>{"-"|str_repeat:$category.depth}{$category.name|escape}</option>
-                                    {/foreach}
-                                {else}
-                                    <option value="">[`No category exists`]</option>
-                                    <option value="create">[`Create new category...`]</option>
-                                    <option class="separator" value="---" disabled="disabled" style="display:none;">---</option>
-                                {/if}
-                            </select>
-                            {strip}
-                            <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$category_id}style="display:none;"{/if}>
-                                <i class="icon10 delete-bw no-overhanging"></i>
-                            </a>
-                            {/strip}
-                            <span class="s-new-category" style="display:none;">
-                                <input type="text" name="new_category" class="new-category" class="js-ignore-change">
-                                <input type="hidden" name="product[categories][]" class="val" value="{$category_id}" disabled="disabled">
-                                <input type="button" value="[`Create`]">
-                            </span>
+                        {if $_show_selects || $c@first}
+                            {categories_select category_id=$category_id}
+                        {else}
+                            <input value="{$c.id}" name="product[categories][]" type="hidden" class="s-product-categories">
+                            <i class="icon16 folder"></i>
+                            {$_parent_id = $c.parent_id}
+                            {$_path=array()}
+                            {$_path[$c.depth]=$c.name}
+                            {while $_parent_id && isset($categories[$_parent_id])}
+                                {$_path[$categories[$_parent_id]['depth']]=$categories[$_parent_id]['name']}
+                                {$_parent_id = $categories[$_parent_id]['parent_id']}
+                            {/while}
+                            <!-- {ksort($_path)} -->
+                            {implode('→',$_path)|escape}
+
+                            {*
+                            <a href="#/product/{$product.id}/edit/main/categories/edit/"><i class="icon16 edit"></i></a>
+                            *}
+                            <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$c.id}style="display:none;"{/if}><i class="icon10 delete-bw no-overhanging"></i></a>
+
                             <span class="s-storefront-map">
-                                {if isset($storefront_map[$category_id])}
-                                    {foreach $storefront_map[$category_id] as $storefront}
-                                        <a class="hint" href="{$storefront}" target="_blank">{$storefront}</a>
-                                    {/foreach}
-                                {/if}
+                            {if isset($storefront_map[$category_id])}
+                                {foreach $storefront_map[$category_id] as $storefront}
+                                    <a class="hint" href="{$storefront}" target="_blank">{$storefront}</a>
+                                {/foreach}
+                            {/if}
                             </span>
-                        {/function}
-                        {foreach $product.categories as $category_id => $c}
-                            <div>{categories_select category_id=$category_id}</div>
-                        {foreachelse}
-                            <div>{categories_select}</div>
-                        {/foreach}
+                        {/if}
+                    </div>
+                {/foreach}
+
+                    <div class="value s-product-categories no-shift" {if count($product.categories)} style="display: none;" {/if}>
+                        {categories_select}
+                        <span class="s-new-category" style="display:none;">
+                            <input type="text" name="new_category" class="new-category" class="js-ignore-change">
+                            <input type="hidden" name="product[categories][]" class="val" value="{$category_id}" disabled="disabled">
+                            <input type="button" value="[`Create`]">
+                        </span>
+                    </div>
+                    <div class="value s-product-categories no-shift">
                         <ul class="menu-v s-category-action">
                             <li><a href="#/product/{$product.id}/edit/main/categories/add/" class="small inline-link js-action"><b><i>[`Add category`]</i></b></a></li>
                         </ul>
@@ -521,8 +552,10 @@
                                                {if empty($features) || $product.sku_type == shopProductModel::SKU_TYPE_FLAT}checked{/if}
                                                 /> [`Flat SKU list`]
                                         <i class="icon16 ss sku-type-flat"></i>
-                                        <br>
-                                        <span class="hint"><br>[`Best for single-priced products and products with a flat list of purchase options (SKUs). SKUs are added one-by-one arbitrarly. Customer selects individual SKU and adds it to shopping cart.`]</span>
+                                        <p class="hint">
+                                            <br>
+                                            [`Best for single-priced products and products with a flat list of purchase options (SKUs). SKUs are added one-by-one arbitrarly. Customer selects individual SKU and adds it to shopping cart.`]
+                                        </p>
                                     </label>
                                 </li>
                                 <li style="width: 400px; margin-left: 50px;">
@@ -534,15 +567,14 @@
                                                 {if empty($features)}disabled="disabled"{/if}
                                                 /> <span{if empty($features)} class="gray"{/if}>[`Selectable features`]</span>
                                         <i class="icon16 ss sku-type-selectable"></i><br>
-                                        <span class="hint">
+                                        <p class="hint">
                                             <br>
                                             [`Best for multi-dimensional featured products, e.g. apparel or footwear which can vary in size and color. Flat SKU list is created automatically based on the combination of features offered for selection. Customer is prompted to choose preferable product feature values which unambiguously identifies SKU that is being added to shopping cart. `]
-                                        </span>
+                                        </p>
 
-                                        <span class="small highlighted" data-sku-type="1" {if !empty($features)} style="display:none;"{/if}>
-                                            <br><br>
+                                        <p class="small highlighted" data-sku-type="1" {if !empty($features)} style="display:none;"{/if}>
                                             [`To activate this mode, this particular product must be assigned a product type which offers at least one product feature with a <strong>multiple choice</strong> control, i.e. checkbox list. The list of available product types and features is configured on the <em>Settings &rarr; Product types &amp; features</em> screen.`]<br>
-                                        </span>
+                                        </p>
                                     </label>
                                 </li>
                             </ul>

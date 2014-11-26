@@ -81,8 +81,12 @@ if (typeof($) != 'undefined') {
             $('#s-settings-content').on('click', 'a.js-action', function () {
                 return self.click($(this));
             });
-            $('#s-settings-features-type-dialog').on('click', 'a.js-action', function () {
+            $('#s-settings-features-type-dialog ul.js-type-icon').on('click', 'a.js-action', function () {
                 return self.featuresTypeIcon($(this));
+            });
+
+            $('#s-settings-features-type-dialog ul.js-add-type').on('click', 'a.js-action', function () {
+                return self.featuresTypeAddToggle($(this));
             });
 
             setTimeout(function () {
@@ -513,7 +517,7 @@ if (typeof($) != 'undefined') {
             $('div.s-settings-form:first > div.js-loading:first').show();
             var self = this;
             $.get('?module=settings&action=featuresFeatureList',
-                {'type': type},function (data) {
+                {'type': type}, function (data) {
                     self.$features_list.find('> tbody:first').html(data);
                 }, 'html').complete(function () {
                     $.shop.trace('$.settings.featuresTypeLoadList complete');
@@ -562,7 +566,7 @@ if (typeof($) != 'undefined') {
                 $.post('?module=settings&action=featuresFeatureType', {
                     'feature': $feature.data('feature'),
                     'type': target
-                },function (data) {
+                }, function (data) {
                     $.shop.trace('$.settings.featuresFeatureTypeChange ajax', data);
 
                     var index = current.indexOf(NaN);
@@ -579,25 +583,25 @@ if (typeof($) != 'undefined') {
                         current = [target];
                     }
                 }, 'json').complete(function () {
-                        var types = '' + current.sort().join(' ');
-                        $feature.attr('data-types', types).data('types', types);
-                        if (self.path.tail === 'empty') {
+                    var types = '' + current.sort().join(' ');
+                    $feature.attr('data-types', types).data('types', types);
+                    if (self.path.tail === 'empty') {
 
-                            if (self.features_options.show_all_features) {
-                                $feature.hide();
-                                self.featuresFilter(self.path.tail, true);
+                        if (self.features_options.show_all_features) {
+                            $feature.hide();
+                            self.featuresFilter(self.path.tail, true);
 
-                            } else {
-                                $feature.remove();
-                                self.featuresHelper.featureCountByType(self.path.tail);
-                            }
                         } else {
-                            self.featuresHelper.featureCountByType(self.features_options.show_all_features ? undefined : self.path.tail);
+                            $feature.remove();
+                            self.featuresHelper.featureCountByType(self.path.tail);
                         }
-                        $.shop.trace('$.settings.featuresFeatureTypeChange tmpl', current);
-                    }).error(function () {
+                    } else {
+                        self.featuresHelper.featureCountByType(self.features_options.show_all_features ? undefined : self.path.tail);
+                    }
+                    $.shop.trace('$.settings.featuresFeatureTypeChange tmpl', current);
+                }).error(function () {
 
-                    });
+                });
             }
         },
 
@@ -785,11 +789,19 @@ if (typeof($) != 'undefined') {
                     var $this = $(this);
                     var form = $this.find('form');
 
-                    $(this).find('.js-add-type').show();
-                    $(this).find('.js-edit-type').hide();
+                    $this.find('.js-add-type').show();
+                    $this.find('.js-add-type-custom').show();
+                    $this.find('.js-add-type-template').hide();
+                    var $ul = $this.find('ul.js-add-type');
+                    $ul.find('li.selected').removeClass('selected');
+                    $ul.find('li:first').addClass('selected');
 
-                    $this.find('ul li.selected').removeClass('selected');
-                    var icon = $this.find('ul li:first').addClass('selected').data('icon');
+                    $this.find(':input[name="source"]').val('custom');
+                    $this.find('.js-edit-type').hide();
+                    $this.find('.js-edit-type').hide();
+
+                    $this.find('ul.js-type-icon li.selected').removeClass('selected');
+                    var icon = $this.find('ul.js-type-icon li:first').addClass('selected').data('icon');
 
                     $this.find(':input[name="icon"]').val(icon);
                     $this.find(':input[name="icon_url"]').val('');
@@ -799,6 +811,7 @@ if (typeof($) != 'undefined') {
                 },
                 onSubmit: function (d) {
                     var form = d.find('form');
+                    var source = form.find(':input[name="source"]').val();
                     $.post(form.attr('action'), form.serialize(), function (response) {
                         try {
                             if (response && (response.status == 'ok')) {
@@ -806,10 +819,35 @@ if (typeof($) != 'undefined') {
                                 var type = response.data;
                                 $.tmpl('feature-type', type).insertBefore(self.$features_types.find('> li:last'));
                                 var $type = self.$features_types.find('>  li[data-type="' + type.id + '"]');
+                                if (type.features) {
+                                    for (var id in type.features) {
+                                        var $feature_old = self.$features_list.find('> tbody:first > tr[data-feature="' + type.features[id]['id'] + '"]:first');
+
+                                        var $feature = $.tmpl('feature', {
+                                            'types': self.featuresHelper.types(),
+                                            'feature': type.features[id]
+                                        });
+                                        if ($feature_old.length) {
+                                            $feature_old.replaceWith($feature);
+                                        } else {
+                                            self.$features_list.find('> tbody:first').prepend($feature);
+                                        }
+                                        // self.featuresFeatureChange($feature, type.features[id]);
+                                        if (!self.featuresHelper.type()) {
+                                            $feature.find(' > td > .sort').hide()
+                                        }
+                                    }
+                                    self.featuresHelper.featureCountByType();
+                                }
                                 self.featuresInitDroppable($type);
                                 d.trigger('close');
                                 window.location.hash = '#/features/' + type.id + '/';
+                                if (source == 'template') {
+                                    //TODO use features list in response
+                                    //window.location.reload(true);
+                                }
                             } else {
+                                //todo
                                 // display error;
                             }
                         } catch (e) {
@@ -820,6 +858,27 @@ if (typeof($) != 'undefined') {
                     return false;
                 }
             });
+        },
+        featuresTypeAddToggle: function ($el) {
+            var $dialog = $('#s-settings-features-type-dialog');
+            var source = $el.attr('href').replace(/(^#\/features\/type\/add\/|\/$)/g, '');
+            $el.parents('ul').find('li.selected').removeClass('selected');
+            $el.parent('li').addClass('selected');
+            $.shop.trace('featuresTypeAddToggle', [source, $dialog]);
+            switch (source) {
+                case 'custom':
+                    $dialog.find('.js-add-type-custom').show();
+                    $dialog.find('.js-add-type-template').hide();
+                    break;
+                case 'template':
+                    $dialog.find('.js-add-type-template').show();
+                    $dialog.find('.js-add-type-custom').hide();
+                    break;
+            }
+
+            $dialog.find(':input[name="source"]').val(source);
+            return false;
+
         },
 
         featuresTypeEdit: function () {
@@ -832,12 +891,15 @@ if (typeof($) != 'undefined') {
                     onLoad: function () {
                         var $this = $(this);
                         $.shop.trace('$.settings.featuresTypeEdit', this);
+
+
+                        $this.find(':input[name="source"]').val('custom');
                         var name = $type.find('.js-type-name').text().replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, '');
                         var icon = $type.data('icon').replace(/^icon\.([\w\d\-_]+)$/, '$1');
 
-                        $this.find('ul li.selected').removeClass('selected');
-                        if ($this.find('ul li[data-icon="' + icon + '"]').length) {
-                            $this.find('ul li[data-icon="' + icon + '"]').addClass('selected');
+                        $this.find('ul.js-type-icon li.selected').removeClass('selected');
+                        if ($this.find('ul.js-type-icon li[data-icon="' + icon + '"]').length) {
+                            $this.find('ul.js-type-icon li[data-icon="' + icon + '"]').addClass('selected');
                             $this.find(':input[name="icon"]').val(icon);
                             $this.find(':input[name="icon_url"]').val('');
                         } else {
@@ -912,10 +974,10 @@ if (typeof($) != 'undefined') {
                             self.$features_list.find('> tbody > tr').filter(function () {
                                 return self.featuresHelper.featureTypes($(this)).indexOf(type) >= 0;
                             }).each(function () {
-                                    var pattern = new RegExp('\b' + type + '\b\s+');
-                                    var $el = $(this);
-                                    $el.data('types', ('' + $el.data('types')).replace(pattern, ''));
-                                });
+                                var pattern = new RegExp('\b' + type + '\b\s+');
+                                var $el = $(this);
+                                $el.data('types', ('' + $el.data('types')).replace(pattern, ''));
+                            });
 
                             if (!self.features_options.show_all_features) {
                                 self.$features_list.find('li[data-type="' + type + '"]').remove();
@@ -1001,11 +1063,11 @@ if (typeof($) != 'undefined') {
                 $.shop.trace('$.settings.featuresFeatureAdd', feature);
                 var self = this;
                 var $feature = $.tmpl('edit-feature', {
-                        'types': this.featuresHelper.types(),
-                        'feature': feature
+                    'types': this.featuresHelper.types(),
+                    'feature': feature
                 });
                 self.$features_list.find('> tbody:first').prepend($feature);
-                
+
                 self.featuresFeatureChange($feature, feature);
                 if (!self.featuresHelper.type()) {
                     $feature.find(' > td > .sort').hide()
@@ -1167,7 +1229,7 @@ if (typeof($) != 'undefined') {
             var $feature = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"].js-inline-edit');
             var feature_raw = $feature.find(':input').serialize();
             //$.shop.trace('$.settings.featuresFeatureSave', feature_raw);
-            $.post('?module=settings&action=featuresFeatureSave', feature_raw,function (data) {
+            $.post('?module=settings&action=featuresFeatureSave', feature_raw, function (data) {
                 if (data.status == 'ok') {
                     var feature = data.data[feature_id];
                     feature.values_template = feature.values_template || (self.features_options.value_templates[feature.type] || '');
@@ -1182,54 +1244,53 @@ if (typeof($) != 'undefined') {
 
 
                     $.when($feature.replaceWith($.tmpl(error ? 'edit-feature' : 'feature', {
-                            'types': self.featuresHelper.types(!error),
-                            'feature': feature
-                        }))).done(function () {
+                        'types': self.featuresHelper.types(!error),
+                        'feature': feature
+                    }))).done(function () {
 
-                            if (error) {
-                                $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"]:first');
-                                $feature.on('click focus', 'input', function () {
-                                    var $this = $(this);
-                                    var $parent = $(this).parents('ul');
-                                    $parent.find('input.red').removeClass('red');
-                                    if ($this.hasClass('error')) {
-                                        var original = parseInt($(this).data('original-id')) || 0;
-                                        if (original) {
-                                            $parent.find('input[name$="\\[' + original + '\\]"]').addClass('red');
-                                        }
+                        if (error) {
+                            $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"]:first');
+                            $feature.on('click focus', 'input', function () {
+                                var $this = $(this);
+                                var $parent = $(this).parents('ul');
+                                $parent.find('input.red').removeClass('red');
+                                if ($this.hasClass('error')) {
+                                    var original = parseInt($(this).data('original-id')) || 0;
+                                    if (original) {
+                                        $parent.find('input[name$="\\[' + original + '\\]"]').addClass('red');
                                     }
+                                }
 
-                                });
-                            } else {
-                                $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + feature.id + '"]:first');
-                                $feature.hide();
-                                self.featuresFilter(self.path.tail, true);
-                            }
-                        });
+                            });
+                        } else {
+                            $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + feature.id + '"]:first');
+                            $feature.hide();
+                            self.featuresFilter(self.path.tail, true);
+                        }
+                    });
                 }
             }, 'json').complete(function () {
-                    //self.featuresHelper.featureCountByType(self.featuresHelper.type());
-                });
+                //self.featuresHelper.featureCountByType(self.featuresHelper.type());
+            });
             return false;
         },
 
         featuresFeatureTypeIncompatible: function (feature_type, type_to) {
             var ban_rule = '';
-            
+
             if (feature_type.type == type_to.type &&
                 feature_type.selectable == type_to.selectable &&
-                feature_type.multiple == type_to.multiple) 
-            {
+                feature_type.multiple == type_to.multiple) {
                 return true;
             }
-            
+
             if (feature_type.multiple == '1' && type_to.multiple != '1') {
                 return true;
             }
-            
+
             feature_type = feature_type.type;
             type_to = type_to.type;
-            
+
             var types = $.settings.features_incompatible_types || {};
             for (var type_from in types) {
                 var list = types[type_from];
@@ -1289,14 +1350,14 @@ if (typeof($) != 'undefined') {
                     var f = self.$features_list.find('tr[data-feature=' + feature_id + ']');
                     var old_type = $('.js-feature-type-name', f).text();
                     d.find('.feature-old-type').text(old_type);
-                    
+
                     var f_type = {
                         type: f.data('type'),
                         selectable: f.data('selectable'),
                         multiple: f.data('multiple')
                     };
                     var subtypes_selects = d.find('.js-feature-subtypes-control').hide();
-                    
+
                     var types_select = d.find('.js-feature-types-control');
 
 
@@ -1326,7 +1387,7 @@ if (typeof($) != 'undefined') {
                             selectable: selected.data('selectable'),
                             multiple: selected.data('multiple')
                         };
-                        
+
                         // try choose proper subtype select
                         subtypes_selects.hide().each(function () {
                             var item = $(this);
@@ -1383,14 +1444,14 @@ if (typeof($) != 'undefined') {
                                 $.shop.trace('$.settings.featuresFeatureType ', feature);
 
                                 $.when($feature.replaceWith($.tmpl('feature', {
-                                        'types': self.featuresHelper.types(false),
-                                        'feature': feature
-                                    }))).done(function () {
-                                        dialog.trigger('close');
-                                        $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + feature.id + '"]:first');
-                                        $feature.hide();
-                                        self.featuresFilter(self.path.tail, true);
-                                    });
+                                    'types': self.featuresHelper.types(false),
+                                    'feature': feature
+                                }))).done(function () {
+                                    dialog.trigger('close');
+                                    $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + feature.id + '"]:first');
+                                    $feature.hide();
+                                    self.featuresFilter(self.path.tail, true);
+                                });
                             } catch (e) {
                                 $.shop.error(e.gmessage, e);
                             }
@@ -1417,7 +1478,7 @@ if (typeof($) != 'undefined') {
                 feature_id: id,
                 after_id: after_id,
                 type_id: type
-            },function (data, textStatus) {
+            }, function (data, textStatus) {
                 if (data.status == 'ok') {
                     // update internal sort data
                     // use code like SQL
@@ -1462,9 +1523,9 @@ if (typeof($) != 'undefined') {
                     $features.sortable('cancel');
                 }
             }, 'json').error(function (jqXHR, errorText) {
-                    $features.sortable('cancel');
-                    $.shop.error('featuresFeatureSort ajaxError' + errorText, jqXHR);
-                });
+                $features.sortable('cancel');
+                $.shop.error('featuresFeatureSort ajaxError' + errorText, jqXHR);
+            });
         },
 
         featuresFeatureDelete: function (feature_id) {
@@ -1537,7 +1598,7 @@ if (typeof($) != 'undefined') {
                 $container.find('li.js-more-link').html('<i class="icon16 loading"></i>');
             }
             $.get('?module=settings&action=featuresFeatureValues',
-                {'id': feature_id},function (data) {
+                {'id': feature_id}, function (data) {
                     $.shop.trace('$.settings.featuresFeatureValuesShow ajax');
                     $container.html(data);
                 }, 'html').complete(function () {
@@ -1734,7 +1795,8 @@ if (typeof($) != 'undefined') {
              */
             nameByCode: function (value, $input) {
                 if (value && !$input.data('changed') && (($input.prop("defaultValue") == '') || ($input.val() == ''))) {
-                    $.ajax({url: '?module=settings&action=featuresHelper',
+                    $.ajax({
+                        url: '?module=settings&action=featuresHelper',
                         dataType: 'json',
                         data: {code: value},
                         success: function (response) {
@@ -1747,7 +1809,8 @@ if (typeof($) != 'undefined') {
             },
             codeByName: function (value, $input, callback) {
                 if (value && !$input.data('changed') && (($input.prop("defaultValue") == '') || ($input.val() == ''))) {
-                    $.ajax({url: '?module=settings&action=featuresHelper',
+                    $.ajax({
+                        url: '?module=settings&action=featuresHelper',
                         dataType: 'json',
                         data: {name: value},
                         success: function (response) {

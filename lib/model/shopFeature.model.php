@@ -341,8 +341,22 @@ SQL;
         $data = array();
         $sort = 0;
         foreach ($values as $id => $value) {
-            $data[] = $model->addValue($feature['id'], $value, $force ? null : $id, $feature['type'], ++$sort);
+            $value = $model->addValue($feature['id'], $value, $force ? null : $id, $feature['type'], ++$sort);
+            if ($force) {
+                if (!empty($value['error'])) {
+                    if (!empty($value['error']['original_id'])) {
+                        $value['id'] = $value['error']['original_id'];
+                        $value['value'] = $value['error']['original_value'];
+                        unset($value['error']);
+                        $data[] = $value;
+                    }
+                }
+            } else {
+                $data[] = $value;
+            }
         }
+
+
         $this->recount($feature);
         return $data;
 
@@ -362,8 +376,9 @@ SQL;
                 self::TYPE_COLOR,
             );
             foreach ($types as $type) {
-                $model = self::getValuesModel($type);
-                $sql = <<<SQL
+                try {
+                    $model = self::getValuesModel($type);
+                    $sql = <<<SQL
             UPDATE `{$this->table}` `f`
 SET `count` = (
 SELECT COUNT(*) FROM `{$model->getTableName()}` `v`
@@ -371,7 +386,12 @@ WHERE (`v`.`feature_id` = `f`.`id`)
 )
 WHERE `f`.`type`=s:0
 SQL;
-                $this->query($sql, $type);
+                    $this->query($sql, $type);
+                } catch (waDbException $ex) {
+                    throw $ex;
+                } catch (waException $ex) {
+                    //ignore waException
+                }
             }
         }
     }

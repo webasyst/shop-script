@@ -281,7 +281,9 @@ class shopCategoryModel extends waNestedSetModel
     /**
      * Insert new item to on some level (parent)
      * @param array $data
-     * @param int $parent_id If 0 than rool level
+     * @param int $parent_id If 0 than root level
+     * @param int|null $before_id If null than place at the end of level
+     * @return int|false record id
      */
     public function add($data, $parent_id = null, $before_id = null)
     {

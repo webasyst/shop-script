@@ -375,7 +375,6 @@ ul.s-product-image-crops li.selected img { border: 4px solid #FDDA3B; border-rad
 
 .s-product-id { display: block; text-align: center; width: 200px; }
 
-.s-price-selectable { display: inline; }
 tr.s-sku-virtual td,
 tr.s-sku-virtual td input { font-style: italic; color: #777; }
 
@@ -920,5 +919,30 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 @media screen and (max-width: 1024px) {
     
     #mainmenu ul.tabs li a { padding-left: 0.2em; padding-right: 0.2em; }
+    
+    #s-sidebar { width: 170px !important; }
+    .sidebar.right200px { width: 170px !important; }
+    .content.right200px { margin-right: 170px !important; }
+    .s-sidebar-width-control { display: none; }
+    
+    ul.s-orders li { width: 217px; }
+    ul.s-orders li .profile.image50px .details { margin-left: 55px; }
+    
+    #s-product-profile-page .content.right200px { margin-right: 170px; }
+    #s-orders-search { display: none; }
+}
+
+@media only screen 
+and (min-device-width : 768px) 
+and (max-device-width : 1024px) 
+and (orientation : portrait) { 
+
+    /* iPad portrait mode */
+
+    .s-order-aux { display: none; }
+    .s-order .profile { margin-right: 0; }
+    
+    #s-product-profile-page .content.right200px { margin-right: 0 !important; }
+    #s-toolbar { display: none !important; }
     
 }

@@ -19,8 +19,8 @@ class shopSettingsFeaturesValuesTypeConvertController extends waJsonController
 
         $to = array(
             'type'       => $to,
-            'selectable' => waRequest::post('selectable', 0),
-            'multiple'   => waRequest::post('multiple', 0)
+            'selectable' => (int)waRequest::post('selectable', 0, waRequest::TYPE_INT),
+            'multiple'   => (int)waRequest::post('multiple', 0, waRequest::TYPE_INT)
         );
 
         $result = shopFeatureValuesConverter::run($feature_id, $to);
@@ -30,6 +30,8 @@ class shopSettingsFeaturesValuesTypeConvertController extends waJsonController
 
             if ($feature = $feature_model->getById($feature_id)) {
                 $this->response = array($feature_id => &$feature);
+                $feature['selectable'] = (int)$feature['selectable'];
+                $feature['multiple'] = (int)$feature['multiple'];
 
                 if ($feature['selectable']) {
                     $this->response = $feature_model->getValues($this->response, true);

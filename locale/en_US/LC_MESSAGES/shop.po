@@ -8541,3 +8541,19 @@ msgstr ""
 #: /wa-apps/shop/lib/config/logs.php:72
 msgid "registered an affiliate payout"
 msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:49
+msgid "Duplicate"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:358
+msgid "Custom product type"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:359
+msgid "Select from templates"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:385
+msgid "Product type template"
+msgstr ""

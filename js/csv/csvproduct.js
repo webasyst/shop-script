@@ -195,7 +195,9 @@ if (typeof($) != 'undefined') {
                 }
                 self.csv_productMapHandler($this, value);
             });
-            this.csv_product_form_map.filter('[value="-1"],:first').change();
+            this.csv_product_form_map.filter(function (index, el) {
+                return (index == 0) || ($(el).val() == '-1');
+            }).change();
             if (this.csv_product_data.primary_callback) {
                 clearTimeout(this.csv_product_data.primary_callback);
             }

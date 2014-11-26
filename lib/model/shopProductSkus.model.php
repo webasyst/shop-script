@@ -55,8 +55,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
 
         $product_model = new shopProductModel();
         $product = $product_model->getById($sku['product_id']);
-        if (!empty($sku['file_name'])) {
-            $file_path = shopProduct::getPath($sku['product_id'], "sku_file/{$sku['id']}.".pathinfo($sku['file_name'], PATHINFO_EXTENSION));
+        if ($file_path = self::getPath($sku)) {
             waFiles::delete($file_path);
         }
 
@@ -66,11 +65,13 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         }
 
         // get aggregated info of skus for this product
-        $data = $this->query("
+        $data = $this->query(
+            "
             SELECT COUNT(id) AS cnt, MAX(price) AS max_price, MIN(price) AS min_price
             FROM `{$this->table}`
             WHERE product_id = {$product['id']} AND id != {$sku_id}
-        ")->fetchAssoc();
+        "
+        )->fetchAssoc();
 
         if (!$data) {
             return false; // something's wrong
@@ -376,8 +377,8 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
 
             if (empty($data['eproduct']) && !empty($data['file_name'])) {
                 $file_path = shopProduct::getPath(
-                                        $data['product_id'],
-                                            "sku_file/{$id}.".pathinfo($data['file_name'], PATHINFO_EXTENSION)
+                    $data['product_id'],
+                    "sku_file/{$id}.".pathinfo($data['file_name'], PATHINFO_EXTENSION)
                 );
                 waFiles::delete($file_path);
                 $data['file_name'] = '';
@@ -582,12 +583,14 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         if (!$log_model) {
             $log_model = new shopProductStocksLogModel();
         }
-        $log_model->add(array(
-            'product_id'   => $product_id,
-            'sku_id'       => $sku_id,
-            'before_count' => $count,
-            'after_count'  => 0
-        ));
+        $log_model->add(
+            array(
+                'product_id'   => $product_id,
+                'sku_id'       => $sku_id,
+                'before_count' => $count,
+                'after_count'  => 0
+            )
+        );
     }
 
     public function setData(shopProduct $product, $data)
@@ -682,5 +685,10 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         $product_stocks_model = new shopProductStocksModel();
 
         return $product_stocks_model->transfer($src_stock, $dst_stock, $sku_id, $count);
+    }
+
+    public static function getPath($sku)
+    {
+        return empty($sku['file_name']) ? null : shopProduct::getPath($sku['product_id'], "sku_file/{$sku['id']}.".pathinfo($sku['file_name'], PATHINFO_EXTENSION));
     }
 }

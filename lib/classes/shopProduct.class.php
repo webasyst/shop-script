@@ -30,10 +30,13 @@
  * @property float $compare_price_selectable
  * @property float $purchase_price_selectable
  * @property string $currency
+ * @property-read string $currency_html
  * @property float $min_price
  * @property float $max_price
  * @property int $tax_id
  * @property int|null $count
+ *
+ * @property-read array $pages
  *
  * @property int $type_id
  * @property array $type
@@ -60,8 +63,8 @@ class shopProduct implements ArrayAccess
     protected $model;
 
     /**
-     * Creates a new product object or a product object corresponding to existing product. 
-     * 
+     * Creates a new product object or a product object corresponding to existing product.
+     *
      * @param int|array $data Product id or product data array
      */
     public function __construct($data = array())
@@ -106,7 +109,7 @@ class shopProduct implements ArrayAccess
 
     /**
      * Returns product id.
-     * 
+     *
      * @return int
      */
     public function getId()
@@ -116,13 +119,13 @@ class shopProduct implements ArrayAccess
 
     /**
      * Returns information about product's images.
-     * 
+     *
      * @param string|array $sizes Image size id or array of size ids.
-     *     Acceptable values: 'big', 'default', 'thumb', 'crop', 'crop_small'. If empty, 'crop' is assumed by default. 
+     *     Acceptable values: 'big', 'default', 'thumb', 'crop', 'crop_small'. If empty, 'crop' is assumed by default.
      * @param bool $absolute Whether absolute or relative image URLs must be returned.
-     * 
+     *
      * @see shopConfig::$image_sizes — actual image size values correspondings to size ids
-     * 
+     *
      * @return array Array containing sub-arrays of individual product images
      */
     public function getImages($sizes = array(), $absolute = false)
@@ -140,7 +143,7 @@ class shopProduct implements ArrayAccess
 
     /**
      * Returns product's subpages.
-     * 
+     *
      * @return array
      */
     public function getPages()
@@ -151,7 +154,7 @@ class shopProduct implements ArrayAccess
 
     /**
      * Returns the contact who has created the product.
-     * 
+     *
      * @return waContact
      */
     public function getContact()
@@ -159,9 +162,15 @@ class shopProduct implements ArrayAccess
         return new waContact($this->contact_id);
     }
 
+    public function getCurrencyHtml()
+    {
+        $info = waCurrency::getInfo($this->currency);
+        return ifset($info['sign_html'], $info['sign']);
+    }
+
     /**
      * Saves product data to database.
-     * 
+     *
      * @param array $data
      * @return bool Whether saved successfully
      */
@@ -235,9 +244,11 @@ class shopProduct implements ArrayAccess
                     if (!empty($this->data['type_id'])) {
                         $type_model = new shopTypeModel();
                         // increment on +1
-                        $type_model->incCounters(array(
-                            $this->data['type_id'] => 1
-                        ));
+                        $type_model->incCounters(
+                            array(
+                                $this->data['type_id'] => 1
+                            )
+                        );
                     }
 
                     $result = true;
@@ -271,11 +282,14 @@ class shopProduct implements ArrayAccess
     {
         #fix empty SKUs
         if (!$this->sku_count && empty($this->is_dirty) && empty($this->data['skus'])) {
-            $this->setData('skus', array(
-                -1 => array(
-                    'name' => '',
+            $this->setData(
+                'skus',
+                array(
+                    -1 => array(
+                        'name' => '',
+                    )
                 )
-            ));
+            );
         }
         if ($this->is_dirty) {
             $this->getStorage(null);
@@ -283,11 +297,14 @@ class shopProduct implements ArrayAccess
             foreach (array_keys(self::$data_storages) as $field) {
                 if (($field == 'skus') && !$this->sku_count && empty($this->is_dirty[$field]) && empty($this->data['skus'])) {
                     #fix empty SKUs on missed virtual SKUs
-                    $this->setData('skus', array(
-                        -1 => array(
-                            'name' => '',
+                    $this->setData(
+                        'skus',
+                        array(
+                            -1 => array(
+                                'name' => '',
+                            )
                         )
-                    ));
+                    );
                 }
                 if (!empty($this->is_dirty[$field]) && ($storage = $this->getStorage($field))) {
                     $this->data[$field] = $storage->setData($this, $raw = $this->data[$field]);
@@ -299,7 +316,7 @@ class shopProduct implements ArrayAccess
     /**
      * Executed on attempts to retrieve product property values.
      * @see http://www.php.net/manual/en/language.oop5.overloading.php
-     * 
+     *
      * @param string $name Property name
      * @return mixed|null Property value or null on failure
      */
@@ -309,7 +326,7 @@ class shopProduct implements ArrayAccess
             return $this->data[$name];
         }
 
-        $method = "get".ucfirst($name);
+        $method = "get".preg_replace_callback('@(^|_)([a-z])@', array(__CLASS__, 'camelCase'), $name);
         if (method_exists($this, $method)) {
             $this->data[$name] = $this->$method();
             return $this->data[$name];
@@ -320,10 +337,15 @@ class shopProduct implements ArrayAccess
         return null;
     }
 
+    private static function camelCase($m)
+    {
+        return strtoupper($m[2]);
+    }
+
     /**
      * Returns product property value.
-     * 
-     * @param string|null $name Value name. If not specified, all properties' values are returned. 
+     *
+     * @param string|null $name Value name. If not specified, all properties' values are returned.
      * @return mixed
      */
     public function getData($name = null)
@@ -338,7 +360,7 @@ class shopProduct implements ArrayAccess
     /**
      * Executed on attempts to change product property values.
      * @see http://www.php.net/manual/en/language.oop5.overloading.php
-     * 
+     *
      * @param string $name Property name
      * @param mixed $value New value
      * @return mixed New value
@@ -349,8 +371,8 @@ class shopProduct implements ArrayAccess
     }
 
     /**
-     * Changes product property values without saving them to database. 
-     * 
+     * Changes product property values without saving them to database.
+     *
      * @param string $name Property name
      * @param mixed $value New value
      * @return mixed New value
@@ -412,7 +434,7 @@ class shopProduct implements ArrayAccess
 
     /**
      * Returns relative path to directory containing specified product's files.
-     * 
+     *
      * @param int $product_id
      * @return string
      */
@@ -424,7 +446,7 @@ class shopProduct implements ArrayAccess
 
     /**
      * Returns path to specified product's data file or directory.
-     * 
+     *
      * @param int $product_id
      * @param string $file Sub-path of file or directory
      * @param bool $public Whether path to either directly available or authorization-protected file/directory must be returned
@@ -438,7 +460,7 @@ class shopProduct implements ArrayAccess
 
     /**
      * Returns information on product's type.
-     * 
+     *
      * @return array|null Product type info array, or null if product has no type
      */
     public function getType()
@@ -485,10 +507,10 @@ class shopProduct implements ArrayAccess
 
     /**
      * Returns products identified as cross-selling items for current product.
-     * 
+     *
      * @param int $limit Maximum number of items to be returned
      * @param bool $available_only Whether only products with positive or unlimited stock count must be returned
-     * 
+     *
      * @return array Array of cross-selling products' data sub-arrays
      */
     public function crossSelling($limit = 5, $available_only = false)
@@ -577,4 +599,256 @@ class shopProduct implements ArrayAccess
             return $this->model->checkRights($this->getId());
         }
     }
+
+    /**
+     * @param array $options
+     * @return shopProduct
+     * @throws waException
+     */
+    public function duplicate($options = array())
+    {
+        if (!$this->checkRights()) {
+            throw new waRightsException('Access denied');
+        }
+        $data = $this->data;
+        $skip = array(
+            'id',
+            'create_datetime',
+            'id_1c',
+            'rating',
+            'rating_count',
+            'total_sales',
+            'image_id',
+            'contact_id',
+            'ext',//?
+            'count',
+            'sku_count',
+        );
+
+        foreach ($skip as $field) {
+            if (isset($data[$field])) {
+                unset($data[$field]);
+            }
+        }
+
+        $duplicate = new shopProduct();
+        $this->getStorage(null);
+        $sku_files = array();
+        $sku_images = array();
+
+        $ignore_select = true;
+
+        foreach (self::$data_storages as $key => $i) {
+            $raw = $this->getStorage($key)->getData($this);
+            switch ($key) {
+                case 'features_selectable':
+                    $storage_data = array();
+                    if (!$ignore_select) {
+                        if ($this->sku_type == shopProductModel::SKU_TYPE_SELECTABLE) {
+                            if (!is_array($raw)) {
+                                $raw = array();
+                            }
+
+                            foreach ($raw as $id => $f) {
+                                if (!empty($f['selected'])) {
+                                    foreach ($f['values'] as $value_id => &$value) {
+                                        if (!empty($value['selected'])) {
+
+                                            $value = array(
+                                                'id' => $value_id,
+                                            );
+                                        } else {
+                                            unset($f['values'][$value_id]);
+                                        }
+                                    }
+                                    $storage_data[$id] = $f;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case 'skus':
+                    $storage_data = array();
+                    $i = 0;
+                    foreach ($raw as $sku_id => $sku) {
+                        if (!empty($sku['virtual']) || $ignore_select) {
+                            if ($file_path = shopProductSkusModel::getPath($sku)) {
+                                $sku_files[$sku['id']] = array(
+                                    'file_name'        => $sku['file_name'],
+                                    'file_description' => $sku['file_description'],
+                                    'file_size'        => $sku['file_size'],
+                                    'file_path'        => $file_path,
+                                );
+                            }
+                            if (!empty($sku['image_id'])) {
+                                $sku_images[$sku['id']] = $sku['image_id'];
+                            }
+
+                            foreach (array('id', 'id_1c', 'product_id', 'image_id', 'file_name', 'file_size', 'file_description') as $field) {
+                                if (isset($sku[$field])) {
+                                    unset($sku[$field]);
+                                }
+                            }
+
+                            $storage_data[--$i] = $sku;
+                        }
+                    }
+                    break;
+                case 'tags':
+                    $storage_data = array_values($raw);
+                    break;
+                case 'categories':
+                    $storage_data = array_keys($raw);
+                    break;
+                default:
+                    $storage_data = $raw;
+                    break;
+            }
+            $duplicate->{$key} = $storage_data;
+        }
+
+        $counter = 0;
+        $data['url'] = shopHelper::genUniqueUrl($this->url, $this->model, $counter);
+        $data['name'] = $this->name.sprintf('(%d)', $counter ? $counter : 1);
+
+        $duplicate->save($data);
+        $product_id = $duplicate->getId();
+
+        $sku_map = array_combine(array_keys($this->skus), array_keys($duplicate->skus));
+
+        $config = wa('shop')->getConfig();
+        $image_thumbs_on_demand = $config->getOption('image_thumbs_on_demand');
+        /**
+         * @var shopConfig $config
+         */
+        if ($this->pages) {
+            $product_pages_model = new shopProductPagesModel();
+            foreach ($this->pages as $page) {
+                unset($page['id']);
+                unset($page['create_time']);
+                unset($page['update_datetime']);
+                unset($page['create_contact_id']);
+
+                $page['product_id'] = $duplicate->getId();
+                $product_pages_model->add($page);
+            }
+        }
+
+        #duplicate images
+        $product_skus_model = new shopProductSkusModel();
+        $images_model = new shopProductImagesModel();
+        $images = $images_model->getByField('product_id', $this->getId(), $images_model->getTableId());
+        $callback = create_function('$a, $b', 'return (max(-1, min(1, $a["sort"] - $b["sort"])));');
+        usort($images, $callback);
+        foreach ($images as $id => $image) {
+            $source_path = shopImage::getPath($image);
+            $original_file = shopImage::getOriginalPath($image);
+            $image['product_id'] = $duplicate->getId();
+            if ($sku_id = array_search($image['id'], $sku_images)) {
+                $sku_id = $sku_map[$sku_id];
+            }
+            unset($image['id']);
+            try {
+                if ($image['id'] = $images_model->add($image, $id == $this->image_id)) {
+
+                    waFiles::copy($source_path, shopImage::getPath($image));
+                    if (file_exists($original_file)) {
+                        waFiles::copy($original_file, shopImage::getOriginalPath($image));
+                    }
+                    if ($sku_id) {
+                        $product_skus_model->updateById($sku_id, array('image_id' => $image['id']));
+                    }
+
+                    if (!$image_thumbs_on_demand) {
+                        shopImage::generateThumbs($image, $config->getImageSizes());
+                        //TODO use dummy copy  with rename files
+                    }
+                }
+            } catch (waDbException $ex) {
+                //just ignore it
+                waLog::log('Error during copy product: '.$ex->getMessage(), 'shop.log');
+            } catch (waException $ex) {
+                if (!empty($image['id'])) {
+                    $images_model->deleteById($image['id']);
+                }
+                waLog::log('Error during copy product: '.$ex->getMessage(), 'shop.log');
+            }
+
+        }
+
+        foreach ($sku_files as $sku_id => $data) {
+            $source_path = $data['file_path'];
+            unset($data['file_path']);
+            $sku_id = $sku_map[$sku_id];
+            $sku = array_merge($duplicate->skus[$sku_id], $data);
+            $product_skus_model->updateById($sku_id, $data);
+
+            $target_path = shopProductSkusModel::getPath($sku);
+            try {
+                waFiles::copy($source_path, $target_path);
+            } catch (waException $ex) {
+                $data = array(
+                    'file_name'        => '',
+                    'file_description' => '',
+                    'file_size'        => 0,
+                );
+                $product_skus_model->updateById($sku_id, $data);
+                print $ex->getMessage();
+            }
+        }
+
+        $product_features_model = new shopProductFeaturesModel();
+        $skus_features = $product_features_model->getSkuFeatures($this->id);
+        $skus_features_data = array();
+        foreach ($skus_features as $sku_id => $features) {
+            $sku_id = $sku_map[$sku_id];
+            foreach ($features as $feature_id => $feature_value_id) {
+                $skus_features_data[] = compact('product_id', 'sku_id', 'feature_id', 'feature_value_id');
+            }
+        }
+        if ($skus_features_data) {
+            $product_features_model->multipleInsert($skus_features_data);
+        }
+        if ($this->sku_type == shopProductModel::SKU_TYPE_SELECTABLE) {
+            $product_features_selectable_model = new shopProductFeaturesSelectableModel();
+            if ($features_selectable = $product_features_selectable_model->getByField('product_id', $this->id, true)) {
+                foreach ($features_selectable as &$feature_selectable) {
+                    $feature_selectable['product_id'] = $product_id;
+                }
+                unset($feature_selectable);
+                $product_features_selectable_model->multipleInsert($features_selectable);
+            }
+        }
+
+        $product_services_model = new shopProductServicesModel();
+        if ($services = $product_services_model->getByField('product_id', $this->id, true)) {
+            foreach ($services as &$service) {
+                unset($service['id']);
+                $service['product_id'] = $product_id;
+                $service['sku_id'] = ifset($sku_map[$service['sku_id']]);
+                unset($service);
+            }
+            $product_services_model->multipleInsert($services);
+        }
+
+        $product_related_model = new shopProductRelatedModel();
+        if ($related = $product_related_model->getByField('product_id', $this->id, true)) {
+            foreach ($related as &$row) {
+                $row['product_id'] = $product_id;
+            }
+            unset($row);
+            $product_related_model->multipleInsert($related);
+        }
+
+        $params = array(
+            'product'   => &$this,
+            'duplicate' => &$duplicate,
+        );
+        /**
+         * @wa-event product_duplicate
+         */
+        wa()->event('product_duplicate', $params);
+        return $duplicate;
+    }
+
 }

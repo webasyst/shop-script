@@ -21,6 +21,8 @@ class shopColorValue implements ArrayAccess
 
     private $code;
     private $value;
+    private $id;
+    private $sort;
     private $_data;
 
     public function __construct($row)
@@ -48,7 +50,15 @@ class shopColorValue implements ArrayAccess
             case 'style':
                 $style = "";
                 if ($this->code !== null) {
-                    $style .= "color:{$this->convert(self::HEX, 0xFFFFFF & ~$this->code)};";
+                    $d = !!(0xFF & $this->code < 0x7F) + !!(0xFF & ($this->code >> 8) < 0x7F) + 2 * !!(0xFF & ($this->code >> 16) < 0x7F);
+                    if ($d > 2) {
+                        $color = 0xFFFFFF;
+                    } else {
+                        $color = 0x000000;
+                    }
+
+
+                    $style .= "color:{$this->convert(self::HEX, $color)};";
                     $style .= "background-color:{$this->hex};";
                 }
 
@@ -81,7 +91,7 @@ HTML;
 
     /**
      * Returns properties of current color object: id, code, value, sort order.
-     * 
+     *
      * @return array
      */
     public function getRaw()
@@ -116,7 +126,7 @@ HTML;
 
     /**
      * Returns color name written in human language (English or Russian depending on current locale).
-     * 
+     *
      * @param int $code
      * @return string
      */
@@ -150,8 +160,8 @@ HTML;
     }
 
     /**
-     * Returns numerical color code by its name. 
-     * 
+     * Returns numerical color code by its name.
+     *
      * @param string $name Color name written in human language (English or Russian); e.g., 'blue', 'pink', 'yellow', etc.
      * @return int
      */
@@ -181,10 +191,10 @@ HTML;
 
     /**
      * Returns numerical color code in specified format.
-     * 
+     *
      * @param string $format Format string: 'rgb', 'hex', 'cmyk', 'hsv'.
      * @param int $value Color code stored in database table 'shop_feature_values_color'.
-     * @param bool $raw Whether numerical color value parts must be returned as an array instead of a string; defaults to false 
+     * @param bool $raw Whether numerical color value parts must be returned as an array instead of a string; defaults to false
      * @return string|array
      */
     public function convert($format, $value = null, $raw = false)

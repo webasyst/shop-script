@@ -5,11 +5,12 @@ class shopWorkflowCallbackAction extends shopWorkflowAction
     public function execute($params = null)
     {
         $result = array();
-
-        $result['text'] = $params['plugin'].' '.$params['state'].' ('.$params['view_data'].' - '.$params['amount'].' '.$params['currency_id'].')';
-        $result['params'] = array(
-            'payment_transaction_id' => $params['id'],
-        );
+        $data = empty($params['view_data']) ? '' : ($params['view_data'].' - ');
+        $result['text'] = $params['plugin'].' '.$params['state'].' ('.$data.$params['amount'].' '.$params['currency_id'].')';
+        $result['params'] = array();
+        if (isset($params['id'])) {
+            $result['params']['payment_transaction_id'] = $params['id'];
+        }
 
         return $result;
     }

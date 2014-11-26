@@ -12,7 +12,7 @@ msgstr ""
 "%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.6.9\n"
+"X-Generator: Poedit 1.6.10\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -8755,3 +8755,19 @@ msgstr "добавил бонусное начисление партнеру"
 #: /wa-apps/shop/lib/config/logs.php:72
 msgid "registered an affiliate payout"
 msgstr "осуществил выплату партнеру"
+
+#: /wa-apps/shop/templates/actions/products/Products.html:49
+msgid "Duplicate"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:358
+msgid "Custom product type"
+msgstr "Новый тип товаров"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:359
+msgid "Select from templates"
+msgstr "Выбрать из шаблонов"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:385
+msgid "Product type template"
+msgstr "Шаблон типа товаров"

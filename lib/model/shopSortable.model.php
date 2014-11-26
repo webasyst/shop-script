@@ -125,7 +125,7 @@ abstract class shopSortableModel extends waModel
     {
         $data = parent::getByField($field, $value, $all, $limit);
         if (is_array($data) && $data && ($all || (is_array($field) && $value))) {
-            uasort($data, array($this, 'sort'));
+            $this->sortRows($data);
         }
         return $data;
     }

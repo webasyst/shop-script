@@ -17,5 +17,7 @@ class shopSiteUpdateRouteHandler extends waEventHandler
         
         $followup_model = new shopFollowupModel();
         $followup_model->updateByField(array('source' => $params['old']), array('source' => $params['new']));
+
+        wa('shop')->event(array('shop', 'update.route'), $params);
     }
 }

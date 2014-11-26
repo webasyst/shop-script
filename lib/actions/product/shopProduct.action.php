@@ -21,7 +21,10 @@ class shopProductAction extends waViewAction
         }
 
         $counters = array(
-            'reviews' => 0, 'images' => 0, 'pages' => 0, 'services' => 0
+            'reviews'  => 0,
+            'images'   => 0,
+            'pages'    => 0,
+            'services' => 0
         );
         $sidebar_counters = array();
         $config = $this->getConfig();
@@ -40,11 +43,11 @@ class shopProductAction extends waViewAction
             # 1.1 fill product reviews
             $product_reviews_model = new shopProductReviewsModel();
             $product['reviews'] = $product_reviews_model->getReviews(
-                                                        $product->id,
-                                                            0,
-                                                            $config->getOption('reviews_per_page_product'),
-                                                            'datetime DESC',
-                                                            array('is_new' => true)
+                $product->id,
+                0,
+                $config->getOption('reviews_per_page_product'),
+                'datetime DESC',
+                array('is_new' => true)
             );
             $counters['reviews'] = $product_reviews_model->count($product->id);
             $sidebar_counters['reviews'] = array(
@@ -104,15 +107,17 @@ class shopProductAction extends waViewAction
         $taxes_mode = new shopTaxModel();
         $this->view->assign('stocks', $stock_model->getAll('id'));
 
-        $this->view->assign(array(
-            'use_product_currency' => wa()->getSetting('use_product_currency'),
-            'currencies'           => $this->getCurrencies(),
-            'primary_currency'     => $config->getCurrency(),
-            'taxes'                => $taxes_mode->getAll(),
-        ));
+        $this->view->assign(
+            array(
+                'use_product_currency' => wa()->getSetting('use_product_currency'),
+                'currencies'           => $this->getCurrencies(),
+                'primary_currency'     => $config->getCurrency(),
+                'taxes'                => $taxes_mode->getAll(),
+            )
+        );
 
         $category_model = new shopCategoryModel();
-        $categories = $category_model->getFullTree('id, name, depth, url, full_url', true);
+        $categories = $category_model->getFullTree('id, name, depth, url, full_url, parent_id', true);
         $frontend_urls = array();
 
         if (intval($product->id)) {
@@ -266,11 +271,14 @@ class shopProductAction extends waViewAction
         $this->view->assign('sales_rate', $sales_rate);
 
         $stocks_log_model = new shopProductStocksLogModel();
-        $stocks_log = $stocks_log_model->getList('*,stock_name,sku_name,product_name', array(
-            'where' => array('product_id' => $product->id),
-            'limit' => 5,
-            'order' => 'datetime DESC'
-        ));
+        $stocks_log = $stocks_log_model->getList(
+            '*,stock_name,sku_name,product_name',
+            array(
+                'where' => array('product_id' => $product->id),
+                'limit' => 5,
+                'order' => 'datetime DESC'
+            )
+        );
         $this->view->assign('stocks_log', $stocks_log);
 
     }

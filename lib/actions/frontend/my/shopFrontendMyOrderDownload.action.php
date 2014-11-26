@@ -33,7 +33,7 @@ class shopFrontendMyOrderDownloadAction extends shopFrontendAction
             $skus_model = new shopProductSkusModel();
             $sku = $skus_model->getById(ifempty($item['sku_id']));
             if ($sku['file_name'] && $sku['file_size']) {
-                $file_path = shopProduct::getPath($sku['product_id'], "sku_file/{$sku['id']}.".pathinfo($sku['file_name'], PATHINFO_EXTENSION));
+                $file_path = shopProductSkusModel::getPath($sku);
                 waFiles::readFile($file_path, $sku['file_name']);
             } else {
                 throw new waException(_w('File not found'), 404);

@@ -56,9 +56,11 @@
             </li>
             {/if}
             <li class="top-padded small not-sortable">
+
                 <a href="#/features/type/add/" class="js-action">
                     <i class="icon10 add"></i>[`New product type`]
                 </a>
+
             </li>
 {* feature template *}
 <!-- jquery template {capture name="feature-type-template-js"}{literal} -->
@@ -349,12 +351,17 @@ $.settings.featuresInit();
         <form action="?module=settings&amp;action=featuresTypeSave" method="post">
             {$wa->csrf()} <input type="hidden" name="id" value="">
             <div class="dialog-content">
-                <div class="dialog-content-indent">
+                <div class="dialog-content-indent block">
                     <h1 class="js-add-type">[`New product type`]</h1>
                     <h1 class="js-edit-type">[`Product type settings`]</h1>
+                    <ul class="menu-h js-add-type">
+                        <li class="selected"><a href="#/features/type/add/custom/" class="small inline-link js-action">[`Custom product type`]</a></li>
+                        <li><a href="#/features/type/add/template/" class="small inline-link js-action">[`Select from templates`]</a></li>
+                    </ul>
 
                     <div class="fields form">
-                        <div class="field-group">
+                        <input type="hidden" name="source" value="custom">
+                        <div class="field-group js-add-type-custom">
                             <div class="field">
                                 <div class="name">[`Product type name`]</div>
                                 <div class="value">
@@ -364,13 +371,30 @@ $.settings.featuresInit();
                             <div class="field">
                                 <div class="name">[`Product type icon`]</div>
                                 <div class="value">
-                                    <ul class="menu-h">
+                                    <ul class="menu-h js-type-icon">
                                         {foreach $icons as $icon}
                                         <li data-icon="{$icon|escape}"><a href="#/features/type/edit/icon/" class="js-action">{shopHelper::getIcon($icon)}</a></li> {/foreach}
                                     </ul>
                                     <input type="hidden" name="icon" value=""> <br> <span class="small">[`Or enter icon URL (should be a 16x16 px image)`]:</span><br> <input type="text" value="" name="icon_url">
                                 </div>
                             </div>
+                        </div>
+                        <div class="field-group js-add-type-template" style="display: none;">
+                            {if $type_templates}
+                                <div class="field">
+                                    <div class="name">[`Product type template`]</div>
+                                    {foreach $type_templates as $template_id=>$info}
+                                    <div class="value">
+
+                                    <label>{shopHelper::getIcon($info.icon)}<input type="radio" name="template" value="{$template_id|escape}">
+                                                {$info.name|escape}{if !empty($info.description)}
+                                                    <span class="hint">{$info.description}</span>{/if}
+                                        </label>
+                                    </div>
+                                    {/foreach}
+
+                                </div>
+                            {/if}
                         </div>
                     </div>
                 </div>

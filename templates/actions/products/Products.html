@@ -44,11 +44,14 @@
             {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.toolbar_organize_li)}{/foreach}{/if}
 
             {*<li data-action="new-set"><a href="#"><i class="icon16 ss set"></i>[`Create new set`]</a></li>*}
-
+            {*
+            <li data-action="duplicate">
+                <a href="#"><i class="icon16 split"></i>[`Duplicate`]</a>
+            </li>
+            *}
             <li data-action="category">
                 <a href="#"><i class="icon16 folder"></i>[`Add to category`]</a>
-            </li>
-            <li data-action="set">
+            </li><li data-action="set">
                 <a href="#"><i class="icon16 ss set"></i>[`Add to set`]</a>
             </li>
             <li data-action="assign-tags">

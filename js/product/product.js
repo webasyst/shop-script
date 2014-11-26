@@ -216,7 +216,7 @@ editClick:(function ($) {
                 } catch (e) {
                     $.shop.error(
                         "Error at method $.product." + name +
-                            ". Original message: " + e.message,
+                        ". Original message: " + e.message,
                         e
                     );
                 }
@@ -467,7 +467,7 @@ editClick:(function ($) {
                 var frontend_url_link = frontend_url.parent();
                 frontend_url_link.attr('href', data.frontend_urls[0].url);
 
-                frontend_url_link.find('span:first').html(data.frontend_urls[0].base);
+                frontend_url_link.find('span:first').text(data.frontend_urls[0].base);
 
                 // update other frontend url
                 frontend_url.closest('div.value').find('.s-product-frontend-url').each(function (i) {
@@ -483,8 +483,8 @@ editClick:(function ($) {
                 var html = '';
                 for (var i = 0, len = data.frontend_urls.length; i < len; i += 1) {
                     html += ' <span class="s-product-frontend-url-not-empty">' +
-                        '<a href="' + data.frontend_urls[i].url + '" target="_blank">' + data.frontend_urls[i].url + '</a><i class="icon10 new-window"></i>' +
-                        '</span> ';
+                    '<a href="' + data.frontend_urls[i].url + '" target="_blank">' + data.frontend_urls[i].url + '</a><i class="icon10 new-window"></i>' +
+                    '</span> ';
                 }
                 if (html) {
                     $('#s-product-frontend-links').find('.s-product-frontend-url-not-empty').
@@ -1152,7 +1152,7 @@ editClick:(function ($) {
                 }
             });
 
-            $form.on('change', 'input[name="product[sku_type]"]',function () {
+            $form.on('change', 'input[name="product[sku_type]"]', function () {
                 $.product.onSkuTypeChange(this.value);
             }).change();
 
@@ -1379,17 +1379,22 @@ editClick:(function ($) {
                 on('click.product', '.s-product-delete-from-category',
                 function () {
                     var self = $(this);
-                    var parent = self.parent();
+                    var parent = self.parent('div');
                     var select = parent.find('select');
 
-                    var categories = $('#s-product-edit-forms .s-product-form.main select.s-product-categories');
-                    if (categories.length > 1) {
-                        select.attr('disabled', true);
-                        parent.remove();
+                    if (select.length) {
+                        var categories = $('#s-product-edit-forms .s-product-form.main select.s-product-categories');
+                        if (categories.length > 2) {
+                            select.attr('disabled', true);
+                            parent.remove();
+                        } else {
+                            select.val('selected').attr('disabled', false);
+                            parent.find('input.val').val(0).attr('disabled', true).parent().hide();
+                            parent.find('.s-storefront-map').html('');
+                            parent.find('.s-product-delete-from-category').hide();
+                        }
                     } else {
-                        select.val('selected').attr('disabled', false);
-                        parent.find('input.val').val(0).attr('disabled', true).parent().hide();
-                        parent.find('.s-product-delete-from-category').hide();
+                        self.parents('.value:first').remove();
                     }
                     return false;
                 }
@@ -1893,12 +1898,13 @@ editClick:(function ($) {
         },
 
         editTabMainCategoriesAdd: function () {
-            var control = $('#s-product-edit-forms .s-product-form.main select.s-product-categories:last').parent();
+            var control = $('#s-product-edit-forms .s-product-form.main select.s-product-categories:last').parent('div');
             var clone = control.clone(false);
             clone.find('select').val('select').attr('disabled', false).show();
             clone.find('input.val').val(0).attr('disabled', true).parent().hide();
             clone.find('.s-product-delete-from-category').hide();
             clone.find('.s-storefront-map').html('');
+            clone.show();
             control.after(clone);
         },
 
@@ -1917,9 +1923,9 @@ editClick:(function ($) {
             var sku = $sku.data();
             var self = this;
             $.when($sku.after(tmpl('template-sku-settings', {
-                    'sku_id': sku_id,
-                    'sku': sku
-                }))).done(function () {
+                'sku_id': sku_id,
+                'sku': sku
+            }))).done(function () {
                 var url = '?module=product&action=skuSettings';
                 url += '&product_id=' + self.path.id;
                 url += '&sku_id=' + sku_id;
@@ -2012,7 +2018,7 @@ editClick:(function ($) {
         editTabMainSkuEproductSave: function (sku_id) {
             // upload eproduct files for existing skus
             var $sku_files = $('#s-product-edit-forms .s-product-form.main tr.js-sku-settings' + ((sku_id && sku_id > 0) ? ('[data-id="' + sku_id + '"]') : '')
-                + ' > td:first .fileupload');
+            + ' > td:first .fileupload');
             $.shop.trace('$.product.editTabMainSkuEproductSave', $sku_files.length);
             if ($sku_files.length) {
                 $sku_files.fileupload('start');
@@ -2098,7 +2104,7 @@ editClick:(function ($) {
             // take into account sort field of skus
             var skus = [];
             for (var sku_id in data.skus || {}) {
-                skus.push($.extend({ id: sku_id }, data.skus[sku_id]));
+                skus.push($.extend({id: sku_id}, data.skus[sku_id]));
             }
             skus = skus.sort(function (a, b) {
                 return a.sort - b.sort;
