@@ -769,7 +769,7 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 .js-action .icon16.color { margin-top: 0.25em !important; }
 
 /* settings */
-.icon16.ss { background-image: url('../img/ss-icon16.png?1412'); }
+.icon16.ss { background-image: url('../img/ss-icon16.png?1412'); background-size: 400px 180px; }
 .icon16.ss.star-bw { background-position:-16px 0; }
 .icon16.ss.shipping-bw { background-position:-32px 0; }
 .icon16.ss.camera-bw { background-position:-48px 0; }
