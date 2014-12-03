@@ -160,6 +160,13 @@ class shopFrontendCartAddController extends waJsonController
                     }
                 }
             }
+            
+            /**
+             * @event cart_add
+             * @param int $item_id
+             */
+            wa()->event('cart_add', $item_id);
+            
             // update shop cart session data
             $shop_cart = new shopCart($code);
             wa()->getStorage()->remove('shop/cart');
