@@ -287,7 +287,7 @@
                             <select id="shipping_methods" name="shipping_id">
                                 <option value=""></option>
                                 {foreach $shipping_methods as $m_id => $m}
-                                    <option {if !empty($order.shipping_id) && $order.shipping_id == $m_id}selected{/if} data-rate="{$m.rate}" value="{$m_id}">{$m.name|truncate:80}</option>
+                                    <option {if !empty($order.shipping_id) && $order.shipping_id === $m_id}selected{/if} data-rate="{$m.rate}" value="{$m_id}">{$m.name|truncate:80}</option>
                                 {/foreach}
                             </select>
                             <div id="shipping-info"></div>

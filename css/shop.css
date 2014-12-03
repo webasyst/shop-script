@@ -101,8 +101,8 @@ table.s-big-table td h3 { font-size: 1.3em; margin-top: -0.1em; }
 table.s-big-table td input { margin-top: -4px; }
 table.s-big-table td table.zebra td { border: none; padding: 5px; }
 
-.dialog-background { z-index: 1313; }
-.dialog-window { z-index: 1314; }
+.dialog-background { z-index: 1052; }
+.dialog-window { z-index: 1053 /* redactor editor z-index */; }
 .dialog .ace { padding: 15px 12px; }
 
 .ace.bordered { border: 1px solid #ccc; }
@@ -917,8 +917,9 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 ========= */
 
 @media screen and (max-width: 1024px) {
-    
+
     #mainmenu ul.tabs li a { padding-left: 0.2em; padding-right: 0.2em; }
+    #mainmenu .s-search-form input[type="search"] { font-size: 100%; max-height: 20px; }
     
     #s-sidebar { width: 170px !important; }
     .sidebar.right200px { width: 170px !important; }
@@ -929,7 +930,7 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
     ul.s-orders li .profile.image50px .details { margin-left: 55px; }
     
     #s-product-profile-page .content.right200px { margin-right: 170px; }
-    #s-orders-search { display: none; }
+
 }
 
 @media only screen 

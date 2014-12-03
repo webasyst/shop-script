@@ -29,17 +29,31 @@ class shopCart
         return $this->code;
     }
 
+    /**
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
     protected function getSessionData($key, $default = null)
     {
         $data = wa()->getStorage()->get('shop/cart');
         return isset($data[$key]) ? $data[$key] : $default;
     }
 
+    /**
+     * @param string $key
+     * @param mixed $value
+     */
     protected function setSessionData($key, $value)
     {
         $data = wa()->getStorage()->get('shop/cart', array());
         $data[$key] = $value;
         wa()->getStorage()->set('shop/cart', $data);
+    }
+
+    protected function clearSessionData()
+    {
+        wa()->getStorage()->remove('shop/cart');
     }
 
     /**
@@ -133,13 +147,39 @@ class shopCart
      * Adds a new entry to table 'shop_cart_items'
      * 
      * @param array $item Cart item data array
+     * @param array $services
      * @return int New cart item id
      */
-    public function addItem($item)
+    public function addItem($item, $services = array())
     {
-        $item_id = $this->model->insert($item);
-        $this->setSessionData('total', null);
-        return $item_id;
+        if (!isset($item['create_datetime'])) {
+            $item['create_datetime'] = date('Y-m-d H:i:s');
+        }
+        $item['code'] = $this->code;
+        $item['contact_id'] = wa()->getUser()->getId();
+        $item['id'] = $this->model->insert($item);
+
+        // add services
+        if (($item['type'] == 'product') && $services) {
+            foreach ($services as $s) {
+                $s['parent_id'] = $item['id'];
+                $s['type'] = 'service';
+                foreach (array('code', 'contact_id', 'product_id', 'sku_id', 'create_datetime') as $k) {
+                    $s[$k] = $item[$k];
+                }
+                $s['id'] = $this->model->insert($s);
+                $item['services'][] = $s;
+            }
+        }
+        // clear session cache
+        $this->clearSessionData();
+
+        /**
+         * @event cart_add
+         * @param array $item
+         */
+        wa()->event('cart_add', $item);
+        return $item['id'];
     }
 
     /**
@@ -231,7 +271,12 @@ class shopCart
                 $this->model->deleteByField(array('code' => $this->code, 'parent_id' => $id));
             }
             $this->model->deleteByField(array('code' => $this->code, 'id' => $id));
-            $this->setSessionData('total', null);
+            /**
+             * @event cart_delete
+             * @param array $item
+             */
+            wa()->event('cart_delete', $item);
+            $this->clearSessionData();
         }
         return $item;
     }

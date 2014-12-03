@@ -58,8 +58,8 @@ class shopContactsDeleteHandler extends waEventHandler
 
         // Forget that this user created coupons
         $coupm = new shopCouponModel();
-        $coupm->updateByField('contact_id', $contact_ids, array(
-            'contact_id' => 0,
+        $coupm->updateByField('create_contact_id', $contact_ids, array(
+            'create_contact_id' => 0,
         ));
 
         // !!! TODO: take a look to other models related with contacts

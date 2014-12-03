@@ -12,7 +12,10 @@ class shopProductTagsAutocompleteController extends waController
 
         $tags = array();
         foreach ($tag_model->select('name')->where("name LIKE '$term%'")->limit($limit)->fetchAll() as $tag) {
-            $tags[] = array('value' => htmlspecialchars($tag['name']));
+            $tags[] = array(
+                'value' => $tag['name'],
+                'label' => htmlspecialchars($tag['name'])
+            );
         }
         echo json_encode($tags);
     }

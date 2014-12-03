@@ -55,5 +55,15 @@ class shopFrontendLayout extends waLayout
         $this->view->assign('frontend_footer', wa()->event('frontend_footer'));
 
         $this->view->assign('currencies', $this->getConfig()->getCurrencies());
+
+        // set globals
+        $params = waRequest::param();
+        foreach ($params as $k => $v) {
+            if (in_array($k, array('url', 'module', 'action', 'meta_keywords', 'meta_description', 'private',
+                'url_type', 'type_id', 'payment_id', 'shipping_id', 'currency', 'stock_id'))) {
+                unset($params[$k]);
+            }
+        }
+        $this->view->getHelper()->globals($params);
     }
 }

@@ -39,7 +39,7 @@ class shopCheckoutShipping extends shopCheckout
         if (!$address) {
             $shipping_address = array();
             $address_form = true;
-            if ($settings['contactinfo']['fields']['address']) {
+            if (!empty($settings['contactinfo']['fields']['address'])) {
                 foreach ($settings['contactinfo']['fields']['address']['fields'] as $k => $f) {
                     if (!empty($f['value'])) {
                         $shipping_address[$k] = $f['value'];

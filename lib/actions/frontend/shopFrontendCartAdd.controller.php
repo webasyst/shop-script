@@ -2,9 +2,22 @@
 
 class shopFrontendCartAddController extends waJsonController
 {
+    /**
+     * @var shopCart
+     */
+    protected $cart;
+
+    /**
+     * @var shopCartItemsModel
+     */
+    protected $cart_model;
+    /**
+     * @var bool
+     */
+    protected $is_html;
+
     public function execute()
     {
-        $cart_model = new shopCartItemsModel();
         $code = waRequest::cookie('shop_cart');
         if (!$code) {
             $code = md5(uniqid(time(), true));
@@ -13,52 +26,19 @@ class shopFrontendCartAddController extends waJsonController
             // set cart cookie
             wa()->getResponse()->setCookie('shop_cart', $code, time() + 30 * 86400, null, '', false, true);
         }
+        $this->cart = new shopCart($code);
+        $this->cart_model = new shopCartItemsModel();
 
         $data = waRequest::post();
+        $this->is_html = waRequest::request('html');
 
-        $is_html = waRequest::request('html');
-
+        // add service
         if (isset($data['parent_id'])) {
-            $parent = $cart_model->getById($data['parent_id']);
-            unset($parent['id']);
-            $parent['parent_id'] = $data['parent_id'];
-            $parent['type'] = 'service';
-            $parent['service_id'] = $data['service_id'];
-            if (isset($data['service_variant_id'])) {
-                $parent['service_variant_id'] = $data['service_variant_id'];
-            } else {
-                $service_model = new shopServiceModel();
-                $service = $service_model->getById($data['service_id']);
-                $parent['service_variant_id'] = $service['variant_id'];
-            }
-            $cart = new shopCart($code);
-            
-            $id = $cart->addItem($parent);
-            $total = $cart->total();
-            $discount = $cart->discount();
-            
-            $this->response['id'] = $id;
-            $this->response['total'] = $is_html ? shop_currency_html($total, true) : shop_currency($total, true);
-            $this->response['count'] = $cart->count();
-            $this->response['discount'] = $is_html ? shop_currency_html($discount, true) : shop_currency($discount, true);
-            $item_total = $cart->getItemTotal($data['parent_id']);
-            $this->response['item_total'] = $is_html ? shop_currency_html($item_total, true) : shop_currency($item_total, true);
-            
-            if (shopAffiliate::isEnabled()) {
-                $add_affiliate_bonus = shopAffiliate::calculateBonus(array(
-                    'total' => $total,
-                    'discount' => $discount,
-                    'items' => $cart->items(false)
-                ));
-                $this->response['add_affiliate_bonus'] = sprintf(
-                    _w("This order will add +%s points to your affiliate bonus."), 
-                    round($add_affiliate_bonus, 2)
-                );
-            }
-            
+            $this->addService($data);
             return;
         }
 
+        // add sku
         $sku_model = new shopProductSkusModel();
         $product_model = new shopProductModel();
         if (!isset($data['product_id'])) {
@@ -92,11 +72,10 @@ class shopFrontendCartAddController extends waJsonController
         }
 
         $quantity = waRequest::post('quantity', 1);
-
         if ($product && $sku) {
             // check quantity
             if (!wa()->getSetting('ignore_stock_count')) {
-                $c = $cart_model->countSku($code, $sku['id']);
+                $c = $this->cart_model->countSku($code, $sku['id']);
                 if ($sku['count'] !== null && $c + $quantity > $sku['count']) {
                     $quantity = $sku['count'] - $c;
                     $name = $product['name'].($sku['name'] ? ' ('.$sku['name'].')' : '');
@@ -130,51 +109,98 @@ class shopFrontendCartAddController extends waJsonController
                 $services = $temp;
             }
             $item_id = null;
-            $item = $cart_model->getItemByProductAndServices($code, $product['id'], $sku['id'], $services);
+            $item = $this->cart_model->getItemByProductAndServices($code, $product['id'], $sku['id'], $services);
             if ($item) {
                 $item_id = $item['id'];
-                $cart_model->updateById($item_id, array('quantity' => $item['quantity'] + $quantity));
-                if ($services) {
-                    $cart_model->updateByField('parent_id', $item_id, array('quantity' => $item['quantity'] + $quantity));
-                }
+                $this->cart->setQuantity($item_id, $item['quantity'] + $quantity);
             }
             if (!$item_id) {
                 $data = array(
-                    'code' => $code,
-                    'contact_id' => $this->getUser()->getId(),
+                    'create_datetime' => date('Y-m-d H:i:s'),
                     'product_id' => $product['id'],
                     'sku_id' => $sku['id'],
-                    'create_datetime' => date('Y-m-d H:i:s'),
-                    'quantity' => $quantity
+                    'quantity' => $quantity,
+                    'type' => 'product'
                 );
-                $item_id = $cart_model->insert($data + array('type' => 'product'));
                 if ($services) {
+                    $data_services = array();
                     foreach ($services as $service_id => $variant_id) {
-                        $data_service = array(
+                        $data_services[] = array(
                             'service_id' => $service_id,
                             'service_variant_id' => $variant_id,
-                            'type' => 'service',
-                            'parent_id' => $item_id
                         );
-                        $cart_model->insert($data + $data_service);
                     }
+                } else {
+                    $data_services = array();
                 }
+                $item_id = $this->cart->addItem($data, $data_services);
             }
-            // update shop cart session data
-            $shop_cart = new shopCart($code);
-            wa()->getStorage()->remove('shop/cart');
-            $total = $shop_cart->total();
-
             if (waRequest::isXMLHttpRequest()) {
                 $this->response['item_id'] = $item_id;
-                $this->response['total'] = $is_html ? shop_currency_html($total, true) : shop_currency($total, true);
-                $this->response['count'] = $shop_cart->count();
+                $this->response['total'] = $this->currencyFormat($this->cart->total());
+                $this->response['discount'] = $this->currencyFormat($this->cart->discount());
+                $this->response['count'] = $this->cart->count();
             } else {
                 $this->redirect(waRequest::server('HTTP_REFERER'));
             }
         } else {
             throw new waException('product not found');
         }
+    }
 
+    /**
+     * @param float $val
+     * @param string|bool $currency
+     * @return string
+     */
+    protected function currencyFormat($val, $currency = true)
+    {
+        return $this->is_html ? shop_currency_html($val, $currency) : shop_currency($val, $currency);
+    }
+
+    /**
+     * @param $data
+     */
+    protected function addService($data)
+    {
+        $item = $this->cart_model->getById($data['parent_id']);
+        if (!$item) {
+            $this->errors = _w('Error');
+            return;
+        }
+        unset($item['id']);
+        $item['parent_id'] = $data['parent_id'];
+        $item['type'] = 'service';
+        $item['service_id'] = $data['service_id'];
+        if (isset($data['service_variant_id'])) {
+            $item['service_variant_id'] = $data['service_variant_id'];
+        } else {
+            $service_model = new shopServiceModel();
+            $service = $service_model->getById($data['service_id']);
+            $item['service_variant_id'] = $service['variant_id'];
+        }
+        $id = $this->cart->addItem($item);
+        $total = $this->cart->total();
+        $discount = $this->cart->discount();
+
+        $this->response['id'] = $id;
+        $this->response['total'] = $this->currencyFormat($total);
+        $this->response['count'] = $this->cart->count();
+        $this->response['discount'] = $this->currencyFormat($discount);
+
+        $item_total = $this->cart->getItemTotal($data['parent_id']);
+        $this->response['item_total'] = $this->currencyFormat($item_total);
+
+        if (shopAffiliate::isEnabled()) {
+            $add_affiliate_bonus = shopAffiliate::calculateBonus(array(
+                'total' => $total,
+                'discount' => $discount,
+                'items' => $this->cart->items(false)
+            ));
+            $this->response['add_affiliate_bonus'] = sprintf(
+                _w("This order will add +%s points to your affiliate bonus."),
+                round($add_affiliate_bonus, 2)
+            );
+        }
     }
 }

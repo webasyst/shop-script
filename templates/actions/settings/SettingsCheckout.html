@@ -99,11 +99,11 @@
                 </div>
                 <div class="value description"{if empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
                     <!-- enabled -->
-                    <p class="small">[`When a new order is created via backend manually, contact info form will be validated according the Contact info form setup defined for the storefront (above). All required fields will be necessary to fill in.`]</p>
+                    <p class="small">[`When a new order is created via backend manually, contact info form will not be validated. Fields which are necessary to fill in when order is placed in the storefront, can be left blank when order is created via backend.`]</p>
                 </div>
                 <div class="value description"{if !empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
                     <!-- disabled -->
-                    <p class="small">[`When a new order is created via backend manually, contact info form will not be validated. Fields which are necessary to fill in when order is placed in the storefront, can be left blank when order is created via backend.`]</p>
+                    <p class="small">[`When a new order is created via backend manually, contact info form will be validated according the Contact info form setup defined for the storefront (above). All required fields will be necessary to fill in.`]</p>
                 </div>
                 <div class="value saved" style="opacity:0;">
                     <i class="icon16 yes"></i> [`Saved`]

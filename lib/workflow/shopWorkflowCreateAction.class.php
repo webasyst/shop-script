@@ -154,7 +154,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         $params_model->set($order_id, $data['params']);
 
         $log_model = new waLogModel();
-        $log_model->add('order_create', $order_id);
+        $log_model->add('order_create', $order_id, null, $order['contact_id']);
         
         return array(
             'order_id' => $order_id,
