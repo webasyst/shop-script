@@ -54,7 +54,9 @@ class shopSettingsAffiliateAction extends waViewAction
             if (substr($k, -7) == '-plugin') {
                 $plugin_id = substr($k, 0, -7);
                 $plugin_info = $config->getPluginInfo($plugin_id);
-                $p['img'] = $plugin_info['img'];
+                if (isset($plugin_info['img'])) {
+                    $p['img'] = $plugin_info['img'];
+                }
             }
         }
         $this->view->assign('plugins', $plugins);
