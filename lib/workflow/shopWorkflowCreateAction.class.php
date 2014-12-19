@@ -57,6 +57,11 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                     if ($contact['password']) {
                         $signup_action = new shopSignupAction();
                         $signup_action->send($contact);
+                        /**
+                         * @event signup
+                         * @param waContact $contact
+                         */
+                        wa()->event('signup', $contact);                        
                     }
                 }
             }
