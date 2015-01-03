@@ -227,6 +227,28 @@ return array(
                 'multiplier' => 31536000
             ),
         )
+    ),
+    'voltage' => array(
+        'name' => _w('Voltage'),
+        'base_unit' => 'V',
+        'units' => array(
+            'mV' => array(
+                'name' => _w('mV'),
+                'multiplier' => 0.001,
+            ),
+            'V'=> array(
+                'name' => _w('V'),
+                'multimplier' => 1
+            ),
+            'KV' => array(
+                'name' => _w('KV'),
+                'multiplier' => 1000
+            ),
+            'MV' => array(
+                'name' => _w('MV'),
+                'multiplier' => 1000000
+            )
+        )
     )
 
     //custom dimensions are added in a similar way
