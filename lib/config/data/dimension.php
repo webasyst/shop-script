@@ -259,6 +259,24 @@ return array(
                 'multiplier' => 1
             )
         )
+    ),
+    'amperage' => array(
+        'name' => _w('Amperage'),
+        'base_unit' => 'A',
+        'units' => array(
+            'mA' => array(
+                'name' => _w('mA'),
+                'multiplier' => 0.001,
+            ),
+            'A' => array(
+                'name' => _w('A'),
+                'multiplier' => 1
+            ),
+            'kA' => array(
+                'name' => _w('kA'),
+                'multiplier' => 1000,
+            )
+        )
     )
 
     //custom dimensions are added in a similar way
