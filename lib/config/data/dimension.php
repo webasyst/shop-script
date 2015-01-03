@@ -249,6 +249,16 @@ return array(
                 'multiplier' => 1000000
             )
         )
+    ),
+    'temperature' => array(
+        'name' => _w('Temperature'),
+        'base_unit' => '°C',
+        'units' => array(
+            '°C' => array(
+                'name' => '°C',
+                'multiplier' => 1
+            )
+        )
     )
 
     //custom dimensions are added in a similar way
