@@ -3451,6 +3451,30 @@ msgstr "дн."
 msgid "weeks"
 msgstr "нед."
 
+#: /wa-apps/shop/lib/config/data/dimension.php:232
+msgid "Voltage"
+msgstr "Напряжение"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:236
+msgid "mV"
+msgstr "мВ"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:240
+msgid "V"
+msgstr "В"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:244
+msgid "KV"
+msgstr "кВ"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:248
+msgid "MV"
+msgstr "МВ"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:254
+msgid "Temperature"
+msgstr "Температура"
+
 #: /wa-apps/shop/lib/config/data/checkout.php:10
 msgid "The shipping checkout step prompts user to select the shipping type."
 msgstr "Шаг доставки предлагает покупателю выбрать способ доставки."
