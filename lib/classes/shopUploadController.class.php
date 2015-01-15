@@ -8,7 +8,7 @@ abstract class shopUploadController extends waJsonController
         $this->response['files'] = array();
 
         $this->getStorage()->close();
-        if (waRequest::server('HTTP_X_FILENAME')) {
+        if (waRequest::server('HTTP_X_FILE_NAME')) {
             $name = waRequest::server('HTTP_X_FILE_NAME');
             $size = waRequest::server('HTTP_X_FILE_SIZE');
             $file_path = wa()->getTempPath('shop/upload/').$name;
