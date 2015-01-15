@@ -51,6 +51,13 @@ class shopOrdersCollection
             $this->options[$k] = $v;
         }
         $this->setHash($hash);
+        
+        /**
+         * @event orders_collection.filter
+         * @param shopOrdersCollection $this
+         * @return void
+         */
+        wa()->event('orders_collection.filter', $this);
     }
 
     public function setOptions($options)
