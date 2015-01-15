@@ -238,7 +238,7 @@ return array(
             ),
             'V'=> array(
                 'name' => _w('V'),
-                'multimplier' => 1
+                'multiplier' => 1
             ),
             'KV' => array(
                 'name' => _w('KV'),
