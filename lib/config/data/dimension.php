@@ -257,6 +257,14 @@ return array(
             '°C' => array(
                 'name' => '°C',
                 'multiplier' => 1
+            ),
+            'K' => array(
+                'name' => 'K',
+                'multiplier' => 1,
+            ),
+            '°F' => array(
+                'name' => '°F',
+                'multiplier' => 1,
             )
         )
     ),
@@ -272,9 +280,35 @@ return array(
                 'name' => _w('A'),
                 'multiplier' => 1
             ),
-            'kA' => array(
-                'name' => _w('kA'),
+            'KA' => array(
+                'name' => _w('KA'),
                 'multiplier' => 1000,
+            ),
+            'MA' => array(
+                'name' => _w('MA'),
+                'multiplier' => 1000000,
+            )
+        )
+    ),
+    'electric-charge' => array(
+        'name' => _w('Electric charge'),
+        'base_unit' => 'Ah',
+        'units' => array(
+            'mAh' => array(
+                'name' => _w('mAh'),
+                'multiplier' => 0.001,
+            ),
+            'Ah' => array(
+                'name' => _w('Ah'),
+                'multiplier' => 1,
+            ),
+            'KAh' => array(
+                'name' => _w('KAh'),
+                'multiplier' => 1000,
+            ),
+            'MAh' => array(
+                'name' => _w('MAh'),
+                'multiplier' => 1000000,
             )
         )
     )
