@@ -3475,6 +3475,18 @@ msgstr "МВ"
 msgid "Temperature"
 msgstr "Температура"
 
+#: /wa-apps/shop/lib/config/data/dimension.php:272
+msgid "Amperage"
+msgstr "Сила тока"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:294
+msgid "Electric charge"
+msgstr "Электрический заряд"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:316
+msgid "Illuminance"
+msgstr "Освещенность"
+
 #: /wa-apps/shop/lib/config/data/checkout.php:10
 msgid "The shipping checkout step prompts user to select the shipping type."
 msgstr "Шаг доставки предлагает покупателю выбрать способ доставки."
