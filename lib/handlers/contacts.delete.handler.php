@@ -64,6 +64,13 @@ class shopContactsDeleteHandler extends waEventHandler
 
         // !!! TODO: take a look to other models related with contacts
 
+        /**
+         * @event contacts_delete
+         * @param array[] int $contact_ids array of contact's ID
+         * @return void
+         */
+        wa()->event(array('shop', 'contacts_delete'), $params);
+
     }
 
     public function extractContactInfo($contact)
