@@ -3479,13 +3479,49 @@ msgstr "Температура"
 msgid "Amperage"
 msgstr "Сила тока"
 
+#: /wa-apps/shop/lib/config/data/dimension.php:276
+msgid "mA"
+msgstr "мА"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:280
+msgid "A"
+msgstr "А"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:284
+msgid "КA"
+msgstr "КА"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:288
+msgid "МA"
+msgstr "МА"
+
 #: /wa-apps/shop/lib/config/data/dimension.php:294
 msgid "Electric charge"
 msgstr "Электрический заряд"
 
+#: /wa-apps/shop/lib/config/data/dimension.php:298
+msgid "mAh"
+msgstr "мАч"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:302
+msgid "Ah"
+msgstr "Ач"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:306
+msgid "КAh"
+msgstr "КАч"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:310
+msgid "МAh"
+msgstr "МАч"
+
 #: /wa-apps/shop/lib/config/data/dimension.php:316
 msgid "Illuminance"
 msgstr "Освещенность"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:320
+msgid "lux"
+msgstr "лк"
 
 #: /wa-apps/shop/lib/config/data/checkout.php:10
 msgid "The shipping checkout step prompts user to select the shipping type."
