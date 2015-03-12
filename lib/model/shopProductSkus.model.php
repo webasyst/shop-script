@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Note the currencies for different price fields:
+ *
+ * - shop_product_skus.primary_price    primary currency
+ * - shop_product_skus.price            shop_product.currency
+ * - shop_product_skus.purchase_price   shop_product.currency
+ * - shop_product_skus.compare_price    shop_product.currency
+ */
 class shopProductSkusModel extends shopSortableModel implements shopProductStorageInterface
 {
     protected $table = 'shop_product_skus';
@@ -264,7 +272,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
 
         $product_model = new shopProductModel();
         $product = $product_model->getById($data['product_id']);
-        $primary_currency = wa()->getConfig()->getCurrency();
+        $primary_currency = wa('shop')->getConfig()->getCurrency();
 
         if ($product['currency'] == $primary_currency) {
             $data['primary_price'] = $data['price'];
@@ -289,7 +297,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
 
         $product_model = new shopProductModel();
         $product = $product_model->getById($data['product_id']);
-        $primary_currency = wa()->getConfig()->getCurrency();
+        $primary_currency = wa('shop')->getConfig()->getCurrency();
 
         if ($product['currency'] == $primary_currency) {
             $data['primary_price'] = $data['price'];
@@ -301,9 +309,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             $sku['available'] = 0;
         }
 
-        $this->updateSku(0, $data);
-
-        return true;
+        return $this->updateSku(0, $data);
     }
 
     /**
@@ -375,7 +381,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             }
 
 
-            if (empty($data['eproduct']) && !empty($data['file_name'])) {
+            if (empty($data['eproduct']) && isset($data['eproduct_manage']) && !empty($data['file_name'])) {
                 $file_path = shopProduct::getPath(
                     $data['product_id'],
                     "sku_file/{$id}.".pathinfo($data['file_name'], PATHINFO_EXTENSION)
@@ -408,7 +414,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
 
             // not multistocking
             if (!$multi_stock || isset($data['stock'][0])) {
-                $sku_count = self::castStock($data['stock'][0]);
+                $sku_count = self::castStock(ifset($data['stock'][0], ''));
                 unset($data['stock']);
 
                 $this->logCount($data['product_id'], $id, $sku_count);
@@ -453,7 +459,9 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                 //get stock_count for missed stocks
                 if (($sku_count !== null) && !empty($missed)) {
                     $search = array('stock_id' => $missed, 'sku_id' => $id, 'product_id' => $data['product_id']);
-                    foreach ($stocks_model->getByField($search, 'stock_id') as $stock_id => $row) {
+                    $missed_stocks = $stocks_model->getByField($search, 'stock_id');
+                    foreach ($missed_stocks as $stock_id => $row) {
+                        unset($missed[$stock_id]);
                         $count = $row['count'];
                         $data['stock'][$stock_id] = $count;
                         if ($count === null) {
@@ -464,6 +472,14 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
                                 $sku_count += $count;
                             }
                         }
+                    }
+
+                    //fill null counters:
+                    if ($missed) {
+                        foreach ($missed as $stock_id) {
+                            $data['stock'][$stock_id] = null;
+                        }
+                        $sku_count = null;
                     }
                 }
             }
@@ -595,7 +611,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
 
     public function setData(shopProduct $product, $data)
     {
-        $primary_currency = wa()->getConfig()->getCurrency();
+        $primary_currency = wa('shop')->getConfig()->getCurrency();
 
         $sort = 0;
         $default_sku_id = null;

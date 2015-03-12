@@ -23,13 +23,18 @@ return array(
     'products_default_view'    => 'thumbs',/* 'table' or 'thumbs' */
     'orders_default_view'      => 'split',
     'orders_per_page'          => array('split' => 15, 'table' => 30),
+    'product_orders_per_page' => 30,
     'types_per_page'           => 25,
-    'features_per_page'        =>200,
+    'features_per_page'        => 200,
+    'statrows_per_page'        => 50,
     'orders_update_list'       => 60000, // miliseconds
 
     'stocks_log_items_per_page' => 30,
-    
-    'image_sizes'              => array(),
+    'marketing_expenses_per_page' => 25,
+
+    'image_sizes'              => array(
+        '0x320'
+    ),
     'image_max_size'           => 1000,
     'image_sharpen'            => 1,
     'image_thumbs_on_demand'   => 1,
@@ -51,11 +56,134 @@ return array(
     ),
 
     'search_ignore' => ',.!?«»"\'()[]<>|/',
+    'search_smart' => true,
 
     /**
      * the ability to use Smarty within product/category description
      */
     'can_use_smarty' => false,
+    'rounding_options' => array(
+        '100' => /*_w*/("Round to nearest 100"),
+        '99' => /*_w*/("Round to nearest 99"),
+        '10' => /*_w*/("Round to nearest 10"),
+        '1' => /*_w*/("Round to nearest 1.00"),
+        '0.99' => /*_w*/("Round to nearest .99"),
+        '0.1' => /*_w*/("Round to nearest 0.1"),
+        '' => /*_w*/("Round to nearest 0.01"),
+    ),
+
+    /**
+     * List of domains for the Social section in Sales Report
+     */
+    'social_domains' => array(
+        'vk.com' => array(
+            'name' => /*_w(*/'ВКонтакте'/*)*/,
+            'icon_class' => 'vkontakte',
+        ),
+        'www.facebook.com' => array(
+            'name' => /*_w(*/'Facebook'/*)*/,
+            'icon_class' => 'facebook',
+        ),
+        'twitter.com' => array(
+            'name' => /*_w(*/'Twitter'/*)*/,
+            'icon_class' => 'twitter',
+        ),
+        'ok.ru' => array(
+            'name' => /*_w(*/'Одноклассники'/*)*/,
+            'icon_class' => '',
+        ),
+        'plus.google.com' => array(
+            'name' => /*_w(*/'Google+'/*)*/,
+            'icon_class' => 'google',
+        ),
+        'instagram.com' => array(
+            'name' => /*_w(*/'Instagram'/*)*/,
+            'icon_class' => '',
+        ),
+        'www.linkedin.com' => array(
+            'name' => /*_w(*/'LinkedIn'/*)*/,
+            'icon_class' => 'linkedin',
+        ),
+        'my.mail.ru' => array(
+            'name' => /*_w(*/'Мой Мир@Mail.Ru'/*)*/,
+            'icon_class' => '',
+        ),
+        'myspace.com' => array(
+            'name' => /*_w(*/'Myspace'/*)*/,
+            'icon_class' => '',
+        ),
+        'ru.foursquare.com' => array(
+            'name' => /*_w(*/'Foursquare'/*)*/,
+            'icon_class' => '',
+        ),
+        'foursquare.com' => array(
+            'name' => /*_w(*/'Foursquare'/*)*/,
+            'icon_class' => '',
+        ),
+        'www.deviantart.com' => array(
+            'name' => /*_w(*/'DeviantArt'/*)*/,
+            'icon_class' => '',
+        ),
+        'www.pinterest.com' => array(
+            'name' => /*_w(*/'Pinterest'/*)*/,
+            'icon_class' => '',
+        ),
+        'www.tumblr.com' => array(
+            'name' => /*_w(*/'Tumblr'/*)*/,
+            'icon_class' => '',
+        ),
+    ),
+
+    /**
+     * Default colors for popular traffic sources in Marketing Costs editor
+     */
+    'traffic_sources' => array(
+        'google.com' => array(
+            'color' => '#2171eb',
+        ),
+        'google.ru' => array(
+            'color' => '#2171eb',
+        ),
+        'google.co.uk' => array(
+            'color' => '#2171eb',
+        ),
+        'google.ca' => array(
+            'color' => '#2171eb',
+        ),
+        'google.com.au' => array(
+            'color' => '#2171eb',
+        ),
+        'google.co.jp' => array(
+            'color' => '#2171eb',
+        ),
+        'google.de' => array(
+            'color' => '#2171eb',
+        ),
+        'google.es' => array(
+            'color' => '#2171eb',
+        ),
+        'google.fr' => array(
+            'color' => '#2171eb',
+        ),
+        'google.it' => array(
+            'color' => '#2171eb',
+        ),
+        'www.facebook.com' => array(
+            'color' => '#3b5998',
+        ),
+        'twitter.com' => array(
+            'color' => '#5ea9dd',
+        ),
+        'www.bing.com' => array(
+            'color' => '#ffb900',
+        ),
+        'yandex.ru' => array(
+            'color' => '#fc0d1b',
+        ),
+        'vk.com' => array(
+            'color' => '#5b7c9f',
+        ),
+    ),
 
     /**
      * list of available order state icons (CSS classes)
@@ -77,11 +205,33 @@ return array(
         'flag-black',
         'flag-checkers'
     ),
+
+    /**
+     * list of available order action icons (CSS classes)
+     */
+    'order_action_icons' => array(
+        'new',
+        'processing',
+        'paid',
+        'sent',
+        'completed',
+        'refunded',
+        'trash',
+        'flag-white',
+        'flag-blue',
+        'flag-yellow',
+        'flag-green',
+        'flag-red',
+        'flag-purple',
+        'flag-black',
+        'flag-checkers'
+    ),
+
     /**
      * list of available product type icons (CSS classes)
      */
     'type_icons'               => array(
-        'ss pt box',    
+        'ss pt box',
         'ss pt sports',
         'ss pt soccer',
         'ss pt cake',

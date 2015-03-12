@@ -21,7 +21,7 @@ class shopCart
 
     /**
      * Returns current shopping cart's unique id.
-     * 
+     *
      * @return string
      */
     public function getCode()
@@ -58,7 +58,7 @@ class shopCart
 
     /**
      * Returns total cost of current shopping cart's items, expressed in default currency.
-     * 
+     *
      * @param bool $discount Whether applicable discounts must be taken into account
      * @return int
      */
@@ -83,7 +83,7 @@ class shopCart
 
     /**
      * Returns discount applicable to current customer's shopping cart contents, expressed in default currency.
-     * 
+     *
      * @return float
      */
     public function discount()
@@ -98,7 +98,7 @@ class shopCart
 
     /**
      * Returns number of items in current customer's shopping cart
-     * 
+     *
      * @return int
      */
     public function count()
@@ -108,10 +108,10 @@ class shopCart
 
     /**
      * Returns information about current shopping cart's items.
-     * 
+     *
      * @param bool $hierarchy Whether selected services must be included as 'services' sub-array for applicable items.
      *     If false, services are included as separate array items.
-     * @return array 
+     * @return array
      */
     public function items($hierarchy = true)
     {
@@ -120,7 +120,7 @@ class shopCart
 
     /**
      * Changes quantity for current shopping cart's item with specified id.
-     * 
+     *
      * @param int $item_id Item id
      * @param int $quantity New quantity
      */
@@ -132,8 +132,8 @@ class shopCart
     }
 
     /**
-     * Changes 'service_variant_id' value for current shopping cart's item with specified id. 
-     * 
+     * Changes 'service_variant_id' value for current shopping cart's item with specified id.
+     *
      * @param unknown_type $item_id
      * @param unknown_type $variant_id
      */
@@ -145,7 +145,7 @@ class shopCart
 
     /**
      * Adds a new entry to table 'shop_cart_items'
-     * 
+     *
      * @param array $item Cart item data array
      * @param array $services
      * @return int New cart item id
@@ -183,8 +183,8 @@ class shopCart
     }
 
     /**
-     * Returns data array of current shopping cart's item with specified id. 
-     * 
+     * Returns data array of current shopping cart's item with specified id.
+     *
      * @param int $item_id
      * @return array
      */
@@ -195,17 +195,20 @@ class shopCart
 
     /**
      * Returns total cost of current shopping cart's item with specified id, expressed in default currency.
-     * 
+     *
      * @param int|array $item_id Item id or item data array.
      * @return float
      */
     public function getItemTotal($item_id)
     {
         if (is_array($item_id)) {
-            $item = $item_id;
-        } else {
+            $item_id = $item_id['id'];
             $item = $this->getItem($item_id);
         }
+
+        // this gives price already rounded for frontend
+        $item = $this->getItem($item_id);
+
         $cart_items_model = new shopCartItemsModel();
         $items = $cart_items_model->getByField('parent_id', $item['id'], true);
         $price = shop_currency($item['price'] * $item['quantity'], $item['currency'], null, false);
@@ -219,10 +222,14 @@ class shopCart
         }
 
         $product_services_model = new shopProductServicesModel();
-        $sql = "SELECT v.id, s.currency, ps.sku_id, ps.price, v.price base_price FROM shop_service_variants v
-                LEFT JOIN shop_product_services ps ON
-                v.id = ps.service_variant_id AND ps.product_id = i:0 AND (ps.sku_id = i:1 OR ps.sku_id IS NULL)
-                JOIN shop_service s ON v.service_id = s.id
+        $sql = "SELECT v.id, s.currency, ps.sku_id, ps.price, v.price base_price
+                    FROM shop_service_variants v
+                        LEFT JOIN shop_product_services ps
+                            ON v.id = ps.service_variant_id
+                                AND ps.product_id = i:0
+                                AND (ps.sku_id = i:1 OR ps.sku_id IS NULL)
+                        JOIN shop_service s
+                            ON v.service_id = s.id
                 WHERE v.id IN (i:2)
                 ORDER BY ps.sku_id";
         $rows = $product_services_model->query($sql, $item['product_id'], $item['sku_id'], $variants)->fetchAll();
@@ -236,13 +243,22 @@ class shopCart
             }
         }
 
+        $rounding_enabled = shopRounding::isEnabled();
+        $frontend_currency = wa('shop')->getConfig()->getCurrency(false);
+
         foreach ($items as $s) {
             $v = $prices[$s['service_variant_id']];
             if ($v['currency'] == '%') {
                 $v['price'] = $v['price'] * $item['price'] / 100;
                 $v['currency'] = $item['currency'];
             }
-            $price += shop_currency($v['price'] * $item['quantity'], $v['currency'], null, false);
+
+            $service_price = shop_currency($v['price'], $v['currency'], $frontend_currency, false);
+            if ($rounding_enabled && $v['currency'] != $frontend_currency) {
+                $service_price = shopRounding::roundCurrency($service_price, $frontend_currency);
+            }
+
+            $price += $service_price * $item['quantity'];
         }
         return $price;
     }
@@ -258,7 +274,7 @@ class shopCart
 
     /**
      * Removes item with specified id from current customer's shopping cart.
-     * 
+     *
      * @param int $id
      * @return Removed item's data array
      */

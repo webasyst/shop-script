@@ -1,3 +1,13 @@
+<style>
+#tooltip {
+    position: absolute;
+    z-index: 3000;
+    border: 1px solid orange;
+    background-color: #ffe;
+    padding: 5px;
+}
+#tooltip h3, #tooltip div { margin: 0; }
+</style>{* !!! *}
 <form id="order-edit-form" method="post" action="?module=order&action=save{if $order}&id={$order.id}{/if}">
 <div class="sidebar left400px s-order-customer-details">
     <div class="block top-padded">
@@ -69,7 +79,7 @@
                     <select name="variant[edit][{$index}][{$service_id}]" class="s-orders-service-variant"
                         {if $service.item.service_variant_id === null}disabled="disabled"{/if}>
                         {foreach $service.variants as $variant_id => $variant}
-                            <option value="{$variant.id}" 
+                            <option value="{$variant.id}"
                                                    data-price="{$variant.price}"
                                                    {if $service.currency == '%'}data-percent-price="{$variant.percent_price}"{/if}
                                                    {if $service.item.service_variant_id == $variant_id}selected="selected"{/if}>
@@ -79,7 +89,7 @@
                     </select>
                {/if}
             {/if}
-            <input type="text" name="price[edit][item][{$service.item.id}]" value="{$service.item.price}" 
+            <input type="text" name="price[edit][item][{$service.item.id}]" value="{$service.item.price}"
                                         data-currency="{$service.currency}"
                                         data-price="{$service.item.price}"
                                         {if $service.currency == '%'}data-percent-price="{$service.percent_price}"{/if}
@@ -90,12 +100,12 @@
                 {$service.name}
             </label>
             {if !$multi_variants}
-                <strong>{$service.variants[$service.variant_id].price_str}</strong>
+                <strong>{$service.variants[$service.variant_id].price_html}</strong>
                 <input type="hidden" name="variant[edit][{$index}][{$service_id}]" value="{$service.variant_id}">
             {else}
                 <select name="variant[edit][{$index}][{$service_id}]" class="s-orders-service-variant">
                     {foreach $service.variants as $variant_id => $variant}
-                        <option value="{$variant.id}" 
+                        <option value="{$variant.id}"
                                              data-price="{$variant.price}"
                                              {if $service.currency == '%'}data-percent-price="{$variant.percent_price}"{/if}
                                              {if $service.variant_id == $variant_id}selected="selected"{/if}>
@@ -104,7 +114,7 @@
                     {/foreach}
                 </select>
             {/if}
-            <input type="text" name="price[edit][new][{$service_id}]" value="{$service.price}" 
+            <input type="text" name="price[edit][new][{$service_id}]" value="{$service.price}"
                                         data-currency="{$service.currency}"
                                         data-price="{$service.price}"
                                         {if $service.currency == '%'}data-percent-price="{$service.percent_price}"{/if}
@@ -129,7 +139,7 @@
                 {if empty($product.fake)}{$product.name}{else}{$product.item.name}{/if}
             </strong>
             <span class="gray">
-                {if empty($product.fake)}{$product.price_str}{/if}
+                {if empty($product.fake)}{$product.price_html}{/if}
             </span>
 
             {if empty($product.fake)}
@@ -156,7 +166,7 @@
                                 >
                                 {$sku.name}
                                 {if $sku.sku}<span class="gray">{$sku.sku}</span>{/if}
-                                <strong>{$sku.price_str}</strong>
+                                <strong>{$sku.price_html}</strong>
                                 <span class="s-orders-stock-icon-aggregate">
                                     {$sku.icon}
                                 </span>
@@ -166,7 +176,7 @@
                     </ul>
                 {else}
                     {$product_sku = $product.skus[$product.item.sku_id]}
-                    {if $product_sku && empty($product_sku.fake) && $product_sku.sku}
+                    {if $product_sku && empty($product_sku.fake) && !empty($product_sku.sku)}
                         <span class="hint">{$product_sku.sku}</span>
                     {/if}
                     {if !empty($product.fake)}
@@ -191,8 +201,8 @@
         </td>
         <td class="valign-top align-right nowrap">
             <span style="padding-top: 2px;" class="gray">&times;</span>
-            <input type="text" 
-                   name="quantity[edit][{$product.item.id}]" 
+            <input type="text"
+                   name="quantity[edit][{$product.item.id}]"
                    value="{$product.item.quantity}"
                    class="s-orders-quantity short numerical"
             >
@@ -233,6 +243,16 @@
 
 <div class="content left400px bordered-left">
     <div class="block double-padded">
+        {if !$order}
+            <div style="float: right">
+                <i class="icon16 dollar"></i>
+                <select id="order-currency">
+                    {foreach $wa->shop->currencies() as $c}
+                    <option value="{$c.code}" {if $c.is_primary}selected{/if}>{$c.code}</option>
+                    {/foreach}
+                </select>
+            </div>
+        {/if}
         <h2>{if !$order}[`Add products`]{else}{shopHelper::encodeOrderId({$order.id})}{/if}</h2>
         <em class="errormsg s-order-errors" style="padding: 5px 0 10px;"></em>
         <div class="s-order-comment-edit" {if !$order}style="display:none;"{/if} id="s-order-comment-edit">
@@ -324,13 +344,17 @@
                 </tr>
                 <tr class="white">
                     <td class="min-width"></td>
-                    <td class="align-right" colspan="3">[`Discount`]</td>
+                    <td class="align-right" colspan="3">
+                        <i class="icon16 info" style="display:none;" id="discount-tooltip-icon"></i>
+                        [`Discount`]
+                    </td>
                     <td class="align-right nowrap">
                         &minus; <input type="text" class="numerical short" id="discount" name="discount" {if $order}value="{(float)$order.discount}"{/if}>
                         <span class="currency">{$currency}</span>
                     </td>
                     <td>
-                        {if $order}<a href="#" style="display: none" id="update-discount"><i class="icon16 update"></i></a>{/if}
+                        <input type="hidden" name="discount_description" value="" id="discount-description" data-updated-manually-msg="[`Discount specified manually`]">
+                        <a href="#" style="display: none" id="update-discount" data-description="" data-value="{if $order}{(float)$order.discount}{else}0{/if}"><i class="icon16 update"></i></a>
                     </td>
                 </tr>
 
@@ -351,8 +375,9 @@
                         <em class="hint">[`Tax will be calculated after the order is saved.`]</em>
                         {/if}
                     </td>
-                    <td class="align-right" colspan="2">
+                    <td class="save align-right" colspan="2">
                         <input type="submit" class="button green large" value="[`Save order`]">
+                        <i class="icon16 loading"></i>
                     </td>
                 </tr>
             </tfoot>
@@ -369,13 +394,12 @@
 
 <script type="text/javascript" src="{$wa_app_static_url}js/order/edit.js?v{$wa->version()}"></script>
 <script type="text/javascript">
-    $('#update-discount').click(function () {
-        $('#discount').val($(this).data('value')).change();
-        $(this).hide();
-        return false;
-    });
     var count_new = {if !empty($count_new)}{$count_new}{else}0{/if};
-    var title = {if !$order}'{"[`New order`]"|cat:" — ":{$wa->accountName(false)}|escape:"javascript"}'{else}'{$wa->shop->orderId($order.id)|cat:" — ":{$wa->accountName(false)}|escape:"javascript"}'{/if};
+    var title = {strip}{if !$order}
+        {json_encode("[`New order`] — {$wa->accountName(false)}")}
+    {else}
+        {json_encode("{$wa->shop->orderId($order.id)} — {$wa->accountName(false)}")}
+    {/if}{/strip};
     if (title && count_new) {
         title = '(' + count_new + ') ' + title;
     }
@@ -399,5 +423,9 @@
 
     {if $customer_validation_disabled}
         $('#s-order-edit-customer').find('.required,.wa-required').removeClass('required').removeClass('wa-required');
+    {/if}
+
+    {if $wa->shop->config('enable_2x')}
+        $.fn.retina && $('#order-items img').retina();
     {/if}
 </script>

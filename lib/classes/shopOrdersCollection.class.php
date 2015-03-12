@@ -32,7 +32,7 @@ class shopOrdersCollection
      *     'search/state_id=new||processing||paid' — search by 'state' field of shop_order table; supported comparison/matching operators:
      *         $=    inexact matching by value end (LIKE 'value%')
      *         ^=    inexact matching by value start (LIKE '%value')
-     *         *=    inexact matching (LIKE '%value%') 
+     *         *=    inexact matching (LIKE '%value%')
      *         ==    exact matching; if NULL is specified, IS NULL condition is used
      *         =     the same
      *         !=    non-matching
@@ -41,8 +41,9 @@ class shopOrdersCollection
      *         >     greater
      *         <     less
      *     'search/state_id=new||processing&total>=100' — search by several fields of shop_order table; multiple conditions are separated by ampersand &
-     *     'search/params.shipping_id=64' — search by values stored in table shop_order_params 
+     *     'search/params.shipping_id=64' — search by values stored in table shop_order_params
      *     'search/items.service_id=2' — search by values stored in table shop_order_items
+     *     'search/items.product_id=10' - search orders related to specific (id=10) product
      * @param array $options Extra options
      */
     public function __construct($hash = '', $options = array())
@@ -113,7 +114,7 @@ class shopOrdersCollection
         }
         $this->where[] = "o.id IN (".implode(',', $ids).")";
     }
-    
+
     public function getFields($fields)
     {
         if ($fields == '*') {
@@ -144,6 +145,11 @@ class shopOrdersCollection
     public function getJoinedAlias($table)
     {
         $alias = $this->getTableAlias($table);
+        if (!isset($this->join_index[$alias])) {
+            $this->join_index[$alias] = 1;
+        } else {
+            $this->join_index[$alias]++;
+        }
         return $alias.$this->join_index[$alias];
     }
 
@@ -186,14 +192,7 @@ class shopOrdersCollection
             $table = $table['table'];
         }
 
-        $alias = $this->getTableAlias($table);
-
-        if (!isset($this->join_index[$alias])) {
-            $this->join_index[$alias] = 1;
-        } else {
-            $this->join_index[$alias]++;
-        }
-        $alias .= $this->join_index[$alias];
+        $alias = $this->getJoinedAlias($table);
 
         $join = array(
             'table' => $table,
@@ -284,7 +283,7 @@ class shopOrdersCollection
     /**
      * Parses order selection condition string of the form acceptable by class constructor.
      * @see __constructor()
-     * 
+     *
      * @param string $query Order selection query; e.g., 'total>=3&state_id>=new||paid'
      * @return array Parsed condition data; e.g.:
      *     total => Array
@@ -385,17 +384,17 @@ class shopOrdersCollection
 
     /**
      * Returns array of orders included in collection.
-     * 
+     *
      * @param string $fields List of order properties, comma-separated, to be included in returned array:
      *     '*' — values from shop_order table
      *     '*,params,items,contact' (different combinations are acceptable) — values from tables shop_order, shop_order_items, shop_order_params, wa_contact
      * @param int $offset Initial position in returned order array, 0 means first order in collection
-     * @param int|bool $limit Maximum order limit. 
+     * @param int|bool $limit Maximum order limit.
      *     If a Boolean value is specified, then $escape = $limit and $limit = null
      *     If no value is specified, then $limit = 0.
-     *     If no value is specified and $offset is non-zero, then $limit = $offset and $offset = 50   
+     *     If no value is specified and $offset is non-zero, then $limit = $offset and $offset = 50
      * @param bool $escape Whether order parameters and contact names must be escaped using htmlspecialchars() function, defaults to true
-     * 
+     *
      * @return array Array of collection orders' sub-arrays
      */
     public function getOrders($fields = "*", $offset = 0, $limit = null, $escape = true)
@@ -423,7 +422,7 @@ class shopOrdersCollection
         }
 
         $ids = array_keys($data);
-        
+
         // add other fields
         foreach ($this->other_fields as $field) {
             switch ($field) {
@@ -466,49 +465,50 @@ class shopOrdersCollection
             }
         }
         unset($t);
-        
+
         return $data;
     }
-    
+
     /**
      * Returns position of specified order in collection.
-     * 
+     *
      * @param int $order Order id
      * @return int
      */
     public function getOrderOffset($order)
     {
         $model = $this->getModel();
-        
+
         if (!is_array($order)) {
             $order_id = (int) $order;
             $order = $model->getById($order_id);
+        } else {
+            $order_id = (int) $order['id'];
         }
-        $order_id = (int) $order_id;
-        if (!$order) {
+        if (!$order || !$order_id) {
             return false;
         }
         $create_datetime = $model->escape($order['create_datetime']);
-        
+
         // for calling prepare
         $this->getSQL();
-        
+
         // first, check existing in collection
-        $this->where[] = 'o.id = '.(int) $order['id'];
+        $this->where[] = 'o.id = '.$order_id;
         $sql = "SELECT * ".$this->getSQL();
         if (!$model->query($sql)) {
             return false;
         }
         array_pop($this->where);
-        
+
         // than calculate offset
         $this->where[] = "(o.create_datetime > '{$create_datetime}' OR (o.create_datetime = '{$create_datetime}' AND o.id < '{$order_id}'))";
         $sql = "SELECT COUNT(o.id) offset ".$this->getSQL();
         $offset = $model->query($sql)->fetchField();
         array_pop($this->where);
-        
+
         return $offset;
-        
+
     }
 
     protected function searchPrepare($query, $auto_title = true)
@@ -535,9 +535,9 @@ class shopOrdersCollection
             $parts = preg_split("/(\\\$=|\^=|\*=|==|!=|>=|<=|=|>|<)/uis", $part, 2, PREG_SPLIT_DELIM_CAPTURE);
             if ($parts) {
                 if (substr($parts[0], 0, 7) == 'params.') {
-                    $this->addJoin('shop_order_params', null,
-                        ":table.name = '".$model->escape(substr($parts[0] ,7))."' AND
-                        :table.value".$this->getExpression($parts[1], $parts[2]));
+                    $this->addJoin(array('table' => 'shop_order_params', 'type' => $parts[2] === 'NULL' ? 'left' : ''),
+                        "o.id = :table.order_id AND :table.name = '".$model->escape(substr($parts[0] ,7))."'",
+                        ":table.value".$this->getExpression($parts[1], $parts[2]));
                 } elseif (substr($parts[0], 0, 6) == 'items.' && $this->getModel('items')->fieldExists(substr($parts[0], 6))) {
                     $this->addJoin('shop_order_items', null, ':table.'.substr($parts[0], 6).$this->getExpression($parts[1], $parts[2]));
                 } elseif ($model->fieldExists($parts[0])) {
@@ -546,7 +546,7 @@ class shopOrdersCollection
                 }
             }
         }
-        
+
         if ($title) {
             $title = implode(', ', $title);
             // Strip slashes from search title.

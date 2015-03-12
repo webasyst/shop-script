@@ -15,7 +15,7 @@ class shopWorkflowCommentAction extends shopWorkflowAction
         $log_model = new waLogModel();
         $log_model->add('order_comment', $params);
         return array(
-            'text' => waRequest::post('text')
+            'text' => nl2br(htmlspecialchars(waRequest::post('text')))
         );
     }
 

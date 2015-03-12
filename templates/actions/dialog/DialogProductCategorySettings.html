@@ -1,18 +1,18 @@
 {capture assign="title_text"}
     {$settings.name|escape}
-    <i class="icon16 {if $settings.type == shopCategoryModel::TYPE_STATIC}folder{else}folder-dynamic{/if}"></i>
+    <i class="icon16 {if $settings.type == shopCategoryModel::TYPE_STATIC}folder{else}funnel{/if}"></i>
     <span class="hint float-right">id: {$settings.id}</span>
 {/capture}
 {$name_text =  "[`Name`]"}
 
-{capture frontend_url}
+{capture frontend_url}{if $settings.frontend_urls}
 <div class="field-group">
     <div class="field">
         <div class="name">
-            [`Storefront link`]
+            [`Public link`]
         </div>
-        <div class="value no-shift">
-            {foreach $settings.frontend_urls as $frontend_url}
+        {foreach $settings.frontend_urls as $frontend_url}
+            <div class="value no-shift{if !$frontend_url@first} small{/if}">
                 {if $frontend_url@first}
                     {strip}
                         <span class="s-frontend-base-url" style="display:none;">
@@ -24,35 +24,31 @@
                             <span class="slash"></span>
                         </a>
                     {/strip}
-                    <i class="icon10 new-window"></i>
                     <input type="text" id="s-settings-frontend-url-input" value="{$settings.url}" name="url" style="display:none;">
-                    <a href="javascript:void(0);" class="small inline-link" id="s-settings-frontend-url-edit-link"><i class="icon10 edit"></i><b><i>edit</i></b></a>
+                    <a href="javascript:void(0);" class="small gray inline-link" id="s-settings-frontend-url-edit-link"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
                     <em class="errormsg"></em>
                 {else}
                     <a href="{$frontend_url.url}" target="_blank">{$frontend_url.url}</a>
-                    <i class="icon10 new-window"></i>
                 {/if}
-            {/foreach}
-        </div>
+            </div>
+        {/foreach}
+
         <div class="value no-shift">
             <label>
                 <input value="1" name="hidden" {if !$settings.status}checked{/if} type="checkbox" name="hidden">
-                [`Hidden category`] <span class="hint">[`When enabled, this category will be temporarily hidden from the storefront`]</span>
+                [`Hidden category`] <span class="hint">[`Enable to temporarily hide this category from the storefront`]</span>
             </label>
         </div>
     </div>
 </div>
-{/capture}
+{/if}{/capture}
 
 {capture frontend_display}
 <div class="field">
     <div class="name">
-        <label for="custom-settings">
-        [`Frontend display`]
-        </label>
+        [`Product sort order`]
     </div>
     <div class="value no-shift">
-        [`Default product sort order`]:
         <select name="sort_products">
             {if $settings.type == shopCategoryModel::TYPE_STATIC}
                 <option value="" {if empty($settings.sort_products)}selected="selected"{/if}>[`Manual (as defined in the backend)`]</option>
@@ -70,10 +66,16 @@
             {else}
                 <option value="create_datetime DESC" {if $settings.sort_products == 'create_datetime DESC'}selected="selected"{/if}>[`Date added`]</option>
             {/if}
+            <option value="stock_worth DESC" {if $settings.sort_products == 'stock_worth DESC'}selected="selected"{/if}>[`Stock net worth`]</option>
         </select>
         <label class="small">
             <input type="checkbox" name="enable_sorting" {if $settings.enable_sorting}checked="checked"{/if} value="1"> [`Customers can select preferable product sort order`]
         </label>
+    </div>
+</div>
+<div class="field">
+    <div class="name">
+        [`Frontend display`]
     </div>
     <div class="value no-shift"{if $settings.type == shopCategoryModel::TYPE_DYNAMIC} style="display: none;"{/if}>
         <label>
@@ -90,7 +92,7 @@
             <ul class="menu-v compact small">
                 {foreach $settings.filter as $feature}
                     <li>
-                        <i class="icon16 sort"></i> 
+                        <i class="icon16 sort"></i>
                         <label><input type="checkbox" name="filter[]" value="{$feature.id}"
                                             {if !empty($feature.checked) || ($feature.id == 'price' && !$settings.allow_filter)}checked="checked"{/if}>
                                 {$feature.name|escape}
@@ -114,16 +116,17 @@
     <div class="field">
         <div class="name">[`Title`]</div>
         <div class="value">
-            <input value="{$settings.meta_title|escape}" 
+            <input value="{$settings.meta_title|escape}"
                         id="s-meta-title"
-                        name="meta_title" 
-                        placeholder="{$settings.name|escape}" class="long bold">
+                        name="meta_title"
+                        placeholder="{shopCategoryModel::getDefaultMetaTitle($settings)}" class="long bold">
         </div>
     </div>
     <div class="field">
         <div class="name">[`META Keywords`]</div>
         <div class="value">
-            <textarea name="meta_keywords">{$settings.meta_keywords|escape}</textarea>
+            <textarea name="meta_keywords"
+                      placeholder="{shopCategoryModel::getDefaultMetaKeywords($settings)}">{$settings.meta_keywords|escape}</textarea>
         </div>
     </div>
     <div class="field">
@@ -214,6 +217,17 @@
         <div class="value">
             <table class="zebra">
                 <tbody>
+                    {if !empty($parent)}
+                        <tr>
+                            <td class="min-width" style="vertical-align: top;">
+                                <input type="checkbox" disabled="disabled" checked="checked">
+                            </td>
+                            <td colspan="3">
+                                {sprintf('[`<strong>%s</strong> category only`]', $parent.name)}
+                                <p class="hint" style="margin-bottom: 0;">[`Dynamic categories filter products only from parent categories they belong to.`]</p>
+                            </td>
+                        </tr>
+                    {/if}
                     <tr>
                         <td class="min-width">
                             <input id="s-condition-price-interval" type="checkbox" name="condition[price]" value="price" {if isset($settings.conditions.price)}checked{/if}>
@@ -308,7 +322,7 @@
                                 <select name="feature_values[{$f.code}]" class="s-feature_value" data-feature-id="{$f.code}">
                                     {foreach $f.values as $v_id => $value}
                                         <option value="{$v_id}"{if is_object($value)} style="{$value.style|default:''}"{/if} {if isset($settings.conditions.feature[$f.code][1]) && $settings.conditions.feature[$f.code][1] == $v_id}selected{/if}>
-                                            {$value|escape}
+                                            {$value|truncate:64|escape}
                                         </option>
                                     {/foreach}
                                 </select>
@@ -393,9 +407,7 @@
             var self = $(this);
             var parent_div = self.parents('div:first');
             var slash = parent_div.find('span.slash');
-            var new_window = parent_div.find('i.new-window');
             $(input).after(slash);
-            new_window.hide();
 
             parent_div.find('span.s-frontend-base-url').html(parent_div.find('a.s-frontend-base-url').hide().contents()).show();
         },
@@ -403,9 +415,7 @@
             var self = $(this);
             var parent_div = self.parents('div:first');
             var slash = parent_div.find('span.slash');
-            var new_window = parent_div.find('i.new-window');
             self.after(slash);
-            new_window.show();
 
             parent_div.find('a.s-frontend-base-url').html(parent_div.find('span.s-frontend-base-url').hide().contents()).show();
         }
@@ -413,23 +423,22 @@
 
     // change meta title input placeholder automaticly on changing name of category
     (function() {
-        var timeout = 450;
-        var timer_id = null;
         var title_input = $('input[name=meta_title]', d);
-        var name_input  = $('input[name=name]', d);
-        name_input.bind('keydown', function() {
-            if (timer_id) {
-                clearTimeout(timer_id);
-                timer_id = null;
-            }
-            timer_id = setTimeout(function() {
-                title_input.attr('placeholder', name_input.val());
-            }, timeout);
+        $.shop.changeListener($('input[name=name]', d), function(name_input) {
+            title_input.attr('placeholder', name_input.val());
+        });
+    })();
+
+    // change meta keywords input placeholder automaticly on changing name of category
+    (function() {
+        var keywords_input = $('[name=meta_keywords]', d);
+        $.shop.changeListener($('input[name=name]', d), function(name_input) {
+            keywords_input.attr('placeholder', [$.wa.decodeHTML("{$wa->accountName()}"), name_input.val()].join(', '));
         });
     })();
 
     $.shop.makeFlexibleInput('s-meta-title');
-    
+
     $('#s-category-filter').sortable({
         distance: 5,
         opacity: 0.75,
@@ -438,7 +447,7 @@
         cursor: 'move',
         tolerance: 'pointer'
     });
-    
+
     d.data('uploadFields', {
         '_csrf': "{waRequest::cookie('_csrf', '')}"
     });

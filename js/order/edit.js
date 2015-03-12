@@ -52,11 +52,11 @@ $.order_edit = {
         if (options.title) {
             document.title = title;
         }
-        
+
         if (!options.float_delimeter) {
             options.float_delimeter = '.';
         }
-        
+
         this.float_delimeter = options.float_delimeter;
 
         this.initView();
@@ -108,6 +108,11 @@ $.order_edit = {
             updateStockIcon(item);
         });
 
+        $('#order-currency').change(function () {
+            $('#order-items .currency').html($(this).val());
+            $.order_edit.options.currency = $(this).val();
+        });
+
         var price_edit = options.price_edit || false;
 
         var add_order_input = $("#orders-add-autocomplete");
@@ -120,13 +125,19 @@ $.order_edit = {
                 $('.s-order-errors').empty();
 
                 var url = '?module=orders&action=getProduct&product_id=' + ui.item.id;
-                $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : ''), function(r) {
+                $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : '&currency=' + $.order_edit.options.currency), function(r) {
                     var table = $('#order-items');
                     var index = parseInt(table.find('.s-order-item:last').attr('data-index'), 10) + 1 || 1;
                     var product = r.data.product;
                     if (product.sku_id && product.skus[product.sku_id]) {
                         product.skus[product.sku_id].checked = true;
                     }
+
+                    if ($('#order-currency').length && !$('#order-currency').attr('disabled')) {
+                        $('<input type="hidden" name="currency">').val($('#order-currency').val()).insertAfter($('#order-currency'));
+                        $('#order-currency').attr('disabled', 'disabled');
+                    }
+
                     var add_row = $('#s-orders-add-row');
                     add_row.before(tmpl('template-order', {
                         data: r.data, options: {
@@ -168,7 +179,7 @@ $.order_edit = {
                     }
 
                     var url = '?module=orders&action=getProduct&product_id='+product_id+'&sku_id='+sku_id;
-                    $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : ''), function(r) {
+                    $.getJSON(url + ($.order_edit.id ? '&order_id=' + $.order_edit.id : '&currency=' + $.order_edit.options.currency), function(r) {
                         tr.find('.s-orders-services').replaceWith(
                             tmpl('template-order-services', {
                                 services: r.data.sku.services,
@@ -184,7 +195,7 @@ $.order_edit = {
                         );
                         //tr.find('.s-orders-services .s-orders-service-variant').trigger('change');
                         tr.find('.s-orders-product-price').
-                            find('span').text(r.data.sku.price_str).end().
+                            find('span').html(r.data.sku.price_html || r.data.sku.price_str).end().
                             find('input').val(r.data.sku.price);
                         //.trigger('change');
 
@@ -240,7 +251,7 @@ $.order_edit = {
                 var item = $(this);
                 var option = item.find('option:selected');
                 var li = item.parents('li:first');
-                updateServicePriceInput(option, li.find('.s-orders-service-price'), false);            
+                updateServicePriceInput(option, li.find('.s-orders-service-price'), false);
         });
 
         this.container.off('click', '.s-order-item-delete').on('click', '.s-order-item-delete', function() {
@@ -328,15 +339,16 @@ $.order_edit = {
         if (this.form && this.form.length) {
             this.form.unbind('sumbit').bind('submit', function() {
                 $.order_edit.showValidateErrors();
-                
+
                 // submit optimization
                 // disable that services that aren't checked
                 $('.s-orders-services input[name^=service]:not(:checked)', this.form).each(function() {
                     var item = $(this);
                     item.closest('li').find(':input').attr('disabled', true);
                 });
-                
+
                 if (!$.order_edit.container.find('.error').length) {
+                    $('.s-order-items-edit td.save i.loading').css('display', 'inline-block');
                     if ($.order_edit.id) {
                         $.order_edit.editSubmit();
                     } else {
@@ -346,8 +358,100 @@ $.order_edit = {
                 return false;
             });
         }
+
+        this.initDiscountControl();
     },
-    
+
+    initDiscountControl: function() {
+        var $discount_input = $('#discount');
+        var $discount_description_input = $('#discount-description');
+        var $update_discount_button = $('#update-discount');
+        var $tooltip_icon = $('#discount-tooltip-icon');
+
+        // Tooltip to show how discounts were calculated
+        $(document).tooltip
+        $tooltip_icon.tooltip({
+            bodyHandler: function() {
+                return $discount_description_input.val() || $discount_description_input.data('updated-manually-msg');
+            }
+        });
+        $update_discount_button.tooltip({
+            bodyHandler: function() {
+                return $update_discount_button.data('description') || $discount_description_input.data('updated-manually-msg');
+            }
+        });
+
+        // Nothing to show yet
+        $tooltip_icon.hide();
+
+        // When we get recalculated discount, update the fields accordingly
+        $('#order-edit-form').on('order_total_updated', function(e, data) {
+            if (!data.discount) {
+                return;
+            }
+
+            // Remember recalculated discount value and description
+            $update_discount_button.data('value', data.discount).data('description', data.discount_description);
+
+            if ($update_discount_button.data('just-recalculated')) {
+                // When value in discount input matches previous recalculation,
+                // but new recalculated discount is different,
+                // update visible fields immidiately
+                if (data.discount+'' != $discount_input.val()) {
+                    $update_discount_button.click();
+                }
+            } else {
+                // Otherwise, make user decide whether they want to recalculate the discount
+                $update_discount_button.show();
+            }
+        });
+
+        // When user clicks the update button, put discount value and description to fields
+        // and hide the button itself
+        $update_discount_button.click(function () {
+            $discount_description_input.val($update_discount_button.data('description')||'');
+            $discount_input.val($update_discount_button.data('value')||0).change();
+            $update_discount_button.hide().data('just-recalculated', true);
+            updateTooltipVisibility();
+            if ($tooltip_icon.is(':visible')) {
+                $tooltip_icon.fadeOut(50, function(){
+                    $tooltip_icon.fadeIn(50, function(){
+                        $tooltip_icon.fadeOut(50, function(){
+                            $tooltip_icon.fadeIn(50, function(){
+                                $tooltip_icon.fadeOut(50, function(){
+                                    $tooltip_icon.fadeIn(50, function(){
+                                        $tooltip_icon.fadeOut(50, function(){
+                                            $tooltip_icon.fadeIn(50, function(){
+                                                // many animation
+                                                //          @    such blinks
+                                                //   wow
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            }
+            return false;
+        });
+
+        // When user updates the discount field by hand, show the button to reset to calculated values
+        $discount_input.on('keyup', function() {
+            $discount_description_input.val('');
+            $update_discount_button.show().data('just-recalculated', false);
+            updateTooltipVisibility();
+        });
+
+        function updateTooltipVisibility() {
+            if ($discount_input.val() > 0) {
+                $tooltip_icon.stop().show();
+            } else {
+                $tooltip_icon.stop().hide();
+            }
+        }
+    },
 
     updateTotal : function(ajax) {
         var ajax = ajax === undefined ? true : ajax;
@@ -358,6 +462,7 @@ $.order_edit = {
             return;
         }
         var subtotal = 0;
+        var $discount_input = $('#discount');
 
         // Data for orderTotal controller
         var data = {};
@@ -373,19 +478,19 @@ $.order_edit = {
             var services = [];
             var price = $.order_edit.parseFloat(tr.find('.s-orders-product-price input').val());
             var quantity = $.order_edit.parseFloat(tr.find('input.s-orders-quantity').val());
-            
+
             subtotal += price * quantity;
 
             if (tr.find('.s-orders-services').length) {
                 tr.find('.s-orders-services input:checkbox:checked').each(function() {
                     var li = $(this).closest('li');
                     var service_price = $.order_edit.parseFloat(li.find('input.s-orders-service-price').val());
-                    
+
                     services.push({
                         id: $(this).val(),
                         price: service_price
                     });
-                    
+
                     subtotal   += service_price * quantity;
 
                 });
@@ -394,7 +499,7 @@ $.order_edit = {
             // get SKU id
             var sku_input = tr.find('input[name^=sku]:not(:radio)').add(tr.find('input[name^=sku]:checked')).first();
             var sku_id = sku_input.val() || 0;
-            
+
             data.items.push({
                 product_id: product_id,
                 quantity: quantity,
@@ -404,10 +509,12 @@ $.order_edit = {
             });
         });
         data.subtotal = subtotal;
-        var discount = $.order_edit.parseFloat($("#discount").val() || 0);
+        var discount = $.order_edit.parseFloat($discount_input.val() || 0);
         data.discount = discount;
         if ($.order_edit.id) {
             data.order_id =  $.order_edit.id;
+        } else {
+            data['currency'] = $('#order-edit-form input[name=currency]').val();
         }
         data['customer[id]'] = $('#s-customer-id').val();
 
@@ -418,13 +525,13 @@ $.order_edit = {
                     var el = $("#shipping_methods");
                     var el_selected = el.val();
                     el.empty();
-                    
+
                     var shipping_method_ids = response.data.shipping_method_ids;
                     var shipping_methods = response.data.shipping_methods;
-                    
+
                     // exact match
                     var found = shipping_method_ids.indexOf(el_selected) !== -1;
-                    
+
                     for (var i = 0; i < shipping_method_ids.length; i += 1) {
                         var ship_id = shipping_method_ids[i];
                         var ship =  shipping_methods[ship_id];
@@ -434,12 +541,12 @@ $.order_edit = {
                             o.data('error', ship.error);
                         }
                         el.append(o);
-                        
+
                         // unexact match, but close
                         if (!found) {
                             var ship_id_parts = ('' + ship_id).split('.');
                             var el_selected_parts = el_selected.split('.');
-                            if (ship_id_parts[0] !== undefined && el_selected_parts[0] !== undefined && 
+                            if (ship_id_parts[0] !== undefined && el_selected_parts[0] !== undefined &&
                                     ship_id_parts[0] == el_selected_parts[0])
                             {
                                     found = true;
@@ -450,15 +557,8 @@ $.order_edit = {
                     if (found) {
                         el.val(el_selected).change();
                     }
-                    if (!$.order_edit.id) {
-                        $('#discount').val(response.data.discount).change();
-                    } else {
-                        if (!parseFloat($('#discount').val()) && response.data.discount) {
-                            $('#discount').val(response.data.discount).change();
-                        } else {
-                            $('#update-discount').data('value', response.data.discount).show();
-                        }
-                    }
+
+                    $('#order-edit-form').trigger('order_total_updated', response.data);
                 }
             }, 'json');
         }
@@ -470,12 +570,12 @@ $.order_edit = {
         // correct discout by constraint: total must be >= 0
         if (discount < 0) {
             discount = 0;
-            $("#discount").val('');
+            $discount_input.val('');
         } else {
             if (undiscounted_total - discount < 0) {
                 discount = undiscounted_total;
             }
-            $("#discount").val($.order_edit.formatFloat(Math.round(discount * 100) / 100));
+            $discount_input.val($.order_edit.formatFloat(Math.round(discount * 100) / 100));
         }
 
         var total = undiscounted_total - discount;
@@ -488,6 +588,7 @@ $.order_edit = {
             $.order_edit.container.find('.back').click();
         }, function(r) {
             $.shop.trace('editSubmit', r);
+            $('.s-order-items-edit td.save i.loading').hide();
             if (r && r.errors && !$.isEmptyObject(r.errors)) {
                 $.order_edit.showValidateErrors(r.errors);
                 $('.s-orders-services input:disabled', this.form).attr('disabled', false);
@@ -505,6 +606,7 @@ $.order_edit = {
             }
         }, function(r) {
             $.shop.trace('addSubmit', r);
+            $('.s-order-items-edit td.save i.loading').hide();
             if (r && r.errors && !$.isEmptyObject(r.errors)) {
                 $.order_edit.showValidateErrors(r.errors);
                 $('.s-orders-services input:disabled', this.form).attr('disabled', false);
@@ -512,14 +614,14 @@ $.order_edit = {
             }
         });
     },
-    
-    formatFloat: function(float) {
+
+    formatFloat: function(f) {
         if (this.float_delimeter === ',') {
-            return ('' + float).replace('.', ',');
+            return ('' + f).replace('.', ',');
         }
-        return '' + float;
+        return '' + f;
     },
-            
+
     parseFloat: function(str) {
         if (!str) {
             return 0;
@@ -633,9 +735,9 @@ $.order_edit = {
                 });
             }
         }
-        
+
         var common_errors = [];
-        
+
         $('.s-order-errors').empty();
         if (validate_errors && validate_errors.order) {
             if (!$.isEmptyObject(validate_errors.order.items)) {
@@ -655,9 +757,12 @@ $.order_edit = {
                 for (var p_id in p_errors) {
                     if (p_errors.hasOwnProperty(p_id)) {
                         if ('quantity' in p_errors[p_id]) {
-                            var order_item = $('.s-order-item[data-product-id='+p_id+']');
-                            order_item.find('.s-orders-quantity').addClass('error');
-                            common_errors.push(p_errors[p_id]['quantity']);
+                            $('.s-order-item[data-product-id='+p_id+']').each(function () {
+                                if ($(this).find('ul.s-orders-skus input:radio:checked').val() == '' + p_errors[p_id]['sku_id']) {
+                                    $(this).find('.s-orders-quantity').addClass('error');
+                                    common_errors.push(p_errors[p_id]['quantity']);
+                                }
+                            });
                         }
                     }
                 }
@@ -665,11 +770,11 @@ $.order_edit = {
             if (validate_errors.order.common) {
                 common_errors.push(validate_errors.order.common);
             }
-            
+
             if (common_errors.length) {
                 $('.s-order-errors').html(common_errors.join("<br>"));
             }
-            
+
         }
     },
 
@@ -822,7 +927,7 @@ $.order_edit = {
     inputName : function(name) {
         return '"customer[' + name + ']"';
     },
-            
+
     getPercentSymbol: function() {
         return '%';
     }

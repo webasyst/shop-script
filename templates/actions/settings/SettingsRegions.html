@@ -195,7 +195,7 @@
             $.post(form.attr('action'), form.serialize(), function(r) {
                 $('#s-settings-content').html(r);
                 setTimeout(function() {
-                    var s = $('<span><i class="icon16 country yes"></i> '+"[s`Saved`]"+'</span>');
+                    var s = $('<span class="s-msg-after-button"><i class="icon16 yes"></i></span>');
                     $('#regions-form :submit').after(s);
                     s.fadeOut(1500, function() {
                         $(this).remove();

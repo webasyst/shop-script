@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * Note: all prices in this table (total, tax, shipping, discount)
+ * are stored in shop_order.curency, not the default shop currency.
+ * shop_order.rate contains the currency rate valid at the time of the order.
+ */
 class shopOrderModel extends waModel
 {
     protected $table = 'shop_order';
@@ -180,43 +184,16 @@ class shopOrderModel extends waModel
 
     public function getStorefrontCounters()
     {
-        $storefronts = array();           // collect counters
-        $aux_storefronts = array();     // maintain ambiguity of '/' at the end of urls
-        $routes = wa()->getRouting()->getByApp('shop');
-        foreach ($routes as $domain => $domain_routes) {
-            foreach ($domain_routes as $route) {
-                $url = $domain.'/'.$route['url'];
-                if (substr($url, -1) == '*') {
-                    $url = substr($url, 0, -1);
-                }
-                if (substr($url, -1) == '/') {
-                    $url = substr($url, 0, -1);
-                }
-                $aux_storefronts[$url] = true;
-                $aux_storefronts[$url.'/'] = true;
-                $storefronts[$url.'/'] = 0;
-            }
-        }
-        if (!$storefronts) {
-            return array();
-        }
-        
-        $escaped_urls = array();
-        foreach (array_keys($aux_storefronts) as $url) {
-            $escaped_urls[] = $this->escape($url);
-        }
         $sql = "SELECT p.value, COUNT(p.order_id) AS cnt
             FROM `{$this->table}` AS o
             JOIN `shop_order_params` p ON o.id = p.order_id
-            WHERE p.name = 'storefront' AND p.value IN ('".implode("','", $escaped_urls)."')
+            WHERE p.name = 'storefront'
             GROUP BY p.value";
 
+        $storefronts = array();
         foreach ($this->query($sql)->fetchAll() as $row) {
-            $url = $row['value'];
-            if (substr($url, -1) != '/') {
-                $url = $url.'/';
-            }
-            $storefronts[$url] += $row['cnt'];
+            $url = rtrim($row['value'], '/*').'/';
+            $storefronts[$url] = $row['cnt'];
         }
         return $storefronts;
     }
@@ -298,11 +275,18 @@ class shopOrderModel extends waModel
 
         if ($order['contact_id']) {
             $contact = new waContact($order['contact_id']);
+            try {
+                $contact->getName();
+            } catch (Exception $e) {
+                $contact = new waContact();
+                $contact['name'] = 'Contact does not exist: id='.$order['contact_id'];
+            }
             $order['contact'] = array(
                 'id' => $order['contact_id'],
                 'name' => $contact->getName(),
                 'email' => $contact->get('email', 'default'),
-                'phone' => $contact->get('phone', 'default')
+                'phone' => $contact->get('phone', 'default'),
+                'registered' => !empty($contact['password'])
             );
             $config = wa('shop')->getConfig();
             $use_gravatar     = $config->getGeneralSettings('use_gravatar');
@@ -315,7 +299,7 @@ class shopOrderModel extends waModel
         } else {
             $order['contact'] = $this->extractConctactInfo($order['params']);
         }
-        
+
         if (!empty($order['params']['coupon_id'])) {
             $coupon_model = new shopCouponModel();
             $coupon = $coupon_model->getById($order['params']['coupon_id']);
@@ -635,152 +619,41 @@ class shopOrderModel extends waModel
                 ON o.id = oi.order_id AND oi.product_id = i:product_id AND oi.type = 'product'
                 JOIN shop_product_skus ps ON oi.sku_id = ps.id
                 WHERE paid_date >= DATE_SUB(DATE('".date('Y-m-d')."'), INTERVAL 30 DAY)";
-        return $this->query($sql, array('product_id' => $product_id))->fetch();
+        $data = array();
+        foreach ($this->query($sql, array('product_id' => $product_id))->fetch() as $key => $value) {
+            if (!is_numeric($key)) {
+                $data[$key] = (int) $value;
+            }
+        }
+        return $data;
     }
 
 
-    public function getSalesByProduct($product_id)
+    public function getSalesByProduct($product_id, $start_date)
     {
-        $sql = "SELECT o.paid_date, SUM(oi.price * o.rate * oi.quantity)
-                FROM ".$this->table." o JOIN shop_order_items oi
-                ON o.id = oi.order_id AND oi.product_id = i:product_id AND oi.type = 'product'
-                WHERE o.paid_date >= DATE_SUB(DATE('".date('Y-m-d')."'), INTERVAL 30 DAY)
-                GROUP BY o.paid_date";
-        return $this->query($sql, array('product_id' => $product_id))->fetchAll('paid_date', true);
-    }
+        $product_id = (int) $product_id;
 
-    /** Data for profit report page */
-    public function getProfit($start_date = null, $end_date = null, $group = null)
-    {
-        $date_col = ($group == 'months') ? "DATE_FORMAT(o.paid_date, '%Y-%m-01')" : 'o.paid_date';
-        $paid_date_sql = self::getDateSql('o.paid_date', $start_date, $end_date);
-
-        // Total sales, shipping and taxes
         $sql = "SELECT
-                    {$date_col} as `date`,
-                    SUM(o.total*o.rate) AS sales,
-                    SUM(o.shipping*o.rate) AS shipping,
-                    SUM(o.tax*o.rate) AS tax
-                FROM ".$this->table." AS o
-                WHERE $paid_date_sql
-                GROUP BY {$date_col}";
-        $min_date = null;
-        $sales_by_date = $this->query($sql)->fetchAll('date');
-        foreach($sales_by_date as &$row) {
-            if (!$min_date || strcmp($min_date, $row['date']) > 0) {
-                $min_date = $row['date'];
-            }
-            $row['purchase'] = 0;
-            $row['profit'] = 0;
-        }
-        unset($row);
+            o.paid_date AS date,
+            SUM(oi.price*o.rate*oi.quantity) AS sales,
+            SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, IFNULL(ps.purchase_price*pcur.rate, 0))*oi.quantity) AS purchase
+        FROM {$this->table} AS o
+            JOIN shop_order_items AS oi
+                ON oi.order_id=o.id
+            LEFT JOIN shop_product AS p
+                ON oi.product_id=p.id
+            LEFT JOIN shop_product_skus AS ps
+                ON oi.sku_id=ps.id
+            LEFT JOIN shop_currency AS pcur
+                ON pcur.code=p.currency
+            WHERE p.id = i:product_id AND oi.type = 'product' AND o.paid_date IS NOT NULL AND o.paid_date >= :start_date
+            GROUP BY o.paid_date";
 
-        // Total purchases
-        $sql = "SELECT
-                    {$date_col} as `date`,
-                    SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*pcur.rate)*oi.quantity) AS purchase
-                FROM ".$this->table." AS o
-                    JOIN shop_order_items AS oi
-                        ON oi.order_id=o.id
-                    JOIN shop_product AS p
-                        ON oi.product_id=p.id
-                    JOIN shop_product_skus AS ps
-                        ON oi.sku_id=ps.id
-                    JOIN shop_currency AS pcur
-                        ON pcur.code=p.currency
-                WHERE oi.type='product'
-                    AND $paid_date_sql
-                GROUP BY {$date_col}";
-        foreach($this->query($sql) as $row) {
-            $sales_by_date[$row['date']]['purchase'] = $row['purchase'];
-            $row = &$sales_by_date[$row['date']];
-            $row['profit'] = $row['sales'] - $row['purchase'] - $row['shipping'] - $row['tax'];
-            unset($row);
-        }
-
-        // Add empty rows
-        $empty_row = array(
-            'sales' => 0,
-            'shipping' => 0,
-            'tax' => 0,
-            'purchase' => 0,
-            'profit' => 0,
-        );
-        if ($start_date) {
-            $start_ts = strtotime($start_date);
-        } else if ($min_date) {
-            $start_ts = strtotime(ifempty($min_date, date('Y-m-d'))) - 48*3600;
-        } else {
-            $start_ts = strtotime(date('Y-m-01', strtotime("-1 months")));
-        }
-        $end_ts = strtotime(ifempty($end_date, date('Y-m-d')));
-        for ($t = $start_ts; $t <= $end_ts; $t += 3600*24) {
-            $date = date(($group == 'months') ? 'Y-m-01' : 'Y-m-d', $t);
-            if (empty($sales_by_date[$date])) {
-                $sales_by_date[$date] = array(
-                    'date' => $date,
-                ) + $empty_row;
-            }
-            foreach($empty_row as $k => $v) {
-                $sales_by_date[$date][$k] = (float) $sales_by_date[$date][$k];
-            }
-        }
-        ksort($sales_by_date);
-
-        return $sales_by_date;
-    }
-
-    /** Data for sales report page */
-    public function getSales($start_date = null, $end_date = null, $group = null)
-    {
-        $date_col = ($group == 'months') ? "DATE_FORMAT(o.paid_date, '%Y-%m-01')" : 'o.paid_date';
-        $paid_date_sql = self::getDateSql('o.paid_date', $start_date, $end_date);
-        $sql = "SELECT
-                    {$date_col} AS `date`,
-                    SUM(o.total*o.rate) AS total,
-                    COUNT(*) AS `count`,
-                    SUM(IF(o.is_first, o.total*o.rate, 0)) AS customer_first_total,
-                    SUM(IF(o.is_first, 1, 0)) AS customer_first_count
-                FROM {$this->table} AS o
-                WHERE {$paid_date_sql}
-                GROUP BY {$date_col}";
-
-        // All rows from DB
-        $min_date = null;
-        $result = array(); // YYYY-MM-DD => array(...)
-        foreach($this->query($sql) as $row) {
-            if (!$min_date || strcmp($min_date, $row['date']) > 0) {
-                $min_date = $row['date'];
-            }
-            $result[$row['date']] = $row;
-        }
-
-        // Add empty rows
-        if ($start_date) {
-            $start_ts = strtotime($start_date);
-        } else if ($min_date) {
-            $start_ts = strtotime(ifempty($min_date, date('Y-m-d'))) - 48*3600;
-        } else {
-            $start_ts = strtotime(date('Y-m-01', strtotime("-1 months")));
-        }
-
-        $end_ts = strtotime(ifempty($end_date, date('Y-m-d')));
-        for ($t = $start_ts; $t <= $end_ts; $t += 3600*24) {
-            $date = date(($group == 'months') ? 'Y-m-01' : 'Y-m-d', $t);
-            if (empty($result[$date])) {
-                $result[$date] = array(
-                    'date' => $date,
-                    'total' => 0,
-                    'count' => 0,
-                    'customer_first_total' => 0,
-                    'customer_first_count' => 0,
-                );
-            }
-            $result[$date]['total'] = (float) $result[$date]['total'];
-        }
-        ksort($result);
-
-        return $result;
+        return $this->query($sql,
+                array(
+                        'product_id' => $product_id,
+                        'start_date' => $start_date
+                ))->fetchAll('date');
     }
 
     public function getTotalSales($start_date = null, $end_date = null)
@@ -886,6 +759,20 @@ class shopOrderModel extends waModel
                 ORDER BY o.id ASC
                 LIMIT $limit";
         return $this->query($sql)->fetchAll();
+    }
+
+    public function getMinDate()
+    {
+        // Using subquery since there's no index by shop_order.create_datetime
+        // MySQL is smart enough to optimize the subquery away.
+        $result = $this->query("SELECT create_datetime
+                                FROM shop_order
+                                WHERE id=(SELECT MIN(id) FROM shop_order)")->fetchField();
+        if ($result) {
+            return $result;
+        } else {
+            return date('Y-m-01', strtotime("-1 months"));
+        }
     }
 }
 

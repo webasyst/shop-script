@@ -1,20 +1,21 @@
 <script type="text/javascript" src="{$wa_app_static_url}js/product/services.js?v={$wa->version()}"></script>
 <div class="sidebar left250px s-inner-sidebar">
-        <ul class="menu-v with-icons stack" id="s-services-list">
-            {foreach $services as $item}
-                <li {if $service.id == $item.id}class="selected"{/if} data-service-id="{$item.id}">
-                    <a href="#/services/{$item.id}/"><i class="icon16 sort"></i><i class="icon16 ss service no-overhanging"></i> <span class="name">{$item.name|escape}</span></a>
-                </li>
-            {/foreach}
-            <li class="top-padded small">
-                <a href="#/services/0/" class="s-new-service">
-                    <i class="icon10 add"></i>[`New service`]
-                </a>
+    <ul class="menu-v with-icons stack" id="s-services-list">
+        {foreach $services as $item}
+            <li {if $service.id == $item.id}class="selected"{/if} data-service-id="{$item.id}">
+                <a href="#/services/{$item.id}/"><i class="icon16 sort"></i><i class="icon16 ss service no-overhanging"></i> <span class="name">{$item.name|escape}</span></a>
             </li>
-        </ul>
-        <div class="block bordered-top hint align-center">
-            <p>[`Services allow you to add customization options for products and SKUs, e.g. custom packaging, extended warranty, engraving. Services are great for increasing your online store's average order value.`]</p>
-        </div>
+        {/foreach}
+        <li class="top-padded">
+            <a href="#/services/0/" class="s-new-service">
+                <i class="icon16 no-overhanging"></i>
+                <i class="icon16 add"></i>[`New service`]
+            </a>
+        </li>
+    </ul>
+    <div class="block hint align-center">
+        <p>[`Services allow you to add customization options for products and SKUs, e.g. custom packaging, extended warranty, engraving. Services are great for increasing your online store's average order value.`]</p>
+    </div>
 </div>
 
 <form method="post" action="?module=service&action=save&id={$service.id}" id="s-services-save">
@@ -35,8 +36,8 @@
 
         <div class="fields form width100px">
             <div class="field">
-                <div class="name">
-                    [`Base price`]
+                <div class="name" style="padding-top: 10px;">
+                    [`Service price`]
                 </div>
                 <div class="value">
                     <table class="zebra s-services-variants">
@@ -81,20 +82,23 @@
                             </tr>
                         {/foreach}
                         <tr class="white s-add-row" {if !$multi_variants}style="display:none"{/if}>
+                            <td></td>
                             <td colspan="4">
-                                <a href="#" class="small inline-link s-add-new-option">
-                                    <i class="icon10 add"></i>
+                                <a href="#" class="inline-link s-add-new-option">
+                                    <i class="icon16 add"></i>
                                     <b><i>[`Add option`]</i></b>
                                 </a>
                             </td>
                         </tr>
-                        <input type="hidden" 
-                                          value="{$service.currency}" 
-                                          name="currency" 
+                        <input type="hidden"
+                                          value="{$service.currency}"
+                                          name="currency"
                                           id="s-service-currency-code"
                                       >
                     </table>
-                    <span class="hint">[`Price you charge for this service can be customized for every product or SKU. Base price is used if the custom price for a particular product is not set.`]</span>
+                </div>
+                <div class="value">
+                    <p class="hint">[`When ordered with a particular product, service increases product base price by the amount provided. Service price can be set in bulk for all products, or customized for every individual product or SKU.`]</p>
                 </div>
             </div>
             {*
@@ -110,12 +114,9 @@
             </div>
             *}
             <div class="field">
-                <div class="name">
-                    [`Applicable for`]
-                </div>
                 {if !empty($types)}
                 <div class="value no-shift">
-                    [`Automatically offer this service with the products of the following types:`]
+                    [`Offer this service with following products:`]
                     <table class="full-width">
                     <tr>
                       <td>
@@ -126,49 +127,54 @@
                                     <input type="checkbox" name="type[]" value="{$type.id}" {if (!empty($type.type_id) && $type.type_id) || !$service.id}checked="checked"{/if}>
                                     {shopHelper::getIcon($type.icon, 'icon.box')}
                                     {$type.name|escape}
+                                    <span class="hint">{$type.count}</span>
                                 </label>
                             </li>
                             {/foreach}
+                            <li>
+                                <label>
+                                    <input id="s-services-products-choosen" type="checkbox" disabled="disabled" {if $products}checked="checked"{/if}> [`Select particular products`]
+                                </label>
+                                <div class="block double-padded" id="s-services-products">
+                                    <table class="zebra">
+                                        {foreach $products as $product}
+                                            <tr data-product-id="{$product.id}">
+                                                <td><a href="#/product/{$product.id}/edit/services">{$product.name|escape}</a></td>
+                                                <td class="min-width">
+                                                    <a href="#" class="s-delete-product"><i class="icon16 delete"></i></a>
+                                                    <input type="hidden" name="product[]" value="{$product.id}">
+                                                </td>
+                                            </tr>
+                                        {/foreach}
+                                        {capture "template-services-new-product"}{literal}
+                                        <tr data-product-id="{%#o.product.id%}" class="s-new-product">
+                                            <td><a href="#/product/{%#o.product.id%}/edit/services">{%=o.product.name%}</a></td>
+                                            <td class="min-width">
+                                                <a href="#" class="s-delete-product"><i class="icon16 delete"></i></a>
+                                                <input type="hidden" name="product[]" value="{%#o.product.id%}">
+                                            </td>
+                                        </tr>
+                                        {/literal}{/capture}
+                                        <tr class="s-add-new-service-product">
+                                            <td colspan="2">
+                                                <i class="icon16 add" style="margin-top: 0.3em;"></i>
+                                                <input type="text" placeholder="[`Start typing product or SKU name`]" class="product-autocomplete long">
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </li>
                         </ul>
                       </td>
-                      <td>
+                      <td class="s-service-appliance-est">
                         <div class="block">
-                            <em class="hint" id="s-services-products-count">{if $products_count > 0}≈ {_w('%d product', '%d products', $products_count)}{/if}</em>
+                            <em id="s-services-products-count">≈ {_w('%d product', '%d products', $products_count)}</em>
                         </div>
                       </td>
                     </tr>
                     </table>
                 </div>
                 {/if}
-                <div class="value no-shift">
-                    [`In addition, select particular products to offer this service with:`]
-                    <table class="zebra">
-                        {foreach $products as $product}
-                            <tr data-product-id="{$product.id}">
-                                <td><a href="#/product/{$product.id}/edit/services">{$product.name|escape}</a></td>
-                                <td class="min-width">
-                                    <a href="#" class="s-delete-product"><i class="icon16 delete"></i></a>
-                                    <input type="hidden" name="product[]" value="{$product.id}">
-                                </td>
-                            </tr>
-                        {/foreach}
-                        {capture "template-services-new-product"}{literal}
-                        <tr data-product-id="{%#o.product.id%}" class="s-new-product">
-                            <td><a href="#/product/{%#o.product.id%}/edit/services">{%=o.product.name%}</a></td>
-                            <td class="min-width">
-                                <a href="#" class="s-delete-product"><i class="icon16 delete"></i></a>
-                                <input type="hidden" name="product[]" value="{%#o.product.id%}">
-                            </td>
-                        </tr>
-                        {/literal}{/capture}
-                        <tr class="s-add-new-service-product">
-                            <td colspan="2">
-                                <i class="icon16 add" style="margin-top: 0.3em;"></i>
-                                <input type="text" placeholder="[`Start typing product or SKU name`]" class="product-autocomplete long">
-                            </td>
-                        </tr>
-                    </table>
-                </div>
             </div>
             <div class="field">
                 <div class="name">
@@ -230,7 +236,7 @@
         });
     });
 </script>
-                
+
 {* js templates block*}
 {foreach $smarty.capture as $template => $template_content}
 {if $template_content && (strpos($template, 'template-')===0)}

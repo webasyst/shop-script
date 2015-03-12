@@ -52,6 +52,9 @@ class shopBackendLocAction extends waViewAction
             "Please save changes to be able to send tests.",
             "A product must have at least one SKU.",
             "Drag products here",
+            "Order action will be deleted. Are you sure?",
+            'Sales',
+            'Profit'
         ) as $s) {
             $strings[$s] = _w($s);
         }

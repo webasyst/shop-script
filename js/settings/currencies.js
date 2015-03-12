@@ -156,6 +156,9 @@ $.extend($.settings = $.settings || {}, {
                     width: 40
                 },
                 makeReadableBy: ['esc', 'enter'],
+                afterMakeEditable: function(input) {
+                    $(input).closest('tr').find('.rounding').show();
+                },
                 beforeBackReadable: function(input, data) {
                     var input = $(input);
                     var rate = $(input).val();
@@ -168,28 +171,34 @@ $.extend($.settings = $.settings || {}, {
                 },
                 afterBackReadable: function(input, data) {
                     var self = $(this);
-                    if (data.changed) {
-                        var input = $(input);
-                        var code = input.parents('tr:first').attr('data-code');
-                        var rate = input.val();
-                        var rate_num = parseFloat(rate.replace(',', '.'));
-                        if (isNaN(rate_num) || rate_num <= 0) {
-                            return;
-                        }
-                        jsonPost('?module=settings&action=currencyChangeRate', { code: code, rate: rate_num },
-                            function() {
-                                var select = change_dialog.find('select');
-                                select.find('option[value='+code+']').attr('data-rate', rate);
-                                select.trigger('change');
-                            },
-                            function() {
-                                input.val(data.old_text);
-                                self.text(data.old_text);
-                            }
-                        );
+                    self.closest('tr').find('.rounding').hide();
+                    var $tr = self.closest('tr');
+                    var code = $tr.data('code');
+                    var post = $tr.find(':input').serialize();
+
+                    $tr.find('.s-actions').removeClass('activate');
+
+                    var $input = $(input);
+                    var rate = $input.val();
+                    var rate_num = parseFloat(rate.replace(',', '.'));
+                    if (isNaN(rate_num) || rate_num <= 0) {
+                        return;
                     }
-                    var tr = self.parents('tr:first');
-                    var td = tr.find('.s-actions').removeClass('activate');
+
+                    jsonPost('?module=settings&action=currencyChangeRate', post,
+                        function(r) {
+                            self.text(r[code].rate);
+                            $input.val(r[code].rate);
+
+                            var select = change_dialog.find('select');
+                            select.find('option[value='+code+']').attr('data-rate', r[code].rate);
+                            select.trigger('change');
+                        },
+                        function() {
+                            $input.val(data.old_text);
+                            self.text(data.old_text);
+                        }
+                    );
                 }
             }).trigger('editable');
         });
@@ -206,7 +215,7 @@ $.extend($.settings = $.settings || {}, {
             return false;
         });
 
-        form.find('input[name=use_product_currency]').change(function() {
+        form.find(':input').change(function() {
             submit_button.parents('.submit:first').show();
         });
 

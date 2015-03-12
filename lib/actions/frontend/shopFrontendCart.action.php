@@ -22,19 +22,18 @@ class shopFrontendCartAction extends shopFrontendAction
                     unset($data['use_affiliate']);
                 }
             }
-            
-            if($coupon_code || $use) {
-                wa()->getStorage()->set('shop/checkout', $data);
-                wa()->getStorage()->remove('shop/cart');
-            }
-        }
 
-        $cart_model = new shopCartItemsModel();
+            wa()->getStorage()->set('shop/checkout', $data);
+            wa()->getStorage()->remove('shop/cart');
+        }
 
         $cart = new shopCart();
         $code = $cart->getCode();
 
         $errors = array();
+        $cart_model = new shopCartItemsModel();
+        $items = $cart_model->where('code= ?', $code)->order('parent_id')->fetchAll('id');
+
         if (waRequest::post('checkout')) {
             $saved_quantity = $cart_model->select('id,quantity')->where("type='product' AND code = s:code", array('code' => $code))->fetchAll('id');
             $quantity = waRequest::post('quantity');
@@ -49,9 +48,17 @@ class shopFrontendCartAction extends shopFrontendAction
                     $row['name'] .= ' ('.$row['sku_name'].')';
                 }
                 if ($row['available']) {
-                    $errors[$row['id']] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $row['count'], $row['name']);
+                    if ($row['count'] > 0)
+                        $errors[$row['id']] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $row['count'], $row['name']);
+                    else
+                        $errors[$row['id']] = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed.'), $row['name']);
                 } else {
-                    $errors[$row['id']] = _w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.');
+                    $errors[$row['id']] = sprintf(_w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.'), $row['name']);
+                }
+            }
+            foreach ($items as $row) {
+                if (!$row['quantity'] && !isset($errors[$row['id']])) {
+                    $errors[$row['id']] = null;
                 }
             }
             if (!$errors) {
@@ -60,9 +67,6 @@ class shopFrontendCartAction extends shopFrontendAction
         }
 
         $this->setThemeTemplate('cart.html');
-
-        $items = $cart_model->where('code= ?', $code)->order('parent_id')->fetchAll('id');
-
 
         $product_ids = $sku_ids = $service_ids = $type_ids = array();
         foreach ($items as $item) {
@@ -79,9 +83,11 @@ class shopFrontendCartAction extends shopFrontendAction
         } else {
             $products = $product_model->getById($product_ids);
         }
+        shopRounding::roundProducts($products);
 
         $sku_model = new shopProductSkusModel();
         $skus = $sku_model->getByField('id', $sku_ids, 'id');
+        shopRounding::roundSkus($skus, $products);
 
         $image_model = new shopProductImagesModel();
 
@@ -108,6 +114,11 @@ class shopFrontendCartAction extends shopFrontendAction
                 $item['compare_price'] = $sku['compare_price'];
                 $item['currency'] = $item['product']['currency'];
                 $type_ids[] = $item['product']['type_id'];
+
+                if (!$item['quantity'] && !isset($errors[$item_id])) {
+                    $errors[$item_id] = _w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.');;
+                }
+
                 if (isset($errors[$item_id])) {
                     $item['error'] = $errors[$item_id];
                     if (strpos($item['error'], '%s') !== false) {
@@ -129,20 +140,32 @@ class shopFrontendCartAction extends shopFrontendAction
         $rows = $type_services_model->getByField('type_id', $type_ids, true);
         $type_services = array();
         foreach ($rows as $row) {
-            $service_ids[] = $row['service_id'];
+            $service_ids[$row['service_id']] = $row['service_id'];
             $type_services[$row['type_id']][$row['service_id']] = true;
         }
 
-        // get services for all products
+        // get services for products and skus, part 1
         $product_services_model = new shopProductServicesModel();
         $rows = $product_services_model->getByProducts($product_ids);
-
-        $product_services = $sku_services = array();
-        foreach ($rows as $row) {
+        foreach ($rows as $i => $row) {
             if ($row['sku_id'] && !in_array($row['sku_id'], $sku_ids)) {
+                unset($rows[$i]);
                 continue;
             }
-            $service_ids[] = $row['service_id'];
+            $service_ids[$row['service_id']] = $row['service_id'];
+        }
+
+        $service_ids = array_unique(array_values($service_ids));
+
+        // Get services
+        $service_model = new shopServiceModel();
+        $services = $service_model->getByField('id', $service_ids, 'id');
+        shopRounding::roundServices($services);
+
+        // get services for products and skus, part 2
+        $product_services = $sku_services = array();
+        shopRounding::roundServiceVariants($rows, $services);
+        foreach ($rows as $row) {
             if (!$row['sku_id']) {
                 $product_services[$row['product_id']][$row['service_id']]['variants'][$row['service_variant_id']] = $row;
             }
@@ -151,22 +174,22 @@ class shopFrontendCartAction extends shopFrontendAction
             }
         }
 
-        $service_ids = array_unique($service_ids);
-
-        $service_model = new shopServiceModel();
+        // Get service variants
         $variant_model = new shopServiceVariantsModel();
-        $services = $service_model->getByField('id', $service_ids, 'id');
-        foreach ($services as &$s) {
-            unset($s['id']);
-        }
-        unset($s);
-
         $rows = $variant_model->getByField('service_id', $service_ids, true);
+        shopRounding::roundServiceVariants($rows, $services);
         foreach ($rows as $row) {
             $services[$row['service_id']]['variants'][$row['id']] = $row;
             unset($services[$row['service_id']]['variants'][$row['id']]['id']);
         }
 
+        // When assigning services into cart items, we don't want service ids there
+        foreach ($services as &$s) {
+            unset($s['id']);
+        }
+        unset($s);
+
+        // Assign service and product data into cart items
         foreach ($items as $item_id => $item) {
             if ($item['type'] == 'product') {
                 $p = $item['product'];
@@ -311,14 +334,14 @@ class shopFrontendCartAction extends shopFrontendAction
         $this->view->assign('frontend_cart', wa()->event('frontend_cart'));
 
         $this->getResponse()->setTitle(_w('Cart'));
-        
+
         $checkout_flow = new shopCheckoutFlowModel();
         $checkout_flow->add(array(
             'code' => $code,
             'step' => 0,
             'description' => null /* TODO: Error message here if exists */
         ));
-        
+
     }
 
 }

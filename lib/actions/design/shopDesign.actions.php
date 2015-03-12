@@ -13,6 +13,7 @@ class shopDesignActions extends waDesignActions
         $this->options['is_ajax'] = true;
         $this->options['js']['storage'] = false;
         $this->options['container'] = false;
+        $this->options['pages'] = true;
     }
 
 }

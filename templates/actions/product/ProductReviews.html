@@ -21,7 +21,7 @@
         </div>
         <script>
             $(function() {
-                var container = $('.s-product-form.reviews:first');
+                var container = $('#s-product-profile-tabs .s-tab-block[data-tab="reviews"]');
                 var sidebar = $('#s-all-reviews');
                 $.product_reviews.init({
                     product_id: {$id},
@@ -35,7 +35,7 @@
                         total_count: {$total_count},
                         count: {$count},
                         url: '?module=product&action=reviews&id={$id}&order={$order}',
-                        target: '.s-product-form.reviews .s-reviews ul:first'
+                        target: '#s-product-profile-tabs .s-tab-block[data-tab="reviews"] .s-reviews ul:first'
                     }
                 });
                 container.find('.s-reviews-order').unbind('click').bind('click', function() {

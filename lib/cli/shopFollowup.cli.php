@@ -101,7 +101,7 @@ class shopFollowupCli extends waCliController
                                 'order_id' => $o['id'],
                                 'contact_id' => null,
                                 'action_id' => '',
-                                'text' => sprintf_wp("Follow-up <strong>%s</strong> (%s) sent to customer.", htmlspecialchars($f['name']), $f['id']),
+                                'text' => sprintf_wp("Follow-up <strong>%s</strong> sent to customer.", htmlspecialchars($f['name'])),
                                 'before_state_id' => $o['state_id'],
                                 'after_state_id' => $o['state_id'],
                             ));

@@ -1,0 +1,65 @@
+{*
+ * This template is included in ReportSales.html as a subtemplate,
+ * as well as used separately to load additional rows via XHR.
+ *}
+{foreach $table_data as $row}
+    {strip}
+        {$abt_rows = []}
+        {foreach $abtest_variants as $v}{if isset($v.data[ifset($row.orig_name, $row.name)])}
+            {$abt_rows[$v.name] = $v.data[ifset($row.orig_name, $row.name)]}
+        {/if}{/foreach}
+    {/strip}
+    <tr>
+        <td class="column-name">{strip}
+            {if !empty($row.icon_class)}
+                <i class="icon16 {$row.icon_class}"></i>
+            {/if}
+            {$row.name|escape}
+        {/strip}</td>
+        <td class="align-right column-order_count">
+            {$row.order_count}
+            {foreach $abt_rows as $abt_variant_name => $abt_row}
+                <br><span class="hint">{$abt_variant_name|escape}: {$abt_row.order_count}</span>
+            {/foreach}
+        </td>
+        <td class="align-right column-sales">
+            {wa_currency($row.sales, $def_cur, '%2{h}')}
+            {foreach $abt_rows as $abt_variant_name => $abt_row}
+                <br><span class="hint">{$abt_variant_name|escape}: {wa_currency($abt_row.sales, $def_cur, '%2{h}')}</span>
+            {/foreach}
+        </td>
+        <td class="align-right column-average_order">
+            {if $row.order_count > 0}{wa_currency($row.sales/$row.order_count, $def_cur, '%2{h}')}{else}<span class="gray">&mdash;</span>{/if}
+            {foreach $abt_rows as $abt_variant_name => $abt_row}
+                <br><span class="hint">{$abt_variant_name|escape}:
+                    {if $abt_row.order_count > 0}{wa_currency($abt_row.sales/$abt_row.order_count, $def_cur, '%2{h}')}{else}<span class="gray">&mdash;</span>{/if}
+                </span>
+            {/foreach}
+        </td>
+        <td class="align-right column-profit">
+            {wa_currency($row.profit, $def_cur, '%2{h}')}
+            {foreach $abt_rows as $abt_variant_name => $abt_row}
+                <br><span class="hint">{$abt_variant_name|escape}: {wa_currency($abt_row.profit, $def_cur, '%2{h}')}</span>
+            {/foreach}
+        </td>
+
+        {if $roi_enabled}
+            <td class="align-right column-cost">
+                <div class="edit-icon-wrapper">
+                    <a href="?action=reports#/sales/costs/"><i class="icon16 edit"></i></a>
+                </div>
+                {if $row.cost}{wa_currency($row.cost, $def_cur, '%2{h}')}{else}<span class="gray">&mdash;</span>{/if}
+            </td>
+            <td class="align-right column-roi">
+                <strong class="s-roi {if $row.roi >= 130}s-positive{elseif $row.roi >= 100}s-questionable{elseif $row.cost}s-negative{/if}">
+                    {if $row.cost}{round($row.roi)}%{else}<span class="gray">&mdash;</span>{/if}
+                </strong>
+            </td>
+            <td class="align-right s-roi column-alltime-roi">
+                {if !empty($row.lifetime_roi)}{$row.lifetime_roi}%{else}<span class="gray">&mdash;</span>{/if}
+            </td>
+        {/if}
+
+    </tr>
+{/foreach}
+

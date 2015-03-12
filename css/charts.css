@@ -1,0 +1,226 @@
+.sales-wrapper {
+  position: relative;
+  margin-bottom: 10px;
+}
+.sales-wrapper path {
+  fill: none;
+}
+.sales-wrapper .axis path,
+.sales-wrapper .axis line {
+  stroke: #aaa;
+  shape-rendering: crispEdges;
+}
+.sales-wrapper .axis text {
+  fill: #aaa;
+  font-size: 0.8em;
+}
+.sales-wrapper .axis.y .domain {
+  display: none;
+}
+.sales-wrapper .axis.y line {
+  stroke: #999;
+}
+.sales-wrapper .axis.y text {
+  fill: #999;
+}
+.sales-wrapper .graph .line {
+  stroke-width: 3px;
+  opacity: 1;
+}
+.sales-wrapper .graph .area {
+  stroke: none;
+  opacity: 0.3;
+}
+.sales-wrapper .graph.profit .area {
+  opacity: 0.5;
+}
+.sales-wrapper .point {
+  cursor: pointer;
+  opacity: 0.8;
+}
+.sales-wrapper .background {
+  opacity: 0.4;
+}
+.sales-wrapper .background line {
+  stroke: #f0f0f0;
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+.sales-wrapper .background line.first {
+  shape-rendering: auto;
+}
+.sales-wrapper .background rect {
+  fill: #fdfeff;
+}
+.sales-wrapper .loss-points-wrapper .invisible,
+.sales-wrapper .loss-points-wrapper .positive {
+  display: none;
+}
+.cohort-wrapper {
+  margin: 24px 0;
+}
+.cohort-wrapper path {
+  fill: none;
+}
+.cohort-wrapper .layers .layer {
+  stroke-width: 1px;
+  stroke: rgba(255,255,255,0.2);
+  cursor: pointer;
+  -webkit-transition: all 500ms ease-in-out;
+  -moz-transition: all 500ms ease-in-out;
+  transition: all 500ms ease-in-out;
+}
+.cohort-wrapper .layers .layer.active-layer {
+  fill: #ffec48 !important;
+}
+.cohort-wrapper .axis text {
+  fill: #999;
+}
+.cohort-wrapper .axis path,
+.cohort-wrapper .axis line {
+  display: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+.cohort-wrapper .axis .domain {
+  stroke-width: 1px;
+  stroke: #000;
+}
+.cohort-wrapper .background {
+  opacity: 0.4;
+}
+.cohort-wrapper .background line {
+  stroke: rgba(49,139,189,0.11);
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+.cohort-wrapper .background line.first {
+  shape-rendering: auto;
+}
+.cohort-wrapper .background rect {
+  fill: #fcfeff;
+}
+.pie-wrapper path.slice {
+  stroke-width: 0;
+  stroke: #fff;
+}
+.pie-wrapper polyline {
+  opacity: 0.3;
+  stroke: #369;
+  stroke-width: 1px;
+  fill: none;
+}
+.pie-wrapper .percent {
+  fill: #fff;
+  font-family: "Helvetica Neue", "Trebuchet MS", Arial, sans-serif;
+  font-size: 0.8em;
+}
+.costs-wrapper .axis path,
+.costs-wrapper .axis line {
+  fill: none;
+  stroke: #999;
+  shape-rendering: crispEdges;
+}
+.costs-wrapper .axis text {
+  font-family: sans-serif;
+  font-size: 11px;
+  fill: #999;
+}
+.costs-wrapper .axis.x line {
+  display: none;
+}
+.costs-wrapper .axis.y .domain {
+  display: none;
+}
+.costs-wrapper .axis.y line {
+  stroke: #999;
+}
+.costs-wrapper .axis.y text {
+  fill: #999;
+}
+.costs-wrapper .dot {
+  stroke: #000;
+}
+.costs-wrapper .legend {
+  padding: 5px;
+  font: 10px sans-serif;
+  background: #ff0;
+  box-shadow: 2px 2px 1px #888;
+}
+.costs-wrapper .rgroups rect {
+  opacity: 0.66;
+  -webkit-transition: all 300ms ease-in-out;
+  -moz-transition: all 300ms ease-in-out;
+  -ms-transition: all 300ms ease-in-out;
+  -o-transition: all 300ms ease-in-out;
+  transition: all 300ms ease-in-out;
+  cursor: pointer;
+  shape-rendering: crispEdges;
+}
+.costs-wrapper .rgroups rect.is-hovered {
+  opacity: 1;
+}
+.costs-wrapper .background {
+  opacity: 0.2;
+}
+.costs-wrapper .background line {
+  stroke: rgba(49,139,189,0.11);
+  shape-rendering: optimizeQuality;
+}
+.costs-wrapper .background line:first-child {
+  shape-rendering: auto;
+}
+.costs-wrapper .background rect {
+  fill: #fcfeff;
+}
+.hint-wrapper {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid #444;
+  border-radius: 3px;
+  font: normal 13px/1.5em "Arial", sans-serif;
+  color: #369;
+/*-webkit-transition: opacity 100ms ease-in-out*/
+/*-moz-transition: opacity 100ms ease-in-out*/
+/*transition: opacity 100ms ease-in-out*/
+/*opacity: 0;*/
+}
+.hint-wrapper.is-shown {
+  display: block;
+/*opacity: 1;*/
+}
+.hint-wrapper.is-shown .line.date {
+  color: #999;
+}
+.hint-wrapper.is-shown .line.sales {
+  color: #a7e0a7;
+}
+.hint-wrapper.is-shown .line.negative {
+  color: #ae4410;
+}
+.hint-wrapper.is-shown .line.negative .volume {
+  font-weight: bold;
+}
+.hint-wrapper.is-shown .line.profit {
+  color: #10ae10;
+}
+.hint-wrapper.is-shown .line.profit .volume {
+  font-weight: bold;
+}
+.map-wrapper {
+  position: relative;
+  margin-left: 30px;
+}
+#s-report-cohorts-table td.td-with-data {
+  cursor: pointer;
+}
+.empty-graph {
+  padding: 100px 0 150px;
+  color: #aaa;
+  font-size: 18px;
+  text-align: center;
+}

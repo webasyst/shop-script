@@ -80,7 +80,10 @@ class shopFrontendCartAddController extends waJsonController
                     $quantity = $sku['count'] - $c;
                     $name = $product['name'].($sku['name'] ? ' ('.$sku['name'].')' : '');
                     if (!$quantity) {
-                        $this->errors = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
+                        if ($sku['count'] > 0)
+                            $this->errors = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
+                        else
+                            $this->errors = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience.'), $name);
                         return;
                     } else {
                         $this->response['error'] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);

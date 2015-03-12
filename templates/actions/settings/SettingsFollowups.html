@@ -5,7 +5,7 @@
     <div class="s-inner-sidebar">
         <ul class="menu-v stack with-icons">
             {foreach $followups as $f}
-                <li><a href="#/followups/{$f.id}"><i class="icon16 clock"></i>{$f.name|escape}</a></li>
+                <li{if !$f.status} class="gray"{/if}><a href="#/followups/{$f.id}"><i class="icon16 clock"></i>{$f.name|escape}</a></li>
             {/foreach}
             <li class="top-padded">
                 <a href="#/followups/new" class="small">
@@ -24,7 +24,7 @@
                     <i class="icon10 no"></i>
                     [`Follow-ups will not be sent, because cron is not properly configured.`]
                     <br>
-                    <a id="cron-message-link" href="javascript:void(0)">[`What is cron?`]</a>
+                    <a id="cron-message-link" href="javascript:void(0)">[`How to set up?`]</a>
                 </p>
             {/if}
         </div>
@@ -70,7 +70,8 @@
                     </div>
                     <div class="field">
                         <div class="name">[`Enabled`]</div>
-                        <div class="value">
+                        <div class="value no-shift">
+                            <input type="hidden" name="followup[status]" value="0">
                             <input type="checkbox" name="followup[status]" value="1" {if $followup.status}checked{/if}>
                         </div>
                     </div>
@@ -81,7 +82,7 @@
                         <div class="name">[`Sending rules`]</div>
                         <div class="value">
                             [`Send in`]
-                            <input type="text" class="short numerical" name="followup[delay]" value="{(ifempty($followup.delay, 3*24*3600) / 24.0 / 3600.0)|wa_format_number:0}">
+                            <input type="text" class="short numerical" name="followup[delay]" value="{(ifset($followup.delay, 3*24*3600) / 24.0 / 3600.0)|wa_format_number:0}">
                             [`days after the order was paid`]
                         </div>
                         <div class="value no-shift">
@@ -185,7 +186,7 @@
                     </div>
 
                     <p class="clear-left message">[`Select an order to fetch sample data from`]</p>
-                    <table class="zebra">
+                    <table class="zebra" style="cursor: pointer;">
                     {foreach $test_orders as $o}
                         <tr>
                             <td>
@@ -213,7 +214,7 @@
             <div class="dialog-buttons-gradient">
                 <div class="before-send">
                     <input type="submit" class="button blue" value="[`Send test`]">
-                    <span class="s-mgs-after-button" style="display:none;"><i class="icon16 loading"></i></span>
+                    <span class="s-msg-after-button" style="display:none;"><i class="icon16 loading"></i></span>
                     <span> [`or`] </span><a href="#" class="cancel">[`cancel`]</a>
                 </div>
                 <div class="after-send">
@@ -258,7 +259,7 @@
 
         {if waRequest::post()}
             submit.parent().append(
-                $('<span class="s-mgs-after-button"><i class="icon16 yes after-submit"></i>'+"[`Saved`]"+'</span>').animate({ opacity: 0 }, 2000, function() {
+                $('<span class="s-msg-after-button"><i class="icon16 yes after-submit"></i></span>').animate({ opacity: 0 }, 2000, function() {
                     $(this).remove();
                 })
             );
@@ -292,10 +293,10 @@
                     return false;
                 }
 
-                dialog.find('.s-mgs-after-button').show();
+                dialog.find('.s-msg-after-button').show();
                 $.post('?module=settings&action=followupsTest', { order_id: order_id, followup_id: '{$followup.id}', email: email }, function(r) {
                     dialog.find(':input').attr('disabled', false);
-                    dialog.find('.s-mgs-after-button').hide();
+                    dialog.find('.s-msg-after-button').hide();
                     if (r.status !== 'ok' && r.errors) {
                         dialog.find('.message').text(r.errors).addClass('errormsg');
                     } else {
@@ -352,14 +353,13 @@
 
     // Form submission via XHR
     form.submit(function() {
-        // !!! Validation?..
 
         waEditorUpdateSource({
             'id': 'f-email-body'
         });
 
         // Submit
-        submit.parent().append('<span class="s-mgs-after-button"><i class="icon16 loading"></i></span>');
+        submit.parent().append('<span class="s-msg-after-button"><i class="icon16 loading"></i></span>');
         $.post(form.attr('action'), form.serialize(), function(r) {
             settings_content.html(r);
         });

@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Note: total_spent is stored in shop default currency.
+ */
 class shopCustomerModel extends waModel
 {
     protected $table = 'shop_customer';
@@ -15,7 +17,7 @@ class shopCustomerModel extends waModel
         $this->insert($customer);
     }
 
-    public function updateFromNewOrder($customer_id, $order_id)
+    public function updateFromNewOrder($customer_id, $order_id, $source=null)
     {
         $customer = $this->getById($customer_id);
         if ($customer) {
@@ -32,6 +34,7 @@ class shopCustomerModel extends waModel
                 'contact_id' => $customer_id,
                 'last_order_id' => $order_id,
                 'number_of_orders' => 1,
+                'source' => ifempty($source),
             ));
         }
     }
@@ -134,12 +137,14 @@ class shopCustomerModel extends waModel
             return array(array(), 0);
         }
 
-        // Fetch addresses
+        // Format names
         foreach($customers as &$c) {
+            $c['name'] = waContactNameField::formatName($c);
             $c['address'] = array();
         }
         unset($c);
 
+        // Fetch addresses
         $sql = "SELECT *
                 FROM wa_contact_data
                 WHERE contact_id IN (i:ids)

@@ -9,14 +9,14 @@
                     <i class="icon16 ss shop"></i>[`All customers`]
                 </a>
             </li>
-            
+
             <!-- plugin hook: 'backend_customers.sidebar_top_li' -->
             {* @event backend_customers.%plugin_id%.sidebar_top_li *}
             {if !empty($backend_customers)}{foreach $backend_customers as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
-            
+
         </ul>
     </div>
-    
+
     <!-- plugin hook: 'backend_customers.sidebar_section' -->
     {* @event backend_customers.%plugin_id%.sidebar_section *}
     {if !empty($backend_customers)}{foreach $backend_customers as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
@@ -41,6 +41,17 @@
 <script>$(function() { "use strict";
 
     $('.link-to-contacts a').attr('href', "{$contacts_url}");
+
+    $('#customer-categories').bind('update_counters', function(e, counters) {
+        if (!$.isEmptyObject(counters)) {
+            var items = $('#customer-categories li').find('.count').text(0).end();
+            $.each(counters, function(id, count) {
+                items.filter('[data-category-id=' +  id + ']').find('.count').text(count || 0);
+            });
+        }
+    });
+
+    //$('#customer-categories li[data-category-id='+category_id+'] .count').text(r.data.count);
 
     // Categories in sidebar accept drag-and-droppable customers
     $('#customer-categories li').droppable({
@@ -71,8 +82,8 @@
                         $(this).remove();
                     })
                 );
-                if (r.data && 'count' in r.data) {
-                    $('#customer-categories li[data-category-id='+category_id+'] .count').text(r.data.count);
+                if (r.data && !$.isEmptyObject(r.data.counts)) {
+                    $('#customer-categories').trigger('update_counters', [r.data.counts]);
                 }
             }, 'json');
         }

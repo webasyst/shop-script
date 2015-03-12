@@ -44,20 +44,22 @@ class shopCsvProductsetupAction extends waViewAction
             $this->view->assign('sets', $set_model->getAll());
 
             $routing = wa()->getRouting();
-            $settlements = array();
-            $current_domain = null;
+            $settlements = array(
+                ''=>_w('All storefronts'),
+            );
+            $current_domain = '';
             $domain_routes = $routing->getByApp('shop');
+
             foreach ($domain_routes as $domain => $routes) {
                 foreach ($routes as $route) {
                     $settlement = $domain.'/'.$route['url'];
-                    if ($current_domain === null) {
-                        $current_domain = $settlement;
-                    } elseif ($settlement == $profile['config']['domain']) {
+                    if ($settlement == $profile['config']['domain']) {
                         $current_domain = $settlement;
                     }
-                    $settlements[] = $settlement;
+                    $settlements[$settlement] = $settlement;
                 }
             }
+
             $this->view->assign('current_domain', $current_domain);
             $this->view->assign('settlements', $settlements);
 
@@ -89,8 +91,19 @@ class shopCsvProductsetupAction extends waViewAction
         $this->view->assign('types', $type_model->getTypes());
 
         $encoding = array_diff(mb_list_encodings(), array(
-            'pass', 'wchar', 'byte2be', 'byte2le', 'byte4be', 'byte4le',
-            'BASE64', 'UUENCODE', 'HTML-ENTITIES', 'Quoted-Printable', '7bit', '8bit', 'auto',
+            'pass',
+            'wchar',
+            'byte2be',
+            'byte2le',
+            'byte4be',
+            'byte4le',
+            'BASE64',
+            'UUENCODE',
+            'HTML-ENTITIES',
+            'Quoted-Printable',
+            '7bit',
+            '8bit',
+            'auto',
         ));
 
         $popular = array_intersect(array('UTF-8', 'Windows-1251', 'ISO-8859-1',), $encoding);

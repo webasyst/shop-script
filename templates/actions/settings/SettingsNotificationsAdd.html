@@ -11,7 +11,7 @@
                 <select id="n-events" name="data[event]">
                     <option value="" selected></option>
                     {foreach $events as $event_id => $event}
-                    <option value="{$event_id}">{$event.name}</option>
+                    <option value="{$event_id}">{$event.name|escape}</option>
                     {/foreach}
                 </select>
             </div>
@@ -30,6 +30,13 @@
             </div>
         </div>
         <div class="field">
+            <div class="name">[`Enabled`]</div>
+            <div class="value no-shift">
+                <input type="checkbox" name="data[status]" value="1" checked>
+            </div>
+        </div>
+
+        <div class="field">
             <div class="name">[`Transport`]</div>
             {foreach $transports as $t_id => $t}
             <div class="value no-shift">
@@ -39,9 +46,9 @@
                 </label>
             </div>
             {/foreach}
-        </div>        
+        </div>
     </div>
-        
+
     <div class="field-group">
         <div class="field">
             <div class="name">[`Order source`]</div>
@@ -92,7 +99,7 @@
                 $("#notifications-settings-content").show();
                 var t = notification_templates[e] || notification_templates['order'];
                 $("#email-content .subject").val(t[0]);
-                
+
                 var email_body = $('#n-email-body');
                 email_body.val(t[1]).change();
                 email_body.data('wa_editor').getSession().setValue(email_body.val());
@@ -102,7 +109,7 @@
                 sms_text.data('wa_editor').getSession().setValue(sms_text.val());
 
                 $('#n-send-button').removeClass('yellow').addClass('green');
-                
+
             } else {
                 $("#notifications-settings-content").hide();
             }

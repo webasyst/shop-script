@@ -21,7 +21,13 @@ class shopBackendOrdersAction extends waViewAction
             (!empty($state_counters['paid'])       ? $state_counters['paid'] : 0);
 
         $cm = new shopCouponModel();
-        
+
+        $all_count = $order_model->countAll();
+
+        $storefronts = self::getStorefronts();
+        $cnts = $order_model->getStorefrontCounters();
+        $storefronts = array_intersect_key($cnts, $storefronts) + $storefronts;
+
         /*
          * @event backend_orders
          * @return array[string]array $return[%plugin_id%] array of html output
@@ -31,6 +37,7 @@ class shopBackendOrdersAction extends waViewAction
          */
         $backend_orders = wa()->event('backend_orders');
         $this->getLayout()->assign('backend_orders', $backend_orders);
+
         $this->view->assign(array(
             'states'           => $this->getStates(),
             'user_id'          => $this->getUser()->getId(),
@@ -39,10 +46,23 @@ class shopBackendOrdersAction extends waViewAction
             'coupons_count'    => $cm->countActive(),
             'state_counters'   => $state_counters,
             'pending_count'    => $pending_count,
-            'all_count'        => $order_model->countAll(),
-            'storefronts' => $order_model->getStorefrontCounters(),
+            'all_count'        => $all_count,
+            'backend_count'    => $all_count - array_sum($cnts),
+            'storefronts'      => $storefronts,
             'backend_orders'   => $backend_orders
         ));
+    }
+
+    public static function getStorefronts()
+    {
+        $storefronts = array();
+        foreach (wa()->getRouting()->getByApp('shop') as $domain => $domain_routes) {
+            foreach ($domain_routes as $route) {
+                $url = rtrim($domain.'/'.$route['url'], '/*').'/';
+                $storefronts[$url] = 0;
+            }
+        }
+        return $storefronts;
     }
 
     public function getStates()

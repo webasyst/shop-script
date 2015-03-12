@@ -52,7 +52,10 @@ class shopOrderTotalController extends waJsonController
             $order_info = $order_model->getById($order_id);
             $currency = $order_info['currency'];
         } else {
-            $currency = $this->getConfig()->getCurrency();
+            $currency = waRequest::post('currency');
+            if (!$currency) {
+                $currency = $this->getConfig()->getCurrency();
+            }
         }
 
         $total = waRequest::post('subtotal') - waRequest::post('discount');
@@ -66,7 +69,9 @@ class shopOrderTotalController extends waJsonController
         if ($order_id) {
             $order['id'] = $order_info['id'];
         }
-        $this->response['discount'] = shopDiscounts::calculate($order_info);
+
+        $this->response['discount_description'] = '';
+        $this->response['discount'] = shopDiscounts::calculate($order, false, $this->response['discount_description']);
 
         $this->response['shipping_methods'] = shopHelper::getShippingMethods($shipping_address, $shipping_items,
             array('currency' => $currency, 'total_price' => $total));

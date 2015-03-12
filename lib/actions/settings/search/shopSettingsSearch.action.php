@@ -4,7 +4,6 @@ class shopSettingsSearchAction extends waViewAction
 {
     public function execute()
     {
-
         $fields = array(
             'name' => _w('Name'),
             'summary' => _w('Summary'),
@@ -28,6 +27,6 @@ class shopSettingsSearchAction extends waViewAction
         $this->view->assign('default_weights', $default_options['search_weights']);
         $this->view->assign('ignore',$config->getOption('search_ignore'));
         $this->view->assign('by_part', (int)$config->getOption('search_by_part'));
-
+        $this->view->assign('smart', (bool)$config->getOption('search_smart'));
     }
 }

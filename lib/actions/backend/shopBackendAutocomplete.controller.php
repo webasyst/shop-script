@@ -138,6 +138,7 @@ class shopBackendAutocompleteController extends waController
         $currency = wa()->getConfig()->getCurrency();
         foreach ($products as &$p) {
             $p['price_str'] = wa_currency($p['price'], $currency);
+            $p['price_html'] = wa_currency_html($p['price'], $currency);
         }
         unset($p);
 
@@ -188,7 +189,7 @@ class shopBackendAutocompleteController extends waController
         // 2. email, phone, firstname, lastname, name
         // 3. product, sku
 
-        $limit = 3;
+        $limit = 5;
 
         // first, assume $q is encoded $order_id, so decode
         $dq = shopHelper::decodeOrderId($q);
@@ -268,13 +269,13 @@ class shopBackendAutocompleteController extends waController
         $sqls = array();
 
         // Name starts with requested string
-        $sqls[] = "SELECT c.id, c.name
+        $sqls[] = "SELECT c.id, c.name, c.firstname, c.middlename, c.lastname
                    FROM wa_contact AS c
                    WHERE c.name LIKE '".$m->escape($q, 'like')."%'
                    LIMIT {LIMIT}";
 
         // Email starts with requested string
-        $sqls[] = "SELECT c.id, c.name, e.email
+        $sqls[] = "SELECT c.id, c.name, e.email, c.firstname, c.middlename, c.lastname
                    FROM wa_contact AS c
                        JOIN wa_contact_emails AS e
                            ON e.contact_id=c.id
@@ -284,7 +285,7 @@ class shopBackendAutocompleteController extends waController
         // Phone contains requested string
         if (preg_match('~^[wp0-9\-\+\#\*\(\)\. ]+$~', $q)) {
             $dq = preg_replace("/[^\d]+/", '', $q);
-            $sqls[] = "SELECT c.id, c.name, d.value as phone
+            $sqls[] = "SELECT c.id, c.name, d.value as phone, c.firstname, c.middlename, c.lastname
                        FROM wa_contact AS c
                            JOIN wa_contact_data AS d
                                ON d.contact_id=c.id AND d.field='phone'
@@ -293,13 +294,13 @@ class shopBackendAutocompleteController extends waController
         }
 
         // Name contains requested string
-        $sqls[] = "SELECT c.id, c.name
+        $sqls[] = "SELECT c.id, c.name, c.firstname, c.middlename, c.lastname
                    FROM wa_contact AS c
                    WHERE c.name LIKE '_%".$m->escape($q, 'like')."%'
                    LIMIT {LIMIT}";
 
         // Email contains requested string
-        $sqls[] = "SELECT c.id, c.name, e.email
+        $sqls[] = "SELECT c.id, c.name, e.email, c.firstname, c.middlename, c.lastname
                    FROM wa_contact AS c
                        JOIN wa_contact_emails AS e
                            ON e.contact_id=c.id
@@ -315,6 +316,9 @@ class shopBackendAutocompleteController extends waController
             }
             foreach($m->query(str_replace('{LIMIT}', $limit, $sql)) as $c) {
                 if (empty($result[$c['id']])) {
+                    if (!empty($c['firstname']) || !empty($c['middlename']) || !empty($c['lastname'])) {
+                        $c['name'] = waContactNameField::formatName($c);
+                    }
                     $name = $this->prepare($c['name'], $term_safe);
                     $email = $this->prepare(ifset($c['email'], ''), $term_safe);
                     $phone = $this->prepare(ifset($c['phone'], ''), $term_safe);

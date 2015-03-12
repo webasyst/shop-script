@@ -60,7 +60,7 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
                 // for logging changes in stocks
                 shopProductStocksLogModel::setContext(
                         shopProductStocksLogModel::TYPE_ORDER,
-                        'Order %s was completed',
+                        /*_w*/('Order %s was completed'),
                         array(
                             'order_id' => $order_id
                         )

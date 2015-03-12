@@ -95,7 +95,7 @@
         },
         /**
          * Debug trace helper
-         * 
+         *
          * @param String message
          * @param {} data
          */
@@ -110,7 +110,7 @@
 
         /**
          * Handler error messages
-         * 
+         *
          * @param String message
          * @param {} data
          */
@@ -214,11 +214,37 @@
             }
         },
 
+        changeListener: function(el, handler, delegate_context) {
+            var timeout = 450;
+            var timer_id = null;
+            var ns = 'change_listener';
+            var keydown_handler = function() {
+                var item = this;
+                if (timer_id) {
+                    clearTimeout(timer_id);
+                    timer_id = null;
+                }
+                timer_id = setTimeout(function() {
+                    handler.call(item, el);
+                }, timeout);
+            };
+            var change_handler = function() {
+                handler.call(this, el);
+            };
+            if (delegate_context) {
+                el.on('keydown.' + ns, delegate_context, keydown_handler)
+                    .on('change.' + ns, delegate_context, change_handler);
+            } else {
+                el.bind('keydown.' + ns, keydown_handler)
+                    .bind('change.' + ns, change_handler);
+            }
+            return el;
+        },
 
         /**
-        * Make input (or textarea) with field_id flexible, 
+        * Make input (or textarea) with field_id flexible,
         * what means that depends on length and threshold this field turn into input or textarea and back
-        * 
+        *
         * @param String field_id
         * @param Number threshold (default 50)
         */
@@ -229,7 +255,7 @@
             var timer_id = null;
             field_id = '#' + field_id;
             var field = $(field_id);
-            
+
             var onFocus = function() {
                 this.selectionStart = this.selectionEnd = this.value.length;
             };
@@ -255,13 +281,13 @@
                     }
                 }, timeout);
             };
-            
+
             var p = field.parent();
             p.off('keydown', field_id).
                 on('keydown',  field_id, handler);
             p.off('focus',    field_id).
                 on('focus',     field_id, onFocus);
-        
+
             // initial shot
             handler();
         },
@@ -275,21 +301,21 @@
                 rm = true;
             }
             var val = input.val();
-            
+
             var html = p.html();
             html = html.replace(/value(\s*?=\s*?['"][\s\S]*?['"])*/, '');
             html = html.replace(/type\s*?=\s*?['"]text['"]/, '');
             html = html.replace('input', 'textarea');
             html = html.replace(/(\/\s*?>|>)/, '>' + val  + '</textarea>');
-            
+
             if (rm) {
                 p.remove();
             }
-            
+
             return $(html);
-            
+
         },
-                
+
         textarea2input: function(textarea) {
             var p = textarea.parent();
             var rm = false;
@@ -299,11 +325,11 @@
                 rm = true;
             }
             var val = textarea.val();
-            
+
             var html = p.html();
             html = html.replace('textarea', 'input type="text" value="' + val + '"');
             html = html.replace('</textarea>', '');
-            
+
             if (rm) {
                 p.remove();
             }
@@ -330,7 +356,7 @@
             },
             /**
              * Number of items in key-value object
-             * 
+             *
              * @param {Object}
              * @return Number
              */

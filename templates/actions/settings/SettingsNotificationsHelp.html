@@ -362,7 +362,7 @@
                         </div>
 
                         <p class="clear-left select-order-message">[`Select an order to fetch sample data from`]</p>
-                        <table class="zebra">
+                        <table class="zebra" style="cursor: pointer;">
                         {foreach $test_orders as $o}
                             <tr>
                                 <td>
@@ -391,7 +391,7 @@
                     {$wa->csrf()}
                     <div class="before-send">
                         <input class="button blue" type="submit" value="[`Send test`]" data-n-id={$n.id}>
-                        <span class="s-mgs-after-button" style="display:none;"><i class="icon16 loading"></i></span>
+                        <span class="s-msg-after-button" style="display:none;"><i class="icon16 loading"></i></span>
                         [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a><br>
                     </div>
                     <div class="after-send">

@@ -85,10 +85,10 @@ class shopIndexSearch extends shopSearch
         if (isset($p['skus'])) {
             foreach ($p['skus'] as $sku) {
                 if ($sku['sku']) {
-                    $this->addToIndex($index, $sku['sku'], 'sku');
+                    $this->addToIndex($index, $sku['sku'], 'sku', false, true);
                 }
                 if ($sku['name']) {
-                    $this->addToIndex($index, $sku['name'], false);
+                    $this->addToIndex($index, $sku['name'], false, true, true);
                 }
             }
         }
@@ -122,7 +122,7 @@ class shopIndexSearch extends shopSearch
         }
     }
 
-    protected function addToIndex(&$index, $strings, $type, $split = true)
+    protected function addToIndex(&$index, $strings, $type, $split = true, $set_max_for_existed = false)
     {
         $temp_index = array();
         $weight = $this->getWeight($type);
@@ -146,7 +146,7 @@ class shopIndexSearch extends shopSearch
             }
         }
         foreach ($temp_index as $word_id => $weight) {
-            $this->addWordToIndex($index, $word_id, $weight);
+            $this->addWordToIndex($index, $word_id, $weight, $set_max_for_existed);
         }
     }
 

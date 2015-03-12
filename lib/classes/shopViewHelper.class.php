@@ -73,20 +73,22 @@ class shopViewHelper extends waAppViewHelper
      * @param array $product_ids
      * @return array
      */
-    public function skus($product_ids)
+    public function skus($product_ids, $apply_rounding=true)
     {
         if (!$product_ids) {
             return array();
         }
         $skus_model = new shopProductSkusModel();
         $rows = $skus_model->select('*')->where('product_id IN (i:ids)', array('ids' => $product_ids))->order('sort')->fetchAll();
+        $apply_rounding && shopRounding::roundSkus($rows);
+
         $skus = array();
         foreach ($rows as $row) {
             $skus[$row['product_id']][] = $row;
         }
         return $skus;
     }
-    
+
     public function images($product_ids, $size = array(), $absolute = false)
     {
         if (!$product_ids) {
@@ -97,9 +99,12 @@ class shopViewHelper extends waAppViewHelper
         return $product_images_model->getImages($product_ids, $size, 'product_id', $absolute);
     }
 
-    public function settings($name, $escape = true)
+    public function settings($name = null, $escape = true)
     {
-        $result = wa('shop')->getConfig()->getGeneralSettings($name);
+        if (is_object($name) || is_array($name)) {
+            return null;
+        }
+        $result = wa('shop')->getConfig()->getGeneralSettings((string)$name);
         return $escape && !is_array($result) ? htmlspecialchars($result) : $result;
     }
 
@@ -112,7 +117,7 @@ class shopViewHelper extends waAppViewHelper
         $data = waRequest::get();
         $data['sort'] = $sort;
         if ($sort == $active_sort) {
-            $data['order'] = waRequest::get('order') == 'asc' ? 'desc' : 'asc';
+            $data['order'] = waRequest::get('order', 'asc', 'string') == 'asc' ? 'desc' : 'asc';
         } else {
             $data['order'] = $inverted ? 'desc' : 'asc';
         }
@@ -228,9 +233,8 @@ class shopViewHelper extends waAppViewHelper
 
     public function product($id)
     {
-        return new shopProduct($id);
+        return new shopProduct($id, true);
     }
-
 
     public function crossSelling($product_id, $limit = 5, $available_only = false, $key = false)
     {
@@ -269,7 +273,7 @@ class shopViewHelper extends waAppViewHelper
             return $result;
         } else {
             $p = new shopProduct($product_id);
-            return $p->crossSelling($limit, $available_only);
+            return $p->crossSelling($limit, $available_only, is_array($key) ? $key : array());
         }
     }
 
@@ -498,4 +502,79 @@ class shopViewHelper extends waAppViewHelper
         }
         return in_array($product_id, $ids) ? $ids : array();
     }
+
+    /**
+     * @param $abtest_id id in shop_abtest
+     * @return string 'A', or 'B', or etc. from existing codes in shop_abtest_variants
+     */
+    public function ABtest($abtest_id)
+    {
+        if (empty($abtest_id) || !wa_is_int($abtest_id)) {
+            return null;
+        }
+
+        static $cache = array();
+        if (array_key_exists($abtest_id, $cache)) {
+            return $cache[$abtest_id];
+        }
+
+        static $abtest_variants_model = null;
+        if (!$abtest_variants_model) {
+            $abtest_variants_model = new shopAbtestVariantsModel();
+        }
+
+        // Existing variant in cookie?
+        $variant_id = waRequest::cookie('waabt'.$abtest_id);
+        if ($variant_id) {
+            $v = $abtest_variants_model->getById($variant_id);
+            if (!$v || $v['abtest_id'] != $abtest_id) {
+                $variant_id = null;
+            } else {
+                $cache[$abtest_id] = $v['code'];
+                return $cache[$abtest_id];
+            }
+        }
+
+        // Choose A/B test option randomly
+        $rows = $abtest_variants_model->getByField('abtest_id', $abtest_id, 'id');
+        if (!$rows) {
+            $cache[$abtest_id] = null;
+            return $cache[$abtest_id];
+        }
+        $v = $rows[array_rand($rows)];
+        wa()->getResponse()->setCookie('waabt'.$abtest_id, $v['id']);
+        $cache[$abtest_id] = $v['code'];
+        return $cache[$abtest_id];
+    }
+
+    /**
+     *
+     */
+    public function promos($type_or_ids='link')
+    {
+        $promo_model = new shopPromoModel();
+        if (is_array($type_or_ids)) {
+            $prs = $promo_model->getById($type_or_ids);
+            $promos = array();
+            foreach($type_or_ids as $id) {
+                if (!empty($prs[$id])) {
+                    $promos[$id] = $prs[$id];
+                }
+            }
+        } else {
+            $storefront = wa()->getRouting()->getDomain();
+            if (!$storefront) {
+                $storefront == '%all%';
+            }
+            $promos = $promo_model->getByStorefront($storefront, $type_or_ids);
+        }
+
+        foreach($promos as &$p) {
+            $p['image'] = shopHelper::getPromoImageUrl($p['id'], $p['ext']);
+        }
+        unset($p);
+
+        return $promos;
+    }
 }
+

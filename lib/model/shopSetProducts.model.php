@@ -175,4 +175,15 @@ class shopSetProductsModel extends waModel
             $set_model->recount($set_ids);
         }
     }
+
+    public function getByProduct($id)
+    {
+        return $this->query(
+            "SELECT s.* FROM `{$this->table}` sp
+            JOIN `shop_set` s ON s.id = sp.set_id
+            WHERE product_id = i:product_id ORDER BY sort",
+                array(
+                    'product_id' => (int) $id
+                ))->fetchAll('id');
+    }
 }

@@ -16,7 +16,7 @@ class shopFrontendCompareAction extends waViewAction
 
         $compare_link = wa()->getRouteUrl('/frontend/compare', array('id' => '%ID%'));
         foreach ($products as &$p) {
-            $p = new shopProduct($p);
+            $p = new shopProduct($p, true);
             $temp_ids = $ids;
             unset($temp_ids[array_search($p['id'], $temp_ids)]);
             $p['delete_url'] = str_replace('%ID%', implode(',', $temp_ids), $compare_link);

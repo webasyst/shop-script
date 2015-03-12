@@ -52,8 +52,14 @@ $.order = {
                     id : $.order.id
                 }, function(response) {
                     self.parent().find('.loading').remove();
-                    self.closest('.workflow-actions').hide();
-                    self.closest('.workflow-actions').next().empty().html(response).show();
+                    if (self.data('container')) {
+                        var el = $(self.data('container'));
+                        el.prev('.workflow-actions').hide();
+                    } else {
+                        self.closest('.workflow-actions').hide();
+                        var el = self.closest('.workflow-actions').next();
+                    }
+                    el.empty().html(response).show();
                 });
             }
             return false;

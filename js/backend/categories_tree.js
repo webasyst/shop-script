@@ -25,7 +25,7 @@
 
     var onCollapse = function(el, func) {
         var context = getContext(el);
-        if (context.parent.attr('data-type') == 'category') {
+        if (context.parent.attr('data-type') == 'category' && !context.parent.hasClass('dynamic')) {
             context.parent.trigger('count_subtree', true);
         }
         el.removeClass('darr').addClass('rarr');
@@ -98,7 +98,7 @@
                 } else {
                     if (typeof afterExpandFunc === 'function') {
                         afterExpandFunc();
-                    }                    
+                    }
                 }
             }
         );
@@ -141,7 +141,7 @@
                 }
             }
         },
-                
+
         isCollapsed: function(handler) {
             return $(handler).hasClass('rarr');
         },

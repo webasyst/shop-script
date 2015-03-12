@@ -85,6 +85,7 @@ class shopFeatureValuesColorModel extends shopFeatureValuesModel
                 $code = shopColorValue::getCode($value);
             }
         }
+        $value = substr($value, 0, 255);
         $data = array(
             'value'        => $value,
             'search_value' => $value,

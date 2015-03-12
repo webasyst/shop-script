@@ -14,6 +14,10 @@ class shopProductSaveController extends waJsonController
         $update = waRequest::post('update'); // just update one or any field of product
         if ($update) {
             $this->update($update);
+
+            $product = new shopProduct(waRequest::request('id'));
+            $this->response['default_meta_title'] = shopProduct::getDefaultMetaTitle($product);
+
             return;
         }
 
@@ -86,7 +90,6 @@ class shopProductSaveController extends waJsonController
 
             // for logging changes in stocks
             shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_PRODUCT);
-
             if ($product->save($data, true, $this->errors)) {
                 $features_counts = null;
                 if ($product->sku_type == shopProductModel::SKU_TYPE_SELECTABLE) {
@@ -117,43 +120,56 @@ class shopProductSaveController extends waJsonController
                 $this->response['name'] = $product->name;
                 $this->response['url'] = $product->url;
                 $this->response['frontend_urls'] = $this->getUrl($product);
+                $this->response['categories'] = $this->getCategories($product);
+                $this->response['tags'] = $this->getTags($product);
+                $this->response['default_meta_title'] = shopProduct::getDefaultMetaTitle($product);
+                $this->response['default_meta_keywords'] = shopProduct::getDefaultMetaKeywords($product);
+                $this->response['default_meta_description'] = shopProduct::getDefaultMetaDescription($product);
 
                 $this->response['raw'] = $this->workupData($product->getData());
 
-                $sales_rate = waRequest::post('sales_rate', 0, waRequest::TYPE_STRING_TRIM);
-                $sales_rate = (double)str_replace(',', '.', $sales_rate);
+                //$product->categories
 
-                $runout = $product->getRunout($sales_rate);
-                if (!empty($runout['product'])) {
-                    $runout['product']['date_str'] = wa_date("humandate", $runout['product']['date']);
-                    $runout['product']['days_str'] = _w('%d day', '%d days', $runout['product']['days']);
-                    if ($runout['product']['days'] < 3 * 365 && $runout['product']['days'] > 0) {
-                        $runout['product_str'] =
-                            sprintf(_w('Based on last 30 days sales dynamic (%d items of %s sold during last 30 days), you will run out of %s in <strong>%d days</strong> (on %s)'),
-                                $sales_rate * 30, $product->name, $product->name, $runout['product']['days'], wa_date("humandate", $runout['product']['date'])
-                            );
-                    }
-                } else {
-                    $runout['product'] = new stdClass(); /* {} */
-                }
-                if (!empty($runout['sku'])) {
-                    foreach ($runout['sku'] as &$sk_r) {
-                        if (empty($sk_r['stock'])) {
-                            $sk_r['date_str'] = wa_date("humandate", $sk_r['date']);
-                            $sk_r['days_str'] = _w('%d day', '%d days', $sk_r['days']);
-                        } else {
-                            foreach ($sk_r['stock'] as &$st_r) {
-                                $st_r['date_str'] = wa_date("humandate", $st_r['date']);
-                                $st_r['days_str'] = _w('%d day', '%d days', $st_r['days']);
-                            }
-                        }
-                    }
-                    unset($sk_r, $st_r);
-                } else {
-                    $runout['sku'] = new stdClass(); /* {} */
-                }
-                $this->response['raw']['runout'] = $runout;
+//                $sales_rate = waRequest::post('sales_rate', 0, waRequest::TYPE_STRING_TRIM);
+//                $sales_rate = (double)str_replace(',', '.', $sales_rate);
 
+//                $runout = $product->getRunout($sales_rate);
+//                if (!empty($runout['product'])) {
+//                    $runout['product']['date_str'] = wa_date("humandate", $runout['product']['date']);
+//                    $runout['product']['days_str'] = _w('%d day', '%d days', $runout['product']['days']);
+//                    if ($runout['product']['days'] < 3 * 365 && $runout['product']['days'] > 0) {
+//                        $runout['product_str'] =
+//                            sprintf(_w('Based on last 30 days sales dynamic (%d items of %s sold during last 30 days), you will run out of %s in <strong>%d days</strong> (on %s)'),
+//                                $sales_rate * 30, $product->name, $product->name, $runout['product']['days'], wa_date("humandate", $runout['product']['date'])
+//                            );
+//                    }
+//                } else {
+//                    $runout['product'] = new stdClass(); /* {} */
+//                }
+//                if (!empty($runout['sku'])) {
+//                    foreach ($runout['sku'] as &$sk_r) {
+//                        if (empty($sk_r['stock'])) {
+//                            $sk_r['date_str'] = wa_date("humandate", $sk_r['date']);
+//                            $sk_r['days_str'] = _w('%d day', '%d days', $sk_r['days']);
+//                        } else {
+//                            foreach ($sk_r['stock'] as &$st_r) {
+//                                $st_r['date_str'] = wa_date("humandate", $st_r['date']);
+//                                $st_r['days_str'] = _w('%d day', '%d days', $st_r['days']);
+//                            }
+//                        }
+//                    }
+//                    unset($sk_r, $st_r);
+//                } else {
+//                    $runout['sku'] = new stdClass(); /* {} */
+//                }
+
+                $forecast = $product->getNextForecast();
+                if ($forecast['date'] !== null) {
+                    $this->response['raw']['runout_str'] = sprintf(
+                        _w('Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in <strong>%d days</strong> (on %s).'),
+                        htmlspecialchars($product->name), $forecast['sold_rounded'], $forecast['days'], wa_date("humandate", $forecast['date'])
+                    );
+                }
 
                 $this->response['storefront_map'] = $product_model->getStorefrontMap($product->id);
 
@@ -201,6 +217,7 @@ class shopProductSaveController extends waJsonController
             // price in light of l18n: if ru - delimeter is ',', if en - delimeter is '.'
             $sku['price_loc'] = (string)((float)$sku['price']);
             $sku['price_str'] = wa_currency($sku['price'], $currency);
+            $sku['price_html'] = wa_currency_html($sku['price'], $currency);
             $sku['stock_icon'] = array();
             $sku['stock_icon'][0] = shopHelper::getStockCountIcon($sku['count']);
             if (!empty($sku['stock'])) {
@@ -262,4 +279,24 @@ class shopProductSaveController extends waJsonController
         }
         return $frontend_urls;
     }
+
+    public function getCategories(shopProduct $product)
+    {
+        $model = new shopCategoryProductsModel();
+        return array_values($model->getData($product));
+    }
+
+    public function getTags(shopProduct $product)
+    {
+        $tags = array();
+        foreach ($product->tags as $tag_id => $tag_name) {
+            $tags[] = array(
+                'id' => $tag_id,
+                'name' => $tag_name,
+                'url' => urlencode($tag_name)
+            );
+        }
+        return $tags;
+    }
+
 }

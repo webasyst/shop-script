@@ -36,89 +36,29 @@ class shopSettingsResetAction extends waViewAction
         /**
          * @event reset
          *
-         * Notify plugins about reset all settings
+         * All application settings are about to be reset, and all DB tables truncated.
+         * Plugin tables will not be truncated automatically.
+         * Plugins should subscribe to this event and delete their data if they want to support full shop reset.
          *
          * @param void
          * @return void
          */
         wa()->event('reset');
 
-        //XXX hardcode
-        $tables = array(
-            'shop_page',
-            'shop_page_params',
+        //
+        // Truncate all app tables (not the plugin tables, though)
+        //
+        $db_schema_path = wa('shop')->getConfig()->getAppConfigPath('db');
+        if (!file_exists($db_schema_path)) {
+            throw new Exception('Unable to read DB tables');
+        }
+        $db_schema = include($db_schema_path);
+        if (!is_array($db_schema)) {
+            throw new Exception('Unable to read DB tables');
+        }
 
-            'shop_category',
-            'shop_category_params',
-            'shop_category_products',
-            'shop_category_routes',
-            'shop_product',
-            'shop_product_params',
-            'shop_product_features',
-            'shop_product_features_selectable',
-            'shop_product_images',
-            'shop_product_pages',
-            'shop_product_related',
-            'shop_product_reviews',
-            'shop_product_services',
-            'shop_product_skus',
-            'shop_product_stocks',
-            'shop_product_stocks_log',
-            'shop_search_index',
-            'shop_search_word',
-
-            'shop_tag',
-            'shop_product_tags',
-
-            'shop_set',
-            'shop_set_products',
-
-            'shop_stock',
-
-            'shop_feature',
-            'shop_feature_values_dimension',
-            'shop_feature_values_double',
-            'shop_feature_values_text',
-            'shop_feature_values_varchar',
-            'shop_feature_values_color',
-            'shop_feature_values_range',
-
-            'shop_type',
-            'shop_type_features',
-            'shop_type_services',
-            'shop_type_upselling',
-
-            'shop_service',
-            'shop_service_variants',
-
-            'shop_currency',
-
-            'shop_customer',
-            'shop_cart_items',
-            'shop_order',
-            'shop_order_items',
-            'shop_order_log',
-            'shop_order_log_params',
-            'shop_order_params',
-            'shop_affiliate_transaction',
-
-            'shop_checkout_flow',
-            'shop_notification',
-            'shop_notification_params',
-
-            'shop_coupon',
-            'shop_discount_by_sum',
-
-            'shop_tax',
-            'shop_tax_regions',
-            'shop_tax_zip_codes',
-
-            'shop_affiliate_transaction',
-
-            'shop_importexport',
-        );
         $model = new waModel();
-        foreach ($tables as $table) {
+        foreach (array_keys($db_schema) as $table) {
             $exist = false;
             try {
                 $model->query(sprintf("SELECT * FROM `%s` WHERE 0", $table));
@@ -137,55 +77,62 @@ class shopSettingsResetAction extends waViewAction
             $model->query($sql);
         }
 
+        // Delete app's categories from contacts
         $ccm = new waContactCategoryModel();
         $ccm->deleteByField('app_id', 'shop');
 
-        $app_settings_model = new waAppSettingsModel();
+        // Delete contact access rights that contain type_id
+        $model->exec("DELETE FROM wa_contact_rights WHERE app_id='shop' AND name LIKE 'type.%' AND name<>'type.all'");
 
-        $currency_model = new shopCurrencyModel();
-        $currency_model->insert(array(
-            'code' => 'USD',
-            'rate' => 1.000,
-            'sort' => 1,
-        ), 2);
+        // Delete settings from wa_app_settings and wa_contact_settings.
+        // It's OK to do direct queries because we'll clear the cache afterwards.
+        // Note that since we delete the `update_time` from wa_app_settings of shop and plugins,
+        // next app start will call install.php
+        $model->exec("DELETE FROM wa_app_settings WHERE app_id='shop' OR app_id LIKE 'shop.%'");
+        $model->exec("DELETE FROM wa_contact_settings WHERE app_id='shop' OR app_id LIKE 'shop.%'");
 
-        $app_settings_model->set('shop', 'currency', 'USD');
-        $app_settings_model->set('shop', 'use_product_currency', true);
+        //
+        // Delete files from wa-config, wa-data and wa-cache
+        //
 
+        // wa-data
         $paths = array();
         $paths[] = wa()->getDataPath('products', false, 'shop');
         $paths[] = wa()->getDataPath('products', true, 'shop');
 
-        $paths[] = wa()->getTempPath();
-
+        // wa-config
         $config_path = wa()->getConfigPath('shop');
         foreach (waFiles::listdir($config_path, true) as $path) {
             if (!in_array($path, array('plugins.php', '..', '.'))) {
                 $paths[] = $config_path.'/'.$path;
             }
         }
-        $paths[] = wa()->getCachePath(null, 'shop');
 
+        // wa-cache
+        $paths[] = wa()->getTempPath();
+        $paths[] = wa()->getCachePath(null, 'shop');
+        $paths[] = wa()->getCachePath(null, 'webasyst');
 
         foreach ($paths as $path) {
             waFiles::delete($path, true);
         }
 
-        $path = wa()->getDataPath('products', true, 'shop');
-        waFiles::write(
-            $path.'/thumb.php',
-            '<?php
-$file = realpath(dirname(__FILE__)."/../../../../")."/wa-apps/shop/lib/config/data/thumb.php";
+         /**
+         * @event reset_complete
+         *
+         * All application settings has just been reset, and all shop tables truncated.
+         * Note that during this event, both the app AND plugins are is in state before install.php is run (although db tables are present).
+         * Some settings may be unavailable.
+         *
+         * install.php of both the app and plugins will run next time the app starts.
+         *
+         * @param void
+         * @return void
+         */
+        wa()->event('reset_complete');
 
-if (file_exists($file)) {
-    include($file);
-} else {
-    header("HTTP/1.0 404 Not Found");
-}
-'
-        );
-        waFiles::copy($this->getConfig()->getAppPath('lib/config/data/.htaccess'), $path.'/.htaccess');
         echo json_encode(array('result' => 'ok', 'redirect' => '?action=welcome'));
         exit;
     }
 }
+

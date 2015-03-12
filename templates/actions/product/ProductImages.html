@@ -1,37 +1,61 @@
 {$placeholder = '[`add description`]'}
 
-<form id="fileupload" action="?module=product&amp;action=imageUpload" method="POST" enctype="multipart/form-data">
-<div class="block double-padded s-image-upload-dropbox">
-	<a href="javascript:void(0);" id="s-upload-images-link" class="fileinput-button">
-        <i class="icon16 upload"></i>[`Select images`]<input type="file" name="files[]" multiple=""></a>
-	<span class="gray">[`or drag them here to start upload`]</span>
-</div>
-
-<input type="hidden" name="product_id" value="{$product_id}">
-{$wa->csrf()}
-
-{include './include.imageUpload.html' inline}
-
-</form>
-
-{*
-<div class="block double-padded s-image-upload-dropbox">
-<form id="fileupload" action="?module=product&amp;action=imageUpload" method="POST" enctype="multipart/form-data">
-    <a href="javascript:void(0);" id="s-upload-images-link">
-        <input type="file" name="files[]" multiple="">
-        <i class="icon16 upload"></i>[`Select images`]
-    </a>
-    <span class="gray">[`or drag them here to start upload`]</span>
-</form>
-</div>
-*}
-
 <!-- plugin hook: 'backend_product_edit.images' -->
 {* @event backend_product_edit.%plugin_id%.images *}
 {if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.images)}{/foreach}{/if}
 
-<ul class="thumbs li250px" id="s-product-image-list">
-</ul>
+<div class="sidebar right200px" id="s-product-images-toolbar">
+
+    <div class="block s-product-images-actions">
+        <h6 class="heading">[`Badge`]</h6>
+        <ul class="menu-v with-icons" id="photo-organize-menu">
+
+            <!-- plugin hook: 'backend_product_edit.image_toolbar_badge_li' -->
+            {* @event backend_product_edit.%plugin_id%.image_toolbar_badge_li *}
+            {if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.image_toolbar_badge_li)}{/foreach}{/if}
+
+            {$badges = shopProductModel::badges()}
+            {foreach $badges as $bid => $b}
+                <li data-action='set-badge' {if $bid == $product.badge}class="selected"{/if} data-type="{$bid}">
+                    <a href="#"><i class="icon16 ss {$bid}"></i>{$b.name}</a>
+                </li>
+            {/foreach}
+            {$custom_setted = $product.badge !== null && !isset($badges[$product.badge])}
+            <li data-action='set-custom-badge' data-type="custom" {if $custom_setted}class="selected"{/if}>
+                <a href="#"><i class="icon16 ss div"></i>[`Custom`]</a><span class="small editable"></span>
+                <div id="s-product-set-custom-badge" {if !$custom_setted}style="display:none;"{/if}>
+                    <textarea name="code" id="s-product-set-custom-badge-code" style="min-height: 100px; margin: 10px 0 5px;">{strip}
+                        {if $custom_setted}
+                            {$product.badge}
+                        {else}
+                            <div class="badge" style="background-color: #a1fcff;"><span>[`YOUR TEXT`]</span></div>
+                        {/if}
+                    {/strip}</textarea>
+                    <input type="button" value="[`Set custom badge`]">
+                </div>
+            </li>
+            <li class="top-padded" data-action='delete-badge'><a href="#"><i class="icon16 no-bw"></i>[`Remove badge`]</a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div class="content right200px">
+    <form id="fileupload" action="?module=product&amp;action=imageUpload" method="POST" enctype="multipart/form-data">
+        <div class="s-image-upload-dropbox">
+        	<a href="javascript:void(0);" id="s-upload-images-link" class="fileinput-button">
+                <i class="icon16 upload"></i>[`Select images`]<input type="file" name="files[]" multiple=""></a>
+        	<span class="gray">[`or drag them here to start upload`]</span>
+        </div>
+        
+        <input type="hidden" name="product_id" value="{$product_id}">
+        {$wa->csrf()}
+        
+        {include './include.imageUpload.html' inline}
+        
+    </form>
+    <ul class="thumbs li250px" id="s-product-image-list"></ul>
+</div>
 
 <script type="text/javascript">
 $.product_images.init({
@@ -39,6 +63,7 @@ $.product_images.init({
     placeholder: '{$placeholder}',
     images: {json_encode(array_values($images))},
     count: {count($images)},
+    enable_2x: {if $wa->shop->config('enable_2x')}true{else}false{/if},
     
     // handler triggered after drag-n-drop sort
     onSort: function(id, before_id) {

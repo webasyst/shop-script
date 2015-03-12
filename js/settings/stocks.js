@@ -31,7 +31,7 @@ $.extend($.settings = $.settings || {}, {
 
       if ($.storage.get('shop/settings/stock/just-saved')) {
           $.storage.del('shop/settings/stock/just-saved');
-          form.find(':submit').siblings('.s-mgs-after-button').show().animate({ opacity: 0 }, 2000, function() {
+          form.find(':submit').siblings('.s-msg-after-button').show().animate({ opacity: 0 }, 2000, function() {
               $(this).hide();
           });
       }

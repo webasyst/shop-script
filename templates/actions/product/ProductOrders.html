@@ -1,0 +1,107 @@
+{if !count($orders)}
+    [`None of your customers purchased this product yet.`]
+{else}
+    <table class="zebra double-padded s-product-orders single-lined" id="s-product-orders-list">
+        {foreach $orders as $o}
+            <tr>
+                <td class="nowrap">
+                    <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
+                                      style="{$o.style|escape}"
+                                      data-order-id="{$o.id}"
+                                      data-state-id="{$o.state_id}"
+                                      class="s-order-link"
+                                >
+                        <i class="{$o.icon}"></i>{$wa->shop->orderId($o.id)}
+                    </a>
+                </td>
+                <td>
+                    <div>
+                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
+                                      style="{$o.style|escape}"
+                                      data-order-id="{$o.id}"
+                                      data-state-id="{$o.state_id}"
+                                      class="s-order-link"
+                                >{$o.create_datetime|wa_date:'humandate'}</a>
+                        <i class="shortener"></i>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
+                                      style="{$o.style|escape}"
+                                      data-order-id="{$o.id}"
+                                      data-state-id="{$o.state_id}"
+                                      class="s-order-link"
+                                >{$o.contact.name|escape}</a>
+                        <i class="shortener"></i>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
+                                      style="{$o.style|escape}"
+                                      data-order-id="{$o.id}"
+                                      data-state-id="{$o.state_id}"
+                                      class="s-order-link"
+                                >
+                        {if $o.shipping_name}
+                            {$o.shipping_name}
+                        {else}
+                            <span class="gray">[`Shipping option not specified`]</span>
+                        {/if}
+                        </a>
+                        <i class="shortener"></i>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
+                                      style="{$o.style|escape}"
+                                      data-order-id="{$o.id}"
+                                      data-state-id="{$o.state_id}"
+                                      class="s-order-link"
+                                >
+                            {if $o.payment_name}
+                                {$o.payment_name}
+                            {else}
+                                <span class="gray">[`Payment option not specified`]</span>
+                            {/if}
+                        </a>
+                        <i class="shortener"></i>
+                    </div>
+                </td>
+                <td class="bold nowrap align-right">
+                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
+                                      style="{$o.style|escape}"
+                                      data-order-id="{$o.id}"
+                                      data-state-id="{$o.state_id}"
+                                      class="s-order-link"
+                                >{$o.total_formatted}</a>
+                </td>
+            </tr>
+        {/foreach}
+    </table>
+
+    <div class="block half-padded">
+        <br>
+        <div class="lazyloading-progress-string">{_w('%d order','%d orders', $offset + $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+        <span class="lazyloading-progress" style="display:none">
+            <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d order','%d orders', min($total_count - $offset - $count, $count))}...</span>
+        </span>
+    </div>
+
+{/if}
+
+{if !$lazy}
+    <script>
+        $.product_orders.init({
+            total_count: {$total_count},
+            container: '#s-product-profile-tabs .s-tab-block[data-tab="recent-orders"]',
+            lazy_loading: {
+                auto: true,
+                count: {$count},
+                url: '?module=product&id={$product_id}&action=orders'
+            }
+        });
+    </script>
+{/if}

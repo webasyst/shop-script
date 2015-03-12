@@ -31,7 +31,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
     /**
      * @param int $product_id
      * @param string $key
-     * @return int[][] value_id[$key][sku_id]
+     * @return int[][] value_id[sku_id][$key]
      */
     public function getSkuFeatures($product_id, $key = 'feature_id')
     {
@@ -76,7 +76,8 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         $sql = "SELECT s.id, s.product_id, s.price, s.compare_price, s.sort FROM ".$this->table." t0
                 JOIN shop_product_skus s ON t0.sku_id = s.id";
         for ($i = 1; $i < count($features); $i++) {
-            $sql .= " JOIN ".$this->table." t".$i." ON t0.product_id = t".$i.".product_id AND t0.sku_id = t".$i.".sku_id";
+            $sql .= " JOIN ".$this->table." t".$i."
+                ON t0.product_id = t".$i.".product_id AND (t0.sku_id = t".$i.".sku_id OR t".$i.".sku_id IS NULL)";
         }
         $sql .= " WHERE t0.product_id IN (i:product_ids) AND t0.sku_id IS NOT NULL";
         $i = 0;
@@ -89,12 +90,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             }
             $i++;
         }
-        $result = array();
-        $rows = $this->query($sql, array('product_ids' => $product_ids))->fetchAll();
-        foreach ($rows as $row) {
-            $result[$row['product_id']][] = $row;
-        }
-        return $result;
+        return $this->query($sql, array('product_ids' => $product_ids))->fetchAll();
     }
 
     public function deleteByFeature($feature_id, $feature_value_id = null)
@@ -113,49 +109,108 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
     public function getValues($product_id, $sku_id = null, $type_id = null)
     {
-        $sql = "SELECT ".($type_id ? 'tf.sort, ' : '')."f.code, f.type, f.multiple, pf.*
-                FROM ".$this->table." pf";
-        $sql .= " JOIN shop_feature f ON (pf.feature_id = f.id)";
+        $result = array();
+        $features = array();
+        $codes_to_remove = array();
+
+        //
+        // Get all features of product type. This allows to set up dividers properly,
+        // even if divider is not saved for particular product in shop_product_features.
+        //
         if ($type_id) {
-            $sql .= " LEFT JOIN shop_type_features tf ON ((tf.feature_id = IFNULL(f.parent_id,f.id)) AND (tf.type_id=i:type_id))";
+            $sql = "SELECT f.id AS feature_id, f.code, f.type, f.multiple, tf.sort
+                    FROM shop_feature AS f
+                        JOIN shop_type_features AS tf
+                            ON tf.feature_id = IFNULL(f.parent_id,f.id)
+                    WHERE tf.type_id=i:type_id
+                    ORDER BY tf.sort";
+            $data = $this->query($sql, array(
+                'type_id' => $type_id,
+            ));
+            foreach($data as $row) {
+                $features[$row['feature_id']] = array(
+                    'type'     => $row['type'],
+                    'code'     => $row['code'],
+                    'multiple' => $row['multiple'],
+                );
+
+                if (preg_match('/^(.+)\.[0-2]$/', $row['code'], $matches)) {
+                    $code = $matches[1];
+                } else {
+                    $code = $row['code'];
+                }
+
+                $result[$code] = null;
+                if ($row['type'] != shopFeatureModel::TYPE_DIVIDER) {
+                    $codes_to_remove[$code] = true;
+                }
+            }
         }
-        $sql .= " WHERE pf.product_id = i:id AND ";
+
+        //
+        // Get all features of this product
+        //
+        $tf_join = '';
+        $tf_select = '';
+        $order_by = array();
+        if ($type_id) {
+            $tf_select = ", tf.sort";
+            $tf_join = " LEFT JOIN shop_type_features tf ON ((tf.feature_id = IFNULL(f.parent_id,f.id)) AND (tf.type_id=i:type_id))";
+            $order_by[] = "tf.sort";
+        }
+
         if ($sku_id) {
+            array_unshift($order_by, 'pf.sku_id');
             if ($sku_id > 0) {
-                $sql .= '(pf.sku_id = i:sku_id OR pf.sku_id IS NULL) ORDER BY pf.sku_id';
+                $sku_where = '(pf.sku_id = i:sku_id OR pf.sku_id IS NULL)';
             } else {
-                $sql .= '(pf.sku_id = i:sku_id) ORDER BY pf.sku_id';
+                $sku_where = '(pf.sku_id = i:sku_id)';
                 $sku_id = -$sku_id;
             }
         } else {
-            $sql .= 'pf.sku_id IS NULL';
+            $sku_where = 'pf.sku_id IS NULL';
         }
 
-        if ($type_id) {
-            $sql .= " ORDER BY tf.sort";
+        if ($order_by) {
+            $order_by = 'ORDER BY '.join(', ', $order_by);
+        } else {
+            $order_by = '';
         }
-        $features = $storages = array();
-        $params = array(
+
+        $sql = "SELECT pf.*, f.code, f.type, f.multiple {$tf_select}
+                FROM {$this->table} pf
+                    JOIN shop_feature f
+                        ON pf.feature_id = f.id
+                    {$tf_join}
+                WHERE pf.product_id = i:id
+                    AND {$sku_where}
+                {$order_by}";
+        $data = $this->query($sql, array(
             'id'      => $product_id,
             'sku_id'  => $sku_id,
             'type_id' => $type_id,
-        );
-        $data = $this->query($sql, $params);
+        ));
 
-        $result = array();
+        // Prepare list of value_ids to fetch later
+        // and places to fetch them from.
+        $storages = array();
         foreach ($data as $row) {
             if ($sku_id && $row['code'] == 'weight' && !$row['sku_id']) {
                 continue;
             }
             $features[$row['feature_id']] = array(
+                'type'     => $row['type'],
                 'code'     => $row['code'],
                 'multiple' => $row['multiple'],
             );
             if (preg_match('/^(.+)\.[0-2]$/', $row['code'], $matches)) {
-                $result[$matches[1]] = null;
+                $code = $matches[1];
             } else {
-                $result[$row['code']] = null;
+                $code = $row['code'];
             }
+            $result[$code] = null;
+            unset($codes_to_remove[$code]);
+
             $type = preg_replace('/\..*$/', '', $row['type']);
             if ($type == shopFeatureModel::TYPE_BOOLEAN) {
                 /**
@@ -181,6 +236,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
         }
 
+        // Fetch actual values from shop_feature_values_* tables
         foreach ($storages as $type => $value_ids) {
             $model = shopFeatureModel::getValuesModel($type);
             $feature_values = $model->getValues('id', $value_ids);
@@ -194,6 +250,10 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             }
         }
 
+        // Remove all features without values (except dividers)
+        foreach(array_keys($codes_to_remove) as $code) {
+            unset($result[$code]);
+        }
 
         /**
          * composite fields workaround
@@ -333,6 +393,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                         $add[$f['id']] = $id;
                     }
                 }
+                unset($f);
             } elseif (!empty($value) && is_array($value)) {
                 //it's a new feature
                 if (!empty($value) && ((ifset($value['type']) == shopFeatureModel::TYPE_BOOLEAN) || !empty($value['value']))) {
@@ -364,5 +425,14 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         foreach ($add as $feature_id => $value_id) {
             $this->multipleInsert(array('product_id' => $product_id, 'feature_id' => $feature_id, 'feature_value_id' => $value_id));
         }
+    }
+
+    /**
+     * @param int|int[] $feature_id
+     * @return int
+     */
+    public function countProductsByFeature($feature_id)
+    {
+        return (int)$this->select('COUNT(DISTINCT product_id)')->where('feature_id IN (i:feature_id)',compact('feature_id'))->fetchField();
     }
 }

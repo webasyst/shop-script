@@ -314,7 +314,7 @@
                         last_response = r;
                         response(r);
                     });
-                },
+                }
             });
         },
 

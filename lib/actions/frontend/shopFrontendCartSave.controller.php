@@ -21,7 +21,10 @@ class shopFrontendCartSaveController extends waJsonController
                     if ($sku['count'] !== null && $q > $sku['count']) {
                         $q = $sku['count'];
                         $name = $p['name'].($sku['name'] ? ' ('.$sku['name'].')' : '');
-                        $this->response['error'] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $q, $name);
+                        if ($q > 0)
+                            $this->response['error'] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $q, $name);
+                        else
+                            $this->response['error'] = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience.'), $name);
                         $this->response['q'] = $q;
                     }
                 }

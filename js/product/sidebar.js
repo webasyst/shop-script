@@ -1,28 +1,28 @@
-(function($){
+(function ($) {
     $.product_sidebar = {
         options: {},
-        init: function() {
+        init: function () {
             var sidebar = $('#s-sidebar');
 
             $.product_dragndrop.init({
                 collections: true
             }).bind('move_list', function (options) {
-                    if (!options.type) {
-                        if (typeof options.error === 'function') {
-                            options.error('Unknown list type');
-                        }
-                        return;
+                if (!options.type) {
+                    if (typeof options.error === 'function') {
+                        options.error('Unknown list type');
                     }
-                    var data = {
-                        id: options.id,
-                        type: options.type,
-                        parent_id: options.parent_id || 0
-                    };
-                    if (options.before_id) {
-                        data.before_id = options.before_id;
-                    }
-                    $.products.jsonPost('?module=products&action=moveList', data, options.success, options.error);
-                });
+                    return;
+                }
+                var data = {
+                    id: options.id,
+                    type: options.type,
+                    parent_id: options.parent_id || 0
+                };
+                if (options.before_id) {
+                    data.before_id = options.before_id;
+                }
+                $.products.jsonPost('?module=products&action=moveList', data, options.success, options.error);
+            });
 
             // SIDEBAR CUSTOM EVENT HANDLERS
 
@@ -34,7 +34,7 @@
                  * @param {String} type 'category', 'set'
                  * @param {Boolean} replace if item exists already replace it or not?
                  */
-                    function (e, item, type, replace) {
+                function (e, item, type, replace) {
                     var self = $(this), parent = self.parents('.s-collection-list:first');
                     var tmp = $('<ul></ul>');
                     tmp.append(tmpl('template-sidebar-list-item', {
@@ -97,11 +97,11 @@
                     var tag = tag_cloud[tag_id];
                     html +=
                         '<a href="' + '#/products/tag=' + tag.uri_name +
-                            '/" style="font-size: ' + tag.size +
-                            '%; opacity: ' + tag.opacity +
-                            '"  data-id="' + tag.id +
-                            '"  class="s-product-list">' + tag.name +
-                            '</a>';
+                        '/" style="font-size: ' + tag.size +
+                        '%; opacity: ' + tag.opacity +
+                        '"  data-id="' + tag.id +
+                        '"  class="s-product-list">' + tag.name +
+                        '</a>';
                 }
                 html += '</li></ul>';
                 $('#s-tag-cloud').html(html).parents('.block:first').show();
@@ -190,74 +190,90 @@
                                 });
                             }
 
-                            $.shop.jsonPost('?action=sidebarSaveWidth', { width: new_width });
+                            $.shop.jsonPost('?action=sidebarSaveWidth', {width: new_width});
                             sidebar.trigger('change_width', [new_width]);
-                            
+
                         }
                     }
 
                     return false;
                 });
-                
-                sidebar.off('click', '.s-new-list').on('click', '.s-new-list', function() {
-                    var self = $(this);
-                    var id = self.attr('id');
-                    var parent_id = 0;
-                    var type;
-                    if (id) {
-                        type = id.replace('s-new-', '');
-                    } else {
-                        var splited = self.parents('li.dr:first').attr('id').split('-');
-                        type = splited[0];
-                        parent_id = splited[1];
+
+            sidebar.off('click', '#s-forcesort-by-name').on('click', '#s-forcesort-by-name', function () {
+                $.product_sidebar.sortCategoryDialog();
+                return false;
+            });
+
+            sidebar.off('click', '.s-new-list').on('click', '.s-new-list', function () {
+                var self = $(this);
+                var id = self.attr('id');
+                var parent_id = 0;
+                var type;
+                if (id) {
+                    type = id.replace('s-new-', '');
+                } else {
+                    var splited = self.parents('li.dr:first').attr('id').split('-');
+                    type = splited[0];
+                    parent_id = splited[1];
+                }
+                $.product_sidebar.createListDialog(type, parent_id, function (new_item, type) {
+                    var ctnr = $('#s-' + type + '-list');
+                    var list = ctnr.find('ul:first');
+                    if (!list.length) {
+                        ctnr.prepend(
+                            '<ul class="menu-v with-icons"><li class="drag-newposition" data-type="' + type + '"></li></ul>'
+                        );
+                        ctnr.find('.drag-newposition').mouseover();  // init droppable
+                        list = ctnr.find('ul:first');
                     }
-                    $.product_sidebar.createListDialog(type, parent_id, function(new_item, type) {
-                        var ctnr = $('#s-' + type + '-list');
-                        var list = ctnr.find('ul:first');
-                        if (!list.length) {
-                            ctnr.prepend(
-                                '<ul class="menu-v with-icons"><li class="drag-newposition" data-type="' + type + '"></li></ul>'
-                            );
-                            ctnr.find('.drag-newposition').mouseover();  // init droppable
-                            list = ctnr.find('ul:first');
-                        }
 
-                        var parent_id = parseInt(new_item.parent_id, 10) || 0;
-                        var handler = $.categories_tree.getHandlerByCategoryId(parent_id);
+                    var parent_id = parseInt(new_item.parent_id, 10) || 0;
+                    var handler = $.categories_tree.getHandlerByCategoryId(parent_id);
 
-                        var add = function() {
-                            if (parent_id) {
-                                var parent = list.find('#' + type + '-' + new_item.parent_id);
-                                if (!parent.find('>.collapse-handler-ajax').length) {
-                                    parent.append('<ul class="menu-v with-icons dr"><li class="drag-newposition" data-type="' + type + '"></li></ul>');
-                                    parent.find('.drag-newposition').mouseover(); // init droppable
-                                    parent.find('>a').before(
-                                            '<i class="icon16 darr overhanging collapse-handler-ajax" id="' + 
-                                                type + '-' + parent_id + '-handler' +
-                                            '"></i>'
-                                    );
-                                    $.categories_tree.setExpanded(parent_id);
-                                }
-                                list = parent.find('ul:first');
+                    var add = function () {
+                        if (parent_id) {
+                            var parent = list.find('#' + type + '-' + new_item.parent_id);
+                            if (!parent.find('>.collapse-handler-ajax').length) {
+                                parent.append('<ul class="menu-v with-icons dr"><li class="drag-newposition" data-type="' + type + '"></li></ul>');
+                                parent.find('.drag-newposition').mouseover(); // init droppable
+                                parent.find('>a').before(
+                                    '<i class="icon16 darr overhanging collapse-handler-ajax" id="' +
+                                    type + '-' + parent_id + '-handler' +
+                                    '"></i>'
+                                );
+                                $.categories_tree.setExpanded(parent_id);
                             }
-                            list.trigger('add', [new_item, type]);
-                        };
-
-                        if (type == 'category') {
-                            $.categories_tree.expand(handler, function() {
-                                add();
-                            });
-                        } else {
-                            add();
+                            list = parent.find('ul:first');
                         }
+                        list.trigger('add', [new_item, type]);
+                    };
 
-                    });
-                    return false;
+                    if (type == 'category') {
+                        $.categories_tree.expand(handler, function () {
+                            add();
+                        });
+                    } else {
+                        add();
+                    }
+
                 });
+                return false;
+            });
         },
-        
-        createListDialog: function(type, parent_id, onCreate) {
-            var showDialog = function() {
+
+        sortCategoryDialog: function () {
+            $('#s-products-sort-categories').waDialog({
+                disableButtonsOnSubmit: true,
+
+                onSubmit: function (d) {
+                    var form = $(this);
+
+                }
+            });
+        },
+
+        createListDialog: function (type, parent_id, onCreate) {
+            var showDialog = function () {
 
                 // remove conflict dialog
                 var conflict_dialog = $('#s-product-list-settings-dialog');
@@ -267,25 +283,26 @@
                 }
 
                 $('#s-product-list-create-dialog').waDialog({
+                    esc: false,
                     disableButtonsOnSubmit: true,
-                    onLoad: function(d) {
+                    onLoad: function (d) {
                         if ($('#s-category-description-content').length) {
                             $.product_sidebar.initCategoryDescriptionWysiwyg($(this));
                         }
-                        setTimeout(function() {
+                        setTimeout(function () {
                             $("#s-c-product-list-name").focus();
                         }, 50);
                     },
-                    onSubmit: function(d) {
+                    onSubmit: function (d) {
                         var form = $(this);
-                        var success = function(r) {
+                        var success = function (r) {
                             if (typeof onCreate === 'function') {
                                 onCreate(r.data, type);
                             }
                             location.href = '#/products/' + type + '_id=' + r.data.id;
                             d.trigger('close');
                         };
-                        var error = function(r) {
+                        var error = function (r) {
                             if (r && r.errors) {
                                 var errors = r.errors;
                                 for (var name in errors) {
@@ -317,20 +334,20 @@
             }
             p.load('?module=dialog&action=productListCreate&type=' + type + '&parent_id=' + parent_id, showDialog);
         },
-        
-        initCategoryDescriptionWysiwyg: function(d) {
+
+        initCategoryDescriptionWysiwyg: function (d) {
             var field = d.find('.field.description');
             field.find('i').hide();
             field.find('.s-editor-core-wrapper').show();
             var height = (d.find('.dialog-window').height() * 0.8) || 350;
             $('#s-category-description-content').waEditor({
                 lang: wa_lang,
-                toolbarFixedBox: false,
+                toolbarFixed: false,
                 maxHeight: height,
                 minHeight: height,
                 uploadFields: d.data('uploadFields')
             });
         }
-        
+
     };
 })(jQuery);

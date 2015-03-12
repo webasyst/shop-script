@@ -101,6 +101,12 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         }
         $this->view->assign('tracking', $tracking);
 
+        /**
+         * @event frontend_my_order
+         * @return array[string]string $return[%plugin_id%] html output
+         */
+        $this->view->assign('frontend_my_order', wa()->event('frontend_my_order', $order));
+
         $this->view->assign('order', $order);
         $this->view->assign('contact', $contact);
         $this->view->assign('shipping_address', $shipping_address);

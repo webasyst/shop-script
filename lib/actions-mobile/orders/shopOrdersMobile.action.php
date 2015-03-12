@@ -8,8 +8,9 @@ class shopOrdersMobileAction extends shopMobileViewAction
     public function execute()
     {
         if (wa()->getUser()->getRights('shop', 'orders')) {
-            $om = new shopOrderModel();
-            $orders = $om->order('id DESC')->limit(30)->fetchAll('id');
+            $collection = new shopOrdersCollection('');
+            $orders = $collection->getOrders("*,contact,params", 0, 30);
+            shopOrderListAction::extendContacts($orders);
             shopHelper::workupOrders($orders);
             $this->view->assign('orders', $orders);
         } else {

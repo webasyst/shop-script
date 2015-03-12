@@ -1,4 +1,5 @@
 <?php
+
 class shopShipping extends waAppShipping
 {
     private static $instance;
@@ -72,7 +73,7 @@ class shopShipping extends waAppShipping
         }
 
         $default_info = waShipping::info($info['plugin']);
-        return array_merge($default_info, $info);
+        return is_array($default_info) ? array_merge($default_info, $info) : $default_info;
     }
 
     public static function savePlugin($plugin)

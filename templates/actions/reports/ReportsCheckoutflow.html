@@ -1,29 +1,38 @@
 <div class="block double-padded">
-
-    <h1>[`Checkout flow`] <span class="hint">&alpha;</span></h1>
-
-    <p>[`Checkout flow report shows how many customers abandon their orders during the checkout process based on unique shopping cart sessions.`]</p>
+    <h1>[`Checkout funnel`]</h1>
+    <p>[`Checkout funnel report shows how many customers abandon their orders during the checkout process based on unique shopping cart sessions.`]</p>
 
     <table class="s-checkoutflow">
+    {$maxSteps = count($stat)}
+    {$current_step = 0}
     {foreach $stat as $key => $val name=flow}
-        <tr>        
-            <td>{$val['name']}</td>
-            <td>
-                <div class="s-bar"style="width: {str_replace(',','.',$val['percents']/100*400)}px;"></div>
-                <div class="s-bar-hint{if $smarty.foreach.flow.last} bold{/if}">
-                    {round($val['percents'])}%
+        {$current_step = $current_step + 1}
+        {$percent = 0.15 + ($current_step/$maxSteps)*0.85}
+        {$width = 25 + $val['percents']/1.3333}
+        <tr>
+            <td class="column-name">{$val['name']}</td>
+            <td class="column-graph">
+                <div class="s-bar" style="width: {number_format($width,4)}%;">
+                    <div class="background" style="opacity: {number_format($percent,4)};"></div>
+                    <div class="text">{_w('%d customer','%d customers', $val['count'])}</div>
+                    <div class="hidden-text">
+                        <div class="table">
+                            <div class="container">
+                                <div class="">
+                                    {if !empty($stat[$key+1])}
+                                        {$_change = $val['count']-$stat[$key+1]['count']}
+                                        {sprintf('[`%d visitors abandoned`]', $_change)}
+                                    {else if $key + 1 == count($stat)}
+                                        [`The goal!`]
+                                    {/if}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </td>
-            <td{if $smarty.foreach.flow.last} class="bold"{/if}>
-                <span class="hint">
-                    {_w('%d customer','%d customers', $val['count'])}
-                </span>
-                {if !empty($stat[$key-1])}
-                    {$_change = $stat[$key-1]['count']-$val['count']}
-                    {if $_change > 0}
-                        <span class="red small" title="[`Change comparing to previous checkout step`]">-{$_change}</span>
-                    {/if}
-                {/if}
+            <td class="column-value {if $smarty.foreach.flow.last}bold{/if}">
+                {round($val['percents'])}%
             </td>
         </tr>
     {/foreach}
@@ -46,8 +55,8 @@
     <div class="dialog-window">
         <div class="dialog-content">
             <div class="dialog-content-indent">
-                <h1>[`Reset checkout flow`]</h1>
-                <p><strong class="red">[`Entire checkout flow report data will be erased without the ability to restore.`]</strong></p>
+                <h1>[`Reset checkout funnel`]</h1>
+                <p><strong class="red">[`Entire checkout funnel report data will be erased without the ability to restore.`]</strong></p>
             </div>
         </div>
         <div class="dialog-buttons">
@@ -65,7 +74,7 @@
 <div class="clear-both"></div>
 <script>
     $(function() {
-        document.title = '{"[`Checkout flow`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+        document.title = '{"[`Checkout funnel`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 
         $('#s-reports-checkoutflow-clear').click(function() {
             $('#s-reports-checkoutflow-clear-dialog').waDialog({

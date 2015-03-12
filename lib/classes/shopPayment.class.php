@@ -74,7 +74,7 @@ class shopPayment extends waAppPayment
         }
 
         $default_info = waPayment::info($info['plugin']);
-        return array_merge($default_info, $info);
+        return is_array($default_info) ? array_merge($default_info, $info) : $default_info;
     }
 
     public static function savePlugin($plugin)
@@ -413,6 +413,7 @@ class shopPayment extends waAppPayment
         if (empty($result['error'])) {
             $workflow = new shopWorkflow();
             $workflow->getActionById('pay')->run($transaction_data['order_id']);
+            $result['result'] = true;
         }
         return $result;
     }
@@ -481,11 +482,13 @@ class shopPayment extends waAppPayment
             $total = $transaction_data['amount'];
 
             if ($transaction_data['currency_id'] != $order['currency']) {
-                $total = shop_currency($total, $transaction_data['currency_id'], $order['currency'], false);
+                $order_total = shop_currency($order['total'], $order['currency'], $transaction_data['currency_id'], false);
+            } else {
+                $order_total = $order['total'];
             }
-            if (abs($order['total'] - $total) > 0.01) {
+            if (abs($order_total - $total) > 0.01) {
                 $result['result'] = false;
-                $result['error'] = sprintf('Invalid order amount: expect %f, but get %f', $order['total'], $total);
+                $result['error'] = sprintf('Invalid order amount: expect %f, but get %f in %s', $order_total, $total, $transaction_data['currency_id']);
             } else {
                 $workflow = new shopWorkflow();
                 $workflow->getActionById('process')->run($transaction_data['order_id']);

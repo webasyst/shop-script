@@ -1,10 +1,11 @@
 <ul class="thumbs li250px" id="product-list">
+    <li style="display:none" class="hidden header"><input type="checkbox" class="s-select-all"></li>
     <script id="template-product-list-thumbs" type="text/html">
     {literal}
     {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
-    <li class="product 
-        {% if (i == n-1) { %}last{% } %} 
-        {% if (p.status == '0') { %}gray{% } %} 
+    <li class="product
+        {% if (i == n-1) { %}last{% } %}
+        {% if (p.status == '0') { %}gray{% } %}
         {% if (p.alien) { %}s-alien{% } %}"
         data-product-id="{%#p.id%}"
         {% if (p.alien) { %}title="[`This is a subcategory product`]"{% } %}
@@ -36,15 +37,25 @@
                 <span class="hint total-sales nowrap">
                     [`Total sales`]: <strong>{%#p.total_sales_str%}</strong>
                 </span>
+            {% } else if (o.sort == 'stock_worth') { %}
+                <span class="hint stock-worth nowrap">
+                    [`Stock net worth`]: <strong>{%#p.stock_worth_html%}</strong>
+                </span>
             {% } else if (o.sort == 'count') { %}
                 <span class="small stock nowrap">
                     {%#p.icon%} {%#((p.count === null)?'<span class="gray">∞</span>':''+p.count)%}
                 </span>
             {% } else if (o.sort == 'create_datetime') { %}
+                <a class="small show-on-hover nowrap" href="#/product/{%#p.id%}/edit/"><i class="icon10 edit s-instant-edit"></i> [`edit`]</a>
                 <br>
                 <span class="hint stock nowrap">
                     {%#'[`Added %s`]'.replace('%s', p.create_datetime_str)%}
                 </span>
+            {% } %}
+            {% if (o.sort != 'create_datetime') { %}
+            {% if (p.edit_rights) { %}
+                <a class="small show-on-hover nowrap" href="#/product/{%#p.id%}/edit/"><i class="icon10 edit s-instant-edit"></i> [`edit`]</a>
+            {% } %}
             {% } %}
         </div>
     </li>

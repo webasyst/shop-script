@@ -96,7 +96,7 @@ class shopCouponsEditorAction extends waViewAction
             shopHelper::workupOrders($orders);
             foreach($orders as &$o) {
                 $discount = ifset($o['params']['coupon_discount'], 0);
-                $o['coupon_discount_formatted'] = waCurrency::format('%{s}', $discount, $o['currency']);
+                $o['coupon_discount_formatted'] = waCurrency::format('%{h}', $discount, $o['currency']);
                 if ($discount) {
                     $overall_discount += $cm->convert($discount, $o['currency'], $cm->getPrimaryCurrency());
                     $o['coupon_discount_percent'] = round($discount*100.0 / ($discount + $o['total']), 1);
@@ -105,7 +105,7 @@ class shopCouponsEditorAction extends waViewAction
                 }
             }
             unset($o);
-            $overall_discount_formatted = waCurrency::format('%{s}', $overall_discount, $cm->getPrimaryCurrency());
+            $overall_discount_formatted = waCurrency::format('%{h}', $overall_discount, $cm->getPrimaryCurrency());
         }
         $this->view->assign('types', $types);
         $this->view->assign('orders', $orders);

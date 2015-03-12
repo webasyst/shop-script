@@ -152,26 +152,17 @@ class shopBackendWelcomeAction extends waViewAction
             }
         }
 
-        /* !!! import commented out on welcome screen
-         switch (waRequest::post('import')) {
-         case 'demo':
-         //TODO create demoproducts
-         $this->redirect('?action=products');
-         break;
-         case 'migrate':
-         $plugins = $this->getConfig()->getPlugins();
-         if (empty($plugins['migrate'])) {
-         $url = $this->getConfig()->getBackendUrl(true).'installer/?module=update&action=manager&install=1&app_id[shop/plugins/migrate]=webasyst';
-         } else {
-         $url = '?action=importexport#/migrate/';
-         }
-         $this->redirect($url);
-         break;
-         case 'scratch':
-         default: */
-        $this->redirect('?action=products#/welcome/');
-        //        break;
-        //}
+        $redirect = '?action=products#/welcome/';
+        if ($plugin_id = waRequest::post('plugin')) {
+            $data = waRequest::post($plugin_id);
+            if (preg_match('@^(.+)-plugin$@', $plugin_id, $matches)) {
+                $plugin_id = $matches[1];
+                if (($plugin = wa('shop')->getPlugin($plugin_id)) && (method_exists($plugin, 'getWelcomeUrl'))) {
+                    $redirect = $plugin->getWelcomeUrl($data);
+                }
+            }
+        }
+        $this->redirect($redirect);
     }
 
     private function overview()
@@ -219,5 +210,47 @@ class shopBackendWelcomeAction extends waViewAction
             }
         }
         $this->view->assign('types', $types);
+
+        $backend_welcome = wa()->event('backend_welcome');
+
+
+        $params = array(
+            'title_wrapper'       => '%s',
+            'description_wrapper' => '<br><span class="hint">%s</span>',
+            'control_wrapper'     => '
+<div class="field">
+    <div class="name">%s</div>
+    <div class="value">%s%s</div>
+</div>
+',
+            'control_separator'   => '</div><div class="value">',
+        );
+        foreach ($backend_welcome as $plugin => &$data) {
+            if (isset($data['controls'])) {
+                if (is_array($data['controls'])) {
+                    $controls = array();
+                    foreach ($data['controls'] as $name => $row) {
+                        if (is_array($row)) {
+                            $row = array_merge($row, $params);
+                            waHtmlControl::addNamespace($row, $plugin);
+                            if (isset($options[$name])) {
+                                $row['options'] = $options[$name];
+                            }
+                            if (isset($params['value']) && isset($params['value'][$name])) {
+                                $row['value'] = $params['value'][$name];
+                            }
+                            if (!empty($row['control_type'])) {
+                                $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
+                            }
+                        } else {
+                            $controls[$name] = $row;
+                        }
+                    }
+                    $data['controls'] = implode("\n", $controls);
+                }
+            }
+            unset($data);
+        }
+        $this->view->assign('backend_welcome', $backend_welcome);
     }
 }

@@ -28,11 +28,28 @@ if (typeof($) != 'undefined') {
                         $(':submit', form).removeClass('yellow').addClass('green');
                         submit_message.show().fadeOut(5000);
                     }
-                    $('.s-mgs-after-button').show().animate({ opacity: 0 }, 2000, function() {
+                    $('.s-msg-after-button').show().animate({ opacity: 0 }, 2000, function() {
                         $(this).hide();
                     });
                 });
                 return false;
+            });
+
+            $('#s-toggle-status').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
+                var self = $(this);
+                var enabled = self.is(':checked');
+                if (enabled) {
+                    $('#smart-disabled').hide();
+                    $('#s-toggle-enabled-label').removeClass('gray');
+                    $('#s-toggle-disabled-label').addClass('gray');
+                    $('#smart-enabled').show(200);
+                } else {
+                    $('#smart-enabled').hide();
+                    $('#s-toggle-enabled-label').addClass('gray');
+                    $('#s-toggle-disabled-label').removeClass('gray');
+                    $('#smart-disabled').show(200);
+                }
+                $.post('?module=settings&action=searchSave', { smart: enabled ? '1' : '0' });
             });
 
             $('#search_by_part').change(function () {

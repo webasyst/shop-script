@@ -5,16 +5,25 @@
 
 <div data-role="content" class="content">
     {if $orders === false}
-    <h3>[`You don't have enough access permissions to view order list.`]</h3>
+        <h3>[`You don't have enough access permissions to view order list.`]</h3>
     {else}
-    <ul data-role="listview">
+    <ul data-role="listview" class="s-mobile-order-list">
         {foreach $orders as $o}
-            <li><a href="?module=orders&action=infoMobile&id={$o.id}" style="{$o.style}">
-                <i class="{$o.icon}"></i>{$o.id_str}
-            </a></li>
+            <li class="s-mobile-order">
+                <a href="?module=orders&action=infoMobile&id={$o.id}">
+                    <span class="left-column">
+                        <span class="image"><img src="{$o.contact.photo_50x50}" alt="user picture"></span>
+                    </span>
+                    <span class="right-column">
+                        <span class="o-number"><i class="{$o.icon}"></i><span style="{$o.style}">{$o.id_str}</span></span>
+                        <span class="o-user-name">{$o.contact.name}</span>
+                        <span class="o-date">{$o.create_datetime|wa_date:humandatetime}</span>
+                        <span class="o-price {if $o.state_id == "completed"}italic{/if}" style="{$o.style}">{wa_currency_html($o.total, $o.currency)}</span>
+                    </span>
+                </a>
+            </li>
         {/foreach}
     </ul>
     {*  !!! TODO: Lazy Loading?.. *}
     {/if}
 </div>
-

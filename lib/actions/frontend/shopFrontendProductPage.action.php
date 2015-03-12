@@ -12,7 +12,7 @@ class shopFrontendProductPageAction extends shopFrontendProductAction
         if (!$product) {
             throw new waException('Product not found', 404);
         }
-        $product = new shopProduct($product);
+        $product = new shopProduct($product, true);
         $this->view->assign('product', $product);
 
         $this->getBreadcrumbs($product, true);

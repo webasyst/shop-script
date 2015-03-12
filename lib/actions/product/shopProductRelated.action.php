@@ -42,5 +42,11 @@ class shopProductRelatedAction extends waViewAction
             'product' => $product,
             'related' => $related
         ));
+
+        /**
+         * @event backend_product_edit
+         * @return array[string][string]string $return[%plugin_id%]['related'] html output
+         */
+        $this->view->assign('backend_product_edit', wa()->event('backend_product_edit', $product));
     }
 }

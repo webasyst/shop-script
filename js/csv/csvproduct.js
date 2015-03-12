@@ -1,7 +1,7 @@
 /**
  *
  * @names csv_product*
- * @property {} csv_product_options
+ * @property csv_product_options
  * @method csv_productInit
  * @method csv_productAction
  * @method csv_productBlur
@@ -35,8 +35,15 @@ if (typeof($) != 'undefined') {
 
         },
 
+        csv_productAction: function () {
+
+        },
+
+        csv_productBlur: function () {
+
+        },
+
         csv_productInit: function () {
-            $.shop.trace('$.importexport.csv_productInit');
             var self = this;
 
             this.csv_product_form = $("#s-csvproduct");
@@ -102,6 +109,7 @@ if (typeof($) != 'undefined') {
             });
 
         },
+
         csv_productUploadProgress: function (e, data) {
             var $progress = this.csv_product_upload.find('.js-fileupload-progress');
             $progress.show();
@@ -112,6 +120,7 @@ if (typeof($) != 'undefined') {
             $progress.find('span:first').text((interval > 2) ? value : '');
 
         },
+
         csv_productUploadDone: function (e, data) {
             $.shop.trace('fileupload done', [data.result, typeof(data.result)]);
             var file = (data.result.files || []).shift();
@@ -249,6 +258,7 @@ if (typeof($) != 'undefined') {
         csv_productAutocompleteReset: function ($el) {
             $el.parent('td').find('select:first').val('-1').trigger('change');
         },
+
         csv_productUploadFail: function (e, data) {
             this.csv_product_uploadgroup.find('.field :input').attr('disabled', null);
             $.shop.trace('fileupload fail', [data.textStatus, data.errorThrown]);
@@ -256,6 +266,7 @@ if (typeof($) != 'undefined') {
             this.csv_product_upload.find('.js-fileupload-progress').hide();
             this.csv_product_upload.find('.fileupload:first').show();
         },
+
         csv_productUploadError: function (error) {
             var $error_container = this.csv_product_upload.find('.errormsg');
             if (error) {
@@ -281,22 +292,23 @@ if (typeof($) != 'undefined') {
 
                         $parent.find('select').show();
                     }
-                    var columns = $this.attr('name').match(/\[(\d+(:[^\]]+)?)\]$/)[1].split(':') || [-1];
-                    var selector = '[title="' + columns.join(':') + '"]';
+                    var columns = $this.attr('name').match(/\[(\d+(:[^\]]+)?)]$/)[1].split(':') || [-1];
+                    var selector = '[data-column="' + columns.join(':') + '"]';
                     var table_selector = [];
-                    for (var i = 0; i < columns.length; i++) {
+                    var i;
+                    for (i = 0; i < columns.length; i++) {
                         table_selector.push(':nth-child(' + (2 + this.csv_product_options.columns_offset + parseInt(columns[i])) + ')');
                     }
 
                     var $header = $('#s_import_csv_header').find('>li');
                     if ((value !== null) && value != '-1') {
                         $header.filter(selector).removeClass('ignored');
-                        for (var i = 0; i < table_selector.length; i++) {
+                        for (i = 0; i < table_selector.length; i++) {
                             this.csv_product_table_cells.filter(table_selector[i]).removeClass('ignored');
                         }
                     } else {
                         $header.filter(selector).addClass('ignored');
-                        for (var i = 0; i < table_selector.length; i++) {
+                        for (i = 0; i < table_selector.length; i++) {
                             this.csv_product_table_cells.filter(table_selector[i]).addClass('ignored');
                         }
                     }
@@ -355,11 +367,11 @@ if (typeof($) != 'undefined') {
                         var $el = $(el);
                         if ($el.val() == value) {
                             exists = true;
-                            var column = parseInt(($el.attr('name').match(/\[(\d+)(:[^\]]+)?\]$/) || [-1, -1])[1]);
+                            var column = parseInt(($el.attr('name').match(/\[(\d+)(:[^\]]+)?]$/) || [-1, -1])[1]);
                             var offset = 2 + self.csv_product_options.columns_offset;
                             var selector = ':nth-child(' + (offset + column) + ')';
                             self.csv_product_table_cells.filter(selector).addClass('selected ' + sub_class);
-                            $header.filter('[title="' + column + '"]:first').addClass('selected ' + sub_class);
+                            $header.filter('[data-column="' + column + '"]:first').addClass('selected ' + sub_class);
                             return false;
                         }
                         return true;
@@ -573,6 +585,7 @@ if (typeof($) != 'undefined') {
             }
             this.csv_productMode('error', null);
         },
+
         csv_productCollision: function (collisions) {
 
             var collision = [];
@@ -715,10 +728,8 @@ if (typeof($) != 'undefined') {
             }
         },
 
-
         csv_productFormChanged: function ($scope, update) {
             var changed = false;
-            var self = this;
             var selector = ':input:not(.js-ignore-change)';
             $.shop.trace('csv_productFormChanged', [$scope, ($scope.find(selector)).length]);
             ($scope.find(selector)).each(function () {
@@ -805,9 +816,10 @@ if (typeof($) != 'undefined') {
         },
 
         csv_productOnComplete: function (response) {
-            $("#s-csvproduct-report").show();
+            var $report = $("#s-csvproduct-report");
+            $report.show();
             if (response && response.report) {
-                $('#s-csvproduct-report').find('.value:first').html(response.report);
+                $report.find('.value:first').html(response.report);
             }
 
             this.csv_productMode('complete', true);
@@ -857,7 +869,7 @@ if (typeof($) != 'undefined') {
                                 self.csv_productCollisionHighlight($(this), true);
                             }, function () {
                                 self.csv_productCollisionHighlight($(this), false);
-                            })
+                            });
 
                             if (s_csv_setsize && (typeof(s_csv_setsize) == 'function')) {
                                 setTimeout(function () {
@@ -887,6 +899,28 @@ if (typeof($) != 'undefined') {
             });
             //load html via ajax & append it to tbody
             //update total/current rows count
+        },
+
+        csv_product_helper: {
+            id2name: function (id) {
+                if (id.match(/:/)) {
+                    id = id.split(":");
+                    for (var i = 0; i < id.length; i++) {
+                        id[i] = this.id2name(id[i]);
+                    }
+                    return id.join(', ');
+                } else {
+                    var name = '';
+                    id = parseInt(id);
+                    ++id;
+                    while (id > 0) {
+                        var mod = (id - 1) % 26;
+                        name = String.fromCharCode(65 + mod) + '' + name;
+                        id = Math.floor((id - mod) / 26);
+                    }
+                    return name;
+                }
+            }
         }
     });
 }

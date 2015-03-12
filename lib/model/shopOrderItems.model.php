@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * Note: all prices in this table (price and purchase_price)
+ * are stored in shop_order.curency, not the default shop currency.
+ * shop_order.rate contains the currency rate valid at the time of the order.
+ */
 class shopOrderItemsModel extends waModel
 {
     protected $table = 'shop_order_items';
@@ -25,7 +29,7 @@ class shopOrderItemsModel extends waModel
         // important: order metters!
 
         $product_items = $this->query("
-            SELECT oi.*, p.image_id, p.ext, s.file_name, s.file_size FROM `{$this->table}` oi
+            SELECT oi.*, p.image_id, s.image_id sku_image_id, p.ext, s.file_name, s.file_size FROM `{$this->table}` oi
             LEFT JOIN shop_product p ON oi.product_id = p.id
             LEFT JOIN shop_product_skus s ON oi.sku_id = s.id
             WHERE order_id = ".(int)$order_id." AND type='product'
@@ -48,11 +52,26 @@ class shopOrderItemsModel extends waModel
         }
         
         $data = array();
+        $image_ids = array();
         foreach ($product_items as $product_item) {
+            if ($product_item['sku_image_id'] && ($product_item['sku_image_id'] != $product_item['image_id'])) {
+                $image_ids[] = $product_item['sku_image_id'];
+            }
             $data[$product_item['id']] = $product_item;
             if (!empty($service_items[$product_item['id']])) {
                 $data += $service_items[$product_item['id']];
             }
+        }
+        if ($image_ids) {
+            $image_model = new shopProductImagesModel();
+            $images = $image_model->getById($image_ids);
+            foreach ($data as $item_id => &$item) {
+                if (!empty($item['sku_image_id']) && ($item['sku_image_id'] != $item['image_id']) && isset($images[$item['sku_image_id']])) {
+                    $item['image_id'] = $item['sku_image_id'];
+                    $item['ext'] = $images[$item['sku_image_id']]['ext'];
+                }
+            }
+            unset($item);
         }
         
         return $data;
@@ -134,7 +153,7 @@ class shopOrderItemsModel extends waModel
         return $data;
     }
 
-    private function getProductInfo($product_id, $sku_id = null, $order_id = null)
+    private function getProductInfo($product_id, $sku_id = null, $order_id = null, $currency = null)
     {
         $product = new shopProduct($product_id);
         $data = $product->getData();
@@ -147,6 +166,8 @@ class shopOrderItemsModel extends waModel
         if ($order_id) {
             $order = $this->getOrder($order_id);
             $rate = $order['rate'];
+        } elseif ($currency) {
+            $rate = $currency_model->getRate($currency);
         }
 
         $data['price']     = (float) $currency_model->convertByRate($data['price'], 1, $rate);
@@ -169,18 +190,13 @@ class shopOrderItemsModel extends waModel
             $sku_price = $data['price'];
         }
         
-        $data['services'] = $this->getServices($product_id, $sku_id, $order_id, $sku_price);
+        $data['services'] = $this->getServices($product_id, $sku_id, $rate, $sku_price);
         return $data;
     }
 
-    private function getServices($product_id, $sku_id, $order_id, $sku_price)
+    private function getServices($product_id, $sku_id, $rate, $sku_price)
     {
-        $rate = 1;
         $currency_model = $this->getModel('currency');
-        if ($order_id) {
-            $order = $this->getOrder($order_id);
-            $rate = $order['rate'];
-        }
 
         $services = $this->getModel('service')->getAvailableServicesFullInfo($product_id, $sku_id);
         foreach ($services as &$service) {
@@ -205,16 +221,18 @@ class shopOrderItemsModel extends waModel
         return $services;
     }
 
-    public function getProduct($product_id, $order_id = null)
+    public function getProduct($product_id, $order_id = null, $currency = null)
     {
-        $data = $this->getProductInfo($product_id, null, $order_id);
-        $this->workupProduct($data, $order_id);
+        $data = $this->getProductInfo($product_id, null, $order_id, $currency);
+        $this->workupProduct($data, $order_id, $currency);
         return $data;
     }
 
-    private function workupProduct(&$product, $order_id = null)
+    private function workupProduct(&$product, $order_id = null, $currency = null)
     {
-        $currency = $this->getCurrency();
+        if (!$currency) {
+            $currency = $this->getCurrency();
+        }
         if ($order_id) {
             $order    = $this->getOrder($order_id);
             $currency = $order['currency'];
@@ -222,13 +240,16 @@ class shopOrderItemsModel extends waModel
 
         if ($product['min_price'] == $product['max_price']) {
             $product['price_str'] = wa_currency($product['min_price'], $currency);
+            $product['price_html'] = wa_currency_html($product['min_price'], $currency);
         } else {
             $product['price_str'] = wa_currency($product['min_price'], $currency).'...'.wa_currency($product['max_price'], $currency);
+            $product['price_html'] = wa_currency_html($product['min_price'], $currency).'...'.wa_currency_html($product['max_price'], $currency);
         }
         if (!empty($product['skus']) && is_array($product['skus'])) {
             foreach ($product['skus'] as &$sku) {
                 if (isset($sku['price'])) {
                     $sku['price_str'] = wa_currency($sku['price'], $currency);
+                    $sku['price_html'] = wa_currency_html($sku['price'], $currency);
                 }
             }
             unset($sku);
@@ -250,6 +271,7 @@ class shopOrderItemsModel extends waModel
             $default_percent_price = null;
             foreach ($service['variants'] as &$variant) {
                 $variant['price_str'] = ($variant['price'] >= 0 ? '+' : '-').wa_currency($variant['price'], $currency);
+                $variant['price_html'] = ($variant['price'] >= 0 ? '+' : '-').wa_currency_html($variant['price'], $currency);
                 if ($variant['status'] == shopProductServicesModel::STATUS_DEFAULT) {
                     $default_price = $variant['price'];
                     if ($service['currency'] == '%') {
@@ -281,22 +303,26 @@ class shopOrderItemsModel extends waModel
         unset($service);
     }
 
-    public function getSku($sku_id, $order_id = null)
+    public function getSku($sku_id, $order_id = null, $currency = null)
     {
-        $rate = 1;
-        $currency = $this->getCurrency();
         $currency_model = $this->getModel('currency');
         if ($order_id) {
             $order    = $this->getOrder($order_id);
             $rate     = $order['rate'];
             $currency = $order['currency'];
+        } else {
+            if (!$currency) {
+                $currency = $this->getCurrency();
+            }
+            $rate = $currency_model->getRate($currency);
         }
 
         $data = $this->getModel('sku')->getSku($sku_id);
         $data['price']     = (float) $currency_model->convertByRate($data['primary_price'], 1, $rate);
         $data['price_str'] = wa_currency($data['price'], $currency);
+        $data['price_html'] = wa_currency_html($data['price'], $currency);
         
-        $data['services'] = $this->getServices($data['product_id'], $sku_id, $order_id, $data['price']);
+        $data['services'] = $this->getServices($data['product_id'], $sku_id, $rate, $data['price']);
         $this->workupServices($data['services'], $order_id);
 
         return $data;

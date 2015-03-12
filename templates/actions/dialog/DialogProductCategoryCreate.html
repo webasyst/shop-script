@@ -1,15 +1,15 @@
 {$title_text="[`New category`]"}
 {$name_text="[`Name`]"}
 {$type_text="[`Type`]"}
-{$static_type_text="[`Manually add and arrange products in this category and it's sub-categories`]"}
-{$dynamic_type_text="[`Smart category based on a search criteria, e.g. rating or tags`]"}
+{$static_type_text="[`A static category for adding and arranging products manually.`]"}
+{$dynamic_type_text="[`A dynamic category based on a search criteria, e.g. rating or tags.`]"}
 
 {capture ext_fields}{/capture}
 
 {capture frontend_url}
 <div class="field">
     <div class="name">
-        [`Frontend URL`]
+        [`Public link`]
     </div>
     <div class="value">
         {$frontend_base_url}{if !empty($parent)}{$parent.full_url}/{/if}<input type="text" name="url" value="" id="s-product-list-url">/
@@ -37,7 +37,7 @@
 <div class="field-group">
 
     <div class="field">
-        <div class="name">[`Title`]</div>
+        <div class="name">[`Page title`] <span class="hint">&lt;title&gt;</span></div>
         <div class="value">
             <input value="" name="meta_title" class="long bold" placeholder="" id="s-c-meta-title">
         </div>
@@ -49,7 +49,7 @@
         </div>
     </div>
     <div class="field">
-        <div class="name">[`META Description `]</div>
+        <div class="name">[`META Description`]</div>
         <div class="value">
             <textarea name="meta_description"></textarea>
         </div>
@@ -91,6 +91,17 @@
     <div class="value">
         <table class="zebra">
             <tbody>
+                {if !empty($parent)}
+                    <tr>
+                        <td class="min-width" style="vertical-align: top;">
+                            <input type="checkbox" disabled="disabled" checked="checked">
+                        </td>
+                        <td colspan="3">
+                            {sprintf('[`<strong>%s</strong> category only`]', $parent.name)}
+                            <p class="hint" style="margin-bottom: 0;">[`Dynamic categories filter products only from parent categories they belong to.`]</p>
+                        </td>
+                    </tr>
+                {/if}
                 <tr>
                     <td class="min-width">
                         <input id="s-c-condition-price-interval" type="checkbox" name="condition[price]" value="price">
@@ -181,7 +192,7 @@
                         <td>
                             <select name="feature_values[{$f.code}]" class="s-feature_value" data-feature-id="{$f.code}">
                                 {foreach $f.values as $v_id => $value}
-                                    <option value="{$v_id}"{if is_object($value)} style="{$value.style|default:''}"{/if}>{$value|escape}</option>
+                                    <option value="{$v_id}"{if is_object($value)} style="{$value.style|default:''}"{/if}>{$value|truncate:64|escape}</option>
                                 {/foreach}
                             </select>
                         </td>
@@ -199,9 +210,9 @@
     var wa_url  = '{$wa_url}';
     var wa_app  = 'shop';
     var wa_lang = '{$lang}';
-    
+
     $(function() {
-        
+
         var d = $('#s-product-list-create-dialog');
 
         var product_list_name = $("#s-c-product-list-name");
@@ -234,7 +245,7 @@
                                 }
                             }
                         });
-                    }, 100);
+                    }, 300);
                 }
             });
 
@@ -269,31 +280,29 @@
         d.on('change', 'select.s-feature_value', function() {
             $('#s-c-condition-feature-' + $(this).data('featureCode')).attr('checked', true);
         });
-        
+
         // change meta title input placeholder automaticly on changing name of category
         (function() {
-            var timeout = 450;
-            var timer_id = null;
             var title_input = $('input[name=meta_title]', d);
-            var name_input  = $('input[name=name]', d);
-            name_input.bind('keydown', function() {
-                if (timer_id) {
-                    clearTimeout(timer_id);
-                    timer_id = null;
-                }
-                timer_id = setTimeout(function() {
-                    title_input.attr('placeholder', name_input.val());
-                }, timeout);
+            $.shop.changeListener($('input[name=name]', d), function(name_input) {
+                title_input.attr('placeholder', name_input.val());
             });
         })();
-        
+
+        // change meta keywords input placeholder automaticly on changing name of category
+        (function() {
+            var keywords_input = $('[name=meta_keywords]', d);
+            $.shop.changeListener($('input[name=name]', d), function(name_input) {
+                keywords_input.attr('placeholder', ["{$wa->accountName()}", name_input.val()].join(', '));
+            });
+        })();
+
         $.shop.makeFlexibleInput('s-c-meta-title');
-        
-        
+
         d.data('uploadFields', {
             '_csrf': "{waRequest::cookie('_csrf', '')}"
         });
-        
+
     });
 </script>
 {/capture}

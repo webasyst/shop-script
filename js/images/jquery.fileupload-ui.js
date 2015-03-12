@@ -1040,7 +1040,7 @@
         _relateProductInfo: function(tr_container, product_info) {
             tr_container.find('input.s-product-id').val(product_info.id);
             tr_container.find('input.s-product-price').hide();
-            tr_container.find('span.s-product-price').show().text(product_info.price_str);
+            tr_container.find('span.s-product-price').show().html(product_info.price_html || product_info.price_str);
             tr_container.find('.s-product-currency').hide();
             tr_container.attr('data-product-id', product_info.id);
         },

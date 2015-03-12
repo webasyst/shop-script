@@ -216,59 +216,6 @@ class shopProductAction extends waViewAction
         $this->view->assign('product_types', $product_types);
 
         $this->view->assign('sidebar_width', $config->getSidebarWidth());
-    }
-
-    protected function assignReportsData(shopProduct $product)
-    {
-        $order_model = new shopOrderModel();
-        $sales_total = $order_model->getTotalSalesByProduct($product['id'], $product['currency']);
-        $this->view->assign('sales', $sales_total);
-
-        $profit = $sales_total['total'];
-
-        $rows = $order_model->getSalesByProduct($product['id']);
-        $date = strtotime(date('Y-m-d')." -30 day");
-        $sales_data = array();
-        $i = 0;
-        while ($date < time()) {
-            $date = date('Y-m-d', $date);
-            $sales_data[] = array($i++, isset($rows[$date]) ? (float)$rows[$date] : 0);
-            $date = strtotime($date." +1 day");
-        }
-        $this->view->assign('sales_plot_data', array($sales_data));
-
-        if (count($product['skus']) > 1) {
-            $sku_sales_data = array();
-            $rows = $order_model->getTotalSkuSalesByProduct($product['id'], $product['currency']);
-            foreach ($rows as $sku_id => $v) {
-                $sku_sales_data[] = array($product['skus'][$sku_id]['name'], (float)$v['total']);
-                if (!(double)$v['purchase']) {
-                    $profit = false;
-                } elseif ($profit) {
-                    $profit -= $v['purchase'];
-                }
-            }
-            $this->view->assign('sku_plot_data', array($sku_sales_data));
-        } else {
-            if ((double)$sales_total['purchase']) {
-                $profit -= $sales_total['purchase'];
-            } else {
-                $profit = false;
-            }
-        }
-
-        if ($profit) {
-            $this->view->assign('profit', $profit);
-        }
-
-        $runout = array();
-        $sales_rate = 0;
-        if ($sales_total['quantity'] >= 3) { // < 3 means not enough data for proper statistic
-            $sales_rate = $sales_total['quantity'] / 30;
-            $runout = $product->getRunout($sales_rate);
-        }
-        $this->view->assign('runout', $runout);
-        $this->view->assign('sales_rate', $sales_rate);
 
         $stocks_log_model = new shopProductStocksLogModel();
         $stocks_log = $stocks_log_model->getList(
@@ -280,7 +227,71 @@ class shopProductAction extends waViewAction
             )
         );
         $this->view->assign('stocks_log', $stocks_log);
+        $spm = new shopSetProductsModel();
+        $this->view->assign('product_sets', $spm->getByProduct($product->id));
+    }
 
+    protected function assignReportsData(shopProduct $product)
+    {
+        $report_rights = $this->getRights('reports');
+        if ($report_rights) {
+            $this->view->assign('sales', $this->getSales($product));
+            $this->view->assign('forecast', $product->getNextForecast());
+            $this->view->assign('sales_data', $this->getSalesData($product, date("Y-m-d", strtotime(date('Y-m-d')." -30 day"))));
+
+            if ($product->skus > 1) {
+                $sku_sales_data = array();
+                $order_model = new shopOrderModel();
+                $rows = $order_model->getTotalSkuSalesByProduct($product['id'], $product['currency']);
+                foreach ($rows as $sku_id => $v) {
+                    $sku_sales_data[] = array($product['skus'][$sku_id]['name'], (float)$v['total']);
+                }
+                $this->view->assign('sku_plot_data', array($sku_sales_data));
+            }
+
+        }
+        $this->view->assign('report_rights', $report_rights);
+
+    }
+
+    protected function getSalesData($product, $start_date)
+    {
+        $order_model = new shopOrderModel();
+        $sales_by_day = $order_model->getSalesByProduct($product['id'], $start_date);
+
+        // Prepare main chart data for template
+        $graph_data = array();
+
+        $i = 0;
+        $date = strtotime($start_date);
+        while ($date <= time()) {
+            $date = date('Y-m-d', $date);
+            if (empty($sales_by_day[$date])) {
+                $item = array(
+                    'date' => str_replace('-', '', $date), 'sales' => 0, 'profit' => 0, 'loss' => 0,
+                );
+            } else {
+                $d = $sales_by_day[$date];
+                $item = array(
+                    'date' => str_replace('-', '', $date),
+                    'sales' => $d['sales'],
+                    'profit' => $d['sales'] - $d['purchase'],
+                    'loss' => $d['sales'] - $d['purchase'],
+                );
+            }
+            $graph_data[] = $item;
+            $date = strtotime($date." +1 day");
+        }
+
+        return $graph_data;
+    }
+
+    public function getSales($product)
+    {
+        $order_model = new shopOrderModel();
+        $sales_total = $order_model->getTotalSalesByProduct($product['id'], $product['currency']);
+        $sales_total['profit'] = $sales_total['total'] - $sales_total['purchase'];
+        return $sales_total;
     }
 
     protected function getCurrencies()

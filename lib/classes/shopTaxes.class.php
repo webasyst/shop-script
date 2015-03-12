@@ -63,7 +63,7 @@ class shopTaxes
         }
 
         // Rates by zip code override rates by region, when applicable
-        $main_country = wa()->getSetting('country');
+        $main_country = wa()->getSetting('country', null, 'shop');
         foreach (array('shipping', 'billing') as $addr_type) {
             // ZIP-based rates are only applied to main shop country
             if (empty($addresses[$addr_type]['zip']) || (!empty($addresses[$addr_type]['country']) && $addresses[$addr_type]['country'] !== $main_country)) {

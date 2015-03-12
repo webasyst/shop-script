@@ -48,7 +48,7 @@
 
                 $("#notification-form").submit(function () {
                     var form = $(this);
-                    form.find(':submit').prop('disabled', true).parent().append('<span class="s-mgs-after-button"><i class="icon16 loading"></i></span>');
+                    form.find(':submit').prop('disabled', true).parent().append('<span class="s-msg-after-button"><i class="icon16 loading"></i></span>');
                     send_test_button.prop('disabled', true);
 
                     // find out transport in add and edit mode
@@ -86,7 +86,13 @@
                                 $.wa.setHash('#/notifications/' + n.id + '/');
                             }
 
-                            form.find('span.s-mgs-after-button')
+                            if (n.status == '0') {
+                                $("#notification-" + n.id).addClass('gray');
+                            } else {
+                                $("#notification-" + n.id).removeClass('gray');
+                            }
+
+                            form.find('span.s-msg-after-button')
                                 .html('<i class="icon16 yes"></i>'+ $_('Saved') +'</span>')
                                 .animate({ opacity: 0 }, 1500, function() {
                                     $(this).remove();
@@ -171,13 +177,13 @@
                     }
 
                     dialog.find(':input').attr('disabled', true);
-                    dialog.find('.s-mgs-after-button').show();
+                    dialog.find('.s-msg-after-button').show();
                     $.post("?module=settings&action=notificationsTest&id="+id, {
                         order_id: order_id,
                         to: to
                     }, function() {
                         dialog.find(':input').attr('disabled', false);
-                        dialog.find('.s-mgs-after-button').hide();
+                        dialog.find('.s-msg-after-button').hide();
                         dialog.find('.before-send').hide();
                         dialog.find('.after-send').show();
                     });

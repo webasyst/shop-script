@@ -29,7 +29,7 @@
                 // !!! Validation?..
 
                 // Submit
-                form.find(':submit').after('<i class="icon16 loading"></i>');
+                form.find(':submit').after('<span class="s-msg-after-button"><i class="icon16 loading"></i></span>');
                 $.post(form.attr('action'), form.serialize(), function(r) {
                     settings_content.html(r);
                 });
@@ -81,14 +81,14 @@
                 select.change(function() {
                     var country_iso3 = select.val();
                     if (country_iso3) {
-                        select.attr('disabled', true).after('<i class="icon16 loading"></i>');
+                        select.attr('disabled', true).after('<span class="s-msg-after-button"><i class="icon16 loading"></i></span>');
                         $.get('?module=settings&action=taxesCountry', {
                             country : country_iso3
                         }, function(r) {
                             table.find('tr[rel^="' + country_iso3 + '"]').remove();
                             $('<table></table>').html(r).find('tr').insertBefore(table.find('.empty-row'));
                             select.find('option[value="' + country_iso3 + '"], option[value="%AL"]').attr('disabled', true);
-                            select.val('').attr('disabled', false).siblings('.loading').remove();
+                            select.val('').attr('disabled', false).siblings('.s-msg-after-button').remove();
                             table.find('.empty-row').hide();
                         });
                     }

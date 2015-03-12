@@ -1,3 +1,7 @@
+{if !empty($error)}
+    <h1 class="js-bread-crumbs"><a href="#/payment/" class="back">&larr; [`Payment`]</a>&nbsp;[`Error`]</h1>
+    <span class="errormsg">{$error|escape}</span>
+{else}
 <form>
 	<!-- GENERAL PAYMENT OPTION PARAMS -->
 	<div class="field-group">
@@ -36,7 +40,7 @@
 			</div>
 			<div class="value">
 				<input name="payment[logo]" type="text" class="long" value="{$plugin.logo|default:''|escape}" id="s-payment-plugin-logo">
-                {if !empty($plugin.logo)}<img src="{$plugin.logo}" style="float:right;">{/if}
+                {if !empty($plugin.logo)}<img src="{$plugin.logo}"  class="s-payment-shipping-logo float-right">{/if}
 				<p class="hint">{sprintf('[`A collection of payment option icons is available for free: <a href="%s" target="_blank">%s</a> <i class="icon10 new-window"></i>`]','[`http://www.webasyst.com/help/729/payment-shipping-icons/`]','[`http://www.webasyst.com/help/729/payment-shipping-icons/`]')}</p>
 			</div>
 		</div>
@@ -69,6 +73,8 @@
         {foreach $shipping as $p}
             <label><input type="checkbox" name="payment[shipping][{$p.id}]" value="1" {if $p.available} checked="checked"{/if}> {$p.name|escape}</label>
             {if !$p@last}<br>{/if}
+        {foreachelse}
+            <span class="hint">[`There are no shipping options.`]</span>
         {/foreach}
         </div>
         </div>
@@ -91,3 +97,4 @@
 		</div>
 	</div>
 </form>
+{/if}

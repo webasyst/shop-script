@@ -33,7 +33,7 @@ class shopSettingsAffiliateAction extends waViewAction
         $this->view->assign('conf', $conf);
         $this->view->assign('enabled', $enabled);
         $this->view->assign('product_types', $product_types);
-        $this->view->assign('def_cur_sym', ifset($def_cur['sign'], wa()->getConfig()->getCurrency()));
+        $this->view->assign('def_cur_sym', ifset($def_cur['sign_html'], ifset($def_cur['sign'], wa()->getConfig()->getCurrency())));
 
         /**
          * Backend affiliate settings
@@ -50,14 +50,17 @@ class shopSettingsAffiliateAction extends waViewAction
          */
         $plugins = wa()->event('backend_settings_affiliate');
         $config = wa('shop')->getConfig();
-        foreach ($plugins as $k => &$p) {
-            if (substr($k, -7) == '-plugin') {
-                $plugin_id = substr($k, 0, -7);
-                $plugin_info = $config->getPluginInfo($plugin_id);
-                if (isset($plugin_info['img'])) {
-                    $p['img'] = $plugin_info['img'];
+        if ($plugins) {
+            foreach ($plugins as $k => &$p) {
+                if (substr($k, -7) == '-plugin') {
+                    $plugin_id = substr($k, 0, -7);
+                    $plugin_info = $config->getPluginInfo($plugin_id);
+                    if (isset($plugin_info['img'])) {
+                        $p['img'] = $plugin_info['img'];
+                    }
                 }
             }
+            unset($p);
         }
         $this->view->assign('plugins', $plugins);
         $this->view->assign('installer', $this->getUser()->getRights('installer', 'backend'));

@@ -1,0 +1,32 @@
+<div class="sidebar left200px" id="s-sidebar">
+    <div class="block">
+        <ul class="menu-v not" id="grouping-type-selector">
+            {foreach $menu_types as $type_id => $t}
+                <li data-type-id="{$type_id}">
+                    <a href="#/sales/type={$type_id}">{$t.menu_name|escape}</a>
+                </li>
+            {/foreach}
+
+            <li class="top-padded"><a href="#/sales/costs/" class="gray"><i class="icon16 dollar"></i>[`Marketing costs`]</a></li>
+            <li><a href="#/sales/abtesting/" class="gray"><i class="icon16 split"></i>[`A/B tests`]</a></li>
+        </ul>
+    </div>
+</div>
+<script>(function() { "use strict";
+
+    var $ul = $('#grouping-type-selector');
+
+    // Highlight selected item in sidebar
+    var hash = window.location.hash || '#/sales/type=sources';
+    $ul.find('a[href="'+hash+'"]').closest('li').addClass('selected');
+
+    // Loading indicator when user clicks on a link in sidebar
+    $ul.on('click', 'li', function() {
+        var $li = $(this);
+        var $a = $li.find('a');
+        if ($a.attr('href') != window.location.hash) {
+            $li.addClass('selected').siblings().removeClass('selected');
+        }
+    });
+
+})();</script>

@@ -41,22 +41,28 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
             $this->multipleInsert($insert);
         }
         if ($deleted === true) {
-            $this->deleteByField(array(
-                'product_id' => (int)$product->id,
-            ));
+            $this->deleteByField(
+                array(
+                    'product_id' => (int)$product->id,
+                )
+            );
         } else {
             foreach ($deleted as $f_id => $values) {
                 if ($values === true) {
-                    $this->deleteByField(array(
-                        'product_id' => (int)$product->id,
-                        'feature_id' => $f_id,
-                    ));
+                    $this->deleteByField(
+                        array(
+                            'product_id' => (int)$product->id,
+                            'feature_id' => $f_id,
+                        )
+                    );
                 } else {
-                    $this->deleteByField(array(
-                        'product_id' => (int)$product->id,
-                        'feature_id' => $f_id,
-                        'value_id'   => $values,
-                    ));
+                    $this->deleteByField(
+                        array(
+                            'product_id' => (int)$product->id,
+                            'feature_id' => $f_id,
+                            'value_id'   => $values,
+                        )
+                    );
                 }
             }
         }
@@ -262,10 +268,12 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
         #build features map for exists SKUs
         $sku_map = array();
         $product_features_model = new shopProductFeaturesModel();
-        foreach ($z = $product_features_model->getSkuFeatures($product->id) as $sku_id => $f) {
+        foreach ($product_features_model->getSkuFeatures($product->id) as $sku_id => $f) {
             $key = "";
             foreach ($f as $feature_id => $value_id) {
-                $key .= $feature_id.":".$value_id.";";
+                if (!self::ignoredFeature($feature_id)) {
+                    $key .= $feature_id.":".$value_id.";";
+                }
             }
             $sku_map[$key] = $sku_id;
         }
@@ -285,7 +293,9 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
 
         $i = 0;
 
-        foreach ($this->arrayCartesian($selected) as $features) {
+        $cartesian = $this->arrayCartesian($selected);
+        $sku_count = count($cartesian);
+        while ($features = array_shift($cartesian)) {
             $sku = array(
                 'name'           => array(),
                 'features'       => array(),
@@ -298,7 +308,12 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
             $last_value_id = end($features);
 
             foreach ($features as $feature_id => $value_id) {
+                if (!self::ignoredFeature($feature_id)) {
+                    $sku_key .= $feature_id.":".$value_id.";";
+                }
+                $sku['key'] = $sku_key;
                 $code = $map[$feature_id];
+
                 $value = $data[$code]['values'][$value_id];
 
                 $sku['features'][$code] = $value;
@@ -310,12 +325,15 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
                 }
 
                 #set counts per stock
-                if (isset($data[$feature_id]['stock'])) {
-                    self::parseSkuStock($sku, $data[$feature_id]['stock'], ($value_id == $last_value_id) ? count($f) : null);
+                if (isset($data[$code]['stock'])) {
+                    $sku_id = isset($sku_map[$sku_key]) ? $sku_map[$sku_key] : null;
+                    if ($sku_id !== null) {
+                        self::parseSkuStock($skus[$sku_id], $data[$code]['stock'], empty($cartesian) ? $sku_count : null);
+                    } else {
+                        self::parseSkuStock($sku, $data[$code]['stock'], empty($cartesian) ? $sku_count : null);
+                    }
                 }
 
-                $sku_key .= $feature_id.":".$value_id.";";
-                $sku['key'] = $sku_key;
             }
 
             #concat name from feature values
@@ -585,5 +603,24 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
                     break;
             }
         }
+    }
+
+    /**
+     * @param int $feature_id
+     * @return bool
+     */
+    protected static function ignoredFeature($feature_id)
+    {
+        static $ignored = null;
+        if ($ignored === null) {
+            $model = new shopFeatureModel();
+            $data = array(
+                'code' => array(
+                    'weight',
+                ),
+            );
+            $ignored = array_map('intval', $model->select('id')->where('code in (s:code)', $data)->fetchAll());
+        }
+        return in_array($feature_id, $ignored, true);
     }
 }

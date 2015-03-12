@@ -25,6 +25,19 @@ class shopWorkflowState extends waWorkflowState
         }
     }
 
+    public function getActions($params = null)
+    {
+        $actions = parent::getActions($params);
+        foreach ($actions as $a_id => $a) {
+            if ($a instanceof shopWorkflowAction) {
+                if (!$a->isAvailable($params)) {
+                    unset($actions[$a_id]);
+                }
+            }
+        }
+        return $actions;
+    }
+
     protected function getAvailableActionIds($params = null)
     {
         return $this->available_actions;

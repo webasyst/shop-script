@@ -22,6 +22,17 @@ class shopSettingsCheckoutSaveActions extends waJsonActions
         );
     }
 
+    public function guestAction()
+    {
+        $value = waRequest::post('value');
+        $app_settings_model = new waAppSettingsModel();
+        if ($value) {
+            $app_settings_model->set('shop', 'guest_checkout', $value);
+        } else {
+            $app_settings_model->del('shop', 'guest_checkout');
+        }
+    }
+
     public function toggleAction()
     {
         $step_id = $this->getStepId();

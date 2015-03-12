@@ -29,7 +29,7 @@
                                     <li style="margin-bottom: 0;">
                                         <label>
                                             <input id="s-type-static" type="radio" name="type" value="0" checked="checked">
-                                            <strong>[`Static`]</strong>
+                                            <strong>{if $type == 'category'}[`Category`]{else}[`Set`]{/if}</strong>
                                             <i class="icon16 {if $type == 'category'}folder{else}ss set{/if}"></i>
                                             <br><br>
                                             <span class="hint">{$static_type_text}</span>
@@ -38,8 +38,8 @@
                                     <li style="margin-bottom: 0;">
                                         <label>
                                             <input id="s-type-dynamic" type="radio" name="type" value="1">
-                                            <strong>[`Dynamic`]</strong>
-                                            <i class="icon16 {if $type == 'category'}folder-dynamic{else}ss set-dynamic{/if}"></i>
+                                            <strong>[`Filter`]</strong>
+                                            <i class="icon16 funnel"></i>
                                             <br><br>
                                             <span class="hint">{$dynamic_type_text}</span>
                                         </label>

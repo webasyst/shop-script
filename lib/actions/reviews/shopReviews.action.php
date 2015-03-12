@@ -24,6 +24,8 @@ class shopReviewsAction extends waViewAction
             )
         );
 
+        $product_reivews_model->unhighlightViewed();
+
         // TODO: move to model
         $product_ids = array();
         foreach ($reviews as $review) {

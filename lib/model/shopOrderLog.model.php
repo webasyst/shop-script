@@ -30,16 +30,31 @@ class shopOrderLogModel extends waModel
 
     public function getLog($order_id)
     {
-        $sql = "SELECT l.*, c.name AS contact_name, c.photo AS contact_photo FROM ".$this->table." l
+        $sql = "SELECT l.*,
+                c.firstname AS contact_firstname,
+                c.middlename AS contact_middlename,
+                c.lastname AS contact_lastname,
+                c.photo AS contact_photo
+            FROM ".$this->table." l
                 LEFT JOIN wa_contact c ON l.contact_id = c.id
                 WHERE l.order_id = i:order_id
                 ORDER BY id DESC";
-        return $this->query($sql, array('order_id' => $order_id))->fetchAll();
+        $data = $this->query($sql, array('order_id' => $order_id))->fetchAll();
+        foreach ($data as &$row) {
+            $contact = array(
+                'firstname' => $row['contact_firstname'],
+                'middlename' => $row['contact_middlename'],
+                'lastname' => $row['contact_lastname']
+            );
+            $row['contact_name'] = waContactNameField::formatName($contact);
+        }
+        unset($row);
+        return $data;
     }
 
     public function getPreviousState($order_id, &$params=null)
     {
-        $sql = "SELECT id, before_state_id FROM ".$this->table." WHERE order_id = i:id AND 
+        $sql = "SELECT id, before_state_id FROM ".$this->table." WHERE order_id = i:id AND
             before_state_id != after_state_id
             ORDER BY id DESC LIMIT 1";
         $row = $this->query($sql, array('id' => $order_id))->fetchAssoc();

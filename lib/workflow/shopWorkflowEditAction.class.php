@@ -77,8 +77,8 @@ class shopWorkflowEditAction extends shopWorkflowAction
         
         // for logging changes in stocks
         shopProductStocksLogModel::setContext(
-                shopProductStocksLogModel::TYPE_ORDER, 
-                'Order %s was edited',
+                shopProductStocksLogModel::TYPE_ORDER,
+                /*_w*/('Order %s was edited'),
                 array(
                     'order_id' => $data['id']
                 )

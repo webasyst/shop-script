@@ -1,0 +1,212 @@
+{if empty($p.id)}
+    <h1>[`New promo`]</h1>
+{else}
+    <div class="block float-right">
+        <a href="javascript:void(0)" data-id="{$p.id}" id="promo-delete-link"><i class="icon16 delete"></i>[`Delete promo`]</a>
+    </div>
+    <h1>{$p.title|escape}</h1>
+{/if}
+
+<form action="?module=promos&action=editor" enctype="multipart/form-data" target="promos-editor-target" method="post">
+<div class="fields form">
+    <input type="hidden" name="id" value="{$p.id}">
+    <div class="field">
+        <div class="name">[`Promo title`]</div>
+        <div class="value"><input type="text" name="promo[title]" value="{$p.title|escape}" class="bold large"></div>
+    </div>
+    <div class="field">
+        <div class="name">[`Promo subtitle`]</div>
+        <div class="value"><textarea name="promo[body]">{$p.body|escape}</textarea></div>
+    </div>
+    <div class="field">
+        <div class="name">[`Link`]</div>
+        <div class="value"><input type="text" name="promo[link]" value="{$p.link|escape}" class="long" placeholder="http://"></div>
+    </div>
+    <div class="field">
+        <div class="name">[`Image`]</div>
+        <div class="value image-field">
+            {if $file_uploaded}
+                {$image_url = "?module=promos&action=uploaded&_={time()}"}
+            {elseif !empty($p.id)}
+                {$image_url = shopHelper::getPromoImageUrl($p.id, $p.ext)}
+            {/if}
+            {if !empty($image_url)}
+                <img src="{$image_url}"><br>
+            {/if}
+            <input type="file" name="image">
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">[`Color`]</div>
+        <div class="value">
+            <input type="text" name="promo[color]" value="{$p.color|escape}" class="short">
+            <i class="icon16 color" style="cursor:pointer;"></i>
+            <div class="js-colorpicker"></div>
+            <p class="hint">[`Design theme will use this color either for text labels or base background color.`]</p>
+        </div>
+    </div>
+    <div class="storefronts field">
+        <div class="name">[`Storefronts`]</div>
+        {foreach $storefronts as $s}{if !empty($s.active)}
+            <div class="value no-shift"><label>
+                <input type="checkbox" name="storefronts[{$s.storefront}]" value="{ifempty($s.sort, -1)}"{if $s.sort > 0} checked{/if}>
+                {$s.name|escape}
+            </label></div>
+        {/if}{/foreach}
+    </div>
+    <div class="field">
+        <div class="value place-for-other-errors"></div>
+    </div>
+</div>
+</form>
+<iframe name="promos-editor-target" style="display:none"></iframe>
+
+<div class="hidden">
+    <div class="buttons">
+        <input type="submit" class="button green save-button" value="[`Save`]">
+        [`or`]
+        <a href="javascript:void(0)" class="cancel">[`cancel`]</a>
+    </div>
+</div>
+
+<link rel="stylesheet" href="{$wa_url}wa-content/js/farbtastic/farbtastic.css" type="text/css" />
+<script>$(function() { "use strict";
+
+    var errors = {json_encode($errors)};
+    var delete_confirm = "[`Promo will be deleted from your storefronts. Delete?`]";
+    var unable_to_upload_msg = "[`Unable to upload file %s.`]";
+
+    var $dialog = $('#promo-editor-dialog');
+    var $buttons = $dialog.find('.buttons').appendTo($dialog.find('.dialog-buttons-gradient'));
+    var $form = $dialog.find('form');
+
+    // Validation errors
+    $.each(errors, function(fld_name, error_text) {
+        var $field = $form.find('[name="'+fld_name+'"]');
+        var $em = $('<em class="errormsg"></em>').text(error_text);
+        if ($field.length) {
+            $field.addClass('error').parent().append($em);
+        } else {
+            $form.find('.place-for-other-errors:first').append($em);
+        }
+    });
+
+    // Clear validation messages when user changes something
+    $form.on('change keyup', ':input', function() {
+        $(this).removeClass('error').siblings('.errormsg').remove();
+    });
+
+    // Disable all other storefront checkboxes when user checks 'All storefronts'
+    $form.find('[name="storefronts[%all%]"]').change(function() {
+        var $cb = $(this);
+        var $other_cbs = $cb.closest('.field').find(':checkbox').not($cb);
+        if ($cb.is(':checked')) {
+            $other_cbs.prop('disabled', true).prop('checked', true);
+        } else {
+            $other_cbs.prop('disabled', false);
+        }
+    }).change();
+
+    // Save button
+    $buttons.find('.save-button').click(function() {
+        var $button = $(this);
+        $button.parent().append('<i class="icon16 loading"></i>');
+        $.post($form.attr('action'), $form.serialize(), function(r) {
+            $buttons.closest('.dialog-buttons-gradient').empty();
+            $form.closest('.dialog-content-indent').html(r);
+        });
+        return false;
+    });
+
+    // Delete link
+    $('#promo-delete-link').click(function() {
+        if (confirm(delete_confirm)) {
+            $.post('?module=promos&action=delete', { id: $(this).data('id') }, function() {
+                $dialog.trigger('close');
+                $.products.dispatch();
+            });
+        }
+        return false;
+    });
+
+    // Initialize fileupload
+    $.when(
+        $.ajax({
+              dataType: "script",
+              url: "{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.fileupload.js?{$wa->version(true)}",
+              cache: true
+        }),
+        $.ajax({
+              dataType: "script",
+              url: "{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.iframe-transport.js?{$wa->version(true)}",
+              cache: true
+        })
+    ).done(function() {
+        $form.find('input:file[name="image"]:first').fileupload({
+            dataType: 'json',
+            url: '?module=promos&action=upload',
+            start: function () {
+                var $upload_input = $form.find('input:file[name="image"]:first');
+                $upload_input.hide().parent().append('<i class="icon16 loading"></i>');
+                $upload_input.removeClass('error').siblings('.errormsg').remove();
+            },
+            stop: function () {
+                var $upload_input = $form.find('input:file[name="image"]:first');
+                $upload_input.show().siblings('.loading').remove();
+            },
+            done: function (e, data) {
+                if (typeof data.result == 'string') {
+                    alert(data.result);
+                    console && console.log('Error uploading file.', data.result, data);
+                } else {
+                    if (data.result.error) {
+                        alert(data.result.error);
+                        console && console.log('Error uploading file.', data.result.error);
+                    } else {
+                        var $upload_input = $form.find('input:file[name="image"]:first');
+                        $upload_input.siblings('img').remove();
+                        $upload_input.parent().prepend($('<img>').attr('src', data.result.url));
+                    }
+                }
+            },
+            fail: function (e, data) {
+                alert(unable_to_upload_msg.replace('%s', data.files[0]['name']));
+            }
+        });
+    });
+
+    // Initialize colorpicker
+    $.ajax({
+          dataType: "script",
+          url: "{$wa_url}wa-content/js/farbtastic/farbtastic.js?{$wa->version(true)}",
+          cache: true
+    }).done(function() {
+        var $colorpicker_wrapper = $form.find('.js-colorpicker').hide();
+        var $icon = $colorpicker_wrapper.closest('.value').find('i.icon16.color');
+        var $input = $colorpicker_wrapper.closest('.value').find(':input');
+
+        var farbtastic = $.farbtastic($colorpicker_wrapper, setColor);
+        farbtastic.widgetCoords = function (event) {
+            var offset = $(farbtastic.wheel).offset();
+            return { x: (event.pageX - offset.left) - farbtastic.width / 2, y: (event.pageY - offset.top) - farbtastic.width / 2 };
+        };
+
+        $icon.css('cursor', 'pointer').click(function() {
+            $colorpicker_wrapper.slideToggle();
+        });
+
+        setColor($input.val() || '#ffffff');
+
+        $input.on('change keyup', function() {
+            $icon.css('background', $input.val());
+            farbtastic.setColor($input.val());
+        });
+
+        function setColor(color) {
+            $icon.css('background', color);
+            farbtastic.setColor(color);
+            $input.val(color);
+        }
+    });
+
+});</script>

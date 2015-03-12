@@ -12,11 +12,13 @@ class shopSettingsOrderStatesAction extends waViewAction
         $id = $this->getId();
         $workflow = $this->getWorkflow();
         $states = $workflow->getAllStates();
+        $actions = $workflow->getAvailableActions();
         $this->view->assign(array(
             'states'  => $states,
-            'actions' => $workflow->getAvailableActions(),
+            'actions' => $actions,
             'info'    => $states ? $this->getStateInfo($id) : $this->getDummyStateInfo(),
-            'icons'   => (array) $this->getConfig()->getOption('order_state_icons')
+            'icons'   => (array) $this->getConfig()->getOption('order_state_icons'),
+            'action_icons' => (array) $this->getConfig()->getOption('order_action_icons'),
         ));
     }
 
@@ -52,6 +54,7 @@ class shopSettingsOrderStatesAction extends waViewAction
         $info['name'] = $state->getName();
         $info['options'] = $state->getOptions();
         $info['actions'] = array_keys($state->getActions(null, $state->id));
+        $info['original'] = $state->original;
         return $info;
     }
 
@@ -66,6 +69,7 @@ class shopSettingsOrderStatesAction extends waViewAction
                     'color' => '#CCC'
                 ),
             ),
+            'original' => false,
             'actions' => array()
         );
     }

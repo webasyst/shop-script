@@ -283,7 +283,7 @@
             if (enabled_cb && enabled_cb.length && enabled_cb.is(':checked')) {
                 var tr = cb.closest('tr');
                 if (!tr.is(':visible')) {
-                    cb.prop('checked', true);
+                    tr.parent().is(':visible') && cb.prop('checked', true);
                     tr.show();
                 }
             } else {

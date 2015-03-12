@@ -110,9 +110,35 @@ class shopAffiliate
             $order_id,
             sprintf_wp('Bonus for the order %s totalling %s',
                 shopHelper::encodeOrderId($order_id),
-                waCurrency::format('%{s}', $order['total'], ifempty($order['currency'], wa()->getConfig()->getCurrency()))
+                waCurrency::format('%{s}', $order['total'], ifempty($order['currency'], wa('shop')->getConfig()->getCurrency()))
             )
         );
+    }
+
+    public static function refundDiscount($order_or_id)
+    {
+        if (wa_is_int($order_or_id)) {
+            $order_id = $order_or_id;
+            $om = new shopOrderModel();
+            $order = $om->getOrder($order_id);
+        } else {
+            $order = $order_or_id;
+            $order_id = $order['id'];
+        }
+        if (!$order['contact_id']) {
+            return;
+        }
+
+        $order_params_model = new shopOrderParamsModel();
+        $params = ifset($order['params'], array()) + $order_params_model->get($order['id']);
+        if (empty($params['affiliate_bonus'])) {
+            return;
+        }
+
+        $atm = new shopAffiliateTransactionModel();
+        $atm->applyBonus($order['contact_id'], $params['affiliate_bonus'], $order_id,
+            sprintf_wp('Refund bonus used to get discount for order %s', shopHelper::encodeOrderId($order_id)),
+            shopAffiliateTransactionModel::TYPE_ORDER_CANCEL);
     }
 
     public static function cancelBonus($order_or_id)
@@ -146,70 +172,96 @@ class shopAffiliate
         return $points * $usage_rate;
     }
 
-    public static function discount(&$order, $contact, $apply, $other_discounts)
+    public static function discount(&$order, $contact, $apply, $other_discounts, &$d = null)
     {
+        // Make sure affiliation program is enabled, set up properly and appllicable for given order
         if (!$contact || !$contact->getId()) {
             return 0;
-        }
-        $checkout_data = wa()->getStorage()->read('shop/checkout');
-        if (empty($checkout_data['use_affiliate'])) {
-            return 0; // !!! Will this fail when recalculating existing order?
         }
         $usage_rate = (float) wa()->getSetting('affiliate_usage_rate', 0, 'shop');
         if ($usage_rate <= 0) {
             return 0;
         }
-
+        $checkout_data = wa()->getStorage()->read('shop/checkout');
+        $force_affiliate = !empty($order['params']['force_affiliate']);
+        if (empty($order['id']) && empty($checkout_data['use_affiliate']) && !$force_affiliate) {
+            return 0;
+        }
         $cm = new shopCustomerModel();
         $customer = $cm->getById($contact->getId());
-        if (!$customer || $customer['affiliate_bonus'] <= 0) {
+        if (!$customer || (empty($order['id']) && $customer['affiliate_bonus'] <= 0)) {
             return 0;
         }
 
-        $order_total = $order['total'] - $other_discounts;
-        $max_bonus = $customer['affiliate_bonus'];
-        if (!empty($order['params']['affiliate_bonus'])) {
-            // Recalculating existing order: take old discount into account
-            $max_bonus += $order['params']['affiliate_bonus'];
+        // When recalculating existing order, take into account affiliation bonus used originally.
+        // If not used at all, don't apply it this time, too.
+        $prev_affiliate_bonus = 0;
+        if (!empty($order['id'])) {
+            if (!empty($order['params']['affiliate_bonus'])) {
+                $prev_affiliate_bonus = $order['params']['affiliate_bonus'];
+            } else {
+                $order_params_model = new shopOrderParamsModel();
+                $params = ifset($order['params'], array()) + $order_params_model->get($order['id']);
+                $prev_affiliate_bonus = ifempty($params['affiliate_bonus'], 0);
+            }
+            if (!$prev_affiliate_bonus) {
+                return 0;
+            }
         }
 
+        $order_total = $order['total'] - $other_discounts;
+        $max_bonus = $customer['affiliate_bonus'] + $prev_affiliate_bonus;
+
+        $default_currency = wa('shop')->getConfig()->getCurrency(true);
+        if (empty($order['currency'])) {
+            $order_currency = wa('shop')->getConfig()->getCurrency(false);
+        } else {
+            $order_currency = $order['currency'];
+        }
+
+        // Calculate discount
         $crm = new shopCurrencyModel();
         $discount = (float) $crm->convert(
             $max_bonus*$usage_rate,
-            wa()->getConfig()->getCurrency(true),
-            wa()->getConfig()->getCurrency(false)
+            $default_currency,
+            $order_currency
         );
-        if ($discount > $order_total) {
-            $discount = $order_total;
-        }
 
+        // Make sure discount does not exceed order total
         if ($discount < $order_total) {
             $bonus_used = $max_bonus;
         } else {
+            $discount = $order_total;
             $bonus_used = ((float) $crm->convert(
                 $discount,
-                wa()->getConfig()->getCurrency(false),
-                wa()->getConfig()->getCurrency(true)
+                $order_currency,
+                $default_currency
             )) / $usage_rate;
         }
 
-        if (empty($order['params'])) {
-            $order['params'] = array();
-        }
-        $order['params']['affiliate_bonus'] = $bonus_used;
+        $d = sprintf_wp('Affiliate bonus (%s) is used for additional discount', round($bonus_used, 2)).': %s';
 
+        // Change customer's affiliation balance
         if ($apply) {
+            unset($order['params']['force_affiliate']);
             $balance_change = $max_bonus - $bonus_used - $customer['affiliate_bonus'];
-            if (abs($balance_change) > 0.0001) {
-                if (!empty($order['params']['affiliate_bonus'])) {
-                    $message = sprintf_wp('Recalculation of order total, new discount: %s', waCurrency::format('%{s}', $discount, wa()->getConfig()->getCurrency()));
+
+            if (abs($balance_change) >= 0.0001) {
+                if ($prev_affiliate_bonus) {
+                    $message = sprintf_wp('Recalculation of order total, new discount: %s', waCurrency::format('%{s}', $discount, $order_currency));
                 } else {
-                    $message = sprintf_wp('Discount of %s', waCurrency::format('%{s}', $discount, wa()->getConfig()->getCurrency()));
+                    $message = sprintf_wp('Discount of %s', waCurrency::format('%{s}', $discount, $order_currency));
                 }
                 $atm = new shopAffiliateTransactionModel();
                 $atm->applyBonus($contact->getId(), $balance_change, ifset($order['id']), $message);
             }
         }
+
+        // Save bonus used to order params
+        if (empty($order['params'])) {
+            $order['params'] = array();
+        }
+        $order['params']['affiliate_bonus'] = $bonus_used;
 
         return $discount;
     }

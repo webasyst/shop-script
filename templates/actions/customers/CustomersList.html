@@ -52,7 +52,7 @@
                             <span class="hint">{ifset($c.address.zip)|escape} {ifset($c.address.street)|escape}</span>
                         </p>
                     </td>
-                    <td>{waCurrency::format('%0{s}', $c.total_spent, $wa->shop->currency())}</td>
+                    <td>{waCurrency::format('%0{h}', $c.total_spent, $wa->shop->currency())}</td>
                     <td>{if $c.affiliate_bonus>=0}+{/if}{$c.affiliate_bonus}</td>
                     <td>{$c.number_of_orders}</td>
                     <td>
@@ -70,8 +70,8 @@
         </table>
     {/if}
 
+    <p class="gray">[`Only customers with at least one order are displayed.`]</p>
     <p class="gray customer-list-footer">
-        <br>
         {if $total_customers_number !== null}
             {_w('%d contact', '%d contacts', $total_customers_number)}
         {else}

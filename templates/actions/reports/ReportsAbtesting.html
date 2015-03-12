@@ -1,0 +1,223 @@
+
+{include "./sales_sidebar.html" inline}
+
+<div class="content left200px">
+    <div class="block double-padded">
+
+        <h1>[`A/B tests`]</h1>
+
+        <div class="sidebar left200px">
+            <div class="block not-padded top-padded">
+                <ul id="abtests-list" class="menu-v">
+                    <li class="bottom-padded{if !$test.id} selected{/if}"><a href="#/sales/abtesting/new"><i class="icon16 add"></i>[`New test`]
+                    </a></li>
+                    {foreach $tests as $t}
+                        <li{if $t.id == $test.id} class="selected"{/if}>
+                            <a href="#/sales/abtesting/{$t.id}">
+                                <i class="icon16 split"></i>{$t.name|escape}
+                            </a>
+                        </li>
+                    {/foreach}
+                </ul>
+            </div>
+            <div class="block">
+                <p class="hint align-center">
+                    [`A/B testing in Shop-Script is a great way to compare several versions of your site content and to find out which one impacts sales the most.`]
+                </p>
+                <p class="hint align-center">
+                    <a class="bold" href="#" target="_blank">[`The complete guide to A/B testing with Shop-Script`]</a>
+                </p>
+            </div>
+        </div>
+        <div class="content left200px">
+            <form action="?module=reports&action=abtesting" id="s-reports-abtesting-form">
+            <div class="s-abtest s-abtest-margin"><div class="block double-padded s-abtest-border">
+                <input type="hidden" name="id" value="{$test.id|default:new}">
+                {if $test.id}
+                    <ul class="menu-h float-right">
+                        <li><a href="javascript:void(0)" id="delete-link"><i class="icon16 delete"></i>[`Delete`]</a></li>
+                    </ul>
+                    <h1>{$test.name|escape}</h1>
+                {else}
+                    <h1>[`New test`]</h1>
+                {/if}
+
+                <div class="fields form width100px" style="min-width:530px;">
+                    <div class="field-group">
+                        <div class="field">
+                            <div class="name">[`Name`]</div>
+                            <div class="value">
+                                <input type="text" class="large" name="test[name]" value="{$test.name|escape}">
+                            </div>
+                        </div>
+                        {if $test.id}
+                            <div class="field">
+                                <div class="name">[`Test ID`]</div>
+                                <div class="value no-shift">
+                                    <strong class="large">{$test.id}</strong>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`Created`]</div>
+                                <div class="value no-shift gray">
+                                    {$test.create_datetime|wa_date:humandatetime}
+                                </div>
+                            </div>
+                        {/if}
+                    </div>
+                    <div class="field-group" id="editable-variants">
+                        {foreach $variants + $variants_create as $v}
+                            <div class="field variant-option">
+                                <div class="name">{sprintf("[`Version %s`]", $v.code|escape)}</div>
+                                <div class="value">
+                                    {if empty($v.id)}
+                                        <input type="text" name="new_variants[]" value="{$v.name|escape}">
+                                    {else}
+                                        <input type="text" name="variants[{$v.id|escape}][name]" value="{$v.name|escape}">
+                                        <input type="hidden" name="variants[{$v.id|escape}][code]" value="{$v.code|escape}">
+                                    {/if}
+                                    <a href="javascript:void(0)" class="remove-variant-link"><i class="icon10 close"></i></a>
+                                </div>
+                            </div>
+                        {/foreach}
+                        <div class="field">
+                            <div class="value">
+                                <a href="javascript:void(0)" id="add-variant-link" class="inline-link"><i class="icon16 add"></i>
+                                    <b><i>[`Add version`]</i></b>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field variant-option hidden template">
+                        <div class="name">[`New version`]</div>
+                        <div class="value">
+                            <input type="text" name="new_variants[]" value="">
+                            <a href="javascript:void(0)" class="remove-variant-link"><i class="icon16 close"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="value">
+                            {if $test.id && !$errors}
+                                <input type="submit" class="button green" value="[`Save`]" style="display:none;">
+                                <button id="get-code-button" class="button green">[`Get code`]</button>
+                            {else}
+                                <input type="submit" class="button green" value="[`Save`]">
+                            {/if}
+                        </div>
+                    </div>
+                    {if $test.id && !$errors}
+                        <div class="field" id="smarty-code" style="display:none;">
+                            <div class="value no-shift">
+                                <p>[`Embed the following code to any template file or page, and add your custom content you want to split-test:`]</p>
+                                <textarea style="min-height:230px;">{$smarty_code|escape}</textarea>
+                                <br><br>
+                                <p><em>[`The results of A/B test will be available on the main sales reports page as soon as you get at least one paid orders after embedding this test code.`]</em></p>
+                            </div>
+                        </div>
+                    {/if}
+                </div>
+
+                <div class="clear-both"></div>
+            </div></div>
+            </form>
+
+            <div class="clear-both"></div>
+        </div>
+
+    </div>
+</div>
+
+<script>(function() { "use strict";
+
+    document.title = "[`A/B tests`] — {$wa->accountName(false)|escape:javascript}";
+
+    var errors = {json_encode($errors)};
+    var delete_confirmation = "[`This will delete the entire A/B test and all it's results without the ability to restore this data. Delete?`]";
+
+    var $form = $('#s-reports-abtesting-form');
+    var $add_variant_link = $('#add-variant-link');
+    var $submit_button = $form.find('input:submit:first');
+    var $get_code_button = $('#get-code-button');
+    var $smarty_code = $('#smarty-code');
+
+    // Show validation errors
+    var errors_count = 0;
+    $.each(errors, function(fld_name, error) {
+        errors_count++;
+        var $fld = $form.find('[name="'+fld_name+'"]');
+        if (!$fld.length) {
+            $fld = $submit_button;
+        } else {
+            $fld.addClass('error');
+        }
+        $fld.parent().append($('<em class="errormsg"></em>').text(error));
+    });
+    // Highlight empty fields in variants
+    if (errors_count > 0) {
+        $form.find('[name="new_variants[]"][value=""]').addClass('error');
+    }
+
+    // Add option when user clicks on a "New version" link
+    $add_variant_link.click(function() {
+        var $field = $add_variant_link.closest('.field-group').siblings('.variant-option.template').clone().removeClass('hidden template');
+        $field.insertBefore($add_variant_link.closest('.field')).find(':text').change();
+    });
+
+    // Remove version when user clicks on a delete link
+    $('#editable-variants').on('click', '.remove-variant-link', function() {
+        $(this).closest('.field').remove();
+    });
+
+    // Clear error when user changes something in the form
+    (function() { "use strict";
+        var timeout = null;
+        var initial_form_state = $form.serialize();
+        $form.on('change keyup', ':input', function() {
+            $(this).removeClass('error').siblings('.errormsg').remove();
+            timeout && clearTimeout(timeout);
+            timeout = setTimeout(function() {
+                if (initial_form_state != $form.serialize()) {
+                    $submit_button.show().removeClass('green').addClass('yellow');
+                    $get_code_button.removeClass('green').prop('disabled', true);
+                    $smarty_code.slideUp();
+                }
+            }, 300);
+        });
+    })();
+
+    // Show smarty code when user clicks on 'Get code' button
+    $get_code_button.click(function() {
+        if ($get_code_button.prop('disabled')) {
+            return false;
+        }
+        $smarty_code.slideToggle();
+        return false;
+    });
+
+    // Select everything in code textarea when user clicks on it
+    $smarty_code.find('textarea').click(function() {
+        $(this).select();
+    });
+
+    // Deletion link
+    $('#delete-link').click(function() {
+        var id = $form.find('input[name="id"]').val();
+        if (id && confirm(delete_confirmation)) {
+            $.post($form.attr('action'), { id: id, 'delete': 1 }, function(r) {
+                $('#reportscontent').html(r);
+            });
+        }
+    });
+
+    // Save when user submits the form
+    $form.submit(function() {
+        $.post($form.attr('action'), $form.serialize(), function(r) {
+            $('#reportscontent').html(r);
+        });
+        return false;
+    });
+
+})();</script>
+

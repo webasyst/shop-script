@@ -62,9 +62,9 @@ class shopDialogProductListSettingsAction extends waViewAction
 
         $category_routes_model = new shopCategoryRoutesModel();
         $settings['routes'] = $category_routes_model->getRoutes($id);
-        
+
         $settings['frontend_urls'] = array();
-        foreach ($category_model->getFrontendUrls($id) as $frontend_url) {
+        foreach ($category_model->getFrontendUrls($id, true) as $frontend_url) {
             $pos = strrpos($frontend_url, $settings['url']);
             $settings['frontend_urls'][] = array(
                 'url' => $frontend_url,
@@ -83,7 +83,7 @@ class shopDialogProductListSettingsAction extends waViewAction
         $feature_model = new shopFeatureModel();
         $selectable_and_boolean_features = $feature_model->select('*')->
             where("(selectable=1 OR type='boolean' OR type='double' OR type LIKE 'dimension\.%' OR type LIKE 'range\.%') AND parent_id IS NULL")->fetchAll('id');
-        
+
         if ($settings['type'] == shopCategoryModel::TYPE_DYNAMIC) {
             if ($settings['conditions']) {
                 $settings['conditions'] = shopProductsCollection::parseConditions($settings['conditions']);
@@ -107,13 +107,13 @@ class shopDialogProductListSettingsAction extends waViewAction
                     $settings['conditions']['feature'][substr($name, 0, -9)] = $value;
                 }
             }
-            
+
             $settings['custom_conditions'] = $this->extractCustomConditions($settings['conditions']);
-            
+
             $settings['features'] = $selectable_and_boolean_features;
             $settings['features'] = $feature_model->getValues($settings['features']);
         }
-                
+
         $filter = $settings['filter'] !== null ? explode(',', $settings['filter']) : null;
         $feature_filter = array();
         $features['price'] = array(
@@ -134,9 +134,18 @@ class shopDialogProductListSettingsAction extends waViewAction
         $settings['allow_filter'] = (bool)$filter;
         $settings['filter'] = $feature_filter + $features;
 
+
+        if (!empty($settings['parent_id'])) {
+            $parent = $category_model->getById($settings['parent_id']);
+        }
+        if (empty($parent)) {
+            $parent = array();
+        }
+        $this->view->assign('parent', $parent);
+
         return $settings;
     }
-    
+
     /**
      * @param array $conditions
      * @return string

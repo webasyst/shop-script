@@ -72,9 +72,21 @@ return array(
                 'name'       => _w('ml'), //milliliter
                 'multiplier' => 0.001,
             ),
+            'cm3' => array(
+                'name' => _w('cm3'), //cubic centimeter
+                'multiplier' => 0.001,
+            ),
+            'm3' => array(
+                'name' => _w('m3'), //cubic meter
+                'multiplier' => 1000,
+            ),
             'cl' => array(
                 'name'       => _w('cl'), //centiliter
                 'multiplier' => 0.4536,
+            ),
+            'mm3' => array(
+                'name' => _w('mm3'), //cubic millimeter
+                'multiplier' => 0.000001,
             ),
         ),
     ),

@@ -1,3 +1,7 @@
+{if !empty($error)}
+<h1 class="js-bread-crumbs"><a href="#/payment/" class="back">&larr; [`Shipping`]</a>&nbsp;[`Error`]</h1>
+<span class="errormsg">{$error|escape}</span>
+{else}
 <form>
 	<!-- GENERAL SHIPPING OPTION PARAMS -->
 	<div class="field-group">
@@ -36,7 +40,7 @@
 			</div>
 			<div class="value">
 				<input name="shipping[logo]" type="text" class="long" value="{$plugin.logo|default:$plugin.img|escape}" id="s-shipping-plugin-logo">
-                <img src="{$plugin.logo|default:$plugin.img}" style="float:right;">
+                <img src="{$plugin.logo|default:$plugin.img}" class="s-payment-shipping-logo float-right">
 				<p class="hint">{sprintf('[`A collection of shipping option icons is available for free: <a href="%1$s" target="_blank">%1$s</a> <i class="icon10 new-window"></i>`]','[`http://www.webasyst.com/help/729/payment-shipping-icons/`]')}</p>
 			</div>
 		</div>
@@ -76,3 +80,4 @@
 		</div>
 	</div>
 </form>
+{/if}

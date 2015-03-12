@@ -14,13 +14,14 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         $tag_model = new shopTagModel();
 
         $count = 0;
-        foreach ($this->query("SELECT tag_id, count(product_id) cnt FROM {$this->table}
+        $sql = "
+            SELECT tag_id, count(product_id) cnt FROM {$this->table}
             WHERE product_id IN (".implode(',', $product_ids).")
-            GROUP BY tag_id")
-                 as $item) {
+            GROUP BY tag_id";
+        foreach ($this->query($sql) as $item) {
             $count += 1;
             $tag_model->query(
-                      "UPDATE ".$tag_model->getTableName()." SET count = count - {$item['cnt']}
+                "UPDATE ".$tag_model->getTableName()." SET count = count - {$item['cnt']}
                 WHERE id = {$item['tag_id']}"
             );
         }
@@ -62,11 +63,16 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         if (!is_array($tags)) {
             $tags = explode(',', $tags);
         }
+        $tags = array_unique(array_map('trim', $tags));
+        $empty = array_search('', $tags, true);
+        if ($empty !== false) {
+            unset($tags[$empty]);
+        }
         $tag_model = new shopTagModel();
         $tag_ids = $tag_model->getIds($tags);
 
-        $old_tag_ids = $this->query("SELECT tag_id FROM ".$this->table."
-            WHERE product_id = i:id", array('id' => $product_id))->fetchAll(null, true);
+        $sql = "SELECT tag_id FROM ".$this->table." WHERE product_id = i:id";
+        $old_tag_ids = $this->query($sql, array('id' => $product_id))->fetchAll(null, true);
 
         // find new tags to add
         $add_tag_ids = array_diff($tag_ids, $old_tag_ids);
@@ -98,8 +104,8 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         }
         $tag_model = new shopTagModel();
         $tag_ids = $tag_model->getIds($tags);
-        $old_tag_ids = $this->query("SELECT tag_id FROM ".$this->table."
-            WHERE product_id = i:id", array('id' => $product_id))->fetchAll(null, true);
+        $sql = "SELECT tag_id FROM ".$this->table." WHERE product_id = i:id";
+        $old_tag_ids = $this->query($sql, array('id' => $product_id))->fetchAll(null, true);
         $add_tag_ids = array_diff($tag_ids, $old_tag_ids);
         if ($add_tag_ids) {
             $this->multipleInsert(array('product_id' => $product_id, 'tag_id' => $add_tag_ids));
@@ -118,8 +124,8 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         }
         $tag_model = new shopTagModel();
         $tag_ids = $tag_model->getIds($tags);
-        $old_tag_ids = $this->query("SELECT tag_id FROM ".$this->table."
-            WHERE product_id = i:id", array('id' => $product_id))->fetchAll(null, true);
+        $sql = "SELECT tag_id FROM ".$this->table." WHERE product_id = i:id";
+        $old_tag_ids = $this->query($sql, array('id' => $product_id))->fetchAll(null, true);
         $delete_tag_ids = array_intersect($tag_ids, $old_tag_ids);
         if ($delete_tag_ids) {
             $this->deleteByField(array('product_id' => $product_id, 'tag_id' => $delete_tag_ids));

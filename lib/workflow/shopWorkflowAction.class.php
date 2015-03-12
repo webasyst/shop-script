@@ -25,6 +25,11 @@ class shopWorkflowAction extends waWorkflowAction
         }
     }
 
+    public function isAvailable($order)
+    {
+        return true;
+    }
+
     public function getDefaultOptions()
     {
         return array(
@@ -34,15 +39,30 @@ class shopWorkflowAction extends waWorkflowAction
 
     public function getButton()
     {
+        $name = htmlspecialchars($this->getName());
         if (func_num_args()) {
             $attrs = func_get_arg(0);
         } else {
             $attrs = '';
         }
         if ($this->getOption('position') || $this->getOption('top')) {
-            return '<a '.$attrs.' href="#" class="wf-action '.$this->getOption('button_class').'" data-action-id="'.$this->getId().'"><i class="icon16 '.$this->getOption('icon').'"></i>'.$this->getName().'</a>';
+            return '<a '.$attrs.' href="#" class="wf-action '.$this->getOption('button_class').'" data-action-id="'.$this->getId().'"><i class="icon16 ss '.$this->getOption('icon').'"></i>'.$name.'</a>';
         } else {
-            return '<input '.$attrs.' class="wf-action button '.$this->getOption('button_class').'" type="button" data-action-id="'.$this->getId().'" value="'.$this->getName().'">';
+            if ($this->getOption('icon')) {
+                $icons = (array)$this->getOption('icon');
+                foreach ($icons as &$icon) {
+                    $icon = '<i class="icon16 '.$icon.'"></i>';
+                }
+                unset($icon);
+                $icons = implode('', $icons);
+            } else {
+                $icons = '';
+            }
+            $style = array();
+            if ($this->getOption('border_color')) {
+                $style[] = 'border-color: #'.$this->getOption('border_color');
+            }
+            return '<a href="#" '.$attrs.' class="wf-action button '.$this->getOption('button_class').'" data-action-id="'.$this->getId().'" style="'.implode(' ', $style).'">'.$name.$icons.'</a>';
         }
     }
 
@@ -60,7 +80,7 @@ class shopWorkflowAction extends waWorkflowAction
 
     /**
      * Does all the actual work this action needs to do.
-     * (!!! declared as public for historical reasons only)
+     * (declared as public for historical reasons only)
      * @param mixed $params implementation-specific parameter passed to $this->run()
      * @return mixed null if this action failed; any data to pass to $this->postExecute() if completed successfully.
      */
@@ -117,6 +137,16 @@ class shopWorkflowAction extends waWorkflowAction
             'status' => $this->getWorkflow()->getStateById($data['after_state_id'])->getName(),
             'action_data' => $data
         ));
+
+        // Clear sales report cache if anything happens to a paid order
+        if (!empty($order['paid_date'])) {
+            $sales_model = new shopSalesModel();
+            if (wa()->getSetting('reports_date_type', 'paid', 'shop') == 'paid') {
+                $sales_model->deletePeriod($order['paid_date']);
+            } else {
+                !empty($order['create_datetime']) && $sales_model->deletePeriod($order['create_datetime']);
+            }
+        }
 
         /**
          * @event order_action.callback

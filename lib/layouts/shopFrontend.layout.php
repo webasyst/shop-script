@@ -14,17 +14,6 @@ class shopFrontendLayout extends waLayout
             $this->redirect($url);
         }
 
-
-        // save referer
-        // @todo: save keywords for referers from search
-        if (wa()->getEnv() == 'frontend' && $ref = waRequest::server('HTTP_REFERER')) {
-            // check $ref domain
-            $ref_parts = parse_url($ref);
-            if ($ref_parts['host'] != waRequest::server('HTTP_HOST')) {
-                wa()->getStorage()->set('shop/referer', waRequest::server('HTTP_REFERER'));
-            }
-        }
-
         $this->view->assign('action', waRequest::param('action', 'default'));
         $this->setThemeTemplate('index.html');
 
@@ -46,6 +35,12 @@ class shopFrontendLayout extends waLayout
              * @return array[string]string $return[%plugin_id%] html output for navigation section
              */
             $this->view->assign('frontend_nav', wa()->event('frontend_nav'));
+
+            /**
+             * @event frontend_nav_aux
+             * @return array[string]string $return[%plugin_id%] html output for navigation section
+             */
+            $this->view->assign('frontend_nav_aux', wa()->event('frontend_nav_aux'));
         }
 
         /**

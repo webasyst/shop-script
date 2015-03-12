@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.6.3\n"
+"X-Generator: Poedit 1.7.4\n"
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
 "Language: en_US\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -1205,8 +1205,6 @@ msgstr ""
 #: /wa-apps/shop/themes/facebook/list-thumbs.html:6
 #: /wa-apps/shop/themes/nifty/list-thumbs.html:6
 #: /wa-apps/shop/themes/sidebar/list-thumbs.html:6
-
-
 #: /wa-apps/shop/themes/vk/list-thumbs.html:6
 msgid "Name"
 msgstr ""
@@ -1217,15 +1215,15 @@ msgid "Type"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:4
-msgid "Manually add and arrange products in this category and it's sub-categories"
+msgid "A static category for adding and arranging products manually."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:5
-msgid "Smart category based on a search criteria, e.g. rating or tags"
+msgid "A dynamic category based on a search criteria, e.g. rating or tags."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:12
-msgid "Frontend URL"
+msgid "Public link"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:25
@@ -1243,13 +1241,11 @@ msgstr ""
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:115
 #: /wa-apps/shop/templates/actions/product/Product.html:903
 #: /wa-apps/shop/templates/actions/product/ProductPageEdit.html:58
-
 #: /wa-apps/shop/themes/clear/reviews.html:134
 #: /wa-apps/shop/themes/custom/reviews.html:134
 #: /wa-apps/shop/themes/default/reviews.html:138
 #: /wa-apps/shop/themes/facebook/reviews.html:133
 #: /wa-apps/shop/themes/nifty/reviews.html:134
-
 #: /wa-apps/shop/themes/sidebar/reviews.html:134
 #: /wa-apps/shop/themes/vk/reviews.html:133
 msgid "Title"
@@ -1260,10 +1256,6 @@ msgstr ""
 #: /wa-apps/shop/templates/actions/product/Product.html:914
 #: /wa-apps/shop/templates/actions/product/ProductPageEdit.html:62
 msgid "META Keywords"
-msgstr ""
-
-#: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:52
-msgid "META Description "
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:63
@@ -1523,11 +1515,11 @@ msgid "After you delete a product, all it’s sales reports, cross-selling data,
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductSetCreate.html:4
-msgid "Manually add and arrange products in this set"
+msgid "A static set for adding and arranging products manually."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductSetCreate.html:5
-msgid "Smart set based on a search criteria, e.g. rating or tags"
+msgid "A dynamic set based on a search criteria, e.g. rating or tags."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductSetCreate.html:14
@@ -2080,7 +2072,7 @@ msgid "Status"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:369
-msgid "Published"
+msgid "Visible"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/Product.html:370
@@ -4401,7 +4393,7 @@ msgid "Erase all content and settings"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:3
-msgid "Product search is performed by multiple product parameters including name, descriptions, tags, feature values, and others. When product information is indexed for search, every parameter value is counted with a priority (weight) you define using the chart below. Fine-tune product search by defining which parameters have the most priority for search (100 is the highest priority, 0 is the lowest)."
+msgid "Product search will be performed by multiple product parameters including name, descriptions, tags, feature values, and others. When product information is indexed for search, every parameter value is counted with a priority (weight) you define using the chart below. Fine-tune product search by defining which parameters have the most priority for search (100 is the highest priority, 0 is the lowest)."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:31
@@ -4798,7 +4790,7 @@ msgid "by month"
 msgstr ""
 
 #: /wa-apps/shop/templates/layouts/Backend.html:187
-msgid "Checkout flow"
+msgid "Checkout funnel"
 msgstr ""
 
 #: /wa-apps/shop/templates/layouts/Backend.html:193
@@ -6128,7 +6120,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCheckoutflow.html:5
-msgid "Checkout flow report shows how many customers abandon their orders during the checkout process based on unique shopping cart sessions."
+msgid "Checkout funnel report shows how many customers abandon their orders during the checkout process based on unique shopping cart sessions."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCheckoutflow.html:22
@@ -6144,11 +6136,11 @@ msgid "Dismiss"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCheckoutflow.html:47
-msgid "Reset checkout flow"
+msgid "Reset checkout funnel"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCheckoutflow.html:48
-msgid "Entire checkout flow report data will be erased without the ability to restore."
+msgid "Entire checkout funnel report data will be erased without the ability to restore."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCheckoutflow.html:17
@@ -6585,7 +6577,7 @@ msgid "There is not one product for order"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/order/shopOrderSave.controller.php:416
-msgid "Common quantity usage is exceed for this product"
+msgid "The number of items your can add to the order is limited by the stock level"
 msgstr ""
 
 #: /wa-apps/shop/lib/actions/order/shopOrderSave.controller.php:437
@@ -8062,8 +8054,8 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:470
-msgid "Excessive declaration for a product on %d line"
-msgid_plural "Excessive declaration for a product on %d lines"
+msgid "Identical product declaration on %d line. All lines declaring the same product will be grouped and merged"
+msgid_plural "Identical product declaration on %d lines. All lines declaring the same product will be grouped and merged"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -8141,9 +8133,7 @@ msgstr[1] ""
 
 #: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:525
 msgid "%d product record was not updated due to insufficient access rights for you as Webasyst user"
-msgid_plural ""
-"%d product records were not updated due to insufficient access rights for "
-"you as Webasyst user"
+msgid_plural "%d product records were not updated due to insufficient access rights for you as Webasyst user"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -8204,7 +8194,6 @@ msgid_plural "%d columns will be ignored"
 msgstr[0] ""
 msgstr[1] ""
 
-
 #: /wa-apps/shop/lib/config/data/dimension.php:146
 msgid "TB"
 msgstr ""
@@ -8224,7 +8213,6 @@ msgstr ""
 #: /wa-apps/shop/themes/default/home.html:57
 msgid "Remove this helper text in your store backend &gt; Storefronts &gt; Design &gt; <strong>home.html</strong> template file.<br>Search for <b>REMOVE THIS!</b> to locate this block in the template file."
 msgstr ""
-
 
 #: /wa-apps/shop/lib/actions/settings/checkout/shopSettingsCheckoutContactFormRow.action.php:41
 #: /wa-apps/shop/lib/model/shopFeature.model.php:599
@@ -8454,6 +8442,7 @@ msgstr ""
 #: /wa-apps/shop/lib/config/logs.php:72
 msgid "affiliate_payout"
 msgstr ""
+
 #: /wa-apps/shop/lib/config/logs.php:5
 msgid "added a product"
 msgstr ""
@@ -8556,4 +8545,1350 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:385
 msgid "Product type template"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:100
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:223
+msgid "<strong>%s</strong> category only"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:101
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:224
+msgid "Dynamic categories filter products only from parent categories they belong to."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductsDelete.html:1
+msgid "Unable to delete some of the products (%d) because you have insufficient access rights."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:465
+msgid "Delete feature"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:27
+msgid "How to set up?"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:73
+msgid "There are no shipping options."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:519
+msgid "Added %d SKU"
+msgid_plural "Added %d SKUs"
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/lib/actions/settings/checkout/shopSettingsCheckoutContactFormRow.action.php:47
+msgid "Number"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/checkout/shopSettingsCheckoutContactFormRow.action.php:48
+msgid "Region"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/checkout/shopSettingsCheckoutContactFormRow.action.php:50
+msgid "Hidden field"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/checkout/shopSettingsCheckoutContactFormRow.action.php:51
+msgid "Full name"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/features/shopSettingsFeaturesFeatureUsage.controller.php:13
+msgid "You have <strong>%d product</strong> with this feature value specified. Deleting this feature will erase it’s value for all these products."
+msgid_plural "You have <strong>%d products</strong> with this feature value specified. Deleting this feature will erase it’s value for all these products."
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/lib/actions/settings/features/shopSettingsFeaturesFeatureUsage.controller.php:15
+msgid "This feature is not assigned to any product yet, and thus can be safely deleted."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopHelper.class.php:511
+msgid "Almost out of stock"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/data/dimension.php:76
+msgid "cm3"
+msgstr "cm³"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:80
+msgid "m3"
+msgstr "m³"
+
+#: /wa-apps/shop/lib/config/data/dimension.php:88
+msgid "mm3"
+msgstr "mm³"
+
+#: /wa-apps/shop/themes/ascetic/checkout.contactinfo.html:12
+#: /wa-apps/shop/themes/clear/checkout.contactinfo.html:15
+#: /wa-apps/shop/themes/custom/checkout.contactinfo.html:15
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:15
+#: /wa-apps/shop/themes/facebook/checkout.contactinfo.html:15
+#: /wa-apps/shop/themes/mobile/checkout.contactinfo.html:15
+#: /wa-apps/shop/themes/nifty/checkout.contactinfo.html:15
+#: /wa-apps/shop/themes/sidebar/checkout.contactinfo.html:15
+#: /wa-apps/shop/themes/vk/checkout.contactinfo.html:15
+msgid "Matches shipping address"
+msgstr ""
+
+#: /wa-apps/shop/themes/ascetic/checkout.contactinfo.html:12
+#: /wa-apps/shop/themes/clear/checkout.contactinfo.html:15
+#: /wa-apps/shop/themes/custom/checkout.contactinfo.html:15
+#: /wa-apps/shop/themes/default/checkout.contactinfo.html:15
+#: /wa-apps/shop/themes/facebook/checkout.contactinfo.html:15
+#: /wa-apps/shop/themes/mobile/checkout.contactinfo.html:15
+#: /wa-apps/shop/themes/nifty/checkout.contactinfo.html:15
+#: /wa-apps/shop/themes/sidebar/checkout.contactinfo.html:15
+#: /wa-apps/shop/themes/vk/checkout.contactinfo.html:15
+msgid "Edit billing address"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendProducts.html:202
+msgid "Sort by alphabet"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendProducts.html:204
+msgid "The entire category tree will be sorted by alphabet (category nesting will remain unchanged)."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendProducts.html:208
+msgid "Sort the entire tree"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendSettings.html:109
+#: /wa-apps/shop/templates/actions/settings/SettingsAnalytics.html:2
+msgid "Analytics"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:29
+msgid "Permanent user account"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:32
+msgid "%s has personal account on your site."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:33
+msgid "Last login"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:36
+msgid "No permanent user account"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:38
+msgid "%s did not sign up for personal account on your site yet."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:111
+msgid "<strong>%s</strong> on %d paid orders"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:112
+msgid "Last order %d days ago"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:114
+msgid "No paid orders yet"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:119
+msgid "%s did not purchase anything yet."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:208
+msgid "%s did not post any product reviews yet."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:217
+msgid "%s has no affiliate history yet."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersList.html:73
+msgid "Only customers with at least one order are displayed."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategoryCreate.html:40
+#: /wa-apps/shop/templates/actions/product/Product.html:847
+msgid "Page title"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:39
+msgid "Enable to temporarily hide this category from the storefront"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:69
+#: /wa-apps/shop/lib/classes/shopProductListAction.class.php:257
+msgid "Stock net worth"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductListCreate.html:32
+msgid "Category"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductListCreate.html:32
+msgid "Set"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductListCreate.html:41
+msgid "Filter"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:16
+#: /wa-apps/shop/templates/actions-mobile/orders/OrdersInfo.html:14
+msgid "Order was paid on %s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:118
+msgid "Registered customer"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/OrderEdit.html:356
+msgid "Discount specified manually"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:149
+#: /wa-apps/shop/templates/actions/product/Product.html:561
+msgid "Pricing & Availability"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:150
+msgid "View stock logs"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:151
+msgid "Recent orders"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:359
+msgid "Description &amp; SEO"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:379
+msgid "Subpages"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:548
+msgid "Additional category"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:572
+msgid "Purchase options"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:586
+msgid "Selectable parameters"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:621
+msgid "SKU"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:669
+msgid "items"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:695
+#: /wa-apps/shop/templates/actions/product/Product.html:779
+msgid "Details"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:818
+msgid "Displayed in product lists."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductFeatures.html:5
+msgid "Product custom features allows you to beautifully present all product details to your customers, to setup product search filters and upselling."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductImage.html:25
+msgid "Back to image list"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductOrders.html:2
+msgid "No orders yet"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:73
+msgid "Defining product purchase price allows you to estimate product profitability. Each time new order is placed, actual product purchase price will be saved in order details, and thus altering base product purchase price will affect only new orders and existing orders with no purchase price defined."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/product_list_table.html:106
+msgid "Edit product"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/product_list_table.html:126
+msgid "Product list settings"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/product_list_table.html:130
+msgid "Selected column list will be applied for all users and all product lists in backend."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/product_list_table.html:133
+msgid "Select columns"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:153
+msgid "custom"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:234
+msgid "You have activated custom product sort order for this view. If you want to use this sort order as a new default global option for this category, please apply it in category settings."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:245
+msgid "To add products into this category, find and select them in some product list view and either drag to this category in the left sidebar or click “Add to category” on the right."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:250
+msgid "To add products into this product set, find and select them in some product list view and either drag to this category in the left sidebar or click “Add to set” on the right."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:7
+msgid "Delete expense"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:10
+msgid "Modify expense"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:12
+#: /wa-apps/shop/templates/actions/reports/ReportsMarketingcosts.html:28
+msgid "New expense"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:17
+msgid "Amount"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:24
+msgid "Channel"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:28
+msgid "Sources"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:32
+msgid "Another source..."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:33
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:199
+msgid "Campaigns"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:37
+msgid "Another campaign..."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:48
+msgid "Period"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:52
+msgid "One time"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:62
+msgid "Timeframe"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:77
+msgid "Not specified"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:85
+msgid "Note"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_rows.html:46
+msgid "There are no marketing expenses yet."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:6
+#: /wa-apps/shop/templates/actions/reports/sales_sidebar.html:11
+msgid "A/B tests"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:12
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:37
+msgid "New test"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:71
+msgid "New option"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:82
+msgid "Get code"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCheckoutflow.html:24
+msgid "%d visitors abandoned"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCheckoutflow.html:26
+msgid "The goal!"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:13
+msgid "Group by"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:16
+msgid "week"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:17
+msgid "month"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:29
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:187
+msgid "All sources"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:40
+msgid "Customer Lifetime Value"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:41
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:94
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:106
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:47
+msgid "ROI"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:56
+msgid "Month %s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:58
+msgid "Week %s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:60
+msgid "Day %s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:4
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:49
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:6
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:24
+msgid "Custom range"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:39
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:40
+msgid "Only paid orders are counted"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:40
+#: /wa-apps/shop/templates/actions/reports/ReportsMarketingcosts.html:9
+#: /wa-apps/shop/templates/actions/reports/ReportsMarketingcosts.html:43
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:46
+#: /wa-apps/shop/templates/actions/reports/sales_sidebar.html:10
+msgid "Marketing costs"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:40
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:46
+msgid "Cost"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:41
+msgid "Customer Acquisition Cost — an average cost for convincing one to place and pay for an order"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:41
+msgid "CAC"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:49
+msgid "Average Revenue Per User = Total sales / Number of customers"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:49
+msgid "ARPU"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:50
+msgid "Indicates how much does average customer brings you in sales."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:50
+msgid "Lifetime ARPU"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:58
+msgid "Average Margin Per User = Total profit / Number of customers"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:58
+msgid "AMPU"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:59
+msgid "Customer Lifetime Value indicates how much does average customer brings you in profit. LTV is the lifetime AMPU."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:59
+msgid "LTV"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:132
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:287
+msgid "(direct)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:173
+msgid "Number of customers"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:5
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:147
+msgid "Best selling products and services"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:11
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:17
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:19
+msgid "Assets"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:12
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:18
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:4
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:20
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:94
+msgid "What to sell"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:68
+msgid "Profit percentage = Net profit (%s) / Cost price (%s) = %s%%"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:111
+msgid "<strong>+%s%%</strong> to average order value"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:115
+msgid "On the selected time period, there were no orders with <a href=\"%s\">extra services</a>."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:119
+msgid "There were no products sold on the selected period."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:4
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:86
+msgid "In-stock assets"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:9
+msgid "Number of products:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:28
+msgid "Stock count"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:30
+msgid "The overall amount you will get if you sell the entire stock"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:30
+msgid "Net worth"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:32
+msgid "Selling time"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:71
+msgid "Not enough sales data to estimate selling time for this product"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:37
+msgid "%d item"
+msgid_plural "%d items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:9
+msgid "Forecast period"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:11
+msgid "1 month"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:12
+msgid "3 months"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:13
+msgid "6 months"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:14
+msgid "1 year"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:15
+msgid "2 years"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:34
+msgid "Profit per selling one item of a product"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:34
+msgid "Profit per item"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:36
+msgid "Average number of items sold per month"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:36
+msgid "Sold per month"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:38
+msgid "Estimated overall sales for the selected period"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:41
+msgid "Estimated overall number of items to be shipped"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:41
+msgid "Items to ship"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:44
+msgid "Estimated extra expenses on the purchase of items in addition to the current stock level"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:44
+msgid "Investments"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:47
+msgid "Estimated total income on selling these items"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:47
+msgid "Income"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:8
+msgid "Traces of A/B test found for selected period"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:10
+msgid "Select A/B test to show"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:22
+msgid "Sales report"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:41
+msgid "Overall amount of all paid orders"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:41
+msgid "Sales volume"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:42
+msgid "Average paid order amount"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:42
+msgid "Average order"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:43
+msgid "Profit = Order amount &minus; Shipping &minus; Tax &minus; Product purchase price"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:47
+msgid "Return On Investment for the selected period = Profit / Marketing costs"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:48
+msgid "Overall ROI calculated for the entire data. This is where your current ROI value might converge to."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:48
+msgid "All time ROI"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/services/Services.html:40
+msgid "Service price"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/services/Services.html:101
+msgid "When ordered with a particular product, service increases product base price by the amount provided. Service price can be set in bulk for all products, or customized for every individual product or SKU."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/services/Services.html:119
+msgid "Offer this service with following products:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/services/Services.html:136
+msgid "Select particular products"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:35
+msgid "When converting prices into primary currency:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:42
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:83
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:115
+msgid "Round fractions up only"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:126
+msgid "Maps"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:174
+msgid "<a href=\"%s\" target=\"_blank\">See documentation</a> for details."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:181
+msgid "To enable SMS message sending, install and configure sending plugin for your preferred SMS gateway.<br /> <a href=\"%s\">Browse for SMS gateway plugins</a> in Installer app."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:129
+msgid "Delete order action"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:138
+msgid "Set order state"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:142
+msgid "Don’t change order state"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:154
+msgid "Button"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:164
+msgid "Link"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:171
+msgid "Custom order email and SMS notifications can be setup on the <strong class=\"nowrap\">Settings > Notifications</strong> screen."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:6
+msgid "Search algorithm"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:9
+msgid "Basic"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:13
+msgid "Smart"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:20
+msgid "Product search will be performed by product name and description."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:96
+msgid "Out-of-stock products can be added to cart and ordered"
+msgstr ""
+
+#: /wa-apps/shop/templates/layouts/Backend.html:176
+msgid "Compare custom ranges..."
+msgstr ""
+
+#: /wa-apps/shop/templates/layouts/Backend.html:203
+msgid "Cohorts"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/shopFrontendCart.action.php:52
+msgid "Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/shopFrontendCartAdd.controller.php:86
+#: /wa-apps/shop/lib/actions/frontend/shopFrontendCartSave.controller.php:27
+msgid "Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/frontend/shopFrontendShipping.controller.php:106
+msgid "Not available"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/product/shopProductOrders.action.php:55
+msgid "Contact deleted: %d"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsAbtesting.action.php:73
+msgid "Add at least two variants."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsmarketingcosts.actions.php:84
+#: /wa-apps/shop/lib/actions/reports/shopReportsmarketingcosts.actions.php:89
+#: /wa-apps/shop/lib/actions/reports/shopReportsmarketingcosts.actions.php:100
+#: /wa-apps/shop/lib/actions/reports/shopReportsmarketingcosts.actions.php:107
+msgid "Incorrect format."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:188
+msgid "Sales by source"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:191
+msgid "Social"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:192
+msgid "Sales by social media"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:196
+msgid "Sales by country and region"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:200
+msgid "Sales by campaign"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:204
+msgid "Sales by shipping option"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:208
+msgid "Sales by payment method"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:212
+msgid "Sales by coupon"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:215
+msgid "Landings"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:216
+msgid "Sales by landing page"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:230
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:295
+msgid "(not defined)"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:243
+msgid "region not specified"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:64
+msgid "Oops! For some reason your contact information was lost during the checkout. Please return to the contact information checkout step to finalize your order."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutPayment.class.php:114
+msgid "Payment option is not defined. Please return to the payment selection checkout step to continue."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:440
+msgid "Shipping option is not defined. Please return to the shipping option checkout step to continue."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopDiscounts.class.php:95
+msgid "The following discounts are applicable for this order:"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopProductListAction.class.php:222
+msgid "Image"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopProductListAction.class.php:227
+msgid "Number of SKUs"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopProductListAction.class.php:232
+msgid "Number of images"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopProductListAction.class.php:242
+msgid "Last 30 days sales"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopProductListAction.class.php:247
+msgid "Number of reviews"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/config.php:66
+msgid "Round to nearest 100"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/config.php:67
+msgid "Round to nearest 99"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/config.php:68
+msgid "Round to nearest 10"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/config.php:69
+msgid "Round to nearest 1.00"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/config.php:70
+msgid "Round to nearest .99"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/config.php:71
+msgid "Round to nearest 0.1"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/config.php:72
+msgid "Round to nearest 0.01"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/data/workflow.php:213
+msgid "Contact customer"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/data/workflow.php:217
+msgid "Message was sent"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/logs.php:67
+msgid "sent a message to customer"
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopFeature.model.php:576
+msgid "Select from a list of values (select)"
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopFeature.model.php:681
+msgid "Multiple values (checkboxes)"
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopFeatureValues.model.php:249
+msgid "Data too long"
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopSales.model.php:374
+msgid "n/a"
+msgstr ""
+
+#: /wa-apps/shop/lib/updates/5.2.4/1424793293.php:14
+msgid "A message was added"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/MessageAction.html:7
+msgid "Send via"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/MessageAction.html:27
+msgid "Sender"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/MessageAction.html:47
+msgid "Message"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/MessageAction.html:50
+msgid "Send"
+msgstr ""
+
+#: /wa-apps/shop/themes/clear/checkout.confirmation.html:7
+#: /wa-apps/shop/themes/custom/checkout.confirmation.html:7
+#: /wa-apps/shop/themes/default/checkout.confirmation.html:7
+#: /wa-apps/shop/themes/facebook/checkout.confirmation.html:8
+#: /wa-apps/shop/themes/mobile/checkout.confirmation.html:7
+#: /wa-apps/shop/themes/nifty/checkout.confirmation.html:7
+#: /wa-apps/shop/themes/sidebar/checkout.confirmation.html:8
+#: /wa-apps/shop/themes/vk/checkout.confirmation.html:7
+msgid "Restart checkout"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:108
+msgid "Additional categories"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:111
+msgid "Duplicate product row under each category it belongs to"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:137
+msgid "Product descriptions"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:139
+msgid "Non-HTML product descriptions"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.import.html:140
+msgid "If checked, a &lt;br&gt; tag will be automatically added after every line of the product description."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:131
+msgid "Today"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/customers/CustomersInfo.html:133
+msgid "Last order %d day ago"
+msgid_plural "Last order %d days ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:132
+msgid "with same email found"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:136
+msgid "with same phone found"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:132
+#: /wa-apps/shop/templates/actions/order/Order.html:136
+msgid "%d more customer"
+msgid_plural "%d more customers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:25
+msgid "A/B testing in Shop-Script is a great way to compare several versions of your site content and to find out which one impacts sales the most."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:28
+msgid "The complete guide to A/B testing with Shop-Script"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:55
+msgid "Test ID"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:113
+msgid "Embed the following code to any template file or page, and add your custom content you want to split-test:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:116
+msgid "The results of A/B test will be available on the main sales reports page as soon as you get at least one paid orders after embedding this test code."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:137
+msgid "This will delete the entire A/B test and all it's results without the ability to restore this data. Delete?"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:11
+msgid "Not enough sales data to build cohort chart for the selected period."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:21
+msgid "quarters"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:52
+msgid "Stream graph"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:53
+msgid "Stacked graph"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:65
+msgid "Quarter %s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:40
+msgid "Average number of orders placed by a single customer"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:40
+msgid "Orders per customer"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:197
+msgid "No paid orders on the selected period."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:63
+msgid "Selling time is estimated based on the average monthly sales during last 90 days (%d items per month for this product)."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:9
+msgid "A/B tests results available"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:11
+msgid "Select test"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsAnalytics.html:7
+msgid "Transaction date"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsAnalytics.html:10
+msgid "Order was paid or marked as completed"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsAnalytics.html:14
+msgid "Order was created"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsAnalytics.html:17
+msgid "Orders in sales reports will be grouped by the date selected."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductrun.controller.php:651
+msgid "%d image imported with errors"
+msgid_plural "%d images imported with errors"
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderActionDelete.controller.php:9
+msgid "Unknown action"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:71
+msgid "Version %s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:86
+msgid "Add version"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:93
+msgid "New version"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:12
+#: /wa-apps/shop/templates/actions/reports/ReportsMarketingcosts.html:28
+msgid "Add expense"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:32
+msgid "Enter domain name..."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:37
+msgid "Enter UTM campaign ID..."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:63
+msgid "One-time"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:73
+msgid "Time frame"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:73
+msgid "The amount will be gradually distributed by day over the entire period, which allows you to estimate ROI more precisely."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsMarketingcosts.html:40
+msgid "No marketing expenses on the selected period"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsMarketingcosts.html:41
+msgid "Add your marketing expenses to automate ROI (Return On Investment) calculation by traffic source and campaign."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:88
+msgid "Guest checkout"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:92
+msgid "Create new customer record for every guest order"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:98
+msgid "Automatically add order to existing customer record if same email address were entered"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsCohorts.action.php:126
+msgid "Cohort"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/checkout.error.html:2
+msgid "Oops!"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendProducts.html:58
+msgid "Promos"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:68
+msgid "Next 30 days forecast"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:168
+#: /wa-apps/shop/templates/actions/products/Products.html:219
+msgid "stock net worth"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:331
+msgid "Delete all child categories"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/shopRightConfig.class.php:12
+msgid "Can manage customers"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/shopRightConfig.class.php:14
+msgid "Can manage services"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/shopRightConfig.class.php:15
+msgid "Can manage product sets, categories, and promos"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/shopRightConfig.class.php:16
+msgid "Can import and export data"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/shopRightConfig.class.php:27
+msgid "Read only"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/shopRightConfig.class.php:28
+msgid "Edit and add new products only"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/shopRightConfig.class.php:29
+msgid "Full access"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowMessageAction.class.php:108
+msgid "Order %s"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/banner.html:6
+msgid "E.g. %s"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/header.html:26
+msgid "Shop by Department"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/home.html:141
+msgid "Hot deals for %s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductOrders.html:2
+msgid "None of your customers purchased this product yet."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:44
+msgid "Based on last 90 days sales"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:44
+msgid "Forecast"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:51
+msgid "Units sold"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:170
+#: /wa-apps/shop/templates/actions/product/Product.html:186
+msgid "Available stock balance"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:177
+#: /wa-apps/shop/lib/actions/product/shopProductSave.controller.php:169
+msgid "Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in <strong>%d days</strong> (on %s)."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:2
+#: /wa-apps/shop/templates/actions/promos/PromosDefault.html:25
+msgid "New promo"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosDefault.html:18
+msgid "Promos is an efficient and super easy way to display your custom offers and specials on your online store homepage. Every promo card has a picture, a title, and a custom link."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:104
+msgid "Automated assignment of guest orders to existing customers will not work on following sites: <strong>%s</strong>. Due to privacy considerations, auto order assignment requires enabling “Confirm email on signup” option in <em>Site app > select your domain > Personal > Auth & Sign up settings</em>."
+msgstr ""
+
+#: /wa-apps/shop/themes/default/home.html:228
+msgid "Latest blog updates"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosDefault.html:8
+msgid "If you don’t see promos on your storefront homepage, you might be using an outdated version of the design theme (home.html template file). Please <a href=\"%s\" target=\"_blank\">follow this guide</a> to embed this new Shop-Script 6 feature to your online store."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:3
+msgid "Delete promo"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:17
+msgid "Promo title"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:21
+msgid "Promo subtitle"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:83
+msgid "Unable to upload file %s."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/promos/shopPromos.actions.php:130
+msgid "Select at least one storefront."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/features/shopSettingsFeaturesTypeDelete.controller.php:13
+msgid "There are products that belong to this product type. To delete this product type, you must either delete those products or assign them to another product type first."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/features/shopSettingsFeaturesTypeDelete.controller.php:19
+msgid "Can not delete product type. At least one product type must remain."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/app.php:3
+msgid "Shop"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/app.php:4
+msgid "Shop-Script is a robust shopping cart software that allows you to quickly establish your own online store and sell online."
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowCompleteAction.class.php:63
+msgid "Order %s was completed"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowCreateAction.class.php:257
+msgid "Order %s was placed"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowDeleteAction.class.php:33
+msgid "Order %s was deleted"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowEditAction.class.php:81
+msgid "Order %s was edited"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:45
+msgid "Design theme will use this color either for text labels or base background color."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:76
+msgid "Promo will be deleted from your storefronts. Delete?"
 msgstr ""

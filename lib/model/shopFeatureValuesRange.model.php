@@ -84,6 +84,17 @@ class shopFeatureValuesRangeModel extends shopFeatureValuesModel
 
         $data['end'] = (isset($value['value']['end']) && ($value['value']['end'] !== '')) ? $this->castValue('double', $value['value']['end']) : null;
         $data['end_base_unit'] = $dimensions->convert($data['end'], $data['type'], null, $data['unit']);
+
+        if (($data['end'] !== null) && ($data['begin'] !== null) && ($data['begin_base_unit'] > $data['end_base_unit'])) {
+            //swap interval values in case wrong order
+            $end = $data['begin'];
+            $data['begin'] = $data['end'];
+            $data['end'] = $end;
+
+            $end = $data['begin_base_unit'];
+            $data['begin_base_unit'] = $data['end_base_unit'];
+            $data['end_base_unit'] = $end;
+        }
         return $data;
     }
 

@@ -21,8 +21,20 @@ class shopOrderAction extends waViewAction
         }
 
         $workflow = new shopWorkflow();
-        $actions = $workflow->getStateById($order['state_id'])->getActions();
+        $actions = $workflow->getStateById($order['state_id'])->getActions($order);
         $bottom_buttons = $top_buttons = $buttons = array();
+
+        $source = 'backend';
+        if (isset($order['params']['storefront'])) {
+            if (substr($order['params']['storefront'], -1) === '/') {
+                $source = $order['params']['storefront'].'*';
+            } else {
+                $source = $order['params']['storefront'].'/*';
+            }
+        }
+        $notification_model = new shopNotificationModel();
+        $transports = $notification_model->getActionTransportsBySource($source);
+
         foreach ($actions as $action) {
             /**
              * @var shopWorkflowAction $action
@@ -32,10 +44,23 @@ class shopOrderAction extends waViewAction
             } elseif ($action->getOption('position') == 'bottom') {
                 $bottom_buttons[] = $action->getButton();
             } else {
+                $icons = array();
+                if (!empty($transports[$action->getId()]['email'])) {
+                    $icons[] = 'ss notification-bw';
+                }
+                if (!empty($transports[$action->getId()]['sms'])) {
+                    $icons[] = 'ss phone-bw';
+                }
+                if ($icons) {
+                    $action->setOption('icon', $icons);
+                }
                 $buttons[] = $action->getButton();
             }
         }
 
+        /**
+         * @var shopConfig $config
+         */
         $config = $this->getConfig();
 
         $last_action_datetime = null;
@@ -75,10 +100,28 @@ class shopOrderAction extends waViewAction
         }
         $this->view->assign('tracking', $tracking);
 
+        if (!empty($params['coupon_id'])) {
+            $coupon_model = new shopCouponModel();
+            $order['coupon'] = $coupon_model->getById($params['coupon_id']);
+        }
 
         $settings = wa('shop')->getConfig()->getCheckoutSettings();
         $form_fields = ifset($settings['contactinfo']['fields'], array());
 
+
+
+        $map_adapter = $config->getGeneralSettings('map');
+        if (!$map_adapter) {
+            $map_adapter = 'google';
+        }
+        try {
+            $map = wa()->getMap($map_adapter)->getHTML(shopHelper::getShippingAddressText($params), array(
+                'width' => '200px', 'height' => '200px', 'zoom' => 13, 'static' => true,
+            ));
+        } catch (waException $e) {
+            $map = '';
+        }
+        $this->view->assign('map', $map);
 
         $formatter = new waContactAddressSeveralLinesFormatter();
         $shipping_address = shopHelper::getOrderAddress($params, 'shipping');
@@ -86,14 +129,10 @@ class shopOrderAction extends waViewAction
         $shipping_address = $formatter->format(array('data' => $shipping_address));
         $shipping_address = $shipping_address['value'];
 
-
         if (isset($form_fields['address.billing'])) {
             $billing_address = shopHelper::getOrderAddress($params, 'billing');
             $billing_address = $formatter->format(array('data' => $billing_address));
             $billing_address = $billing_address['value'];
-            if ($billing_address === $shipping_address) {
-                $billing_address = null;
-            }
         } else {
             $billing_address = null;
         }
@@ -114,10 +153,38 @@ class shopOrderAction extends waViewAction
             }
         }
 
+        if ($this->getUser()->getRights('contacts', 'backend')) {
+            $similar_contacts = array();
+            // by email
+            $v = $customer_contact->get('email', 'default');
+            $contact_emails_model = new waContactEmailsModel();
+            $sql = 'SELECT count(*) FROM '.$contact_emails_model->getTableName().' e
+                    JOIN shop_customer c ON e.contact_id = c.contact_id
+                    WHERE e.contact_id != i:0 AND e.email = s:1';
+            $similar_contacts['email'] = array(
+                'value' => $v,
+                'count' => $contact_emails_model->query($sql, $order['contact_id'], $v)->fetchField()
+            );
+            // by phone
+            $v = $customer_contact->get('phone', 'default');
+            $contact_data_model = new waContactDataModel();
+            $sql = 'SELECT count(*) FROM '.$contact_data_model->getTableName()." d
+                    JOIN shop_customer c ON d.contact_id = c.contact_id
+                    WHERE d.contact_id != i:0 AND d.field = 'phone' AND d.value = s:1";
+            $similar_contacts['phone'] = array(
+                'value' => $v,
+                'count' => $contact_emails_model->query($sql, $order['contact_id'], $v)->fetchField()
+            );
+        } else {
+            $similar_contacts = array();
+        }
+
+
         $this->view->assign(array(
             'customer'          => $customer,
             'customer_contact'  => $customer_contact,
             'main_contact_info' => $main_contact_info,
+            'similar_contacts'  => $similar_contacts,
             'currency'          => $config->getCurrency(),
             'order'             => $order,
             'params'            => $params,
@@ -230,7 +297,7 @@ class shopOrderAction extends waViewAction
         }
         $sku_ids = array_unique($sku_ids);
         $stock_ids = array_unique($stock_ids);
-        
+
         // extend items by stocks
         $stocks = $this->getStocks($stock_ids);
         foreach ($order['items'] as &$item) {
@@ -242,14 +309,14 @@ class shopOrderAction extends waViewAction
 
         $skus = $this->getSkus($sku_ids);
         $sku_stocks = $this->getSkuStocks($sku_ids);
-        
+
         foreach ($order['items'] as &$item) {
             // product and existing sku
             if (isset($skus[$item['sku_id']])) {
                 $s = $skus[$item['sku_id']];
-                
+
                 // for that counts that lower than low_count-thresholds show icon
-                
+
                 if ($s['count'] !== null) {
                     if (isset($item['stock'])) {
                         if (isset($sku_stocks[$s['id']][$item['stock']['id']])) {
@@ -269,7 +336,7 @@ class shopOrderAction extends waViewAction
         return $order;
 
     }
-    
+
     public function getSkus($sku_ids)
     {
         if (!$sku_ids) {
@@ -278,7 +345,7 @@ class shopOrderAction extends waViewAction
         $model = new shopProductSkusModel();
         return $model->getByField('id', $sku_ids, 'id');
     }
-    
+
     public function getStocks($stock_ids)
     {
         if (!$stock_ids) {
@@ -287,7 +354,7 @@ class shopOrderAction extends waViewAction
         $model = new shopStockModel();
         return $model->getById($stock_ids);
     }
-    
+
     public function getSkuStocks($sku_ids)
     {
         if (!$sku_ids) {

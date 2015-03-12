@@ -63,7 +63,9 @@ return array(
     'order_comment' => array(
         'name' => /*_w*/('posted an order comment')
     ),
-
+    'order_message' => array(
+        'name' => /*_w*/('sent a message to customer')
+    ),
 
     'affiliate_credit' => array(
         'name' => /*_w*/('added an affiliate credit')

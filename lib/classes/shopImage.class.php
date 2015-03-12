@@ -30,7 +30,7 @@ class shopImage
 
     /**
      * Constructor of an image object.
-     * 
+     *
      * @param string $file Full path to image file
      */
     public function __construct($file)
@@ -46,7 +46,7 @@ class shopImage
 
     /**
      * Saves image to file.
-     * 
+     *
      * @param string|null $file Path to save file. If not specified, image is saved at its original path.
      * @param int|null $quality Image quality: from 1 to 100; defaults to 100.
      * @return bool Whether file was saved successfully
@@ -99,7 +99,7 @@ class shopImage
 
     /**
      * Creates thumbnails of specified sizes for a product image.
-     * 
+     *
      * @param array $image Key-value image data object
      * @param array $sizes Array of image size values; e.g., '200x0', '96x96', etc.
      * @param bool $force Whether missing image thumbnail files must be created
@@ -134,7 +134,7 @@ class shopImage
 
     /**
      * Returns image object for specified original image.
-     * 
+     *
      * @param string $src_image_path Path to original image
      * @param string $size Size value string of the form '200x0', '96x96', etc.
      * @param int|bool $max_size Optional maximum size limit
@@ -199,7 +199,7 @@ class shopImage
          * @event image_thumb
          */
         wa()->event('image_thumb', $image);
-        
+
         return $image;
     }
 
@@ -243,7 +243,7 @@ class shopImage
 
     /**
      * Returns path to product image
-     * 
+     *
      * @param array $image Key-value image data object
      * @return string
      */
@@ -254,9 +254,9 @@ class shopImage
 
     /**
      * TODO change
-     * 
+     *
      * Returns path to original product image
-     * 
+     *
      * @param array $image Key-value image data object
      * @return string
      */
@@ -266,11 +266,11 @@ class shopImage
     }
 
     /**
-     * Returns path to product image directory or individual product image file. 
-     * 
+     * Returns path to product image directory or individual product image file.
+     *
      * @param int|array $image Key-value image data object
      * @param string $size Optional size value string (e.g., '200x0', '96x96', etc.).
-     *     If specified, path to corresponding thumbnail file is returned instead of path to image sdirectory.  
+     *     If specified, path to corresponding thumbnail file is returned instead of path to image sdirectory.
      * @return string
      */
     public static function getThumbsPath($image, $size = null)
@@ -288,8 +288,8 @@ class shopImage
     }
 
     /**
-     * Returns URL of a product image. 
-     * 
+     * Returns URL of a product image.
+     *
      * @param array $image Key-value image data object
      * @param string $size Size value string (e.g., '200x0', '96x96', etc.)
      * @param bool $absolute Whether absolute URL must be returned
@@ -297,6 +297,9 @@ class shopImage
      */
     public static function getUrl($image, $size = null, $absolute = false)
     {
+        if (!$size) {
+            $size = wa('shop')->getConfig()->getImageSize('default');
+        }
         $path = shopProduct::getFolder($image['product_id'])."/{$image['product_id']}/images/{$image['id']}/{$image['id']}.{$size}.{$image['ext']}";
 
         if (waSystemConfig::systemOption('mod_rewrite')) {

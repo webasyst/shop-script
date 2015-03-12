@@ -55,6 +55,40 @@ class shopAffiliateTransactionModel extends waModel
 
         $sql = 'UPDATE shop_customer SET affiliate_bonus=? WHERE contact_id=?';
         $this->query($sql, $old_balance + $amount, $contact_id);
+
+        // Write to order log
+        if ($order_id) {
+            $order_model = new shopOrderModel();
+            $order = $order_model->getById($order_id);
+            if ($order) {
+
+                $contact_name = 'contact_id='.$contact_id;
+                try {
+                    $c = new waContact($contact_id);
+                    $contact_name = htmlspecialchars($c->getName());
+                } catch (Exception $e) {}
+
+                if ($amount > 0) {
+                    $text = sprintf_wp('Affiliate balance of %1$s is increased by amount %2$s', $contact_name, $amount);
+                } else {
+                    $text = sprintf_wp('Affiliate balance of %1$s is decreased by amount %2$s', $contact_name, -$amount);
+                }
+
+                if ($comment) {
+                    $text .= ' ('.$comment.')';
+                }
+
+                $order_log_model = new shopOrderLogModel();
+                $order_log_model->add(array(
+                    'order_id' => $order_id,
+                    'contact_id' => $contact_id,
+                    'before_state_id' => $order['state_id'],
+                    'after_state_id' => $order['state_id'],
+                    'text' => $text,
+                    'action_id' => '',
+                ));
+            }
+        }
     }
 
     public function getLast($contact_id, $order_id)

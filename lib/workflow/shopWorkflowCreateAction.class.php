@@ -2,6 +2,64 @@
 
 class shopWorkflowCreateAction extends shopWorkflowAction
 {
+
+    /**
+     * @param array $data
+     * @return waContact
+     */
+    protected function getContact($data)
+    {
+        if (isset($data['contact'])) {
+            if (is_numeric($data['contact'])) {
+                return new waContact($data['contact']);
+            } else {
+                /**
+                 * @var waContact $contact
+                 */
+                $contact = $data['contact'];
+                if (!$contact->getId()) {
+                    /**
+                     * @var shopConfig $shop_config
+                     */
+                    $shop_config = wa('shop')->getConfig();
+                    $auth_config = wa()->getAuthConfig();
+                    if (!empty($auth_config['params']['confirm_email']) &&
+                        $shop_config->getGeneralSettings('guest_checkout') == 'merge_email' &&
+                        $contact->get('email', 'default')) {
+                        // try find exists contact by email
+                        $contact_emails_model = new waContactEmailsModel();
+                        $contact_id = $contact_emails_model->getMainContactMyEmail($contact->get('email', 'default'));
+                        if ($contact_id) {
+                            $contact_data = $contact->load();
+                            $contact = new waContact($contact_id);
+                            foreach ($contact_data as $k => $v) {
+                                $contact->set($k, $v);
+                            }
+                        }
+                        $contact->save();
+                    } else {
+                        // create new contact
+                        $contact->save();
+                    }
+                    // if user has been created
+                    if ($contact['password']) {
+                        $signup_action = new shopSignupAction();
+                        $signup_action->send($contact);
+
+                        /**
+                         * @event signup
+                         * @param waContact $contact
+                         */
+                        wa()->event('signup', $contact);
+                    }
+                }
+                return $contact;
+            }
+        } else {
+            return wa()->getUser();
+        }
+    }
+
     public function execute($data = null)
     {
         if (wa()->getEnv() == 'frontend') {
@@ -36,39 +94,19 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                 }
             }
         }
-
-        $currency = wa()->getConfig()->getCurrency(false);
+        if (!empty($data['currency'])) {
+            $currency = $data['currency'];
+        } else {
+            $currency = wa('shop')->getConfig()->getCurrency(false);
+        }
         $rate_model = new shopCurrencyModel();
         $row = $rate_model->getById($currency);
         $rate = $row['rate'];
 
         // Save contact
-        if (isset($data['contact'])) {
-            if (is_numeric($data['contact'])) {
-                $contact = new waContact($data['contact']);
-            } else {
-                /**
-                 * @var waContact $contact
-                 */
-                $contact = $data['contact'];
-                if (!$contact->getId()) {
-                    $contact->save();
-                    // if user has been created
-                    if ($contact['password']) {
-                        $signup_action = new shopSignupAction();
-                        $signup_action->send($contact);
-                        /**
-                         * @event signup
-                         * @param waContact $contact
-                         */
-                        wa()->event('signup', $contact);                        
-                    }
-                }
-            }
-        } else {
-            $data['contact'] = $contact = wa()->getUser();
-        }
+        $contact = $this->getContact($data);
 
+        // Calculate subtotal, taking currency convertion into account
         $subtotal = 0;
         foreach ($data['items'] as &$item) {
             if ($currency != $item['currency']) {
@@ -82,11 +120,16 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         }
         unset($item);
 
+        // Calculate discount, unless already set
         if ($data['discount'] === '') {
             $data['total'] = $subtotal;
-            $data['discount'] = shopDiscounts::apply($data);
+            $data['discount_description'] = null;
+            $data['discount'] = shopDiscounts::apply($data, $data['discount_description']);
+        } else if (empty($data['discount_description']) && !empty($data['discount'])) {
+            $data['discount_description'] = sprintf_wp('Discount specified manually during order creation: %s', shop_currency($data['discount'], $currency, $currency));
         }
 
+        // Calculate taxes
         $shipping_address = $contact->getFirst('address.shipping');
         if (!$shipping_address) {
             $shipping_address = $contact->getFirst('address');
@@ -132,7 +175,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
 
         // Create record in shop_customer, or update existing record
         $scm = new shopCustomerModel();
-        $scm->updateFromNewOrder($order['contact_id'], $order_id);
+        $scm->updateFromNewOrder($order['contact_id'], $order_id, ifset($data['params']['referer_host']));
 
         // save items
         $items_model = new shopOrderItemsModel();
@@ -158,9 +201,22 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         $params_model = new shopOrderParamsModel();
         $params_model->set($order_id, $data['params']);
 
+        // Write discounts description to order log
+        if (!empty($data['discount_description']) && !empty($data['discount'])) {
+            $order_log_model = new shopOrderLogModel();
+            $order_log_model->add(array(
+                'order_id' => $order_id,
+                'contact_id' => $order['contact_id'],
+                'before_state_id' => $order['state_id'],
+                'after_state_id' => $order['state_id'],
+                'text' => $data['discount_description'],
+                'action_id' => '',
+            ));
+        }
+
         $log_model = new waLogModel();
         $log_model->add('order_create', $order_id, null, $order['contact_id']);
-        
+
         return array(
             'order_id' => $order_id,
             'contact_id' => wa()->getEnv() == 'frontend' ? $contact->getId() : wa()->getUser()->getId()
@@ -204,7 +260,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             // for logging changes in stocks
             shopProductStocksLogModel::setContext(
                 shopProductStocksLogModel::TYPE_ORDER,
-                'Order %s was placed',
+                /*_w*/('Order %s was placed'),
                 array(
                     'order_id' => $order_id
                 )
@@ -213,7 +269,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
 
             shopProductStocksLogModel::clearContext();
         }
-        
+
         return $order_id;
     }
 

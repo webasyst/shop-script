@@ -6,22 +6,49 @@ class shopCartItemsModel extends waModel
 
     public function total($code)
     {
-        $sql = "SELECT SUM(s.primary_price * c.quantity) FROM ".$this->table." c
-                JOIN shop_product_skus s ON c.sku_id = s.id
-                WHERE c.code = s:code AND type = 'product'";
-        $products_total = $this->query($sql, array('code' => $code))->fetchField();
+        $products_total = $this->getProductsTotal($code);
+        $services_total = $this->getServicesTotal($code);
+        return (float) ($products_total + $services_total);
+    }
 
-        $services_total = 0;
-        $sql = "SELECT c.*, s.price, s.currency FROM ".$this->table." c JOIN
-        shop_service s ON c.service_id = s.id WHERE c.code = s:code AND type = 'service'";
+    // Helper for total()
+    // Products total in frontend currency
+    protected function getProductsTotal($code)
+    {
+        $sql = "SELECT c.quantity, s.*
+                FROM ".$this->table." c
+                    JOIN shop_product_skus s ON c.sku_id = s.id
+                WHERE c.code = s:code
+                    AND type = 'product'";
+
+        $skus = $this->query($sql, array('code' => $code))->fetchAll('id');
+        shopRounding::roundSkus($skus);
+        $products_total = 0.0;
+        foreach($skus as $s) {
+            $products_total += $s['frontend_price'] * $s['quantity'];
+        }
+        return $products_total;
+    }
+
+    // Helper for total()
+    // Services total in frontend currency
+    protected function getServicesTotal($code)
+    {
+        $sql = "SELECT c.*, s.currency
+                FROM ".$this->table." c
+                    JOIN shop_service s
+                        ON c.service_id = s.id
+                WHERE c.code = s:code
+                    AND type = 'service'";
         $services = $this->query($sql, array('code' => $code))->fetchAll();
         if (!$services) {
-            return shop_currency($products_total, wa('shop')->getConfig()->getCurrency(true), null, false);
+            return 0.0;
         }
 
+        $sku_ids = array();
         $variant_ids = array();
         $product_ids = array();
-        $sku_ids = array();
+        $service_stubs = array();
         foreach ($services as $s) {
             if ($s['service_variant_id']) {
                 $variant_ids[] = $s['service_variant_id'];
@@ -30,25 +57,44 @@ class shopCartItemsModel extends waModel
             if ($s['currency'] == '%') {
                 $sku_ids[] = $s['sku_id'];
             }
+
+            $service_stubs[$s['service_id']] = array(
+                'id' => $s['service_id'],
+                'currency' => $s['currency'],
+            );
         }
         $variant_ids = array_unique($variant_ids);
         $product_ids = array_unique($product_ids);
         $sku_ids = array_unique($sku_ids);
 
         // get variant settings
+        $rounding_enabled = shopRounding::isEnabled();
         $variants_model = new shopServiceVariantsModel();
         $variants = $variants_model->getWithPrice($variant_ids);
+        $rounding_enabled && shopRounding::roundServiceVariants($variants, $service_stubs);
+
         // get products/skus settings
         $product_services_model = new shopProductServicesModel();
         $products_services = $product_services_model->getByProducts($product_ids, true);
 
+        // fetch product prices to calculate %-based service prices
+        $sku_prices = array();
         if ($sku_ids) {
             $sku_model = new shopProductSkusModel();
-            $sku_prices = $sku_model->getPrices($sku_ids);
+            $skus = $sku_model->getByField(array('id' => $sku_ids), 'id');
+            if ($rounding_enabled) {
+                shopRounding::roundSkus($skus);
+            }
+            $sku_prices = array();
+            foreach($skus as $s) {
+                $sku_prices[$s['id']] = $s['primary_price'];
+            }
         }
 
         $primary = wa('shop')->getConfig()->getCurrency();
 
+        // Calculate total amount for all services
+        $services_total = 0;
         foreach ($services as $s) {
             $p_id = $s['product_id'];
             $sku_id = $s['sku_id'];
@@ -60,11 +106,12 @@ class shopCartItemsModel extends waModel
 
             // price variant for sku
             if (!empty($p_services['skus'][$sku_id][$s_id]['variants'][$v_id]['price'])) {
+                shopRounding::roundServiceVariants($p_services['skus'][$sku_id][$s_id]['variants'], array(array('id' => $s['service_id'], 'currency' => $s['currency'])));
                 $s['price'] = $p_services['skus'][$sku_id][$s_id]['variants'][$v_id]['price'];
             }
 
             if ($s['currency'] == '%') {
-                $s['price'] = $s['price'] * $sku_prices[$sku_id] / 100;
+                $s['price'] = $s['price'] * $sku_prices[$sku_id] / 100; // !!! This is not primary currency. Good thing is that this is actually never used in real life...
             } else {
                 $s['price'] = shop_currency($s['price'], $variants[$v_id]['currency'], $primary, false);
             }
@@ -72,14 +119,7 @@ class shopCartItemsModel extends waModel
             $services_total += $s['price'] * $s['quantity'];
         }
 
-        $total = $products_total + $services_total;
-
-        $currency = wa('shop')->getConfig()->getCurrency(false);
-        if ($currency != $primary) {
-            $currencies = wa('shop')->getConfig()->getCurrencies(array($currency));
-            $total = $total / $currencies[$currency]['rate'];
-        }
-        return (float)$total;
+        return (float) shop_currency($services_total, null, null, false);
     }
 
     public function count($code, $type = null)
@@ -103,7 +143,6 @@ class shopCartItemsModel extends waModel
         ))->fetchField();
 
     }
-
 
     public function getItemByProductAndServices($code, $product_id, $sku_id, $services)
     {
@@ -157,6 +196,8 @@ class shopCartItemsModel extends waModel
         $items = $this->query($sql, $code)->fetchAll('id');
 
         if ($full_info) {
+            $rounding_enabled = shopRounding::isEnabled();
+
             $product_ids = $sku_ids = $service_ids = $variant_ids = array();
             foreach ($items as $item) {
                 $product_ids[] = $item['product_id'];
@@ -171,18 +212,23 @@ class shopCartItemsModel extends waModel
 
             $product_model = new shopProductModel();
             $products = $product_model->getByField('id', $product_ids, 'id');
+            $rounding_enabled && shopRounding::roundProducts($products);
 
             $sku_model = new shopProductSkusModel();
             $skus = $sku_model->getByField('id', $sku_ids, 'id');
+            $rounding_enabled && shopRounding::roundSkus($skus, $products);
 
             $service_model = new shopServiceModel();
             $services = $service_model->getByField('id', $service_ids, 'id');
+            $rounding_enabled && shopRounding::roundServices($services);
 
             $service_variants_model = new shopServiceVariantsModel();
             $variants = $service_variants_model->getByField('id', $variant_ids, 'id');
+            $rounding_enabled && shopRounding::roundServiceVariants($variants, $services);
 
             $product_services_model = new shopProductServicesModel();
             $rows = $product_services_model->getByProducts($product_ids);
+            $rounding_enabled && shopRounding::roundServiceVariants($rows, $services);
 
             $product_services = $sku_services = array();
             foreach ($rows as $row) {
@@ -198,6 +244,7 @@ class shopCartItemsModel extends waModel
                 }
             }
 
+            $image_model = null;
             foreach ($items as $item_key => &$item) {
                 if ($item['type'] == 'product' && isset($products[$item['product_id']])) {
                     $item['product'] = $products[$item['product_id']];
@@ -206,6 +253,17 @@ class shopCartItemsModel extends waModel
                         continue;
                     }
                     $sku = $skus[$item['sku_id']];
+
+                    // Use SKU image instead of product image if specified
+                    if ($sku['image_id'] && $sku['image_id'] != $item['product']['image_id']) {
+                        $image_model || ($image_model = new shopProductImagesModel());
+                        $img = $image_model->getById($sku['image_id']);
+                        if ($img) {
+                            $item['product']['image_id'] = $sku['image_id'];
+                            $item['product']['ext'] = $img['ext'];
+                        }
+                    }
+
                     $item['sku_code'] = $sku['sku'];
                     $item['purchase_price'] = $sku['purchase_price'];
                     $item['sku_name'] = $sku['name'];
@@ -243,6 +301,7 @@ class shopCartItemsModel extends waModel
             }
             unset($item);
         }
+
         // sort
         foreach ($items as $item_id => $item) {
             if ($item['parent_id']) {
@@ -271,10 +330,27 @@ class shopCartItemsModel extends waModel
 
     public function getItem($code, $id)
     {
-        $sql = "SELECT c.*, p.currency, s.price FROM ".$this->table." c
-        JOIN shop_product p ON c.product_id = p.id JOIN shop_product_skus s ON c.sku_id = s.id
-        WHERE c.code = s:code AND c.id = i:id";
-        return $this->query($sql, array('code' => $code, 'id' => $id))->fetch();
+        $sql = "SELECT c.*, p.currency, s.price
+                FROM ".$this->table." c
+                    JOIN shop_product p
+                        ON c.product_id = p.id
+                    JOIN shop_product_skus s
+                        ON c.sku_id = s.id
+                WHERE c.code = s:code
+                    AND c.id = i:id";
+        $result = $this->query($sql, array('code' => $code, 'id' => $id))->fetchAssoc();
+        if ($result) {
+            $result['unconverted_price'] = $result['price'];
+            $result['unconverted_currency'] = $result['currency'];
+            if ($result['price'] && shopRounding::isEnabled()) {
+                $frontend_currency = wa('shop')->getConfig()->getCurrency(false);
+                if ($frontend_currency != $result['currency']) {
+                    $result['currency'] = $frontend_currency;
+                    $result['price'] = shopRounding::roundCurrency(shop_currency($result['unconverted_price'], $result['unconverted_currency'], $frontend_currency, false), $frontend_currency);
+                }
+            }
+        }
+        return $result;
     }
 
     public function getNotAvailableProducts($code, $check_count)

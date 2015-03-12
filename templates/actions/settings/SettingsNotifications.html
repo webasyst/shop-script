@@ -6,7 +6,7 @@
     <div class="s-inner-sidebar">
         <ul class="menu-v stack with-icons" id="notifications">
             {foreach $notifications as $n}
-            <li id="notification-{$n.id}">
+            <li id="notification-{$n.id}"{if !$n.status} class="gray"{/if}>
                 <a href="#/notifications/{$n.id}/">
                     <i class="icon16 {$transports[$n.transport].icon}"></i>{$n.name}
                 </a>

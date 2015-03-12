@@ -12,7 +12,18 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
             throw new waException('Product not found', 404);
         }
 
-        $product = new shopProduct($product);
+        $product = new shopProduct($product, true);
+        $this->prepareProduct($product);
+
+        // get services
+        list($services, $skus_services) = $this->getServiceVars($product);
+        $this->view->assign('sku_services', $skus_services);
+        $this->view->assign('services', $services);
+
+        $stock_model = new shopStockModel();
+        $this->view->assign('stocks', $stock_model->getAll('id'));
+
+        $this->view->assign('currency_info', $this->getCurrencyInfo());
 
         $this->getBreadcrumbs($product, true);
 
@@ -39,6 +50,14 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
 
         $this->view->assign('current_auth_source', $current_auth_source);
         $this->view->assign('current_auth', $current_auth, true);
+
+        $meta_fields = $this->getMetafields($product);
+        $title = $meta_fields['meta_title'] ? $meta_fields['meta_title'] : $product['name'];
+        $title = sprintf_wp('%s reviews', $title);
+        $meta_fields['meta_keywords'] && ($meta_fields['meta_keywords'] = $meta_fields['meta_keywords'].', '._w("Reviews"));
+        wa()->getResponse()->setTitle($title);
+        wa()->getResponse()->setMeta('keywords', $meta_fields['meta_keywords']);
+        wa()->getResponse()->setMeta('description', $meta_fields['meta_description']);
 
         /**
          * @event frontend_product

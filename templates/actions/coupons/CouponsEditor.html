@@ -111,7 +111,7 @@
                     {foreach $orders as $o}
                         <tr>
                             <td>
-                                <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/" style="{$o.style|escape}">
+                                <a href="?action=orders#/order/{$o.id}/state_id={$o.state_id}/" style="{$o.style|escape}">
                                     <i class="{$o.icon}"></i>
                                     {$wa->shop->orderId($o.id)}
                                 </a>

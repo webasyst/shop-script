@@ -101,13 +101,7 @@
             <div class="field-group">
                 <div class="field">
                     <div class="name">[`Reviews`]</div>
-                    <div class="value no-shift">
-                        <label>
-                            <input type="checkbox" name="require_captcha" {if $require_captcha == '1'}checked="checked"{/if} value="1">
-                            [`Protect product review form with CAPTCHA`]
-                        </label>
-                    </div>
-                    <div class="value">
+                    <div id="setting-require-auth" class="value no-shift">
                         <label>
                             <input type="checkbox" name="require_authorization" {if $require_authorization == '1'}checked="checked"{/if} value="1">
                             [`Only authorized users can post reviews`]
@@ -118,8 +112,28 @@
                             </p>
                         </label>
                     </div>
+                    <div id="setting-require-captcha" class="value no-shift">
+                        <label>
+                            <input type="checkbox" name="require_captcha" {if $require_captcha == '1'}checked="checked"{/if} value="1">
+                            [`Protect product review form with CAPTCHA`]
+                        </label>
+                    </div>
                 </div>
             </div>
+            {if !empty($map_adapters) && count($map_adapters) > 1}
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">[`Maps`]</div>
+                    {foreach $map_adapters as $a}
+                    <div class="value no-shift">
+                        <label>
+                            <input type="radio" name="map" {if ifset($map, 'google') == $a->getId()}checked{/if} value="{$a->getId()}"> {$a->getName()}
+                        </label>
+                    </div>
+                    {/foreach}
+                </div>
+            </div>
+            {/if}
             <div class="field-group">
                 <div class="field">
                     <div class="name">[`SMS`]</div>
@@ -153,16 +167,19 @@
                             {/if}
                             {/foreach}
                         </div>
-                        <div class="value no-shift small">
-                            <br>
-                            {sprintf('[`Once gateway is setup, add new and edit existing SMS notifications using the <a href="%s">Notifications</a> settings screen.`]', '#/notifications/')}
-                            <br>
-                            {sprintf('[`For details <a href="%s" target="_blank">see documentation</a>.`]', '[`http://www.webasyst.com/help/1061/shop-script-5-sms-setup/`]')}
+                        <div class="value no-shift">
+                            <p class="small">
+                                {sprintf('[`Once gateway is setup, add new and edit existing SMS notifications using the <a href="%s">Notifications</a> settings screen.`]', '#/notifications/')}
+                                <br>
+                                {sprintf('[`<a href="%s" target="_blank">See documentation</a> for details.`]', '[`http://www.webasyst.com/help/1061/shop-script-5-sms-setup/`]')}
+                            </p>
                         </div>
                         {/foreach}
                     {else}
                         <div class="value no-shift">
-                            {sprintf('[`To enable SMS message sending, install and configure sending module for your preferred SMS gateway.<br /> Browse for SMS gateway modules <a href="%s">in the Installer app</a>.`]', $wa_backend_url|cat:'installer/#/plugins/wa-plugins/sms/')}
+                            <p>
+                                {sprintf('[`To enable SMS message sending, install and configure sending plugin for your preferred SMS gateway.<br /> <a href="%s">Browse for SMS gateway plugins</a> in Installer app.`]', $wa_backend_url|cat:'installer/#/plugins/wa-plugins/sms/')}
+                            </p>
                         </div>
                     {/if}
                 </div>
@@ -180,6 +197,15 @@
 </div>
 <script type="text/javascript">
 
+
+    $('#setting-require-auth input').change(function () {
+       if ($(this).is(':checked')) {
+           $('#setting-require-captcha').slideUp(200);
+       } else {
+           $('#setting-require-captcha').slideDown(200);
+       }
+    }).change();
+
     $('input[name="workhours_type"]').change(function () {
        if ($(this).val() == '1') {
            $('#workhours-div').show();
@@ -192,7 +218,7 @@
     document.title = '{"[`General settings`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     form.submit(function() {
         var self = $(this);
-        form.find(':submit').after('<span class="s-mgs-after-button"><i class="icon16 loading"></i></span>');
+        form.find(':submit').after('<span class="s-msg-after-button"><i class="icon16 loading"></i></span>');
         $.post(self.attr('action'), self.serialize(), function(r) {
             $('#s-settings-content').html(r);
         });
@@ -201,7 +227,7 @@
 
     {if $wa->post('name')}
         form.find(':submit').after(
-            $('<span class="s-mgs-after-button"><i class="icon16 yes"></i>'+"[`Saved`]"+'</span>').animate({ opacity: 0 }, 1500, function() {
+            $('<span class="s-msg-after-button"><i class="icon16 yes"></i></span>').animate({ opacity: 0 }, 1500, function() {
                 $(this).remove();
             })
         );

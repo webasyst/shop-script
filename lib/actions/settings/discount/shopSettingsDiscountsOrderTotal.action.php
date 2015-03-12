@@ -56,7 +56,7 @@ class shopSettingsDiscountsOrderTotalAction extends waViewAction
 
         $this->view->assign('rates', $rates);
         $this->view->assign('enabled', $enabled);
-        $this->view->assign('def_cur_sym', ifset($def_cur['sign'], wa()->getConfig()->getCurrency()));
+        $this->view->assign('def_cur_sym', ifset($def_cur['sign_html'], ifset($def_cur['sign'], wa()->getConfig()->getCurrency())));
     }
 }
 

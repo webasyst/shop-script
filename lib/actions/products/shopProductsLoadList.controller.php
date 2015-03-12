@@ -9,7 +9,9 @@ class shopProductsLoadListController extends shopProductListAction
         $total_count = waRequest::get('total_count', 0, waRequest::TYPE_INT);
         $products_per_page = $config->getOption('products_per_page');
 
-        $products = $this->collection->getProducts('*, image', $offset, $products_per_page);
+        $columns = self::getEnabledColumns();
+        $columns[] = 'image';
+        $products = $this->collection->getProducts('*,'.join(',', $columns), $offset, $products_per_page);
         $this->workupProducts($products);
 
         $count = count($products);
@@ -34,5 +36,14 @@ class shopProductsLoadListController extends shopProductListAction
         $data = parent::preAssign($data);
         echo json_encode(array('status' => 'ok', 'data' => $data));
         exit;
+    }
+
+    protected static function getEnabledColumns()
+    {
+        $cols = waRequest::request('additional_columns', '', 'string');
+        if (!$cols) {
+            return array();
+        }
+        return explode(',', $cols);
     }
 }

@@ -8,7 +8,7 @@
             </li>
             {foreach $plugins as $p}
             <li>
-                <a href="#/affiliate/{$p.id}/" data-url="{$p.url}"><i class="icon16 {if !isset($p.img)} plugins{else}" style="background-image: url('{$wa_url}{$p.img}');{/if}"></i>{$p.name}</a>
+                <a href="#/affiliate/{$p.id}/" data-url="{$p.url}"><i class="icon16 {if !isset($p.img)} plugins{else}" style="background-image: url('{$wa_url}{$p.img}'); background-size: 16px 16px;{/if}"></i>{$p.name}</a>
             </li>
             {/foreach}
         </ul>
@@ -140,7 +140,7 @@
     // Submit via XHR
     form.submit(function() {
         var self = $(this);
-        form.find(':submit').after('<span class="s-mgs-after-button"><i class="icon16 loading"></i></span>');
+        form.find(':submit').after('<span class="s-msg-after-button"><i class="icon16 loading"></i></span>');
         $.post(self.attr('action'), self.serialize(), function(r) {
             $('#s-settings-content').html(r);
         });
@@ -181,7 +181,7 @@
     // "Saved successfully" message
     {if waRequest::post()}
         form.find(':submit').after(
-            $('<span class="s-mgs-after-button"><i class="icon16 yes"></i>'+"[`Saved`]"+'</span>').animate({ opacity: 0 }, 1500, function() {
+            $('<span class="s-msg-after-button"><i class="icon16 yes"></i></span>').animate({ opacity: 0 }, 1500, function() {
                 $(this).remove();
             })
         );
