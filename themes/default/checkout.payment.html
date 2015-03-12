@@ -33,5 +33,8 @@
     <!-- plugin hook: 'frontend_checkout' -->
     {* @event frontend_checkout.%plugin_id% *}
     {foreach $frontend_checkout as $_}{$_}{/foreach}
-    
+
+    {if !empty($error)}
+    <div class="checkout-result error">{$error}</div>
+    {/if}
 </div>

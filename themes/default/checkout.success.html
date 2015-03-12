@@ -3,9 +3,11 @@
 </style>
 
 <div class="checkout-result success">
-    <h1>[`Thank you!`]</h1>
-    <p>[`We successfully accepted your order, and will contact you asap.`]<br />
-    [`Your order number is `] <strong>{$order.id}</strong>.</p>
+    <div class="welcome">
+        <h1>[`Thank you!`]</h1>
+        <p>[`We successfully accepted your order, and will contact you asap.`]<br />
+        [`Your order number is `] <strong>{$order.id}</strong>.</p>
+    </div>
     
     {if !empty($payment)}
         <div class="plugin">
