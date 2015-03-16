@@ -140,7 +140,7 @@ class shopPromosActions extends waViewActions
                 }
 
                 // save image
-                $filepath = wa('shop')->getDataPath('promos/'.$id.'.'.$file_info['extension']);
+                $filepath = wa('shop')->getDataPath('promos/'.$id.'.'.$file_info['extension'], true);
                 @rename($file_info['filepath'], $filepath);
                 $this->clearUpload();
 
