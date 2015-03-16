@@ -713,7 +713,7 @@ class shopHelper
 
     public static function getPromoImageUrl($id, $ext)
     {
-        return wa('shop')->getDataUrl('promos/'.$id.'.'.$ext);
+        return wa('shop')->getDataUrl('promos/'.$id.'.'.$ext, true);
     }
 }
 
