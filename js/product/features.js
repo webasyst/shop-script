@@ -41,6 +41,7 @@ $.product = $.extend(true, $.product, {
 
     editTabFeaturesAction: function (path) {
         for (var field in this.features_values) {
+            //noinspection JSUnfilteredForInLoop
             var value = this.features_values[field];
             if (typeof(value) == 'object') {
                 if ((typeof(value.indexOf) !== 'function') && (typeof(value.value) != 'undefined')) {

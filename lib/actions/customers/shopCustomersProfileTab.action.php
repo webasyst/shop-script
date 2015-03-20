@@ -13,7 +13,6 @@ class shopCustomersProfileTabAction extends waViewAction
         $contact->getName();
 
         // Customer orders
-        $im = new shopOrderItemsModel();
         $orders_collection = new shopOrdersCollection('search/contact_id='.$id);
         $orders = $orders_collection->getOrders('*,items,params', 0, 500);
         shopHelper::workupOrders($orders);

@@ -1325,11 +1325,14 @@ editClick:(function ($) {
 
             // select last static category on create new product
             if (path.id == 'new') {
-                if ($.product_list && $.isArray($.product_list.collection_hash) &&
-                    $.product_list.collection_hash[0] == 'category') {
-                    main_tab_content.find('select.s-product-categories').val(
-                        $.product_list.collection_hash[1]
-                    );
+                if ($.product_list && $.isArray($.product_list.collection_hash)) {
+                    if ($.product_list.collection_hash[0] == 'category') {
+                        main_tab_content.find('select.s-product-categories').val(
+                            $.product_list.collection_hash[1]
+                        );
+                    } else if ($.product_list.collection_hash[0] == 'set') {
+                        main_tab_content.find('.add-set-button').click().closest('.field').find('select:first').val($.product_list.collection_hash[1]);
+                    }
                 }
             }
 

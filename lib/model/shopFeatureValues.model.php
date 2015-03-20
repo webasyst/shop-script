@@ -99,6 +99,11 @@ SQL;
         return $row['value'];
     }
 
+    /**
+     * @param $row
+     * @param $data
+     * @return bool|array
+     */
     protected function isChanged($row, $data)
     {
         return false;

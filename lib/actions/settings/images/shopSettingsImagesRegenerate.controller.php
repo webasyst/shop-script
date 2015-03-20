@@ -102,8 +102,7 @@ class shopSettingsImagesRegenerateController extends waLongActionController
             _w('Updated %d product image.', 'Updated %d product images.', $this->data['image_count']).
             ' '.
             _w('%d product affected.', '%d products affected.', $this->data['product_count']);
-        
-        $interval = 0;
+
         if (!empty($this->data['timestamp'])) {
             $interval = time() - $this->data['timestamp'];
             $interval = sprintf(_w('%02d hr %02d min %02d sec'), floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);

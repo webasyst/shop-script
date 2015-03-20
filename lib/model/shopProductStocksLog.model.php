@@ -262,7 +262,7 @@ class shopProductStocksLogModel extends waModel {
                 $data['order_id'] = self::$params['order_id'];
             }
         }
-        parent::insert($data, $type);
+        return parent::insert($data, $type);
     }
 
 }

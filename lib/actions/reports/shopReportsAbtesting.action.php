@@ -4,6 +4,8 @@ class shopReportsAbtestingAction extends waViewAction
 {
     public function execute()
     {
+        shopReportsSalesAction::jsRedirectIfDisabled();
+
         $abtest_variants_model = new shopAbtestVariantsModel();
         $abtest_model = new shopAbtestModel();
         $tests = $abtest_model->getTests();
@@ -103,7 +105,7 @@ class shopReportsAbtestingAction extends waViewAction
                 }
             }
 
-            $test = $data;
+            $test = $data + $test;
             $test['id'] = $id;
             if (!$errors) {
                 $tests[$id] = $test;
@@ -122,6 +124,7 @@ class shopReportsAbtestingAction extends waViewAction
         }
 
         $this->view->assign(array(
+            'stats' => $this->getStats($test),
             'menu_types' => shopReportsSalesAction::getMenuTypes(),
             'smarty_code' => self::getSmartyCode($id, $variants),
             'variants_create' => $variants_create,
@@ -130,6 +133,27 @@ class shopReportsAbtestingAction extends waViewAction
             'tests' => $tests,
             'test' => $test,
         ));
+    }
+
+    protected function getStats($test)
+    {
+        $result = array(
+            'orders_count' => 0,
+            'orders_total' => 0,
+            'date_min' => null,
+            'date_max' => null,
+        );
+        if ($test['id']) {
+            $sql = "SELECT count(*) AS orders_count, SUM(o.total*o.rate) AS orders_total, MIN(o.paid_date) AS date_min, MAX(DATE(o.create_datetime)) AS date_max
+                    FROM shop_order_params AS op
+                        JOIN shop_order AS o
+                            ON op.order_id=o.id
+                    WHERE op.name='abt{$test['id']}'
+                        AND o.paid_date IS NOT NULL";
+            $result = wao(new waModel())->query($sql)->fetchAssoc();
+            $result['orders_total'] = ifempty($result['orders_total'], 0);
+        }
+        return $result;
     }
 
     protected static function getSmartyCode($id, $variants)

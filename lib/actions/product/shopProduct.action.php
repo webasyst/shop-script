@@ -227,6 +227,16 @@ class shopProductAction extends waViewAction
             )
         );
         $this->view->assign('stocks_log', $stocks_log);
+
+        $sm = new shopSetModel();
+        $sets = array();
+        foreach($sm->getAll() as $row) {
+            if (!$row['type']) {
+                $sets[$row['id']] = $row;
+            }
+        }
+        $this->view->assign('sets', $sets);
+
         $spm = new shopSetProductsModel();
         $this->view->assign('product_sets', $spm->getByProduct($product->id));
     }

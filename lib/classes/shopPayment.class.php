@@ -139,6 +139,9 @@ class shopPayment extends waAppPayment
      * @param string|array $order order ID or order data
      * @param waPayment $payment_plugin
      * @return waOrder
+     * @throws waException
+     *
+     * @todo: $payment_plugin param
      */
     public static function getOrderData($order, $payment_plugin = null)
     {
@@ -167,17 +170,48 @@ class shopPayment extends waAppPayment
             $order['params'] = $order_params_model->get($order['id']);
         }
         $convert = false;
-        if ($payment_plugin && (method_exists($payment_plugin, 'allowedCurrency'))) {
+        if ($payment_plugin && is_object($payment_plugin) && (method_exists($payment_plugin, 'allowedCurrency'))) {
             $currency = $payment_plugin->allowedCurrency();
             $total = $order['total'];
             $currency_id = $order['currency'];
             if ($currency !== true) {
                 $currency = (array)$currency;
+
+
                 if (!in_array($order['currency'], $currency)) {
+                    $config = wa('shop')->getConfig();
+                    /**
+                     * @var shopConfig $config
+                     */
+                    $currencies = $config->getCurrencies();
+                    $currency = array_intersect($currency, array_keys($currencies));
+                    if (!$currency) {
+                        $message = _w('Payment procedure cannot be processed because required currency %s is not defined in your store settings.');
+                        throw new waException(sprintf($message, implode(', ', $currencies)));
+                    }
+
                     $convert = true;
                     $total = shop_currency($total, $order['currency'], $currency_id = reset($currency), false);
-
                 }
+            }
+        } elseif ($payment_plugin) {
+            $total = $order['total'];
+            $currency_id = $order['currency'];
+
+            $currency = (array)$payment_plugin;
+            if (!in_array($order['currency'], $currency)) {
+                $config = wa('shop')->getConfig();
+                /**
+                 * @var shopConfig $config
+                 */
+                $currencies = $config->getCurrencies();
+                $currency = array_intersect($currency, array_keys($currencies));
+                if (!$currency) {
+                    $message = _w('Payment procedure cannot be processed because required currency %s is not defined in your store settings.');
+                    throw new waException(sprintf($message, implode(', ', $currencies)));
+                }
+                $convert = true;
+                $total = shop_currency($total, $order['currency'], $currency_id = reset($currency), false);
             }
         } else {
             $currency_id = $order['currency'];

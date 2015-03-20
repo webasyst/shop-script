@@ -66,30 +66,30 @@
                 </tr>
                 <tr class="s-summary-row">
                     <td>[`Total`]</td>
-                    <td class="align-right">
+                    <td class="align-right">{strip}
                         {$totals.order_count}
                         {foreach $abtest_variants as $v}
-                            <br><span class="hint">{$v.name|escape}: {wa_currency($v.totals.profit, $def_cur, '%2{h}')}</span>
+                            <br><span class="hint">{$v.name|escape}: {ifempty($v.totals.order_count, 0)}</span>
                         {/foreach}
-                    </td>
-                    <td class="s-sales-cell align-right">
+                    {/strip}</td>
+                    <td class="s-sales-cell align-right">{strip}
                         {$totals.sales_formatted}
                         {foreach $abtest_variants as $v}
-                            <br><span class="hint">{$v.name|escape}: {wa_currency($v.totals.sales_formatted, $def_cur, '%2{h}')}</span>
+                            <br><span class="hint">{$v.name|escape}: {$v.totals.sales_formatted}</span>
                         {/foreach}
-                    </td>
-                    <td class="align-right">
+                    {/strip}</td>
+                    <td class="align-right">{strip}
                         {$totals.avg_order_formatted}
                         {foreach $abtest_variants as $v}
-                            <br><span class="hint">{$v.name|escape}: {wa_currency($v.totals.avg_order_formatted, $def_cur, '%2{h}')}</span>
+                            <br><span class="hint">{$v.name|escape}: {$v.totals.avg_order_formatted}</span>
                         {/foreach}
-                    </td>
-                    <td class="s-profit-cell align-right">
+                    {/strip}</td>
+                    <td class="s-profit-cell align-right">{strip}
                         {$totals.profit_formatted}
                         {foreach $abtest_variants as $v}
-                            <br><span class="hint">{$v.name|escape}: {wa_currency($v.totals.profit_formatted, $def_cur, '%2{h}')}</span>
+                            <br><span class="hint">{$v.name|escape}: {$v.totals.profit_formatted}</span>
                         {/foreach}
-                    </td>
+                    {/strip}</td>
 
                     {if $roi_enabled}
                         <td class="align-right">

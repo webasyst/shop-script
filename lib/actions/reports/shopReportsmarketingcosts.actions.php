@@ -9,6 +9,8 @@ class shopReportsmarketingcostsActions extends waViewActions
      */
     public function defaultAction()
     {
+        shopReportsSalesAction::jsRedirectIfDisabled();
+
         list($start_date, $end_date, $group_by, $request_options) = shopReportsSalesAction::getTimeframeParams();
 
         $limit = $this->getConfig()->getOption('marketing_expenses_per_page');
@@ -54,6 +56,8 @@ class shopReportsmarketingcostsActions extends waViewActions
      */
     protected function editorAction()
     {
+        shopReportsSalesAction::jsRedirectIfDisabled();
+
         $expense_id = waRequest::request('expense_id', '', 'int');
 
         // Get existing record data from DB
@@ -149,6 +153,8 @@ class shopReportsmarketingcostsActions extends waViewActions
     /** List of expenses for lazy-loading and to reload table after successfull save */
     protected function rowsAction()
     {
+        shopReportsSalesAction::jsRedirectIfDisabled();
+
         $start = waRequest::request('start', 0, 'int');
         $limit = waRequest::request('limit', $this->getConfig()->getOption('marketing_expenses_per_page'), 'int');
 
@@ -191,6 +197,8 @@ class shopReportsmarketingcostsActions extends waViewActions
     /** Delete expense by id */
     protected function deleteAction()
     {
+        shopReportsSalesAction::jsRedirectIfDisabled();
+
         $expense_id = waRequest::request('expense_id', '', 'int');
         if ($expense_id) {
             $expense_model = new shopExpenseModel();

@@ -1,5 +1,10 @@
 <?php
-
+/**
+ * Products tab in Reports section.
+ * Responsible for Bestsellers, Assets, and What-to-sell subsections.
+ * When `reports_simple` config option is specified, this controller
+ * is used to show simplified Sales report (i.e. #/summary/).
+ */
 class shopReportsproductsActions extends waViewActions
 {
     /**
@@ -9,10 +14,17 @@ class shopReportsproductsActions extends waViewActions
     {
         list($start_date, $end_date, $group_by, $request_options) = shopReportsSalesAction::getTimeframeParams();
         $storefront = waRequest::request('storefront', null, 'string');
+        $order_by = waRequest::request('sort', 'profit', 'string');
         $model_options = array();
         if ($storefront) {
             $request_options['storefront'] = $storefront;
             $model_options['storefront'] = $storefront;
+        }
+        if ($order_by != 'sales') {
+            $order_by = 'profit';
+        }
+        if ($order_by) {
+            $request_options['sort'] = $order_by;
         }
 
         // Top products
@@ -21,7 +33,7 @@ class shopReportsproductsActions extends waViewActions
         $product_total_sales = 0;
         $product_total_profit = 0;
         $pm = new shopProductModel();
-        $top_products = $pm->getTop(100, 'profit', $start_date, $end_date, $model_options)->fetchAll('id');
+        $top_products = $pm->getTop(100, $order_by, $start_date, $end_date, $model_options)->fetchAll('id');
         foreach($top_products as &$p) {
             $max_sales = max($p['sales'], $max_sales);
             $max_profit = max($p['profit'], $max_profit);
@@ -82,6 +94,15 @@ class shopReportsproductsActions extends waViewActions
             unset($row);
         }
 
+        // Data for chart
+        $graph_data = null;
+        if (waRequest::request('show_sales')) {
+            $sales_model = new shopSalesModel();
+            $graph_data = shopReportsSalesAction::getGraphData($sales_model->getPeriodByDate('sources', $start_date, $end_date, $model_options + array(
+                'date_group' => $group_by,
+            )));
+        }
+
         $def_cur = wa()->getConfig()->getCurrency();
 
         $this->view->assign(array(
@@ -90,10 +111,11 @@ class shopReportsproductsActions extends waViewActions
             'top_services' => $top_services,
             'product_total_sales' => $product_total_sales,
             'product_total_profit' => $product_total_profit,
-            'service_total_val' => $service_total_val,
-            'request_options' => $request_options,
             'service_total_percent' => $service_total_percent,
             'storefronts' => shopReportsSalesAction::getStorefronts(),
+            'service_total_val' => $service_total_val,
+            'request_options' => $request_options,
+            'graph_data' => $graph_data,
             'pie_data' => $pie_data,
         ));
 
@@ -105,6 +127,9 @@ class shopReportsproductsActions extends waViewActions
      */
     public function assetsAction()
     {
+        shopReportsSalesAction::jsRedirectIfDisabled();
+
+        $stock_id = (int) waRequest::request('stock', 0, 'int');
         $limit = (int) waRequest::request('limit', 100, 'int');
         $limit || ($limit = 100);
         $order_by = waRequest::request('sort', '', 'string');
@@ -113,22 +138,37 @@ class shopReportsproductsActions extends waViewActions
         }
 
         $request_options = array(
+            'stock' => $stock_id,
             'sort' => $order_by,
             'limit' => $limit,
         );
 
-        // Product info and net worth
-        $sql = "SELECT p.*, SUM(s.price*c.rate*s.count) AS net_worth, SUM(s.count) AS stock
-                FROM shop_product AS p
-                    JOIN shop_product_skus AS s
-                        ON s.product_id=p.id
-                    JOIN shop_currency AS c
-                        ON c.code=p.currency
-                WHERE s.count > 0
-                GROUP BY p.id
-                ORDER BY {$order_by} DESC
-                LIMIT {$limit}";
         $product_model = new shopProductModel();
+
+        // Product info and net worth
+        if ($stock_id) {
+            $stock_expr = "SUM(IF(ps.count > 0, ps.count, 0))";
+            $net_worth_expr = "SUM(s.price*c.rate*IF(ps.count > 0, ps.count, 0))";
+            $stock_join = "JOIN shop_product_stocks AS ps ON ps.sku_id=s.id";
+            $stock_where = "AND ps.stock_id={$stock_id}";
+        } else {
+            $stock_expr = "SUM(IF(s.count > 0, s.count, 0))";
+            $net_worth_expr = "SUM(s.price*c.rate*IF(s.count > 0, s.count, 0))";
+            $stock_where = "";
+            $stock_join = "";
+        }
+        $sql = "SELECT p.*, {$net_worth_expr} AS net_worth, {$stock_expr} AS stock
+            FROM shop_product AS p
+                JOIN shop_product_skus AS s
+                    ON s.product_id=p.id
+                JOIN shop_currency AS c
+                    ON c.code=p.currency
+                {$stock_join}
+            WHERE s.count > 0
+                {$stock_where}
+            GROUP BY p.id
+            ORDER BY {$order_by} DESC
+            LIMIT {$limit}";
         $products = array();
         $total_stock = 0;
         $net_worth = 0;
@@ -191,6 +231,7 @@ class shopReportsproductsActions extends waViewActions
         $this->setTemplate('templates/actions/reports/ReportsProductsAssets.html');
         $this->view->assign(array(
             'sort' => $order_by,
+            'stocks' => wao(new shopStockModel())->getAll('id'),
             'def_cur' => wa()->getConfig()->getCurrency(),
             'request_options' => $request_options,
             'total_stock' => $total_stock,
@@ -205,6 +246,8 @@ class shopReportsproductsActions extends waViewActions
      */
     public function whattosellAction()
     {
+        shopReportsSalesAction::jsRedirectIfDisabled();
+
         $limit = (int) waRequest::request('limit', 100, 'int');
         $limit || ($limit = 100);
         $size = wa('shop')->getConfig()->getOption('enable_2x') ? '48x48@2x' : '48x48';

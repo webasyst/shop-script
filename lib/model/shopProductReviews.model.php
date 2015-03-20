@@ -153,18 +153,17 @@ class shopProductReviewsModel extends waNestedSetModel
         foreach ($data as &$item) {
             $item['datetime_ts'] = strtotime($item['datetime']);
             if ($options['escape']) {
-                $item['text'] = $item['text'];
                 $item['title'] = htmlspecialchars($item['title']);
             }
         }
         unset($item);
 
-        $this->workupList($data, $post_fields, $options['escape']);
+        $this->workupList($data, $post_fields, $options);
         return $data;
 
     }
 
-    private function workupList(&$data, $fields, $escape)
+    private function workupList(&$data, $fields, $options)
     {
         $extract_contact_info = false;
         foreach (explode(',', $fields) as $field) {
@@ -189,7 +188,7 @@ class shopProductReviewsModel extends waNestedSetModel
                         $author,
                         isset($contacts[$item['contact_id']]) ? $contacts[$item['contact_id']] : array()
                     );
-                    if ($escape) {
+                    if (!empty($options['escape'])) {
                         $item['author']['name'] = htmlspecialchars($item['author']['name']);
                     }
                 }
@@ -207,12 +206,41 @@ class shopProductReviewsModel extends waNestedSetModel
                 }
                 $product_ids = array_unique($product_ids);
                 $product_model = new shopProductModel();
-                $products = $product_model->getByField('id', $product_ids, 'id');
+                $products = $product_model->getById($product_ids);
+                if (wa()->getEnv() == 'frontend' && waRequest::param('url_type') == 2) {
+                    $cat_ids = array();
+                    foreach ($products as &$p) {
+                        if (!empty($p['category_id'])) {
+                            $cat_ids[] = $p['category_id'];
+                        }
+                    }
+                    $cat_ids = array_unique($cat_ids);
+                    if ($cat_ids) {
+                        $category_model = new shopCategoryModel();
+                        $categories = $category_model->getById($cat_ids);
+                        foreach ($products as &$p) {
+                            if (!empty($p['category_id'])) {
+                                $p['category_url'] = $categories[$p['category_id']]['full_url'];
+                            }
+                        }
+                        unset($p);
+                    }
+                }
+
                 $image_size = wa('shop')->getConfig()->getImageSize('crop_small');
                 foreach ($data as &$item) {
                     if (isset($products[$item['product_id']])) {
                         $product = $products[$item['product_id']];
                         $item['product_name'] = $product['name'];
+                        $item['product_image_id'] = $product['image_id'];
+                        $item['product_image_ext'] = $product['ext'];
+                        if (wa()->getEnv() == 'frontend') {
+                            $route_params = array('product_url' => $product['url']);
+                            if (isset($product['category_url'])) {
+                                $route_params['category_url'] = $product['category_url'];
+                            }
+                            $item['product_url'] = wa()->getRouteUrl('shop/frontend/product', $route_params);
+                        }
                         if ($product['image_id']) {
                             $item['product_url_crop_small'] = shopImage::getUrl(
                                 array(

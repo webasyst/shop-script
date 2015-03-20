@@ -96,8 +96,7 @@ class shopSettingsSearchReindexController extends waLongActionController
     {
         $report = '<div class="successmsg"><i class="icon16 yes"></i> '.
             _w('Successfully re-indexed %d product', 'Successfully re-indexed %d products', $this->data['total_count']);
-        
-        $interval = 0;
+
         if (!empty($this->data['timestamp'])) {
             $interval = time() - $this->data['timestamp'];
             $interval = sprintf(_w('%02d hr %02d min %02d sec'), floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);

@@ -60,8 +60,9 @@ class shopDiscounts
          * @param array $params
          * @param array[string] $params['order'] order info array('total' => '', 'items' => array(...))
          * @param array[string] $params['contact'] contact info
-         * @param array[string] $params['apply'] calculate or apply discount
-         * @return float discount
+         * @param bool[string] $params['apply'] calculate or apply discount
+         * @return string[string] $return['description'] discount description to save in order log
+         * @return float[string] $return['discount'] discount amount in order currency
          */
         $event_params = array('order' => &$order, 'contact' => $contact, 'apply' => $apply);
         $plugins_discounts = wa('shop')->event('order_calculate_discount', $event_params);

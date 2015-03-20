@@ -7,6 +7,8 @@ class shopReportsSalesAction extends waViewAction
 {
     public function execute()
     {
+        shopReportsSalesAction::jsRedirectIfDisabled();
+
         // Get parameters from GET/POST
         list($start_date, $end_date, $group_by, $request_options) = self::getTimeframeParams();
 
@@ -135,21 +137,9 @@ class shopReportsSalesAction extends waViewAction
         $totals['avg_order_formatted'] = waCurrency::format('%{h}', $totals['avg_order'], $def_cur);
 
         // Data for main chart
-        $sales_by_day = $sales_model->getPeriodByDate($type_id, $start_date, $end_date, $model_options + array(
+        $graph_data = self::getGraphData($sales_model->getPeriodByDate($type_id, $start_date, $end_date, $model_options + array(
             'date_group' => $group_by,
-        ));
-
-        // Prepare main chart data for template
-        $graph_data = array();
-        foreach($sales_by_day as &$d) {
-            $graph_data[] = array(
-                'date' => str_replace('-', '', $d['date']),
-                'sales' => $d['sales'],
-                'profit' => $d['profit'],
-                'loss' => $d['profit'],
-            );
-        }
-        unset($d);
+        )));
 
         // All abtests for the period for selector
         $abtests = $sales_model->getAvailableABtests($start_date, $end_date, $model_options);
@@ -168,6 +158,21 @@ class shopReportsSalesAction extends waViewAction
             'def_cur' => $def_cur,
             'totals' => $totals,
         ));
+    }
+
+    public static function getGraphData($sales_by_day)
+    {
+        $graph_data = array();
+        foreach($sales_by_day as &$d) {
+            $graph_data[] = array(
+                'date' => str_replace('-', '', $d['date']),
+                'sales' => $d['sales'],
+                'profit' => $d['profit'],
+                'loss' => $d['profit'],
+            );
+        }
+        unset($d);
+        return $graph_data;
     }
 
     public static function getStorefronts()
@@ -249,6 +254,19 @@ class shopReportsSalesAction extends waViewAction
                 'header_name' => _w("Sales by landing page"),
             ),
         );
+    }
+
+    public static function isDisabled()
+    {
+        return wa('shop')->getConfig()->getOption('reports_simple');
+    }
+
+    public static function jsRedirectIfDisabled()
+    {
+        if (self::isDisabled()) {
+            echo "<script>window.location.hash = '#/summary/';</script>";
+            exit;
+        }
     }
 
     protected function prepareTableData($type_id, &$table_data) {

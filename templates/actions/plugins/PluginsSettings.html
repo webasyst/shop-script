@@ -33,13 +33,21 @@
         {/if}
     {else}
         <div class="block double-padded align-center gray">
-            <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin %s is installed and working.`]'}</strong>
-            <br>
-            <br>
-            [`No configuration options are available for this plugin.`]
+            <p>
+                <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin %s is installed and working.`]'}</strong>
+                <br>
+                <br>
+                {if !empty($plugin_info.importexport)}
+                    {sprintf('[`To use this plugin, proceed to <a href="%s">Import / Export &rarr; %s</a>.`]', '?action=importexport#/'|cat:$plugin_id|cat:'/', $plugin_info.name|default:$plugin_id)}
+                {else}
+                    [`No configuration options are available for this plugin.`]
+                {/if}
+            </p>
+
         </div>
+
     {/if}
-{else if $plugins_count > 0}
+{elseif ($plugins_count > 0)}
     [`Unknown plugin`]
 {/if}
 

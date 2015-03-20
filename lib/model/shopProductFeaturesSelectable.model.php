@@ -81,7 +81,7 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
 
     /**
      * @param int $id product id
-     * @return int[int][int] value_id[feature_id][value_id]
+     * @return array value_id[feature_id][value_id]
      */
     public function getByProduct($id)
     {
@@ -197,7 +197,7 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
     /**
      * Verify input data and get selected base features
      * @param array &$data
-     * @return int[int][int] value_id[value_id][feature_id]
+     * @return array value_id[value_id][feature_id]
      */
     private function getSelectedData(&$data)
     {
@@ -462,21 +462,6 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
         }
 
         return $features;
-
-
-        //Frontend
-
-
-        $data = $feature_model->getValues($data);
-        foreach ($data as $code => $f) {
-            foreach ($f['values'] as $id => $v) {
-                if (!isset($v_id, $selected[$code][$id])) {
-                    unset($data[$code]['values'][$id]);
-                }
-            }
-        }
-
-        return $data;
     }
 
     /**

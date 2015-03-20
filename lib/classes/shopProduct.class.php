@@ -49,6 +49,7 @@
  * @property array $skus
  * @property-read int $sku_count
  * @property array $categories
+ * @property array $sets
  * @property array $tags
  * @property array $params
  */
@@ -102,7 +103,8 @@ class shopProduct implements ArrayAccess
                 'skus'                => true, //should be before features
                 'features'            => true,
                 'params'              => true,
-                'categories'          => 'shopCategoryProductsModel'
+                'categories'          => 'shopCategoryProductsModel',
+                'sets'                => 'shopSetProductsModel',
             );
         }
         if (isset(self::$data_storages[$key])) {
@@ -122,6 +124,7 @@ class shopProduct implements ArrayAccess
         }
         return null;
     }
+
 
     /**
      * Returns product id.
@@ -691,6 +694,68 @@ class shopProduct implements ArrayAccess
         }
 
         return $data;
+    }
+
+    /**
+     * @return array
+     */
+    public function getReviews()
+    {
+        if ($this->getId()) {
+            $reviews_model = new shopProductReviewsModel();
+            return $reviews_model->getFullTree(
+                $this->getId(), 0, null, 'datetime DESC', array('escape' => true)
+            );
+        }
+        return array();
+    }
+
+    public function getSkuFeatures()
+    {
+        if ($this->getId()) {
+            $product_features_model = new shopProductFeaturesModel();
+            $sql = "SELECT * FROM ".$product_features_model->getTableName()." WHERE product_id = i:0 AND sku_id IS NOT NULL";
+            $rows = $product_features_model->query($sql, $this->getId())->fetchAll();
+            if (!$rows) {
+                return array();
+            }
+            $features = array();
+            foreach ($rows as $row) {
+                $features[$row['feature_id']] = true;
+            }
+            $features_model = new shopFeatureModel();
+            $features = $features_model->getById(array_keys($features));
+            $type_values = array();
+            foreach ($rows as $row) {
+                if (empty($features[$row['feature_id']])) {
+                    continue;
+                }
+                $f = $features[$row['feature_id']];
+                $type = preg_replace('/\..*$/', '', $f['type']);
+                $type_values[$type][] = $row['feature_value_id'];
+            }
+
+            foreach ($type_values as $type => $value_ids) {
+                $model = shopFeatureModel::getValuesModel($type);
+                $type_values[$type] = $model->getValues('id', $value_ids);
+            }
+
+            $result = array();
+            foreach ($rows as $row) {
+                if (empty($features[$row['feature_id']])) {
+                    continue;
+                }
+                $f = $features[$row['feature_id']];
+                $type = preg_replace('/\..*$/', '', $f['type']);
+                if (!$type_values[$type][$row['feature_id']][$row['feature_value_id']]) {
+                    continue;
+                }
+                $result[$row['sku_id']][$f['code']] = $type_values[$type][$row['feature_id']][$row['feature_value_id']];
+            }
+            return $result;
+        } else {
+            return array();
+        }
     }
 
     /**

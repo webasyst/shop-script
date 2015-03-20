@@ -372,4 +372,9 @@ class shopCartItemsModel extends waModel
     {
         return $this->deleteByField('product_id', $product_ids);
     }
+
+    public function getLastCode($contact_id)
+    {
+        return $this->select('code')->where('contact_id = ?', $contact_id)->order('id DESC')->fetchField();
+    }
 }

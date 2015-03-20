@@ -105,7 +105,7 @@ $.order = {
                     addClass('selected');
             if (this.options.offset === false) {
                 $.order_list.hideListItems(this.id);
-            };
+            }
 
         }
 

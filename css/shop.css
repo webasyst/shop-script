@@ -157,7 +157,7 @@ ul.tags { list-style-type: none; margin: 0; padding: 0; }
 .s-order .s-tracking { margin-right: 220px; }
 .s-order .profile i.icon10 { margin-top: 0.3em; }
 
-.s-paid-order-stamp { position: relative; border: 7px double purple; border-radius: 50%; opacity: 0.3; color: purple; font-size: 1.65em; font-weight: bold; height: 100px; overflow: hidden; padding: 11px 13px 15px; -webkit-transform: rotate(13deg); transform: rotate(13deg); width: 100px; }
+.s-paid-order-stamp { position: relative; border: 7px double purple; border-radius: 50%; opacity: 0.3; color: purple; font-size: 1.65em; font-weight: bold; height: 100px; overflow: hidden; padding: 11px 13px 15px; -webkit-transform: rotate(13deg); transform: rotate(13deg); width: 100px; margin-top: -40px; }
 .s-paid-order-stamp .s-stamp-inner { display: block; position: absolute; top: 22px; left: 22px; width: 80px; height: 80px; border: 2px solid purple; border-radius: 50%; z-index: 1; opacity: 0.3; }
 .s-paid-order-stamp span { display: block; background: #fff; z-index: 2; position: absolute; top: 48px; left: 0; right: 0; padding: 5px; text-align: center; vertical-align: middle; text-transform: uppercase;  }
 
@@ -174,6 +174,9 @@ ul.tags { list-style-type: none; margin: 0; padding: 0; }
 .s-order-customer-details .fields .field .value p input { display: block; margin-bottom: 2px; }
 .s-order-customer-details .fields .field .value p input[type="radio"],
 .s-order-customer-details .fields .field .value p input[type="checkbox"] { display: inline; }
+.s-order-customer-details .s-customer-datepicker { width: 120px !important; min-width: 120px !important; }
+.s-save-search-as-filter { background: #eee; padding: 20px; }
+#s-filter-settings { background: #eee; padding: 20px; }
 
 .s-order-add-customer .field .value textarea { min-width: 200px; }
 #s-orders { margin-bottom: -32767px; padding-bottom: 32767px; }
@@ -301,6 +304,7 @@ table.zebra.s-customers th a.selected { background: #eee; }
 .s-customer-profile h2 strong { padding: 5px 8px 6px; background: #dfc; }
 .s-customer-permanent-user-block { background: #eee; }
 table.zebra.s-customer-orders td { vertical-align: top; line-height: 1.3em; }
+.s-ibutton-checkbox .s-unselected { color: #aaa; }
 
 .s-customer-contact-summary { margin: 10px 0; }
 .s-customer-contact-summary .field .name { float: none; padding-bottom: 5px; color: #aaa; font-size: 0.8em; }
@@ -312,14 +316,43 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
 .s-aff-bonus-form { background: #efd; border-top: 0; padding: 10px; margin-bottom: 10px; }
 .ui-menu.ui-autocomplete li.ui-menu-item .icon16 { vertical-align: middle; }
 
-/* PRODUCTS
------------ */
+/* WELCOME
+---------- */
 
 .s-welcome { position: relative; padding-right: 150px !important; }
 .s-welcome h1 { font-weight: normal; font-size: 1.8em; color: #aaa; margin-top: 120px; margin-bottom: 20px; }
 .s-welcome p { color: #aaa; font-size: 1.2em; }
 .s-welcome .s-arrow-add-one { position: absolute; top: 42px; left: 0px; width: 100px; height: 80px; background: url('../img/start-here-tl.png') no-repeat; }
 .s-welcome .s-arrow-add-many { position: absolute; top: 20px; right: 180px; width: 80px; height: 100px; background: url('../img/start-here-tr.png') no-repeat; }
+
+.s-tutorial .s-nolevel2-box { padding: 20px 25px; background: #fff; }
+
+.s-tutorial #s-content h1 { margin-bottom: 0.8em; }
+.s-tutorial #s-content ul li { margin-bottom: 1em; line-height: 1.5em; font-family: "Lucida Grande","Lucida Sans Unicode","Helvetica Neue",Arial,sans-serif; }
+.s-tutorial #s-content p a { text-decoration: none; }
+
+.s-tutorial-checklist li a { color: #03c !important; }
+.s-tutorial-checklist li.complete a { color: #aaa !important; text-decoration: line-through; }
+.s-tutorial-checklist li.selected a { font-weight: normal !important; color: #000 !important; }
+
+.s-tutorial-progressbar { margin-top: -5px; }
+.s-tutorial-progressbar-outer { border: 1px solid rgba(0,0,0,0.15); border-radius: 3px; background: #fff; }
+.s-tutorial-progressbar-inner { background: repeating-linear-gradient(-55deg, #def, #def 10px, #d3e8fc 10px, #d3e8fc 20px) repeat scroll 0 0 rgba(0, 0, 0, 0) !important; height: 13px; }
+
+.s-screencast { width: 600px; max-width: 100%; box-shadow: 0 3px 10px #ddd; position: relative; }
+
+.s-storefront-preview { max-width: 360px; max-height: 360px; overflow: hidden; box-shadow: 0 3px 10px #ddd; position: relative; }
+.s-storefront-preview iframe { width: 1200px; height: 1200px; border: none; 
+    -moz-transform: scale(0.3);
+    -moz-transform-origin: 0 0;
+    -o-transform: scale(0.3);
+    -o-transform-origin: 0 0;
+    -webkit-transform: scale(0.3);
+    -webkit-transform-origin: 0 0; }
+.s-storefront-preview .s-preview-mask { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+
+/* PRODUCTS
+----------- */
 
 .s-stock-warning-low { color: #b75; }
 .s-stock-warning-none { color: #e00; }
@@ -547,7 +580,7 @@ ul.s-promos-list li .s-promo-summary p { margin-bottom: 0; }
 
 ul.s-promos-list li:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.3); background: #ffe; }
 ul.s-promos-list li.new-promo-placeholder { box-shadow: none !important; }
-ul.s-promos-list li.new-promo-placeholder .s-promo-dummy { border: 3px dashed #eee; border-radius: 5px; text-align: center; min-height: 274px; color: #aaa; vertical-align: middle; } 
+ul.s-promos-list li.new-promo-placeholder .s-promo-dummy { border: 3px dashed #eee; border-radius: 5px; text-align: center; min-height: 274px; color: #aaa; vertical-align: middle; }
 ul.s-promos-list li.new-promo-placeholder .s-promo-dummy h5 { margin-top: 110px; white-space: nowrap; font-weight: normal; font-size: 1.1em; }
 ul.s-promos-list li.new-promo-placeholder .s-promo-dummy h5 i.icon16 { margin-top: 2px; }
 ul.s-promos-list li.new-promo-placeholder:hover .s-promo-dummy { box-shadow: none; border-color: #dda; background: #ffe; color: #000; transition: 0.3s; }
@@ -710,7 +743,7 @@ table tr:hover .edit-icon-wrapper a { visibility: visible; opacity: 1; }
 
 table#s-customers-report-table .toggled { display: none; }
 table#s-customers-report-table.mode-sales .toggled.sales { display: table-cell; }
-table#s-customers-report-table.mode-profit .toggled.profit { display: table-cell; }    
+table#s-customers-report-table.mode-profit .toggled.profit { display: table-cell; }
 
 table.s-country-list { margin-top: 70px; }
 table.s-country-list i.icon16.country { margin-top: 1px; }
@@ -728,10 +761,12 @@ table.s-country-list i.icon16.country { margin-top: 1px; }
 
 /* marketing costs */
 
-#s-mcosts-editor-wrapper { background:#eee;margin-top:20px; }
-#s-reports-marketing-costs-table .expense-row .period { float: right; font-size: 12px; max-width: 40%; position: relative; padding: 7px 0 6px 0; color: #999; margin: 0 10px 0 75px; }
+#s-mcosts-editor-wrapper { background:#eee; margin-top:20px; }
+#s-reports-marketing-costs-table .expense-row .period-td { width: 30%; padding: 0 0.5em; }
+#s-reports-marketing-costs-table .expense-row .period { float: right; position: relative; height: 1em; color: #999; }
 #s-reports-marketing-costs-table .expense-row .period .period-dates { display: block; position: relative; left: -65px; white-space: nowrap; }
-#s-reports-marketing-costs-table .expense-row .period-bar { position: absolute; bottom: 0; height: 5px; width: 0%; background: #ccc; border-radius: 2px; min-width: 5px; }
+#s-reports-marketing-costs-table .expense-row .period-bar { position: absolute; bottom: 0; height: 100%; width: 0; background: #ccc; border-radius: 2px; min-width: 5px; }
+#s-reports-marketing-costs-table .expense-row.s-tr-campaign .period-bar { background-image: url("../img/patterns/report-cost-company-bg.png"); }
 
 /*
 #s-reports-marketing-costs-table .expense-row { margin: 10px 0; clear: right; }
@@ -1042,6 +1077,7 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 .icon16.ss.bug-bw { background-position:-384px 0; }
 .icon16.ss.phone-bw { background-position:-400px 0; }
 .icon16.ss.sort-bw { background-position:-416px 0; }
+.icon16.ss.smiley-bw { background-position:-432px 0; }
 
 /* order statuses */
 .icon16.ss.new { background-position:0 -32px; }
@@ -1201,6 +1237,10 @@ and (orientation : portrait) {
 
 }
 
-
+/* Styles for fixed button at settings -> checkout page . Task #15.3798 */
+.fixed-save-button-wrapper { position: fixed; bottom: 0; left: 0; width: 100%; padding: 1em 0; box-sizing: border-box; background: #eee; z-index: 10; }
+.fixed-save-button-wrapper .value { margin: 0 !important; padding: 0 0 0 100px; }
+.fixed-save-button-wrapper br { display: none; }
+.fixed-save-button-wrapper input { margin: 0 !important; padding: 0 1em !important; }
 
 .not-implemented.not-implemented.not-implemented.not-implemented.not-implemented { border: 1px dashed red; }

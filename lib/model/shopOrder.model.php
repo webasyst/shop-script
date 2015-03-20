@@ -774,5 +774,16 @@ class shopOrderModel extends waModel
             return date('Y-m-01', strtotime("-1 months"));
         }
     }
+
+    public function getTotalSalesByContact($contact_id, $paid_only = true)
+    {
+        $sql = "SELECT SUM(total*rate)
+                FROM shop_order
+                WHERE contact_id=:cid ";
+        if ($paid_only) {
+            $sql .= "AND paid_date IS NOT NULL";
+        }
+        return (float) $this->query($sql, array('cid' => $contact_id))->fetchField();
+    }
 }
 

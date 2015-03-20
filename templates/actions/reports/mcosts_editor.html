@@ -16,7 +16,7 @@
         <div class="field">
             <div class="name">[`Amount`]</div>
             <div class="value">
-                <input type="text" name="expense[amount]" class="large bold numerical short" value="{$expense.amount}" placeholder="0">
+                <input type="text" name="expense[amount]" class="large bold numerical" value="{$expense.amount}" placeholder="0">
                 {$def_cur}
             </div>
         </div>
@@ -56,7 +56,7 @@
             </div>
         </div>
         <div class="field">
-            <div class="name">[`Type`]</div>
+            <div class="name">[`Payment term`]</div>
             <div class="value no-shift">
                 <label>
                     <input type="radio" name="expense_period_type" value="one_time"{if $expense.start == $expense.end} checked{/if}>
@@ -84,7 +84,7 @@
         <div class="field">
             <div class="name">[`Note`]</div>
             <div class="value no-shift">
-                <textarea name="expense[note]">{$expense.note|escape}</textarea>
+                <textarea name="expense[note]" placeholder="[`optional`]">{$expense.note|escape}</textarea>
             </div>
         </div>
         <div class="field">
@@ -154,7 +154,7 @@
     // init datepickers
     $period_radios.closest('.field').find('input:text').datepicker({
         'dateFormat': 'yy-mm-dd'
-    });
+    }).datepicker('hide');
 
     // Open datepickers when user clicks on a calendar icon
     $period_radios.closest('.field').on('click', '.calendar', function() {

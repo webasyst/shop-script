@@ -67,7 +67,7 @@ class shopContactsMergeHandler extends waEventHandler
         $m->exec($sql, ifempty($number_of_orders, 0), ifempty($last_order_id, null), ifempty($affiliate_bonus, 0), $master_id);
 
         if ($number_of_orders) {
-            shopCustomers::recalculateTotalSpent($master_id);
+            shopCustomer::recalculateTotalSpent($master_id);
         }
 
         wa('shop')->event('customers_merge', $params);

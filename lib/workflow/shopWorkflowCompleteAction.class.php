@@ -45,7 +45,7 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
             $order = $order_model->getById($order_id);
         }
 
-        shopCustomers::recalculateTotalSpent($order['contact_id']);
+        shopCustomer::recalculateTotalSpent($order['contact_id']);
         if ($order !== null) {
 
             $log_model = new shopOrderLogModel();

@@ -137,16 +137,6 @@ class shopCsvWriter implements Serializable
 
             if (strtolower($this->encoding) != 'utf-8') {
                 switch ($this->method) {
-                    case 'mb':
-                        if (class_exists('waFilesFilter')) {
-                            waFilesFilter::register();
-                            if (!@stream_filter_prepend($this->fp, 'convert.mb.UTF-8/'.$this->encoding)) {
-                                throw new waException("error while register file filter");
-                            }
-                        } else {
-                            throw new waException("error while search filter class");
-                        }
-                        break;
                     case 'iconv':
                     default:
                         if (!@stream_filter_prepend($this->fp, 'convert.iconv.UTF-8/'.$this->encoding.'//TRANSLIT//IGNORE')) {

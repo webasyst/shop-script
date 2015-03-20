@@ -125,6 +125,134 @@ class shopViewHelper extends waAppViewHelper
         return $html;
     }
 
+    /**
+     * @return array
+     */
+    public function stocks()
+    {
+        $stock_model = new shopStockModel();
+        return $stock_model->getAll('id');
+    }
+
+    /**
+     * @param array $products
+     * @return array
+     */
+    public function features(&$products)
+    {
+        if (!$products) {
+            return array();
+        }
+        $product_features_model = new shopProductFeaturesModel();
+        $rows = $product_features_model->getByField(array(
+            'product_id' => array_keys($products),
+            'sku_id' => null
+        ), true);
+        if (!$rows) {
+            return array();
+        }
+        $tmp = array();
+        foreach ($rows as $row) {
+            $tmp[$row['feature_id']] = true;
+        }
+        $feature_model = new shopFeatureModel();
+        $sql = 'SELECT * FROM '.$feature_model->getTableName()." WHERE id IN (i:ids) OR type = 'divider'";
+        $features = $feature_model->query($sql, array('ids' => array_keys($tmp)))->fetchAll('id');
+
+        $type_values = $product_features = array();
+        foreach ($rows as $row) {
+            if (empty($features[$row['feature_id']])) {
+                continue;
+            }
+            $f = $features[$row['feature_id']];
+            $type = preg_replace('/\..*$/', '', $f['type']);
+            if ($type != shopFeatureModel::TYPE_BOOLEAN && $type != shopFeatureModel::TYPE_DIVIDER) {
+                $type_values[$type][] = $row['feature_value_id'];
+            }
+            if ($f['multiple']) {
+                $product_features[$row['product_id']][$f['id']][] = $row['feature_value_id'];
+            } else {
+                $product_features[$row['product_id']][$f['id']] = $row['feature_value_id'];
+            }
+        }
+        foreach ($type_values as $type => $value_ids) {
+            $model = shopFeatureModel::getValuesModel($type);
+            $type_values[$type] = $model->getValues('id', $value_ids);
+        }
+
+        $tmp = array();
+        foreach ($products as $p) {
+            $tmp[(int)$p['type_id']] = true;
+        }
+        // get type features for correct sort
+        $type_features_model = new shopTypeFeaturesModel();
+        $sql = "SELECT type_id, feature_id FROM ".$type_features_model->getTableName()."
+                    WHERE type_id IN (i:type_id)
+                    ORDER BY sort";
+        $rows = $type_features_model->query($sql, array('type_id' => array($tmp)))->fetchAll();
+        $type_features = array();
+        foreach ($rows as $row) {
+            $type_features[$row['type_id']][] = $row['feature_id'];
+        }
+
+        foreach ($products as &$p) {
+            if (!empty($type_features[$p['type_id']])) {
+                foreach ($type_features[$p['type_id']] as $feature_id) {
+                    if (empty($features[$feature_id])) {
+                        continue;
+                    }
+                    $f = $features[$feature_id];
+                    $type = preg_replace('/\..*$/', '', $f['type']);
+                    if (isset($product_features[$p['id']][$feature_id])) {
+                        $value_ids = $product_features[$p['id']][$feature_id];
+                        if ($type == shopFeatureModel::TYPE_BOOLEAN || $type == shopFeatureModel::TYPE_DIVIDER) {
+                            /**
+                             * @var shopFeatureValuesBooleanModel|shopFeatureValuesDividerModel $model
+                             */
+                            $model = shopFeatureModel::getValuesModel($type);
+                            $values = $model->getValues('id', $value_ids);
+                            $p['features'][$f['code']] = reset($values);
+                        } else {
+                            if (is_array($value_ids)) {
+                                $p['features'][$f['code']] = array();
+                                foreach ($value_ids as $v_id) {
+                                    if (isset($type_values[$type][$feature_id][$v_id])) {
+                                        $p['features'][$f['code']][$v_id] = $type_values[$type][$feature_id][$v_id];
+                                    }
+                                }
+                            } elseif (isset($type_values[$type][$feature_id][$value_ids])) {
+                                $p['features'][$f['code']] = $type_values[$type][$feature_id][$value_ids];
+                            }
+                        }
+                    } elseif ($type == shopFeatureModel::TYPE_DIVIDER) {
+                        $p['features'][$f['code']] = '';
+                    }
+                }
+            }
+        }
+        unset($p);
+
+        // return features (key code)
+        $result = array();
+        foreach ($features as $f) {
+            $result[$f['code']] = $f;
+        }
+        return $result;
+    }
+
+    public function reviews($limit = 10)
+    {
+        $product_reviews_model = new shopProductReviewsModel();
+        return $product_reviews_model->getList('*,product,contact', array(
+            'where' => array(
+                'review_id' => 0,
+                'status' => shopProductReviewsModel::STATUS_PUBLISHED
+            ),
+            'limit' => $limit,
+            'escape' => true
+        ));
+    }
+
     public function customer()
     {
         if (!$this->_customer) {
@@ -504,7 +632,7 @@ class shopViewHelper extends waAppViewHelper
     }
 
     /**
-     * @param $abtest_id id in shop_abtest
+     * @param int $abtest_id id in shop_abtest
      * @return string 'A', or 'B', or etc. from existing codes in shop_abtest_variants
      */
     public function ABtest($abtest_id)
@@ -564,7 +692,7 @@ class shopViewHelper extends waAppViewHelper
         } else {
             $storefront = wa()->getRouting()->getDomain();
             if (!$storefront) {
-                $storefront == '%all%';
+                $storefront = '%all%';
             }
             $promos = $promo_model->getByStorefront($storefront, $type_or_ids);
         }

@@ -13,6 +13,17 @@
                     {/foreach}
                 </select>
             </li>
+            {if $stocks}
+                <li class="float-right">
+                    [`Stock`]:
+                    <select id="stock-selector">
+                        <option value="">[`All stocks`]</option>
+                        {foreach $stocks as $s}
+                            <option value="{$s.id|escape}"{if $request_options.stock == $s.id} selected{/if}>{$s.name|escape}</option>
+                        {/foreach}
+                    </select>
+                </li>
+            {/if}
             <li><a href="#/products/bestsellers/">[`Best sellers`]</a></li>
             <li class="selected"><a href="#/products/assets/">[`Assets`]</a></li>
             <li><a href="#/products/whattosell/">[`What to sell`]</a></li>
@@ -98,6 +109,15 @@
         var limit = $limit_selector.val();
         $.storage.set('shop/reports/assets/limit', limit); // used in reports.js
         $.post(action_url, $.extend({}, request_options, { limit: limit }), function(r) {
+            $('#reportscontent').html(r);
+        });
+    });
+
+    // Update page when user changes stock selector
+    var $stock_selector = $('#stock-selector');
+    $stock_selector.change(function() {
+        $stock_selector.after('<i class="icon16 loading"></i>');
+        $.post(action_url, $.extend({}, request_options, { stock: $stock_selector.val() }), function(r) {
             $('#reportscontent').html(r);
         });
     });

@@ -174,5 +174,22 @@ class shopCustomerModel extends waModel
             return $this->query($sql)->fetchAll('category_id', true);
         }
     }
+
+    public function getAllCoupons()
+    {
+        $coupons_ids = $this->query("SELECT DISTINCT value FROM `{$this->table}` sc
+        JOIN `shop_order` so ON so.contact_id = sc.contact_id
+        JOIN `shop_order_params` sop ON sop.order_id = so.id AND name = 'coupon_id'")->fetchAll(null, true);
+        $cm = new shopCouponModel();
+        return $cm->getById($coupons_ids, true);
+    }
+
+    public function recalcTotalSpent($contact_id)
+    {
+        $om = new shopOrderModel();
+        $this->updateById($contact_id, array(
+            'total_spent' => $om->getTotalSalesByContact($contact_id)
+        ));
+    }
 }
 

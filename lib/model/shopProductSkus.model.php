@@ -188,7 +188,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
     }
 
     /**
-     * @param int $product_id
+     * @param int|array $product_id
      * @param bool $fill_empty_sku_by_null
      * @return array
      */

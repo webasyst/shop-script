@@ -15,8 +15,17 @@ class shopCart
      */
     public function __construct($code='')
     {
-        $this->code = waRequest::cookie(self::COOKIE_KEY, $code);
         $this->model = new shopCartItemsModel();
+        $this->code = waRequest::cookie(self::COOKIE_KEY, $code);
+        if (!$this->code && wa()->getUser()->isAuth()) {
+            $code = $this->model->getLastCode(wa()->getUser()->getId());
+            if ($code) {
+                $this->code = $code;
+                // set cookie
+                wa()->getResponse()->setCookie(self::COOKIE_KEY, $code, time() + 30 * 86400, null, '', false, true);
+                $this->clearSessionData();
+            }
+        }
     }
 
     /**
@@ -134,8 +143,8 @@ class shopCart
     /**
      * Changes 'service_variant_id' value for current shopping cart's item with specified id.
      *
-     * @param unknown_type $item_id
-     * @param unknown_type $variant_id
+     * @param int $item_id
+     * @param int $variant_id
      */
     public function setServiceVariantId($item_id, $variant_id)
     {
@@ -276,7 +285,7 @@ class shopCart
      * Removes item with specified id from current customer's shopping cart.
      *
      * @param int $id
-     * @return Removed item's data array
+     * @return array Removed item's data array
      */
     public function deleteItem($id)
     {

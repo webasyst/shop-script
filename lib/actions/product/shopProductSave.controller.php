@@ -56,7 +56,9 @@ class shopProductSaveController extends waJsonController
         if (empty($data['categories'])) {
             $data['categories'] = array();
         }
-
+        if (empty($data['sets'])) {
+            $data['sets'] = array();
+        }
         if (empty($data['tags'])) {
             $data['tags'] = array();
         }
@@ -219,7 +221,7 @@ class shopProductSaveController extends waJsonController
             $sku['price_str'] = wa_currency($sku['price'], $currency);
             $sku['price_html'] = wa_currency_html($sku['price'], $currency);
             $sku['stock_icon'] = array();
-            $sku['stock_icon'][0] = shopHelper::getStockCountIcon($sku['count']);
+            $sku['stock_icon'][0] = shopHelper::getStockCountIcon(ifset($sku['count']));
             if (!empty($sku['stock'])) {
                 foreach ($sku['stock'] as $stock_id => $count) {
                     $sku['stock_icon'][$stock_id] = shopHelper::getStockCountIcon($count, $stock_id);

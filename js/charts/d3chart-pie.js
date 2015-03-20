@@ -137,7 +137,7 @@ if (data.length) {
             var translate = "0,0";
             if ( d.data.hasOwnProperty("service") && (d.data.service === true) ) {
                 var center = arc.centroid(d),
-                    delta = 2.5;
+                    delta = 7.5;
                 translate = [center[0]/delta,center[1]/delta];
             }
             return "translate(" + translate + ")";

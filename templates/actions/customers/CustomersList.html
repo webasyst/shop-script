@@ -1,25 +1,43 @@
+{$query = $query|default:''}
+{$category_id = $category_id|default:null}
+{$filter_id = $filter_id|default:null}
 <div class="block double-padded" id="customers-list-wrapper">
-    {if $category_id}
-        <div class="float-right">
-            <ul class="menu-h">
+
+    <div class="float-right block half-padded">
+        <ul class="menu-h">
+            {if $category_id}
                 <li><a href="#/editcategory/{$category_id}"><i class="icon16 edit"></i>[`Edit category`]</a></li>
                 <li><a href="javascript:void(0)" id="delete-category"><i class="icon16 delete"></i>[`Delete`]</a></li>
-            </ul>
-        </div>
-    {/if}
-    <h1>
-        {$title|escape}
-        {if $discount !== null}
-            <span class="hint">{$discount|escape}
-                <a href="?action=settings#/discounts/category/" title="[`Configure`]"><i class="icon16 settings"></i></a>
-            </span>
-        {/if}
+            {/if}
+
+            {if $query}
+                <li>
+                    <a href="javascript:void(0);" id="s-customers-add-filter" class="inline-link"><i class="icon16 add"></i><b><i>[`Save this search`]</i></b></a>
+                </li>
+                <li>
+                    <a href="#/searchform/{$query}/"><i class="icon16 edit-bw"></i>[`Change search conditions`]</a>
+                </li>
+            {else if $filter_id}
+                <li>
+                    <a href="javascript:void(0);" id="s-customers-edit-filter" class="inline-link"><i class="icon16 edit"></i><b><i>[`Edit filter`]</i></b></a>
+                </li>
+            {/if}
+
+            <!-- plugin hook: 'backend_customers_list.top_li' -->
+            {* @event backend_customers_list.%plugin_id%.top_li *}
+            {if !empty($backend_customers_list)}{foreach $backend_customers_list as $_}{if (!empty($_.top_li))}<li>{$_.top_li}</li>{/if}{/foreach}{/if}
+        </ul>
+    </div>
+
+    <h1 class="s-header">
+        <span class="s-title">{$title|escape}</span>
     </h1>
 
-    {if empty($customers)}
-            <br>
-            <p>[`There are no customers in this view.`]</p>
-    {else}
+    {if $query || $filter_id}
+        {include file="./include.filterSettings.html"}
+    {/if}
+
+    {if !empty($customers)}
         <table class="zebra s-customers">
             <thead><tr>
                 <th class="min-width"></th>
@@ -70,14 +88,13 @@
         </table>
     {/if}
 
-    <p class="gray">[`Only customers with at least one order are displayed.`]</p>
-    <p class="gray customer-list-footer">
-        {if $total_customers_number !== null}
-            {_w('%d contact', '%d contacts', $total_customers_number)}
-        {else}
-            <a href="javascript:void(0)" class="inline-link" rel="{$lazy_loading_params}"><b><i>[`Show more customers`]</i></b></a>
+    <div class="customer-list-footer lazyloading-wrapper">
+        <p>
+            {_w('%d contact','%d contacts', $count + $offset)}&nbsp;{sprintf(_w('of %d'), $total)}</p>
+        {if $total}
+            <a href="javascript:void(0)" class="inline-link gray" rel="{$lazy_loading_params}"><b><i>[`Show more customers`]</i></b></a>
         {/if}
-    </p>
+    </dvi>
 </div>
 
 <script>(function() { "use strict";
@@ -156,6 +173,32 @@
             $('#s-content').html('<div class="triple-padded block">'+"[`Category has beed deleted.`]"+'</div>');
         });
     {/if}
-    
+
+    {if $query || $filter_id}
+        $('#s-customers-add-filter, #s-customers-edit-filter').click(function() {
+            var header = $('#customers-list-wrapper').find('.s-header').hide();
+            var hide = function() {
+                fs_block.slideUp(function() {
+                    header.show();
+                });
+            };
+            var fs_block = $("#s-filter-settings").slideDown().trigger('init')
+                .find('.cancel').click(function() {
+                    hide();
+                    return false;
+                }).end().bind('afterSubmit', function(e, r) {
+                    hide();
+                    if (r.status === 'ok') {
+                        header.find('.s-title').text(r.data.filter.name);
+                        if (!r.data.filter_id) {
+                            $.wa.setHash('#/filter/' + r.data.filter.id + '/');
+                        }
+                    }
+                    return false;
+                });
+        });
+    {/if}
+
+
 })();</script>
 

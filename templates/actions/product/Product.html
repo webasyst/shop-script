@@ -434,8 +434,7 @@
                 {/if}
                 <div class="field">
                     <input type="text" name="product[categories.deleted]" value="" style="display:none;">
-                    <div class="name">[`Categories`]</div>{$_time=microtime(true)}
-                    {$_show_selects=(count($product.categories)*count($categories) < 200)}
+                    <div class="name">[`Categories`]</div>
 
                     {function categories_select category_id=0}
                         <select name="product[categories][]" class="s-product-categories">
@@ -457,6 +456,7 @@
                         <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$category_id}style="display:none;"{/if}><i class="icon10 delete-bw no-overhanging"></i></a>
                     {/function}
 
+                    {$_show_selects=(count($product.categories)*count($categories) < 200)}
                     {foreach $product.categories as $category_id => $c}
                         <div class="value s-product-categories no-shift">
                             {if $_show_selects || $c@first}
@@ -464,14 +464,16 @@
                             {else}
                                 <input value="{$c.id}" name="product[categories][]" type="hidden" class="s-product-categories">
                                 <i class="icon16 folder"></i>
-                                {$_parent_id = $c.parent_id}
-                                {$_path=array()}
-                                {$_path[$c.depth]=$c.name}
-                                {while $_parent_id && isset($categories[$_parent_id])}
-                                    {$_path[$categories[$_parent_id]['depth']]=$categories[$_parent_id]['name']}
-                                    {$_parent_id = $categories[$_parent_id]['parent_id']}
-                                {/while}
-                                <!-- {ksort($_path)} -->
+                                {strip}
+                                    {$_parent_id = $c.parent_id}
+                                    {$_path=array()}
+                                    {$_path[$c.depth]=$c.name}
+                                    {while $_parent_id && isset($categories[$_parent_id])}
+                                        {$_path[$categories[$_parent_id]['depth']]=$categories[$_parent_id]['name']}
+                                        {$_parent_id = $categories[$_parent_id]['parent_id']}
+                                    {/while}
+                                    {$_ = ksort($_path)}
+                                {/strip}
                                 {implode(' » ',$_path)|escape}
 
                                 <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$c.id}style="display:none;"{/if}><i class="icon10 delete-bw no-overhanging"></i></a>
@@ -493,6 +495,43 @@
                         </ul>
                     </div>
                 </div>
+
+                {if !empty($sets)}
+                    <div class="field s-product-sets">
+                        <div class="name">[`Sets`]</div>
+
+                        {function sets_select set_id=null}
+                            <select name="product[sets][]">
+                                <option value="">[`Please select a set`]</option>
+                                <option class="separator" value="" disabled="disabled">---</option>
+                                {foreach $sets as $set}
+                                    <option value="{$set.id}"{if $set_id && $set_id == $set.id} selected="selected"{/if}>{$set.name|escape} ({$set.id|escape})</option>
+                                {/foreach}
+                            </select>
+                            <a href="javascript:void(0)" class="s-product-delete-from-set" title="[`Remove product from this set`]"><i class="icon10 delete-bw no-overhanging"></i></a>
+                        {/function}
+
+                        {foreach $product_sets as $set}
+                            <div class="value no-shift">
+                                {sets_select set_id=$set.id}
+                            </div>
+                        {foreachelse}
+                            <div class="value no-shift">
+                                {sets_select}
+                            </div>
+                        {/foreach}
+
+                        <div class="value">
+                            <ul class="menu-v">
+                                <li><a href="javascript:void(0)" class="small inline-link add-set-button"><i class="icon10 add"></i> <b><i>[`Additional set`]</i></b></a></li>
+                            </ul>
+                        </div>
+
+                        <div class="value no-shift hidden template">
+                            {sets_select}
+                        </div>
+                    </div>
+                {/if}
 
                 {* @event backend_product_edit.%plugin_id%.basics *}
                 {foreach $backend_product_edit as $_}{if !empty($_.basics)}{$_.basics}{/if}{/foreach}
@@ -1073,5 +1112,28 @@
             return false;
         });
     })($('.s-report-toggler'), $('.s-report-tabs'));
+
+    // Control for sets
+    (function() { "use strict";
+        var $form = $('#s-product-save');
+        var $sets_wrapper = $form.find('.s-product-sets');
+        if (!$sets_wrapper.length) {
+            return;
+        }
+
+        var $add_set_button = $sets_wrapper.find('.add-set-button');
+        var $template = $add_set_button.closest('.value').siblings('.hidden.template');
+
+        // Add new selector when user clicks on "additional set" link
+        $add_set_button.click(function() {
+            $template.clone().removeClass('hidden template').insertBefore($add_set_button.closest('.value'));
+            return false;
+        });
+
+        // Remove select when user clicks on a cross icon
+        $sets_wrapper.on('click', '.s-product-delete-from-set', function() {
+            $(this).closest('.value').remove();
+        });
+    })();
 
 </script>

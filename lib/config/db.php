@@ -844,4 +844,16 @@ return array(
             'PRIMARY' => array('type_id', 'feature'),
         ),
     ),
+    'shop_customers_filter' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'name' => array('varchar', 255, 'null' => 0, 'default' => ''),
+        'hash' => array('text'),
+        'create_datetime' => array('datetime', 'null' => 0),
+        'contact_id' => array('int', 11, 'null' => 0),
+        'icon' => array('varchar', 255, 'null' => 1),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+            'contact_id' => 'contact_id'
+        ),
+    ),
 );

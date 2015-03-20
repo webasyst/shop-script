@@ -31,6 +31,7 @@ return array(
 
     'stocks_log_items_per_page' => 30,
     'marketing_expenses_per_page' => 25,
+    'customers_per_page' => 30,
 
     'image_sizes'              => array(
         '0x320'
@@ -225,6 +226,37 @@ return array(
         'flag-purple',
         'flag-black',
         'flag-checkers'
+    ),
+
+    'customers_filter_icons' => array(
+        'funnel',
+        'star',
+        'bug',
+        'lightning',
+        'light-bulb',
+        'comments',
+        'lock',
+        'lock-unlocked',
+        'broom',
+        'contact',
+        'reports',
+        'books',
+        'marker',
+        'lens',
+        'alarm-clock',
+        'notebook',
+        'blog',
+        'car',
+        'disk',
+        'cookie',
+        'burn',
+        'clapperboard',
+        'cup',
+        'home',
+        'smiley',
+        'medal',
+        'target',
+        'store'
     ),
 
     /**

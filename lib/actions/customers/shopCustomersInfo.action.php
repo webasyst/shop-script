@@ -49,7 +49,6 @@ class shopCustomersInfoAction extends waViewAction
         $contact['photo'] = $photo;
 
         // Customer orders
-        $im = new shopOrderItemsModel();
         $orders_collection = new shopOrdersCollection('search/contact_id='.$id);
         $total_count = $orders_collection->count();
         $orders = $orders_collection->getOrders('*,items,params', 0, $total_count);

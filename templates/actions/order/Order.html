@@ -115,7 +115,7 @@
                 {$customers_rights = $wa->userRights('customers')}
                 <h3>
                     {if $customers_rights}<a href="?action=customers#/id/{$order.contact.id}">{/if}{$order.contact.name}{if $customers_rights}</a>{/if}
-                    {if $order.contact.registered}
+                    {if $order.contact.registered|default:false}
                         <i class="icon10 lock" title="[`Registered customer`]"></i>
                     {/if}
                     {if $customer.number_of_orders == 1}
@@ -130,11 +130,11 @@
                             <li>{if $top_field.id != 'im'}<i class="icon16 {$top_field.id}"></i>{/if}{$top_field.value}
                                 {if $top_field.id == 'email' && !empty($similar_contacts.email.count)}
                                 <span class="similar hint">
-                                    {if $customers_rights}<a href="?action=customers#/search/0/{urlencode($similar_contacts.email.value)}">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer', '%d more customers', $similar_contacts.email.count)}{if $customers_rights}</a>{/if} [`with same email found`]
+                                    {if $customers_rights}<a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer', '%d more customers', $similar_contacts.email.count)}{if $customers_rights}</a>{/if} [`with same email found`]
                                 </span>
                                 {elseif $top_field.id == 'phone' && !empty($similar_contacts.phone.count)}
                                 <span class="similar hint">
-                                    {if $customers_rights}<a href="?action=customers#/search/0/{urlencode($similar_contacts.phone.value)}">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer', '%d more customers', $similar_contacts.phone.count)}{if $customers_rights}</a>{/if} [`with same phone found`]
+                                    {if $customers_rights}<a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer', '%d more customers', $similar_contacts.phone.count)}{if $customers_rights}</a>{/if} [`with same phone found`]
                                 </span>
                                 {/if}
                             </li>

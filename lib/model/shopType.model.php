@@ -159,6 +159,7 @@ class shopTypeModel extends shopSortableModel
             $storefront_where = "AND op2.value='".$this->escape($options['storefront'])."'";
         }
 
+        // !!! With 15k orders this query takes ~2 seconds
         $paid_date_sql = shopOrderModel::getDateSql('o.paid_date', $start_date, $end_date);
         $sql = "SELECT
                     t.*,

@@ -6,7 +6,7 @@ class shopCustomer extends waContact
 
     /**
      * Returns current customer's affiliate bonus points.
-     * 
+     *
      * @return int
      */
     public function affiliateBonus()
@@ -28,4 +28,17 @@ class shopCustomer extends waContact
         }
         return $this->customer_data;
     }
+
+    /**
+     * @param int $customer_id
+     */
+    public static function recalculateTotalSpent($customer_id)
+    {
+        static $model = null;
+        if ($model === null) {
+            $model = new shopCustomerModel();
+        }
+        $model->recalcTotalSpent($customer_id);
+    }
+
 }

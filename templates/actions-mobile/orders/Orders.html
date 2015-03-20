@@ -7,7 +7,7 @@
     {if $orders === false}
         <h3>[`You don't have enough access permissions to view order list.`]</h3>
     {else}
-    <ul data-role="listview" class="s-mobile-order-list">
+    <ul data-role="listview" class="s-mobile-order-list" id="s-mobile-order-list">
         {foreach $orders as $o}
             <li class="s-mobile-order">
                 <a href="?module=orders&action=infoMobile&id={$o.id}">
@@ -24,6 +24,49 @@
             </li>
         {/foreach}
     </ul>
-    {*  !!! TODO: Lazy Loading?.. *}
     {/if}
 </div>
+
+{if $has_more_rows && !$start}
+<script>(function() { "use strict";
+
+    var new_start = {json_encode($start + count($orders))};
+
+    // Load more content when user scrolls down almost to the end of the list.
+    // Lazy loading is initialized once (on the first page) and loads content many times
+    // while there's more data to load.
+    var $window = $(window);
+    var $document = $(document);
+    var h, timeout = null, $loading_li = null;
+    $window.on('scrollstop', h = function() {
+        if (!h || timeout || $loading_li) {
+            return;
+        }
+        timeout = setTimeout(function() {
+            timeout = null;
+            if (!h || $loading_li || $window.scrollTop() + $window.height() < $document.height() - 300) {
+                return;
+            }
+
+            var $ul = $('#s-mobile-order-list');
+            $loading_li = $('<li class="tmp"><i class="icon16 loading"></i></li>').appendTo($ul);
+            $ul.listview('refresh');
+
+            $.post('?module=orders&action=mobile', { nolayout: 1, start: new_start }, function(r) {
+                var $new_lis = $('<div>').html(r).find('#s-mobile-order-list > li');
+                if ($new_lis.length) {
+                    new_start += $new_lis.length;
+                    $loading_li.replaceWith($new_lis);
+                } else {
+                    $loading_li.remove();
+                    $window.off('scrollstop', h);
+                    h = null;
+                }
+                $ul.listview('refresh');
+                $loading_li = null;
+            });
+        }, 300);
+    });
+
+})();</script>
+{/if}

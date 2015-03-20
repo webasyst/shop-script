@@ -98,12 +98,61 @@
 </div>{* #s-checkout-contact-form-wrapper *}
 
 <script>(function() { "use strict";
-    var form = $('#checkout-step-contactinfo-form');
-    var wrapper = $('#s-checkout-contact-form-wrapper');
+    var form = $("#checkout-step-contactinfo-form"),
+        wrapper = $("#s-checkout-contact-form-wrapper"),
+        $button = form.find(":submit"),
+        buttonEditClass = "form-is-not-save";
 
     var markAsChanged = function() {
-        form.find(':submit').removeClass('green').addClass('yellow');
+        // Add Active Button Class
+        $button
+            .removeClass("green")
+            .addClass("yellow")
+            .addClass(buttonEditClass); // flag class
+
+        // Trigger event
+        $(window).scroll();
     };
+
+    ( function( $button ) {
+        var storage = {
+            fixedClass: "fixed-save-button-wrapper",
+            $field: $button.closest(".field"),
+            getButtonScrollTop: function( $button ) {
+                var that = this.getButtonScrollTop;
+                if (!that.data) {
+                    that.data = $button.offset().top
+                }
+                return that.data;
+            }
+        };
+
+        var showFixedButton = function() {
+            // Add Fixed Class
+            storage.$field.addClass(storage.fixedClass);
+        };
+        var hideFixedButton = function() {
+            storage.$field.removeClass(storage.fixedClass);
+        };
+
+        // Event
+        $(window).on("scroll", function() {
+            if ( $button && $button.hasClass(buttonEditClass) ) {
+                var displayHeight = parseInt( $(window).height() ),
+                    currentScroll = parseInt( $(window).scrollTop() ),
+                    buttonHeight = parseInt( $button.outerHeight() ),
+                    buttonTop = parseInt( storage.getButtonScrollTop( $button ) ),
+                    delta = parseInt( buttonTop + buttonHeight - displayHeight );
+
+                if ( delta <= currentScroll ) {
+                    hideFixedButton();
+                } else {
+                    showFixedButton();
+                }
+            }
+        });
+    })( $button );
+
     wrapper.on('change', ':checkbox', markAsChanged);
     form.off('keyup.name', ':text[name="name"]').on('keyup.name', ':text[name="name"]', markAsChanged);
 

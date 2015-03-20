@@ -199,6 +199,7 @@
         },
 
         preExecute: function () {
+            $('body > .dialog').trigger('close').remove();
         },
 
         postExecute: function () {
@@ -254,12 +255,17 @@
             $("#reportscontent").load('?module=reports&action=cohorts'+this.getTimeframeParams());
         },
 
+        summaryAction: function() {
+            this.setActiveTop('summary');
+            $("#reportscontent").load('?module=reportsproducts&action=default&show_sales=1'+this.getTimeframeParams());
+        },
+
         productsAction: function() {
             this.productsBestsellersAction();
         },
-        productsBestsellersAction: function() {
+        productsBestsellersAction: function(params) {
             this.setActiveTop('products');
-            $("#reportscontent").load('?module=reportsproducts&action=default'+this.getTimeframeParams());
+            $("#reportscontent").load('?module=reportsproducts&action=default'+this.getTimeframeParams()+(params ? '&'+params : ''));
         },
         productsAssetsAction: function() {
             this.setActiveTop('products');

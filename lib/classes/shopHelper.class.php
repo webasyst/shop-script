@@ -713,7 +713,8 @@ class shopHelper
 
     public static function getPromoImageUrl($id, $ext)
     {
-        return wa('shop')->getDataUrl('promos/'.$id.'.'.$ext, true);
+        $v = @filemtime(wa('shop')->getDataPath('promos/'.$id.'.'.$ext, true));
+        return wa('shop')->getDataUrl('promos/'.$id.'.'.$ext, true).($v ? '?v='.$v : '');
     }
 }
 

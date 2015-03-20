@@ -22,9 +22,14 @@ class shopCustomersSidebarAction extends waViewAction
             }
         }
 
-        $this->view->assign('all_customers_count', $cm->countAll());
+        $cfm = new shopCustomersFilterModel();
+
+        $col = new shopCustomersCollection();
+
+        $this->view->assign('all_customers_count', $col->count());
         $this->view->assign('contacts_url', wa()->getAppUrl('contacts'));
         $this->view->assign('categories', $categories);
+        $this->view->assign('filters', $cfm->getFilters());
     }
 }
 

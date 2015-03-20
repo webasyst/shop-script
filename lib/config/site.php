@@ -195,6 +195,7 @@ return array(
                 '$product.<strong>tags</strong>: '._w('Array of product tags').'<br>'.
                 '$product.<strong>pages</strong>: '._w('Array of product static info pages').'<br>'.
                 '$product.<strong>features</strong>: '._w('Array of product features and values').'<br>',
+                '$product.<strong>reviews</strong>: '._w('Array of product reviews').'<br>',
             
             '$wa->shop->productImgHtml($product, $size, $attributes = array())' => _w('Displays specified $product object’s default image'),
             '$wa->shop->productImgUrl($product, $size)' => _w('Returns specified $product default image URL'),
@@ -202,6 +203,9 @@ return array(
             '$wa->shop->productsCount(<em>search_conditions</em>)' => _w('Returns number of products matching specified search conditions, e.g. <em>"tag/new"</em>, <em>"category/12"</em>, <em>"id/1,5,7"</em>, <em>"set/1"</em>, or <em>"*"</em> for all products list.'),
             '$wa->shop->productSet(<em>set_id</em>)' => _w('Returns array of products from the specified set.').' '._w('Optional <em>options</em> parameter indicates additional product options, e.g. <em>["params" => 1]</em> to include product custom parameter values into the output.'),
             '$wa->shop->ratingHtml(<em>$rating, $size = 10, $show_when_zero = false</em>)' => _w('Displays 1—5 stars rating. $size indicates icon size and can be either 10 or 16'),
+            '$wa->shop->features(<em>product_ids</em>)' => _w('Returns array of feature values for the specified list of  products'),
+            '$wa->shop->reviews([<em>$limit = 10</em>])' => _w('Returns array of latest product reviews'),
+            '$wa->shop->stocks()' => _w('Returns array of stocks'),
             '$wa->shop->settings("<em>option_id</em>")' => _w('Returns store’s general setting option by <em>option_id</em>, e.g. "name", "email", "country"'),
             '$wa->shop->themePath("<em>theme_id</em>")' => _ws('Returns path to theme folder by <em>theme_id</em>'),
         ),

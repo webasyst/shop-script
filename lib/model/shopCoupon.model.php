@@ -26,7 +26,7 @@ class shopCouponModel extends waModel
                     AND ((`expire_datetime` IS NULL) OR (`expire_datetime` > ?))";
         return (int) $this->query($sql, date('Y-m-d H:i:s'))->fetchField();
     }
-    
+
     public function delete($id)
     {
         $coupon = $this->getById($id);
@@ -43,5 +43,20 @@ class shopCouponModel extends waModel
             $this->deleteById($id);
         }
     }
+
+    public function getById($value, $with_empty_rows = false) {
+        $res = parent::getById($value);
+        if ($with_empty_rows && is_array($value)) {
+            $empty = $this->getEmptyRow();
+            $all = array();
+            foreach ($value as $v) {
+                $all[$v] = ifset($res[$v], $empty);
+                $all[$v][$this->id] = $v;
+            }
+            return $all;
+        }
+        return $res;
+    }
+
 }
 

@@ -567,6 +567,7 @@ class shopProductModel extends waModel
             $storefront_where = "AND op2.value='".$this->escape($options['storefront'])."'";
         }
 
+        // !!! With 15k orders this query takes ~3 seconds
         $sql = "SELECT
                     p.*,
                     SUM(oi.price*o.rate*oi.quantity) AS sales,
@@ -588,7 +589,6 @@ class shopProductModel extends waModel
                 GROUP BY p.id
                 ORDER BY $order DESC
                 LIMIT $limit";
-
         return $this->query($sql);
     }
 

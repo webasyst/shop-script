@@ -419,6 +419,8 @@ class shopFrontendCheckoutAction extends waViewAction
             wa()->getStorage()->set('shop/order_id', $order_id);
 
             return $order_id;
+        } else {
+            return false;
         }
     }
 

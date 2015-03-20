@@ -65,7 +65,7 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
                     'paid_quarter' => null,
                 ));
                 $order_model->recalculateProductsTotalSales($order_id);
-                shopCustomers::recalculateTotalSpent($order['contact_id']);
+                shopCustomer::recalculateTotalSpent($order['contact_id']);
             }
         }
         return $data;

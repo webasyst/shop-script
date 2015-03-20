@@ -3,6 +3,8 @@ class shopReportsCohortsAction extends waViewAction
 {
     public function execute()
     {
+        shopReportsSalesAction::jsRedirectIfDisabled();
+
         list($start_date, $end_date, $group_by, $request_options) = shopReportsSalesAction::getTimeframeParams();
 
         $default_group_by = 'quarters';

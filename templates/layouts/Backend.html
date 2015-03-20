@@ -52,7 +52,7 @@
     <!-- link your JS files here -->
     <script type="text/javascript">
         var menu_floating = true;
-        {if $page == 'settings' || $page == 'importexport' || $page == 'plugins' || $page == 'storefronts'}
+        {if in_array($page, ['settings', 'importexport', 'plugins', 'storefronts', 'tutorial:default'])}
             menu_floating = false;
         {/if}
         $(function() {
@@ -94,6 +94,13 @@
                 {* @event backend_menu.%plugin_id%.aux_li *}
                 {foreach $backend_menu as $_}{ifset($_.aux_li)}{/foreach}
 
+                {if $wa->shop->settings('show_tutorial') || waRequest::request('module') == 'tutorial'}
+                    <li class="no-tab" id="mainmenu-tutorial-tab">
+                        <a href="{$wa_app_url}?module=tutorial" title="[`Welcome tutorial`]">
+                            <i class="icon16 info"></i>
+                        </a>
+                    </li>
+                {/if}
                 {if $wa->userRights('orders')}
                     <li class="{if !$page || $page=='orders'}selected{else}no-tab{/if}" id="mainmenu-orders-tab">
                         <a href="{$wa_app_url}?action=orders#/orders/">
@@ -152,10 +159,8 @@
 
                     {elseif $page == 'reports'}
 
+                        {* Reports common period selector *}
                         <div class="float-right">
-
-
-
                             <ul class="menu-h dropdown s-reports-timeframe" style="float: right;">
                                 <li class="hidden s-custom-timeframe">
                                     [`from`] <input type="text" name="from">
@@ -175,36 +180,31 @@
                                         <li data-timeframe="365" data-groupby="months"><a href="javascript:void(0)" class="nowrap">{_w('Last %d day', 'Last %d days', 365)}</a></li>
                                         <li data-timeframe="all" data-groupby="months"><a href="javascript:void(0)" class="nowrap">[`All time`]</a></li>
                                         <li data-timeframe="custom"><a href="javascript:void(0)" class="nowrap">[`Select dates...`]</a></li>
-                                        {* !!! remove?..
-                                        <li class="bordered-top not-implemented" data-timeframe=""><a href="javascript:void(0)" class="nowrap">Jan 2015 vs. Dec 2014</a></li>
-                                        <li data-timeframe="" class="not-implemented"><a href="javascript:void(0)" class="nowrap">Jan 2015 vs. Jan 2014</a></li>
-                                        <li data-timeframe="" class="not-implemented"><a href="javascript:void(0)" class="nowrap">Q1 2015 vs. Q4 2014</a></li>
-                                        <li data-timeframe="" class="not-implemented"><a href="javascript:void(0)" class="nowrap">Q1 2015 vs. Q1 2014</a></li>
-                                        <li data-timeframe="" class="not-implemented"><a href="javascript:void(0)" class="nowrap">2015 and 2014</a></li>
-                                        <li data-timeframe="" class="not-implemented"><a href="javascript:void(0)" class="nowrap">[`Compare custom ranges...`]</a></li>
-                                        *}
-
                                     </ul>
                                 </li>
                             </ul>
-
                             <div id="s-reports-custom-controls" class="float-right"></div>
-
-
                         </div>
+
                         <ul class="menu-h s-reports">
-                            <li>
-                                <a href="#/sales/">[`Sales`]</a>
-                            </li>
-                            <li>
-                                <a href="#/customers/">[`Customers`]</a>
-                            </li>
-                            <li>
-                                <a href="#/cohorts/">[`Cohorts`]</a>
-                            </li>
-                            <li>
-                                <a href="#/products/">[`Products`]</a>
-                            </li>
+                            {if $wa->shop->config('reports_simple')}
+                                <li>
+                                    <a href="#/summary/">[`Sales`]</a>
+                                </li>
+                            {else}
+                                <li>
+                                    <a href="#/sales/">[`Sales`]</a>
+                                </li>
+                                <li>
+                                    <a href="#/customers/">[`Customers`]</a>
+                                </li>
+                                <li>
+                                    <a href="#/cohorts/">[`Cohorts`]</a>
+                                </li>
+                                <li>
+                                    <a href="#/products/">[`Products`]</a>
+                                </li>
+                            {/if}
                             <li>
                                 <a href="#/checkoutflow/">[`Checkout funnel`]</a>
                             </li>

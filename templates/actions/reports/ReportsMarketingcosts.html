@@ -35,14 +35,14 @@
             {include "./mcosts_editor.html" inline}
         </div>
         <div class="clear-both block" style="margin:40px 0 0 0">
-            <a href="javascript:void(0)" id="s-new-expense-button">
+            <a href="javascript:void(0)" id="s-new-expense-button" class="inline-link">
                 <i class="icon16 add"></i>
-                [`Add expense`]
+                <b><i>[`Add expense`]</i></b>
             </a>
         </div>
         <div class="block">
             {if count($expenses)}
-                <table class="zebra">
+                <table class="zebra single-lined">
                     <tbody id="s-reports-marketing-costs-table">
                         {include "./mcosts_rows.html" inline}
                     </tbody>
@@ -102,6 +102,7 @@
 
     // Update chart and table when something's changed via editor
     $editor_wrapper.on('successfull_save', function() {
+        $editor_wrapper.slideUp();
         var count = $table.children().length;
         $table.html('<tr><td><i class="icon16 loading"></i></td></tr>');
         $.post('?module=reportsmarketingcosts&action=rows', $.extend({}, request_options, { limit: Math.max(limit, count) }), function(r) {
@@ -134,7 +135,7 @@
     // Helper to update period bars in table
     function updatePeriods() {
 
-        var MAX_BAR_WIDTH = 40;
+        var MAX_BAR_WIDTH = 100;
 
         var $periods = $table.find('> .expense-row > td.period-td > .period');
 

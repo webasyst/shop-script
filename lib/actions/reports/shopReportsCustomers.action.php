@@ -6,6 +6,8 @@ class shopReportsCustomersAction extends waViewAction
 {
     public function execute()
     {
+        shopReportsSalesAction::jsRedirectIfDisabled();
+
         list($start_date, $end_date, $group_by, $request_options) = shopReportsSalesAction::getTimeframeParams();
         $storefront = waRequest::request('storefront', null, 'string');
         $model_options = array(

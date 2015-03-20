@@ -24,25 +24,29 @@
 {foreach $expenses as $e}
     <tr class="expense-row{if $e.type == 'campaign'} s-tr-campaign{/if}" data-expense-id="{$e.id}">
         <td class="channel">
-            {$e.name|escape}
+            <div>{$e.name|escape}<i class="shortener"></i></div>
         </td>
-        <td class="note gray">
-            {$e.note|escape}
+        <td class="note gray" style="max-width: 20%;">
+            <div>{$e.note|escape}<i class="shortener"></i></div>
         </td>
         <td class="period-td">
-            <div class="period" style="width:0%;" data-start-ts="{$e.start_ts}" data-end-ts="{$e.end_ts}">
-                <div class="period-bar" style="width:0%;"></div>{* Widths are updated by JS *}
+            <div class="period" style="width:0;" data-start-ts="{$e.start_ts}" data-end-ts="{$e.end_ts}">
+                <div class="period-bar" style="width:0; background-color: {$e.color};" title="{format_nice_date s=$e.start e=$e.end}"></div>{* Widths are updated by JS *}
+            </div>
+        </td>
+        <td class="amount align-right nowrap">
+            {shop_currency_html($e.amount, $def_cur, $def_cur)}
+        </td>
+        <td class="date-td gray">
+            <div>
                 <span class="period-dates">
                     {format_nice_date s=$e.start e=$e.end}
                 </span>
+                <i class="shortener"></i>
             </div>
         </td>
-        <td class="amount">
-            <i class="icon16 color" style="background:{$e.color};"></i>
-            {shop_currency_html($e.amount, $def_cur, $def_cur)}
-        </td>
-        <td>
-            <a href="javascript:void(0)" class="inline-link edit"><i class="icon16 edit"></i><b><i>[`Edit`]</i></b></a>
+        <td class="min-width">
+            <a href="javascript:void(0)" class="edit" title="[`Edit`]"><i class="icon16 edit"></i></a>
         </td>
     </tr>
 {/foreach}

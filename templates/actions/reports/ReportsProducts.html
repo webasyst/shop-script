@@ -1,16 +1,48 @@
 <div class="content">
-    <div class="block double-padded ">
+    <div class="block double-padded">
 
-        <h1>
-            [`Best selling products and services`]
-            <span class="hint" id="period-description">[`Custom range`]</span>
-        </h1>
+        {if $graph_data === null}
+            <h1>
+                [`Best selling products and services`]
+                <span class="hint" id="period-description">[`Custom range`]</span>
+            </h1>
 
-        <ul class="menu-h s-product-reports">
-            <li class="selected"><a href="#/products/bestsellers/">[`Best sellers`]</a></li>
-            <li><a href="#/products/assets/">[`Assets`]</a></li>
-            <li><a href="#/products/whattosell/">[`What to sell`]</a></li>
-        </ul>
+            <ul class="menu-h s-product-reports">
+                <li class="selected"><a href="#/products/bestsellers/">[`Best sellers`]</a></li>
+                <li><a href="#/products/assets/">[`Assets`]</a></li>
+                <li><a href="#/products/whattosell/">[`What to sell`]</a></li>
+            </ul>
+        {else}
+            <h1>
+                [`Sales`]
+                <span class="hint" id="period-description">[`Custom range`]</span>
+            </h1>
+
+            <div class="graph-wrapper">
+                <script>
+                    (function() {
+                        if (typeof showSalesGraph == 'undefined') {
+                            return $.ajax({
+                                  dataType: "script",
+                                  url: "{$wa_url}wa-apps/shop/js/charts/d3chart-sales.js?{$wa->version()}",
+                                  cache: true
+                            });
+                        } else {
+                            return $.Deferred(function(d) {
+                                d.resolve();
+                            });
+                        }
+                    })().done(function() {
+                        showSalesGraph({json_encode($graph_data)}, {wa_currency_html(0, $def_cur)|replace:'0':'%s'|json_encode});
+                    });
+                </script>
+                <!-- CHART WRAPPERS -->
+                <div class="sales-wrapper"></div>
+                <div class="hint-wrapper" id="hint-wrapper"></div>
+            </div>
+        {/if}
+
+
 
         <div class="clear-both"></div>
 
@@ -60,8 +92,20 @@
                         <tr class="white s-header-row">
                             <th style="width:50px;"></th>
                             <th></th>
-                            <th class="align-right">[`Sales`]</th>
-                            <th class="s-wider-cell align-right">[`Profit`]<i class="icon16 darr"></i></th>
+                            <th class="align-right">
+                                {if $request_options.sort == 'sales'}
+                                    [`Sales`]<i class="icon16 darr"></i>
+                                {else}
+                                    <a href="#/products/bestsellers/sort=sales/">[`Sales`]</a>
+                                {/if}
+                            </th>
+                            <th class="s-wider-cell align-right">
+                                {if $request_options.sort == 'profit'}
+                                    [`Profit`]<i class="icon16 darr"></i>
+                                {else}
+                                    <a href="#/products/bestsellers/sort=profit/">[`Profit`]</a>
+                                {/if}
+                            </th>
                             <th style="width:100px;"></th>
                         </tr>
                     </thead>
@@ -98,17 +142,6 @@
                         </tr>
                         {/foreach}
                     </tbody>
-                    {*
-                    <tfoot>
-                        <tr class="white">
-                            <td></td>
-                            <td></td>
-                            <td class="align-right bold"><span class="total-sales">{wa_currency_html($product_total_sales, $def_cur)}</span></td>
-                            <td class="align-right bold"><span class="total-profit">{wa_currency_html($product_total_profit, $def_cur)}</span></td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                    *}
                 </table>
 
 
@@ -164,7 +197,15 @@
 </div>
 
 <script>(function() { "use strict";
-    document.title = "[`Best selling products and services`] — {$wa->accountName(false)|escape:javascript}";
+    {if $graph_data === null}
+        document.title = "[`Best selling products and services`] — {$wa->accountName(false)|escape:javascript}";
+    {else}
+        document.title = "[`Sales`] — {$wa->accountName(false)|escape:javascript}";
+        $.wa.locale = $.extend($.wa.locale, {
+            'Sales': "[`Sales`]",
+            'Profit': "[`Profit`]"
+        });
+    {/if}
 
     var request_params = {json_encode($request_options)};
     var action_url = '?module=reportsproducts&action=default';

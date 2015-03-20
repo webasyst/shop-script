@@ -29,6 +29,7 @@ class shopBackendWelcomeAction extends waViewAction
 
         if (waRequest::post()) {
             $app_settings_model = new waAppSettingsModel();
+            $app_settings_model->set('shop', 'show_tutorial', 1);
             $app_settings_model->del('shop', 'welcome');
             $this->setup();
         } else {
@@ -152,7 +153,7 @@ class shopBackendWelcomeAction extends waViewAction
             }
         }
 
-        $redirect = '?action=products#/welcome/';
+        $redirect = null;
         if ($plugin_id = waRequest::post('plugin')) {
             $data = waRequest::post($plugin_id);
             if (preg_match('@^(.+)-plugin$@', $plugin_id, $matches)) {
@@ -162,6 +163,35 @@ class shopBackendWelcomeAction extends waViewAction
                 }
             }
         }
+        if (empty($redirect)) {
+            $redirect = '?action=products#/welcome/';
+        }
+
+        // Promos
+        $promo_model = new shopPromoModel();
+        if ($promo_model->countAll() <= 0) {
+            $promo_routes = array();
+            $promo_routes_model = new shopPromoRoutesModel();
+            $promo_stubs = include(wa()->getAppPath('lib/config/data/promos.php', 'shop'));
+            foreach ($promo_stubs as $stub) {
+                $file = $stub['image'];
+                $ext = explode('.', $file);
+                $ext = array_pop($ext);
+                unset($stub['image']);
+                $id = $promo_model->insert($stub + array(
+                        'type' => 'link',
+                        'ext'  => $ext,
+                    ));
+                waFiles::copy(wa()->getAppPath($file, 'shop'), wa('shop')->getDataPath('promos/'.$id.'.'.$ext, true));
+                $promo_routes[] = array(
+                    'promo_id'   => $id,
+                    'storefront' => '%all%',
+                    'sort'       => count($promo_routes) + 1,
+                );
+            }
+            $promo_routes_model->multipleInsert($promo_routes);
+        }
+
         $this->redirect($redirect);
     }
 
@@ -220,7 +250,7 @@ class shopBackendWelcomeAction extends waViewAction
             'control_wrapper'     => '
 <div class="field">
     <div class="name">%s</div>
-    <div class="value">%s%s</div>
+    <div class="value no-shift">%s%s</div>
 </div>
 ',
             'control_separator'   => '</div><div class="value">',

@@ -41,6 +41,12 @@ class shopPromosActions extends waViewActions
         }
         unset($p);
 
+        $counts = $promo_routes_model->getStorefrontCounts();
+        foreach($storefronts as &$s) {
+            $s['count'] = ifset($counts[$s['storefront']], 0);
+        }
+        unset($s);
+
         $this->view->assign(array(
             'promos_count' => $promo_model->countAll(),
             'storefronts' => $storefronts,
@@ -331,8 +337,8 @@ EOF;
             );
         }
 
-        $promo_routes_model = new shopPromoRoutesModel();
         if ($promo_id) {
+            $promo_routes_model = new shopPromoRoutesModel();
             $rows = $promo_routes_model->getByField('promo_id', $promo_id, 'storefront');
             foreach($rows as $d => $row) {
                 if (empty($storefronts[$d])) {

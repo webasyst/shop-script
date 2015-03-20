@@ -421,22 +421,58 @@ SQL;
         return preg_replace('~('.preg_quote($term_safe, '~').')~ui', '<span class="bold highlighted">\1</span>', htmlspecialchars($str));
     }
 
+    protected function match($str, $term_safe)
+    {
+        return preg_match('~('.preg_quote($term_safe, '~').')~ui', htmlspecialchars($str));
+    }
+
     public function customersAutocomplete($q)
     {
-        $scm = new shopCustomerModel();
         $result = array();
-        list($list, $total) = $scm->getList(null, $q, 0, $this->limit);
+
+        if (preg_match('~^\+*[0-9\s\-\(\)]+$~', $q)) {
+            $hash = 'search/phone*=' . ltrim($q, '+');
+        } else {
+            $hash = 'search/email|name*=' . $q;
+        }
+
+        $col = new shopCustomersCollection($hash);
+        $customers = $col->getCustomers('id,name,firstname,middlename,lastname,email,phone', 0, $this->limit);
 
         $term_safe = htmlspecialchars($q);
-        foreach($list as $c) {
-            $name = $this->prepare($c['name'], $term_safe);
-            $email = $this->prepare(ifset($c['email'], ''), $term_safe);
-            $phone = $this->prepare(ifset($c['phone'], ''), $term_safe);
-            $phone && $phone = '<i class="icon16 phone"></i>'.$phone;
-            $email && $email = '<i class="icon16 email"></i>'.$email;
+        foreach($customers as $c) {
+
+            $name = waContactNameField::formatName($c);
+            $name = $this->prepare($name, $term_safe);
+
+            $emails = array();
+            if (!empty($c['email'])) {
+                foreach ((array) $c['email'] as $email) {
+                    if ($this->match($email, $term_safe)) {
+                        $emails[] = '<i class="icon16 email"></i>'.$this->prepare($email, $term_safe);
+                    }
+                }
+            }
+
+            $phones = array();
+            if (!empty($c['phone'])) {
+                foreach ((array) $c['phone'] as $phone) {
+                    $ext = '';
+                    if (is_array($phone)) {
+                        $ext = $phone['ext'];
+                        $phone = $phone['value'];
+                    }
+                    $t = ltrim($term_safe, '+');
+                    if ($this->match($phone, $t)) {
+                        $phones[] = '<i class="icon16 phone"></i>'.$this->prepare($phone, $t)
+                                                . ($ext ? " <span class='hint'>{$ext}</span>" : '');
+                    }
+                }
+            }
+
             $result[] = array(
                 'value' => $c['name'],
-                'label' => implode(' ', array_filter(array($name, $email, $phone))),
+                'label' => implode(' ', array_merge(array($name), $emails, $phones)),
                 'id' => $c['id'],
             );
         }
@@ -449,5 +485,6 @@ SQL;
 
         return $result;
     }
+
 }
 
