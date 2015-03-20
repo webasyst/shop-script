@@ -296,6 +296,11 @@
             <name locale="en_US">Show latest blog posts on storefront homepage</name>
             <name locale="ru_RU">Показывать последние посты блога на главной странице интернет-магазина</name>
         </setting>
+        <setting var="list_features">
+            <value>0</value>
+            <name locale="en_US">Show product features in product lists</name>
+            <name locale="ru_RU">Показывать характеристики в списках товаров</name>
+        </setting>
     </settings>
     <thumbs>
         <thumb>48x48</thumb>

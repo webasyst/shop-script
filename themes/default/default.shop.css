@@ -41,6 +41,9 @@ ul.thumbs li .image .badge-wrapper { position: relative; }
 ul.thumbs li a { text-decoration: none; }
 ul.thumbs li h5 { margin-top: 0.5em; margin-bottom: 0.3em; }
 ul.thumbs li span.summary { color: #999; font-size: 0.9em; }
+ul.thumbs li table.features { color: #999; font-size: 0.9em;}
+ul.thumbs li table.features td { padding: 3px 0 0 0;}
+ul.thumbs li table.features td.name { min-width: 70px; padding-right: 10px}
 ul.thumbs li a:hover { color: red !important; }
 ul.thumbs li a:hover h5 { color: red !important; }
 ul.thumbs .rating,

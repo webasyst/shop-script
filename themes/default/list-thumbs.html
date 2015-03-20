@@ -27,6 +27,9 @@
 {if $wa->shop->cart->total() > 0}{$add2cart_label = '[`Add to cart`]'}{else}{$add2cart_label = '[`Buy`]'}{/if}
 
 <ul class="thumbs product-list">
+{if !empty($theme_settings.list_features)}
+    {$features = $wa->shop->features($products)}
+{/if}
 {foreach $products as $p}
     {$available = $wa->shop->settings('ignore_stock_count') || $p.count === null || $p.count > 0}
     <li itemscope itemtype ="http://schema.org/Product">
@@ -49,6 +52,28 @@
             </h5>
             {if $p.summary}<span itemprop="description" class="summary">{strip_tags($p.summary)|truncate:100}</span>{/if}
         </a>
+        {if !empty($p.features)}
+        <table class="features">
+            {foreach $p.features as $f_code => $f_value}
+            <tr{if $features[$f_code].type == 'divider'} class="divider"{/if}>
+            <td class="name">
+                {$features[$f_code].name|escape}
+            </td>
+            <td class="value">
+                {if is_array($f_value)}
+                    {if $features[$f_code].type == 'color'}
+                        {implode('<br /> ', $f_value)}
+                    {else}
+                        {implode(', ', $f_value)}
+                    {/if}
+                {else}
+                    {$f_value}
+                {/if}
+            </td>
+            </tr>
+            {/foreach}
+        </table>
+        {/if}
         <div itemprop="offers" class="offers" itemscope itemtype="http://schema.org/Offer">
             {if $available}
                 <form class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('/frontendCart/add')}">
