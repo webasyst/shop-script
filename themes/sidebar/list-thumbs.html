@@ -18,7 +18,7 @@
             <li{if !$active_sort} class="selected"{/if}><a href="{$wa->currentUrl(0, 1)}">[`New & Popular`]</a></li>
         {/if}
         {foreach $sort_fields as $sort => $name}
-            <li{if $active_sort == $sort} class="selected"{/if}>{$wa->shop->sortUrl($sort, $name)}</li>
+            <li{if $active_sort == $sort} class="selected"{/if}>{$wa->shop->sortUrl($sort, $name, $active_sort)}</li>
             {if $wa->get('sort') == $sort}{$wa->title( $wa->title()|cat:' — '|cat:$name)}{/if}
         {/foreach}
     </ul>
@@ -42,7 +42,7 @@
                 {$p.name}
             </h5>                
         </a>
-        {if $p.summary}<p itemprop="description" class="description">{$p.summary|truncate:100}</p>{/if}
+        {if $p.summary}<p itemprop="description" class="description">{strip_tags($p.summary)|truncate:100}</p>{/if}
         <div itemprop="offers" class="offers" itemscope itemtype="http://schema.org/Offer">
             {if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency($p.compare_price)} </span>{/if}
 
@@ -73,7 +73,7 @@
 </ul>
 
 {if isset($pages_count) && $pages_count > 1}
-<div class="block lazyloading-paging">
+<div class="block lazyloading-paging" data-loading-str="[`Loading...`]">
     {wa_pagination total=$pages_count attrs=['class' => "menu-h"]}
 </div>
 {/if}

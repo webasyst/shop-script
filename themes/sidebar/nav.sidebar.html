@@ -14,6 +14,14 @@
     </div>
 {/foreach}
 
+<!-- plugin hook: 'frontend_nav_aux' -->
+{* @event frontend_nav_aux.%plugin_id% *}
+{foreach $frontend_nav_aux as $_key => $_}
+<div class="block {$_key}">
+    {$_}
+</div>
+{/foreach}
+
 {if $cloud = $wa->shop->tags()}
     <!-- tags -->            
     <div class="tags block align-center">
