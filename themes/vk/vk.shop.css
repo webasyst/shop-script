@@ -36,6 +36,15 @@
 .promo .bx-wrapper .bx-prev { left: 0; }
 .promo .bx-wrapper .bx-next { right: 0; }
 
+.promos { margin: 5px -25px; }
+.promos ul { padding: 0; margin: 0; }
+.promos ul li { padding: 0; margin: 0; list-style: none; display: inline-block; width: 25%; float: left; } 
+.promos ul li a { display: block; padding: 40px 20px; height: 80px; overflow: hidden; background-size: cover; background-position: center center; color: #000; background-color: rgba(0,0,0,0.05); border: 5px solid #fff; text-align: center; position: relative; }
+.promos ul li a .background-color-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; opacity: 0.1; background-color: #000; }
+.promos ul li a h5 { font-size: 1.3em; text-shadow: 0 1px 1px #000; position: relative; z-index: 2; }
+.promos ul li a p { font-size: 0.9em; text-shadow: 0 1px 1px #000; position: relative; z-index: 2; }
+.promos ul li a:hover .background-color-layer { opacity: 0.5; transition: 0.3s; }
+
 /* Category */
 
 .sub-categories { margin-bottom: 20px; }
