@@ -43,6 +43,24 @@
         {/if}
     </div>
     
+    {if $promocards = $wa->shop->promos()}
+        <!-- PROMOS -->
+        <section class="promos">
+            <ul>
+                {foreach $promocards as $promo}
+                    <li id="s-promo-{$promo.id}">
+                        <a href="{$promo.link|escape}" style="background-image: url('{$promo.image}');">
+                            <div class="background-color-layer"></div>
+                            {if !empty($promo.title)}<h5 style="color: {$promo.color};">{$promo.title|escape}</h5>{/if}
+                            {if !empty($promo.body)}<p style="color: {$promo.color};">{$promo.body|escape}</p>{/if}
+                        </a>
+                    </li>
+                {/foreach}
+            </ul>
+            <div class="clear-both"></div>
+        </section>
+    {/if}
+    
     <!-- plugin hook: 'frontend_homepage' -->
     {* @event frontend_homepage.%plugin_id% *}
     {foreach $frontend_homepage as $_}{$_}{/foreach}
