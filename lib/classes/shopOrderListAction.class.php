@@ -82,6 +82,7 @@ class shopOrderListAction extends waViewAction
                     if (is_array($v)) {
                         $v = implode("||", $v);
                     }
+                    $op = '=';
                     if ($k == 'storefront') {
                         $k = 'params.'.$k;
                         if (strlen($v) && $v !== 'NULL') {
@@ -93,11 +94,17 @@ class shopOrderListAction extends waViewAction
                             }
                             $v .= "||$v/";
                         }
-                    }
-                    if ($k == 'product_id') {
+                    } elseif ($k == 'product_id') {
                         $k = 'items.'.$k;
+                    } elseif ($k == 'city' || $k == 'country' || $k == 'region')  {
+                        if ($k == 'city') {
+                            $op = '*=';
+                        }
+                        $k = 'address.'.$k;
+                    }  elseif (!$this->model->fieldExists($k)) {
+                        $k = 'params.'.$k;
                     }
-                    $hash = "search/{$k}={$v}";
+                    $hash = "search/{$k}{$op}{$v}";
                 }
             } elseif (waRequest::get('hash')) {
                 $hash = waRequest::get('hash');
@@ -130,6 +137,30 @@ class shopOrderListAction extends waViewAction
             $product_id = waRequest::get('product_id', null, waRequest::TYPE_INT);
             if ($product_id) {
                 $params['product_id'] = $product_id;
+            }
+            $shipping_id = waRequest::get('shipping_id', null, waRequest::TYPE_INT);
+            if ($shipping_id) {
+                $params['shipping_id'] = $shipping_id;
+            }
+            $payment_id = waRequest::get('payment_id', null, waRequest::TYPE_INT);
+            if ($payment_id) {
+                $params['payment_id'] = $payment_id;
+            }
+            $coupon_id = waRequest::get('coupon_id', null, waRequest::TYPE_INT);
+            if ($coupon_id) {
+                $params['coupon_id'] = $coupon_id;
+            }
+            $city = waRequest::get('city', null, waRequest::TYPE_STRING_TRIM);
+            if ($city) {
+                $params['city'] = $city;
+            }
+            $region = waRequest::get('region', null, waRequest::TYPE_STRING_TRIM);
+            if ($region) {
+                $params['region'] = $region;
+            }
+            $country = waRequest::get('country', null, waRequest::TYPE_STRING_TRIM);
+            if ($country) {
+                $params['country'] = $country;
             }
             $this->filter_params = $params;
         }

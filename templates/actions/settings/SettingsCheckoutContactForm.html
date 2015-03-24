@@ -116,7 +116,7 @@
 
     ( function( $button ) {
         var storage = {
-            fixedClass: "fixed-save-button-wrapper",
+            fixedClass: "s-fixed-save-button-wrapper",
             $field: $button.closest(".field"),
             getButtonScrollTop: function( $button ) {
                 var that = this.getButtonScrollTop;
@@ -127,30 +127,31 @@
             }
         };
 
-        var showFixedButton = function() {
-            // Add Fixed Class
-            storage.$field.addClass(storage.fixedClass);
-        };
-        var hideFixedButton = function() {
-            storage.$field.removeClass(storage.fixedClass);
+        var toggleFixedButton = function() {
+            var button_is_exist = $(document).find($button).length;
+            if (button_is_exist) {
+                if ($button.hasClass(buttonEditClass) ) {
+                    var displayHeight = parseInt($(window).height()),
+                            currentScroll = parseInt($(window).scrollTop()),
+                            buttonHeight = parseInt($button.outerHeight()),
+                            buttonTop = parseInt(storage.getButtonScrollTop($button)),
+                            delta = parseInt(buttonTop + buttonHeight - displayHeight);
+
+                    if (delta <= currentScroll) {
+                        storage.$field.removeClass(storage.fixedClass);
+                    } else {
+                        storage.$field.addClass(storage.fixedClass);
+                    }
+                }
+            } else {
+                // Remove Event
+                $(window).off("scroll", toggleFixedButton);
+            }
         };
 
         // Event
-        $(window).on("scroll", function() {
-            if ( $button && $button.hasClass(buttonEditClass) ) {
-                var displayHeight = parseInt( $(window).height() ),
-                    currentScroll = parseInt( $(window).scrollTop() ),
-                    buttonHeight = parseInt( $button.outerHeight() ),
-                    buttonTop = parseInt( storage.getButtonScrollTop( $button ) ),
-                    delta = parseInt( buttonTop + buttonHeight - displayHeight );
+        $(window).on("scroll", toggleFixedButton);
 
-                if ( delta <= currentScroll ) {
-                    hideFixedButton();
-                } else {
-                    showFixedButton();
-                }
-            }
-        });
     })( $button );
 
     wrapper.on('change', ':checkbox', markAsChanged);

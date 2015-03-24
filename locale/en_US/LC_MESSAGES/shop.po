@@ -4774,7 +4774,7 @@ msgid "Open storefront"
 msgstr ""
 
 #: /wa-apps/shop/templates/layouts/Backend.html:145
-msgid "Search customers by name, email, or phone number"
+msgid "Search customers"
 msgstr ""
 
 #: /wa-apps/shop/templates/layouts/Backend.html:162
@@ -5970,6 +5970,11 @@ msgstr ""
 #: /wa-apps/shop/themes/facebook/footer.html:4
 #: /wa-apps/shop/themes/vk/footer.html:4
 msgid "We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Shop-Script 5</a>"
+msgstr ""
+
+#: /wa-apps/shop/themes/facebook/footer.html:4
+#: /wa-apps/shop/themes/vk/footer.html:4
+msgid "We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Shop-Script 6</a>"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductListEmbed.html:10
@@ -10280,4 +10285,28 @@ msgstr ""
 
 #: /wa-apps/shop/lib/classes/shopCustomersCollection.class.php:368
 msgid "Make last order"
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:65
+msgid "From New York"
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:74
+msgid "From British Columbia"
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:83
+msgid "From New Zealand"
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:112
+msgid "From Facebook"
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:121
+msgid "From Twitter"
+msgstr ""
+
+#: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:139
+msgid "Last ordered over a month ago"
 msgstr ""

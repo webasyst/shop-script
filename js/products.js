@@ -404,12 +404,18 @@
                     expand(this);
                 }
             }).each(function () {
-                    var key = key_prefix + this.id + '/collapse';
-                    var force = $(this).hasClass('rarr');
-                    if ($.storage.get(key) || force) {
-                        collapse(this, !force);
-                    }
-                });
+                var key = key_prefix + this.id + '/collapse';
+                var force = $(this).hasClass('rarr');
+                if ($.storage.get(key) || force) {
+                    collapse(this, !force);
+                }
+            });
+            $(".collapse-handler").closest('.heading').off('click').on('click', function(e) {
+                $collapse_handler = $(this).find('.collapse-handler');
+                if (!$collapse_handler.is(e.target)) {
+                    $collapse_handler.click();
+                }
+            });
         },
 
         initSearch: function () {

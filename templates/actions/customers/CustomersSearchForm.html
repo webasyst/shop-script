@@ -39,10 +39,6 @@
                                 [`to`] <input name="app.total_spent.to" value="{$hash.app.total_spent.val[1]|default:''}" type="text" class="numerical short s-total-spent-to" placeholder="&infin;">
                             {/if}
                             {$primary_currency}
-
-                            {*** select n="app.total_spent.op" o=['=', '>', '<', '>=', '<='] d=$hash.app.total_spent.op|default:'' with_empty=false}
-                            <input name="app.total_spent.val" value="{$hash.app.total_spent.val|default:''}"> {$primary_currency}
-                            *}
                         </div>
                         <div class="value small">
                             <label>
@@ -76,12 +72,14 @@
                                     <option value=":enter_date" {if shopCustomersCollection::isDate($hash.app.last_order_datetime.val|default:[])}selected="selected"{/if}>[`Enter date...`]</option>
                                 </select>
                             {/capture}
-                            {sprintf('[`Over %s ago`]', $smarty.capture._last_order_options)}
-                            <div data-name="app.last_order_datetime"
-                                                    class="s-customer-period hidden"
-                                                    id="s-customers-order-period"
-                                                    data-op="{$hash.app.last_order_datetime.op|default:''}"
-                                                    {if shopCustomersCollection::isDate($hash.app.last_order_datetime.val|default:'')}data-val="{implode("--", $hash.app.last_order_datetime.val|default:[])}"{/if}></div>
+                            {sprintf('<span>[`Over %s ago`]</span>', $smarty.capture._last_order_options)}
+                            <div id="s-customers-last-order-period" class="hidden">
+                                <input type="text" class="s-customer-datepicker" name="app.last_order_datetime.val" value="{$hash.app.last_order_datetime.val|default:''}">
+                                {select n='app.last_order_datetime.op'
+                                    o=[['id' => '<=', 'name' => _w('or earlier')],
+                                        ['id' => '>=', 'name' => _w('or later')]]
+                                    d=$hash.app.last_order_datetime.op|default:'' with_empty=false}
+                            </div>
                         </div>
                     </div>
                     <div class="field">
@@ -157,14 +155,20 @@
                     [`Customer info`]
                 </h5>
                 <div class="field-group">
-                    {*
                     <div class="field">
                         <div class="name">[`Referer`]</div>
                         <div class="value no-shift">
-                            список доменов-рефереров
+                            {select n="app.referer" o=$referers d=$hash.app.referer.val|default:''}
                         </div>
                     </div>
-                    *}
+                    <div class="field">
+                        <div class="name">
+                            [`Storefront`]
+                        </div>
+                        <div class="value no-shift">
+                            {select n="app.storefront" o=$storefronts d=$hash.app.storefront.val|default:''}
+                        </div>
+                    </div>
                     {if $utm_campagns}
                         <div class="field">
                             <div class="name">[`UTM campaign`]</div>
@@ -255,7 +259,7 @@
                                     op = '=';
                                 }
                                 if (name === 'contact_info.address.region') {
-                                    value = item.data('country') + ':' + value;
+                                    value = (item.data('country') ? (item.data('country')  + ':') : '') + value;
                                 }
                                 hash[name] = {
                                     op: op, val: value
@@ -318,11 +322,11 @@
                 var name = selector.attr('name');
                 var handler = function() {
                     if (selector.val() === ':enter_date') {
-                        $('#s-customers-order-period').show().find(':input').attr('disabled', false);
-                        selector.attr('name', '');
+                        $('#s-customers-last-order-period').show().find(':input').attr('disabled', false);
+                        selector.attr('name', '').parent().hide();
                     } else {
-                        $('#s-customers-order-period').hide().find(':input').attr('disabled', true);
-                        selector.attr('name', name);
+                        $('#s-customers-last-order-period').hide().find(':input').attr('disabled', true);
+                        selector.attr('name', name).parent().show();
                     }
                     return selector;
                 };
@@ -411,6 +415,9 @@
                 }
             });
         })($('#s-customer-product'));
+
+        // datepicker artifact fix
+        $('#ui-datepicker-div').hide();
 
     });
 </script>

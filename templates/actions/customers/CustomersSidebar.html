@@ -16,7 +16,7 @@
 
         <ul class="menu-v with-icons" id="s-customer-filters">
             {foreach $filters as $filter}
-                <li class="s-customer-filter" data-id="{$filter.id}"><a href="#/filter/{$filter.id}/"><i class="icon16 {$filter.icon}"></i><span class="s-name">{$filter.name|escape}</span></a></li>
+                <li class="s-customer-filter" data-id="{$filter.id}"><a href="#/filter/{$filter.id}/"><i class="icon16 {$filter.icon|default:'funnel'}"></i><span class="s-name">{$filter.name|escape}</span></a></li>
             {/foreach}
             <li>
                 <a href="#/searchform/" class="small"><i class="icon10 add"></i>[`New search`]</a>
@@ -117,7 +117,7 @@
 
         ul.sortable({
             axis: 'y',
-            items: 'li.s-cutomer-filter',
+            items: 'li.s-customer-filter',
             distance: 5,
             tolerance: 'pointer',
             update: function(e, ui) {
@@ -132,7 +132,12 @@
                             '<span class="s-name">' + $.wa.encodeHTML(filter.name) + '</span>' +
                     '</a>' +
                 '</li>';
-            ul.find('li.s-customer-filter:last').after(html);
+            var last = ul.find('li.s-customer-filter:last');
+            if (last.length) {
+                last.after(html);
+            } else {
+                ul.prepend(html);
+            }
         }).bind('update', function(e, filter) {
              ul.find('li[data-id="' + filter.id + '"]').find('.s-name').text(filter.name)
         }).bind('exists', function(e, filter_id) {

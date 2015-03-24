@@ -256,30 +256,48 @@
 
         initSearch: function() {
             var search_input = $("#s-orders-search");
-            
+
             var autocomplete_url = '?action=autocomplete&type=order';
-            var last_response = [];            
-            
+            var last_response = [];
+
             var onSelect = function(autocomplete_item) {
                 switch (autocomplete_item.autocomplete_item_type) {
                     case 'order':
-                        location.hash = '#/order/' + autocomplete_item.id + '/';
+                        $.wa.setHash('#/order/' + autocomplete_item.id + '/');
                         search_input.val(autocomplete_item.value);
                         break;
                     case 'contact':
-                        location.hash = '#/orders/contact_id=' + autocomplete_item.id + '/';
+                        $.wa.setHash('#/orders/contact_id=' + autocomplete_item.id + '/');
                         search_input.val(autocomplete_item.value);
                         break;
                     case 'product':
-                        location.hash = '#/orders/product_id=' + autocomplete_item.id + '/';
+                        $.wa.setHash('#/orders/product_id=' + autocomplete_item.id + '/');
                         search_input.val(autocomplete_item.value);
+                        break;
+                    case 'coupon':
+                        $.wa.setHash('#/orders/coupon_id=' + autocomplete_item.id + '/');
+                        break;
+                    case 'shipping':
+                        $.wa.setHash('#/orders/shipping_id=' + autocomplete_item.id + '/');
+                        break;
+                    case 'payment':
+                        $.wa.setHash('#/orders/payment_id=' + autocomplete_item.id + '/');
+                        break;
+                    case 'city':
+                        $.wa.setHash('#/orders/city=' + autocomplete_item.value + '/');
+                        break;
+                    case 'region':
+                        $.wa.setHash('#/orders/region=' + ((autocomplete_item.value || '').split(':')[1] || '') + '/');
+                        break;
+                    case 'country':
+                        $.wa.setHash('#/orders/country=' + autocomplete_item.value + '/');
                         break;
                     default:
                         // search
                         break;
                 }
             };
-            
+
             search_input.unbind('keydown').
                 bind('keydown', function(event) {
                     if (event.keyCode == 13 || event.keyCode == 10) { // 'Enter'
@@ -292,7 +310,7 @@
                             if (last_response && $.isArray(last_response) && last_response.length) {
                                 onSelect(last_response[0]);
                                 setTimeout(function() {
-                                    self.autocomplete("close");    
+                                    self.autocomplete("close");
                                 }, 150);
                                 return false;
                             }

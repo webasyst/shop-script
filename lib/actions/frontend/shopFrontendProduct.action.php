@@ -37,10 +37,20 @@ class shopFrontendProductAction extends shopFrontendAction
                     'name' => $row['name']
                 );
             }
-            $breadcrumbs[] = array(
-                'url'  => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'])),
-                'name' => $category['name']
-            );
+            if (!isset($product['categories'][$category['id']])) {
+                $product_categories = $product['categories'];
+                if ($product_categories) {
+                    $category = reset($product_categories);
+                } else {
+                    $category = array();
+                }
+            }
+            if ($category) {
+                $breadcrumbs[] = array(
+                    'url' => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'])),
+                    'name' => $category['name']
+                );
+            }
             if ($product_link) {
                 $breadcrumbs[] = array(
                     'url'  => wa()->getRouteUrl('/frontend/product', array('product_url' => $product['url'], 'category_url' => $product['category_url'])),
@@ -177,9 +187,7 @@ class shopFrontendProductAction extends shopFrontendAction
         }
 
         $product = new shopProduct($product, true);
-        if (!$is_cart) {
-            $this->getBreadcrumbs($product);
-        }
+
         // check url
         if ($product['url'] !== urldecode(waRequest::param('product_url'))) {
             $url_params = array('product_url' => $product['url']);
@@ -190,6 +198,10 @@ class shopFrontendProductAction extends shopFrontendAction
             $this->redirect(wa()->getRouteUrl('/frontend/product', $url_params).($q ? '?'.$q : ''), 301);
         }
         $this->prepareProduct($product);
+
+        if (!$is_cart) {
+            $this->getBreadcrumbs($product);
+        }
 
         $this->addCanonical();
 

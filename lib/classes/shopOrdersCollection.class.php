@@ -540,6 +540,34 @@ class shopOrdersCollection
                         ":table.value".$this->getExpression($parts[1], $parts[2]));
                 } elseif (substr($parts[0], 0, 6) == 'items.' && $this->getModel('items')->fieldExists(substr($parts[0], 6))) {
                     $this->addJoin('shop_order_items', null, ':table.'.substr($parts[0], 6).$this->getExpression($parts[1], $parts[2]));
+                } elseif (substr($parts[0], 0, 8) === 'address.') {
+                    $subfield = $this->getModel()->escape(substr($parts[0], 8));
+                    $fields = array(
+                        'billing_address', 'shipping_address'
+                    );
+                    $op = ifset($parts[1], '');
+                    $val = ifset($parts[2], '');
+
+                    $on = array();
+                    foreach ($fields as $field) {
+                        $on[] = ":table.name = '" . $field . "." . $subfield . "'";
+                    }
+                    $on = ':table.order_id = o.id AND (' . implode(' OR ', $on) . ')';
+
+                    if ($subfield === 'region' && strstr($val, ':') !== false) {
+                        $val = explode(':', $val);
+                        $val = ifset($val[1], '');
+                        // TODO: for region join wa_region and filter by country
+                    }
+
+                    $where = array();
+                    foreach ($fields as $field) {
+                        $where[] = "(:table.name = '" . $field . "." . $subfield . "' AND :table.value " .
+                                $this->getExpression($op, $val) . ')';
+                    }
+                    $where = implode(' OR ', $where);
+                    $this->addJoin('shop_order_params', $on, $where);
+
                 } elseif ($model->fieldExists($parts[0])) {
                     $title[] = $parts[0].$parts[1].$parts[2];
                     $this->where[] = 'o.'.$parts[0].$this->getExpression($parts[1], $parts[2]);

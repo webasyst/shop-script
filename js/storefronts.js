@@ -73,7 +73,7 @@
         },
 
         defaultAction: function () {
-            if ($('#s-link-design').length) {
+            if ($('#s-storefronts-content').data('design')) {
                 this.designAction();
             } else {
                 this.pagesAction();

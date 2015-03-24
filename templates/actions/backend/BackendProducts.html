@@ -107,7 +107,7 @@
         {/if}
         <h5 class="heading">
             <i class="icon16 loading" style="float:right; display:none;"></i>
-            <i class="icon16 {if $categories->isExpanded()}darr{else}rarr{/if} collapse-handler-ajax" id="s-category-list-handler"></i>[`Categories`]{if $wa->userRights('setscategories')} <i class="icon16 ss sort-bw" id="s-forcesort-by-name"></i>{/if}
+            <i class="icon16 {if $categories->isExpanded()}darr{else}rarr{/if} collapse-handler-ajax" id="s-category-list-handler"></i>[`Categories`]{if $wa->userRights('setscategories') && $categories->count()} <i class="icon16 ss sort-bw" id="s-forcesort-by-name"></i>{/if}
         </h5>
 
         <div class="hierarchical s-collection-list" id="s-category-list"

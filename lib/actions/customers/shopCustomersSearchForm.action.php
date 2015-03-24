@@ -18,6 +18,8 @@ class shopCustomersSearchFormAction extends waViewAction
             'coupons' => $this->getCoupons(),
             'utm_campagns' => $this->getUtmCampaigns(),
             'product_name' => $this->getProductName($hash),
+            'storefronts' => $this->getStorefronts(),
+            'referers' => $this->getReferers()
         ));
     }
 
@@ -148,6 +150,41 @@ class shopCustomersSearchFormAction extends waViewAction
             }
         }
         return '';
+    }
+
+    public function getStorefronts()
+    {
+        foreach (wa()->getRouting()->getByApp('shop') as $domain => $domain_routes) {
+            foreach ($domain_routes as $route) {
+                $url = rtrim($domain.'/'.$route['url'], '/*');
+                $storefronts[] = array(
+                    'id' => urlencode($url),
+                    'name' => $url
+                );
+            }
+        }
+        $storefronts[] = array(
+            'id' => ':backend',
+            'name' => _w('Backend')
+        );
+        return $storefronts;
+    }
+
+    public function getReferers()
+    {
+        $traffic_sources = wa('shop')->getConfig()->getOption('traffic_sources');
+        $m = new waModel();
+        $op = new shopOrderParamsModel();
+        $refers = array();
+        foreach ($op->getByField('name', 'referer_host', 'value') as $item) {
+            if ($item['value']) {
+                $refers[$item['value']] = $item['value'];
+            }
+        }
+        foreach ($traffic_sources as $source_id => $source_param) {
+            $refers[$source_id] = $source_id;
+        }
+        return array_values($refers);
     }
 
 }

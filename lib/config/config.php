@@ -211,21 +211,21 @@ return array(
      * list of available order action icons (CSS classes)
      */
     'order_action_icons' => array(
-        'new',
-        'processing',
-        'paid',
-        'sent',
-        'completed',
-        'refunded',
-        'trash',
-        'flag-white',
-        'flag-blue',
-        'flag-yellow',
-        'flag-green',
-        'flag-red',
-        'flag-purple',
-        'flag-black',
-        'flag-checkers'
+        'ss new',
+        'ss processing',
+        'ss paid',
+        'ss sent',
+        'ss completed',
+        'ss refunded',
+        'ss trash',
+        'ss flag-white',
+        'ss flag-blue',
+        'ss flag-yellow',
+        'ss flag-green',
+        'ss flag-red',
+        'ss flag-purple',
+        'ss flag-black',
+        'ss flag-checkers'
     ),
 
     'customers_filter_icons' => array(

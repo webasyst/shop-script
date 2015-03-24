@@ -76,8 +76,8 @@ msgid "Search products"
 msgstr "Поиск товаров"
 
 #: /wa-apps/shop/templates/layouts/Backend.html:111
-msgid "Search customers by name, email, or phone number"
-msgstr "Поиск покупателей по имени, email-адресу или номеру телефона"
+msgid "Search customers"
+msgstr "Поиск покупателей"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:72
 msgid "Sales"
@@ -6300,6 +6300,10 @@ msgstr ""
 msgid "We are using <a href=\"http://www.shop-script.com/\">Shop-Script 5</a>"
 msgstr "Мы используем <a href=\"http://www.shop-script.ru/\">Shop-Script 5</a>"
 
+#: /wa-apps/shop/themes/default/index.html:98
+msgid "We are using <a href=\"http://www.shop-script.com/\">Shop-Script 6</a>"
+msgstr "Мы используем <a href=\"http://www.shop-script.ru/\">Shop-Script 6</a>"
+
 #: /wa-apps/shop/themes/clear/home.html:43
 msgid "Special offers for %s"
 msgstr "Спецпредложения на %s"
@@ -6347,6 +6351,10 @@ msgstr "Товар с выбранным набором характеристи
 #: /wa-apps/shop/themes/vk/footer.html:4
 msgid "We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Shop-Script 5</a>"
 msgstr "Мы используем <a href=\"http://www.shop-script.ru/\" target=\"_blank\">Shop-Script 5</a>"
+
+#: /wa-apps/shop/themes/vk/footer.html:4
+msgid "We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Shop-Script 6</a>"
+msgstr "Мы используем <a href=\"http://www.shop-script.ru/\" target=\"_blank\">Shop-Script 6</a>"
 
 #: /wa-apps/shop/themes/vk/navigation.html:7
 msgid "Order by phone"
@@ -7276,7 +7284,7 @@ msgstr "Пожалуйста, выберите способ доставки"
 #: /wa-apps/shop/themes/clear/footer.html:4 /wa-apps/shop/themes/default/index.html:119
 #: /wa-apps/shop/themes/nifty/footer.html:4 /wa-apps/shop/themes/sidebar/footer.html:4
 msgid "<a href=\"http://www.shop-script.com/\">Ecommerce software</a> by Webasyst"
-msgstr "<a href=\"http://www.shop-script.ru/\">Создание интернет-магазина</a> — Shop-Script 5"
+msgstr "<a href=\"http://www.shop-script.ru/\">Создание интернет-магазина</a> — Shop-Script 6"
 
 #: /wa-apps/shop/themes/clear/list-thumbs-mini.html:38 /wa-apps/shop/themes/clear/list-thumbs.html:57
 #: /wa-apps/shop/themes/clear/product.cart.html:71 /wa-apps/shop/themes/clear/product.cart.html:94
@@ -9822,3 +9830,27 @@ msgstr "Способ оплаты"
 #: /wa-apps/shop/lib/classes/shopCustomersCollection.class.php:310
 msgid "Order time frame"
 msgstr "Время заказа"
+
+#: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:65
+msgid "From New York"
+msgstr "Из Нью-Йорка"
+
+#: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:74
+msgid "From British Columbia"
+msgstr "Из Британской Колумбии"
+
+#: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:83
+msgid "From New Zealand"
+msgstr "Из Новой Зеландии"
+
+#: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:112
+msgid "From Facebook"
+msgstr "Из Фейсбука"
+
+#: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:121
+msgid "From Twitter"
+msgstr "Из Твиттера"
+
+#: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:139
+msgid "Last ordered over a month ago"
+msgstr "Заказывали более месяца назад"

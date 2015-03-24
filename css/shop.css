@@ -326,6 +326,7 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
 .s-welcome .s-arrow-add-many { position: absolute; top: 20px; right: 180px; width: 80px; height: 100px; background: url('../img/start-here-tr.png') no-repeat; }
 
 .s-tutorial .s-nolevel2-box { padding: 20px 25px; background: #fff; }
+.s-tutorial-tab i.icon16 { margin-top: 10px; }
 
 .s-tutorial #s-content h1 { margin-bottom: 0.8em; }
 .s-tutorial #s-content ul li { margin-bottom: 1em; line-height: 1.5em; font-family: "Lucida Grande","Lucida Sans Unicode","Helvetica Neue",Arial,sans-serif; }
@@ -1035,6 +1036,11 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 .s-new-action-details { background: #eee; }
 .s-new-action-hint { font-size: 0.9em; color: #666; line-height: 1.4em; }
 
+.s-fixed-save-button-wrapper { position: fixed; bottom: 0; left: 0; width: 100%; padding: 10px 0; box-sizing: border-box; background: #fff; z-index: 10; border-top: 1px solid #ccc; }
+.s-fixed-save-button-wrapper .value { margin: 0 !important; padding: 0 0 0 385px; }
+.s-fixed-save-button-wrapper br { display: none; }
+.s-fixed-save-button-wrapper input { margin: 0 !important; padding: 0 1em !important; cursor: pointer; }
+
 /* ICONS
 -------- */
 
@@ -1181,6 +1187,7 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 .icon16.ss.orders-all { background-position: -16px -128px; }
 .icon16.ss.sku-type-flat { background-position: -32px -128px; }
 .icon16.ss.sku-type-selectable { background-position: -48px -128px; }
+.icon16.ss.info { background-position: -64px -128px; }
 
 /* Plugins
 ---------- */
@@ -1236,11 +1243,3 @@ and (orientation : portrait) {
     #s-toolbar { display: none !important; }
 
 }
-
-/* Styles for fixed button at settings -> checkout page . Task #15.3798 */
-.fixed-save-button-wrapper { position: fixed; bottom: 0; left: 0; width: 100%; padding: 1em 0; box-sizing: border-box; background: #eee; z-index: 10; }
-.fixed-save-button-wrapper .value { margin: 0 !important; padding: 0 0 0 100px; }
-.fixed-save-button-wrapper br { display: none; }
-.fixed-save-button-wrapper input { margin: 0 !important; padding: 0 1em !important; }
-
-.not-implemented.not-implemented.not-implemented.not-implemented.not-implemented { border: 1px dashed red; }

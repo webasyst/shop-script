@@ -107,16 +107,20 @@
     $.categories_tree = {
 
         init: function() {
-            $('#s-sidebar').off('click', '.collapse-handler-ajax').on('click', '.collapse-handler-ajax',
-                function() {
-                    var self = $(this);
-                    if (self.hasClass('darr')) {
-                        collapse(self);
-                    } else {
-                        expand(self);
-                    }
+            $('#s-category-list-block').off('click', '.collapse-handler-ajax').on('click', '.collapse-handler-ajax', function() {
+                var self = $(this);
+                if (self.hasClass('darr')) {
+                    collapse(self);
+                } else {
+                    expand(self);
                 }
-            );
+            });
+            $('#s-category-list-block .heading').off('click').click(function(e) {
+                var $collapse_handler = $(this).find('.collapse-handler-ajax');
+                if (!$collapse_handler.is(e.target)) {
+                    $collapse_handler.click();
+                }
+            });
         },
 
         collapse: function(handler, func) {

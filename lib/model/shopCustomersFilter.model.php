@@ -59,5 +59,88 @@ class shopCustomersFilterModel extends waModel
         return $row;
     }
 
+    public function addWelcomeCountryUsaFilters()
+    {
+        $this->add(array(
+            'name' => _w('From New York'),
+            'icon' => 'marker',
+            'hash' => 'contact_info.address.country=usa&contact_info.address.region=usa:NY'
+        ));
+    }
+
+    public function addWelcomeCountryCanFilters()
+    {
+        $this->add(array(
+            'name' => _w('From British Columbia'),
+            'icon' => 'marker',
+            'hash' => 'contact_info.address.country=can&contact_info.address.region=can:BC'
+        ));
+    }
+
+    public function addWelcomeCountryAusFilters()
+    {
+        $this->add(array(
+            'name' => _w('From New Zealand'),
+            'icon' => 'marker',
+            'hash' => 'contact_info.address.country=nzl'
+        ));
+    }
+
+    public function addWelcomeCountryRusFilters()
+    {
+        $this->add(array(
+            'name' => 'Из Москвы',
+            'icon' => 'marker',
+            'hash' => 'contact_info.address.country=rus&contact_info.address.region=rus:77'
+        ));
+        $this->addWelcomeRefererVkFilter();
+    }
+
+    public function addWelcomeCountryUkrFilters()
+    {
+        $this->add(array(
+            'name' => 'Из Киева',
+            'icon' => 'marker',
+            'hash' => 'contact_info.address.country=ukr&contact_info.address.region=ukr:77'
+        ));
+        $this->addWelcomeRefererVkFilter();
+    }
+
+    public function addWelcomeRefererFacebookFilter()
+    {
+        $this->add(array(
+            'name' => _w('From Facebook'),
+            'icon' => 'facebook',
+            'hash' => 'app.referer=facebook.com'
+        ));
+    }
+
+    public function addWelcomeRefererTwitterFilter()
+    {
+        $this->add(array(
+            'name' => _w('From Twitter'),
+            'icon' => 'twitter',
+            'hash' => 'app.referer=twitter.com'
+        ));
+    }
+
+    public function addWelcomeRefererVkFilter()
+    {
+        $this->add(array(
+            'name' => 'Из Вконтакте',
+            'icon' => 'vkontakte',
+            'hash' => 'app.referer=vk.com'
+        ));
+    }
+
+    public function addWelcomeLastOrderedMonthAgoFilter()
+    {
+        $this->add(array(
+            'name' => _w('Last ordered over a month ago'),
+            'icon' => 'clock',
+            'hash' => 'app.last_order_datetime<=-30d'
+        ));
+    }
+
 }
 

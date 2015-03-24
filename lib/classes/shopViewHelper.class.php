@@ -346,7 +346,7 @@ class shopViewHelper extends waAppViewHelper
                 $html .= ' '.$k.'="'.$v.'"';
             }
         }
-        $html .= ' src="'.shopImage::getUrl(array(
+        $html .= ' src="'.$this->cdn.shopImage::getUrl(array(
             'product_id' => $product['id'], 'id' => $product['image_id'], 'ext' => $product['ext']), $size).'">';
         return $html;
     }
@@ -356,7 +356,7 @@ class shopViewHelper extends waAppViewHelper
         if (!$product['image_id']) {
             return '';
         }
-        return shopImage::getUrl(array('product_id' => $product['id'], 'id' => $product['image_id'], 'ext' => $product['ext']), $size);
+        return $this->cdn.shopImage::getUrl(array('product_id' => $product['id'], 'id' => $product['image_id'], 'ext' => $product['ext']), $size);
     }
 
     public function product($id)

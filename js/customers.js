@@ -105,7 +105,21 @@
                 minLength: 3,
                 delay: 300,
                 select: function(event, ui) {
-                    $.wa.setHash('#/id/' + ui.item.id);
+                    if (ui.item.autocomplete_item_type === 'coupon') {
+                        $.wa.setHash('#/search/app.coupon=' + ui.item.id);
+                    } else if (ui.item.autocomplete_item_type === 'shipping') {
+                        $.wa.setHash('#/search/app.shipment_method=' + ui.item.id);
+                    } else if (ui.item.autocomplete_item_type === 'payment') {
+                        $.wa.setHash('#/search/app.payment_method=' + ui.item.id);
+                    } else if (ui.item.autocomplete_item_type === 'city') {
+                        $.wa.setHash('#/search/contact_info.address.city=' + ui.item.value);
+                    } else if (ui.item.autocomplete_item_type === 'region') {
+                        $.wa.setHash('#/search/contact_info.address.region=' + ui.item.value);
+                    } else if (ui.item.autocomplete_item_type === 'country') {
+                        $.wa.setHash('#/search/contact_info.address.country=' + ui.item.value);
+                    } else {
+                        $.wa.setHash('#/id/' + ui.item.id);
+                    }
                     search_field.val('');
                     return false;
                 }
@@ -118,6 +132,68 @@
                 }
             });
         },
+
+        initLazyLoad: function(options) {
+            var count = options.count;
+            var offset = count;
+            var total_count = options.total_count;
+            var url = options.url;
+            var container = $(options.container);
+            var auto = typeof options.auto === 'undefined' ? true : options.auto;
+
+            $(window).lazyLoad('stop'); // stop previous lazy-load implementation
+
+            if (offset < total_count) {
+                $(window).lazyLoad({
+                    container: container,
+                    state: auto ? 'wake' : 'stop',
+                    load: function() {
+                        $(window).lazyLoad('sleep');
+                        $('.lazyloading-link').hide();
+                        $('.lazyloading-progress').show();
+                        $.get(url + '&lazy=1&offset=' + offset + '&total_count=' + total_count, function(data) {
+
+                            var html = $('<div></div>').html(data);
+                            var list = html.find('.s-customers tbody tr');
+                            if (list.length) {
+                                offset += list.length;
+                                $('.s-customers tbody', container).append(list);
+                                if (offset >= total_count) {
+                                    $(window).lazyLoad('stop');
+                                    $('.lazyloading-progress').hide();
+                                } else {
+                                    $(window).lazyLoad('wake');
+                                    $('.lazyloading-link').show();
+                                    if (!auto) {
+                                        $('.lazyloading-progress').hide();
+                                    }
+                                }
+                            } else {
+                                $(window).lazyLoad('stop');
+                                $('.lazyloading-progress').hide();
+                            }
+
+                            $('.lazyloading-progress-string', container).
+                                    replaceWith(
+                                        $('.lazyloading-progress-string', html)
+                                    );
+                            $('.lazyloading-chunk', container).
+                                    replaceWith(
+                                        $('.lazyloading-chunk', html)
+                                    );
+
+                            html.remove();
+
+                        });
+                    }
+                });
+                $('.lazyloading-link').die('click').live('click', function() {
+                    $(window).lazyLoad('force');
+                    return false;
+                });
+            }
+        },
+
 
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         // *   Dispatch-related

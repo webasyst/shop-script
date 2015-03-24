@@ -24,12 +24,12 @@ class shopCustomersListAction extends waViewAction
         $customers = $collection->getCustomers('*,order.create_datetime AS  last_order_datetime', $offset, $limit);
         $this->workupList($customers);
 
-        $total = $collection->count();
+        $total_count = $this->getTotalCount($collection);
         $count = count($customers);
 
         $title = _w('All customers');
         if ($hash && $hash !== 'all') {
-            $title = $collection->getTitle();
+            $title = $this->getListTitle($collection);
         }
 
         $filter_id = $this->getFilterId();
@@ -44,17 +44,17 @@ class shopCustomersListAction extends waViewAction
             'count' => $count,
             'offset' => $offset,
             'order' => $this->getOrder(false),
-            'total' => $total,
+            'total_count' => $total_count,
             'customers' => $customers,
             'hash_start' => $this->getHashStart(),
             'category_id' => $this->getCategoryId(),
-            'lazy_loading_params' => $this->getLazyLoadParams(),
-            'query' => $this->getQuery(),
+            'query' => $this->getQuery(true),
             'is_admin' => wa()->getUser()->isAdmin(),
             'icons' => wa()->getConfig()->getOption('customers_filter_icons'),
             'filter' => $filter,
             'filter_id' => $filter_id,
-            'groups' => $this->getGroups()
+            'groups' => $this->getGroups(),
+            'in_lazy_process' => waRequest::get('lazy', false)     // is now lazy loading?
         ));
 
         /*
@@ -62,7 +62,7 @@ class shopCustomersListAction extends waViewAction
          * @return array[string]array $return[%plugin_id%] array of html output
          * @return array[string][string]string $return[%plugin_id%]['top_li'] html output
          */
-        $params = array('hash' => $hash);
+        $params = array('hash' => $hash, 'filter' => $filter);
         $this->view->assign('backend_customers_list', wa()->event('backend_customers_list', $params));
 
     }
@@ -83,9 +83,13 @@ class shopCustomersListAction extends waViewAction
         return $hash;
     }
 
-    public function getQuery()
+    public function getQuery($prepare_for_view = false)
     {
-        return $this->query === null ? ($this->query = urldecode(waRequest::request('search'))) : $this->query;
+        $query = $this->query === null ? ($this->query = urldecode(waRequest::request('search'))) : $this->query;
+        if ($prepare_for_view) {
+            return str_replace('/', '%2F', $query);
+        }
+        return $query;
     }
 
     public function getCategoryId()
@@ -127,7 +131,7 @@ class shopCustomersListAction extends waViewAction
 
     public function getOffset()
     {
-        return $this->offset === null ? ($this->offset = waRequest::request('start', 0, 'int')) : $this->offset;
+        return $this->offset === null ? ($this->offset = waRequest::request('offset', 0, 'int')) : $this->offset;
     }
 
     public function getLimit()
@@ -193,6 +197,7 @@ class shopCustomersListAction extends waViewAction
             if (!empty($c['address']['region']) && !empty($c['address']['country'])) {
                 $countries[$c['address']['country']] = array();
             }
+            $c['name'] = waContactNameField::formatName($c);
         }
         unset($c);
 
@@ -263,6 +268,51 @@ class shopCustomersListAction extends waViewAction
     {
         $group_model = new waGroupModel();
         return wa()->getUser()->isAdmin() ? $group_model->getNames() : array();
+    }
+
+    public function getListTitle(shopCustomersCollection $collection)
+    {
+        $hash = $collection->getHash();
+        $hash[0] = ifset($hash[0], '');
+        $hash[1] = ifset($hash[1], '');
+
+        $ops = '\\\$=|\^=|\*=|==|!=|>=|<=|=|>|<|@=';
+        foreach(array(
+            'email',
+            'phone',
+            'email\|name',
+            'name\|email'
+        ) as $h) {
+            if (preg_match("/^({$h})({$ops})[^&]+$/uis", $hash[1])) {
+                return preg_replace("/{$h}({$ops})/", '', $hash[1]);
+            }
+        }
+        if ($hash[0] === 'filter') {
+            return $collection->getTitle();
+        } else if ($hash[0] === 'category') {
+            return $collection->getTitle();
+        }
+
+        $title = array();
+        foreach (explode(',', $collection->getTitle()) as $part) {
+            $tokens = preg_split("/({$ops})/uis", $part, 2, PREG_SPLIT_DELIM_CAPTURE);
+            unset($tokens[0]);
+            if (isset($tokens[1]) && $tokens[1] === '=') {
+                unset($tokens[1]);
+            }
+            $title[] = implode('', $tokens);
+        }
+        return implode(',', $title);
+    }
+
+    public function getTotalCount(shopCustomersCollection $collection)
+    {
+        $total_count = waRequest::request('total_count');
+        if ($total_count === null) {
+            return $collection->count();
+        } else {
+            return $total_count;
+        }
     }
 
 }

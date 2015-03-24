@@ -46,7 +46,7 @@ class shopWorkflowAction extends waWorkflowAction
             $attrs = '';
         }
         if ($this->getOption('position') || $this->getOption('top')) {
-            return '<a '.$attrs.' href="#" class="wf-action '.$this->getOption('button_class').'" data-action-id="'.$this->getId().'"><i class="icon16 ss '.$this->getOption('icon').'"></i>'.$name.'</a>';
+            return '<a '.$attrs.' href="#" class="wf-action '.$this->getOption('button_class').'" data-action-id="'.$this->getId().'"><i class="icon16 '.$this->getOption('icon').'"></i>'.$name.'</a>';
         } else {
             if ($this->getOption('icon')) {
                 $icons = (array)$this->getOption('icon');

@@ -31,7 +31,7 @@ class shopNotifications
         self::prepareData($data);
 
         foreach ($notifications as $n) {
-            if (!$n['source'] || ($n['source'] == $source)) {
+            if (!$n['source'] || ($n['source'] == $data['source'])) {
                 $method = 'send'.ucfirst($n['transport']);
                 if (method_exists('shopNotifications', $method)) {
                     self::$method($n, $data);
@@ -98,6 +98,7 @@ class shopNotifications
                 }
             }
         }
+        $data['source'] = $source;
 
         // Products info
         $product_ids = array();

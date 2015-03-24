@@ -73,6 +73,13 @@ class shopBackendWelcomeAction extends waViewAction
                     }
                 }
 
+                // Customer filters (country depended)
+                $customers_filter_model = new shopCustomersFilterModel();
+                if (method_exists($customers_filter_model, 'addWelcomeCountry' . ucfirst($country) . 'Filters')) {
+                    $method = 'addWelcomeCountry' . ucfirst($country) . 'Filters';
+                    $customers_filter_model->$method();
+                }
+
                 #custom code
                 $function = 'shopWelcome'.ucfirst($country);
                 if (function_exists($function)) {
@@ -191,6 +198,12 @@ class shopBackendWelcomeAction extends waViewAction
             }
             $promo_routes_model->multipleInsert($promo_routes);
         }
+
+        // Customer filters (other, i.e. not country depended)
+        $customers_filter_model = new shopCustomersFilterModel();
+        $customers_filter_model->addWelcomeRefererFacebookFilter();
+        $customers_filter_model->addWelcomeRefererTwitterFilter();
+        $customers_filter_model->addWelcomeLastOrderedMonthAgoFilter();
 
         $this->redirect($redirect);
     }

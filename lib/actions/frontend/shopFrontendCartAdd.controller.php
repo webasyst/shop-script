@@ -182,7 +182,12 @@ class shopFrontendCartAddController extends waJsonController
             $service = $service_model->getById($data['service_id']);
             $item['service_variant_id'] = $service['variant_id'];
         }
-        $id = $this->cart->addItem($item);
+
+        if ($row = $this->cart_model->getByField(array('parent_id' => $data['parent_id'], 'service_variant_id' => $item['service_variant_id']))) {
+            $id = $row['id'];
+        } else {
+            $id = $this->cart->addItem($item);
+        }
         $total = $this->cart->total();
         $discount = $this->cart->discount();
 

@@ -25,9 +25,15 @@ class shopCustomersCollection extends waContactsCollection
     {
         if (!isset($this->fields_cache[$fields])) {
             $model = $this->getModel('customer');
-            $contact_fields = array(
-                parent::getFields($fields)
-            );
+            $contact_model = $this->getModel();
+
+            $contact_fields = array();
+            foreach (explode(',', parent::getFields($fields)) as $contact_field) {
+                if (substr($contact_field, 2) !== 'c.' && $contact_model->fieldExists($contact_field)) {
+                    $contact_field = 'c.' . $contact_field;
+                }
+                $contact_fields[] = $contact_field;
+            }
 
             $ignore_post_fields = array();
 
@@ -49,17 +55,11 @@ class shopCustomersCollection extends waContactsCollection
                             $fld_alias = trim($m[3]);
                         }
 
-                        $tbl_model = $this->getModel($table);
-                        if ($tbl_model->fieldExists($fld)) {
-                            $tbl_name = $this->getTableName($table);
-                            if ($table !== 'order') {
-                                $alias = $this->addLeftJoinOnce($tbl_name);
-                            } else {
-                                $alias = $this->order_table_alias;
-                            }
-                            $contact_fields[] = $alias . '.' . $fld . ($fld_alias ? " AS {$fld_alias}" : '');
+                        if ($table === 'order') {
+                            $contact_fields[] = $this->order_table_alias . '.' . $fld . ($fld_alias ? " AS {$fld_alias}" : '');
                             $ignore_post_fields[$f] = true;
                         }
+
                     } else if ($f === '*') {
                         $contact_fields = array_merge($contact_fields, $this->getCustomerFields());
                     }
@@ -134,7 +134,6 @@ class shopCustomersCollection extends waContactsCollection
         $this->title = $filter['name'];
     }
 
-
     protected function searchPrepare($query, $auto_title = true)
     {
         $this->middlewareSearchPrepare($query, $auto_title);
@@ -160,8 +159,23 @@ class shopCustomersCollection extends waContactsCollection
                 continue;
             }
             $f = $parts[0];
+            $op = $parts[1];
+            $val = ifset($parts[2], '');
             if ($f === 'email|name' || $f === 'name|email') {
-                $this->searchPrepareEmailName($parts[1], ifset($parts[2], ''), $auto_title = true);
+                $this->searchPrepareEmailName($op, $val, $auto_title);
+                unset($query[$k]);
+            } else if (substr($f, 0, 13) == 'order_params.') {
+                $param_name = $this->getModel()->escape(substr($f, 13));
+                $expr = $this->getExpression($op, $val);
+                $on = ":table.order_id = {$this->order_table_alias}.id AND :table.name = '{$param_name}'";
+                if (strtolower($val) === ':null') {
+                    $this->addLeftJoin("shop_order_params", $on, ":table.value IS NULL");
+                } else {
+                    $this->addJoin("shop_order_params", $on, ":table.value {$expr}");
+                }
+                unset($query[$k]);
+            } else if ($f === 'coupon') {
+                $this->searchPrepareCoupon($op, $val, $auto_title);
                 unset($query[$k]);
             }
         }
@@ -214,7 +228,23 @@ class shopCustomersCollection extends waContactsCollection
         }
 
         self::recursiveCleanArray($hash_ar);
-        $query = self::buildSearchHash($hash_ar);
+
+        $address_hash = '';
+        if (isset($hash_ar['address'])) {
+            $address_hash = self::buildSearchHash(array('address' => $hash_ar['address']));
+            $address_hash = str_replace('.', ':', $address_hash);
+            unset($hash_ar['address']);
+        }
+        $rest_hash = self::buildSearchHash($hash_ar);
+
+        $query = array();
+        if ($address_hash) {
+            $query[] = $address_hash;
+        }
+        if ($rest_hash) {
+            $query[] = $rest_hash;
+        }
+        $query = implode('&', $query);
     }
 
 
@@ -352,6 +382,36 @@ class shopCustomersCollection extends waContactsCollection
         }
     }
 
+    protected function searchPrepareStorefront($op, $val = '', $auto_title = true)
+    {
+        if ($val === ':backend') {
+            $this->addLeftJoin('shop_order_params',
+                    ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'storefront'",
+                    ":table.value IS NULL");
+            if ($auto_title) {
+                $this->addTitle(_w('Storefront') . '=' . _w('Backend'));
+            }
+        } else {
+            $val = rtrim($this->getModel()->escape($val), '/');
+            $storefronts = array($val, $val . '/');
+            $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'storefront'",
+                    ":table.value IN ('".  implode("','", $storefronts)."')");
+            if ($auto_title) {
+                $this->addTitle(_w('Storefront') . '=' . $val);
+            }
+        }
+    }
+
+    protected function searchPrepareReferer($op, $val = '', $auto_title = true)
+    {
+        $val = $this->getModel()->escape($val);
+        $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'referer_host'",
+                ":table.value = '{$val}'");
+        if ($auto_title) {
+            $this->addTitle(_w('Referer') . '=' . $val);
+        }
+    }
+
     protected function searchPrepareFirstOrderDatetime($op, $val = '', $auto_title = true)
     {
         return $this->_seachPrepareOrderDatetime('first', $op, $val, $auto_title);
@@ -402,7 +462,7 @@ class shopCustomersCollection extends waContactsCollection
                 if ($auto_title) {
                     $this->addTitle(_w('Any coupon'));
                 }
-            } else {
+            } else if (is_numeric($val)) {
                 $val = (int) $val;
                 $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'coupon_id' AND value = '{$val}'");
                 if ($auto_title) {
@@ -414,6 +474,11 @@ class shopCustomersCollection extends waContactsCollection
                     }
                     $this->addTitle(_w('Coupon') . '=' . $name);
                 }
+            } else {
+                $expr = $this->getExpression($op, $val);
+                $al = $this->addJoin('shop_order_params', ":table.order_id = {$this->order_table_alias}.id AND :table.name = 'coupon_id'");
+                $this->addJoin('shop_coupon', ":table.id = {$al}.value", ":table.code {$expr}");
+                $this->addTitle(_w('Coupon') . $op . $val);
             }
         }
     }
@@ -458,6 +523,7 @@ class shopCustomersCollection extends waContactsCollection
         if (is_string($type) && in_array($type, array(
                 'customer',
                 'order',
+                'order_params',
                 'plugin',
                 'coupon',
                 'customers_filter',

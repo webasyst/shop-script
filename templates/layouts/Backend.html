@@ -95,9 +95,9 @@
                 {foreach $backend_menu as $_}{ifset($_.aux_li)}{/foreach}
 
                 {if $wa->shop->settings('show_tutorial') || waRequest::request('module') == 'tutorial'}
-                    <li class="no-tab" id="mainmenu-tutorial-tab">
+                    <li class="no-tab s-tutorial-tab" id="mainmenu-tutorial-tab">
                         <a href="{$wa_app_url}?module=tutorial" title="[`Welcome tutorial`]">
-                            <i class="icon16 info"></i>
+                            <i class="icon16 ss info"></i>
                         </a>
                     </li>
                 {/if}
@@ -153,7 +153,7 @@
                         <ul class="menu-h with-icons">
                             <div class="s-search-form">
                                 <i class="icon16 ss search-bw"></i>
-                                <input type="search" placeholder="[`Search customers by name, email, or phone number`]" id="s-customers-search">
+                                <input type="search" placeholder="[`Search customers`]" id="s-customers-search">
                             </div>
                         </ul>
 
