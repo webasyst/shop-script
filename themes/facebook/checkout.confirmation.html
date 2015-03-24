@@ -2,7 +2,11 @@
 
     {if !empty($error)}
     
-        <div class="checkout-result error">{$error}</div>
+        <div class="checkout-result error">
+            {$error}
+            <br><br>
+            <a href="{$wa->getUrl('/frontend/checkout')}">[`Restart checkout`]</a>
+        </div>
     
     {else}
     
@@ -61,7 +65,7 @@
         </table>
         
         [`Comment`]<br>
-        <textarea class="comment" name="comment"></textarea>
+        <textarea class="comment" name="comment">{waRequest::post('comment', '', 'string')|escape}</textarea>
     
         {if !empty($terms)}
         <br>
