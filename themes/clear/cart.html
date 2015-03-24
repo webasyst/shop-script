@@ -64,17 +64,19 @@
                         {/if}
 
                         {if $item@index < 3}
-                        {$related = $wa->shop->crossSelling($item.product.id)}
-                        {if $related}
-                        <!-- cross-selling -->
-                        <div class="clear-both related" data-id="{$item.id}">
-                            <div class="col w1 item-thumb">&nbsp;</div>
-                            <div class="col w15 small">
-                                <h4>{sprintf('[`Customers who bought %s also bought`]', $item.product.name|escape)}:</h4>
-                                {include file="list-thumbs-mini.html" products=$related without_form=true}
+                            {$_exclude_ids = []}
+                            {foreach $cart.items as $item}{$_exclude_ids[] = $item.product.id}{/foreach}
+                            {$related = $wa->shop->crossSelling($item.product.id, 5, true, $_exclude_ids)}
+                            {if $related}
+                            <!-- cross-selling -->
+                            <div class="clear-both related" data-id="{$item.id}">
+                                <div class="col w1 item-thumb">&nbsp;</div>
+                                <div class="col w15 small">
+                                    <h4>{sprintf('[`Customers who bought %s also bought`]', $item.product.name|escape)}:</h4>
+                                    {include file="list-thumbs-mini.html" products=$related without_form=true}
+                                </div>
                             </div>
-                        </div>
-                        {/if}
+                            {/if}
                         {/if}
                     </div>
                     {if !empty($item.error)}<script>alert({json_encode($item.error)});</script>{/if}

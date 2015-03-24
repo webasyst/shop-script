@@ -24,7 +24,7 @@
                         </h2>
                         {if $p.compare_price > 0}<span class="compare-at-price nowrap"> {shop_currency_html($p.compare_price)} </span>{/if}
                         <p class="purchase"><span class="price nowrap">{shop_currency_html($p.price)}</span></p>
-                        {if $p.summary}<p itemprop="description">{strip_tags($p.summary)}</p>{/if}
+                        {if $p.summary}<p itemprop="description">{strip_tags($p.summary)|truncate:255}</p>{/if}
                     </div>
                     <div class="image">
                             {$badge_html = $wa->shop->badgeHtml($p.badge)}
@@ -49,11 +49,28 @@
     
     
     <div class="content">
-    
+
+        {if $promocards = $wa->shop->promos()}
+            <!-- PROMOS -->
+            <section class="promos">
+                <ul>
+                    {foreach $promocards as $promo}
+                        <li id="s-promo-{$promo.id}">
+                            <a href="{$promo.link|escape}" style="background-image: url('{$promo.image}');">
+                                <div class="background-color-layer"></div>
+                                {if !empty($promo.title)}<h5 style="color: {$promo.color};">{$promo.title|escape}</h5>{/if}
+                                {if !empty($promo.body)}<p style="color: {$promo.color};">{$promo.body|escape}</p>{/if}
+                            </a>
+                        </li>
+                    {/foreach}
+                </ul>
+            </section>
+        {/if}
+        
         <h3 class="title align-center">
-            <span class="gray">&star;</span>
+            <span></span>
             {sprintf('[`Special offers for %s`]', $smarty.now|wa_datetime:"humandate")}
-            <span class="gray">&star;</span>
+            <span></span>
         </h3>
         
         <br>
