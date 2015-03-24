@@ -18,7 +18,7 @@
             <li{if !$active_sort} class="selected"{/if}><a href="{$wa->currentUrl(0, 1)}">[`New & Popular`]</a></li>
         {/if}
         {foreach $sort_fields as $sort => $name}
-            <li{if $active_sort == $sort} class="selected"{/if}>{$wa->shop->sortUrl($sort, $name)}</li>
+            <li{if $active_sort == $sort} class="selected"{/if}>{$wa->shop->sortUrl($sort, $name, $active_sort)}</li>
             {if $wa->get('sort') == $sort}{$wa->title( $wa->title()|cat:' — '|cat:$name)}{/if}
         {/foreach}
     </ul>
@@ -65,7 +65,7 @@
 </ul>
 
 {if isset($pages_count) && $pages_count > 1}
-<div class="block lazyloading-paging">
+<div class="block lazyloading-paging" data-loading-str="[`Loading...`]">
     {wa_pagination total=$pages_count attrs=['class' => "menu-h"]}
 </div>
 {/if}
