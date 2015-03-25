@@ -137,6 +137,7 @@
                 if ($(".checkout-step.step-" + step_id + ' .auth').length) {
                     $("input[name='user_type']").change();
                 }
+                VK.callMethod("resizeWindow", $("body").outerWidth(), $("body").outerHeight());
             });
         }
         $(".checkout h2 a").click(function () {
@@ -195,6 +196,7 @@
                 $(".checkout-step.step-" + step_id).prev('.checkout-step').each(function () {
                     $(this).find('h2').removeClass('upcoming');
                 });
+                VK.callMethod("resizeWindow", $("body").outerWidth(), $("body").outerHeight());
             }).always(function () {
                 f.find('span.loading').remove();
                 f.find('input:submit:last').removeAttr('disabled');

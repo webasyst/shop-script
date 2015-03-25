@@ -1,0 +1,47 @@
+<div class="block double-padded">
+    <h1>[`Analytics`]</h1>
+
+    <form action="?module=settings&action=analytics" id="s-analytics-settings-form">
+    <div class="fields form">
+        <div class="field">
+            <div class="name">[`Transaction date`]</div>
+            <div class="value no-shift"><label>
+                <input type="radio" name="settings[reports_date_type]" value="paid"{if ifset($settings.reports_date_type) != 'create'} checked{/if}>
+                [`Order was paid or marked as completed`]
+            </label></div>
+            <div class="value no-shift"><label>
+                <input type="radio" name="settings[reports_date_type]" value="create"{if ifset($settings.reports_date_type) == 'create'} checked{/if}>
+                [`Order was created`]
+            </label></div>
+            <div class="value">
+                <p class="hint">[`Orders in sales reports will be grouped by the date selected.`]</p>
+            </div>
+        </div>
+        <div class="field">
+            <div class="value">
+                <input type="submit" class="button green" value="[`Save`]">
+            </div>
+        </div>
+    </div>
+    </form>
+
+    <div class="clear"></div>
+</div>
+
+<script>(function() { "use strict";
+
+    var $form = $('#s-analytics-settings-form');
+    $form.submit(function() {
+        $.post($form.attr('action'), $form.serialize(), function(r) {
+
+            $('#s-settings-content').html(r);
+            $('<span style="margin-left: 10px;"><i class="icon16 yes"></i></span>').insertAfter($('#s-analytics-settings-form :submit')).animate({
+                opacity: 0
+            }, 1500, function() {
+                $(this).remove();
+            });
+        });
+        return false;
+    });
+
+})();</script>

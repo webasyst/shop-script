@@ -53,6 +53,15 @@ div.cart.fixed a { }
 .promo .bx-wrapper .bx-controls-direction a { display: none; opacity: 0.7; }
 .promo:hover .bx-wrapper .bx-controls-direction a { display: block; }
 
+.promos { margin: 5px 0; padding-bottom: 20px; }
+.promos ul { padding: 0; margin: 0; }
+.promos ul li { padding: 0; margin: 0; list-style: none; display: inline-block; width: 25%; float: left; } 
+.promos ul li a { display: block; padding: 40px 30px; height: 80px; overflow: hidden; background-size: cover; background-position: center center; color: #000; background-color: rgba(0,0,0,0.05); text-align: center; position: relative; text-decoration: none; }
+.promos ul li a .background-color-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; opacity: 0.1; background-color: #000; }
+.promos ul li a h5 { font-size: 1.3em; text-shadow: 0 1px 2px #000; position: relative; z-index: 2; }
+.promos ul li a p { font-size: 0.9em; text-shadow: 0 1px 1px #000; position: relative; z-index: 2; }
+.promos ul li a:hover .background-color-layer { opacity: 0.5; transition: 0.3s; }
+
 /* Category */
 
 .sub-categories { margin-bottom: 20px; }
@@ -309,6 +318,8 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
     .content.right, .content.right300px { margin-right: 0; }
     .app-header { min-height: 0; padding-top: 0; }
     .top-padded { padding-top: 0; }
+    
+    .promos ul li { width: 50%; }
     
     #header { margin-bottom: 20px; margin-top: -3px; }
     #header ul#wa-apps li.selected { background: none; }

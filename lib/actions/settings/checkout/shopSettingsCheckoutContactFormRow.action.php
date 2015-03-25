@@ -32,15 +32,23 @@ class shopSettingsCheckoutContactFormRowAction extends waViewAction
                 'NameSubfield' => _w('Text (input)'),
                 'Email' => _w('Text (input)'),
                 'Address' => _w('Address'),
+                'Branch' => _w('Selectable (radio)'),
                 'Text' => _w('Text (textarea)'),
                 'String' => _w('Text (input)'),
                 'Select' => _w('Select'),
                 'Phone' => _w('Text (input)'),
                 'IM' => _w('Text (input)'),
                 'Url' => _w('Text (input)'),
+                'SocialNetwork' => _w('Text (input)'),
                 'Date' => _w('Date'),
+                'Birthday' => _w('Date'),
                 'Composite' => _w('Composite field group'),
                 'Checkbox' => _w('Checkbox'),
+                'Number' => _w('Number'),
+                'Region' => _w('Region'),
+                'Country' => _w('Country'),
+                'Hidden' => _w('Hidden field'),
+                'Name' => _w('Full name'),
             );
         }
 
@@ -77,7 +85,7 @@ class shopSettingsCheckoutContactFormRowAction extends waViewAction
         $this->view->assign('form', $form);
         $this->view->assign('parent', $parent);
         $this->view->assign('prefix', $prefix);
-        $this->view->assign('uniqid', 'f'.uniqid());
+        $this->view->assign('uniqid', str_replace('.', '-', 'f'.uniqid('f', true)));
         $this->view->assign('new_field', $new_field);
         $this->view->assign('tr_classes', $css_class);
         $this->view->assign('default_value', $default_value);

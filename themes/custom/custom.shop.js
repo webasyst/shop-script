@@ -80,7 +80,7 @@ $(document).ready(function () {
         var f = $(this).closest('form');
         var url = '?' + f.serialize();
         $(window).lazyLoad && $(window).lazyLoad('sleep');
-        $.get(url, function(html) {
+        $.get(url+'&_=_', function(html) {
             var tmp = $('<div></div>').html(html);
             $('#product-list').html(tmp.find('#product-list').html());
             if (!!(history.pushState && history.state !== undefined)) {
@@ -103,6 +103,7 @@ $(document).ready(function () {
             return;
         }
         paging.hide();
+        var loading_str = paging.data('loading-str') || 'Loading...';
         var win = $(window);
         
         // prevent previous launched lazy-loading
@@ -130,7 +131,7 @@ $(document).ready(function () {
                     var product_list = $('#product-list .product-list');
                     var loading = paging.parent().find('.loading').parent();
                     if (!loading.length) {
-                        loading = $('<div><i class="icon16 loading"></i>Loading...</div>').insertBefore(paging);
+                        loading = $('<div><i class="icon16 loading"></i>'+loading_str+'</div>').insertBefore(paging);
                     }
     
                     loading.show();

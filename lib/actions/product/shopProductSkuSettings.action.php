@@ -29,7 +29,6 @@ class shopProductSkuSettingsAction extends waViewAction
     public function getFeatures(shopProduct $product)
     {
         $features_model = new shopFeatureModel();
-        $product_features_model = new shopProductFeaturesModel();
 
         $features = array();
         foreach ($features_model->getByType($product->type_id, 'code', true) as $f) {

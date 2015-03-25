@@ -55,7 +55,9 @@
 
                     {if $theme_settings.cart_crossselling == 'many'}
                         {if $item@index < 3}
-                            {$related = $wa->shop->crossSelling($item.product.id)}
+                            {$_exclude_ids = []}
+                            {foreach $cart.items as $item}{$_exclude_ids[] = $item.product.id}{/foreach}
+                            {$related = $wa->shop->crossSelling($item.product.id, 5, true, $_exclude_ids)}
                             {if $related}
                                 <!-- cross-selling -->
                                 <div class="clear-both" data-id="{$item.id}">
@@ -129,7 +131,7 @@
                 <div class="col w10 no-border featured-shipping-and-payment">
                     {*
                         display up to 8 logos of available payment options;
-                        replave $wa->shop->payment() with $wa->shop->shipping() if you prefer shipping options logos
+                        replace $wa->shop->payment() with $wa->shop->shipping() if you prefer shipping options logos
                     *}
                     {$availabe_options = $wa->shop->payment()}
                     {$_cnt = 0}

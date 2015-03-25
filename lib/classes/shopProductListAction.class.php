@@ -31,7 +31,7 @@ class shopProductListAction extends waViewAction
      * @var shopProductsCollection
      */
     protected $collection;
-    
+
     private $product_view;
 
     public function __construct($params = null) {
@@ -115,14 +115,14 @@ class shopProductListAction extends waViewAction
         $currency = $this->getConfig()->getCurrency();
         foreach ($products as &$p) {
             if ($p['min_price'] == $p['max_price']) {
-                $p['price_range'] = wa_currency($p['min_price'], $currency);
+                $p['price_range'] = wa_currency_html($p['min_price'], $currency);
             } else {
-                $p['price_range'] = wa_currency($p['min_price'], $currency).'...'.wa_currency($p['max_price'], $currency);
+                $p['price_range'] = wa_currency_html($p['min_price'], $currency).'...'.wa_currency_html($p['max_price'], $currency);
             }
             if ($p['badge']) {
                 $p['badge'] = shopHelper::getBadgeHtml($p['badge']);
             }
-            
+
             unset(
                 $p['meta_description'],
                 $p['meta_keywords'],
@@ -130,7 +130,7 @@ class shopProductListAction extends waViewAction
                 $p['description'],
                 $p['summary']
             );
-            
+            $p['edit_rights'] = (boolean)wa()->getUser()->getRights('shop', 'type.'.$p['type_id']);
         }
         unset($p);
 
@@ -149,11 +149,11 @@ class shopProductListAction extends waViewAction
         } else if ($this->sort == 'total_sales') {
             $currency = wa('shop')->getConfig()->getCurrency();
             foreach ($products as &$p) {
-                $p['total_sales_str'] = wa_currency($p['total_sales'], $currency);
+                $p['total_sales_str'] = wa_currency_html($p['total_sales'], $currency);
             }
         }
         unset($p);
-        
+
         $info = $this->collection->getInfo();
         if ($info['hash'] == 'category') {
             $product_ids = array_keys($products);
@@ -189,7 +189,7 @@ class shopProductListAction extends waViewAction
         $data = $this->preAssign($data);
         $this->view->assign($data);
     }
-    
+
     public function getProductView()
     {
         if (!$this->product_view) {
@@ -207,5 +207,108 @@ class shopProductListAction extends waViewAction
             $this->getUser()->setSettings('shop', 'products_default_view', $view);
         }
         return $this->product_view;
+    }
+
+    public static function getAdditionalColumns()
+    {
+        static $columns = null;
+
+        if ($columns === null) {
+            $columns = array();
+
+            $cols = array(
+                array(
+                    'id' => 'image_crop_small',
+                    'name' => _w('Image'),
+                    'sortable' => false,
+                ),
+                array(
+                    'id' => 'sku_count',
+                    'name' => _w('Number of SKUs'),
+                    'sortable' => true,
+                    'default_sort_order' => 'desc',
+                ),
+                array(
+                    'id' => 'image_count',
+                    'name' => _w('Number of images'),
+                    'sortable' => false,
+                ),
+                array(
+                    'id' => 'total_sales',
+                    'name' => _w('Total sales'),
+                    'sortable' => true,
+                    'default_sort_order' => 'desc',
+                ),
+                array(
+                    'id' => 'sales_30days',
+                    'name' => _w('Last 30 days sales'),
+                    'sortable' => false,
+                    'default_sort_order' => 'desc',
+                ),
+                array(
+                    'id' => 'rating_count',
+                    'name' => _w('Number of reviews'),
+                    'sortable' => true,
+                    'default_sort_order' => 'desc',
+                ),
+                array(
+                    'id' => 'rating',
+                    'name' => _w('Rating'),
+                    'sortable' => true,
+                    'default_sort_order' => 'desc',
+                ),
+                array(
+                    'id' => 'stock_worth',
+                    'name' => _w('Stock net worth'),
+                    'sortable' => true,
+                    'default_sort_order' => 'desc',
+                ),
+            );
+
+            // !!! plugin columns?..
+
+            // Column for each feature
+            $feature_model = new shopFeatureModel();
+            foreach($feature_model->getFeatures(true) as $f) {
+                if ($f['type'] != shopFeatureModel::TYPE_DIVIDER) {
+                    $cols[] = array(
+                        'id' => 'feature_'.$f['id'],
+                        'name' => $f['name'],
+                        'sortable' => false,
+                    );
+                }
+            }
+
+            // Clean up, make sure all keys exist, etc.
+            foreach($cols as $c) {
+                if (empty($c['id'])) {
+                    continue;
+                }
+                if (empty($c['name'])) {
+                    $c['name'] = $c['id'];
+                }
+                if (empty($c['sortable'])) {
+                    $c['sortable'] = false;
+                }
+                $c['enabled'] = false;
+                $columns[$c['id']] = $c;
+            }
+
+            // Which columns are selected
+            foreach(self::getEnabledColumns() as $f_id) {
+                $columns[$f_id]['enabled'] = true;
+            }
+        }
+
+        return $columns;
+    }
+
+    protected static function getEnabledColumns()
+    {
+        $cols = wa('shop')->getSetting('list_columns', null, 'shop');
+        if (!$cols) {
+            return array();
+        }
+        return explode(',', $cols);
     }
 }

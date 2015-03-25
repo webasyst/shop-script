@@ -47,10 +47,35 @@
         initSearch: function() {
             var search_field = $('#s-customers-search');
 
+            var hash = $.customers.getHash();
+            var m = hash.match(/^(?:#\/)?search\/([\s\S]*)/);
+            if (m) {
+                m[1] = m[1].replace(/(\/)+$/, '');
+                m = m[1].match(/^(?:phone|email|name\|email|email\|name)\*=([\s\S]*)/);
+                if (m) {
+                    var val = m[1];
+                    try {
+                        val = decodeURIComponent(val);
+                    } catch (e) {}
+                    search_field.val(val);
+                }
+            }
+
             var search = function() {
-                var query = this.value;
-                location.hash = '#/search/0/' + encodeURIComponent(query);
-                $(this).autocomplete("close");
+                var q = this.value.trim();
+
+                var query = '';
+                try {
+                    q = decodeURIComponent(q);
+                } catch (e) {}
+                if (q.match(/^\+*[0-9\s\-\(\)]+$/)) {
+                    query = 'phone*=' + q.replace(/^\+/, '');
+                } else if (q.indexOf('@') !== -1) {
+                    query = 'email*=' + q;
+                } else {
+                    query = 'email|name*=' + q;
+                }
+                location.hash = '#/search/' + query;
                 return false;
             };
 
@@ -71,6 +96,7 @@
                         return search.call(this);
                     }
                 });
+
             }
 
             // Use jQuery autocomplete to show suggestions.
@@ -79,12 +105,95 @@
                 minLength: 3,
                 delay: 300,
                 select: function(event, ui) {
-                    $.wa.setHash('#/id/' + ui.item.id);
+                    if (ui.item.autocomplete_item_type === 'coupon') {
+                        $.wa.setHash('#/search/app.coupon=' + ui.item.id);
+                    } else if (ui.item.autocomplete_item_type === 'shipping') {
+                        $.wa.setHash('#/search/app.shipment_method=' + ui.item.id);
+                    } else if (ui.item.autocomplete_item_type === 'payment') {
+                        $.wa.setHash('#/search/app.payment_method=' + ui.item.id);
+                    } else if (ui.item.autocomplete_item_type === 'city') {
+                        $.wa.setHash('#/search/contact_info.address.city=' + ui.item.value);
+                    } else if (ui.item.autocomplete_item_type === 'region') {
+                        $.wa.setHash('#/search/contact_info.address.region=' + ui.item.value);
+                    } else if (ui.item.autocomplete_item_type === 'country') {
+                        $.wa.setHash('#/search/contact_info.address.country=' + ui.item.value);
+                    } else {
+                        $.wa.setHash('#/id/' + ui.item.id);
+                    }
                     search_field.val('');
                     return false;
                 }
+            }).bind('keydown', function(e) {
+                if (e.keyCode == 13) {
+                    var self = $(this);
+                    setTimeout(function() {
+                        self.autocomplete("close");
+                    }, 300);
+                }
             });
         },
+
+        initLazyLoad: function(options) {
+            var count = options.count;
+            var offset = count;
+            var total_count = options.total_count;
+            var url = options.url;
+            var container = $(options.container);
+            var auto = typeof options.auto === 'undefined' ? true : options.auto;
+
+            $(window).lazyLoad('stop'); // stop previous lazy-load implementation
+
+            if (offset < total_count) {
+                $(window).lazyLoad({
+                    container: container,
+                    state: auto ? 'wake' : 'stop',
+                    load: function() {
+                        $(window).lazyLoad('sleep');
+                        $('.lazyloading-link').hide();
+                        $('.lazyloading-progress').show();
+                        $.get(url + '&lazy=1&offset=' + offset + '&total_count=' + total_count, function(data) {
+
+                            var html = $('<div></div>').html(data);
+                            var list = html.find('.s-customers tbody tr');
+                            if (list.length) {
+                                offset += list.length;
+                                $('.s-customers tbody', container).append(list);
+                                if (offset >= total_count) {
+                                    $(window).lazyLoad('stop');
+                                    $('.lazyloading-progress').hide();
+                                } else {
+                                    $(window).lazyLoad('wake');
+                                    $('.lazyloading-link').show();
+                                    if (!auto) {
+                                        $('.lazyloading-progress').hide();
+                                    }
+                                }
+                            } else {
+                                $(window).lazyLoad('stop');
+                                $('.lazyloading-progress').hide();
+                            }
+
+                            $('.lazyloading-progress-string', container).
+                                    replaceWith(
+                                        $('.lazyloading-progress-string', html)
+                                    );
+                            $('.lazyloading-chunk', container).
+                                    replaceWith(
+                                        $('.lazyloading-chunk', html)
+                                    );
+
+                            html.remove();
+
+                        });
+                    }
+                });
+                $('.lazyloading-link').die('click').live('click', function() {
+                    $(window).lazyLoad('force');
+                    return false;
+                });
+            }
+        },
+
 
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         // *   Dispatch-related
@@ -131,11 +240,16 @@
                 if (hash[0]) {
                     var actionName = "";
                     var attrMarker = hash.length;
+
                     for (var i = 0; i < hash.length; i++) {
                         var h = hash[i];
                         if (i < 2) {
                             if (i === 0) {
                                 actionName = h;
+                                if (this.testActionExists(actionName)) {
+                                    this.execute(actionName, hash.slice(i + 1));
+                                    return;
+                                }
                             } else if (parseInt(h, 10) != h && h.indexOf('=') == -1) {
                                 actionName += h.substr(0,1).toUpperCase() + h.substr(1);
                             } else {
@@ -147,30 +261,40 @@
                             break;
                         }
                     }
-                    var attr = hash.slice(attrMarker);
-                    this.preExecute(actionName);
-                    if (typeof(this[actionName + 'Action']) == 'function') {
-                        $.shop.trace('$.customers.dispatch',[actionName + 'Action',attr]);
-                        this[actionName + 'Action'].apply(this, attr);
-                    } else {
-                        $.shop.error('Invalid action name:', actionName+'Action');
+                    if (this.testActionExists(actionName)) {
+                        this.execute(actionName, hash.slice(attrMarker));
+                        return;
                     }
-                    this.postExecute(actionName);
                 } else {
-                    this.preExecute();
-                    this.defaultAction();
-                    this.postExecute();
+                    if (this.testActionExists('default')) {
+                        this.execute('default');
+                    }
                 }
             } else {
-                this.preExecute();
-                this.defaultAction();
-                this.postExecute();
+                if (this.testActionExists('default')) {
+                    this.execute('default');
+                }
             }
+        },
 
-            this.highlightSidebar();
+        testActionExists: function(actionName) {
+            if (typeof(this[actionName + 'Action']) !== 'function') {
+                $.shop.error('Invalid action name:', actionName+'Action');
+                return false;
+            }
+            return true;
+        },
+
+        execute: function(actionName, attr) {
+            actionName = actionName || 'default';
+            this.preExecute(actionName);
+            $.shop.trace('$.customers.dispatch',[actionName + 'Action',attr]);
+            this[actionName + 'Action'].apply(this, attr);
+            this.postExecute(actionName);
         },
 
         preExecute: function(actionName, attr) {
+            this.highlightSidebar();
         },
 
         postExecute: function(actionName, attr) {
@@ -185,20 +309,28 @@
         // Pages
         //
 
-        allAction: function(dummy, order) {
+        allAction: function(order) {
             order = this.getSortOrder(order);
-            this.load('?module=customers&action=list'+order);
+            this.load(this.getUrl() + order);
             $('#s-sidebar a[href="#/all/"]').parent().addClass('selected');
         },
 
         categoryAction: function(id, order) {
             order = this.getSortOrder(order);
-            this.load('?module=customers&action=list&category='+id+order);
+            this.load(this.getUrl() + '&category='+id+order);
         },
 
-        searchAction: function(dummy, str, order) {
+        searchAction: function(q, order) {
             order = this.getSortOrder(order);
-            this.load('?module=customers&action=list&search='+str+order);
+            this.load(this.getUrl() + '&search=' + encodeURIComponent(q) + order);
+        },
+
+        filterAction: function(filter_id, order) {
+            this.load(this.getUrl() + '&filter_id=' + filter_id + order);
+        },
+
+        searchformAction: function(hash) {
+            this.load('?module=customers&action=searchForm&hash=' + encodeURIComponent(hash));
         },
 
         idAction: function(id) {
@@ -210,12 +342,17 @@
         },
 
         editcategoryAction: function(id) {
+            $('#customer-categories').find('li[data-category-id=' + id + ']').addClass('selected');
             this.load('?module=customers&action=categoryEditor&id='+(id || ''));
         },
 
         //
         // Helpers
         //
+
+        getUrl: function() {
+            return '?module=customers&action=list';
+        },
 
         getSortOrder: function(order) {
             if (!order) {
@@ -349,7 +486,7 @@
         },
 
         onPageNotFound: function() {
-            this.allAction();
+            //this.allAction();
         }
     };
 })(jQuery);

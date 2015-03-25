@@ -18,7 +18,8 @@ return array(
                 'complete',
                 'comment',
                 'split',
-                'edit',                
+                'edit',
+                'message',
                 'delete',
             )
         ),
@@ -38,6 +39,7 @@ return array(
                 'comment',
                 'split',                
                 'edit',
+                'message',
                 'delete'
             )
         ),
@@ -55,7 +57,8 @@ return array(
                 'ship',
                 'complete',
                 'refund',
-                'comment'
+                'comment',
+                'message',
             )
         ),
         'shipped' => array(
@@ -70,7 +73,8 @@ return array(
             'available_actions' => array(
                 'complete',
                 'comment',
-                'delete'
+                'delete',
+                'message',
             )
         ),
         'completed' => array(
@@ -83,7 +87,8 @@ return array(
             ),
             'available_actions' => array(
                 'comment',
-                'refund'
+                'refund',
+                'message',
             )
         ),
         'refunded' => array(
@@ -95,6 +100,7 @@ return array(
                 )
             ),
             'available_actions' => array(
+                'message',
             )
         ),
         'deleted' => array(
@@ -106,7 +112,8 @@ return array(
                 )
             ),
             'available_actions' => array(
-                'restore'
+                'restore',
+                'message',
             )
         ),
 
@@ -177,7 +184,7 @@ return array(
             'name' => _w('Delete'),
             'options' => array(
 //                'position' => 'top',
-                'icon' => 'delete',
+//                'icon' => 'delete',
                 'log_record' => _w('Order was deleted'),
             ),
             'state' => 'deleted',
@@ -200,6 +207,17 @@ return array(
             ),            
             'state' => 'completed'
         ),
+
+        'message' => array(
+            'classname' => 'shopWorkflowMessageAction',
+            'name' => _w('Contact customer'),
+            'options' => array(
+                'position' => 'top',
+                'icon' => 'email',
+                'log_record' => _w('Message was sent'),
+            ),
+        ),
+
         'comment' => array(
             'classname' => 'shopWorkflowCommentAction',
             'name' => _w('Add comment'),

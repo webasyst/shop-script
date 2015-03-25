@@ -2,7 +2,6 @@
 <style>
     body { background: #555; padding-top: 0; }
     header,
-    .banner h3,
     .banner .search,
     .banner ul.menu-h,
     .page-nav,
@@ -15,16 +14,11 @@
     .container { max-width: 800px; }
     #mobile-nav-toggle { display: none !important; }
     .footer-block { display: none; }
-    .banner { min-height: 60px; }
+    .banner { min-height: 40px; }
+    .banner h3 { margin-bottom: 0; }
+    .banner h3 a { color: #fff; }
+    .banner h3 a:hover { color: yellow !important; }
 </style>
-
-<div class="checkout-header">
-    <div class="float-right large">
-        {$cart_total = $wa->shop->cart->total()}
-        [`Order total`]: <strong>{shop_currency_html($cart_total, true)}</strong>
-    </div>
-    <h3><a href="{$wa_app_url}">{$wa->shop->settings("name")}</a></h3>
-</div>
 
 <div class="checkout">
 
@@ -35,7 +29,8 @@
             <form class="checkout-form {if $s@last}last{/if}" method="post" action="">
                 <h2 class="{if isset($_upcoming_flag)}upcoming{/if}{if $step_id == $checkout_current_step}{$_upcoming_flag = 1}{/if}"{if $s@first} style="border-top: none;"{/if}>
                     {if $s@first}
-                        <a href="{$wa->getUrl('/frontend/cart')}" class="hint float-right">[`Back to the store`]</a>
+                        {$cart_total = $wa->shop->cart->total()}
+                        <a href="{$wa->getUrl('/frontend/cart')}" class="hint float-right">[`Cart`]: <strong>{shop_currency_html($cart_total, true)}</strong></a>
                     {else}
                         <a href="#" class="hint float-right back"{if $checkout_current_step != $step_id} style="display:none"{/if}>[`Back`]</a>
                     {/if}

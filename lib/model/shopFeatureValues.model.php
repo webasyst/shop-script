@@ -99,6 +99,11 @@ SQL;
         return $row['value'];
     }
 
+    /**
+     * @param $row
+     * @param $data
+     * @return bool|array
+     */
     protected function isChanged($row, $data)
     {
         return false;
@@ -213,8 +218,9 @@ SQL;
     {
         $row = array('id' => $id, 'value' => $value);
 
+        $data = $this->parseValue($value, $type);
+
         try { //store
-            $data = $this->parseValue($value, $type);
             if (isset($data['code'])) {
                 $row['code'] = $data['code'];
             }
@@ -242,6 +248,12 @@ SQL;
                     );
 
                     $row['original_id'] = $id;
+                    break;
+                case '1406':
+                    $row['error'] = array(
+                        'message'     => wa()->getConfig()->isDebug() ? $ex->getMessage() : _w("Data too long"),
+                        'original_id' => 0,
+                    );
                     break;
                 default:
                     $row['error'] = array(

@@ -75,7 +75,7 @@
             <input type="hidden" name="emulate" value="1">
             <select name="primary" class="bold">
                 <option value="name">[`Product name`]</option>
-                <option value="url">[`Storefront link`]</option>
+                <option value="url">[`Public link`]</option>
                 <option value="null" class="italic">[`(none)`]</option>
             </select>
             &nbsp;
@@ -110,6 +110,7 @@
 
 <!-- ADVANCED SETTINGS -->
 <div class="field-group" style="display: none;">
+    {*
     <div class="field">
         <div class="value no-shift">
             <label><input type="checkbox" name="ignore_category" value="1" checked="checked"> [`Ignore category nesting when searching for matching products (recommended)`]</label>
@@ -117,6 +118,7 @@
             <span class="hint">[`When importing a product and searching if it exists in the store already, product search will be performed only within the category as defined in a CSV file.`]</span>
         </div>
     </div>
+    *}
 
     <div class="field">
         <div class="name">[`Product type`]</div>
@@ -128,6 +130,14 @@
             </select>
             <br>
             <span class="hint">[`If no particular product type column was specified in the uploaded CSV file, selected product type will be applied to all new products, created during the import.`]</span>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">[`Product descriptions`]</div>
+        <div class="value no-shift">
+            <label><input type="checkbox" name="nl2br_description" value="1"> [`Non-HTML product descriptions`]</label>
+            <p class="hint">[`If checked, a &lt;br&gt; tag will be automatically added after every line of the product description.`]</p>
         </div>
     </div>
 
@@ -184,7 +194,7 @@
         <div class="value">
             <ul class="menu-h hint s-csv-header" id="s_import_csv_header">
                 {% for (var column in file.header){if(file.header.hasOwnProperty(column)){ %}
-                <li title="{%=column%}">{%=file.header[column]%}</li>
+                <li data-column="{%=column%}" title="{%=$.importexport.csv_product_helper.id2name(column)%}">{%=file.header[column]%}</li>
                 {% }} %}
             </ul>
         </div>
@@ -240,3 +250,9 @@
 </div>
 
 <div class="clear-left"></div>
+<script type="text/javascript">
+
+$.wa.locale = $.extend($.wa.locale, {
+    'Collision at rows #':'[`Collision at rows #`]'
+});
+</script>

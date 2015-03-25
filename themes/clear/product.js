@@ -39,7 +39,11 @@ function Product(form, options) {
         self.cartButtonVisibility(true);
         self.updatePrice();
     });
-    $("#product-skus input[type=radio]:checked").click();
+    var $initial_cb = this.form.find(".skus input[type=radio]:checked:not(:disabled)");
+    if (!$initial_cb.length) {
+        $initial_cb = this.form.find(".skus input[type=radio]:not(:disabled):first").prop('checked', true);
+    }
+    $initial_cb.click();
 
     this.form.find("select.sku-feature").change(function () {
         var key = "";

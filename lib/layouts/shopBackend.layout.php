@@ -4,14 +4,12 @@ class shopBackendLayout extends waLayout
 {
     public function execute()
     {
-
         $app_settings_model = new waAppSettingsModel();
-        if ($app_settings_model->get('shop', 'welcome')) {
-            if (waRequest::get('skipwelcome')) {
-                $app_settings_model->del('shop', 'welcome');
-            } else {
-                $this->redirect(wa()->getConfig()->getBackendUrl(true).'shop/?action=welcome');
-            }
+        if (waRequest::get('skipwelcome')) {
+            $app_settings_model->del('shop', 'welcome');
+            $app_settings_model->set('shop', 'show_tutorial', 1);
+        } else if ($app_settings_model->get('shop', 'welcome')) {
+            $this->redirect(wa()->getConfig()->getBackendUrl(true).'shop/?action=welcome');
         }
 
         $user = wa()->getUser();
@@ -28,10 +26,8 @@ class shopBackendLayout extends waLayout
         } elseif (wa()->getUser()->getRights('shop', 'settings')) {
             $default_page = 'settings';
         } else {
-            throw new waRightsException(_w("Access denied"));
+            $default_page = 'products';
         }
-
-        $this->assign('product_rights', $product_rights);
 
         $order_model = new shopOrderModel();
         $this->assign('new_orders_count', $order_model->getStateCounters('new'));

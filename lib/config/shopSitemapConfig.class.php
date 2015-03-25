@@ -86,7 +86,7 @@ class shopSitemapConfig extends waSitemapConfig
                 $limit = min($this->limit, $n * $this->limit - $count);
             }
 
-            $sql = "SELECT p.url, p.create_datetime, p.edit_datetime";
+            $sql = "SELECT p.id, p.url, p.create_datetime, p.edit_datetime";
             if (isset($route['url_type']) && $route['url_type'] == 2) {
                 $sql .= ', c.full_url category_url';
             }
@@ -103,6 +103,25 @@ class shopSitemapConfig extends waSitemapConfig
 
             $count += $products->count();
 
+            // products pages
+            try {
+                $sql = "SELECT p.id FROM " . $product_model->getTableName() . ' p WHERE p.status = 1';
+                if (!empty($route['type_id'])) {
+                    $sql .= ' AND p.type_id IN (i:type_id)';
+                }
+                $sql .= ' LIMIT ' . $offset . ',' . $limit;
+                $sql = 'SELECT pp.product_id, pp.url, pp.create_datetime, pp.update_datetime
+                        FROM shop_product_pages pp JOIN (' . $sql . ') as t ON pp.product_id = t.id
+                        WHERE pp.status = 1';
+                $rows = $product_model->query($sql, $route);
+                $products_pages = array();
+                foreach ($rows as $row) {
+                    $products_pages[$row['product_id']][] = $row;
+                }
+            } catch (waDbException $e) {
+                $products_pages = array();
+            }
+
             $product_url = $this->routing->getUrl($this->app_id.'/frontend/product', array(
                 'product_url' => '%PRODUCT_URL%',
                 'category_url' => '%CATEGORY_URL%'
@@ -115,6 +134,12 @@ class shopSitemapConfig extends waSitemapConfig
                     $url = str_replace(array('%PRODUCT_URL%', '/%CATEGORY_URL%'), array($p['url'], ''), $product_url);
                 }
                 $this->addUrl($url, $p['edit_datetime'] ? $p['edit_datetime'] : $p['create_datetime'], self::CHANGE_MONTHLY, 0.8);
+
+                if (isset($products_pages[$p['id']])) {
+                    foreach ($products_pages[$p['id']] as $pp) {
+                        $this->addUrl($url.$pp['url'].'/', $pp['update_datetime'] ? $pp['update_datetime'] : $pp['create_datetime'], self::CHANGE_MONTHLY, 0.4);
+                    }
+                }
             }
 
             if ($count >= $n * $this->limit) {

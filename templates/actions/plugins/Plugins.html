@@ -5,7 +5,7 @@
 <script type="text/javascript" src="{$wa_url}wa-content/js/codemirror/mode/javascript/javascript.js"></script>
 <script type="text/javascript" src="{$wa_url}wa-content/js/codemirror/mode/css/css.js"></script>
 <script type="text/javascript" src="{$wa_url}wa-content/js/codemirror/mode/htmlmixed/htmlmixed.js"></script>
-<script type="text/javascript" src="{$wa_url}wa-content/js/ace/ace.js"></script>
+<script type="text/javascript" src="{$wa_url}wa-content/js/ace/ace.js?{$wa->version(true)}"></script>
 
 <script type="text/javascript" src="{$wa_app_static_url}js/backend/plugins.js?{$wa->version()}"></script>
 
@@ -30,7 +30,7 @@
                     {$plugin_names[$plugin.id] = $plugin.name|escape}
                     <li id="plugin-{$plugin.id}" {if !empty($plugin.shop_settings)}data-settings="1"{/if}>
                         <a href="#/{$plugin.id}/">
-                            <i class="icon16{if !isset($plugin.img)} plugins{else}" style="background-image: url('{wa_url()}{$plugin.img}');{/if}"></i>{$plugin.name|escape}
+                            <i class="icon16{if !isset($plugin.img)} plugins{else}" style="background-image: url('{wa_url()}{$plugin.img}'); background-size: 16px 16px;{/if}"></i>{$plugin.name|escape}
                             {if !empty($plugin.description)}
                                 <span class="hint">{$plugin.description|escape}</span>
                             {/if}

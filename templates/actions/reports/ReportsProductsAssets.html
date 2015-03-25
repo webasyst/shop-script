@@ -1,0 +1,147 @@
+<div class="content">
+    <div class="block double-padded ">
+        <h1>
+            [`In-stock assets`]
+        </h1>
+
+        <ul class="menu-h s-product-reports">
+            <li class="float-right">
+                [`Number of products:`]
+                <select id="limit-selector">
+                    {foreach [100, 250, 500] as $l}
+                        <option value="{$l|escape}"{if $l == $limit} selected{/if}>{$l|escape}</option>
+                    {/foreach}
+                </select>
+            </li>
+            {if $stocks}
+                <li class="float-right">
+                    [`Stock`]:
+                    <select id="stock-selector">
+                        <option value="">[`All stocks`]</option>
+                        {foreach $stocks as $s}
+                            <option value="{$s.id|escape}"{if $request_options.stock == $s.id} selected{/if}>{$s.name|escape}</option>
+                        {/foreach}
+                    </select>
+                </li>
+            {/if}
+            <li><a href="#/products/bestsellers/">[`Best sellers`]</a></li>
+            <li class="selected"><a href="#/products/assets/">[`Assets`]</a></li>
+            <li><a href="#/products/whattosell/">[`What to sell`]</a></li>
+        </ul>
+
+        <div class="clear-both"></div>
+
+        <table class="zebra" id="s-assets-report-table">
+            <thead>
+                <tr class="white s-header-row">
+                    <th style="width:50px;"></th>
+                    <th></th>
+                    <th class="align-right s-wider-cell"><a href="javascript:void(0)" data-sort-php="stock">[`Stock count`]{if $sort == 'stock'} <i class="icon16 darr"></i>{/if}</a></th>
+                    <th class="align-right s-wider-cell">
+                        <a href="javascript:void(0)" data-sort-php="net_worth" title="[`The overall amount you will get if you sell the entire stock`]">[`Net worth`]{if $sort == 'net_worth'}<i class="icon16 darr"></i>{/if}</a>
+                    </th>
+                    <th class="s-wider-cell" style="width:50%;"><a href="javascript:void(0)" data-sort-js="1">[`Selling time`]</a></th>
+                </tr>
+                <tr class="s-summary-row">
+                    <td style="width:50px;"></td>
+                    <td></td>
+                    <td class="align-right nowrap s-wider-cell">{_w('%d item', '%d items', $total_stock)}</td>
+                    <td class="s-profit-cell nowrap s-wider-cell align-right">{wa_currency_html($net_worth, $def_cur)}</td>
+                    <td style="position: relative;"><div style="position: absolute; left:0;right:0;top:-2px;bottom:-5px;background:#fff;"><!-- hoax element for hiding <tr> shadow --></div></td>
+                </tr>
+            </thead>
+            <tbody>
+                {if $wa->shop->config('enable_2x')}
+                    {$size = '48x48@2x'}
+                {else}
+                    {$size = '48x48'}
+                {/if}
+                {foreach $products as $p}
+                    <tr>
+                        <td><a href="?action=products#/product/{$p.id}/">{$wa->shop->getProductImgHtml($p, $size, ['height' => 48, 'width' => 48])}</a></td>
+                        <td><a href="?action=products#/product/{$p.id}/">{$p.name|escape}</a></td>
+                        <td class="align-right nowrap s-wider-cell">
+                            {if $p.count > 5}
+                                <i class="icon10 status-green"></i>
+                            {elseif $p.count > 2}
+                                <i class="icon10 status-yellow"></i>
+                            {else}
+                                <i class="icon10 status-red"></i>
+                            {/if}
+                            {$p.count}
+                        </td>
+                        <td class="align-right nowrap s-wider-cell">{wa_currency_html($p.net_worth, $def_cur)}</td>
+                        <td class="est-bar-td s-wider-cell nowrap" data-sort="{if $p.sold > 0}{$p.est}{else}-1{/if}"{if $p.sold > 0} title="{sprintf('[`Selling time is estimated based on the average monthly sales during last 90 days (%d items per month for this product).`]', $p.sold)}"{/if}>
+                            {if $p.est > 0}
+                                <span class="s-bar" style="width:{$p.est_bar}px">
+                                </span>
+                                <span class="small">{_w('%d day', '%d days', $p.est)}</span>
+                            {else if $p.sold > 0}
+                                <span class="est-bar-caption">[`Out of stock`]</span>
+                            {else}
+                                <span class="est-bar-caption hint">[`Not enough sales data to estimate selling time for this product`]</span>
+                            {/if}
+                        </td>
+                    </tr>
+                {/foreach}
+            </tbody>
+        </table>
+
+        <p style="margin-top:10px;">{_w('%d product', '%d products', count($products))}</p>
+
+    </div>
+</div>
+
+<script>(function() { "use strict";
+
+    document.title = "[`In-stock assets`] — {$wa->accountName(false)|escape:javascript}";
+
+    var request_options = {json_encode($request_options)};
+    var action_url = '?module=reportsproducts&action=assets';
+
+    var $table = $('#s-assets-report-table');
+    var $thead = $table.children('thead');
+
+    // Update page when user changes limit selector
+    var $limit_selector = $('#limit-selector');
+    $limit_selector.change(function() {
+        $limit_selector.after('<i class="icon16 loading"></i>');
+        var limit = $limit_selector.val();
+        $.storage.set('shop/reports/assets/limit', limit); // used in reports.js
+        $.post(action_url, $.extend({}, request_options, { limit: limit }), function(r) {
+            $('#reportscontent').html(r);
+        });
+    });
+
+    // Update page when user changes stock selector
+    var $stock_selector = $('#stock-selector');
+    $stock_selector.change(function() {
+        $stock_selector.after('<i class="icon16 loading"></i>');
+        $.post(action_url, $.extend({}, request_options, { stock: $stock_selector.val() }), function(r) {
+            $('#reportscontent').html(r);
+        });
+    });
+
+    // Update page when user clicks on a column header sortable in PHP
+    $thead.on('click', 'a[data-sort-php]', function() {
+        var sort = $(this).data('sort-php');
+        if (sort != request_options.sort) {
+            $(this).append('<i class="icon16 loading"></i>');
+            $.post(action_url, $.extend({}, request_options, { sort: sort }), function(r) {
+                $('#reportscontent').html(r);
+            });
+        }
+    });
+
+    // Order the table by estimated selling time in JS when user clicks on a header
+    $thead.on('click', 'a[data-sort-js]', function() {
+        request_options.sort = '';
+        $thead.find('.darr,.uarr').remove();
+        var $a = $(this);
+        var asc = !$a.data('sort-js');
+        $.reports.sortTable($a.closest('th'), asc);
+        $a.data('sort-js', asc);
+        $a.append('<i class="icon16 '+(asc ? 'uarr' : 'darr')+'"></i>');
+    });
+
+})();</script>

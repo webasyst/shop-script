@@ -106,9 +106,14 @@ class shopCheckoutPayment extends shopCheckout
     }
 
 
-    public function validate()
+    public function getErrors()
     {
-
+        $errors = array();
+        $payment = $this->getSessionData('payment');
+        if (!$payment) {
+            $errors[] = _w('Payment option is not defined. Please return to the payment selection checkout step to continue.');
+        }
+        return $errors;
     }
 
     public function execute()

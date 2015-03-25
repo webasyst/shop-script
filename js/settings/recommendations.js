@@ -70,6 +70,7 @@ $.extend($.settings = $.settings || {}, {
     },
 
     recommendationsRenderEditFeature: function (data, table, type_id) {
+
         var f = this.recommendationsGetFeature(data);
         var tr = $('<tr></tr>');
         var checkbox = $('<input name="data[' + data.feature + '][feature]" id="checkbox-' + type_id + '-' + data.feature + '" value="' + data.feature + '" type="checkbox" ' + (data.cond ? 'checked' : '') +'>').click(function () {
@@ -177,7 +178,7 @@ $.extend($.settings = $.settings || {}, {
     },
 
     recommendationsGetFeature: function (data) {
-        if (data.feature_id) {
+        if (data.feature_id && data.feature_id != '0') {
             return this.recommendations_options.features[data.feature_id];
         } else {
             if (data.feature == 'price') {

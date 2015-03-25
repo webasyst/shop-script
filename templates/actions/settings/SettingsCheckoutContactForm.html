@@ -98,12 +98,62 @@
 </div>{* #s-checkout-contact-form-wrapper *}
 
 <script>(function() { "use strict";
-    var form = $('#checkout-step-contactinfo-form');
-    var wrapper = $('#s-checkout-contact-form-wrapper');
+    var form = $("#checkout-step-contactinfo-form"),
+        wrapper = $("#s-checkout-contact-form-wrapper"),
+        $button = form.find(":submit"),
+        buttonEditClass = "form-is-not-save";
 
     var markAsChanged = function() {
-        form.find(':submit').removeClass('green').addClass('yellow');
+        // Add Active Button Class
+        $button
+            .removeClass("green")
+            .addClass("yellow")
+            .addClass(buttonEditClass); // flag class
+
+        // Trigger event
+        $(window).scroll();
     };
+
+    ( function( $button ) {
+        var storage = {
+            fixedClass: "s-fixed-save-button-wrapper",
+            $field: $button.closest(".field"),
+            getButtonScrollTop: function( $button ) {
+                var that = this.getButtonScrollTop;
+                if (!that.data) {
+                    that.data = $button.offset().top
+                }
+                return that.data;
+            }
+        };
+
+        var toggleFixedButton = function() {
+            var button_is_exist = $(document).find($button).length;
+            if (button_is_exist) {
+                if ($button.hasClass(buttonEditClass) ) {
+                    var displayHeight = parseInt($(window).height()),
+                            currentScroll = parseInt($(window).scrollTop()),
+                            buttonHeight = parseInt($button.outerHeight()),
+                            buttonTop = parseInt(storage.getButtonScrollTop($button)),
+                            delta = parseInt(buttonTop + buttonHeight - displayHeight);
+
+                    if (delta <= currentScroll) {
+                        storage.$field.removeClass(storage.fixedClass);
+                    } else {
+                        storage.$field.addClass(storage.fixedClass);
+                    }
+                }
+            } else {
+                // Remove Event
+                $(window).off("scroll", toggleFixedButton);
+            }
+        };
+
+        // Event
+        $(window).on("scroll", toggleFixedButton);
+
+    })( $button );
+
     wrapper.on('change', ':checkbox', markAsChanged);
     form.off('keyup.name', ':text[name="name"]').on('keyup.name', ':text[name="name"]', markAsChanged);
 
@@ -283,7 +333,7 @@
             if (enabled_cb && enabled_cb.length && enabled_cb.is(':checked')) {
                 var tr = cb.closest('tr');
                 if (!tr.is(':visible')) {
-                    cb.prop('checked', true);
+                    tr.parent().is(':visible') && cb.prop('checked', true);
                     tr.show();
                 }
             } else {

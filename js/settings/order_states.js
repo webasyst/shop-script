@@ -15,7 +15,7 @@ $.extend($.settings = $.settings || {}, {
         this.order_states_options = options;
 
         var color_picker = $('#s-colorpicker');
-        var color_replacer = $('.s-color-replacer');
+        var color_replacer = $('#s-color-replacer');
         var color_input = $('#s-color');
         var farbtastic = $.farbtastic(color_picker, function(color) {
             color_replacer.find('i').css('background', color);
@@ -23,7 +23,7 @@ $.extend($.settings = $.settings || {}, {
             color_input.css('color', color);
         });
         farbtastic.setColor('#'+color_input.val());
-        $('.s-color-replacer').click(function() {
+        color_replacer.click(function() {
             color_picker.slideToggle(200);
             return false;
         });
@@ -72,11 +72,50 @@ $.extend($.settings = $.settings || {}, {
             return false;
         });
 
+        var initColorPicker = function(block) {
+            var color_picker = $('.s-colorpicker', block);
+            var color_replacer = $('.s-color-replacer', block);
+            var color_input = $('.s-color', block);
+            var farbtastic = $.farbtastic(color_picker, function(color) {
+                color_replacer.find('i').css('background', color);
+                color_input.val(color.substr(1));
+                color_input.css('color', color);
+            });
+            farbtastic.setColor('#'+color_input.val());
+            color_replacer.click(function() {
+                color_picker.slideToggle(200);
+                return false;
+            });
+        };
+        var initActionIcons = function(block) {
+            var input = block.find('.s-action-icon');
+            var icons = block.find('.s-action-icons').on('click', 'a', function() {
+                icons.find('.selected').removeClass('selected');
+                $(this).parents('li:first').addClass('selected');
+                input.val(icons.find('.selected').data('icon'));
+                return false;
+            });
+            icons.find('li[data-icon="' + input.val() + '"]').addClass('selected');
+            var showIcons = function() {
+                icons.show();
+                input.attr('disabled', false);
+            };
+            var hideIcons = function() {
+                icons.hide();
+                input.attr('disabled', true);
+            };
+            block.find('.s-action-link').click(showIcons);
+            block.find('.s-action-button').click(hideIcons);
+            if (block.find('.s-action-link').is(':checked')) {
+                showIcons();
+            }
+        };
+
         $('#s-add-action').unbind('click').bind('click', function() {
             var new_action = $('.s-new-action');
             var clone = new_action.clone();
 
-            new_action.find('input, select').each(function() {
+            new_action.find(':input').each(function() {
                 var item = $(this);
                 var name = item.attr('name');
                 var match = name.match(/^(.*)\[(\d+)\]$/);
@@ -85,9 +124,61 @@ $.extend($.settings = $.settings || {}, {
                     item.attr('name', match[1] + '['+index+']');
                 }
             });
-            clone.find('input, select').attr('disabled', false);
-            new_action.before(clone.show());
-            clone.removeClass('s-new-action');
+            clone.show().insertBefore(new_action)
+                    .removeClass('s-new-action')
+                    .find(':input').attr('disabled', false);
+            initColorPicker(clone);
+            initActionIcons(clone);
+            return false;
+        });
+
+        $('#s-save-order-state').off('click', '.s-edit-action').on('click', '.s-edit-action', function() {
+            var el = $(this);
+            var block = el.closest('.s-order-action');
+            var action_id = block.data('id');
+            if (!el.nextAll('.s-edit-action-block[data-id="' + action_id + '"]:first').length) {
+                var new_action = $('.s-new-action');
+                new_action.clone().show().appendTo(block)
+                    .css({
+                        marginLeft: 0
+                    })
+                    .attr('data-id', action_id)
+                    .removeClass('s-new-action')
+                    .addClass('s-edit-action-block')
+                    .end()
+                    .find(':input').each(function() {
+                        var item = $(this).attr('disabled', false);
+                        var name = item.attr('name');
+                        var match = name.match(/^(.*)\[(\d+)\]$/);
+                        if (match) {
+                            item.attr('name', match[1].replace('new_action', 'edit_action') + '[' + action_id + ']');
+                            var type = match[1].replace('new_action_', '');
+                            if (item.is(':radio')) {
+                                item.attr('checked', item.val() == block.data(type));
+                            } else {
+                                item.val(block.data(type));
+                            }
+                        }
+                    });
+                var id_text = block.find('[name="edit_action_id[' + action_id + ']"]').val();
+                block.find('[name="edit_action_id[' + action_id + ']"]').replaceWith('<span>' +
+                        id_text +
+                    '<input type="hidden" name="edit_action_id[' + action_id + ']" value="' + id_text + '"></span>');
+                initColorPicker(block);
+                initActionIcons(block);
+                block.find('.s-delete-action').show().find('a').click(function() {
+                    if (confirm('Order action will be deleted. Are you sure?')) {
+                        $.post('?module=settings&action=orderActionDelete', {
+                            id: action_id
+                        }, function() {
+                            $.settings.redispatch();
+                        });
+                    }
+                    return false;
+                });
+            } else {
+                el.nextAll('.s-edit-action-block[data-id="' + action_id + '"]:first').remove();
+            }
             return false;
         });
 
@@ -109,7 +200,7 @@ $.extend($.settings = $.settings || {}, {
                 form.find('input.error').removeClass('error');
                 form.find('.errormsg').remove();
             };
-            
+
             var showSuccessIcon = function() {
                 var icon = $('#s-settings-order-states-submit').parent().find('i.yes').show();
                 setTimeout(function() {
@@ -121,7 +212,7 @@ $.extend($.settings = $.settings || {}, {
                 p.find('i.yes').hide();
                 p.find('i.loading').show();
             };
-            
+
             // after update services hash, dispathing and load proper content
             // 'afterOrderStatesInit' will be called. Extend this handler
             var prevHandler = $.settings.afterOrderStatesInit;
@@ -132,13 +223,21 @@ $.extend($.settings = $.settings || {}, {
                 }
                 $.settings.afterOrderStatesInit = prevHandler;
             };
-            
+
             // send post
             showLoadingIcon();
             $.shop.jsonPost(self.attr('action'), data,
                 function(r) {
                     clear();
-                    $.settings.dispatch('#/orderStates/'+r.data.id+'/',  true);
+                    if (r.data.add) {
+                        $.settings.dispatch('#/orderStates/'+r.data.id+'/',  true);
+                    } else {
+                        if (r.data.new_id) {
+                            $.settings.dispatch('#/orderStates/'+r.data.new_id+'/',  true);
+                        } else {
+                            $.settings.redispatch();
+                        }
+                    }
                 },
                 function(r) {
                     if (r && r.errors) {
@@ -160,6 +259,11 @@ $.extend($.settings = $.settings || {}, {
                 }
             );
             return false;
+        });
+
+        $('#c-state-id-edit').click(function() {
+            $(this).closest('.hint').hide();
+            $('#c-state-id').show().attr('disabled', false);
         });
 
         this.orderStatesSortableInit();

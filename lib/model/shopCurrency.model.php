@@ -88,9 +88,6 @@ class shopCurrencyModel extends waModel
 
     public function convert($price, $from, $to)
     {
-        if ($from == $to) {
-            return $price;    
-        }
         $price = $this->castValue('double', $price);
         if ($from == $to) {
             return $price;
@@ -220,7 +217,7 @@ class shopCurrencyModel extends waModel
 
             wa('shop')->getConfig()->setCurrency($new_code);
             $this->primary_currency = $new_code;
-            
+
             $cache = new waRuntimeCache('shop_currencies');
             $cache->delete();
 
@@ -372,8 +369,8 @@ class shopCurrencyModel extends waModel
             SET p.price = ps.price*c.rate
             $where";
         $this->exec($sql);
-        
-        $sql = "UPDATE `shop_product` p 
+
+        $sql = "UPDATE `shop_product` p
             JOIN `shop_product_skus` ps ON ps.product_id = p.id AND ps.id = p.sku_id
             JOIN `shop_currency` c ON c.code = p.currency
             SET p.compare_price = ps.compare_price*c.rate

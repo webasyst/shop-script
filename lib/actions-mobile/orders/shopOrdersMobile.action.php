@@ -1,5 +1,4 @@
 <?php
-
 /**
  * List of all orders in mobile backend.
  */
@@ -7,17 +6,31 @@ class shopOrdersMobileAction extends shopMobileViewAction
 {
     public function execute()
     {
+        $orders = false;
+        $start = waRequest::request('start', 0, 'int');
+        $has_more_rows = false;
+        $limit = 50;
+
         if (wa()->getUser()->getRights('shop', 'orders')) {
-            $om = new shopOrderModel();
-            $orders = $om->order('id DESC')->limit(30)->fetchAll('id');
+
+            $collection = new shopOrdersCollection('');
+            $orders = $collection->getOrders("*,contact,params", $start, 50);
+            $has_more_rows = count($orders) == $limit;
+
+            shopOrderListAction::extendContacts($orders);
             shopHelper::workupOrders($orders);
-            $this->view->assign('orders', $orders);
-        } else {
-            $this->view->assign('orders', false);
         }
 
-        wa()->getResponse()->setTitle(_w('Orders'));
-        parent::execute();
+        if (!waRequest::request('nolayout')) {
+            wa()->getResponse()->setTitle(_w('Orders'));
+            $this->setLayout(new shopMobileLayout());
+        }
+
+        $this->view->assign(array(
+            'has_more_rows' => $has_more_rows,
+            'orders' => $orders,
+            'start' => $start,
+        ));
     }
 }
 

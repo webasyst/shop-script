@@ -69,9 +69,31 @@ class shopOrdersInfoMobileAction extends shopMobileViewAction
         $workflow = new shopWorkflow();
         $workflow_state = $workflow->getStateById($order['state_id']);
         $workflow_buttons = array();
+
+        $source = 'backend';
+        if (isset($order['params']['storefront'])) {
+            if (substr($order['params']['storefront'], -1) === '/') {
+                $source = $order['params']['storefront'].'*';
+            } else {
+                $source = $order['params']['storefront'].'/*';
+            }
+        }
+        $notification_model = new shopNotificationModel();
+        $transports = $notification_model->getActionTransportsBySource($source);
+
         foreach ($workflow_state->getActions() as $a_id => $action) {
-            if ($a_id === 'edit' || $a_id === 'delete') {
+            if ($a_id === 'edit') {
                 continue;
+            }
+            $icons = array();
+            if (!empty($transports[$action->getId()]['email'])) {
+                $icons[] = 'ss notification-bw';
+            }
+            if (!empty($transports[$action->getId()]['sms'])) {
+                $icons[] = 'ss phone-bw';
+            }
+            if ($icons) {
+                $action->setOption('icon', $icons);
             }
             $workflow_buttons[] = $action->getButton();
         }

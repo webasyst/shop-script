@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * Note: shop_product_services.primary_price is stored in shop primary currency, 
+ * and shop_product_services.price is in shop_service.currency.
+ */
 class shopProductServicesModel extends waModel
 {
     protected $table = 'shop_product_services';

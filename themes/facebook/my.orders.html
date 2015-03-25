@@ -4,7 +4,7 @@
 
 <table class="table">
 {foreach $orders as $o}
-    <tr>
+    <tr id="order-{$o.id}">
         <td class="nowrap">
             <a href="{$o.url}" class="bold">
                 {$o.id_str}
@@ -48,3 +48,7 @@
 </table>
 
 {$wa->globals('isMyAccount', true)}
+
+<!-- plugin hook: 'frontend_my_orders' -->
+{* @event frontend_my_orders.%plugin_id% *}
+{foreach $frontend_my_orders as $_}{$_}{/foreach}

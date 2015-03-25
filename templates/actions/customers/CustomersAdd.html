@@ -3,8 +3,10 @@
     <h1>[`New customer`]</h1>
 
     <form id="new-customer-form" class="s-order-customer-details" action="?module=customers&action=add">
-        <div class="fields">
-            {$form->html()}
+        <div class="fields form">
+            <div class="field-group">
+                {$form->html()}
+            </div>
 
             <div class="field">
                 <div class="value">

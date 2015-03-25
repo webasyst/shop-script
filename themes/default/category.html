@@ -9,11 +9,11 @@
 <!-- filtering by product features -->    
 {if !empty($filters)}
 {if waRequest::isXMLHttpRequest() && waRequest::get('page', 1) == 1}
-<link href="{$wa_url}wa-content/css/jquery-ui/base/jquery.ui.slider.css" rel="stylesheet" type="text/css">
-<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-ui/jquery.ui.core.min.js?v{$wa->version(true)}"></script>
-<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-ui/jquery.ui.widget.min.js?v{$wa->version(true)}"></script>
-<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-ui/jquery.ui.mouse.min.js?v{$wa->version(true)}"></script>
-<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js?v{$wa->version(true)}"></script>
+<link href="{$wa_static_url}wa-content/css/jquery-ui/base/jquery.ui.slider.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.core.min.js?v{$wa->version(true)}"></script>
+<script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.widget.min.js?v{$wa->version(true)}"></script>
+<script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.mouse.min.js?v{$wa->version(true)}"></script>
+<script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js?v{$wa->version(true)}"></script>
 {/if}
 <div class="filters{if !empty($theme_settings.ajax_filters)} ajax{/if}">
     <form method="get" action="{$wa->currentUrl(0,1)}" data-loading="{$wa_parent_theme_url}img/loading16.gif">

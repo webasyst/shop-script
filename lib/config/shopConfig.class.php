@@ -22,6 +22,16 @@ class shopConfig extends waAppConfig
             }
         } elseif ($module == 'order' || $module == 'orders') {
             return wa()->getUser()->getRights('shop', 'orders');
+        } elseif ($module == 'settings') {
+            return wa()->getUser()->getRights('shop', 'settings');
+        } elseif ($module == 'services') {
+            return wa()->getUser()->getRights('shop', 'services');
+        } elseif ($module == 'customers') {
+            return wa()->getUser()->getRights('shop', 'customers');
+        } elseif ($module == 'importexport') {
+            return wa()->getUser()->getRights('shop', 'importexport');
+        } elseif ($module == 'promos') {
+            return wa()->getUser()->getRights('shop', 'setscategories');
         }
         return true;
     }
@@ -118,7 +128,9 @@ class shopConfig extends waAppConfig
                             list($route_ar['module'], $route_ar['action']) = explode('/', $route);
                             $route = $route_ar;
                         }
-                        $route['plugin'] = $plugin;
+                        if (!array_key_exists('plugin', $route)) {
+                            $route['plugin'] = $plugin;
+                        }
                         $all_plugins_routes[$url] = $route;
                     }
                     unset($route);
@@ -187,6 +199,7 @@ class shopConfig extends waAppConfig
                          'country'               => '',
                          'order_format'          => $this->getOrderFormat(),
                          'use_gravatar'          => 1,
+                         'map'                   => 'google',
                          'gravatar_default'      => 'custom',
                          'require_captcha'       => 1, // is captcha is required for add reviews
                          'require_authorization' => 0 // is authorization is required for add reviews
@@ -215,9 +228,8 @@ class shopConfig extends waAppConfig
                         foreach ($workhours['days'] as $d) {
                             $settings['workhours']['days'][$d] = $strings[$d];
                         }
-                        if (count($workhours['days']) > 1) {
-                            $settings['workhours']['days_from_to'] = $strings[$workhours['days'][0]].'—'.$strings[end($workhours['days'])];
-                        }
+
+                        $settings['workhours']['days_from_to'] = self::getDaysFromTo($workhours['days'], $strings);
                     }
                 } else {
                     $settings['workhours'] = $all_settings['workhours'];
@@ -234,6 +246,81 @@ class shopConfig extends waAppConfig
             }
         } else {
             return $settings;
+        }
+    }
+
+    /** Helper for getGeneralSettings(). Builds a human-readable string describing work days of a shop. */
+    public static function getDaysFromTo($work_days, $day_names)
+    {
+        if (count($work_days) < 1) {
+            return '';
+        }
+
+        // First day of week is different in different custures
+        $locale_info = waLocale::getInfo(wa()->getLocale());
+        $first_day_of_week = ifset($locale_info['first_day'], 1) % 7;
+        $last_day_of_week = ($first_day_of_week + 6) % 7;
+
+        // Being paranoid
+        $first_day_of_week = max($first_day_of_week, 0);
+        $first_day_of_week = min($first_day_of_week, 6);
+        $last_day_of_week = max($last_day_of_week, 0);
+        $last_day_of_week = min($last_day_of_week, 6);
+
+        // Loop through $work_days, starting from $first_day_of_week
+        // Add periods of consecutive work days to $days_from_to - see self::getDaysFromToPeriod().
+        $days_from_to = array();
+        $first_day_to_add = null;
+        $last_day_to_add = null;
+        $i = $first_day_of_week;
+        while (true) {
+            if (in_array($i, $work_days)) {
+                $last_day_to_add = $i;
+                if ($first_day_to_add === null) {
+                    $first_day_to_add = $i;
+                }
+            } else {
+                if ($last_day_to_add !== null) {
+                    $days_from_to[] = self::getDaysFromToPeriod($first_day_to_add, $last_day_to_add, $day_names);
+                }
+                $last_day_to_add = $first_day_to_add = null;
+            }
+
+            if ($i == $last_day_of_week) {
+                break;
+            }
+            $i = ($i+1)%7;
+        }
+        if ($last_day_to_add !== null) {
+            $days_from_to[] = self::getDaysFromToPeriod($first_day_to_add, $last_day_to_add, $day_names);
+        }
+
+        return join(', ', $days_from_to);
+    }
+
+    // Helper for self::getDaysFromTo()
+    // Builds a string of one or more consecutive work days, e.g. "Sun-Fri", "Mon,Tue" or "Fri".
+    public static function getDaysFromToPeriod($first_day_to_add, $last_day_to_add, $day_names)
+    {
+        // Being paranoid
+        $first_day_to_add = max($first_day_to_add, 0);
+        $first_day_to_add = min($first_day_to_add, 6);
+        $last_day_to_add = max($last_day_to_add, 0);
+        $last_day_to_add = min($last_day_to_add, 6);
+
+        $period = array();
+        $i = $first_day_to_add;
+        while (true) {
+            $period[] = $day_names[$i];
+            if ($i == $last_day_to_add) {
+                break;
+            }
+            $i = ($i+1)%7;
+        }
+        if (count($period) > 2) {
+            return $period[0].'—'.end($period);
+        } else {
+            return join(', ', $period);
         }
     }
 
@@ -298,7 +385,7 @@ class shopConfig extends waAppConfig
         reset($steps);
         return $steps;
     }
-    
+
     public function getSaveQuality($for2x = false) {
         $quality = $this->getOption('image_save_quality'.($for2x ? '_2x' : ''));
         if (!$quality) {
@@ -307,6 +394,15 @@ class shopConfig extends waAppConfig
         return $quality;
     }
 
+    public function getRoundingOptions()
+    {
+        $result = wa('shop')->getConfig()->getOption('rounding_options');
+        foreach($result as &$label) {
+            $label = _w($label);
+        }
+        unset($label);
+        return $result;
+    }
 }
 
 function shop_currency($n, $in_currency = null, $out_currency = null, $format = true)

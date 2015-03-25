@@ -59,8 +59,17 @@ class shopCustomersCategoryEditorAction extends waViewAction
             $category['icon'] = reset($icons);
         }
 
-        $this->view->assign('category', $category);
-        $this->view->assign('icons', $icons);
+        $discount = null;
+        if (wa()->getSetting('discount_category')) {
+            $ccdm = new shopContactCategoryDiscountModel();
+            $discount = $ccdm->getDiscount($category['id']);
+        }
+
+        $this->view->assign(array(
+            'category' => $category,
+            'icons' => $icons,
+            'discount' => $discount
+        ));
     }
 
     public static function getIcons()

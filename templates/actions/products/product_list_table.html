@@ -1,35 +1,69 @@
-<table class="zebra" id="product-list">
-    <tr class="header">
-        {if $manual && $sort == 'sort'}<th class="min-width"></th>{/if}
-        <th class="min-width"><input type="checkbox" class="s-select-all" data-count={$total_count}></th>
-        <th>
-            <span class="sort">
-                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}" class="inline-link selected">
-                    [`Name`]
-                </a>{if $sort=='name'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
-            </span>
-        </th>
-        <th class="short align-right">
-            <span class="sort">
-                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=price&order={if $order == 'asc' && $sort=='price'}desc{else}asc{/if}" class="inline-link selected">
-                    [`Price`]
-                </a>{if $sort=='price'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
-            </span>
-        </th>
-        <th class="short align-right">
-            <span class="sort">
-                <a href="#/products/view={$view}{if $collection_param}&{$collection_param}{/if}&sort=count&order={if $order == 'asc' && $sort=='count'}desc{else}asc{/if}" class="inline-link selected">
-                    [`In stock`]
-                </a>{if $sort=='count'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
-            </span>
-        </th>
-    </tr>
-</table>
+{$enabled_columns = []}
+{foreach $additional_columns as $c}{if $c.enabled}
+    {$enabled_columns[$c.id] = $c}
+{/if}{/foreach}
+
+<div id="s-product-list-table-container">
+    <table class="zebra single-lined" id="product-list">
+        <tr class="header">
+            {if $manual && $sort == 'sort'}<th class="min-width"></th>{/if}
+            <th class="min-width"><input type="checkbox" class="s-select-all" data-count={$total_count}></th>
+            {if !empty($enabled_columns.image_crop_small)}
+                <th class="min-width"></th>
+            {/if}
+            <th>
+                <span class="sort" title="[`Name`]">
+                    <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}" class="inline-link selected">
+                        [`Name`]
+                    </a>{if $sort=='name'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
+                </span>
+            </th>
+            <th class="short align-right" title="[`Price`]">
+                <span class="sort">
+                    <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=price&order={if $order == 'asc' && $sort=='price'}desc{else}asc{/if}" class="inline-link selected">
+                        [`Price`]
+                    </a>{if $sort=='price'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
+                </span>
+            </th>
+            <th class="short align-right" title="[`In stock`]">
+                <div>
+                <span class="sort">
+                    <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=count&order={if $order == 'desc' && $sort=='count'}asc{else}desc{/if}" class="inline-link selected">
+                        [`In stock`]
+                    </a>{if $sort=='count'}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
+                </span>
+                </div>
+            </th>
+
+            {foreach $enabled_columns as $c}{if $c.id != 'image_crop_small'}
+                <th data-additional-column="{$c.id}" title="{$c.name|escape}">
+                    <div>
+                        {if $c.sortable}
+                            <span class="sort">
+                                <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort={$c.id}&order={if $sort==$c.id}{if $order == 'asc'}desc{else}asc{/if}{else}{ifset($c.default_sort_order, 'asc')}{/if}" class="inline-link selected">
+                                    {$c.name|escape}
+                                </a>{if $sort==$c.id}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
+                            </span>
+                        {else}
+                            {$c.name|escape}
+                        {/if}
+                    </div>
+                </th>
+            {/if}{/foreach}
+            <th class="min-width">
+                {if $wa->userRights('settings')}
+                    <a href="javascript:void(0)" id="product-list-table-settings"><i class="icon16 settings"></i></a>
+                {/if}
+            </th>
+        </tr>
+    </table>
+</div>
+
 <script id="template-product-list-table" type="text/html">
     {literal}
     {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
-    <tr class="product {% if (i == n-1) { %}last{% } %} 
-        {% if (p.status == '0') { %}gray{% } %} 
+    <tr class="product {% if (i == n-1) { %}last{% } %}
+        {% if (p.status == '0') { %}gray{% } %}
         {% if (o.check_all) { %}selected{% } %}
         {% if (p.alien) { %}s-alien{% } %}"
         data-product-id="{%#p.id%}"
@@ -42,17 +76,111 @@
             {/literal}
         {/if}
         {literal}
-        <td class="min-width">
+        <td class="min-width drag-handle">
             <input type="checkbox" {% if (o.check_all) { %}checked{% } %}>
         </td>
-        <td class="drag-handle">
-            <a href="#/product/{%#p.id%}/">{%#p.name%}</a>
+        {/literal}
+        {if !empty($enabled_columns.image_crop_small)}
+            {literal}
+            <td class="min-width drag-handle">
+                <div class="s-image">
+                    <a href="#/product/{%#p.id%}/">
+                        {% if (p.badge) { %}
+                            <div class="s-image-corner">{%#p.badge%}</div>
+                        {% } %}
+                        <img src="{%#p.image_crop_small || '{/literal}{$wa_app_static_url}{literal}img/image-dummy-small.png'%}" width="48" height="48" class="drag-handle">
+                    </a>
+                </div>
+            </td>
+            {/literal}
+        {/if}
+        {literal}
+        <td class="drag-handle s-product-name">
+            <a href="#/product/{%#p.id%}/"><div>{%#p.name%}<i class="shortener"></i></div></a>
         </td>
         <td class="short nowrap align-right"><span>{%#p.price_range%}</span></td>
         <td class="short nowrap align-right">
             <span>{%#((p.count === null)?'<span class="gray">∞</span>':p.count)%}</span>
         </td>
+        {/literal}
+        {foreach $enabled_columns as $c}
+            {if $c.id != 'image_crop_small'}
+                {literal}<td title="{/literal}{$c.name|escape}{literal}">{%#p.{/literal}{$c.id}_html || p.{$c.id}{literal}%}</td>{/literal}
+            {/if}
+        {/foreach}
+        <td class="min-width">
+            {literal}{% if (p.edit_rights) { %}<a class="show-on-hover nowrap" href="#/product/{%#p.id%}/edit/" title="[`Edit product`]"><i class="icon16 edit s-instant-edit"></i></a>{% } %}{/literal}
+        </td>
+
+        {literal}
     </tr>
     {% } %}
     {/literal}
 </script>
+
+{*
+ * Product list settings dialog
+ *}
+{if $wa->userRights('settings')}
+<div class="dialog width500px height300px" id="product-list-settings-dialog">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=products&action=tableColumns">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+
+                <h1>[`Product list settings`]</h1>
+
+                <div class="fields width100px">
+                    <div class="field">
+                        <p>[`Selected column list will be applied for all users and all product lists in backend.`]</p>
+                    </div>
+                    <div class="field">
+                        <div class="name">[`Select columns`]</div>
+
+                        <div class="value"><input type="checkbox" checked disabled> [`Name`]</div>
+                        <div class="value"><input type="checkbox" checked disabled> [`Price`]</div>
+                        <div class="value"><input type="checkbox" checked disabled> [`In stock`]</div>
+
+                        {foreach $additional_columns as $c}
+                            <div class="value"><label>
+                                <input type="checkbox" name="columns[{$c.id}]" value="1"{if $c.enabled} checked{/if}>
+                                {$c.name|escape}
+                            <label></div>
+                        {/foreach}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button green" type="submit" value="[`Save`]">
+                [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+{/if}
+<script>(function() { "use strict";
+
+    var $dialog = $('#product-list-settings-dialog');
+    $dialog.length && $('#product-list-table-settings').click(function() {
+        $dialog.waDialog({
+            disableButtonsOnSubmit: true,
+            onSubmit: function () {
+                var $form = $dialog.find('form');
+                var $loading = $('<i class="icon16 loading"></i>').insertAfter($form.find(':submit:first'));
+                $.post($form.attr('action'), $form.serialize(), function() {
+                    $.products.dispatch();
+                    $dialog.trigger('close');
+                    $loading.remove();
+                });
+                return false;
+            }
+        });
+    });
+
+})();</script>

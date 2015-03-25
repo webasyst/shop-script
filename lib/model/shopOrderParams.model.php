@@ -53,7 +53,7 @@ class shopOrderParamsModel extends waModel
         }
         return $params;
     }
-    
+
     /**
      * Get value of one custom param on order
      * @param int $order_id
@@ -67,9 +67,9 @@ class shopOrderParamsModel extends waModel
         ));
         return $item ? $item['value'] : null;
     }
-    
+
     /**
-     * 
+     *
      * @param int $order_id
      * @param string $name
      * @param string $value
@@ -145,7 +145,7 @@ class shopOrderParamsModel extends waModel
                     }
                 }
             }
-            
+
             // add new params
             if ($add_params) {
                 $this->multipleInsert($add_params);
@@ -155,4 +155,12 @@ class shopOrderParamsModel extends waModel
         }
         return false;
     }
+
+    public function getAllUtmCampaign()
+    {
+        return $this->query(
+                "SELECT DISTINCT value FROM `{$this->table}` WHERE name = 'utm_campaign'")
+                ->fetchAll(null, true);
+    }
+
 }

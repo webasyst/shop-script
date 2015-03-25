@@ -76,11 +76,11 @@ $(function () {
                     <td width="{$td_width}%">
                         <a href="{$wa->getUrl('/frontend/product/', ['product_url' => $p.url])}">
                             {$wa->shop->productImgHtml($p, '96x96', ['itemprop' => 'image', 'id' => 'product-image', 'default' => "`$wa_theme_url`img/dummy96.png", 'title' => $p.name|cat:' ':strip_tags($p.summary)|escape])}
-                            <u>{$p.name|escape}</u>
+                            <u>{$p.name}</u>
                         </a>
                         <a data-product="{$p.id}" class="compare-remove" href="{$p.delete_url}" title="[`Remove from comparison list`]"><i class="icon16 remove"></i></a>
     
-                        {$product_names = $product_names|cat:($p.name|escape)}
+                        {$product_names = $product_names|cat:($p.name)}
                         {if !$smarty.foreach.product_names.last}{$product_names = $product_names|cat:', '}{/if}
     
                     </td>

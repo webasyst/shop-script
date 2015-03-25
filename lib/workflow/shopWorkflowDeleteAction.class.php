@@ -6,8 +6,9 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
     {
         $om = new shopOrderModel();
         $order = $om->getById($order_id);
+        shopAffiliate::refundDiscount($order);
         if ($order['paid_year']) {
-            shopAffiliate::cancelBonus($order_id);
+            shopAffiliate::cancelBonus($order);
         }
         return true;
     }
@@ -29,7 +30,7 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
                 // for logging changes in stocks
                 shopProductStocksLogModel::setContext(
                         shopProductStocksLogModel::TYPE_ORDER,
-                        'Order %s was deleted',
+                        /*_w*/('Order %s was deleted'),
                         array(
                             'order_id' => $order_id
                         )
@@ -64,7 +65,7 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
                     'paid_quarter' => null,
                 ));
                 $order_model->recalculateProductsTotalSales($order_id);
-                shopCustomers::recalculateTotalSpent($order['contact_id']);
+                shopCustomer::recalculateTotalSpent($order['contact_id']);
             }
         }
         return $data;

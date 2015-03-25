@@ -1,6 +1,6 @@
 <?php
 
-class shopSetProductsModel extends waModel
+class shopSetProductsModel extends waModel implements shopProductStorageInterface
 {
     protected $table = 'shop_set_products';
 
@@ -166,6 +166,7 @@ class shopSetProductsModel extends waModel
     /**
      * Method triggered when deleting product through shopProductModel
      * @param array $product_ids
+     * @return void
      */
     public function deleteByProducts(array $product_ids)
     {
@@ -174,5 +175,44 @@ class shopSetProductsModel extends waModel
             $set_model = new shopSetModel();
             $set_model->recount($set_ids);
         }
+    }
+
+    public function getByProduct($id)
+    {
+        return $this->query(
+            "SELECT s.* FROM `{$this->table}` sp
+            JOIN `shop_set` s ON s.id = sp.set_id
+            WHERE product_id = i:product_id ORDER BY sort",
+                array(
+                    'product_id' => (int) $id
+                ))->fetchAll('id');
+    }
+
+    public function getData(shopProduct $product)
+    {
+        return $this->getByProduct($product->id);
+    }
+
+    public function setData(shopProduct $product, $data)
+    {
+        $set_ids = array();
+        if (is_array($data)) {
+            foreach($data as $i => $s) {
+                if (!is_array($s)) {
+                    $set_ids[] = $s;
+                } else if (isset($s['id'])) {
+                    $set_ids[] = $s['id'];
+                }
+            }
+        }
+
+        // Delete product from all sets except $set_ids
+        $sql = "DELETE FROM {$this->table} WHERE product_id=? AND set_id NOT IN (?)";
+        $this->exec($sql, array($product->id, ifempty($set_ids, 0)));
+
+        // Make sure product is belongs to $set_ids
+        $set_ids && $this->add(array($product->id), $set_ids);
+
+        return $this->getData($product);
     }
 }

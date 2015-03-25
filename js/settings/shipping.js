@@ -182,6 +182,7 @@ if (typeof($) != 'undefined') {
             var self = this;
             var url = '?module=settings&action=shippingSave';
             self.shippingHelper.message('submit');
+            var $submit = $form.find(':submit').prop('disabled', true);
             $.ajax({
                 type: 'POST',
                 url: url,
@@ -205,6 +206,9 @@ if (typeof($) != 'undefined') {
                     self.shippingHelper.message('error', [
                         [errorText]
                     ]);
+                },
+                complete: function() {
+                    $submit.prop('disabled', false);
                 }
             });
             return false;

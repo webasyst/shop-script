@@ -35,12 +35,18 @@ class shopFrontendMyOrdersAction extends shopFrontendAction
                 continue;
             }
             $o['id_str'] = shopHelper::encodeOrderId($o['id']);
-            $o['total_formatted'] = waCurrency::format('%{s}', $o['total'], $o['currency']);
+            $o['total_formatted'] = waCurrency::format('%{h}', $o['total'], $o['currency']);
             $o['shipping_name'] = ifset($o['params']['shipping_name'], '');
             $o['payment_name'] = ifset($o['params']['payment_name'], '');
             $o['state'] = $workflow->getStateById($o['state_id']);
             $o['url'] = str_replace('%ID%', $o['id'], $url_tmpl);
         }
+
+        /**
+         * @event frontend_my_orders
+         * @return array[string]string $return[%plugin_id%] html output
+         */
+        $this->view->assign('frontend_my_orders', wa()->event('frontend_my_order', $orders));
 
         $this->view->assign('orders', array_values($orders));
 

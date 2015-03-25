@@ -125,3 +125,7 @@
 {/if}
 
 {$wa->globals('isMyAccount', true)}
+
+<!-- plugin hook: 'frontend_my_order' -->
+{* @event frontend_my_order.%plugin_id% *}
+{foreach $frontend_my_order as $_}{$_}{/foreach}

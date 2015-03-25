@@ -8,18 +8,25 @@ class shopCustomersCategoryController extends waJsonController
     public function execute()
     {
         $customer_id = waRequest::request('customer_id', 0, 'int');
-        $category_id = waRequest::request('category_id', 0, 'int');
-        
-        if (!$customer_id || !$category_id) {
+        $category_ids = waRequest::request('category_id', array(), waRequest::TYPE_ARRAY_INT);
+
+        if (!$customer_id) {
             return;
         }
 
         $ccm = new waContactCategoriesModel();
-        $ccm->add($customer_id, $category_id);
+        if (waRequest::request('set')) {
+            $ccm->setContactCategories($customer_id, $category_ids);
+        } else {
+            if (!$category_ids) {
+                return;
+            }
+            $ccm->add($customer_id, $category_ids);
+        }
 
         $cm = new shopCustomerModel();
-        $this->response['count'] = $cm->getCategoryCounts($category_id);
-        
+        $this->response['counts'] = $cm->getCategoryCounts();
+
     }
 }
 

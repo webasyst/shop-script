@@ -1,5 +1,5 @@
 {$wa->title('[`Compare products`]')}
-<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/jquery.cookie.js"></script>
+<script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-plugins/jquery.cookie.js"></script>
 <h1>[`Compare products`]</h1>
 
 <script>
@@ -54,7 +54,7 @@
                 <td width="{$td_width}%">
                     <a href="{$wa->getUrl('/frontend/product/', ['product_url' => $p.url])}" class="no-underline">
                         {$wa->shop->productImgHtml($p, '96x96', ['itemprop' => 'image', 'id' => 'product-image', 'default' => "`$wa_theme_url`img/dummy96.png", 'title' => $p.name|cat:' ':strip_tags($p.summary)|escape])}
-                        <u>{$p.name|escape}</u>
+                        <u>{$p.name}</u>
                     </a>
                     {if count($products) > 2}
                         <br><br>

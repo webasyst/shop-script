@@ -8,7 +8,7 @@
                         <ul class="zebra files"></ul>
                     </div>
                 </div>
-                
+
             </div>
         </div>
         <div class="dialog-buttons">
@@ -105,18 +105,11 @@ $(function() {
             counter.text(cnt + data.result.files.length);
 
             var files = data.result.files;
-            
+
             // update images list for images tab
             $('#s-product-image-list').append(tmpl('template-product-image-list', {literal}{
                 images: files,
                 placeholder: '{/literal}{$placeholder}{literal}',
-                product_id: product_id
-            }{/literal}));
-            
-            // update images list for product profile
-            $('#s-product-view .s-product-image-crops').append(tmpl('template-product-image-list', {literal}{
-                images: files,
-                type: 'crop',
                 product_id: product_id
             }{/literal}));
             
@@ -125,7 +118,7 @@ $(function() {
             sku_settings_blocks.each(function() {
                 var self   = $(this);
                 var sku_id = self.attr('data-id');
-                
+
                 var image_crops = self.find('.s-product-image-crops');
                 image_crops.append(tmpl('template-sku-image-list', {
                     images: files,
@@ -133,40 +126,40 @@ $(function() {
                         id: sku_id, product_id: product_id
                     }
                 }));
-                
+
                 // wrapping container show if needed
                 var wrapper = self.find('.s-product-sku-images');
                 if (wrapper.is(':hidden') && image_crops.find('li').length + files.length > 1) {
                     wrapper.show();
                 }
             });
-            
-            
-            // update photostream 
+
+
+            // update photostream
             var photo_stream = $.product_images.photo_stream;
             if (photo_stream && photo_stream.length) {
-                
+
                 var sample = photo_stream.find('li.dummy:last').prev().clone();
-                
+
                 for (var i = 0, n = files.length, file = files[0]; i < n; file = files[++i]) {
                     // fill attrs
                     sample.attr('data-image-id', file.id);
                     sample.find('a'  ).attr('href', '#/product/' + product_id + '/edit/images/' + file.id);
                     sample.find('img').attr('src',  file.url_crop_small);
-                    
+
                     // insert dom
                     photo_stream.find('li.dummy:last').before(sample.clone());
                 }
                 // clear memory dom item
                 sample.remove();
-                
+
                 // photostream style magic
                 photo_stream.find('li.visible').removeClass('visible');
                 photo_stream.
                     find('li:last').addClass('visible').
                     prev().addClass('visible').
                     prev().addClass('visible');
-                
+
                 // refresh photostream
                 photo_stream.trigger('refresh');
             }

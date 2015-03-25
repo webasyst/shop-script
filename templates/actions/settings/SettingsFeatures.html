@@ -100,6 +100,7 @@
             </li>
 
         </ul>
+        <span id="s-settings-features-type-error" class="errormsg" style="display: none;"></span>
     </div>
 
     <div class="js-loading block double-padded">[`Loading...`]<i class="icon16 loading"></i></div>
@@ -121,7 +122,7 @@
                 {/if}
 
 <!-- {capture name="feature-template-js"}{literal} feature jquery template -->
-                <tr data-types="${feature.types.join(" ")}" data-feature="${feature.id}" data-type="${feature.type}" data-selectable="${feature.selectable}" data-multiple="${feature.multiple}" {{if (feature.type=='divider')}} class="gray"{{/if}}>
+                <tr data-types="${feature.types.join(" ")}" data-feature="${feature.id}" data-sort="${feature.sort_json}" data-type="${feature.type}" data-selectable="${feature.selectable}" data-multiple="${feature.multiple}" {{if (feature.type=='divider')}} class="gray"{{/if}}>
                     <td class="min-width"><i class="icon16 sort"></i></td>
                     <td>
                         <span class="js-feature-name">${feature.name}</span><br>
@@ -154,7 +155,7 @@
                     <td class="align-center">
                         <ul class="menu-h with-icons">
                             <li><a href="#/features/feature/edit/${feature.id}/" class="inline js-action" title="[`Settings`]"><i class="icon16 settings"></i></a></li>
-                            <li><a href="#/features/feature/delete/${feature.id}/" class="inline js-action js-confirm" title="[`Delete`]"><i class="icon16 delete"></i></a></li>
+                            <li><a href="#/features/feature/delete/${feature.id}/" class="inline js-action" title="[`Delete`]"><i class="icon16 delete"></i></a></li>
                         </ul>
                     </td>
                 </tr>
@@ -197,7 +198,7 @@ action=''
 <li data-value-id="${id}">
     <i class="icon16 sort"></i>
 
-    <input name="feature[${feature.id}][values][${id}][value]" type="text" value="${$.settings.featuresHelper.value(feature_value,"value")}" placeholder="[`color name`]">
+    <input name="feature[${feature.id}][values][${id}][value]" type="text" value="${$.settings.featuresHelper.value(feature_value,"value")}" placeholder="[`color name`]" {{if feature_value.error}} class="error" title="${feature_value.error.message}" data-original-id="${feature_value.error.original_id}"{{/if}}>
 
     <a href="#/features/feature/value/color/${feature.id}/${id}/" class="js-action" style="display: inline;padding-left: 20px;">
         <i class="icon16 color" style="background: ${$.settings.featuresHelper.value(feature_value,"color")}"></i>
@@ -428,9 +429,9 @@ $.settings.featuresInit();
                                 <div class="name">[`New data type`]</div>
                                 <div class="value features no-shift">
                                     {include file="../../includes/featuresValuesTypes.html"
-                                        class="js-action"
-                                        available=1
-                                        action=''
+                                    class="js-action"
+                                    available=1
+                                    action=''
                                     inline}
                                 </div>
                                 <div class="value features no-shift">
@@ -447,6 +448,29 @@ $.settings.featuresInit();
             <div class="dialog-buttons">
                 <div class="dialog-buttons-gradient">
                     <input class="button green" type="submit" value="[`Save`]"> [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+                </div>
+            </div>
+            {$wa->csrf()}
+        </form>
+    </div>
+</div>
+
+<div id="s-settings-features-feature-delete-dialog"  class="dialog width600px height150px">
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <form action="?module=settings&action=featuresFeatureDelete" method="post">
+            <input type="hidden" name="id" value="">
+            <div class="dialog-content">
+                <div class="dialog-content-indent">
+                    <h1>[`Delete feature`]</h1>
+                    <p class="js-features-feature-usage-counter">
+
+                    </p>
+                </div>
+            </div>
+            <div class="dialog-buttons">
+                <div class="dialog-buttons-gradient">
+                    <input class="button red" type="submit" value="[`Delete`]"> [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
                 </div>
             </div>
             {$wa->csrf()}

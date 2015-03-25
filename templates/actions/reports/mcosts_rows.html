@@ -1,0 +1,62 @@
+{function format_nice_date s=null e=null}{strip}
+    {$fs = $s|wa_date:humandate}
+    {$fe = $e|wa_date:humandate}
+    {$current_year = date('Y')}
+    {if $s == $e}
+        {$fe = str_replace($current_year, '', $fe)}
+        {$fe|trim}
+    {else}
+        {$s_month = waDateTime::date('f Y', $s)}
+        {$e_month = waDateTime::date('f Y', $e)}
+        {if $s_month == $e_month}
+            {$fs = str_replace($e_month, '', $fs)}
+            {$fe = str_replace($current_year, '', $fe)}
+        {elseif strpos($fs, $current_year)}
+            {$fs = str_replace($current_year, '', $fs)}
+            {$fe = str_replace($current_year, '', $fe)}
+        {/if}
+        {$fs|trim}
+        &nbsp;&ndash;&nbsp;
+        {$fe|trim}
+    {/if}
+{/strip}{/function}
+
+{foreach $expenses as $e}
+    <tr class="expense-row{if $e.type == 'campaign'} s-tr-campaign{/if}" data-expense-id="{$e.id}">
+        <td class="channel">
+            <div>{$e.name|escape}<i class="shortener"></i></div>
+        </td>
+        <td class="note gray" style="max-width: 20%;">
+            <div>{$e.note|escape}<i class="shortener"></i></div>
+        </td>
+        <td class="period-td">
+            <div class="period" style="width:0;" data-start-ts="{$e.start_ts}" data-end-ts="{$e.end_ts}">
+                <div class="period-bar" style="width:0; background-color: {$e.color};" title="{format_nice_date s=$e.start e=$e.end}"></div>{* Widths are updated by JS *}
+            </div>
+        </td>
+        <td class="amount align-right nowrap">
+            {shop_currency_html($e.amount, $def_cur, $def_cur)}
+        </td>
+        <td class="date-td gray">
+            <div>
+                <span class="period-dates">
+                    {format_nice_date s=$e.start e=$e.end}
+                </span>
+                <i class="shortener"></i>
+            </div>
+        </td>
+        <td class="min-width">
+            <a href="javascript:void(0)" class="edit" title="[`Edit`]"><i class="icon16 edit"></i></a>
+        </td>
+    </tr>
+{/foreach}
+
+{* Update graph after something's changed in the editor *}
+{if !empty($graph_data) && !empty($is_update)}
+    <tr class="hidden temporary-row"><td><script>
+        showCostsGraph({json_encode($graph_data)}, "refresh");
+        setTimeout(function() {
+            $('#s-reports-marketing-costs-table tr.temporary-row').remove();
+        }, 0);
+    </script></td></tr>
+{/if}

@@ -20,9 +20,10 @@ class shopSettingsCurrenciesAction extends waViewAction
         $this->view->assign(array(
             'currencies' => $currencies,
             'primary' => $primary,
-            'use_product_currency' => wa()->getSetting('use_product_currency'),
+            'use_product_currency' => wa('shop')->getSetting('use_product_currency'),
             'system_currencies' => $system_currencies,
             'rest_system_currencies' => array_diff_key($system_currencies, $currencies),
+            'rounding_options' => wa('shop')->getConfig()->getRoundingOptions(),
             'product_count' => $this->getProductCount($primary)
         ));
     }

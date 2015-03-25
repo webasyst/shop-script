@@ -6,40 +6,9 @@ class shopOrderSaveController extends waJsonController
     private $shipping_address;
     private $billing_address;
 
-
-    protected function setAddress(waContact $contact, $params, $ext)
-    {
-        $address = shopHelper::getOrderAddress($params, $ext);
-        if ($contact['address.'.$ext]) {
-            $flag = false;
-            foreach ($contact['address.'.$ext] as $i => $a) {
-                $flag = true;
-                foreach ($address as $k => $v) {
-                    $old_v = isset($a['data'][$k]) ? $a['data'][$k] : '';
-                    if ($v !== $old_v) {
-                        $flag = false;
-                        break;
-                    }
-                }
-                if ($flag) {
-                    break;
-                }
-            }
-            if ($flag) {
-                $tmp = $contact['address.'.$ext];
-                $tmp[$i] = ($ext == 'shipping') ? $this->shipping_address : $this->billing_address;
-                $contact['address.'.$ext] = $tmp;
-            }
-        } else {
-            $tmp = ($ext == 'shipping') ? $this->shipping_address : $this->billing_address;
-            if ($tmp) {
-                $contact['address.'.$ext] = $tmp;
-            }
-        }
-    }
-
     public function execute()
     {
+        // Existing order id
         $id = waRequest::get('id', null, waRequest::TYPE_INT);
 
         // null             - don't add/edit contact info
@@ -53,6 +22,7 @@ class shopOrderSaveController extends waJsonController
             $customer_id = 0;
         }
 
+        // Validation for customer form
         if ($customer_id !== null) {
             $contact = new waContact($customer_id);
             $form = shopHelper::getCustomerForm($customer_id);
@@ -64,6 +34,7 @@ class shopOrderSaveController extends waJsonController
             }
         }
 
+        // Validation for order form
         if ($data = $this->getData($id)) {
             $this->validate($data, $id);
         }
@@ -75,7 +46,9 @@ class shopOrderSaveController extends waJsonController
         $params_model = new shopOrderParamsModel();
         $params = $params_model->get($id);
 
+        // Save customer
         if ($customer_id !== null) {
+
             foreach((array)$form->post() as $fld_id => $fld_data) {
                 if (!$fld_data) {
                     continue;
@@ -83,10 +56,16 @@ class shopOrderSaveController extends waJsonController
                 if ($fld_id == 'address.shipping') {
                     $this->shipping_address = $fld_data;
                     $this->setAddress($contact, $params, 'shipping');
+                    if (isset($this->shipping_address[0])) {
+                        $this->shipping_address = $this->shipping_address[0];
+                    }
                     continue;
                 } elseif ($fld_id == 'address.billing') {
                     $this->billing_address = $fld_data;
                     $this->setAddress($contact, $params, 'billing');
+                    if (isset($this->billing_address[0])) {
+                        $this->billing_address = $this->billing_address[0];
+                    }
                     continue;
                 }
                 if (is_array($fld_data) && !empty($fld_data[0])) {
@@ -120,17 +99,108 @@ class shopOrderSaveController extends waJsonController
             $data['contact'] = $contact;
         }
 
-        $workflow = new shopWorkflow();
+        if ($this->errors) {
+            return;
+        }
+
+        // Unless discount for existing order is specified by hand, recalculate it again,
+        // allowing plugins such as affiliation to modify its data if needed.
+        $discount_description = waRequest::request('discount_description', '', 'string');
+        if ($id && !empty($data['discount'])) {
+            // Non-empty description means that the discount were not specified by hand.
+            if (!empty($discount_description)) {
+                $data = array(
+                    'total' => $data['total'] + $this->cast($data['discount']),
+                    'discount' => 0,
+                    'params' => ifempty($data['params'], array()) + $params,
+                ) + $data;
+
+                // Add keys from shop_order not present in $data
+                $o = array_diff_key($this->getModel()->getOrder($id), $data);
+                $data += $o;
+
+                // Calculate discounts
+                $discount_description = null;
+                $data['discount'] = shopDiscounts::reapply($data, $discount_description);
+                $data['total'] -= $data['discount'];
+                if ($data['total'] <= 0) {
+                    $data['total'] = 0;
+                }
+
+                // Remove keys from shop_order previously not present in $data
+                $data = array_diff_key($data, $o);
+            }
+        }
+
+        // Fill in shipping and payment-specific params
         $this->getParams($data, $id);
 
+        // Save order
+        $workflow = new shopWorkflow();
         if (!$id) {
+            $just_created = true;
             $id = $workflow->getActionById('create')->run($data);
         } else {
             $data['id'] = $id;
+            $just_created = false;
             $workflow->getActionById('edit')->run($data);
         }
 
-        $this->response['order'] = $this->workupOrder($this->getModel()->getOrder($id));
+        // Load nice and clean order data from DB
+        $this->response['order'] = $order = $this->workupOrder($this->getModel()->getOrder($id));
+        $order['discount'] = (float) $order['discount'];
+
+        // Save discount description to order log
+        if ($order['discount'] || !$just_created) {
+            if (empty($discount_description)) {
+                if ($just_created) {
+                    $discount_description = sprintf_wp('Discount specified manually during order creation: %s', shop_currency($order['discount'], $order['currency'], $order['currency']));
+                } else {
+                    $discount_description = sprintf_wp('Discount modified manually via backend editor: %s', shop_currency($order['discount'], $order['currency'], $order['currency']));
+                }
+            }
+
+            $order_log_model = new shopOrderLogModel();
+            $order_log_model->add(array(
+                'order_id' => $id,
+                'contact_id' => wa()->getUser()->getId(),
+                'before_state_id' => $order['state_id'],
+                'after_state_id' => $order['state_id'],
+                'text' => $discount_description,
+                'action_id' => '',
+            ));
+        }
+    }
+
+    protected function setAddress(waContact $contact, $params, $ext)
+    {
+        $address = shopHelper::getOrderAddress($params, $ext);
+        if ($contact['address.'.$ext]) {
+            $flag = false;
+            foreach ($contact['address.'.$ext] as $i => $a) {
+                $flag = true;
+                foreach ($address as $k => $v) {
+                    $old_v = isset($a['data'][$k]) ? $a['data'][$k] : '';
+                    if ($v !== $old_v) {
+                        $flag = false;
+                        break;
+                    }
+                }
+                if ($flag) {
+                    break;
+                }
+            }
+            if ($flag) {
+                $tmp = $contact['address.'.$ext];
+                $tmp[$i] = ($ext == 'shipping') ? $this->shipping_address : $this->billing_address;
+                $contact['address.'.$ext] = $tmp;
+            }
+        } else {
+            $tmp = ($ext == 'shipping') ? $this->shipping_address : $this->billing_address;
+            if ($tmp) {
+                $contact['address.'.$ext] = $tmp;
+            }
+        }
     }
 
     private function getOrderItems($items, $weight_unit)
@@ -199,26 +269,28 @@ class shopOrderSaveController extends waJsonController
             $rate_id = isset($shipping_parts[1]) ? $shipping_parts[1] : '';
             $data['params']['shipping_id'] = $shipping_id;
             $data['params']['shipping_rate_id'] = $rate_id;
+
             $plugin_info = $model->getById($shipping_id);
             $plugin = shopShipping::getPlugin($plugin_info['plugin'], $shipping_id);
             $rates = $plugin->getRates($this->getOrderItems($data['items'], $plugin->allowedWeightUnit()), $shipping_address);
-            // save address
-            if ($plugin->allowedAddress() === false) {
-                $empty_address = true;
-            }
-            if (!$rates) {
-                $this->errors['order']['common'] = _w('Unknown region for delivery');
-                return;
-            }
-            if (!$rate_id) {
-                $rate = reset($rates);
-                $data['params']['shipping_rate_id'] = key($rates);
-            } else {
-                $rate = $rates[$rate_id];
-            }
+            $empty_address = $plugin->allowedAddress() === false;
             $data['params']['shipping_plugin'] = $plugin->getId();
-            $data['params']['shipping_name'] = $plugin_info['name'].(!empty($rate['name']) ? ' ('.$rate['name'].')' : '');
-            $data['params']['shipping_est_delivery'] = $rate['est_delivery'];
+            $data['params']['shipping_name'] = $plugin_info['name'];
+
+            if ($rates && is_array($rates)) {
+                if (!$rate_id) {
+                    $rate = reset($rates);
+                    $data['params']['shipping_rate_id'] = key($rates);
+                } else if (!empty($rates[$rate_id])) {
+                    $rate = $rates[$rate_id];
+                }
+                if (!empty($rate['est_delivery'])) {
+                    $data['params']['shipping_est_delivery'] = $rate['est_delivery'];
+                }
+                if (!empty($rate['name'])) {
+                    $data['params']['shipping_name'] .= ' ('.$rate['name'].')';
+                }
+            }
 
             if (waRequest::post('shipping'.$shipping_id)) {
                 foreach (waRequest::post('shipping_'.$shipping_id) as $k => $v) {
@@ -280,6 +352,7 @@ class shopOrderSaveController extends waJsonController
         $data['discount'] = waRequest::post('discount', 0);
         $data['tax'] = 0;
         $data['total'] = $this->calcTotal($data);
+
         return $data;
     }
 
@@ -300,14 +373,14 @@ class shopOrderSaveController extends waJsonController
         if (empty($data['items'])) {
             $this->errors['order']['common'] = _w('There is not one product for order');
         }
-      
+
         if (!wa('shop')->getSetting('ignore_stock_count')) {
             $this->validateExceedStocksCount($data, $order_id);
         }
-        
+
         return empty($this->errors);
     }
-    
+
     private function validateExceedStocksCount($data, $order_id)
     {
         $sku_ids = array();
@@ -336,7 +409,7 @@ class shopOrderSaveController extends waJsonController
         foreach ($this->getModel('order_items')->getByField(
                 array('order_id' => $order_id, 'type' => 'product'),
                 'id'
-        ) as $i) 
+        ) as $i)
         {
             if ($i['stock_id']) {
                 if (!isset($old_usage[$i['sku_id']][$i['stock_id']])) {
@@ -369,7 +442,6 @@ class shopOrderSaveController extends waJsonController
                 }
             }
         }
-
 
         // summarize stock counts with old usage as if temporary return items to stocks
         foreach ($old_usage as $sku_id => $ou) {
@@ -404,6 +476,9 @@ class shopOrderSaveController extends waJsonController
             }
             if (is_array($u)) {
                 foreach ($u as $stock_id => $cnt) {
+                    if (isset($old_usage[$sku_id][$stock_id]) && $old_usage[$sku_id][$stock_id] == $cnt) {
+                        continue;
+                    }
                     if (isset($counts[$sku_id][$stock_id]) && $cnt > $counts[$sku_id][$stock_id]) {
                         $error_sku_id = $sku_id;
                         break 2;
@@ -421,11 +496,12 @@ class shopOrderSaveController extends waJsonController
         if ($error_sku_id) {
             $sku = $this->getModel('product_skus')->getById($error_sku_id);
             $product_id = $sku['product_id'];
-            $this->errors['order']['product'][$product_id]['quantity'] = _w('Common quantity usage is exceed for this product');
+            $this->errors['order']['product'][$product_id]['sku_id'] = $error_sku_id;
+            $this->errors['order']['product'][$product_id]['quantity'] = _w('The number of items your can add to the order is limited by the stock level');
         }
-        
+
     }
-    
+
     private function validateEditDataStocks()
     {
         $skus   = $this->post('sku', array(), 'edit');
@@ -445,7 +521,7 @@ class shopOrderSaveController extends waJsonController
                 $this->errors['order']['items'][$index]['stock_id'] = _w('Select stock');
             }
         }
-        
+
         return empty($this->errors);
     }
 
@@ -525,12 +601,12 @@ class shopOrderSaveController extends waJsonController
         }
 
         if ($product_ids) {
-            $products = $this->getFields($product_ids, 'product', 'name,tax_id');
+            $products = $this->getFields($product_ids, 'product', 'name,tax_id, currency');
             $skus     = $this->getFields($sku_ids, 'product_skus', 'name, sku, purchase_price');
             $services = $this->getFields($service_ids, 'service', 'name,tax_id');
             $variants = $this->getFields($variant_ids, 'service_variants');
 
-
+            $default_currency = wa('shop')->getConfig()->getCurrency(true);
             foreach ($data['items'] as &$item) {
                 // items with id mean for updating (old items)
                 if (isset($item['id'])) {
@@ -567,6 +643,9 @@ class shopOrderSaveController extends waJsonController
                     }
                     if (isset($skus[$item['sku_id']])) {
                         $item['sku_code'] = $skus[$item['sku_id']]['sku'];
+                        if (isset($products[$item['product_id']])) {
+                            $item['purchase_price'] = shop_currency($skus[$item['sku_id']]['purchase_price'], $products[$item['product_id']]['currency'], $default_currency, false);
+                        }
                     }
                 } else {
                     if ($item['service_id']) {
@@ -582,7 +661,7 @@ class shopOrderSaveController extends waJsonController
                         }
                     } else {
                         $item['sku_code'] = $skus[$item['sku_id']]['sku'];
-                        $item['purchase_price'] = $skus[$item['sku_id']]['purchase_price'];
+                        $item['purchase_price'] = shop_currency($skus[$item['sku_id']]['purchase_price'], $products[$item['product_id']]['currency'], $default_currency, false);
                     }
                 }
             }
@@ -594,9 +673,17 @@ class shopOrderSaveController extends waJsonController
 
     private function getAddData()
     {
+        $currency = waRequest::post('currency');
+        if (!$currency) {
+            $currency = $this->getConfig()->getCurrency();
+            $rate = 1;
+        } else {
+            $currency_model = new shopCurrencyModel();
+            $rate = $currency_model->getRate($currency);
+        }
         return array(
-            'currency' => $this->getConfig()->getCurrency(),
-            'rate' => 1,
+            'currency' => $currency,
+            'rate' => $rate,
             'items' => $this->getItems()
         );
     }
@@ -664,10 +751,11 @@ class shopOrderSaveController extends waJsonController
             }
         }
 
-        $products = $this->getFields($product_ids, 'product', 'name, tax_id');
+        $products = $this->getFields($product_ids, 'product', 'name, tax_id, currency');
         $skus = $this->getFields($sku_ids, 'product_skus', 'name, sku, purchase_price');
         $services = $this->getFields($service_ids, 'service', 'name, tax_id');
         $variants = $this->getFields($variant_ids, 'service_variants');
+        $default_currency = wa('shop')->getConfig()->getCurrency(true);
 
         foreach ($data as &$item) {
             if ($item['service_id']) {
@@ -680,13 +768,12 @@ class shopOrderSaveController extends waJsonController
                 }
                 $item['tax_id'] = $services[$item['service_id']]['tax_id'];
             } else {
-                //$item['tax_id'] = $products[$item['product_id']]['tax_id'];
                 $name = $products[$item['product_id']]['name'];
                 if ($skus[$item['sku_id']]['name']) {
                     $name .= ' ('.$skus[$item['sku_id']]['name'].')';
                 }
                 $item['sku_code'] = $skus[$item['sku_id']]['sku'];
-                $item['purchase_price'] = $skus[$item['sku_id']]['purchase_price'];
+                $item['purchase_price'] = shop_currency($skus[$item['sku_id']]['purchase_price'], $products[$item['product_id']]['currency'], $default_currency, false);
                 $item['tax_id'] = $products[$item['product_id']]['tax_id'];
             }
             $item['name'] = $name;

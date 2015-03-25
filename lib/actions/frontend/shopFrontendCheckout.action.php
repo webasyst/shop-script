@@ -19,79 +19,51 @@ class shopFrontendCheckoutAction extends waViewAction
 
         $title = _w('Checkout');
         if ($current_step == 'success') {
-            $order_id = waRequest::get('order_id');
-            if (!$order_id) {
-                $order_id = wa()->getStorage()->get('shop/order_id');
-                $payment_success = false;
-            } else {
-                $payment_success = true;
-                $this->view->assign('payment_success', true);
-            }
-            if (!$order_id) {
-                wa()->getResponse()->redirect(wa()->getRouteUrl('shop/frontend'));
-            }
-            $order_model = new shopOrderModel();
-            $order = $order_model->getById($order_id);
-            if ($order) {
-                $order['_id'] = $order['id'];
-            }
-            if (!$payment_success) {
-                $order_params_model = new shopOrderParamsModel();
-                $order['params'] = $order_params_model->get($order_id);
-                $order_items_model = new shopOrderItemsModel();
-                $order['items'] = $order_items_model->getByField('order_id', $order_id, true);
-                $payment = '';
-                if (!empty($order['params']['payment_id'])) {
-                    try {
-                        /**
-                         * @var waPayment $plugin
-                         */
-                        $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
-                        $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), true);
-                    } catch (waException $ex) {
-                        $payment = $ex->getMessage();
-                    }
-                }
-                $order['id'] = shopHelper::encodeOrderId($order_id);
-                $this->getResponse()->addGoogleAnalytics($this->getGoogleAnalytics($order));
-            } else {
-                $order['id'] = shopHelper::encodeOrderId($order_id);
-            }
-            $this->view->assign('order', $order);
-            if (isset($payment)) {
-                $this->view->assign('payment', $payment);
-            }
+            $this->success();
         } else {
             $cart = new shopCart();
-            if (!$cart->count() && $current_step != 'error') {
+            if (!$cart->count() && $current_step != 'error' && ($current_step != 'confirmation' || !waRequest::get('terms'))) {
                 $current_step = 'error';
                 $this->view->assign('error', _w('Your shopping cart is empty. Please add some products to cart, and then proceed to checkout.'));
             }
 
             if ($current_step != 'error') {
                 if (waRequest::method() == 'post') {
+                    // checkout auth
                     if (waRequest::post('wa_auth_login')) {
                         $login_action = new shopLoginAction();
                         $login_action->run();
                     } else {
+                        $errors = array();
                         $redirect = false;
+                        $step_keys = array_keys($steps);
+                        $last_step = end($step_keys) == $current_step;
                         foreach ($steps as $step_id => $step) {
                             if ($step_id == $current_step) {
                                 $step_instance = $this->getStep($step_id);
                                 if ($step_instance->execute()) {
                                     $redirect = true;
                                 }
-
                             } elseif ($redirect) {
                                 $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => $step_id)));
+                            } elseif ($last_step) {
+                                $step_instance = $this->getStep($step_id);
+                                if ($e = $step_instance->getErrors()) {
+                                    $errors = array_merge($errors, $e);
+                                }
+                            }
+
+                        }
+                        // last step
+                        if ($redirect && !$errors) {
+                            if ($order_id = $this->createOrder()) {
+                                wa()->getStorage()->set('shop/success_order_id', $order_id);
+                                $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => 'success')));
                             }
                         }
 
-                        // last step
-                        if ($redirect) {
-                            if ($this->createOrder()) {
-                                $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => 'success')));
-                            }
+                        if ($errors) {
+                            $this->view->assign('error', implode('<br>', $errors));
                         }
                     }
                 } else {
@@ -120,7 +92,75 @@ class shopFrontendCheckoutAction extends waViewAction
         }
     }
 
-    protected function getGoogleAnalytics($order)
+    protected function success()
+    {
+        $order_id = waRequest::get('order_id');
+        if (!$order_id) {
+            $order_id = wa()->getStorage()->get('shop/order_id');
+            $payment_success = false;
+        } else {
+            $payment_success = true;
+            $this->view->assign('payment_success', true);
+        }
+        if (!$order_id) {
+            wa()->getResponse()->redirect(wa()->getRouteUrl('shop/frontend'));
+        }
+        $order_model = new shopOrderModel();
+        $order = $order_model->getById($order_id);
+        if ($order) {
+            $order['_id'] = $order['id'];
+        }
+        if (!$payment_success) {
+            $order_params_model = new shopOrderParamsModel();
+            $order['params'] = $order_params_model->get($order_id);
+            $order_items_model = new shopOrderItemsModel();
+            $order['items'] = $order_items_model->getByField('order_id', $order_id, true);
+            $payment = '';
+            if (!empty($order['params']['payment_id'])) {
+                try {
+                    /**
+                     * @var waPayment $plugin
+                     */
+                    $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
+                    $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), true);
+                } catch (waException $ex) {
+                    $payment = $ex->getMessage();
+                }
+            }
+            $order['id'] = shopHelper::encodeOrderId($order_id);
+            if (wa()->getStorage()->get('shop/success_order_id') == $order_id) {
+                $domain = wa()->getRouting()->getDomain(null, true);
+                $domain_config_path = $this->getConfig()->getConfigPath('domains/'.$domain.'.php', true, 'site');
+                if (file_exists($domain_config_path)) {
+                    /**
+                     * @var $domain_config array
+                     */
+                    $domain_config = include($domain_config_path);
+                    // if google analytics
+                    if (isset($domain_config['google_analytics']) && !is_array($domain_config['google_analytics'])) {
+                        $domain_config['google_analytics'] = array(
+                            'code' => $domain_config['google_analytics']
+                        );
+                    }
+                    if (!empty($domain_config['google_analytics']['code'])) {
+                        $this->getResponse()->addGoogleAnalytics(
+                            $this->getGoogleAnalytics($order, !empty($domain_config['google_analytics']['universal'])));
+                    }
+                }
+                // to show ga code only once
+                wa()->getStorage()->del('shop/success_order_id');
+            }
+        } else {
+            $order['id'] = shopHelper::encodeOrderId($order_id);
+        }
+        $this->view->assign('order', $order);
+        if (isset($payment)) {
+            $this->view->assign('payment', $payment);
+        }
+    }
+
+
+    protected function getGoogleAnalytics($order, $universal = false)
     {
         $title = waRequest::param('title');
         if (!$title) {
@@ -131,32 +171,57 @@ class shopFrontendCheckoutAction extends waViewAction
             $title = $app['name'];
         }
 
-        $result =  "_gaq.push(['_addTrans',
-            '".$order['id']."',           // transaction ID - required
-            '".htmlspecialchars($title)."',  // affiliation or store name
-            '".$this->getBasePrice($order['total'], $order['currency'])."',          // total - required
-            '".$this->getBasePrice($order['tax'], $order['currency'])."',           // tax
-            '".$this->getBasePrice($order['shipping'], $order['currency'])."',              // shipping
-            '".$this->getOrderAddressField($order, 'city')."',       // city
-            '".$this->getOrderAddressField($order, 'region')."',     // state or province
-            '".$this->getOrderAddressField($order, 'country')."'             // country
-        ]);\n";
+        if ($universal) {
+            $result = "ga('require', 'ecommerce', 'ecommerce.js');\n";
+            $result .= "ga('ecommerce:addTransaction', {
+                'id': '" . $order['id'] . "',           // transaction ID - required
+                'affiliation': '" . htmlspecialchars($title) . "',  // affiliation or store name
+                'revenue': '" . $this->formatPrice($order['total']) . "',          // total - required
+                'shipping': '" . $this->formatPrice($order['shipping']) . "',              // shipping
+                'tax': '" . $this->formatPrice($order['tax']) . "',           // tax
+                'currency': '".$order['currency']."' // currency
+            });\n";
 
-        foreach ($order['items'] as $item) {
-            $sku = $item['type'] == 'product' ? $item['sku_code'] : '';
-            $result .= " _gaq.push(['_addItem',
-            '".$order['id']."',           // transaction ID - required
-            '".$sku."',           // SKU/code - required
-            '".htmlspecialchars($item['name'])."',        // product name
-            '',   // category or variation
-            '".$this->getBasePrice($item['price'], $order['currency'])."',          // unit price - required
-            '".$item['quantity']."'               // quantity - required
-          ]);\n";
+            foreach ($order['items'] as $item) {
+                $sku = $item['type'] == 'product' ? $item['sku_code'] : '';
+                $result .= "ga('ecommerce:addItem', {
+                'id': '" . $order['id'] . "',           // transaction ID - required
+                'name': '" . htmlspecialchars($item['name']) . "',        // product name
+                'sku': '" . $sku . "',           // SKU/code - required
+                'category': '',   // category or variation
+                'price': '" . $this->formatPrice($item['price']) . "',          // unit price - required
+                'quantity': '" . $item['quantity'] . "'               // quantity - required
+              });\n";
+            }
+            $result .= "ga('ecommerce:send');\n";
+
+        } else {
+            $result = "_gaq.push(['_addTrans',
+                '" . $order['id'] . "',           // transaction ID - required
+                '" . htmlspecialchars($title) . "',  // affiliation or store name
+                '" . $this->getBasePrice($order['total'], $order['currency']) . "',          // total - required
+                '" . $this->getBasePrice($order['tax'], $order['currency']) . "',           // tax
+                '" . $this->getBasePrice($order['shipping'], $order['currency']) . "',              // shipping
+                '" . $this->getOrderAddressField($order, 'city') . "',       // city
+                '" . $this->getOrderAddressField($order, 'region') . "',     // state or province
+                '" . $this->getOrderAddressField($order, 'country') . "'             // country
+            ]);\n";
+
+            foreach ($order['items'] as $item) {
+                $sku = $item['type'] == 'product' ? $item['sku_code'] : '';
+                $result .= " _gaq.push(['_addItem',
+                '" . $order['id'] . "',           // transaction ID - required
+                '" . $sku . "',           // SKU/code - required
+                '" . htmlspecialchars($item['name']) . "',        // product name
+                '',   // category or variation
+                '" . $this->getBasePrice($item['price'], $order['currency']) . "',          // unit price - required
+                '" . $item['quantity'] . "'               // quantity - required
+              ]);\n";
+            }
+
+            $result .= "_gaq.push(['_set', 'currencyCode', '" . $this->getConfig()->getCurrency(true) . "']);\n";
+            $result .= "_gaq.push(['_trackTrans']);\n";
         }
-
-        $result .= "_gaq.push(['_set', 'currencyCode', '".$this->getConfig()->getCurrency(true)."']);\n";
-        $result .= "_gaq.push(['_trackTrans']);\n";
-
         return $result;
     }
 
@@ -166,6 +231,11 @@ class shopFrontendCheckoutAction extends waViewAction
             return htmlspecialchars($order['params']['shipping_address.'.$name]);
         }
         return '';
+    }
+
+    protected function formatPrice($price)
+    {
+        return str_replace(',', '.', (float)$price);
     }
 
     protected function getBasePrice($price, $currency)
@@ -178,7 +248,14 @@ class shopFrontendCheckoutAction extends waViewAction
     {
         $checkout_data = $this->getStorage()->get('shop/checkout');
 
-        $contact = $this->getUser()->isAuth() ? $this->getUser() : $checkout_data['contact'];
+        if ($this->getUser()->isAuth()) {
+            $contact = $this->getUser();
+        } else if (!empty($checkout_data['contact']) && $checkout_data['contact'] instanceof waContact) {
+            $contact = $checkout_data['contact'];
+        } else {
+            $contact = new waContact();
+        }
+
         $cart = new shopCart();
         $items = $cart->items(false);
         // remove id from item
@@ -195,7 +272,8 @@ class shopFrontendCheckoutAction extends waViewAction
             'params'  => isset($checkout_data['params']) ? $checkout_data['params'] : array(),
         );
 
-        $order['discount'] = shopDiscounts::apply($order);
+        $order['discount_description'] = null;
+        $order['discount'] = shopDiscounts::apply($order, $order['discount_description']);
 
         if (isset($checkout_data['shipping'])) {
             $order['params']['shipping_id'] = $checkout_data['shipping']['id'];
@@ -241,9 +319,9 @@ class shopFrontendCheckoutAction extends waViewAction
         $routing_url = wa()->getRouting()->getRootUrl();
         $order['params']['storefront'] = wa()->getConfig()->getDomain().($routing_url ? '/'.$routing_url : '');
 
-        if (($ref = wa()->getStorage()->get('shop/referer')) || ($ref = waRequest::cookie('referer'))) {
+        if ( ( $ref = waRequest::cookie('referer'))) {
             $order['params']['referer'] = $ref;
-            $ref_parts = parse_url($ref);
+            $ref_parts = @parse_url($ref);
             $order['params']['referer_host'] = $ref_parts['host'];
             // try get search keywords
             if (!empty($ref_parts['query'])) {
@@ -271,11 +349,42 @@ class shopFrontendCheckoutAction extends waViewAction
             }
         }
 
-        if ($utm = waRequest::cookie('utm')) {
+        if ( ( $utm = waRequest::cookie('utm'))) {
             $utm = json_decode($utm, true);
             if ($utm && is_array($utm)) {
                 foreach ($utm as $k => $v) {
                     $order['params']['utm_'.$k] = $v;
+                }
+            }
+        }
+
+        if ( ( $landing = waRequest::cookie('landing')) && ( $landing = @parse_url($landing))) {
+            if (!empty($landing['query'])) {
+                @parse_str($landing['query'], $arr);
+                if (!empty($arr['gclid']) && !empty($order['params']['referer_host']) && strpos($order['params']['referer_host'], 'google') !== false) {
+                    $order['params']['referer_host'] .= ' (cpc)';
+                    $order['params']['cpc'] = 1;
+                } else if (!empty($arr['_openstat']) && !empty($order['params']['referer_host']) && strpos($order['params']['referer_host'], 'yandex') !== false) {
+                    $order['params']['referer_host'] .= ' (cpc)';
+                    $order['params']['openstat'] = $arr['_openstat'];
+                    $order['params']['cpc'] = 1;
+                }
+            }
+
+            $order['params']['landing'] = $landing['path'];
+        }
+
+        // A/B tests
+        $abtest_variants_model = new shopAbtestVariantsModel();
+        foreach(waRequest::cookie() as $k => $v) {
+            if (substr($k, 0, 5) == 'waabt') {
+                $variant_id = $v;
+                $abtest_id = substr($k, 5);
+                if (wa_is_int($abtest_id) && wa_is_int($variant_id)) {
+                    $row = $abtest_variants_model->getById($variant_id);
+                    if ($row && $row['abtest_id'] == $abtest_id) {
+                        $order['params']['abt'.$abtest_id] = $variant_id;
+                    }
                 }
             }
         }
@@ -298,18 +407,20 @@ class shopFrontendCheckoutAction extends waViewAction
 
         $workflow = new shopWorkflow();
         if ($order_id = $workflow->getActionById('create')->run($order)) {
-            
+
             $step_number = shopCheckout::getStepNumber();
             $checkout_flow = new shopCheckoutFlowModel();
             $checkout_flow->add(array(
                 'step' => $step_number
             ));
-            
+
             $cart->clear();
             wa()->getStorage()->remove('shop/checkout');
             wa()->getStorage()->set('shop/order_id', $order_id);
-            
-            return true;
+
+            return $order_id;
+        } else {
+            return false;
         }
     }
 

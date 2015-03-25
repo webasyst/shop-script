@@ -50,7 +50,7 @@
         <input type="text" name="skus[{$sku_id}][image_id]" value="{$sku.image_id}" style="display:none;">
         <ul class="s-product-image-crops">
         
-            {* @see js-template int Product.html template *}
+            {* @see js-template in Product.html template *}
             
             {foreach $product->images as $image_id => $image}
             <li data-image-id="{$image_id}"{if ($sku.image_id == $image_id)} class="selected"{/if}>
@@ -64,12 +64,13 @@
     
     <div class="field">
         <div class="name">[`Available for purchase`]</div>
-        <div class="value"><input type="checkbox" name="skus[{$sku_id}][available]" {if !empty($sku.available)} checked="checked"{/if} value="1"></div>
+        <div class="value no-shift"><input type="checkbox" name="skus[{$sku_id}][available]" {if !empty($sku.available)} checked="checked"{/if} value="1"></div>
     </div>
     <div class="field">
         <div class="name">[`Purchase price`]</div>
         <div class="value">
-            <input type="text" name="skus[{$sku_id}][purchase_price]" value="{$sku.purchase_price|escape}" class="short numerical"><span class="s-product-currency-readonly">{$product.currency}</span>
+            <input type="text" name="skus[{$sku_id}][purchase_price]" value="{$sku.purchase_price|escape}" class="short numerical" placeholder="0"><span class="s-product-currency-readonly">{$product.currency}</span>
+            <p class="hint">[`Defining product purchase price allows you to estimate product profitability. Each time new order is placed, actual product purchase price will be saved in order details, and thus altering base product purchase price will affect only new orders and existing orders with no purchase price defined.`] {* <a href="#">Manage purchase prices for orders</a> *}</p>
         </div>
     </div>
     <div class="field">
@@ -99,6 +100,7 @@
             </div>
             
             <div class="s-sku-attachment" {if empty($sku.file_name)} style="display: none;"{/if}>
+                <input type="hidden" name="skus[{$sku_id}][eproduct_manage]" value="1">
                 <input type="checkbox" name="skus[{$sku_id}][eproduct]" value="1" {if !empty($sku.file_name)} checked="checked"{/if}>
                 <strong class="s-file-name">
                     {if !empty($sku.file_name)}

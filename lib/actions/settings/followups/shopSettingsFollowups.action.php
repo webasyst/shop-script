@@ -35,18 +35,18 @@ class shopSettingsFollowupsAction extends waViewAction
                 $empty_row = $fm->getEmptyRow();
                 $followup = array_intersect_key($followup, $empty_row) + $empty_row;
                 unset($followup['id']);
-                $followup['delay'] = ((float) str_replace(',', '.', ifempty($followup['delay'], '3'))) * 24 * 3600;
+                $followup['delay'] = ((float) str_replace(',', '.', ifset($followup['delay'], '3'))) * 24 * 3600;
                 if (empty($followup['name'])) {
                     $followup['name'] = _w('<no name>');
                 }
-                
+
                 $followup['from']    = $followup['from'] ? $followup['from'] : null;
                 $followup['source'] = $followup['source'] ? $followup['source'] : null;
-                
+
                 if ($followup['from'] === 'other') {
                     $followup['from'] = waRequest::post('from');
                 }
-                
+
                 if ($id && $id !== 'new') {
                     unset($followup['last_cron_time']);
                     $fm->updateById($id, $followup);
@@ -92,6 +92,7 @@ class shopSettingsFollowupsAction extends waViewAction
 
         if (empty($followup)) {
             $followup = $fm->getEmptyRow();
+            $followup['status'] = 1;
             $followup['body'] = self::getDefaultBody();
         } else {
             // Orders used as sample data for testing
@@ -104,10 +105,10 @@ class shopSettingsFollowupsAction extends waViewAction
             }
             foreach ($test_orders as &$o) {
                 $o['items'] = ifset($o['items'], array());
-                $o['total_formatted'] = waCurrency::format('%{s}', $o['total'], $o['currency']);
+                $o['total_formatted'] = waCurrency::format('%{h}', $o['total'], $o['currency']);
             }
         }
-        
+
         $this->view->assign('followup', $followup);
         $this->view->assign('followups', $followups);
         $this->view->assign('test_orders', $test_orders);

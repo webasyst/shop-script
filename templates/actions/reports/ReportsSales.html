@@ -1,115 +1,328 @@
-<!-- SALES -->
+{include "./sales_sidebar.html" inline}
 
-{* !!! Sales report sidebar temporarily commented out
-<div class="sidebar left200px">
+<div class="content left200px">
     <div class="block double-padded">
-        <ul class="menu-v">
-            <li class="selected bold"><a href="#">[`Overall sales`]</a></li>
 
-            <li class="top-padded"><a href="#">[`Storefronts`]</a></li>
-            <li><a href="#">[`Traffic sources`]</a></li>
-            <li><a href="#">[`Keywords`]</a></li>
-            <li><a href="#">[`Countries & regions`]</a></li>
-            <li><a href="#">[`Shipping types`]</a></li>
-            <li><a href="#">[`Payment types`]</a></li>
-        </ul>
-    </div>
-    <div class="block double-padded">
-        <h5 class="heading">[`Compare with past`]</h5>
-        <ul class="menu-v collapsible small">
-            <li><a href="#" class="inline-link"><b><i>[`Previous month`]</i></b></a></li>
-            <li><a href="#" class="inline-link"><b><i>[`Previous year`]</i></b></a></li>
-        </ul>
-    </div>
-</div>
-*}
-
-<div class="content{* left200px bordered-left*}">
-    <div id="reports-sales-graph" class="s-graph"></div>
-    <div class="block double-padded ">
-
-        <div class="sidebar right300px">
-            <div id="reports-customers-pie"></div>
-        </div>
-
-        <div class="content right300px">
-
-            <div class="fields">
-                <div class="field-group large">
-                    <div class="field">
-                        <div class="name"><span class="large">[`Total sales`]</span></div>
-                        <div class="value">
-                            <span class="bold large">{$stat.total_formatted}</span>
-                        </div>
-                        <div class="value small">{$stat.percent_new}% [`New customers`]</div>
-                        <div class="value small">{$stat.percent_returning}% [`Returning`]</div>
-                    </div>
-                    <div class="field">
-                        <div class="name">[`Average order value`]</div>
-                        <div class="value bold">{$stat.avg_total_formatted}</div>
-                        <div class="value small">{$stat.avg_total_new_formatted} [`New customers`]</div>
-                        <div class="value small">{$stat.avg_total_returning_formatted} [`Returning`]</div>
-                    </div>
-                    <div class="field">
-                        {if $group_by == 'months'}
-                            <div class="name">[`Average monthly sales`]</div>
-                        {else}
-                            <div class="name">[`Average daily sales`]</div>
-                        {/if}
-                        <div class="value bold">{sprintf_wp('%s/day', $stat.avg_total_daily_formatted)}</div>
-                    </div>
-                </div>
-                <div class="field-group">
-                    <div class="field">
-                        {if $group_by == 'days'}
-                            <div class="name">[`Sales by day`]</div>
-                        {else}
-                            <div class="name">[`Sales by month`]</div>
-                        {/if}
-                        <div class="value">
-                            <table class="zebra">
-                                {foreach array_reverse($sales_by_day) as $d}
-                                <tr>
-                                    {if $group_by == 'days'}
-                                        <td>{$d.date|wa_date:'humandate'}</td>
-                                    {else}
-                                        <td>{_ws(date('F', strtotime($d.date)), date('F', strtotime($d.date)), '1')} {$d.date|wa_date:'Y'}</td>
-                                    {/if}
-                                    <td class="align-right gray">{_ws(date('D', strtotime($d.date)))}</td>
-                                    <td class="align-right">{$d.total|wa_format_amount_currency:$def_cur}</td>
-                                    <td>
-                                        <div class="s-bar" style="width:{round($d.total_percent)}px;"></div>
-                                    </td>
-                                </tr>
-                                {/foreach}
-                            </table>
-
-                        </div>
-                    </div>
-                </div>
+        {if $abtests}
+            <div class="block half-padded float-right highlighted">
+            <ul class="menu-h"><li>
+                <i class="icon16 split"></i><span class="highlighted">[`A/B tests results available`]</span>
+                <select id="s-sales-abtest-selector">
+                    <option value="">[`Select test`]</option>
+                    {foreach $abtests as $id => $name}
+                        <option value="{$id}"{if ifset($request_options.abtest) == $id} selected{/if}>{$name|escape}</option>
+                    {/foreach}
+                </select>
+            </li></ul>
             </div>
+        {/if}
 
+        <h1>
+            {if !empty($request_options.type) && !empty($menu_types[$request_options.type])}
+                {$menu_types[$request_options.type].header_name|escape}
+            {else}
+                [`Sales report`]
+            {/if}
+            <span class="hint" id="period-description">[`Custom range`]</span>
+        </h1>
+
+        <div class="graph-wrapper">
+            <script>
+                (function() {
+                    if (typeof showSalesGraph == 'undefined') {
+                        return $.ajax({
+                              dataType: "script",
+                              url: "{$wa_url}wa-apps/shop/js/charts/d3chart-sales.js?{$wa->version()}",
+                              cache: true
+                        });
+                    } else {
+                        return $.Deferred(function(d) {
+                            d.resolve();
+                        });
+                    }
+                })().done(function() {
+                    showSalesGraph({json_encode($graph_data)}, {wa_currency_html(0, $def_cur)|replace:'0':'%s'|json_encode});
+                });
+            </script>
+            <!-- CHART WRAPPERS -->
+            <div class="sales-wrapper"></div>
+            <div class="hint-wrapper" id="hint-wrapper"></div>
         </div>
+
+        <table class="zebra" id="sales-report-table">
+            <thead>
+                <tr class="white s-header-row">
+                    <th>&nbsp;</th>
+                    <th class="align-right"><a href="javascript:void(0)" data-col="order_count" title="[`Only paid orders are counted`]">[`Orders`]</a></th>
+                    <th class="align-right"><a href="javascript:void(0)" data-col="sales" title="[`Overall amount of all paid orders`]">[`Sales volume`]</a></th>
+                    <th class="align-right"><a href="javascript:void(0)" data-col="average_order" title="[`Average paid order amount`]">[`Average order`]</a></th>
+                    <th class="align-right"><a href="javascript:void(0)" data-col="profit" class="inline" title="[`Profit = Order amount &minus; Shipping &minus; Tax &minus; Product purchase price`]">[`Profit`]</a></th>
+
+                    {if $roi_enabled}
+                        <th class="align-right"><a href="javascript:void(0)" data-col="cost" title="[`Marketing costs`]">[`Cost`]</a></th>
+                        <th class="align-right"><a href="javascript:void(0)" data-col="roi" title="[`Return On Investment for the selected period = Profit / Marketing costs`]">[`ROI`]</a></th>
+                        <th class="align-right" title="[`Overall ROI calculated for the entire data. This is where your current ROI value might converge to.`]">[`All time ROI`]</th>
+                    {/if}
+                </tr>
+                <tr class="s-summary-row">
+                    <td>[`Total`]</td>
+                    <td class="align-right">{strip}
+                        {$totals.order_count}
+                        {foreach $abtest_variants as $v}
+                            <br><span class="hint">{$v.name|escape}: {ifempty($v.totals.order_count, 0)}</span>
+                        {/foreach}
+                    {/strip}</td>
+                    <td class="s-sales-cell align-right">{strip}
+                        {$totals.sales_formatted}
+                        {foreach $abtest_variants as $v}
+                            <br><span class="hint">{$v.name|escape}: {$v.totals.sales_formatted}</span>
+                        {/foreach}
+                    {/strip}</td>
+                    <td class="align-right">{strip}
+                        {$totals.avg_order_formatted}
+                        {foreach $abtest_variants as $v}
+                            <br><span class="hint">{$v.name|escape}: {$v.totals.avg_order_formatted}</span>
+                        {/foreach}
+                    {/strip}</td>
+                    <td class="s-profit-cell align-right">{strip}
+                        {$totals.profit_formatted}
+                        {foreach $abtest_variants as $v}
+                            <br><span class="hint">{$v.name|escape}: {$v.totals.profit_formatted}</span>
+                        {/foreach}
+                    {/strip}</td>
+
+                    {if $roi_enabled}
+                        <td class="align-right">
+                            {$totals.cost_formatted}
+                        </td>
+                        <td class="align-right"><strong class="s-roi {if $totals.roi >= 130}s-positive{elseif $totals.roi >= 100}s-questionable{elseif $totals.cost}s-negative{/if}">
+                            {if $totals.cost}
+                                {round($totals.roi)}%</strong>
+                            {else}
+                                <span class="gray">&mdash;</span>
+                            {/if}
+                        </td>
+                        <td class="align-right">
+                            {$totals.lifetime_roi}%
+                        </td>
+                    {/if}
+                </tr>
+            </thead>
+
+            <tbody>
+                {include "./sales_report_rows.html" inline}
+            </tbody>
+
+        </table>
+
+        <p id="load-more-rows">
+            <a href="javascript:void" class="inline-link"><b>[`Load more...`]</i></a>
+        </p>
 
         <div class="clear-both"></div>
     </div>
 </div>
 
-<hr>
-<div class="clear-both"></div>
+<div class="hidden">
+    <ul class="menu-h">
+        <li>
+            <select id="s-sales-report-storefront-selector" class="storefront-selector">
+                <option value="">[`All storefronts`]</option>
+                {foreach $storefronts as $stf}
+                    <option value="{$stf|escape}"{if ifset($request_options.storefront) == $stf} selected{/if}>{$stf|escape}</option>
+                {/foreach}
+            </select>
+        </li>
+    </ul>
+</div>
+
+<script>
+    // Tooltips
+    ( function($) {
+
+        var bindEvents = function() {
+            var $tooltip_array = $("#sales-report-table th a");
+
+            $tooltip_array.on("mousemove", function(e) {
+                onMove(e)
+            });
+
+            $tooltip_array.on("mouseenter", function(e) {
+                onHover(e, $(this));
+            });
+
+            $tooltip_array.on("mouseleave", function() {
+                onHoverOut( $(this) );
+            });
+        };
+
+        var onHover = function(event, element) {
+            var titleText = element.attr('title');
+
+            if (titleText) {
+                // Set Title to Data
+                element.data('tiptext', titleText).removeAttr('title');
+
+                // Render Tooltip
+                $('<div class="tooltip-bubble"></div>')
+                        .text(titleText)
+                        .appendTo('body')
+                        .css({
+                            top: (event.pageY - 10) + 'px',
+                            left: (event.pageX + 20) + 'px'
+                        })
+                        .fadeIn('slow');
+            }
+        };
+
+        var onHoverOut = function(element) {
+            var title_text = element.data('tiptext');
+
+            if (title_text) {
+                element.attr('title', title_text);
+                $('.tooltip-bubble').remove();
+            }
+        };
+
+        var onMove = function(event) {
+            $(".tooltip-bubble").css({
+                top: (event.pageY - 10) + 'px',
+                left: (event.pageX + 20) + 'px'
+            });
+        };
+
+        $(document).ready( function() {
+            bindEvents();
+        });
+
+    })(jQuery);
+</script>
 
 <script type="text/javascript">(function() { "use strict";
-    document.title = '{"[`Sales`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
-    {$cnt = count($sales_data)};
-    {$scale = floor($cnt/35) + 1}
-    $.reports.graph('reports-sales-graph', 
-        {json_encode($sales_data)}, 
-        {if $group_by == 'days'}0{else}1{/if},
-        "{if $cnt <= 35}1 {if $group_by != 'days'}month{else}day{/if}{else}{$scale} {if $group_by != 'days'}months{else}days{/if}{/if}"
-    );
-    $.reports.pie('reports-customers-pie', [[
-        ["[`New customers`] ({$stat.percent_new}%)", {ifempty($stat.percent_new, 0.01)|replace:',':'.'}],
-        ["[`Returning customers`] ({$stat.percent_returning}%)", {ifempty($stat.percent_returning, 0.01)|replace:',':'.'}]
-    ]]);
-})();</script>
+    document.title = "[`Sales`] — {$wa->accountName(false)|escape:javascript}";
+    $.wa.locale = $.extend($.wa.locale, {
+        'Sales': "[`Sales`]",
+        'Profit': "[`Profit`]"
+    });
 
+    var current_sort = {json_encode(trim($request_options.sort, '!'))}; // sales, profit, etc.
+    var current_order = {if substr($request_options.sort, 0, 1) == '!'}'desc'{else}'asc'{/if};
+    var single_page_table = {if $more_rows_exist}false{else}true{/if};
+    var request_params = {json_encode($request_options)};
+    var action_url = '?module=reports&action=sales';
+
+    // Highlight active item in sidebar
+    request_params.type && $('#s-sidebar a[href="#/sales/type='+request_params.type+'"]').closest('li').addClass('selected').siblings().removeClass('selected');
+
+    // Human-readable period description in page header
+    (function() {
+        var $timeframe_selected_li = $('#mainmenu .s-reports-timeframe .selected');
+        if ($timeframe_selected_li.length && $timeframe_selected_li.data('timeframe') != 'custom') {
+            $('#period-description').html($timeframe_selected_li.find('a').html());
+        }
+    })();
+
+    // Storefront selector logic
+    (function() { "use strict";
+
+        var $storefront_selector = $('#s-sales-report-storefront-selector').removeAttr('id');
+
+        // Move selector into the top menu wrapper
+        $('#s-reports-custom-controls').empty().append($storefront_selector.closest('ul'));
+
+        // Reload page when user changes something in the selector
+        $storefront_selector.change(function() {
+            $.post(action_url, $.extend({ }, request_params, { storefront: $storefront_selector.val() }), function(r) {
+                $('#reportscontent').html(r);
+            });
+        });
+
+    })();
+
+    // Reload page when user changes value in A/B test selector
+    $('#s-sales-abtest-selector').change(function() {
+        $(this).parent().append('<i class="icon16 loading"></i>');
+        $.post(action_url, $.extend({ }, request_params, { abtest: $(this).val() }), function(r) {
+            $('#reportscontent').html(r);
+        });
+    });
+
+    // Table sorting logic
+    (function() { "use strict";
+
+        var $table = $('#sales-report-table');
+        var $load_more_link = $('#load-more-rows');
+        if (single_page_table) {
+            $load_more_link.remove();
+        }
+
+        highlightSortingColumn();
+
+        // Reorder the table when user clicks on a column header
+        $table.on('click', 'thead a', function() {
+            var $a = $(this);
+            var col = $a.data('col');
+            if (col == current_sort) {
+                if (current_order == 'desc') {
+                    current_order = 'asc';
+                } else {
+                    current_order = 'desc';
+                }
+            } else {
+                current_sort = col;
+                current_order = 'desc';
+            }
+
+            request_params['sort'] = (current_order == 'desc' ?'!':'')+current_sort;
+            $a.append('<i class="icon16 loading"></i>');
+            var rnd_protect = $.reports.rnd_protect = Math.random();
+            $.post(action_url, $.extend({ }, request_params, { table_only: 1 }), function(r) {
+                if (rnd_protect != $.reports.rnd_protect) {
+                    return; // too late, user clicked something else
+                }
+                $a.children('.loading').remove();
+                $table.children('tbody').html(r);
+                highlightSortingColumn();
+                $load_more_link.show();
+            });
+        });
+
+        // Link to load more rows
+        $load_more_link.click(function() {
+            if ($load_more_link.children('.loading').length) {
+                return;
+            }
+
+            $load_more_link.append('<i class="icon16 loading"></i>');
+            var rnd_protect = $.reports.rnd_protect = Math.random();
+            var current_count = $('#sales-report-table>tbody>tr').length;
+            $.post(action_url, $.extend({ }, request_params, { table_only: 1, start: current_count }), function(r) {
+                $load_more_link.children('.loading').remove();
+                if (rnd_protect != $.reports.rnd_protect) {
+                    return; // too late, user clicked something else
+                }
+                r = $.trim(r)
+                var trs = r ? $.parseHTML(r) : [];
+                if (trs.length) {
+                    $table.children('tbody').append(trs);
+                } else {
+                    $load_more_link.hide();
+                }
+                highlightSortingColumn();
+            });
+        });
+
+        // Helper to update visual indication when sorting changes
+        function highlightSortingColumn() {
+            var $tds = $table.find('td');
+            $tds.filter('.column-'+current_sort).addClass('bold');
+            $tds.filter(':not(.column-'+current_sort+')').removeClass('bold');
+
+            var $thead = $table.children('thead');
+            $thead.find('i.sorting-indicator').remove();
+            $thead.find('a[data-col="'+current_sort+'"]').append('<i class="icon16 '+(current_order == 'desc' ? 'darr' : 'uarr')+' sorting-indicator"></i>')
+                .closest('th').addClass('bold').siblings().removeClass('bold');
+        }
+    })();
+
+})();</script>

@@ -1,23 +1,11 @@
 <div class="sidebar right15px">
     <div class="block s-nolevel2-sidebar"></div>
 </div>
-
-<div class="sidebar left200px">
-
-    <div class="block s-nolevel2-sidebar s-storefronts">
-        <ul class="menu-v s-links with-icons">
-             {if $wa->userRights('pages')}
-	           <li id="s-link-pages" class="larger"><a href="#/pages/"><i class="icon16 notebook"></i>[`Pages`]</a></li>
-             {/if}
-             {if $wa->userRights('design')}
-    	       <li id="s-link-design" class="larger"><a href="#/design/"><i class="icon16 palette"></i>[`Design`]</a></li>
-             {/if}
-  
-        </ul>
-	</div>
+<div class="sidebar left15px">
+    <div class="block s-nolevel2-sidebar"></div>
 </div>
 
-<div class="content left200px right15px s-nolevel2-box" id="s-storefronts-content">
+<div class="content right15px left15px s-nolevel2-box" id="s-storefronts-content" {if $wa->userRights('design')}data-design="1"{/if} {if $wa->userRights('pages')}data-pages="1"{/if}>
     <div class="block double-padded s-settings-form">
         [`Loading...`]
         <i class="icon16 loading"></i>
@@ -27,8 +15,8 @@
     <!-- settings placeholder -->
 </div>
 
-    <div class="clear"></div>
-    <script type="text/javascript" src="{$wa_app_static_url}js/storefronts.js?v{$wa->version()}"></script>
-    <script type="text/javascript">
-        $.storefronts.init();
-    </script>
+<div class="clear"></div>
+<script type="text/javascript" src="{$wa_app_static_url}js/storefronts.js?v{$wa->version()}"></script>
+<script type="text/javascript">
+    $.storefronts.init();
+</script>

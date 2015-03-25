@@ -2,9 +2,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
     options: {
         loading: '<i class="icon16 loading"></i>',
         path: '#/',
-        plugin_names: {
-
-        }, /**
+        plugin_names: {}, /**
          * @type {Array} plugin_id=>bool
          */
         plugin_profiles: {},
@@ -183,19 +181,19 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
         /* change active plugin */
         if (path.plugin) {
             load = load
-                || (path.plugin != this.path.plugin)
-                || ((path.profile != this.path.profile) && (path.profile > 0))
+            || (path.plugin != this.path.plugin)
+            || ((path.profile != this.path.profile) && (path.profile > 0))
             ;
         } else if (path.module && (path.module != 'backend')) {
             load = load
-                || ((path.plugin + path.module) != (this.path.plugin + this.path.module))
-                || (path.direction != this.path.direction)
-                || ((path.profile != this.path.profile) && (path.profile > 0))
+            || ((path.plugin + path.module) != (this.path.plugin + this.path.module))
+            || (path.direction != this.path.direction)
+            || ((path.profile != this.path.profile) && (path.profile > 0))
             ;
         }
 
         if (load) {
-            var plugin = (path.plugin ? [path.plugin, path.prefix , path.direction] : [path.module, path.prefix, path.direction]).filter(function (v) {
+            var plugin = (path.plugin ? [path.plugin, path.prefix, path.direction] : [path.module, path.prefix, path.direction]).filter(function (v) {
                 return v && (v.length > 0);
             }).join(':');
             if (!path.profile && this.options.plugin_profiles[plugin] && (path.action == 'hash') && path.tail) {
@@ -206,7 +204,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                 if ((path.plugin != this.path.plugin ) ||
                     (path.module != this.path.module ) ||
                     (path.direction != this.path.direction )
-                    ) {
+                ) {
                     this.$header.hide();
                     this.$profile.hide();
                 }
@@ -248,8 +246,8 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
             var matches;
             scope = this;
             if (matches = name.match(/^(\w+(:\w+)?)(:\d+)?$/)) {
-                if (this.plugins[ matches[1]]) {
-                    scope = this.plugins[ matches[1]];
+                if (this.plugins[matches[1]]) {
+                    scope = this.plugins[matches[1]];
                     name = null;
                 }
             }
@@ -271,11 +269,18 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
         return false;
     },
 
-    profileAdd: function (plugin) {
-        $.ajax({url: '?module=importexport&action=add',
+    profileAdd: function (plugin, hash) {
+        hash = hash || '';
+        if (hash.match(/^hash\//)) {
+            hash = hash.replace(/^hash\//, '');
+        } else {
+            hash = null;
+        }
+        $.ajax({
+            url: '?module=importexport&action=add',
             type: 'POST',
             dataType: 'json',
-            data: {plugin: plugin},
+            data: {plugin: plugin, hash: hash},
             success: function (response) {
                 $.shop.trace('addAction', response.data);
                 if (response && (response.status == 'ok')) {
@@ -301,7 +306,8 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
         var $delete = $el.find('i.icon16.delete');
         $delete.removeClass('delete').addClass('loading');
         var self = this;
-        $.ajax({url: '?module=importexport&action=delete',
+        $.ajax({
+            url: '?module=importexport&action=delete',
             type: 'POST',
             dataType: 'json',
             data: {plugin: plugin, profile: profile},
@@ -396,11 +402,11 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
 
         // update title
         var plugin_name = $content.find('h1:first').hide().text() || this.options.plugin_names[this.path.plugin] || ($a
-            .clone()    //clone the element
-            .children() //select all the children
-            .remove()   //remove all the children
-            .end()  //again go back to selected element
-            .text()) || '';
+                .clone()    //clone the element
+                .children() //select all the children
+                .remove()   //remove all the children
+                .end()  //again go back to selected element
+                .text()) || '';
         window.document.title = plugin_name + this.options.title_suffix;
         this.$header.find('> h1:first').text(plugin_name);
 
@@ -650,7 +656,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
             //remove obsolete
         },
         key: function () {
-            return !!this.path.plugin ? this.path.plugin : [this.path.module, this.path.prefix , this.path.direction].filter(function (v) {
+            return !!this.path.plugin ? this.path.plugin : [this.path.module, this.path.prefix, this.path.direction].filter(function (v) {
                 return v && (v.length > 0);
             }).join(':');
         },
@@ -663,10 +669,10 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
             this.$container.removeClass('tab-content');
         },
         form: function (hidden) {
-            return  ('<div class="field"' + (hidden ? ' style="display:none;"' : '') + '>' +
-                '<div class="name">' + $_('Profile name') + '</div>' +
-                '<div class="value"><input type="text" name="profile[name]"></div>' +
-                '</div>' );
+            return ('<div class="field"' + (hidden ? ' style="display:none;"' : '') + '>' +
+            '<div class="name">' + $_('Profile name') + '</div>' +
+            '<div class="value"><input type="text" name="profile[name]"></div>' +
+            '</div>' );
         },
 
         html: function (id, key) {
@@ -724,12 +730,14 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
 
                 $select.parents('li').show();
                 $.shop.trace('hash/action/test', [context, options]);
+                var label;
                 switch (context) {
                     case 'id':
                         var ids = options[1] || '0';
                         this.$context.find(':input[name="product_ids"]:first').val(ids);
                         $label = $select.parents('li').find('span');
-                        $label.text($label.text().replace(/%d/g, ids.split(',').length));
+                        label = $label.data('text') || $label.text();
+                        $label.text(label.replace(/%d/g, ids.split(',').length));
                         break;
                     case 'type':
                         var type = parseInt(options[1]);
@@ -741,9 +749,17 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                         break;
                     case 'category':
                         var category_ids = options[1] || '0';
-                        this.$context.find(':input[name="category_ids"]:first').val(category_ids);
+                        var $input = this.$context.find(':input[name="category_ids"]');
+                        if ($input.length == 1) {
+
+                            $input.val(category_ids);
+                        } else {
+                            $input.filter('[value="' + category_ids + '"]').attr('checked', true);
+                        }
                         $label = $select.parents('li').find('span');
-                        $label.text($label.text().replace(/%d/g, category_ids.split(',').length));
+                        category_ids = category_ids.split(',');
+                        label = $label.data('text') || $label.text();
+                        $label.text(label.replace(/%d/g, category_ids.length));
                         break;
                 }
 
@@ -753,8 +769,33 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
         handler: function ($this) {
             var $container = $this.parents('div.field');
             if ($this.is(':checked')) {
+                var context = $this.val();
+                var $context = $container.find('.js-hash-values.js-hash-' + context);
+
                 $container.find('.js-hash-values:visible').hide();
-                $container.find('.js-hash-values.js-hash-' + $this.val()).show();
+                $context.show();
+                switch (context) {
+                    case 'category':
+                        //select selected data & update counters
+                        var $input = $context.find(':input[name="category_ids"]');
+                        if ($input.length > 1) {
+                            if (!$input.filter(':checked').length) {
+                                $input.filter('[data-selected="selected"]').attr('checked', true);
+                                if (!$input.filter(':checked').length) {
+                                    $input.filter(':first').attr('checked', true)
+                                }
+
+
+                                var $label = $this.parents('li:first').find('span:first');
+                                $.shop.trace('label', $label);
+                                var label = $label.data('text') || $label.text();
+
+
+                                $label.text($label.data('text').replace(/%d/g, $input.filter(':checked').length));
+                            }
+                        }
+                        break;
+                }
             }
         }
     },

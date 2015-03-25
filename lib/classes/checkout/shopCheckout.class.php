@@ -1,25 +1,40 @@
 <?php
 
+/**
+ * Abstract class for checkout step
+ */
 abstract class shopCheckout
 {
     protected $step_id;
 
     abstract public function display();
 
-    public function validate()
-    {
-
-    }
-
     abstract public function execute();
 
+    /**
+     * Validation
+     * @return array
+     */
+    public function getErrors()
+    {
+        return array();
+    }
 
+    /**
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
     protected function getSessionData($key, $default = null)
     {
         $data = wa()->getStorage()->get('shop/checkout');
         return isset($data[$key]) ? $data[$key] : $default;
     }
 
+    /**
+     * @param string $key
+     * @param mixed $value
+     */
     protected function setSessionData($key, $value)
     {
         $data = wa()->getStorage()->get('shop/checkout', array());
@@ -79,5 +94,4 @@ abstract class shopCheckout
         }
         return $n + 1;
     }
-
 }

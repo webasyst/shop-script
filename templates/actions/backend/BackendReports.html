@@ -3,9 +3,12 @@
         [`Loading...`] <i class="icon16 loading"></i>
     </div>
 </div>
-<script type="text/javascript" src="{$wa_app_static_url}js/reports.js?v={$wa->version()}"></script>
-<script type="text/javascript">
-    $.reports.init({
-        lang: '{$lang}'
-    });
-</script>
+
+<!-- D3 Charts -->
+<link rel="stylesheet" href="{$wa_app_static_url}css/charts.css?v={$wa->version()}">
+<script src="{$wa_app_static_url}js/charts/d3.min.js?v{$wa->version()}"></script>
+<script src="{$wa_app_static_url}js/charts/topojson.min.js?v{$wa->version()}"></script>
+<script src="{$wa_app_static_url}js/charts/datamaps.world.min.js?v{$wa->version()}"></script>
+
+<script src="{$wa_app_static_url}js/reports.js?v={$wa->version()}"></script>
+<script> $.reports.init({ lang: '{$lang}' }); </script>

@@ -16,6 +16,12 @@ class shopFrontendPageAction extends waPageAction
          */
         $this->view->assign('frontend_nav', wa()->event('frontend_nav'));
 
+        /**
+         * @event frontend_nav_aux
+         * @return array[string]string $return[%plugin_id%] html output for navigation section
+         */
+        $this->view->assign('frontend_nav_aux', wa()->event('frontend_nav_aux'));
+
         try {
             return parent::display(false);
         } catch (waException $e) {

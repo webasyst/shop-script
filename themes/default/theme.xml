@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="2.2.0">
+<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="2.3.0">
     <name locale="en_US">Default 2.0</name>
     <name locale="ru_RU">Дефолт 2.0</name>
     <files>
@@ -155,21 +155,27 @@
     </files>
     <settings>
         <setting var="category_nav_mode" control_type="radio">
-            <value>dropdown</value>
+            <value>inline</value>
             <name locale="ru_RU">Меню категорий товаров</name>
             <name locale="en_US">Category navigation menu</name>
             <options>
+                <option value="inline">
+                    <name locale="ru_RU">Горизонтальное</name>
+                    <name locale="en_US">Inline</name>
+                    <description locale="ru_RU">Рекомендуется, если в корне не более четырех-пяти категорий, и все они помещаются в один ряд.</description>
+                    <description locale="en_US">Great for menus with up to four or five top-level categories.</description>
+                </option>
                 <option value="dropdown">
-                    <name locale="ru_RU">Выпадающее</name>
-                    <name locale="en_US">Drop-down</name>
-                    <description locale="ru_RU">Рекомендуется, если в корне не более пяти-шести элементов, и все они помещаются в один ряд</description>
-                    <description locale="en_US">Great for menus with up to five or six elements on the top level</description>
+                    <name locale="ru_RU">Горизонтальное выпадающее</name>
+                    <name locale="en_US">Drop-down “Shop by Department”</name>
+                    <description locale="ru_RU">Выпадающее развернутое меню категорий товаров.</description>
+                    <description locale="en_US">Category list will be available under the "Shop by Department" header link.</description>
                 </option>
                 <option value="sidebar">
                     <name locale="ru_RU">Боковое</name>
                     <name locale="en_US">Sidebar</name>
-                    <description locale="ru_RU">Рекомендуется для многоуровневых деревьев категорий</description>
-                    <description locale="en_US">Great for multi-level category hierarchical menus</description>
+                    <description locale="ru_RU">Рекомендуется для больших многоуровневых деревьев категорий.</description>
+                    <description locale="en_US">Great for large multi-level category hierarchical menus.</description>
                 </option>
             </options>
         </setting>
@@ -197,11 +203,6 @@
                     <description locale="en_US">Last 10 uploaded photos will be fetched from Photos app and displayed on the slider. Customize photo fetching criteria in home.html template of this storefront design theme. Photos app must be installed for this setting to work.</description>
                 </option>
             </options>
-        </setting>
-        <setting var="ajax_filters" control_type="checkbox">
-            <value>1</value>
-            <name locale="en_US">AJAX-enabled product by-feature filtering</name>
-            <name locale="ru_RU">AJAX-фильтры товаров по характеристикам</name>
         </setting>
         <setting var="selectable_features_control" control_type="radio">
             <value>inline</value>
@@ -237,6 +238,11 @@
                 </option>
             </options>
         </setting>
+        <setting var="ajax_filters" control_type="checkbox">
+            <value>1</value>
+            <name locale="en_US">AJAX-enabled product by-feature filtering</name>
+            <name locale="ru_RU">AJAX-фильтры товаров по характеристикам</name>
+        </setting>
         <setting var="homepage_bullet_title_1" control_type="text">
             <value locale="en_US">Faster delivery</value>
             <value locale="ru_RU">Доставка по России</value>
@@ -269,21 +275,31 @@
         </setting>
         <setting var="homepage_bullet_body_3" control_type="text">
             <value locale="en_US">If you are in SF or LA, you may pick up an order in one of our stores. Give us a call!</value>
-            <value locale="ru_RU">Будем рады видеть вас в нашем магазине по адресу г. Москва, ул. Крымский Вал, д. 3. +7 (495) 123-45-00</value>
+            <value locale="ru_RU">Будем рады видеть вас в нашем магазине по адресу г. Москва, ул. Крымский Вал, д. 3, стр. 2.</value>
             <name locale="en_US">Storefront homepage bullet #3 body</name>
             <name locale="ru_RU">Текст на главной странице №3</name>
         </setting>
-        <setting var="homepage_promo_title" control_type="text">
-            <value locale="en_US">Free shipping on all orders over $100</value>
-            <value locale="ru_RU">Бесплатная доставка при заказе от 3000 рублей</value>
-            <name locale="en_US">Storefront homepage promo block title</name>
-            <name locale="ru_RU">Заголовок в промо-блоке на главной странице</name>
+        <setting var="homepage_about_title" control_type="text">
+            <value locale="en_US">About us</value>
+            <value locale="ru_RU">О магазине</value>
+            <name locale="en_US">About block title</name>
+            <name locale="ru_RU">Заголовок информационного блока о магазине</name>
         </setting>
-        <setting var="homepage_promo_body" control_type="text">
-            <value locale="en_US">Order today and get your order shipped in just few days! All $100+ orders are shipped free of charge.</value>
-            <value locale="ru_RU">Не пропустите выгодное предложение! Закажите сегодня, и уже завтра заказ будет у вас.</value>
-            <name locale="en_US">Storefront homepage promo block body</name>
-            <name locale="ru_RU">Текст в промо-блоке на главной странице</name>
+        <setting var="homepage_about_body" control_type="text">
+            <value locale="en_US">Edit this text in your Webasyst backend: Shop app > Storefronts > Appearance.</value>
+            <value locale="ru_RU">Добавьте информацию о вашей компании в бекенде вашего Webasyst: приложение «Магазин» > Витрины > Оформление.</value>
+            <name locale="en_US">About block body</name>
+            <name locale="ru_RU">Текст блока о магазине</name>
+        </setting>
+        <setting var="homepage_blogposts" control_type="checkbox">
+            <value>1</value>
+            <name locale="en_US">Show latest blog posts on storefront homepage</name>
+            <name locale="ru_RU">Показывать последние посты блога на главной странице интернет-магазина</name>
+        </setting>
+        <setting var="list_features">
+            <value>0</value>
+            <name locale="en_US">Show product features in product lists</name>
+            <name locale="ru_RU">Показывать характеристики в списках товаров</name>
         </setting>
     </settings>
     <thumbs>
@@ -306,4 +322,10 @@
 <p>Темы дизайна семейства Default оптимизированы для всех современных браузеров, планшетных компьютеров и мобильных устройств на основе iOS и Android. CSS-стили подключаются в зависимости от разрешения и типа устройства, которым пользуется посетитель сайта.</p>
 ]]>
     </about>
+    <locales>
+        <locale>
+            <msgid>E.g. %s</msgid>
+            <msgstr locale="ru_RU">Например, %s</msgstr>
+        </locale>
+    </locales>
 </theme>

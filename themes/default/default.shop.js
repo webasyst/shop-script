@@ -5,45 +5,8 @@ $(document).ready(function () {
     $('.homepage-bxslider').css('height','auto');
     $('.related-bxslider').bxSlider( { minSlides: 1, maxSlides: 4, slideWidth: 150, slideMargin: 10, infiniteLoop: true, pager: false });
 
-    //HOAX tablet navigation elements
-    var display_hoax_tablet_nav = false;
-    function handleHoaxTabletNavigation()
-    {
-        if ( $("#hoax-hotties").css("display") == "block" ){
-    		var _current_display_hoax_tablet_nav = true;
-    	}
-    	else
-    	{
-    	   var _current_display_hoax_tablet_nav = false;
-    	}
-    	if (_current_display_hoax_tablet_nav != display_hoax_tablet_nav)
-    	{
-    	   display_hoax_tablet_nav = _current_display_hoax_tablet_nav;
-    	   //move all #hoax elements from .nav-sidebar to .nav-hotties or vice versa
-    	   if (_current_display_hoax_tablet_nav)
-    	   {
-    	       // tablet: move from sidebar to hoax
-    	       var _source = 'sidebar';
-    	       var _dest = 'hotties';
-    	   }
-    	   else
-    	   {
-    	       // not a table: move from hoax to sidebar
-        	   var _source = 'hotties';
-    	       var _dest = 'sidebar';
-    	   }
-    	   $( '.hoax-' + _source ).each(function(){
-    	       var _key = $(this).attr('data-key');
-               $('#hoax-' + _dest + '-' + _key).html( $(this).html() );
-               $(this).html('');
-    	   });
-    	}
-    }
-
-    // SIDEBAR HEADER click
-    // on devices without :hover event (handheld tablets such as iPad + smartphones) clicking on the sidebar header link should show/hide the sidebar, not follow the link
-    if ( (!!('ontouchstart' in window)) && window.matchMedia("only screen and (max-width: 1024px)").matches )
-    {
+    // SIDEBAR HEADER click (smartphones only)
+    if ( (!!('ontouchstart' in window)) && MatchMedia("only screen and (max-width: 760px)") ) {
         $('.nav-sidebar-body').css('opacity',1);
         $('.nav-sidebar-body').hide();
         $('a.nav-sidebar-header').click(function(){
@@ -53,11 +16,6 @@ $(document).ready(function () {
             }
         });
     }
-
-    handleHoaxTabletNavigation();
-    $(window).resize(function(){
-    	handleHoaxTabletNavigation();
-    });
 
     //CART dialog for multi-SKU products
     $('.dialog').on('click', 'a.dialog-close', function () {
@@ -150,7 +108,7 @@ $(document).ready(function () {
                 if( $(window).scrollTop() >= 110 )
                     $('#cart').addClass('fixed');
 
-                if (window.matchMedia("only screen and (max-width: 760px)").matches) {
+                if ( MatchMedia("only screen and (max-width: 760px)") ) {
                 
                     // mobile: show "added to cart" message
                     f.find('input[type="submit"]').hide();
@@ -211,7 +169,7 @@ $(document).ready(function () {
             var url = '?' + params.join('&');
             $(window).lazyLoad && $(window).lazyLoad('sleep');
             $('#product-list').html('<img src="' + f.data('loading') + '">');
-            $.get(url, function(html) {
+            $.get(url+'&_=_', function(html) {
                 var tmp = $('<div></div>').html(html);
                 $('#product-list').html(tmp.find('#product-list').html());
                 if (!!(history.pushState && history.state !== undefined)) {
@@ -299,7 +257,7 @@ $(document).ready(function () {
             $(window).lazyLoad && $(window).lazyLoad('reload');
         })
         .on('onLatestClick.waSlideMenu', function () {
-            if ( (!!('ontouchstart' in window)) && window.matchMedia("only screen and (max-width: 1024px)").matches ) {
+            if ( (!!('ontouchstart' in window)) && ( MatchMedia("only screen and (max-width: 760px)") ) ) {
                 $('.nav-sidebar-body').slideUp(200);
             }
         });
@@ -313,6 +271,7 @@ $(document).ready(function () {
 
         var times = parseInt(paging.data('times'), 10);
         var link_text = paging.data('linkText') || 'Load more';
+        var loading_str = paging.data('loading-str') || 'Loading...';
 
         // check need to initialize lazy-loading
         var current = paging.find('li.selected');
@@ -347,7 +306,7 @@ $(document).ready(function () {
                     var product_list = $('#product-list .product-list');
                     var loading = paging.parent().find('.loading').parent();
                     if (!loading.length) {
-                        loading = $('<div><i class="icon16 loading"></i>Loading...</div>').insertBefore(paging);
+                        loading = $('<div><i class="icon16 loading"></i>'+loading_str+'</div>').insertBefore(paging);
                     }
 
                     loading.show();
@@ -384,6 +343,7 @@ $(document).ready(function () {
                             }
                         } else {
                             win.lazyLoad('stop');
+                            $('.lazyloading-load-more').hide();
                         }
 
                         loading.hide();

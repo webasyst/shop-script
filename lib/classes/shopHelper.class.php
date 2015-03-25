@@ -328,6 +328,8 @@ class shopHelper
     public static function getGravatar($email, $size = 50, $default = 'mm')
     {
         if ($default == 'custom') {
+            // Note that we cannot use @2x versions here since Gravatar
+            // removes the @ symbol (even escaped) from the URL before redirect.
             $default = wa()->getRootUrl(true).'wa-content/img/userpic'.$size.'.jpg';
             $default = urlencode($default);
         }
@@ -352,7 +354,7 @@ class shopHelper
         $states = $workflow->getAllStates();
         foreach ($orders as & $order) {
             $order['id_str'] = self::encodeOrderId($order['id']);
-            $order['total_str'] = wa_currency($order['total'], $order['currency']);
+            $order['total_str'] = wa_currency_html($order['total'], $order['currency']);
             if (!empty($order['create_datetime'])) {
                 $order['create_datetime_str'] = wa_date('humandatetime', $order['create_datetime']);
             }
@@ -430,7 +432,7 @@ class shopHelper
         if ($for_map) {
             $address_f = array();
             foreach (array('country', 'region', 'zip', 'city', 'street') as $k) {
-                if (!isset($address[$k])) {
+                if (empty($address[$k])) {
                     continue;
                 } elseif ($k == 'country') {
                     $address_f[$k] = waCountryModel::getInstance()->name(ifempty($address['country']));
@@ -504,8 +506,11 @@ class shopHelper
             } else {
                 $bounds = $stocks[$stock_id];
             }
-            if ($count <= $bounds['critical_count']) {
+            if ($count <= 0) {
                 $icon = "<i class='icon10 status-red' title='"._w("Out of stock")."'></i>";
+                $warn = 's-stock-warning-none';
+            } else if ($count <= $bounds['critical_count']) {
+                $icon = "<i class='icon10 status-red' title='"._w("Almost out of stock")."'></i>";
                 $warn = 's-stock-warning-none';
             } elseif ($count > $bounds['critical_count'] && $count <= $bounds['low_count']) {
                 $icon = "<i class='icon10 status-yellow' title='"._w("Low stock")."'></i>";
@@ -530,6 +535,16 @@ class shopHelper
      */
     public static function getCustomerForm($id = null, $ensure_address = false)
     {
+        $contact = null;
+        if ($id) {
+            if (is_numeric($id)) {
+                $contact = new waContact($id);
+            } elseif ($id instanceof waContact) {
+                $contact = $id;
+            }
+            $contact && $contact->getName(); // make sure contact exists; throws exception otherwise
+        }
+
         $settings = wa('shop')->getConfig()->getCheckoutSettings();
         if (!isset($settings['contactinfo'])) {
             $settings = wa('shop')->getConfig()->getCheckoutSettings(true);
@@ -539,26 +554,33 @@ class shopHelper
         $address_config = ifset($fields_config['address'], array());
         unset($fields_config['address']);
 
-        if (wa()->getEnv() == 'backend') {
-            // new order
-            if (!isset($fields_config['address.shipping']) || !$id) {
+        if ($ensure_address && !isset($fields_config['address.billing']) && !isset($fields_config['address.shipping'])) {
+            // In customer center, we want to show address field even if completely disabled in settings.
+            $fields_config['address'] = $address_config;
+        } else if (wa()->getEnv() == 'backend') {
+            // Tweaks for backend order editor.
+            // We want shipping address to show even if disabled in settings.
+            // !!! Why is that?.. No idea. Legacy code.
+            if (!isset($fields_config['address.shipping'])) {
                 $fields_config['address.shipping'] = array();
-            } // edit order
-            elseif (!empty($fields_config['address.shipping']) && $id && $id instanceof waContact) {
-                $address = $id->getFirst('address.shipping');
-                if ($address && !empty($address['data'])) {
-                    foreach ($address['data'] as $subfield => $v) {
-                        if (!isset($fields_config['address.shipping']['fields'][$subfield])) {
-                            $fields_config['address.shipping']['fields'][$subfield] = array();
+            }
+            // When an existing contact has address specified, we want to show all the data fields
+            if ($contact) {
+                foreach(array('address.shipping', 'address.billing') as $addr_field_id) {
+                    if (!empty($fields_config[$addr_field_id])) {
+                        $address = $contact->getFirst($addr_field_id);
+                        if ($address && !empty($address['data'])) {
+                            foreach ($address['data'] as $subfield => $v) {
+                                if (!isset($fields_config[$addr_field_id]['fields'][$subfield])) {
+                                    $fields_config[$addr_field_id]['fields'][$subfield] = array();
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-        if ($ensure_address && !isset($fields_config['address.billing']) && !isset($fields_config['address.shipping'])) {
-            $fields_config['address'] = $address_config;
-        }
 
         $form = waContactForm::loadConfig(
             $fields_config,
@@ -566,17 +588,7 @@ class shopHelper
                 'namespace' => 'customer'
             )
         );
-        if ($id) {
-            if (is_numeric($id)) {
-                $contact = new waContact($id);
-                $contact->getName(); // make sure contact exists; throws exception otherwise
-            } elseif ($id instanceof waContact) {
-                $contact = $id;
-            }
-            if (isset($contact)) {
-                $form->setValue($contact);
-            }
-        }
+        $contact && $form->setValue($contact);
         return $form;
     }
 
@@ -698,4 +710,11 @@ class shopHelper
 
         return mb_strtolower($url);
     }
+
+    public static function getPromoImageUrl($id, $ext)
+    {
+        $v = @filemtime(wa('shop')->getDataPath('promos/'.$id.'.'.$ext, true));
+        return wa('shop')->getDataUrl('promos/'.$id.'.'.$ext, true).($v ? '?v='.$v : '');
+    }
 }
+

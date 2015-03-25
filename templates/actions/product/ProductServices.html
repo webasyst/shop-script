@@ -12,18 +12,18 @@
             </li>
             {/foreach}
         </ul>
-        <div class="block align-center">
+        <div class="block not-padded right-padded align-center bordered-top top-padded">
             <p class="hint">{sprintf('[`Use <a href="%s">Services</a> screen to add new custom services.`]','#services/')}</p>
         </div>
     </div>
-    
-    <div class="content left200px blank bordered-left">
+
+    <div class="content left200px blank shadowed">
         <div class="block double-padded">
-            <h2>
-                {$service.name} <span class="gray">[`for`] {$product.name|escape}</span>
+            <h2 class="s-service-name toggle-gray{if empty($service.status)} gray{/if}">
+                {$service.name} <span class="hint">[`for`] {$product.name|escape}</span>
             </h2>
             <form action="?module=product&action=servicesSave&product_id={$product.id}&service_id={$service.id}" method="post">
-            <table class="zebra">
+            <table class="zebra toggle-gray{if empty($service.status)} gray{/if}">
                 {$multi_variants = false}
                 {if count($service.variants) > 1}
                     {$multi_variants = true}
@@ -32,7 +32,7 @@
                     <tr class="s-services-variant-product" data-variant-id="{$variant.id}">
                         {if $multi_variants}
                             <td class="min-width">
-                                <input type="radio" name="default" value="{$variant.id}" 
+                                <input type="radio" name="default" value="{$variant.id}"
                                     {if $variant.status == shopProductServicesModel::STATUS_DEFAULT}checked="checked"{/if}
                                 >
                             </td>
@@ -47,8 +47,8 @@
                             </label>
                         </td>
                         <td>
-                            + <input type="text" name="variant_price[{$variant.id}]" class="large bold s-price-surplus" 
-                                placeholder="{if $variant.base_price}{(double)$variant.base_price}{/if}" 
+                            + <input type="text" name="variant_price[{$variant.id}]" class="large bold s-price-surplus"
+                                placeholder="{if $variant.base_price}{(double)$variant.base_price}{/if}"
                                 value="{if $variant.price}{(double)$variant.price}{/if}"
                               >
                             <span class="large bold overhanging">
@@ -59,7 +59,7 @@
                             {/if}
                         </td>
                     </tr>
-                    
+
                     {$display = false}
                     {foreach $variant['skus'] as $variant_sku}
                         {if (boolean)$variant_sku.status != (boolean)$variant.status}
@@ -67,22 +67,22 @@
                             {break}
                         {/if}
                     {/foreach}
-                    
+
                     {$multi_skus = count($variant['skus']) > 1}
-                    
+
                     {foreach $variant['skus'] as $variant_sku}
                         <tr class="small s-services-variant-sku" data-variant-id="{$variant.id}" {if !$multi_skus || !$display}style="display: none;"{/if}>
                             {if $multi_variants}<td class="min-width">&nbsp;</td>{/if}
                             <td class="min-width">&nbsp;</td>
                             <td>
                                 <label>
-                                    <input type="checkbox" name="variant_sku[{$variant.id}][{$variant_sku.sku_id}]" value="1" {if $variant_sku.status != shopProductServicesModel::STATUS_FORBIDDEN}checked{/if}> 
+                                    <input type="checkbox" name="variant_sku[{$variant.id}][{$variant_sku.sku_id}]" value="1" {if $variant_sku.status != shopProductServicesModel::STATUS_FORBIDDEN}checked{/if}>
                                     {$variant_sku.name|escape}
                                 </label>
                             </td>
                             <td>
-                                + <input type="text" name="variant_sku_price[{$variant.id}][{$variant_sku.sku_id}]" class="large bold s-price-surplus" 
-                                    placeholder="{if $variant_sku.base_price}{(double)$variant_sku.base_price}{/if}" 
+                                + <input type="text" name="variant_sku_price[{$variant.id}][{$variant_sku.sku_id}]" class="large bold s-price-surplus"
+                                    placeholder="{if $variant_sku.base_price}{(double)$variant_sku.base_price}{/if}"
                                     value="{if $variant_sku.price}{(double)$variant_sku.price}{/if}"
                                   >
                                 <span class="large bold overhanging">
@@ -92,7 +92,7 @@
                         </tr>
                     {/foreach}
                 {/function}
-                
+
                 {if empty($service.variants)}
                     {call variant_row variant=$service}
                 {else}
@@ -100,7 +100,7 @@
                         {call variant_row}
                     {/foreach}
                 {/if}
-            
+
             </table>
             </form>
         </div>

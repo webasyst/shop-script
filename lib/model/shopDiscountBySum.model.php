@@ -1,6 +1,7 @@
 <?php
 /**
  * Stores settings for discount types: by order total and by client's total spent.
+ * `sum` field contains value in shop default currency.
  */
 class shopDiscountBySumModel extends waModel
 {

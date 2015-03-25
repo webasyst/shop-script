@@ -4,25 +4,31 @@ class shopSettingsRecommendationsAction extends waViewAction
 {
     public function execute()
     {
+        // Fetch info about product features
+        $features = $this->getFeaturesData();
+
+        // Fetch info about product types
+        $data = array(); // type_id => list of features
+        $type_values = array(); // list of pairs  [type_id, type_name]
         $type_model = new shopTypeModel();
         $types = $type_model->getAll('id');
-
-        $category_model = new shopCategoryModel();
-        $categories = $category_model->getFullTree('id, name, depth', true);
-
-        $features_model = new shopFeatureModel();
-        $features = $features_model->getAll('id');
-
-        $data = array();
-
-        $type_values = array();
         foreach ($types as $type_id => $type) {
             $type_values[] = array($type_id, $type['name']);
             $data[$type_id]['price'] = array('feature' => 'price');
             $data[$type_id]['type_id'] = array('feature' => 'type_id');
             $data[$type_id]['tag'] = array('feature' => 'tag');
         }
+        unset($type);
 
+        // Pseudo-feature to match by product type
+        $features['type_id'] = array(
+            'name' => _w('Type'),
+            'type' => 'varchar',
+            'selectable' => 1,
+            'values' => $type_values,
+        );
+
+        // Which features are enabled for which types
         $type_features_model = new shopTypeFeaturesModel();
         $rows = $type_features_model->getAll();
         foreach ($rows as $row) {
@@ -30,11 +36,12 @@ class shopSettingsRecommendationsAction extends waViewAction
                 $code = $features[$row['feature_id']]['code'];
                 $data[$row['type_id']][$code] = array(
                     'feature'    => $code,
-                    'feature_id' => $row['feature_id']
+                    'feature_id' => $row['feature_id'],
                 );
             }
         }
 
+        // Which features are set up for upselling for which types
         $type_upselling_model = new shopTypeUpsellingModel();
         $rows = $type_upselling_model->getAll();
         foreach ($rows as $row) {
@@ -42,60 +49,39 @@ class shopSettingsRecommendationsAction extends waViewAction
                 'feature_id' => $row['feature_id'],
                 'feature'    => $row['feature'],
                 'cond'       => $row['cond'],
-                'value'      => $row['value']
+                'value'      => $row['value'],
             );
         }
 
-        foreach ($data as & $row) {
-            $row = array_values($row);
-        }
-        unset($row);
+        // Fetch product categories
+        $category_model = new shopCategoryModel();
+        $categories = $category_model->getFullTree('id, name, depth', true);
 
-        foreach ($types as & $type) {
+        // Prepare stuff for HTML and JS
+        foreach ($types as $type_id => &$type) {
             if ($type['upselling']) {
                 $type['upselling_html'] = self::getConditionHTML($data[$type['id']], $features);
             }
         }
         unset($type);
-
-        $fids = array();
-        foreach ($features as $f_key => $f) {
-            $features[$f_key]['selectable'] = (int)$f['selectable'];
-            $features[$f_key]['multiple'] = (int)$f['multiple'];
-            if ($f['selectable']) {
-                $fids[$f['id']] = $f;
-            }
+        foreach ($data as &$row) {
+            $row = array_values($row);
         }
-
-        if ($fids) {
-            $fids = $features_model->getValues($fids);
-            foreach ($fids as $feature_id => $f) {
-                foreach ($f['values'] as $value_id => $value) {
-                    $features[$feature_id]['values'][] = array($value_id, $value);
-                }
-            }
-            unset($fids);
-        }
-
-        $features['type_id'] = array(
-            'name' => _w('Type'),
-            'type' => 'varchar',
-            'selectable' => 1,
-            'values' => $type_values
-        );
+        unset($row);
 
         $this->view->assign(array(
             'types'      => $types,
             'categories' => $categories,
             'features'   => $features,
-            'data'       => $data
+            'data'       => $data,
         ));
     }
 
     /**
+     * Helper to format upselling condition for HTML.
+     *
      * @param $data
-     * @param array $features строка 1
-     строка 2
+     * @param array $features
      * @return string
      */
     public static function getConditionHTML($data, $features = array())
@@ -176,4 +162,36 @@ class shopSettingsRecommendationsAction extends waViewAction
         return implode('; ', $result);
     }
 
+    protected function getFeaturesData()
+    {
+        $feature_model = new shopFeatureModel();
+        $features = $feature_model->getAll('id');
+
+        $fids = array();
+        foreach($features as &$f) {
+            $f['selectable'] = (int)$f['selectable'];
+            $f['multiple'] = (int)$f['multiple'];
+            if ($f['type'] == shopFeatureModel::TYPE_DIVIDER) {
+                unset($features[$f['id']]);
+            }
+            if ($f['selectable']) {
+                $fids[$f['id']] = $f;
+                $f['values'] = array();
+            }
+        }
+        unset($f);
+
+        // Some features have option names, get them
+        if ($fids) {
+            foreach ($feature_model->getValues($fids) as $feature_id => $f) {
+                foreach ($f['values'] as $value_id => $value) {
+                    $features[$feature_id]['values'][] = array($value_id, $value);
+                }
+            }
+            unset($fids);
+        }
+
+        return $features;
+    }
 }
+

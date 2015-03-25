@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Note: shop_service.price is stored in shop primary currency, not shop_service.currency!
+ */
 class shopServiceModel extends waModel
 {
     protected $table = 'shop_service';
@@ -99,7 +101,7 @@ class shopServiceModel extends waModel
     {
         $add = array();
         $update = array();
-        
+
         $variants_model = new shopServiceVariantsModel();
         $products_model = new shopProductServicesModel();
 
@@ -118,7 +120,7 @@ class shopServiceModel extends waModel
                 unset($old_variants[$variant_id]);
             }
         }
-        
+
         $default_id = null;
         foreach ($add as $item) {
             $added_id = $variants_model->insert($item);
@@ -150,7 +152,7 @@ class shopServiceModel extends waModel
         $this->updateById($service_id, array(
             'variant_id' => $default_id
         ));
-        
+
         return array_keys($variants_model->getByField('service_id', $service_id, 'id'));
     }
 
@@ -231,7 +233,7 @@ class shopServiceModel extends waModel
          */
     }
 
-    public function getTop($limit, $start_date = null, $end_date = null)
+    public function getTop($limit, $start_date = null, $end_date = null, $options=array())
     {
         $paid_date_sql = array();
         if ($start_date) {
@@ -249,6 +251,15 @@ class shopServiceModel extends waModel
         $limit = (int) $limit;
         $limit = ifempty($limit, 10);
 
+        $storefront_join = '';
+        $storefront_where = '';
+        if (!empty($options['storefront'])) {
+            $storefront_join = "JOIN shop_order_params AS op2
+                                    ON op2.order_id=o.id
+                                        AND op2.name='storefront'";
+            $storefront_where = "AND op2.value='".$this->escape($options['storefront'])."'";
+        }
+
         $sql = "SELECT
                     s.*,
                     SUM(oi.price*o.rate*oi.quantity) AS total
@@ -257,8 +268,10 @@ class shopServiceModel extends waModel
                         ON oi.order_id=o.id
                     JOIN shop_service AS s
                         ON oi.service_id=s.id
+                    {$storefront_join}
                 WHERE $paid_date_sql
                     AND oi.type = 'service'
+                    {$storefront_where}
                 GROUP BY s.id
                 ORDER BY total DESC
                 LIMIT $limit";
@@ -270,7 +283,7 @@ class shopServiceModel extends waModel
     {
         return $this->query("SELECT * FROM `{$this->table}` ORDER BY sort")->fetchAll($key, $normalize);
     }
-    
+
     public function move($id, $before_id = null)
     {
         $id = (int) $id;

@@ -178,7 +178,7 @@ if (typeof($) != 'undefined') {
 
         paymentPlugins: function () {
             $('#s-settings-content #s-settings-payment').hide();
-            var url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/payment&return_hash=/payment/';
+            var url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/payment&return_hash=/payment/plugin/add/%plugin_id%/';
             $('#s-settings-payment-setup').show().html(this.payment_options.loading).load(url);
         },
 

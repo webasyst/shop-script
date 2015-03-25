@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  * @author Webasyst
@@ -59,7 +60,7 @@ class shopCategoryModel extends waNestedSetModel
      * @param int $id
      * @param int $depth related depth default is unlimited
      * @param bool $escape
-     * @param array $where
+     * @param array $route
      * @return array
      */
     public function getTree($id, $depth = null, $escape = false, $route = null)
@@ -67,8 +68,8 @@ class shopCategoryModel extends waNestedSetModel
         $where = array();
         if ($id) {
             $parent = $this->getById($id);
-            $left  = (int) $parent[$this->left];
-            $right = (int) $parent[$this->right];
+            $left = (int)$parent[$this->left];
+            $right = (int)$parent[$this->right];
         } else {
             $left = $right = 0;
         }
@@ -86,7 +87,7 @@ class shopCategoryModel extends waNestedSetModel
             }
             if ($depth !== null) {
                 $depth = max(0, intval($depth));
-                if ($id && $parent) {
+                if ($id && !empty($parent)) {
                     $depth += (int)$parent[$this->depth];
                 }
                 $where[] = "c.`{$this->depth}` <= i:depth";
@@ -94,10 +95,10 @@ class shopCategoryModel extends waNestedSetModel
             if ($route) {
                 $sql .= " LEFT JOIN shop_category_routes cr ON c.id = cr.category_id";
                 $where[] = "c.status = 1";
-                $where[] = "cr.route IS NULL OR cr.route = '" . $this->escape($route) . "'";
+                $where[] = "cr.route IS NULL OR cr.route = '".$this->escape($route)."'";
             }
             if ($where) {
-                $sql .= " WHERE (" . implode(') AND (', $where) . ')';
+                $sql .= " WHERE (".implode(') AND (', $where).')';
             }
             $sql .= " ORDER BY c.`{$this->left}`";
 
@@ -118,7 +119,7 @@ class shopCategoryModel extends waNestedSetModel
 
     public function getTotalProductsCount($id = 0, $static_only = true)
     {
-        $id = (int) $id;
+        $id = (int)$id;
 
         $where = array();
         if ($static_only) {
@@ -156,16 +157,16 @@ class shopCategoryModel extends waNestedSetModel
             $where .= " AND status = 1";
             if (is_string($public_only)) {
                 $sql .= " LEFT JOIN shop_category_routes cr ON c.id = cr.category_id";
-                $where .= " AND (route IS NULL OR route = '".$this->escape($public_only)."')";
+                $where .= " AND (cr.route IS NULL OR cr.route = '".$this->escape($public_only)."')";
             }
         }
         $sql .= ' WHERE '.$where;
         $sql .= " ORDER BY `{$this->left}`";
 
         return $this->query($sql, array(
-                'left' => $category[$this->left],
-                'right' => $category[$this->right],
-                'depth'=> $category[$this->depth] + 1
+            'left'  => $category[$this->left],
+            'right' => $category[$this->right],
+            'depth' => $category[$this->depth] + 1
         ))->fetchAll($this->id);
     }
 
@@ -187,35 +188,35 @@ class shopCategoryModel extends waNestedSetModel
         $element = $this->getById($id);
         $old_parent_id = $element[$this->parent];
         $parent = $this->getById($parent_id);
-        
+
         if ($parent && $parent['type'] == self::TYPE_DYNAMIC && $element['type'] == self::TYPE_STATIC) {
             return false;
         }
-        
+
         if (!parent::move($id, $parent_id, $before_id)) {
             return false;
         }
-        
+
         // change url taking into account uniqueness of urls in one level
         $element['url'] = $this->suggestUniqueUrl($element['url'], $id, $parent ? $parent[$this->id] : 0);
         $this->updateById($id, array(
             'url' => $element['url']
         ));
-        
+
         if (!$parent && $old_parent_id != 0) {
-            
+
             $this->updateById($id, array('full_url' => $element['url']));
             $this->correctFullUrlOfDescendants($id, $element['url']);
-            
+
         } elseif ($parent && $old_parent_id != $parent['id']) {
-            
+
             $full_url = $this->fullUrl($parent['full_url'], $element['url']);
             $this->updateById($id, array('full_url' => $full_url));
             $this->correctFullUrlOfDescendants($id, $full_url);
-            
+
         }
         $this->clearCache();
-        
+
         return true;
     }
 
@@ -227,7 +228,7 @@ class shopCategoryModel extends waNestedSetModel
             return false;
         }
         $parent_id = (int)$item['parent_id'];
-        
+
         /**
          * @event category_delete
          */
@@ -237,12 +238,11 @@ class shopCategoryModel extends waNestedSetModel
         // it's necessary to ensure uniqueness urls of descendants in new environment (new parent)
         foreach (
             $this->descendants($item, false)->order("`{$this->depth}`, `{$this->left}`")->query()
-            as $child)
-        {
+            as $child) {
             $url = $this->suggestUniqueUrl($child['url'], $child['id'], $parent_id);
             if ($url != $child['url']) {
                 $this->updateById($child['id'], array(
-                    'url' => $url,
+                    'url'      => $url,
                     'full_url' => $this->fullUrl($item['full_url'], $child['url'])
                 ));
             }
@@ -255,11 +255,11 @@ class shopCategoryModel extends waNestedSetModel
             $parent = $this->getById($parent_id);
             $this->correctFullUrlOfDescendants($item, $parent['full_url']);
         }
-        
+
         if (!parent::delete($id)) {
             return false;
         }
-        
+
         // delete related info
         $category_params_model = new shopCategoryParamsModel();
         $category_params_model->clear($id);
@@ -275,9 +275,9 @@ class shopCategoryModel extends waNestedSetModel
         $this->clearCache();
 
         return true;
-        
+
     }
-    
+
     /**
      * Insert new item to on some level (parent)
      * @param array $data
@@ -301,7 +301,7 @@ class shopCategoryModel extends waNestedSetModel
         }
 
         $before_id = null;
-        
+
         if (!$parent_id) {
             $before_id = $this->query(
                 "SELECT id FROM `{$this->table}` ORDER BY `{$this->left}` LIMIT 1"
@@ -319,7 +319,7 @@ class shopCategoryModel extends waNestedSetModel
                 return false;
             }
             $before_id = $this->query("
-            SELECT id FROM `{$this->table}` WHERE parent_id = i:parent_id 
+            SELECT id FROM `{$this->table}` WHERE parent_id = i:parent_id
             ORDER BY `{$this->left}` LIMIT 1
         ", array('parent_id' => $parent_id)
             )->fetchField('id');
@@ -470,8 +470,7 @@ class shopCategoryModel extends waNestedSetModel
 
         foreach (
             $this->descendants($parent, false)->order("`{$this->depth}`, `{$this->left}`")->query()
-            as $item)
-        {
+            as $item) {
             $parent_full_url = $parent_full_url_map[$item[$this->parent]];
             $full_url = $this->fullUrl($parent_full_url, $item['url']);
             $parent_full_url_map[$item['id']] = $full_url;
@@ -518,7 +517,7 @@ class shopCategoryModel extends waNestedSetModel
         return $query;
     }
 
-    public function getFrontendUrls($id)
+    public function getFrontendUrls($id, $show_private = false)
     {
         $category = $this->getById($id);
         if (!$category) {
@@ -529,24 +528,25 @@ class shopCategoryModel extends waNestedSetModel
 
         $frontend_urls = array();
 
-        $routing =  wa()->getRouting();
+        $routing = wa()->getRouting();
         $domain_routes = $routing->getByApp('shop');
         foreach ($domain_routes as $domain => $routes) {
             foreach ($routes as $r) {
-                if (!empty($r['private'])) {
+                if (!empty($r['private']) && !$show_private) {
                     continue;
                 }
                 if (!$category['routes'] || in_array($domain.'/'.$r['url'], $category['routes'])) {
                     $routing->setRoute($r, $domain);
                     $frontend_urls[] = $routing->getUrl('shop/frontend/category', array(
-                        'category_url' => isset($r['url_type']) && ($r['url_type'] == 1) ? $category['url'] : $category['full_url']),
+                        'category_url' => isset($r['url_type']) && ($r['url_type'] == 1) ? $category['url'] : $category['full_url']
+                    ),
                         true);
                 }
             }
         }
         return $frontend_urls;
     }
-    
+
     public function recount($category_id = null)
     {
         $cond = "
@@ -592,4 +592,149 @@ class shopCategoryModel extends waNestedSetModel
         $subtree[$this->right] = $key + 1;
         return $key + 1;
     }
+
+    public function sortTree($update = false, $callback = null, $fields = null)
+    {
+        if (!$callback) {
+            $callback = array($this, 'sortCallback');
+        } elseif (!is_callable($callback)) {
+            throw new waException('Invalid category sort callback');
+        }
+
+        $fields = array_merge(
+            (array)$fields,
+            array(
+                $this->id,
+                $this->left,
+                $this->right,
+                $this->depth,
+                $this->parent,
+                'name',
+            )
+        );
+
+        $tree = $this->getFullTree(implode(',', $fields));
+
+        $max_depth = 0;
+        foreach ($tree as $id => $item) {
+            if ($item[$this->depth] > $max_depth) {
+                $max_depth = $item[$this->depth];
+            }
+        }
+        for ($depth = 0; $depth <= $max_depth; $depth++) {
+
+            $context = null;
+            $keys = array();
+            $offsets = array_flip(array_keys($tree));
+            $offset = null;
+            $data = array();
+            foreach ($tree as $id => $item) {
+                if ($item[$this->depth] == $depth) {
+                    if ($context === null) {
+                        $context = $item[$this->parent];
+                    } elseif ($item[$this->parent] != $context) {
+                        if ($keys) {
+                            $this->sortSubtree($data, $keys, $tree, $offsets, $callback);
+                        }
+                        $context = $item[$this->parent];
+
+                    }
+                    $keys[$id] = $item;
+                } elseif ($item[$this->depth] < $depth) {
+
+                    if ($keys) {
+                        $this->sortSubtree($data, $keys, $tree, $offsets, $callback);
+                    }
+                    $context = null;
+                    $data += array($id => $item);
+                }
+            }
+            if ($keys) {
+                $this->sortSubtree($data, $keys, $tree, $offsets, $callback);
+            }
+
+            $tree = $data;
+        }
+
+        if ($update) {
+            foreach ($tree as $id => $item) {
+                $this->updateById(
+                    $id,
+                    array(
+                        $this->left  => $item[$this->left],
+                        $this->right => $item[$this->right],
+                    )
+                );
+            }
+            $this->clearCache();
+        }
+
+        return $tree;
+    }
+
+    private function sortSetOffset(&$item, $data)
+    {
+        if ($end = end($data)) {
+            if (($end[$this->depth] != $item[$this->depth]) && ($end[$this->right] - $end[$this->left] > 1)) {
+                $offset = 1 + $end[$this->left] - $item[$this->left];
+            } else {
+                $offset = 1 + $end[$this->right] - $item[$this->left];
+            }
+
+        } else {
+            $offset = 1 - $item[$this->left];
+        }
+        $item[$this->left] += $offset;
+        $item[$this->right] += $offset;
+        unset($item);
+        return $offset;
+    }
+
+    private function sortSubtree(&$data, &$keys, $tree, $offsets, $callback)
+    {
+        uasort($keys, $callback);
+        $sub = array();
+        foreach ($keys as $id => $item) {
+            $offset = $this->sortSetOffset($item, $data);
+            $data += $sub;
+            $data += array(
+                $id => $item,
+            );
+            $length = ($item[$this->right] - $item[$this->left] - 1) / 2;
+            $sub = array();
+            if ($length > 0) {
+
+                $sub = array_slice($tree, $offsets[$id] + 1, $length, true);
+                foreach ($sub as &$sub_item) {
+                    $sub_item[$this->left] += $offset;
+                    $sub_item[$this->right] += $offset;
+
+
+                }
+                unset($sub_item);
+            }
+        }
+        $data += $sub;
+        $keys = array();
+    }
+
+
+    private function sortCallback($a, $b)
+    {
+        return strcasecmp($a['name'], $b['name']);
+    }
+
+    public static function getDefaultMetaTitle($category)
+    {
+        return htmlspecialchars(ifempty($category['name'], ''));
+    }
+
+    public static function getDefaultMetaKeywords($category)
+    {
+        return implode(', ', array(
+            htmlspecialchars(ifempty($category['name'], '')),
+            wa()->accountName()
+        ));
+    }
+
 }

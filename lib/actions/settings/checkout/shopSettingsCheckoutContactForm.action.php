@@ -21,12 +21,25 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
         // Allow to disable name field in form, despite that it is normally required.
         $fields_unsorted['name'] = clone $fields_unsorted['name'];
         $fields_unsorted['name']->setParameter('required', false);
+
+        // Ignore hidden subfields of an address. Pretend they don't even exist.
+        $subfields = array();
+        $fields_unsorted['address'] = clone $fields_unsorted['address'];
+        foreach($fields_unsorted['address']->getFields() as $sf) {
+            if (!$sf instanceof waContactHiddenField) {
+                $subfields[$sf->getId()] = $sf;
+            }
+        }
+        $fields_unsorted['address']->setParameter('fields', $subfields);
+        unset($subfields);
+
+        // Clone billing and shipping from main address
         $fields_unsorted['address.billing'] = clone $fields_unsorted['address'];
         $fields_unsorted['address.billing']->setParameter('localized_names', _w('Billing address'));
         $fields_unsorted['address.shipping'] = clone $fields_unsorted['address'];
         $fields_unsorted['address.shipping']->setParameter('localized_names', _w('Shipping address'));
 
-        // Load config parameters into cloned fields
+        // Clone contact field objects and load shop config parameters into them
         $fields = array();
         $config_fields = ifempty($config['fields'], array());
         foreach($config_fields as $fld_id => $opts) {
@@ -42,44 +55,36 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
             if (empty($fields_unsorted[$real_fld_id]) || !($fields_unsorted[$real_fld_id] instanceof waContactField) || !is_array($opts)) {
                 continue;
             }
+
+            // Clone the field
             $fields[$fld_id] = clone $fields_unsorted[$real_fld_id];
+
+            // Load shop config parameters into cloned field
             foreach($opts as $k => $v) {
+
+                // Clone subfields of a composite field
                 if ($fields[$fld_id] instanceof waContactCompositeField && $k == 'fields') {
-                    if (is_array($v)) {
-                        $cloned_subfields = $v;
-                        $unknown_subfields = array();
-                        foreach ($cloned_subfields as $sf_id => $sf) {
-                            $unknown_subfields[$sf_id] = true;
-                        }
-                        foreach($fields[$fld_id]->getFields() as $sf) {
-                            $sf = clone $sf;
+                    $cloned_subfields = array();
+                    foreach($fields[$fld_id]->getFields() as $sf) {
+                        $sf = clone $sf;
+                        $cloned_subfields[$sf->getId()] = $sf;
+                        if (is_array($v)) {
                             $o = ifset($v[$sf->getId()]);
-                            if (isset($unknown_subfields[$sf->getId()])) {
-                                unset($unknown_subfields[$sf->getId()]);
-                            }
                             if ($o && is_array($o) && empty($o['hidden'])) {
                                 $sf->setParameters($o);
-                                $cloned_subfields[$sf->getId()] = $sf;
                             } else {
-                                if (isset($cloned_subfields[$sf->getId()])) {
-                                    unset($cloned_subfields[$sf->getId()]);
-                                }
                                 $sf->setParameter('_disabled', true);
-                                $cloned_subfields[] = $sf;
                             }
                         }
-                        foreach ($unknown_subfields as $sf_id => $flag) {
-                            unset($cloned_subfields[$sf_id]);
-                        }
-                        $fields[$fld_id]->setParameter('fields', $cloned_subfields);
                     }
-                } else {
-                    $fields[$fld_id]->setParameter($k, $v);
+                    $v = $cloned_subfields;
                 }
+
+                $fields[$fld_id]->setParameter($k, $v);
             }
         }
 
-        // Add to $fields everything that were not specified in config.
+        // Add to $fields everything that were not specified in shop config
         foreach($fields_unsorted as $fld_id => $f) {
             if (empty($fields[$fld_id])) {
                 $fields[$fld_id] = clone $f;

@@ -1,65 +1,34 @@
 (function($) {
     $.product_stocks_log = {
-        
+
         /**
          * Number
          */
         product_id: null,
-        
+
         /**
          * Jquery object
          */
         container: null,
-        
+
         /**
          * Object
          */
         options: {},
-        
+
         init: function(options) {
             this.options = options;
-            this.container = $('#s-product-edit-forms .s-product-form.stockslog');
-            if (this.options.total_count) {
-                $('#s-product-edit-menu .stocks-log .hint').text(this.options.total_count);
+            if (options.container) {
+                this.container = $(options.container);
+            } else {
+                this.container = $('body');
             }
-            
-            $('#s-product-edit-menu .stocks-log').addClass('selected');
-            
+
             if (this.options.lazy_loading) {
                 this.initLazyLoad(this.options.lazy_loading);
             }
-            
-            var that = this;
-            $.product.editTabStockslogAction = function(path) {
-                if (!that.product_id) {
-                    that.product_id = path.id;
-                    return;
-                }
-                var url = '?module=product&action=stocksLog&id=' + path.id;
-                if (path.tail) {
-                    url += '&param[]=' + path.tail.split('/').join('&param[]=');
-                }
-                
-                var r = Math.random();
-                $.product.ajax.random = r;
-                $.get(url, path.params || {}, function(html) {
-                    // too late: user clicked something else.
-                    if ($.product.ajax.random != r) {
-                        return;
-                    }
-                    that.container.empty().append(html);
-                });
-                
-            };
-            
-            $.product.editTabStockslogBlur = function() {
-                if (that.options.lazy_loading) {
-                    $(window).lazyLoad('stop');
-                }
-            };
-            
         },
-        
+
         initLazyLoad: function(options) {
             var count = options.count;
             var offset = count;
@@ -74,6 +43,18 @@
                     container: self.container,
                     state: (typeof options.auto === 'undefined' ? true : options.auto) ? 'wake' : 'stop',
                     load: function() {
+
+                        if (!self.container.is(':visible')) {
+                            $(window).lazyLoad('sleep');
+                            var timer_id = setInterval(function() {
+                                if (self.container.is(':visible')) {
+                                    $(window).lazyLoad('wake');
+                                    clearInterval(timer_id);
+                                }
+                            }, 500);
+                            return;
+                        }
+
                         $(window).lazyLoad('sleep');
                         $('.lazyloading-link').hide();
                         $('.lazyloading-progress').show();
@@ -96,7 +77,7 @@
                                 $(window).lazyLoad('stop');
                                 $('.lazyloading-progress').hide();
                             }
-                            
+
                             $('.lazyloading-progress-string', self.container).
                                     replaceWith(
                                         $('.lazyloading-progress-string', html)
@@ -105,7 +86,7 @@
                                     replaceWith(
                                         $('.lazyloading-chunk', html)
                                     );
-                                        
+
                             html.remove();
 
                         });

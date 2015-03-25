@@ -25,7 +25,7 @@
 
     var onCollapse = function(el, func) {
         var context = getContext(el);
-        if (context.parent.attr('data-type') == 'category') {
+        if (context.parent.attr('data-type') == 'category' && !context.parent.hasClass('dynamic')) {
             context.parent.trigger('count_subtree', true);
         }
         el.removeClass('darr').addClass('rarr');
@@ -98,7 +98,7 @@
                 } else {
                     if (typeof afterExpandFunc === 'function') {
                         afterExpandFunc();
-                    }                    
+                    }
                 }
             }
         );
@@ -107,16 +107,20 @@
     $.categories_tree = {
 
         init: function() {
-            $('#s-sidebar').off('click', '.collapse-handler-ajax').on('click', '.collapse-handler-ajax',
-                function() {
-                    var self = $(this);
-                    if (self.hasClass('darr')) {
-                        collapse(self);
-                    } else {
-                        expand(self);
-                    }
+            $('#s-category-list-block').off('click', '.collapse-handler-ajax').on('click', '.collapse-handler-ajax', function() {
+                var self = $(this);
+                if (self.hasClass('darr')) {
+                    collapse(self);
+                } else {
+                    expand(self);
                 }
-            );
+            });
+            $('#s-category-list-block .heading').off('click').click(function(e) {
+                var $collapse_handler = $(this).find('.collapse-handler-ajax');
+                if (!$collapse_handler.is(e.target)) {
+                    $collapse_handler.click();
+                }
+            });
         },
 
         collapse: function(handler, func) {
@@ -141,7 +145,7 @@
                 }
             }
         },
-                
+
         isCollapsed: function(handler) {
             return $(handler).hasClass('rarr');
         },

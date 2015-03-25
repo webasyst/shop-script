@@ -23,6 +23,23 @@ class shopNotificationModel extends waModel
         }
         return $data;
     }
+
+    public function getActionTransportsBySource($source)
+    {
+        $sql = "SELECT n.* FROM ".$this->table." n
+                JOIN shop_notification_params np ON n.id = np.notification_id
+                WHERE n.status = 1 AND (n.source IS NULL OR n.source = s:0) AND np.name = 'to' AND np.value = 'customer'";
+        $rows = $this->query($sql, $source);
+
+        $result = array();
+        foreach ($rows as $row) {
+            if (substr($row['event'], 0, 6) == 'order.') {
+                $action = substr($row['event'], 6);
+                $result[$action][$row['transport']] = 1;
+            }
+        }
+        return $result;
+    }
     
     public function getOne($id)
     {

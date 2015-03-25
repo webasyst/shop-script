@@ -3,11 +3,6 @@ class shopBackendProductsAction extends waViewAction
 {
     public function execute()
     {
-
-        if (!$this->getUser()->isAdmin('shop') && !wa()->getUser()->getRights('shop', 'type.%')) {
-            throw new waRightsException('Access denied');
-        }
-
         $this->setLayout(new shopBackendLayout());
 
         $this->getResponse()->setTitle(_w('Products'));
@@ -27,6 +22,8 @@ class shopBackendProductsAction extends waViewAction
             $this->view->assign('types', false);
         }
 
+        $this->view->assign('products_rights', $this->getUser()->isAdmin('shop') || $this->getUser()->getRights('shop', 'type.%'));
+
         $product_model = new shopProductModel();
         $this->view->assign('count_all', $product_model->countAll());
 
@@ -42,6 +39,9 @@ class shopBackendProductsAction extends waViewAction
         $config = $this->getConfig();
         $this->view->assign('default_view', $config->getOption('products_default_view'));
 
+        $promos_model = new shopPromoModel();
+        $this->view->assign('count_promos', $promos_model->countAll());
+
         /*
          * @event backend_products
          * @return array[string]array $return[%plugin_id%] array of html output
@@ -51,7 +51,7 @@ class shopBackendProductsAction extends waViewAction
         $this->view->assign('backend_products', wa()->event('backend_products'));
 
         $this->view->assign('sidebar_width', $config->getSidebarWidth());
-        
+
         $this->view->assign('lang', substr(wa()->getLocale(), 0, 2));
     }
 }

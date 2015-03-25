@@ -1,4 +1,5 @@
 <?php
+
 class shopImportexportHelper
 {
 
@@ -67,7 +68,7 @@ class shopImportexportHelper
     {
         $id = $this->getId($id);
         if ($id <= 0) {
-            $name = wa()->getConfig()->getGeneralSettings('name');
+            $name = wa('shop')->getConfig()->getGeneralSettings('name');
             if (!$name) {
                 $name = date('c');
             }
@@ -97,10 +98,10 @@ class shopImportexportHelper
         return $id;
     }
 
-    public function addConfig($name = '', $description = '')
+    public function addConfig($name = '', $description = '', $config = array())
     {
         if (empty($name)) {
-            $name = wa()->getConfig()->getGeneralSettings('name');
+            $name = wa('shop')->getConfig()->getGeneralSettings('name');
             if (!$name) {
                 $name = date('c');
             }
@@ -109,6 +110,7 @@ class shopImportexportHelper
             'plugin'      => $this->plugin,
             'name'        => $name,
             'description' => $description,
+            'config'      => json_encode($config),
         );
 
         return $this->model->insert($data);
@@ -135,26 +137,59 @@ class shopImportexportHelper
     }
 
     /**
-     * @return array
+     * @param string $hash
+     * @return string[]
      */
-    public static function getCollectionHash()
+    public static function getCollectionHash($hash = null)
     {
-        $hash = waRequest::post('hash');
+        if ($hash === null) {
+            $hash = waRequest::post('hash', waRequest::TYPE_STRING_TRIM, '');
+        }
+        $raw = explode('/', $hash);
+
         $info = array(
-            'type' => $hash,
+            'type' => array_shift($raw),
+            'name' => wa('shop')->getConfig()->getGeneralSettings('name'),
+
         );
-        switch ($hash) {
+        if (!$info['name']) {
+            $info['name'] = date('c');
+        }
+        $tail = implode('/', $raw);
+        switch ($info['type']) {
             case 'id':
-                $hash = 'id/'.waRequest::post('product_ids');
+                $hash = 'id/'.waRequest::post('product_ids', $tail, waRequest::TYPE_STRING_TRIM);
                 break;
             case 'set':
-                $hash = 'set/'.waRequest::post('set_id', waRequest::TYPE_STRING_TRIM);
+                $set_id = waRequest::post('set_id', $tail, waRequest::TYPE_STRING_TRIM);
+                $hash = 'set/'.$set_id;
+                $model = new shopSetModel();
+                if ($set = $model->getById($set_id)) {
+                    $info['name'] .= ' - '.$set['name'];
+                }
                 break;
             case 'type':
-                $hash = 'type/'.waRequest::post('type_id', waRequest::TYPE_INT);
+                $type_id = waRequest::post('type_id', $tail, waRequest::TYPE_INT);
+                $hash = 'type/'.$type_id;
+                $model = new shopTypeModel();
+                if ($type = $model->getById($type_id)) {
+                    $info['name'] .= ' - '.$type['name'];
+                }
                 break;
             case 'category':
-                $hash = 'category/'.waRequest::post('category_ids', waRequest::TYPE_INT);
+                $category_id = waRequest::post('category_ids', $tail, waRequest::TYPE_INT);
+                $model = new shopCategoryModel();
+                if ($category = $model->getById($category_id)) {
+                    $info['name'] .= ' - '.$category['name'];
+                }
+                $hash = 'category/'.$category_id;
+                break;
+            case 'tag':
+            case 'search':
+                $collection = new shopProductsCollection($info['type'].'/'.urldecode($tail));
+                $products = $collection->getProducts('id,name,url');
+                $info['type'] = 'id';
+                $hash = 'id/'.implode(',', array_keys($products));
                 break;
             default:
                 $hash = '*';
@@ -164,12 +199,13 @@ class shopImportexportHelper
         return $info;
     }
 
-    public static function parseHash($hash)
+    public static function parseHash($hash, $params = array())
     {
         $info = array(
             'type'    => '',
             'set_id'  => '',
-            'type_id' => ''
+            'type_id' => '',
+            'data'    => array(),
         );
         if (strpos($hash, '/')) {
             list($info['type'], $hash) = explode('/', $hash, 2);
@@ -196,6 +232,61 @@ class shopImportexportHelper
             default:
                 $info['hash'] = '';
                 break;
+        }
+        if (!empty($params['categories']) || true) {
+            $model = new shopCategoryModel();
+            $categories = $model->getTree(null, 0);
+            foreach ($categories as $id => $category) {
+                if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
+                    unset($categories[$id]);
+                }
+            }
+
+            $map = array();
+            foreach ($categories as &$category) {
+                $map[$category['id']] = &$category;
+            }
+            unset($category);
+
+            $category_id = explode(',', ifset($info['category_ids'], ''));
+            foreach ($category_id as $id) {
+                if (isset($map[$id])) {
+                    $map[$id]['selected'] = 'selected';
+                }
+            }
+            $category_id = array_diff($category_id, array_keys($categories));
+            foreach ($model->getById($category_id) as $category) {
+                $map[$category['id']] = &$category;
+                if (isset($map[$category['parent_id']])) {
+                    if (!isset($map['childs'])) {
+                        $map['childs'] = array();
+                    }
+
+                    $map[$category['parent_id']]['childs'][$category['id']] = &$category;
+                } else {
+                    $path = $model->getPath($category['id']);
+                    while ($path_category = array_shift($path)) {
+                        $path_category['childs'][$category['id']] = &$category;
+                        unset($category);
+                        $category = $path_category;
+                        $map[$category['id']] = &$category;
+
+                        if (isset($map[$category['parent_id']])) {
+                            $map[$category['parent_id']]['childs'][$category['id']] = &$category;
+                            unset($category);
+                            break;
+                        }
+
+                    }
+                }
+            }
+            foreach ($category_id as $id) {
+                if (isset($map[$id])) {
+                    $map[$id]['selected'] = 'selected';
+                }
+            }
+
+            $info['data']['categories'] = $categories;
         }
         return $info;
     }

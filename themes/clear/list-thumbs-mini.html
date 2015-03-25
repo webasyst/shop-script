@@ -47,7 +47,7 @@
 </ul>
 
 {if isset($pages_count) && $pages_count > 1}
-<div class="block lazyloading-paging">
+<div class="block lazyloading-paging" data-loading-str="[`Loading...`]">
     {wa_pagination total=$pages_count attrs=['class' => "menu-h"]}
 </div>
 {/if}

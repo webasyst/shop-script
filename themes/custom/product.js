@@ -36,7 +36,11 @@ function Product(form, options) {
         self.updateSkuServices(sku_id);
         self.updatePrice();
     });
-    this.form.find(".skus input[type=radio]:checked").click();
+    var $initial_cb = this.form.find(".skus input[type=radio]:checked:not(:disabled)");
+    if (!$initial_cb.length) {
+        $initial_cb = this.form.find(".skus input[type=radio]:not(:disabled):first").prop('checked', true).click();
+    }
+    $initial_cb.click();
 
     this.form.find("select.sku-feature").change(function () {
         var key = "";

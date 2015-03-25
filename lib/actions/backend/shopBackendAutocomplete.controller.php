@@ -138,6 +138,7 @@ class shopBackendAutocompleteController extends waController
         $currency = wa()->getConfig()->getCurrency();
         foreach ($products as &$p) {
             $p['price_str'] = wa_currency($p['price'], $currency);
+            $p['price_html'] = wa_currency_html($p['price'], $currency);
         }
         unset($p);
 
@@ -188,7 +189,7 @@ class shopBackendAutocompleteController extends waController
         // 2. email, phone, firstname, lastname, name
         // 3. product, sku
 
-        $limit = 3;
+        $limit = 5;
 
         // first, assume $q is encoded $order_id, so decode
         $dq = shopHelper::decodeOrderId($q);
@@ -227,8 +228,17 @@ class shopBackendAutocompleteController extends waController
             $p['label'] .= ' '.shopHelper::getStockCountIcon($p['count'], null, true);
         }
 
-        $data = array_merge($orders, $contacts, $products);
-        return $data;
+        return array_merge(
+                $orders,
+                $contacts,
+                $products,
+                $this->couponAutocomplete($q, $limit),
+                $this->pluginMethodsAutocomplete($q, 'shipping', $limit),
+                $this->pluginMethodsAutocomplete($q, 'payment', $limit),
+                $this->cityAutocomplete($q, $limit),
+                $this->regionAutocomplete($q, $limit),
+                $this->countryAutocomplete($q, $limit)
+        );
 
     }
 
@@ -268,13 +278,13 @@ class shopBackendAutocompleteController extends waController
         $sqls = array();
 
         // Name starts with requested string
-        $sqls[] = "SELECT c.id, c.name
+        $sqls[] = "SELECT c.id, c.name, c.firstname, c.middlename, c.lastname
                    FROM wa_contact AS c
                    WHERE c.name LIKE '".$m->escape($q, 'like')."%'
                    LIMIT {LIMIT}";
 
         // Email starts with requested string
-        $sqls[] = "SELECT c.id, c.name, e.email
+        $sqls[] = "SELECT c.id, c.name, e.email, c.firstname, c.middlename, c.lastname
                    FROM wa_contact AS c
                        JOIN wa_contact_emails AS e
                            ON e.contact_id=c.id
@@ -284,7 +294,7 @@ class shopBackendAutocompleteController extends waController
         // Phone contains requested string
         if (preg_match('~^[wp0-9\-\+\#\*\(\)\. ]+$~', $q)) {
             $dq = preg_replace("/[^\d]+/", '', $q);
-            $sqls[] = "SELECT c.id, c.name, d.value as phone
+            $sqls[] = "SELECT c.id, c.name, d.value as phone, c.firstname, c.middlename, c.lastname
                        FROM wa_contact AS c
                            JOIN wa_contact_data AS d
                                ON d.contact_id=c.id AND d.field='phone'
@@ -293,13 +303,13 @@ class shopBackendAutocompleteController extends waController
         }
 
         // Name contains requested string
-        $sqls[] = "SELECT c.id, c.name
+        $sqls[] = "SELECT c.id, c.name, c.firstname, c.middlename, c.lastname
                    FROM wa_contact AS c
                    WHERE c.name LIKE '_%".$m->escape($q, 'like')."%'
                    LIMIT {LIMIT}";
 
         // Email contains requested string
-        $sqls[] = "SELECT c.id, c.name, e.email
+        $sqls[] = "SELECT c.id, c.name, e.email, c.firstname, c.middlename, c.lastname
                    FROM wa_contact AS c
                        JOIN wa_contact_emails AS e
                            ON e.contact_id=c.id
@@ -315,6 +325,9 @@ class shopBackendAutocompleteController extends waController
             }
             foreach($m->query(str_replace('{LIMIT}', $limit, $sql)) as $c) {
                 if (empty($result[$c['id']])) {
+                    if (!empty($c['firstname']) || !empty($c['middlename']) || !empty($c['lastname'])) {
+                        $c['name'] = waContactNameField::formatName($c);
+                    }
                     $name = $this->prepare($c['name'], $term_safe);
                     $email = $this->prepare(ifset($c['email'], ''), $term_safe);
                     $phone = $this->prepare(ifset($c['phone'], ''), $term_safe);
@@ -412,27 +425,143 @@ SQL;
     }
 
     // Helper for contactsAutocomplete()
-    protected function prepare($str, $term_safe)
+    protected function prepare($str, $term_safe, $escape = true)
     {
-        return preg_replace('~('.preg_quote($term_safe, '~').')~ui', '<span class="bold highlighted">\1</span>', htmlspecialchars($str));
+        return preg_replace('~('.preg_quote($term_safe, '~').')~ui', '<span class="bold highlighted">\1</span>',
+                    $escape ? htmlspecialchars($str) : $str);
+    }
+
+    protected function match($str, $term_safe, $escape = true)
+    {
+        return preg_match('~('.preg_quote($term_safe, '~').')~ui',
+                    $escape ? htmlspecialchars($str) : $str);
     }
 
     public function customersAutocomplete($q)
     {
-        $scm = new shopCustomerModel();
         $result = array();
-        list($list, $total) = $scm->getList(null, $q, 0, $this->limit);
+        $hashes = array();
+
+        if (preg_match('~^\+*[0-9\s\-\(\)]+$~', $q)) {
+            $hashes['phone'] = 'search/phone*=' . ltrim($q, '+');
+        } else {
+            $hashes['email|name'] = 'search/email|name*=' . $q;
+//            $hashes['shipping_name'] = 'search/order_params.shipping_name*=' . $q;
+//            $hashes['billing_name'] = 'search/order_params.billing_name*=' . $q;
+//            $hashes['coupon'] = 'search/coupon*=' . $q;
+            $hashes['city'] = 'search/address:city*=' . $q;
+            $hashes['region'] = 'search/address:region*=' . $q;
+            $hashes['country'] = 'search/address:country*=' . $q;
+        }
+
+        $used_hash = array_fill_keys(array_keys($hashes), false);
+        $used_hash['phone'] = false;
+        $used_hash['address'] =false;
+
+
+        $customers = array();
+
+        $limit = 5;
+
+        foreach ($hashes as $hash_id => $hash) {
+            $count = count($customers);
+            if ($count < $limit) {
+                $col = new shopCustomersCollection($hash);
+                $res = $col->getCustomers('id,name,firstname,middlename,lastname,email,phone,address', 0, $limit - $count);
+                foreach ($res as $customer) {
+                    $customers[$customer['id']] = $customer;
+                }
+                if (count($res) > 0) {
+                    if (in_array($hash_id, array('city', 'region', 'country'))) {
+                        $used_hash['address'] = true;
+                    } else {
+                        $used_hash[$hash_id] = true;
+                    }
+                }
+            }
+        }
+
+        if ($used_hash['address']) {
+            $address_field = waContactFields::get('address');
+        }
+        if ($used_hash['phone']) {
+            $phone_field = waContactFields::get('phone');
+        }
+        if ($used_hash['email|name']) {
+            $email_field = waContactFields::get('email');
+        }
+
+        foreach ($customers as &$customer) {
+
+            $customer['address_formatted'] = array();
+            $customer['email_formatted'] = array();
+            $customer['phone_formatted'] = array();
+
+            if ($used_hash['address']) {
+                if (isset($customer['address'][0])) {
+                    foreach ($customer['address'] as $i => $address) {
+                        $customer['address_formatted'][$i] = $address_field->format($address, 'html');
+                    }
+                } else if (isset($customer['address'])) {
+                    $customer['address_formatted'][0] = $address_field->format($address, 'html');
+                }
+            }
+            if ($used_hash['phone']) {
+                if (isset($customer['phone'][0])) {
+                    foreach ($customer['phone'] as $i => $phone) {
+                        $customer['phone_formatted'][$i] = $phone_field->format($phone, 'html');
+                    }
+                } else if (isset($customer['phone'])) {
+                    $customer['phone_formatted'][0] = $phone_field->format($phone, 'html');
+                }
+            }
+            if ($used_hash['email|name']) {
+                if (isset($customer['email'][0])) {
+                    foreach ($customer['email'] as $i => $email) {
+                        $customer['email_formatted'][$i] = $email_field->format($email, 'html');
+                    }
+                } else if (isset($customer['email'])) {
+                    $customer['email_formatted'][0] = $email_field->format($email, 'html');
+                }
+            }
+        }
+        unset($customer);
+
 
         $term_safe = htmlspecialchars($q);
-        foreach($list as $c) {
-            $name = $this->prepare($c['name'], $term_safe);
-            $email = $this->prepare(ifset($c['email'], ''), $term_safe);
-            $phone = $this->prepare(ifset($c['phone'], ''), $term_safe);
-            $phone && $phone = '<i class="icon16 phone"></i>'.$phone;
-            $email && $email = '<i class="icon16 email"></i>'.$email;
+        foreach($customers as $c) {
+
+            $name = waContactNameField::formatName($c);
+            $name = $this->prepare($name, $term_safe);
+
+            $emails = array();
+            foreach ($c['email_formatted'] as $email) {
+                if ($this->match($email, $term_safe, false)) {
+                    $emails[] = '<i class="icon16 email"></i>' . $this->prepare($email, $term_safe, false);
+                    break;
+                }
+            }
+
+            $phones = array();
+            foreach ($c['phone_formatted'] as $phone) {
+                if ($this->match($phone, $term_safe, false)) {
+                    $phones[] = '<i class="icon16 phone"></i>' . $this->prepare($phone, $term_safe, false);
+                    break;
+                }
+            }
+
+            $addresses = array();
+            foreach ($c['address_formatted'] as $address) {
+                if ($this->match($address, $term_safe, false)) {
+                    $addresses[] = $this->prepare($address, $term_safe, false);
+                    break;
+                }
+            }
+
+
             $result[] = array(
                 'value' => $c['name'],
-                'label' => implode(' ', array_filter(array($name, $email, $phone))),
+                'label' => implode(' ', array_merge(array($name), $emails, $phones, $addresses)),
                 'id' => $c['id'],
             );
         }
@@ -443,7 +572,123 @@ SQL;
         }
         unset($c);
 
+        return array_merge(
+            $result,
+            $this->couponAutocomplete($q, $limit),
+            $this->pluginMethodsAutocomplete($q, 'shipping', $limit),
+            $this->pluginMethodsAutocomplete($q, 'payment', $limit),
+            $this->cityAutocomplete($q, $limit),
+            $this->regionAutocomplete($q, $limit),
+            $this->countryAutocomplete($q, $limit)
+        );
+    }
+
+    public function couponAutocomplete($q, $limit = 5)
+    {
+        $cm = new shopCouponModel();
+        $q = $cm->escape($q, 'like');
+        $term_safe = htmlspecialchars($q);
+        $result = array();
+        $limit = (int) $limit;
+        foreach ($cm->query("SELECT * FROM `shop_coupon` WHERE code LIKE '%{$q}%' LIMIT {$limit}") as $item) {
+            $result[] = array(
+                'value' => $item['code'],
+                'label' => '<i class="icon16 ss coupon"></i> ' . $this->prepare($item['code'], $term_safe),
+                'autocomplete_item_type' => 'coupon',
+                'id' => $item['id']
+            );
+        }
         return $result;
     }
+
+    public function pluginMethodsAutocomplete($q, $type, $limit = 5)
+    {
+        $pm = new shopPluginModel();
+        $q = $pm->escape($q, 'like');
+        $type = $pm->escape($type, 'like');
+        $term_safe = htmlspecialchars($q);
+        $result = array();
+        $limit = (int) $limit;
+        foreach ($pm->query("SELECT * FROM `shop_plugin` WHERE type = '{$type}' AND name LIKE '%{$q}%' LIMIT {$limit}") as $item) {
+            $logo = htmlspecialchars($item['logo']);
+            $result[] = array(
+                'value' => $item['name'],
+                'label' => "<img src='{$logo}' style='height: 16px;'> " . $this->prepare($item['name'], $term_safe),
+                'autocomplete_item_type' => $type,
+                'id' => $item['id']
+            );
+        }
+        return $result;
+    }
+
+    public function cityAutocomplete($q, $limit = 5)
+    {
+        $m = new waContactDataModel();
+        $q = $m->escape($q, 'like');
+        $term_safe = htmlspecialchars($q);
+        $limit = (int) $limit;
+        $result = array();
+        foreach ($m->query("SELECT DISTINCT value FROM `wa_contact_data` WHERE field = 'address:city' AND value LIKE '%{$q}%' LIMIT {$limit}") as $item) {
+            $result[] = array(
+                'value' => $item['value'],
+                'label' => $this->prepare($item['value'], $term_safe),
+                'autocomplete_item_type' => 'city'
+            );
+        }
+        return $result;
+    }
+
+    public function regionAutocomplete($q, $limit = 5)
+    {
+        $rm = new waRegionModel();
+        $q = $rm->escape($q, 'like');
+        $term_safe = htmlspecialchars($q);
+        $limit = (int) $limit;
+        $result = array();
+        foreach ($rm->query("SELECT DISTINCT code, country_iso3, name FROM `wa_region` WHERE name LIKE '%{$q}%' LIMIT {$limit}") as $item) {
+            $result[] = array(
+                'value' => $item['country_iso3'] . ':' . $item['code'],
+                'label' => '<img src="/wa-content/img/country/'.$item['country_iso3'].'.gif"> ' . $this->prepare($item['name'], $term_safe),
+                'autocomplete_item_type' => 'region'
+            );
+        }
+        return $result;
+    }
+
+    public function countryAutocomplete($q, $limit = 5)
+    {
+        $cm = new waCountryModel();
+        $q = $cm->escape($q, 'like');
+        $term_safe = htmlspecialchars($q);
+        $limit = (int) $limit;
+        $result = array();
+        foreach ($cm->query("SELECT DISTINCT name, iso3letter FROM `wa_country` WHERE name LIKE '%{$q}%' LIMIT {$limit}") as $item) {
+            $result[] = array(
+                'value' => $item['iso3letter'],
+                'label' => '<img src="/wa-content/img/country/'.$item['iso3letter'].'.gif"> ' . $this->prepare($item['name'], $term_safe),
+                'autocomplete_item_type' => 'country'
+            );
+        }
+        $count = count($result);
+        if ($count < $limit) {
+            $all = $cm->select('name,iso3letter')->fetchAll();
+            foreach ($all as $item) {
+                $name = _ws($item['name']);
+                if ($this->match($name, $term_safe)) {
+                    $count += 1;
+                    $result[] = array(
+                        'value' => $item['iso3letter'],
+                        'label' =>  '<img src="/wa-content/img/country/'.$item['iso3letter'].'.gif"> ' . $this->prepare($name, $term_safe),
+                        'autocomplete_item_type' => 'country'
+                    );
+                    if ($count >= $limit) {
+                        break;
+                    }
+                }
+            }
+        }
+        return $result;
+    }
+
 }
 

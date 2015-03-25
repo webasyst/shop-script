@@ -5,7 +5,7 @@ class shopBackendImportexportAction extends waViewAction
     public function execute()
     {
 
-        if (!$this->getUser()->isAdmin('shop') && !wa()->getUser()->getRights('shop', 'type.%')) {
+        if (!$this->getUser()->isAdmin('shop') && !wa()->getUser()->getRights('shop', 'importexport')) {
             throw new waRightsException('Access denied');
         }
 

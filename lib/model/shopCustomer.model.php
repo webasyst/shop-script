@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Note: total_spent is stored in shop default currency.
+ */
 class shopCustomerModel extends waModel
 {
     protected $table = 'shop_customer';
@@ -15,7 +17,7 @@ class shopCustomerModel extends waModel
         $this->insert($customer);
     }
 
-    public function updateFromNewOrder($customer_id, $order_id)
+    public function updateFromNewOrder($customer_id, $order_id, $source=null)
     {
         $customer = $this->getById($customer_id);
         if ($customer) {
@@ -32,6 +34,7 @@ class shopCustomerModel extends waModel
                 'contact_id' => $customer_id,
                 'last_order_id' => $order_id,
                 'number_of_orders' => 1,
+                'source' => ifempty($source),
             ));
         }
     }
@@ -134,12 +137,14 @@ class shopCustomerModel extends waModel
             return array(array(), 0);
         }
 
-        // Fetch addresses
+        // Format names
         foreach($customers as &$c) {
+            $c['name'] = waContactNameField::formatName($c);
             $c['address'] = array();
         }
         unset($c);
 
+        // Fetch addresses
         $sql = "SELECT *
                 FROM wa_contact_data
                 WHERE contact_id IN (i:ids)
@@ -168,6 +173,23 @@ class shopCustomerModel extends waModel
         } else {
             return $this->query($sql)->fetchAll('category_id', true);
         }
+    }
+
+    public function getAllCoupons()
+    {
+        $coupons_ids = $this->query("SELECT DISTINCT value FROM `{$this->table}` sc
+        JOIN `shop_order` so ON so.contact_id = sc.contact_id
+        JOIN `shop_order_params` sop ON sop.order_id = so.id AND name = 'coupon_id'")->fetchAll(null, true);
+        $cm = new shopCouponModel();
+        return $cm->getById($coupons_ids, true);
+    }
+
+    public function recalcTotalSpent($contact_id)
+    {
+        $om = new shopOrderModel();
+        $this->updateById($contact_id, array(
+            'total_spent' => $om->getTotalSalesByContact($contact_id)
+        ));
     }
 }
 

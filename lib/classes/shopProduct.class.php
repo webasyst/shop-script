@@ -25,7 +25,7 @@
  * @property string $url
  * @property int $sort
  * @property float $price
- * @property float $compare_price
+ * @property float $compare_pricese
  * @property float $base_price_selectable
  * @property float $compare_price_selectable
  * @property float $purchase_price_selectable
@@ -49,6 +49,7 @@
  * @property array $skus
  * @property-read int $sku_count
  * @property array $categories
+ * @property array $sets
  * @property array $tags
  * @property array $params
  */
@@ -57,6 +58,8 @@ class shopProduct implements ArrayAccess
     protected $data = array();
     protected $is_dirty = array();
     protected static $data_storages = array();
+    protected $is_frontend = false;
+
     /**
      * @var shopProductModel
      */
@@ -67,14 +70,28 @@ class shopProduct implements ArrayAccess
      *
      * @param int|array $data Product id or product data array
      */
-    public function __construct($data = array())
+    public function __construct($data = array(), $is_frontend=false)
     {
+        $this->is_frontend = $is_frontend;
         $this->model = new shopProductModel();
         if (is_array($data)) {
             $this->data = $data;
         } elseif ($data) {
             $this->data = $this->model->getById($data);
         }
+
+        if ($is_frontend) {
+            if (empty($this->data['id'])) {
+                throw new waException('Unable to convert non-saved product for frontend');
+            }
+            $tmp = array(&$this->data);
+            shopRounding::roundProducts($tmp);
+        }
+    }
+
+    public function isFrontend()
+    {
+        return $this->is_frontend;
     }
 
     private function getStorage($key)
@@ -86,7 +103,8 @@ class shopProduct implements ArrayAccess
                 'skus'                => true, //should be before features
                 'features'            => true,
                 'params'              => true,
-                'categories'          => 'shopCategoryProductsModel'
+                'categories'          => 'shopCategoryProductsModel',
+                'sets'                => 'shopSetProductsModel',
             );
         }
         if (isset(self::$data_storages[$key])) {
@@ -106,6 +124,7 @@ class shopProduct implements ArrayAccess
         }
         return null;
     }
+
 
     /**
      * Returns product id.
@@ -176,6 +195,10 @@ class shopProduct implements ArrayAccess
      */
     public function save($data = array(), $validate = true, &$errors = array())
     {
+        if ($this->is_frontend) {
+            throw new waException('Unable to save shopProduct: data is converted for frontend');
+        }
+
         $result = false;
         $id = $this->getId();
         $search = new shopIndexSearch();
@@ -332,6 +355,9 @@ class shopProduct implements ArrayAccess
             return $this->data[$name];
         } elseif ($storage = $this->getStorage($name)) {
             $this->data[$name] = $storage->getData($this);
+            if ($name == 'skus' && $this->is_frontend) {
+                shopRounding::roundSkus($this->data[$name], array($this->data));
+            }
             return $this->data[$name];
         }
         return null;
@@ -379,6 +405,9 @@ class shopProduct implements ArrayAccess
      */
     public function setData($name, $value)
     {
+        if ($name =='name') {
+            $value = preg_replace('@[\r\n]+@',' ',$value);
+        }
         if ($this->getData($name) !== $value) {
             $this->data[$name] = $value;
             $this->is_dirty[$name] = true;
@@ -510,28 +539,21 @@ class shopProduct implements ArrayAccess
      *
      * @param int $limit Maximum number of items to be returned
      * @param bool $available_only Whether only products with positive or unlimited stock count must be returned
+     * @param array $exclude
      *
      * @return array Array of cross-selling products' data sub-arrays
      */
-    public function crossSelling($limit = 5, $available_only = false)
+    public function crossSelling($limit = 5, $available_only = false, $exclude = array())
     {
         $cross_selling = $this->getData('cross_selling');
-        // upselling on (usign similar settting for type)
+        // cross selling on (usign similar settting for type)
         if ($cross_selling == 1 || $cross_selling === null) {
             $type = $this->getType();
             if ($type['cross_selling']) {
                 $collection = new shopProductsCollection($type['cross_selling'].($type['cross_selling'] == 'alsobought' ? '/'.$this->getId() : ''));
-                if ($available_only) {
-                    $collection->addWhere('(p.count > 0 OR p.count IS NULL)');
-                }
                 if ($type['cross_selling'] != 'alsobought') {
                     $collection->orderBy('RAND()');
                 }
-                $result = $collection->getProducts('*', $limit);
-                if (isset($result[$this->getId()])) {
-                    unset($result[$this->getId()]);
-                }
-                return $result;
             } else {
                 return array();
             }
@@ -539,16 +561,36 @@ class shopProduct implements ArrayAccess
             return array();
         } else {
             $collection = new shopProductsCollection('related/cross_selling/'.$this->getId());
+        }
+        if (!empty($collection)) {
             if ($available_only) {
                 $collection->addWhere('(p.count > 0 OR p.count IS NULL)');
             }
-            return $collection->getProducts('*', $limit);
+            if ($exclude) {
+                $ids = array();
+                foreach ($exclude as $exclude_id) {
+                    $exclude_id = (int)$exclude_id;
+                    if ($exclude_id) {
+                        $ids[] = $exclude_id;
+                    }
+                }
+                if ($ids) {
+                    $collection->addWhere('p.id NOT IN ('.(implode(',', $ids)).')');
+                }
+            }
+            $result = $collection->getProducts('*', $limit);
+            if (isset($result[$this->getId()])) {
+                unset($result[$this->getId()]);
+            }
+            return $result;
         }
+        return array();
     }
 
     /**
      * Returns estimated information on product's sales based on specified sales rate
      *
+     * @deprecated use getNextForecast instead
      * @param double $rate Average number of product's sales per day
      * @return array
      */
@@ -586,6 +628,137 @@ class shopProduct implements ArrayAccess
     }
 
     /**
+     *
+     * @return array
+     */
+    public function getNextForecast()
+    {
+        $product_skus_model = new shopProductSkusModel();
+        $skus = $product_skus_model->getData($this);
+
+        $sales = 0;
+        $sold = 0;
+        $purchase = 0;
+
+        // Fetch number of sales per month (averaged for 3 months, normalized for new products)
+        $sql = "SELECT oi.product_id, oi.sku_id, sum(oi.quantity) AS sold
+                FROM shop_order_items AS oi
+                    JOIN shop_order AS o
+                        ON o.id=oi.order_id
+                WHERE oi.product_id = ?
+                    AND o.paid_date >= ?
+                    AND oi.type='product'
+                GROUP BY product_id, sku_id";
+
+        $time_threshold = time() - 90*24*3600;
+        foreach($product_skus_model->query($sql,
+                array(
+                    $this->id,
+                    date('Y-m-d', $time_threshold))) as $oi)
+        {
+            if (isset($skus[$oi['sku_id']])) {
+                // Normalize number of sales for products created recently
+                if (!empty($this->create_datetime)) {
+                    $create_ts = strtotime($this->create_datetime);
+                    if ($create_ts > $time_threshold) {
+                        $days = max(30, (time() - $create_ts) / 24 / 3600);
+                        $oi['sold'] = $oi['sold']*90/$days;
+                    }
+                }
+                $skus[$oi['sku_id']]['sold'] = ifset($skus[$oi['sku_id']]['sold'], 0);
+                $skus[$oi['sku_id']]['sold'] += $oi['sold'];
+            }
+        }
+
+        foreach ($skus as $sku) {
+            $sales += ifset($sku['sold'], 0) * $sku['price'];
+            $sold += ifset($sku['sold'], 0);
+            $purchase += ifset($sku['sold'], 0) * $sku['purchase_price'];
+        }
+
+        $data = array(
+            'sales' => $sales / 3,
+            'sold' => $sold / 3,
+            'sold_rounded' => round($sold / 3),
+            'profit' => ($sales - $purchase) / 3,
+            'days' => 0,
+            'date' => null,
+            'count' => $this->count
+        );
+
+        if ($this->count !== null && $data['sold_rounded'] > 0) {
+            $sold_per_day = $data['sold_rounded'] / 30;
+            $days = round($this->count / $sold_per_day);
+            $data['days'] = $days;
+            $data['date'] = strtotime("+ " . $days . "days");
+        }
+
+        return $data;
+    }
+
+    /**
+     * @return array
+     */
+    public function getReviews()
+    {
+        if ($this->getId()) {
+            $reviews_model = new shopProductReviewsModel();
+            return $reviews_model->getFullTree(
+                $this->getId(), 0, null, 'datetime DESC', array('escape' => true)
+            );
+        }
+        return array();
+    }
+
+    public function getSkuFeatures()
+    {
+        if ($this->getId()) {
+            $product_features_model = new shopProductFeaturesModel();
+            $sql = "SELECT * FROM ".$product_features_model->getTableName()." WHERE product_id = i:0 AND sku_id IS NOT NULL";
+            $rows = $product_features_model->query($sql, $this->getId())->fetchAll();
+            if (!$rows) {
+                return array();
+            }
+            $features = array();
+            foreach ($rows as $row) {
+                $features[$row['feature_id']] = true;
+            }
+            $features_model = new shopFeatureModel();
+            $features = $features_model->getById(array_keys($features));
+            $type_values = array();
+            foreach ($rows as $row) {
+                if (empty($features[$row['feature_id']])) {
+                    continue;
+                }
+                $f = $features[$row['feature_id']];
+                $type = preg_replace('/\..*$/', '', $f['type']);
+                $type_values[$type][] = $row['feature_value_id'];
+            }
+
+            foreach ($type_values as $type => $value_ids) {
+                $model = shopFeatureModel::getValuesModel($type);
+                $type_values[$type] = $model->getValues('id', $value_ids);
+            }
+
+            $result = array();
+            foreach ($rows as $row) {
+                if (empty($features[$row['feature_id']])) {
+                    continue;
+                }
+                $f = $features[$row['feature_id']];
+                $type = preg_replace('/\..*$/', '', $f['type']);
+                if (!$type_values[$type][$row['feature_id']][$row['feature_value_id']]) {
+                    continue;
+                }
+                $result[$row['sku_id']][$f['code']] = $type_values[$type][$row['feature_id']][$row['feature_value_id']];
+            }
+            return $result;
+        } else {
+            return array();
+        }
+    }
+
+    /**
      * Verifies current user's access rights to product by its type id.
      *
      * @throws waException
@@ -607,6 +780,10 @@ class shopProduct implements ArrayAccess
      */
     public function duplicate($options = array())
     {
+        if ($this->is_frontend) {
+            throw new waException('Unable duplicate shopProduct: data is converted for frontend');
+        }
+
         if (!$this->checkRights()) {
             throw new waRightsException('Access denied');
         }
@@ -709,7 +886,7 @@ class shopProduct implements ArrayAccess
 
         $counter = 0;
         $data['url'] = shopHelper::genUniqueUrl($this->url, $this->model, $counter);
-        $data['name'] = $this->name.sprintf('(%d)', $counter ? $counter : 1);
+        $data['name'] = $this->name.sprintf(' %d', $counter ? $counter : 1);
 
         $duplicate->save($data);
         $product_id = $duplicate->getId();
@@ -767,7 +944,7 @@ class shopProduct implements ArrayAccess
             } catch (waDbException $ex) {
                 //just ignore it
                 waLog::log('Error during copy product: '.$ex->getMessage(), 'shop.log');
-            } catch (waException $ex) {
+            } catch (Exception $ex) {
                 if (!empty($image['id'])) {
                     $images_model->deleteById($image['id']);
                 }
@@ -850,5 +1027,43 @@ class shopProduct implements ArrayAccess
         wa()->event('product_duplicate', $params);
         return $duplicate;
     }
+
+    public static function getDefaultMetaTitle($product)
+    {
+        return strip_tags($product['name']);
+    }
+
+    public static function getDefaultMetaKeywords($product)
+    {
+        $keywords = array(
+            $product['name']
+        );
+        $num = 5;
+        foreach ($product->skus as $sku_id => $sku) {
+            $keywords[] = strip_tags($sku['name']);
+            $num -= 1;
+            if ($num <= 0) {
+                break;
+            }
+        }
+        if ($product->category_id && isset($product->categories[$product->category_id])) {
+            $keywords[] = strip_tags($product->categories[$product->category_id]['name']);
+        }
+        $num = 5;
+        foreach ($product->tags as $tag) {
+            $keywords[] = strip_tags($tag);
+            $num -= 1;
+            if ($num <= 0) {
+                break;
+            }
+        }
+        return implode(', ', $keywords);
+    }
+
+    public static function getDefaultMetaDescription($product)
+    {
+        return strip_tags($product['summary']);
+    }
+
 
 }

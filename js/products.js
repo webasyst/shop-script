@@ -21,6 +21,20 @@
         };
     }
 
+    // init
+    $(function () {
+        $("#s-content").on('click', '.s-alert-close', function () {
+            var alerts = $.storage.get('shop/alerts');
+            if (!alerts) {
+                alerts = [];
+            }
+            alerts.push($(this).parent().data('alert'));
+            $.storage.set('shop/alerts', alerts);
+            $(this).parent().remove();
+            return false;
+        });
+    });
+
     $.storage = new $.store();
     $.products = {
         hash: '',
@@ -69,7 +83,20 @@
             }
         },
 
+        // Set hash without triggering dispatch
+        skip_dispatch: 0,
+        forceHash: function(hash) {
+            if (hash != location.hash) {
+                $.products.skip_dispatch++;
+                $.wa.setHash(hash);
+            }
+        },
+
         dispatch: function (hash) {
+            if ($.products.skip_dispatch > 0) {
+                $.products.skip_dispatch--;
+                return;
+            }
             if (hash === undefined) {
                 hash = window.location.hash;
             }
@@ -160,6 +187,24 @@
                     }
                 }
                 this.data.prev_action = action;
+
+                // Clear "min-width" fix /  $.product_list.rubberTable();
+                ( function() {
+                    var wrapper = $("#wa"),
+                        old_style = wrapper.data("style");
+
+                    if ( old_style ) {
+                        wrapper.attr("style", old_style);
+                    } else {
+                        wrapper.removeAttr("style");
+                    }
+
+                    $(window).resize();
+
+                })();
+
+                $('body > .dialog').trigger('close').remove();
+
             } catch (e) {
                 $.shop.error('preExecute error: ' + e.message, e);
             }
@@ -173,16 +218,52 @@
             this.load('?module=products&action=welcome');
         },
 
+        paramsFromSession: function(params) {
+            if (!window.sessionStorage || !window.JSON || !window.JSON.stringify || !window.JSON.parse) {
+                return params;
+            }
+
+            if (params.category_id) {
+                storage = sessionStorage.getItem('shop/list_categories') || '{}';
+                try {
+                    storage = JSON.parse(storage);
+                } catch (e) {
+                    storage = {};
+                }
+
+                var prms = storage[params.category_id] = storage[params.category_id] || {};
+                $.each(['sort', 'order'], function(i, key) {
+                    if (params[key] === undefined) {
+                        params[key] = prms[key];
+                    } else {
+                        prms[key] = params[key];
+                    }
+                });
+
+                try {
+                    sessionStorage.setItem('shop/list_categories', JSON.stringify(storage));
+                } catch (e) { }
+            }
+
+            return params;
+
+            // Note that list view (thumbs or table) is stored server-side in PHP,
+            // as well as sort and order for 'All Products' view. Mostly for legacy reasons.
+        },
+
         buildProductsUrlComponent: function (params) {
+
+            params = this.paramsFromSession(params);
+
             return ((params.view ? '&view=' + params.view : '')
                 + (params.category_id ? '&category_id=' + params.category_id : '')
-                + (params.set_id ? '&set_id=' + params.set_id : '') 
-                + (params.tag ? '&tag=' + params.tag : '') 
+                + (params.set_id ? '&set_id=' + params.set_id : '')
+                + (params.tag ? '&tag=' + params.tag : '')
                 + (params.sort ? '&sort=' + params.sort : '')
-                + (params.order ? '&order=' + params.order : '') 
-                + (params.text ? '&text=' + params.text : '') 
+                + (params.order ? '&order=' + params.order : '')
+                + (params.text ? '&text=' + params.text : '')
                 + (params.edit ? '&edit=' + params.edit : '')
-                + (params.hash ? '&hash=' + params.hash : '') 
+                + (params.hash ? '&hash=' + params.hash : '')
                 + (params.type_id ? '&type_id=' + params.type_id : '')).
                 slice(1) // cut of first '&'
             ;
@@ -193,7 +274,7 @@
             params = $.shop.helper.parseParams(params || '');
             this.list_hash = this.hash;
             this.list_params = params;
-            
+
             if ($.product_list !== undefined && $.product_list.fixed_blocks !== undefined) {
                 if ($.product_list.fixed_blocks.set) {
                     $.product_list.fixed_blocks.set.unsetFixed();
@@ -202,7 +283,16 @@
                     $.product_list.fixed_blocks.category.unsetFixed();
                 }
             }
-            this.load('?module=products&' + this.buildProductsUrlComponent(params));
+            this.load('?module=products&' + this.buildProductsUrlComponent(params), this.checkAlerts);
+        },
+
+        checkAlerts: function () {
+            var alerts = $.storage.get('shop/alerts');
+            $('.s-alert').each(function () {
+                if ($.inArray($(this).data('alert'), alerts) == -1) {
+                    $(this).show();
+                }
+            });
         },
 
         productAction: function (id, action, tab) {
@@ -239,6 +329,10 @@
 
         stockslogAction: function (params) {
             this.load('?module=stocksLog' + (params ? '&' + params : ''));
+        },
+
+        promosAction: function (params) {
+            this.load('?module=promos' + (params ? '&' + Array.prototype.join.call(arguments, '/') : ''));
         },
 
         servicesAction: function (id) {
@@ -310,37 +404,24 @@
                     expand(this);
                 }
             }).each(function () {
-                    var key = key_prefix + this.id + '/collapse';
-                    var force = $(this).hasClass('rarr');
-                    if ($.storage.get(key) || force) {
-                        collapse(this, !force);
-                    }
-                });
+                var key = key_prefix + this.id + '/collapse';
+                var force = $(this).hasClass('rarr');
+                if ($.storage.get(key) || force) {
+                    collapse(this, !force);
+                }
+            });
+            $(".collapse-handler").closest('.heading').off('click').on('click', function(e) {
+                $collapse_handler = $(this).find('.collapse-handler');
+                if (!$collapse_handler.is(e.target)) {
+                    $collapse_handler.click();
+                }
+            });
         },
 
         initSearch: function () {
             var search = function () {
-                var query = this.value, match = $.products.hash.match(/[&\/](text=.*?&|text=.*)/);
-                var hash = $.products.hash;
-                if (match) {
-                    var text = match[1];
-                    if (query) {
-                        var new_text = text.substr(-1) == '&' ? 'text=' + encodeURIComponent(query) + '&' : 'text=' + encodeURIComponent(query);
-                        hash = hash.replace(text, new_text);
-                    } else {
-                        if (text.substr(-1) != '&') {
-                            text = '[&\/]' + text;
-                        }
-                        hash = hash.replace(new RegExp(text), '');
-                    }
-                } else if (query) {
-                    // prevent double of 'text' param in url
-                    delete $.products.list_params.text;
-                    hash = 'products/' + $.products.buildProductsUrlComponent($.products.list_params) + '&text=' + encodeURIComponent(query);
-                } else {
-                    hash = 'products/' + $.products.buildProductsUrlComponent($.products.list_params);
-                }
-                location.hash = '#/' + hash;
+                // encodeURIComponent ?..
+                $.wa.setHash('#/products/'+($.products.list_params && $.products.list_params.view ? 'view='+$.products.list_params.view+'&' : '')+'text='+this.value);
             };
             var $products_search = $('#s-products-search');
 
@@ -370,11 +451,11 @@
                 minLength: 3,
                 delay: 300,
                 select: function (event, ui) {
+                    $products_search.val('');
                     $.wa.setHash('#/product/' + ui.item.id);
                     return false;
                 }
-            }).unbind('keyup').bind('keyup', function (event) {
-                });
+            });
         },
 
         jsonPost: function (url, data, success, error) {

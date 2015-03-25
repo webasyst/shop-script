@@ -55,16 +55,30 @@ class shopFrontendCategoryAction extends shopFrontendAction
         $category_url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
         foreach ($category['subcategories'] as &$sc) {
             $sc['url'] = str_replace('%CATEGORY_URL%', waRequest::param('url_type') == 1 ? $sc['url'] : $sc['full_url'], $category_url);
+            $sc['params'] = array();
         }
         unset($sc);
-        // params
+
+        // params for category and subcategories
+        $category['params'] = array();
         $category_params_model = new shopCategoryParamsModel();
-        $category['params'] = $category_params_model->get($category['id']);
+        $rows = $category_params_model->getByField('category_id', array_keys(array($category['id'] => 1) + $category['subcategories']), true);
+        foreach($rows as $row) {
+            if (!empty($category['subcategories'][$row['category_id']])) {
+                $category['subcategories'][$row['category_id']]['params'][$row['name']] = $row['value'];
+            } else if ($row['category_id'] == $category['id']) {
+                $category['params'][$row['name']] = $row['value'];
+            }
+        }
 
         // smarty description
         if ($this->getConfig()->getOption('can_use_smarty') && $category['description']) {
             $category['description'] = wa()->getView()->fetch('string:' . $category['description']);
         }
+
+        $category['meta_title'] = $category['meta_title'] ? $category['meta_title'] : shopCategoryModel::getDefaultMetaTitle($category);
+        $category['meta_keywords'] = $category['meta_keywords'] ? $category['meta_keywords'] : shopCategoryModel::getDefaultMetaKeywords($category);
+
         return $category;
     }
 
@@ -216,21 +230,26 @@ class shopFrontendCategoryAction extends shopFrontendAction
                         }
                     }
                 }
-                $product_skus = array();
+                $rows = array();
                 if ($tmp) {
                     $pf_model = new shopProductFeaturesModel();
-                    $product_skus = $pf_model->getSkusByFeatures($product_ids, $tmp);
+                    $rows = $pf_model->getSkusByFeatures($product_ids, $tmp);
                 } elseif ($min_price || $max_price) {
                     $ps_model = new shopProductSkusModel();
                     $rows = $ps_model->getByField('product_id', $product_ids, true);
-                    foreach ($rows as $row) {
-                        $product_skus[$row['product_id']][] = $row;
-                    }
                 }
+
+                $product_skus = array();
+                shopRounding::roundSkus($rows, $products);
+                foreach ($rows as $row) {
+                    $product_skus[$row['product_id']][] = $row;
+                }
+
                 $default_currency = $this->getConfig()->getCurrency(true);
                 if ($product_skus) {
                     foreach ($product_skus as $product_id => $skus) {
                         $currency = $products[$product_id]['currency'];
+
                         usort($skus, array($this, 'sortSkus'));
                         $k = 0;
                         if ($min_price || $max_price) {
@@ -255,10 +274,12 @@ class shopFrontendCategoryAction extends shopFrontendAction
                         if ($products[$product_id]['sku_id'] != $sku['id']) {
                             $products[$product_id]['sku_id'] = $sku['id'];
                             $products[$product_id]['frontend_url'] .= '?sku='.$sku['id'];
-                            $products[$product_id]['price'] =
-                                shop_currency($sku['price'], $currency, $default_currency, false);
-                            $products[$product_id]['compare_price'] =
-                                shop_currency($sku['compare_price'], $currency, $default_currency, false);
+                            $products[$product_id]['price'] = shop_currency($sku['price'], $currency, $default_currency, false);
+                            $products[$product_id]['frontend_price'] = $sku['price'];
+                            $products[$product_id]['unconverted_price'] = shop_currency($sku['unconverted_price'], $currency, $default_currency, false);
+                            $products[$product_id]['compare_price'] = shop_currency($sku['compare_price'], $currency, $default_currency, false);
+                            $products[$product_id]['frontend_compare_price'] = $sku['compare_price'];
+                            $products[$product_id]['unconverted_compare_price'] = shop_currency($sku['unconverted_compare_price'], $currency, $default_currency, false);
                         }
                     }
                     $this->view->assign('products', $products);
@@ -269,8 +290,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
         }
 
         // set meta
-        $title = $category['meta_title'] ? $category['meta_title'] : $category['name'];
-        wa()->getResponse()->setTitle($title);
+        wa()->getResponse()->setTitle($category['meta_title']);
         wa()->getResponse()->setMeta('keywords', $category['meta_keywords']);
         wa()->getResponse()->setMeta('description', $category['meta_description']);
 

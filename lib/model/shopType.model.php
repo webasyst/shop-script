@@ -148,8 +148,18 @@ class shopTypeModel extends shopSortableModel
     }
 
 
-    public function getSales($start_date = null, $end_date = null)
+    public function getSales($start_date = null, $end_date = null, $options=array())
     {
+        $storefront_join = '';
+        $storefront_where = '';
+        if (!empty($options['storefront'])) {
+            $storefront_join = "JOIN shop_order_params AS op2
+                                    ON op2.order_id=o.id
+                                        AND op2.name='storefront'";
+            $storefront_where = "AND op2.value='".$this->escape($options['storefront'])."'";
+        }
+
+        // !!! With 15k orders this query takes ~2 seconds
         $paid_date_sql = shopOrderModel::getDateSql('o.paid_date', $start_date, $end_date);
         $sql = "SELECT
                     t.*,
@@ -165,8 +175,10 @@ class shopTypeModel extends shopSortableModel
                         ON pcur.code=p.currency
                     JOIN shop_type AS t
                         ON t.id=p.type_id
+                    {$storefront_join}
                 WHERE $paid_date_sql
                     AND oi.type = 'product'
+                    {$storefront_where}
                 GROUP BY t.id";
         return $this->query($sql)->fetchAll('id');
     }

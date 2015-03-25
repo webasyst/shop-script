@@ -23,11 +23,19 @@ class shopServicesAction extends waViewAction
         // blank area for adding new service
         if (!$service) {
             $services[] = $this->getEmptyService();
+
             $type_model = new shopTypeModel();
+            $types = $type_model->getAll();
+            foreach ($types as &$t) {
+                $t['type_id'] = $t['id'];
+            }
+            unset($t);
+
             $this->assign(array(
                 'services' => $services,
-                'types' => $type_model->getAll(),
+                'types' => $types,
                 'count' => $service_model->countAll(),
+                'products_count' => $this->getProductsCount($types),
                 'taxes' => $this->getTaxes()
             ));
             return;
@@ -38,24 +46,14 @@ class shopServicesAction extends waViewAction
         $type_services_model = new shopTypeServicesModel();
         $types = $type_services_model->getTypes($service['id']);
 
-        $products_count = 0;
-        $selected_types = array();
-        foreach ($types as $type) {
-            if ($type['type_id']) {
-                $selected_types[] = $type['type_id'];
-            }
-        }
-        if (!empty($selected_types)) {
-            $product_model = new shopProductModel();
-            $products_count = $product_model->countByField(array('type_id' => $selected_types));
-        }
-
         $product_services_model = new shopProductServicesModel();
+        $products = $product_services_model->getProducts($service['id']);
+        $products_count = $this->getProductsCount($types, $products);
 
         $this->assign(array(
             'services'       => $services,
             'service'        => $service,
-            'products'       => $product_services_model->getProducts($service['id']),
+            'products'       => $products,
             'types'          => $types,
             'products_count' => $products_count,
             'variants'       => $variants,
@@ -120,4 +118,26 @@ class shopServicesAction extends waViewAction
             'type_of_price' => 'p'
         );
     }
+
+    public function getProductsCount($types, $products = array())
+    {
+        $products_count = 0;
+        $selected_types = array();
+        foreach ($types as $type) {
+            if ($type['type_id']) {
+                $selected_types[] = $type['type_id'];
+            }
+        }
+        if (!empty($selected_types)) {
+            $product_model = new shopProductModel();
+            $products_count = $product_model->countByField(array('type_id' => $selected_types));
+        }
+        foreach ($products as $k => $product) {
+            if (in_array($product['type_id'], $selected_types)) {
+                unset($products[$k]);
+            }
+        }
+        return $products_count + count($products);
+    }
+
 }

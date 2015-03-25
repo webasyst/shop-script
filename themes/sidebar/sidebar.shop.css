@@ -35,13 +35,22 @@
 .promo .bx-wrapper .bx-prev { left: 0; }
 .promo .bx-wrapper .bx-next { right: 0; }
 
-.bullets { background: #eee; padding: 10px 25px; margin-bottom: 20px; margin-top: 10px; }
+.bullets { background: #eee; padding: 30px 25px; margin-bottom: 20px; margin-top: 10px; }
 .bullet { display: inline-block; width: 32%; font-size: 0.9em; vertical-align: top; display:block\9; float:left\9; }
 .bullet p { margin-right: 15%; }
 .bullet .b-glyph { background: url('img/bullet-glyphs.png') no-repeat; background-size: 144px 48px; width: 36px; height: 36px; display: inline-block; position: relative; top: 10px; display:block\9; float:left\9; }
 .bullet .b-glyph.b-shipping { background-position: -6px -6px; }
 .bullet .b-glyph.b-payment { background-position: -54px -6px; left: -2px; }
 .bullet .b-glyph.b-location { background-position: -102px -6px; }
+
+.promos { margin: 5px -25px; }
+.promos ul { padding: 0; margin: 0; }
+.promos ul li { padding: 0; margin: 0; list-style: none; display: inline-block; width: 25%; float: left; } 
+.promos ul li a { display: block; padding: 40px 20px; height: 80px; overflow: hidden; background-size: cover; background-position: center center; color: #000; background-color: rgba(0,0,0,0.05); border: 10px solid #fff; border-width-bottom: 0px; border-width-bottom: 20px; text-align: center; position: relative; text-decoration: none; }
+.promos ul li a .background-color-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; opacity: 0.1; background-color: #000; }
+.promos ul li a h5 { font-size: 1.3em; text-shadow: 0 1px 2px #000; position: relative; z-index: 2; }
+.promos ul li a p { font-size: 0.9em; text-shadow: 0 1px 1px #000; position: relative; z-index: 2; }
+.promos ul li a:hover .background-color-layer { opacity: 0.5; transition: 0.3s; }
 
 /* Category */
 
@@ -355,6 +364,8 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
     
     ul.thumbs li { width: 100% !important; }
     .purchase { width: 100%; }
+    
+    .promos ul li { width: 50%; }
     
     .review-form-fields label { width: auto; float: none; }
     .review-form-fields input { width: 80%; }

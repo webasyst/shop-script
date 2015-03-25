@@ -47,7 +47,11 @@ function Product(form, options) {
         self.cartButtonVisibility(true);
         self.updatePrice();
     });
-    $("#product-skus input[type=radio]:checked").click();
+    var $initial_cb = this.form.find(".skus input[type=radio]:checked:not(:disabled)");
+    if (!$initial_cb.length) {
+        $initial_cb = this.form.find(".skus input[type=radio]:not(:disabled):first").prop('checked', true).click();
+    }
+    $initial_cb.click();
 
     this.form.find(".sku-feature").change(function () {
         var key = "";
@@ -87,7 +91,7 @@ function Product(form, options) {
     this.form.submit(function () {
         var f = $(this);
         f.find('.adding2cart').addClass('icon24 loading').show();
-        
+
         $.post(f.attr('action') + '?html=1', f.serialize(), function (response) {
             f.find('.adding2cart').hide();
             if (response.status == 'ok') {
@@ -99,8 +103,8 @@ function Product(form, options) {
                 cart_total.closest('#cart').removeClass('empty');
 
                 self.cartButtonVisibility(false);
-                if (!window.matchMedia("only screen and (max-width: 760px)").matches) {
-                
+                if ( !( MatchMedia("only screen and (max-width: 760px)") ) ) {
+
                     // flying cart
                     var clone = $('<div class="cart"></div>').append(f.clone());
                     clone.appendTo('body');
@@ -129,9 +133,9 @@ function Product(form, options) {
                     if (cart_div.closest('.dialog').length) {
                         cart_div.closest('.dialog').hide().find('.cart').empty();
                     }
-                    
+
                 } else {
-                
+
                     // mobile: added to cart message
                     cart_total.html(response.data.total);
                 }
@@ -278,7 +282,7 @@ Product.prototype.cartButtonVisibility = function (visible) {
         this.add2cart.find('.qty').show();
         this.add2cart.find('span.added2cart').hide();
     } else {
-        if (window.matchMedia("only screen and (max-width: 760px)").matches) {
+        if ( MatchMedia("only screen and (max-width: 760px)") ) {
             this.add2cart.find('.compare-at-price').hide();
             this.add2cart.find('input[type="submit"]').hide();
             this.add2cart.find('.price').hide();
@@ -323,7 +327,7 @@ $(function () {
 
         $("#product-image").addClass('blurred');
         $("#switching-image").show();
-        
+
         var img = $(this).find('img');
         var size = $("#product-image").attr('src').replace(/^.*\/[0-9]+\.(.*)\..*$/, '$1');
         var src = img.attr('src').replace(/^(.*\/[0-9]+\.)(.*)(\..*)$/, '$1' + size + '$3');

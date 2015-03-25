@@ -41,7 +41,7 @@ class shopCsvProductviewController extends waJsonController
                                 $href = '?action=products#/product/'.$matches[2].'/';
                                 break;
                         }
-                        $value .= '<a href="' + $href + '" target="_blank"><i class="icon16 new-window" title="'.$title.'"></i></a>';
+                        $value .= '<a href="'.$href.'" target="_blank"><i class="icon16 new-window" title="'.$title.'"></i></a>';
                     }
                     break;
                 }

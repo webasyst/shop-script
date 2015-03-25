@@ -1,0 +1,74 @@
+<script type="text/javascript" src="{$wa_app_static_url}js/tutorial.js"></script>
+
+<div class="s-tutorial">
+
+    <div class="sidebar right15px">
+        <div class="block s-nolevel2-sidebar"></div>
+    </div>
+
+    <div class="sidebar left300px">
+
+        <div class="block s-nolevel2-sidebar s-inner-sidebar">
+
+            <div class="block align-center">
+                <h2>[`Welcome!`]</h2>
+                <p class="hint">[`You are very close to get your online store ready for your first sale!`]</p>
+                <div class="s-tutorial-progressbar" id="s-tutorial-progressbar">
+                    <div class="s-tutorial-progressbar-outer">
+                        <div class="s-tutorial-progressbar-inner" style="width:0%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="block double-padded">
+                <ul class="menu-v s-tutorial-checklist tutorial-actions" id="tutorial-actions">
+
+                    {$complete = 0}
+                    {counter start=0 print=false}
+                    {foreach $actions as $a}{strip}
+                        {if $a.complete}{$complete = $complete + 1}{/if}
+                        <li{if $a.complete} class="complete"{/if}><a href="{$a.href}">
+                            {if $a.complete}
+                                <span class="count"><i class="icon10 yes"></i></span>
+                            {/if}
+                            {counter}. {$a.name|escape}
+                        </a></li>
+                    {/strip}{/foreach}
+
+                    <li><a href="#/profit/">
+                        {counter}. [`Profit!`]
+                    </a></li>
+                </ul>
+
+                <hr>
+                <p class="hint align-center">
+                    <a href="javascript:void(0)" class="finish-tutorial">[`Close welcome tutorial`]</a>
+                </p>
+
+                <!-- plugin hook: 'backend_tutorial.sidebar_block' -->
+                {* @event backend_tutorial.%plugin_id%.sidebar_block *}
+                {foreach ifempty($backend_tutorial, []) as $_}{ifset($_.sidebar_block)}{/foreach}
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="content left300px blank s-nolevel2-box right15px">
+        <div id="s-content">
+            [`Loading...`] <i class="icon16 loading"></i>
+        </div>
+        <div class="clear-both"></div>
+    </div>
+
+</div>
+
+<script type="text/javascript">$(function() { "use strict";
+    {if $actions}
+        var progress = {max(0, round($complete*100 / count($actions))-2)};
+        $('#s-tutorial-progressbar .s-tutorial-progressbar-inner').css('width', progress+'%');
+    {/if}
+
+    $.tutorial.init({
+    });
+});</script>

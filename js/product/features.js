@@ -27,10 +27,21 @@ $.product = $.extend(true, $.product, {
         var $tab = $('#s-product-edit-menu').find('> li.features > a');
         $tab.attr('href', $tab.attr('href').replace(/\/features\/.*$/, '/features/'));
 
+        var $alert_block = $('#s-product-save .s-product-form.features .s-alert');
+        if ($.storage.get('shop/product_features_alert_hidden')) {
+            $alert_block.hide();
+        } else {
+            $alert_block.show();
+            $alert_block.find('.s-alert-close').click(function() {
+                $alert_block.hide();
+                $.storage.set('shop/product_features_alert_hidden', 1);
+            });
+        }
     },
 
     editTabFeaturesAction: function (path) {
         for (var field in this.features_values) {
+            //noinspection JSUnfilteredForInLoop
             var value = this.features_values[field];
             if (typeof(value) == 'object') {
                 if ((typeof(value.indexOf) !== 'function') && (typeof(value.value) != 'undefined')) {

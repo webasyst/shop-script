@@ -23,7 +23,7 @@
     </div>
 </div>
 <script>
-    document.title = '{"[`Reviews`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+    document.title = "[`Reviews`] — {$wa->accountName(false)|escape:javascript}";
     $.product_reviews.init({
         statuses: {
             deleted: '{shopProductReviewsModel::STATUS_DELETED}',
@@ -37,6 +37,9 @@
         container: '#s-content'
     });
     $('#s-all-reviews').find('.count-new:first').text({if $sidebar_counters.new}'+{$sidebar_counters.new}'{else}''{/if});
+    {if $wa->shop->config('enable_2x')}
+        $.fn.retina && $('.s-reviews .image img').retina();
+    {/if}
 </script>
 {else}
     <ul class="s-reviews">{$smarty.capture.review_list}</ul>

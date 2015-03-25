@@ -50,6 +50,10 @@ class shopTagModel extends waModel
                 }
             }
             unset($tag);
+
+            // Sort tags by name
+            usort($tags, wa_lambda('$a, $b', 'return strcmp($a["name"], $b["name"]);'));
+
         }
         return $tags;
     }
@@ -128,10 +132,10 @@ class shopTagModel extends waModel
 
         return $this->exec($sql);
     }
-    
+
     public function popularTags($limit = 10)
     {
         return $this->select('*')->order('count DESC')->limit($limit)->fetchAll();
     }
-    
+
 }

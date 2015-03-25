@@ -1,0 +1,423 @@
+<style>
+    span.field { display: block; }
+    span.field > span { display: block; }
+    .s-clear-radio { display: none; }
+</style>
+
+{function name=select n='' o=[] d='' with_empty=true}
+    <select name={$n|default:''}>
+        {if $with_empty}
+            <option value=""></option>
+        {/if}
+        {foreach $o as $e}
+            {if isset($e.id)}{$v = $e.id}{else}{$v = $e}{/if}
+            <option value="{$v}" {if $v == $d}selected="selected"{/if}>
+                {if isset($e.name)}{$e.name}{else}{$e}{/if}
+            </option>
+        {/foreach}
+    </select>
+{/function}
+
+<div class="block double-padded">
+    <h1>[`New search`]</h1>
+    <div class="s-order-customer-details">
+        <form id="s-customers-search-form">
+            <div class="fields form">
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">
+                            [`Total spent`]
+                        </div>
+                        <div class="value">
+
+                            {if isset($hash.app.orders_total_sum)}
+                                [`from`] <input name="app.orders_total_sum.from" value="{$hash.app.orders_total_sum.val[0]|default:''}" type="text" class="numerical short s-total-spent-from" placeholder="0">
+                                [`to`] <input name="app.orders_total_sum.to" value="{$hash.app.orders_total_sum.val[1]|default:''}" type="text" class="numerical short s-total-spent-to" placeholder="&infin;">
+                            {else}
+                                [`from`] <input name="app.total_spent.from" value="{$hash.app.total_spent.val[0]|default:''}" type="text" class="numerical short s-total-spent-from" placeholder="0">
+                                [`to`] <input name="app.total_spent.to" value="{$hash.app.total_spent.val[1]|default:''}" type="text" class="numerical short s-total-spent-to" placeholder="&infin;">
+                            {/if}
+                            {$primary_currency}
+                        </div>
+                        <div class="value small">
+                            <label>
+                                <input type="checkbox" {if !isset($hash.app.orders_total_sum)}checked="checked"{/if} class="s-customer-only-paid-orders"> [`Count only paid orders`]
+                            </label>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">
+                            [`Number of orders`]
+                        </div>
+                        <div class="value">
+
+                            {select n="app.number_of_orders.op" o=['>=', '<='] d=$hash.app.number_of_orders.op|default:'' with_empty=false}
+                            <input name="app.number_of_orders.val" value="{$hash.app.number_of_orders.val|default:''}" class="numerical short" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="name">
+                            [`Last order`]
+                        </div>
+                        <div class="value no-shift">
+                            {capture "_last_order_options"}
+                                <select name="app.last_order_datetime" data-op="<=" id="s-customers-order-datetime-select">
+                                    <option></option>
+                                    <option value="-30d" {if $hash.app.last_order_datetime.val|default:'' == '-30d'}selected="selected"{/if}>[`30 days`]</option>
+                                    <option value="-90d" {if $hash.app.last_order_datetime.val|default:'' == '-90d'}selected="selected"{/if}>[`90 days`]</option>
+                                    <option value="-180d" {if $hash.app.last_order_datetime.val|default:'' == '-180d'}selected="selected"{/if}>[`180 days`]</option>
+                                    <option value="-365d" {if $hash.app.last_order_datetime.val|default:'' == '-365d'}selected="selected"{/if}>[`365 days`]</option>
+                                    <option value=":enter_date" {if shopCustomersCollection::isDate($hash.app.last_order_datetime.val|default:[])}selected="selected"{/if}>[`Enter date...`]</option>
+                                </select>
+                            {/capture}
+                            {sprintf('<span>[`Over %s ago`]</span>', $smarty.capture._last_order_options)}
+                            <div id="s-customers-last-order-period" class="hidden">
+                                <input type="text" class="s-customer-datepicker" name="app.last_order_datetime.val" value="{$hash.app.last_order_datetime.val|default:''}">
+                                {select n='app.last_order_datetime.op'
+                                    o=[['id' => '<=', 'name' => _w('or earlier')],
+                                        ['id' => '>=', 'name' => _w('or later')]]
+                                    d=$hash.app.last_order_datetime.op|default:'' with_empty=false}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">
+                            [`First order`]
+                        </div>
+                        <div class="value">
+                            <input type="text" class="s-customer-datepicker" name="app.first_order_datetime.val" value="{$hash.app.first_order_datetime.val|default:''}">
+                            {select n='app.first_order_datetime.op'
+                                o=[['id' => '<=', 'name' => _w('or earlier')],
+                                    ['id' => '>=', 'name' => _w('or later')]]
+                                d=$hash.app.first_order_datetime.op|default:'' with_empty=false}
+                        </div>
+                    </div>
+
+                    {if $payment_methods}
+                        <div class="field">
+                            <div class="name">
+                                [`Payment`]
+                            </div>
+                            <div class="value no-shift">
+                                {select n='app.payment_method' o=$payment_methods d=$hash.app.payment_method.val|default:''}
+                            </div>
+                        </div>
+                    {/if}
+                    {if $shipping_methods}
+                        <div class="field">
+                            <div class="name">
+                                [`Shipping`]
+                            </div>
+                            <div class="value no-shift">
+                                {select n='app.shipment_method' o=$shipping_methods d=$hash.app.shipment_method.val|default:''}
+                            </div>
+                        </div>
+                    {/if}
+
+                    {if $coupons}
+                        <div class="field">
+                            <div class="name">
+                                [`Applied discount coupon`]
+                            </div>
+                            <div class="value no-shift">
+                                {select n="app.coupon" o=$coupons d=$hash.app.coupon.val|default:''}
+                            </div>
+                        </div>
+                    {/if}
+                </div>
+
+                <h5 class="heading">
+                    [`Purchases`]
+                </h5>
+                <div class="field-group">
+
+                    <div class="field">
+                        <div class="name">[`Purchased product`]</div>
+                        <div class="value">
+                            <input type="text" value="{if $hash.app.product.val|default:'' && !is_numeric($hash.app.product.val|default:'')}{$hash.app.product.val|default:''}{else}{$product_name}{/if}" placeholder="[`Start typing product or SKU name`]" class="long"  id="s-customer-product" data-enter-ignore="1">
+                            <input type="hidden" name="app.product" value="{$hash.app.product.val|default:''}" {if $hash.app.product.val|default:'' && is_numeric($hash.app.product.val|default:'')}data-op="="{else}data-op="*="{/if}>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">
+                            [`Purchase time frame`]
+                        </div>
+                        <div class="value">
+                            <div data-name="app.order_datetime" class="s-customer-period" data-op="{$hash.app.order_datetime.op|default:''}" data-val="{implode('--', $hash.app.order_datetime.val|default:[])}"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <h5 class="heading">
+                    [`Customer info`]
+                </h5>
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">[`Referer`]</div>
+                        <div class="value no-shift">
+                            {select n="app.referer" o=$referers d=$hash.app.referer.val|default:''}
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">
+                            [`Storefront`]
+                        </div>
+                        <div class="value no-shift">
+                            {select n="app.storefront" o=$storefronts d=$hash.app.storefront.val|default:''}
+                        </div>
+                    </div>
+                    {if $utm_campagns}
+                        <div class="field">
+                            <div class="name">[`UTM campaign`]</div>
+                            <div class="value no-shift">
+                                {select n="app.utm_campaign" o=$utm_campagns d=$hash.app.utm_campaign.val|default:''}
+                            </div>
+                        </div>
+                    {/if}
+                    <div class="field">
+                        <div class="name">
+                            [`Address`]
+                        </div>
+                        <div class="value">
+                            <p>
+                                {foreach $address_fields as $field}
+                                    <span class="field">
+                                        <span>{$field.name|escape}</span>
+                                        {$field.html}
+                                        {if $field.field_class === 'waContactBranchField'}
+                                            <a href="javascript:void(0);" class="s-clear-radio hint inline-link"><b><i>[`clear`]</i></b></a>
+                                        {/if}
+                                    </span>
+                                {/foreach}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field buttons">
+                    <div class="value submit">
+                        <input type="submit" class="button green s-ignored" value="[`Search`]">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(function() {
+        (function(container) {
+            var form = container;
+            form.submit(function() {
+                var hash = { };
+                var form = $(this);
+                $(':input', form).not('[type=submit]').not(':disabled')
+                    .each(
+                        function() {
+                            var item = $(this);
+                            if ((item.is(':radio') || item.is(':checkbox')) && !item.attr('checked')) {
+                                return;
+                            }
+                            var value = (item.val() || '').trim();
+                            if (!value) {
+                                return;
+                            }
+                            var name = (item.attr('name') || '').trim();
+                            name = name.replace('[', '.').replace(']', '');
+                            if (!name) {
+                                return;
+                            }
+                            if (name.slice(-3) === '.op') {
+                                name = name.slice(0, -3);
+                                hash[name] = hash[name] || { };
+                                hash[name].op = value;
+                                return;
+                            } else if (name.slice(-4) === '.val') {
+                                name = name.slice(0, -4);
+                                hash[name] = hash[name] || { } ;
+                                hash[name].val = value;
+                            } else if (name.slice(-5) === '.from') {
+                                name = name.slice(0, -5);
+                                hash[name] = hash[name] || { };
+                                hash[name].type = 'range';
+                                hash[name].val = hash[name].val || { };
+                                hash[name].val.from = value;
+                            } else if (name.slice(-3) === '.to') {
+                                name = name.slice(0, -3);
+                                hash[name] = hash[name] || { };
+                                hash[name].type = 'range';
+                                hash[name].val = hash[name].val || { };
+                                hash[name].val.to = value;
+                            } else {
+                                var op = '*=';
+                                if (item.data('op')) {
+                                    op = item.data('op');
+                                } else if (item.is('select') || item.is(':radio') || item.is(':checkbox')) {
+                                    op = '=';
+                                }
+                                if (name === 'contact_info.address.region') {
+                                    value = (item.data('country') ? (item.data('country')  + ':') : '') + value;
+                                }
+                                hash[name] = {
+                                    op: op, val: value
+                                };
+                            }
+                        });
+                var formatRange = function(key, el) {
+                    if (el.val.from && el.val.to) {
+                        return key + '=' + el.val.from + '--' + el.val.to;
+                    }
+                    if (el.val.from) {
+                        return key + '>=' + el.val.from;
+                    }
+                    if (el.val.to) {
+                        return key + '<=' + el.val.to;
+                    }
+                    return '';
+                };
+                var format = function(key, el) {
+                    if (el.type === 'range') {
+                        return formatRange(key, el);
+                    }
+                    return key + el.op + el.val;
+                };
+                var hash_ar = [];
+                $.each(hash, function(key, el) {
+                    if (el.val) {
+                        hash_ar.push(format(key, el));
+                    }
+                });
+                $.wa.setHash('search/' + hash_ar.join('&'));
+                return false;
+            })
+            .find(':input').keydown(function(e) {
+                if (e.keyCode === 13 && $(this).data('enter-ignore')) {
+                    return false;
+                }
+            });
+
+            $('.s-customer-period', container).each(function() {
+                makeChoosePeriodControl($(this));
+            });
+            $('.s-customer-datepicker', container).datepicker({
+                dateFormat: 'yy-mm-dd'
+            });
+
+            $('.s-clear-radio', container).each(function() {
+                var item = $(this);
+                item.closest('.field')
+                    .find('label:last').after(this).end()
+                    .find(':radio').click(function() {
+                        item.show();
+                    });
+            }).click(function() {
+                $(this).hide().closest('.field').find(':radio').attr('checked', false);
+                return false;
+            });
+
+            (function(selector) {
+                var name = selector.attr('name');
+                var handler = function() {
+                    if (selector.val() === ':enter_date') {
+                        $('#s-customers-last-order-period').show().find(':input').attr('disabled', false);
+                        selector.attr('name', '').parent().hide();
+                    } else {
+                        $('#s-customers-last-order-period').hide().find(':input').attr('disabled', true);
+                        selector.attr('name', name).parent().show();
+                    }
+                    return selector;
+                };
+                handler(selector).change(handler);
+            })($('#s-customers-order-datetime-select'));
+
+            (function(toggler) {
+                var handler = function() {
+                    if (toggler.is(':checked')) {
+                        $('.s-total-spent-from').attr('name', 'app.total_spent.from');
+                        $('.s-total-spent-to').attr('name', 'app.total_spent.to');
+                    } else {
+                        $('.s-total-spent-from').attr('name', 'app.orders_total_sum.from');
+                        $('.s-total-spent-to').attr('name', 'app.orders_total_sum.to');
+                    }
+                    return toggler;
+                };
+                handler(toggler).click(handler);
+            })($('.s-customer-only-paid-orders', container));
+
+        })($('#s-customers-search-form'));
+
+        function makeChoosePeriodControl(el)
+        {
+            var start_input = $('<input class="datepicker" style="width:111px;">');
+            var end_input = $('<input class="datepicker" style="width:111px;">');
+            var hidden_input = $('<input type="hidden" name="' + el.data('name') + '">');
+
+            var init_val = el.data('val');
+            var init_op = el.data('op');
+            el.append(start_input).append(' &mdash; ').append(end_input).append(hidden_input);
+            if (init_val) {
+                init_val = init_val.split('--');
+                if (init_val[0]) {
+                    if (init_op === '=' || init_op === '>=') {
+                        el.find('.datepicker:eq(0)').val(init_val[0]);
+                    } else if (init_op === '<=') {
+                        el.find('.datepicker:eq(1)').val(init_val[0]);
+                    }
+                }
+                if (init_val[1]) {
+                    el.find('.datepicker:eq(1)').val(init_val[1]);
+                }
+            }
+            el.find('.datepicker')
+                .change(function() {
+                    var range = [];
+                    if (start_input.datepicker('getDate')) {
+                        range[0] = start_input.val();
+                    }
+                    if (end_input.datepicker('getDate')) {
+                        range[1] = end_input.val();
+                    }
+                    if (range[0] && range[1]) {
+                        hidden_input.data('op', '=').val(range.join('--'));
+                    } else if (range[0]) {
+                        hidden_input.data('op', '>=').val(range[0]);
+                    } else if (range[1]) {
+                        hidden_input.data('op', '<=').val(range[1]);
+                    } else {
+                        hidden_input.val('');
+                    }
+                })
+                .datepicker({
+                    dateFormat: 'yy-mm-dd'
+                }).change();
+
+        }
+
+        (function(input) {
+            var hidden = input.closest('.field').find('[type="hidden"]');
+            input.autocomplete({
+                source: '?action=autocomplete',
+                minLength: 3,
+                delay: 300,
+                select: function (event, ui) {
+                    hidden.data('op', '=').val(ui.item.id);
+                }
+            }).keypress(function(e) {
+                setTimeout(function() {
+                    hidden.data('op', '*=').val(input.val());
+                }, 150);
+            }).keyup(function(e) {
+                if (!input.val()) {
+                    hidden.data('op', '=').val('');
+                }
+            });
+        })($('#s-customer-product'));
+
+        // datepicker artifact fix
+        $('#ui-datepicker-div').hide();
+
+    });
+</script>

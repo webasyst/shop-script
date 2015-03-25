@@ -80,7 +80,10 @@ class shopFrontendCartAddController extends waJsonController
                     $quantity = $sku['count'] - $c;
                     $name = $product['name'].($sku['name'] ? ' ('.$sku['name'].')' : '');
                     if (!$quantity) {
-                        $this->errors = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
+                        if ($sku['count'] > 0)
+                            $this->errors = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
+                        else
+                            $this->errors = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience.'), $name);
                         return;
                     } else {
                         $this->response['error'] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
@@ -179,7 +182,12 @@ class shopFrontendCartAddController extends waJsonController
             $service = $service_model->getById($data['service_id']);
             $item['service_variant_id'] = $service['variant_id'];
         }
-        $id = $this->cart->addItem($item);
+
+        if ($row = $this->cart_model->getByField(array('parent_id' => $data['parent_id'], 'service_variant_id' => $item['service_variant_id']))) {
+            $id = $row['id'];
+        } else {
+            $id = $this->cart->addItem($item);
+        }
         $total = $this->cart->total();
         $discount = $this->cart->discount();
 

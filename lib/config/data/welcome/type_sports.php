@@ -42,9 +42,5 @@ return array(
             'type' => shopFeatureModel::TYPE_VARCHAR,
             'selectable' => true
         ),
-        'weight' => array(
-            'name' => 'Weight',
-            'type' => shopFeatureModel::TYPE_DIMENSION.'.weight'
-        ),
     )
 );

@@ -45,7 +45,7 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
             $order = $order_model->getById($order_id);
         }
 
-        shopCustomers::recalculateTotalSpent($order['contact_id']);
+        shopCustomer::recalculateTotalSpent($order['contact_id']);
         if ($order !== null) {
 
             $log_model = new shopOrderLogModel();
@@ -60,7 +60,7 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
                 // for logging changes in stocks
                 shopProductStocksLogModel::setContext(
                         shopProductStocksLogModel::TYPE_ORDER,
-                        'Order %s was completed',
+                        /*_w*/('Order %s was completed'),
                         array(
                             'order_id' => $order_id
                         )

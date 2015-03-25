@@ -1,0 +1,341 @@
+<div class="block double-padded">
+    <h1>
+        [`Customers`]
+        <span class="hint period-description">[`Custom range`]</span>
+    </h1>
+    <div class="clear-both"></div>
+
+    <div class="">
+        <div class="sidebar right300px">
+
+            <div class="graph-wrapper" style="width: 240px; margin: auto;">
+                {if $total.customers_count > 0}
+                    <div class="pie-wrapper"></div>
+                    <div class="hint-wrapper"></div>
+                    <script>
+                        (function() {
+                            if (typeof showPieGraph == 'undefined') {
+                                return $.ajax({
+                                    dataType: "script",
+                                    url: "{$wa_url}wa-apps/shop/js/charts/d3chart-pie.js?{$wa->version()}",
+                                    cache: true
+                                });
+                            } else {
+                                return $.Deferred(function(d) {
+                                    setTimeout(function() {
+                                        d.resolve();
+                                    }, 0);
+                                });
+                            }
+                        })().done(function() {
+                            showPieGraph([{
+                                label: "[`New customers`]",
+                                value: {$total.new_customer_count}
+                            }, {
+                                label: "[`Returning customers`]",
+                                value: {$total.customers_count - $total.new_customer_count}
+                            }]);
+                        });
+                    </script>
+                {else}
+                    <script>
+                        setTimeout(function() {
+                            $('.graph-wrapper .pie-wrapper').remove();
+                        }, 0);
+                    </script>
+                {/if}
+            </div>
+
+        </div>
+        <div class="content right300px">
+
+        <table id="s-customers-report-table" class="zebra mode-sales">
+            <thead>
+                <tr class="white s-header-row">
+                    <th>&nbsp;</th>
+                    <th class="align-right"><a href="javascript:void(0)" title="[`Only paid orders are counted`]">[`Customers`]</a></th>
+                    <th class="align-right"><a href="javascript:void(0)" title="[`Average number of orders placed by a single customer`]">[`Orders per customer`]</a></th>
+                    <th class="align-right"><a href="javascript:void(0)" title="[`Marketing costs`]">[`Cost`]</a></th>
+                    <th class="align-right"><a href="javascript:void(0)" title="[`Customer Acquisition Cost — an average cost for convincing one to place and pay for an order`]">[`CAC`]</a></th>
+
+                    <th class="align-right toggled sales">
+                        <select class="table-base-selector">
+                            <option value="sales">[`Sales`]</option>
+                            <option value="profit">[`Profit`]</option>
+                        </select>
+                    </th>
+                    <th class="align-right toggled sales"><a href="javascript:void(0)" title="[`Average Revenue Per User = Total sales / Number of customers`]">[`ARPU`] <span class="hint period-description">[`Custom range`]</span></a></th>
+                    <th class="align-right toggled sales"><a href="javascript:void(0)" title="[`Indicates how much does average customer brings you in sales.`]">[`Lifetime ARPU`]</a></th>
+
+                    <th class="align-right toggled profit">
+                        <select class="table-base-selector">
+                            <option value="sales">[`Sales`]</option>
+                            <option value="profit">[`Profit`]</option>
+                        </select>
+                    </th>
+                    <th class="align-right toggled profit"><a href="javascript:void(0)" title="[`Average Margin Per User = Total profit / Number of customers`]">[`AMPU`] <span class="hint period-description">[`Custom range`]</span></a></th>
+                    <th class="align-right toggled profit"><a href="javascript:void(0)" title="[`Customer Lifetime Value indicates how much does average customer brings you in profit. LTV is the lifetime AMPU.`]">[`LTV`]</a></th>
+                </tr>
+
+                <tr class="s-summary-row">
+                    <td>[`Total`]</td>
+                    <td class="align-right">{$total.customers_count}</td>
+                    <td class="align-right">
+                        {if $total.customers_count > 0 && $total.order_count > 0}
+                            {round($total.order_count / $total.customers_count, 1)}
+                        {elseif $total.customers_count <= 0}
+                            &#8734;
+                        {else}
+                            <span class="gray">&mdash;</span>
+                        {/if}
+                    </td>
+
+                    <td class="align-right nowrap">{wa_currency_html($total.cost, $def_cur)}</td>
+                    <td class="align-right nowrap">
+                        {if $total.customers_count > 0 && $total.cost > 0}
+                            {wa_currency_html($total.cost / $total.customers_count, $def_cur)}
+                        {elseif $total.customers_count <= 0}
+                            &#8734;
+                        {else}
+                            <span class="gray">&mdash;</span>
+                        {/if}
+                    </td>
+
+                    <td class="s-sales-cell align-right toggled sales s-wider-cell nowrap">{wa_currency_html($total.sales, $def_cur)}</td>
+                    <td class="align-right toggled sales">
+                        <strong>{wa_currency_html($total.arpu, $def_cur)}</strong>
+                    </td>
+                    <td class="align-right toggled sales nowrap">
+                        <strong>{wa_currency_html($total.lifetime_arpu, $def_cur)}</strong>
+                    </td>
+
+                    <td class="s-profit-cell align-right toggled profit s-wider-cell nowrap">{wa_currency_html($total.profit, $def_cur)}</td>
+                    <td class="align-right toggled profit nowrap">
+                        <strong class="s-roi {if $total.ampu > $total.cac*1.3}s-positive{elseif $total.ampu > $total.cac}s-questionable{elseif $total.cost || $total.ampu < 0}s-negative{/if}">
+                            {wa_currency_html($total.ampu, $def_cur)}
+                        </strong>
+                        {if $total.cost > 0}
+                            <br>
+                            <span class="hint">
+                                [`ROI`]: <strong>{$total.roi}%</strong>
+                            </span>
+                        {/if}
+                    </td>
+                    <td class="align-right toggled profit nowrap">
+                        <strong class="s-roi {if $total.lifetime_ampu > $total.lifetime_cac*1.3}s-positive{elseif $total.lifetime_ampu > $total.lifetime_cac}s-questionable{elseif $total.lifetime_cost || $total.lifetime_ampu < 0}s-negative{/if}">
+                        {wa_currency_html($total.lifetime_ampu, $def_cur)}</strong>
+                        {if $total.lifetime_cost > 0}
+                            <br>
+                            <span class="hint">
+                                [`ROI`]: <strong>{$total.lifetime_roi}%</strong>
+                            </span>
+                        {/if}
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                {foreach $table_data as $row}{strip}
+                    <tr class="{if $row.is_campaign}s-tr-campaign{else}s-tr-source{/if}">
+                        {$cac = $row.cost*999}
+                        {$arpu = 0}
+                        {$ampu = 0}
+                        {$orders_per_customer = 0}
+                        {$lifetime_arpu = 0}
+                        {$lifetime_ampu = 0}
+                        {if $row.customers_count > 0}
+                            {$orders_per_customer = $row.order_count / $row.customers_count}
+                            {$arpu = $row.sales / $row.customers_count}
+                            {$ampu = $row.profit / $row.customers_count}
+                            {$cac = $row.cost / $row.customers_count}
+                        {/if}
+                        {if $row.lifetime_customers_count > 0}
+                            {$lifetime_arpu = $row.lifetime_sales / $row.lifetime_customers_count}
+                            {$lifetime_ampu = $row.lifetime_profit / $row.lifetime_customers_count}
+                        {/if}
+
+                        <td>{ifempty($row.name, "[`(direct)`]")|escape}</td>
+                        <td class="align-right" data-sort="{$row.customers_count}">{$row.customers_count}</td>
+                        <td class="align-right" data-sort="{$orders_per_customer}">{if $orders_per_customer}{round($orders_per_customer, 1)}{else}<span class="gray">&mdash;</span>{/if}</td>
+
+                        <td class="nowrap align-right" data-sort="{$row.cost}">
+                            <div class="edit-icon-wrapper">
+                                <a href="?action=reports#/sales/costs/"><i class="icon16 edit"></i></a>
+                            </div>
+                            {if $row.cost}{wa_currency($row.cost, $def_cur, '%2{h}')}{else}<span class="gray">&mdash;</span>{/if}
+                        </td>
+                        <td class="nowrap align-right" data-sort="{$cac}">
+                            {if $row.customers_count > 0 && $row.cost}{wa_currency($cac, $def_cur, '%2{h}')}{elseif $row.cost}&#8734;{else}<span class="gray">&mdash;</span>{/if}
+                        </td>
+
+                        <td class="nowrap align-right toggled sales" data-sort="{$row.sales}">
+                            <span title="[`Profit`]: {shop_currency($row.profit)}">{wa_currency($row.sales, $def_cur, '%2{h}')}</span>
+                        </td>
+                        <td class="nowrap align-right toggled sales" data-sort="{$arpu}">{wa_currency($arpu, $def_cur, '%2{h}')}</td>
+                        <td class="align-right toggled sales" data-sort="{$lifetime_arpu}">{wa_currency($lifetime_arpu, $def_cur, '%2{h}')}</td>
+
+                        <td class="nowrap align-right toggled profit" data-sort="{$row.profit}">
+                            <span title="[`Sales`]: {shop_currency($row.sales)}">{wa_currency($row.profit, $def_cur, '%2{h}')}</span>
+                        </td>
+                        <td class="nowrap align-right s-roi {if $ampu >= 1.3*$cac}s-positive{elseif $ampu >= $cac}s-questionable{elseif $row.cost || $ampu < 0}s-negative{/if} toggled profit" data-sort="{$ampu}">{wa_currency($ampu, $def_cur, '%2{h}')}</td>
+                        <td class="nowrap align-right toggled profit" data-sort="{$lifetime_ampu}">{wa_currency($lifetime_ampu, $def_cur, '%2{h}')}</td>
+                    </tr>
+                {/strip}{/foreach}
+            </tbody>
+        </table>
+
+        <br>
+        <a href="javascript:void(0)" class="inline-link load-more-link"><b>[`Load more...`]</b></a>
+
+    </div>
+        <div class="clear-both"></div>
+    </div>
+
+</div>
+
+<div class="block double-padded">
+
+    <div class="sidebar left400px">
+        {if count($country_customers)}
+            <table class="zebra s-country-list">
+                <tr class="white">
+                    <th>&nbsp;</th>
+                    <th colspan="2">[`Number of customers`]</th>
+                </tr>
+                {foreach $country_customers as $c}
+                    <tr>
+                        <td>{if $c.iso3letter}
+                            <i class="icon16 country" style="background-image: url('/wa-content/img/country/{$c.iso3letter}.gif');"></i>
+                        {else}
+                            <i class="icon16 globe"></i>
+                        {/if}{$c.name|escape}</td>
+                        <td class="align-right">{$c.customers}</td>
+                        <td><div style="width: {number_format($c.percent_of_max)}px;" class="s-bar"></div></td>
+                    </tr>
+                {/foreach}
+            </table>
+        {else}
+            <p class="gray align-center s-empty-country-list">[`No paid orders on the selected period.`]</p>
+        {/if}
+        <div class="clear-both"></div>
+    </div>
+    <div class="content left400px">
+        <div class="map-wrapper"></div>
+    </div>
+
+</div>
+
+<div class="hidden">
+    <ul class="menu-h">
+        <li>
+            <select id="s-customers-report-storefront-selector" class="storefront-selector">
+                <option value="">[`All storefronts`]</option>
+                {foreach $storefronts as $stf}
+                    <option value="{$stf|escape}"{if ifset($request_options.storefront) == $stf} selected{/if}>{$stf|escape}</option>
+                {/foreach}
+            </select>
+        </li>
+    </ul>
+</div>
+<script>(function() { "use strict";
+
+    document.title = "[`Customers`] — {$wa->accountName(false)|escape:javascript}";
+
+    var $table = $('#s-customers-report-table');
+    var $base_selectors = $table.find('.table-base-selector');
+    var $load_more_link = $table.siblings('.load-more-link');
+    var request_params = {json_encode($request_options)};
+    var action_url = '?module=reports&action=customers';
+
+    // Human-readable period description in page header
+    (function() {
+        var $timeframe_selected_li = $('#mainmenu .s-reports-timeframe .selected');
+        if ($timeframe_selected_li.length && $timeframe_selected_li.data('timeframe') != 'custom') {
+            $('#reportscontent .period-description').html($timeframe_selected_li.find('a').html());
+        }
+    })();
+
+    // Storefront selector logic
+    (function() { "use strict";
+        var $storefront_selector = $('#s-customers-report-storefront-selector').removeAttr('id');
+
+        // Move selector into the top menu wrapper
+        $('#s-reports-custom-controls').empty().append($storefront_selector.closest('ul'));
+
+        // Reload page when user changes something in the selector
+        $storefront_selector.change(function() {
+            if (!$table.closest('html').length) {
+                $storefront_selector.off().remove();
+                return;
+            }
+            $storefront_selector.parent().append('<i class="icon16 loading"></i>');
+            $.post(action_url, $.extend({ }, request_params, { storefront: $storefront_selector.val() }), function(r) {
+                var $old_chart = $('#reportscontent .graph-wrapper .pie-wrapper').detach();
+                $('#reportscontent').html(r);
+                if ($old_chart.length) {
+                    $('#reportscontent .graph-wrapper .pie-wrapper').replaceWith($old_chart);
+                }
+            });
+        });
+
+    })();
+
+    // When user changes sales/profit selector, show the right set of columns
+    $base_selectors.change(function() {
+        var $select = $(this);
+        var new_mode = $select.val();
+        $base_selectors.val(new_mode);
+        $select.closest('tr').find('.darr, .uarr').remove();
+        $table.removeClass('mode-sales mode-profit').addClass('mode-'+new_mode);
+        $.reports.sortTable($select.closest('tr').children().eq(new_mode == 'sales' ? 4 : 7));
+        updateRowVisibility();
+    });
+
+    // Helper to hide rest of table rows after sorting
+    var updateRowVisibility = function() {
+        return $table.find('> tbody > tr').show().slice(20).hide().length;
+    };
+
+    // Initially only show at most 20 rows in a table
+    (function() {
+        if (updateRowVisibility() > 0) {
+            // Click on a 'Show all' link shows the rest of the rows
+            $load_more_link.show().click(showAllRows);
+        } else {
+            showAllRows();
+        }
+
+        function showAllRows() {
+            $table.find('> tbody > tr').show();
+            $load_more_link.off().hide();
+            updateRowVisibility = function() { return 0; };
+        }
+    })();
+
+    // Table sorting is implemented in JS
+    $table.find('> thead').on('click', 'th a', function() {
+        var $a = $(this);
+        var asc = $a.find('.darr').length > 0;
+        $a.closest('tr').find('.darr, .uarr').remove();
+        $a.append('<i class="icon16 '+(asc ? 'uarr' : 'darr')+'"></i>');
+        $.reports.sortTable($a.closest('th'), asc);
+        updateRowVisibility();
+    });
+
+    // Map chart
+    (function() {
+        if (typeof showMapGraph == 'undefined') {
+            return $.ajax({
+                dataType: "script",
+                url: "{$wa_url}wa-apps/shop/js/charts/d3chart-map.js?{$wa->version()}",
+                cache: true
+            });
+        } else {
+            return $.Deferred(function(d) {
+                d.resolve();
+            });
+        }
+    })().done(function() {
+        showMapGraph({json_encode($map_chart_data)}, {json_encode($country_names)});
+    });
+
+})();</script>

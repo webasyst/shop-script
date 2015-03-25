@@ -31,6 +31,11 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
 
     private $columns = array();
 
+    private $params = array(
+        'ignore_empty_cells' => true,
+        'trim_cells'         => true,
+    );
+
     const MAP_CONTROL = 'Csvmap';
     const TABLE_CONTROL = 'Csvtable';
 
@@ -190,17 +195,19 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
 
     public function serialize()
     {
-        return serialize(array(
-            'file'         => $this->file,
-            'files'        => $this->files,
-            'delimiter'    => $this->delimiter,
-            'encoding'     => $this->encoding,
-            'data_mapping' => $this->data_mapping,
-            'key'          => $this->key,
-            'offset_map'   => $this->offset_map,
-            'columns'      => $this->columns,
-            'count'        => $this->count,
-        ));
+        return serialize(
+            array(
+                'file'         => $this->file,
+                'files'        => $this->files,
+                'delimiter'    => $this->delimiter,
+                'encoding'     => $this->encoding,
+                'data_mapping' => $this->data_mapping,
+                'key'          => $this->key,
+                'offset_map'   => $this->offset_map,
+                'columns'      => $this->columns,
+                'count'        => $this->count,
+            )
+        );
     }
 
     public function unserialize($serialized)
@@ -331,7 +338,10 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
             $line = null;
 
             if ($line = fgetcsv($this->fp, 0, $this->delimiter)) {
-                $this->current = array_map('trim', $line);
+                if ($this->params['trim_cells']) {
+                    $line = array_map('trim', $line);
+                }
+                $this->current = $line;
             }
 
             if ($line && is_array($this->current) && (count($this->current) > 0)) { //skip empty lines
@@ -386,6 +396,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
     {
         rewind($this->fp);
         $this->key = 0;
+        // $this->next();
     }
 
     public function header()
@@ -400,12 +411,20 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
             foreach ($columns as $col => $name) {
                 $name = $this->utf8_bad_replace($name);
                 if (isset($names[$name])) {
-                    unset($columns[$col]);
-                    $key = array_search($name, $this->header);
-                    unset($this->header[$key]);
-                    $this->header[$key.':'.$col] = $name;
+                    $key = $names[$name];
+                    $prev = explode(':', $names[$name]);
+                    if (($col - end($prev)) == 1) {
+                        unset($columns[$col]);
+                        unset($this->header[$key]);
+                        $key .= ':'.$col;
+                        $this->header[$key] = $name;
+                        $names[$name] = $key;
+                    } else {
+                        $names[$name] = $col;
+                        $this->header[$col] = $name;
+                    }
                 } else {
-                    $names[$name] = true;
+                    $names[$name] = $col;
                     $this->header[$col] = $name;
                 }
             }
@@ -455,34 +474,25 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
     private function applyDataMapping($line)
     {
         $data = array();
-
         foreach ($this->data_mapping as $field => $column) {
             $insert = null;
             if (is_array($column)) {
                 $insert = array();
                 foreach ($column as $id) {
-                    if (ifset($line[$id]) !== '') {
-                        $insert[] = ifset($line[$id]);
+                    $cell = ifset($line[$id]);
+                    if (($cell !== '') || !$this->params['ignore_empty_cells']) {
+                        $insert[] = $cell;
                     }
                 }
                 if (!count($insert)) {
                     $insert = null;
                 }
             } elseif ($column >= 0) {
-                if (ifset($line[$column]) !== '') {
-                    $insert = ifset($line[$column]);
-                    if (preg_match('/^\{(.*)\}$/', $insert, $matches)) {
-                        $insert = preg_split("/\s*,\s*/", $matches[1]);
-                        foreach ($insert as & $item) {
-                            if (preg_match('/^"(.*)"$/', $item, $mathes)) {
-                                $item = str_replace('""', '"', $mathes[1]);
-                            }
-                        }
-                        unset($item);
-                    }
+                $cell = ifset($line[$column]);
+                if (($cell !== '') || !$this->params['ignore_empty_cells']) {
+                    $insert = $cell;
                 }
             }
-
             if ($insert !== null) {
                 self::insert($data, $field, $insert);
             }
@@ -587,7 +597,11 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
             for ($id = 0; $id < $this->header_count; $id++) {
                 if (isset($this->current[$id])) {
                     if (mb_strlen($this->current[$id]) > 24) {
-                        $row .= '<td title="'.htmlentities($this->current[$id], ENT_QUOTES, 'utf-8').'">'.htmlentities(mb_substr($this->current[$id], 0, 20), ENT_NOQUOTES, 'utf-8').'…</td>';
+                        $row .= '<td title="'.htmlentities($this->current[$id], ENT_QUOTES, 'utf-8').'">'.htmlentities(
+                                mb_substr($this->current[$id], 0, 20),
+                                ENT_NOQUOTES,
+                                'utf-8'
+                            ).'…</td>';
                     } else {
                         if ($this->current[$id] === '') {
                             $row .= '<td>&nbsp;</td>';
@@ -612,11 +626,13 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
             $html .= $this->validateSourceFields($params['validate']);
         }
         array_unshift(
-            $params['options'], array(
-            'value' => -1,
-            'title' => sprintf('-- %s --', _w('No associated column')),
-            'style' => 'font-style:italic;'
-        ));
+            $params['options'],
+            array(
+                'value' => -1,
+                'title' => sprintf('-- %s --', _w('No associated column')),
+                'style' => 'font-style:italic;'
+            )
+        );
 
 
         foreach ($params['options'] as &$option) {
@@ -712,7 +728,7 @@ HTML;
         }
 
         foreach ($headers as $id => &$header) {
-            $rows[0] .= '<td title="'.$id.'">'.self::id2name($id)."</td>";
+            $rows[0] .= '<td title="'.($id + 1).'">'.self::id2name($id)."</td>";
             $header['title'] = trim($header['title']);
             if (!empty($header['title'])) {
                 $header['title'] = htmlentities($header['title'], ENT_NOQUOTES, waHtmlControl::$default_charset);
@@ -757,17 +773,17 @@ HTML;
         if (intval(preg_replace('@\D+@', '', $this->count)) > $n) {
             if (!empty($params['row_handler'])) {
                 $translate = _w('Load more...');
+                $translate_ = htmlentities($translate, ENT_QUOTES, 'utf-8');
                 if (!empty($params['row_handler_string'])) {
                     $count_str .= <<<HTML
 <br/>
-<a href="#/{$params['row_handler']}" class="js-action js-csv-more inline-link" title="More">
+<a href="#/{$params['row_handler']}" class="js-action js-csv-more inline-link" title="{$translate_}">
     <b><i>{$translate}</i></b>
 </a>
 HTML;
                 } else {
-                    $translate = htmlentities($translate, ENT_QUOTES);
                     $link = <<<HTML
-<a href="#/{$params['row_handler']}" class="js-action js-csv-more" title="{$translate}">
+<a href="#/{$params['row_handler']}" class="js-action js-csv-more" title="{$translate_}">
     <i class="icon16 plus"></i>
 </a>
 HTML;
@@ -842,16 +858,18 @@ JS;
             );
             waUtils::varExportToFile($snapshot, $reader->file.'.snapshot');
             unset($snapshot);
-        } else if ($reader && is_string($reader) && file_exists($reader)) {
-            if (file_exists($reader.'.snapshot')) {
-                $data = include($reader.'.snapshot');
-                $params = ifset($data['params'], array());
-                $reader = unserialize(ifset($data['reader'], ''));
-            } else {
-                $reader = new self($reader);
-            }
         } else {
-            $reader = null;
+            if ($reader && is_string($reader) && file_exists($reader)) {
+                if (file_exists($reader.'.snapshot')) {
+                    $data = include($reader.'.snapshot');
+                    $params = ifset($data['params'], array());
+                    $reader = unserialize(ifset($data['reader'], ''));
+                } else {
+                    $reader = new self($reader);
+                }
+            } else {
+                $reader = null;
+            }
         }
         return $reader;
     }
@@ -889,8 +907,6 @@ HTML;
     <td>→</td>
     <td>%1$s%3$s</td>
 </tr>',
-
-
             'translate'           => false,
             'options'             => array(
                 -1 => array(
@@ -906,10 +922,16 @@ HTML;
 
         if ($this->header) {
             foreach ($this->header as $id => $column) {
+                $numbers = array_map('intval', explode(':', $id));
+                foreach ($numbers as &$n) {
+                    ++$n;
+                }
+                unset($n);
+
                 $params['options'][] = array(
                     'value'       => $id,
                     'title'       => $column,
-                    'description' => sprintf(_w('CSV columns numbers %s'), implode(', ', explode(':', $id))),
+                    'description' => sprintf(_w('CSV columns numbers %s'), implode(', ', $numbers)),
                 );
             }
         }
@@ -927,11 +949,14 @@ HTML;
                 );
             }
 
-            $params_target = array_merge($params, array(
-                'title'       => $target['title'],
-                'description' => ifset($target['description']),
-                'control'     => ifset($target['control']),
-            ));
+            $params_target = array_merge(
+                $params,
+                array(
+                    'title'       => $target['title'],
+                    'description' => ifset($target['description']),
+                    'control'     => ifset($target['control']),
+                )
+            );
 
             if (($target['group'] && !$group) || ($target['group']['title'] !== $group)) {
                 if ($group) {

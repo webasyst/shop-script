@@ -572,6 +572,14 @@ SQL;
                 'selectable' => false,
                 'available'  => 2,
             );
+            $types[] = array(
+                'name'       => _w('Select from a list of values (select)'),
+                'type'       => '*',
+                'multiple'   => false,
+                'selectable' => true,
+                'available'  => 1,
+                'subtype'    => self::extendSubtypes($single_types, self::TYPE_DIMENSION),
+            );
 
             /* Shortcuts */
 
@@ -658,15 +666,6 @@ SQL;
 
 
             /* Selectable */
-            $types[] = array(
-                'name'       => _w('Select'),
-                'group'      => _w('Selectable'),
-                'type'       => '*',
-                'multiple'   => false,
-                'selectable' => true,
-                'available'  => 1,
-                'subtype'    => self::extendSubtypes($single_types, self::TYPE_DIMENSION),
-            );
             /** TODO
              * $types[] = array(
              * 'name'       => 'Radiobuttons',
@@ -679,14 +678,15 @@ SQL;
              * );
              */
             $types[] = array(
-                'name'       => _w('Checkboxes (multiple choice)'),
-                'group'      => _w('Selectable'),
+                'name'       => _w('Multiple values (checkboxes)'),
+                'group'      => _w('Selectable features'),
                 'type'       => '*',
                 'multiple'   => true,
                 'selectable' => true,
                 'available'  => 1,
                 'subtype'    => self::extendSubtypes($single_types, self::TYPE_DIMENSION),
             );
+            
             /* divider */
             $types[] = array(
                 'name'       => _w('Divider'),
@@ -694,7 +694,7 @@ SQL;
                 'type'       => self::TYPE_DIVIDER,
                 'multiple'   => false,
                 'selectable' => false,
-                'available'  => 0,
+                'available'  => 2,
             );
         }
         return $types;

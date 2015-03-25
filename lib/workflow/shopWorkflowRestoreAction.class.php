@@ -62,7 +62,7 @@ class shopWorkflowRestoreAction extends shopWorkflowAction
             $order = $order_model->getById($order_id);
             if ($order && $order['paid_date']) {
                 shopAffiliate::applyBonus($order_id);
-                shopCustomers::recalculateTotalSpent($order['contact_id']);
+                shopCustomer::recalculateTotalSpent($order['contact_id']);
             }
         }
         return $data;

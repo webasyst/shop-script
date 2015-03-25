@@ -55,7 +55,9 @@ if ($notifications_model->countAll() == 0) {
     }
 }
 
-if (wa()->getEnv() == 'backend') {
+// Unless we're called from another application, redirect to backend welcome screen
+if (wa()->getEnv() == 'backend' && !wa()->getApp()) {
     // redirect to welcome
     header("Location: ".wa()->getConfig()->getBackendUrl(true).'shop/?action=welcome');
 }
+

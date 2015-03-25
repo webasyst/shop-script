@@ -42,8 +42,8 @@
         </div>
         <div class="value no-shift">
             <select name="domain">
-                {foreach $settlements as $route}
-                    <option value="{$route|escape}"{if $route eq $current_domain} selected="selected"{/if}>{$route|escape}</option>
+                {foreach $settlements as $route => $title}
+                    <option value="{$route|escape}"{if $route eq $current_domain} selected="selected"{/if}>{$title|escape}</option>
                 {/foreach}
             </select>
             <p class="hint">[`Select storefront to make product image URLs exported properly`]</p>
@@ -102,21 +102,35 @@
             <label><input type="checkbox" name="images"{if !empty($profile.config.images)} checked="checked"{/if}> [`Export product image filenames`]</label>
         </div>
     </div>
+
+    <div class="field">
+        <div class="name">
+            [`Additional categories`]
+        </div>
+        <div class="value no-shift">
+            <label><input type="checkbox" name="extra_categories"{if !empty($profile.config.extra_categories)} checked="checked"{/if}> [`Duplicate product row under each category it belongs to`]</label>
+        </div>
+    </div>
+
     <div class="field">
         <div class="name">
             [`Plugin fields`]
         </div>
-        <div class="value"><label><input type="checkbox" name="extra"{if !empty($profile.config.extra)} checked="checked"{/if}> [`Export product extra fields`]</label></div>
+        <div class="value no-shift"><label><input type="checkbox" name="extra"{if !empty($profile.config.extra)} checked="checked"{/if}> [`Export product extra fields`]</label></div>
     </div>
 </div>
 
 
 <div class="field-group">
-    {include file="templates/includes/productSelector.html" hints=[
-    'id'=>'<i class="icon10 exclamation"></i> [`Product categories will not be exported`]',
-    'set'=>'<i class="icon10 exclamation"></i> [`Product categories will not be exported`]',
-    'type'=>'<i class="icon10 exclamation"></i> [`Product categories will not be exported`]'
-    ] hash=$profile.config.hash}
+    {include
+    file="templates/includes/productSelector.html"
+    hints=[
+        'id'=>'<i class="icon10 exclamation"></i> [`Product categories will not be exported`]',
+        'set'=>'<i class="icon10 exclamation"></i> [`Product categories will not be exported`]',
+        'type'=>'<i class="icon10 exclamation"></i> [`Product categories will not be exported`]'
+    ]
+        hash=$profile.config.hash
+    }
 </div>
 
 <div class="clear-left"></div>

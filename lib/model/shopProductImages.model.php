@@ -53,6 +53,19 @@ class shopProductImagesModel extends waModel
         return $images;
     }
 
+    public function countImages($product_ids)
+    {
+        if (empty($product_ids)) {
+            return array();
+        }
+        $product_ids = (array) $product_ids;
+        $sql = "SELECT product_id, count(*)
+                FROM {$this->table}
+                WHERE product_id IN (?)
+                GROUP BY product_id";
+        return $this->query($sql, array($product_ids))->fetchAll('product_id', true) + array_fill_keys($product_ids, 0);
+    }
+
     public function move($id, $before_id = null)
     {
         $image = $this->getById($id);
@@ -182,7 +195,7 @@ class shopProductImagesModel extends waModel
             return '<div class="badge" style="background-color: #a1fcff;"><span>'._w('YOUR TEXT').'</span></div>';
         }
     }
-    
+
     public function countAvailableImages()
     {
         if (wa()->getUser()->getRights('shop', 'type.all')) {
@@ -199,7 +212,7 @@ class shopProductImagesModel extends waModel
         }
         return $this->query($sql)->fetchField();
     }
-    
+
     public function getAvailableImages($offset = 0, $limit = null)
     {
         if (!$limit) {

@@ -1,14 +1,14 @@
 <?php
 
 class shopProductStocksLogModel extends waModel {
-    
+
     protected $table = 'shop_product_stocks_log';
-    
+
     const TYPE_PRODUCT = 'product';
     const TYPE_IMPORT = 'import';
     const TYPE_STOCK = 'stock';
     const TYPE_ORDER = 'order';
-    
+
     private static $transaction_type = '';
     private static $description;
     private static $params = array();
@@ -37,19 +37,19 @@ class shopProductStocksLogModel extends waModel {
                 $icon = '<i class="icon16 ss transfer-bw" title="'._w('Inventory transferred from one stock to another').'"></i>';
                 break;
             default:
-                $icon = '<i class="icon16 ss bug-bw" title="'._w('Unrecognized stock operation').'"></i>';
+                $icon = '<i class="icon16 ss pencil-bw" title="'._w('Unrecognized stock operation').'"></i>';
                 break;
         }
         return $icon;
     }
-    
+
     public static function setContext($type, $description = '', $params = array())
     {
         self::$description = $description;
         self::$transaction_type = $type;
         self::$params = $params;
     }
-    
+
     public static function getContext()
     {
         return array(
@@ -58,7 +58,7 @@ class shopProductStocksLogModel extends waModel {
             'params' => self::$params
         );
     }
-    
+
     public static function clearContext()
     {
         self::$description = null;
@@ -66,7 +66,7 @@ class shopProductStocksLogModel extends waModel {
         self::$params = array();
     }
 
-    protected function getDefaultOptions() 
+    protected function getDefaultOptions()
     {
         return array(
             'offset' => 0,
@@ -80,7 +80,7 @@ class shopProductStocksLogModel extends waModel {
     public function getList($fields = '*,stock_name,sku_name,product_name', $options = array())
     {
         $options += $this->getDefaultOptions();
-        
+
         $main_fields = array();
         $post_fields = array();
         foreach (explode(',', $fields) as $name) {
@@ -90,14 +90,14 @@ class shopProductStocksLogModel extends waModel {
                 $post_fields[]= $name;
             }
         }
-        
+
         $where = $this->getWhereByField($options['where']);
-        
+
         $limit_str = '';
         if ($options['limit'] !== false) {
             $limit_str = " LIMIT ".($options['offset'] ? $options['offset'].',' : '').(int)$options['limit'];
         }
-        
+
         $sql = "SELECT ".implode(',', $main_fields)." FROM `{$this->table}`".
                 ($where ? " WHERE $where" : "").
                 " ORDER BY ".$options['order'].
@@ -107,13 +107,13 @@ class shopProductStocksLogModel extends waModel {
         if (!$data) {
             return $data;
         }
-        
+
         $this->workupList($data, $post_fields);
-        
+
         return $data;
-        
+
     }
-    
+
     private function workupList(&$list, $fields)
     {
         if (!$list) {
@@ -130,14 +130,14 @@ class shopProductStocksLogModel extends waModel {
             } else {
                 if ($v['type'] == self::TYPE_ORDER) {
                     $v['description'] = sprintf(
-                            _w($v['description']), 
+                            _w($v['description']),
                             '<a href="?action=orders#/order/'.$v['order_id'].'/">'.shopHelper::encodeOrderId($v['order_id']).'</a>'
                     );
                 }
             }
         }
         unset($v);
-        
+
         $stock_ids = array();
         foreach ($list as $v) {
             $stock_ids[] = $v['stock_id'];
@@ -150,7 +150,7 @@ class shopProductStocksLogModel extends waModel {
             }
         }
         unset($v);
-        
+
         foreach ($fields as $f) {
             if ($f == 'sku_name') {
                 $sku_ids = array();
@@ -169,8 +169,23 @@ class shopProductStocksLogModel extends waModel {
                         } else {
                             if ($skus[$v['sku_id']]['sku']) {
                                 $v['sku_name'] = $skus[$v['sku_id']]['sku'];
-                            }                  
+                            }
                         }
+                    }
+                }
+                unset($v);
+            }
+            if ($f == 'sku_count') {
+                $sku_ids = array();
+                foreach ($list as $v) {
+                    $sku_ids[] = $v['sku_id'];
+                }
+                $model = new shopProductSkusModel();
+                $skus = $model->select('id,count')->where("id IN(".implode(',', array_unique($sku_ids)).")")->fetchAll('id');
+                foreach ($list as &$v) {
+                    if (isset($skus[$v['sku_id']])) {
+                        $sku = $skus[$v['sku_id']];
+                        $v['sku_count'] = $sku['count'];
                     }
                 }
                 unset($v);
@@ -189,11 +204,11 @@ class shopProductStocksLogModel extends waModel {
                 }
                 unset($v);
             }
-            
+
         }
-            
+
     }
-    
+
     /**
      * @param array $data
      *   Fields:
@@ -211,22 +226,22 @@ class shopProductStocksLogModel extends waModel {
         if (array_key_exists('stock_name', $data)) {
             unset($data['stock_name']);
         }
-        
+
         if (!array_key_exists('before_count', $data)) {
             $data['before_count'] = null;
         }
         if (!array_key_exists('after_count', $data)) {
             $data['after_count'] = null;
         }
-        
+
         if (
-            ($data['before_count'] === null && $data['after_count'] !== null) || 
+            ($data['before_count'] === null && $data['after_count'] !== null) ||
             ($data['after_count'] === null && $data['before_count'] !== null) ||
             ($data['before_count'] != $data['after_count'])
         )
         {
             if ($data['after_count'] === null || ($data['after_count'] == 0 && $data['before_count'] === null)) {
-                $data['diff_count'] = null;    
+                $data['diff_count'] = null;
             } else {
                 $data['diff_count'] = $data['after_count'] - (int) $data['before_count'];
             }
@@ -237,7 +252,7 @@ class shopProductStocksLogModel extends waModel {
             return false;
         }
     }
-    
+
     public function insert($data, $type = 0) {
         $data['datetime'] = date('Y-m-d H:i:s');
         $data['description'] = self::$description;
@@ -247,7 +262,7 @@ class shopProductStocksLogModel extends waModel {
                 $data['order_id'] = self::$params['order_id'];
             }
         }
-        parent::insert($data, $type);
+        return parent::insert($data, $type);
     }
-    
+
 }

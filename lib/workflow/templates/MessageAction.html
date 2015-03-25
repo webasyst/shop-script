@@ -1,0 +1,83 @@
+<form id="wf-message-form" action="?module=workflow&action=perform" method="post">
+    <input type="hidden" name="id" value="{$order_id}">
+    <input type="hidden" name="action_id" value="{$action_id}">
+
+    <div class="fields form width100px">
+        <div class="field">
+            <div class="name">[`Send via`]</div>
+            {if !empty($contact_email)}
+            <div class="value no-shift">
+                <label>
+                    <input class="transport" type="radio" name="transport" value="email" {if $transport == 'email'}checked{/if}>
+                    <i class="icon16 email"></i>[`Email`]
+                </label>
+            </div>
+            {/if}
+            {if !empty($sms_from) && !empty($contact_phone)}
+            <div class="value no-shift">
+                <label>
+                    <input class="transport" type="radio" name="transport" value="sms" {if $transport == 'sms'}checked{/if}>
+                    <i class="icon16 mobile"></i>[`SMS`]
+                </label>
+            </div>
+            {/if}
+        </div>
+    
+        <div class="field">
+            <div class="name">[`Sender`]</div>
+            <div class="value no-shift">
+                {if !empty($contact_email)}
+                <select id="transport-email" name="sender"{if $transport != 'email'} style="display:none" disabled{/if}>
+                    {foreach $email_from as $from => $value}
+                    <option value="{$from}">{$from}</option>
+                    {/foreach}
+                </select>
+                {/if}
+                {if !empty($sms_from) && !empty($contact_phone)}
+                <select id="transport-sms" name="sender"{if $transport != 'sms'} style="display:none" disabled{/if}>
+                    {$cnt = count($sms_from)}
+                    <option value="" selected>[`Default (as configured in SMS gateway)`]</option>
+                    {if $cnt >= 1 && !($cnt == 1 && isset($sms_from["*"]))}
+                    {foreach $sms_from as $from => $value}
+                        <option value="{$from}">{$from}</option>
+                    {/foreach}
+                    {/if}
+                </select>
+                {/if}
+            </div>
+        </div>
+    </div>
+
+    <textarea name="text" placeholder="[`Message`]"></textarea>
+
+    <br><br>
+    <input class="button green" type="submit" value="[`Send`]"> [`or`] <a class="cancel inline-link" href="#"><b><i>[`cancel`]</i></b></a>
+</form>
+
+<script type="text/javascript">
+    // cancel link
+    $('a.cancel').click(function() {
+        var el = $(this).closest('.workflow-content');
+        el.empty().hide();
+        el.prev().show();
+        return false;
+    });
+
+    $("#wf-message-form").submit(function () {
+        var f = $(this);
+        $.post(f.attr('action'), f.serialize(), function () {
+            $.order.reload();
+        }, "json");
+        return false;
+    });
+
+    $('#wf-message-form .transport').change(function () {
+        if ($('#wf-message-form .transport:checked').val() == 'sms') {
+            $('#transport-email').hide().attr('disabled', 'disabled');
+            $('#transport-sms').show().removeAttr('disabled');
+        } else {
+            $('#transport-sms').hide().attr('disabled', 'disabled');
+            $('#transport-email').show().removeAttr('disabled');
+        }
+    });
+</script>

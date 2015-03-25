@@ -1,9 +1,17 @@
 <?php
-
 /**
- *
  * @author Webasyst
- * @version SVN: $Id: shopProduct.model.php 2031 2012-08-17 16:18:20Z vlad $
+ *
+ * Note the currencies for different price fields:
+ *
+ * - shop_product.price                      primary currency
+ * - shop_product.min_price                  primary currency
+ * - shop_product.max_price                  primary currency
+ * - shop_product.compare_price              primary currency
+ * - shop_product.total_sales                primary currency
+ * - shop_product.compare_price_selectable   shop_product.currency
+ * - shop_product.base_price_selectable      shop_product.currency
+ * - shop_product.purchase_price_selectable  shop_product.currency
  *
  */
 class shopProductModel extends waModel
@@ -225,7 +233,7 @@ class shopProductModel extends waModel
         $product_ids_str = implode(',', $product_ids);
 
         $images = $product_images_model->getByField('id', $image_ids, 'product_id');
-        $size = wa()->getConfig()->getImageSize('crop_small');
+        $size = wa('shop')->getConfig()->getImageSize('crop_small');
 
         // get for skus number of stocks in which it presents
         $sql = "
@@ -318,10 +326,17 @@ class shopProductModel extends waModel
         $storefronts_map = array();
 
         $product_id = (int)$product;
-        $category_product_model = new shopCategoryProductsModel();
-        $product_categories = $category_product_model->getByField('product_id', $product_id, 'category_id');
-        $product_type = $this->select('type_id')->where('id='.$product_id)->fetchField();
 
+        // All categories of this product
+        $sql = "SELECT c.*
+                FROM shop_category_products AS cp
+                    JOIN shop_category AS c
+                        ON cp.category_id = c.id
+                WHERE cp.product_id = ?
+                ORDER BY c.left_key";
+        $product_categories = $this->query($sql, $product_id)->fetchAll('id');
+
+        $product_type = $this->select('type_id')->where('id='.$product_id)->fetchField();
         if (!$product_categories || !$product_type) {
             return array();
         }
@@ -355,7 +370,9 @@ class shopProductModel extends waModel
                         (!$category['routes'] || in_array($domain.'/'.$r['url'], $category['routes']))
                     ) {
                         $routing->setRoute($r, $domain);
-                        $storefronts_map[$c_id][] = $routing->getUrl('shop/frontend', array(), true);
+                        $storefronts_map[$c_id][] = $routing->getUrl('shop/frontend/category', array(
+                            'category_url' => isset($r['url_type']) && ($r['url_type'] == 1) ? $category['url'] : $category['full_url']
+                        ), true);
                     }
                 }
             }
@@ -436,31 +453,27 @@ class shopProductModel extends waModel
 
     public function correctCount()
     {
-        // Repair: count of product == count of skus
-        $sql = "UPDATE shop_product p JOIN (
-            SELECT p.id, p.count, SUM(s.count) count_of_skus
-                FROM shop_product p 
-                JOIN shop_product_skus s ON s.product_id = p.id
-                WHERE s.available = 1
-                GROUP BY p.id
-                HAVING (count IS NOT NULL AND count_of_skus IS NOT NULL AND count != count_of_skus) OR 
-                    (count IS NOT NULL AND count_of_skus IS NULL) OR 
-                    (count IS NULL AND count_of_skus IS NOT NULL)
-            ) t ON p.id = t.id
-            SET p.count = count_of_skus
+        // Repair: count of product == sum of count of skus
+        // (negative sku counts are considered to be zero)
+        $sql = "
+            UPDATE shop_product p
+                JOIN (
+                    SELECT s.product_id id, SUM(IF(s.count > 0, s.count, 0)) count_of_skus
+                    FROM shop_product_skus s
+                    WHERE s.available = 1
+                    GROUP BY s.product_id
+                ) t ON p.id = t.id
+            SET p.count = t.count_of_skus
         ";
         $this->exec($sql);
 
-        // Repair this invariant:
-        // If all skus of product are unavailable product.count must be 0
+        // Repair: if all skus of product are unavailable, product.count must be 0
         $sql = "
             UPDATE shop_product p JOIN (
-                SELECT p.id, p.count, SUM(sk.available) all_sku_available
-                FROM shop_product p
-                JOIN shop_product_skus sk ON p.id = sk.product_id
-                WHERE p.count IS NULL OR (p.count IS NOT NULL AND p.count != 0)
-                GROUP BY p.id
-                HAVING all_sku_available = 0
+                SELECT sk.product_id id, SUM(sk.available) some_sku_available
+                FROM shop_product_skus sk
+                GROUP BY sk.product_id
+                HAVING some_sku_available = 0
             ) r ON p.id = r.id
             SET p.count = 0
         ";
@@ -535,7 +548,7 @@ class shopProductModel extends waModel
         return $this->select('currency')->where('id='.(int)$product_id)->fetchField('currency');
     }
 
-    public function getTop($limit, $order = 'sales', $start_date = null, $end_date = null)
+    public function getTop($limit, $order = 'sales', $start_date = null, $end_date = null, $options=array())
     {
         $paid_date_sql = shopOrderModel::getDateSql('o.paid_date', $start_date, $end_date);
 
@@ -545,6 +558,16 @@ class shopProductModel extends waModel
         $limit = (int)$limit;
         $limit = ifempty($limit, 10);
 
+        $storefront_join = '';
+        $storefront_where = '';
+        if (!empty($options['storefront'])) {
+            $storefront_join = "JOIN shop_order_params AS op2
+                                    ON op2.order_id=o.id
+                                        AND op2.name='storefront'";
+            $storefront_where = "AND op2.value='".$this->escape($options['storefront'])."'";
+        }
+
+        // !!! With 15k orders this query takes ~3 seconds
         $sql = "SELECT
                     p.*,
                     SUM(oi.price*o.rate*oi.quantity) AS sales,
@@ -559,12 +582,13 @@ class shopProductModel extends waModel
                         ON oi.sku_id=ps.id
                     JOIN shop_currency AS pcur
                         ON pcur.code=p.currency
+                    {$storefront_join}
                 WHERE $paid_date_sql
                     AND oi.type = 'product'
+                    {$storefront_where}
                 GROUP BY p.id
                 ORDER BY $order DESC
                 LIMIT $limit";
-
         return $this->query($sql);
     }
 
@@ -585,21 +609,41 @@ class shopProductModel extends waModel
      */
     public function filterAllowedProductIds(array $product_ids)
     {
-        if (wa('shop')->getUser()->getRights('shop', 'type.all')) {
+        if (wa('shop')->getUser()->getRights('shop', 'type.all') > 1) {
             return $product_ids;
         }
 
         $type_model = new shopTypeModel();
         $types = $type_model->getTypes();
-        $type_ids = array_keys($types);
 
         if (empty($product_ids) || empty($types)) {
             return array();
         }
+
+
+        $full_types = $own_types = array();
+        foreach ($types as $type_id => $t) {
+            // user can delete own products only
+            if (wa()->getUser()->getRights('shop', 'type.' . $type_id) == 1) {
+                $own_types[] = $type_id;
+            } elseif (wa()->getUser()->getRights('shop', 'type.' . $type_id) > 1) {
+                $full_types[] = $type_id;
+            }
+        }
+
+        $where = array();
+        if ($full_types) {
+            $where[] = '(type_id IN (' . implode(',', $full_types) . '))';
+        }
+        if ($own_types) {
+            $where[] = '(type_id IN (' . implode(',', $own_types) . ') AND contact_id = ' . (int)wa()->getUser()->getId() . ')';
+        }
+        $where = implode(' OR ', $where);
+
         $product_ids = array_keys($this->query("
             SELECT id FROM `{$this->table}`
             WHERE id IN(".implode(',', $product_ids).")
-                AND type_id IN (".implode(',', $type_ids).")"
+                AND (".$where.")"
         )->fetchAll('id'));
 
         return $product_ids;
@@ -630,7 +674,7 @@ class shopProductModel extends waModel
             $type_id = null;
             //throw new waException(_w("Unknown type"));
         }
-        return (boolean)wa()->getUser()->getRights('shop', 'type.'.$type_id);
+        return wa()->getUser()->getRights('shop', 'type.'.$type_id);
     }
 
     /**
@@ -690,7 +734,7 @@ class shopProductModel extends waModel
                 if ($sku_count === null) {
                     $product_count = null;
                 } elseif ($product_count !== null) {
-                    $product_count += $sku_count;
+                    $product_count += max(0, $sku_count);
                 }
             }
         }

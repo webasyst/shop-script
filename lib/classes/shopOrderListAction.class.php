@@ -12,7 +12,7 @@ class shopOrderListAction extends waViewAction
      * array|null
      */
     protected $filter_params;
-    
+
     /**
      * Hash for collection related with filter-params
      * @var string
@@ -20,7 +20,7 @@ class shopOrderListAction extends waViewAction
     protected $hash;
 
     protected $orders;
-    
+
     /**
      * @var shopOrdersCollection
      */
@@ -36,7 +36,7 @@ class shopOrderListAction extends waViewAction
     {
         if ($this->orders === null) {
             $this->orders = $this->collection->getOrders("*,items,contact,params", $offset, $limit);
-            $this->extendContacts($this->orders);
+            self::extendContacts($this->orders);
             shopHelper::workupOrders($this->orders);
         }
         return $this->orders;
@@ -82,20 +82,29 @@ class shopOrderListAction extends waViewAction
                     if (is_array($v)) {
                         $v = implode("||", $v);
                     }
+                    $op = '=';
                     if ($k == 'storefront') {
                         $k = 'params.'.$k;
-                        if (substr($v, -1) == '*') {
-                            $v = substr($v, 0, -1);
+                        if (strlen($v) && $v !== 'NULL') {
+                            if (substr($v, -1) == '*') {
+                                $v = substr($v, 0, -1);
+                            }
+                            if (substr($v, -1) == '/') {
+                                $v = substr($v, 0, -1);
+                            }
+                            $v .= "||$v/";
                         }
-                        if (substr($v, -1) == '/') {
-                            $v = substr($v, 0, -1);
-                        }
-                        $v .= "||$v/";
-                    }
-                    if ($k == 'product_id') {
+                    } elseif ($k == 'product_id') {
                         $k = 'items.'.$k;
+                    } elseif ($k == 'city' || $k == 'country' || $k == 'region')  {
+                        if ($k == 'city') {
+                            $op = '*=';
+                        }
+                        $k = 'address.'.$k;
+                    }  elseif (!$this->model->fieldExists($k)) {
+                        $k = 'params.'.$k;
                     }
-                    $hash = "search/{$k}={$v}";
+                    $hash = "search/{$k}{$op}{$v}";
                 }
             } elseif (waRequest::get('hash')) {
                 $hash = waRequest::get('hash');
@@ -104,7 +113,7 @@ class shopOrderListAction extends waViewAction
         }
         return $this->hash;
     }
-    
+
     public function getFilterParams($str = false)
     {
         if ($this->filter_params === null) {
@@ -129,6 +138,30 @@ class shopOrderListAction extends waViewAction
             if ($product_id) {
                 $params['product_id'] = $product_id;
             }
+            $shipping_id = waRequest::get('shipping_id', null, waRequest::TYPE_INT);
+            if ($shipping_id) {
+                $params['shipping_id'] = $shipping_id;
+            }
+            $payment_id = waRequest::get('payment_id', null, waRequest::TYPE_INT);
+            if ($payment_id) {
+                $params['payment_id'] = $payment_id;
+            }
+            $coupon_id = waRequest::get('coupon_id', null, waRequest::TYPE_INT);
+            if ($coupon_id) {
+                $params['coupon_id'] = $coupon_id;
+            }
+            $city = waRequest::get('city', null, waRequest::TYPE_STRING_TRIM);
+            if ($city) {
+                $params['city'] = $city;
+            }
+            $region = waRequest::get('region', null, waRequest::TYPE_STRING_TRIM);
+            if ($region) {
+                $params['region'] = $region;
+            }
+            $country = waRequest::get('country', null, waRequest::TYPE_STRING_TRIM);
+            if ($country) {
+                $params['country'] = $country;
+            }
             $this->filter_params = $params;
         }
         if (!$str) {
@@ -140,15 +173,15 @@ class shopOrderListAction extends waViewAction
         }
         return substr($params_str, 1);
     }
-    
-    protected function extendContacts(&$orders)
+
+    public static function extendContacts(&$orders)
     {
-        $config = $this->getConfig();
+        $config = wa('shop')->getConfig();
         $use_gravatar = $config->getGeneralSettings('use_gravatar');
         $gravatar_default = $config->getGeneralSettings('gravatar_default');
-        
+
         $emails = array();
-        
+
         foreach ($orders as &$o) {
             if (isset($o['contact'])) {
                 if (!$o['contact']['photo'] && $use_gravatar) {

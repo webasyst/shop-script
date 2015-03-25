@@ -39,17 +39,14 @@ class shopDimensionValue implements ArrayAccess
                 return $this->__toString();
             case 'units':
                 return $this->getUnits();
-                break;
             case 'compare':
                 return $this->value_base_unit;
-                break;
             case 'unit_name':
                 if (!isset($this->unit_name)) {
                     $this->unit_name = $this->getUnitName($this->unit);
                 }
             default:
                 return isset($this->{$field}) ? $this->{$field} : $this->convert($field);
-                break;
         }
     }
 

@@ -7,6 +7,7 @@ class shopCustomersAction extends waViewAction
     {
         $this->getResponse()->setTitle(_w('Customers'));
 
+
         /*
          * @event backend_customers
          * @return array[string]array $return[%plugin_id%] array of html output

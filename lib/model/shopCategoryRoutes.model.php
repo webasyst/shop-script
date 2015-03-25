@@ -9,24 +9,42 @@ class shopCategoryRoutesModel extends waModel
      * @param int|array $category_id
      * @return array
      */
-    public function getRoutes($category_id)
+    public function getRoutes($category_id, $show_private=true)
     {
-        if (is_array($category_id)) {
-            if (!$category_id) {
-                return array();
+        static $is_route_private = null;
+        if ($is_route_private === null) {
+            $is_route_private = array();
+            foreach (wa()->getRouting()->getByApp('shop') as $domain => $routes) {
+                foreach ($routes as $r) {
+                    $is_route_private[$domain.'/'.$r['url']] = !empty($r['private']);
+                }
             }
-            $category_id = array_map('intval', $category_id);
-            $sql = "SELECT category_id, route FROM ".$this->table." WHERE category_id IN (".implode(',', $category_id).")";
-            $rows = $this->query($sql)->fetchAll();
-            $result = array();
-            foreach ($rows as $row) {
-                $result[$row['category_id']][] = $row['route'];
-            }
-            return $result;
-        } else {
-            $sql = "SELECT route FROM ".$this->table." WHERE category_id = i:0";
-            return  $this->query($sql, $category_id)->fetchAll(null, true);
         }
+
+        if (!$category_id) {
+            return array();
+        } else if (is_array($category_id)) {
+            $return_as_array = true;
+        } else {
+            $return_as_array = false;
+            $category_id = array($category_id);
+        }
+
+        $category_id = array_map('intval', $category_id);
+        $sql = "SELECT category_id, route FROM ".$this->table." WHERE category_id IN (".implode(',', $category_id).")";
+        $result = array();
+        foreach ($this->query($sql) as $row) {
+            if (!$show_private && !empty($is_route_private[$row['route']])) {
+                continue;
+            }
+            $result[$row['category_id']][] = $row['route'];
+        }
+
+        if (!$return_as_array && $result) {
+            $result = reset($result);
+        }
+
+        return $result;
     }
 
     public function setRoutes($category_id, $routes)
@@ -37,6 +55,5 @@ class shopCategoryRoutesModel extends waModel
         }
     }
 
-
-
 }
+

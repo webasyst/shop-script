@@ -24,16 +24,28 @@ class shopCheckoutContactinfo extends shopCheckout
                 }
             }
         }
+
+        $billing_matches_shipping = false;
+        if ($this->form->fields('address.shipping') && $this->form->fields('address.billing')) {
+            if (empty($this->form->values['address.shipping'])
+                || empty($this->form->values['address.billing'][0]['value'])
+                || $this->form->values['address.shipping'][0]['value'] == $this->form->values['address.billing'][0]['value'])
+            {
+                $billing_matches_shipping = true;
+            }
+        }
+
         $view = wa()->getView();
         $view->assign('checkout_contact_form', $this->form);
+        $view->assign('billing_matches_shipping', $billing_matches_shipping);
         $view->assign('customer', $contact ? $contact : new waContact());
         if (!$view->getVars('error')) {
             $view->assign('error', array());
         }
-        
+
         $checkout_flow = new shopCheckoutFlowModel();
         $step_number = shopCheckout::getStepNumber('contactinfo');
-        // IF no errors 
+        // IF no errors
         $checkout_flow->add(array(
             'step' => $step_number
         ));
@@ -44,9 +56,26 @@ class shopCheckoutContactinfo extends shopCheckout
 //        ));
     }
 
-    public function validate()
+    public function getErrors()
     {
+        $errors = array();
 
+        $contact = $this->getContact();
+        if (!$contact) {
+            $contact = new waContact();
+        }
+
+        $form = shopHelper::getCustomerForm();
+        $contact_info = $contact->load();
+        if (!$contact_info) {
+            $contact_info = array();
+        }
+        $form->post = $contact_info;
+
+        if (!$form->isValid($contact)) {
+            $errors[] = _w('Oops! For some reason your contact information was lost during the checkout. Please return to the contact information checkout step to finalize your order.');
+        }
+        return $errors;
     }
 
     /**
@@ -68,6 +97,12 @@ class shopCheckoutContactinfo extends shopCheckout
 
         $data = waRequest::post('customer');
         if ($data && is_array($data)) {
+            // When both shipping and billing addresses are enabled,
+            // there's an option to only edit one address copy.
+            if (waRequest::request('billing_matches_shipping') && $this->form->fields('address.shipping') && $this->form->fields('address.billing') && !empty($data['address.shipping'])) {
+                $data['address.billing'] = $data['address.shipping'];
+            }
+
             foreach ($data as $field => $value) {
                 $contact->set($field, $value);
             }
@@ -75,7 +110,8 @@ class shopCheckoutContactinfo extends shopCheckout
 
         if ($shipping = $this->getSessionData('shipping') && !waRequest::post('ignore_shipping_error')) {
             $shipping_step = new shopCheckoutShipping();
-            $rate = $shipping_step->getRate($shipping['id'], isset($shipping['rate_id']) ? $shipping['rate_id'] : null, $contact);
+            $rate_id = isset($shipping['rate_id']) ? $shipping['rate_id'] : null;
+            $rate = $shipping_step->getRate($shipping['id'], $rate_id, $contact);
             if (!$rate || is_string($rate)) {
                 // remove selected shipping method
                 $this->setSessionData('shipping', null);
@@ -153,7 +189,7 @@ class shopCheckoutContactinfo extends shopCheckout
             return $config;
         }
 
-        $fields_unsorted = waContactFields::getAll();
+        $fields_unsorted = waContactFields::getAll('all');
         $config['fields'] = array();
         $cfvm = new waContactFieldValuesModel();
         foreach($options as $fld_id => $opts) {
@@ -166,25 +202,38 @@ class shopCheckoutContactinfo extends shopCheckout
 
             $field = ifset($fields_unsorted[$fld_id_no_ext]);
 
-            // Special treatment for subfields of shipping and billing address:
-            // copy actual settings from address field.
-            if ($field_ext && $fld_id_no_ext == 'address') {
+            if ($field && $fld_id_no_ext == 'address') {
                 $existing_subfields = $field->getFields();
-                // Sanity check
-                if (!is_array($opts) || empty($options['address']) || !is_array($options['address']) || empty($options['address']['fields']) || !is_array($options['address']['fields'])) {
-                    continue;
-                }
 
-                // Copy settings if subfield is turned on, or required, or is hidden
-                $fields = array();
-                foreach($options['address']['fields'] as $sf_id => $sf_opts) {
-                    if (!empty($sf_opts['required']) || ( !empty($sf_opts['_disabled']) && !empty($sf_opts['_default_value_enabled']) && empty($sf_opts['_deleted']) ) || !empty($opts['fields'][$sf_id])) {
-                        if (!$field_ext || isset($existing_subfields[$sf_id])) {
-                            $fields[$sf_id] = $sf_opts;
+                // Special treatment for subfields of shipping and billing address:
+                // copy actual settings from address field.
+                if ($field_ext) {
+                    // Sanity check
+                    if (!is_array($opts) || empty($options['address']) || !is_array($options['address']) || empty($options['address']['fields']) || !is_array($options['address']['fields'])) {
+                        continue;
+                    }
+
+                    // Copy settings if subfield is turned on, or required, or is hidden
+                    $fields = array();
+                    foreach($options['address']['fields'] as $sf_id => $sf_opts) {
+                        if (!empty($sf_opts['required']) || ( !empty($sf_opts['_disabled']) && !empty($sf_opts['_default_value_enabled']) && empty($sf_opts['_deleted']) ) || !empty($opts['fields'][$sf_id])) {
+                            if (isset($existing_subfields[$sf_id])) {
+                                $fields[$sf_id] = $sf_opts;
+                            }
+                        }
+                    }
+
+                    $opts['fields'] = $fields;
+                } else {
+                    // Actual address field with no ext.
+                    // Do not allow to completely delete standard set of address subfields, just disable.
+                    foreach($existing_subfields as $sf) {
+                        if ($sf->getParameter('app_id') !== 'shop' && empty($opts['fields'][$sf->getId()])) {
+                            $opts['fields'][$sf->getId()] = $sf->getParameters();
+                            $opts['fields'][$sf->getId()]['_disabled'] = 1;
                         }
                     }
                 }
-                $opts['fields'] = $fields;
             }
 
             if ($field) {
@@ -286,7 +335,7 @@ class shopCheckoutContactinfo extends shopCheckout
      * Make sure given array of options is valid for $field.
      * Return list($local_opts, $sys_opts) to save for this $field.
      * Local options are saved to shop app config. System options to contacts app config.
-     * If any of option sets returned is null, this field is skipped altogether.
+     * If any of option sets returned is null, this field is skipped all together.
      */
     protected static function tidyOpts($field, $fld_id, $opts)
     {

@@ -92,13 +92,15 @@
                     <label><input type="radio" name="ignore_stock_count" value="0"{if !$wa->shop->settings('ignore_stock_count')} checked="true"{/if}> [`Maximum number of items that can be added to shopping cart is limited by stock level`]</label>
                 </div>
                 <div class="value no-shift">
-                    <label><input type="radio" name="ignore_stock_count" value="1"{if $wa->shop->settings('ignore_stock_count')} checked="true"{/if}> [`Ordering is not limited by stock levels`]</label>
+                    <label><input type="radio" name="ignore_stock_count" value="1"{if $wa->shop->settings('ignore_stock_count')} checked="true"{/if}> [`Ordering is not limited by stock levels`]
+                    <span class="hint">[`Out-of-stock products can be added to cart and ordered`]</span>
+                    </label>
                 </div>
             </div>
             <div class="field">
                 <div class="value submit">
                     <input type="submit" name="save" class="button green" value="[`Save`]">
-                    <span class="hidden s-mgs-after-button"><i class="icon16 yes after-submit"></i>[`Saved`]</span>
+                    <span class="hidden s-msg-after-button"><i class="icon16 yes after-submit"></i></span>
                 </div>
             </div>
         </div>

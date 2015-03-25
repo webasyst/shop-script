@@ -1,0 +1,249 @@
+{$uniqid = str_replace('.', '-', uniqid('s-', true))}
+<div class="block double-padded" id="{$uniqid}"><form action="?module=reportsmarketingcosts&action=editor">
+    <div class="fields form width100px">
+        <input type="hidden" name="expense_id" value="{$expense.id}">
+        <div class="field">
+            {if $expense.id}
+                <a href="javascript:void" class="float-right" id="delete-expense-link"><i class="icon16 delete"></i>[`Delete expense`]</a>
+            {/if}
+            {if $expense.id}
+                <h2>[`Modify expense`]</h2>
+            {else}
+                <h2>[`Add expense`]</h2>
+            {/if}
+        </div>
+
+        <div class="field">
+            <div class="name">[`Amount`]</div>
+            <div class="value">
+                <input type="text" name="expense[amount]" class="large bold numerical" value="{$expense.amount}" placeholder="0">
+                {$def_cur}
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">[`Channel`]</div>
+            <div class="value no-shift">
+                <select class="channel-selector" name="channel_selector">
+                    <option></option>
+                    <option disabled>--- [`Sources`] ---</option>
+                    {foreach $sources as $ch}
+                        <option value="{$ch.name|escape}" data-channel-type="source" data-color="{$ch.color}"{if $expense.type == 'source' && $expense.name == $ch.name} selected{/if}>{$ch.label|escape}</option>
+                    {/foreach}
+                    <option value="" data-channel-type="source"{if $expense.type == 'source' && empty($expense.name)} selected{/if}>[`Enter domain name...`]</option>
+                    <option disabled>--- [`Campaigns`] ---</option>
+                    {foreach $campaigns as $ch}
+                        <option value="{$ch.name|escape}" data-channel-type="campaign" data-color="{$ch.color}"{if $expense.type == 'campaign' && $expense.name == $ch.name} selected{/if}>{$ch.label|escape}</option>
+                    {/foreach}
+                    <option value="" data-channel-type="campaign"{if $expense.type == 'campaign' && empty($expense.name)} selected{/if}>[`Enter UTM campaign ID...`]</option>
+                </select>
+                <input type="hidden" name="expense[color]" value="{$expense.color|escape}">
+                <input type="hidden" name="expense[type]" value="{$expense.type|escape}">
+                <input type="text" name="expense[name]" value="{$expense.name|escape}" style="display:none">
+                <i class="icon16 color" style="background:{$expense.color|escape};"></i>
+
+                <div class="js-colorpicker" style="display:none"></div>
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">[`Storefront`]</div>
+            <div class="value no-shift">
+                <select name="expense[storefront]">
+                    <option value="">[`Not specified`]</option>
+                    {foreach $storefronts as $s}
+                        <option value="{$s|escape}"{if $expense.storefront == $s} selected{/if}>{$s|escape}</option>
+                    {/foreach}
+                </select>
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">[`Payment term`]</div>
+            <div class="value no-shift">
+                <label>
+                    <input type="radio" name="expense_period_type" value="one_time"{if $expense.start == $expense.end} checked{/if}>
+                    [`One-time`]
+                </label>
+                <span>
+                    <input type="text" class="small" name="expense_period_single" value="{$expense.start|escape}">
+                    <i class="icon16 calendar"></i>
+                </span>
+            </div>
+            <div class="value no-shift">
+                <label>
+                    <input type="radio" name="expense_period_type" value="timeframe"{if $expense.start != $expense.end} checked{/if}>
+                    [`Time frame`] <span class="hint">[`The amount will be gradually distributed by day over the entire period, which allows you to estimate ROI more precisely.`]</span>
+                </label>
+                <div>
+                    <span><input type="text" class="small" name="expense_period_from"  value="{$expense.start|escape}">
+                    <i class="icon16 calendar"></i></span>
+                    &mdash;
+                    <span><input type="text" class="small" name="expense_period_to"  value="{$expense.end|escape}">
+                    <i class="icon16 calendar"></i></span>
+                </div>
+            </label></div>
+        </div>
+        <div class="field">
+            <div class="name">[`Note`]</div>
+            <div class="value no-shift">
+                <textarea name="expense[note]" placeholder="[`optional`]">{$expense.note|escape}</textarea>
+            </div>
+        </div>
+        <div class="field">
+            <div class="value">
+                <input type="submit" class="button green" value="[`Save`]">
+                [`or`]
+                <a href="javascript:void(0)" class="cancel-button">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    <div class="clear-both"></div>
+</form></div>
+<script>(function() { "use strict";
+
+    var errors = {json_encode(ifempty($errors, []))};
+    var $wrapper = $('#{$uniqid}');
+    var corfirm_deletion_message = "[`Are you sure?`]";
+
+    {* Show 'save' indicator when there are no errors *}
+    {if empty($errors) && waRequest::post() && $expense.id}
+        $wrapper.trigger('successfull_save');
+        $('<span><i class="icon16 yes"></i>'+"[`Saved`]"+'</span>').appendTo($wrapper.find(':submit:first').parent()).animate({
+            opacity: 0
+        }, 3000, function() {
+            $(this).remove();
+        });
+    {/if}
+
+    var $form = $wrapper.children('form');
+    var $button = $form.find(':submit:first');
+    var $channel_selector = $wrapper.find('select.channel-selector');
+    var $channel_input_text = $channel_selector.parent().find('input[name="expense[name]"]');
+    var $channel_input_hidden = $channel_selector.parent().find('input[name="expense[type]"]');
+    var $channel_input_color = $channel_selector.parent().find('input[name="expense[color]"]');
+    var $period_radios = $wrapper.find('input[name="expense_period_type"]');
+    var expense_id = $form.find('[name="expense_id"]').val();
+
+    if (!expense_id) {
+        // Remember last selected storefront in local storage
+        (function() { "use strict";
+            var $selector = $form.find('[name="expense[storefront]"]').change(function() {
+                $.storage.set('shop/marketingcosts/storefront', $selector.val());
+            });
+
+            if ($selector.children().length == 2) {
+                $selector.val($selector.children().last().attr('value'));
+            } else {
+                $selector.val($.storage.get('shop/marketingcosts/storefront')||'');
+            }
+        })();
+    }
+
+    // Show error messages
+    $.each(errors, function(name, error) {
+        var $input = $form.find('[name="'+name+'"]').addClass('error');
+        $input.closest('.value').append($('<em class="errormsg"></em>').text(error));
+    });
+
+    // Clear error messages when user modifies something
+    $form.on('change keyup', '.error', function() {
+        var $field = $(this).closest('.field');
+        $field.find('.errormsg').remove();
+        $field.find('.error').removeClass('error');
+        return true;
+    });
+
+    // init datepickers
+    $period_radios.closest('.field').find('input:text').datepicker({
+        'dateFormat': 'yy-mm-dd'
+    }).datepicker('hide');
+
+    // Open datepickers when user clicks on a calendar icon
+    $period_radios.closest('.field').on('click', '.calendar', function() {
+        $(this).siblings('input').datepicker('show');
+    });
+
+    // Open colorpicker when user clicks on its icon
+    var setColor = (function() { "use strict";
+        var $colorpicker_wrapper = $wrapper.find('.js-colorpicker');
+        var $icon = $colorpicker_wrapper.closest('.value').find('i.icon16.color');
+        var $hiden = $channel_input_color;
+
+        var farbtastic = $.farbtastic($colorpicker_wrapper, setColor);
+
+        $icon.css('cursor', 'pointer').click(function() {
+            $colorpicker_wrapper.slideToggle();
+        });
+
+        return setColor;
+
+        function setColor(color) {
+            $hiden.val(color);
+            $icon.css('background', color);
+            farbtastic.setColor(color);
+            $channel_selector.children(':selected').data('color', color);
+        }
+    })();
+
+
+    // Show/hide form elements depending on radios, etc.
+    var animation_speed = 0;
+    updateElements();
+    $channel_selector.change(updateElements);
+    $period_radios.change(updateElements);
+    animation_speed = 'fast';
+
+    // Close the editor when user clicks 'cancel' link
+    $button.siblings('.cancel-button').click(function() {
+        $wrapper.slideUp();
+    });
+
+    // Link to delete expense
+    $('#delete-expense-link').click(function() {
+        if (confirm(corfirm_deletion_message)) {
+            $wrapper.slideUp();
+            expense_id && $.post('?module=reportsmarketingcosts&action=delete', { expense_id: expense_id }, function() {
+                $wrapper.trigger('successfull_save');
+                setTimeout(function() {
+                    $wrapper.remove();
+                }, 0);
+            });
+        }
+    });
+
+    // Validate and save via XHR
+    $form.submit(function() {
+        $('<i class="icon16 loading"></i>').insertAfter($button);
+        $.post($form.attr('action'), $form.serialize(), function(r) {
+            $wrapper.parent().html(r);
+        });
+        return false;
+    });
+
+    // Helper to update visibility of form elements and values of hidden fields
+    // depending on what's selected in radios and selects
+    function updateElements() {
+        // Channel selector logic
+        var $option = $channel_selector.children(':selected');
+        var channel_name = $channel_selector.val();
+        var channel_type = $option.data('channel-type');
+        var channel_color = $option.data('color');
+
+        $channel_input_hidden.val(channel_type);
+        channel_color && setColor(channel_color);
+        if (channel_name || !channel_type) {
+            $channel_input_text.val(channel_name).hide();
+        } else {
+            $channel_input_text.show();
+        }
+
+        // Period selector logic
+        var $field = $period_radios.closest('.field');
+        if ($period_radios.filter(':checked').val() == 'one_time') {
+            $field.find('[name="expense_period_single"]').parent().show();
+            $field.find('[name="expense_period_from"], [name="expense_period_to"]').datepicker('hide').closest('div').slideUp(animation_speed);
+        } else {
+            var $i = $field.find('[name="expense_period_single"]').datepicker('hide').parent().hide();
+            $field.find('[name="expense_period_from"], [name="expense_period_to"]').closest('div').slideDown(animation_speed);
+        }
+    }
+
+})();</script>

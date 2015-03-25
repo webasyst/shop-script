@@ -2,12 +2,12 @@
     get products from predefined product set 'promo' and 'bestsellers';
     feel free to replace these with any other product set IDs
 *}
-{$promos = $wa->shop->productSet('promo')}
+{$hotdeals = $wa->shop->productSet('promo')}
 {if $theme_settings.homepage_bxslider_mode != 'photos'}
     {$bestsellers = $wa->shop->productSet('bestsellers')}
 {/if}
 
-{if ($theme_settings.homepage_bxslider_mode != 'photos' && empty($promos) && empty($bestsellers))}
+{if ($theme_settings.homepage_bxslider_mode != 'photos' && empty($hotdeals) && empty($bestsellers))}
 
     <article class="welcome">
         <h1>[`Welcome to your new online store!`]</h1>
@@ -21,13 +21,13 @@
 
     <!-- HOMEPAGE SLIDER -->
     <article class="bestsellers{if $theme_settings.homepage_bxslider_mode == 'photos' || $theme_settings.homepage_bxslider_mode == 'products_last_photo_as_background'} fill-entire-area{/if}">
-    
+
         {if $theme_settings.homepage_bxslider_mode == 'photos'}
-        
+
             {* latest PHOTOS from Photos app *}
-            
+
             {if $wa->photos}
-            
+
                 {*
                     change search $criteria = '' to any you like, e.g. 'tag/shop', 'album/1';
                     $size sets photo size in pixels;
@@ -38,7 +38,7 @@
                 {$offset = null}
                 {$limit = 10}
                 {if $slider_photos = $wa->photos->photos($criteria, $size, $offset, $limit)}
-                
+
                     <ul class="homepage-bxslider">
                         {foreach $slider_photos as $photo}
                             <li style="background-image: url('{$photo['thumb_'|cat:$size].url}'); height: {$photo['thumb_'|cat:$size].size.height}px;" >
@@ -48,29 +48,29 @@
                             </li>
                         {/foreach}
                     </ul>
-                
+
                 {else}
                     <p class="hint align-center"><br><em>[`Photos app returned no photos, so there is nothing to show in your storefront homepage promo slider.`]</em></p>
                 {/if}
-            
+
             {else}
-            
+
                 <p class="hint align-center"><br><em>[`Install Photos app to make your storefront homepage promo slider display last uploaded photos.`]</em></p>
-            
+
             {/if}
-        
+
         {else}
-        
+
             {* best selling PRODUCTS *}
-            
+
             {if $theme_settings.homepage_bxslider_mode == 'products_last_photo_as_background'}
-            
+
                 {if $wa->shop->config('enable_2x')}
                     {$size = '970@2x'}
                 {else}
                     {$size = '970'}
                 {/if}
-                
+
                 {$slider_photos = $wa->shop->images( array_keys($bestsellers), $size )}
                 {* leave only last photos for each product *}
                 {foreach $slider_photos as $product_id => $_photos}
@@ -78,7 +78,7 @@
                 {/foreach}
 
             {/if}
-            
+
             {if $bestsellers && count($bestsellers)}
                 <ul class="homepage-bxslider">
                     {foreach $bestsellers as $b}
@@ -87,7 +87,7 @@
                                 <h2 itemprop="name">
                                     <span class="name">{$b.name}</span>
                                 </h2>
-                                
+
                                 <div class="image">
                                         {$badge_html = $wa->shop->badgeHtml($b.badge)}
                                         {if $badge_html}
@@ -110,15 +110,41 @@
             {else}
                 <p class="hint align-center"><br><em>{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','bestsellers')}</em><br><br></p>
             {/if}
-            
+
         {/if}
     </article>
 
 {/if}
 
+{if $promocards = $wa->shop->promos()}
+    <!-- PROMOS -->
+    <section class="promos">
+        <ul>
+            {foreach $promocards as $promo}
+                <li id="s-promo-{$promo.id}">
+                    <a href="{$promo.link|escape}" style="background-image: url('{$promo.image}');">
+                        <div class="background-color-layer"></div>
+                        {if !empty($promo.title)}<h5 style="color: {$promo.color};">{$promo.title|escape}</h5>{/if}
+                        {if !empty($promo.body)}<p style="color: {$promo.color};">{$promo.body|escape}</p>{/if}
+                    </a>
+                </li>
+            {/foreach}
+        </ul>
+    </section>
+{/if}
+
 <!-- plugin hook: 'frontend_homepage' -->
 {* @event frontend_homepage.%plugin_id% *}
 {foreach $frontend_homepage as $_}{$_}{/foreach}
+
+
+<!-- HOT DEALS product list -->
+{if $hotdeals}
+    <h3 class="hotdeals-header">{sprintf('[`Hot deals for %s`]', $smarty.now|wa_datetime:"humandate")}</h3>
+    {include file="list-thumbs.html" products=$hotdeals disable_compare=true}
+{else}
+    <p class="hint align-center"><em>{sprintf('[`In your store backend, drag some products into <strong>%s</strong> product list (which is in the left sidebar of the Products screen), and these products will be automatically published here — right on your storefront homepage.`]','promo')}</em></p>
+{/if}
 
 <!-- BULLETS -->
 <section class="bullets">
@@ -136,16 +162,51 @@
     </figure>
 </section>
 
-<!-- PROMOS product list -->
-{if $promos}
-    {include file="list-thumbs.html" products=$promos disable_compare=true}
-{else}
-    <p class="hint align-center"><em>{sprintf('[`In your store backend, drag some products into <strong>%s</strong> product list (which is in the left sidebar of the Products screen), and these products will be automatically published here — right on your storefront homepage.`]','promo')}</em></p>
-{/if}
+<!-- CONNECT -->
+<aside class="connect">
 
-<!-- DISCOUNT OFFER -->
-<aside class="coupon">
-    <div class="scissors"></div>
-    <h4>{$theme_settings.homepage_promo_title}</h4>
-    <p>{$theme_settings.homepage_promo_body}</p>
+    {* FACEBOOK LIKE BOX *}
+    {$_facebook_page_id = str_replace('www.facebook.com/','',str_replace('https://','',str_replace('http://','',$theme_settings.facebook)))}
+    {if  !empty($_facebook_page_id)}
+        <div class="likebox">
+
+            <div id="fb-root"></div>
+            <script>(function(d, s, id) {
+              var js, fjs = d.getElementsByTagName(s)[0];
+              if (d.getElementById(id)) return;
+              js = d.createElement(s); js.id = id;
+              js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=167596066655267&version=v2.0";
+              fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'facebook-jssdk'));</script>
+
+            <div class="fb-like-box" data-href="https://www.facebook.com/{$_facebook_page_id}" data-colorscheme="light" data-show-faces="true" data-header="true" data-stream="false" data-show-border="true"></div>
+
+        </div>
+    {/if}
+    {*
+        <div class="likebox">
+            EMBED MORE SOCIAL WIDGETS
+        </div>
+    *}
+
+    <h3>{$theme_settings.homepage_about_title}</h3>
+    <p>{$theme_settings.homepage_about_body}</p>
+
+    {if $theme_settings.homepage_blogposts && $wa->blog}
+
+        {$blog_posts = $wa->blog->posts(null,3)}
+        {if count($blog_posts)}
+
+            <h4>[`Latest blog updates`]</h4>
+            <ul>
+            {foreach $blog_posts as $post}
+                <li>
+                    <a href="{$post.link}">{$post.title|escape}</a>
+                    <span class="hint">{$post.datetime|wa_datetime:"humandate"}</span>
+                </li>
+            {/foreach}
+            </ul>
+        {/if}
+    {/if}
+
 </aside>

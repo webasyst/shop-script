@@ -29,6 +29,7 @@ class shopBackendWelcomeAction extends waViewAction
 
         if (waRequest::post()) {
             $app_settings_model = new waAppSettingsModel();
+            $app_settings_model->set('shop', 'show_tutorial', 1);
             $app_settings_model->del('shop', 'welcome');
             $this->setup();
         } else {
@@ -70,6 +71,13 @@ class shopBackendWelcomeAction extends waViewAction
                     foreach ($country_data['taxes'] as $tax_data) {
                         shopTaxes::save($tax_data);
                     }
+                }
+
+                // Customer filters (country depended)
+                $customers_filter_model = new shopCustomersFilterModel();
+                if (method_exists($customers_filter_model, 'addWelcomeCountry' . ucfirst($country) . 'Filters')) {
+                    $method = 'addWelcomeCountry' . ucfirst($country) . 'Filters';
+                    $customers_filter_model->$method();
                 }
 
                 #custom code
@@ -152,26 +160,52 @@ class shopBackendWelcomeAction extends waViewAction
             }
         }
 
-        /* !!! import commented out on welcome screen
-         switch (waRequest::post('import')) {
-         case 'demo':
-         //TODO create demoproducts
-         $this->redirect('?action=products');
-         break;
-         case 'migrate':
-         $plugins = $this->getConfig()->getPlugins();
-         if (empty($plugins['migrate'])) {
-         $url = $this->getConfig()->getBackendUrl(true).'installer/?module=update&action=manager&install=1&app_id[shop/plugins/migrate]=webasyst';
-         } else {
-         $url = '?action=importexport#/migrate/';
-         }
-         $this->redirect($url);
-         break;
-         case 'scratch':
-         default: */
-        $this->redirect('?action=products#/welcome/');
-        //        break;
-        //}
+        $redirect = null;
+        if ($plugin_id = waRequest::post('plugin')) {
+            $data = waRequest::post($plugin_id);
+            if (preg_match('@^(.+)-plugin$@', $plugin_id, $matches)) {
+                $plugin_id = $matches[1];
+                if (($plugin = wa('shop')->getPlugin($plugin_id)) && (method_exists($plugin, 'getWelcomeUrl'))) {
+                    $redirect = $plugin->getWelcomeUrl($data);
+                }
+            }
+        }
+        if (empty($redirect)) {
+            $redirect = '?action=products#/welcome/';
+        }
+
+        // Promos
+        $promo_model = new shopPromoModel();
+        if ($promo_model->countAll() <= 0) {
+            $promo_routes = array();
+            $promo_routes_model = new shopPromoRoutesModel();
+            $promo_stubs = include(wa()->getAppPath('lib/config/data/promos.php', 'shop'));
+            foreach ($promo_stubs as $stub) {
+                $file = $stub['image'];
+                $ext = explode('.', $file);
+                $ext = array_pop($ext);
+                unset($stub['image']);
+                $id = $promo_model->insert($stub + array(
+                        'type' => 'link',
+                        'ext'  => $ext,
+                    ));
+                waFiles::copy(wa()->getAppPath($file, 'shop'), wa('shop')->getDataPath('promos/'.$id.'.'.$ext, true));
+                $promo_routes[] = array(
+                    'promo_id'   => $id,
+                    'storefront' => '%all%',
+                    'sort'       => count($promo_routes) + 1,
+                );
+            }
+            $promo_routes_model->multipleInsert($promo_routes);
+        }
+
+        // Customer filters (other, i.e. not country depended)
+        $customers_filter_model = new shopCustomersFilterModel();
+        $customers_filter_model->addWelcomeRefererFacebookFilter();
+        $customers_filter_model->addWelcomeRefererTwitterFilter();
+        $customers_filter_model->addWelcomeLastOrderedMonthAgoFilter();
+
+        $this->redirect($redirect);
     }
 
     private function overview()
@@ -219,5 +253,47 @@ class shopBackendWelcomeAction extends waViewAction
             }
         }
         $this->view->assign('types', $types);
+
+        $backend_welcome = wa()->event('backend_welcome');
+
+
+        $params = array(
+            'title_wrapper'       => '%s',
+            'description_wrapper' => '<br><span class="hint">%s</span>',
+            'control_wrapper'     => '
+<div class="field">
+    <div class="name">%s</div>
+    <div class="value no-shift">%s%s</div>
+</div>
+',
+            'control_separator'   => '</div><div class="value">',
+        );
+        foreach ($backend_welcome as $plugin => &$data) {
+            if (isset($data['controls'])) {
+                if (is_array($data['controls'])) {
+                    $controls = array();
+                    foreach ($data['controls'] as $name => $row) {
+                        if (is_array($row)) {
+                            $row = array_merge($row, $params);
+                            waHtmlControl::addNamespace($row, $plugin);
+                            if (isset($options[$name])) {
+                                $row['options'] = $options[$name];
+                            }
+                            if (isset($params['value']) && isset($params['value'][$name])) {
+                                $row['value'] = $params['value'][$name];
+                            }
+                            if (!empty($row['control_type'])) {
+                                $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
+                            }
+                        } else {
+                            $controls[$name] = $row;
+                        }
+                    }
+                    $data['controls'] = implode("\n", $controls);
+                }
+            }
+            unset($data);
+        }
+        $this->view->assign('backend_welcome', $backend_welcome);
     }
 }

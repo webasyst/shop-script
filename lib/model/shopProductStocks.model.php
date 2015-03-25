@@ -456,11 +456,11 @@ class shopProductStocksModel extends waModel
      * Make insert, update or delete depending on input parameters and current state (sku-stock record in table)
      * Take into account stocking log (@see shopProductStocksLog)
      * 
-     * @param string[mixed] $data Specify sku ID, stock ID, count
-     * @param int           $data['sku_id'] sku ID, obligatory
-     * @param int           $data['product_id'] product ID, optional
-     * @param int           $data['stock_id'] stock ID, obligatory
-     * @param int|null      $data['count'] count, obligatory. 
+     * @param array    $data Specify sku ID, stock ID, count
+     * @param int      $data['sku_id'] sku ID, obligatory
+     * @param int      $data['product_id'] product ID, optional
+     * @param int      $data['stock_id'] stock ID, obligatory
+     * @param int|null $data['count'] count, obligatory.
      * 
      * <code>
      * array(

@@ -33,7 +33,7 @@ class shopOrdersGetProductController extends waJsonController
 
     public function getProduct($product_id, $order_id)
     {
-        $product = $this->getModel()->getProduct($product_id, $order_id);
+        $product = $this->getModel()->getProduct($product_id, $order_id, $order_id ? null : waRequest::get('currency'));
 
         $sku_ids = array();
         foreach ($product['skus'] as $sku) {
@@ -94,7 +94,7 @@ class shopOrdersGetProductController extends waJsonController
 
     public function getSku($sku_id, $order_id)
     {
-        $sku = $this->getModel()->getSku($sku_id, $order_id);
+        $sku = $this->getModel()->getSku($sku_id, $order_id, $order_id ? null : waRequest::get('currency'));
         $sku_stocks = $this->getSkuStocks(array($sku_id));
         $this->workupSku($sku, $sku_stocks);
         return $sku;

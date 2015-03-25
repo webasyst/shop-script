@@ -5,6 +5,51 @@
         {/if}
         <div class="wa-form">
             {$checkout_contact_form->html()}
+
+            {* When both billing and shipping addresses are enabled, billing address matches shipping address
+             * unless user specifically wants to edit billing address separately. *}
+            {if $billing_matches_shipping}
+                <div class="wa-field billing-address-fake" style="display:none;">
+                    <div class="wa-name">{$checkout_contact_form->fields('address.billing')->getName(null, true)}</div>
+                    <div class="wa-value">
+                        [`Matches shipping address`] <a href="javascript:void(0)" id="edit-billing-address-link">[`Edit billing address`]</a>
+                    </div>
+                </div>
+                <script>(function() { "use strict";
+                    if (!$) { return; }
+                    var $edit_billing_address_link = $('#edit-billing-address-link');
+                    var $billing_address_fake = $edit_billing_address_link.closest('.wa-field');
+                    var $billing_address_wrapper = $edit_billing_address_link.closest('.wa-form').find('.wa-field-address-billing');
+                    var $shipping_address_wrapper = $edit_billing_address_link.closest('.wa-form').find('.wa-field-address-shipping');
+                    if (!$edit_billing_address_link.length || !$billing_address_fake.length || !$billing_address_wrapper.length || !$shipping_address_wrapper.length) {
+                        return;
+                    }
+
+                    $billing_address_fake.insertAfter($billing_address_wrapper)
+                        .append('<input type="hidden" name="billing_matches_shipping" value="1">')
+                        .show();
+                    $billing_address_wrapper.hide();
+
+                    $edit_billing_address_link.on('click', function() {
+                        $billing_address_wrapper.show();
+                        $billing_address_fake.remove();
+
+                        // Fill all fields in billing address
+                        $shipping_address_wrapper.find(':input[name^="customer[address.shipping]"]').each(function() {
+                            var $fld = $(this);
+                            $billing_address_wrapper.find('[name="'+$fld.attr('name').replace('address.shipping', 'address.billing')+'"]').val($fld.val()).change();
+                        });
+                    });
+
+                    // Update billing country when user selects shipping country
+                    // so that region field is able to reload itself
+                    $shipping_address_wrapper.find(':input[name="customer[address.shipping][country]"]').change(function() {
+                        $billing_address_wrapper.find(':input[name="customer[address.billing][country]"]').val($(this).val()).change();
+                    });
+
+                })();</script>
+            {/if}
+
             {if $wa->isAuthEnabled() && !$wa->user()->isAuth()}
             <div class="wa-field">
                 <div class="wa-value">
@@ -79,5 +124,9 @@
     <!-- plugin hook: 'frontend_checkout' -->
     {* @event frontend_checkout.%plugin_id% *}
     {foreach $frontend_checkout as $_}{$_}{/foreach}
+
+    {if !empty($error)}
+    <div class="checkout-result error">{$error}</div>
+    {/if}
 
 </div>

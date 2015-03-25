@@ -82,6 +82,50 @@
         </tr>
         {/foreach}
         </table>
+
+        <div class="fields form">
+            <div class="field">
+                <div class="name">[`Guest checkout`]</div>
+                <div class="value no-shift">
+                    <label>
+                        <input class="guest-checkout" type="radio" name="guest_checkout" value="" {if !$guest_checkout}checked{/if}>
+                        [`Create new customer record for every guest order`]
+                    </label>
+                </div>
+                <div class="value no-shift">
+                    <label>
+                        <input class="guest-checkout" type="radio" name="guest_checkout" value="merge_email" {if $guest_checkout == 'merge_email'}checked{/if}>
+                        [`Automatically add order to existing customer record if same email address were entered`]
+                    </label>
+                </div>
+                {if $auth_alert}
+                <div class="guest-checkout-alert value no-shift"{if $guest_checkout != 'merge_email'} style="display:none"{/if}>
+                    <p class="small">
+                        <span class="highlighted"><i class="icon10 exclamation"></i> {sprintf('[`Automated assignment of guest orders to existing customers will not work on following sites: <strong>%s</strong>. Due to privacy considerations, auto order assignment requires enabling “Confirm email on signup” option in <em>Site app > select your domain > Personal > Auth & Sign up settings</em>.`]', implode(', ', $auth_alert))}</span>
+                    </p>
+                </div>
+                {/if}
+                <div class="value no-shift" style="display: none">
+                    <input id="guest-checkout-save" type="button" class="button green" value="[`Save`]">
+                </div>
+            </div>
+            <script type="text/javascript">
+                $('.guest-checkout').change(function () {
+                    if ($('.guest-checkout:checked').val() == 'merge_email') {
+                        $('.guest-checkout-alert').show();
+                    } else {
+                        $('.guest-checkout-alert').hide();
+                    }
+                    $('#guest-checkout-save').parent().show();
+                });
+                $('#guest-checkout-save').click(function () {
+                    $.post('?module=settingsCheckoutSave&action=guest', { value: $('.guest-checkout:checked').val()}, function () {
+                        $('#guest-checkout-save').parent().hide();
+                    });
+                    return false;
+                });
+            </script>
+        </div>
     </div>
     <div class="block double-padded">
         <h2><i class="icon16 lock-bw"></i>[`Backend`]</h2>

@@ -19,6 +19,7 @@ class shopCsvWriter implements Serializable
     private $delimiter = ';';
     private $encoding;
     private $method;
+    private $accept_arrays = false;
 
     private $offset = 0;
     private $file;
@@ -29,7 +30,7 @@ class shopCsvWriter implements Serializable
      * @param string $encoding
      * @param string $method mb or iconv encoding method (default is iconv)
      */
-    public function __construct($file, $delimiter = ';', $encoding = 'utf-8', $method = 'iconv')
+    public function __construct($file, $delimiter = ';', $encoding = 'utf-8', $method = 'iconv', $accept_arrays = false)
     {
         $this->file = ifempty($file);
         $this->delimiter = ifempty($delimiter, ';');
@@ -38,9 +39,11 @@ class shopCsvWriter implements Serializable
         }
         $this->encoding = ifempty($encoding, 'utf-8');
         $this->method = in_array($method, array('mb', 'icon'), true) ? $method : 'iconv';
+        $this->accept_arrays = $accept_arrays;
         if ($this->file()) {
             waFiles::create($this->file);
         }
+
         $this->restore();
     }
 
@@ -70,14 +73,17 @@ class shopCsvWriter implements Serializable
 
     public function serialize()
     {
-        return serialize(array(
-            'file'         => $this->file,
-            'delimiter'    => $this->delimiter,
-            'encoding'     => $this->encoding,
-            'method'       => $this->method,
-            'data_mapping' => $this->data_mapping,
-            'offset'       => $this->offset,
-        ));
+        return serialize(
+            array(
+                'file'          => $this->file,
+                'delimiter'     => $this->delimiter,
+                'encoding'      => $this->encoding,
+                'method'        => $this->method,
+                'data_mapping'  => $this->data_mapping,
+                'offset'        => $this->offset,
+                'accept_arrays' => $this->accept_arrays,
+            )
+        );
     }
 
     public function unserialize($serialized)
@@ -89,6 +95,7 @@ class shopCsvWriter implements Serializable
         $this->method = ifempty($data['method'], 'iconv');
         $this->data_mapping = ifset($data['data_mapping']);
         $this->offset = ifset($data['offset'], 0);
+        $this->accept_arrays = ifset($data['accept_arrays'], false);
 
         $this->restore();
     }
@@ -130,16 +137,6 @@ class shopCsvWriter implements Serializable
 
             if (strtolower($this->encoding) != 'utf-8') {
                 switch ($this->method) {
-                    case 'mb':
-                        if (class_exists('waFilesFilter')) {
-                            waFilesFilter::register();
-                            if (!@stream_filter_prepend($this->fp, 'convert.mb.UTF-8/'.$this->encoding)) {
-                                throw new waException("error while register file filter");
-                            }
-                        } else {
-                            throw new waException("error while search filter class");
-                        }
-                        break;
                     case 'iconv':
                     default:
                         if (!@stream_filter_prepend($this->fp, 'convert.iconv.UTF-8/'.$this->encoding.'//TRANSLIT//IGNORE')) {
@@ -199,16 +196,20 @@ class shopCsvWriter implements Serializable
                     $value = ifset($data[$key]);
                 }
                 if (is_array($value)) {
-                    foreach ($value as & $item) {
-                        if (preg_match($pattern, $item)) {
-                            $item = $enclosure.str_replace($enclosure, $enclosure.$enclosure, $item).$enclosure;
+                    if ($this->accept_arrays) {
+                        foreach ($value as & $item) {
+                            if (preg_match($pattern, $item)) {
+                                $item = $enclosure.str_replace($enclosure, $enclosure.$enclosure, $item).$enclosure;
+                            }
                         }
-                    }
-                    unset($item);
-                    if ($value) {
-                        $value = "{".implode(',', $value)."}";
+                        unset($item);
+                        if ($value) {
+                            $value = "{".implode(',', $value)."}";
+                        } else {
+                            $value = '';
+                        }
                     } else {
-                        $value = '';
+                        $value = reset($value);
                     }
                 }
                 $mapped[] = str_replace("\r\n", "\r", $value);

@@ -7,12 +7,14 @@ class shopCheckoutShipping extends shopCheckout
     public function display()
     {
         $plugin_model = new shopPluginModel();
+        $methods = $plugin_model->listPlugins('shipping');
         if (waRequest::param('shipping_id') && is_array(waRequest::param('shipping_id'))) {
-            $methods = $plugin_model->getById(waRequest::param('shipping_id'));
-        } else {
-            $methods = $plugin_model->listPlugins('shipping');
+            foreach ($methods as $m_id => $m) {
+                if (!in_array($m_id, waRequest::param('shipping_id'))) {
+                    unset($methods[$m_id]);
+                }
+            }
         }
-
         $address = $this->getAddress();
         $empty = true;
         foreach ($address as $v) {
@@ -99,6 +101,7 @@ class shopCheckoutShipping extends shopCheckout
                         $r['rate'] = max($r['rate']);
                     }
                 }
+                unset($r);
                 if ($m['rates']) {
                     if (!empty($selected_shipping['rate_id']) && isset($m['rates'][$selected_shipping['rate_id']])) {
                         $rate = $m['rates'][$selected_shipping['rate_id']];
@@ -126,6 +129,20 @@ class shopCheckoutShipping extends shopCheckout
                 continue;
             }
 
+            // When free shipping coupon is used, display all rates as 0
+            $checkout_data = wa('shop')->getStorage()->read('shop/checkout');
+            if (!empty($checkout_data['coupon_code'])) {
+                empty($cm) && ($cm = new shopCouponModel());
+                $coupon = $cm->getByField('code', $checkout_data['coupon_code']);
+                if ($coupon && $coupon['type'] == '$FS') {
+                    $m['rate'] = 0;
+                    foreach($m['rates'] as &$r) {
+                        $r['rate'] = 0;
+                    }
+                    unset($r);
+                }
+            }
+
             $custom_fields = $this->getCustomFields($m['id'], $plugin);
             $custom_html = '';
             foreach ($custom_fields as $c) {
@@ -139,11 +156,16 @@ class shopCheckoutShipping extends shopCheckout
             if ($f) {
                 $m['form'] = $f;
                 $m['form']->setValue($this->getContact());
+                // Make sure there are no more than one address of each type in the form
+                foreach(array('address.shipping') as $fld) {
+                    if (isset($m['form']->values[$fld]) && count($m['form']->values[$fld]) > 1) {
+                        $m['form']->values[$fld] = array(reset($m['form']->values[$fld]));
+                    }
+                }
             }
 
             $methods[$method_id] = $m;
         }
-
 
         $view = wa()->getView();
         $view->assign('checkout_shipping_methods', $methods);
@@ -155,10 +177,10 @@ class shopCheckoutShipping extends shopCheckout
             }
         }
         $view->assign('shipping', $selected_shipping ? $selected_shipping : array('id' => $default_method, 'rate_id' => ''));
-        
+
         $checkout_flow = new shopCheckoutFlowModel();
         $step_number = shopCheckout::getStepNumber('shipping');
-        // IF no errors 
+        // IF no errors
         $checkout_flow->add(array(
             'step' => $step_number
         ));
@@ -167,7 +189,7 @@ class shopCheckoutShipping extends shopCheckout
 //            'step' => $step_number,
 //            'description' => ERROR MESSAGE HERE
 //        ));
-        
+
     }
 
     public function getAddressForm($method_id, waShipping $plugin, $config, $contact_address, $address_form)
@@ -328,7 +350,14 @@ class shopCheckoutShipping extends shopCheckout
         return $items;
     }
 
-    public function getRate($id = null, $rate_id = null, $contact = null)
+    /**
+     * @param int $id
+     * @param string $rate_id
+     * @param waContact $contact
+     * @return array
+     * @throws waException
+     */
+    public function getRate($id = null, &$rate_id = null, $contact = null)
     {
         if (!$id) {
             $shipping = $this->getSessionData('shipping');
@@ -347,7 +376,7 @@ class shopCheckoutShipping extends shopCheckout
         $cart = new shopCart();
         $total = $cart->total();
         $currency = $plugin->allowedCurrency();
-        $currrent_currency = wa()->getConfig()->getCurrency(false);
+        $currrent_currency = wa('shop')->getConfig()->getCurrency(false);
         if ($currency != $currrent_currency) {
             $total = shop_currency($total, $currrent_currency, $currency, false);
         }
@@ -358,16 +387,21 @@ class shopCheckoutShipping extends shopCheckout
         if (is_string($rates)) {
             return $rates;
         }
-        if ($rate_id && isset($rates[$rate_id])) {
+        if ($rate_id === null) {
+            $rate_id = key($rates);
+        }
+        if (isset($rates[$rate_id])) {
             $result = $rates[$rate_id];
         } else {
             $result = array('rate' => 0);
         }
-        if (is_array($result['rate'])) {
-            $result['rate'] = max($result['rate']);
-        }
-        if ($currency != $currrent_currency) {
-            $result['rate'] = shop_currency($result['rate'], $currency, $currrent_currency, false);
+        if ($result['rate']) {
+            if (is_array($result['rate'])) {
+                $result['rate'] = max($result['rate']);
+            }
+            if ($currency != $currrent_currency) {
+                $result['rate'] = shop_currency($result['rate'], $currency, $currrent_currency, false);
+            }
         }
         $result['plugin'] = $plugin->getId();
         $result['name'] = $plugin_info['name'].(!empty($result['name']) ? ' ('.$result['name'].')': '');
@@ -394,10 +428,18 @@ class shopCheckoutShipping extends shopCheckout
         }
     }
 
-    public function validate()
+    /**
+     * @return array
+     * @todo: translate
+     */
+    public function getErrors()
     {
-
-
+        $errors = array();
+        $shipping = $this->getSessionData('shipping');
+        if (!$shipping || empty($shipping['id'])) {
+            $errors[] = _w('Shipping option is not defined. Please return to the shipping option checkout step to continue.');
+        }
+        return $errors;
     }
 
     public function execute()
@@ -465,6 +507,10 @@ class shopCheckoutShipping extends shopCheckout
                 $params = $this->getSessionData('params', array());
                 $params['shipping'] = $shipping_params;
                 $this->setSessionData('params', $params);
+            }
+
+            if (!isset($rate['rate']) && isset($rate['comment'])) {
+                return false;
             }
             return true;
         } else {

@@ -25,7 +25,7 @@
                     {foreach $related.cross_selling as $p}
                     <tr class="p" data-product-id="{$p.id}">
                         <td>{$p.name|escape}</td>
-                        <td>{shop_currency($p.price, $p.currency)}</td>
+                        <td>{shop_currency_html($p.price, $p.currency)}</td>
                         <td class="min-width"><a class="delete" href="#"><i class="icon16 delete"></i></a></td>
                     </tr>
                     {/foreach}
@@ -72,7 +72,7 @@
                     {foreach $related.upselling as $p}
                     <tr class="p" data-product-id="{$p.id}">
                         <td>{$p.name|escape}</td>
-                        <td>{shop_currency($p.price, $p.currency)}</td>
+                        <td>{shop_currency_html($p.price, $p.currency)}</td>
                         <td class="min-width"><a class="delete" href="#"><i class="icon16 delete"></i></a></td>
                     </tr>
                     {/foreach}
@@ -86,7 +86,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- plugin hook: 'backend_product_edit.related' -->
     {* @event backend_product_edit.%plugin_id%.related *}
     {if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.related)}{/foreach}{/if}
@@ -95,28 +95,53 @@
 <script type="text/javascript">
     $('#s-product-save > div.s-product-form.related').addClass('ajax');
 
-    $('.product-autocomplete').autocomplete({
-        source: '?action=autocomplete',
-        minLength: 3,
-        delay: 300,
-        select: function(event, ui) {
-            var tr = $('<tr class="p" data-product-id="' + ui.item.id + '"></tr>');
-            tr.append($('<td></td>').html(ui.item.value));
-            tr.append($('<td></td>').html(ui.item.price));
-            tr.append('<td class="min-width"><a class="delete" href="#"><i class="icon16 delete"></i></a></td>');
-            tr.insertBefore($(this).closest('tr'));
-            $(this).val('');
-            // save
-            $.post('?module=product&action=relatedSave&id={$product.id}', {
-                'type': $(this).data('type'),
-                'product_id': ui.item.id
-            }, function (response) {}, "json");
-            return false;
-        }
-    });
+    (function() {
+        var $autocompletes = $('.product-autocomplete').autocomplete({
+            source: '?action=autocomplete',
+            minLength: 3,
+            delay: 300,
+            select: function(event, ui) {
+                var tr = $('<tr class="p" data-product-id="' + ui.item.id + '"></tr>');
+                tr.append($('<td></td>').html(ui.item.value));
+                tr.append($('<td></td>').html(ui.item.price_html));
+                tr.append('<td class="min-width"><a class="delete" href="#"><i class="icon16 delete"></i></a></td>');
+                tr.insertBefore($(this).closest('tr'));
+
+                // save
+                $.post('?module=product&action=relatedSave&id={$product.id}', {
+                    'type': $(this).data('type'),
+                    'product_id': ui.item.id
+                }, function (response) { }, "json");
+
+                // Do not close autocompletion list after select
+                var autocomplete = $(this).data('autocomplete');
+                autocomplete.do_not_close_autocomplete = 1;
+                window.setTimeout(function() {
+                    autocomplete.do_not_close_autocomplete = false;
+                    autocomplete.menu.element.position($.extend({
+                        of: autocomplete.element
+                    }, autocomplete.options.position || { my: "left top", at: "left bottom", collision: "none" }));
+                }, 0);
+
+                return false;
+            }
+        });
+
+        // Do not close autocompletion list after select
+        $autocompletes.each(function() {
+            var autocomplete = $(this).data('autocomplete');
+            var oldClose = autocomplete.close;
+            autocomplete.close = function(e) {
+                if (this.do_not_close_autocomplete) {
+                    return false;
+                }
+                oldClose.apply(this, arguments);
+            };
+        });
+
+    })();
     $('input[name="upselling"], input[name="cross_selling"]').click(function () {
         if (this.value == 2) {
-            console.log($(this).closest('div.field'));
             $(this).closest('div.field').find('.manually').show();
         } else {
             $(this).closest('div.field').find('.manually').hide().find('tr.p').remove();

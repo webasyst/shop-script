@@ -1,5 +1,23 @@
 <?php
 return array(
+    'shop_abtest' => array(
+        'id' => array('int', 11, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
+        'name' => array('varchar', 255),
+        'create_datetime' => array('datetime', 'null' => 0),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+        ),
+    ),
+    'shop_abtest_variants' => array(
+        'id' => array('int', 11, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
+        'abtest_id' => array('int', 11, 'unsigned' => 1, 'null' => 0),
+        'code' => array('varchar', 16, 'null' => 0),
+        'name' => array('varchar', 255),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+            'antest_code' => array('abtest_id', 'code', 'unique' => 1),
+        ),
+    ),
     'shop_affiliate_transaction' => array(
         'id' => array('int', 11, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
         'contact_id' => array('int', 11, 'unsigned' => 1, 'null' => 0),
@@ -123,6 +141,8 @@ return array(
     'shop_currency' => array(
         'code' => array('char', 3, 'null' => 0),
         'rate' => array('decimal', "18,10", 'null' => 0, 'default' => '1.0000000000'),
+        'rounding' => array('decimal', "8,2", 'null' => 1, 'default' => null),
+        'round_up_only' => array('int', 11, 'null' => 0, 'default' => '1'),
         'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'code',
@@ -134,6 +154,7 @@ return array(
         'affiliate_bonus' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'number_of_orders' => array('int', 11, 'unsigned' => 1, 'null' => 0, 'default' => '0'),
         'last_order_id' => array('int', 11, 'unsigned' => 1),
+        'source' => array('varchar', 255),
         ':keys' => array(
             'PRIMARY' => 'contact_id',
         ),
@@ -143,6 +164,21 @@ return array(
         'sum' => array('decimal', "15,4", 'null' => 0),
         'discount' => array('decimal', "15,4", 'null' => 0),
         ':keys' => array(
+        ),
+    ),
+    'shop_expense' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'type' => array('varchar', 16, 'null' => 0),
+        'name' => array('varchar', 255, 'null' => 0),
+        'storefront' => array('varchar', 255),
+        'start' => array('date', 'null' => 0),
+        'end' => array('date', 'null' => 0),
+        'amount' => array('decimal', "15,4", 'null' => 0),
+        'color' => array('varchar', 7),
+        'note' => array('text'),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+            'start_end' => array('start', 'end'),
         ),
     ),
     'shop_feature' => array(
@@ -352,6 +388,7 @@ return array(
         'value' => array('varchar', 255, 'null' => 0),
         ':keys' => array(
             'PRIMARY' => array('order_id', 'name'),
+            'name' => 'name',
         ),
     ),
     'shop_page' => array(
@@ -620,6 +657,43 @@ return array(
             'PRIMARY' => array('product_id', 'tag_id'),
         ),
     ),
+    'shop_promo' => array(
+        'id' => array('int', 10, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
+        'type' => array('varchar', 32, 'null' => 0, 'default' => 'link'),
+        'title' => array('text'),
+        'body' => array('text'),
+        'link' => array('text'),
+        'color' => array('varchar', 8),
+        'ext' => array('varchar', 6, 'null' => 0),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+        ),
+    ),
+    'shop_promo_routes' => array(
+        'promo_id' => array('int', 10, 'unsigned' => 1, 'null' => 0),
+        'storefront' => array('varchar', 255, 'null' => 0),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
+        ':keys' => array(
+            'PRIMARY' => array('storefront', 'promo_id'),
+        ),
+    ),
+    'shop_sales' => array(
+        'hash' => array('varchar', 32, 'null' => 0),
+        'date' => array('date', 'null' => 0),
+        'name' => array('varchar', 255, 'null' => 0, 'default' => ''),
+        'order_count' => array('int', 11, 'null' => 0, 'default' => '0'),
+        'sales' => array('float', 'null' => 0, 'default' => '0'),
+        'shipping' => array('float', 'null' => 0, 'default' => '0'),
+        'tax' => array('float', 'null' => 0, 'default' => '0'),
+        'purchase' => array('float', 'null' => 0, 'default' => '0'),
+        'cost' => array('float', 'null' => 0, 'default' => '0'),
+        'new_customer_count' => array('int', 11, 'null' => 0, 'default' => '0'),
+        ':keys' => array(
+            'PRIMARY' => array('hash', 'name', 'date'),
+            'hash_date' => array('hash', 'date'),
+            'date' => 'date',
+        ),
+    ),
     'shop_search_index' => array(
         'word_id' => array('int', 11, 'null' => 0),
         'product_id' => array('int', 11, 'null' => 0),
@@ -768,6 +842,18 @@ return array(
         'value' => array('varchar', 255),
         ':keys' => array(
             'PRIMARY' => array('type_id', 'feature'),
+        ),
+    ),
+    'shop_customers_filter' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'name' => array('varchar', 255, 'null' => 0, 'default' => ''),
+        'hash' => array('text'),
+        'create_datetime' => array('datetime', 'null' => 0),
+        'contact_id' => array('int', 11, 'null' => 0),
+        'icon' => array('varchar', 255, 'null' => 1),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+            'contact_id' => 'contact_id'
         ),
     ),
 );

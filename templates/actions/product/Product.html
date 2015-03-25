@@ -1,6 +1,3 @@
-
-
-
 <div class="block double-padded" id="shop-productprofile" data-product-id="{$product.id}">
     <h1>
         <a href="#/" class="back">&larr; [`Back`]</a>
@@ -22,16 +19,17 @@
 
     </h1>
 
-    <ul class="menu-h small" id="s-product-frontend-links">
+    <ul class="menu-h s-product-nav" id="s-product-frontend-links">
         <li class="s-inline-mixed-string">
-            [`Storefront link`]:
-            {foreach $frontend_urls as $frontend_url}
+            [`Public link`]:
+            {foreach array_reverse($frontend_urls) as $frontend_url}
                 <span class="s-product-frontend-url-not-empty">
-                    <a href="{$frontend_url.url}" target="_blank"><span>{$frontend_url.url}</span></a><i class="icon10 new-window"></i>
+                    <a href="{$frontend_url.url}" target="_blank"><span>{$frontend_url.url}</span></a>
                 </span>
+                <br>
             {/foreach}
             <span class="s-product-frontend-url-empty gray" {if !empty($frontend_urls)}style="display:none;"{/if}>
-                {_w(sprintf('This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts', $product.type.name))}
+                {sprintf_wp('This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts', $product.type.name)}
             </span>
         </li>
     </ul>
@@ -41,70 +39,77 @@
         <div class="sidebar right200px" id="s-toolbar">
 
             <div class="align-center">
-                <ul class="menu-h small">
-                    <li class="selected"><a href="#" onclick="return false" class="inline-link"><b><i>[`Last 30 days`]</i></b></a></li>
-                    {* <li><a href="#" class="inline-link"><b><i>[`All time`]</i></b></a></li> *}
+                <ul class="menu-h small s-report-toggler">
+                    <li class="selected" data-target="last-month"><a href="javascript:void(0);" class="inline-link"><b><i>[`Last 30 days`]</i></b></a></li>
+                    <li data-target="forecast"><a href="javascript:void(0);" class="inline-link" title="[`Based on last 90 days sales`]"><b><i>[`Forecast`]</i></b></a></li>
                 </ul>
             </div>
 
-            <div id="product-sales-plot" style="height:150px;margin-bottom:20px;position:relative;left:-8px;width:216px">
-                <i class="icon16 loading"></i>
-            </div>
-
-            <table class="zebra">
-                <tr>
-                    <td>[`Sales`]</td>
-                    <td>
-                        <strong>{shop_currency($sales.total)}</strong>
-                    </td>
-                </tr>
-                {if isset($profit)}
-                <tr>
-                    <td>[`Profit`]</td>
-                    <td>
-                        <strong>{shop_currency($profit)}</strong>
-                    </td>
-                </tr>
-                {/if}
-            </table>
-
-
-            {if count($product.skus) > 1}
-            <div id="product-sku-plot" style="height:320px;margin-bottom:20px;position:relative;left:-8px;width:216px">
-                <i class="icon16 loading"></i>
-            </div>
+            {if $report_rights}
+                <table class="zebra s-report-tabs">
+                    <tr>
+                        <td>[`Units sold`]</td>
+                        <td class="align-right nowrap">
+                            <strong class="s-target s-last-month">{$sales.quantity}</strong>
+                            <strong class="s-target s-forecast hidden">{round($forecast.sold_rounded)}</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>[`Sales`]</td>
+                        <td class="align-right nowrap">
+                            <strong class="s-target s-last-month">{shop_currency_html($sales.total)}</strong>
+                            <strong class="s-target s-forecast hidden">{shop_currency_html($forecast.sales)}</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>[`Profit`]</td>
+                        <td class="align-right nowrap">
+                            <strong class="s-target s-last-month">{shop_currency_html($sales.profit)}</strong>
+                            <strong class="s-target s-forecast hidden">{shop_currency_html($forecast.profit)}</strong>
+                        </td>
+                    </tr>
+                </table>
             {/if}
-            
-            <div id="product-stock-stat" class="s-product-mini-stock-log">
-                <br>
-                <p class="align-center">
-                    [`Total stock balance`]: <strong>{if $product.count !== null}{$product.count}{else}∞{/if}</strong>
-                </p>
-                {if !empty($runout['product']) && $runout['product'].days < 3*365 && $runout['product'].days > 0}
-                    <p>{sprintf(
-                        _w('Based on last 30 days sales dynamic (%d items of %s sold during last 30 days), you will run out of %s in <strong>%d days</strong> (on %s)'),
-                        $sales.quantity, $product.name, $product.name, $runout['product'].days, wa_date("humandate", $runout['product'].date)
-                    )}
-                    </p>
-                {/if}
-            </div>
-            {capture name='template-product-stock-stat'}
-                <br>
-                <p class="align-center">
-                    [`Total stock balance`]: <strong>{literal}{% if (o.count !== null) { %}{%#o.count%}{% } else { %}∞{% } %}{/literal}</strong>
-                </p>
-                {literal}
-                {% if (!$.isEmptyObject(o.runout.product_str)) { %}
-                    <p>{%#o.runout.product_str%}</p>
-                {% } %}
-                {/literal}
-            {/capture}
 
-            <div id="s-product-delete" class="block align-center">
-                <ul class="menu-h with-icons">
-                    <li><a href="#/product/{$product.id}/edit/main/product/delete/" class="inline-link js-action"><i class="icon16 delete"></i>[`Delete product`]</a></li>
+            <br><br>
+            {if count($product.skus) > 1}
+                <div class="graph-wrapper align-center" id="product-sku-plot">
+                    <div class="pie-wrapper"></div>
+                    <div class="hint-wrapper"></div>
+                </div>
+            {/if}
+
+            {if count($product.categories)}
+                <ul class="menu-v compact with-icons" id="s-product-categories">
+                    {foreach $product.categories as $category}
+                        <li><a href="#/products/category_id={$category.id}"><i class="icon16 {if $category.type}funnel{else}folder{/if}"></i>{$category.name|escape}</a></li>
+                    {/foreach}
                 </ul>
-            </div>
+            {/if}
+
+            {if count($product_sets)}
+                <ul class="menu-v compact with-icons" id="s-product-sets">
+                    {foreach $product_sets as $set}
+                        <li><a href="#/products/set_id={$set.id}"><i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}funnel{else}ss set{/if}"></i>{$set.name|escape}</a></li>
+                    {/foreach}
+                </ul>
+            {/if}
+
+            {if count($product.tags)}
+                <ul class="menu-v compact with-icons tags" id="s-product-tags">
+                    {foreach $product.tags as $tag_id => $tag}
+                        <li><a href="#/products/tag={urlencode($tag)}"><i class="icon16 tags"></i>{$tag|escape}</a></li>
+                    {/foreach}
+                </ul>
+            {/if}
+
+            {if $edit_rights > 1 || $product.contact_id == $wa->userId()}
+                <div id="s-product-delete" class="block align-center top-padded">
+                    <ul class="menu-h with-icons">
+                        <li><a href="#/product/{$product.id}/edit/main/product/delete/" class="inline-link js-action"><i class="icon16 delete"></i>[`Delete product`]</a></li>
+                    </ul>
+                </div>
+            {/if}
 
             <!-- plugin hook: 'backend_product.toolbar_section' -->
             {* @event backend_product.%plugin_id%.toolbar_section *}
@@ -115,189 +120,173 @@
         </div>
         <div class="content right200px" id="s-product-view">
 
-            <ul class="s-product-image-crops">
-                {capture name='template-product-image-list'}
-                    {literal}
-                        {% if (!o.type || o.type == 'thumb') { %}
-                            {% for (var i = 0, n = o.images.length, image = o.images[0]; i < n; image = o.images[++i]) { %}
-                            <li data-image-id="{%#image.id%}">
-                                <div class="s-image">
-                                    <a href="#/product/{%#o.product_id%}/edit/images/{%#image.id%}/">
-                                        <img src="{%#image.url_thumb%}{%# image.edit_datetime_ts ? '?'+image.edit_datetime_ts : '' %}" alt="">
-                                    </a>
-                                </div>
-                                <div class="p-description">
-                                    {% if (image.description) { %}
-                                        <div class="small editable">{%#image.description%}</div>
-                                    {% } else { %}
-                                        <div class="small gray editable">{%#o.placeholder%}</div>
-                                    {% } %}
-                                </div>
-                            </li>
-                            {% } %}
-                        {% } else { %}
-                            {% for (var i = 0, n = o.images.length, image = o.images[0]; i < n; image = o.images[++i]) { %}
-                                <li data-image-id="{%#image.id%}">{/literal}
-                                    {if $edit_rights}
-                                        {literal}<a href="#product/{%#o.product_id%}/edit/images/{%#image.id%}/" class="s-product-edit-link">{/literal}
-                                    {/if}
-                                    {literal}<img src="{%#image.url_crop%}{%# image.edit_datetime_ts ? '?'+image.edit_datetime_ts : '' %}" alt="">{/literal}
-                                    {if $edit_rights}
-                                        </a>
-                                    {/if}
-                                {literal}</li>
-                            {% } %}
+
+            {capture name='template-product-categories'}
+                {literal}
+                    {% if (!$.isEmptyObject(o.categories) && $.isArray(o.categories)) { %}
+                        {% for (var i = 0; i < o.categories.length; i += 1) { %}
+                            {% var category = o.categories[i]; %}
+                            <li><a href="#/products/category_id={%=category.id%}"><i class="icon16 {% if (category.type != '0') { %}funnel{% } else { %}folder{% } %}"></i>{%=category.name%}</a></li>
                         {% } %}
-                    {/literal}
-                {/capture}
-
-                {* @see ProductSkuSettings.html *}
-
-                {capture name='template-sku-image-list'}
-                    {literal}
-                    {% for (var i = 0, n = o.images.length, image = o.images[0]; i < n; image = o.images[++i]) { %}
-                        <li data-image-id="{%#image.id%}" {% if (o.sku.image_id == image.id) { %} class="selected"{% } %}>
-                            <a href="#/product/{%#o.sku.product_id%}/edit/main/sku/image/select/{%#o.sku.id%}/{%#image.id%}/" class="js-action">
-                                <img src="{%#image.url_crop%}{%# image.edit_datetime_ts ? '?'+image.edit_datetime_ts : '' %}" alt="">
-                            </a>
-                        </li>
                     {% } %}
-                    {/literal}
-                {/capture}
+                {/literal}
+            {/capture}
 
-                <!-- plugin hook: 'backend_product.image_li' -->
-                {* @event backend_product.%plugin_id%.image_li *}
-                {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.image_li)}{/foreach}{/if}
+            {capture name='template-product-tags'}
+                {literal}
+                    {% if (!$.isEmptyObject(o.tags) && $.isArray(o.tags)) { %}
+                        {% for (var i = 0; i < o.tags.length; i += 1) { %}
+                            {% var tag = o.tags[i]; %}
+                            <li><a href="#/products/tag={%=tag.url%}">{%=tag.name%}</a></li>
+                        {% } %}
+                    {% } %}
+                {/literal}
+            {/capture}
 
-            </ul>
-
-            <p class="hint"><span class="s-product-summary-input">{$product.summary|escape}</span>
-            {if $edit_rights}
-            <a href="#/product/{$product.id}/edit/descriptions/" class="s-product-edit-link">[`Edit`]</a></p>
-            {/if}
-
-            <table class="zebra s-product-skus">
-                <tbody>
-                    {foreach $product.skus as $sku_id => $sku}
-                    <tr data-id="{$sku_id}" class="{if empty($sku.available)}grey {/if}{if $sku.virtual}s-sku-virtual{/if}" title="{$sku.sku|escape}">
-                        <td class="s-name">
-                            {$sku.name|escape}
-                            <span class="hint">{$sku.sku}</span>
-                            {if !empty($sku.file_name)}
-                                <i class="icon16 attachment-small"></i>
-                            {/if}
-                        </td>
-                        <td class="s-price">
-                            <strong>{if $product.currency !== null}{wa_currency($sku.price, $product.currency)}{else}{wa_currency($sku.price, $primary_currency)}{/if}</strong>
-                        </td>
-                        <td class="s-stock">
-                            {if !count($sku.stock)}
-                                {shopHelper::getStockCountIcon($sku.count)}
-                                {if $sku.count === null}∞{else}{$sku.count}{/if}
-                                {if isset($runout['sku'][$sku_id]) && $runout['sku'][$sku_id]['days'] > 0 && $runout['sku'][$sku_id]['days'] < 90}
-                                    <em class="small bold s-stock-warning-low" title="[`Approximate date when you run out of stock for this SKU based on average selling rate for this product`]">{_w('%d day', '%d days', $runout['sku'][$sku_id]['days'])}</em>
-                                {/if}
-                            {else}
-                                {foreach $stocks as $stock_id => $stock}
-                                    {if isset($sku.stock[$stock_id])}
-                                        {$count = $sku.stock[$stock_id]}
-                                    {else}
-                                        {$count = null}
-                                    {/if}
-                                        {shopHelper::getStockCountIcon($count, $stock_id)}
-
-                                        {if $count === null}∞{else}{$count}{/if}
-                                        {if isset($runout['sku'][$sku_id]['stock'][$stock_id]) && $runout['sku'][$sku_id]['stock'][$stock_id]['days'] > 0 && $runout['sku'][$sku_id]['stock'][$stock_id]['days'] < 90}
-                                            <em class="small bold s-stock-warning-low" title="[`Approximate date when you run out of stock for this SKU based on average selling rate for this product`]">{_w('%d day', '%d days', $runout['sku'][$sku_id]['stock'][$stock_id]['days'])}</em>
-                                        {/if}
-
-                                    {if count($stocks) > 1}
-                                        <span class="hint">@{$stock.name|escape}</span><br>
-                                    {/if}
-                                {/foreach}
-                            {/if}
-                        </td>
-                        {if $edit_rights}
-                        <td class="min-width">
-                            <a href="#/product/{$product.id}/edit/focus=name&sku={$sku_id}" class="nowrap s-product-edit-link"><i class="icon16 edit"></i>[`Edit`]</a>
-                        </td>
-                        {/if}
-                    </tr>
-                    {/foreach}
-
-                    {capture name='template-sku'}{literal}
-                        {% var sku_id = o.sku_id; %}
-                        {% var sku = o.sku; %}
-                        {% var stocks = o.stocks || {}; %}
-                        {% sku.stocks = sku.stocks || {}; %}
-                        {% var stock_ids = o.stock_ids; %}
-                        {% var sku_runout = o.runout.sku[sku_id] || {}; %}
-                        <tr data-id="{%=sku_id%}" class="{% if(!sku.available) { %}grey {% } %}{% if (sku.virtual == '1') { %}s-sku-virtual{% } %}" title="{%=sku.sku%}">
-                            <td class="s-name">
-                                {%=sku.name%}
-                                <span class="hint">{%=sku.sku%}</span>
-                                {% if (sku.file_name) { %}
-                                    <i class="icon16 attachment-small"></i>
-                                {% } %}
-                            </td>
-                            <td class="s-price"><strong>{%=sku.price_str%}</strong></td>
-                            <td class="s-stock">
-                                {% if (!$.isEmptyObject(sku.stock)){ %}
-                                    {% for (var i = 0, n = stock_ids.length; i < n; i += 1) { %}
-                                        {% var stock_id = stock_ids[i]; %}
-                                        {% count = typeof sku.stock[stock_id] !== 'undefined' ? sku.stock[stock_id] : null; %}
-
-                                        {%# sku.stock_icon[stock_id] %}
-
-                                        {% if (count === null) { %}∞{% }else{ %}{%=''+count%}{% } %}
-                                        
-                                        {% if (sku_runout.stock && (stock_id in sku_runout.stock) && sku_runout.stock[stock_id].days > 0 && sku_runout.stock[stock_id].days < 90) { %}
-                                            <em class="small bold s-stock-warning-low">{%#sku_runout.stock[stock_id].days_str%}</em>
-                                        {% } %}
-                                        
-                                        {% if (!$.isEmptyObject(stocks)){ %}
-                                            <span class="hint">@{%=stocks[stock_id]['name']%}</span><br>
-                                        {% } %}
-                                        
-                                    {% } %}
-                                {% } else { %}
-                                    {%# sku.stock_icon[0] %}
-                                    {% if (sku.count === null) { %}∞{% }else{ %}{%=''+sku.count%}{% } %}
-                                    
-                                    {% if (!$.isEmptyObject(sku_runout) && sku_runout.days > 0 && sku_runout.days < 90) { %}
-                                        <em class="small bold s-stock-warning-low">{%#sku_runout.days_str%}</em>
-                                    {% } %}
-                                    
-                                {% } %}
-                            </td>
-                            {/literal}
-                            {if $edit_rights}
-                            <td class="min-width">
-                                <a href="#/product/{$product.id}/edit/focus=name&sku={literal}{%=sku_id%}{/literal}" class="gray s-product-edit-link">[`Edit`]</a>
-                            </td>
-                            {/if}
-                        </tr>
-                    {/capture}
-                 </tbody>
-                </table>
-
-            {if !empty($product.reviews)}
-                {$reviews = $product.reviews}
-                <div id="s-reviews-block" {if empty($reviews)}style="display: none;"{/if}>
-                    <a name="reviews"></a>
-                    <h3 class="s-reviews-header">[`Customer reviews`] (<span class="s-reviews-count">{if !empty($counters['reviews'])}{$counters['reviews']}{else}0{/if}</span>)</h3>
-                    <div class="s-reviews" id="s-product-profile-reviews">
-                        <ul class="menu-v with-icons">
-                            {foreach $reviews as $review}
-                                <li data-id="{$review.id}" data-parent-id="0">
-                                {include file="./include.review.html" reply_allowed=true reply_link="#/product/{$product.id}/edit/reviews/{$review.id}/" single_view=true inline}
-                                </li>
-                            {/foreach}
-                        </ul>
-                    </div>
-                    <a href="#/product/{$product.id}/edit/reviews/">[`Show all reviews`]</a>
+            {if $report_rights}
+                <div class="graph-wrapper"  id="product-sales-plot">
+                    <!-- INCLUDE RESOURCES -->
+                    <link rel="stylesheet" href="{$wa_url}wa-apps/shop/css/charts.css?v={$wa->version()}">
+                    <!-- CHART WRAPPERS -->
+                    <div class="sales-wrapper"></div>
+                    <div class="hint-wrapper" id="hint-wrapper"></div>
                 </div>
             {/if}
+
+            <div class="block" id="s-product-profile-tabs">
+                <ul class="tabs">
+                    <li class="selected" data-tab="profile"><a href="#">[`Pricing & Availability`]</a></li>
+                    <li data-tab="stock-logs"><a href="#">[`Stock updates`]</a></li>
+                    {if $wa->userRights('orders')}
+                    <li data-tab="recent-orders"><a href="#">[`Recent orders`]</a></li>
+                    {/if}
+                    <li data-tab="reviews"><a href="#">[`Reviews`]</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="block s-tab-block" data-tab="profile">
+
+                        <div id="product-stock-stat" class="s-product-mini-stock-log">
+                            [`Available stock balance`]: <strong>{shopHelper::getStockCountIcon($product.count)}{if $product.count !== null}{$product.count}{else}∞{/if}</strong>
+
+                            <br><br>
+
+                            {if $report_rights && $forecast.date !== null}
+                                <p class="small"><em>
+                                {sprintf(
+                                    _w('Based on your average monthly sales volume for %s during last three months (%d units per month), you will run out of this product in <strong>%d days</strong> (on %s).'),
+                                    $product.name|escape, $forecast.sold_rounded, $forecast.days, wa_date("humandate", $forecast.date)
+                                )}
+                                </em></p>
+                            {/if}
+
+                        </div>
+                        {capture name='template-product-stock-stat'}
+                            <p>
+                                [`Available stock balance`]: <strong>{literal}{% if (o.count !== null) { %}{%#o.count%}{% } else { %}∞{% } %}{/literal}</strong>
+                            </p>
+                            {literal}
+                            {% if (o.count !== null && !$.isEmptyObject(o.runout_str)) { %}
+                                <span class="small"><em>{%=o.runout_str%}</em></span>
+                            {% } %}
+                            {/literal}
+                        {/capture}
+
+                        <table class="s-product-skus">
+                            <tbody>
+                                {foreach $product.skus as $sku_id => $sku}
+                                <tr data-id="{$sku_id}" class="{if empty($sku.available)}grey {/if}{if $sku.virtual}s-sku-virtual{/if}" title="{$sku.sku|escape}">
+                                    <td class="s-name">
+                                        {$sku.name|escape}
+                                        <span class="hint">{$sku.sku}</span>
+                                        {if !empty($sku.file_name)}
+                                            <i class="icon16 attachment-small"></i>
+                                        {/if}
+                                    </td>
+                                    <td class="s-price">
+                                        <strong>{if $product.currency !== null}{wa_currency_html($sku.price, $product.currency)}{else}{wa_currency_html($sku.price, $primary_currency)}{/if}</strong>
+                                    </td>
+                                    <td class="s-stock">
+                                        {if !count($sku.stock)}
+                                            {shopHelper::getStockCountIcon($sku.count)}
+                                            {if $sku.count === null}∞{else}{$sku.count}{/if}
+                                        {else}
+                                            {foreach $stocks as $stock_id => $stock}
+                                                {if isset($sku.stock[$stock_id])}
+                                                    {$count = $sku.stock[$stock_id]}
+                                                {else}
+                                                    {$count = null}
+                                                {/if}
+                                                    {shopHelper::getStockCountIcon($count, $stock_id)}
+
+                                                    {if $count === null}∞{else}{$count}{/if}
+
+                                                {if count($stocks) > 1}
+                                                    <span class="hint">@{$stock.name|escape}</span><br>
+                                                {/if}
+                                            {/foreach}
+                                        {/if}
+                                    </td>
+                                    {if $edit_rights}
+                                    <td class="min-width">
+                                        <a href="#/product/{$product.id}/edit/focus=name&sku={$sku_id}" class="nowrap s-product-edit-link"><i class="icon16 edit"></i>[`Edit`]</a>
+                                    </td>
+                                    {/if}
+                                </tr>
+                                {/foreach}
+
+                                {capture name='template-sku'}{literal}
+                                    {% var sku_id = o.sku_id; %}
+                                    {% var sku = o.sku; %}
+                                    {% var stocks = o.stocks || {}; %}
+                                    {% sku.stocks = sku.stocks || {}; %}
+                                    {% var stock_ids = o.stock_ids; %}
+                                    <tr data-id="{%=sku_id%}" class="{% if(!sku.available) { %}grey {% } %}{% if (sku.virtual == '1') { %}s-sku-virtual{% } %}" title="{%=sku.sku%}">
+                                        <td class="s-name">
+                                            {%=sku.name%}
+                                            <span class="hint">{%=sku.sku%}</span>
+                                            {% if (sku.file_name) { %}
+                                                <i class="icon16 attachment-small"></i>
+                                            {% } %}
+                                        </td>
+                                        <td class="s-price"><strong>{%#sku.price_html%}</strong></td>
+                                        <td class="s-stock">
+                                            {% if (!$.isEmptyObject(sku.stock)){ %}
+                                                {% for (var i = 0, n = stock_ids.length; i < n; i += 1) { %}
+                                                    {% var stock_id = stock_ids[i]; %}
+                                                    {% count = typeof sku.stock[stock_id] !== 'undefined' ? sku.stock[stock_id] : null; %}
+
+                                                    {%# sku.stock_icon[stock_id] %}
+
+                                                    {% if (count === null) { %}∞{% }else{ %}{%=''+count%}{% } %}
+
+                                                    {% if (!$.isEmptyObject(stocks)){ %}
+                                                        <span class="hint">@{%=stocks[stock_id]['name']%}</span><br>
+                                                    {% } %}
+
+                                                {% } %}
+                                            {% } else { %}
+                                                {%# sku.stock_icon[0] %}
+                                                {% if (sku.count === null) { %}∞{% }else{ %}{%=''+sku.count%}{% } %}
+
+                                            {% } %}
+                                        </td>
+                                        {/literal}
+                                        {if $edit_rights}
+                                        <td class="min-width">
+                                            {literal}<a href="#/product/{%=sku.product_id%}/edit/focus=name&sku={%=sku_id%}" class="nowrap asdf s-product-edit-link"><i class="icon16 edit"></i>[`Edit`]</a>{/literal}
+                                        </td>
+                                        {/if}
+                                    </tr>
+                                {/capture}
+                            </tbody>
+                        </table>
+
+                    </div>
+                    <div class="block s-tab-block" data-tab="stock-logs" style="display:none;"><i class="icon16 loading"></i></div>
+                    <div class="block s-tab-block" data-tab="recent-orders" style="display:none;"><i class="icon16 loading"></i></div>
+                    <div class="block s-tab-block" data-tab="reviews" style="display:none;"><i class="icon16 loading"></i></div>
+                </div>
+            </div>
 
         </div>
 
@@ -311,7 +300,7 @@
             <span class="s-product-edit-tab-status"></span></a>
         </li>
         <li class="descriptions">
-            <a href="#/product/{$product.id}/edit/descriptions/">[`Descriptions`]
+            <a href="#/product/{$product.id}/edit/descriptions/">[`Description &amp; SEO`]
             <span class="s-product-edit-tab-status"></span></a>
         </li>
         <li class="features">
@@ -331,16 +320,8 @@
             <span class="s-product-edit-tab-status"></span></a>
         </li>
         <li class="pages">
-            <a href="#/product/{$product.id}/edit/pages/">[`Pages`] <span class="hint">{$counters['pages']}</span>
+            <a href="#/product/{$product.id}/edit/pages/">[`Subpages`] <span class="hint">{$counters['pages']}</span>
             <span class="s-product-edit-tab-status"></span></a>
-        </li>
-        <li class="reviews">
-            <a href="#/product/{$product.id}/edit/reviews/">[`Customer reviews`] <span class="hint">{$counters['reviews']}</span>
-            <span class="s-product-edit-tab-status"></span></a>
-        </li>
-        <li class="stocks-log">
-            <a href="#/product/{$product.id}/edit/stockslog/">[`Stock updates`] <span class="hint">{ifset($counters['stocks_log'], 0)}</span>
-            <span class="s-product-edit-tab-status"></span></a>            
         </li>
 
         <!-- plugin hook: 'backend_product.edit_section_li' -->
@@ -363,12 +344,11 @@
                     <div class="value"><input type="text" class="long bold s-product-name-input" value="{$product.name|escape}" name="product[name]"></div>
                 </div>
                 <div class="field">
-                    <div class="name">[`Status`]</div>
                     <div class="value no-shift">
                         <div class="s-product-status">
                             <i class="icon10 {if $product.status}yes{else}no-bw{/if}"></i>
                             <select name="product[status]">
-                                <option {if $product.status}selected{/if} value="1">[`Published`]</option>
+                                <option {if $product.status}selected{/if} value="1">[`Visible`]</option>
                                 <option {if !$product.status}selected{/if} value="0">[`Hidden`]</option>
                             </select>
                         </div>
@@ -386,13 +366,12 @@
                                             <span id="s-product-frontend-url">{$product.url}</span>
                                             <span class="slash">/</span>
                                         </a>
-                                        <i class="icon10 new-window"></i>
                                         <input type="text" class="s-product-url-input" id="s-product-frontend-url-input"
                                                                     value="{$product.url|escape}"
                                                                     name="product[url]" style="display:none;"
                                                                 >
                                     {/strip}
-                                    <a href="javascript:void(0);" class="small inline-link" id="s-product-frontend-url-edit-link">
+                                    <a href="javascript:void(0);" class="small gray inline-link" id="s-product-frontend-url-edit-link">
                                         <i class="icon10 edit"></i><b><i>[`edit`]</i></b>
                                     </a>
                                 </span>
@@ -400,7 +379,6 @@
                                 {* just link *}
                                 <span class="s-product-frontend-url-not-empty small">
                                     <a href="{$frontend_url.url}" target="_blank" class="s-product-frontend-url">{$frontend_url.url}</a>
-                                    <i class="icon10 new-window"></i>                                    
                                 </span>
                             {/if}
                             <br>
@@ -410,39 +388,53 @@
                             {_w(sprintf('This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts', $product.type.name))}
                         </p>
 
-                        <p class="s-product-status-text hint" {if $product.status}style="display:none;"{/if}>
+                        <span class="s-product-status-text hint" {if $product.status}style="display:none;"{/if}>
+                            <br>
                             [`Hidden products are not shown among other products in the storefront, are not available for purchase, and can be viewed by the direct URL only.`]
-                        </p>
+                        </span>
                     </div>
                 </div>
             </div>
             <div class="field-group">
                 {if $product_types}
-                <div class="field">
-                    <div class="name">[`Product type`]</div>
-                    <div class="value no-shift" data-type="{$product.type.id|escape}">
-                        <span class="js-type-icon">{shopHelper::getIcon($product.type.icon)}</span>
-                        <strong class="js-type-name">{$product.type.name|escape}</strong>&nbsp;
-                        <a href="#/product/{$product.id}/edit/main/type/select/" class="js-action inline-link"><b><i>[`Change type`]</i></b></a>
+                    <div class="field">
+                        <div class="name">[`Product type`]</div>
+                        <div class="value no-shift" data-type="{$product.type.id|escape}">
+                            <span class="js-type-icon">{shopHelper::getIcon($product.type.icon)}</span>
+                            <strong class="js-type-name">{$product.type.name|escape}</strong>&nbsp;
+                            <a href="#/product/{$product.id}/edit/main/type/select/" class="js-action gray inline-link"><b><i>[`Change type`]</i></b></a>
 
-                        <select name="product[type_id]" style="display:none;">
-                        {if empty($product.type.id)}
-                        <option data-icon="{shopHelper::getIcon(null)|escape}" value="" selected="selected" disabled="disabled"></option>
-                        {/if}
-                        {foreach $product_types as $id=>$type}
-                            <option data-icon="{shopHelper::getIcon(ifempty($type.icon,'box'))|escape}" data-sku-type="{$type.sku_type}" value="{$id}"{if $product.type.id == $id} selected="selected"{/if}>
-                            {$type.name|escape}
-                            </option>
-                        {/foreach}
-                        </select>
+                            <select name="product[type_id]" style="display:none;">
+                            {if empty($product.type.id)}
+                            <option data-icon="{shopHelper::getIcon(null)|escape}" value="" selected="selected" disabled="disabled"></option>
+                            {/if}
+                            {foreach $product_types as $id=>$type}
+                                <option data-icon="{shopHelper::getIcon(ifempty($type.icon,'box'))|escape}" data-sku-type="{$type.sku_type}" value="{$id}"{if $product.type.id == $id} selected="selected"{/if}>
+                                {$type.name|escape}
+                                </option>
+                            {/foreach}
+                            </select>
+                        </div>
                     </div>
-                </div>
                 {else}
-                <input type="hidden" name="product[type_id]" value="">
+                    <input type="hidden" name="product[type_id]" value="">
+                {/if}
+                {if !empty($taxes)}
+                    <div class="field">
+                        <div class="name">[`Taxable`]</div>
+                        <div class="value no-shift">
+                            <select name="product[tax_id]">
+                            <option value="" {if empty($product.tax_id)} selected="selected"{/if}>[`No`]</option>
+                            {foreach $taxes as $tax}
+                            <option value="{$tax.id}"{if $product.tax_id == $tax.id} selected="selected"{/if}>{$tax.name|escape}</option>
+                            {/foreach}
+                            </select>
+                        </div>
+                    </div>
                 {/if}
                 <div class="field">
-                    <div class="name">[`Categories`]</div>{$_time=microtime(true)}
-                    {$_show_selects=(count($product.categories)*count($categories) < 200)}
+                    <input type="text" name="product[categories.deleted]" value="" style="display:none;">
+                    <div class="name">[`Categories`]</div>
 
                     {function categories_select category_id=0}
                         <select name="product[categories][]" class="s-product-categories">
@@ -456,346 +448,325 @@
                                     <option class="category" value="{$category.id}" {if $category_id == $category.id} selected="selected"{/if}>{"-"|str_repeat:$category.depth}{$category.name|escape}</option>
                                 {/foreach}
                             {else}
-                                <option value="">[`No category exists`]</option>
+                                <option value=""></option>
                                 <option value="create">[`Create new category...`]</option>
                                 <option class="separator" value="---" disabled="disabled" style="display:none;">---</option>
                             {/if}
                         </select>
                         <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$category_id}style="display:none;"{/if}><i class="icon10 delete-bw no-overhanging"></i></a>
-
-                        <span class="s-storefront-map">
-                            {if isset($storefront_map[$category_id])}
-                                {foreach $storefront_map[$category_id] as $storefront}
-                                    <a class="hint" href="{$storefront}" target="_blank">{$storefront}</a>
-                                {/foreach}
-                            {/if}
-                        </span>
                     {/function}
 
-                {foreach $product.categories as $category_id => $c}
-                    <div class="value s-product-categories no-shift">
-                        {if $_show_selects || $c@first}
-                            {categories_select category_id=$category_id}
-                        {else}
-                            <input value="{$c.id}" name="product[categories][]" type="hidden" class="s-product-categories">
-                            <i class="icon16 folder"></i>
-                            {$_parent_id = $c.parent_id}
-                            {$_path=array()}
-                            {$_path[$c.depth]=$c.name}
-                            {while $_parent_id && isset($categories[$_parent_id])}
-                                {$_path[$categories[$_parent_id]['depth']]=$categories[$_parent_id]['name']}
-                                {$_parent_id = $categories[$_parent_id]['parent_id']}
-                            {/while}
-                            <!-- {ksort($_path)} -->
-                            {implode('→',$_path)|escape}
+                    {$_show_selects=(count($product.categories)*count($categories) < 200)}
+                    {foreach $product.categories as $category_id => $c}
+                        <div class="value s-product-categories no-shift">
+                            {if $_show_selects || $c@first}
+                                {categories_select category_id=$category_id}
+                            {else}
+                                <input value="{$c.id}" name="product[categories][]" type="hidden" class="s-product-categories">
+                                <i class="icon16 folder"></i>
+                                {strip}
+                                    {$_parent_id = $c.parent_id}
+                                    {$_path=array()}
+                                    {$_path[$c.depth]=$c.name}
+                                    {while $_parent_id && isset($categories[$_parent_id])}
+                                        {$_path[$categories[$_parent_id]['depth']]=$categories[$_parent_id]['name']}
+                                        {$_parent_id = $categories[$_parent_id]['parent_id']}
+                                    {/while}
+                                    {$_ = ksort($_path)}
+                                {/strip}
+                                {implode(' » ',$_path)|escape}
 
-                            {*
-                            <a href="#/product/{$product.id}/edit/main/categories/edit/"><i class="icon16 edit"></i></a>
-                            *}
-                            <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$c.id}style="display:none;"{/if}><i class="icon10 delete-bw no-overhanging"></i></a>
-
-                            <span class="s-storefront-map">
-                            {if isset($storefront_map[$category_id])}
-                                {foreach $storefront_map[$category_id] as $storefront}
-                                    <a class="hint" href="{$storefront}" target="_blank">{$storefront}</a>
-                                {/foreach}
+                                <a href="#" class="s-product-delete-from-category" title="[`Remove product from this category`]" {if !$c.id}style="display:none;"{/if}><i class="icon10 delete-bw no-overhanging"></i></a>
                             {/if}
-                            </span>
-                        {/if}
-                    </div>
-                {/foreach}
+                        </div>
+                    {/foreach}
 
                     <div class="value s-product-categories no-shift" {if count($product.categories)} style="display: none;" {/if}>
                         {categories_select}
                         <span class="s-new-category" style="display:none;">
-                            <input type="text" name="new_category" class="new-category" class="js-ignore-change">
+                            <input type="text" name="new_category" class="new-category" class="js-ignore-change" placeholder="[`Category name`]">
                             <input type="hidden" name="product[categories][]" class="val" value="{$category_id}" disabled="disabled">
                             <input type="button" value="[`Create`]">
                         </span>
                     </div>
-                    <div class="value s-product-categories no-shift">
+                    <div class="value s-product-categories">
                         <ul class="menu-v s-category-action">
-                            <li><a href="#/product/{$product.id}/edit/main/categories/add/" class="small inline-link js-action"><b><i>[`Add category`]</i></b></a></li>
+                            <li><a href="#/product/{$product.id}/edit/main/categories/add/" class="small inline-link js-action"><i class="icon10 add"></i> <b><i>[`Additional category`]</i></b></a></li>
                         </ul>
                     </div>
                 </div>
-                {if !empty($taxes)}
-                <div class="field">
-                    <div class="name">[`Taxable`]</div>
-                    <div class="value no-shift">
-                        <select name="product[tax_id]">
-                        <option value="" {if empty($product.tax_id)} selected="selected"{/if}>[`No`]</option>
-                        {foreach $taxes as $tax}
-                        <option value="{$tax.id}"{if $product.tax_id == $tax.id} selected="selected"{/if}>{$tax.name|escape}</option>
+
+                {if !empty($sets)}
+                    <div class="field s-product-sets">
+                        <div class="name">[`Sets`]</div>
+
+                        {function sets_select set_id=null}
+                            <select name="product[sets][]">
+                                <option value="">[`Please select a set`]</option>
+                                <option class="separator" value="" disabled="disabled">---</option>
+                                {foreach $sets as $set}
+                                    <option value="{$set.id}"{if $set_id && $set_id == $set.id} selected="selected"{/if}>{$set.name|escape} ({$set.id|escape})</option>
+                                {/foreach}
+                            </select>
+                            <a href="javascript:void(0)" class="s-product-delete-from-set" title="[`Remove product from this set`]"><i class="icon10 delete-bw no-overhanging"></i></a>
+                        {/function}
+
+                        {foreach $product_sets as $set}
+                            <div class="value no-shift">
+                                {sets_select set_id=$set.id}
+                            </div>
+                        {foreachelse}
+                            <div class="value no-shift">
+                                {sets_select}
+                            </div>
                         {/foreach}
-                        </select>
-                    </div>
-                </div>
-                {/if}
-                {* @event backend_product_edit.%plugin_id%.basics *}
-                {foreach $backend_product_edit as $_}{if !empty($_.basics)}{$_.basics}{/if}{/foreach}
-            </div>
 
-            {capture name="sku_type_field_group"}
-                <div class="field-group" id="s-sku-type-field-group">
-                    <div class="field">
-                        <div class="name">
-                            [`Selling mode`]
-                        </div>
-                        <div class="value no-shift s-sku-type-field-value">
-                            <ul class="thumbs li250px">
-                                <li>
-                                    <label>
-                                        <input type="radio"
-                                               name="product[sku_type]"
-                                               value="{shopProductModel::SKU_TYPE_FLAT}"
-                                               {if empty($features) || $product.sku_type == shopProductModel::SKU_TYPE_FLAT}checked{/if}
-                                                /> [`Flat SKU list`]
-                                        <i class="icon16 ss sku-type-flat"></i>
-                                        <p class="hint">
-                                            <br>
-                                            [`Best for single-priced products and products with a flat list of purchase options (SKUs). SKUs are added one-by-one arbitrarly. Customer selects individual SKU and adds it to shopping cart.`]
-                                        </p>
-                                    </label>
-                                </li>
-                                <li style="width: 400px; margin-left: 50px;">
-                                    <label>
-                                        <input type="radio"
-                                               name="product[sku_type]"
-                                               value="{shopProductModel::SKU_TYPE_SELECTABLE}"
-                                               {if !empty($features) && $product.sku_type == shopProductModel::SKU_TYPE_SELECTABLE}checked{/if}
-                                                {if empty($features)}disabled="disabled"{/if}
-                                                /> <span{if empty($features)} class="gray"{/if}>[`Selectable features`]</span>
-                                        <i class="icon16 ss sku-type-selectable"></i><br>
-                                        <p class="hint">
-                                            <br>
-                                            [`Best for multi-dimensional featured products, e.g. apparel or footwear which can vary in size and color. Flat SKU list is created automatically based on the combination of features offered for selection. Customer is prompted to choose preferable product feature values which unambiguously identifies SKU that is being added to shopping cart. `]
-                                        </p>
-
-                                        <p class="small highlighted" data-sku-type="1" {if !empty($features)} style="display:none;"{/if}>
-                                            [`To activate this mode, this particular product must be assigned a product type which offers at least one product feature with a <strong>multiple choice</strong> control, i.e. checkbox list. The list of available product types and features is configured on the <em>Settings &rarr; Product types &amp; features</em> screen.`]<br>
-                                        </p>
-                                    </label>
-                                </li>
+                        <div class="value">
+                            <ul class="menu-v">
+                                <li><a href="javascript:void(0)" class="small inline-link add-set-button"><i class="icon10 add"></i> <b><i>[`Additional set`]</i></b></a></li>
                             </ul>
                         </div>
+
+                        <div class="value no-shift hidden template">
+                            {sets_select}
+                        </div>
                     </div>
-                </div>
+                {/if}
 
-            {/capture}
+                {* @event backend_product_edit.%plugin_id%.basics *}
+                {foreach $backend_product_edit as $_}{if !empty($_.basics)}{$_.basics}{/if}{/foreach}
 
-            {if $product.id == 'new'}
-                {$smarty.capture.sku_type_field_group}
-            {/if}
-            <div class="field-group" id="s-product-feature-superposition-field-group" {if $product.sku_type == shopProductModel::SKU_TYPE_FLAT}style="display:none"{else}data-type="{$product.type_id}"{/if}>
-            {include file="./ProductFeaturesSelectable.html"}
             </div>
 
-            <div class="field-group">
-
-                <!-- plugin hook: 'backend_product.edit_basics' -->
-                {* @event backend_product.%plugin_id%.edit_basics *}
-                {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.edit_basics)}{/foreach}{/if}
-
+            <div class="field-group" id="s-sku-type-field-group" style="margin-bottom: 0;">
                 <div class="field">
                     <div class="name">
-                        [`Pricing & availability`]
+                        [`Pricing & Availability`]
                     </div>
-                    <div class="value">
-                        <table class="zebra s-product-skus">
-                            <thead>
-                                <tr {if count($product.skus) < 2} style="display:none;"{/if}>
-                                    <th class="s-sku-sort min-width"{if count($product.skus) <= 1} style="display:none;"{/if}>&nbsp;</th>
-                                    <th>&nbsp;</th>
-                                    <th class="s-name"{if count($product.skus) <= 1} style="display:none;"{/if}>[`SKU name`]</th>
-                                    <th>[`Price`]</th>
-                                    <th>[`In stock`]</th>
-                                    <th colspan="2"></th>
-                                </tr>
-                            </thead>
-                            <tfoot>
-                            <tr class="white">
-                                <td colspan="8" class="alist">
-                                    <a href="#/product/{$product.id}/edit/main/sku/add/" class="inline-link js-action add-sku">
-                                        <i class="icon16 add"></i><b><i><strong>[`Add purchase option`]</strong></i></b>
-                                    </a>
-                                </td>
-                            </tr>
-                            </tfoot>
-                            <tbody>
-                                {foreach $product.skus as $sku_id => $sku}
-                                    <tr data-id="{$sku_id}" class="{if $sku.virtual}s-sku-virtual{/if}">
-                                        <td class="s-sku-sort min-width" style="white-space: nowrap;{if $sku@total <= 1}display: none;{/if}">
-                                            <i class="icon16 sort"></i>
-                                            <input type="radio" name="product[sku_id]" value="{$sku_id}" {if $product.sku_id == $sku.id}checked="checked"{/if}>
-                                            <input type="hidden" name="skus[{$sku_id}][available]" value="{intval($sku.available)}">
-                                        </td>
-                                        <td class="s-sku">
-                                            <input type="text" name="skus[{$sku_id}][sku]" value="{$sku.sku|escape}" placeholder="[`SKU code`]" title="[`Any text code or label identifying this product, e.g. model or serial number`]">
-                                        </td>
-                                        <td class="s-name"{if $sku@total <= 1} style="display: none;"{/if}>
-                                            <input type="text" name="skus[{$sku_id}][name]" value="{$sku.name|escape}" class="bold long{if empty($sku.available)} grey{/if}" placeholder="[`SKU name`]" title="[`SKU name displayed in the storefront`]">
-                                        </td>
-                                        <td class="s-price">
-                                            <input type="text" name="skus[{$sku_id}][price]" value="{$sku.price|escape}" class="bold numerical{if empty($sku.available)} grey{/if}" title="[`Price`]">
-                                            {if $use_product_currency}
-                                                <select class="s-product-currency">
-                                                    {foreach $currencies as $code => $currency}
-                                                    <option value="{$code}" {if $code == $product.currency}selected="selected"{/if}>{$code}</option>
-                                                    {/foreach}
-                                                </select>
-                                            {else}
-                                                {if $product.currency !== null}{$product.currency}{else}{$primary_currency}{/if}
-                                            {/if}
-                                        </td>
-                                        <td class="s-stock">
-                                            {if !count($sku.stock)}
-                                                <div id="s-product-sku-{$sku_id}">
-                                                <span data-stock="0" class="s-product-stock-icon">
-                                                {shopHelper::getStockCountIcon($sku.count)}
-                                                </span>
-                                                <input class="small{if empty($sku.available)} grey{/if}" type="text" name="skus[{$sku_id}][stock][0]"value="{if $sku.count !== null}{$sku.count}{/if}" placeholder="∞" title="[`In stock`]">
-                                                {if (count($stocks) >= 1)}
-                                                <a href="#/product/{$product.id}/edit/main/sku/stock/{$sku_id}/" class="small inline-link js-action"><b><i>[`Multiple stocks`]</i></b></a>
-                                                </div>
-                                                {/if}
-                                            {/if}
-                                            {if count($stocks) >= 1}
-                                            <div{if empty($sku.stock)} style="display: none;{/if}" id="s-product-sku-stock-{$sku_id}">
-    
-                                            {foreach $stocks as $stock_id => $stock}
-                                                {if isset($sku.stock[$stock_id])}
-                                                    {$count = $sku.stock[$stock_id]}
-                                                {else}
-                                                    {$count = null}
-                                                {/if}
-                                                <span data-stock="{$stock_id}" class="s-product-stock-icon">
-                                                {shopHelper::getStockCountIcon($count, $stock_id)}
-                                                </span>
-                                                <input class="small" type="text" name="skus[{$sku_id}][stock][{$stock_id}]"value="{if empty($sku.stock) && $stock@first}{$sku.count}{else}{if $count!==null}{$count}{/if}{/if}" placeholder="∞"{if empty($sku.stock)} disabled="disabled"{/if}>
-                                                <span class="hint">@{$stock.name|escape}</span><br>
-                                            {/foreach}
-                                            </div>
-                                            {/if}
-    
-                                        </td>
-                                        <td>
-                                              <a href="#/product/{$product.id}/edit/main/sku/settings/{$sku_id}/" class="inline-link nowrap inline-link js-action" title="[`Show all options`]"><i class="icon16 settings"></i><b><i>[`Options`]</i></b></a>
-                                        </td>
-                                        <td>
-                                              <a href="#/product/{$product.id}/edit/main/sku/delete/{$sku_id}/" {if count($product.skus) <= 1}style="display:none;"{/if}
-                                                                           class="gray inline-link js-action js-confirm"
-                                                                           title="[`Delete this SKU?`]">
-                                                  <i class="icon16 delete"></i>
-                                              </a>
-                                        </td>
-                                        <input type="hidden" name="skus[{$sku_id}][virtual]" value="{$sku.virtual}" class="s-input-virtual">
-                                    </tr>
-                                {/foreach}
-    
-                                {capture name='template-sku-edit'}{literal}
-                                    {% var sku_id = o.sku_id; %}
-                                    {% var sku = o.sku; %}
-                                    {% var stocks = o.stocks || {}; %}
-                                    {% sku.stock = sku.stock || {}; %}
-                                    {% var stock_ids = o.stock_ids; %}
-                                    <tr data-id="{%=sku_id%}" class="{% if (sku.virtual == '1') { %}s-sku-virtual{% } %}">
-                                        <td  class="s-sku-sort min-width" style="white-space: nowrap;">
-                                            <i class="icon16 sort"></i>
-                                            <input type="radio" name="product[sku_id]" value="{%=sku_id%}" {% if (o.checked) { %}checked="checked"{%}%}>
-                                            <input type="hidden" name="skus[{%=sku_id%}][available]" value="{%=sku.available%}">
-                                        </td>
-                                        <td class="s-sku">
-                                            <input type="text" name="skus[{%=sku_id%}][sku]" value="{%=sku.sku%}" class="gray" placeholder="[`SKU code`]">
-                                        </td>
-                                        <td class="s-name">
-                                            <input type="text" name="skus[{%=sku_id%}][name]" value="{%=sku.name%}" class="bold long" placeholder="[`SKU name`]">
-                                        </td>
-                                        <td class="s-price">
-                                            <input type="text" name="skus[{%=sku_id%}][price]" value="{%=sku.price_loc%}" class="bold numerical">
-                                            {/literal}
-                                            {if $use_product_currency}
-                                                <select class="s-product-currency">
-                                                    {foreach $currencies as $code => $currency}
-                                                        <option value="{$code}" {if $code == $product.currency}selected="selected"{/if}>{$code}</option>
-                                                    {/foreach}
-                                                </select>
-                                            {else}
-                                                {if $product.currency !== null}{$product.currency}{else}{$primary_currency}{/if}
-                                            {/if}
-                                            {literal}
-                                        </td>
-                                        <td class="s-stock">
-                                            {% if ($.isEmptyObject(sku.stock)) { %}
-                                                <div id="s-product-sku-{%=sku_id%}">
-                                                <span data-stock="0" class="s-product-stock-icon">
-                                                {%# sku.stock_icon[0] %}
-                                                </span>
-                                                <input class="small" type="text" name="skus[{%=sku_id%}][stock][0]"value="{% if(sku.count !== null) { %}{%=''+sku.count%}{% } %}" placeholder="∞">
-                                                {% if(!$.isEmptyObject(stocks)) { %}
-                                                <a href="#/product/{/literal}{$product.id}{literal}/edit/main/sku/stock/{%=sku_id%}/" class="small inline-link js-action"><b><i>[`Multiple stocks`]</i></b></a>
-                                                </div>
-                                                {% } %}
-                                            {% } %}
-    
-                                            {% if(!$.isEmptyObject(stocks)) { %}
-                                            <div{% if($.isEmptyObject(sku.stock)) { %} style="display: none;{% } %}" id="s-product-sku-stock-{%=sku_id%}">
-                                            
-                                            {% for (var i = 0, n = stock_ids.length; i < n; i += 1) { %}
-                                                {% var stock_id = stock_ids[i]; %}
-                                                {% if(typeof(sku.stock[stock_id]) != 'undefined') { %}
-                                                    {% count = sku.stock[stock_id]; %}
-                                                {% } else { %}
-                                                    {% count = null; %}
-                                                {% } %}
-                                                <span data-stock="{%=stock_id%}" class="s-product-stock-icon">
-                                                {%# sku.stock_icon[stock_id]?sku.stock_icon[stock_id]:sku.stock_icon[0] %}
-                                                </span>
-                                                <input class="small" type="text" name="skus[{%=sku_id%}][stock][{%=stock_id%}]"
-                                                value="{% if (count !== null) { %}{%=''+count%}{% } %}" placeholder="∞" {% if($.isEmptyObject(sku.stock)) { %} disabled="disabled"{% } %}>
-                                                {% if(!$.isEmptyObject(stocks)) { %}
-                                                <span class="hint">@{%=stocks[stock_id]['name']%}</span><br>
-                                                {% } %}
-    
-                                            {% } %}
-                                            </div>
-                                            {% } %}
-    
-                                        </td>
-    
-                                        <td>
-                                              <a href="#/product/{/literal}{$product.id}{literal}/edit/main/sku/settings/{%=sku_id%}/" class="inline-link nowrap js-action" title="[`Show all options`]"><i class="icon16 settings"></i><b><i>[`Options`]</i></b></a>
-                                        </td>
-                                        <td>
-                                              <a href="#/product/{/literal}{$product.id}{literal}/edit/main/sku/delete/{%=sku_id%}/" 
-                                                                           class="inline-link js-action js-confirm"
-                                                                           title="[`Delete this SKU?`]">
-                                                  <i class="icon16 delete"></i>
-                                              </a>
-                                        </td>
-                                        <input type="hidden" name="skus[{%=sku_id%}][virtual]" value="{%=sku.virtual%}" class="s-input-virtual">
-                                    </tr>
-                                {/literal}{/capture}
-    
-                                {capture name='template-sku-settings'}{literal}
-                                    {% var sku_id = o.sku_id; %}
-                                    {% var sku = o.sku; %}
-                                    <tr data-id="{%=sku_id%}" class="js-sku-settings">
-    
-                                        <td colspan="7">
-                                        [`loading...`]<i class="icon16 loading"></i>
-                                        </td>
-                                    </tr>
-                                {/literal}{/capture}
-                            </tbody>
-                        </table>
+                    <div class="value no-shift s-sku-type-field-value">
+                        <ul class="s-selling-mode">
+                            <li{if empty($features) || $product.sku_type == shopProductModel::SKU_TYPE_FLAT} class="selected"{/if}>
+                                <label>
+                                    <a href="javascript:void(0);">[`Purchase options`]</a>
+                                    <input type="hidden" name="product[sku_type]" value="{shopProductModel::SKU_TYPE_FLAT}"
+                                                            {if !empty($features) && $product.sku_type != shopProductModel::SKU_TYPE_FLAT}disabled="disabled"{/if} />
+                                </label>
+                            </li>
+                            <li class="{if !empty($features) && $product.sku_type == shopProductModel::SKU_TYPE_SELECTABLE}selected{/if} {if empty($features)}gray{/if}">
+                                <label>
+                                    <a href="javscript:void(0);"><span{if empty($features)} class="gray"{/if}>[`Selectable parameters`]</span></a>
+                                    <input type="hidden" name="product[sku_type]" value="{shopProductModel::SKU_TYPE_SELECTABLE}"
+                                                            {if empty($features) || $product.sku_type != shopProductModel::SKU_TYPE_SELECTABLE}disabled="disabled"{/if} />
+                                </label>
+                            </li>
+                        </ul>
                     </div>
-                    <input type="hidden" value="{$product.currency}" name="product[currency]" id="s-product-currency-code">
                 </div>
             </div>
-            {if $product.id != 'new'}
-                {$smarty.capture.sku_type_field_group}
-            {/if}
+
+
+            <div class="field" id="s-product-feature-superposition-field-group" {if $product.sku_type == shopProductModel::SKU_TYPE_FLAT}style="display:none"{else}data-type="{$product.type_id}"{/if}>
+                {include file="./ProductFeaturesSelectable.html"}
+            </div>
+
+
+            <!-- plugin hook: 'backend_product.edit_basics' -->
+            {* @event backend_product.%plugin_id%.edit_basics *}
+            {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.edit_basics)}{/foreach}{/if}
+
+            <div class="field">
+                <div class="value s-sku-list">
+                    <table class="s-product-skus">
+                        <thead>
+                            <tr class="white">
+                                <th class="s-sku-sort min-width"{if count($product.skus) <= 1} style="display:none;"{/if}>&nbsp;</th>
+                                <th>[`SKU`]</th>
+                                <th class="s-name"{if count($product.skus) <= 1} style="display:none;"{/if}>[`SKU name`]</th>
+                                <th>[`Price`]</th>
+                                <th>[`Quantity`]</th>
+                                <th colspan="2"></th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                        <tr class="white no-border">
+                            <td colspan="8" class="alist">
+                                <a href="#/product/{$product.id}/edit/main/sku/add/" class="inline-link js-action add-sku">
+                                    <i class="icon16 add"></i><b><i>[`Add purchase option`]</i></b>
+                                </a>
+                            </td>
+                        </tr>
+                        </tfoot>
+                        <tbody>
+                            {foreach $product.skus as $sku_id => $sku}
+                                <tr data-id="{$sku_id}" class="{if $sku.virtual}s-sku-virtual{/if}">
+                                    <td class="s-sku-sort extra-top-padded min-width" style="white-space: nowrap;{if $sku@total <= 1}display: none;{/if}">
+                                        <i class="icon16 sort"></i>
+                                        <input type="radio" name="product[sku_id]" value="{$sku_id}" {if $product.sku_id == $sku.id}checked="checked"{/if}>
+                                        <input type="hidden" name="skus[{$sku_id}][available]" value="{intval($sku.available)}">
+                                    </td>
+                                    <td class="s-sku">
+                                        <input type="text" name="skus[{$sku_id}][sku]" value="{$sku.sku|escape}" placeholder="[`SKU code`]" title="[`Any text code or label identifying this product, e.g. model or serial number`]">
+                                    </td>
+                                    <td class="s-name"{if $sku@total <= 1} style="display: none;"{/if}>
+                                        <input type="text" name="skus[{$sku_id}][name]" value="{$sku.name|escape}" class="bold s-sku-name-input long{if empty($sku.available)} grey{/if}" placeholder="[`SKU name`]" title="[`SKU name displayed in the storefront`]">
+                                    </td>
+                                    <td class="s-price">
+                                        <input type="text" name="skus[{$sku_id}][price]" value="{$sku.price|escape}" class="bold large {if empty($sku.available)} grey{/if}" placeholder="0" title="[`Price`]">
+                                        {if $use_product_currency}
+                                            <select class="s-product-currency">
+                                                {foreach $currencies as $code => $currency}
+                                                <option value="{$code}" {if $code == $product.currency}selected="selected"{/if}>{$code}</option>
+                                                {/foreach}
+                                            </select>
+                                        {else}
+                                            {if $product.currency !== null}{$product.currency}{else}{$primary_currency}{/if}
+                                        {/if}
+                                    </td>
+                                    <td class="s-stock">
+                                        {if !count($sku.stock)}
+                                            <div id="s-product-sku-{$sku_id}">
+                                            <span data-stock="0" class="s-product-stock-icon">
+                                            {shopHelper::getStockCountIcon($sku.count)}
+                                            </span>
+                                            <input class="short{if empty($sku.available)} grey{/if}" type="text" name="skus[{$sku_id}][stock][0]"value="{if $sku.count !== null}{$sku.count}{/if}" placeholder="∞" title="[`In stock`]"> <span class="small">[`items`]</span>
+                                            {if (count($stocks) >= 1)}
+                                                <br><a href="#/product/{$product.id}/edit/main/sku/stock/{$sku_id}/" class="small gray inline-link js-action"><b><i>[`Multiple stocks`]</i></b></a>
+                                            </div>
+                                            {/if}
+                                        {/if}
+                                        {if count($stocks) >= 1}
+                                        <div{if empty($sku.stock)} style="display: none;{/if}" id="s-product-sku-stock-{$sku_id}">
+
+                                        {foreach $stocks as $stock_id => $stock}
+                                            {if isset($sku.stock[$stock_id])}
+                                                {$count = $sku.stock[$stock_id]}
+                                            {else}
+                                                {$count = null}
+                                            {/if}
+                                            <span data-stock="{$stock_id}" class="s-product-stock-icon">
+                                            {shopHelper::getStockCountIcon($count, $stock_id)}
+                                            </span>
+                                            <input class="short" type="text" name="skus[{$sku_id}][stock][{$stock_id}]"value="{if empty($sku.stock) && $stock@first}{$sku.count}{else}{if $count!==null}{$count}{/if}{/if}" placeholder="∞"{if empty($sku.stock)} disabled="disabled"{/if}>
+                                            <span class="hint">@{$stock.name|escape}</span><br>
+                                        {/foreach}
+                                        </div>
+                                        {/if}
+
+                                    </td>
+                                    <td class="extra-top-padded">
+                                          <a href="#/product/{$product.id}/edit/main/sku/settings/{$sku_id}/" class="inline-link nowrap inline-link js-action" title="[`Show all options`]"><i class="icon16 settings"></i><b><i>[`Details`]</i></b></a>
+                                    </td>
+                                    <td class="extra-top-padded">
+                                          <a href="#/product/{$product.id}/edit/main/sku/delete/{$sku_id}/" {if count($product.skus) <= 1}style="display:none;"{/if}
+                                                                       class="gray inline-link js-action js-confirm"
+                                                                       title="[`Delete this SKU?`]">
+                                              <i class="icon16 delete"></i>
+                                          </a>
+                                    </td>
+                                    <input type="hidden" name="skus[{$sku_id}][virtual]" value="{$sku.virtual}" class="s-input-virtual">
+                                </tr>
+                            {/foreach}
+
+                            {capture name='template-sku-edit'}{literal}
+                                {% var sku_id = o.sku_id; %}
+                                {% var sku = o.sku; %}
+                                {% var stocks = o.stocks || {}; %}
+                                {% sku.stock = sku.stock || {}; %}
+                                {% var stock_ids = o.stock_ids; %}
+                                <tr data-id="{%=sku_id%}" class="{% if (sku.virtual == '1') { %}s-sku-virtual{% } %}">
+                                    <td  class="s-sku-sort extra-top-padded min-width" style="white-space: nowrap;">
+                                        <i class="icon16 sort"></i>
+                                        <input type="radio" name="product[sku_id]" value="{%=sku_id%}" {% if (o.checked) { %}checked="checked"{%}%}>
+                                        <input type="hidden" name="skus[{%=sku_id%}][available]" value="{%=sku.available%}">
+                                    </td>
+                                    <td class="s-sku">
+                                        <input type="text" name="skus[{%=sku_id%}][sku]" value="{%=sku.sku%}" class="gray" placeholder="[`SKU code`]">
+                                    </td>
+                                    <td class="s-name">
+                                        <input type="text" name="skus[{%=sku_id%}][name]" value="{%=sku.name%}" class="bold s-sku-name-input long" placeholder="[`SKU name`]">
+                                    </td>
+                                    <td class="s-price">
+                                        <input type="text" name="skus[{%=sku_id%}][price]" value="{%=sku.price_loc%}" class="bold large" placeholder="0">
+                                        {/literal}
+                                        {if $use_product_currency}
+                                            <select class="s-product-currency">
+                                                {foreach $currencies as $code => $currency}
+                                                    <option value="{$code}" {if $code == $product.currency}selected="selected"{/if}>{$code}</option>
+                                                {/foreach}
+                                            </select>
+                                        {else}
+                                            {if $product.currency !== null}{$product.currency}{else}{$primary_currency}{/if}
+                                        {/if}
+                                        {literal}
+                                    </td>
+                                    <td class="s-stock">
+                                        {% if ($.isEmptyObject(sku.stock)) { %}
+                                            <div id="s-product-sku-{%=sku_id%}">
+                                            <span data-stock="0" class="s-product-stock-icon">
+                                            {%# sku.stock_icon[0] %}
+                                            </span>
+                                            <input class="small" type="text" name="skus[{%=sku_id%}][stock][0]"value="{% if(sku.count !== null) { %}{%=''+sku.count%}{% } %}" placeholder="∞">
+                                            {% if(!$.isEmptyObject(stocks)) { %}
+                                            <br><a href="#/product/{%=sku.product_id%}/edit/main/sku/stock/{%=sku_id%}/" class="small gray inline-link js-action"><b><i>[`Multiple stocks`]</i></b></a>
+                                            </div>
+                                            {% } %}
+                                        {% } %}
+
+                                        {% if(!$.isEmptyObject(stocks)) { %}
+                                        <div{% if($.isEmptyObject(sku.stock)) { %} style="display: none;{% } %}" id="s-product-sku-stock-{%=sku_id%}">
+
+                                        {% for (var i = 0, n = stock_ids.length; i < n; i += 1) { %}
+                                            {% var stock_id = stock_ids[i]; %}
+                                            {% if(typeof(sku.stock[stock_id]) != 'undefined') { %}
+                                                {% count = sku.stock[stock_id]; %}
+                                            {% } else { %}
+                                                {% count = null; %}
+                                            {% } %}
+                                            <span data-stock="{%=stock_id%}" class="s-product-stock-icon">
+                                            {%# sku.stock_icon[stock_id]?sku.stock_icon[stock_id]:sku.stock_icon[0] %}
+                                            </span>
+                                            <input class="small" type="text" name="skus[{%=sku_id%}][stock][{%=stock_id%}]"
+                                            value="{% if (count !== null) { %}{%=''+count%}{% } %}" placeholder="∞" {% if($.isEmptyObject(sku.stock)) { %} disabled="disabled"{% } %}>
+                                            {% if(!$.isEmptyObject(stocks)) { %}
+                                            <span class="hint">@{%=stocks[stock_id]['name']%}</span><br>
+                                            {% } %}
+
+                                        {% } %}
+                                        </div>
+                                        {% } %}
+
+                                    </td>
+
+                                    <td class="extra-top-padded">
+                                          <a href="#/product/{%=sku.product_id%}/edit/main/sku/settings/{%=sku_id%}/" class="inline-link nowrap js-action" title="[`Show all options`]"><i class="icon16 settings"></i><b><i>[`Details`]</i></b></a>
+                                    </td>
+                                    <td class="extra-top-padded">
+                                          <a href="#/product/{%=sku.product_id%}/edit/main/sku/delete/{%=sku_id%}/"
+                                                                       class="inline-link js-action js-confirm"
+                                                                       title="[`Delete this SKU?`]">
+                                              <i class="icon16 delete"></i>
+                                          </a>
+                                    </td>
+                                    <input type="hidden" name="skus[{%=sku_id%}][virtual]" value="{%=sku.virtual%}" class="s-input-virtual">
+                                </tr>
+                            {/literal}{/capture}
+
+                            {capture name='template-sku-settings'}{literal}
+                                {% var sku_id = o.sku_id; %}
+                                {% var sku = o.sku; %}
+                                <tr data-id="{%=sku_id%}" class="js-sku-settings">
+
+                                    <td colspan="7">
+                                    [`loading...`]<i class="icon16 loading"></i>
+                                    </td>
+                                </tr>
+                            {/literal}{/capture}
+                        </tbody>
+                    </table>
+                </div>
+                <input type="hidden" value="{$product.currency}" name="product[currency]" id="s-product-currency-code">
+            </div>
+
         </div>
 {* PRODUCT EDIT MAIN TAB SECTION END *}
 
@@ -806,8 +777,8 @@
               <div class="field-group">
                 <div class="field">
                     <div class="name">[`Summary`]</div>
-                    <div class="value"><textarea name="product[summary]" style="height: 37px;">{$product.summary|escape}</textarea>
-                        <br /><span class="hint">[`Few words describing the most of the product.`]</span>
+                    <div class="value"><textarea name="product[summary]" style="height: 37px;" id="s-product-summary">{$product.summary|escape}</textarea>
+                        <br /><span class="hint">[`Displayed in product lists.`]</span>
                     </div>
                 </div>
                 <div class="field">
@@ -815,7 +786,7 @@
                     <div class="value">
                         <input id="product-tags" value="{implode(',', $product.tags)}" name="product[tags]">
                         <span class="hint">[`Separate tags with comma (,).`]</span>
-                        
+
                         <div id="s-product-popular-tags" class="tags small">
                             {if $popular_tags}
                                 [`Popular tags`]:
@@ -825,7 +796,7 @@
                                 <br>
                             {/if}
                         </div>
-                        
+
                     </div>
                 </div>
 
@@ -836,25 +807,25 @@
               </div>
               <div class="field-group">
                 <div class="field">
-                    <div class="name">[`Title`] <span class="hint">&lt;title&gt;</span></div>
+                    <div class="name">[`Page title`] <span class="hint">&lt;title&gt;</span></div>
                     <div class="value">
-                        <input value="{$product.meta_title|escape}" 
+                        <input value="{$product.meta_title|escape}"
                                             id="s-product-meta-title"
-                                            name="product[meta_title]" 
-                                            placeholder="{$product.name|escape}" class="long bold"
+                                            name="product[meta_title]"
+                                            placeholder="{shopProduct::getDefaultMetaTitle($product)}" class="long bold"
                                       >
                     </div>
                 </div>
                 <div class="field">
                     <div class="name">[`META Keywords`]</div>
                     <div class="value">
-                        <textarea name="product[meta_keywords]">{$product.meta_keywords|escape}</textarea>
+                        <textarea id="s-product-meta-keywords" name="product[meta_keywords]" placeholder="{shopProduct::getDefaultMetaKeywords($product)}">{$product.meta_keywords|escape}</textarea>
                     </div>
                 </div>
                 <div class="field">
                     <div class="name">[`META Description`]</div>
                     <div class="value">
-                        <textarea name="product[meta_description]">{$product.meta_description|escape}</textarea>
+                        <textarea id="s-product-meta-description" name="product[meta_description]" placeholder="{shopProduct::getDefaultMetaDescription($product)}">{$product.meta_description|escape}</textarea>
                         <br>
                         <span class="hint">{sprintf('[`Variables <strong>%s</strong> will be replaced with the actual product information when displaying it on the storefront. Can be used in title and META fields.`]','&#123;$name&#125;, &#123;$summary&#125;, &#123;$price&#125;')}</span>
                     </div>
@@ -913,6 +884,27 @@
 
 </div>
 
+{capture name='template-product-image-list'}
+    {literal}
+        {% for (var i = 0, n = o.images.length, image = o.images[0]; i < n; image = o.images[++i]) { %}
+            <li data-image-id="{%#image.id%}">
+                <div class="s-image">
+                    <a href="#/product/{%#o.product_id%}/edit/images/{%#image.id%}/">
+                        <img src="{%#image.url_thumb%}{%# image.edit_datetime_ts ? '?'+image.edit_datetime_ts : '' %}" alt="">
+                    </a>
+                </div>
+                <div class="p-description">
+                    {% if (image.description) { %}
+                        <div class="small editable">{%#image.description%}</div>
+                    {% } else { %}
+                        <div class="small gray editable">{%#o.placeholder%}</div>
+                    {% } %}
+                </div>
+            </li>
+        {% } %}
+    {/literal}
+{/capture}
+
 {* js templates block*}
 {foreach $smarty.capture as $template => $template_content}
 {if $template_content && (strpos($template, 'template-')===0)}
@@ -931,11 +923,11 @@
 
 
     $(function() {
-    
+
         $('#s-product-description-content').data('uploadFields', {
             '_csrf': "{waRequest::cookie('_csrf', '')}"
         });
-    
+
         $.product.setData('main','stocks',{$stocks|json_encode});
         $.product.setData('main','stock_ids', {array_keys($stocks)|json_encode})
         {if !empty($product.reviews)}
@@ -957,19 +949,19 @@
             product_id: {$product.id},
             images: {json_encode(array_values($product.images))},
             type: 'crop',
+            enable_2x: {if $wa->shop->config('enable_2x')}true{else}false{/if},
             image_list: '#s-product-view .s-product-image-crops'
         });
     {/if}
 
-    // Sales report plot
-    var sales_plot_data = {if empty($sales_plot_data)}[]{else}{json_encode($sales_plot_data)}{/if};
- // "By SKU" pie graph
-    var sku_plot_data = {if empty($sku_plot_data)}[]{else}{json_encode($sku_plot_data)}{/if};
+    var sales_data = {if !empty($sales_data) && $report_rights}{json_encode($sales_data)}{else}[]{/if};
+
+    // "By SKU" pie graph
+    var sku_plot_data = {if !empty($sku_plot_data) && $report_rights}{json_encode($sku_plot_data)}{else}[]{/if};
     $.product.setOptions({
         title_suffix: '{$title_suffix}',
         edit_rights:    {if $edit_rights}true{else}false{/if},
-        sidebar_width: {if $sidebar_width}{$sidebar_width}{else}0{/if},
-        sales_rate: {str_replace(',', '.', $sales_rate)}
+        sidebar_width: {if $sidebar_width}{$sidebar_width}{else}0{/if}
     });
 
     {if $product.id > 0}
@@ -977,5 +969,171 @@
     {else}
         document.title = '[`New product`]{$title_suffix}';
     {/if}
+
+
+   (function(container) {
+        var makeTooltip = function(el) {
+            el.bind('mouseover', function(event) {
+                if (el.hasClass('gray')) {
+                    // Render Tooltip
+                    $('<div class="tooltip-bubble"></div>')
+                            .html('[`To activate this mode, this particular product must be assigned a product type which offers at least one <strong>selectable</strong> feature (the list of available product types and features is configured at <em>Settings &rarr; Product types &amp; features</em>).`]')
+                            .appendTo('body')
+                            .css({
+                                top: (event.pageY - 10) + 'px',
+                                left: (event.pageX + 20) + 'px'
+                            })
+                            .fadeIn('slow');
+                }
+            }).bind('mouseout', function() {
+                $('.tooltip-bubble').remove();
+            }).bind('mousemove', function(event) {
+                $(".tooltip-bubble").css({
+                    top: (event.pageY - 10) + 'px',
+                    left: (event.pageX + 20) + 'px'
+                });
+            });
+        };
+        $('a', container).click(function() {
+            if (!$(this).closest('li').hasClass('gray')) {
+                container.find('li.selected').removeClass('selected');
+                container.find('input[type="hidden"]').attr('disabled', true);
+                $(this).closest('li').addClass('selected').find('input[type=hidden]').attr('disabled', false).trigger('change');
+            }
+            return false;
+        });
+        $('input', container).bind('disabled', function(e, disabled) {
+            var item = $(this);
+            if (disabled) {
+                item.closest('li').removeClass('selected').addClass('gray');
+                item.attr('disabled', true);
+            } else {
+                item.closest('li').removeClass('gray');
+                if (item.closest('li').hasClass('selected')) {
+                    item.attr('disabled', false);
+                }
+            }
+        });
+        $('input', container).bind('checked', function(e, checked) {
+            var item = $(this);
+            if (!item.closest('li').hasClass('gray')) {
+                $(this).attr('checked', !!checked);
+                container.find('li.selected').removeClass('selected');
+                container.find('li:not(.gray)').attr('disabled', true);
+                if (checked) {
+                    $(this).attr('disabled', false).closest('li').addClass('selected');
+                }
+            }
+        });
+        makeTooltip(container.find('[name="product[sku_type]"]').closest('li'));
+   })($('.s-selling-mode'));
+
+    $(function() {
+
+        setTimeout(function() {
+                // profile tabs
+            (function(container) {
+                var loadTo = function(block, url, after) {
+                    if (!block.data('loaded')) {
+                        block.load(url, after).data('loaded', 1);
+                    }
+                    return block;
+                };
+                var getLastTab = function() {
+                    return $.storage.get('shop/product-profile/tab');
+                };
+                var setLastTab = function(tab) {
+                    $.storage.set('shop/product-profile/tab', tab);
+                };
+
+                container.on('click', '.tabs a', function() {
+                    $(this).closest('.tabs').find('.selected').removeClass('selected')
+                    var el = $(this).closest('li').addClass('selected');
+                    $('.tab-content', container).find('.s-tab-block').hide()
+                            .end().find('.s-tab-block[data-tab="' + el.data('tab') + '"]').show().trigger('open');
+                    setLastTab(el.data('tab'));
+                    return false;
+                }).on('open', '.s-tab-block', function() {
+                    container.find('.s-tab-block').each(function() {
+                        $(this).data('opened', 0);
+                    });
+                    $(this).data('opened', 1);
+                }).on('open', '.s-tab-block[data-tab="stock-logs"]', function() {
+                    var url = '?module=product&action=stocksLog&id=' + $.product.getId();
+                    var block = loadTo($(this), url)
+                        .on('click', '.p-log-filters a', function() {
+                            block.load(url + '&' + $(this).attr('href'));
+                            return false;
+                        });
+                }).on('open', '.s-tab-block[data-tab="reviews"]', function() {
+                    loadTo($(this), '?module=product&action=reviews&id=' + $.product.getId());
+                }).on('open', '.s-tab-block[data-tab="recent-orders"]', function() {
+                    loadTo($(this), '?module=product&action=orders&id=' + $.product.getId());
+                }).on('refresh', '.s-tab-block', function() {
+                    var block = $(this).html('').data('loaded', 0);
+                    if (block.data('opened')) {
+                        block.trigger('open');
+                    }
+                });
+
+                {if $product.id > 0}
+                    var last_tab = getLastTab();
+                    if (last_tab) {
+                        container.find('li[data-tab="' + last_tab + '"] a').click();
+                    }
+                {/if}
+
+            })($('#s-product-profile-tabs'));
+        }, 200);
+
+    });
+
+    (function() {
+        $('.s-product-name-input').change(function() {
+            $.product.updateMetaFields();
+        });
+        $.shop.changeListener($('#s-product-summary'), function() {
+            $.product.updateMetaFields();
+        });
+        $('#product-tags').change(function() {
+            $.product.updateMetaFields();
+        });
+        $('.s-sku-name-input').change(function() {
+            $.product.updateMetaFields();
+        });
+    })();
+
+    (function(menu, tabs_block) {
+        menu.find('a').click(function() {
+            menu.find('li.selected').removeClass('selected');
+            var item = $(this).closest('li').addClass('selected');
+            tabs_block.find('.s-target').hide()
+                .end().find('.s-' + item.data('target')).show();
+            return false;
+        });
+    })($('.s-report-toggler'), $('.s-report-tabs'));
+
+    // Control for sets
+    (function() { "use strict";
+        var $form = $('#s-product-save');
+        var $sets_wrapper = $form.find('.s-product-sets');
+        if (!$sets_wrapper.length) {
+            return;
+        }
+
+        var $add_set_button = $sets_wrapper.find('.add-set-button');
+        var $template = $add_set_button.closest('.value').siblings('.hidden.template');
+
+        // Add new selector when user clicks on "additional set" link
+        $add_set_button.click(function() {
+            $template.clone().removeClass('hidden template').insertBefore($add_set_button.closest('.value'));
+            return false;
+        });
+
+        // Remove select when user clicks on a cross icon
+        $sets_wrapper.on('click', '.s-product-delete-from-set', function() {
+            $(this).closest('.value').remove();
+        });
+    })();
 
 </script>

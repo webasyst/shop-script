@@ -51,6 +51,8 @@ class shopSettingsGeneralAction extends waViewAction
             $workhours = json_decode($workhours, true);
         }
         $this->view->assign('workhours', $workhours);
+
+        $this->view->assign('map_adapters', wa()->getMapAdapters());
         
         $sms_adapters = $this->getSMSAdapters();
         $this->view->assign('sms_adapters', $sms_adapters);
@@ -71,6 +73,9 @@ class shopSettingsGeneralAction extends waViewAction
             'require_captcha'  => waRequest::post('require_captcha', 0, waRequest::TYPE_INT),
             'require_authorization' => waRequest::post('require_authorization', 0, waRequest::TYPE_INT)
         );
+        if (waRequest::post('map')) {
+            $data['map'] = waRequest::post('map', '', waRequest::TYPE_STRING_TRIM);
+        }
         if (waRequest::post('workhours_type') !== null) {
             if (waRequest::post('workhours_type')) {
                 $data['workhours'] = array();

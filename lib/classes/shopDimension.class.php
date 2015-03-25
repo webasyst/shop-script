@@ -1,4 +1,5 @@
 <?php
+
 class shopDimension
 {
     /**
@@ -77,10 +78,12 @@ class shopDimension
                 if ($unit == _w($dimension['base_unit'])) {
                     $unit = $dimension['base_unit'];
                 } elseif (!isset($dimension['units'][$unit])) {
-                    $units = array_keys($dimension['units']);
-                    $units = array_combine(array_map('_w', $units), $units);
-                    if (isset($units[$unit])) {
-                        $unit = $units[$unit];
+                    $unit_map = array();
+                    foreach ($dimension['units'] as $_unit => $_name) {
+                        $unit_map[$_name['name']] = $_unit;
+                    }
+                    if (isset($unit_map[$unit])) {
+                        $unit = $unit_map[$unit];
                     } else {
                         $unit = $dimension['base_unit'];
                     }

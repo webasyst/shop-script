@@ -2,6 +2,10 @@
 {* @event frontend_nav.%plugin_id% *}
 {foreach $frontend_nav as $_}{$_}{/foreach}
 
+<!-- plugin hook: 'frontend_nav_aux' -->
+{* @event frontend_nav_aux.%plugin_id% *}
+{foreach $frontend_nav_aux as $_}{$_}{/foreach}
+
 <!-- product search -->
 <div class="search">
     <form method="get" action="{$wa->getUrl('/frontend/search')}">

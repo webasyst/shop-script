@@ -9,9 +9,13 @@ class shopCheckoutConfirmation extends shopCheckout
 
         $settings = wa('shop')->getConfig()->getCheckoutSettings();
 
-        if (!empty($settings['confirmation']['terms']) && waRequest::get('terms')) {
-            echo $settings['confirmation']['terms'];
-            exit;
+        if (waRequest::get('terms')) {
+            if (!empty($settings['confirmation']['terms'])) {
+                echo $settings['confirmation']['terms'];
+                exit;
+            } else {
+                throw new waException(_ws('Page not found'), 404);
+            }
         }
 
         $cart = new shopCart();
@@ -115,6 +119,9 @@ class shopCheckoutConfirmation extends shopCheckout
 
     public function execute()
     {
+        if (waRequest::get('terms')) {
+            return false;
+        }
         if ($comment = waRequest::post('comment')) {
             $this->setSessionData('comment', $comment);
         }

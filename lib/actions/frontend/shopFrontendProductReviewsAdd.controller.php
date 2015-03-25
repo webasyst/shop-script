@@ -49,6 +49,7 @@ class shopFrontendProductReviewsAddController extends waJsonController
             'html' => $this->renderTemplate(array(
                     'review' => $this->model->getReview($id, true),
                     'reply_allowed' => true,
+                    'product' => $product,
                     'ajax_append' => true),
                 'file:review.html'
             ),

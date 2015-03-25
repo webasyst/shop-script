@@ -52,7 +52,7 @@ $(document).ready(function () {
         var f = $(this).closest('form');
         var url = '?' + f.serialize();
         $(window).lazyLoad && $(window).lazyLoad('sleep');
-        $.get(url, function(html) {
+        $.get(url+'&_=_', function(html) {
             var tmp = $('<div></div>').html(html);
             $('#product-list').html(tmp.find('#product-list').html());
             if (!!(history.pushState && history.state !== undefined)) {

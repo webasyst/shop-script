@@ -22,7 +22,7 @@ class shopWorkflowPayAction extends shopWorkflowAction
             );
         } else {
             $order_id = $params;
-            $result['text'] = waRequest::post('text', '');
+            $result['text'] = nl2br(htmlspecialchars(waRequest::post('text', '')));
         }
         $order_model = new shopOrderModel();
         $order = $order_model->getById($order_id);
@@ -71,7 +71,7 @@ class shopWorkflowPayAction extends shopWorkflowAction
             $order = $order_model->getById($order_id);
         }
 
-        shopCustomers::recalculateTotalSpent($order['contact_id']);
+        shopCustomer::recalculateTotalSpent($order['contact_id']);
         if ($order !== null) {
             $order_model->recalculateProductsTotalSales($order_id);
         }

@@ -29,13 +29,30 @@
                             <input type="radio" name="use_product_currency" value="1" {if $use_product_currency}checked{/if}> [`I will input prices in different currencies depending on product`]
                         </label>
                     </div>
+                </div>
+                <div class="field">
+                    <div class="value" style="margin-top: 10px;">
+                        [`When converting prices into primary currency:`]
+                        <select name="primary_rounding">
+                            {foreach $rounding_options as $o_value => $o_label}
+                                <option value="{$o_value|escape}"{if ifempty($currencies[$primary].rounding) == $o_value} selected{/if}>{$o_label|escape}</option>
+                            {/foreach}
+                        </select>
+                        <input type="hidden" name="primary_round_up_only" value="">
+                        <label><input type="checkbox" name="primary_round_up_only" value="1"{if !empty($currencies[$primary].round_up_only)} checked{/if}> [`Round fractions up only`]</label>
+                    </div>
+                </div>
+
+                <div class="field">
                     <div class="value no-shift submit" style="display:none;">
                         {$wa->csrf()}
                         <input type="submit" class="button green" value="[`Save`]">
                     </div>
                 </div>
+
               </div>
               </form>
+
               <div class="field-group">
                 <div class="field">
                     <div class="name">
@@ -48,16 +65,27 @@
                                 <tr data-code="{$currency.code}" class="s-settings-currency">
                                     <td class="min-width">
                                         <i class="icon16 sort"></i>
-                                        <input type="hidden" name="currency[]" value="{$currency.code}">
+                                        <input type="hidden" name="currency[{$currency.code}]" value="{$currency.code}">
                                     </td>
                                     <td class="nowrap"><strong>{$currency.title}</strong> <span class="hint">{$currency.sign}</span></td>
                                     <td class="s-rate {if $currency.code != $primary}editable{/if}">
                                         1 {$currency.code} = <span id="s-rate-{$currency.code}">{$currency.rate}</span>
-                                        <input type="text" name="rate[]" value="{(float)$currency.rate}" id="s-rate-{$currency.code}-input" style="display:none;" class="numerical short">
+                                        <input type="text" name="rate[{$currency.code}]" value="{(float)$currency.rate}" id="s-rate-{$currency.code}-input" style="display:none;" class="numerical short">
                                         {$primary}
-                                    </td>
+
+                                        <div class="rounding" style="display: none">
+                                            <select name="rounding[{$currency.code}]">
+                                                {foreach $rounding_options as $o_value => $o_label}
+                                                    <option value="{$o_value|escape}"{if ifempty($currency.rounding) == $o_value} selected{/if}>{$o_label|escape}</option>
+                                                {/foreach}
+                                            </select>
+                                            <input type="hidden" name="round_up_only[{$currency.code}]" value="">
+                                            <label><input type="checkbox" name="round_up_only[{$currency.code}]" value="1"{if !empty($currency.round_up_only)} checked{/if}> [`Round fractions up only`]</label>
+                                        </div>
+
+                                        </td>
                                     <td class="s-actions">
-                                        <a href="javascript:void(0);"><i class="icon16 settings"></i></a>                                    
+                                        <a href="javascript:void(0);"><i class="icon16 settings"></i></a>
                                         <a href="javascript:void(0);"><i class="icon16 delete"></i></a>
                                         <input type="button" class="save" value="[`Save`]">
                                     </td>
@@ -68,13 +96,24 @@
                             <tr data-code="{%#o.code%}" class="s-settings-currency new" style="display: none;">
                                 <td class="min-width">
                                     <i class="icon16 sort"></i>
-                                    <input type="hidden" name="currency[]" value="{%#o.code%}">
+                                    <input type="hidden" name="currency[{%#o.code%}]" value="{%#o.code%}">
                                 </td>
                                 <td width="26%"><strong class="s-settings-name">{%#o.title%}</strong> <span class="hint">{%#o.sign%}</span></td>
                                 <td class="s-rate editable">
                                     1 {%#o.code%}  = <span id="s-rate-{%#o.code%}">1</span>
-                                    <input type="text" name="rate[]" value="1" id="s-rate-{%#o.code%}-input" style="display:none;" class="numerical short">
+                                    <input type="text" name="rate[{%#o.code%}]" value="1" id="s-rate-{%#o.code%}-input" style="display:none;" class="numerical short">
                                     {/literal}{$primary}{literal}
+
+                                    <div class="rounding">
+                                        <select name="rounding[{%#o.code%}]">
+                                            {/literal}{foreach $rounding_options as $o_value => $o_label}
+                                                <option value="{$o_value|escape}"{if !$o_value} selected{/if}>{$o_label|escape}</option>
+                                            {/foreach}{literal}
+                                        </select>
+
+                                        <input type="hidden" name="round_up_only[{%#o.code%}]" value="">
+                                        <label><input type="checkbox" name="round_up_only[{%#o.code%}]" value="1" checked> [`Round fractions up only`]</label>
+                                    </div>
                                 </td>
                                 <td class="s-actions">
                                     <a href="javascript:void(0);"><i class="icon16 settings"></i></a>
@@ -102,6 +141,7 @@
               </div>
         </div>
         <div class="clear-both"></div>
+    </div>
 </div>
 
 {* dialogs section *}
@@ -141,7 +181,7 @@
                         </div>
                     </div>
                     {/if}
-                </div> 
+                </div>
             </div>
         </div>
         <div class="dialog-buttons">

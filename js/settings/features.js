@@ -993,7 +993,14 @@ if (typeof($) != 'undefined') {
                             }
                             window.location.hash = hash;
                         } else {
-                            // display error;
+                            if (response.errors) {
+                                // display error;
+                                var $error = $('#s-settings-features-type-error:first');
+                                $error.text(response.errors.concat(' ')).slideDown();
+                                setTimeout(function () {
+                                    $error.slideUp(500);
+                                }, 5000);
+                            }
                         }
                     } catch (e) {
                         $.shop.error(e);
@@ -1115,18 +1122,27 @@ if (typeof($) != 'undefined') {
                     var $this = $(this);
                     var id = parseInt($this.data('value-id'));
                     if (id) {
-                        var rgbString = $this.find('> .icon16').css('background-color') || 'rgb(255,255,255)';
-                        var parts = rgbString.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-                        var code = 0;
-                        for (var i = 1; i <= 3; i++) {
-                            code = (code << 8) + parseInt(parts[i]);
-                        }
                         var value = $this.text().replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, '');
+                        var code = 0;
+                        var unit = null;
+                        if (type.match(/^color/)) {
+                            var rgbString = $this.find('> .icon16').css('background-color') || 'rgb(255,255,255)';
+                            var parts = rgbString.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+
+                            for (var i = 1; i <= 3; i++) {
+                                code = (code << 8) + parseInt(parts[i]);
+                            }
+                        } else if (type.match(/^dimension\./)) {
+                            unit = self.featuresHelper.value({value: value}, 'unit');
+                            value = value.replace(/\s.*$/, '');
+                        }
                         feature.values.push({
                             'id': id,
-                            'value': $this.text().replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, ''),
-                            'code': code
+                            'value': value,
+                            'code': code,
+                            'unit': unit
                         });
+
                     }
                 });
                 try {
@@ -1145,6 +1161,11 @@ if (typeof($) != 'undefined') {
                         self.featuresFeatureChange($edit_feature, feature);
                         var $el = $edit_feature.find(':input:checkbox[name$="\\]\\[types\\]\\[0\\]"][name^="feature\\["]');
                         self.featuresFeatureTypesChange($el);
+                        if (type.match(/^dimension\.\w+/)) {
+                            $edit_feature.find(':input[name$="\[unit\]"]').change(function () {
+                                self.featuresHelper.lastUnit(type, this.value);
+                            });
+                        }
                     });
                 } catch (e) {
                     $.shop.error('exception', e);
@@ -1227,6 +1248,12 @@ if (typeof($) != 'undefined') {
         featuresFeatureSave: function (feature_id) {
             var self = this;
             var $feature = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"].js-inline-edit');
+            var $name = $feature.find(':input[name$="\\[name\\]"]');
+            if ($name.val().replace(/\s+/, '') == '') {
+                $name.addClass('error').focus();
+                return false;
+            }
+            $name.removeClass('error');
             var feature_raw = $feature.find(':input').serialize();
             //$.shop.trace('$.settings.featuresFeatureSave', feature_raw);
             $.post('?module=settings&action=featuresFeatureSave', feature_raw, function (data) {
@@ -1242,32 +1269,32 @@ if (typeof($) != 'undefined') {
                         }
                     }
 
-
-                    $.when($feature.replaceWith($.tmpl(error ? 'edit-feature' : 'feature', {
-                        'types': self.featuresHelper.types(!error),
-                        'feature': feature
-                    }))).done(function () {
-
-                        if (error) {
-                            $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"]:first');
-                            $feature.on('click focus', 'input', function () {
-                                var $this = $(this);
-                                var $parent = $(this).parents('ul');
-                                $parent.find('input.red').removeClass('red');
-                                if ($this.hasClass('error')) {
-                                    var original = parseInt($(this).data('original-id')) || 0;
-                                    if (original) {
-                                        $parent.find('input[name$="\\[' + original + '\\]"]').addClass('red');
+                    $.when(
+                        $feature.replaceWith($.tmpl(error ? 'edit-feature' : 'feature', {
+                            'types': self.featuresHelper.types(!error),
+                            'feature': feature
+                        }))
+                    ).done(function () {
+                            if (error) {
+                                $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"]:first');
+                                $feature.on('click focus', 'input', function () {
+                                    var $this = $(this);
+                                    var $parent = $(this).parents('ul');
+                                    $parent.find('input.red').removeClass('red');
+                                    if ($this.hasClass('error')) {
+                                        var original = parseInt($(this).data('original-id')) || 0;
+                                        if (original) {
+                                            $parent.find('input[name*="\\[values\\]\\[' + original + '\\]"]:first').addClass('red');
+                                        }
                                     }
-                                }
 
-                            });
-                        } else {
-                            $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + feature.id + '"]:first');
-                            $feature.hide();
-                            self.featuresFilter(self.path.tail, true);
-                        }
-                    });
+                                });
+                            } else {
+                                $feature = self.$features_list.find('> tbody:first > tr[data-feature="' + feature.id + '"]:first');
+                                $feature.hide();
+                                self.featuresFilter(self.path.tail, true);
+                            }
+                        });
                 }
             }, 'json').complete(function () {
                 //self.featuresHelper.featureCountByType(self.featuresHelper.type());
@@ -1531,24 +1558,58 @@ if (typeof($) != 'undefined') {
         featuresFeatureDelete: function (feature_id) {
             var self = this;
             var $feature = this.$features_list.find('> tbody:first > tr[data-feature="' + feature_id + '"]:first');
-
+            var $actions = $feature.find('a[href^="\\#/features/feature/delete/"]:first').parents('ul');
             if (feature_id > 0) {
-                var $actions = $feature.find('a[href^="\\#/features/feature/delete/"]:first').parents('ul');
-                $actions.after('<i class="icon16 loading"></i>');
-                $actions.hide();
-                $.post('?module=settings&action=featuresFeatureDelete', {
-                    'feature_id': feature_id
-                }, function (data) {
-                    if (data.status == 'ok') {
-                        $feature.hide('slow', function () {
-                            $(this).remove();
-                            self.featuresHelper.featureCountByType();
-                        });
+                var ajax = null;
+                $('#s-settings-features-feature-delete-dialog').waDialog({
+                    disableButtonsOnSubmit: true,
+                    onLoad: function () {
+                        var $this = $(this);
+                        var form = $this.find('form');
+                        var $container = form.find('.js-features-feature-usage-counter');
+                        $container.html('<i class="icon16 loading"></i>');
+                        form.find(':submit').focus();
+                        ajax = $.get('?module=settings&action=featuresFeatureUsage', {
+                            feature_id: feature_id
+                        }, function (data) {
+                            if (data.status == 'ok') {
+                                $container.html(data.data.notice || '');
+                            } else {
+                                $actions.show();
+                                //$.shop.error(e);
+                                d.trigger('close');
+                            }
+                        }, 'json');
+                    },
+                    onSubmit: function (d) {
+                        d.trigger('close');
+                        if (ajax) {
+                            ajax.abort();
+                        }
+                        $actions.after('<i class="icon16 loading"></i>');
+                        $actions.hide();
+                        $.post('?module=settings&action=featuresFeatureDelete', {
+                            feature_id: feature_id
+                        }, function (data) {
+                            if (data.status == 'ok') {
+                                $feature.hide('slow', function () {
+                                    $(this).remove();
+                                    self.featuresHelper.featureCountByType();
+                                });
 
-                    } else {
-                        $actions.show();
+                            } else {
+                                $actions.show();
+                            }
+
+                        }, 'json');
+                        return false;
+                    },
+                    onCancel: function (d) {
+                        if (ajax) {
+                            ajax.abort();
+                        }
                     }
-                }, 'json');
+                });
             } else {
                 $feature.hide('slow', function () {
                     $(this).remove();
@@ -1577,19 +1638,34 @@ if (typeof($) != 'undefined') {
                 'type': type || $feature.data('type') || 'text'
             };
             $.shop.trace('featuresFeatureValueAdd', feature);
+            var value = '';
+            var unit = null;
+            $.shop.trace('type', type);
+            if (type.match(/^dimension\..+/) && (unit = this.featuresHelper.lastUnit(type))) {
+                value = {
+                    'value': '',
+                    'unit': unit
+                };
+            }
             var data = {
                 'feature': feature,
                 'id': --self.features_data.value_id,
-                'feature_value': ''
+                'feature_value': value
             };
+
             //$.when(function () {
-            $.tmpl('edit-feature-value' + template, data).insertBefore($feature.find('ul.js-feature-values li:last'));
+            var $value = $.tmpl('edit-feature-value' + template, data).insertBefore($feature.find('ul.js-feature-values li:last'));
+            if (type.match(/^dimension\..+/)) {
+                $value.find(':input[name$="\[unit\]"]').change(function () {
+                    self.featuresHelper.lastUnit(type, this.value);
+                });
+            }
+
             //}).done(function () {
             $.shop.trace('featuresFeatureValueAdd', 'done');
             self.featuresFeatureValueChange($feature, feature);
             $feature.find('ul.js-feature-values:first').sortable('refresh').find(':input:last').focus();
             //  });
-
         },
 
         featuresFeatureValuesShow: function (feature_id, callback) {
@@ -1827,27 +1903,43 @@ if (typeof($) != 'undefined') {
                 }
             },
             value: function (value, field) {
-                if (typeof(value) != 'object') {
-                    if (field) {
-                        value = {
-                            'value': value.replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, ''),
-                            'unit': value.replace(/^[^\s]\s+/, ''),
-                            'hex': '',
-                            'color': '#FFFFFF'
-                        };
-                    } else {
-                        value = {
-                            'value': value
+                try {
+                    if (typeof(value) != 'object') {
+                        if (field) {
+                            value = {
+                                'value': value.replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, ''),
+                                'unit': value.replace(/^[^\s]\s+/, ''),
+                                'hex': '',
+                                'color': '#FFFFFF'
+                            };
+                        } else {
+                            value = {
+                                'value': value
+                            }
                         }
+                    } else {
+                        if (typeof value['value'] == 'object') {
+                            value = value['value'];
+                        }
+                        value['unit'] = value['unit'] || value.value.replace(/^[^\s]+\s+/, '');
+                        value['value'] = value.value.replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, '');
+                        value['code'] = parseInt(value['code'] || 0, 10);
+                        value['hex'] = (0xF000000 | value['code']).toString(16).toUpperCase().replace(/^F/, '');
+                        value['color'] = '#' + value['hex'];
                     }
-                } else {
-                    value['unit'] = value['unit'] || value.value.replace(/^[^\s]+\s+/, '');
-                    value['value'] = value.value.replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, '');
-                    value['code'] = parseInt(value['code'] || 0, 10);
-                    value['hex'] = (0xF000000 | value['code']).toString(16).toUpperCase().replace(/^F/, '');
-                    value['color'] = '#' + value['hex'];
+                    return field ? (value[field] || '') : value.value;
+                } catch (e) {
+                    $.shop.error(e, value);
                 }
-                return field ? (value[field] || '') : value.value;
+            },
+            lastUnit: function (type, unit) {
+                if (unit) {
+                    $.storage.set('shop/settings/features/unit/' + type, unit);
+                } else {
+                    unit = $.storage.get('shop/settings/features/unit/' + type);
+                }
+                $.shop.trace('lastUnit.' + type, unit);
+                return unit;
             }
         }
 

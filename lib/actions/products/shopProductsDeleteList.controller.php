@@ -26,7 +26,7 @@ class shopProductsDeleteListController extends waJsonController
 
     private function delete($hash, $count, $del_list = false) {
         $collection = new shopProductsCollection(implode('/', $hash));
-        
+
         // check rights to prevent infinite ajax-polling
         $types = $this->getModel('type')->getTypes(false);
         if (is_array($types)) {
@@ -38,7 +38,7 @@ class shopProductsDeleteListController extends waJsonController
                 $collection->addWhere('p.type_id IN ('.implode(',', array_keys($types)).')');
             }
         }
-        
+
         if ($count) {
             $product_ids = array_keys($collection->getProducts('*', 0, $count, false));
             $this->deleteProducts($product_ids);
@@ -54,6 +54,9 @@ class shopProductsDeleteListController extends waJsonController
             }
         }
         $rest_count = $collection->count();
+        if (isset($this->response['not_allowed'])) {
+            $rest_count -= count($this->response['not_allowed']);
+        }
         $this->response['rest_count'] = $rest_count;
         $this->response['count'] = $count;
         if ($rest_count == 0) {
@@ -100,8 +103,14 @@ class shopProductsDeleteListController extends waJsonController
     {
         if ($product_ids) {
             $product_model = new shopProductModel();
-            $this->logAction('product_delete', $product_ids);
-            return $product_model->delete($product_ids);
+
+            $delete_ids = $product_model->filterAllowedProductIds($product_ids);
+            $not_allowed_ids = array_diff($product_ids, $delete_ids);
+            $this->response['deleted'] = $delete_ids;
+            $this->response['not_allowed'] = $not_allowed_ids;
+
+            $this->logAction('product_delete', $delete_ids);
+            return $product_model->delete($delete_ids);
         }
         return false;
     }

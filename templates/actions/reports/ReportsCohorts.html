@@ -1,0 +1,215 @@
+<div class="content">
+    <div class="block double-padded ">
+
+        <div class="graph-wrapper">
+            <div class="cohort-wrapper"></div>
+            <div class="hint-wrapper"></div>
+            {if $all_zeroes}
+                <div class="empty-graph">[`Not enough sales data to build cohort chart for the selected period.`]</div>
+            {/if}
+        </div>
+
+        {* Too easy to shoot yourself in the foot *}
+        <div class="hidden block float-right half-padded">
+            [`Group by`]:
+            {$group_by_options = [
+                'weeks' => "[`week`]",
+                'months' => "[`month`]",
+                'quarters' => "[`quarters`]"
+            ]}
+            <select id="s-cohorts-group-by-selector">
+                {foreach $group_by_options as $value => $name}
+                    <option value="{$value|escape}"{if $group_by == $value} selected{/if}>{$name|escape}</option>
+                {/foreach}
+            </select>
+        </div>
+
+        <ul class="menu-h" id="s-cohorts-type-selector">
+            <li>
+                <select id="s-cohorts-source-selector">
+                    <option value="">[`All sources`]</option>
+                    {foreach $sources as $s}
+                        <option value="{$s.name|escape}"{if ifset($request_options.source) == $s.name} selected{/if}>{$s.name|escape}</option>
+                    {/foreach}
+                </select>
+            </li>
+
+            {$cohort_types = [
+                'sales' => "[`Sales`]",
+                'profit' => "[`Profit`]",
+                'order_count' => "[`Number of orders`]",
+                'clv' => "[`LTV`]",
+                'roi' => "[`ROI`]"
+            ]}
+            {foreach $cohort_types as $type_id => $type_name}
+                <li{if ifset($request_options.type) == $type_id} class="selected"{/if} data-type="{$type_id|escape}"><a href="javascript:void(0)" class="inline-link"><b><i>{$type_name|escape}</i></b></a></li>
+            {/foreach}
+            <li class="float-right">
+                <select id="change-cohort-type">
+                    <option value="center">[`Stream graph`]</option>
+                    <option value="bottom">[`Stacked graph`]</option>
+                </select>
+            </li>
+        </ul>
+        <div class="clear-both"></div>
+
+        {if $table_data}
+
+            <table id="s-report-cohorts-table">
+                <thead>
+                    <tr>{strip}
+                        <th></th>
+                        {if $group_by == 'quarters'}
+                            {$header_str = "[`Quarter %s`]"}
+                        {elseif $group_by == 'months'}
+                            {$header_str = "[`Month %s`]"}
+                        {elseif $group_by == 'weeks'}
+                            {$header_str = "[`Week %s`]"}
+                        {else}
+                            {$header_str = "[`Day %s`]"}
+                        {/if}
+                        {foreach $table_data as $row}
+                            <th class="nowrap">{sprintf($header_str, $row@index + 1)}</th>
+                        {/foreach}
+
+                        <th class="nowrap">[`Total`]</th>
+                    {/strip}</tr>
+                </thead>
+                <tbody>
+                    {$index = 0}
+                    {foreach $table_data as $reg_date => $row}
+                        {$index = $index + 1}
+                        <tr class="column-{$index}" data-layer-id="{$index-1}">
+                            <th class="date nowrap">{$table_headers[$reg_date]}</th>
+                            {foreach array_keys($table_data) as $col_date}{strip}
+                                {if empty($row[$col_date@index])}
+                                    <td></td>
+                                {else}
+                                    {$stats = $row[$col_date@index]}
+                                    {$percent = 100-$stats.percent_of_max}
+                                    <td data-default-color="{$stats.color}" class="td-with-data nowrap" style="background: linear-gradient(to bottom, transparent 0%, transparent {number_format($percent,2)}%, {$stats.color} {number_format($percent,2)}%, {$stats.color} 100%);">
+                                        {if in_array(ifset($request_options.type), ['sales', 'profit', 'clv'])}
+                                            {wa_currency_html($stats.metric, $def_cur)}
+                                        {elseif ifset($request_options.type) == 'roi'}
+                                            {round($stats.metric)}%
+                                        {else}
+                                            {round($stats.metric, 2)}
+                                        {/if}
+                                    </td>
+                                {/if}
+                            {/strip}{/foreach}
+                            <th class="total nowrap">{strip}
+                                {if in_array(ifset($request_options.type), ['sales', 'profit', 'clv'])}
+                                    {wa_currency_html($table_totals[$reg_date], $def_cur)}
+                                {elseif ifset($request_options.type) == 'roi'}
+                                    {round($table_totals[$reg_date])}%
+                                {else}
+                                    {round($table_totals[$reg_date], 2)}
+                                {/if}
+                            {/strip}</th>
+                        </tr>
+
+                    {/foreach}
+                </tbody>
+            </table>
+        {/if}
+
+        <div class="clear-both"></div>
+    </div>
+</div>
+
+<div class="hidden">
+    <ul class="menu-h">
+        <li>
+            <select id="s-cohorts-report-storefront-selector" class="storefront-selector">
+                <option value="">[`All storefronts`]</option>
+                {foreach $storefronts as $stf}
+                    <option value="{$stf|escape}"{if ifset($request_options.storefront) == $stf} selected{/if}>{$stf|escape}</option>
+                {/foreach}
+            </select>
+        </li>
+    </ul>
+</div>
+
+<script>(function() { "use strict";
+
+    document.title = "[`Cohorts`] — {$wa->accountName(false)|escape:javascript}";
+    var all_zeroes = {if $all_zeroes}true{else}false{/if};
+    var data = {json_encode($chart_data)};
+    var request_params = {json_encode($request_options)};
+    var action_url = '?module=reports&action=cohorts';
+
+    // Storefront selector logic
+    (function() { "use strict";
+
+        var $storefront_selector = $('#s-cohorts-report-storefront-selector').removeAttr('id');
+
+        // Move selector into the top menu wrapper
+        $('#s-reports-custom-controls').empty().append($storefront_selector.closest('ul'));
+
+        // Reload page when user changes something in the selector
+        $storefront_selector.change(function() {
+            $storefront_selector.after('<i class="icon16 loading"></i>');
+            $.post(action_url, $.extend({ }, request_params, { storefront: $storefront_selector.val() }), function(r) {
+                $('#reportscontent').html(r);
+            });
+        });
+
+    })();
+
+    // Filter by source selector
+    var $source_selector = $('#s-cohorts-source-selector');
+    $source_selector.change(function() {
+        $source_selector.after('<i class="icon16 loading"></i>');
+        $.post(action_url, $.extend({ }, request_params, { source: $source_selector.val() }), function(r) {
+            $('#reportscontent').html(r);
+        });
+    });
+
+    // Group by period
+    var $group_by_selector = $('#s-cohorts-group-by-selector');
+    $group_by_selector.change(function() {
+        $group_by_selector.after('<i class="icon16 loading"></i>');
+        $.post(action_url, $.extend({ }, request_params, { group_period: $group_by_selector.val() }), function(r) {
+            $('#reportscontent').html(r);
+        });
+    });
+
+    // Metric type selector
+    var $metric_selector_ul = $('#s-cohorts-type-selector');
+    $metric_selector_ul.on('click', 'li[data-type]:not(.selected)', function() {
+        var $li = $(this);
+        var type_id = $li.data('type');
+        $li.find('a').append('<i class="icon16 loading"></i>');
+        $.post(action_url, $.extend({ }, request_params, { type: type_id }), function(r) {
+            $('#reportscontent').html(r);
+        });
+    });
+
+    // Load resources for cohorts graph and show it
+    !all_zeroes && (function() {
+        if (typeof showCohortGraph == 'undefined') {
+            return $.ajax({
+                dataType: "script",
+                url: "{$wa_url}wa-apps/shop/js/charts/d3chart-cohort.js?{$wa->version()}",
+                cache: true
+            });
+        } else {
+            return $.Deferred(function(d) {
+                d.resolve();
+            });
+        }
+    })().done(function() {
+        showCohortGraph(data, {
+            interpolate: "basis", // basis, linear
+            stack_type: "silhouette" // zero, silhouette
+        });
+    });
+
+    // Highlight chart serie when user clicks on a table row
+    $('#s-report-cohorts-table').on("click", "tr[data-layer-id]", function() {
+        $(".cohort-wrapper .layers .layer").eq($(this).data("layer-id")).click();
+        return false;
+    });
+
+})();</script>

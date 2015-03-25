@@ -37,10 +37,20 @@ class shopFrontendProductAction extends shopFrontendAction
                     'name' => $row['name']
                 );
             }
-            $breadcrumbs[] = array(
-                'url'  => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'])),
-                'name' => $category['name']
-            );
+            if (!isset($product['categories'][$category['id']])) {
+                $product_categories = $product['categories'];
+                if ($product_categories) {
+                    $category = reset($product_categories);
+                } else {
+                    $category = array();
+                }
+            }
+            if ($category) {
+                $breadcrumbs[] = array(
+                    'url' => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'])),
+                    'name' => $category['name']
+                );
+            }
             if ($product_link) {
                 $breadcrumbs[] = array(
                     'url'  => wa()->getRouteUrl('/frontend/product', array('product_url' => $product['url'], 'category_url' => $product['category_url'])),
@@ -176,10 +186,8 @@ class shopFrontendProductAction extends shopFrontendAction
             $this->setLayout(null);
         }
 
-        $product = new shopProduct($product);
-        if (!$is_cart) {
-            $this->getBreadcrumbs($product);
-        }
+        $product = new shopProduct($product, true);
+
         // check url
         if ($product['url'] !== urldecode(waRequest::param('product_url'))) {
             $url_params = array('product_url' => $product['url']);
@@ -191,45 +199,110 @@ class shopFrontendProductAction extends shopFrontendAction
         }
         $this->prepareProduct($product);
 
+        if (!$is_cart) {
+            $this->getBreadcrumbs($product);
+        }
+
         $this->addCanonical();
 
         // get services
+        list($services, $skus_services) = $this->getServiceVars($product);
+        $this->view->assign('sku_services', $skus_services);
+        $this->view->assign('services', $services);
+
+        $compare = waRequest::cookie('shop_compare', array(), waRequest::TYPE_ARRAY_INT);
+        $this->view->assign('compare', in_array($product['id'], $compare) ? $compare : array());
+
+        if (!$is_cart) {
+            $this->view->assign('reviews', $this->getTopReviews($product['id']));
+            $this->view->assign('rates', $this->reviews_model->getProductRates($product['id']));
+            $this->view->assign('reviews_total_count', $this->getReviewsTotalCount($product['id']));
+
+            $meta_fields = $this->getMetafields($product);
+
+            wa()->getResponse()->setTitle($meta_fields['meta_title']);
+            wa()->getResponse()->setMeta('keywords', $meta_fields['meta_keywords']);
+            wa()->getResponse()->setMeta('description', $meta_fields['meta_description']);
+
+            $feature_codes = array_keys($product->features);
+            $feature_model = new shopFeatureModel();
+            $features = $feature_model->getByCode($feature_codes);
+
+            $this->view->assign('features', $features);
+        }
+
+        $product->tags = array_map('htmlspecialchars', $product->tags);
+
+        $this->view->assign('currency_info', $this->getCurrencyInfo());
+
+        /**
+         * @event frontend_product
+         * @param shopProduct $product
+         * @return array[string][string]string $return[%plugin_id%]['menu'] html output
+         * @return array[string][string]string $return[%plugin_id%]['cart'] html output
+         * @return array[string][string]string $return[%plugin_id%]['block_aux'] html output
+         * @return array[string][string]string $return[%plugin_id%]['block'] html output
+         */
+        $this->view->assign('frontend_product', wa()->event('frontend_product', $product, array('menu', 'cart', 'block_aux', 'block')));
+
+        $stock_model = new shopStockModel();
+        $this->view->assign('stocks', $stock_model->getAll('id'));
+
+        $this->setThemeTemplate($is_cart ? 'product.cart.html' : 'product.html');
+    }
+
+    protected function getServiceVars($product)
+    {
         $type_services_model = new shopTypeServicesModel();
         $services = $type_services_model->getServiceIds($product['type_id']);
 
+        // Fetch services
         $service_model = new shopServiceModel();
         $product_services_model = new shopProductServicesModel();
         $services = array_merge($services, $product_services_model->getServiceIds($product['id']));
         $services = array_unique($services);
-
         $services = $service_model->getById($services);
+        shopRounding::roundServices($services);
 
+        // Convert service.price from default currency to service.currency
+        foreach($services as &$s) {
+            $s['price'] = shop_currency($s['price'], null, $s['currency'], false);
+        }
+        unset($s);
+
+        // Fetch service variants
         $variants_model = new shopServiceVariantsModel();
         $rows = $variants_model->getByField('service_id', array_keys($services), true);
+        shopRounding::roundServiceVariants($rows, $services);
         foreach ($rows as $row) {
             if (!$row['price']) {
                 $row['price'] = $services[$row['service_id']]['price'];
+            } else if ($services[$row['service_id']]['variant_id'] == $row['id']) {
+                $services[$row['service_id']]['price'] = $row['price'];
             }
             $services[$row['service_id']]['variants'][$row['id']] = $row;
         }
 
-
+        // Fetch service prices for specific products and skus
         $rows = $product_services_model->getByField('product_id', $product['id'], true);
-        $skus_services = array();
+        shopRounding::roundServiceVariants($rows, $services);
+        $skus_services = array(); // sku_id => [service_id => price]
+        $frontend_currency = wa('shop')->getConfig()->getCurrency(false);
         foreach ($product['skus'] as $sku) {
             $skus_services[$sku['id']] = array();
         }
         foreach ($rows as $row) {
             if (!$row['sku_id']) {
-                // remove disabled services and variants
                 if (!$row['status']) {
+                    // remove disabled services and variants
                     unset($services[$row['service_id']]['variants'][$row['service_variant_id']]);
                 } elseif ($row['price'] !== null) {
-                    // update price
+                    // update price for service variant, when it is specified for this product
                     $services[$row['service_id']]['variants'][$row['service_variant_id']]['price'] = $row['price'];
+                    // !!! also set other keys related to price
                 }
                 if ($row['status'] == shopProductServicesModel::STATUS_DEFAULT) {
-                    // update default
+                    // default varians is different for this product
                     $services[$row['service_id']]['variant_id'] = $row['service_variant_id'];
                 }
             } else {
@@ -241,6 +314,7 @@ class shopFrontendProductAction extends shopFrontendAction
             }
         }
 
+        // Fill in gaps in $skus_services
         foreach ($skus_services as $sku_id => &$sku_services) {
             $sku_price = $product['skus'][$sku_id]['price'];
             foreach ($services as $service_id => $service) {
@@ -263,7 +337,7 @@ class shopFrontendProductAction extends shopFrontendAction
         }
         unset($sku_services);
 
-        // disable service if all variants disabled
+        // disable service if all variants are disabled
         foreach ($skus_services as $sku_id => $sku_services) {
             foreach ($sku_services as $service_id => $service) {
                 if (is_array($service)) {
@@ -281,6 +355,8 @@ class shopFrontendProductAction extends shopFrontendAction
             }
         }
 
+        // Calculate prices for %-based services,
+        // and disable variants selector when there's only one value available.
         foreach ($services as $s_id => &$s) {
             if (!$s['variants']) {
                 unset($services[$s_id]);
@@ -312,50 +388,7 @@ class shopFrontendProductAction extends shopFrontendAction
 
         uasort($services, array('shopServiceModel', 'sortServices'));
 
-        $this->view->assign('sku_services', $skus_services);
-        $this->view->assign('services', $services);
-
-        $compare = waRequest::cookie('shop_compare', array(), waRequest::TYPE_ARRAY_INT);
-        $this->view->assign('compare', in_array($product['id'], $compare) ? $compare : array());
-
-        if (!$is_cart) {
-            $this->view->assign('reviews', $this->getTopReviews($product['id']));
-            $this->view->assign('rates', $this->reviews_model->getProductRates($product['id']));
-            $this->view->assign('reviews_total_count', $this->getReviewsTotalCount($product['id']));
-
-            $meta_fields = $this->getMetafields($product);
-            $title = $meta_fields['meta_title'] ? $meta_fields['meta_title'] : $product['name'];
-            wa()->getResponse()->setTitle($title);
-            wa()->getResponse()->setMeta('keywords', $meta_fields['meta_keywords']);
-            wa()->getResponse()->setMeta('description', $meta_fields['meta_description']);
-
-            $feature_codes = array_keys($product->features);
-            $feature_model = new shopFeatureModel();
-            $features = $feature_model->getByCode($feature_codes);
-
-            $this->view->assign('features', $features);
-        }
-
-        $this->view->assign('currency_info', $this->getCurrencyInfo());
-
-        /**
-         * @event frontend_product
-         * @param shopProduct $product
-         * @return array[string][string]string $return[%plugin_id%]['menu'] html output
-         * @return array[string][string]string $return[%plugin_id%]['cart'] html output
-         * @return array[string][string]string $return[%plugin_id%]['block_aux'] html output
-         * @return array[string][string]string $return[%plugin_id%]['block'] html output
-         */
-        $this->view->assign('frontend_product', wa()->event('frontend_product', $product, array('menu', 'cart', 'block_aux', 'block')));
-
-        $sku_stocks = array();
-        foreach ($product->skus as $sku) {
-            $sku_stocks[$sku_id] = array($sku['count'], $sku['stock']);
-        }
-        $stock_model = new shopStockModel();
-        $this->view->assign('stocks', $stock_model->getAll('id'));
-
-        $this->setThemeTemplate($is_cart ? 'product.cart.html' : 'product.html');
+        return array($services, $skus_services);
     }
 
     protected function getCurrencyInfo()
@@ -419,6 +452,11 @@ class shopFrontendProductAction extends shopFrontendAction
                 $res[$f] = str_replace($search, $replace, $product[$f]);
             }
         }
+
+        $res['meta_title'] = $res['meta_title'] ? $res['meta_title'] : shopProduct::getDefaultMetaTitle($product);
+        $res['meta_keywords'] = $res['meta_keywords'] ? $res['meta_keywords'] : shopProduct::getDefaultMetaKeywords($product);
+        $res['meta_description'] = $res['meta_description'] ? $res['meta_description'] : shopProduct::getDefaultMetaDescription($product);
+
         return $res;
     }
 }
