@@ -133,6 +133,10 @@ class shopReportsCohortsAction extends waViewAction
         $min_color = 0x3fd9f0;
         $max_color = 0x6f50cb;
 
+        if ($max_ts == $min_ts) {
+            return $min_color;
+        }
+
         $min_r = ($min_color >> 16) & 0xff;
         $max_r = ($max_color >> 16) & 0xff;
         $min_g = ($min_color >> 8) & 0xff;

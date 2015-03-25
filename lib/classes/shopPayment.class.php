@@ -194,7 +194,7 @@ class shopPayment extends waAppPayment
                     $total = shop_currency($total, $order['currency'], $currency_id = reset($currency), false);
                 }
             }
-        } elseif ($payment_plugin) {
+        } elseif (is_array($payment_plugin) || is_string($payment_plugin)) {
             $total = $order['total'];
             $currency_id = $order['currency'];
 

@@ -69,6 +69,9 @@ class shopCheckoutContactinfo extends shopCheckout
         $contact_info = array();
         foreach ($form->fields() as $key => $f) {
             $contact_info[$key] = $contact->get($key);
+            if ($key == 'birthday') {
+                $contact_info[$key] = array('value' => $contact_info[$key]['data']);
+            }
         }
         if (!$contact_info) {
             $contact_info = array();

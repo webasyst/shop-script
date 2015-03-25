@@ -458,7 +458,7 @@ class shopProductModel extends waModel
         $sql = "
             UPDATE shop_product p
                 JOIN (
-                    SELECT s.product_id id, SUM(IF(s.count > 0 OR s.count IS NULL, s.count, 0)) count_of_skus
+                    SELECT s.product_id id, SUM(IF(s.count < 0, 0, s.count)) count_of_skus
                     FROM shop_product_skus s
                     WHERE s.available = 1
                     GROUP BY s.product_id

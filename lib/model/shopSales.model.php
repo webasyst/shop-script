@@ -9,6 +9,10 @@ class shopSalesModel extends waModel
     public function deletePeriod($date_start, $date_end=null)
     {
         if (empty($date_end)) {
+            if (empty($date_start)) {
+                $this->exec("TRUNCATE {$this->table}");
+                return;
+            }
             $date_end = $date_start;
         }
         $date_sql = self::getDateSql('`date`', $date_start, $date_end);
@@ -583,18 +587,18 @@ class shopSalesModel extends waModel
 
         $group_by = ifset($options['group'], 'months');
 
+        $metric_join = '';
         switch($cohorts_type) {
             case 'sales':
-                $metric_join = '';
                 $metric_sql = "SUM(o.total*o.rate)";
                 break;
             case 'subtotal':
-                $metric_join = '';
                 $metric_sql = "SUM((o.total - o.tax - o.shipping - o.discount)*o.rate)";
                 break;
             case 'purchase':
                 $metric_join = "JOIN shop_order_items AS oi
                                     ON oi.order_id=o.id
+                                        AND oi.type='product'
                                 LEFT JOIN shop_product AS p
                                     ON oi.product_id=p.id
                                 LEFT JOIN shop_product_skus AS ps
@@ -604,11 +608,9 @@ class shopSalesModel extends waModel
                 $metric_sql = "SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, IFNULL(ps.purchase_price*pcur.rate, 0))*oi.quantity)";
                 break;
             case 'order_count':
-                $metric_join = '';
                 $metric_sql = "COUNT(DISTINCT o.id)";
                 break;
             case 'customer_count':
-                $metric_join = '';
                 $metric_sql = "COUNT(DISTINCT o.contact_id)";
                 break;
             default:
@@ -926,6 +928,7 @@ class shopSalesModel extends waModel
                             ON oi.sku_id=ps.id
                         LEFT JOIN shop_currency AS pcur
                             ON pcur.code=p.currency
+                    WHERE oi.type='product'
                     GROUP BY st.name, {$date_col}
                 ON DUPLICATE KEY UPDATE purchase=VALUES(purchase)";
         $this->exec($sql);
