@@ -9098,7 +9098,7 @@ msgstr "Способ оплаты не определен. Пожалуйста,
 #: /wa-apps/shop/lib/classes/checkout/shopCheckoutShipping.class.php:440
 msgid "Shipping option is not defined. Please return to the shipping option checkout step to continue."
 msgstr ""
-"Способ доставки не определен. Пожалуйста, вернитесь на шаг выбора способа оплаты, чтобы продолжить."
+"Способ доставки не определен. Пожалуйста, вернитесь на шаг выбора способа доставки, чтобы продолжить."
 
 #: /wa-apps/shop/lib/classes/shopProductListAction.class.php:222
 msgid "Image"
@@ -9854,3 +9854,7 @@ msgstr "Из Твиттера"
 #: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:139
 msgid "Last ordered over a month ago"
 msgstr "Заказывали более месяца назад"
+
+msgid "Some required contact info fields were not provided. Please return to the contact information checkout step to finalize your order."
+msgstr "Не заполнены обязательные поля контактной информации. Пожалуйста, вернитесь на шаг ввода контактной информации, чтобы оформить заказ."
+

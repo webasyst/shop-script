@@ -248,6 +248,19 @@ class shopFrontendProductAction extends shopFrontendAction
         $stock_model = new shopStockModel();
         $this->view->assign('stocks', $stock_model->getAll('id'));
 
+        // default title and metas
+        if (!$is_cart) {
+            if (!wa()->getResponse()->getTitle()) {
+                wa()->getResponse()->setTitle(shopProduct::getDefaultMetaTitle($product));
+            }
+            if (!wa()->getResponse()->getMeta('keywords')) {
+                wa()->getResponse()->setMeta('keywords', shopProduct::getDefaultMetaKeywords($product));
+            }
+            if (!wa()->getResponse()->getMeta('description')) {
+                wa()->getResponse()->setMeta('description', shopProduct::getDefaultMetaDescription($product));
+            }
+        }
+
         $this->setThemeTemplate($is_cart ? 'product.cart.html' : 'product.html');
     }
 
@@ -452,10 +465,6 @@ class shopFrontendProductAction extends shopFrontendAction
                 $res[$f] = str_replace($search, $replace, $product[$f]);
             }
         }
-
-        $res['meta_title'] = $res['meta_title'] ? $res['meta_title'] : shopProduct::getDefaultMetaTitle($product);
-        $res['meta_keywords'] = $res['meta_keywords'] ? $res['meta_keywords'] : shopProduct::getDefaultMetaKeywords($product);
-        $res['meta_description'] = $res['meta_description'] ? $res['meta_description'] : shopProduct::getDefaultMetaDescription($product);
 
         return $res;
     }

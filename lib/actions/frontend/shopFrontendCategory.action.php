@@ -76,9 +76,6 @@ class shopFrontendCategoryAction extends shopFrontendAction
             $category['description'] = wa()->getView()->fetch('string:' . $category['description']);
         }
 
-        $category['meta_title'] = $category['meta_title'] ? $category['meta_title'] : shopCategoryModel::getDefaultMetaTitle($category);
-        $category['meta_keywords'] = $category['meta_keywords'] ? $category['meta_keywords'] : shopCategoryModel::getDefaultMetaKeywords($category);
-
         return $category;
     }
 
@@ -299,6 +296,16 @@ class shopFrontendCategoryAction extends shopFrontendAction
          * @return array[string]string $return[%plugin_id%] html output for category
          */
         $this->view->assign('frontend_category', wa()->event('frontend_category', $category));
+
+        // default title and meta
+        if (!wa()->getResponse()->getTitle()) {
+            wa()->getResponse()->setTitle(shopCategoryModel::getDefaultMetaTitle($category));
+        }
+
+        if (!wa()->getResponse()->getMeta('keywords')) {
+            wa()->getResponse()->setMeta('keywords', shopCategoryModel::getDefaultMetaKeywords($category));
+        }
+
         $this->setThemeTemplate('category.html');
     }
 
