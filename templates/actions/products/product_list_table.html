@@ -9,7 +9,7 @@
             {if $manual && $sort == 'sort'}<th class="min-width"></th>{/if}
             <th class="min-width"><input type="checkbox" class="s-select-all" data-count={$total_count}></th>
             {if !empty($enabled_columns.image_crop_small)}
-                <th class="min-width"></th>
+                <th class="min-width" data-additional-column="image_crop_small"></th>
             {/if}
             <th>
                 <span class="sort" title="[`Name`]">

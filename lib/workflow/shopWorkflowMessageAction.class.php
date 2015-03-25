@@ -12,6 +12,10 @@ class shopWorkflowMessageAction extends shopWorkflowAction
 
     public function isAvailable($order)
     {
+        if ($order === null) {
+            return true;
+        }
+
         if (!empty($order['contact'])) {
             $c = $order['contact'];
             if (ifset($c['email']) || ifset($c['phone'])) {

@@ -57,6 +57,7 @@
         {/if}
         $(function() {
             $.shop.init({
+                jquery_url: "{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js",
                 debug: {var_export(waSystemConfig::isDebug(),true)},
                 menu_floating: menu_floating,
                 page: '{if $page}{$page}{else}orders{/if}'
