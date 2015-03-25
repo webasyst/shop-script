@@ -375,10 +375,19 @@
 
                 var $body = $(el).parents($(el).data('selector') || 'div.block').parent().clone(false);
                 $body.find('a.js-print').remove();
+
+                var wnd = window.open('', 'printversion', 'scrollbars=1,width=600,height=600');
+
+                // Hack to fix yandex.maps widget on print page
+                if ($body.find('.map[id^="yandex-map"]').length) {
+                    $body.find('.map[id^="yandex-map"]').empty();
+                    $head.append('<script src="'+$.shop.options.jquery_url+'"></script>');
+                    wnd.ymaps = undefined;
+                }
+
                 var html = '<html><head>' + $head.html() + '</head><body class="s-printable">' + $body.html()
                 + '<i class="icon16 loading" style="top: 20px; left: 20px; position: relative;display: none;"></i>' + '</body></html>';
 
-                var wnd = window.open('', 'printversion', 'scrollbars=1,width=600,height=600');
                 setTimeout(function() {
                     var $w = $(wnd.document);
                     $w.find('div:first').hide();

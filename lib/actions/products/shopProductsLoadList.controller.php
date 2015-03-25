@@ -40,7 +40,7 @@ class shopProductsLoadListController extends shopProductListAction
 
     protected static function getEnabledColumns()
     {
-        $cols = waRequest::request('additional_columns', '', 'string');
+        $cols = waRequest::request('enabled_columns', '', 'string');
         if (!$cols) {
             return array();
         }

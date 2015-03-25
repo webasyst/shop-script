@@ -613,15 +613,31 @@ class shopProductsCollection
                             'sku_id'     => null,
                             'feature_id' => $row['feature_id']
                         ), true);
+                        if (!$rows) {
+                            $feature_model = new shopFeatureModel();
+                            $f = $feature_model->getById($row['feature_id']);
+                            if ($f && preg_match('/^(2|3)d\./', $f['type'])) {
+                                $sub_features = $feature_model->getByField('parent_id', $row['feature_id'], 'id');
+                                if ($sub_features) {
+                                    $rows = $product_features_model->getByField(array(
+                                        'product_id' => $product['id'],
+                                        'sku_id' => null,
+                                        'feature_id' => array_keys($sub_features)
+                                    ), true);
+                                }
+                            }
+                        }
                         $values = array();
                         foreach ($rows as $r) {
-                            $values[] = $r['feature_value_id'];
+                            $values[$r['feature_id']][] = $r['feature_value_id'];
                         }
                         if ($values) {
-                            $alias = $this->addJoin('shop_product_features');
-                            $this->where[] = $alias.".feature_id = ".$row['feature_id'];
-                            $this->where[] = $alias.".feature_value_id ".
-                                (count($values) == 1 ? ($row['cond'] == 'notsame' ? '!' : '')."= ".$values[0] : ($row['cond'] == 'notsame' ? 'NOT ' : '')."IN (".implode(',', $values).")");
+                            foreach ($values as $f_id => $f_values) {
+                                $alias = $this->addJoin('shop_product_features');
+                                $this->where[] = $alias . ".feature_id = " . $f_id;
+                                $this->where[] = $alias . ".feature_value_id " .
+                                    (count($f_values) == 1 ? ($row['cond'] == 'notsame' ? '!' : '') . "= " . $f_values[0] : ($row['cond'] == 'notsame' ? 'NOT ' : '') . "IN (" . implode(',', $f_values) . ")");
+                            }
                             $this->group_by = 'p.id';
                         } else {
                             $this->where[] = '1=0';

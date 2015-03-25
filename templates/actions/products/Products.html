@@ -378,9 +378,6 @@
         edit: '{$wa->get("edit")}',
         sortable: {if $manual && $sort == 'sort'}true{else}false{/if},
         enable_2x: {if $wa->shop->config('enable_2x')}true{else}false{/if},
-        {if isset($enabled_columns)}
-            enabled_columns: json_encode(join(',', array_keys($enabled_columns))),
-        {/if}
         {if !empty($text)}
             text: {json_encode($text)},
         {/if}

@@ -89,7 +89,7 @@ class shopDiscounts
                     $descriptions[] = $d.': '.shop_currency_html($amount, $currency, $currency);
                 }
             }
-            $applicable_discounts[] = $plugin_discount;
+            $applicable_discounts[] = $amount;
         }
 
         if ($descriptions) {
