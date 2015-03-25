@@ -124,6 +124,7 @@ class shopWorkflowAction extends waWorkflowAction
             $update['state_id'] = $this->state_id;
         }
         $order_model->updateById($order['id'], $update);
+        $order = $update + $order;
 
         $order_params_model = new shopOrderParamsModel();
         if (isset($update['params'])) {

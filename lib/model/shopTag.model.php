@@ -17,6 +17,7 @@ class shopTagModel extends waModel
             $query->limit((int)$limit);
         }
         $tags = $query->fetchAll($key);
+
         if (!empty($tags)) {
             $first = current($tags);
             $max_count = $min_count = $first['count'];
@@ -52,7 +53,7 @@ class shopTagModel extends waModel
             unset($tag);
 
             // Sort tags by name
-            usort($tags, wa_lambda('$a, $b', 'return strcmp($a["name"], $b["name"]);'));
+            uasort($tags, wa_lambda('$a, $b', 'return strcmp($a["name"], $b["name"]);'));
 
         }
         return $tags;
