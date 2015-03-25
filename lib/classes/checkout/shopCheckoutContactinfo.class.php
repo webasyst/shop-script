@@ -66,14 +66,21 @@ class shopCheckoutContactinfo extends shopCheckout
         }
 
         $form = shopHelper::getCustomerForm();
-        $contact_info = $contact->load();
+        $contact_info = array();
+        foreach ($form->fields() as $key => $f) {
+            $contact_info[$key] = $contact->get($key);
+        }
         if (!$contact_info) {
             $contact_info = array();
         }
         $form->post = $contact_info;
 
         if (!$form->isValid($contact)) {
-            $errors[] = _w('Oops! For some reason your contact information was lost during the checkout. Please return to the contact information checkout step to finalize your order.');
+            if ($contact_info) {
+                $errors[] = _w('Some required contact info fields were not provided. Please return to the contact information checkout step to finalize your order.');
+            } else {
+                $errors[] = _w('Oops! For some reason your contact information was lost during the checkout. Please return to the contact information checkout step to finalize your order.');
+            }
         }
         return $errors;
     }
