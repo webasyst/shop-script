@@ -1,21 +1,28 @@
 <?php
+
 class shopConsignmentruPluginPrintformDisplayAction extends waViewAction
 {
     public function execute()
     {
-        //XXX check rights
         $plugin_id = 'consignmentru';
         $plugin = waSystem::getInstance()->getPlugin($plugin_id);
+        /**
+         * @var shopConsignmentruPlugin $plugin
+         */
         $order_id = waRequest::request('order_id', null, waRequest::TYPE_INT);
-        $order = shopPayment::getOrderData($order_id, $this);
+        $order = shopPayment::getOrderData($order_id, $this->allowedCurrency());
         switch (wa()->getEnv()) {
             case 'backend':
+                if (!wa()->getUser()->getRights('shop', 'orders')) {
+                    throw new waRightsException('Access denied');
+                }
                 if (!$order && !$order_id) {
+                    $allowed_currency = $this->allowedCurrency();
                     $dummy_order = array(
                         'contact_id' => $this->getUser()->getId(),
                         'id'         => 1,
                         'id_str'     => shopHelper::encodeOrderId(1),
-                        'currency'   => $this->allowedCurrency(),
+                        'currency'   => reset($allowed_currency),
                     );
                     $order = waOrder::factory($dummy_order);
                 } elseif (!$order) {
@@ -29,8 +36,6 @@ class shopConsignmentruPluginPrintformDisplayAction extends waViewAction
                 break;
         }
 
-        $product_model = new shopProductModel();
-
         if ($order->id && $order->items) {
             $items = $this->getItems($order);
         } else {
@@ -38,7 +43,7 @@ class shopConsignmentruPluginPrintformDisplayAction extends waViewAction
         }
 
         $this->setTemplate($plugin->getTemplatePath());
-        
+
         $this->view->assign('settings', $plugin->getSettings());
         $this->view->assign('order', $order);
         $this->view->assign('items', $items);
@@ -46,18 +51,18 @@ class shopConsignmentruPluginPrintformDisplayAction extends waViewAction
 
     public function allowedCurrency()
     {
-        return 'RUB';
+        return array('RUB', 'UAH');
     }
 
     /**
      *
      * @param waOrder $order
+     * @return array
      */
     private function getItems($order)
     {
         $items = $order->items;
         $product_model = new shopProductModel();
-        $tax = 0;
         foreach ($items as & $item) {
             $data = $product_model->getById($item['product_id']);
             $item['tax_id'] = ifset($data['tax_id']);
@@ -69,7 +74,7 @@ class shopConsignmentruPluginPrintformDisplayAction extends waViewAction
             'billing'  => $order->billing_address,
             'shipping' => $order->shipping_address,
         ), $order->currency);
-        
+
         if ($order->discount) {
             if ($order->total + $order->discount - $order->shipping > 0) {
                 $k = 1.0 - ($order->discount) / ($order->total + $order->discount - $order->shipping);

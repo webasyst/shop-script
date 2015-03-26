@@ -21,6 +21,8 @@ class shopProductsAction extends shopProductListAction
         $event_params = array('type' => $this->hash[0], 'info' => $this->collection->getInfo());
         $this->view->assign('backend_products', wa()->event('backend_products', $event_params));
 
+        $this->view->assign('products_rights', $this->getUser()->isAdmin('shop') || $this->getUser()->getRights('shop', 'type.%'));
+
         $this->assign(array(
             'products' => array_values($products),
             'total_count' => $this->collection->count(),

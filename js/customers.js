@@ -342,7 +342,9 @@
         },
 
         editcategoryAction: function(id) {
-            $('#customer-categories').find('li[data-category-id=' + id + ']').addClass('selected');
+            if (id) {
+                $('#customer-categories').find('li[data-category-id=' + id + ']').addClass('selected');
+            }
             this.load('?module=customers&action=categoryEditor&id='+(id || ''));
         },
 

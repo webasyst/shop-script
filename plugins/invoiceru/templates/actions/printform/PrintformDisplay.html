@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html>
 <html>
 <head>
 <title>Счет-фактура</title>
@@ -14,7 +14,7 @@ var lang_strings = {
 	'edit_link':'Редактировать',
 	'field_title':'Корректировка перед печатью',
 	'save_link':'OK'
-	}
+};
 {/literal}
 var page_url = '';
 </script>
@@ -40,11 +40,11 @@ var page_url = '';
 
 <table cellpadding="0" cellspacing="0" border="0" class="mainTable_normal" width="100%">
 	<tr>
-		<td colspan=2><b>СЧЁТ-ФАКТУРА <span class="inline_edit underlined">{$order.id_str|default:'1234567890'}</span> от <span class="inline_edit underlined">{$order.datetime|date_format:'d.m.Y'} г.</span></b></td>
+		<td colspan=2 class="bold">СЧЁТ-ФАКТУРА <span class="inline_edit underlined">{$order.id_str|default:'1234567890'}</span> от <span class="inline_edit underlined">{$order.datetime|date_format:'d.m.Y'} г.</span></td>
 		<td>(1)</td>
 	</tr>
 	<tr>
-		<td colspan=2><b>ИСПРАВЛЕНИЕ <span class="inline_edit underlined">{$order.id_str}</span> от <span class="inline_edit underlined">{$order.datetime|date_format:'d.m.Y'}
+		<td colspan=2 class="bold">ИСПРАВЛЕНИЕ <span class="inline_edit underlined">{$order.id_str}</span> от <span class="inline_edit underlined">{$order.datetime|date_format:'d.m.Y'}</span></td>
 	</tr>
 	<tr>
 		<td colspan=3>&nbsp;</td>
@@ -56,38 +56,38 @@ var page_url = '';
 
 	<tr>
 		<td class=leftAlign>Продавец:</td>
-		<td class="leftAlign underlined"><b>{$settings.COMPANYNAME|default:"Продавец"|escape}</b></td>
+		<td class="leftAlign underlined bold">{$settings.COMPANYNAME|default:"Продавец"|escape}</td>
 		<td>(2)</td>
 	</tr>
 	<tr>
 		<td class=leftAlign>Адрес:</td>
-		<td class="leftAlign underlined"><b>{$settings.COMPANYADDRESS|escape},&nbsp;(тел.:{$settings.COMPANYPHONE|default:"-"|escape})</b></td>
+		<td class="leftAlign underlined bold">{$settings.COMPANYADDRESS|escape},&nbsp;(тел.:{$settings.COMPANYPHONE|default:"-"|escape})</td>
 		<td>(2а)</td>
 	</tr>
 	<tr>
 		<td class=leftAlign>ИНН/КПП продавца:</td>
-		<td class="leftAlign underlined"><b>{$settings.INN|escape}/{$settings.KPP|escape}</b></td>
+		<td class="leftAlign underlined bold">{$settings.INN|escape}/{$settings.KPP|escape}</td>
 		<td>(2б)</td>
 	</tr>
 	<tr>
 		<td class=leftAlign>Грузоотправитель и его адрес:</td>
-		<td class="leftAlign underlined"><b>{$settings.COMPANYNAME|default:"Продавец"|escape},&nbsp;{$settings.COMPANYADDRESS|default:"город, улица, дом"|escape},&nbsp;(тел.:{$settings.COMPANYPHONE|default:"-"|escape}){", р/счет №`$settings.BANK_ACCOUNT_NUMBER` в `$settings.BANKNAME`, кор/счет №`$settings.BANK_KOR_NUMBER`, БИК `$settings.BIK`"|escape}</b></td>
+		<td class="leftAlign underlined bold">{$settings.COMPANYNAME|default:"Продавец"|escape},&nbsp;{$settings.COMPANYADDRESS|default:"город, улица, дом"|escape},&nbsp;(тел.:{$settings.COMPANYPHONE|default:"-"|escape}){", р/счет №`$settings.BANK_ACCOUNT_NUMBER` в `$settings.BANKNAME`, кор/счет №`$settings.BANK_KOR_NUMBER`, БИК `$settings.BIK`"|escape}</td>
 		<td>(3)</td>
 	</tr>
-{$company = $order->contact_company}
+{$company = $contact.company}
 {$company = ifempty($company,$order.shipping_address.name)}
 {$company = ifempty($company,$order.contact_name)}
 {$company = ifempty($company,$order.billing_address.name)}
 	<tr>
 		<td class=leftAlign>Грузополучатель и его адрес:</td>
-		<td class="leftAlign underlined"><b class="inline_edit">
+		<td class="leftAlign underlined bold inline_edit">
 {if $company}{$company|escape},&nbsp;{/if}
 {if $order.shipping_address.region_name}{$order.shipping_address.region_name|escape},&nbsp;{/if}
 {if $order.shipping_address.city}{$order.shipping_address.city|escape},&nbsp;{/if}
 {if $order.shipping_address.zip}{$order.shipping_address.zip|escape},&nbsp;{/if}
 {if $order.shipping_address.street}{$order.shipping_address.street|escape},&nbsp;{/if}
-{if $order.contact_phone}тел.: {$order.contact_phone|escape}{/if}
-		</b></td>
+{if $contact.phone}тел.: {$contact.phone|escape}{/if}
+		</td>
 		<td>(4)</td>
 	</tr>
 	<tr>
@@ -107,18 +107,18 @@ var page_url = '';
 
 <table cellpadding="0" cellspacing="0" border="0" class="mainTable_normal">
 *}
-{$company = $order->contact_company}
+{$company = $contact.company}
 {$company = ifempty($company,$order.billing_address.name)}
 {$company = ifempty($company,$order.contact_name)}
 {$company = ifempty($company,$order.shipping_address.name)}
 	<tr>
 		<td class=leftAlign>Покупатель:</td>
-		<td class="leftAlign underlined"><b class="inline_edit">{$company|escape|default:"&nbsp;"}</b></td>
+		<td class="leftAlign underlined bold inline_edit">{$company|escape|default:"&nbsp;"}</td>
 		<td>(6)</td>
 	</tr>
 	<tr>
 		<td class=leftAlign>Адрес:</td>
-		<td class="leftAlign underlined"><b class="inline_edit">
+		<td class="leftAlign underlined bold inline_edit">
 {if !empty($order.billing_address.address)}
 {if $order.billing_address.region_name}{$order.billing_address.region_name|escape},&nbsp;{/if}
 {if $order.billing_address.city}{$order.billing_address.city|escape},&nbsp;{/if}
@@ -130,16 +130,16 @@ var page_url = '';
 {if $order.shipping_address.zip}{$order.shipping_address.zip|escape},&nbsp;{/if}
 {if $order.shipping_address.street}{$order.shipping_address.street|escape},&nbsp;{/if}
 {/if}
-{if $order.contact_phone}тел.: {$order.contact_phone|escape}{/if}&nbsp;</b></td>
+{if $contact.phone}тел.: {$contact.phone|escape}{/if}&nbsp;</td>
 		<td>(6а)</td>
 	</tr>
 	<tr>
 		<td class=leftAlign>ИНН/КПП покупателя:</td>
 		<td class="leftAlign underlined">
 		<table style="display:inline;"><tr>
-		<td style="width:50mm;font-weight: bold;" class="inline_edit">{$order.contact_inn|escape|default:"&nbsp;"}</td>
+		<td style="width:50mm;font-weight: bold;" class="inline_edit">{$contact.inn|escape|default:"&nbsp;"}</td>
 		<td style="font-weight: bold;">/</td>
-		<td style="width:50mm;font-weight: bold;" class="inline_edit">{$order.contact_kpp|escape|default:"&nbsp;"}</td>
+		<td style="width:50mm;font-weight: bold;" class="inline_edit">{$contact.kpp|escape|default:"&nbsp;"}</td>
 		</tr></table>
 		</td>
 		<td>(6б)</td>
@@ -222,12 +222,12 @@ var page_url = '';
 		<td class="b_left b_top inline_edit">796</td>
 		<td class="b_left b_top inline_edit">шт</td>
 		<td class="b_left b_top">{$order_item.quantity|string_format:"%d"}</td>
-		<td class="b_left b_top rightAlign nobr">{$order_item.price|wa_format_amount:$order.currency:'%2'}</td>
-		<td class="b_left b_top rightAlign nobr">{if $order_item.tax_included}{($order_item.total-$order_item.tax)|wa_format_amount:$order.currency:'%2'}{else}{$order_item.total|wa_format_amount:$order.currency:'%2'}{/if}</td>
+		<td class="b_left b_top rightAlign nowrap">{$order_item.price|wa_format_amount:$order.currency:'%2'}</td>
+		<td class="b_left b_top rightAlign nowrap">{if $order_item.tax_included}{($order_item.total-$order_item.tax)|wa_format_amount:$order.currency:'%2'}{else}{$order_item.total|wa_format_amount:$order.currency:'%2'}{/if}</td>
 		<td class="b_left b_top rightAlign">0,00</td>
 		<td class="b_left b_top rightAlign">{$order_item.tax_percent|string_format:"%0.2f"}%</td>
 		<td class="b_left b_top rightAlign">{$order_item.tax|wa_format_amount:$order.currency:'%2'}</td>
-		<td class="b_left b_top rightAlign nobr">{$order_item.total|wa_format_amount:$order.currency:'%2'}</td>
+		<td class="b_left b_top rightAlign nowrap">{$order_item.total|wa_format_amount:$order.currency:'%2'}</td>
 		<td class="b_left b_top inline_edit">&nbsp;</td>
 		<td class="b_left b_top inline_edit">&nbsp;</td>
 		<td class="b_top b_left b_right inline_edit">&nbsp;</td>
@@ -240,12 +240,12 @@ var page_url = '';
 		<td class="b_left b_top">796</td>
 		<td class="b_left b_top">шт</td>
 		<td class="b_left b_top">1</td>
-		<td class="b_left b_top rightAlign nobr">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
-		<td class="b_left b_top rightAlign nobr">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
+		<td class="b_left b_top rightAlign nowrap">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
+		<td class="b_left b_top rightAlign nowrap">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
 		<td class="b_left b_top rightAlign">0,00</td>
 		<td class="b_left b_top rightAlign">0%</td>
 		<td class="b_left b_top rightAlign">0,00</td>
-		<td class="b_left b_top rightAlign nobr">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
+		<td class="b_left b_top rightAlign nowrap">{$order.shipping|wa_format_amount:$order.currency:'%2'}</td>
 		<td class="b_left b_top">&nbsp;</td>
 		<td class="b_left b_top">&nbsp;</td>
 		<td class="b_top b_left b_right">&nbsp;</td>
@@ -255,14 +255,14 @@ var page_url = '';
 		<td colspan=6 class="b_left b_top b_bottom">
 		<table class=mainTable_normal border="0" cellpadding=0 cellspacing=0 width="100%">
 			<tr>
-				<td class="leftAlign nobr"><b>Всего к оплате</b></td>
-				<td class="rightAlign nobr"><b>{$total_amount|wa_format_amount:$order.currency:'words'}, {if $total_tax}в т.ч. НДС {$total_tax|wa_format_amount:$order.currency:'words'}{else}без налога (НДС){/if}</b></td>
+				<td class="leftAlign nowrap"><b>Всего к оплате</b></td>
+				<td class="rightAlign nowrap"><b>{$total_amount|wa_format_amount:$order.currency:'words'}, {if $total_tax}в т.ч. НДС {$total_tax|wa_format_amount:$order.currency:'words'}{else}без налога (НДС){/if}</b></td>
 			</tr>
 		</table>
 		</td>
 		<td class="b_left b_top b_bottom" colspan="2">&times;</td>
 		<td class="b_left b_top b_bottom rightAlign">{$total_tax|wa_format_amount:$order.currency:'%2'}</td>
-		<td class="b_left b_top b_bottom rightAlign nobr">{$total_amount|wa_format_amount:$order.currency:'%2'}</td>
+		<td class="b_left b_top b_bottom rightAlign nowrap">{$total_amount|wa_format_amount:$order.currency:'%2'}</td>
 		<td class="b_left b_top">&nbsp;</td>
 		<td class="b_top">&nbsp;</td>
 		<td class="b_top">&nbsp;</td>
@@ -282,16 +282,16 @@ var page_url = '';
 <table cellpadding="0" cellspacing="0" border="0"
 	class="mainTable_normal" width="100%">
 	<tr>
-		<td style="width: 45mm" class="nobr leftAlign"><b>Руководитель
+		<td style="width: 45mm" class="nowrap leftAlign"><b>Руководитель
 		организации<br>или иное уполномоченное лицо</b></td>
 		<td class=underlined>&nbsp;</td>
 		<td style="width: 5mm">&nbsp;</td>
-		<td class="underlined nobr" style="width: 45mm"><b>{$settings.CEO_NAME|escape|default:"&nbsp;"}</b></td>
+		<td class="underlined nowrap" style="width: 45mm"><b>{$settings.CEO_NAME|escape|default:"&nbsp;"}</b></td>
 		<td style="width: 15mm">&nbsp;</td>
-		<td style="width: 55mm" class="nobr leftAlign"><b>Главный бухгалтер<br>или иное уполномоченное лицо</b></td>
+		<td style="width: 55mm" class="nowrap leftAlign"><b>Главный бухгалтер<br>или иное уполномоченное лицо</b></td>
 		<td class=underlined>&nbsp;</td>
 		<td style="width: 5mm">&nbsp;</td>
-		<td class="underlined nobr" style="width: 45mm"><b>{$settings.BUH_NAME|escape|default:"&nbsp;"}</b></td>
+		<td class="underlined nowrap" style="width: 45mm"><b>{$settings.BUH_NAME|escape|default:"&nbsp;"}</b></td>
 	</tr>
 	<tr>
 		<td>&nbsp;</td>
@@ -309,12 +309,12 @@ var page_url = '';
 <table cellpadding="0" cellspacing="0" border="0"
 	class="mainTable_normal" width="100%">
 	<tr>
-		<td class="nobr leftAlign" valign="bottom" style="width: 55mm"><b>Индивидуальный предприниматель</b></td>
+		<td class="nowrap leftAlign" valign="bottom" style="width: 55mm"><b>Индивидуальный предприниматель</b></td>
 		<td class="underlined" style="width: 45mm">&nbsp;</td>
 		<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
-		<td class="underlined nobr" valign="bottom"><b>{$settings.IP_NAME|escape|default:"&nbsp;"}</b></td>
+		<td class="underlined nowrap" valign="bottom"><b>{$settings.IP_NAME|escape|default:"&nbsp;"}</b></td>
 		<td style="width: 5mm">&nbsp;</td>
-		<td class="underlined nobr" valign="bottom"><b>{$settings.IP_REGISTRATION|escape|default:"&nbsp;"}</b></td>
+		<td class="underlined nowrap" valign="bottom"><b>{$settings.IP_REGISTRATION|escape|default:"&nbsp;"}</b></td>
 	</tr>
 	<tr>
 		<td>&nbsp;</td>

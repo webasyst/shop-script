@@ -1,5 +1,4 @@
 <?php
-
 class shopSettingsCurrenciesSaveController extends waJsonController
 {
     public function execute()
@@ -15,7 +14,7 @@ class shopSettingsCurrenciesSaveController extends waJsonController
         $round_up_only = waRequest::request('primary_round_up_only', '', 'string');
         if ($cur['rounding'] != $rounding || $cur['round_up_only'] != $round_up_only) {
             $currency_model->updateById($primary, array(
-                'rounding' => $rounding,
+                'rounding' => ifempty($rounding),
                 'round_up_only' => $round_up_only,
             ));
         }

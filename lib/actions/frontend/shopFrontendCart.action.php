@@ -38,7 +38,7 @@ class shopFrontendCartAction extends shopFrontendAction
             $saved_quantity = $cart_model->select('id,quantity')->where("type='product' AND code = s:code", array('code' => $code))->fetchAll('id');
             $quantity = waRequest::post('quantity');
             foreach ($quantity as $id => $q) {
-                if ($q != $saved_quantity[$id]) {
+                if (isset($saved_quantity[$id]) && ($q != $saved_quantity[$id])) {
                     $cart->setQuantity($id, $q);
                 }
             }

@@ -1,118 +1,118 @@
 <?php
 return array(
-    'COMPANYNAME'              => array(
+    'COMPANYNAME'            => array(
         'value'        => '',
         'title'        => 'Название компании',
         'description'  => 'Укажите название организации, от имени которой выписывается счет',
-        'control_type' => 'text',
+        'control_type' => waHtmlControl::INPUT,
         'subject'      => 'printform',
     ),
-    'COMPANYADDRESS'           => array(
+    'COMPANYADDRESS'         => array(
         'value'        => '',
         'title'        => 'Адрес компании',
         'description'  => 'Укажите адрес организации, от имени которой выписывается счет',
         'control_type' => 'textarea',
         'subject'      => 'printform',
     ),
-    'COMPANYPHONE'             => array(
+    'COMPANYPHONE'           => array(
         'value'        => '',
         'title'        => 'Телефон компании',
         'description'  => 'Укажите телефон организации',
-        'control_type' => 'text',
+        'control_type' => waHtmlControl::INPUT,
         'subject'      => 'printform',
     ),
-    'CEO_NAME'                 => array(
+    'CEO_NAME'               => array(
         'value'        => '',
         'title'        => 'Директор компании',
         'description'  => 'Укажите Фамилию И.О.',
-        'control_type' => 'text',
+        'control_type' => waHtmlControl::INPUT,
         'subject'      => 'printform',
     ),
-    'BUH_NAME'                 => array(
+    'BUH_NAME'               => array(
         'value'        => '',
         'title'        => 'Бухгалтер компании',
         'description'  => 'Укажите Фамилию И.О.',
-        'control_type' => 'text',
+        'control_type' => waHtmlControl::INPUT,
         'subject'      => 'printform',
     ),
-    'IP_NAME'                  => array(
+    'IP_NAME'                => array(
         'value'        => '',
         'title'        => 'Индивидуальный предприниматель',
         'description'  => 'Укажите Фамилию И.О.',
-        'control_type' => 'text',
+        'control_type' => waHtmlControl::INPUT,
         'subject'      => 'printform',
     ),
-    'IP_REGISTRATION'          => array(
+    'IP_REGISTRATION'        => array(
         'value'        => '',
         'title'        => 'Реквизиты',
         'description'  => 'Укажите реквизиты свидетельства о государственной регистрации индивидуального предпринимателя',
         'control_type' => 'textarea',
         'subject'      => 'printform',
     ),
-    'BANK_ACCOUNT_NUMBER'      => array(
+    'BANK_ACCOUNT_NUMBER'    => array(
         'value'        => '',
         'title'        => 'Расчетный счет',
         'description'  => 'Номер расчетного счета организации',
-        'control_type' => 'text',
+        'control_type' => waHtmlControl::INPUT,
         'subject'      => 'printform',
     ),
-    'INN'                      => array(
+    'INN'                    => array(
         'value'        => '',
         'title'        => 'ИНН',
         'description'  => 'ИНН организации',
-        'control_type' => 'text',
+        'control_type' => waHtmlControl::INPUT,
         'subject'      => 'printform',
     ),
-    'KPP'                      => array(
+    'KPP'                    => array(
         'value'        => '',
         'title'        => 'КПП',
         'description'  => '',
-        'control_type' => 'text',
+        'control_type' => waHtmlControl::INPUT,
         'subject'      => 'printform',
     ),
-    'BANKNAME'                 => array(
+    'BANKNAME'               => array(
         'value'        => '',
         'title'        => 'Наименование банка',
         'description'  => '',
-        'control_type' => 'text',
+        'control_type' => waHtmlControl::INPUT,
         'subject'      => 'printform',
     ),
-    'BANK_KOR_NUMBER'          => array(
+    'BANK_KOR_NUMBER'        => array(
         'value'        => '',
         'title'        => 'Корреспондентский счет',
         'description'  => '',
-        'control_type' => 'text',
+        'control_type' => waHtmlControl::INPUT,
         'subject'      => 'printform',
     ),
-    'BIK'                      => array(
+    'BIK'                    => array(
         'value'        => '',
         'title'        => 'БИК',
         'description'  => '',
-        'control_type' => 'text',
+        'control_type' => waHtmlControl::INPUT,
         'subject'      => 'printform',
     ),
-    'CUSTOMER_COMPANY_FIELD'   => array(
+    'CUSTOMER_COMPANY_FIELD' => array(
         'value'        => 'company',
         'title'        => 'Компания покупателя',
         'description'  => 'Поле "Компания" в форме регистрации',
         'control_type' => waHtmlControl::CONTACTFIELD,
         'subject'      => 'printform',
     ),
-    'CUSTOMER_PHONE_FIELD'     => array(
+    'CUSTOMER_PHONE_FIELD'   => array(
         'value'        => 'phone',
         'title'        => 'Телефон покупателя',
         'description'  => 'Поле "телефон" в форме регистрации',
         'control_type' => waHtmlControl::CONTACTFIELD,
         'subject'      => 'printform',
     ),
-    'CUSTOMER_INN_FIELD'       => array(
+    'CUSTOMER_INN_FIELD'     => array(
         'value'        => false,
         'title'        => 'ИНН покупателя',
         'description'  => 'Поле "ИНН" в форме регистрации',
         'control_type' => waHtmlControl::CONTACTFIELD,
         'subject'      => 'printform',
     ),
-    'CUSTOMER_KPP_FIELD'       => array(
+    'CUSTOMER_KPP_FIELD'     => array(
         'value'        => false,
         'title'        => 'КПП покупателя',
         'description'  => 'Поле "КПП" в форме регистрации',

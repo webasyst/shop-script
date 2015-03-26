@@ -57,6 +57,7 @@ class shopWorkflow extends waWorkflow
             }
             unset($state);
         }
+        reset($config['states']);
         return $config['states'];
     }
 

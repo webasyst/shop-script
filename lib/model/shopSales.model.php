@@ -873,17 +873,22 @@ class shopSalesModel extends waModel
         }
 
         // Obtain lock
-        $this->exec(
-            "LOCK TABLES
-                {$this->table} WRITE,
-                shop_expense READ,
-                shop_sales_tmp AS st READ,
-                shop_order AS o READ,
-                shop_product AS p READ,
-                shop_product_skus AS ps READ,
-                shop_currency AS pcur READ,
-                shop_order_items AS oi READ"
-        );
+        try {
+            $this->exec(
+                "LOCK TABLES
+                    {$this->table} WRITE,
+                    shop_expense READ,
+                    shop_sales_tmp AS st READ,
+                    shop_order AS o READ,
+                    shop_product AS p READ,
+                    shop_product_skus AS ps READ,
+                    shop_currency AS pcur READ,
+                    shop_order_items AS oi READ"
+            );
+        } catch (waDbException $e) {
+            // Oh, well... nvm then.
+            $no_lock = true;
+        }
 
         // Delete old cached data we're about to rebuild
         $hash = self::getHash($type, $options);
@@ -1032,7 +1037,7 @@ class shopSalesModel extends waModel
         }
 
         // Release lock
-        $this->exec("UNLOCK TABLES");
+        empty($no_lock) && $this->exec("UNLOCK TABLES");
     }
 
     protected function rebuildTmpCountries($date_sql, $options)

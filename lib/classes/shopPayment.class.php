@@ -137,7 +137,7 @@ class shopPayment extends waAppPayment
      *
      * formalize order data
      * @param string|array $order order ID or order data
-     * @param waPayment $payment_plugin
+     * @param waPayment|string|string[] $payment_plugin
      * @return waOrder
      * @throws waException
      *
@@ -171,47 +171,51 @@ class shopPayment extends waAppPayment
         }
         $convert = false;
         if ($payment_plugin && is_object($payment_plugin) && (method_exists($payment_plugin, 'allowedCurrency'))) {
-            $currency = $payment_plugin->allowedCurrency();
+            $allowed_currencies = $payment_plugin->allowedCurrency();
             $total = $order['total'];
             $currency_id = $order['currency'];
-            if ($currency !== true) {
-                $currency = (array)$currency;
+            if ($allowed_currencies !== true) {
+                $allowed_currencies = (array)$allowed_currencies;
 
 
-                if (!in_array($order['currency'], $currency)) {
+                if (!in_array($order['currency'], $allowed_currencies)) {
                     $config = wa('shop')->getConfig();
                     /**
                      * @var shopConfig $config
                      */
                     $currencies = $config->getCurrencies();
-                    $currency = array_intersect($currency, array_keys($currencies));
-                    if (!$currency) {
-                        $message = _w('Payment procedure cannot be processed because required currency %s is not defined in your store settings.');
-                        throw new waException(sprintf($message, implode(', ', $currencies)));
+                    $matched_currency = array_intersect($allowed_currencies, array_keys($currencies));
+                    if (!$matched_currency) {
+                        if ($payment_plugin instanceof waPayment) {
+                            $message = _w('Payment procedure cannot be processed because required currency %s is not defined in your store settings.');
+                        } else {
+                            $message = _w('Data cannot be processed because required currency %s is not defined in your store settings.');
+                        }
+                        throw new waException(sprintf($message, implode(', ', $allowed_currencies)));
                     }
 
                     $convert = true;
-                    $total = shop_currency($total, $order['currency'], $currency_id = reset($currency), false);
+                    $total = shop_currency($total, $order['currency'], $currency_id = reset($matched_currency), false);
                 }
             }
         } elseif (is_array($payment_plugin) || is_string($payment_plugin)) {
             $total = $order['total'];
             $currency_id = $order['currency'];
 
-            $currency = (array)$payment_plugin;
-            if (!in_array($order['currency'], $currency)) {
+            $allowed_currencies = (array)$payment_plugin;
+            if (!in_array($order['currency'], $allowed_currencies)) {
                 $config = wa('shop')->getConfig();
                 /**
                  * @var shopConfig $config
                  */
                 $currencies = $config->getCurrencies();
-                $currency = array_intersect($currency, array_keys($currencies));
-                if (!$currency) {
-                    $message = _w('Payment procedure cannot be processed because required currency %s is not defined in your store settings.');
-                    throw new waException(sprintf($message, implode(', ', $currencies)));
+                $matched_currency = array_intersect($allowed_currencies, array_keys($currencies));
+                if (!$matched_currency) {
+                    $message = _w('Data cannot be processed because required currency %s is not defined in your store settings.');
+                    throw new waException(sprintf($message, implode(', ', $allowed_currencies)));
                 }
                 $convert = true;
-                $total = shop_currency($total, $order['currency'], $currency_id = reset($currency), false);
+                $total = shop_currency($total, $order['currency'], $currency_id = reset($matched_currency), false);
             }
         } else {
             $currency_id = $order['currency'];
@@ -315,7 +319,7 @@ class shopPayment extends waAppPayment
 
     public function refund()
     {
-
+        
     }
 
     public function auth()

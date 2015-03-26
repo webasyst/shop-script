@@ -202,7 +202,15 @@ class shopReportsmarketingcostsActions extends waViewActions
         $expense_id = waRequest::request('expense_id', '', 'int');
         if ($expense_id) {
             $expense_model = new shopExpenseModel();
-            $expense_model->deleteById($expense_id);
+            $expense = $expense_model->getById($expense_id);
+
+            if ($expense) {
+                // Clear sales chart cache for the period
+                $sales_model = new shopSalesModel();
+                $sales_model->deletePeriod($expense['start'], $expense['end']);
+
+                $expense_model->deleteById($expense_id);
+            }
         }
         exit;
     }
@@ -241,7 +249,7 @@ class shopReportsmarketingcostsActions extends waViewActions
             $result[$additional_source] = array(
                 'name' => $additional_source,
                 'label' => $additional_source,
-                'color' => ifempty($color, '#f00'),
+                'color' => ifempty($color, sprintf('#%06X', mt_rand(0, 0xFFFFFF))),
                 'sales' => 0,
             );
         }
