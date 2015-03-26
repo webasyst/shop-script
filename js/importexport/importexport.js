@@ -271,7 +271,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
 
     profileAdd: function (plugin, hash) {
         hash = hash || '';
-        if (hash.match(/^hash\//)) {
+        if ((typeof hash == 'string') && hash.match(/^hash\//)) {
             hash = hash.replace(/^hash\//, '');
         } else {
             hash = null;

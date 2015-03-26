@@ -48,6 +48,7 @@
                     </tbody>
                 </table>
             {else}
+                <table class="zebra single-lined hidden"><tbody id="s-reports-marketing-costs-table"></tbody></table>
                 <div class="empty expense-row">
                     <h3>[`No marketing expenses on the selected period`]</h3>
                     <p class="gray">[`Add your marketing expenses to automate ROI (Return On Investment) calculation by traffic source and campaign.`]</p>
@@ -106,7 +107,7 @@
         var count = $table.children().length;
         $table.html('<tr><td><i class="icon16 loading"></i></td></tr>');
         $.post('?module=reportsmarketingcosts&action=rows', $.extend({}, request_options, { limit: Math.max(limit, count) }), function(r) {
-            $table.html(r);
+            $table.html(r).parent().show();
             updatePeriods();
         });
     });

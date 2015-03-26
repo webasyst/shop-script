@@ -10310,3 +10310,16 @@ msgstr ""
 #: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:139
 msgid "Last ordered over a month ago"
 msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:31
+msgid "https://www.webasyst.com/help/3142/shop-script-a-b-testing/"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:83
+msgid "Some required contact info fields were not provided. Please return to the contact information checkout step to finalize your order."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopPayment.class.php:192
+#: /wa-apps/shop/lib/classes/shopPayment.class.php:214
+msgid "Data cannot be processed because required currency %s is not defined in your store settings."
+msgstr ""

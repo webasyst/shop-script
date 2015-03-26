@@ -237,8 +237,8 @@ class shopCsvProductrunController extends waLongActionController
             }
             $app_settings->set('shop', 'csv.upload_app', $upload_app);
         }
-        //obsolete option
-        $this->data['ignore_category'] = true || !!waRequest::post('ignore_category', 0, waRequest::TYPE_INT);
+
+        $this->data['ignore_category'] = !!waRequest::post('ignore_category', 0, waRequest::TYPE_INT);
 
         $this->data['nl2br_description'] = !!waRequest::post('nl2br_description');
         if (!in_array($this->data['primary'], array('name', 'url', 'null',))) {
@@ -923,7 +923,7 @@ class shopCsvProductrunController extends waLongActionController
                 }
             }
             if ($category_id) {
-                //add extra category if category setted
+                //add extra category if category detected
                 $data['categories'] = array_merge(array_keys($product->categories), array($category_id));
             }
             $key .= ':u:'.$product->getId();

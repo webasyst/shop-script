@@ -13,6 +13,9 @@ class shopCurrencyModel extends waModel
         $data = $this->query("SELECT * FROM `{$this->table}` ORDER BY `sort`")->fetchAll($key, $normalize);
         foreach ($data as & $item) {
             $item['rate'] = (double) $item['rate'];
+            if (!((double) $item['rounding'])) {
+                $item['rounding'] = null;
+            }
         }
         return $data;
     }
@@ -52,6 +55,9 @@ class shopCurrencyModel extends waModel
                     $code = $c['code'];
                     if (isset($currencies[$code])) {
                         $c['rate'] = (double)$c['rate'];
+                        if (!((double)$c['rounding'])) {
+                            $c['rounding'] = null;
+                        }
                         $data[$code] = $currencies[$code] + $c;
                         $data[$code]['is_primary'] = $primary == $code;
                     }

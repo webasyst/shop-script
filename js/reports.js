@@ -23,6 +23,19 @@
             }
             document.documentElement.setAttribute('lang', options.lang);
             $.reports.initTimeframeSelector();
+            $.reports.initPaidOrdersNotice();
+        },
+
+        initPaidOrdersNotice: function() {
+            var $wrapper = $('#reports-paid-orders-notice');
+            if (!$.storage.get('shop/reports/paid-orders-notice-closed')) {
+                $wrapper.show().one('click', '.close', function() {
+                    $.storage.set('shop/reports/paid-orders-notice-closed', 1);
+                    $wrapper.slideUp();
+                });
+            } else {
+                $wrapper.remove();
+            }
         },
 
         // Timeframe selector logic
