@@ -23,7 +23,7 @@
 	}
 }
 
-.nobr {
+.nobr, .nowrap {
 	white-space: nowrap;
 }
 

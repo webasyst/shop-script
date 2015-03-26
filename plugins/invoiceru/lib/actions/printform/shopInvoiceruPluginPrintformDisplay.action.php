@@ -1,34 +1,19 @@
 <?php
+
 class shopInvoiceruPluginPrintformDisplayAction extends waViewAction
 {
     public function execute()
     {
-        //XXX check rights
-        $plugin_id = 'invoiceru';
-        $plugin = waSystem::getInstance()->getPlugin($plugin_id);
-        $order_id = waRequest::request('order_id', null, waRequest::TYPE_INT);
-        $order = shopPayment::getOrderData($order_id, $this);
-
-        switch (wa()->getEnv()) {
-            case 'backend':
-                if (!$order && !$order_id) {
-                    $dummy_order = array(
-                        'contact_id' => $this->getUser()->getId(),
-                        'id'         => 1,
-                        'id_str'     => shopHelper::encodeOrderId(1),
-                        'currency'   => $this->allowedCurrency(),
-                    );
-                    $order = waOrder::factory($dummy_order);
-                } elseif (!$order) {
-                    throw new waException('Order not found', 404);
-                }
-                break;
-            default:
-                if (!$order) {
-                    throw new waException('Order not found', 404);
-                }
-                break;
+        if (!wa()->getUser()->getRights('shop', 'orders')) {
+            throw new waRightsException('Access denied');
         }
+
+        $plugin = waSystem::getInstance()->getPlugin('invoiceru');
+        /**
+         * @var shopInvoiceruPlugin $plugin
+         */
+
+        $order = $plugin->getOrder(waRequest::request('order_id', null, waRequest::TYPE_INT));
 
         if ($order && $order->items) {
             $items = $this->getItems($order);
@@ -36,23 +21,27 @@ class shopInvoiceruPluginPrintformDisplayAction extends waViewAction
             $items = array();
         }
 
+        $settings = $plugin->getSettings();
+
+        $contact = array(
+            'inn'     => empty($settings['CUSTOMER_INN_FIELD']) ? '' : $order->getContactField($settings['CUSTOMER_INN_FIELD']),
+            'kpp'     => empty($settings['CUSTOMER_KPP_FIELD']) ? '' : $order->getContactField($settings['CUSTOMER_KPP_FIELD']),
+            'phone'   => empty($settings['CUSTOMER_PHONE_FIELD']) ? '' : $order->getContactField($settings['CUSTOMER_PHONE_FIELD'],'value'),
+            'company' => empty($settings['CUSTOMER_COMPANY_FIELD']) ? '' : $order->getContactField($settings['CUSTOMER_COMPANY_FIELD']),
+
+        );
         $this->setTemplate($plugin->getTemplatePath());
-        
-        $this->view->assign('settings', $plugin->getSettings());
-        $this->view->assign('order', $order);
-        $this->view->assign('items', $items);
+        $this->view->assign(compact('settings', 'order', 'items', 'contact'));
     }
 
-    public function allowedCurrency()
-    {
-        return 'RUB';
-    }
-
+    /**
+     * @param waOrder $order
+     * @return array
+     */
     private function getItems($order)
     {
         $items = $order->items;
         $product_model = new shopProductModel();
-        $tax = 0;
         foreach ($items as & $item) {
             $data = $product_model->getById($item['product_id']);
             $item['tax_id'] = ifset($data['tax_id']);
@@ -60,14 +49,15 @@ class shopInvoiceruPluginPrintformDisplayAction extends waViewAction
         }
 
         unset($item);
-        shopTaxes::apply($items, array(
+        $params = array(
             'billing'  => $order->billing_address,
             'shipping' => $order->shipping_address,
-        ), $order->currency);
-        
+        );
+        shopTaxes::apply($items, $params, $order->currency);
+
         if ($order->discount) {
             if ($order->total + $order->discount - $order->shipping > 0) {
-                $k = 1.0 - ($order->discount) / ($order->total + $order->discount - $order->shipping);    
+                $k = 1.0 - ($order->discount) / ($order->total + $order->discount - $order->shipping);
             } else {
                 $k = 0;
             }
