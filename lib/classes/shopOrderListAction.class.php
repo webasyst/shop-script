@@ -73,6 +73,11 @@ class shopOrderListAction extends waViewAction
     public function getHash()
     {
         if ($this->hash === null) {
+
+            $search = waRequest::get('search', null, waRequest::TYPE_STRING_TRIM);
+            $this->hash = "search/{$search}";
+            return $this->hash;
+
             $filter_params = $this->getFilterParams();
             $hash = '';
             if ($filter_params) {

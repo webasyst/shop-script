@@ -10323,3 +10323,19 @@ msgstr ""
 #: /wa-apps/shop/lib/classes/shopPayment.class.php:214
 msgid "Data cannot be processed because required currency %s is not defined in your store settings."
 msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendReports.html:3
+msgid "Only paid and complete orders are shown in reports. If you don't see a particular order in reports, make sure to click <strong>Pay</strong> or <strong>Complete</strong> button on the order info page. Clicking either of these buttons will add a big PAID stamp for this order and make the order counted in your sales reports."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:7
+msgid "All products sorted by margin"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:8
+msgid "Purchased at least once during the selected report period"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:14
+msgid "Up to %d products"
+msgstr ""

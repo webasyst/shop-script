@@ -1,5 +1,22 @@
 <div class="content">
     <div class="block double-padded ">
+        <div class="block half-padded float-right">
+            <ul class="menu-h">
+                <li>
+                    <select id="only-sold-selector">
+                        <option value="">[`All products sorted by margin`]</option>
+                        <option value="1"{if $only_sold} selected{/if}>[`Purchased at least once during the selected report period`]</option>
+                    </select>
+                </li>
+                <li>
+                    <select id="limit-selector">
+                        {foreach [100, 250, 500] as $l}
+                            <option value="{$l|escape}"{if $l == $limit} selected{/if}>{sprintf('[`Up to %d products`]', $l|escape)}</option>
+                        {/foreach}
+                    </select>
+                </li>
+            </ul>
+        </div>
         <h1>
             [`What to sell`]
         </h1>
@@ -99,10 +116,34 @@
     {literal}var format_regexp = new RegExp('\\B(?=(\\d{3})+(?!\\d))', 'g');{/literal}
 
     var products = {json_encode($products)};
+    var request_options = {json_encode($request_options)};
+    var action_url = '?module=reportsproducts&action=whattosell';
 
     var $table = $('#s-reports-what-to-sell-table');
     var $period_selector = $('#future-period-selector');
     var $thead = $table.children('thead');
+
+    // Reload page when user changes number of products on page
+    var $limit_selector = $('#limit-selector');
+    $limit_selector.change(function() {
+        $limit_selector.after('<i class="icon16 loading"></i>');
+        var limit = $limit_selector.val();
+        $.storage.set('shop/reports/whattosell/limit', limit); // used in reports.js
+        $.post(action_url, $.extend({}, request_options, { limit: limit }), function(r) {
+            $('#reportscontent').html(r);
+        });
+    });
+
+    // Reload page when user changes filtering selector
+    var $only_sold_selector = $('#only-sold-selector');
+    $only_sold_selector.change(function() {
+        $only_sold_selector.after('<i class="icon16 loading"></i>');
+        var val = $only_sold_selector.val();
+        $.storage.set('shop/reports/whattosell/only_sold', val); // used in reports.js
+        $.post(action_url, $.extend({}, request_options, { only_sold: val }), function(r) {
+            $('#reportscontent').html(r);
+        });
+    });
 
     // Initialize table
     ( function() { "use strict";
@@ -122,10 +163,10 @@
             $tr.find('> .col-name .product-name').text(p.name);
             $tr.find('> .col-name .sku-names').text(p.sku_names);
             $tr.find('> .col-margin input').attr('placeholder', p.margin);
-            $tr.find('> .col-margin .amount').text(p.margin);
+            $tr.find('> .col-margin .amount').html(p.margin);
             $tr.find('> .col-sold input').attr('placeholder', p.sold);
             $tr.find('> .col-sold input').attr('value', p.sold);
-            $tr.find('> .col-to-ship .in-stock').text(formatNum(p.count));
+            $tr.find('> .col-to-ship .in-stock').html(formatNum(p.count));
             trs.push($tr[0]);
         });
 
@@ -223,20 +264,19 @@
             total_purchase += purchase;
             total_income += income;
 
-            $tr.find('> .col-sales .amount').text(formatNum(sales)).closest('.col-sales').data('sort', sales);
-            $tr.find('> .col-expenses .amount').text(formatNum(purchase)).closest('.col-expenses').data('sort', purchase);
-            $tr.find('> .col-to-ship .to-ship').text(formatNum(to_ship)).closest('.col-to-ship').data('sort', to_ship);
-            $tr.find('> .col-income .amount').text(formatNum(income)).closest('.col-income').data('sort', income);
-            $tr.find('> .col-margin').data('sort', margin);
-            $tr.find('> .col-sold').data('sort', sold);
+            $tr.find('.col-sales').data('sort', sales).find('.amount').html(formatNum(sales));
+            $tr.find('.col-expenses').data('sort', purchase).find('.amount').html(formatNum(purchase));
+            $tr.find('.col-to-ship').data('sort', to_ship).find('.to-ship').html(formatNum(to_ship));
+            $tr.find('.col-income').data('sort', income).find('.amount').html(formatNum(income));
+            $tr.find('.col-margin').data('sort', margin);
+            $tr.find('.col-sold').data('sort', sold);
             if (more_to_buy) {
-                $tr.find('> .col-expenses .more-to-buy').show().find('.more-to-buy-num').text(formatNum(more_to_buy));
+                $tr.find('> .col-expenses .more-to-buy').css('display', 'inline').find('.more-to-buy-num').html(formatNum(more_to_buy));
             } else {
-                $tr.find('> .col-expenses .more-to-buy').hide().find('.more-to-buy-num').text('0');
+                $tr.find('> .col-expenses .more-to-buy').css('display', 'none').find('.more-to-buy-num').html('0');
             }
 
-
-            var $income_bar_td = $tr.find('> .col-income-bar');
+            var $income_bar_td = $tr.find('.col-income-bar');
             if (purchase > 0) {
                 var profitability = Math.round(income*100/purchase);
                 $income_bar_td.attr('title',
@@ -246,9 +286,9 @@
                         .replace('%s', profitability)
                         .replace('%%', '%')
                 );
-                $income_bar_td.children('i').show().text(profitability+'%');
+                $income_bar_td.find('i').css('display', 'inline').html(profitability+'%');
             } else {
-                $income_bar_td.children('i').hide().text('');
+                $income_bar_td.find('i').css('display', 'none').html('');
                 $income_bar_td.attr('title', '');
             }
 
@@ -264,15 +304,16 @@
             var margin = $tr.data('margin');
             var sales = $tr.data('sales');
 
-            $tr.find('> .col-margin-bar span').width(max_margin > 0 ? margin * 100 / max_margin : 0);
-            $tr.find('> .col-income-bar span span').width(max_sales > 0 ? purchase * 200 / max_sales : 0).parent().width(max_sales > 0 ? sales * 200 / max_sales : 0);
+            $tr.find('> .col-margin-bar span').css('width', (max_margin > 0 ? margin * 100 / max_margin : 0)+'px');
+            $tr.find('> .col-income-bar span span').css('width', (max_sales > 0 ? purchase * 200 / max_sales : 0)+'px')
+                .parent().css('width', (max_sales > 0 ? sales * 200 / max_sales : 0)+'px');
         });
 
         // Update totals
-        $thead.find('.total-sales .value').text(formatNum(total_sales));
-        $thead.find('.total-to-ship .value').text(formatNum(total_to_ship));
-        $thead.find('.total-expenses .value').text(formatNum(total_purchase));
-        $thead.find('.total-income .value').text(formatNum(total_income));
+        $thead.find('.total-sales .value').html(formatNum(total_sales));
+        $thead.find('.total-to-ship .value').html(formatNum(total_to_ship));
+        $thead.find('.total-expenses .value').html(formatNum(total_purchase));
+        $thead.find('.total-income .value').html(formatNum(total_income));
     }
 
     function formatNum(num) {

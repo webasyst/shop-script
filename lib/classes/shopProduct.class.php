@@ -81,9 +81,6 @@ class shopProduct implements ArrayAccess
         }
 
         if ($is_frontend) {
-            if (empty($this->data['id'])) {
-                throw new waException('Unable to convert non-saved product for frontend');
-            }
             $tmp = array(&$this->data);
             shopRounding::roundProducts($tmp);
         }

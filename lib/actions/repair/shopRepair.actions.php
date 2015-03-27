@@ -20,6 +20,13 @@ class shopRepairActions extends waActions
         print implode("\n\t", $actions);
     }
 
+    public function productcountsAction()
+    {
+        $model = new shopProductModel();
+        $model->correctCount();
+        echo "OK";
+    }
+
     public function categoriesAction()
     {
         $model = new shopCategoryModel();

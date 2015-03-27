@@ -120,6 +120,8 @@
         </div>
         <div class="content right200px" id="s-product-view">
 
+            {* @event backend_product.%plugin_id%.info_section *}
+            {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.info_section)}{/foreach}{/if}
 
             {capture name='template-product-categories'}
                 {literal}

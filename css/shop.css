@@ -108,7 +108,7 @@ table.s-big-table td input { margin-top: -4px; }
 table.s-big-table td table.zebra td { border: none; padding: 5px; }
 
 .dialog-background { z-index: 1052; }
-.dialog-window { z-index: 1053 /* redactor editor z-index */; }
+.dialog-window { z-index: 1052 /* redactor editor z-index */; }
 .dialog .ace { padding: 15px 12px; }
 
 .ace.bordered { border: 1px solid #ddd; }
@@ -383,7 +383,7 @@ ul.menu-v.with-icons a.rate-clear { margin: 0; padding: 0; }
 #s-product-edit-forms { padding-bottom: 60px; }
 #s-product-edit-menu { display: none; margin-left: -5px; }
 #s-product-edit-menu li .disabled { cursor: pointer; }
-#s-product-edit-save-panel { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 0 10px; box-shadow: 0 -6px 10px -10px #AAAAAA; z-index: 1054; }
+#s-product-edit-save-panel { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 0 10px; box-shadow: 0 -6px 10px -10px #AAAAAA; z-index: 1052; }
 #s-product-profile-page { clear: right; }
 #s-product-profile-page .content.right200px { margin-right: 230px /* a bit more ousted by product performance charts */; }
 
@@ -530,7 +530,7 @@ ul.thumbs.s-mini-stream li.s-stream-wrapper { height: 48px; overflow: hidden; pa
 .badge { height: 75px; width: 75px; background: #a1fcff; position: absolute; text-align: left; top: 5px; right: -5px; -moz-transform: rotate(30deg); -webkit-transform: rotate(30deg); -ms-transform: rotate(30deg); -o-transform: rotate(30deg); transform: rotate(30deg); }
 .badge:before { height: 75px; width: 75px; background: inherit; content:""; position: absolute; -moz-transform: rotate(30deg); -webkit-transform: rotate(30deg); -ms-transform: rotate(30deg); -o-transform: rotate(30deg); transform: rotate(30deg); }
 .badge:after { height: 75px; width: 75px; background: inherit; content:""; position: absolute; -moz-transform: rotate(-30deg); -webkit-transform: rotate(-30deg); -ms-transform: rotate(-30deg); -o-transform: rotate(-30deg); transform: rotate(-30deg); }
-.badge span { color: #000 !important; font-weight: bold; position: absolute; z-index: 1983; top: 27px; left: -2px; right: -2px; transform: rotate(-13deg); -webkit-transform: rotate(-13deg); -moz-transform: rotate(-13deg); -o-transform: rotate(-13deg); font-size: 1.4em; text-align: center; overflow: visible; line-height: 1em; }
+.badge span { color: #000; font-weight: bold; position: absolute; z-index: 1983; top: 27px; left: -2px; right: -2px; transform: rotate(-13deg); -webkit-transform: rotate(-13deg); -moz-transform: rotate(-13deg); -o-transform: rotate(-13deg); font-size: 1.4em; text-align: center; overflow: visible; line-height: 1em; }
 .badge.bestseller span { font-size: 1.3em; top: 28px; }
 
 .badge.new,
@@ -721,6 +721,9 @@ ul.menu-h.s-reports-timeframe li.s-custom-timeframe input { width: 100px; }
 .s-tr-campaign td { color: #278382; }
 
 #load-more-rows { margin-top: 20px; }
+
+.s-alert#reports-paid-orders-notice,
+.s-alert#reports-hosting-plan-notice { position: relative; top: 20px; margin-left: 10px; margin-right: 10px; }
 
 /* What to sell */
 /* thead */

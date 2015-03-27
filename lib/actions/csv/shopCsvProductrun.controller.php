@@ -2116,7 +2116,7 @@ class shopCsvProductrunController extends waLongActionController
                                                 array_unshift($f_values, (string)$sku['features'][$feature['code']]);
                                             }
 
-                                            $product['features'][$feature['code']] = $this->writeRow($f_values, '<{%s}>');
+                                            $product['features'][$feature['code']] = $this->writeRow($f_values, '<{%s}>', true);
                                         }
                                     }
                                 }
@@ -2247,20 +2247,24 @@ class shopCsvProductrunController extends waLongActionController
         return $data;
     }
 
-    private function writeRow($data, $template = '{%s}')
+    private function writeRow($data, $template = '{%s}', $force = false)
     {
 
         if (is_array($data)) {
-            $enclosure = $this->writer->enclosure;
-            $pattern = sprintf("/(?:%s|%s|%s)/", preg_quote(',', '/'), preg_quote($enclosure, '/'), preg_quote($enclosure, '/'));
+            if (!$force && (count($data) == 1)) {
+                $data = reset($data);
+            } else {
+                $enclosure = $this->writer->enclosure;
+                $pattern = sprintf("/(?:%s|%s|%s)/", preg_quote(',', '/'), preg_quote($enclosure, '/'), preg_quote($enclosure, '/'));
 
-            foreach ($data as &$value) {
-                if (preg_match($pattern, $value)) {
-                    $value = $enclosure.str_replace($enclosure, $enclosure.$enclosure, $value).$enclosure;
+                foreach ($data as &$value) {
+                    if (preg_match($pattern, $value)) {
+                        $value = $enclosure.str_replace($enclosure, $enclosure.$enclosure, $value).$enclosure;
+                    }
+                    unset($value);
                 }
-                unset($value);
+                $data = $data ? sprintf($template, implode(',', array_unique($data))) : '';
             }
-            $data = $data ? sprintf($template, implode(',', array_unique($data))) : '';
         }
         return $data;
     }

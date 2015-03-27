@@ -205,6 +205,10 @@
         },
 
         ordersAction: function(params) {
+            var search_hash = '';
+            if (params === 'search') {
+                search_hash = Array.prototype.slice.call(arguments, 1);
+            }
             if (arguments.length > 1) {
                 params = Array.prototype.join.call(arguments, '/');
             }
@@ -221,6 +225,9 @@
             $.storage.set('shop/orders/view', params.view);
             if ($.order_edit) {
                 $.order_edit.slideBack();
+            }
+            if (search_hash) {
+                params.search = search_hash;
             }
             if (this.actionName !== 'orders' || !$.order_list) {
                 if ($.order_list) {

@@ -169,9 +169,10 @@ class shopProductAction extends waViewAction
          * @return array[string][string]string $return[%plugin_id%]['title_suffix'] html output
          * @return array[string][string]string $return[%plugin_id%]['action_button'] html output
          * @return array[string][string]string $return[%plugin_id%]['toolbar_section'] html output
-         * @return array[string][string]string $return[%plugin_id%]['image_li'] html output
+         * @return array[string][string]string $return[%plugin_id%]['info_section'] html output*
+         * @return array[string][string]string $return[%plugin_id%]['edit_section_li'] html output
          */
-        $this->view->assign('backend_product', wa()->event('backend_product', $product));
+        $this->view->assign('backend_product', wa()->event('backend_product', $product, array()));
 
         /**
          * @event backend_product_edit
