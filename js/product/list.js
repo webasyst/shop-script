@@ -583,6 +583,8 @@
 
                     fixed = false;
 
+                    $.categories_tree.init();
+
                 }
 
                 function dummyExists() {
@@ -1610,6 +1612,7 @@
                             $a.find('.s-image-corner.top.right').remove();
                             badge_html && $a.append($('<div class="s-image-corner top right"></div>').html(badge_html));
                         }
+                        $li.trigger('badge', [badge_html]);
                     }
                 });
 

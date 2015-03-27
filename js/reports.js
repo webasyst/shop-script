@@ -287,7 +287,9 @@
         },
         productsWhattosellAction: function() {
             this.setActiveTop('products');
-            $("#reportscontent").load('?module=reportsproducts&action=whattosell'+this.getTimeframeParams());
+            var limit = $.storage.get('shop/reports/whattosell/limit');
+            var only_sold = $.storage.get('shop/reports/whattosell/only_sold');
+            $("#reportscontent").load('?module=reportsproducts&action=whattosell'+this.getTimeframeParams()+(limit ? '&limit='+limit : '')+(only_sold ? '&only_sold=1' : ''));
         },
 
         checkoutflowAction: function() {

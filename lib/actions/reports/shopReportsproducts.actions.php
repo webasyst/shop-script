@@ -248,9 +248,37 @@ class shopReportsproductsActions extends waViewActions
     {
         shopReportsSalesAction::jsRedirectIfDisabled();
 
+        $only_sold = !!waRequest::request('only_sold');
         $limit = (int) waRequest::request('limit', 100, 'int');
         $limit || ($limit = 100);
         $size = wa('shop')->getConfig()->getOption('enable_2x') ? '48x48@2x' : '48x48';
+
+        list($start_date, $end_date, $group_by, $request_options) = shopReportsSalesAction::getTimeframeParams();
+        $request_options += array(
+            'only_sold' => ifempty($only_sold, ''),
+            'limit' => $limit,
+        );
+
+        $product_model = new shopProductModel();
+
+        $filter_join_sql = "";
+        if ($only_sold) {
+            $order_date_sql = shopSalesModel::getDateSql('o.paid_date', $start_date, $end_date);
+
+            $product_model->exec("CREATE TEMPORARY TABLE IF NOT EXISTS sku_ids (
+                id int(11) unsigned not null primary key
+            )");
+            $product_model->exec("TRUNCATE sku_ids");
+            $sql = "INSERT INTO sku_ids
+                    SELECT DISTINCT oi.sku_id
+                    FROM shop_order_items AS oi
+                        JOIN shop_order AS o
+                            ON o.id=oi.order_id
+                    WHERE {$order_date_sql}";
+            $product_model->exec($sql);
+
+            $filter_join_sql = "JOIN sku_ids ON sku_ids.id=s.id";
+        }
 
         // Get top-100 products by margin
         $sql = "SELECT p.id, p.name, p.image_id, p.ext, p.sku_count, p.create_datetime,
@@ -265,11 +293,11 @@ class shopReportsproductsActions extends waViewActions
                         ON s.product_id=p.id
                     JOIN shop_currency AS c
                         ON c.code=p.currency
+                    {$filter_join_sql}
                 WHERE 1=1
                 GROUP BY margin, p.id
                 ORDER BY margin DESC, p.id DESC
                 LIMIT {$limit}";
-        $product_model = new shopProductModel();
         $max_margin = 0;
         $skus = array(); // sku_id => index
         $products = array();
@@ -340,6 +368,8 @@ class shopReportsproductsActions extends waViewActions
             'cur_tmpl' => str_replace('0', '%s', wa_currency_html(0, $def_cur)),
             'cur_tmpl_plain' => str_replace('0', '%s', wa_currency(0, $def_cur)),
             'locale_info' => waLocale::getInfo(wa()->getLocale()),
+            'request_options' => $request_options,
+            'only_sold' => $only_sold,
             'products' => $products,
             'limit' => $limit,
         ));

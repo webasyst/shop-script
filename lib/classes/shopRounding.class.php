@@ -188,6 +188,9 @@ class shopRounding
         $frontend_currency = wa('shop')->getConfig()->getCurrency(false);
 
         foreach ($services as &$s) {
+            if ($s['currency'] == '%') {
+                continue;
+            }
             if (!isset($s['unconverted_currency'])) {
                 $s['frontend_price'] = $s['price'];
                 $s['unconverted_price'] = $s['price'];

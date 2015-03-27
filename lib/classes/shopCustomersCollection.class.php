@@ -280,7 +280,7 @@ class shopCustomersCollection extends waContactsCollection
         if (is_array($val)) {
             $range[0] = $this->getModel()->escape($val[0]);
             $range[1] = $this->getModel()->escape($val[1]);
-            $this->addWhere("{$this->customer_table_alias}.total_spent >= '{$range[0]}' &&
+            $this->addWhere("{$this->customer_table_alias}.total_spent >= '{$range[0]}' AND
                 {$this->customer_table_alias}.total_spent <= '{$range[1]}'");
             if ($auto_title)  {
                 $this->addTitle(_w('Total spent') . '=' . $val[0] . '–' . $val[1] . ' ' . wa()->getConfig()->getCurrency());
@@ -300,7 +300,7 @@ class shopCustomersCollection extends waContactsCollection
             $range[0] = $this->getModel()->escape($val[0]);
             $range[1] = $this->getModel()->escape($val[1]);
             $al = $this->addJoinOnce('shop_order');
-            $this->addHaving("SUM({$al}.total * {$al}.rate) >= '{$range[0]}' && SUM({$al}.total * {$al}.rate) >= '{$range[1]}'");
+            $this->addHaving("SUM({$al}.total * {$al}.rate) >= '{$range[0]}' AND SUM({$al}.total * {$al}.rate) <= '{$range[1]}'");
             if ($auto_title)  {
                 $this->addTitle(_w('Total spent') . '=' . $val[0] . '–' . $val[1] . ' ' . wa()->getConfig()->getCurrency());
             }
