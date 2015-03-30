@@ -374,7 +374,17 @@ class shopProductsCollection
                     $this->setHash('/search/'.$info['conditions']);
                     $this->prepare(true, false);
                 } else {
-                    $this->addJoin('shop_category_products', null, ':table.category_id = '.(int)$info['id']);
+                    $alias = $this->addJoin('shop_category_products');
+                    if ($info['include_sub_categories']) {
+                        $subcategories = $category_model->descendants($info, true)->where('type = '.shopCategoryModel::TYPE_STATIC)->fetchAll('id');
+                        $descendant_ids = array_keys($subcategories);
+                        if ($descendant_ids) {
+                            $this->where[] = $alias.".category_id IN(".implode(',', $descendant_ids).")";
+                        }
+                    } else {
+                        $this->where[] = $alias.".category_id = ".(int)$info['id'];
+                    }
+
                     break;
                 }
             }

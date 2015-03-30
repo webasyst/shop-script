@@ -41,11 +41,13 @@ class shopFrontendCartSaveController extends waJsonController
         }
         
         $total = $cart->total();
-        $discount = $cart->discount();
+        $discount = $cart->discount($order);
         
         $this->response['total'] = $is_html ? shop_currency_html($total, true) : shop_currency($total, true);
         $this->response['discount'] = $is_html ? shop_currency_html($discount, true) : shop_currency($discount, true);
         $this->response['discount_numeric'] = $discount;
+        $discount_coupon = ifset($order['params']['coupon_discount'], 0);
+        $this->response['discount_coupon'] = $is_html ? shop_currency_html($discount_coupon, true) : shop_currency($discount_coupon, true);
         $this->response['count'] = $cart->count();
         
         if (shopAffiliate::isEnabled()) {

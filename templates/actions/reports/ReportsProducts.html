@@ -132,8 +132,16 @@
                         <tr{if $p@index >= $rows_show_immidiately - 1} style="display:none;"{/if}>
                             <td><a href="?action=products#/product/{$p.id}/">{$wa->shop->getProductImgHtml($p, $size, ['height' => 48, 'width' => 48])}</a></td>
                             <td><a href="?action=products#/product/{$p.id}/">{$p.name|escape}</a></td>
-                            <td class="align-right">{wa_currency_html($p.sales, $def_cur)}</td>
-                            <td class="s-wider-cell align-right">{wa_currency_html($p.profit, $def_cur)}</td>
+                            <td class="align-right">
+                                <span title="{sprintf_wp('[`Subtotal %1$s &minus; Discount %2$s`]', wa_currency($p.sales_subtotal, $def_cur), wa_currency($p.discount, $def_cur))}">
+                                    {wa_currency_html($p.sales, $def_cur)}
+                                </span>
+                            </td>
+                            <td class="s-wider-cell align-right">
+                                <span title="{sprintf_wp('[`Total sales %1$s &minus; Purchase expense %2$s`]', wa_currency($p.sales, $def_cur), wa_currency($p.purchase, $def_cur))}">
+                                    {wa_currency_html($p.profit, $def_cur)}
+                                </span>
+                            </td>
                             <td class="s-wider-cell" style="background: #fff;"{if $p.sales - $p.profit > 0} title="{sprintf('[`Profit percentage = Net profit (%s) / Cost price (%s) = %s%%`]', wa_currency($p.profit, $def_cur), wa_currency($p.sales - $p.profit, $def_cur), round( 100 * $p.profit / ($p.sales - $p.profit)) )}"{/if}>
                                 {strip}<div class="s-bar" style="width:{$p.sales_percent}px;">
                                     <div class="s-bar2" style="width:{$p.profit_percent}px;"></div>

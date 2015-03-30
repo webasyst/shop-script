@@ -604,8 +604,9 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
                     'weight',
                 ),
             );
-            $ignored = array_map('intval', $model->select('id')->where('code in (s:code)', $data)->fetchAll());
+            $features = $model->select('id')->where('code in (s:code)', $data)->fetchAll('id');
+            $ignored = array_map('intval', array_keys($features));
         }
-        return in_array($feature_id, $ignored, true);
+        return in_array((int)$feature_id, $ignored, true);
     }
 }

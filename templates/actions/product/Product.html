@@ -51,7 +51,13 @@
                         <td>[`Units sold`]</td>
                         <td class="align-right nowrap">
                             <strong class="s-target s-last-month">{$sales.quantity}</strong>
-                            <strong class="s-target s-forecast hidden">{round($forecast.sold_rounded)}</strong>
+                            <strong class="s-target s-forecast hidden" data-hidden="{if $forecast.sold_rounded_1 == 0}1{else}0{/if}">{strip}
+                                {if $forecast.sold < 1}
+                                    {$forecast.sold_rounded_1_str}
+                                {else}
+                                    {$forecast.sold_rounded}
+                                {/if}
+                            {/strip}</strong>
                         </td>
                     </tr>
                     <tr>
@@ -957,6 +963,7 @@
     {/if}
 
     var sales_data = {if !empty($sales_data) && $report_rights}{json_encode($sales_data)}{else}[]{/if};
+    var cash_type = {wa_currency_html(0, $primary_currency)|replace:'0':'%s'|json_encode};
 
     // "By SKU" pie graph
     var sku_plot_data = {if !empty($sku_plot_data) && $report_rights}{json_encode($sku_plot_data)}{else}[]{/if};
@@ -1108,9 +1115,14 @@
     (function(menu, tabs_block) {
         menu.find('a').click(function() {
             menu.find('li.selected').removeClass('selected');
+            tabs_block.find('tr').show();
             var item = $(this).closest('li').addClass('selected');
+            var target = item.data('target');
             tabs_block.find('.s-target').hide()
-                .end().find('.s-' + item.data('target')).show();
+                .end().find('.s-' + target).show();
+            if (target === 'forecast') {
+                tabs_block.find('.s-' + target + '[data-hidden=1]').closest('tr').hide();
+            }
             return false;
         });
     })($('.s-report-toggler'), $('.s-report-tabs'));

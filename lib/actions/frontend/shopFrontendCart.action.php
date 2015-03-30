@@ -306,6 +306,9 @@ class shopFrontendCartAction extends shopFrontendAction
         ));
 
         $this->view->assign('coupon_code', isset($data['coupon_code']) ? $data['coupon_code'] : '');
+        if (!empty($data['coupon_code'])) {
+            $this->view->assign('coupon_discount', $order['params']['coupon_discount']);
+        }
         if (shopAffiliate::isEnabled()) {
             $affiliate_bonus = 0;
             if ($this->getUser()->isAuth()) {
