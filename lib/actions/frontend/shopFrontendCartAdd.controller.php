@@ -139,9 +139,13 @@ class shopFrontendCartAddController extends waJsonController
                 $item_id = $this->cart->addItem($data, $data_services);
             }
             if (waRequest::isXMLHttpRequest()) {
+                $discount = $this->cart->discount($order);
+                if (!empty($order['params']['affiliate_bonus'])) {
+                    $discount -= shop_currency(shopAffiliate::convertBonus($order['params']['affiliate_bonus']), $this->getConfig()->getCurrency(true), null, false);
+                }
                 $this->response['item_id'] = $item_id;
                 $this->response['total'] = $this->currencyFormat($this->cart->total());
-                $this->response['discount'] = $this->currencyFormat($this->cart->discount($order));
+                $this->response['discount'] = $this->currencyFormat($discount);
                 $this->response['discount_coupon'] = $this->currencyFormat(ifset($order['params']['coupon_discount'], 0), true);
                 $this->response['count'] = $this->cart->count();
             } else {
@@ -191,6 +195,9 @@ class shopFrontendCartAddController extends waJsonController
         }
         $total = $this->cart->total();
         $discount = $this->cart->discount($order);
+        if (!empty($order['params']['affiliate_bonus'])) {
+            $discount -= shop_currency(shopAffiliate::convertBonus($order['params']['affiliate_bonus']), $this->getConfig()->getCurrency(true), null, false);
+        }
 
         $this->response['id'] = $id;
         $this->response['total'] = $this->currencyFormat($total);

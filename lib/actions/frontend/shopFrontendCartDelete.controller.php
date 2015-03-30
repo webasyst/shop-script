@@ -18,6 +18,9 @@ class shopFrontendCartDeleteController extends waJsonController
         }
         $total = $cart->total();
         $discount = $cart->discount($order);
+        if (!empty($order['params']['affiliate_bonus'])) {
+            $discount -= shop_currency(shopAffiliate::convertBonus($order['params']['affiliate_bonus']), $this->getConfig()->getCurrency(true), null, false);
+        }
 
         
         $this->response['total'] = $is_html ? shop_currency_html($total, true) : shop_currency($total, true);
