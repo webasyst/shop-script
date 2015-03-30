@@ -109,8 +109,9 @@ class shopOrderSaveController extends waJsonController
         if ($id && !empty($data['discount'])) {
             // Non-empty description means that the discount were not specified by hand.
             if (!empty($discount_description)) {
+                $data['shipping'] = $this->cast($data['shipping']);
                 $data = array(
-                    'total' => $data['total'] + $this->cast($data['discount']),
+                    'total' => $data['total'] + $this->cast($data['discount']) - $data['shipping'],
                     'discount' => 0,
                     'params' => ifempty($data['params'], array()) + $params,
                 ) + $data;
@@ -122,7 +123,7 @@ class shopOrderSaveController extends waJsonController
                 // Calculate discounts
                 $discount_description = null;
                 $data['discount'] = shopDiscounts::reapply($data, $discount_description);
-                $data['total'] -= $data['discount'];
+                $data['total'] = $data['total'] - $data['discount'] + $data['shipping'];
                 if ($data['total'] <= 0) {
                     $data['total'] = 0;
                 }

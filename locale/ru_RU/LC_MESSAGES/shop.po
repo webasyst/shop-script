@@ -5351,7 +5351,8 @@ msgstr "Все доступные способы оплаты"
 
 # msgid "Shipping options"
 # msgstr "Способы доставки"
-#: /wa-apps/shop/lib/config/site.php:87 /wa-apps/shop/lib/config/site.php:91
+#: /wa-apps/shop/lib/config/site.php:87
+#: /wa-apps/shop/lib/config/site.php:91
 msgid "All available shipping options"
 msgstr "Все доступные способы доставки"
 
@@ -6402,7 +6403,8 @@ msgstr "Новый профиль"
 msgid "Perform action to all selected orders?"
 msgstr "Выполнить действие со всеми выбранными заказами?"
 
-#: /wa-apps/shop/js/product/list.js:407 /wa-apps/shop/js/product/list.js:568
+#: /wa-apps/shop/js/product/list.js:407
+#: /wa-apps/shop/js/product/list.js:568
 msgid "Drag products here"
 msgstr "Перетащите товары сюда"
 
@@ -6505,7 +6507,8 @@ msgstr "Автоматически перемещать товар вниз сп
 msgid "When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more."
 msgstr "Товары, которых нет на складе, будут автоматически перемещены вниз всех списков товаров на витрине интернет-магазина: в результатах поиска, в списках товаров внутри категорий, в результатах фильтрации товаров и т. д."
 
-#: /wa-apps/shop/lib/config/site.php:177 /wa-apps/shop/lib/config/site.php:181
+#: /wa-apps/shop/lib/config/site.php:177
+#: /wa-apps/shop/lib/config/site.php:181
 #: /wa-apps/shop/lib/config/site.php:182
 msgid "Setting <em>$available_only = true</em> will automatically exclude all out-of-stock products from the return"
 msgstr "Настройка <em>$available_only = true</em> автоматически исключит из результата все товары, которых нет на складе."
@@ -7906,6 +7909,12 @@ msgstr "Количество покупателей"
 msgid "Best selling products and services"
 msgstr "Бестселлеры"
 
+msgid "Subtotal %1$s &minus; Discount %2$s"
+msgstr "Общая стоимость %1$s &minus; Скидка %2$s"
+
+msgid "Total sales %1$s &minus; Purchase expense %2$s"
+msgstr "Общие продажи %1$s &minus; Закупочная стоимость %2$s"
+
 #: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:11
 #: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:17
 #: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:19
@@ -8964,3 +8973,4 @@ msgstr "Товары, которые были куплены в течение �
 #: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:14
 msgid "Up to %d products"
 msgstr "%d товаров"
+

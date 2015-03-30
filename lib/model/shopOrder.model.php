@@ -612,12 +612,19 @@ class shopOrderModel extends waModel
         } else {
             $rate = 1;
         }
-        $sql = "SELECT SUM(oi.price * o.rate * oi.quantity) total, SUM(oi.quantity) quantity,
-                SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*".$this->escape($rate).")*oi.quantity) purchase
+        $order_subtotal = '(o.total+o.discount-o.tax-o.shipping)';
+        $sql = "SELECT
+                    SUM(oi.price * o.rate * oi.quantity) subtotal,
+                    SUM(oi.quantity) quantity,
+                    SUM(IF({$order_subtotal} <= 0, 0, oi.price*o.rate*oi.quantity*o.discount / {$order_subtotal})) AS discount,
+                    SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*".$this->escape($rate).")*oi.quantity) purchase
                 FROM ".$this->table." o
-                JOIN shop_order_items oi
-                ON o.id = oi.order_id AND oi.product_id = i:product_id AND oi.type = 'product'
-                JOIN shop_product_skus ps ON oi.sku_id = ps.id
+                    JOIN shop_order_items oi
+                        ON o.id = oi.order_id
+                            AND oi.product_id = i:product_id
+                            AND oi.type = 'product'
+                    JOIN shop_product_skus ps
+                        ON oi.sku_id = ps.id
                 WHERE paid_date >= DATE_SUB(DATE('".date('Y-m-d')."'), INTERVAL 30 DAY)";
         $data = array();
         foreach ($this->query($sql, array('product_id' => $product_id))->fetch() as $key => $value) {
@@ -625,6 +632,8 @@ class shopOrderModel extends waModel
                 $data[$key] = (int) $value;
             }
         }
+
+        $data['total'] = $data['subtotal'] - $data['discount'];
         return $data;
     }
 
@@ -633,9 +642,11 @@ class shopOrderModel extends waModel
     {
         $product_id = (int) $product_id;
 
+        $order_subtotal = '(o.total+o.discount-o.tax-o.shipping)';
         $sql = "SELECT
             o.paid_date AS date,
-            SUM(oi.price*o.rate*oi.quantity) AS sales,
+            SUM(oi.price*o.rate*oi.quantity) AS subtotal_sales,
+            SUM(IF({$order_subtotal} <= 0, 0, oi.price*o.rate*oi.quantity*o.discount / {$order_subtotal})) AS discount,
             SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, IFNULL(ps.purchase_price*pcur.rate, 0))*oi.quantity) AS purchase
         FROM {$this->table} AS o
             JOIN shop_order_items AS oi
@@ -649,11 +660,14 @@ class shopOrderModel extends waModel
             WHERE p.id = i:product_id AND oi.type = 'product' AND o.paid_date IS NOT NULL AND o.paid_date >= :start_date
             GROUP BY o.paid_date";
 
-        return $this->query($sql,
-                array(
-                        'product_id' => $product_id,
-                        'start_date' => $start_date
-                ))->fetchAll('date');
+        $result = $this->query($sql, array(
+                'product_id' => $product_id,
+                'start_date' => $start_date
+        ))->fetchAll('date');
+        foreach($result as  &$row) {
+            $row['sales'] = $row['subtotal_sales'] - $row['discount'];
+        }
+        return $result;
     }
 
     public function getTotalSales($start_date = null, $end_date = null)

@@ -139,9 +139,14 @@ class shopFrontendCartAddController extends waJsonController
                 $item_id = $this->cart->addItem($data, $data_services);
             }
             if (waRequest::isXMLHttpRequest()) {
+                $discount = $this->cart->discount($order);
+                if (!empty($order['params']['affiliate_bonus'])) {
+                    $discount -= shop_currency(shopAffiliate::convertBonus($order['params']['affiliate_bonus']), $this->getConfig()->getCurrency(true), null, false);
+                }
                 $this->response['item_id'] = $item_id;
                 $this->response['total'] = $this->currencyFormat($this->cart->total());
-                $this->response['discount'] = $this->currencyFormat($this->cart->discount());
+                $this->response['discount'] = $this->currencyFormat($discount);
+                $this->response['discount_coupon'] = $this->currencyFormat(ifset($order['params']['coupon_discount'], 0), true);
                 $this->response['count'] = $this->cart->count();
             } else {
                 $this->redirect(waRequest::server('HTTP_REFERER'));
@@ -189,12 +194,16 @@ class shopFrontendCartAddController extends waJsonController
             $id = $this->cart->addItem($item);
         }
         $total = $this->cart->total();
-        $discount = $this->cart->discount();
+        $discount = $this->cart->discount($order);
+        if (!empty($order['params']['affiliate_bonus'])) {
+            $discount -= shop_currency(shopAffiliate::convertBonus($order['params']['affiliate_bonus']), $this->getConfig()->getCurrency(true), null, false);
+        }
 
         $this->response['id'] = $id;
         $this->response['total'] = $this->currencyFormat($total);
         $this->response['count'] = $this->cart->count();
         $this->response['discount'] = $this->currencyFormat($discount);
+        $this->response['discount_coupon'] = $this->currencyFormat(ifset($order['params']['coupon_discount'], 0), true);
 
         $item_total = $this->cart->getItemTotal($data['parent_id']);
         $this->response['item_total'] = $this->currencyFormat($item_total);

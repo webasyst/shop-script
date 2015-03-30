@@ -49,6 +49,9 @@ class shopSettingsGeneralAction extends waViewAction
         $workhours = wa()->getSetting('workhours', null);
         if ($workhours) {
             $workhours = json_decode($workhours, true);
+            if (is_array($workhours) && empty($workhours['days'])) {
+                $workhours['days'] = array();
+            }
         }
         $this->view->assign('workhours', $workhours);
 

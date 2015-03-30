@@ -1019,12 +1019,12 @@ class shopSalesModel extends waModel
         $cost_values = array();
         foreach($marketing_costs as $date => $exps) {
             foreach($exps as $name => $amount) {
-                $cost_values[] = "('{$escaped_hash}', '{$date}', '".$this->escape($name)."', '{$amount}')";
+                $cost_values[] = "('{$escaped_hash}', '".$this->escape($name)."', '{$date}', '{$amount}')";
             }
         }
         while ($cost_values) {
-            $part = array_splice($cost_values, 0, min(50, count($cost_values)));
-            $sql = "INSERT INTO {$this->table} (hash, `date`, name, cost) VALUES ".join(', ', $part)
+            $part = array_splice($cost_values, 0, min(100, count($cost_values)));
+            $sql = "INSERT INTO {$this->table} (hash, name, `date`, cost) VALUES ".join(', ', $part)
                     ." ON DUPLICATE KEY UPDATE cost=VALUES(cost)";
             $this->exec($sql);
         }

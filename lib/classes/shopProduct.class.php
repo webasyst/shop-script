@@ -677,6 +677,8 @@ class shopProduct implements ArrayAccess
             'sales' => $sales / 3,
             'sold' => $sold / 3,
             'sold_rounded' => round($sold / 3),
+            'sold_rounded_1' => round($sold / 3, 1),
+            'sold_rounded_1_str' => number_format(round($sold / 3, 1), 1),
             'profit' => ($sales - $purchase) / 3,
             'days' => 0,
             'date' => null,
@@ -1054,6 +1056,7 @@ class shopProduct implements ArrayAccess
                 break;
             }
         }
+        $keywords = array_filter($keywords, 'trim');
         return implode(', ', $keywords);
     }
 

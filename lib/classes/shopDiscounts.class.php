@@ -247,8 +247,8 @@ class shopDiscounts
                 $order['params'] = array();
             }
             $order['params']['coupon_id'] = $coupon['id'];
-            $order['params']['coupon_discount'] = $result;
         }
+        $order['params']['coupon_discount'] = $result;
 
         return $result;
     }

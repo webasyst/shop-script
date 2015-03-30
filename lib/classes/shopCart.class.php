@@ -93,9 +93,10 @@ class shopCart
     /**
      * Returns discount applicable to current customer's shopping cart contents, expressed in default currency.
      *
+     * @param $order
      * @return float
      */
-    public function discount()
+    public function discount(&$order = array())
     {
         $total = $this->model->total($this->code);
         $order = array(

@@ -2294,7 +2294,7 @@ editClick:(function ($) {
 
                 if (!$('#product-sales-plot').data('graph_rendered')) {
                     //Render graph
-                    showSalesGraph(sales_data);
+                    showSalesGraph(sales_data, typeof cash_type == 'undefined' ? null : cash_type);
                     $('#product-sales-plot').data('graph_rendered', 1);
                 }
 

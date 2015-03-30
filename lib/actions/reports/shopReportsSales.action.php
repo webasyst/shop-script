@@ -304,7 +304,6 @@ class shopReportsSalesAction extends waViewAction
         } else if ($type_id == 'coupons') {
             $coupon_ids = array();
             foreach($table_data as $i => $row) {
-                $coupon_ids = array();
                 if (!$row['name']) {
                     unset($table_data[$i]);
                 } else {

@@ -133,11 +133,15 @@
             var image_div = $('#s-product-one-image');
             var width = image_div.parent().width();
             this.photo_stream = $('#s-product-image-toolbar ul.s-photostream:first');
-
             var sizes = this.setImageDimensions();
             $(window).unbind('resize.product_images').bind('resize.product_images', function (e) {
                 if (!$('#s-product-image').length) {
                     $(this).unbind('resize.product_images');
+                    return;
+                }
+                if (!$.product_images.image) {
+                    $(this).unbind('resize.product_images');
+                    return;
                 }
                 var sizes = $.product_images.setImageDimensions();
                 $.product_images.loupe.resize(sizes);

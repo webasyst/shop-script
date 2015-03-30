@@ -567,12 +567,19 @@ class shopProductModel extends waModel
             $storefront_where = "AND op2.value='".$this->escape($options['storefront'])."'";
         }
 
+        $sales_subtotal = '(oi.price*o.rate*oi.quantity)';
+        $order_subtotal = '(o.total+o.discount-o.tax-o.shipping)';
+        $discount = "IF({$order_subtotal} <= 0, 0, oi.price*o.rate*oi.quantity*o.discount / {$order_subtotal})";
+        $purchase = '(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*pcur.rate)*oi.quantity)';
+
         // !!! With 15k orders this query takes ~3 seconds
         $sql = "SELECT
                     p.*,
-                    SUM(oi.price*o.rate*oi.quantity) AS sales,
-                    SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*pcur.rate)*oi.quantity) AS purchase,
-                    SUM(oi.price*o.rate*oi.quantity - IF(oi.purchase_price > 0, oi.purchase_price*o.rate, ps.purchase_price*pcur.rate)*oi.quantity) AS profit
+                    SUM({$sales_subtotal} - {$discount}) AS sales,
+                    SUM({$sales_subtotal} - {$discount} - {$purchase}) AS profit,
+                    SUM({$sales_subtotal}) AS sales_subtotal,
+                    SUM({$discount}) AS discount,
+                    SUM({$purchase}) AS purchase
                 FROM shop_order AS o
                     JOIN shop_order_items AS oi
                         ON oi.order_id=o.id
