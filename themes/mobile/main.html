@@ -1,0 +1,17 @@
+{* @event frontend_header.%plugin_id% *}
+{foreach $frontend_header as $_}{$_}{/foreach}            
+
+<main class="wa-shop-wrapper" role="main" itemscope itemtype="http://schema.org/{if $action == 'default'}Store{else}WebPage{/if}">
+    {if $action == 'default'}
+        <meta itemprop="name" content="{$wa->shop->settings('name')}">
+        <meta itemprop="address" content="{$wa->shop->settings('country')}">
+        <meta itemprop="telephone" content="{$wa->shop->settings('phone')}">
+        <meta itemprop="currenciesAccepted" content="{$wa->shop->currency()}">
+    {/if}
+
+    <!-- CONTENT -->
+    {$content}
+</main>
+
+{* @event frontend_footer.%plugin_id% *}
+{foreach $frontend_footer as $_}{$_}{/foreach}

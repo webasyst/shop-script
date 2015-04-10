@@ -1,0 +1,33 @@
+{$bestsellers = $wa->shop->productSet('bestsellers')}
+
+<!-- HOMEPAGE SLIDER -->
+<article class="shop-slider-wrapper bestsellers">
+    {if $bestsellers && count($bestsellers)}
+        <ul class="homepage-bxslider">
+            {foreach $bestsellers as $b}
+            <li itemscope itemtype ="http://schema.org/Product">
+                <a href="{$b.frontend_url}" title="{$b.name}{if $b.summary} &ndash; {strip_tags($b.summary)|escape}{/if}">
+                    <h2 class="slide-header" itemprop="name">
+                        <span class="name">{$b.name}</span>
+                    </h2>
+                    {if !empty($b.summary)}<meta itemprop="description" content="{strip_tags($b.summary)}">{/if}
+                    <div class="slide-image">
+                        {$badge_html = $wa->shop->badgeHtml($b.badge)}
+                        {if $badge_html}
+                            {$badge_html}
+                        {/if}
+                        {$wa->shop->productImgHtml($b, '0x320@2x', ['itemprop' => 'image', 'alt' => $b.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
+                    </div>
+                    <div itemprop="offers" class="info" itemscope itemtype="http://schema.org/Offer">
+                        <span class="price nowrap">{shop_currency_html($b.price)}</span>
+                        <meta itemprop="price" content="{$b.price}">
+                        <meta itemprop="priceCurrency" content="{$wa->shop->primaryCurrency()}">
+                    </div>
+                </a>
+            </li>
+            {/foreach}
+        </ul>
+    {else}
+        <p class="">{sprintf('[`Product set with the ID <strong>%s</strong> either does not exist or does not contain any product. Add some products into a product set with the specified ID to make these products featured here.`]','bestsellers')}</p>
+    {/if}
+</article>

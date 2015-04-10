@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
+<theme id="mobile" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:mobile" version="1.0.0">
+    <name locale="en_US">Mobile</name>
+    <name locale="ru_RU">Mobile</name>
+    <files>
+        <file path="cart.html">
+            <description locale="en_US">Shopping cart page</description>
+            <description locale="ru_RU">Страница с товарами корзины</description>
+        </file>
+        <file path="cart.js">
+            <description locale="en_US">Cart JS</description>
+            <description locale="ru_RU">JS-скрипты корзины</description>
+        </file>
+        <file path="category.html">
+            <description locale="en_US">Wrapper for a category page</description>
+            <description locale="ru_RU">Обертка для страницы категории</description>
+        </file>
+        <file path="checkout.confirmation.html">
+            <description locale="en_US">Checkout: order confirmation</description>
+            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+        </file>
+        <file path="checkout.contactinfo.html">
+            <description locale="en_US">Checkout: customer contact information form</description>
+            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+        </file>
+        <file path="checkout.error.html">
+            <description locale="en_US">Checkout: error page</description>
+            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+        </file>
+        <file path="checkout.html">
+            <description locale="en_US">Checkout core wrapper</description>
+            <description locale="ru_RU">Единый шаблон страниц оформления заказа</description>
+        </file>
+        <file path="checkout.payment.html">
+            <description locale="en_US">Checkout: payment option selection</description>
+            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+        </file>
+        <file path="checkout.shipping.html">
+            <description locale="en_US">Checkout: shipping option selection</description>
+            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+        </file>
+        <file path="checkout.success.html">
+            <description locale="en_US">Checkout: thank you page</description>
+            <description locale="ru_RU">Оформление заказа: выбор способа доставки</description>
+        </file>
+        <file path="head.html">
+            <description locale="en_US">Shop-Script's &lt;head&gt; instructions</description>
+            <description locale="en_US">Блок &lt;head&gt; приложения Shop-Script</description>
+        </file>
+        <file path="home.html">
+            <description locale="en_US">Storefront homepage</description>
+            <description locale="ru_RU">Главная витрина магазина</description>
+        </file>
+        <file path="home-slider.html">
+        </file>
+        <file path="layout-nav.html">
+        </file>
+        <file path="list-table.html">
+            <description locale="en_US">Product list thumbnail view</description>
+            <description locale="ru_RU">Список товаров эскизами</description>
+        </file>
+        <file path="list-thumbs.html">
+            <description locale="en_US">Recommended product list (mini thumbnails)</description>
+            <description locale="ru_RU">Список рекомендуемых товаров (маленькими эскизами)</description>
+        </file>
+        <file path="main.html">
+            <description locale="en_US">Main storefront layout and navigation</description>
+            <description locale="ru_RU">Основное макет вывода содержимого и навигации в интернет-магазине</description>
+        </file>
+        <file path="my.affiliate.html">
+            <description locale="en_US">Customer account interface: affiliate program</description>
+            <description locale="ru_RU">Личный кабинет покупателя: партнерская программа</description>
+        </file>
+        <file path="my.nav.html">
+            <description locale="en_US">Customer account navigation menu</description>
+            <description locale="ru_RU">Меню навигации в личном кабинете покупателя</description>
+        </file>
+        <file path="my.order.html">
+            <description locale="en_US">Customer account interface: single order information</description>
+            <description locale="ru_RU">Личный кабинет покупателя: информация о заказе</description>
+        </file>
+        <file path="my.orders.html">
+            <description locale="en_US">Customer account interface: order list</description>
+            <description locale="ru_RU">Личный кабинет покупателя: список заказов</description>
+        </file>
+        <file path="page.html">
+            <description locale="en_US">Static page content</description>
+            <description locale="ru_RU">Содержимое информационной страницы</description>
+        </file>
+        <file path="product.cart.html">
+            <description locale="en_US">Product add to cart block</description>
+            <description locale="ru_RU">Блок добавления товара в корзину</description>
+        </file>
+        <file path="product.html">
+            <description locale="en_US">Dedicated product page</description>
+            <description locale="ru_RU">Шаблон основной страницы товара</description>
+        </file>
+        <file path="product.page.html">
+            <description locale="en_US">Product static subpage content</description>
+            <description locale="ru_RU">Информационная подстраница товара</description>
+        </file>
+        <file path="review.html">
+            <description locale="en_US">A single product review template</description>
+            <description locale="ru_RU">Шаблон вывода одного отзыва о товаре</description>
+        </file>
+        <file path="reviews.html">
+            <description locale="en_US">Product review list</description>
+            <description locale="ru_RU">Список отзывов о товаре</description>
+        </file>
+        <file path="search.html">
+            <description locale="en_US">Wrapper for product search (filtering) results, e.g. by name, tag, or manufacturer</description>
+            <description locale="ru_RU">Обертка для страницы поиска (фильтрации) товаров, например, по тегу, ключевому слову или производителю</description>
+        </file>
+        <file path="reviews.js">
+            <description locale="en_US">Reviews JS</description>
+            <description locale="ru_RU">Скрипты отзывов</description>
+        </file>
+        <file path="product.js">
+            <description locale="en_US">Product page JS</description>
+            <description locale="ru_RU">JS-скрипты страницы товара</description>
+        </file>
+        <file path="mobile.shop.css">
+        </file>
+        <file path="mobile.shop.js">
+        </file>
+        <file path="error.html" parent="1">
+        </file>
+        <file path="forgotpassword.html" parent="1">
+        </file>
+        <file path="index.html" parent="1">
+        </file>
+        <file path="layout-head.html" parent="1">
+        </file>
+        <file path="layout-header.html" parent="1">
+        </file>
+        <file path="layout-menu.html" parent="1">
+        </file>
+        <file path="login.html" parent="1">
+        </file>
+        <file path="signup.html" parent="1">
+        </file>
+        <file path="my.profile.html" parent="1">
+        </file>
+        <file path="mobile.css" parent="1">
+        </file>
+        <file path="mobile.js" parent="1">
+        </file>
+    </files>
+    <about locale="en_US">
+<![CDATA[
+]]>
+    </about>
+    <about locale="ru_RU">
+<![CDATA[
+]]>
+    </about>
+    <settings>
+        <setting var="selectable_features_control" control_type="radio">
+            <value>inline</value>
+            <name locale="ru_RU">Выбор характеристик</name>
+            <name locale="en_US">Selectable features</name>
+            <options>
+                <option value="inline">
+                    <name locale="ru_RU">Показывать все значения крупно в ряд</name>
+                    <name locale="en_US">Display all values inline</name>
+                    <description locale="ru_RU">Для товаров в режиме продажи «Выбор характеристик» значения характеристик будут показаны одной строкой друг за другом. Рекомендуется, если названия значений относительно короткие и по ним однозначно можно определить, о какой характеристике товара идет речь, например, XL, 16 GB, 13”.</description>
+                    <description locale="en_US">For products which are sold in selectable features mode, all feature values will be displayed inline. Great if feature value names are self-explanatory and explicit in context of a product, e.g. XL, 16 GB, 13”.</description>
+                </option>
+                <option value="select">
+                    <name locale="ru_RU"><![CDATA[Выбор из списка &lt;select&gt;]]></name>
+                    <name locale="en_US"><![CDATA[&lt;select&gt; HTML control]]></name>
+                    <description locale="ru_RU"><![CDATA[Для товаров в режиме продажи «Выбор характеристик» значения характеристик будут предложены на выбор с помощью стандартного выбора &lt;select&gt;. Рекомендуется, если названия значений характеристик содержат более одного-двух слов или по значениям нельзя однозначно понять, о какой характеристике товара идет речь, например, «до 10 часов», «не предусмотрено».]]></description>
+                    <description locale="en_US"><![CDATA[For products which are sold in selectable features mode, feature values will be displayed using a &lt;select&gt; HTML control. Recommended if value names are either too long or ambiguous in context of a product, e.g. “up to 10 hours”, “yes”.]]></description>
+                </option>
+            </options>
+        </setting>
+        <setting var="cart_crossselling" control_type="select">
+            <value>common</value>
+            <name locale="ru_RU">Рекомендуемые товары в корзине</name>
+            <name locale="en_US">Cross-selling in cart</name>
+            <options>
+                <option value="single">
+                    <name locale="ru_RU">Единый список рекомендуемых товаров на основе всего содержимого корзины</name>
+                    <name locale="en_US">Common recommended product list based on entire cart content</name>
+                </option>
+                <option value="many">
+                    <name locale="ru_RU">Отдельные списки рекомендуемых товаров отдельно для каждого товара</name>
+                    <name locale="en_US">Separate recommended product lists for each item</name>
+                </option>
+            </options>
+        </setting>
+        <setting var="related_view_type" control_type="select">
+            <value>thumbs</value>
+            <name locale="ru_RU">Тип представления связанных товаров</name>
+            <name locale="en_US">Type of related items</name>
+            <options>
+                <option value="table">
+                    <name locale="ru_RU">Список</name>
+                    <name locale="en_US">List</name>
+                </option>
+                <option value="thumbs">
+                    <name locale="ru_RU">Таблица</name>
+                    <name locale="en_US">Table</name>
+                </option>
+            </options>
+        </setting>
+    </settings>
+    <locales>
+        <locale>
+            <msgid>Be the first to write a review of this product!</msgid>
+            <msgstr locale="ru_RU">Оставьте отзыв на этот товар первым!</msgstr>
+        </locale>
+        <locale>
+            <msgid>Read reviews</msgid>
+            <msgstr locale="ru_RU">Все отзывы</msgstr>
+        </locale>
+    </locales>
+</theme>

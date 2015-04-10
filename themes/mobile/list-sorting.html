@@ -1,0 +1,33 @@
+{if !empty($sorting)}
+    <!-- sorting -->
+    {$sort_fields = [
+        'name' => '[`Name`]',
+        'price' => '[`Price`]',
+        'total_sales' => '[`Bestsellers`]',
+        'rating' => '[`Customer rating`]',
+        'create_datetime'=>'[`Date added`]',
+        'stock' => '[`In stock`]'
+    ]}
+
+    {if !isset($active_sort)}
+        {$active_sort = $wa->get('sort', 'create_datetime')}
+    {/if}
+
+    <div class="sort-list-wrapper">
+        <div class="header-item">[`Sort by`]:</div>
+        <ul class="sort-list">
+            {if !empty($category) && !$category.sort_products}
+            <li{if !$active_sort} class="selected"{/if}><a href="{$wa->currentUrl(0, 1)}">[`New & Popular`]</a></li>
+            {/if}
+            {foreach $sort_fields as $sort => $name}
+            <li{if $active_sort == $sort} class="selected"{/if}>{$wa->shop->sortUrl($sort, $name, $active_sort)}</li>
+            {if $wa->get('sort') == $sort}{$wa->title( $wa->title()|cat:' — '|cat:$name)}{/if}
+            {/foreach}
+        </ul>
+        <div class="sort-select"></div> {* WRAPPER FOR RENDER BY JS *}
+    </div>
+
+    <script>
+        if (typeof showSortSelect === "function") { showSortSelect(); }
+    </script>
+{/if}

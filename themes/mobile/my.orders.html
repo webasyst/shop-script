@@ -1,0 +1,69 @@
+<div class="shop-orders-page">
+    <h1>[`My orders`]</h1>
+
+    <div class="orders-list-wrapper">
+        {foreach $orders as $o}
+            <div id="order-{$o.id}" class="order-item {$o.state_id}">
+                <div class="row-block">
+
+                    <a href="{$o.url}" class="header-block" style="{$o.state->getStyle(1)}">
+                        <span class="left-column">{$o.id_str}</span>
+                        <span class="right-column">
+                            <span class="nowrap order-status">{$o.state->getName()}</span>
+                        </span>
+                        <span class="cl"></span>
+                    </a>
+
+                    <div class="content-block">
+                        {if !empty($o.items)}
+                            <div class="col-block">
+                                <div class="label">
+                                    <span class="gray">{$o.create_datetime|wa_datetime:'humandatetime'}</span>
+                                </div>
+                                <div class="value">
+                                    <ul class="goods-list">
+                                        {foreach $o.items as $i}
+                                        <li>{$i.name|escape} &times; {$i.quantity}</li>
+                                        {/foreach}
+                                    </ul>
+                                </div>
+                            </div>
+                        {/if}
+                        <div class="col-block">
+                            <div class="label">
+                                [`Shipping`]
+                            </div>
+                            <div class="value">
+                                {if $o.shipping_name}
+                                    {$o.shipping_name|escape}
+                                {else}
+                                    &nbsp;
+                                {/if}
+                            </div>
+                        </div>
+                        <div class="col-block">
+                            <div class="label">
+                                [`Payment`]
+                            </div>
+                            <div class="value">
+                                {if $o.payment_name}
+                                    {$o.payment_name|escape}
+                                {else}
+                                    &nbsp;
+                                {/if}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {foreachelse}
+            <p>[`You have no order history yet.`]</p>
+        {/foreach}
+    </div>
+
+    {$wa->globals('isMyAccount', true)}
+
+    <!-- plugin hook: 'frontend_my_orders' -->
+    {* @event frontend_my_orders.%plugin_id% *}
+    {foreach $frontend_my_orders as $_}{$_}{/foreach}
+</div>

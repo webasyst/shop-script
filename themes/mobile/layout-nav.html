@@ -1,0 +1,63 @@
+<!-- CHECKOUT STEPS -->
+{if isset($checkout_steps) && count($checkout_steps) > 1}
+    <ul class="checkout-navigation">
+        <li>
+            <a href="{$wa->getUrl('/frontend/cart')}">[`Cart`]</a>
+        </li>
+        <li>&rarr;</li>
+        {foreach $checkout_steps as $step_id => $s}
+        <li class="{if isset($_upcoming_flag)} upcoming{/if}{if $step_id == $checkout_current_step} selected{$_upcoming_flag = 1}{/if}">
+            <a href="{if $s@first}{$wa->getUrl('/frontend/checkout')}{else}{$wa->getUrl('/frontend/checkout', ['step' => $step_id])}{/if}">{$s.name}</a>
+        </li>
+        {if not $s@last}<li>&rarr;</li>{/if}
+        {/foreach}
+    </ul>
+{/if}
+<!-- END CHECKOUT STEPS -->
+
+<!-- CATALOG -->
+{if !isset($category) && empty($category)}
+    {$cat_array = $wa->shop->categories(0, 0, false)}
+
+{elseif !empty($category.subcategories)}
+    {$cat_array = $category.subcategories}
+
+{else}
+    {$cat_array = false}
+{/if}
+
+{if isset($category) || ($cat_array && !empty($cat_array))}
+<nav class="content-nav-wrapper" role="navigation">
+    {if isset($category)}
+    <!-- BACKBUTTON -->
+        {if isset($breadcrumbs)}
+            {$last_link = end($breadcrumbs)}
+            {$back_link_url = $last_link.url}
+        {else}
+            {$back_link_url = $wa->getUrl('shop/frontend')}
+        {/if}
+
+        <div class="nav-group">
+            <div class="nav-list">
+                <div class="nav-item back-nav-item">
+                    <a href="{$back_link_url}">[`Back`]</a>
+                </div>
+            </div>
+        </div>
+    {/if}
+
+    {if $cat_array}
+    <!-- RENDER NAV TREE -->
+        <div class="nav-group">
+            <div class="nav-list">
+                {foreach $cat_array as $cat_item}
+                    <div class="nav-item">
+                        <a href="{$cat_item.url}">{$cat_item.name}</a>
+                    </div>
+                {/foreach}
+            </div>
+
+        </div>
+    {/if}
+</nav>
+{/if}
