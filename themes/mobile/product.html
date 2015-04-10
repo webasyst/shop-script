@@ -1,0 +1,243 @@
+<!-- SWIPEBOX PLUGIN -->
+<link rel="stylesheet" href="{$wa_theme_url}plugin/swipebox/css/swipebox.min.css">
+<script src="{$wa_theme_url}plugin/swipebox/js/jquery.swipebox.js"></script>
+
+<!-- BREADCRUMBS -->
+{if !empty($breadcrumbs)}
+    <nav class="breadcrumbs" itemprop="breadcrumb">
+        {if !$wa->globals('isMyAccount')}
+            <a href="{$wa_app_url}">{$wa->shop->settings('name')}</a>
+        {else}
+            {* within My Account we exclude first node from navigation because links are on the page already *}
+            {$breadcrumbs[0] = null}
+        {/if}
+        {foreach $breadcrumbs as $breadcrumb}
+            {if $breadcrumb}
+                <span class="separator">&rarr;</span>&nbsp;<a href="{$breadcrumb.url}">{$breadcrumb.name|escape}</a>
+            {/if}
+        {/foreach}
+    </nav>
+{/if}
+
+<!-- PRODUCT PAGE -->
+<article class="product-page-wrapper" itemscope itemtype="http://schema.org/Product">
+    <header class="header-block">
+        <h1>
+            <span itemprop="name">{$product.name|escape}</span>
+            {if !empty($product.rating) && $product.rating > 0}
+                <span class="rating nowrap" itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating" title="{sprintf('[`Average user rating: %s / 5`]', $product.rating)}">
+                    {$wa->shop->ratingHtml($product.rating, 16)}
+                    <span itemprop="ratingValue" style="display: none;">{$product.rating}</span>
+                    <span itemprop="reviewCount" style="display: none;">{$reviews_total_count}</span>
+                </span>
+            {/if}
+        </h1>
+    </header>
+
+    {if $product.images}
+        <!-- PRODUCT IMAGES -->
+        <figure class="product-gallery">
+
+            <!-- main image -->
+            <div class="product-core-image image" id="product-core-image">
+                <a href="{$wa->shop->productImgUrl($product, '970')}">
+                    {$wa->shop->productImgHtml($product, '750@2x', [ 'itemprop' => 'image', 'id' => 'product-image', 'alt' => $product.name|escape ])}
+                </a>
+                <div id="switching-image" style="display: none;"></div>
+            </div>
+
+            <!-- thumbs -->
+            {if count($product.images) > 1}
+            <div class="product-gallery more-images" id="product-gallery">
+                {foreach $product.images as $image}
+                <div class="image {if $image.id == $product.image_id}selected{/if}">
+                    <a id="product-image-{$image.id}" href="{$wa->shop->productImgUrl(['id'=> $product.id, 'image_id' => $image.id, 'ext' => $image.ext], '970')}" class="swipebox">
+                        {$wa->shop->productImgHtml(['id'=> $product.id, 'image_id' => $image.id, 'ext' => $image.ext, 'image_desc' => $image.description], '96x96@2x', ['alt' => $image.description|escape])}
+                    </a>
+                </div>
+                {/foreach}
+            </div>
+            {/if}
+
+        </figure>
+    {/if}
+
+    <div class="product-sidebar">
+        <div class="cart" id="cart-flyer">
+            {include file="product.cart.html" inline}
+
+            <!-- plugin hook: 'frontend_product.cart' -->
+            {* @event frontend_product.%plugin_id%.cart *}
+            {foreach $frontend_product as $_}{$_.cart}{/foreach}
+        </div>
+
+        <!-- plugin hook: 'frontend_product.block_aux' -->
+        {* @event frontend_product.%plugin_id%.block_aux *}
+        {if !empty($frontend_product)}
+            <div class="aux">
+                {foreach $frontend_product as $_}{$_.block_aux}{/foreach}
+            </div>
+        {/if}
+    </div>
+
+    <nav class="tab-list-wrapper">
+        <div class="tab-list">
+            <a class="tab-item active-tab-item" data-content-id="1" href="{$wa->shop->productUrl($product)}">[`Overview`]</a>
+            {if $product.features}
+                <a class="tab-item" data-content-id="2" href="{$wa->shop->productUrl($product)}">[`Features`]</a>
+            {/if}
+            <a class="tab-item" data-content-id="3" href="{$wa->shop->productUrl($product, 'reviews')}">[`Reviews`] ({$reviews_total_count})</a>
+
+            {foreach $product.pages as $page}
+                <a class="tab-item" href="{$wa->shop->productUrl($product, 'page', ['page_url' => $page.url])}">
+                    {$page.name|escape}
+                </a>
+            {/foreach}
+
+            {* @event frontend_product.%plugin_id%.menu *}
+            {foreach $frontend_product as $_}{$_.menu}{/foreach}
+        </div>
+    </nav>
+
+    {* @event frontend_product.%plugin_id%.block *}
+    {foreach $frontend_product as $_}{$_.block}{/foreach}
+
+    <div class="tab-content-wrapper">
+        <div class="tab-content-item is-shown" id="tab-content-1">
+            <div class="product-info" id="overview">
+                {if $product.description}
+                    <div class="description" id="product-description" itemprop="description">{$product.description}</div>
+                {/if}
+                <!-- CATEGORIES -->
+                {if count($product.categories) > 1}
+                    <ul class="menu-h compact" id="product-categories">
+                    [`Categories`]:
+                        {foreach $product.categories as $c}{if $c.status}
+                            <li><a href="{$wa->getUrl('/frontend/category', ['category_url' => $c.full_url])}">{$c.name|escape}</a></li>
+                        {/if}{/foreach}
+                    </ul>
+                {/if}
+
+                <!-- TAGS -->
+                {if $product.tags}
+                    <p class="tags" id="product-tags">
+                        [`Tags`]:
+                        {foreach $product.tags as $t}
+                            <a href="{$wa->getUrl('/frontend/tag', ['tag' => urlencode($t)])}">{$t}</a>
+                        {/foreach}
+                    </p>
+                {/if}
+
+            </div>
+        </div>
+
+        {if $product.features}
+        <!-- PRODUCT FEATURES -->
+        <div class="tab-content-item" id="tab-content-2">
+            <table class="features" id="product-features">
+                {foreach $product.features as $f_code => $f_value}
+                    <tr class="{if $features[$f_code].type == 'divider'}divider{/if}">
+                        <td class="name">
+                            {$features[$f_code].name|escape}
+                        </td>
+                        <td class="value" itemprop="{$f_code|escape}">
+                            {if is_array($f_value)}
+                                {if $features[$f_code].type == 'color'}
+                                    {implode('<br /> ', $f_value)}
+                                {else}
+                                    {implode(', ', $f_value)}
+                                {/if}
+                            {else}
+                                {$f_value}
+                            {/if}
+                        </td>
+                    </tr>
+                {/foreach}
+            </table>
+        </div>
+        {/if}
+
+        <div class="tab-content-item" id="tab-content-3">
+            <!-- PRODUCT REVIEWS -->
+            <section class="reviews">
+                <h2>{sprintf('[`%s reviews`]', $product.name|escape)}</h2>
+
+                {if !empty($rates)}
+                <div class="rating-text">
+                    [`Average customer rating:`]
+                    <span class="nowrap">{$wa->shop->ratingHtml($product.rating, 16)}</span>
+                    (<a href="reviews/">{$reviews_total_count}</a>)
+                    {if $product.rating > 0}<span class="hint">{sprintf('[`%s out of 5 stars`]', $product.rating)}</span>{/if}
+                </div>
+
+                <table class="rating-distribution">
+                    {$_total_count = 0}
+                    {foreach $rates as $_rate => $_count}
+                        {$_total_count = $_total_count + $_count}
+                    {/foreach}
+
+                    {* foreach $rates as $_rate => $_count *}
+                    {for $i = 5 to 0 step -1}
+                        {if empty($rates[$i]) || !$rates[$i]}{$_count = 0}{else}{$_count = $rates[$i]}{/if}
+                        {if $i || $_count}
+                            <tr>
+                                <td class="column-1">{$_count}</td>
+                                <td class="column-2">
+                                    <div class="bar">
+                                        <div class="filling" style="width: {if $_total_count > 0}{str_replace(',','.', 100*$_count/$_total_count)}{else}0{/if}%;{if !$i} background: #ddd;{/if}"></div>
+                                    </div>
+                                </td>
+                                <td class="column-3">
+                                    <span class="rating">
+                                        {for $j=1 to $i}
+                                            <i class="icon10 star"></i>
+                                        {forelse}
+                                            <span class="">[`no rate`]</span>
+                                        {/for}
+                                    </span>
+                                </td>
+                            </tr>
+                        {/if}
+                    {/for}
+                </table>
+                {/if}
+
+                <div class="review-wrapper">
+                    {foreach $reviews as $review}
+                    <div data-id={$review.id} data-parent-id="0">
+                        {include file="review.html" reply_allowed=false inline}
+                    </div>
+                    {/foreach}
+                </div>
+                {if !$reviews}
+                    <div>{sprintf('[`Be the first to <a href="%s">write a review</a> of this product!`]', 'reviews/')}</div>
+                {else}
+                    <a class="general-button gray" href="reviews/">[`Read reviews`] ({$reviews_total_count})</a>
+                {/if}
+                <div class="" style="margin: 1rem 0 0">
+                    <a class="general-button" href="reviews/#publish">[`Write a review`]</a>
+                </div>
+            </section>
+        </div>
+    </div>
+</article>
+
+<!-- RELATED PRODUCTS -->
+{$upselling = $product->upSelling(12)}
+{$crossselling = $product->crossSelling(12)}
+
+{if $upselling || $crossselling}
+    <section class="related-product-info">
+        {if $crossselling}
+
+            <h3>{sprintf('[`Customers who bought %s also bought`]', $product.name|escape)}</h3>
+
+            {$type = $theme_settings.related_view_type}
+            {$template_url = 'list-thumbs.html'}
+            {if $type && $type == 'thumbs'}
+                {$template_url = 'list-table.html'}
+            {/if}
+            {include file=$template_url products=$crossselling ulclass="related-bxslider"}
+        {/if}
+    </section>
+{/if}

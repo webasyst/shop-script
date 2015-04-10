@@ -1,0 +1,123 @@
+<h2 class="header-block">[`Checkout`]</h2>
+
+{if isset($checkout_steps)}
+<nav class="content-nav-wrapper" role="navigation">
+    <div class="nav-group">
+        <div class="nav-list">
+            <div class="nav-item back-nav-item">
+                <a href="{$wa->getUrl('/frontend/cart')}" class="hint float-right">[`Back to the store`]</a>
+            </div>
+            {foreach $checkout_steps as $step_id => $s}
+                {if $step_id == $checkout_current_step}
+                    {$item_class = "current-nav-item"}
+                    {$link_href = "javascript:void(0);"}
+                {else}
+                    {$item_class = "prev-nav-item"}
+                    {$link_href = "{$wa->getUrl('/frontend/checkout')}{$step_id}"}
+                {/if}
+                <div class="nav-item {$item_class}">
+                    <a href="{$link_href}" data-step-id="{$step_id}" data-step-href="{$link_href}">
+                        <span class="gray">{$s@iteration}.</span>&nbsp;{$s.name}
+                    </a>
+                </div>
+                {if $step_id == $checkout_current_step}{break}{/if}
+            {/foreach}
+        </div>
+    </div>
+</nav>
+{/if}
+
+<div class="checkout-page-wrapper">
+    <div class="checkout-header">
+        <div class="cart-sum-total">
+            {$cart_total = $wa->shop->cart->total()}
+            [`Order total`]: <strong>{shop_currency_html($cart_total, true)}</strong>
+        </div>
+    </div>
+
+    <div class="checkout">
+        {if isset($checkout_steps)}
+
+        <!-- CHECKOUT STEP CONTENT -->
+        {foreach $checkout_steps as $step_id => $s}
+            <div class="checkout-step step-{$step_id}">
+                <form class="checkout-form {if $s@last}last{/if}" method="post" action="">
+
+                    {if $s@first && $wa->isAuthEnabled()}
+                        <div class="checkout-step-content auth" {if $checkout_current_step != $step_id}style="display:none"{/if}>
+                            {if !$wa->user()->isAuth()}
+
+                                <!-- AUTHORIZED / NOT AUTHORIZED SELECTOR -->
+                                <ul>
+                                    <li><label><input name="user_type" type="radio" {if !$wa->post('wa_auth_login')}checked{/if} value="0"> [`I’m a new customer`]</label></li>
+                                    <li><label><input name="user_type" type="radio" {if $wa->post('wa_auth_login')}checked{/if} value="1"> [`I already have an account`]</label></li>
+                                </ul>
+                                <div id="login-form"{if !$wa->post('wa_auth_login')} style="display:none"{/if}>
+                                    {include file="`$wa_parent_theme_path`/login.html" without_form=true}
+                                </div>
+
+                                <script type="text/javascript">
+                                    $(function () {
+                                        $("#login-form input").attr('disabled', 'disabled');
+                                        $("input[name='user_type']").change(function () {
+                                            if ($("input[name='user_type']:checked").val() == '1') {
+                                                $("#login-form input").removeAttr('disabled');
+                                                $(this).closest('div.auth').next(".checkout-step-content").hide();
+                                                $("input[type=submit]:last").hide();
+                                                $("#login-form").show();
+                                            } else {
+                                                $("#login-form input").attr('disabled', 'disabled');
+                                                $("#login-form").hide();
+                                                $(this).closest('div.auth').next(".checkout-step-content").show();
+                                                $("input[type=submit]:last").show();
+                                            }
+                                        });
+                                        {if $checkout_current_step == $step_id}
+                                            $("input[name='user_type']").change();
+                                        {/if}
+                                    });
+                                </script>
+                            {else}
+                                <!-- AUTHORIZED -->
+                                <div class="authorized-user-wrapper">
+                                    <div class="left-column image">
+                                        <img src="{$wa->user()->getPhoto(50)}">
+                                    </div>
+                                    <div class="right-column">
+                                        <p>{sprintf("[`You are currently authorized as <strong>%s</strong>. Please verify or update your contact information using the form below. Your existing contact info will be automatically updated.`]", $wa->user('name'))}</p>
+                                    </div>
+                                    <div class="cl"></div>
+                                </div>
+                                <p><em>[`If you want to place an order on behalf of another customer, <a href="?logout">log out</a> from your current profile and proceed to checkout again.`]</em></p>
+                            {/if}
+                        </div>
+                    {/if}
+
+                    <div class="checkout-step-content" style="{if $checkout_current_step != $step_id || $wa->post('wa_auth_login')}display:none;{/if}">
+                        {if $checkout_current_step == $step_id}
+                            {if in_array($step_id,['contactinfo', 'shipping', 'payment', 'confirmation'])}
+                                {include file="checkout.`$step_id`.html"}
+                            {else}
+                                {$s.content}
+                            {/if}
+                        {else}
+                            <div class="checkout-content" data-step-id="{$step_id}"></div>
+                        {/if}
+
+                        {if $s@last}
+                            <input type="submit" value="[`Place order`]">
+                        {else}
+                            <input type="submit" value="[`Next &rarr;`]">
+                        {/if}
+                        <input type="hidden" name="step" value="{$step_id}">
+                    </div>
+                </form>
+            </div>
+        {/foreach}
+        {else}
+            <div class="checkout-step">
+                {include file="checkout.`$checkout_current_step`.html"}
+            </div>
+        {/if}
+    </div>
+</div>

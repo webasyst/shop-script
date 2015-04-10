@@ -1,0 +1,19 @@
+<h1 class="category-name">
+    {$title}
+</h1>
+
+<!-- plugin hook: 'frontend_search' -->
+{* @event frontend_search.%plugin_id% *}
+{foreach $frontend_search as $_}{$_}{/foreach}
+{if !$products}
+    [`No products were found.`]
+{else}
+    {$type = $theme_settings.related_view_type}
+    {$template_url = 'list-thumbs.html'}
+    {if $type && $type == 'thumbs'}
+        {$template_url = 'list-table.html'}
+    {/if}
+    <div id="product-list">
+        {include file=$template_url}
+    </div>
+{/if}

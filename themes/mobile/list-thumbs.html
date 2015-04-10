@@ -1,0 +1,54 @@
+{include file="list-sorting.html" inline}
+
+<!-- products mini thumbnail list view: related products, etc. -->
+<ul class="mini-product-list {if !empty($ulclass)}{$ulclass}{/if}">
+{foreach $products as $p}
+    {$available = $wa->shop->settings('ignore_stock_count') || $p.count === null || $p.count > 0}
+    <li class="product-item" itemscope itemtype ="http://schema.org/Product">
+        <div class="image">
+            <a href="{$p.frontend_url}" title="{$p.name}">
+                {* $badge_html = $wa->shop->badgeHtml($p.badge)}
+                {if $badge_html}
+                    <div class="corner top right">{$badge_html}</div>
+                {/if *}
+                {$wa->shop->productImgHtml($p, '96x96@2x', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy96.png"])}
+                {if !empty($p.summary)}<meta itemprop="description" content="{strip_tags($p.summary)}">{/if}
+            </a>
+        </div>
+        <div class="desc-block" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+            <h5 class="header-item">
+                <a href="{$p.frontend_url}" itemprop="name">{$p.name|truncate:25}</a>
+            </h5>
+
+            <!-- OLD PRICE -->
+            {if $p.compare_price > 0}
+                <span class="compare-at-price nowrap">{shop_currency_html($p.compare_price)}</span>
+            {/if}
+
+            <!-- PRICE -->
+            <span class="price nowrap">{shop_currency_html($p.price)}</span>
+
+            <!-- META -->
+            {if $available}
+                <link itemprop="availability" href="http://schema.org/InStock" />
+            {else}
+                <div class="out-of-stock">
+                    {if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}
+                </div>
+                <link itemprop="availability" href="http://schema.org/OutOfStock" />
+            {/if}
+            <meta itemprop="price" content="{$p.price}">
+            <meta itemprop="priceCurrency" content="{$wa->shop->primaryCurrency()}">
+
+            <!-- LINK -->
+            <a class="item-link" href="{$p.frontend_url}" title="{$p.name}">[`Buy`]</a>
+        </div>
+    </li>
+{/foreach}
+</ul>
+
+{if isset($pages_count) && $pages_count > 1}
+    <div class="block lazyloading-paging">
+        {wa_pagination total=$pages_count attrs=['class' => "menu-h"]}
+    </div>
+{/if}

@@ -1,0 +1,101 @@
+<h1 class="category-name">
+    {$category.name|escape}
+</h1>
+
+{* @event frontend_category.%plugin_id% *}
+{foreach $frontend_category as $_}{$_}{/foreach}
+
+<!-- NAVIGATION -->
+{include file="layout-nav.html" inline}
+<!-- END NAVIGATION -->
+
+<!-- FILTERS -->
+{if !empty($filters)}
+    {if waRequest::isXMLHttpRequest() && waRequest::get('page', 1) == 1}
+        <link href="{$wa_static_url}wa-content/css/jquery-ui/base/jquery.ui.slider.css" rel="stylesheet" type="text/css">
+        <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.core.min.js?v{$wa->version(true)}"></script>
+        <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.widget.min.js?v{$wa->version(true)}"></script>
+        <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.mouse.min.js?v{$wa->version(true)}"></script>
+        <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js?v{$wa->version(true)}"></script>
+    {/if}
+
+    <div class="catalog-filter-wrapper">
+        <div class="show-link-wrapper">
+            <a class="show-filter-content-link" href="javascript:void(0);" data-show-text="[`Hide Filters`]" data-hide-text="[`Show Filters`]">[`Show Filters`]</a>
+        </div>
+        <div class="filter-content-wrapper">
+            <form id="" method="get" action="{$wa->currentUrl(0,1)}" data-loading="{$wa_parent_theme_url}img/loading16.gif">
+                {foreach $filters as $fid => $filter}
+                    <div class="filter-group">
+                        {if $fid == 'price'}
+                            {$c = $wa->shop->currency(true)}
+                            <h5 class="filter-header">[`Price`]</h5>
+                            <div class="filter-list">
+                                <div class="filter-item filter-price-item">
+                                    [`from`] <input type="text" class="min" name="price_min" {if $wa->get('price_min')}value="{(int)$wa->get('price_min')}"{/if} placeholder="{floor($filter.min)}">
+                                    [`to`] <input type="text" class="max" name="price_max" {if $wa->get('price_max')}value="{(int)$wa->get('price_max')}"{/if} placeholder="{ceil($filter.max)}"> {$c.sign}
+                                </div>
+                            </div>
+                        {else}
+                            <h5 class="filter-header">{$filter.name|escape}</h5>
+                            <div class="filter-list">
+                                {if $filter.type == 'boolean'}
+                                    <div class="filter-item">
+                                        <label><input type="radio" name="{$filter.code}"{if $wa->get($filter.code)} checked{/if} value="1"> [`Yes`]</label>
+                                    </div>
+                                    <div class="filter-item">
+                                        <label><input type="radio" name="{$filter.code}"{if $wa->get($filter.code) === '0'} checked{/if} value="0"> [`No`]</label>
+                                    </div>
+                                    <div class="filter-item">
+                                        <label><input type="radio" name="{$filter.code}"{if $wa->get($filter.code, '') === ''} checked{/if} value=""> [`Any`]</label>
+                                    </div>
+                                {elseif isset($filter.min)}
+                                    {$_v = $wa->get($filter.code)}
+                                    <div class="filter-item filter-price-item">
+                                        [`from`] <input type="text" class="min" name="{$filter.code}[min]" placeholder="{$filter.min}" {if !empty($_v.min)}value="{$_v.min}"{/if}>
+                                        [`to`] <input type="text" class="max" name="{$filter.code}[max]" placeholder="{$filter.max}" {if !empty($_v.max)}value="{$_v.max}"{/if}>
+                                        {if !empty($filter.unit)}
+                                            {$filter.unit.title}
+                                            {if $filter.unit.value != $filter.base_unit.value}<input type="hidden" name="{$filter.code}[unit]" value="{$filter.unit.value}">{/if}
+                                        {/if}
+                                    </div>
+                                {else}
+                                    {foreach $filter.values as $v_id => $v}
+                                        <div class="filter-item">
+                                            <label>
+                                                <input type="checkbox" name="{$filter.code}[]" {if in_array($v_id, (array)$wa->get($filter.code, array()))}checked{/if} value="{$v_id}"> {$v}
+                                            </label>
+                                        </div>
+                                    {/foreach}
+                                {/if}
+                            </div>
+                        {/if}
+                    </div>
+                {/foreach}
+                <div class="button-wrapper">
+                    {if $wa->get('sort')}<input type="hidden" name="sort" value="{$wa->get('sort')|escape}">{/if}
+                    {if $wa->get('order')}<input type="hidden" name="order" value="{$wa->get('order')|escape}">{/if}
+                    <input type="submit" class="gray-button" value="[`Filter products`]">
+                </div>
+            </form>
+        </div>
+    </div>
+{/if}
+
+<!-- PRODUCT-LIST -->
+{if !$products}
+    <div class="no-product-wrapper">
+        {if !empty($filters)}
+            <p>[`No products were found.`]</p>
+        {else}
+            <p>[`This category does not contain any products.`]</p>
+        {/if}
+    </div>
+{else}
+    {$type = $theme_settings.related_view_type}
+    {$template_url = 'list-thumbs.html'}
+    {if $type && $type == 'thumbs'}
+        {$template_url = 'list-table.html'}
+    {/if}
+    {include file=$template_url sorting=!empty($category.params.enable_sorting)}
+{/if}

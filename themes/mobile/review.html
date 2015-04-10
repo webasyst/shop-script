@@ -1,0 +1,47 @@
+{* one review output *}
+
+<figure class="review-item review" itemprop="review" itemscope itemtype="http://schema.org/Review" data-id={$review.id} data-parent-id="{$review.parent_id}">
+    <header class="summary">
+        <h6 class="review-header">
+            {if !$review.parent_id && !empty($review.rate)}
+            <span class="review-rating" itemprop="reviewRating" itemscope itemtype="http://schema.org/Rating">
+                {$rate = round($review.rate)}
+                <meta itemprop="worstRating" content = "1">
+                <meta itemprop="ratingValue" content="{$rate}">
+                <meta itemprop="bestRating" content = "5">
+                <!--{print_r($rate)}-->
+
+                {for $i = 1 to 5}
+                    {$icon_class = "icon-star"}
+                    {if ($rate < $i)}{$icon_class = "icon-star-empty"}{/if}
+                    <span class="rate-item {$icon_class}" data-rate-count="{$i}"></span>
+                {/for}
+            </span>
+            {/if}
+            <span itemprop="name">{if $review.title}{$review.title}{/if}</span>
+        </h6>
+        [`By`]
+        {if empty($review.site)}
+            <span class="username" itemprop="author">{$review.author.name}</span>
+        {else}
+            <a href="{$review.site}" class="username" itemprop="author">{$review.author.name}</a>
+        {/if}
+        
+        {if !empty($review.author.is_user)}
+            <span class="staff">{$wa->shop->settings('name')}</span>
+        {/if}
+        
+        <meta itemprop="itemReviewed" content="{$product.name|escape}">
+        <meta itemprop="datePublished" content="{$review.datetime|date_format:'Y-m-d'}">
+        <span class="date" title="{$review.datetime|wa_datetime}">{$review.datetime|wa_datetime:"humandatetime"}</span>
+    </header>
+    {if $review.text}
+        <p itemprop="description">{$review.text}</p>
+    {/if}
+    
+    {if $reply_allowed}
+        <div class="actions">
+            <a href="{if isset($reply_link)}{$reply_link}{else}javascript:void(0);{/if}" class="show-reply-comment-form">[`reply`]</a>
+        </div>
+    {/if}
+</figure>

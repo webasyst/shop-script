@@ -1,0 +1,77 @@
+<div class="checkout-content" data-step-id="confirmation">
+
+    {if !empty($error)}    
+        <div class="checkout-result error">
+            {$error}
+            <br><br>
+            <a href="{$wa->getUrl('/frontend/checkout')}">[`Restart checkout`]</a>
+        </div>
+    {else}
+    
+        <h3>[`Ship to`]</h3>
+        <p>{$contact.name|escape}<br>
+        {$shipping_address.value}</p>
+    
+        {if $billing_address}
+            <h3>[`Bill to`]</h3>
+            <p>{$contact.name|escape}<br>
+            {$billing_address.value}</p>
+        {/if}
+
+        <div class="confirm-table-wrapper">
+            <div class="cart-list">
+                {foreach $items as $item}
+                    <div class="cart-item {if $item.type == 'service'}service{/if}">
+                        <div class="name">{if $item.type == 'service'}+ {/if}{$item.name|escape}</div>
+                        <div class="value">[`Quantity`]: {shop_currency_html($item.price, $item.currency)} &times;  <span class="bold">{$item.quantity}</span></div>
+                        {if $tax > 0}
+                            <div class="tax">[`Tax`]: {if isset($item.tax)}{shop_currency_html($item.tax, true)}{else}&ndash;{/if}</div>
+                        {/if}
+                        <div class="total">[`Total`]: <span class="bold">{shop_currency_html($item.price * $item.quantity, $item.currency)}</span></div>
+                    </div>
+                {/foreach}
+            </div>
+            <table class="table">
+                <tr>
+                    <td class="align-right">[`Subtotal`]</td>
+                    <td class="align-right nowrap">{shop_currency_html($subtotal, true)}</td>
+                </tr>
+                <tr>
+                    <td class="align-right">[`Discount`]</td>
+                    <td class="align-right nowrap">&minus; {shop_currency_html($discount, true)}</td>
+                </tr>
+                <tr>
+                    <td class="align-right">[`Shipping`]{if !empty($params.shipping_name)} &mdash; <strong>{$params.shipping_name}</strong>{/if}</td>
+                    <td class="align-right nowrap">{shop_currency_html($shipping, true)}</td>
+                </tr>
+                {if $tax > 0}
+                <tr>
+                    <td class="align-right">[`Tax`]</td>
+                    <td class="align-right nowrap">{shop_currency_html($tax, true)}</td>
+                </tr>
+                {/if}
+                <tr class="large">
+                    <td class="align-right"><b>[`Total`]</b></td>
+                    <td class="align-right nowrap"><strong class="large">{shop_currency_html($total, true)}</strong></td>
+                </tr>
+            </table>
+
+        </div>
+        
+        <textarea class="comment" name="comment" placeholder="[`Comment`]"></textarea>
+    
+        {if !empty($terms)}
+        <br>
+        {if waRequest::method() == 'post' && !$wa->post('terms')}
+            <p class="error">[`You must read and agree to the Terms of service to place an order.`]</p>
+        {/if}
+        <label><input type="checkbox" name="terms" value="1"> {sprintf('[`I have read and agree to the <a href="%s" target="_blank">Terms of service</a>`]', $wa->getUrl('/frontend/checkout', ['step' => 'confirmation'])|cat:'?terms=1')}</label>
+        {/if}
+    
+    {/if}
+
+    <!-- plugin hook: 'frontend_checkout' -->
+    {* @event frontend_checkout.%plugin_id% *}
+    {foreach $frontend_checkout as $_}{$_}{/foreach}
+
+</div>

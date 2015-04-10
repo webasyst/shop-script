@@ -1,0 +1,32 @@
+<nav class="content-nav-wrapper" role="navigation">
+    <div class="nav-group">
+        <div class="nav-list">
+            <div class="nav-item back-nav-item">
+                <a href="{$wa->shop->productUrl($product)}">[`Back`]</a>
+            </div>
+        </div>
+    </div>
+    <div class="nav-group">
+        <div class="nav-list">
+            <div class="nav-item">
+                <a href="{$wa->shop->productUrl($product)}">[`Overview`]</a>
+            </div>
+            <div class="nav-item">
+                <a href="{$wa->shop->productUrl($product, 'reviews')}">[`Reviews`]</a>
+            </div>
+            {foreach $product.pages as $p}
+                <div class="nav-item">
+                    <a href="{$wa->shop->productUrl($product, 'page', ['page_url' => $p.url])}">{$p.name|escape}</a>
+                </div>
+            {/foreach}
+        </div>
+    </div>
+</nav>
+
+<article class="shop-page-wrapper">
+    <h1>{$page.title|escape}</h1>
+
+    <div class="product-info">
+        {$page.content}
+    </div>
+</article>
