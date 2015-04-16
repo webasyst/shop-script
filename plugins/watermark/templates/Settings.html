@@ -1,0 +1,615 @@
+<link rel="stylesheet" type="text/css" href="{$wa_url}wa-content/js/jquery-plugins/jquery-imageareaselect/imgareaselect-default.css?{$wa->version(true)}" />
+<link rel="stylesheet" href="{$wa_url}wa-content/js/farbtastic/farbtastic.css" type="text/css" />
+<style>
+.watermark-settings .value label { margin: 8px 0; }
+#region-selector .main-img { width: 450px; margin-bottom: 5px; }
+#region-selector .main-img .imgareaselect-outer { background: transparent; }
+#region-selector .main-img .main-img-wrapper .imgareaselect-selection { opacity: .3; background-size: 100%; background-position: 50% 50%; background-repeat: no-repeat; line-height: normal; text-align: center; white-space: nowrap; }
+#region-selector .main-img .main-img-wrapper .imgareaselect-selection .text { position: relative; top: 50%; transform: translateY(-50%); color: white; font-size: 12px; white-space: normal; }
+#region-selector { margin-bottom: 30px; overflow: hidden; }
+#region-selector .main-img .main-img-wrapper-outer { display: inline-block; border: 2px solid #999; line-height: 0px; }
+#region-selector .main-img .main-img-wrapper { display: inline-block; position: relative; line-height: 0px; overflow: hidden; }
+#region-selector .main-img img { min-height: 200px; min-width: 200px; max-height: 400px; max-width: 400px; }
+#region-selector .img-controls { float: left; width: 300px; }
+#region-selector .main-img-wrapper .corner { position: absolute; z-index: 200; border-radius: 50%; background: rgba(255,255,180,0.75); padding: 13px; }
+#region-selector .main-img-wrapper .corner input { width: 20px; height: 20px; }
+#region-selector .main-img-wrapper .corner.bottom { bottom: 4px; margin-bottom:-10px; }
+#region-selector .main-img-wrapper .corner.right { right: 4px; margin-right:-10px; }
+#region-selector .main-img-wrapper .corner.left { left: 4px; margin-left:-10px; }
+#region-selector .main-img-wrapper .corner.top { top: 4px; margin-top:-10px;}
+#region-selector .main-img-wrapper .corner.center { top: 50%; left: 50%; margin-left:-21px;margin-top:-23px; }
+#region-selector .sub-links { line-height: 1.4em; }
+
+#uploaded-watermark img { max-height: 200px; }
+
+#plugins-settings-form.text-mode .hide-in-text-mode { display: none; }
+#plugins-settings-form.image-mode .hide-in-image-mode { display: none; }
+
+#thumb-min-wrapper { margin-top: 5px; margin-left: 16px; }
+#opacity-slider { margin-top: 7px; }
+#opacity-slider .ui-slider-handle { cursor: pointer; }
+</style>
+
+
+<div class="watermark-settings">
+    <div class="field">
+        <div class="name">[`Watermark type`]</div>
+        <div class="value no-shift s-ibutton-checkbox">
+            <ul class="menu-h">
+                <li><label for="s-watermark-type"><span class="s-unselected">[`Text`]</span></label></li>
+                <li><input type="checkbox" name="shop_watermark[watermark_type]" id="s-watermark-type"{if $settings.watermark_type == 'image'} checked{/if}></li>
+                <li><label for="s-watermark-type"><span>[`Image`]</span></label></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="field">
+        <div id="region-selector">
+            <div class="main-img">{strip}
+                <div class="main-img-wrapper-outer">
+                    <div class="main-img-wrapper">
+                        <img src="{$image.url_default}">
+                        <div class="hide-in-image-mode corner top left">
+                            <input type="radio" name="shop_watermark[text_position]" value="tl"{if $settings.text_position == 'tl'} checked{/if}>
+                        </div>
+                        <div class="hide-in-image-mode corner top right">
+                            <input type="radio" name="shop_watermark[text_position]" value="tr"{if $settings.text_position == 'tr'} checked{/if}>
+                        </div>
+                        <div class="hide-in-image-mode corner bottom left">
+                            <input type="radio" name="shop_watermark[text_position]" value="bl"{if $settings.text_position == 'bl'} checked{/if}>
+                        </div>
+                        <div class="hide-in-image-mode corner bottom right">
+                            <input type="radio" name="shop_watermark[text_position]" value="br"{if $settings.text_position == 'br'} checked{/if}>
+                        </div>
+                        <div class="hide-in-image-mode corner center"><div class="wrapper">
+                            <input type="radio" name="shop_watermark[text_position]" value="c"{if $settings.text_position == 'c'} checked{/if}>
+                        </div></div>
+                    </div>
+                </div>
+            {/strip}</div>
+
+            <div class="sub-links">
+                <a href="?plugin=watermark&module=image&action=preview" target="_blank" id="preview-link">[`Preview thumbnail`] <i class="icon10 new-window"></i></a>
+                <br>
+                <a href="javascript:void(0)" class="gray inline-link" id="load-another-product-image-link"><b><i>[`Change sample product`]</i></b></a>
+            </div>
+
+            <input type="hidden" class="position-input" name="shop_watermark[pos_x1]" value="{$settings.pos_x1|replace:',':'.'}">
+            <input type="hidden" class="position-input" name="shop_watermark[pos_x2]" value="{$settings.pos_x2|replace:',':'.'}">
+            <input type="hidden" class="position-input" name="shop_watermark[pos_y1]" value="{$settings.pos_y1|replace:',':'.'}">
+            <input type="hidden" class="position-input" name="shop_watermark[pos_y2]" value="{$settings.pos_y2|replace:',':'.'}">
+        </div>
+    </div>
+
+    <div class="field hide-in-image-mode">
+        <div class="name">[`Rotation`]</div>
+        <div class="value no-shift">
+            <select name="shop_watermark[orientation]" style="display:none">
+                <option value="h"{if $settings.orientation == 'h'} selected{/if}>[`Horizontal`]</option>
+                <option value="v"{if $settings.orientation == 'v'} selected{/if}>[`Vertical`]</option>
+            </select>
+            <select name="shop_watermark[rotation]" style="display:none">
+                {foreach [-90, -45, 0, 45, 90] as $angle}
+                    <option value="{$angle}"{if $settings.rotation == $angle} selected{/if}>{-$angle}&deg;</option>
+                {/foreach}
+            </select>
+        </div>
+    </div>
+
+    <div class="field hide-in-image-mode">
+        <div class="name">[`Text`]</div>
+        <div class="value">
+            <input type="text" class="long" name="shop_watermark[text]" value="{$settings.text|escape}">
+        </div>
+    </div>
+    <div class="field hide-in-image-mode">
+        <div class="name">[`Color`]</div>
+        <div class="value">
+            #<input type="text" class="short" name="shop_watermark[text_color]" value="{$settings.text_color|escape}"> <i class="icon16 color" style="background-color:#{$settings.text_color|escape};cursor:pointer;"></i>
+            <div id="colorpicker-wrapper" style="display:none"></div>
+        </div>
+    </div>
+    <div class="field hide-in-image-mode">
+        <div class="name">[`Font size`]</div>
+        <div class="value no-shift">
+            <select name="shop_watermark[font_size]">
+                {foreach [
+                    12 => "[`Very small`]",
+                    18 => "[`Small`]",
+                    24 => "[`Medium`]",
+                    30 => "[`Large`]",
+                    36 => "[`Very large`]"
+                ] as $value => $label}
+                    <option value="{$value}"{if $settings.font_size == $value} selected{/if}>{$label|escape}</option>
+                {/foreach}
+            </select>
+        </div>
+    </div>
+    <div class="field hide-in-text-mode">
+        <div class="name">[`Image`]</div>
+        <div class="value">
+            <input type="file" name="shop_watermark[image]" class="custom file">
+            <br>
+            <span id="uploaded-watermark"{if empty($src)} style="display:none"{/if}>
+                <img src="{$src}"><br>
+            </span>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">[`Opacity`]</div>
+        <div class="value no-shift">
+            <div id="opacity-slider"></div>
+            <input type="hidden" name="shop_watermark[opacity]" class="input" placeholder="0.3" value="{$settings.opacity|replace:',':'.'}">
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">[`Overlay mode`]</div>
+        <div class="value no-shift">
+            <label>
+                <input type="radio" name="shop_watermark[overlay]" value="thumbnails"{if $settings.overlay == 'thumbnails'} checked{/if}>
+                [`Thumbnails`] [`(recommended)`]
+            </label>
+            <div id="thumb-min-wrapper">
+                <label class="small">
+                    <input type="checkbox"{if $settings.thumb_min > 0} checked{/if}>
+                    [`Only for thumbnails larger than`]
+                </label>
+                <input type="text" class="small short numerical" value="{ifempty($settings.thumb_min, 200)}">
+                <span class="small">px</span>
+                <input type="hidden" name="shop_watermark[thumb_min]" value="{$settings.thumb_min}">
+                <br>
+                <span class="hint">[`Watermark will be applied to every product thumbnail at the moment of thumbnail generation after the scaling is complete. Original product image will not be modified.`]</span>
+            </div>
+        </div>
+        <div class="value no-shift">
+            <label>
+                <input type="radio" name="shop_watermark[overlay]" value="original"{if $settings.overlay == 'original'} checked{/if}>
+                [`Original image`]
+            </label>
+            <div style="margin-top:5px"><span class="hint">[`Watermark will be applied to the original product image at the moment of upload, and thus all custom-sized product thumbnails will contain this watermark automatically. This option is not recommended, because in case you would like to change watermark in the future, you will have to re-upload all product images.`]</span></div>
+        </div>
+        {if $settings.overlay != 'thumbnails'}
+            <div class="value no-shift" style="display: none;" id="thumbnails-mode-warning">
+                <span class="small"><i class="icon10 exclamation"></i> {sprintf('[`<strong>IMPORTANT</strong>: If you already have products with watermark applied to the original image, switching overlay mode to Thumbnails will add double watermarks to all product thumbnails that will be generated in the future. You may want to <a href="%s">re-generate all product image thumbnails</a> after you switch the overlay mode.`]', '?action=settings#/images/')}</span>
+            </div>
+        {/if}
+    </div>
+</div>
+<br>
+
+<script>(function() { "use strict";
+    var farbtastic_url = "{$wa_url}wa-content/js/farbtastic/farbtastic.js?{$wa->version(true)}";
+    var jquery_slider_url = "{$wa_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js?{$wa->version(true)}";
+    var imgareaselect_url = "{$wa_url}wa-content/js/jquery-plugins/jquery-imageareaselect/jquery.imgareaselect.min.js?{$wa->version(true)}";
+    var msg_save_to_preview = "[`Please save watermark settings first to apply changes, and then click Preview again.`]";
+    var msg_upload_watermark = "[`Upload watermark image using the form below.`]";
+
+    $.plugins.options.useIframeTransport = true;
+
+    var $form = $('#plugins-settings-form');
+    var $watermark_type_checkbox = $('#s-watermark-type');
+    var $opacity_input = $form.find('[name="shop_watermark[opacity]"]');
+    var $color_input = $form.find('[name="shop_watermark[text_color]"]');
+
+    // iButton checkbox logic
+    (function() {
+        var $wrapper = $watermark_type_checkbox.closest('ul');
+        var $label1 = $wrapper.find('li span').first();
+        var $label2 = $wrapper.find('li span').last();
+        $watermark_type_checkbox.change(function () {
+            if (this.checked) {
+                $label2.removeClass('s-unselected');
+                $label1.addClass('s-unselected');
+                $form.addClass('image-mode').removeClass('text-mode');
+            } else {
+                $label2.addClass('s-unselected');
+                $label1.removeClass('s-unselected');
+                $form.removeClass('image-mode').addClass('text-mode');
+            }
+        }).change().iButton({
+            labelOn: '',
+            labelOff: '',
+            className: 'mini'
+        });
+    })();
+
+    // Update visibility of fields when user changes watermark type (text/image)
+    (function() {
+        var $radios = $form.find('[name="shop_watermark[watermark_type]"]').change(update);
+        update();
+
+        function update() {
+            $radios.filter(':checked').closest('.value').removeClass('not-selected').addClass('selected');
+            $radios.filter(':not(:checked)').closest('.value').removeClass('selected').addClass('not-selected');
+        }
+    })();
+
+    // Save-related logic
+    (function() {
+
+        // Color button into yellow when something changes in the form
+        var $file_input = $form.find('[type="file"]:input');
+        var initial_form_state = $form.serialize();
+        var $submit_button = $form.find(':submit');
+        $form.on('change', function() {
+            if ($file_input[0].files && $file_input[0].files.length) {
+                initial_form_state = null;
+            }
+            if (!initial_form_state || initial_form_state != $form.serialize()) {
+                $submit_button.addClass('yellow').removeClass('green');
+            } else {
+                $submit_button.addClass('green').removeClass('yellow');
+            }
+        });
+
+        // Update form state after successfull save
+        var h;
+        var $uploaded_watermark = $('#uploaded-watermark');
+        $($.plugins).on('success', h = function(e, r) {
+            if (!$.contains(document, $form[0])) {
+                $($.plugins).off('success', h);
+            }
+            if (r.data.src) {
+                $uploaded_watermark.find('img').prop('src', r.data.src).off('load').one('load', function() {
+                    $uploaded_watermark.slideDown();
+                    updateWatermarkPreviewSrc();
+                });
+            } else {
+                $uploaded_watermark.find('img').prop('src', '').hide();
+                $color_input.change();
+            }
+
+            // Clear file input
+            $file_input.wrap('<form>').closest('form')[0].reset();
+            $file_input.unwrap();
+            initial_form_state = $form.serialize();
+            $form.change();
+        });
+
+        // Only allow preview link when form is saved
+        $('#preview-link').click(function() {
+            if ($submit_button.hasClass('yellow')) {
+                alert(msg_save_to_preview);
+                return false;
+            }
+        });
+
+        // Change preview area background when image loads first time
+        $uploaded_watermark.find('img').on('load', function() {
+            updateWatermarkPreviewSrc();
+        });
+    })();
+
+    // checkbox + text for "only thumbnails larger than" combine into a single hidden field
+    (function() {
+        var $wrapper = $('#thumb-min-wrapper')
+        var $hidden = $wrapper.find('[name="shop_watermark[thumb_min]"]');
+        var $checkbox = $wrapper.find('input:checkbox');
+        var $text = $wrapper.find('input:text');
+        $wrapper.find('input').on('change keyup', function() {
+            var px = parseInt($text.val(), 10);
+            if (isNaN(px) || ''+px != $text.val()) {
+                $hidden.val(0);
+                $text.addClass('error');
+                return;
+            }
+            $text.removeClass('error');
+            if (!$checkbox.is(':checked')) {
+                $hidden.val(0);
+                return;
+            }
+            $hidden.val(''+px);
+        });
+    })();
+
+    // Sliders
+    (function(init) {
+        // Load jquery ui slider if not loaded yet
+        if ($.fn.slider) {
+            init();
+        } else {
+            $.ajax({
+                dataType: "script",
+                url: jquery_slider_url,
+                cache: true
+            }).done(function() {
+                init();
+            });
+        }
+    })(function() {
+        // Slider for opacity
+        $('#opacity-slider').slider({
+            min: 0,
+            max: 1,
+            step: 0.05,
+            value: parseFloat($opacity_input.val().replace(',', '.')) || 0,
+            slide: function(e, ui) {
+                $opacity_input.val(ui.value).change();
+            }
+        });
+    });
+
+    // Region selector logic
+    (function(init) {
+
+        var d1 = jQuery.when(),
+            d2 = jQuery.when();
+
+        // Load imgAreaSelect plugin if not loaded yet
+        if (!$.fn.imgAreaSelect) {
+            d1 = $.ajax({
+                dataType: "script",
+                url: imgareaselect_url,
+                cache: true
+            });
+        }
+
+        // Wait until main image is loaded
+        var $main_img = $('#region-selector .main-img img');
+        if (!$main_img[0].complete) {
+            d2 = $.Deferred();
+            $main_img.one('load', function() {
+                d2.resolve();
+            });
+        }
+
+        $.when(d1, d2).done(function() {
+            setTimeout(init, 0);
+        });
+    })(function() {
+        var $wrapper = $('#region-selector');
+        var $main_img = $wrapper.find('.main-img img');
+        var $position_radios = $form.find('[name="shop_watermark[text_position]"]');
+        var $font_size_select = $form.find('[name="shop_watermark[font_size]"]');
+        var $orientation_select = $form.find('[name="shop_watermark[orientation]"]');
+        var $rotation_select = $form.find('[name="shop_watermark[rotation]"]');
+        var $text_input = $form.find('[name="shop_watermark[text]"]');
+        var main_img_deferred = null;
+
+        var inputs = (function() {
+            var $inputs = $wrapper.find('.position-input');
+            var inputs = {};
+            $.each(['x1', 'x2', 'y1', 'y2'], function(i, v) {
+                inputs[v] = $inputs.filter('[name*="'+v+'"]');
+            });
+            return inputs;
+        })();
+
+        // Load another product image when user clicks on a link
+        var $load_product_image_link = $('#load-another-product-image-link');
+        $load_product_image_link.on('click', function() {
+            if ($load_product_image_link.find('.loading').length > 0) {
+                return false;
+            }
+            $load_product_image_link.append('<i class="icon16 loading"></i>');
+            $.post('?plugin=watermark&module=image&action=product', null, function(r) {
+                $main_img.off('load').one('load', function() {
+                    $load_product_image_link.find('.loading').remove();
+                    updateImgAreaSelect();
+                }).prop('src', r.data.url_default);
+            }, 'json');
+        });
+
+        // Update imgAreaSelect logic when something changes in the form
+        $([ $text_input[0],
+            $color_input[0],
+            $opacity_input[0],
+            $rotation_select[0],
+            $font_size_select[0],
+            $orientation_select[0],
+            $watermark_type_checkbox[0]
+        ]).add($position_radios).on('change keyup', updateImgAreaSelect);
+
+        // Initial set up
+        $main_img.imgAreaSelect({
+            parent: $main_img.closest('.main-img-wrapper'),
+            handles: true,
+            movable: true,
+            resizable: true,
+            persistent: true
+        });
+        setTimeout(updateImgAreaSelect, 0);
+
+        function updateImgAreaSelect() {
+
+            var opacity = parseFloat($opacity_input.val().replace(',', '.')) || 0;
+
+            if ($watermark_type_checkbox.prop('checked')) {
+                //
+                // Image mode
+                //
+
+                updateWatermarkPreviewSrc();
+                $main_img.imgAreaSelect({
+                    handles: true,
+                    movable: true,
+                    resizable: true,
+                    persistent: true,
+                    parent: $main_img.closest('.main-img-wrapper'),
+                    x1: $main_img.prop('width')*((inputs['x1'].val()-0) || 0),
+                    y1: $main_img.prop('height')*((inputs['y1'].val()-0) || 0),
+                    x2: $main_img.prop('width')*((inputs['x2'].val()-0) || 1),
+                    y2: $main_img.prop('height')*((inputs['y2'].val()-0) || 1),
+                    onSelectEnd: function(img, data) {
+                        inputs.x1.val(data.x1 / img.width);
+                        inputs.x2.val(data.x2 / img.width);
+                        inputs.y1.val(data.y1 / img.height);
+                        inputs.y2.val(data.y2 / img.height);
+                        $form.change();
+                    }
+                });
+
+                // Update color and rotation
+                $main_img.closest('.main-img-wrapper').find('.imgareaselect-selection').css({
+                    'font-size': '0px',
+                    opacity: opacity
+                }).parent().css({
+                    'transform-origin': '50% 50%',
+                    '-webkit-transform': 'initial',
+                    '-moz-transform': 'initial',
+                    '-ms-transform': 'initial',
+                    transform: 'initial',
+                    overflow: 'visible'
+                });
+            } else {
+                //
+                // Text mode
+                //
+
+                updateWatermarkPreviewSrc(true);
+                var position = $position_radios.filter(':checked').val() || 'c';
+                if(position == 'c') {
+                    $rotation_select.show();
+                    $orientation_select.hide();
+                } else {
+                    $rotation_select.hide();
+                    $orientation_select.show();
+                }
+
+                // Update color and rotation
+                var color = $color_input.val().toLowerCase().replace(/[^0-9a-f]/g);
+                if (!{ 6:1, 3:1 }[color.length]) {
+                    color = '000000';
+                }
+
+                var $imgareaselection = $main_img.closest('.main-img-wrapper').find('.imgareaselect-selection').css('width', '');
+
+                var height = $font_size_select.val() * 60 / 97;
+                var $text_div = $imgareaselection.find('.text').css({
+                    'font-size': height+'px',
+                    'white-space': 'nowrap',
+                    'text-align': 'center',
+                    color: '#'+color
+                }).text($text_input.val());
+                var width = Math.max($text_div.width(), $main_img.prop('width') / 3);
+
+                var transform_origin = '50% 50%';
+                var margin = 8, x1, y1;
+                var rotation = $orientation_select.val() == 'v' ? -90 : 0;
+                switch(position) {
+                    case 'tl':
+                        transform_origin = '#px #px'.replace('#', width/2).replace('#', width/2);
+                        $text_div.css('text-align', 'right');
+                        x1 = margin;
+                        y1 = margin;
+                        break;
+                    case 'tr':
+                        y1 = margin;
+                        x1 = $main_img.prop('width') - width - margin;
+                        transform_origin = '#px #px'.replace('#', width - height/2).replace('#', height/2);
+                        $text_div.css('text-align', 'right');
+                        break;
+                    case 'bl':
+                        x1 = margin;
+                        y1 = $main_img.prop('height') - height - margin;
+                        transform_origin = '#px #px'.replace('#', height/2).replace('#', height/2);
+                        $text_div.css('text-align', 'left');
+                        break;
+                    case 'br':
+                        $text_div.css('text-align', 'left');
+                        transform_origin = '#px #px'.replace('#', width/2).replace('#', height-width/2);
+                        x1 = $main_img.prop('width') - width - margin;
+                        y1 = $main_img.prop('height') - height - margin;
+                        break;
+                    case 'c':
+                    default:
+                        x1 = ($main_img.prop('width') - width) / 2;
+                        y1 = ($main_img.prop('height') - height) / 2;
+                        rotation = parseInt($rotation_select.val(), 10) || 0;
+                        break;
+                }
+
+                var x2 = (x1-0) + (width-0),
+                    y2 = (y1-0) + (height-0);
+                $main_img.imgAreaSelect({
+                    parent: $main_img.closest('.main-img-wrapper'),
+                    persistent: true,
+                    resizable: false,
+                    handles: false,
+                    movable: false,
+                    x1: x1,
+                    y1: y1,
+                    x2: x2,
+                    y2: y2,
+                    onSelectEnd: function(img, data) {}
+                });
+
+                $imgareaselection.css({
+                    'background-color': '',
+                    opacity: opacity
+                }).parent().css({
+                    'transform-origin': transform_origin,
+                    '-webkit-transform': 'rotate('+rotation+'deg)',
+                    '-moz-transform': 'rotate('+rotation+'deg)',
+                    '-ms-transform': 'rotate('+rotation+'deg)',
+                    transform: 'rotate('+rotation+'deg)',
+                    overflow: 'visible'
+                });
+            }
+
+        }
+    });
+
+    // Colorpicker
+    (function(init) {
+        // Load colorpicker plugin if not loaded yet
+        if ($.fn.farbtastic) {
+            init();
+        } else {
+            $.ajax({
+                dataType: "script",
+                url: farbtastic_url,
+                cache: true
+            }).done(function() {
+                init();
+            });
+        }
+    })(function() {
+        var $wrapper = $('#colorpicker-wrapper');
+        var $color_icon = $color_input.parent().find('i.color').click(function() {
+            $wrapper.slideToggle();
+        });
+        var farbtastic = $.farbtastic($wrapper, function (color) {
+            $color_input.val(color.substr(1).toUpperCase()).change();
+            $color_icon.css('background', color);
+        });
+        $color_input.on('keyup', function() {
+            farbtastic.setColor('#'+this.value);
+        });
+    });
+
+    // Overlay switch control
+    (function() { "use strict";
+        var $warning = $('#thumbnails-mode-warning');
+        var $overlay_radios = $form.find('[name="shop_watermark[overlay]"]').change(function() {
+            setTimeout(function() {
+                if ($overlay_radios.filter(':checked').val() == 'thumbnails') {
+                    $warning.slideDown();
+                } else {
+                    $warning.hide();
+                }
+            }, 0);
+        });
+    })();
+
+    function updateWatermarkPreviewSrc(force_none) {
+        var src = $('#uploaded-watermark img').attr('src');
+        var $div = $('#region-selector .imgareaselect-selection').html('<div class="text"></div>');
+        if (!force_none && src) {
+            $div.html('').css({
+                'background-image': "url('"+src+"')",
+                'background-color': '',
+                'font-size': '0px',
+                'color': ''
+            });
+        } else {
+            $div.css({
+                'background-image': '',
+                'background-color': 'black'
+            }).find('.text').text(msg_upload_watermark);
+        }
+    }
+
+})();</script>

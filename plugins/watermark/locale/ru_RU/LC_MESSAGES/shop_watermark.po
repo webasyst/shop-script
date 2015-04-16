@@ -3,16 +3,16 @@ msgstr ""
 "Project-Id-Version: shop/plugins/watermark\n"
 "POT-Creation-Date: 2013-04-30 12:30+0400\n"
 "PO-Revision-Date: \n"
-"Last-Translator: shop/plugins/watermark\n"
+"Last-Translator: \n"
 "Language-Team: shop/plugins/watermark\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)"
-">=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.5.5\n"
+"X-Generator: Poedit 1.7.4\n"
+"Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -30,9 +30,7 @@ msgstr "Водяной знак"
 
 #: /wa-apps/shop/plugins/watermark/lib/config/plugin.php:5
 msgid "Applies watermark text or image on uploaded photos"
-msgstr ""
-"Накладывает водяной знак в виде изображения или текста на загружаемые "
-"фотографии"
+msgstr "Накладывает водяной знак в виде изображения или текста на загружаемые фотографии"
 
 #: /wa-apps/shop/plugins/watermark/lib/config/settings.php:5
 msgid "Opacity"
@@ -50,7 +48,9 @@ msgstr "Текст"
 msgid "Text size"
 msgstr "Размер шрифта"
 
-#: /wa-apps/shop/plugins/watermark/lib/config/settings.php:20
+msgid "Very small"
+msgstr "Очень маленький"
+
 msgid "Small"
 msgstr "Маленький"
 
@@ -61,6 +61,9 @@ msgstr "Средний"
 #: /wa-apps/shop/plugins/watermark/lib/config/settings.php:22
 msgid "Large"
 msgstr "Большой"
+
+msgid "Very large"
+msgstr "Очень большой"
 
 #: /wa-apps/shop/plugins/watermark/lib/config/settings.php:26
 msgid "Text color"
@@ -111,11 +114,92 @@ msgid "Image align"
 msgstr "Положение наложенного изображения"
 
 #: /wa-apps/shop/plugins/watermark/lib/shopWatermark.plugin.php:96
-msgid ""
-"File could not be saved due to the insufficient file write permissions for "
-"the %s folder."
+msgid "File could not be saved due to the insufficient file write permissions for the %s folder."
 msgstr "Недостаточно прав для сохранения файла на сервере в папке %s"
 
 #: /wa-apps/shop/plugins/watermark/lib/shopWatermark.plugin.php:99
 msgid "Failed to upload file."
 msgstr "Не удалось загрузить файл."
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:33
+msgid "Watermark type"
+msgstr "Тип водяного знака"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:69
+msgid "Preview"
+msgstr "Предпросмотр"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:78
+msgid "Save watermark settings to modify placement region"
+msgstr "Сохраните настройки водяного знака, чтобы изменить область наложения"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:83
+msgid "Rotation"
+msgstr "Размещение"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:87
+msgid "Vertical"
+msgstr "Вертикальный"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:104
+msgid "Color"
+msgstr "Цвет"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:111
+msgid "Font size"
+msgstr "Размер шрифта"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:144
+msgid "Overlay mode"
+msgstr "Режим наложения"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:148
+msgid "Thumbnails"
+msgstr "Эскизы"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:153
+msgid "Only for thumbnails larger than"
+msgstr "Только для эскизов размером более"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:159
+msgid "Watermark will be applied to every product thumbnail at the moment of thumbnail generation after the scaling is complete. Original product image will not be modified."
+msgstr "Водяной знак будет накладываться на эскизы «на лету» в момент их создания. Оригинальное загруженное изображение товара не будет изменено."
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:165
+msgid "Original image"
+msgstr "Оригинальное изображение"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:165
+msgid "(not recommended)"
+msgstr "(не рекомендуется)"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:167
+msgid "Watermark will be applied to the original product image at the moment of upload, and thus all custom-sized product thumbnails will contain this watermark automatically. This option is not recommended, because in case you would like to change watermark in the future, you will have to re-upload all product images."
+msgstr "Водяной знак будет наложен на оригинальное изображение товара в момент его загрузки, и поэтому все создаваемые «на лету» эскизы уменьшенного размера будут автоматически содержать водяной знак. Этот вариант наложения не рекомендуется, так как в случае, если вы захотите изменить водяной знак в будущем, вам необходимо будет заново загрузить все оригинальные изображения товаров."
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:170
+msgid "<strong>IMPORTANT</strong>: If you already have products with watermark applied to the original image, switching overlay mode to Thumbnails will add double watermarks to all product thumbnails that will be generated in the future. You may want to <a href=\"%s\">re-generate all product image thumbnails</a> after you switch the overlay mode."
+msgstr "<strong>ВАЖНО</strong>: Если у вас уже есть товары, на оригинальных изображениях которых присутствует водяной знак, то переключение в режим наложения «Эскизы» приведет к двойному наложению водяного знака на все эскизы уменьшенного размера. Чтобы избежать двойного наложения, возможно, потребуется <a href=\"%s\">пересоздать все оригинальные изображения и эскизы товаров</a> из их исходных версий."
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:70
+msgid "Preview thumbnail"
+msgstr "Посмотреть в полном размере"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:183
+msgid "Please save watermark settings first to apply changes, and then click Preview again."
+msgstr "Пожалуйста, сохраните настройки наложения водяного знака и щелкните по этой ссылке еще раз."
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:184
+msgid "Upload watermark image using the form below."
+msgstr "Загрузите изображение водяного знака с помощью формы ниже."
+
+msgid "Load another product image"
+msgstr "Показать другое изображение товара"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:74
+msgid "Change sample product"
+msgstr "Сменить товар"
+
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:152
+msgid "(recommended)"
+msgstr "(рекомендуется)"

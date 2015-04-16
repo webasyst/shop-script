@@ -110,3 +110,6 @@ msgstr ""
 msgid "Failed to upload file."
 msgstr ""
 
+#: /wa-apps/shop/plugins/watermark/templates/Settings.html:170
+msgid "<strong>IMPORTANT</strong>: If you already have products with watermark applied to the original image, switching overlay mode to Thumbnails will add double watermarks to all product thumbnails that will be generated in the future. You may want to <a href=\"%s\">re-generate all product image thumbnails</a> after you switch the overlay mode."
+msgstr "<strong>IMPORTANT</strong>: If you already have products with watermark applied to the original image, switching overlay mode to Thumbnails will add double watermarks to all product thumbnails that will be generated in the future. You may want to <a href=\"%s\">re-generate all product image thumbnails</a> after you change the overlay mode."
