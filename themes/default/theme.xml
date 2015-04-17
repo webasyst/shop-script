@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="2.3.0">
+<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="2.3.1">
     <name locale="en_US">Default 2.0</name>
     <name locale="ru_RU">Дефолт 2.0</name>
     <files>
@@ -296,8 +296,8 @@
             <name locale="en_US">Show latest blog posts on storefront homepage</name>
             <name locale="ru_RU">Показывать последние посты блога на главной странице интернет-магазина</name>
         </setting>
-        <setting var="list_features">
-            <value>0</value>
+        <setting var="list_features" control_type="checkbox">
+            <value></value>
             <name locale="en_US">Show product features in product lists</name>
             <name locale="ru_RU">Показывать характеристики в списках товаров</name>
         </setting>

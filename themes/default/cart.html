@@ -83,6 +83,9 @@
                         <div {if !$coupon_code}style="display: none;"{/if} id="apply-coupon-code">
                             [`Coupon code`]:
                             <input type="text" name="coupon_code" value="{$coupon_code|escape}"> <input type="submit"  value="[`Apply`]" class="gray small">
+                            {if $coupon_code && empty($coupon_discount)}
+                                <div class="errormsg">[`Invalid coupon code`]</div>
+                            {/if}
                         </div>
                     {/if}
                     
