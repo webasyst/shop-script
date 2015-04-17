@@ -41,16 +41,12 @@ class shopPayment extends waAppPayment
     public static function getPlugin($plugin, $plugin_id = null)
     {
         if (!$plugin && $plugin_id) {
-            $model = new shopPluginModel();
-            $info = $model->getById($plugin_id);
+            $info = self::getPluginData($plugin_id);
 
             if (!$info) {
                 throw new waException("Payment plugin {$plugin_id} not found", 404);
             }
 
-            if ($info['type'] != shopPluginModel::TYPE_PAYMENT) {
-                throw new waException("Payment plugin {$plugin_id} has invalid type", 404);
-            }
             $plugin = $info['plugin'];
         }
         return waPayment::factory($plugin, $plugin_id, self::getInstance());
@@ -59,10 +55,7 @@ class shopPayment extends waAppPayment
     public static function getPluginInfo($id)
     {
         if ($plugin_id = max(0, intval($id))) {
-
-            $model = new shopPluginModel();
-            $info = $model->getById($plugin_id);
-
+            $info = self::getPluginData($plugin_id);
             if (!$info) {
                 throw new waException("Payment plugin {$plugin_id} not found", 404);
             }
@@ -75,6 +68,12 @@ class shopPayment extends waAppPayment
 
         $default_info = waPayment::info($info['plugin']);
         return is_array($default_info) ? array_merge($default_info, $info) : $default_info;
+    }
+
+    private static function getPluginData($id)
+    {
+        $model = new shopPluginModel();
+        return $model->getPlugin($id, shopPluginModel::TYPE_PAYMENT);
     }
 
     public static function savePlugin($plugin)
@@ -304,6 +303,18 @@ class shopPayment extends waAppPayment
     public function getSettings($payment_id, $merchant_key)
     {
         $this->merchant_id = max(0, intval($merchant_key));
+        if (wa()->getEnv() == 'frontend') {
+            if ($info = self::getPluginData($this->merchant_id)) {
+                if ($payment_id != ifset($info['plugin'])) {
+                    throw new waException ('Invalid merchant id', 404);
+                }
+                if (!$info['status']) {
+                    throw new waException('Plugin status is disabled', 503);
+                }
+            } else {
+                throw new waException('Plugin not found', 404);
+            }
+        }
         return $this->model()->get($merchant_key);
     }
 
@@ -319,7 +330,7 @@ class shopPayment extends waAppPayment
 
     public function refund()
     {
-        
+
     }
 
     public function auth()
@@ -421,21 +432,13 @@ class shopPayment extends waAppPayment
      */
     private function isSuitable($order_id)
     {
-        $order_params_model = new shopOrderParamsModel();
         if (!$this->merchant_id) {
             return 'Invalid plugin id';
         } else {
+            $order_params_model = new shopOrderParamsModel();
+
             if ($this->merchant_id != $order_params_model->getOne($order_id, 'payment_id')) {
                 return 'Plugin does not suitable to payment of the order';
-            }
-
-            $shop_plugin_model = new shopPluginModel();
-            if ($plugin = $shop_plugin_model->getById($this->merchant_id)) {
-                if (!$plugin['status']) {
-                    return 'Plugin status is disabled';
-                }
-            } else {
-                return 'Plugin deleted';
             }
         }
         return true;

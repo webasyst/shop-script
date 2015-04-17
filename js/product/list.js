@@ -366,6 +366,16 @@
                     product_list.find('.s-select-all:first').click(function () {
                         $(this).trigger('select', this.checked);
                     });
+
+                    // Click on a table view icon toggles product name view in table: single-lined or multi-lined
+                    $('#s-content .list-view-mode-table').click(function() {
+                        product_list.toggleClass('single-lined');
+                        $.storage.set('shop/product_list/multi-lined', !product_list.hasClass('single-lined'));
+                        return false;
+                    });
+                    if ($.storage.get('shop/product_list/multi-lined')) {
+                        product_list.removeClass('single-lined');
+                    }
                 }
 
                 // var param = 'view=' + view + (this.sort ? '&sort=' + this.sort : '');
@@ -848,18 +858,27 @@
                         },
                         onSubmit: function () {
                             var self = $(this);
+                            var category_id = parseInt($.product_list.collection_hash[1]);
                             self.find('.dialog-buttons i.loading').show();
                             var remove_products = self.find('input[name=s-delete-products]:checked').val() == '1';
 
                             if (type == 'category' && self.find('input[name="s-delete-sub"]').is(':checked')) {
-                                var ids = $('#category-'+$.product_list.collection_hash[1]).find('li[id^="category-"]').map(function() {
-                                    return parseInt(this.id.substr(9), 10);
-                                }).get().reverse();
-                                ids.push($.product_list.collection_hash[1]);
-                                removeMany(ids, function() {
-                                    location.href = '#/';
+
+                                // Get all children of this category by fetching its expanded HTML
+                                $.get('?action=categoryExpand&tree=1&id=' + category_id, function(html) {
+                                    var ids = $('<div>').html(html).find('li[id^="category-"]').map(function() {
+                                        return parseInt(this.id.substr(9), 10);
+                                    }).get().reverse();
+
+                                    // Delete all children, then delete category itself
+                                    ids.push(category_id);
+                                    removeMany(ids, function() {
+                                        location.href = '#/';
+                                    });
                                 });
+
                             } else {
+                                // Delete category and attach children to parent of deleted category
                                 removeOne($.product_list.collection_hash, function() {
                                     location.href = '#/';
                                 });
@@ -1569,7 +1588,9 @@
 
             // Hashmap of product ids used in jsonComplete()
             var is_selected = {};
+            var everything_selected = false;
             $.each(products.serialized, function() {
+                everything_selected = everything_selected || this.name == 'hash';
                 is_selected[this.value] = 1;
             });
 
@@ -1602,7 +1623,7 @@
                 var badge_html = (action == 'delete-badge' ? null : r.data);
                 $('#product-list [data-product-id]').each(function() {
                     var $li = $(this);
-                    if (is_selected[$li.data('product-id')]) {
+                    if (everything_selected || is_selected[$li.data('product-id')]) {
                         if ($li.is('tr')) {
                             var $a = $li.find('.s-image a');
                             $a.find('.s-image-corner').remove();

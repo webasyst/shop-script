@@ -255,11 +255,14 @@ class shopProductAction extends waViewAction
                 $order_model = new shopOrderModel();
                 $rows = $order_model->getTotalSkuSalesByProduct($product['id'], $product['currency']);
                 foreach ($rows as $sku_id => $v) {
-                    $sku_sales_data[] = array($product['skus'][$sku_id]['name'], (float)$v['total']);
+                    $name = 'sku_id='.$sku_id;
+                    if (!empty($product['skus'][$sku_id]['name'])) {
+                        $name = $product['skus'][$sku_id]['name'];
+                    }
+                    $sku_sales_data[] = array($name, (float)$v['total']);
                 }
                 $this->view->assign('sku_plot_data', array($sku_sales_data));
             }
-
         }
         $this->view->assign('report_rights', $report_rights);
 

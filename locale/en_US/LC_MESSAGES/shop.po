@@ -10167,26 +10167,8 @@ msgstr ""
 msgid "Total spent (Count only paid orders)"
 msgstr ""
 
-#: /wa-apps/shop/lib/classes/shopCustomersCollection.class.php:304
-#: /wa-apps/shop/lib/classes/shopCustomersCollection.class.php:310
-msgid "Make order"
-msgstr ""
-
-#: /wa-apps/shop/lib/classes/shopCustomersCollection.class.php:322
-#: /wa-apps/shop/lib/classes/shopCustomersCollection.class.php:329
-msgid "Make first order"
-msgstr ""
-
 #: /wa-apps/shop/lib/classes/shopCustomersCollection.class.php:340
 msgid "Any coupon"
-msgstr ""
-
-#: /wa-apps/shop/lib/classes/shopCustomersCollection.class.php:364
-msgid "Any Utm campaign"
-msgstr ""
-
-#: /wa-apps/shop/lib/classes/shopCustomersCollection.class.php:370
-msgid "Utm campaign"
 msgstr ""
 
 #: /wa-apps/shop/lib/model/shopCustomersFilter.model.php:10
@@ -10194,40 +10176,12 @@ msgid "No name filter"
 msgstr ""
 
 #: /wa-apps/shop/themes/mobile/category.html:24
-msgid "Hide Filter"
+msgid "Hide Filters"
 msgstr ""
 
 #: /wa-apps/shop/themes/mobile/category.html:24
 #: /wa-apps/shop/themes/mobile/category.html:24
-msgid "Show Filter"
-msgstr ""
-
-#: /wa-apps/shop/themes/mobile/checkout.html:87
-msgid "You are currently authorized as<br><strong>%s</strong>."
-msgstr ""
-
-#: /wa-apps/shop/themes/mobile/checkout.html:91
-msgid "Please verify or update your contact information using the form below. Your existing contact info will be automatically updated."
-msgstr ""
-
-#: /wa-apps/shop/themes/mobile/my.orders.html:31
-msgid "Goods"
-msgstr ""
-
-#: /wa-apps/shop/themes/mobile/my.orders.html:44
-msgid "Shipping Type"
-msgstr ""
-
-#: /wa-apps/shop/themes/mobile/my.orders.html:56
-msgid "Payment Type"
-msgstr ""
-
-#: /wa-apps/shop/themes/mobile/my.orders.html:68
-msgid "Order Date"
-msgstr ""
-
-#: /wa-apps/shop/themes/mobile/product.cart.html:180
-msgid "Input quantity"
+msgid "Show Filters"
 msgstr ""
 
 #: /wa-apps/shop/themes/mobile/product.cart.html:195
@@ -10236,22 +10190,6 @@ msgstr ""
 
 #: /wa-apps/shop/themes/mobile/product.cart.html:197
 msgid "Go to shopping cart"
-msgstr ""
-
-#: /wa-apps/shop/themes/mobile/reviews.html:54
-msgid "Hide review form"
-msgstr ""
-
-#: /wa-apps/shop/themes/mobile/reviews.html:130
-msgid "Your mark is "
-msgstr ""
-
-#: /wa-apps/shop/themes/mobile/reviews.html:146
-msgid "comment on the review"
-msgstr ""
-
-#: /wa-apps/shop/themes/mobile/reviews.html:189
-msgid "Be the first to write a review of this product!"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/tutorial/TutorialProfit.html:11
@@ -10338,4 +10276,49 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/reports/ReportsProductsWhatToSell.html:14
 msgid "Up to %d products"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:136
+msgid "Subtotal %1$s &minus; Discount %2$s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:141
+msgid "Total sales %1$s &minus; Purchase expense %2$s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:204
+msgid "Optional settings"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:209
+msgid "Automatically create thumbnails of predefined custom sizes"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:211
+msgid "Enable this in case you are sure about the list of your custom thumbnail sizes, or if custom-sized on-fly thumbnail generation is disabled; otherwise it is safe to have this option turned off."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:217
+msgid "Restore product fullsize images from originally uploaded versions (backups)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:219
+msgid "Enable this to flush all source fullsize images and re-generate them from backups. All plugin customizations to source images will be re-applied. Source images without backups will be skipped."
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopCustomersCollectionPreparator.class.php:25
+msgid "All"
+msgstr ""
+
+#: /wa-apps/shop/lib/handlers/contacts.contacts_collection.handler.php:17
+msgid "Shop customers"
+msgstr ""
+
+#: /wa-apps/shop/themes/default/cart.html:87
+msgid "Invalid coupon code"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:18
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:17
+msgid "Download chart data in CSV"
 msgstr ""

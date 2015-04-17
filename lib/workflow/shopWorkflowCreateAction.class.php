@@ -202,7 +202,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         $params_model->set($order_id, $data['params']);
 
         // Write discounts description to order log
-        if (!empty($data['discount_description']) && !empty($data['discount'])) {
+        if (!empty($data['discount_description']) && !empty($data['discount']) && empty($data['skip_description'])) {
             $order_log_model = new shopOrderLogModel();
             $order_log_model->add(array(
                 'order_id' => $order_id,

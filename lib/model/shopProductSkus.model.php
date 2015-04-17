@@ -73,16 +73,22 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         }
 
         // get aggregated info of skus for this product
-        $data = $this->query(
-            "
-            SELECT COUNT(id) AS cnt, MAX(price) AS max_price, MIN(price) AS min_price
-            FROM `{$this->table}`
-            WHERE product_id = {$product['id']} AND id != {$sku_id}
-        "
-        )->fetchAssoc();
+        $sql = <<<SQL
+        SELECT
+  COUNT(`id`) AS `cnt`,
+  MAX(`price`) AS `max_price`,
+  MIN(`price`) AS `min_price`,
+  SUM(IF((`count` < 0) OR (`available` != 1), 0, `count`)) `count`
+FROM `{$this->table}`
+WHERE
+  (`product_id` = {$product['id']})
+  AND
+  (`id` != {$sku_id})
+SQL;
+        $data = $this->query($sql)->fetchAssoc();
 
         if (!$data) {
-            return false; // something's wrong
+            return false; // something is wrong
         }
 
         if (!$data['cnt']) {
@@ -94,7 +100,7 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         if ($product['currency'] && $product['currency'] != $primary) {
             $currency = $product['currency'];
         }
-        // info for updatig product when sku'll be deleted
+        // info for updating product when sku will be deleted
         $update = array(
             'max_price' => $currency != $primary ? $this->convertPrice($data['max_price'], $currency) : $data['max_price'],
             'min_price' => $currency != $primary ? $this->convertPrice($data['min_price'], $currency) : $data['min_price'],
@@ -110,9 +116,13 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
             }
             $update += $item;
         }
-        if ($sku['count'] !== null && $product['count'] !== null) {
+
+        if (($sku['count'] !== null) && ($product['count'] !== null)) {
             $update['count'] = $product['count'] - $sku['count']; // increase count if it's possible
+        } elseif (($product['count'] === null) && ($sku['count'] === null)) {
+            $update['count'] = $data['count'];
         }
+
         $diff = array_diff_assoc($update, $product);
         if ($diff) {
             $product_model->updateById($product['id'], $diff); // we'll have difference after sku's deleting, so up product info

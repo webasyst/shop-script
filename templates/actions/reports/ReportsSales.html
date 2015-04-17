@@ -3,19 +3,20 @@
 <div class="content left200px">
     <div class="block double-padded">
 
-        {if $abtests}
-            <div class="block half-padded float-right highlighted">
-            <ul class="menu-h"><li>
-                <i class="icon16 split"></i><span class="highlighted">[`A/B tests results available`]</span>
-                <select id="s-sales-abtest-selector">
-                    <option value="">[`Select test`]</option>
-                    {foreach $abtests as $id => $name}
-                        <option value="{$id}"{if ifset($request_options.abtest) == $id} selected{/if}>{$name|escape}</option>
-                    {/foreach}
-                </select>
-            </li></ul>
-            </div>
-        {/if}
+        <div class="block half-padded float-right">
+            <ul class="menu-h">
+                {if $abtests}<li class="highlighted">
+                    <i class="icon16 split"></i><span class="highlighted">[`A/B tests results available`]</span>
+                    <select id="s-sales-abtest-selector">
+                        <option value="">[`Select test`]</option>
+                        {foreach $abtests as $id => $name}
+                            <option value="{$id}"{if ifset($request_options.abtest) == $id} selected{/if}>{$name|escape}</option>
+                        {/foreach}
+                    </select>
+                </li>{/if}
+                <li><a href="?module=reports&action=exportsales&{http_build_query($request_options)}"><i class="icon16 ss excel"></i>[`Download chart data in CSV`]</a></li>
+            </ul>
+        </div>
 
         <h1>
             {if !empty($request_options.type) && !empty($menu_types[$request_options.type])}

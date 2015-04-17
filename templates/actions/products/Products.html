@@ -70,7 +70,7 @@
             <li class="top-padded" data-action='delete-badge'><a href="#"><i class="icon16 no-bw"></i>[`Remove badge`]</a></li>
         </ul>
     </div>
-    
+
     <div class="block">
         <h6 class="heading">
             <span class="count indicator" style="display:none"></span>
@@ -230,10 +230,10 @@
             </li>
 
             <!-- view mode -->
-            <li{if $view != 'table'} class="selected"{/if}>
+            <li class="list-view-mode list-view-mode-thumbs{if $view != 'table'} selected{/if}">
                 <a href="#/products/{if $collection_param}{$collection_param}&{/if}view=thumbs&sort={$sort}"><i class="icon16 view-thumbs"></i></a>
             </li>
-            <li{if $view == 'table'} class="selected"{/if}>
+            <li class="list-view-mode list-view-mode-table{if $view == 'table'} selected{/if}">
                 <a href="#/products/{if $collection_param}{$collection_param}&{/if}view=table&sort={$sort}"><i class="icon16 view-table"></i></a>
             </li>
 

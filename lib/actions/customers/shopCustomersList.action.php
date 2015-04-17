@@ -29,7 +29,7 @@ class shopCustomersListAction extends waViewAction
 
         $title = _w('All customers');
         if ($hash && $hash !== 'all') {
-            $title = $this->getListTitle($collection);
+            $title = $this->workupTitle($hash, $collection->getTitle());
         }
 
         $filter_id = $this->getFilterId();
@@ -87,7 +87,7 @@ class shopCustomersListAction extends waViewAction
     {
         $query = $this->query === null ? ($this->query = urldecode(waRequest::request('search'))) : $this->query;
         if ($prepare_for_view) {
-            return str_replace('/', '%2F', $query);
+            return str_replace('/', "\\/", $query);
         }
         return $query;
     }
@@ -270,9 +270,9 @@ class shopCustomersListAction extends waViewAction
         return wa()->getUser()->isAdmin() ? $group_model->getNames() : array();
     }
 
-    public function getListTitle(shopCustomersCollection $collection)
+    public function workupTitle($col_hash, $col_title)
     {
-        $hash = $collection->getHash();
+        $hash = explode('/', $col_hash);
         $hash[0] = ifset($hash[0], '');
         $hash[1] = ifset($hash[1], '');
 
@@ -288,13 +288,13 @@ class shopCustomersListAction extends waViewAction
             }
         }
         if ($hash[0] === 'filter') {
-            return $collection->getTitle();
+            return $col_title;
         } else if ($hash[0] === 'category') {
-            return $collection->getTitle();
+            return $col_title;
         }
 
         $title = array();
-        foreach (explode(',', $collection->getTitle()) as $part) {
+        foreach (explode(',', $col_title) as $part) {
             $tokens = preg_split("/({$ops})/uis", $part, 2, PREG_SPLIT_DELIM_CAPTURE);
             unset($tokens[0]);
             if (isset($tokens[1]) && $tokens[1] === '=') {

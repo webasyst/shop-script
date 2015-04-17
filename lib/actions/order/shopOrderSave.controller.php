@@ -103,6 +103,10 @@ class shopOrderSaveController extends waJsonController
             return;
         }
 
+        // Remember previous discount to only write discount description to order log
+        // if something actually changed
+        $previous_discount = 0.0;
+
         // Unless discount for existing order is specified by hand, recalculate it again,
         // allowing plugins such as affiliation to modify its data if needed.
         $discount_description = waRequest::request('discount_description', '', 'string');
@@ -131,6 +135,8 @@ class shopOrderSaveController extends waJsonController
                 // Remove keys from shop_order previously not present in $data
                 $data = array_diff_key($data, $o);
             }
+
+            $previous_discount = (float) $this->getModel()->select('discount')->where('id=?', $id)->fetchField();
         }
 
         // Fill in shipping and payment-specific params
@@ -140,6 +146,7 @@ class shopOrderSaveController extends waJsonController
         $workflow = new shopWorkflow();
         if (!$id) {
             $just_created = true;
+            $data['skip_description'] = true;
             $id = $workflow->getActionById('create')->run($data);
         } else {
             $data['id'] = $id;
@@ -152,7 +159,7 @@ class shopOrderSaveController extends waJsonController
         $order['discount'] = (float) $order['discount'];
 
         // Save discount description to order log
-        if ($order['discount'] || !$just_created) {
+        if ($previous_discount != $order['discount']) {
             if (empty($discount_description)) {
                 if ($just_created) {
                     $discount_description = sprintf_wp('Discount specified manually during order creation: %s', shop_currency($order['discount'], $order['currency'], $order['currency']));

@@ -55,7 +55,7 @@ class shopExpenseModel extends waModel
         $expenses = $this->query($sql, $date_end, $date_start)->fetchAll();
 
         // Loop over all days of a period calculating expense amount for each day or month.
-        // Basically, this is a GROUP BY date, type, name, and color.
+        // Basically, this is a GROUP BY date, type, and name.
         $end_ts = strtotime($date_end);
         $start_ts = strtotime($date_start);
         $data = array(); // date => [name => [type#color => array of data]]
@@ -86,7 +86,6 @@ class shopExpenseModel extends waModel
                             'amount' => 0,
                             'color' => $e['color'],
                         );
-                        $data[$date][$serie_id]['amount'] = 0;
                         if (empty($result[$serie_id])) {
                             $result[$serie_id] = array(
                                 'label' => '<span class="name">'.htmlspecialchars($e['name']).'</span> <span class="note">'.($e['note'] ? '('.htmlspecialchars($e['note']).')' : '').'</span>',
@@ -97,7 +96,11 @@ class shopExpenseModel extends waModel
                             );
                         }
                     }
-                    $data[$date][$serie_id]['amount'] += $e['amount'] / $e['days_count'];
+                    $amount = $e['amount'] / $e['days_count'];
+                    if ($group_by != 'days') {
+                        $amount *= date('t', $t); // number of days in given month
+                    }
+                    $data[$date][$serie_id]['amount'] += $amount;
                 }
             }
         }

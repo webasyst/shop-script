@@ -1,4 +1,5 @@
 <?php
+
 class shopPluginModel extends shopSortableModel
 {
     const TYPE_SHIPPING = 'shipping';
@@ -39,13 +40,12 @@ class shopPluginModel extends shopSortableModel
         if (is_array($field)) {
             $items = $this->getByField($field, $this->id);
             $ids = array_keys($items);
-        } else
-            if ($field == $this->id) {
-                $ids = $value;
-            } else {
-                $items = $this->getByField($field, $value, $this->id);
-                $ids = array_keys($items);
-            }
+        } elseif ($field == $this->id) {
+            $ids = $value;
+        } else {
+            $items = $this->getByField($field, $value, $this->id);
+            $ids = array_keys($items);
+        }
         $res = false;
         if ($ids) {
             if ($res = parent::deleteByField($this->id, $ids)) {
@@ -54,5 +54,10 @@ class shopPluginModel extends shopSortableModel
             }
         }
         return $res;
+    }
+
+    public function getPlugin($id, $type)
+    {
+        return $this->getByField(array($this->id => $id, $this->context => $type));
     }
 }

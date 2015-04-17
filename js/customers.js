@@ -236,7 +236,11 @@
             hash = hash.replace('#/', '');
 
             if (hash) {
+                hash = hash.replace('\\/', 'ESCAPED_SLASH');
                 hash = hash.split('/');
+                for (var i = 0; i < hash.length; i += 1) {
+                    hash[i] = hash[i].replace('ESCAPED_SLASH', '/');
+                }
                 if (hash[0]) {
                     var actionName = "";
                     var attrMarker = hash.length;
@@ -378,6 +382,11 @@
           * Hashes are compared after this.cleanHash() applied to them. */
         highlightSidebar: function(hash) {
             var currentHash = this.cleanHash(hash || window.location.hash);
+            if (currentHash.indexOf('search/') !== -1) {
+                $('#s-sidebar .selected').removeClass('selected');
+                $('#s-sidebar a[href="#/searchform/"]').closest('li').addClass('selected');
+                return;
+            }
             var partialMatch = false;
             var partialMatchLength = 2;
             var match = false;
@@ -400,6 +409,7 @@
                     partialMatchLength = h.length;
                 }
             });
+
 
             if (!match && partialMatch) {
                 match = partialMatch;
