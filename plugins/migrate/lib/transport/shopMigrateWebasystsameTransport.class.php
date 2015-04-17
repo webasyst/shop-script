@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Class shopMigrateWebasystsameTransport
+ * @title WebAsyst Shop-Script (old version) on the same server
+ * @description Migrate aux pages, categories, products with params, features, images and eproduct files
+ */
 class shopMigrateWebasystsameTransport extends shopMigrateWebasystTransport
 {
     protected $sql_options;
@@ -14,24 +19,30 @@ class shopMigrateWebasystsameTransport extends shopMigrateWebasystTransport
     protected function initOptions()
     {
         parent::initOptions();
-        $this->addOption('path', array(
+        $option = array(
             'title'        => _wp('Path to folder'),
             'value'        => wa()->getConfig()->getRootPath(),
             'description'  => _wp('Path to folder of the WebAsyst (old version) installation'),
             'control_type' => waHtmlControl::INPUT,
-        ));
+        );
+        $this->addOption('path', $option);
     }
 
     public function validate($result, &$errors)
     {
         try {
             $this->getSourceModel();
-            $this->addOption('path', array('readonly' => true));
+            $option = array(
+                'readonly' => true,
+                'valid'    => true,
+            );
+            $this->addOption('path', $option);
         } catch (waException $ex) {
             $result = false;
             $errors['path'] = $ex->getMessage();
             $this->addOption('path', array('readonly' => false));
         }
+
         return parent::validate($result, $errors);
     }
 
@@ -54,33 +65,35 @@ class shopMigrateWebasystsameTransport extends shopMigrateWebasystTransport
              * @var SimpleXMLElement $wbs
              */
             $wbs = simplexml_load_file($this->source_path.'kernel/wbs.xml');
-            $this->dbkey = (string) $wbs->FRONTEND['dbkey'];
+            $this->dbkey = (string)$wbs->FRONTEND['dbkey'];
             $dkey_path = $this->source_path.'dblist/'.$this->dbkey.'.xml';
 
             if (empty($this->dbkey) || !file_exists($dkey_path)) {
                 throw new waException(sprintf(_wp('Invalid PATH %s'), $this->source_path));
             }
+            $dblist = simplexml_load_file($dkey_path);
             /**
              *
              * @var SimpleXMLElement $dblist
              */
-            $dblist = simplexml_load_file($dkey_path);
 
-            $host_name = (string) $dblist->DBSETTINGS['SQLSERVER'];
+            $host_name = (string)$dblist->DBSETTINGS['SQLSERVER'];
             $host = $wbs->xPath('/WBS/SQLSERVERS/SQLSERVER[@NAME="'.htmlentities($host_name, ENT_QUOTES, 'utf-8').'"]');
             if (!count($host)) {
                 throw new waException(_wp('Invalid SQL server name'));
             }
             $host = $host[0];
-            $port = (string) $host['PORT'];
+            $port = (string)$host['PORT'];
             $this->sql_options = array(
-                'host'     => (string) $host['HOST'].($port ? ':'.$port : ''),
-                'user'     => (string) $dblist->DBSETTINGS['DB_USER'],
-                'password' => (string) $dblist->DBSETTINGS['DB_PASSWORD'],
-                'database' => (string) $dblist->DBSETTINGS['DB_NAME'],
+                'host'     => (string)$host['HOST'].($port ? ':'.$port : ''),
+                'user'     => (string)$dblist->DBSETTINGS['DB_USER'],
+                'password' => (string)$dblist->DBSETTINGS['DB_PASSWORD'],
+                'database' => (string)$dblist->DBSETTINGS['DB_NAME'],
+                'type'     => extension_loaded('mysql') ? 'mysql' : 'mysqli',
             );
             $this->source = new waModel($this->sql_options);
         }
+
         return $this->source;
     }
 
@@ -103,6 +116,7 @@ class shopMigrateWebasystsameTransport extends shopMigrateWebasystTransport
             }
             $debug['result'] = $res;
             $this->log($debug, self::LOG_DEBUG);
+
             return $res;
         } catch (Exception $ex) {
 

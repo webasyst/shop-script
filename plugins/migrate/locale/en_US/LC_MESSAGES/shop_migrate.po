@@ -57,7 +57,7 @@ msgid "Migrate to Shop-Script"
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/config/plugin.php:5
-msgid "Transfer data from other ecommerce platforms to Shop-Script"
+msgid "Transfer data from third-party ecommerce platforms and sources to Shop-Script."
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/shopMigrate.plugin.php:8
@@ -251,6 +251,10 @@ msgstr ""
 msgid "Importing categories..."
 msgstr ""
 
+#: wa-apps/shop/plugins/migrate/lib/transport/shopMigrateYmlTransport.class.php:75
+msgid "Importing currencies..."
+msgstr ""
+
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:32
 msgid "Updating category hierarchy..."
 msgstr ""
@@ -327,12 +331,12 @@ msgid ""
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:180
-msgid "Source lanuage"
+msgid "Source language"
 msgstr ""
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:181
 msgid ""
-"Shop-Script 5 allows storing product info and database content in one "
+"Shop-Script 6 allows storing product info and database content in one "
 "language. Select primary language of your WebAsyst Shop-Script-based online "
 "store."
 msgstr ""
@@ -459,4 +463,94 @@ msgid ""
 "eproduct files"
 msgstr ""
 
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateYmlTransport.class.php:116
+msgid "%d currency"
+msgid_plural "%d currencies"
+msgstr[0] ""
+msgstr[1] ""
 
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateYmlTransport.class.php:41
+msgid "Feed URL"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateYmlTransport.class.php:42
+msgid "Specify YML feed URL."
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateYmlTransport.class.php:106
+msgid "Empty URL for YML"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateYmlTransport.class.php:114
+msgid "Error while upload YML file: %s"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/templates/actions/backend/BackendSetup.html:42
+msgid "Connect"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/shopMigrate.plugin.php:19
+msgid "YML feed file"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/shopMigrate.plugin.php:21
+msgid "YML"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/config/plugin.php:5
+msgid "Transfer data from other ecommerce platforms to Shop-Script"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/shopMigrate.plugin.php:29
+msgid "OpenCart 1.5.x with Web API 1.0 plugin"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/shopMigrate.plugin.php:30
+msgid "Migrate data from <a href=\"http://www.opencart.com\" target=\"_blank\">OpenCart</a>-powered online store via Web API 1.0 OpenCart plugin.<br><br><strong>IMPORTANT:</strong> <a href=\"https://github.com/zenwalker/opencart-webapi/\" target=\"_blank\">Web API 1.0 OpenCart plugin</a> must be installed to export your data from OpenCart."
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateInsalesTransport.class.php:145
+msgid "Weight unit"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateInsalesTransport.class.php:165
+msgid "Order currency"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateInsalesTransport.class.php:1119
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateOpencartTransport.class.php:682
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateSimplaTransport.class.php:311
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:325
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateYmlTransport.class.php:736
+msgid "Import data from %s"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateOpencartTransport.class.php:52
+msgid "Store name"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateOpencartTransport.class.php:55
+msgid "Source locale"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateOpencartTransport.class.php:58
+msgid "Source currency code"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateTransport.class.php:132
+msgid "%d product's option"
+msgid_plural "%d product's options"
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateTransport.class.php:91
+msgid "Updating product categories"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:306
+msgid "Undefined default language"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/shopMigrate.plugin.php:63
+msgid "Bitrix"
+msgstr ""

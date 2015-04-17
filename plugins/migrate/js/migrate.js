@@ -3,11 +3,17 @@
  */
 
 $("#plugin-migrate-transport").change(function () {
-    var $container =$("#s-plugin-migrate");
+    var $container = $("#s-plugin-migrate");
     $container.find(".plugin-migrate-transport-description:visible").hide();
-    $("#plugin-migrate-submit").hide();
+    var $submit_container = $("#plugin-migrate-submit");
+    $submit_container.hide();
+    var $submit = $submit_container.find(':submit:first');
+    $submit.val($submit.data('validate'));
+    $submit.removeClass('green');
+
     if ($(this).val()) {
         $container.find('.plugin-migrate-transport-description:visible').hide();
+        $.importexport.plugins.migrate.validate = false;
         $("#plugin-migrate-transport-" + $(this).val()).show();
         $("#plugin-migrate-transport-fields").html($_('Loading...') + '<i class="icon16 loading"></i>').load("?plugin=migrate&action=transport", {
             'transport': $(this).val()
@@ -38,6 +44,24 @@ $.importexport.plugins.migrate = {
     },
     date: new Date(),
     validate: false,
+    action: function () {
+
+    },
+    onInit: function (path) {
+        if (path.action) {
+            setTimeout(function () {
+                $("#plugin-migrate-transport").val(path.action).change();
+            }, 1000);
+        }
+    },
+    blur: function () {
+
+    },
+    /**
+     *
+     * @param {submit} element
+     * @returns {boolean}
+     */
     migrateHandler: function (element) {
         var self = this;
         self.progress = true;
@@ -76,7 +100,7 @@ $.importexport.plugins.migrate = {
                         self.progressHandler(url, response.processId, response);
                     }, 1000));
                     self.ajax_pull[response.processId].push(setTimeout(function () {
-                        self.progressHandler(url, response.processId,response);
+                        self.progressHandler(url, response.processId, response);
                     }, 2000));
                 }
             },
@@ -92,9 +116,9 @@ $.importexport.plugins.migrate = {
     },
     /**
      *
-     * @param url
+     * @param {string} url
      * @param {string} processId
-     * @param {{ready:boolean=, memory:string,memory_avg:string,processId:string, report:string, stage_num:number, stage_count:number, stage_name:string, warning:string, error:string,progress:number}} response
+     * @param {{ready:boolean=, memory:string,memory_avg:string,processId:string, report:string, stage_num:number, stage_count:number, stage_name:string, warning:string=, error:string=,progress:number}} response
      */
     progressHandler: function (url, processId, response) {
         // display progress
@@ -132,7 +156,7 @@ $.importexport.plugins.migrate = {
                     $.shop.trace('report', response);
                     $("#plugin-migrate-submit").hide();
                     self.form.find('.progressbar').hide();
-                    var $report =$("#plugin-migrate-report");
+                    var $report = $("#plugin-migrate-report");
                     $report.show();
                     if (response.report) {
                         $report.find(".value:first").html(response.report);
@@ -220,6 +244,16 @@ $("#s-plugin-migrate").submit(function () {
                 $("#plugin-migrate-submit").show();
                 $form.find(':submit:first ~ i.loading').remove();
                 $form.find('#plugin-migrate-transport-fields :input, :submit').attr('disabled', false);
+                var $submit = $form.find(':submit');
+                if ($.importexport.plugins.migrate.validate) {
+                    $submit.val($submit.data('import'));
+                    $submit.addClass('green');
+                    $group.find(':input').attr('disabled', true);
+                } else {
+                    $submit.val($submit.data('validate'));
+                    $submit.removeClass('green');
+                    $group.find(':input').attr('disabled', false);
+                }
             });
         } else {
             $form.find(':input, :submit').attr('disabled', false);
