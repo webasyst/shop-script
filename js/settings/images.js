@@ -9,7 +9,7 @@ if (typeof($) != 'undefined') {
          */
         imagesInit: function() {
             var form = $('#s-settings-form');
-            
+
             var submit_message = $('#submit-message');
             var formChanged = function(show_message) {
                 show_message = typeof show_message === 'undefined' ? true : show_message;
@@ -22,7 +22,7 @@ if (typeof($) != 'undefined') {
                 $(':submit', form).removeClass('yellow').addClass('green');
                 submit_message.hide();
             };
-            
+
             form.off('click', '.s-size-set label').
                 on('click', '.s-size-set label', function(e) {
                     var self = $(this);
@@ -104,7 +104,7 @@ if (typeof($) != 'undefined') {
                 });
                 return false;
             });
-            
+
             if (!$('[name="image_thumbs_on_demand"]').attr('checked')) {
                 $('[name=create_thumbnails]').attr('checked', true).attr('disabled', true);
             } else {
@@ -117,42 +117,45 @@ if (typeof($) != 'undefined') {
                     $('[name=create_thumbnails]').attr('checked', false).attr('disabled', false);
                 }
             });
-            
+
             $('#s-regenerate-thumbs').click(function() {
                 var dialog = $('#s-regenerate-thumbs-dialog');
                 var pull = [];
-                var disabled = dialog.find('input[name=create_thumbnails]').attr('disabled');
+                var disabled = dialog.find('input[name=create_thumbnails]').prop('disabled');
                 dialog.waDialog({
                     onLoad: function() {
                         var d = $(this);
                         $('#s-regenerate-progressbar').hide();
                         $("#s-regenerate-report").hide();
                         d.find('.dialog-buttons').show();
-                        d.removeClass('height400px').addClass('height300px');
-                        dialog.find('input[name=create_thumbnails]').attr('disabled', disabled);
+                        dialog.find('input[name=create_thumbnails]').prop('disabled', disabled);
                     },
                     onSubmit: function(d) {
                         d.find('.dialog-buttons').hide();
-                        d.removeClass('height300px').addClass('height400px');
-                        
+
                         var create_thumbnails_input = dialog.find('input[name=create_thumbnails]');
-                        create_thumbnails_input.attr('disabled', true);
-                        
+                        var restore_originals_input = dialog.find('input[name=restore_originals]');
+                        create_thumbnails_input.prop('disabled', true);
+                        restore_originals_input.prop('disabled', true);
+
                         var form = $(this);
-                        
+
                         $('#s-regenerate-progressbar').show();
                         form.find('.progressbar .progressbar-inner').css('width', '0%');
                         form.find('.progressbar-description').text('0.000%');
                         form.find('.progressbar').show();
                         $("#s-regenerate-report").hide();
-                        
-                        var create_thumbnails = create_thumbnails_input.attr('checked');
+
+                        var create_thumbnails = create_thumbnails_input.prop('checked') || '';
+                        var restore_originals = restore_originals_input.prop('checked') || '';
                         var url = form.attr('action');
                         var processId;
-                        
+
                         var cleanup = function() {
                             $.post(url, { processId: processId, cleanup: 1 }, function(r) {
                                 // show statistic
+                                create_thumbnails_input.prop('disabled', false);
+                                restore_originals_input.prop('disabled', false);
                                 $('#s-regenerate-progressbar').hide();
                                 $("#s-regenerate-report").show();
                                 if (r.report) {
@@ -161,14 +164,13 @@ if (typeof($) != 'undefined') {
                                         dialog.trigger('close');
                                     });
                                 }
-                                dialog.removeClass('height400px').addClass('height350px');
                             }, 'json');
                         };
-                        
+
                         var step = function(delay) {
                             delay = delay || 2000;
                             var timer_id = setTimeout(function() {
-                                $.post(url, { processId:processId, create_thumbnails: create_thumbnails }, 
+                                $.post(url, { processId:processId, create_thumbnails: create_thumbnails, restore_originals: restore_originals },
                                     function(r) {
                                         if (!r) {
                                             step(3000);
@@ -193,17 +195,17 @@ if (typeof($) != 'undefined') {
                                             }
 
                                             step();
-                                            
+
                                         }
-                                    }, 
+                                    },
                                 'json').error(function() {
                                     step(3000);
                                 });
                             }, delay);
                             pull.push(timer_id);
                         };
-                        
-                        $.post(url, { create_thumbnails: create_thumbnails }, 
+
+                        $.post(url, { create_thumbnails: create_thumbnails, restore_originals: restore_originals },
                             function(r) {
                                 if (r && r.processId) {
                                     processId = r.processId;
@@ -214,11 +216,11 @@ if (typeof($) != 'undefined') {
                                 } else {
                                     form.find('errormsg').text('Server error');
                                 }
-                            }, 
+                            },
                         'json').error(function() {
                             form.find('errormsg').text('Server error');
                         });
-                        
+
                         return false;
                     },
                     onClose: function() {
@@ -229,12 +231,11 @@ if (typeof($) != 'undefined') {
                         }
                         $('#s-regenerate-progressbar').hide();
                         $("#s-regenerate-report").hide();
-                        dialog.removeClass('height400px').addClass('height300px');
                     }
                 });
                 return false;
             });
-            
+
         }
     });
 } else {

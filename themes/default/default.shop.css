@@ -153,7 +153,7 @@ ul.homepage-bxslider li { list-style: none; margin: 0; padding: 0; max-height: 4
 --------------- */
 
 .product-sidebar { float: right; width: 27%; background: #eee; position: relative; }
-.product-info { background: #fff; margin-right: 27%; }
+.product-info { background: #fff; margin-right: 29%; }
 .product-gallery { text-align: center; margin-right: 50px; max-width: 750px; }
 
 ul.product-nav { font-size: 1.1em; list-style: none; padding-left: 0; }
@@ -202,6 +202,7 @@ ul.skus { list-style: none; padding-left: 2px; }
 ul.skus li { padding-bottom: 3px; }
 
 .stocks { margin-top: 10px; margin-bottom: 15px; font-size: 0.9em; }
+.stocks strong { white-space: nowrap; }
 .stocks .stock-critical { color: #e00; }
 .stocks .stock-low { color: #a80; }
 .stocks .stock-high { color: #0a0; }
@@ -368,6 +369,7 @@ input.error, textarea.error { border: 2px solid red; }
 .cart .col.total { font-size: 1.8em; font-weight: bold; }
 .cart .col.services { margin-top: 5px; }
 .cart .col.cart-coupon { min-height: 1px; }
+.cart .col.cart-coupon .errormsg { display: inline-block; margin: 0; }
 .cart .related { padding: 15px; background: #f3f3f3; border-top: 0; margin-bottom: 10px; margin-top: 0; }
 .cart .related h4 { font-weight: normal; color: #777; }
 .cart input.qty { max-width: 50px; text-align: right; }
@@ -499,7 +501,7 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
     
     .product-sidebar { width: 30%; }
     .product-sidebar .cart { padding: 15px; }
-    .product-info { margin-right: 30%; }
+    .product-info { margin-right: 32%; }
    
 }
 

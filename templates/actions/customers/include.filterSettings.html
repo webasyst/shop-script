@@ -58,16 +58,19 @@
                         [`Icon`]
                     </div>
                     <div class="value">
-                        <input type="hidden" name="filter[icon]" value="{$filter.icon|escape}">
                         <ul class="menu-h js-icon-templates s-filter-icon">
                             {foreach $icons as $icon}
                                 <li class="{if ($filter.icon == $icon)} selected{/if}" title="{$icon|escape}"><a href="#" data-icon="{$icon|escape}"><i class="icon16 {$icon|escape}"></i></a></li>
                             {/foreach}
-                            <input type="hidden" name="filter[icon]" value="{$filter.icon|default:''}">
+                            <input type="hidden" name="filter[icon]" value="{$filter.icon|escape|default:''}">
                         </ul>
 
                     </div>
                 </div>
+            </div>
+
+            <div class="s-order-customer-details">
+                {wa_action app="shop" module="customers" action="searchForm" hash=$filter.hash|default:'' just_fields=true container_id='s-customers-filter-hash-form'}
             </div>
 
             <div class="field">
@@ -133,6 +136,8 @@
             (function(form) {
                 form.submit(function() {
                     var form = $(this);
+                    var filter_hash_form = $('#s-customers-filter-hash-form');
+                    $('[name="filter[hash]"]').val(filter_hash_form.getHash());
                     $.post(form.attr('action'), form.serialize(), function(r) {
                         if (r.status === 'ok') {
                             // update sidebar
@@ -167,7 +172,6 @@
                     });
                 })($('#s-delete-filter'));
             {/if}
-
         };
 
         $('#s-filter-settings').bind('init', function() {
@@ -176,6 +180,8 @@
                 $(this).data('inited', 1);
             }
         });
+
+
 
     });
 </script>

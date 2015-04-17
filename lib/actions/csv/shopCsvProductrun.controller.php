@@ -483,12 +483,6 @@ class shopCsvProductrunController extends waLongActionController
             );
             $this->collection = new shopProductsCollection($hash, $options);
             $this->collection->orderBy('name');
-
-            $count = $this->collection->count();
-            $info = $this->collection->getInfo();
-            $data_hash = $this->data['hash'];
-
-            waLog::log(var_export(compact('hash', 'data_hash', 'count', 'info'), true), __CLASS__.'.log');
         }
 
         return $this->collection;

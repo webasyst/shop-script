@@ -13,6 +13,12 @@
                 <li><a href="#/products/whattosell/">[`What to sell`]</a></li>
             </ul>
         {else}
+            <div class="block half-padded float-right">
+                <ul class="menu-h">
+                    <li><a href="?module=reports&action=exportsales&{http_build_query($request_options)}"><i class="icon16 ss excel"></i>[`Download chart data in CSV`]</a></li>
+                </ul>
+            </div>
+
             <h1>
                 [`Sales`]
                 <span class="hint" id="period-description">[`Custom range`]</span>

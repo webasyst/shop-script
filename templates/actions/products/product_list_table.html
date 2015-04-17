@@ -95,11 +95,11 @@
             {/literal}
         {/if}
         {literal}
-        <td class="drag-handle s-product-name">
+        <td class="drag-handle s-product-name" title="{%#p.name%}">
             <a href="#/product/{%#p.id%}/"><div>{%#p.name%}<i class="shortener"></i></div></a>
         </td>
-        <td class="short nowrap align-right"><span>{%#p.price_range%}</span></td>
-        <td class="short nowrap align-right">
+        <td class="short nowrap align-right" title="[`Price`]"><span>{%#p.price_range%}</span></td>
+        <td class="short nowrap align-right" title="[`In stock`]">
             <span>{%#((p.count === null)?'<span class="gray">∞</span>':p.count)%}</span>
         </td>
         {/literal}

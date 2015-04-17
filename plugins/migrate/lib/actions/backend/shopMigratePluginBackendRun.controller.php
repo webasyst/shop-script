@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Class shopMigratePluginBackendRunController
  * @property shopMigrateTransport[string] $data['transport']
@@ -20,11 +21,10 @@ class shopMigratePluginBackendRunController extends waLongActionController
     {
         try {
             $options = waRequest::post();
-            $options['processId'] = $this->processId;
             if ($transport = waRequest::post('transport')) {
                 unset($options['transport']);
             }
-            $this->data['transport'] = shopMigrateTransport::getTransport($transport, $options);
+            $this->data['transport'] = shopMigrateTransport::getTransport($transport, $options, $this->processId);
             $this->transport = $this->data['transport'];
             $this->transport->init();
             $this->data['timestamp'] = time();
@@ -69,6 +69,7 @@ class shopMigratePluginBackendRunController extends waLongActionController
         if ($this->transport) {
             $this->data['stage_name'] = $this->transport->getStageName($this->data['stage']);
         }
+
         return $done;
     }
 
@@ -77,6 +78,7 @@ class shopMigratePluginBackendRunController extends waLongActionController
         $step = $this->transport->step($this->data['current'], $this->data['count'], $this->data['processed_count'], $this->data['stage'], $this->data['error']);
         $this->data['memory'] = memory_get_peak_usage();
         $this->data['memory_avg'] = memory_get_usage();
+
         return !$this->isDone() && $step;
     }
 
@@ -91,12 +93,23 @@ class shopMigratePluginBackendRunController extends waLongActionController
         $result = false;
         if ($this->getRequest()->post('cleanup')) {
             $result = true;
+            $class = null;
             if ($this->transport) {
                 $this->transport->finish();
+                $class = get_class($this->transport);
             } elseif ($this->data['transport']) {
                 $this->data['transport']->finish();
+                $class = get_class($this->data['transport']);
             }
+
+            if ($class) {
+                $params = array(
+                    'type' => preg_replace('@^shopMigrate(\w+)Transport$@', '$1', $class),
+                );
+            }
+            $this->logAction('catalog_import', $params);
         }
+
         return $result;
     }
 
@@ -117,10 +130,16 @@ class shopMigratePluginBackendRunController extends waLongActionController
         $report .= implode(', ', $chunks);
         if (!empty($this->data['timestamp'])) {
             $interval = time() - $this->data['timestamp'];
-            $interval = sprintf(_wp('%02d hr %02d min %02d sec'), floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);
+            $interval = sprintf(
+                _wp('%02d hr %02d min %02d sec'),
+                floor($interval / 3600),
+                floor($interval / 60) % 60,
+                $interval % 60
+            );
             $report .= ' '.sprintf(_wp('(total time: %s)'), $interval);
         }
         $report .= '</div>';
+
         return $report;
     }
 
@@ -131,7 +150,12 @@ class shopMigratePluginBackendRunController extends waLongActionController
             $interval = time() - $this->data['timestamp'];
         }
         $response = array(
-            'time'       => sprintf('%d:%02d:%02d', floor($interval / 3600), floor($interval / 60) % 60, $interval % 60),
+            'time'       => sprintf(
+                '%d:%02d:%02d',
+                floor($interval / 3600),
+                floor($interval / 60) % 60,
+                $interval % 60
+            ),
             'processId'  => $this->processId,
             'stage'      => false,
             'progress'   => 0.0,
@@ -143,10 +167,14 @@ class shopMigratePluginBackendRunController extends waLongActionController
 
         $stage_num = 0;
         $stage_count = count($this->data['current']);
+
         foreach ($this->data['current'] as $stage => $current) {
             if ($current < $this->data['count'][$stage]) {
                 $response['stage'] = $stage;
-                $response['progress'] = sprintf('%0.3f%%', 100.0 * (1.0 * $current / $this->data['count'][$stage] + $stage_num) / $stage_count);
+                $response['progress'] = sprintf(
+                    '%0.3f%%',
+                    100.0 * (1.0 * $current / $this->data['count'][$stage] + $stage_num) / $stage_count
+                );
                 break;
             }
             ++$stage_num;

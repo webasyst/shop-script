@@ -1,0 +1,102 @@
+{include file="../../../../../templates/actions/plugins/PluginsSettings.html"}
+
+<style>
+
+    input[type='submit'], input[type='checkbox'], button, label {
+        cursor: pointer;
+    }
+
+    #plugins-settings-form .field:first-of-type > .value {
+        padding: 0.5rem;
+        border: 1px solid transparent;
+        -webkit-border-radius: 0.25rem;
+        border-radius: 0.25rem;
+
+        -webkit-transition: all 200ms linear;
+        -moz-transition: all 200ms linear;
+        -ms-transition: all 200ms linear;
+        -o-transition: all 200ms linear;
+        transition: all 200ms linear;
+    }
+
+    #plugins-settings-form .field > .value.is-active {
+        background: rgba(123, 123, 123, 0.1);
+        border-color: rgba(123, 123, 123, 0.1);
+    }
+</style>
+
+<script type="text/javascript">
+
+    (function ($) {
+        var $form = $("#plugins-settings-form");
+
+        var initialize = function () {
+            var inputsArray = $form.find(".field:first-of-type > .value input[type=\"checkbox\"]");
+
+            inputsArray.each(function () {
+                toggleBlock($(this));
+            });
+
+            bindEvents(inputsArray)
+        };
+        var $container = $form.find('table.zebra:first > tbody');
+
+        $form.on('click', 'a.js-action', function () {
+            var $this = $(this);
+            var $rule;
+            $.shop.trace('click', $this.attr('href'));
+            switch ($this.attr('href').replace(/(^#\/redirect\/|\/$)/g, '')) {
+                case 'delete':
+                    $rule = $this.parents('tr:first');
+                    if ($container.find('tr').length > 1) {
+                        $rule.remove();
+                    } else {
+                        $rule.find(':input').val(null);
+                        $rule.find(':checkbox').attr('checked', null);
+                        $container.find('>tr:last input:first').focus();
+                    }
+                    break;
+                case 'add':
+                    var count = $container.find('>tr').length;
+                    $rule = $container.find('>tr:last').clone();
+                    $rule.find(':input').val(null);
+                    $rule.find(':input').each(function (index, el) {
+                        el.name = el.name.replace(/\[\d+]/, '[' + count + ']');
+                        el.id = el.id.replace(/_\d+_/, '_' + count + '_');
+                    });
+                    $rule.find(':checkbox').attr('checked', null);
+                    $rule.appendTo($container);
+                    $container.find('>tr:last input:first').focus();
+                    break;
+            }
+            return false;
+        });
+
+
+        var bindEvents = function (inputsArray) {
+            inputsArray.on("click", function () {
+                toggleBlock($(this));
+            });
+        };
+
+        var toggleBlock = function (input) {
+            var is_checked = input.attr("checked"),
+                    block = input.closest(".value"),
+                    activeClass = "is-active";
+
+            if (!is_checked) {
+                block.removeClass(activeClass);
+                block.find('.hint').hide();
+            } else {
+                block.addClass(activeClass);
+                block.find('.hint').show();
+            }
+        };
+
+        $(document).ready(function () {
+            initialize();
+        });
+
+    })(jQuery);
+
+</script>

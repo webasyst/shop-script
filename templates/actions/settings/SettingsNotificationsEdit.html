@@ -46,7 +46,11 @@
         <div class="field">
             <div class="name">[`Event`]</div>
             <div class="value no-shift">
-                {$events[$n.event].name}
+                {if empty($events[$n.event])}
+                    {$n.event}
+                {else}
+                    {$events[$n.event].name}
+                {/if}
             </div>
         </div>
         <div class="field">

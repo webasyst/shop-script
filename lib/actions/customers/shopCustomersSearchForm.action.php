@@ -59,9 +59,18 @@ class shopCustomersSearchFormAction extends waViewAction
 
     public function getHash($parsed = true)
     {
-        $hash = $this->hash === null ? ($this->hash = waRequest::request('hash', '', waRequest::TYPE_STRING_TRIM)) : $this->hash;
+        if ($this->hash === null) {
+            if (waRequest::request('hash', null, waRequest::TYPE_STRING_TRIM) !== null) {
+                $this->hash = waRequest::request('hash', null, waRequest::TYPE_STRING_TRIM);
+            } else if (waRequest::param('hash', null, waRequest::TYPE_STRING_TRIM) !== null) {
+                $this->hash = waRequest::param('hash', null, waRequest::TYPE_STRING_TRIM);
+            } else {
+                $this->hash = '';
+            }
+        }
+        $hash = $this->hash;
         if ($parsed) {
-            return $this->hash_parsed === null ? ($this->hash_parsed = shopCustomersCollection::parseSearchHash($hash)) : $this->hash_parsed;
+            return $this->hash_parsed === null ? ($this->hash_parsed = shopCustomersCollectionPreparator::parseSearchHash($hash)) : $this->hash_parsed;
         }
         return $hash;
     }
@@ -158,7 +167,7 @@ class shopCustomersSearchFormAction extends waViewAction
             foreach ($domain_routes as $route) {
                 $url = rtrim($domain.'/'.$route['url'], '/*');
                 $storefronts[] = array(
-                    'id' => urlencode($url),
+                    'id' => $url,
                     'name' => $url
                 );
             }

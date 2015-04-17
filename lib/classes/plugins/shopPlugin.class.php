@@ -101,6 +101,8 @@ abstract class shopPlugin extends waPlugin
             if (!isset($settings[$name])) {
                 if ((ifset($row['control_type']) == waHtmlControl::CHECKBOX) && !empty($row['value'])) {
                     $settings[$name] = false;
+                } elseif ((ifset($row['control_type']) == waHtmlControl::GROUPBOX) && !empty($row['value'])) {
+                    $settings[$name] = array();
                 } elseif (!empty($row['control_type']) || isset($row['value'])) {
                     $this->settings[$name] = isset($row['value']) ? $row['value'] : null;
                     $this->getSettingsModel()->del($this->getSettingsKey(), $name);

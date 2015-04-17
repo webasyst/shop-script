@@ -1,13 +1,10 @@
 <?php
+
 class shopMigratePluginBackendSetupAction extends waViewAction
 {
     public function execute()
     {
-        /**
-         *
-         * @var shopMigratePlugin $plugin
-         */
-        $plugin = wa()->getPlugin('migrate');
-        $this->view->assign('transports', $plugin->getTransports());
+        $this->view->assign('platform',waRequest::request('platform'));
+        $this->view->assign('transports', shopMigratePlugin::getTransports());
     }
 }

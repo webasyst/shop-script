@@ -108,16 +108,25 @@ class shopProductsCollection
                     $order = 'ASC';
                 }
                 $model = $this->getModel();
-                if ($model->fieldExists($sort)) {
-                    $this->order_by = 'p.'.$sort;
-                    $this->order_by .= ' '.$order;
-                    if ($sort == 'count') {
-                        $this->fields[] = 'IF(p.count IS NULL, 1, 0) count_null';
-                        $this->order_by = 'count_null '.$order.', '.$this->order_by;
-                    }
-                } else if ($sort == 'stock_worth') {
+                if ($sort == 'stock_worth') {
                     $this->fields[] = 'IFNULL(p.count, 0)*p.price AS stock_worth';
                     $this->order_by = 'stock_worth '.$order;
+                } else {
+                    $order_by = array();
+                    foreach ((array)$sort as $_id=> $_sort) {
+                        $_sort = trim((string)$_sort);
+                        if ($model->fieldExists($_sort)) {
+                            $order_by[$_id] = 'p.'.$_sort;
+                            $order_by[$_id] .= ' '.$order;
+                            if ($_sort == 'count') {
+                                $this->fields[] = 'IF(p.count IS NULL, 1, 0) count_null';
+                                $order_by[$_id] = 'count_null '.$order.', '.$order_by[$_id];
+                            }
+                        }
+                    }
+                    if($order_by){
+                        $this->order_by = implode(', ',$order_by);
+                    }
                 }
             }
             if ($type) {
@@ -544,6 +553,7 @@ class shopProductsCollection
         }
 
         $this->where[] = 'p.id != '.(int)$product_id;
+        $prev_where_count = count($this->where);
 
         $sum = array();
 
@@ -649,13 +659,18 @@ class shopProductsCollection
                                     (count($f_values) == 1 ? ($row['cond'] == 'notsame' ? '!' : '') . "= " . $f_values[0] : ($row['cond'] == 'notsame' ? 'NOT ' : '') . "IN (" . implode(',', $f_values) . ")");
                             }
                             $this->group_by = 'p.id';
-                        } else {
-                            $this->where[] = '1=0';
                         }
                     }
                     break;
             }
         }
+
+        // When no filtering conditions were added, show no upselling for this product
+        // instead of all products promiscuously
+        if ($prev_where_count == count($this->where)) {
+            $this->where[] = '0';
+        }
+
         if ($sum) {
             $this->fields[] = '('.implode(' + ', $sum).') AS upselling_deviation';
             $this->order_by = 'upselling_deviation';
@@ -1189,8 +1204,12 @@ class shopProductsCollection
 
             // escape
             if ($escape) {
-                $p['name'] = htmlspecialchars($p['name']);
-                $p['url'] = htmlspecialchars($p['url']);
+                if (isset($p['name'])) {
+                    $p['name'] = htmlspecialchars($p['name']);
+                }
+                if (isset($p['url'])) {
+                    $p['url'] = htmlspecialchars($p['url']);
+                }
             }
 
             // Make sure array exists for all products

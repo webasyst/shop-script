@@ -518,7 +518,7 @@ ul.thumbs.s-mini-stream li.s-stream-nav.rewind i { background: url('../img/photo
 ul.thumbs.s-mini-stream li.s-stream-nav.ff { right: -16px; padding: 0; }
 ul.thumbs.s-mini-stream li.s-stream-nav.ff i { background: url('../img/photostream-ff.png') no-repeat;}
 ul.thumbs.s-mini-stream li.s-stream-wrapper { height: 48px; overflow: hidden; padding: 4px 0; margin: 0; width: 165px;}
-.s-back-to-images { text-align: center; width: 180px; margin-bottom: 10px; }
+.s-back-to-images { text-align: center; width: 180px; margin-bottom: 10px; clear: both; }
 
 .s-image { position: relative; display: inline-block; }
 .s-image .s-image-corner { position:absolute; z-index: 99; font-size: 0.8em; color: white; font-weight: bold;}

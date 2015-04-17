@@ -66,7 +66,7 @@
 
     <div class="block double-padded" id="customers-list-wrapper">
 
-        <div class="float-right block half-padded" id="s-customers-list-menu">
+        <div class="float-right" id="s-customers-list-menu">
             <ul class="menu-h">
                 {if $category_id}
                     <li><a href="#/editcategory/{$category_id}"><i class="icon16 edit"></i>[`Edit category`]</a></li>
@@ -208,6 +208,8 @@
                             header.find('.s-title').text(r.data.filter.name);
                             if (!r.data.filter_id) {
                                 $.wa.setHash('#/filter/' + r.data.filter.id + '/');
+                            } else {
+                                $.customers.redispatch();
                             }
                         }
                         return false;

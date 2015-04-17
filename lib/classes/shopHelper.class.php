@@ -581,6 +581,14 @@ class shopHelper
             }
         }
 
+        foreach (array('address', 'address.shipping', 'address.billing') as $fid) {
+            if (isset($fields_config[$fid]) && !empty($fields_config[$fid]['fields']['country'])) {
+                if (!isset($fields_config[$fid]['fields']['country']['value'])) {
+                    $fields_config[$fid]['fields']['country']['value'] = wa('shop')->getConfig()->getGeneralSettings('country');
+                }
+            }
+        }
+
 
         $form = waContactForm::loadConfig(
             $fields_config,

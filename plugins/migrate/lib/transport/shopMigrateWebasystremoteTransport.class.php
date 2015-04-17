@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Class shopMigrateWebasystremoteTransport
+ * @title WebAsyst Shop-Script (old version) on a remote server
+ * @description Migrate aux pages, categories, products with params, features, images and eproduct files
+ */
 class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
 {
     private $stage_data_stack = array();
@@ -8,33 +13,51 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
     protected function initOptions()
     {
         parent::initOptions();
-        $this->addOption('url', array(
-            'title'        => _wp('Data access URL'),
-            'description'  => _wp('For WebAsyst <strong>PHP software</strong> installed on your server:<br /> 1. Download data access script <a href="http://www.webasyst.com/wa-data/public/site/downloads/old-webasyst-export-php.zip">export.php</a>, and upload it to your Webasyst published/ folder via FTP.<br /> 2. Enter the complete URL to this file, which should look like this: <strong>http://YOUR_WEBASYST_ROOT_URL/published/export.php</strong><br /><br /> For <strong>hosted accounts</strong>: get your Secure Data Access URL in your ACCOUNT.webasyst.net backend’s “Account (link in the top right corner) &gt; System Settings” page.'),
-            'value'        => 'http://',
-            'control_type' => waHtmlControl::INPUT,
-        ));
-        $this->addOption('login', array(
-            'title'        => _wp('Login'),
-            'value'        => '',
-            'description'  => _wp('WebAsyst user login'),
-            'control_type' => waHtmlControl::INPUT,
-        ));
-        $this->addOption('password', array(
-            'title'        => _wp('Password'),
-            'value'        => '',
-            'description'  => _wp('WebAsyst user password'),
-            'control_type' => waHtmlControl::PASSWORD,
-        ));
+        $options = array(
+            'url'      => array(
+                'title'        => _wp('Data access URL'),
+                'description'  => _wp(
+                    'For WebAsyst <strong>PHP software</strong> installed on your server:<br /> 1. Download data access script <a href="http://www.webasyst.com/wa-data/public/site/downloads/old-webasyst-export-php.zip">export.php</a>, and upload it to your Webasyst published/ folder via FTP.<br /> 2. Enter the complete URL to this file, which should look like this: <strong>http://YOUR_WEBASYST_ROOT_URL/published/export.php</strong><br /><br /> For <strong>hosted accounts</strong>: get your Secure Data Access URL in your ACCOUNT.webasyst.net backend’s “Account (link in the top right corner) &gt; System Settings” page.'
+                ),
+                'placeholder'  => 'http://example.com/published/export.php',
+                'control_type' => waHtmlControl::INPUT,
+                'class'        => 'long',
+            ),
+            'login'    => array(
+                'title'        => _wp('Login'),
+                'value'        => '',
+                'description'  => _wp('WebAsyst user login'),
+                'control_type' => waHtmlControl::INPUT,
+            ),
+            'password' => array(
+                'title'        => _wp('Password'),
+                'value'        => '',
+                'description'  => _wp('WebAsyst user password'),
+                'control_type' => waHtmlControl::PASSWORD,
+            ),
+        );
+        $this->addOption($options);
     }
 
     public function validate($result, &$errors)
     {
         try {
             $this->query('1');
-            $this->addOption('url', array('readonly' => true));
-            $this->addOption('login', array('readonly' => true));
-            $this->addOption('password', array('readonly' => true));
+            $options = array(
+                'url'      => array(
+                    'readonly' => true,
+                    'valid'    => true,
+                ),
+                'login'    => array(
+                    'readonly' => true,
+                    'valid'    => true,
+                ),
+                'password' => array(
+                    'readonly' => true,
+                    'valid'    => true,
+                ),
+            );
+            $this->addOption($options);
         } catch (Exception $ex) {
             $errors['url'] = $errors['login'] = $errors['password'] = $ex->getMessage();
             $result = false;
@@ -43,6 +66,7 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
             $this->addOption('login', array('readonly' => false));
             $this->addOption('password', array('readonly' => false));
         }
+
         return parent::validate($result, $errors);
     }
 
@@ -86,6 +110,7 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
             $this->log($debug, self::LOG_ERROR);
             throw new waException(_wp('Invalid URL, login or password'));
         }
+
         return $result;
     }
 
@@ -102,12 +127,14 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
             return $this->downloadCurl($url, $target_stream);
         } catch (Exception $ex) {
             if ($ex->getCode() == 502) {
-                $this->log(array(
+                $log = array(
                     'url'     => self::logURL($url),
                     'message' => $ex->getMessage(),
                     $url
-                ), self::LOG_ERROR);
+                );
+                $this->log($log, self::LOG_ERROR);
                 sleep(5);
+
                 return $this->moveFile($path, $target, $public);
             } else {
                 waFiles::delete($target);
@@ -131,6 +158,7 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
         }
         $url .= 'auth='.urlencode(base64_encode($this->getOption('login').':'.$this->getOption('password')));
         $url .= '&'.$params;
+
         return $url;
     }
 
@@ -202,6 +230,7 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
         } else {
             throw new waException('Invalid write stream');
         }
+
         return $size;
     }
 
@@ -216,6 +245,7 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
         if (preg_match('/content-length:\s*(\d+)/i', $header, $header_matches)) {
             $this->stage_data_stack['stage_value'] = intval($header_matches[1]);
         }
+
         return strlen($header);
     }
 
@@ -248,8 +278,14 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
             CURLOPT_CONNECTTIMEOUT    => self::TIMEOUT_SOCKET,
             CURLE_OPERATION_TIMEOUTED => self::TIMEOUT_SOCKET * 60,
             CURLOPT_BINARYTRANSFER    => true,
-            CURLOPT_WRITEFUNCTION     => array(&$this, 'curlWriteHandler'),
-            CURLOPT_HEADERFUNCTION    => array(&$this, 'curlHeaderHandler'),
+            CURLOPT_WRITEFUNCTION     => array(
+                &$this,
+                'curlWriteHandler'
+            ),
+            CURLOPT_HEADERFUNCTION    => array(
+                &$this,
+                'curlHeaderHandler'
+            ),
         );
 
         if ((version_compare(PHP_VERSION, '5.4', '>=') || !ini_get('safe_mode')) && !ini_get('open_basedir')) {
@@ -265,7 +301,11 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
 
         if (isset($options['host']) && strlen($options['host'])) {
             $curl_options[CURLOPT_HTTPPROXYTUNNEL] = true;
-            $curl_options[CURLOPT_PROXY] = sprintf("%s%s", $options['host'], (isset($options['port']) && $options['port']) ? ':'.$options['port'] : '');
+            $curl_options[CURLOPT_PROXY] = sprintf(
+                "%s%s",
+                $options['host'],
+                (isset($options['port']) && $options['port']) ? ':'.$options['port'] : ''
+            );
 
             if (isset($options['user']) && strlen($options['user'])) {
                 $curl_options[CURLOPT_PROXYUSERPWD] = sprintf("%s:%s", $options['user'], $options['password']);
@@ -274,6 +314,14 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
         foreach ($curl_options as $param => $option) {
             curl_setopt($ch, $param, $option);
         }
+
         return $ch;
+    }
+
+    protected function getContextDescription()
+    {
+        $url = $this->getOption('url');
+        $url = parse_url($url, PHP_URL_HOST);
+        return empty($url) ? '' : sprintf(_wp('Import data from %s'), $url);
     }
 }

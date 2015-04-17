@@ -32,7 +32,7 @@ class shopSettingsCurrencyChangeRateController extends waJsonController
             }
 
 
-            $rate = (float) ifset($rates[$code]);
+            $rate = (float) str_replace(',', '.', ifset($rates[$code]));
             if ($rate >= 0) {
                 $currency_model->changeRate($code, $rate);
             }
@@ -43,7 +43,7 @@ class shopSettingsCurrencyChangeRateController extends waJsonController
 
     protected function changeSingle($code)
     {
-        $rate = (float)waRequest::post('rate', 0);
+        $rate = (float) str_replace(',', '.', waRequest::post('rate', '0'));
 
         if (!$code) {
             $this->errors[] = _w("Error when change currency");

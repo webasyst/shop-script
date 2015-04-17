@@ -1,4 +1,5 @@
 <div class="block double-padded" id="s-migrate-form">
+   <p>[`Transfer data from third-party ecommerce platforms and sources to Shop-Script.`]</p>
    <form id="s-plugin-migrate" method="post" action="?plugin=migrate&action=run">
     <div class="fields form">
         <h6 class="heading">[`Source`]</h6>
@@ -8,16 +9,17 @@
                 <div class="value no-shift">
                     <select name="transport" id="plugin-migrate-transport" class="s-plugin-migrate-transport">
                     {$group = false}
-                        <option value="">[`Select platform`]</option> {foreach $transports as $id => $t}
-                        {if $group != $t.platform}
-                        {$group = $t.platform}
-                        {if !$t@first}
+                        {foreach $transports as $id => $t}
+                        {if $group != $t.group}
+
+                        {if !$t@first && $group}
                         </optgroup>
                         {/if}
+                        {$group = $t.group}
                         <optgroup label="{$group|escape}">
                         {/if}
 
-                        <option value="{$id}">{$t.name|escape}</option>
+                        <option value="{$id}" title="{$t.description|escape}"{if $id==$platform} selected{/if}>{$t.title|escape}</option>
                         {if $t@last}
                         </optgroup>
                         {/if}
@@ -25,7 +27,7 @@
                     </select>
                     <br>
                     {foreach $transports as $id => $t}
-                    <span id="plugin-migrate-transport-{$id}" class="hint plugin-migrate-transport-description" style="display:none;">{$t.description|escape}</span>
+                    <span id="plugin-migrate-transport-{$id}" class="hint plugin-migrate-transport-description" style="display:none;">{$t.description}</span>
                     {/foreach}
                 </div>
             </div>
@@ -39,7 +41,7 @@
         <div class="field-group" id="plugin-migrate-submit" style="display: none;">
             <div class="field">
                 <div class="value submit">
-                    <input type="submit" class="button green" value="[`Import data`]">
+                    <input type="submit" class="button" data-validate="[`Connect`]" data-import="[`Import data`]" value="[`Connect`]">
                     <div class="js-progressbar-container" style="display:none;">
                         <div class="progressbar blue float-left" style="display: none; width: 70%;">
                             <div class="progressbar-outer">
@@ -70,5 +72,8 @@
 
 <div class="clear"></div>
 <script type="text/javascript">
+    $.wa.locale = $.extend($.wa.locale, {
+        'Loading...':'[`Loading...`]'}
+    );
 {include file="../../../js/migrate.js"}
 </script>

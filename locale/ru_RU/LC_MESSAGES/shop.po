@@ -5351,8 +5351,7 @@ msgstr "Все доступные способы оплаты"
 
 # msgid "Shipping options"
 # msgstr "Способы доставки"
-#: /wa-apps/shop/lib/config/site.php:87
-#: /wa-apps/shop/lib/config/site.php:91
+#: /wa-apps/shop/lib/config/site.php:87 /wa-apps/shop/lib/config/site.php:91
 msgid "All available shipping options"
 msgstr "Все доступные способы доставки"
 
@@ -6403,8 +6402,7 @@ msgstr "Новый профиль"
 msgid "Perform action to all selected orders?"
 msgstr "Выполнить действие со всеми выбранными заказами?"
 
-#: /wa-apps/shop/js/product/list.js:407
-#: /wa-apps/shop/js/product/list.js:568
+#: /wa-apps/shop/js/product/list.js:407 /wa-apps/shop/js/product/list.js:568
 msgid "Drag products here"
 msgstr "Перетащите товары сюда"
 
@@ -6507,8 +6505,7 @@ msgstr "Автоматически перемещать товар вниз сп
 msgid "When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more."
 msgstr "Товары, которых нет на складе, будут автоматически перемещены вниз всех списков товаров на витрине интернет-магазина: в результатах поиска, в списках товаров внутри категорий, в результатах фильтрации товаров и т. д."
 
-#: /wa-apps/shop/lib/config/site.php:177
-#: /wa-apps/shop/lib/config/site.php:181
+#: /wa-apps/shop/lib/config/site.php:177 /wa-apps/shop/lib/config/site.php:181
 #: /wa-apps/shop/lib/config/site.php:182
 msgid "Setting <em>$available_only = true</em> will automatically exclude all out-of-stock products from the return"
 msgstr "Настройка <em>$available_only = true</em> автоматически исключит из результата все товары, которых нет на складе."
@@ -8974,3 +8971,55 @@ msgstr "Товары, которые были куплены в течение �
 msgid "Up to %d products"
 msgstr "%d товаров"
 
+#: /wa-apps/shop/themes/mobile/category.html:24
+msgid "Hide Filters"
+msgstr "Скрыть подбор"
+
+#: /wa-apps/shop/themes/mobile/category.html:24
+msgid "Show Filters"
+msgstr "Подбор по параметрам"
+
+#: /wa-apps/shop/themes/mobile/product.cart.html:195
+msgid "%s is now in your shopping cart"
+msgstr "%s теперь в вашей корзине покупок"
+
+#: /wa-apps/shop/themes/mobile/product.cart.html:197
+msgid "Go to shopping cart"
+msgstr "Перейти в корзину"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:204
+msgid "Optional settings"
+msgstr "Дополнительные настройки"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:209
+msgid "Automatically create thumbnails of predefined custom sizes"
+msgstr "Сразу создать эскизы изображений предопределенных размеров"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:211
+msgid "Enable this in case you are sure about the list of your custom thumbnail sizes, or if custom-sized on-fly thumbnail generation is disabled; otherwise it is safe to have this option turned off."
+msgstr "Включите, если создание эскизов «на лету» запрещено или если вы уверены в том, что список предопределенных размеров заполнен согласно требованиям темы дизайна вашего интернет-магазина; если вы не уверены, рекомендуется оставить эту настройку выключенной."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:217
+msgid "Restore product fullsize images from originally uploaded versions (backups)"
+msgstr "Восстановить полноразмерные изображения товаров из оригинальных загруженных версий (бекапов)"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:219
+msgid "Enable this to flush all source fullsize images and re-generate them from backups. All plugin customizations to source images will be re-applied. Source images without backups will be skipped."
+msgstr "Включите, чтобы сбросить все полноразмерные изображения товаров до их исходных изначально загруженных версий. Все изменения, которые установленные плагины накладывают на полноразмерные изображения, будут применены автоматически. Если у изображения нет бекапа, то оно останется без изменений."
+
+#: /wa-apps/shop/lib/classes/shopCustomersCollectionPreparator.class.php:25
+msgid "All"
+msgstr "Все"
+
+#: /wa-apps/shop/lib/handlers/contacts.contacts_collection.handler.php:17
+msgid "Shop customers"
+msgstr "Покупатели магазина"
+
+#: /wa-apps/shop/themes/default/cart.html:87
+msgid "Invalid coupon code"
+msgstr "Неверный код купона"
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:18
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:17
+msgid "Download chart data in CSV"
+msgstr "Скачать данные графика в CSV"

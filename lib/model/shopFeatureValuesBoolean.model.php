@@ -33,6 +33,10 @@ class shopFeatureValuesBooleanModel extends shopFeatureValuesModel
 
         if (is_string($value)) {
             $value = trim(mb_strtolower($value));
+        } else if (is_object($value) && $value instanceof shopBooleanValue) {
+            return array(
+                'value' => $value['value'],
+            );
         }
         $matched = false;
         foreach ($map as $value_map) {
