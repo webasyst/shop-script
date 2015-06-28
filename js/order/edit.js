@@ -308,7 +308,11 @@ $.order_edit = {
             if(o.data('est_delivery')) delivery_info.push('<span class="hint est_delivery">' + o.data('est_delivery') + '</span>');
             if(o.data('comment')) delivery_info.push('<span class="hint">' + o.data('comment') + '</span>');
             if (delivery_info) {
-                if(o.data('error')) $("#shipping-rate").addClass('error');
+                if(o.data('error')) {
+                    $("#shipping-rate").addClass('error');
+                } else {
+                    $("#shipping-rate").removeClass('error');
+                }
                 $("#shipping-info").html(delivery_info.join('<br>')).show();
             } else {
                 $("#shipping-rate").removeClass('error');
