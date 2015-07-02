@@ -65,11 +65,16 @@ class shopMigrateWebasystsameTransport extends shopMigrateWebasystTransport
              * @var SimpleXMLElement $wbs
              */
             $wbs = simplexml_load_file($this->source_path.'kernel/wbs.xml');
-            $this->dbkey = (string)$wbs->FRONTEND['dbkey'];
+            $xresult = $wbs->xpath('/WBS/FRONTEND');
+            if (!$xresult) {
+                throw new waException(sprintf(_wp('Invalid PATH %s'), $this->source_path).' (Invalid XML file)');
+            }
+            $frontend = reset($xresult);
+            $this->dbkey = $frontend['dbkey'];
             $dkey_path = $this->source_path.'dblist/'.$this->dbkey.'.xml';
 
             if (empty($this->dbkey) || !file_exists($dkey_path)) {
-                throw new waException(sprintf(_wp('Invalid PATH %s'), $this->source_path));
+                throw new waException(sprintf(_wp('Invalid PATH %s'), $this->source_path).(' DBKEY XML file not found'));
             }
             $dblist = simplexml_load_file($dkey_path);
             /**
@@ -77,8 +82,8 @@ class shopMigrateWebasystsameTransport extends shopMigrateWebasystTransport
              * @var SimpleXMLElement $dblist
              */
 
-            $host_name = (string)$dblist->DBSETTINGS['SQLSERVER'];
-            $host = $wbs->xPath('/WBS/SQLSERVERS/SQLSERVER[@NAME="'.htmlentities($host_name, ENT_QUOTES, 'utf-8').'"]');
+            $host_name = (string)$dblist->{'DBSETTINGS'}['SQLSERVER'];
+            $host = $wbs->xpath('/WBS/SQLSERVERS/SQLSERVER[@NAME="'.htmlentities($host_name, ENT_QUOTES, 'utf-8').'"]');
             if (!count($host)) {
                 throw new waException(_wp('Invalid SQL server name'));
             }
@@ -86,9 +91,9 @@ class shopMigrateWebasystsameTransport extends shopMigrateWebasystTransport
             $port = (string)$host['PORT'];
             $this->sql_options = array(
                 'host'     => (string)$host['HOST'].($port ? ':'.$port : ''),
-                'user'     => (string)$dblist->DBSETTINGS['DB_USER'],
-                'password' => (string)$dblist->DBSETTINGS['DB_PASSWORD'],
-                'database' => (string)$dblist->DBSETTINGS['DB_NAME'],
+                'user'     => (string)$dblist->{'DBSETTINGS'}['DB_USER'],
+                'password' => (string)$dblist->{'DBSETTINGS'}['DB_PASSWORD'],
+                'database' => (string)$dblist->{'DBSETTINGS'}['DB_NAME'],
                 'type'     => extension_loaded('mysql') ? 'mysql' : 'mysqli',
             );
             $this->source = new waModel($this->sql_options);

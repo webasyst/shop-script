@@ -43,11 +43,14 @@ class shopMigrateSimplaTransport extends shopMigrateTransport
     public function validate($result, &$errors)
     {
         try {
-            $hostname = $this->getOption('url');
+            $hostname = rtrim($this->getOption('url'), '/');
             if (empty($hostname)) {
                 $errors['url'] = 'Empty url';
                 $result = false;
+            } else {
+                $this->setOption('url', $hostname);
             }
+
 
             if ($result) {
                 $apikey = $this->getOption('login');
@@ -64,19 +67,26 @@ class shopMigrateSimplaTransport extends shopMigrateTransport
             }
             if ($result) {
                 $options = array(
-                    'url'      => array(
+                    'url'        => array(
                         'readonly' => true,
                         'valid'    => true,
                     ),
-                    'login'    => array(
+                    'login'      => array(
                         'readonly' => true,
                         'valid'    => true,
                     ),
-                    'password' => array(
+                    'password'   => array(
                         'readonly' => true,
                         'valid'    => true,
                     ),
-                    'type'     => $this->getProductTypeOption(),
+                    'type'       => $this->getProductTypeOption(),
+                    'image_size' => array(
+                        'title'        => 'Размер изображений на витрине',
+                        'description'  => 'Будут импортированы только уже созданные эскизы указанных размеров с водяным знаком',
+                        'value'        => '800x600w',
+                        'placeholder'  => '800x600w',
+                        'control_type' => waHtmlControl::INPUT,
+                    ),
                 );
                 $this->addOption($options);
             }
@@ -150,6 +160,7 @@ class shopMigrateSimplaTransport extends shopMigrateTransport
             foreach ($p['features'] as $feature) {
                 $features[$feature['id']] = $feature['value'];
                 //todo features map
+                //input:text
             }
 
             $skus = array();
@@ -172,11 +183,11 @@ class shopMigrateSimplaTransport extends shopMigrateTransport
                 ++$processed;
 
                 foreach ($p['images'] as $image) {
-                    if (false && ($url = ifset($image['filename']))) {
+                    if ($name = ifset($image['filename'])) {
                         if (!isset($this->map[self::STAGE_PRODUCT_IMAGE])) {
                             $this->map[self::STAGE_PRODUCT_IMAGE] = array();
                         }
-                        $this->map[self::STAGE_PRODUCT_IMAGE][] = array($product->getId(), $url, ifset($image['name']));
+                        $this->map[self::STAGE_PRODUCT_IMAGE][] = array($product->getId(), $name, ifset($image['name']));
                         $count[self::STAGE_PRODUCT_IMAGE] = count($this->map[self::STAGE_PRODUCT_IMAGE]);
                     }
                 }
@@ -191,15 +202,15 @@ class shopMigrateSimplaTransport extends shopMigrateTransport
     private function stepProductImage(&$current_stage, &$count, &$processed)
     {
         if ($item = reset($this->map[self::STAGE_PRODUCT_IMAGE])) {
-            list($product_id, $url, $description) = $item;
+            list($product_id, $name, $description) = $item;
             $file = $this->getTempPath('pi');
             try {
-                $name = preg_replace('@[^a-zA-Zа-яА-Я0-9\._\-]+@', '', $url);
-                $name = preg_replace('@(-\d+x\d+)(\.[a-z]{3,4})@', '$2', $name);
-                //TODO fix hash
-                $url = 'http://'.$this->getOption('url').'/files/products/'.$url;
+                $url = preg_replace('@(\.[a-z]{3,4})$@', '.800x600w$1', $name);
+                //$token = md5($name.'md5(salt)');
+                $url = $this->getOption('url').'/files/products/'.$url;
+
                 if (waFiles::delete($file) && waFiles::upload($url, $file)) {
-                    $processed += $this->addProductImage($product_id, $file, $name);
+                    $processed += $this->addProductImage($product_id, $file, $name, $description);
                 } elseif ($file) {
                     $this->log(sprintf('Product image file %s not found', $file), self::LOG_ERROR);
                 }
