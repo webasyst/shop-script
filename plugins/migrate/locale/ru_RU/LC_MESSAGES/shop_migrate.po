@@ -89,11 +89,8 @@ msgid "Data access URL"
 msgstr "URL доступа к данным"
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:12
-msgid ""
-"For WebAsyst <strong>PHP software</strong> installed on your server:<br /> 1. Download data access script <a href=\"http://www.webasyst.com/wa-data/public/site/downloads/old-webasyst-export-php.zip\">export.php</a>, and upload it to your Webasyst published/ folder via FTP.<br /> 2. Enter the complete URL to this file, which should look like this: <strong>http://YOUR_WEBASYST_ROOT_URL/published/export.php</strong><br /><br /> For <strong>hosted accounts</strong>: get your Secure Data Access URL in your ACCOUNT.webasyst.net backend’s “Account (link in the top right corner) &gt; System Settings” page."
-msgstr ""
-"Для <strong>PHP-скриптов</strong> WebAsyst, установленных на вашем сервере:<br /> 1. Скачайте скрипт доступа к данным <a href=\"http://www.webasyst.com/wa-data/public/site/downloads/old-webasyst-export-php.zip\">export.php</a> и загрузите его по FTP на  сервер с установленными скриптами в директорию published/.<br /> 2. Введите полный URL к этому файлу, который должен иметь следующий вид: <strong>http://YOUR_WEBASYST_ROOT_URL/published/export.php</strong><br /><br /> Для аккаунтов <strong>веб-сервисов</strong>: защищенный URL доступа к данным вашего аккаунта вы можете получить в бекенде вашего "
-"аккаунта ACCOUNT.webasyst.net в разделе «Аккаунт (ссылка в верхнем правом углу) &gt; Системные настройки»."
+msgid "For WebAsyst <strong>PHP software</strong> installed on your server:<br /> 1. Download data access script <a href=\"http://www.webasyst.com/wa-data/public/site/downloads/old-webasyst-export-php.zip\">export.php</a>, and upload it to your Webasyst published/ folder via FTP.<br /> 2. Enter the complete URL to this file, which should look like this: <strong>http://YOUR_WEBASYST_ROOT_URL/published/export.php</strong><br /><br /> For <strong>hosted accounts</strong>: get your Secure Data Access URL in your ACCOUNT.webasyst.net backend’s “Account (link in the top right corner) &gt; System Settings” page."
+msgstr "Для <strong>PHP-скриптов</strong> WebAsyst, установленных на вашем сервере:<br /> 1. Скачайте скрипт доступа к данным <a href=\"http://www.webasyst.com/wa-data/public/site/downloads/old-webasyst-export-php.zip\">export.php</a> и загрузите его по FTP на  сервер с установленными скриптами в директорию published/.<br /> 2. Введите полный URL к этому файлу, который должен иметь следующий вид: <strong>http://YOUR_WEBASYST_ROOT_URL/published/export.php</strong><br /><br /> Для аккаунтов <strong>веб-сервисов</strong>: защищенный URL доступа к данным вашего аккаунта вы можете получить в бекенде вашего аккаунта ACCOUNT.webasyst.net в разделе «Аккаунт (ссылка в верхнем правом углу) &gt; Системные настройки»."
 
 #: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:17
 msgid "Login"
@@ -428,7 +425,9 @@ msgstr "Витрина"
 msgid "Shop-Script settlement for static info pages"
 msgstr "Витрина для публикации информационных страниц"
 
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:307 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:313 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1688
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:307
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:313
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:1688
 msgid "Weight"
 msgstr "Вес"
 
@@ -498,7 +497,11 @@ msgstr "Единица измерения веса"
 msgid "Order currency"
 msgstr "Валюта заказов"
 
-#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateInsalesTransport.class.php:1119 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateOpencartTransport.class.php:682 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateSimplaTransport.class.php:311 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:325 /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateYmlTransport.class.php:736
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateInsalesTransport.class.php:1119
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateOpencartTransport.class.php:682
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateSimplaTransport.class.php:311
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystremoteTransport.class.php:325
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateYmlTransport.class.php:736
 msgid "Import data from %s"
 msgstr "Импортировать данные из %s"
 
@@ -532,3 +535,16 @@ msgstr "Не задан базовый язык для импорта данны
 #: /wa-apps/shop/plugins/migrate/lib/shopMigrate.plugin.php:63
 msgid "Bitrix"
 msgstr "1С-Битрикс"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:158
+msgid "Data to import"
+msgstr "Что импортировать"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:161
+msgid "Import all products, categories, customers, and orders"
+msgstr "Импортировать все товары, категории, покупателей и товары"
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:162
+msgid "Import only orders and customers starting from"
+msgstr "Импортировать только заказы и покупателей начиная с указанной даты"
+

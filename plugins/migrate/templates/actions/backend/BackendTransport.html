@@ -1,3 +1,11 @@
+
+{if !empty($errors[''])}
+    <div class="field">
+        <div class="value errormsg">
+            {$errors['']|escape|nl2br}
+        </div>
+    </div>
+{/if}
 {foreach $controls as $html}
     {$html}
 {/foreach}

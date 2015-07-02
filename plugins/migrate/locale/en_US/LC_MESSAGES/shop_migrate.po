@@ -554,3 +554,15 @@ msgstr ""
 #: /wa-apps/shop/plugins/migrate/lib/shopMigrate.plugin.php:63
 msgid "Bitrix"
 msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:158
+msgid "Data to import"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:161
+msgid "Import all products, categories, customers, and orders"
+msgstr ""
+
+#: /wa-apps/shop/plugins/migrate/lib/transport/shopMigrateWebasystTransport.class.php:162
+msgid "Import only orders and customers starting from"
+msgstr ""

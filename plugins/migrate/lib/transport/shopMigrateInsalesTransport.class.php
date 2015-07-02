@@ -8,8 +8,6 @@
  * Class shopMigrateInsalesTransport
  * @see https://wiki.insales.ru/wiki/%D0%9A%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D1%8B_API
  * @todo currency settings
- * @todo import customer fields
- * @todo import orders
  */
 class shopMigrateInsalesTransport extends shopMigrateTransport
 {
@@ -820,7 +818,7 @@ class shopMigrateInsalesTransport extends shopMigrateTransport
         }
 
         foreach ($xml->xpath('/orders/order') as $o) {
-            $contact_id = isset($this->map[self::STAGE_CUSTOMER][(int)$o->client->id]) ? $this->map[self::STAGE_CUSTOMER][(int)$o->client->id] : null;
+            $contact_id = isset($this->map[self::STAGE_CUSTOMER][(int)$o->{'client'}->{'id'}]) ? $this->map[self::STAGE_CUSTOMER][(int)$o->{'client'}->{'id'}] : null;
             $order = array(
                 'contact_id'      => $contact_id,
                 'create_datetime' => date("Y-m-d H:i:s", strtotime((string)$o->{'created-at'})),

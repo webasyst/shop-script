@@ -73,13 +73,26 @@ class shopMigratePluginBackendRunController extends waLongActionController
         return $done;
     }
 
+    private function isBreak()
+    {
+        static $runtime;
+        static $limit;
+        $time = time();
+        if (!$runtime) {
+            $runtime = $time;
+            $limit = $this->max_exec_time ? min(20, max(5, $this->max_exec_time / 2)) : 20;
+        }
+
+        return ($time - $runtime) > $limit;
+    }
+
     protected function step()
     {
         $step = $this->transport->step($this->data['current'], $this->data['count'], $this->data['processed_count'], $this->data['stage'], $this->data['error']);
         $this->data['memory'] = memory_get_peak_usage();
         $this->data['memory_avg'] = memory_get_usage();
 
-        return !$this->isDone() && $step;
+        return !$this->isDone() && $step && !$this->isBreak();
     }
 
     protected function save()
@@ -98,16 +111,22 @@ class shopMigratePluginBackendRunController extends waLongActionController
                 $this->transport->finish();
                 $class = get_class($this->transport);
             } elseif ($this->data['transport']) {
-                $this->data['transport']->finish();
-                $class = get_class($this->data['transport']);
+
+                $transport = $this->data['transport'];
+                /**
+                 * @var shopMigrateTransport $transport
+                 */
+                $transport->finish();
+                $class = get_class($transport);
             }
 
             if ($class) {
                 $params = array(
                     'type' => preg_replace('@^shopMigrate(\w+)Transport$@', '$1', $class),
                 );
+                $this->logAction('catalog_import', $params);
             }
-            $this->logAction('catalog_import', $params);
+
         }
 
         return $result;
@@ -120,8 +139,12 @@ class shopMigratePluginBackendRunController extends waLongActionController
         $chunks = array();
         foreach ($this->data['current'] as $stage => $current) {
             if ($current) {
-                if ($this->data['transport']) {
-                    if ($data = $this->data['transport']->getStageReport($stage, $this->data['processed_count'])) {
+                if (!empty($this->data['transport'])) {
+                    $transport = $this->data['transport'];
+                    /**
+                     * @var shopMigrateTransport $transport
+                     */
+                    if ($data = $transport->getStageReport($stage, $this->data['processed_count'])) {
                         $chunks[] = htmlentities($data, ENT_QUOTES, 'utf-8');
                     }
                 }

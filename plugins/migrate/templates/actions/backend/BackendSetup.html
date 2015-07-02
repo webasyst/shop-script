@@ -9,6 +9,9 @@
                 <div class="value no-shift">
                     <select name="transport" id="plugin-migrate-transport" class="s-plugin-migrate-transport">
                     {$group = false}
+                        {if  $group}
+                        <optgroup>
+                        {/if}
                         {foreach $transports as $id => $t}
                         {if $group != $t.group}
 
@@ -19,7 +22,7 @@
                         <optgroup label="{$group|escape}">
                         {/if}
 
-                        <option value="{$id}" title="{$t.description|escape}"{if $id==$platform} selected{/if}>{$t.title|escape}</option>
+                        <option value="{$id}" title="{$t.description|strip_tags|escape}"{if $id==$platform} selected{/if}>{$t.title|escape}</option>
                         {if $t@last}
                         </optgroup>
                         {/if}

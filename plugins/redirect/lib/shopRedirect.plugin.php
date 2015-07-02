@@ -5,6 +5,16 @@
  */
 class shopRedirectPlugin extends shopPlugin
 {
+    private static $demo_product = array(
+        'url'         => '%product_url%',
+        'category_id' => true,
+    );
+
+    private static $demo_category = array(
+        'url'      => '%category_url%',
+        'full_url' => '%category/full/url%',
+    );
+
     /**
      * @param waException $params
      */
@@ -98,10 +108,16 @@ HTML;
         $control .= "<table class = \"zebra\">";
 
         $control .= "<tfoot>";
-        $control .= sprintf('<tr><td colspan="6"><a href="#/redirect/add/" class="inline-link js-action"><i class="icon16 add"></i> %s</a></td></tr>', _wp('Add rule'));
+        $control_row = <<<HTML
+<tr>
+    <td colspan="6"><a href="#/redirect/add/" class="inline-link js-action"><i class="icon16 add"></i> %s</a></td>
+</tr>
+HTML;
+
+        $control .= sprintf($control_row, _wp('Add rule'));
 
         $frontend_urls = $this->getFrontendUrls();
-        if(false) {
+        if (false) {
             $urls = array();
             foreach ($frontend_urls as &$frontend_url) {
                 $frontend_url = htmlspecialchars($frontend_url, ENT_QUOTES, waHtmlControl::$default_charset);
@@ -143,7 +159,8 @@ HTML;
             if ($redirect === null) {
                 $hint = sprintf($redirect_template, '—');
             } else {
-                $hint = sprintf($redirect_template, htmlspecialchars($redirect, ENT_QUOTES, waHtmlControl::$default_charset));
+                $hint = htmlspecialchars($redirect, ENT_QUOTES, waHtmlControl::$default_charset);
+                $hint = sprintf($redirect_template, $hint);
             }
 
 
@@ -188,51 +205,68 @@ JS;
     public static function settingsTemplates($description = true)
     {
         $templates = array(
-            'webasyst' => array(
+            'webasyst'    => array(
                 'value' => 'webasyst',
                 'title' => 'WebAsyst Shop-Script',
             ),
-            'opencart' => array(
+            'opencart'    => array(
                 'value' => 'opencart',
                 'title' => 'OpenCart',
             ),
-            'insales'  => array(
+            'insales'     => array(
                 'value' => 'insales',
                 'title' => 'InSales',
             ),
-            'simpla'   => array(
+            'simpla'      => array(
                 'value' => 'simpla',
                 'title' => 'Simpla',
             ),
-            'phpshop'  => array(
+            'phpshop'     => array(
                 'value' => 'phpshop',
                 'title' => 'PhpShop',
+            ),
+            'magento'     => array(
+                'value' => 'magento',
+                'title' => 'Magento',
+            ),
+            'woocommerce' => array(
+                'value' => 'woocommerce',
+                'title' => 'WooCommerce',
             ),
         );
         if ($description) {
 
             $rules = array(
-                'webasyst' => array(
+                'webasyst'    => array(
                     'index.php?productID=%product_id%',
                     'index.php?categoryID=%category_id%%',
                 ),
-                'insales'  => array(
+                'insales'     => array(
                     'collection/%category_slug%',
                     'collection/%category_slug%/product/%product_slug%',
                     'page/%page_url%',
                 ),
-                'opencart' => array(
+                'opencart'    => array(
                     'index.php?route=product/category&path=%category_id%',
                     //'index.php?route=product/category&path=%category_id%&sort=p.price&order=ASC&limit=50',
                     'index.php?route=product/product&product_id=%product_id%',
-                    //'index.php?route=product/product&path=%category_id%&product_id=%product_id%&sort=p.price&order=ASC&limit=15',
+                    //'index.php?route=product/product&path=%category_id%&product_id=%product_id%&sort=p.price
+                    //&order=ASC&limit=15',
                 ),
-                'simpla'   => array(
+                'simpla'      => array(
                     'products/%product_slug%',
                     'catalog/%category_slug%',
                 ),
-                'phpshop'  => array( //TODO
+                'phpshop'     => array(//TODO
 
+                ),
+                'magento'     => array(
+                    'index.php/%product_url%.html',
+                    '%product_url%.html',
+                ),
+                'woocommerce' => array(
+                    'product/%product_url%/',
+                    'product-category/%category/full/url%/'
                 ),
             );
 
@@ -253,8 +287,9 @@ JS;
                             parse_str(parse_url($source, PHP_URL_QUERY), $get);
                             $url = parse_url($source, PHP_URL_PATH);
                             $redirect = $instance->{$method}($url, $get, $routing, true);
+                            $replace = sprintf('<li>%s &rarr; %s</li>', $base.$source, ifempty($redirect, '—'));
 
-                            $template['description'] .= preg_replace('@(%[\w/]+?%)@', '<b>$1</b>', sprintf('<li>%s &rarr; %s</li>', $base.$source, ifempty($redirect, '—')));
+                            $template['description'] .= preg_replace('@(%[\w/]+?%)@', '<b>$1</b>', $replace);
                         }
                         $template['description'] .= '<ul>';
                     }
@@ -324,7 +359,9 @@ JS;
                     $pattern = str_replace(array('\*'), array('(.+)'), $pattern);
                     $count = 0;
                     while (($offset = strpos($custom['replacement'], '*')) !== false) {
-                        $custom['replacement'] = substr($custom['replacement'], 0, $offset).'$'.(++$count).substr($custom['replacement'], $offset + 1);
+                        $custom['replacement'] = substr($custom['replacement'], 0, $offset)
+                            .'$'
+                            .(++$count).substr($custom['replacement'], $offset + 1);
                     }
 
                 } else {
@@ -371,17 +408,17 @@ JS;
         $redirect = null;
         if ($url == 'index.php') {
             if ($id = ifset($get['productID'])) {
-                $p = $demo ? array('url' => '%product_url%', 'category_id' => true) : $this->productModel()->getById($id);
+                $p = $demo ? self::$demo_product : $this->productModel()->getById($id);
                 if ($p) {
                     $params = array('product_url' => $p['url']);
                     if ($p['category_id']) {
-                        $c = $demo ? array('full_url' => '%category_url%',) : $this->categoryModel()->getById($p['category_id']);
+                        $c = $demo ? self::$demo_category : $this->categoryModel()->getById($p['category_id']);
                         $params['category_url'] = $c['full_url'];
                     }
                     $redirect = wa()->getRouteUrl('shop/frontend/product', $params);
                 }
             } elseif ($id = ifset($get['categoryID'])) {
-                $c = $demo ? array('url' => '%category_url%', 'full_url' => '%category_full_url%',) : $this->categoryModel()->getById($id);
+                $c = $demo ? self::$demo_category : $this->categoryModel()->getById($id);
                 if ($c) {
                     $redirect_params = array(
                         'category_url' => waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url']
@@ -426,12 +463,12 @@ JS;
             # products/%product_slug%
             $url = substr($url, 9);
             $url_parts = explode('/', $url);
-            if ($p = $demo ? array('url' => '%product_url%', 'category_id' => true) : $this->productModel()->getByField('url', $url_parts[0])) {
+            if ($p = $demo ? self::$demo_product : $this->productModel()->getByField('url', $url_parts[0])) {
                 $params = array(
                     'product_url' => $p['url'],
                 );
                 if ($p['category_id']) {
-                    $c = $demo ? array('full_url' => '%category_url%',) : $this->categoryModel()->getById($p['category_id']);
+                    $c = $demo ? self::$demo_category : $this->categoryModel()->getById($p['category_id']);
                     $params['category_url'] = $c['full_url'];
                 }
                 $redirect = wa()->getRouteUrl('shop/frontend/product', $params);
@@ -472,14 +509,14 @@ JS;
         if ($url == 'index.php') {
             switch (ifset($get['route'])) {
                 case 'product/category':
-                    if ($c = $demo ? array('url' => '%category_url%', 'full_url' => '%category/full/url%') : $this->categoryModel()->getById(ifset($get['path']))) {
+                    if ($c = $demo ? self::$demo_category : $this->categoryModel()->getById(ifset($get['path']))) {
                         $redirect = $this->getCategoryUrl($c);
                     }
                     //TODO add support for get params sort|order|page
 
                     break;
                 case 'product/product':
-                    if ($p = $demo ? array('url' => '%product_url%', 'category_id' => true) : $this->productModel()->getById(ifset($get['product_id']))) {
+                    if ($p = $demo ? self::$demo_product : $this->productModel()->getById(ifset($get['product_id']))) {
                         $redirect = $this->getProductUrl($p, $demo);
                     }
                     break;
@@ -503,11 +540,11 @@ JS;
         $redirect = null;
         if (preg_match('@^/?collection/(.+)$@', $url, $matches)) {
             if (preg_match('@^([^/])/product/(.+)$@', $matches[1], $product_matches)) {
-                if ($p = $demo ? array('url' => '%product_url%', 'category_id' => true) : $this->productModel()->getByField('url', $product_matches[2])) {
+                if ($p = $demo ? self::$demo_product : $this->productModel()->getByField('url', $product_matches[2])) {
                     $redirect = $this->getProductUrl($p, $demo);
                 }
             } else {
-                if ($c = $demo ? array('url' => '%category_url%', 'full_url' => '%category/full/url%') : $this->categoryModel()->getByField('url', $matches[1])) {
+                if ($c = $demo ? self::$demo_category : $this->categoryModel()->getByField('url', $matches[1])) {
                     $redirect = $this->getCategoryUrl($c);
                 }
             }
@@ -520,11 +557,37 @@ JS;
         return $redirect;
     }
 
+    private function redirectWoocommerce($url, $get, $routing, $demo = false)
+    {
+        $redirect = null;
+        if (preg_match('@^product/([^/]+)/$@', $url, $product_matches)) {
+            if ($p = $demo ? self::$demo_product : $this->productModel()->getByField('url', $product_matches[1])) {
+                $redirect = $this->getProductUrl($p, $demo);
+            }
+        } elseif (preg_match('@^product-category/(.*?)([^/]+)/$@', $url, $matches)) {
+            if ($c = $demo ? self::$demo_category : $this->categoryModel()->getByField('url', $matches[2])) {
+                $redirect = $this->getCategoryUrl($c);
+            }
+        }
+        return $redirect;
+    }
+
+    private function redirectMagento($url, $get, $routing, $demo = false)
+    {
+        $redirect = null;
+        if (preg_match('@^(index.php/)?([^/]+)\.html$@', $url, $product_matches)) {
+            if ($p = $demo ? self::$demo_product : $this->productModel()->getByField('url', $product_matches[2])) {
+                $redirect = $this->getProductUrl($p, $demo);
+            }
+        }
+        return $redirect;
+    }
+
     private function getProductUrl($p, $demo = false)
     {
         $params = array('product_url' => $p['url']);
-        if ($p['category_id']) {
-            $c = $demo ? array('full_url' => '%category/full/url%', 'url' => '%category_url%') : $this->categoryModel()->getById($p['category_id']);
+        if (!empty($p['category_id']) || $demo) {
+            $c = $demo ? self::$demo_category : $this->categoryModel()->getById($p['category_id']);
             $params['category_url'] = waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url'];
         }
         return wa()->getRouteUrl('shop/frontend/product', $params);

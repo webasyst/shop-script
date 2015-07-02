@@ -21,7 +21,8 @@ class shopCartItemsModel extends waModel
                 WHERE c.code = s:code
                     AND type = 'product'";
 
-        $skus = $this->query($sql, array('code' => $code))->fetchAll('id');
+        $skus = $this->query($sql, array('code' => $code))->fetchAll();
+
         shopRounding::roundSkus($skus);
         $products_total = 0.0;
         foreach($skus as $s) {
@@ -272,6 +273,10 @@ class shopCartItemsModel extends waModel
                     $item['name'] = $item['product']['name'];
                     if ($item['sku_name']) {
                         $item['name'] .= ' ('.$item['sku_name'].')';
+                    }
+                    // Fix for purchase price when rounding is enabled
+                    if (!empty($item['product']['unconverted_currency']) && $item['product']['currency'] != $item['product']['unconverted_currency']) {
+                        $item['purchase_price'] = shop_currency($item['purchase_price'], $item['product']['unconverted_currency'], $item['product']['currency'], false);
                     }
                 } elseif ($item['type'] == 'service' && isset($services[$item['service_id']])) {
                     $item['name'] = $item['service_name'] = $services[$item['service_id']]['name'];

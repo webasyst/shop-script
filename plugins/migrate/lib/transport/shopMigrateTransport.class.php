@@ -277,7 +277,7 @@ abstract class shopMigrateTransport implements Serializable
         }
     }
 
-    protected function addProductImage($product_id, $file, $name = null)
+    protected function addProductImage($product_id, $file, $name = null, $description = null)
     {
         $processed = 0;
         /**
@@ -294,6 +294,7 @@ abstract class shopMigrateTransport implements Serializable
             $data = array(
                 'product_id'        => $product_id,
                 'upload_datetime'   => date('Y-m-d H:i:s'),
+                'description'       => $description,
                 'width'             => $image->width,
                 'height'            => $image->height,
                 'size'              => filesize($file),
@@ -323,8 +324,10 @@ abstract class shopMigrateTransport implements Serializable
             }
 
             $image_path = shopImage::getPath($data);
-            if ((file_exists($image_path) && !is_writable($image_path))
-                || (!file_exists($image_path) && !waFiles::create($image_path))
+            if (
+                (file_exists($image_path) && !is_writable($image_path))
+                ||
+                (!file_exists($image_path) && !waFiles::create($image_path))
             ) {
                 $model->deleteById($data['id']);
                 throw new waException(
@@ -382,6 +385,9 @@ abstract class shopMigrateTransport implements Serializable
 
     protected function log($message, $level = self::LOG_WARNING, $data = null)
     {
+        if (class_exists('waDebug')) {
+
+        }
         if ($level <= $this->getOption('debug', self::LOG_WARNING)) {
             if (!is_string($message)) {
                 $message = var_export($message, true);
@@ -573,6 +579,13 @@ abstract class shopMigrateTransport implements Serializable
 
                 }
                 $control_params = array_merge($params, $properties);
+                if (($properties['control_type'] == waHtmlControl::HIDDEN) && (empty($control_params['description']))) {
+                    $control_params['control_wrapper'] = '
+<div class="field" style="display: none;">
+%s
+<div class="value no-shift">%s%s</div>
+</div>';
+                }
                 $controls[$field] = waHtmlControl::getControl($properties['control_type'], $field, $control_params);
             }
         }
@@ -960,6 +973,9 @@ abstract class shopMigrateTransport implements Serializable
                 $feature_params['value'] = $value['value'];
                 $feature_control = waHtmlControl::HIDDEN;
             }
+        } else {
+            $feature_params = null;
+            $feature_control = false;
         }
         if (in_array('service', $targets)) {
 
@@ -986,6 +1002,9 @@ abstract class shopMigrateTransport implements Serializable
                 $service_params['value'] = $value['value'];
                 $service_control = waHtmlControl::HIDDEN;
             }
+        } else {
+            $service_control = false;
+            $service_params = null;
         }
 
         if (!$suggested) {
@@ -1018,8 +1037,16 @@ abstract class shopMigrateTransport implements Serializable
         }
 
         if (in_array('sku', $targets)) {
+            $sku_params = $params;
+            $sku_params['options'] = array(
+                'none'    => 'импортировать артикул как есть',
+                'counter' => 'добавлять число',
+                'name'    => 'обавлять значение хар-ки',
+            );
+            $sku_params['description'] = null;
             $target_params['options'] = array_slice($target_options, 2, 1);
             $control .= waHtmlControl::getControl($target_control, 'target', $target_params);
+            $control .= waHtmlControl::getControl(waHtmlControl::SELECT, 'sku', $sku_params);
         }
 
         $feature_name = preg_replace("@([\\[\\]])@", '\\\\$1', waHtmlControl::getName($feature_params, 'feature'));
@@ -1120,6 +1147,7 @@ HTML;
         foreach (waFiles::listdir($dir) as $file) {
             if (($file != __FILE__) && preg_match('@^shopMigrate(\w+)Transport\.class\.php@', $file, $matches)) {
 
+
                 $value = strtolower($matches[1]);
                 if (preg_match('@^webasyst(\w*)$@', $value, $matches)) {
                     $group = empty($matches[1]) ? null : 'Webasyst';
@@ -1137,7 +1165,7 @@ HTML;
                                     foreach ($raw as $line) {
                                         $line = preg_split('@\s+@', $line, 2, PREG_SPLIT_NO_EMPTY);
                                         if (count($line) > 1) {
-                                            $doc[$line[0]] = _wp(trim(end($line),"\n\r "));
+                                            $doc[$line[0]] = _wp(trim(end($line), "\n\r "));
                                         }
                                     }
                                 }
@@ -1146,7 +1174,7 @@ HTML;
                         }
                     }
                     $title = $value;
-                    $transports[$value] = $doc + compact('file', 'group', 'title', 'description','value');
+                    $transports[$value] = $doc + compact('file', 'group', 'title', 'description', 'value');
                 }
             }
         }
@@ -1162,5 +1190,100 @@ HTML;
             $sort = strcasecmp($a['title'], $b['title']);
         }
         return $sort;
+    }
+
+    protected function deleteOrder($id)
+    {
+        static $model;
+        static $customer_model;
+        if (empty($model)) {
+            $model = new shopOrderModel();
+        }
+        if ($_data = $this->orderModel()->getById($id)) {
+            $tables = array(
+                'shop_order_items',
+                'shop_order_log',
+                'shop_order_log_params',
+                'shop_order_params',
+            );
+            foreach ($tables as $table) {
+                $this->orderModel()->query(sprintf("DELETE FROM `%s` WHERE `order_id`=%d", $table, $id));
+            }
+
+
+            $query = sprintf("UPDATE `shop_customer` SET `last_order_id`=NULL WHERE `last_order_id`=%d", $id);
+            $this->orderModel()->query($query);
+            $this->orderModel()->deleteById($id);
+            if (!empty($_data['contact_id'])) {
+                $customer_data = array(
+                    'number_of_orders' => $this->orderModel()->countByField('contact_id', $_data['contact_id']),
+                    'last_order_id'    => $this->orderModel()->select('MAX(id)')->where('contact_id = :contact_id', $_data)->fetchField(),
+                    'total_spent'      => $this->orderModel()->getTotalSalesByContact($_data['contact_id']),
+                );
+
+                if (empty($customer_model)) {
+                    $customer_model = new shopCustomerModel();
+                }
+                $customer_model->updateById($_data['contact_id'], $customer_data);
+            }
+
+        }
+    }
+
+    private $order_model;
+
+    /**
+     * @return shopOrderModel
+     */
+    protected function orderModel()
+    {
+        if (empty($this->order_model)) {
+            $this->order_model = new shopOrderModel();
+        }
+        return $this->order_model;
+    }
+
+    private $order_items_model;
+
+    /**
+     * @return shopOrderItemsModel
+     */
+    protected function orderItemsModel()
+    {
+        if (empty($this->order_items_model)) {
+            $this->order_items_model = new shopOrderItemsModel();
+        }
+        return $this->order_items_model;
+    }
+
+    private $customer_model;
+
+    /**
+     * @return shopCustomerModel
+     */
+    protected function customerModel()
+    {
+        if (empty($this->customer_model)) {
+            $this->customer_model = new shopCustomerModel();
+        }
+        return $this->customer_model;
+    }
+
+    protected function formatPaidDate($paid_time)
+    {
+        if (!is_numeric($paid_time)) {
+            $paid_time = strtotime($paid_time);
+        }
+        return array(
+            'paid_date'    => date('Y-m-d', $paid_time),
+            'paid_year'    => date('Y', $paid_time),
+            'paid_month'   => date('n', $paid_time),
+            'paid_quarter' => floor((date('n', $paid_time) - 1) / 3) + 1,
+        );
+    }
+
+    protected function formatDatetime($utc)
+    {
+        return date('Y-m-d H:i:s', empty($utc) ? null : strtotime($utc));
     }
 }

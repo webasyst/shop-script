@@ -7,6 +7,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
         parent::initOptions();
         waHtmlControl::registerControl('OptionsControl', array(&$this, "settingOptionsControl"));
         waHtmlControl::registerControl('StatusControl', array(&$this, "settingStatusControl"));
+        waHtmlControl::registerControl('DatetimeControl', array(&$this, "settingDatetimeControl"));
     }
 
     public function validate($result, &$errors)
@@ -25,7 +26,7 @@ abstract class shopMigrateWebasystTransport extends shopMigrateTransport
 
 
             $option = array(
-                'value'        => false,
+                'value'        => true,
                 'control_type' => waHtmlControl::CHECKBOX,
                 'title'        => _wp('Preserve IDs'),
                 'description'  => _wp(
@@ -148,8 +149,25 @@ HTML;
 
             $this->addOption('currency', $option);
 
+            $orders_model = new shopOrderModel();
+            $datetime = $orders_model->select('MAX(`create_datetime`)')->fetchField();
+            if ($datetime) {
+                $option = array(
+                    'value'        => 0,
+                    'control_type' => 'DatetimeControl',
+                    'title'        => _wp('Data to import'),
+                    'checked'      => 'true',
+                    'options'      => array(
+                        _wp('Import all products, categories, customers, and orders'),
+                        $datetime => _wp('Import only orders and customers starting from'),
+                    ),
+
+                );
+                $this->addOption('order_datetime', $option);
+            }
+
             #type map
-            $this->addOption('type', $this->getProductTypeOption(true));
+            $this->addOption('type', $this->getProductTypeOption(true) + array('class' => 'js-goods',));
             #weight control
             $suggests_features = array();
             $option = array(
@@ -158,6 +176,7 @@ HTML;
                 'title'        => _wp('Weight'),
                 'description'  => _wp('Select feature defining product weight.'),
                 'checked'      => 'true',
+                'class'        => 'js-goods',
             );
             $suggests = array(
                 'weight',
@@ -198,6 +217,7 @@ HTML;
             $option = array(
                 'control_type' => 'OptionsControl',
                 'title'        => _wp('Custom parameters'),
+                'class'        => 'js-goods',
                 'options'      => array(),
             );
             $this->addOption('options', $option);
@@ -334,27 +354,38 @@ SQL;
         }
 
         $counts = array();
-        $count_sqls = array(
-            self::STAGE_PAGES                => '`SC_aux_pages`',
-            self::STAGE_TAX                  => '`SC_tax_classes`',
-            self::STAGE_CATEGORY             => '`SC_categories` WHERE `categoryID`>1',
-            self::STAGE_CATEGORY_REBUILD     => 0,
-            self::STAGE_OPTIONS              => '`SC_product_options`',
-            self::STAGE_OPTION_VALUES        => 0,
-            self::STAGE_CUSTOMER_CATEGORY    => '`SC_custgroups`',
-            self::STAGE_CUSTOMER             => '`SC_customers`',
-            self::STAGE_PRODUCT              => '`SC_products`',
-            self::STAGE_PRODUCT_REVIEW       => '`SC_discussions` WHERE `productID`>0',
-            self::STAGE_PRODUCT_SET          => '`SC_product_list` WHERE `id`="specialoffers"',
-            self::STAGE_COUPON               => '`SC_discount_coupons`',
-            self::STAGE_ORDER                => '`SC_orders`',
-            self::STAGE_PRODUCT_IMAGE        => '`SC_product_pictures` `i` JOIN `SC_products` `p` ON (`p`.`productID` = `i`.`productID`)',
-            self::STAGE_PRODUCT_FILE         => '`SC_products` WHERE (`eproduct_filename` != "")',
-            self::STAGE_PRODUCT_IMAGE_RESIZE => 0,
-        );
+        if (($datetime = $this->getOption('order_datetime')) && !empty($datetime['radio'])) {
+            $count_sqls = array(
+                self::STAGE_CUSTOMER => "(SELECT DISTINCT `customerID` FROM `SC_orders` WHERE `order_time` > '%s') t",
+                self::STAGE_ORDER    => "`SC_orders` WHERE `order_time` > '%s'",
+            );
+            foreach ($count_sqls as &$sql) {
+                $sql = sprintf($sql, date('Y-m-d H:i:s', strtotime(ifempty($datetime['custom'], $datetime['radio']))));
+            }
+            unset($sql);
+        } else {
+            $count_sqls = array(
+                self::STAGE_PAGES                => '`SC_aux_pages`',
+                self::STAGE_TAX                  => '`SC_tax_classes`',
+                self::STAGE_CATEGORY             => '`SC_categories` WHERE `categoryID`>1',
+                self::STAGE_CATEGORY_REBUILD     => 0,
+                self::STAGE_OPTIONS              => '`SC_product_options`',
+                self::STAGE_OPTION_VALUES        => 0,
+                self::STAGE_CUSTOMER_CATEGORY    => '`SC_custgroups`',
+                self::STAGE_CUSTOMER             => '`SC_customers`',
+                self::STAGE_PRODUCT              => '`SC_products`',
+                self::STAGE_PRODUCT_REVIEW       => '`SC_discussions` WHERE `productID`>0',
+                self::STAGE_PRODUCT_SET          => '`SC_product_list` WHERE `id`="specialoffers"',
+                self::STAGE_COUPON               => '`SC_discount_coupons`',
+                self::STAGE_ORDER                => '`SC_orders`',
+                self::STAGE_PRODUCT_IMAGE        => '`SC_product_pictures` `i` JOIN `SC_products` `p` ON (`p`.`productID` = `i`.`productID`)',
+                self::STAGE_PRODUCT_FILE         => '`SC_products` WHERE (`eproduct_filename` != "")',
+                self::STAGE_PRODUCT_IMAGE_RESIZE => 0,
+            );
 
-        if ($this->getConfig()->getOption('image_thumbs_on_demand')) {
-            unset($count_sqls[self::STAGE_PRODUCT_IMAGE_RESIZE]);
+            if ($this->getConfig()->getOption('image_thumbs_on_demand')) {
+                unset($count_sqls[self::STAGE_PRODUCT_IMAGE_RESIZE]);
+            }
         }
 
         foreach ($count_sqls as $stage => $sqls) {
@@ -445,7 +476,7 @@ SQL;
             }
 
 
-            $category_data['url'] = ifempty($data['slug'], $data['categoryID']);
+            $category_data['url'] = mb_substr(ifempty($data['slug'], $data['categoryID']), 0, 255);
             $category_data['url'] = $category->suggestUniqueUrl($category_data['url'], ifset($category_data['id']), $parent_id);
 
             $id = $category->add($category_data, $parent_id);
@@ -727,20 +758,41 @@ SQL;
         static $customer_data_cache = array();
         static $customer_fields_cache = array();
         static $customer_address_cache = array();
+        static $customer_ids = false;
         static $map;
         $result = false;
 
         if (!$current_stage) {
             $this->map[self::STAGE_CUSTOMER] = array();
             $this->offset[self::STAGE_CUSTOMER] = 0;
+            if (($datetime = $this->getOption('order_datetime')) && !empty($datetime['radio'])) {
+                $sql = "(SELECT DISTINCT `customerID` FROM `SC_orders` WHERE `order_time` > '%s')";
+                $datetime = ifempty($datetime['custom'], $datetime['radio']);
+                $customer_ids = $this->query(sprintf($sql, date('Y-m-d H:i:s', strtotime($datetime))), false);
+                $customer_ids = array_map('intval', array_map('reset', $customer_ids));
+                asort($customer_ids);
+            }
+
         }
         if (!$customer_data_cache) {
+            if ($customer_ids !== false) {
 
-            $sql = 'SELECT  `c`.`customerID`  `id` ,  `c` . * ,  `c`.`addressID` `default_addressID`
+                $sql = 'SELECT  `c`.`customerID`  `id` ,  `c` . * ,  `c`.`addressID` `default_addressID`
+FROM  `SC_customers`  `c`
+WHERE (`c`.`customerID` > %%d)
+AND (`c`.`customerID` IN (%s))
+ORDER BY  `c`.`customerID`
+LIMIT 100';
+                $sql = sprintf($sql, implode(', ', $customer_ids));
+            } else {
+
+                $sql = 'SELECT  `c`.`customerID`  `id` ,  `c` . * ,  `c`.`addressID` `default_addressID`
 FROM  `SC_customers`  `c`
 WHERE (`c`.`customerID` >%d)
 ORDER BY  `c`.`customerID`
 LIMIT 100';
+            }
+
             $customer_data_cache = $this->query(sprintf($sql, intval($this->offset[self::STAGE_CUSTOMER])), false);
             $ids = array();
             $address_ids = array();
@@ -760,12 +812,15 @@ WHERE `customerID` IN (%s)
 ORDER BY  `addressID`
 LIMIT 100';
 
-            $customer_address_ids = $this->query(sprintf($sql, implode(',', $ids)), false);
             $default_address = array();
-            foreach ($customer_address_ids as $row) {
-                if ($address_id = intval($row['default_addressID'])) {
-                    $address_ids[] = $address_id;
-                    $default_address[$row['customerID']] = $address_id;
+
+            if ($ids) {
+                $customer_address_ids = $this->query(sprintf($sql, implode(',', $ids)), false);
+                foreach ($customer_address_ids as $row) {
+                    if ($address_id = intval($row['default_addressID'])) {
+                        $address_ids[] = $address_id;
+                        $default_address[$row['customerID']] = $address_id;
+                    }
                 }
             }
 
@@ -775,6 +830,7 @@ LIMIT 100';
                 }
             }
             unset($data);
+
             if (!isset($map)) {
                 $map = array_filter($this->getOption('customer', array()), 'strlen');
                 $map_ids = array();
@@ -895,40 +951,53 @@ SQL;
                 }
             }
         }
+        $contact_model = new waContactModel();
         if ($data = reset($customer_data_cache)) {
             $id = intval($data['customerID']);
-            $this->log('Import customer', self::LOG_DEBUG, $data);
-            $customer = new waContact();
-            $customer['firstname'] = $data['first_name'];
-            $customer['lastname'] = $data['last_name'];
-            $customer['email'] = $data['Email'];
-            $customer['create_datetime'] = $data['reg_datetime'];
-            $customer['create_app_id'] = 'shop';
-
-            if (!empty($data['Login']) && !empty($data['cust_password'])) {
-                $customer['password'] = base64_decode($data['cust_password']);
-            }
-            if (!empty($customer_fields_cache[$id])) {
-                foreach ($customer_fields_cache[$id] as $field => $value) {
-                    $customer->set($field, $value);
-                }
-            }
-            if (!empty($customer_address_cache[$id])) {
-                $customer->set('address', $customer_address_cache[$id]);
-            }
-            if ($errors = $customer->save()) {
-                $this->log("Error while import customer", self::LOG_ERROR, $errors);
+            if (
+                !empty($data['Login'])
+                &&
+                !empty($data['Email'])
+                &&
+                #try to search customer
+                ($customer_data = $contact_model->getByEmail($data['Email'], true))
+            ) {
+                #merge extra fields?
+                $this->map[self::STAGE_CUSTOMER][$id] = $customer_data['id'];
             } else {
-                $customer->addToCategory('shop');
-                $this->map[self::STAGE_CUSTOMER][intval($data['customerID'])] = $customer->getId();
+                $this->log('Import customer', self::LOG_DEBUG, $data);
+                $customer = new waContact();
+                $customer['firstname'] = $data['first_name'];
+                $customer['lastname'] = $data['last_name'];
+                $customer['email'] = $data['Email'];
+                $customer['create_datetime'] = $data['reg_datetime'];
+                $customer['create_app_id'] = 'shop';
 
-                if (!empty($data['custgroupID']) && !empty($this->map[self::STAGE_CUSTOMER_CATEGORY][$data['custgroupID']])) {
-                    $customer->addToCategory($this->map[self::STAGE_CUSTOMER_CATEGORY][$data['custgroupID']]);
+                if (!empty($data['Login']) && !empty($data['cust_password'])) {
+                    $customer['password'] = base64_decode($data['cust_password']);
+                }
+                if (!empty($customer_fields_cache[$id])) {
+                    foreach ($customer_fields_cache[$id] as $field => $value) {
+                        $customer->set($field, $value);
+                    }
+                }
+                if (!empty($customer_address_cache[$id])) {
+                    $customer->set('address', $customer_address_cache[$id]);
+                }
+                if ($errors = $customer->save()) {
+                    $this->log("Error while import customer", self::LOG_ERROR, $errors);
+                } else {
+                    $customer->addToCategory('shop');
+                    $this->map[self::STAGE_CUSTOMER][$id] = $customer->getId();
+
+                    if (!empty($data['custgroupID']) && !empty($this->map[self::STAGE_CUSTOMER_CATEGORY][$data['custgroupID']])) {
+                        $customer->addToCategory($this->map[self::STAGE_CUSTOMER_CATEGORY][$data['custgroupID']]);
+                    }
                 }
             }
-
             // update internal offset
             $this->offset[self::STAGE_CUSTOMER] = intval($data['customerID']);
+
             $result = true;
             array_shift($customer_data_cache);
             ++$current_stage;
@@ -945,6 +1014,7 @@ SQL;
         static $product_tags_cache = array();
 
         static $services_model;
+        static $service_variants_model;
         $result = false;
 
         if (!$current_stage) {
@@ -1122,16 +1192,26 @@ SQL;
 
                                     if (intval($option['is_default'])) {
                                         array_unshift($features[$code], $option['value']);
-                                    } else {
+                                    } elseif(is_array($features[$code])) {
                                         $features[$code][] = $option['value'];
+                                    } else {
+                                        $this->log('Feature value ignored',self::LOG_ERROR,compact('code','option'));
                                     }
 
                                 }
                                 break;
                             case 's':
                                 if (($option['value'] !== null) && ($option['value'] !== '')) {
-                                    $service_id = $target[1];
-                                    $service_variants_model = new shopServiceVariantsModel();
+
+                                    if (strpos($target[1], ':')) {
+                                        list($service_id, $variant_id) = explode(':', $target[1], 2);
+                                    } else {
+                                        $variant_id = null;
+                                        $service_id = $target[1];
+                                    }
+                                    if (empty($service_variants_model)) {
+                                        $service_variants_model = new shopServiceVariantsModel();
+                                    }
                                     //TODO check currency
                                     $variant_field = array(
                                         'service_id' => $service_id,
@@ -1143,6 +1223,9 @@ SQL;
                                         $variant['price'] = $option['price'];
                                         $variant['id'] = $service_variants_model->insert($variant_field);
                                         $service_variants_model->move($service_id, $variant['id']);
+                                        if (!empty($variant_id)) {
+                                            $service_variants_model->delete($variant_id);
+                                        }
                                     }
 
                                     if (!isset($services[$service_id])) {
@@ -1255,6 +1338,20 @@ SQL;
                     $services_model = new shopProductServicesModel();
                 }
                 foreach ($services as $service_id => $variants) {
+                    if (empty($service_variants_model)) {
+                        $service_variants_model = new shopServiceVariantsModel();
+                    }
+                    $all_variants = $service_variants_model->getByField('service_id', $service_id, 'id');
+                    foreach ($all_variants as $variant_id => $variant) {
+                        if (!isset($variants[$variant_id])) {
+                            $variants[$variant_id] = array(
+                                'price'  => null,
+                                'status' => shopProductServicesModel::STATUS_FORBIDDEN,
+                                'skus'   => array(),
+                            );
+                        }
+                    }
+
                     $log = array(
                         'product_id' => $product->getId(),
                         'name'       => $product->name,
@@ -1262,17 +1359,18 @@ SQL;
                         'data'       => $variants,
                     );
                     $this->log('Import product services', self::LOG_INFO, $log);
-                    //TODO add services for SKUs
+
+
                     $services_model->save($product->getId(), $service_id, $variants);
                 }
             }
 
             // update internal offset
             $this->offset[self::STAGE_PRODUCT] = intval($data['productID']);
-
+            $sku_id = array_keys($product->skus);
             $this->map[self::STAGE_PRODUCT][$this->offset[self::STAGE_PRODUCT]] = array(
                 'id'     => $product->getId(),
-                'sku_id' => array_keys($product->skus),
+                'sku_id' => reset($sku_id),
             );
             $result = true;
             array_shift($product_data_cache);
@@ -1671,12 +1769,19 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                             'variants' => array(),
                             'types'    => array(),
                             'products' => array(),
+                            //TODO 'tax_id'=>null,
                         );
                         if (empty($service_model)) {
                             $service_model = new shopServiceModel();
                         }
                         $service['id'] = $service_model->save($service);
-                        $map = 's:'.$service['id'];
+                        if (empty($service_variants_model)) {
+                            $service_variants_model = new shopServiceVariantsModel();
+                        }
+                        $service['variant_id'] = $service_variants_model->insert(array(
+                            'service_id' => $service['id'],
+                        ));
+                        $map = 's:'.$service['id'].':'.$service['variant_id'];
 
                         $this->log('Import option as service', self::LOG_INFO, $service);
                         break;
@@ -1755,6 +1860,9 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                     GROUP BY `v`.`variantID`
                     ORDER BY `v`.`sort_order`';
                     if ($raw_values = $this->query(sprintf($sql, $this->getOption('locale'), $option_id), false)) {
+                        if (strpos($id, ':')) {
+                            list($id, $variant_id) = explode(':', $id, 2);
+                        }
                         $service_variants_model = new shopServiceVariantsModel();
                         $service_model = new shopServiceModel();
                         if ($service = $service_model->getById($id)) {
@@ -1784,6 +1892,7 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                                 if (empty($service['variant_id'])) {
                                     $variants[0]['default'] = true;
                                 }
+                                $service_variants_model->delete($variant_id);
                                 $service_model->save($service, $id);
                             }
                         } else {
@@ -1874,163 +1983,42 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
         static $order_changelog_cache = array();
         static $order_content_cache = array();
         static $model;
+        static $customer_model;
         if (!$model) {
             $model = new shopOrderModel();
+        }
+        if (!$customer_model) {
+            $customer_model = new shopCustomerModel();
         }
         $result = false;
 
         if (!$current_stage) {
-            $this->map[self::STAGE_ORDER] = array(
-                'state'         => array(),
-                'currency_rate' => 1.0,
-                'currency_map'  => array(),
-                'address_map'   => array(),
-            );
-            $currency_model = new shopCurrencyModel();
-            if (($rate = $currency_model->getById($currency_value = $this->getOption('currency'))) && ($rate['rate'])) {
-                $this->map[self::STAGE_ORDER]['currency_rate'] = doubleval($rate['rate']);
-            }
-            //color bold italic
-            $sql = 'SELECT `status_name_%s` `name`,`color`,`bold`,`italic`,`statusID` FROM `SC_order_status` ORDER BY `sort_order`';
-            $state_map =& $this->map[self::STAGE_ORDER]['state'];
-
-
-            $workflow_config = shopWorkflow::getConfig();
-            $states = $this->getOption('status');
-            if ($status_names = $this->query(sprintf($sql, $this->getOption('locale')), false)) {
-                foreach ($status_names as $status) {
-                    if (!empty($states[$status['statusID']])) {
-                        $status_id = $states[$status['statusID']];
-                        $style = array();
-
-                        if (!empty($status['color'])) {
-                            $style['color'] = '#'.$status['color'];
-                        }
-                        if (!empty($status['bold'])) {
-                            $style['font-weight'] = 'bold';
-                        }
-                        if (!empty($status['italic'])) {
-                            $style['font-style'] = 'italic';
-                        }
-                        if ($status_id === '::new') {
-                            $workflow_status = array(
-                                'name'              => $status['name'],
-                                'options'           => array(
-                                    'icon'  => 'icon16 ss flag-white',
-                                    'style' => $style,
-                                ),
-                                'available_actions' => array(),
-
-                            );
-                            $status_id = waLocale::transliterate(mb_strtolower($status['name']), 'ru_RU');
-                            $status_id = preg_replace('([^a-z_])', '_', $status_id);
-                            $status_id = substr(preg_replace('([_]{2,})', '_', $status_id), 0, 16);
-                            while (isset($workflow_config['states'][$status_id])) {
-                                $status_id = substr(uniqid(substr($status_id, 0, 10)), 0, 16);
-                            }
-
-                            $states[$status['statusID']] = $status_id;
-                            $workflow_config['states'][$status_id] = $workflow_status;
-                        } else {
-                            $workflow_config['states'][$status_id]['options']['style'] = $style;
-                        }
-                    }
-                    $this->setOption('status', $states);
-                    shopWorkflow::setConfig($workflow_config);
-                }
-                foreach ($status_names as $status) {
-
-                    if (!empty($states[$status['statusID']])) {
-                        $state_map[$status['name']] = $states[$status['statusID']];
-                    }
-                }
-
-            }
-
-            $this->log('state_name_map', self::LOG_INFO, $state_map);
-            unset($state_map);
-
-            $sql = 'SELECT
-            LOWER(`c`.`country_name_%1$s`) `country_name`, LOWER(`c`.`country_iso_3`) `country`,
-            LOWER(`z`.`zone_name_%1$s`) `region_name`, LOWER(`z`.`zone_code`) `region`
-            FROM  `SC_countries` `c`
-                LEFT JOIN `SC_zones` `z` ON (`z`.`countryID`= `c`.`countryID`)';
-            $address_map =& $this->map[self::STAGE_ORDER]['address_map'];
-            if ($address_names = $this->query(sprintf($sql, $this->getOption('locale')), false)) {
-                foreach ($address_names as $a) {
-                    if (!empty($a['country_name'])) {
-                        if (empty($address_map[$a['country_name']])) {
-                            $address_map[$a['country_name']] = array(
-                                'country' => $a['country'],
-                                'regions' => array(),
-                            );
-                        }
-                        if (!empty($a['region_name'])) {
-                            $address_map[$a['country_name']]['regions'][$a['region_name']] = $a['region'];
-                        }
-                    }
-
-                }
-            }
-
-            $this->log('addressname_map', self::LOG_INFO, $address_map);
-            unset($address_map);
-
-            $currency_map =& $this->map[self::STAGE_ORDER]['currency_map'];
-            $currency_map['*'] = $currency_value;
-            $currency_map[$currency_value] = $currency_value;
-            if (in_array(
-                $currency_value,
-                array(
-                    'RUB',
-                    'RUR'
-                )
-            )
-            ) {
-                $currency_map['RUB'] = $currency_value;
-                $currency_map['RUR'] = $currency_value;
-            }
-            $sql = 'SELECT `currency_value` `rate`,`currency_iso_3` `code` FROM `SC_currency_types`';
-            if ($currencies = $this->query($sql, false)) {
-                foreach ($currencies as $currency) {
-                    $code = $currency['code'];
-                    if (!isset($currency_map[$code])) {
-                        if ($currency_model->getById($code)) {
-                            $currency_map[$code] = $code;
-                        } elseif ($currency_model->add($code)) {
-                            if (doubleval($currency['rate'])) {
-                                $data = array(
-                                    'rate' => $this->map[self::STAGE_ORDER]['currency_rate'] / doubleval($currency['rate']),
-                                );
-                                $currency_model->updateById($code, $data);
-                            } else {
-                                $this->log('Currency mapping error: invalid rate', self::LOG_ERROR, $currency);
-                            }
-                            $currency_map[$code] = $code;
-                        } else {
-                            $this->log('Currency mapping error: invalid code', self::LOG_ERROR, $currency);
-                            $currency_map[$code] = 1.0 / doubleval($currency['rate']);
-                        }
-                    }
-                }
-            }
-            if (isset($currency_map['RUB'])) {
-                $currency_map['RUR'] = $currency_map['RUB'];
-            } elseif (isset($currency_map['RUR'])) {
-                $currency_map['RUB'] = $currency_map['RUR'];
-            }
-            $this->log('currency_map', self::LOG_INFO, $currency_map);
-            unset($currency_map);
+            $this->initOrderMap();
             $this->offset[self::STAGE_ORDER] = 0;
         }
         if (!$order_data_cache) {
+            if (($datetime = $this->getOption('order_datetime')) && !empty($datetime['radio'])) {
+                $sql = <<<SQL
+SELECT `o`.*,`c`.`coupon_id`
+FROM `SC_orders` `o`
+LEFT JOIN `SC_orders_discount_coupons` `c` ON (`o`.`orderID` = `c`.`order_id`)
+WHERE
+  (`o`.`orderID` > %%d)
+  AND
+  `order_time` > '%s'
+ORDER BY `o`.`orderID`
+LIMIT 20
+SQL;
+                $sql = sprintf($sql, date('Y-m-d H:i:s', strtotime(ifempty($datetime['custom'], $datetime['radio']))));
+            } else {
 
-            $sql = 'SELECT `o`.*,`c`.`coupon_id`
+                $sql = 'SELECT `o`.*,`c`.`coupon_id`
             FROM `SC_orders` `o`
             LEFT JOIN `SC_orders_discount_coupons` `c` ON (`o`.`orderID` = `c`.`order_id`)
             WHERE (`o`.`orderID` > %d)
             ORDER BY `o`.`orderID`
             LIMIT 20';
+            }
             $order_data_cache = $this->query(sprintf($sql, intval($this->offset[self::STAGE_ORDER])), false);
             $ids = array();
             foreach ($order_data_cache as $data) {
@@ -2156,54 +2144,35 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
                 $order['state_id'] = $status[$data['statusID']];
             }
             //convert rate
-            $order['rate'] *= $this->map[self::STAGE_ORDER]['currency_rate'];
-            $rate = 1.0;
+            $rate = $this->fixOrderRate($order);
 
-            $currency_map = $this->map[self::STAGE_ORDER]['currency_map'];
-            if (isset($currency_map[$order['currency']])) {
-                if (is_double($currency_map[$order['currency']])) {
-                    $rate = $currency_map[$order['currency']];
-                    $order['total'] *= $rate;
-                    $order['shipping'] *= $rate;
-                    $order['discount'] *= $rate;
-                    $order['rate'] = 1.0;
-                    $order['currency'] = $currency_map['*'];
-                } else {
-                    $order['currency'] = $currency_map[$order['currency']];
-                }
-            } else {
-                $order['currency'] = $this->getOption('currency');
-            }
-            if ($model->countByField('id', $order['id'])) {
-                $tables = array(
-                    'shop_order_items',
-                    'shop_order_log',
-                    'shop_order_log_params',
-                    'shop_order_params',
-                );
-                foreach ($tables as $table) {
-                    $model->query(sprintf("DELETE FROM `%s` WHERE `order_id`=%d", $table, $order['id']));
-                }
-                $query = sprintf("UPDATE `shop_customer` SET `last_order_id`=NULL WHERE `last_order_id`=%d", $order['id']);
-                $model->query($query);
-                $model->deleteById($order['id']);
-            }
+            $this->deleteOrder($order['id']);
             $model->insert($order);
 
             //check it
             $items_model = new shopOrderItemsModel();
 
+
+            $product_model = new shopProductModel();
+
             foreach ($order_content_cache[$id] as $item) {
-                $product = ifset($this->map[self::STAGE_PRODUCT][$item['productID']], array());
+                if ($this->getOption('preserve') && ($datetime = $this->getOption('order_datetime')) && !empty($datetime['radio'])) {
+                    $product = $product_model->getById($item['productID']);
+                    if (!$product) {
+                        $product = array();
+                    }
+                } else {
+                    $product = ifset($this->map[self::STAGE_PRODUCT][$item['productID']], array());
+                }
                 $insert = array(
                     'order_id'   => $order['id'],
                     'type'       => 'product',
                     'name'       => $item['name'],
                     'quantity'   => $item['Quantity'],
-                    'price'      => doubleval($item['Price']) * $rate,
+                    'price'      => doubleval($item['Price']) / $rate,
                     'currency'   => $data['currency_code'],
-                    'product_id' => ifset($product['id']),
-                    'sku_id'     => ifset($product['sku_id']),
+                    'product_id' => ifset($product['id'], null),
+                    'sku_id'     => ifset($product['sku_id'], null),
                 );
                 $items_model->insert($insert);
 
@@ -2307,11 +2276,9 @@ ORDER BY `i`.`PhotoID` LIMIT 10';
             }
 
             if ($customer_id) {
-                $scm = new shopCustomerModel();
-                $scm->updateFromNewOrder($customer_id, $order['id']);
+                $customer_model->updateFromNewOrder($customer_id, $order['id'], $order['source']);
                 shopCustomer::recalculateTotalSpent($customer_id);
             }
-            $model->recalculateProductsTotalSales();
             // update internal offset
             $this->offset[self::STAGE_ORDER] = $id;
             $result = true;
@@ -2378,8 +2345,8 @@ SQL;
                 'domain'   => 'localhost',
                 'route'    => '*',
                 'name'     => ifset($row['aux_page_name_'.$locale]),
-                'url'      => $row['aux_page_slug'].'/',
-                'full_url' => $row['aux_page_slug'].'/',
+                'url'      => mb_substr($row['aux_page_slug'], 0, 254).'/',
+                'full_url' => mb_substr($row['aux_page_slug'], 0, 254).'/',
                 'content'  => ifset($row['aux_page_text_'.$locale]),
                 'status'   => !empty($row['aux_page_enabled']),
 
@@ -2437,7 +2404,7 @@ SQL;
             $control .= "</tbody>";
             $control .= "</table>";
         } else {
-            $control .= _wp('There no options to import');
+            $control .= sprintf('<span class="%s">%s</span>', implode(' ', (array)ifset($params['class'])), _wp('There no options to import'));
         }
 
         return $control;
@@ -2478,7 +2445,7 @@ SQL;
             3  => 'processing',
             1  => 'deleted',
             14 => 'paid',
-            5  => 'shipped',
+            5  => 'completed',
             15 => 'refunded',
         );
         foreach ($source_states as $id => $state) {
@@ -2495,6 +2462,101 @@ SQL;
         }
         $control .= "</table>";
 
+        return $control;
+
+    }
+
+    public static function settingDatetimeControl($name, $params = array())
+    {
+        waHtmlControl::addNamespace($params, $name);
+        foreach ($params as $field => $param) {
+            if (strpos($field, 'wrapper')) {
+                unset($params[$field]);
+            }
+        }
+        $params['title_wrapper'] = false;
+
+        $params['options_wrapper']['description_wrapper'] = false;
+
+        end($params['options']);
+        $datetime = key($params['options']);
+        $option = &$params['options'][$datetime];
+        if (!is_array($option)) {
+            $option = array(
+                'value'       => $datetime,
+                'description' => $option,
+            );
+
+        } elseif (!empty($option['value'])) {
+            $datetime = $option['value'];
+        } else {
+            $option['value'] = $datetime;
+        }
+        $control = '';//&$option['description'];
+        $control_params = $params;
+        foreach ($params as $field => $param) {
+            if (strpos($field, 'wrapper')) {
+                unset($control_params[$field]);
+            }
+        }
+        $control_params['description_wrapper'] = false;
+        $control_params['title_wrapper'] = false;
+        $control_params['control_wrapper'] = '&nbsp;%2$s <a href="#"><i class="icon16 calendar"></i></a>';
+        $control_params['value'] = date('Y-m-d', strtotime($datetime));
+        $control_params['class'] = array_merge((array)ifset($control_params['class'], array()), array('small'));
+        $control = waHtmlControl::getControl(waHtmlControl::RADIOGROUP, 'radio', $params);
+        $control .= $params['control_separator'];
+        $control .= waHtmlControl::getControl(waHtmlControl::INPUT, 'custom', $control_params);
+        $today = date('Y-m-d');
+        $selector = ifset($control_params['js-container'], '#plugin-migrate-transport-fields');
+        $control .= <<<HTML
+<script type="text/javascript">
+(function ($) {
+var container = $('{$selector}');
+var datetime_input = container.find(':input[name*="{$name}"][name$="\\[custom\\]"]');
+if(typeof($.datepicker) !='undefined'){
+    datetime_input.datepicker({
+        'dateFormat': 'yy-mm-dd',
+        'numberOfMonths': 3,
+        'maxDate': '{$today}'
+    });
+    datetime_input.next('a').click(function() {
+        if(!datetime_input.attr('disabled')){
+            datetime_input.datepicker('show');
+        }
+        return false;
+    });
+    // widget appears in bottom left corner for some reason, so we hide it
+    datetime_input.datepicker('widget').hide();
+} else {
+    datetime_input.next('a').hide();
+    console.error('jQuery plugin datepicker required');
+}
+container.find(':input[name*="{$name}"][name$="\\[radio\\]"]').change(function(){
+   if(this.checked){
+        if(this.value != '0'){
+            datetime_input.attr('disabled',null);
+            container.find('.js-goods').each(function(){
+                $(this).parents('div.field').slideUp();
+
+            })
+        } else {
+            datetime_input.attr('disabled',true);
+            if(datetime_input.datepicker){
+                datetime_input.datepicker('widget').hide();
+            }
+            container.find('.js-goods').each(function(){
+                $(this).parents('div.field').slideDown();
+            })
+        }
+    }
+}).change();
+setTimeout(function(){
+    container.find(':input[name*="{$name}"]').change();
+},100);
+})(jQuery);
+</script>
+HTML;
         return $control;
 
     }
@@ -2583,6 +2645,198 @@ SQL;
         }
 
         return $params['value'];
+    }
+
+    private function initOrderMap()
+    {
+
+        $this->map[self::STAGE_ORDER] = array(
+            'state'         => array(),
+            'currency_rate' => 1.0,
+            'currency_map'  => array(),
+            'address_map'   => array(),
+        );
+
+        $map = &$this->map[self::STAGE_ORDER];
+
+        //color bold italic
+        $sql = 'SELECT `status_name_%s` `name`,`color`,`bold`,`italic`,`statusID` FROM `SC_order_status` ORDER BY `sort_order`';
+        $state_map =& $map['state'];
+
+
+        $workflow_config = shopWorkflow::getConfig();
+        $states = $this->getOption('status');
+        if ($status_names = $this->query(sprintf($sql, $this->getOption('locale')), false)) {
+            foreach ($status_names as $status) {
+                if (!empty($states[$status['statusID']])) {
+                    $status_id = $states[$status['statusID']];
+                    $style = array();
+
+                    if (!empty($status['color'])) {
+                        $style['color'] = '#'.$status['color'];
+                    }
+                    if (!empty($status['bold'])) {
+                        $style['font-weight'] = 'bold';
+                    }
+                    if (!empty($status['italic'])) {
+                        $style['font-style'] = 'italic';
+                    }
+                    if ($status_id === '::new') {
+                        $workflow_status = array(
+                            'name'              => $status['name'],
+                            'options'           => array(
+                                'icon'  => 'icon16 ss flag-white',
+                                'style' => $style,
+                            ),
+                            'available_actions' => array(),
+
+                        );
+                        $status_id = waLocale::transliterate(mb_strtolower($status['name']), 'ru_RU');
+                        $status_id = preg_replace('([^a-z_])', '_', $status_id);
+                        $status_id = substr(preg_replace('([_]{2,})', '_', $status_id), 0, 16);
+                        while (isset($workflow_config['states'][$status_id])) {
+                            $status_id = substr(uniqid(substr($status_id, 0, 10)), 0, 16);
+                        }
+
+                        $states[$status['statusID']] = $status_id;
+                        $workflow_config['states'][$status_id] = $workflow_status;
+                    } else {
+                        $workflow_config['states'][$status_id]['options']['style'] = $style;
+                    }
+                }
+                $this->setOption('status', $states);
+                shopWorkflow::setConfig($workflow_config);
+            }
+            foreach ($status_names as $status) {
+
+                if (!empty($states[$status['statusID']])) {
+                    $state_map[$status['name']] = $states[$status['statusID']];
+                }
+            }
+
+        }
+
+        $this->log('state_name_map', self::LOG_INFO, $state_map);
+        unset($state_map);
+
+
+        #address map setup
+        $address_map =& $this->map[self::STAGE_ORDER]['address_map'];
+
+        $sql = <<<SQL
+SELECT
+  LOWER(`c`.`country_name_%1\$s`)  `country_name`,
+  LOWER(`c`.`country_iso_3`)       `country`,
+  LOWER(`z`.`zone_name_%1\$s`)     `region_name`,
+  LOWER(`z`.`zone_code`)           `region`
+FROM  `SC_countries` `c`
+LEFT JOIN `SC_zones` `z`
+  ON (`z`.`countryID`= `c`.`countryID`)
+SQL;
+        if ($address_names = $this->query(sprintf($sql, $this->getOption('locale')), false)) {
+            foreach ($address_names as $a) {
+                if (!empty($a['country_name'])) {
+                    if (empty($address_map[$a['country_name']])) {
+                        $address_map[$a['country_name']] = array(
+                            'country' => $a['country'],
+                            'regions' => array(),
+                        );
+                    }
+                    if (!empty($a['region_name'])) {
+                        $address_map[$a['country_name']]['regions'][$a['region_name']] = $a['region'];
+                    }
+                }
+
+            }
+        }
+        $this->log('addressname_map', self::LOG_INFO, $address_map);
+        unset($address_map);
+
+        #currency map setup
+
+        $currency_model = new shopCurrencyModel();
+        if (($rate = $currency_model->getById($currency_value = $this->getOption('currency'))) && ($rate['rate'])) {
+            $map['currency_rate'] = doubleval($rate['rate']);
+        }
+        $currency_map =& $map['currency_map'];
+        $currency_map['*'] = $currency_value;
+        $currency_map[$currency_value] = $currency_value;
+        if (in_array(
+            $currency_value,
+            array(
+                'RUB',
+                'RUR'
+            )
+        )
+        ) {
+            $currency_map['RUB'] = $currency_value;
+            $currency_map['RUR'] = $currency_value;
+        }
+        $sql = 'SELECT `currency_value` `rate`,`currency_iso_3` `code` FROM `SC_currency_types`';
+        if ($currencies = $this->query($sql, false)) {
+            foreach ($currencies as $currency) {
+                $code = $currency['code'];
+                if (!isset($currency_map[$code])) {
+                    if ($currency_model->getById($code)) {
+                        $currency_map[$code] = $code;
+                    } elseif ($currency_model->add($code)) {
+                        if (doubleval($currency['rate'])) {
+                            $data = array(
+                                'rate' => $map['currency_rate'] / doubleval($currency['rate']),
+                            );
+                            $currency_model->updateById($code, $data);
+                        } else {
+                            $this->log('Currency mapping error: invalid rate', self::LOG_ERROR, $currency);
+                        }
+                        $currency_map[$code] = $code;
+                    } else {
+                        $this->log('Currency mapping error: invalid code', self::LOG_ERROR, $currency);
+                        $currency_map[$code] = 1.0 / doubleval($currency['rate']);
+                    }
+                }
+            }
+        }
+        if (isset($currency_map['RUB'])) {
+            $currency_map['RUR'] = $currency_map['RUB'];
+        } elseif (isset($currency_map['RUR'])) {
+            $currency_map['RUB'] = $currency_map['RUR'];
+        }
+        $this->log('currency_map', self::LOG_INFO, $currency_map);
+        unset($currency_map);
+
+
+        unset($map);
+    }
+
+    private function fixOrderRate(&$order)
+    {
+        $order['rate'] = $this->map[self::STAGE_ORDER]['currency_rate'] / $order['rate'];
+
+        $currency_map = $this->map[self::STAGE_ORDER]['currency_map'];
+        if (isset($currency_map[$order['currency']])) {
+            if (is_double($currency_map[$order['currency']])) {
+                //currency that non exists at target store
+                $rate = $currency_map[$order['currency']];
+                $order['total'] *= $rate;
+                $order['shipping'] *= $rate;
+                $order['discount'] *= $rate;
+                $order['rate'] = 1.0;
+                $order['currency'] = $currency_map['*'];
+            } else {
+                $order['currency'] = $currency_map[$order['currency']];
+                $order['total'] /= $order['rate'];
+                $order['shipping'] /= $order['rate'];
+                $order['discount'] /= $order['rate'];
+            }
+        } else {
+            //Deleted currency code
+            $order['currency'] = $this->getOption('currency');
+            $order['total'] /= $order['rate'];
+            $order['shipping'] /= $order['rate'];
+            $order['discount'] /= $order['rate'];
+            $order['rate'] = 1.0;
+        }
+        return $order['rate'];
     }
 
     abstract protected function query($sql, $one = true);
