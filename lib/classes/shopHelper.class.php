@@ -204,6 +204,11 @@ class shopHelper
                                     'rate'     => $rate,
                                     'currency' => $currency,
                                 );
+                                foreach(array('est_delivery','comment') as $field) {
+                                    if(isset($info[$field]) && !is_null($info[$field])) {
+                                        $result[$m['id'].'.'.$rate_id][$field] = $info[$field];
+                                    }
+                                }
                             }
                         }
                     } elseif (is_string($rates)) {

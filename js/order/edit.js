@@ -303,9 +303,17 @@ $.order_edit = {
             var o = $(this).children(':selected');
             var rate = o.data('rate') || 0;
             $("#shipping-rate").val($.order_edit.formatFloat(rate));
-            if (o.data('error')) {
-                $("#shipping-rate").addClass('error');
-                $("#shipping-info").html('<span class="error">' + o.data('error') + '</span>').show();
+            var delivery_info = [];
+            if(o.data('error')) delivery_info.push('<span class="error">' + o.data('error') + '</span>');
+            if(o.data('est_delivery')) delivery_info.push('<span class="hint est_delivery">' + o.data('est_delivery') + '</span>');
+            if(o.data('comment')) delivery_info.push('<span class="hint">' + o.data('comment') + '</span>');
+            if (delivery_info) {
+                if(o.data('error')) {
+                    $("#shipping-rate").addClass('error');
+                } else {
+                    $("#shipping-rate").removeClass('error');
+                }
+                $("#shipping-info").html(delivery_info.join('<br>')).show();
             } else {
                 $("#shipping-rate").removeClass('error');
                 $("#shipping-info").empty().hide();
@@ -539,6 +547,12 @@ $.order_edit = {
                         o.html(ship.name).attr('value', ship_id).data('rate', ship.rate);
                         if (ship.error) {
                             o.data('error', ship.error);
+                        }
+                        if(ship.est_delivery) {
+                            o.data('est_delivery', ship.est_delivery);
+                        }
+                        if(ship.comment) {
+                            o.data('comment', ship.comment);
                         }
                         el.append(o);
 
