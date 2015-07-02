@@ -293,7 +293,7 @@ $.order_edit = {
                     $.order_edit.updateTotal
         );
 
-        $(".s-order-customer-details").on('change', 'select', function () {
+        $(".s-order-customer-details").on('change', 'input[type=text],select', function () {
             if  ($(this).attr('name').indexOf('address')) {
                 $.order_edit.updateTotal();
             }
