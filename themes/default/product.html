@@ -86,8 +86,8 @@
                     <div class="more-images" id="product-gallery">
                         {foreach $product.images as $image}
                             <div class="image{if $image.id == $product.image_id} selected{/if}">
-                                <a id="product-image-{$image.id}" href="{$wa->shop->productImgUrl(['id'=> $product.id, 'image_id' => $image.id, 'ext' => $image.ext], '970')}" class="swipebox">
-                                    {$wa->shop->productImgHtml(['id'=> $product.id, 'image_id' => $image.id, 'ext' => $image.ext, 'image_desc' => $image.description], '96x96', ['alt' => $image.description|escape])}
+                                <a id="product-image-{$image.id}" href="{$wa->shop->imgUrl($image, '970')}" class="swipebox">
+                                    {$wa->shop->imgHtml($image, '96x96')}
                                 </a>
                             </div>
                         {/foreach}
