@@ -1,109 +1,67 @@
 <?php
 
-class shopInvoiceruPlugin extends shopPlugin
+class shopInvoiceruPlugin extends shopPrintformPlugin
 {
     public function allowedCurrency()
     {
         return array('RUB', 'UAH');
     }
 
+    protected function prepareForm(waOrder &$order, waView &$view)
+    {
+        $settings = $this->getSettings();
+        $contact_fields = array(
+            'inn'     => 'CUSTOMER_INN_FIELD',
+            'kpp'     => 'CUSTOMER_KPP_FIELD',
+            'phone'   => 'CUSTOMER_PHONE_FIELD',
+            'company' => 'CUSTOMER_COMPANY_FIELD',
+        );
+
+        $contact = array();
+        foreach ($contact_fields as $field => $setting) {
+            $contact[$field] = empty($settings[$setting]) ? '' : $order->getContactField($settings[$setting]);
+        }
+        $items = $order->items;
+        $view->assign(compact('settings', 'items', 'contact'));
+    }
+
     /**
-     * Safe for rights getting order data
-     * @param $order_id
-     * @throws waException
-     * @return waOrder
+     * @param waOrder $order
+     * @return array
      */
-    public function getOrder($order_id)
+    private function getItems($order)
     {
-        $order = shopPayment::getOrderData($order_id, $this->allowedCurrency());
-        switch (wa()->getEnv()) {
-            case 'backend':
-                if (!wa()->getUser()->getRights('shop', (!$order && !$order_id) ? 'settings' : 'orders')) {
-                    throw new waException(_w("Access denied"));
-                }
-                if (!$order && !$order_id) {
-                    $allowed_currency = $this->allowedCurrency();
-                    $dummy_order = array(
-                        'contact_id' => wa()->getUser()->getId(),
-                        'id'         => 1,
-                        'id_str'     => shopHelper::encodeOrderId(1),
-                        'currency'   => reset($allowed_currency),
-                    );
-                    $order = waOrder::factory($dummy_order);
-                } elseif (!$order) {
-                    throw new waException('Order not found', 404);
-                }
-                break;
-            default:
-                //frontend
-                if (!$order) {
-                    throw new waException('Order not found', 404);
-                }
-                break;
+        $items = $order->items;
+        $product_model = new shopProductModel();
+        foreach ($items as & $item) {
+            $data = $product_model->getById($item['product_id']);
+            $item['tax_id'] = ifset($data['tax_id']);
+            $item['currency'] = $order->currency;
         }
-        return $order;
-    }
 
-    private function getTemplatePaths()
-    {
-        static $paths;
-        if (!$paths) {
-            $paths = array(
-                'changed'  => wa()->getDataPath('plugins/'.$this->id.'/template.html', false, 'shop'),
-                'original' => $this->path.'/templates/actions/printform/PrintformDisplay.html'
-            );
-        }
-        return $paths;
-    }
+        unset($item);
+        $params = array(
+            'billing'  => $order->billing_address,
+            'shipping' => $order->shipping_address,
+        );
+        shopTaxes::apply($items, $params, $order->currency);
 
-    public function getTemplatePath()
-    {
-        foreach ($this->getTemplatePaths() as $path) {
-            if (file_exists($path)) {
-                return $path;
+        if ($order->discount) {
+            if ($order->total + $order->discount - $order->shipping > 0) {
+                $k = 1.0 - ($order->discount) / ($order->total + $order->discount - $order->shipping);
+            } else {
+                $k = 0;
             }
+
+            foreach ($items as & $item) {
+                if ($item['tax_included']) {
+                    $item['tax'] = round($k * $item['tax'], 4);
+                }
+                $item['price'] = round($k * $item['price'], 4);
+                $item['total'] = round($k * $item['total'], 4);
+            }
+            unset($item);
         }
-        return '';
-    }
-
-    public function getTemplate()
-    {
-        if ($path = $this->getTemplatePath()) {
-            return file_get_contents($path);
-        }
-        return '';
-    }
-
-    public function isTemplateChanged()
-    {
-        $paths = $this->getTemplatePaths();
-        return file_exists($paths['changed']);
-    }
-
-    public function resetTemplate()
-    {
-        $paths = $this->getTemplatePaths();
-        $dir = dirname($paths['changed']);
-        waFiles::delete($paths['changed']);
-        waFiles::delete($dir.'/css/printform.css');
-        waFiles::delete($dir.'/js/printform.js');
-    }
-
-    public function saveTemplate($data)
-    {
-        $paths = $this->getTemplatePaths();
-        $changed = dirname($paths['changed']);
-        $original = dirname($paths['original']);
-        file_put_contents($paths['changed'], $data);
-        waFiles::create($changed.'/css/');
-        waFiles::create($changed.'/js/');
-        file_put_contents(
-            $changed.'/css/printform.css',
-            file_get_contents($original.'/css/printform.css')
-        );
-        file_put_contents(
-            $changed.'/js/printform.js',
-            file_get_contents($original.'/js/printform.js')
-        );
+        return $items;
     }
 }

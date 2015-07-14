@@ -7,5 +7,6 @@ return array(
     'vendor'      => 'webasyst',
     'version'     => '1.0.0',
     'printform'   => true,
+    'emailprintform' => false,
     'handlers'    => array(),
 );
