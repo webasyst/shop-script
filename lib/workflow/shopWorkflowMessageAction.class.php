@@ -36,8 +36,8 @@ class shopWorkflowMessageAction extends shopWorkflowAction
 
         $order_params_model = new shopOrderParamsModel();
         $source = $order_params_model->getOne($order_id, 'storefront');
-        if ($source && substr($source, -1) !== '*') {
-            $source .= '*';
+        if ($source) {
+            $source = trim($source, '/*').'/*';
         }
 
         $notification_model = new shopNotificationModel();
@@ -58,7 +58,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
             $sms_selected = '';
             foreach ($rows as $row) {
                 if ($row['transport'] == 'sms') {
-                    if ($row['source'] == $source) {
+                    if (!$source || $row['source'] == $source) {
                         $sms_selected = $row['value'];
                         $sms_from[$row['value']] = $row['value'];
                     }
@@ -78,7 +78,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
             $email_selected = '';
             foreach ($rows as $row) {
                 if ($row['transport'] == 'email') {
-                    if ($row['source'] == $source) {
+                    if (!$source || $row['source'] == $source) {
                         $email_selected = $row['value'];
                         $email_from[$row['value']] = $row['value'];
                     }
@@ -106,7 +106,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
         $contact = new waContact($order['contact_id']);
 
         $transport = waRequest::post('transport');
-        $from = waRequest::post('from');
+        $from = waRequest::post('sender', wa('shop')->getConfig()->getGeneralSettings('email'), 'string');
         $text = waRequest::post('text');
         if ($transport == 'email') {
             $message = new waMailMessage(sprintf(_w('Order %s'), shopHelper::encodeOrderId($order_id)), nl2br(htmlspecialchars($text)));

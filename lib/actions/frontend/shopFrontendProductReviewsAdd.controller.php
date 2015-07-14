@@ -20,6 +20,13 @@ class shopFrontendProductReviewsAddController extends waJsonController
         if (!$product) {
             throw new waException('Product not found', 404);
         }
+
+        if ($types = waRequest::param('type_id')) {
+            if (!in_array($product['type_id'], (array)$types)) {
+                throw new waException(_w('Product not found'), 404);
+            }
+        }
+
         return $product;
     }
 

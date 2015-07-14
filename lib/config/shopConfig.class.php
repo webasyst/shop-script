@@ -64,7 +64,9 @@ class shopConfig extends waAppConfig
             if (!$shop_last_datetime) {
                 $shop_last_datetime = time();
             }
-            $contact_model->set(wa()->getUser()->getId(), 'shop', 'shop_last_datetime', time());
+            if (wa()->getUser()->getId()) {
+                $contact_model->set(wa()->getUser()->getId(), 'shop', 'shop_last_datetime', time());
+            }
             $storage->set('shop_last_datetime', $shop_last_datetime);
         }
         return $shop_last_datetime;
@@ -402,6 +404,52 @@ class shopConfig extends waAppConfig
         }
         unset($label);
         return $result;
+    }
+
+    public function explainLogs($logs)
+    {
+        $logs = parent::explainLogs($logs);
+        $product_ids = array();
+        foreach ($logs as $l_id => $l) {
+            if (in_array($l['action'], array('product_add', 'product_edit')) && $l['params']) {
+                $product_ids[] = $l['params'];
+            }
+        }
+        if ($product_ids) {
+            $product_model = new shopProductModel();
+            $products = $product_model->getById($product_ids);
+        }
+        $app_url = wa()->getConfig()->getBackendUrl(true).$l['app_id'].'/';
+        foreach ($logs as $l_id => $l) {
+            if (in_array($l['action'], array('product_add', 'product_edit'))) {
+                if (isset($products[$l['params']])) {
+                    $p = $products[$l['params']];
+                    $url = $app_url.'?action=products#/product/'.$l['params'].'/';
+                    $logs[$l_id]['params_html'] = '<div class="activity-target"><a href="'.$url.'">'.htmlspecialchars($p['name']).'</a></div>';
+                    if ($l['action'] == 'product_add' && !empty($p['image_id'])) {
+                        $_is_2x_enabled = wa('shop')->getConfig()->getOption('enable_2x');
+                        $_image_size = '96x96';
+                        if ($_is_2x_enabled) {
+                            $_image_size = '96x96@2x';
+                        }
+                        $img = shopImage::getUrl(array(
+                            'id' => $p['image_id'],
+                            'product_id' => $p['id'],
+                            'filename' => $p['image_filename'],
+                            'ext' => $p['ext']
+                        ), $_image_size);
+                        $logs[$l_id]['params_html'] .= '<div class="activity-photo-wrapper">
+                            <div class="activity-photo-list"><div class="photo-item"><a href="'.$url.'">
+                            <img src="'.$img.'"></a></div></div></div>';
+                    }
+                }
+            } elseif (substr($l['action'], 0, 6) == 'order_') {
+                $url = $app_url.'#/orders/id='.$l['params'].'/';
+                $logs[$l_id]['params_html'] = '<div class="activity-target"><a href="'.$url.'">'.
+                    shopHelper::encodeOrderId($l['params']).'</a></div>';
+            }
+        }
+        return $logs;
     }
 }
 

@@ -76,6 +76,16 @@ class shopFrontendCategoryAction extends shopFrontendAction
             $category['description'] = wa()->getView()->fetch('string:' . $category['description']);
         }
 
+        // Open Graph data
+        $category_og_model = new shopCategoryOgModel();
+        $category['og'] = $category_og_model->get($category['id']) + array(
+            'type' => 'article',
+            'title' => $category['meta_title'],
+            'description' => $category['meta_description'],
+            'url' => wa()->getConfig()->getHostUrl().wa()->getConfig()->getRequestUrl(false, true),
+            'image' => '',
+        );
+
         return $category;
     }
 
@@ -290,6 +300,9 @@ class shopFrontendCategoryAction extends shopFrontendAction
         wa()->getResponse()->setTitle($category['meta_title']);
         wa()->getResponse()->setMeta('keywords', $category['meta_keywords']);
         wa()->getResponse()->setMeta('description', $category['meta_description']);
+        foreach(ifset($category['og'], array()) as $property => $content) {
+            $content && wa()->getResponse()->setOgMeta($property, $content);
+        }
 
         /**
          * @event frontend_category

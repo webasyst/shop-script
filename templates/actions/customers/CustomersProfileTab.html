@@ -29,7 +29,7 @@
         {foreach $orders as $o}
             <tr>
                 <td class="nowrap">
-                    <a href="{$wa_app_url}?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
+                    <a href="{$wa_app_url}?action=orders#/orders/state_id={$o.state_id}&id={$o.id}&view=split/"
                                       style="{$o.style|escape}"
                                       data-order-id="{$o.id}"
                                       data-state-id="{$o.state_id}"
@@ -70,4 +70,16 @@
     </table>
 
 </div>
+
+<script>
+    $(function() {
+        var view = $.storage.get('shop/orders/view') || '{$orders_default_view}';
+        if (view === 'table' || view === '"table"') {
+            $('#s-order-list .s-order-link').each(function() {
+                var el = $(this);
+                el.attr('href', '{$wa_app_url}?action=orders#/order/' + el.data('orderId') + '/state_id=' + el.data('stateId') + '/');
+            });
+        }
+    });
+</script>
 

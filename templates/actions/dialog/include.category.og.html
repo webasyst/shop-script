@@ -1,0 +1,93 @@
+{*
+ * This template is included in category create and edit dialogs
+ * to implement Open Graph meta editor.
+ *}
+
+{$uniqid = uniqid(true)}
+{$category_og = ifempty($category_og, [])}
+{$editable_ogs_list = explode(',', 'title,image,video,description,type')}
+{$editable_ogs = array_intersect_key($category_og, array_fill_keys($editable_ogs_list, 1))}
+{$other_ogs = array_diff_key($category_og, $editable_ogs)}
+{$og = $editable_ogs}
+
+<div class="field-group" style="display: none;">
+
+    <div class="field">
+        <div class="name">[`Social sharing`]</div>
+        <div class="value no-shift">
+            <label><input type="checkbox" id="checkbox-{$uniqid}"{if !$editable_ogs} checked{/if}> [`Use these meta tags for social sharing too`]</label>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">[`Social sharing title`] <span class="hint">og:title</span></div>
+        <div class="value">
+            <input name="og[title]" value="{ifset($og['title'])|escape}" class="long bold">
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">[`Social sharing image URL`] <span class="hint">og:image</span></div>
+        <div class="value">
+            <input name="og[image]" value="{ifset($og['image'])|escape}" placeholder="" class="long">
+            <br>
+            <span class="hint">[`If not set, a social network will attempt to determine preview image on it’s own.`]</span>
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">[`Social sharing video URL`] <span class="hint">og:video</span></div>
+        <div class="value">
+            <input name="og[video]" value="{ifset($og['video'])|escape}" placeholder="" class="long">
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">[`Social sharing description`] <span class="hint">og:description</span></div>
+        <div class="value">
+            <textarea name="og[description]">{ifset($og['description'])|escape}</textarea>
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">[`Social sharing type`] <span class="hint">og:type</span></div>
+        <div class="value">
+            <input name="og[type]" value="{ifset($og['type'])|escape}" placeholder="article">
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="value">
+            <p class="hint">[`Please refer to <a href="http://ogp.me" target="_blank">Open Graph</a> protocol site for more information on social sharing meta tags and available values.`]</p>
+        </div>
+    </div>
+
+    {* Make sure not to delete OG tags we can't edit. Trying to be plugin-friendly. *}
+    {foreach $other_ogs as $k => $v}
+        <input type="hidden" name="og[{$k|escape}]" value="{$v|escape}">
+    {/foreach}
+
+    {* We enable this hidden fields when user checks the checkbox "use default og values",
+       so that the server receives empty values instead of OG fields above. *}
+    {foreach $editable_ogs_list as $k}
+        <input type="hidden" name="og[{$k|escape}]" value="" class="editable-og-disabler"{if $editable_ogs} disabled{/if}>
+    {/foreach}
+
+</div>
+
+<script>(function() { "use strict";
+
+    var $checkbox = $('#checkbox-{$uniqid}');
+    var $fieldgroup = $checkbox.closest('.field-group');
+    var $disablers = $fieldgroup.find('.editable-og-disabler');
+
+    $checkbox.closest('.field').appendTo($fieldgroup.closest('form').find('[name="meta_title"]').closest('.field-group'));
+    $checkbox.prop('checked') || $fieldgroup.show();
+
+    $checkbox.change(function() {
+        if ($checkbox.prop('checked')) {
+            $fieldgroup.slideUp(200);
+            $disablers.prop('disabled', false);
+        } else {
+            $fieldgroup.slideDown(200);
+            $disablers.prop('disabled', true);
+        }
+    });
+
+})();</script>

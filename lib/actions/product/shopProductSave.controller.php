@@ -117,6 +117,7 @@ class shopProductSaveController extends waJsonController
                     $this->logAction('product_edit', $id);
                 } else {
                     $this->logAction('product_add', $product->getId());
+                    $product->type && wa()->getUser()->setSettings('shop', 'last_type_id', $product->type);
                 }
                 $this->response['id'] = $product->getId();
                 $this->response['name'] = $product->name;
@@ -124,11 +125,21 @@ class shopProductSaveController extends waJsonController
                 $this->response['frontend_urls'] = $this->getUrl($product);
                 $this->response['categories'] = $this->getCategories($product);
                 $this->response['tags'] = $this->getTags($product);
-                $this->response['default_meta_title'] = shopProduct::getDefaultMetaTitle($product);
-                $this->response['default_meta_keywords'] = shopProduct::getDefaultMetaKeywords($product);
-                $this->response['default_meta_description'] = shopProduct::getDefaultMetaDescription($product);
-
                 $this->response['raw'] = $this->workupData($product->getData());
+
+                if (
+                    !empty($this->response['raw']['category_id'])
+                    &&
+                    isset($this->response['categories'][$this->response['raw']['category_id']])
+                ) {
+                    $this->response['category_name'] = strip_tags($this->response['categories'][$this->response['raw']['category_id']]['name']);
+                } else {
+                    $this->response['category_name'] = null;
+                }
+
+                $this->response['categories'] = array_values($this->response['categories']);
+
+                $this->response = array_merge($this->response, $this->getMeta($product->getId()));
 
                 //$product->categories
 
@@ -285,7 +296,7 @@ class shopProductSaveController extends waJsonController
     public function getCategories(shopProduct $product)
     {
         $model = new shopCategoryProductsModel();
-        return array_values($model->getData($product));
+        return $model->getData($product);
     }
 
     public function getTags(shopProduct $product)
@@ -293,12 +304,22 @@ class shopProductSaveController extends waJsonController
         $tags = array();
         foreach ($product->tags as $tag_id => $tag_name) {
             $tags[] = array(
-                'id' => $tag_id,
+                'id'   => $tag_id,
                 'name' => $tag_name,
-                'url' => urlencode($tag_name)
+                'url'  => urlencode($tag_name)
             );
         }
         return $tags;
+    }
+
+    public function getMeta($product_id)
+    {
+        $product = new shopProduct($product_id);
+        return array(
+            'default_meta_title'       => shopProduct::getDefaultMetaTitle($product),
+            'default_meta_keywords'    => shopProduct::getDefaultMetaKeywords($product),
+            'default_meta_description' => shopProduct::getDefaultMetaDescription($product),
+        );
     }
 
 }

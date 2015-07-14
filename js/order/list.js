@@ -70,7 +70,7 @@ $.order_list = {
 
     init: function(options) {
 
-        this.options = options || {};
+        this.options = options = options || {};
         this.filter_params = options.filter_params || {};
         this.filter_params_str = options.filter_params_str || '';
         this.container = $('#order-list');
@@ -230,7 +230,7 @@ $.order_list = {
             self.attr('href', '#/orders/view=' + li.attr('data-view') + ($.order_list.options.filter_params_str ? '&'+$.order_list.options.filter_params_str : '') + '/');
         });
 
-        
+
         var peformAction = function(action_id, selected_orders) {
             var finish = function(r, onFinish) {
                 $.order_list.updateCounters({
@@ -239,12 +239,12 @@ $.order_list = {
                         pending: r.data.pending_count
                     }
                 });
-                
+
                 if (!$.isEmptyObject(r.data.orders)) {
                     $.order_list.updateListItems(r.data.orders);
                 }
                 $.order_list.select_all_input.trigger('select', false);
-                
+
                 var ids = [];
                 var filter_params = $.order_list.filter_params;
                 if (!$.isEmptyObject(r.data.orders)) {
@@ -266,7 +266,7 @@ $.order_list = {
                         }
                     });
                 }
-                
+
                 if (onFinish instanceof Function) {
                     onFinish(r);
                 }
@@ -274,11 +274,11 @@ $.order_list = {
             var step = function(offset, onFinish) {
                 offset = offset || 0;
                 $.shop.jsonPost(
-                    '?module=orders&action=performAction' + 
-                        '&id='+action_id + 
-                        '&offset=' + offset + 
+                    '?module=orders&action=performAction' +
+                        '&id='+action_id +
+                        '&offset=' + offset +
                         '&' + $.order_list.options.filter_params_str,
-                    selected_orders, 
+                    selected_orders,
                     function(r) {
                         if (r.status == 'ok') {
                             if (r.data.offset < r.data.total_count) {
@@ -296,7 +296,7 @@ $.order_list = {
                 $.orders.dispatch();
             });
         };
-        
+
         $('#order-list').find('.wf-actions a').click(function() {
             var self = $(this);
             var id = self.attr('data-action-id');
@@ -312,7 +312,7 @@ $.order_list = {
             }
             return false;
         });
-        
+
     },
 
     loadOrder: function(order_id) {
@@ -367,24 +367,8 @@ $.order_list = {
 
     initSidebar: function() {
         var sidebar = this.sidebar;
-        sidebar.find('li.selected').removeClass('selected');
-        if (this.filter_params.state_id) {
-            if ($.isArray(this.filter_params.state_id)) {
-                $('#s-pending-orders').addClass('selected');
-            } else {
-                sidebar.find('li[data-state-id="'+this.filter_params.state_id+'"]').addClass('selected');
-            }
-        } else if (this.filter_params.contact_id) {
-            sidebar.find('li[data-contact-id='+this.filter_params.contact_id+']').addClass('selected');
-        } else if (this.filter_params.storefront) {
-            var decoded_url = decodeURIComponent(this.filter_params.storefront);
-            if (decoded_url.slice(-1) === '/') {
-                decoded_url = decoded_url.slice(0, -1);
-            }
-            sidebar.find('li[data-storefront="'+decoded_url+'"]').addClass('selected');
-        } else {
-            $('#s-all-orders').addClass('selected');
-        }
+
+        // Replace list view type in all links in sidebar
         var view = this.options.view;
         sidebar.find('li.list a').each(function() {
             var item = $(this);
@@ -392,6 +376,8 @@ $.order_list = {
             var match = href.match(/view=((.*)&|(.*)\/|(.*))/);
             if (match) {
                 item.attr('href', href.replace('view='+(match[2]||match[3]||match[4]), 'view='+view));
+            } else if ( ( match = href.match(/^#\/orders\/hash\/(.*?)\/?$/))) {/* */
+                item.attr('href', '#/orders/view='+view +'&hash='+encodeURIComponent(match[1])+'/');
             } else {
                 match = href.match(/orders\/((.*)\/|(.*))/);
                 var chunk = '';
@@ -406,17 +392,50 @@ $.order_list = {
                 }
             }
         });
-        sidebar.find('li.list a').unbind('click.order_list').
-            bind('click.order_list',
-                function() {
-                    var hash = $(this).attr('href').replace(/(^[^#]*#\/*|\/$)/g, ''); /* fix syntax highlight*/
-                    if (hash == $.orders.hash) {
-                        var params = $.orders.hash.replace('orders/', '');
-                        $.order_list.dispatch(params, true);
-                }
-            });
-    },
 
+        // Change active list view selection
+        var $prev_li_selected = sidebar.find('li.selected').removeClass('selected');
+        if (this.filter_params.state_id) {
+            // Highlight a state
+            if ($.isArray(this.filter_params.state_id)) {
+                $('#s-pending-orders').addClass('selected');
+            } else {
+                sidebar.find('li[data-state-id="'+this.filter_params.state_id+'"]').addClass('selected');
+            }
+        } else if (this.filter_params.contact_id) {
+            sidebar.find('li[data-contact-id='+this.filter_params.contact_id+']').addClass('selected');
+        } else if (this.filter_params.storefront) {
+            // Highlight storefront
+            var decoded_url = decodeURIComponent(this.filter_params.storefront);
+            if (decoded_url.slice(-1) === '/') {
+                decoded_url = decoded_url.slice(0, -1);
+            }
+            sidebar.find('li[data-storefront="'+decoded_url+'"]').addClass('selected');
+        } else if (!$.order_list.filter_params_str) {
+            $('#s-all-orders').addClass('selected');
+        } else {
+            // Do our best to highlight based on hash match
+            var $li = sidebar.find('[href="'+window.location.hash+'"]:first').closest('li').addClass('selected');
+
+            // When everything failed, leave the old selection
+            if (!$li.length) {
+                $prev_li_selected.addClass('selected');
+            }
+        }
+
+        sidebar.find('li.list a').unbind('click.order_list').bind('click.order_list', function() {
+            // Highlight link in sidebar right avay after a click to be responsive.
+            sidebar.find('li.selected').removeClass('selected');
+            $(this).closest('li').addClass('selected');
+
+            // Reload view even if user clicked on the active link again
+            var hash = $(this).attr('href').replace(/(^[^#]*#\/*|\/$)/g, ''); /* fix syntax highlight*/
+            if (hash == $.orders.hash) {
+                var params = $.orders.hash.replace('orders/', '');
+                $.order_list.dispatch(params, true);
+            }
+        });
+    },
 
     initSelecting: function() {
         var container = this.container;
@@ -637,6 +656,7 @@ $.order_list = {
                 context.filter('[data-order-id='+item.attr('data-order-id')+']').replaceWith(item);
             });
             rendered.remove();
+            self.container.trigger('append_order_list', [data]);
         }
     },
 
@@ -767,6 +787,7 @@ $.order_list = {
                                             }
                                         ));
                                         $('.lazyloading-progress-string').text(r.data.progress.loaded + ' ' + r.data.progress.of);
+                                        self.container.trigger('append_order_list', [r.data.orders]);
                                     } catch (e) {
                                         if (console) {
                                             console.log('Error: ' + e.message);

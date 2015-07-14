@@ -67,6 +67,11 @@
         {% if (o.check_all) { %}selected{% } %}
         {% if (p.alien) { %}s-alien{% } %}"
         data-product-id="{%#p.id%}"
+        data-edit-rights="{%#p.edit_rights%}"
+        data-sku-count="{%#p.sku_count%}"
+        data-min-price="{%#p.min_price%}"
+        data-max-price="{%#p.max_price%}"
+        data-currency="{%#p.currency%}"
         {% if (p.alien) { %}title="[`This is a subcategory product`]"{% } %}
     >
         {/literal}
@@ -82,7 +87,7 @@
         {/literal}
         {if !empty($enabled_columns.image_crop_small)}
             {literal}
-            <td class="min-width drag-handle">
+            <td class="min-width drag-handle s-product-list-image">
                 <div class="s-image">
                     <a href="#/product/{%#p.id%}/">
                         {% if (p.badge) { %}
@@ -98,14 +103,14 @@
         <td class="drag-handle s-product-name" title="{%#p.name%}">
             <a href="#/product/{%#p.id%}/"><div>{%#p.name%}<i class="shortener"></i></div></a>
         </td>
-        <td class="short nowrap align-right" title="[`Price`]"><span>{%#p.price_range%}</span></td>
-        <td class="short nowrap align-right" title="[`In stock`]">
-            <span>{%#((p.count === null)?'<span class="gray">∞</span>':p.count)%}</span>
+        <td class="short nowrap align-right s-product-price" title="[`Price`]"><span class="editable">{%#p.price_range%}</span></td>
+        <td class="short nowrap align-right s-product-stock" title="[`In stock`]">
+            <span class="editable">{%#((p.count === null)?'<span class="gray">∞</span>':p.count)%}</span>
         </td>
         {/literal}
         {foreach $enabled_columns as $c}
             {if $c.id != 'image_crop_small'}
-                {literal}<td title="{/literal}{$c.name|escape}{literal}">{%#p.{/literal}{$c.id}_html || p.{$c.id}{literal}%}</td>{/literal}
+                <td class="s-product-col-{$c.id}" title="{$c.name|escape}">{literal}{%#p.{/literal}{$c.id}_html || p.{$c.id}{literal}%}{/literal}</td>
             {/if}
         {/foreach}
         <td class="min-width">
@@ -117,6 +122,49 @@
     {% } %}
     {/literal}
 </script>
+
+<style>
+table#product-list td.s-product-price, table#product-list td.s-product-stock { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+table#product-list td.editor-on form { overflow: visible; }
+table#product-list td.editor-on form div { overflow: visible; text-align: left; }
+</style> {* !!! move to .css ?.. *}
+
+<script id="template-list-stock-editor-many" type="text/html">
+    <form><div>{strip}
+        {literal}
+            <input type="hidden" name="product_id" value="{%=o.product_id%}">
+        {/literal}
+        {foreach $stocks as $s}
+            <input type="text" class="short small number" name="stock[{$s.id}]" {literal}value="{%=o.values[{/literal}{$s.id}{literal}]||''%}"{/literal} placeholder="∞">
+            <span class="hint">@{$s.name|escape}</span><br>
+        {/foreach}
+        <br>
+        <input type="submit" value="[`Save`]">
+        [`or`] <a href="javascript:void(0)" class="cancel">[`cancel`]</a>
+    {/strip}</div></form>
+</script>
+
+<script id="template-list-stock-editor-one" type="text/html">
+    <form><div>{strip}{literal}
+        <input type="hidden" name="product_id" value="{%=o.product_id%}">
+        <input type="text" class="short number" name="stock" value="{%=o.value%}" placeholder="∞">
+        <br>
+        <input type="submit" value="[`Save`]">
+        [`or`] <a href="javascript:void(0)" class="cancel">[`cancel`]</a>
+    {/literal}{/strip}</div></form>
+</script>
+
+<script id="template-list-price-editor-one" type="text/html">
+    <form><div>{strip}{literal}
+        <input type="hidden" name="product_id" value="{%=o.product_id%}">
+        <input type="text" class="short number" name="price" value="{%=o.value%}">
+        {%=o.currency%}
+        <br>
+        <input type="submit" value="[`Save`]">
+        [`or`] <a href="javascript:void(0)" class="cancel">[`cancel`]</a>
+    {/literal}{/strip}</div></form>
+</script>
+
 
 {*
  * Product list settings dialog

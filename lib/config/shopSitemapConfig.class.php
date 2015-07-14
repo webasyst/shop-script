@@ -7,6 +7,7 @@ class shopSitemapConfig extends waSitemapConfig
     public function execute($n = 1)
     {
         $routes = $this->getRoutes();
+
         $this->app_id = wa()->getApp();
 
         $category_model = new shopCategoryModel();
@@ -14,6 +15,8 @@ class shopSitemapConfig extends waSitemapConfig
         $page_model = new shopPageModel();
 
         $count = 0;
+
+        $real_domain = $this->routing->getDomain(null, true, false);
 
         foreach ($routes as $route) {
             $this->routing->setRoute($route);
@@ -28,7 +31,8 @@ class shopSitemapConfig extends waSitemapConfig
                         WHERE c.status = 1 AND (cr.route IS NULL OR cr.route = '".$category_model->escape($route_url)."')
                         ORDER BY c.left_key";
                 $categories = $category_model->query($sql)->fetchAll('id');
-                $category_url = $this->routing->getUrl($this->app_id.'/frontend/category', array('category_url' => '%CATEGORY_URL%'), true);
+                $category_url = $this->routing->getUrl($this->app_id.'/frontend/category',
+                    array('category_url' => '%CATEGORY_URL%'), true, $real_domain);
                 foreach ($categories as $c_id => $c) {
                     if ($c['parent_id'] && !isset($categories[$c['parent_id']])) {
                         unset($categories[$c_id]);
@@ -125,7 +129,7 @@ class shopSitemapConfig extends waSitemapConfig
             $product_url = $this->routing->getUrl($this->app_id.'/frontend/product', array(
                 'product_url' => '%PRODUCT_URL%',
                 'category_url' => '%CATEGORY_URL%'
-            ), true);
+            ), true, $real_domain);
 
             foreach ($products as $p) {
                 if (!empty($p['category_url'])) {
@@ -170,6 +174,7 @@ class shopSitemapConfig extends waSitemapConfig
 
     private function getUrl($path, $params = array())
     {
-        return $this->routing->getUrl($this->app_id.'/frontend'.($path ? '/'.$path : ''), $params, true);
+        return $this->routing->getUrl($this->app_id.'/frontend'.($path ? '/'.$path : ''), $params, true,
+            $this->routing->getDomain(null, true, false));
     }
 }

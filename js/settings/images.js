@@ -44,6 +44,10 @@ if (typeof($) != 'undefined') {
                 }
             );
 
+            $('#s-image-filename').on('change', function () {
+                $('#s-image-filename-hint').toggle();
+            });
+
             $('#s-add-action').click(function() {
                 var size_set = $('#s-size-set');
                 if (size_set.is(':hidden')) {

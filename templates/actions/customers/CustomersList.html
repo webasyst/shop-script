@@ -45,7 +45,7 @@
 {capture assign="lazy_load_block"}
     <div class="block half-padded">
         <br>
-        <div class="lazyloading-progress-string">{_w('%d contact','%d contacts', $offset + $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+        <div class="lazyloading-progress-string">{_w('%d contact','%d contacts', min($offset + $count, $total_count))}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
         <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more customers`]</a>
         <span class="lazyloading-progress" style="display:none">
             <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d contact','%d contacts', min($total_count - $offset - $count, $count))}...</span>
@@ -218,7 +218,7 @@
         {/if}
 
         $.customers.initLazyLoad({
-            url: '?module=customers&action=list',
+            url: '{$lazy_loading_url|default:''}',
             container: '#customers-list-wrapper',
             total_count: {$total_count},
             count: {$count},

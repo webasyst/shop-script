@@ -35,6 +35,7 @@ if (typeof($) != 'undefined') {
                 items: '> tbody > tr:visible',
                 handle: '.sort',
                 cursor: 'move',
+                axis: 'y',
                 tolerance: 'pointer',
                 update: function (event, ui) {
                     var id = parseInt($(ui.item).data('id'));
@@ -46,7 +47,7 @@ if (typeof($) != 'undefined') {
                     }
                     self.paymentSort(id, after_id, $(this));
                 }
-            }).find(':not(:input)').disableSelection();
+            });
 
             $('#s-settings-payment-setup').on('submit', 'form', function () {
                 var $this = $(this);
@@ -178,7 +179,7 @@ if (typeof($) != 'undefined') {
 
         paymentPlugins: function () {
             $('#s-settings-content #s-settings-payment').hide();
-            var url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/payment&return_hash=/payment/plugin/add/%plugin_id%/';
+            var url = this.options.backend_url + 'installer/?module=plugins&action=view&options[no_confirm]=1&slug=wa-plugins/payment&return_hash=/payment/plugin/add/%plugin_id%/';
             $('#s-settings-payment-setup').show().html(this.payment_options.loading).load(url);
         },
 

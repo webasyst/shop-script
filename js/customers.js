@@ -236,10 +236,10 @@
             hash = hash.replace('#/', '');
 
             if (hash) {
-                hash = hash.replace('\\/', 'ESCAPED_SLASH');
+                hash = hash.replace(/\\\//g, 'ESCAPED_SLASH');
                 hash = hash.split('/');
                 for (var i = 0; i < hash.length; i += 1) {
-                    hash[i] = hash[i].replace('ESCAPED_SLASH', '/');
+                    hash[i] = hash[i].replace(/ESCAPED_SLASH/g, '/');
                 }
                 if (hash[0]) {
                     var actionName = "";

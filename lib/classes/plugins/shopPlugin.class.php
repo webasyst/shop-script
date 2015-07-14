@@ -1,4 +1,5 @@
 <?php
+
 abstract class shopPlugin extends waPlugin
 {
     /**
@@ -14,6 +15,8 @@ abstract class shopPlugin extends waPlugin
      * @var mixed[string]
      */
     private $settings_config;
+
+    protected $common_settings_config = array();
 
     /**
      * @param array $params Control items params (see waHtmlControl::getControl for details)
@@ -46,8 +49,7 @@ abstract class shopPlugin extends waPlugin
     public function getSettings($name = null)
     {
         if ($this->settings === null) {
-            $model = $this->getSettingsModel();
-            $this->settings = $model->get($this->getSettingsKey());
+            $this->settings = self::getSettingsModel()->get($this->getSettingsKey());
             foreach ($this->settings as $key => $value) {
                 #decode non string values
                 $json = json_decode($value, true);
@@ -80,19 +82,20 @@ abstract class shopPlugin extends waPlugin
         if (is_null($this->settings_config)) {
             $path = $this->path.'/lib/config/settings.php';
             if (file_exists($path)) {
-                $this->settings_config = include($path);
-                if (!is_array($this->settings_config)) {
-                    $this->settings_config = array();
+                $settings_config = include($path);
+                if (!is_array($settings_config)) {
+                    $settings_config = array();
                 }
             } else {
-                $this->settings_config = array();
+                $settings_config = array();
             }
+            $this->settings_config = array_merge($this->common_settings_config, $settings_config);
         }
         return $this->settings_config;
     }
 
     /**
-     * @param mixed[string] $settings Array of settings key=>value
+     * @param mixed [string] $settings Array of settings key=>value
      */
     public function saveSettings($settings = array())
     {
@@ -105,21 +108,21 @@ abstract class shopPlugin extends waPlugin
                     $settings[$name] = array();
                 } elseif (!empty($row['control_type']) || isset($row['value'])) {
                     $this->settings[$name] = isset($row['value']) ? $row['value'] : null;
-                    $this->getSettingsModel()->del($this->getSettingsKey(), $name);
+                    self::getSettingsModel()->del($this->getSettingsKey(), $name);
                 }
             }
         }
         foreach ($settings as $name => $value) {
             $this->settings[$name] = $value;
             // save to db
-            $this->getSettingsModel()->set($this->getSettingsKey(), $name, is_array($value) ? json_encode($value) : $value);
+            self::getSettingsModel()->set($this->getSettingsKey(), $name, is_array($value) ? json_encode($value) : $value);
         }
     }
 
     /**
      * @return waAppSettingsModel
      */
-    protected function getSettingsModel()
+    protected static function getSettingsModel()
     {
         if (!self::$app_settings_model) {
             self::$app_settings_model = new waAppSettingsModel();

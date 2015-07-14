@@ -11,7 +11,7 @@
     <div class="block double-padded">
 
         <div class="float-right">
-            <ul class="menu-h with-icons s-add-shipping-method" id="s-shipping-menu">
+            <ul class="menu-h with-icons dropdown s-add-shipping-method" id="s-shipping-menu">
                 <li>
                     <a href="#/shipping/" class="inline-link js-action"><i class="icon16 add"></i><b><i>[`Add shipping option`]</i></b><i class="icon16 darr"></i></a>
                     <ul class="menu-v with-icons">
@@ -25,8 +25,10 @@
                         </li>
                         {/foreach}
                         {if !empty($installer)}
-                        <li class="bordered-top" style="padding-top: 10px; padding-bottom: 10px; margin-top: 7px;">
+                        <li class="bordered-top" style="padding-top: 10px; padding-bottom: 10px; margin-top: 7px; padding-left: 8px;">
                             <a href="#/shipping/plugins/" style="text-align: center;">[`Browse shipping plugins...`]</a>
+                            <br>
+                            <span class="hint align-center">[`Multiple instances of every shipping option with custom settings can be created.`]</span>
                         </li>
                         {/if}
                     </ul>

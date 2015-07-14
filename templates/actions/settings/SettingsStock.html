@@ -89,7 +89,14 @@
                     [`Ordering`]
                 </div>
                 <div class="value no-shift">
-                    <label><input type="radio" name="ignore_stock_count" value="0"{if !$wa->shop->settings('ignore_stock_count')} checked="true"{/if}> [`Maximum number of items that can be added to shopping cart is limited by stock level`]</label>
+                    <label>
+                        <input type="radio" name="ignore_stock_count" value="0"{if !$wa->shop->settings('ignore_stock_count')} checked="true"{/if}>
+                        [`Maximum number of items that can be added to shopping cart is limited by stock level`]
+                        <select name="limit_main_stock">
+                            <option {if !$wa->shop->settings('limit_main_stock')}selected{/if} value="">[`Limited by the total sum on all stocks`]</option>
+                            <option {if $wa->shop->settings('limit_main_stock')}selected{/if} value="1">[`Limited by the main stock of the particular storefront only`]</option>
+                        </select>
+                    </label>
                 </div>
                 <div class="value no-shift">
                     <label><input type="radio" name="ignore_stock_count" value="1"{if $wa->shop->settings('ignore_stock_count')} checked="true"{/if}> [`Ordering is not limited by stock levels`]

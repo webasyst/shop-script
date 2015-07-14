@@ -83,6 +83,9 @@ class shopProductModel extends waModel
                      new shopProductParamsModel(),
                      new shopCartItemsModel()
                  ) as $model) {
+            /**
+             * @var shopProductStorageInterface $model
+             */
             $model->deleteByProducts($delete_ids);
         }
 

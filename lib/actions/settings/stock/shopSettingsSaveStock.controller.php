@@ -32,6 +32,11 @@ class shopSettingsSaveStockController extends waJsonController
             $app_settings_model->set($app_id, 'ignore_stock_count', 1);
         } else {
             $app_settings_model->set($app_id, 'ignore_stock_count', 0);
+            if (waRequest::post('limit_main_stock')) {
+                $app_settings_model->set($app_id, 'limit_main_stock', 1);
+            } else {
+                $app_settings_model->del($app_id, 'limit_main_stock');
+            }
         }
         if (waRequest::post('update_stock_count_on_create_order')) {
             $app_settings_model->set($app_id, 'update_stock_count_on_create_order', 1);

@@ -13,20 +13,13 @@
             <div class="block align-center">
                 <h2>[`Welcome!`]</h2>
                 <p class="hint">[`You are very close to get your online store ready for your first sale!`]</p>
-                <div class="s-tutorial-progressbar" id="s-tutorial-progressbar">
-                    <div class="s-tutorial-progressbar-outer">
-                        <div class="s-tutorial-progressbar-inner" style="width:0%;"></div>
-                    </div>
-                </div>
             </div>
 
             <div class="block double-padded">
                 <ul class="menu-v s-tutorial-checklist tutorial-actions" id="tutorial-actions">
 
-                    {$complete = 0}
                     {counter start=0 print=false}
                     {foreach $actions as $a}{strip}
-                        {if $a.complete}{$complete = $complete + 1}{/if}
                         <li{if $a.complete} class="complete"{/if}><a href="{$a.href}">
                             {if $a.complete}
                                 <span class="count"><i class="icon10 yes"></i></span>
@@ -64,11 +57,6 @@
 </div>
 
 <script type="text/javascript">$(function() { "use strict";
-    {if $actions}
-        var progress = {max(0, round($complete*100 / count($actions))-2)};
-        $('#s-tutorial-progressbar .s-tutorial-progressbar-inner').css('width', progress+'%');
-    {/if}
-
     $.tutorial.init({
     });
 });</script>

@@ -243,8 +243,17 @@
 
 <div class="content left400px bordered-left">
     <div class="block double-padded">
+
+        <div class="block not-padded float-right" style="margin-left: 10px;">
+            <select id="order-storefront" name="storefront">
+                <option value="">[`Manual order`]</option>
+                {foreach $storefronts as $storefront}
+                    <option value="{$storefront}"{if !empty($order.params.storefront) && $storefront == $order.params.storefront} selected{/if}>{$storefront}</option>
+                {/foreach}
+            </select>
+        </div>
         {if !$order}
-            <div style="float: right">
+            <div class="float-right">
                 <i class="icon16 dollar"></i>
                 <select id="order-currency">
                     {foreach $wa->shop->currencies() as $c}
@@ -253,6 +262,7 @@
                 </select>
             </div>
         {/if}
+
         <h2>{if !$order}[`Add products`]{else}{shopHelper::encodeOrderId({$order.id})}{/if}</h2>
         <em class="errormsg s-order-errors" style="padding: 5px 0 10px;"></em>
         <div class="s-order-comment-edit" {if !$order}style="display:none;"{/if} id="s-order-comment-edit">

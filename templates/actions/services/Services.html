@@ -52,7 +52,7 @@
                                     <input type="radio" name="default" value="{$variant@index}" {if $variant.id === $service.variant_id}checked="checked"{/if}>
                                 </td>
                                 <td class="s-services-ext-cell" {if !$multi_variants}style="display:none;"{/if}>
-                                    <input type="text" name="name[]" value="{$variant.name}" placeholder="[`Option name`]">
+                                    <input type="text" name="name[]" value="{$variant.name|escape}" placeholder="[`Option name`]">
                                 </td>
                                 <td class="s-price-surplus">
                                     +<input type="text" name="price[]" value="{(double)$variant.price}" placeholder="{(double)$service.price}" class="s-price-surplus">

@@ -174,6 +174,11 @@ class shopOrderListAction extends waViewAction
         if (!$str) {
             return $this->filter_params;
         }
+
+        if (!$this->filter_params && $this->hash) {
+            return 'hash='.urlencode($this->hash);
+        }
+
         $params_str = '';
         foreach ($this->filter_params as $p => $v) {
             $params_str .= '&'.$p.'='. (is_array($v) ? implode('|', $v) : $v);

@@ -10,18 +10,11 @@ class shopTutorialActions extends waViewActions
         $this->setLayout(new shopBackendLayout());
         $this->getResponse()->setTitle(_w('Welcome to Shop-Script'));
 
-        /*
-         * @event backend_tutorial
-         * @return array[string][string]string $return[%plugin_id%]['sidebar_li'] html output
-         * @return array[string][string]string $return[%plugin_id%]['sidebar_block'] html output
-         */
-        $backend_tutorial = wa()->event('backend_tutorial');
-
         $this->layout->assign('no_level2', true);
         $this->view->assign(array(
-            'actions' => self::getActions($backend_tutorial),
-            'backend_tutorial' => $backend_tutorial,
+            'backend_tutorial' => self::backendTutorialEvent(),
             'sidebar_width' => wa('shop')->getConfig()->getSidebarWidth(),
+            'actions' => self::getActions(self::backendTutorialEvent()),
             'lang' => substr(wa()->getLocale(), 0, 2),
         ));
     }
@@ -89,7 +82,7 @@ class shopTutorialActions extends waViewActions
         $this->view->assign('html', join('', $html));
     }
 
-    protected static function getActions($backend_tutorial)
+    public static function getActions($backend_tutorial)
     {
         $actions = array();
 
@@ -158,6 +151,23 @@ class shopTutorialActions extends waViewActions
         }
 
         return $actions;
+    }
+
+    public static function backendTutorialEvent()
+    {
+        static $result = null;
+        if ($result === null) {
+            /*
+             * @event backend_tutorial
+             * @return array[string][string]string $return[%plugin_id%]['sidebar_li'] html output
+             * @return array[string][string]string $return[%plugin_id%]['sidebar_block'] html output
+             */
+            $result = wa('shop')->event('backend_tutorial');
+            if (!$result) {
+                $result = array();
+            }
+        }
+        return $result;
     }
 }
 

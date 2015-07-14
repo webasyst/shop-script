@@ -144,15 +144,13 @@ class shopSettingsRecommendationsAction extends waViewAction
                         $feature_values_model = shopFeatureModel::getValuesModel($features ? $features[$row['feature_id']]['type'] : $row['feature_type']);
                         if (strpos($row['value'], ',') !== false) {
                             $value_ids = explode(',', $row['value']);
-                            $values = $feature_values_model->getById($value_ids);
-                            foreach ($values as & $v) {
-                                $v = $v['value'];
+                            $values = array();
+                            foreach ($value_ids as $v_id) {
+                                $values[] = $feature_values_model->getFeatureValue($v_id);
                             }
-                            unset($v);
                             $html .= implode(', ', $values);
                         } else {
-                            $v = $feature_values_model->getById($row['value']);
-                            $html .= $v['value'];
+                            $html .= $feature_values_model->getFeatureValue($row['value']);
                         }
                     }
                     break;
@@ -185,7 +183,7 @@ class shopSettingsRecommendationsAction extends waViewAction
         if ($fids) {
             foreach ($feature_model->getValues($fids) as $feature_id => $f) {
                 foreach ($f['values'] as $value_id => $value) {
-                    $features[$feature_id]['values'][] = array($value_id, $value);
+                    $features[$feature_id]['values'][] = array($value_id, (string)$value);
                 }
             }
             unset($fids);

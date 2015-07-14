@@ -41,7 +41,7 @@
 			<div class="value">
 				<input name="payment[logo]" type="text" class="long" value="{$plugin.logo|default:''|escape}" id="s-payment-plugin-logo">
                 {if !empty($plugin.logo)}<img src="{$plugin.logo}"  class="s-payment-shipping-logo float-right">{/if}
-				<p class="hint">{sprintf('[`A collection of payment option icons is available for free: <a href="%s" target="_blank">%s</a> <i class="icon10 new-window"></i>`]','[`http://www.webasyst.com/help/729/payment-shipping-icons/`]','[`http://www.webasyst.com/help/729/payment-shipping-icons/`]')}</p>
+				<p class="hint">{sprintf('[`A collection of payment option icons is available for free: <a href="%s" target="_blank">%s</a> <i class="icon10 new-window"></i>`]','[`http://www.shop-script.com/help/729/payment-shipping-icons/`]','[`http://www.shop-script.com/help/729/payment-shipping-icons/`]')}</p>
 			</div>
 		</div>
 		<div class="field">
@@ -68,7 +68,7 @@
 
 	<div class="field-group">
         <div class="field">
-    	<div class="name">[`Allowed shipping options`]</div>
+    	<div class="name">[`Limit this payment option only if one of the following shipping options is selected`]</div>
         <div class="value">
         {foreach $shipping as $p}
             <label><input type="checkbox" name="payment[shipping][{$p.id}]" value="1" {if $p.available} checked="checked"{/if}> {$p.name|escape}</label>

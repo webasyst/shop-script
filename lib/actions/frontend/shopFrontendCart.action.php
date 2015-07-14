@@ -42,16 +42,26 @@ class shopFrontendCartAction extends shopFrontendAction
                     $cart->setQuantity($id, $q);
                 }
             }
-            $not_available_items = $cart_model->getNotAvailableProducts($code, !wa()->getSetting('ignore_stock_count'));
+
+            if (wa()->getSetting('ignore_stock_count')) {
+                $check_count = false;
+            } else {
+                $check_count = true;
+                if (wa()->getSetting('limit_main_stock') && waRequest::param('stock_id')) {
+                    $check_count = waRequest::param('stock_id');
+                }
+            }
+            $not_available_items = $cart_model->getNotAvailableProducts($code, $check_count);
             foreach ($not_available_items as $row) {
                 if ($row['sku_name']) {
                     $row['name'] .= ' ('.$row['sku_name'].')';
                 }
                 if ($row['available']) {
-                    if ($row['count'] > 0)
+                    if ($row['count'] > 0) {
                         $errors[$row['id']] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $row['count'], $row['name']);
-                    else
+                    } else {
                         $errors[$row['id']] = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed.'), $row['name']);
+                    }
                 } else {
                     $errors[$row['id']] = sprintf(_w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.'), $row['name']);
                 }

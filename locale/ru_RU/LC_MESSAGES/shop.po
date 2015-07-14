@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.7.4\n"
+"X-Generator: Poedit 1.7.5\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -2736,12 +2736,12 @@ msgid "Error when updating"
 msgstr "Ошибка обновления"
 
 #: /wa-apps/shop/lib/actions/order/shopOrderSave.controller.php:21
-msgid "There is not one product for order"
-msgstr "В заказе нет ни одного товара"
+msgid "Please add at least one product to save this order"
+msgstr "Для сохранения заказа необходимо добавить хотя бы один товар"
 
 #: /wa-apps/shop/lib/actions/order/shopOrderGetItems.controller.php:14
-msgid "Unknow order"
-msgstr "Неизвестный заказ"
+msgid "Order not found"
+msgstr "Заказ не найден"
 
 #: /wa-apps/shop/lib/actions/reviews/shopReviewsAdd.controller.php:46
 msgid "Writing a review to product is available just on frontend"
@@ -3849,10 +3849,6 @@ msgstr "Сортировка"
 msgid "Clone on top of the list"
 msgstr "Дублировать в начале списка"
 
-#: /wa-apps/shop/lib/actions/frontend/my/shopFrontendMyOrder.action.php:22
-msgid "Order not found"
-msgstr "Заказ не найден"
-
 #: /wa-apps/shop/themes/default/my.orders.html:1
 msgid "My orders"
 msgstr "Мои заказы"
@@ -4510,6 +4506,9 @@ msgstr "Благодарим вас за ваш недавний заказ № 
 #: /wa-apps/shop/lib/actions/settings/followups/shopSettingsFollowups.action.php:88
 msgid "We hope that you are happy with your purchase, and that the overall shopping experience was pleasant. Please let us know if you have any questions on your order, or if there is anything we can assist you with. We will be glad working with you again!"
 msgstr "Надеемся, что вы довольны покупкой и что посещение нашего интернет-магазина оставило у вас приятное впечатление. Если у вас возникли какие-либо вопросы в связи с вашим заказом, просим вас сообщить об этом. Мы будем всегда рады вам помочь!"
+
+msgid "We will be glad working with you again!"
+msgstr "Будем рады продолжению сотрудничества!"
 
 #: /wa-apps/shop/lib/config/data/workflow.php:25
 msgid "Confirmed"
@@ -5303,6 +5302,10 @@ msgstr "Адрес плательщика одной строкой"
 msgid "An array containing information about performed order action (action-dependent)"
 msgstr "Массив с информацией о выполненном с заказом действии (применимо к данному действию)"
 
+# used in JS
+msgid "Order action will be deleted. Are you sure?"
+msgstr "Действие будет удалено. Вы уверены?"
+
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:304
 msgid "Performed action text comment (action-dependent)"
 msgstr "Комментарии о выполненном действии (применимо к данному действию)"
@@ -5920,8 +5923,8 @@ msgstr[1] "%d изображения"
 msgstr[2] "%d изображений"
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.html:11
-msgid "http://www.webasyst.com/help/45/import-products-from-csv-file/"
-msgstr "http://www.webasyst.ru/help/26/import-products-from-csv-file/"
+msgid "http://www.shop-script.com/help/45/import-products-from-csv-file/"
+msgstr "http://www.shop-script.ru/help/26/import-products-from-csv-file/"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:16
 msgid "All email notifications sent to store customers will be sent from the primary email address"
@@ -6295,8 +6298,8 @@ msgstr "Поиск плагинов оплаты..."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:40
 #: /wa-apps/shop/templates/actions/settings/SettingsShippingSetup.html:40
-msgid "http://www.webasyst.com/help/729/payment-shipping-icons/"
-msgstr "http://www.webasyst.ru/help/728/payment-shipping-icons/"
+msgid "http://www.shop-script.com/help/729/payment-shipping-icons/"
+msgstr "http://www.shop-script.ru/help/728/payment-shipping-icons/"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsPrintformSetup.html:12
 msgid "This will drop all customizations made to the print form template, and revert it to the original version. Are you sure?"
@@ -6426,7 +6429,7 @@ msgstr "Извините, но в наличии только %d единиц т
 
 #: /wa-apps/shop/lib/actions/order/shopOrderSave.controller.php:405
 msgid "The number of items your can add to the order is limited by the stock level"
-msgstr "Количество товара, которое вы можете добавить в заказ, ограничено остатков на складе"
+msgstr "Количество товара, которое вы можете добавить в заказ, ограничено его остатком на складе."
 
 #: /wa-apps/shop/lib/actions/settings/features/shopSettingsFeaturesValuesTypeConvert.controller.php:11
 msgid "Unknown feature"
@@ -6687,8 +6690,8 @@ msgid "Variables <strong>%s</strong> will be replaced with the actual product in
 msgstr "В содержимом заголовка title и META-полей товара можно использовать переменные <strong>%s</strong>, которые будут заменены актуальной информацией о товаре при его отображении на витрине."
 
 #: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:28
-msgid "Set this SKU weight in case it differs from the product default weight value (%s)"
-msgstr "Укажите вес этого артикула, если он отличается от значения веса, заданного для товара (%s)"
+msgid "Set this SKU weight in case it differs from the product default weight value (%s)."
+msgstr "Укажите вес этого артикула, если он отличается от значения веса, заданного для товара (%s)."
 
 #: /wa-apps/shop/templates/actions/reports/ReportsCheckoutflow.html:5
 msgid "Checkout funnel report shows how many customers abandon their orders during the checkout process based on unique shopping cart sessions."
@@ -6789,8 +6792,8 @@ msgid "For details <a href=\"%s\" target=\"_blank\">see documentation</a>."
 msgstr "Подробное описание опубликовано <a href=\"%s\" target=\"_blank\">в документации</a>."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:133
-msgid "http://www.webasyst.com/help/1061/shop-script-5-sms-setup/"
-msgstr "http://www.webasyst.ru/help/17/shop-script-5-sms-setup/"
+msgid "http://www.shop-script.com/help/1061/shop-script-5-sms-setup/"
+msgstr "http://www.shop-script.ru/help/17/shop-script-5-sms-setup/"
 
 #: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:69
 msgid "Certain symbols (such as %s) may be ommitted when exporting with the selected encoding. Consider using UTF-8 encoding for safe export and import."
@@ -8725,7 +8728,7 @@ msgstr "Первый заказ"
 
 #: /wa-apps/shop/templates/actions/customers/CustomersSearchForm.html:132
 msgid "Create method"
-msgstr ""
+msgstr "Способ создания"
 
 #: /wa-apps/shop/templates/actions/customers/CustomersSearchForm.html:143
 msgid "Applied discount coupon"
@@ -8803,8 +8806,8 @@ msgid "Additional set"
 msgstr "Дополнительный список"
 
 #: /wa-apps/shop/templates/actions/promos/PromosDefault.html:8
-msgid "https://www.webasyst.com/help/3069/adding-promo-cards-to-shop-script-5-design-theme/"
-msgstr "http://www.webasyst.ru/help/3068/integrating-promos-to-your-shop-script-5-theme/"
+msgid "https://www.shop-script.com/help/3069/adding-promo-cards-to-shop-script-5-design-theme/"
+msgstr "http://www.shop-script.ru/help/3068/integrating-promos-to-your-shop-script-5-theme/"
 
 #: /wa-apps/shop/templates/actions/reports/mcosts_editor.html:59
 msgid "Payment term"
@@ -8951,8 +8954,8 @@ msgid "Some required contact info fields were not provided. Please return to the
 msgstr "Не заполнены обязательные поля контактной информации. Пожалуйста, вернитесь на шаг ввода контактной информации, чтобы оформить заказ."
 
 #: /wa-apps/shop/templates/actions/reports/ReportsAbtesting.html:31
-msgid "https://www.webasyst.com/help/3142/shop-script-a-b-testing/"
-msgstr "http://www.webasyst.ru/help/3127/shop-script-a-b-testing/"
+msgid "https://www.shop-script.com/help/3142/shop-script-a-b-testing/"
+msgstr "http://www.shop-script.ru/help/3127/shop-script-a-b-testing/"
 
 #: /wa-apps/shop/lib/classes/shopPayment.class.php:192
 #: /wa-apps/shop/lib/classes/shopPayment.class.php:214
@@ -9007,6 +9010,12 @@ msgstr "Восстановить полноразмерные изображен
 msgid "Enable this to flush all source fullsize images and re-generate them from backups. All plugin customizations to source images will be re-applied. Source images without backups will be skipped."
 msgstr "Включите, чтобы сбросить все полноразмерные изображения товаров до их исходных изначально загруженных версий. Все изменения, которые установленные плагины накладывают на полноразмерные изображения, будут применены автоматически. Если у изображения нет бекапа, то оно останется без изменений."
 
+msgid "Inline editing is available only for products with a single SKU"
+msgstr "Табличный редактор работает только с товарами с единственным артикулом"
+
+msgid "Insufficient access rights"
+msgstr "Недостаточно прав доступа"
+
 #: /wa-apps/shop/lib/classes/shopCustomersCollectionPreparator.class.php:25
 msgid "All"
 msgstr "Все"
@@ -9023,3 +9032,206 @@ msgstr "Неверный код купона"
 #: /wa-apps/shop/templates/actions/reports/ReportsSales.html:17
 msgid "Download chart data in CSV"
 msgstr "Скачать данные графика в CSV"
+
+#: /wa-apps/shop/templates/actions/dialog/DialogVisibility.html:11
+msgid "Unable to update some of the products (%d) because you have insufficient access rights."
+msgstr "Невозможно обновить информацию о товарах (%d), к которым у вас нет доступа."
+
+#: /wa-apps/shop/templates/actions/dialog/DialogVisibility.html:51
+msgid "Change product visibility"
+msgstr "Изменить видимость товаров"
+
+#: /wa-apps/shop/templates/actions/dialog/DialogVisibility.html:58
+msgid "Visible on website"
+msgstr "Опубликованы на сайте"
+
+#: /wa-apps/shop/templates/actions/dialog/DialogVisibility.html:69
+msgid "Temporarily remove all SKUs from sale too"
+msgstr "Временно снять с продажи все артикулы выбранных товаров"
+
+#: /wa-apps/shop/templates/actions/dialog/DialogVisibility.html:70
+msgid "Set all selected product SKUs as available for purchase too"
+msgstr "Выставить все артикулы выбранных товаров на продажу"
+
+#: /wa-apps/shop/templates/actions/order/Order.html:47
+msgid "Email this form to customer"
+msgstr "Отправить эту форму покупателю по email"
+
+#: /wa-apps/shop/templates/actions/order/OrderEdit.html:249
+msgid "Manual order"
+msgstr "Добавлен вручную"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:846
+msgid "Social sharing"
+msgstr "Соцсети"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:847
+msgid "Use these meta tags and default product image for social sharing too"
+msgstr "Для соцсетей использовать эти же заголовки и описания"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:854
+msgid "Social sharing title"
+msgstr "Заголовок для соцсетей"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:860
+msgid "Social sharing image URL"
+msgstr "URL изображения для соцсетей"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:864
+msgid "If not set, a social network will attempt to determine preview image on it’s own."
+msgstr "Если адрес не указан явно, соцсеть автоматически выберет одно из изображений на странице"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:868
+msgid "Social sharing video URL"
+msgstr "URL видео для соцсетей"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:874
+msgid "Social sharing description"
+msgstr "Описание для соцсетей"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:880
+msgid "Social sharing type"
+msgstr "Тип страницы для соцсетей"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:888
+msgid "Please refer to <a href=\"http://ogp.me\" target=\"_blank\">Open Graph</a> protocol site for more information on social sharing meta tags and available values."
+msgstr "Подробная информация о параметрах для соцсетей и их возможных значениях опубликована на сайте протокола <a href=\"http://ogp.me\" target=\"_blank\">Open Graph</a>."
+
+#: /wa-apps/shop/templates/actions/product/ProductPages.html:22
+msgid "Product subpages are great for publishing product extra information such as manuals, galleries, honourable mentions, etc."
+msgstr "Подстраницы позволяют дополнить информацию о товаре сопутствующим материалом, таким как руководства, фотографии, обзоры и т. п."
+
+#: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:56
+msgid "Weight value will be used to calculating order shipping costs."
+msgstr "Значение поля «Вес» используется для расчета стоимости доставки."
+
+#: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:121
+msgid "Great for products that are shipped online."
+msgstr "Удобный способ доставки электронных товаров."
+
+#: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:128
+msgid "SKU features"
+msgstr "Характеристики артикула"
+
+#: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:129
+msgid "Defining feature values for SKUs is great for dynamic product filtering customer experience. When customer finds a product using by-feature filters, product’s default SKU will be selected according to the filter conditions."
+msgstr "Сохранение значений характеристик для артикулов позволяет улучшить удобство подбора товаров для покупателя. Когда покупатель находит товар с использованием фильтров по характеристикам, артикул для этого товара будет выбран автоматически согласно указанным значениям характеристик."
+
+#: /wa-apps/shop/templates/actions/products/Products.html:108
+msgid "Manage visibility"
+msgstr "Настроить видимость"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:85
+msgid "Orders & Customers"
+msgstr "Заказы и покупатели"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:212
+msgid "Shop-Script version"
+msgstr "Версия Shop-Script"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:127
+msgid "Thumbnail filenames"
+msgstr "Имена файлов эскизов"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:132
+msgid "Keep original filenames"
+msgstr "Использовать исходные имена файлов"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:135
+msgid "When enabled, each thumbnail (which is generated on demand or during the original upload) filename will be derived from the name of the original file you upload."
+msgstr "Название файла каждого эскиза (эскизы уменьшенного размера создаются автоматически после загрузки изображения) будет совпадать с названием оригинального файла."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:136
+msgid "If you enable this setting for the first time, it is <strong>strongly recommended</strong> to 1) Re-generate all product image thumbnails (use the link below) right after this setting has been changed, and 2) Update your store theme product.html template with the <a href=\"%s\" target=\"_blank\">new product thumbnail display code</a>."
+msgstr "Если вы включаете эту настройку в первый раз, <strong>настоятельно рекомендуется</strong> 1) Удалить и заново создать эскизы изображений всех товаров (ссылка ниже) после сохранения изменения этой настройки и 2) Обновить код шаблона страницы товара product.html согласно <a href=\"%s\" target=\"_blank\">инструкции</a>."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsImages.html:136
+msgid "http://www.shop-script.com/help/4750/shopscript610-design-theme-changes/"
+msgstr "http://www.shop-script.ru/help/4442/shopscript610-design-theme-changes/"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:96
+msgid "Limited by the total sum on all stocks"
+msgstr "Суммарный остаток на всех складах"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:97
+msgid "Limited by the main stock of the particular storefront only"
+msgstr "Остаток на основном складе, который указан в настройках витрины"
+
+#: /wa-apps/shop/js/order/order.js:81
+msgid "%s will be sent to customer by email. Are you sure?"
+msgstr "%s будет отправлена покупателю по email. Вы уверены?"
+
+#: /wa-apps/shop/lib/actions/order/shopOrderSendprintform.controller.php:69
+#: /wa-apps/shop/lib/classes/plugins/shopPrintformPlugin.class.php:241
+#: /wa-apps/shop/lib/workflow/shopWorkflowCreateAction.class.php:364
+msgid "Printform <strong>%s</strong> sent to customer."
+msgstr "Печатная форма <strong>%s</strong> отправлена покупателю."
+
+#: /wa-apps/shop/lib/actions/order/shopOrderSendprintform.controller.php:64
+msgid "Printform %s for order %s"
+msgstr "Печатная форма %s для заказа %s"
+
+#: /wa-apps/shop/lib/classes/plugins/shopPrintformPlugin.class.php:231
+#: /wa-apps/shop/lib/workflow/shopWorkflowCreateAction.class.php:359
+msgid "Printform %s"
+msgstr "Печатная форма %s"
+
+#: /wa-apps/shop/lib/classes/plugins/shopPrintformPlugin.class.php:18
+msgid "Email to customer"
+msgstr "Отправить покупателю"
+
+#: /wa-apps/shop/lib/classes/plugins/shopPrintformPlugin.class.php:19
+msgid "Enable to make this print form automatically emailed to customer when order was placed"
+msgstr "Включите, чтобы автоматически отправлять печатную форму покупателю по email после оформления заказа"
+
+#: /wa-apps/shop/lib/classes/shopPayment.class.php:85
+msgid "Payment plugins not installed yet"
+msgstr "Не установлено ни одного платежного плагина"
+
+#: /wa-apps/shop/lib/config/site.php:25
+msgid "Homepage"
+msgstr "Главная страница"
+
+#: /wa-apps/shop/lib/config/site.php:39
+msgid "Social sharing Title (og:title)"
+msgstr "Заголовок (og:title)"
+
+#: /wa-apps/shop/lib/config/site.php:41 /wa-apps/shop/lib/config/site.php:58
+msgid "For detailed information on Open Graph parameters and examples please refer to <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
+msgstr "Подробная информация о возможных вариантах значений параметров Open Graph опубликована на сайте протокола <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
+
+#: /wa-apps/shop/lib/config/site.php:44
+msgid "Social sharing Image URL (og:image)"
+msgstr "Изображение (og:image)"
+
+#: /wa-apps/shop/lib/config/site.php:48
+msgid "Social sharing Video URL (og:video)"
+msgstr "Видео (og:video)"
+
+#: /wa-apps/shop/lib/config/site.php:52
+msgid "Social sharing Description (og:description)"
+msgstr "Описание (og:description)"
+
+#: /wa-apps/shop/lib/config/site.php:56
+msgid "Social sharing Type (og:type)"
+msgstr "Тип страницы (og:type)"
+
+#: /wa-apps/shop/lib/config/site.php:58
+msgid "E.g. <b>website</b>."
+msgstr "Например, <b>website</b>."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPayment.html:27
+msgid "Multiple instances of every payment option with custom settings can be created."
+msgstr "Каждый способ оплаты можно установить несколько раз и задать каждому способу различные настройки."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPaymentSetup.html:71
+msgid "Limit this payment option only if one of the following shipping options is selected"
+msgstr "Предлагать этот способ оплаты только для выбранных способов доставки"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:31
+msgid "Multiple instances of every shipping option with custom settings can be created."
+msgstr "Каждый способ доставки можно установить несколько раз и задать каждому способу различные настройки."
+
+#: /wa-apps/shop/lib/classes/shopPaymentDummy.class.php:17
+msgid "Manual payment"
+msgstr "Оплата в ручном режиме"

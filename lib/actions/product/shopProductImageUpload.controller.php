@@ -41,16 +41,40 @@ class shopProductImageUploadController extends shopUploadController
             $this->model = new shopProductImagesModel();
         }
 
+        if ($this->getConfig()->getOption('image_filename')) {
+            $filename = basename($file->name, '.' . $file->extension);
+            if (!preg_match('//u', $filename)) {
+                $tmp_name = @iconv('windows-1251', 'utf-8//ignore', $filename);
+                if ($tmp_name) {
+                    $filename = $tmp_name;
+                }
+            }
+            $filename = preg_replace('/\s+/u', '_', $filename);
+            if ($filename) {
+                foreach (waLocale::getAll() as $l) {
+                    $filename = waLocale::transliterate($filename, $l);
+                }
+            }
+            $filename = preg_replace('/[^a-zA-Z0-9_\.-]+/', '', $filename);
+            if (!strlen(str_replace('_', '', $filename))) {
+                $filename = '';
+            }
+        } else {
+            $filename = '';
+        }
+
         $data = array(
             'product_id'        => $product_id,
             'upload_datetime'   => date('Y-m-d H:i:s'),
             'width'             => $image->width,
             'height'            => $image->height,
             'size'              => $file->size,
+            'filename'          => $filename,
             'original_filename' => basename($file->name),
             'ext'               => $file->extension,
         );
         $image_id = $data['id'] = $this->model->add($data);
+
         if (!$image_id) {
             throw new waException("Database error");
         }

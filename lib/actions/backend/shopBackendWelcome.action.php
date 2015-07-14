@@ -9,6 +9,9 @@ class shopBackendWelcomeAction extends waViewAction
 
     public function execute()
     {
+        if (!$this->getUser()->getRights('shop', 'settings')) {
+            throw new waException(_w('Access denied'));
+        }
         $path = $this->getConfig()->getConfigPath('data/welcome/', false);
         if (file_exists($path)) {
             $files = waFiles::listdir($path, false);
@@ -171,7 +174,7 @@ class shopBackendWelcomeAction extends waViewAction
             }
         }
         if (empty($redirect)) {
-            $redirect = '?action=products#/welcome/';
+            $redirect = '?module=tutorial#/products/';
         }
 
         // Promos

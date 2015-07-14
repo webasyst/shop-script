@@ -5,8 +5,13 @@
                 {foreach $plugins as $info}
                 <li>
                     <a href="#/printform/{$info.id}/">
-                        <i class="icon16{if !isset($info.img)} plugins{else}" style="background-image: url('{wa_url()}{$info.img}');{/if}"></i>{$info.name|escape}
+                        <i class="icon16{if !isset($info.img)} plugins{else}" style="background-image: url('{wa_url()}{$info.img}');{/if}"></i>
+                        {if !empty($info.emailprintform)}
+                            <i class="icon16 email"></i>
+                        {/if}
+                        {$info.name|escape}
                     </a>
+
                 </li>
                 {foreachelse}
                 <li>
@@ -53,7 +58,7 @@ $.settings.settingsOptions({
     loading : '<div class="block double-padded">[`Loading...`]<i class="icon16 loading"><i></div>',
     backend_url:'{$wa_backend_url|escape:'javascript'}',
     plugins_header:'<h1>[`Printable forms`]</h1>'
-})
+});
 if(typeof($)!='undefined') {
     $.settings.printformInit();
 }

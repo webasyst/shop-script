@@ -4,6 +4,7 @@ class shopBackendLayout extends waLayout
 {
     public function execute()
     {
+        // Welcome-screen-ralated stuff: redirect on first login unless skipped
         $app_settings_model = new waAppSettingsModel();
         if (waRequest::get('skipwelcome')) {
             $app_settings_model->del('shop', 'welcome');
@@ -12,12 +13,32 @@ class shopBackendLayout extends waLayout
             $this->redirect(wa()->getConfig()->getBackendUrl(true).'shop/?action=welcome');
         }
 
-        $user = wa()->getUser();
-        $product_rights = $user->isAdmin('shop') || wa()->getUser()->getRights('shop', 'type.%');
+        // Tutorial tab status
+        $tutorial_progress = 0;
+        $tutorial_visible = $app_settings_model->get('shop', 'show_tutorial') || waRequest::request('module') == 'tutorial';
+        if ($tutorial_visible) {
+            $tutorial_progress = $this->getTutorialProgress();
+        }
 
+        $order_model = new shopOrderModel();
+        $this->view->assign(array(
+            'page' => $this->getPage(),
+            'frontend_url' => wa()->getRouteUrl('shop/frontend'),
+            'backend_menu' => $this->backendMenuEvent(),
+            'new_orders_count' => $order_model->getStateCounters('new'),
+            'tutorial_progress' => $tutorial_progress,
+            'tutorial_visible' => $tutorial_visible,
+        ));
+    }
+
+    // Layout is slightly different for different modules.
+    // $page is passed to template to control that.
+    protected function getPage()
+    {
+        // Default page
         if (wa()->getUser()->getRights('shop', 'orders')) {
             $default_page = 'orders';
-        } elseif ($product_rights) {
+        } elseif (wa()->getUser()->getRights('shop', 'type.%')) {
             $default_page = 'products';
         } elseif (wa()->getUser()->getRights('shop', 'design') || wa()->getUser()->getRights('shop', 'pages')) {
             $default_page = 'storefronts';
@@ -29,34 +50,24 @@ class shopBackendLayout extends waLayout
             $default_page = 'products';
         }
 
-        $order_model = new shopOrderModel();
-        $this->assign('new_orders_count', $order_model->getStateCounters('new'));
-
         $module = waRequest::get('module', 'backend');
-        $plugin = waRequest::get('plugin');
-
-        $this->assign('default_page', $default_page);
         $page = waRequest::get('action', ($module == 'backend') ? $default_page : 'default');
         if ($module != 'backend') {
             $page = $module.':'.$page;
         }
+        $plugin = waRequest::get('plugin');
         if ($plugin) {
             if ($module == 'backend') {
                 $page = ':'.$page;
             }
             $page = $plugin.':'.$page;
         }
-        $this->assign('page', $page);
-        $submenu_class = 'shopBackend'.ucfirst($page).'SubmenuAction';
-        if ($submenu_class && class_exists($submenu_class)) {
-            $submenu_action = new $submenu_class();
-            $this->executeAction('submenu', $submenu_action);
-        } else {
-            $this->assign('submenu', '<!-- there no default submenu -->');
-        }
 
-        $this->assign('frontend_url', wa()->getRouteUrl('shop/frontend'));
+        return $page;
+    }
 
+    protected function backendMenuEvent()
+    {
         /**
          * Extend backend main menu
          * Add extra main menu items (tab items, submenu items)
@@ -65,6 +76,32 @@ class shopBackendLayout extends waLayout
          * @return array[string][string]string $return[%plugin_id%]['aux_li'] Single menu items
          * @return array[string][string]string $return[%plugin_id%]['core_li'] Single menu items
          */
-        $this->assign('backend_menu', wa()->event('backend_menu' /*,$page*/));
+        return wa()->event('backend_menu');
+    }
+
+    protected function getTutorialProgress()
+    {
+        $total = 0;
+        $complete = 0;
+        foreach(shopTutorialActions::getActions(shopTutorialActions::backendTutorialEvent()) as $a) {
+            $total++;
+            if (!empty($a['complete'])) {
+                $complete++;
+            }
+        }
+
+        // When there's at least one unfinished item,
+        // treat the last pseudo-item 'Profit!' as a real one
+        // and take it into account when calculating percentage.
+        if ($total != $complete) {
+            $total++;
+        }
+
+        if ($total) {
+            return round($complete*100 / $total);
+        } else {
+            return 100;
+        }
     }
 }
+

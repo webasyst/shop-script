@@ -23,6 +23,7 @@ class shopProductsAction extends shopProductListAction
 
         $this->view->assign('products_rights', $this->getUser()->isAdmin('shop') || $this->getUser()->getRights('shop', 'type.%'));
 
+        $stock_model = new shopStockModel();
         $this->assign(array(
             'products' => array_values($products),
             'total_count' => $this->collection->count(),
@@ -33,6 +34,7 @@ class shopProductsAction extends shopProductListAction
             'title' => $this->hash[0] != 'search' ? $this->collection->getTitle() : $this->text,
             'info' => $this->collection->getInfo(),
             'view' => $view,
+            'stocks' => $stock_model->getAll('id'),
             'additional_columns' => self::getAdditionalColumns(),
         ));
 

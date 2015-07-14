@@ -102,6 +102,7 @@ class shopProduct implements ArrayAccess
                 'params'              => true,
                 'categories'          => 'shopCategoryProductsModel',
                 'sets'                => 'shopSetProductsModel',
+                'og'                  => true,
             );
         }
         if (isset(self::$data_storages[$key])) {
@@ -1057,7 +1058,7 @@ class shopProduct implements ArrayAccess
             }
         }
         $keywords = array_filter($keywords, 'trim');
-        return implode(', ', $keywords);
+        return str_replace('"', '', implode(', ', $keywords));
     }
 
     public static function getDefaultMetaDescription($product)

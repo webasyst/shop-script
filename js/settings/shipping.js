@@ -2,7 +2,7 @@
  * {literal}
  *
  * @names shipping*
- * @property {} shipping_options
+ * @property shipping_options
  * @method shippingInit
  * @method shippingAction
  * @method shippingBlur
@@ -21,7 +21,6 @@ if (typeof($) != 'undefined') {
          *
          */
         shippingInit: function () {
-            $.shop.trace('$.settings.shippingInit');
             /* init settings */
             var self = this;
             $('#s-settings-content').on('click', 'a.js-action', function () {
@@ -34,10 +33,12 @@ if (typeof($) != 'undefined') {
                 items: '> tbody > tr:visible',
                 handle: '.sort',
                 cursor: 'move',
+                axis: 'y',
                 tolerance: 'pointer',
                 update: function (event, ui) {
-                    var id = parseInt($(ui.item).data('id'), 10);
-                    var after_id = $(ui.item).prev().data('id');
+                    var $item = $(ui.item);
+                    var id = parseInt($item.data('id'), 10);
+                    var after_id = $item.prev().data('id');
                     if (after_id === undefined) {
                         after_id = 0;
                     } else {
@@ -45,7 +46,7 @@ if (typeof($) != 'undefined') {
                     }
                     self.shippingSort(id, after_id, $(this));
                 }
-            }).find(':not(:input)').disableSelection();
+            });
 
             $('#s-settings-shipping-setup').on('submit', 'form', function () {
                 var $this = $(this);
@@ -56,28 +57,6 @@ if (typeof($) != 'undefined') {
                 }
             });
 
-            var dropdownSetStyle = function (ul) {
-                dropdownResetStyle(ul).show();
-                var win = $(window);
-                if (ul.height() + ul.offset().top > win.scrollTop() + win.height()) {
-                    ul.css({
-                        'height': Math.max(win.scrollTop() + win.height() - ul.offset().top - 10, 100),
-                        'overflow-y': 'scroll'
-                    });
-                }
-            };
-            var dropdownResetStyle = function (ul) {
-                return ul.css({
-                    'height': '',
-                    'overflow-y': ''
-                });
-            };
-
-            $('#s-shipping-menu').mouseover(function () {
-                dropdownSetStyle($(this).find('ul:first'));
-            }).mouseout(function () {
-                dropdownResetStyle($(this).find('ul:first')).hide();
-            });
         },
 
         shipping_data: {
@@ -119,7 +98,7 @@ if (typeof($) != 'undefined') {
             $.post('?module=settings&action=shippingSort', {
                 'module_id': id,
                 'after_id': after_id
-            },function (response) {
+            }, function (response) {
                 $.shop.trace('$.settings.shippingSort result', response);
                 if (response.error) {
                     $.shop.error('Error occurred while sorting shipping plugins', 'error');
@@ -139,9 +118,9 @@ if (typeof($) != 'undefined') {
         shippingPluginAdd: function (plugin_id, $el) {
             $.wa.dropdownsClose();
             this.shippingPluginShow(plugin_id, function () {
-                var $title = $('#s-settings-content h1.js-bread-crumbs:first');
+                var $title = $('#s-settings-content').find('h1.js-bread-crumbs:first');
                 $title.hide();
-                var $plugin_name = $('#s-settings-shipping-setup .field-group:first h1.js-bread-crumbs:first');
+                var $plugin_name = $('#s-settings-shipping-setup').find('.field-group:first h1.js-bread-crumbs:first');
                 $title.after($plugin_name);
                 $title.hide();
             });
@@ -155,8 +134,8 @@ if (typeof($) != 'undefined') {
          */
         shippingPluginSetup: function (plugin_id, $el) {
             this.shippingPluginShow(plugin_id, function () {
-                var $title = $('#s-settings-content h1.js-bread-crumbs:first');
-                var $plugin_name = $('#s-settings-shipping-setup .field-group:first h1.js-bread-crumbs:first');
+                var $title = $('#s-settings-content').find('h1.js-bread-crumbs:first');
+                var $plugin_name = $('#s-settings-shipping-setup').find('.field-group:first h1.js-bread-crumbs:first');
                 $title.after($plugin_name);
                 $title.hide();
             });
@@ -164,8 +143,9 @@ if (typeof($) != 'undefined') {
         },
 
         shippingPluginShow: function (plugin_id, callback) {
-            $('#s-settings-content #s-shipping-menu').hide();
-            var $plugins = $('#s-settings-content #s-settings-shipping');
+            var $content = $('#s-settings-content');
+            $content.find('#s-shipping-menu').hide();
+            var $plugins = $content.find('#s-settings-shipping');
             $plugins.hide();
             var url = '?module=settings&action=shippingSetup&plugin_id=' + plugin_id;
             $('#s-settings-shipping-setup').show().html(this.shipping_options.loading).load(url, function () {
@@ -207,7 +187,7 @@ if (typeof($) != 'undefined') {
                         [errorText]
                     ]);
                 },
-                complete: function() {
+                complete: function () {
                     $submit.prop('disabled', false);
                 }
             });
@@ -274,8 +254,8 @@ if (typeof($) != 'undefined') {
 
 
         shippingPlugins: function () {
-            $('#s-settings-content #s-settings-shipping').hide();
-            var url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/shipping&return_hash=/shipping/';
+            $('#s-settings-content').find('#s-settings-shipping').hide();
+            var url = this.options.backend_url + 'installer/?module=plugins&action=view&options[no_confirm]=1&slug=wa-plugins/shipping&return_hash=/shipping/';
             $('#s-settings-shipping-setup').show().html(this.shipping_options.loading).load(url);
         },
 

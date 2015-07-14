@@ -214,6 +214,8 @@ ul.s-order-actions li i.icon16.loading { margin-top: 7px; margin-left: 3px; }
 
 .s-order-aux { font-size: 0.9em; width: 200px; }
 .s-order-aux p { font-family: 'Helvetica Neue', Arial, sans-serif; }
+.s-order-aux li .icon16.email.on-hover-only { display: none; }
+.s-order-aux li:hover .icon16.email.on-hover-only { display: inline-block; }
 
 .s-order-comment { margin: 20px -20px; background: #f7f7d7; font-size: 1.3em; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) inset; border-top: 1px solid rgba(0,0,0,0.15); border-bottom: 1px solid rgba(0,0,0,0.1); white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; }
 .s-order-comment-edit textarea { display: block; width: 100%; min-height: 100px; margin: 5px 0 15px; font-size: 1.2em; }
@@ -336,9 +338,10 @@ ul.tabs li.s-aff-bonus-total { background: #efd !important; margin-right: 10px; 
 .s-tutorial-checklist li.complete a { color: #aaa !important; text-decoration: line-through; }
 .s-tutorial-checklist li.selected a { font-weight: normal !important; color: #000 !important; }
 
-.s-tutorial-progressbar { margin-top: -5px; }
-.s-tutorial-progressbar-outer { border: 1px solid rgba(0,0,0,0.15); border-radius: 3px; background: #fff; }
-.s-tutorial-progressbar-inner { background: repeating-linear-gradient(-55deg, #def, #def 10px, #d3e8fc 10px, #d3e8fc 20px) repeat scroll 0 0 rgba(0, 0, 0, 0) !important; height: 13px; }
+.s-tutorial-progressbar { margin-top: 10px; }
+.s-tutorial-progressbar-outer { border: 1px solid rgba(0,0,0,0.2); border-radius: 9px; background: #fff; width: 80px; position: relative; overflow: hidden; }
+.s-tutorial-progressbar-inner { background: repeating-linear-gradient(-55deg, #def, #def 10px, #d3e8fc 10px, #d3e8fc 20px) repeat scroll 0 0 rgba(0, 0, 0, 0) !important; height: 14px; }
+#s-tutorial-progressbar-content { color: #333; font-weight: bold; font-size: 0.75em; position: absolute; top: 0; left: 0; right: 0; text-align: center; line-height: 13px; }
 
 .s-screencast { width: 600px; max-width: 100%; box-shadow: 0 3px 10px #ddd; position: relative; }
 
@@ -526,6 +529,7 @@ ul.thumbs.s-mini-stream li.s-stream-wrapper { height: 48px; overflow: hidden; pa
 .s-image .s-image-corner.right { right: 10px; }
 .s-image .s-image-corner.top { top: 10px; }
 .s-image #s-product-image { max-width: 100%; max-height: auto; }
+table#product-list td .s-image-corner { position: relative; }
 
 .badge { height: 75px; width: 75px; background: #a1fcff; position: absolute; text-align: left; top: 5px; right: -5px; -moz-transform: rotate(30deg); -webkit-transform: rotate(30deg); -ms-transform: rotate(30deg); -o-transform: rotate(30deg); transform: rotate(30deg); }
 .badge:before { height: 75px; width: 75px; background: inherit; content:""; position: absolute; -moz-transform: rotate(30deg); -webkit-transform: rotate(30deg); -ms-transform: rotate(30deg); -o-transform: rotate(30deg); transform: rotate(30deg); }
@@ -962,6 +966,9 @@ ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
 .s-settings-currencies tr:hover td.s-actions a { display: inline; }
 .s-settings-currencies tr:hover td.s-actions.activate a { display: none; }
 
+.s-settings-storefront-list a i.icon10 { display: none; }
+.s-settings-storefront-list a:hover i.icon10 { display: inline-block; }
+
 #checkout-steps .disabled i.sort { display: none }
 
 #s-tax-regions-table tr.s-region.regions_simple select,
@@ -1017,12 +1024,6 @@ ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
 .s-cheatsheet .s-sub-field .name { padding-left: 15px; }
 
 .s-add-shipping-method ul { width: 300px !important; margin-left: -80px !important; }
-
-#s-shipping-menu { margin-right: 14px; }
-#s-shipping-menu>li { position: relative; }
-#s-shipping-menu ul { display: none; position: absolute; top: 80%; left: -3px; background: #fff; border: 2px solid #aaa; padding: 0; z-index: 50; -moz-box-shadow: 0px 0px 5px #aaa; -webkit-box-shadow: 0px 0px 5px #aaa; box-shadow: 0px 0px 5px #aaa; }
-
-#s-shipping-menu ul li { display: block; padding: 6px 8px 6px 24px; margin: 0; }
 
 #send-test-dialog .successmsg { display: inline-block; }
 
@@ -1191,6 +1192,7 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 .icon16.ss.sku-type-flat { background-position: -32px -128px; }
 .icon16.ss.sku-type-selectable { background-position: -48px -128px; }
 .icon16.ss.info { background-position: -64px -128px; }
+.icon16.ss.visibility { background-position: -80px -128px; }
 
 /* Plugins
 ---------- */

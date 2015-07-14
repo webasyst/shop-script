@@ -17,7 +17,7 @@ class shopCustomer extends waContact
         return 0;
     }
 
-    protected function getCustomerData($name = null)
+    public function getCustomerData($name = null)
     {
         if ($this->customer_data == null) {
             $customer_model = new shopCustomerModel();

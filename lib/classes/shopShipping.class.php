@@ -2,6 +2,7 @@
 
 class shopShipping extends waAppShipping
 {
+    const DUMMY = 'dummy';
     private static $instance;
 
     public static function getInstance()
@@ -36,6 +37,7 @@ class shopShipping extends waAppShipping
      * @param string $plugin
      * @param int $plugin_id
      * @return waShipping
+     * @throws waException
      */
     public static function getPlugin($plugin, $plugin_id = null)
     {
@@ -52,7 +54,11 @@ class shopShipping extends waAppShipping
             }
             $plugin = $info['plugin'];
         }
-        return waShipping::factory($plugin, $plugin_id, self::getInstance());
+        if ($plugin == self::DUMMY) {
+            return shopShippingDummy::getDummy($plugin_id);
+        } else {
+            return waShipping::factory($plugin, $plugin_id, self::getInstance());
+        }
     }
 
     public static function getPluginInfo($id)
@@ -72,7 +78,11 @@ class shopShipping extends waAppShipping
             );
         }
 
-        $default_info = waShipping::info($info['plugin']);
+        if ($info['plugin'] == self::DUMMY) {
+            $default_info = shopShippingDummy::dummyInfo();
+        } else {
+            $default_info = waShipping::info($info['plugin']);
+        }
         return is_array($default_info) ? array_merge($default_info, $info) : $default_info;
     }
 
@@ -82,7 +92,7 @@ class shopShipping extends waAppShipping
             'status' => 0,
         );
         $plugin = array_merge($default, $plugin);
-        if (!intval(ifempty($plugin['id'])) && isset($plugin['settings'])) {
+        if (!intval(ifempty($plugin['id'])) && isset($plugin['settings']) && ($plugin['plugin'] != self::DUMMY)) {
             $instance = waShipping::factory($plugin['plugin'], null, self::getInstance());
             $instance->saveSettings($plugin['settings']);
         }
@@ -95,7 +105,7 @@ class shopShipping extends waAppShipping
             $plugin['type'] = shopPluginModel::TYPE_SHIPPING;
             $plugin['id'] = $model->insert($plugin);
         }
-        if (!empty($plugin['id']) && isset($plugin['settings'])) {
+        if (!empty($plugin['id']) && isset($plugin['settings']) && ($plugin['plugin'] != self::DUMMY)) {
             $instance = waShipping::factory($plugin['plugin'], $plugin['id'], self::getInstance());
             $instance->saveSettings($plugin['settings']);
         }
@@ -114,7 +124,9 @@ class shopShipping extends waAppShipping
         if (!class_exists('waShipping')) {
             throw new waException(_w('Shipping plugins not installed yet'));
         }
-        return waShipping::enumerate();
+        $list = waShipping::enumerate();
+        $list['dummy'] = shopShippingDummy::dummyInfo();
+        return $list;
     }
 
     public function getSettings($plugin_id, $key)

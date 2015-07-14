@@ -12,6 +12,12 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
             throw new waException('Product not found', 404);
         }
 
+        if ($types = waRequest::param('type_id')) {
+            if (!in_array($product['type_id'], (array)$types)) {
+                throw new waException(_w('Product not found'), 404);
+            }
+        }
+
         $product = new shopProduct($product, true);
         $this->prepareProduct($product);
 

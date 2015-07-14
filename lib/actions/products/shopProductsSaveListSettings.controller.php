@@ -26,7 +26,7 @@ class shopProductsSaveListSettingsController extends waJsonController
         $id = $this->saveSettings($hash, $data);
 
         if ($id) {
-            
+
             $this->response = $this->getModel($hash[0])->getById($id);
             $this->response['name'] = htmlspecialchars($this->response['name'], ENT_NOQUOTES);
 
@@ -34,8 +34,8 @@ class shopProductsSaveListSettingsController extends waJsonController
             if (!empty($this->response['description'])) {
                 $this->response['description'] = htmlspecialchars($this->response['description'], ENT_NOQUOTES);
             }
-            
-            if ($hash[0] == 'category') {                
+
+            if ($hash[0] == 'category') {
                 // bind storefronts (routes)
                 $category_routes_model = new shopCategoryRoutesModel();
                 $routes = $category_routes_model->getRoutes($id);
@@ -109,6 +109,9 @@ class shopProductsSaveListSettingsController extends waJsonController
 
             $category_routes_model = new shopCategoryRoutesModel();
             $category_routes_model->setRoutes($id, isset($data['routes']) ? $data['routes'] : array());
+
+            $category_og_model = new shopCategoryOgModel();
+            $category_og_model->set($id, ifempty($data['og'], array()));
 
             $data['id'] = $id;
             /**
@@ -311,6 +314,7 @@ class shopProductsSaveListSettingsController extends waJsonController
             $data['sort_products'] = !empty($data['sort_products']) ? $data['sort_products'] : null;
 
             $data['include_sub_categories'] = waRequest::post('include_sub_categories', 0, waRequest::TYPE_INT);
+            $data['og'] = waRequest::post('og', array(), waRequest::TYPE_ARRAY);
         }
 
         if ($list_type == 'set') {
@@ -366,7 +370,7 @@ class shopProductsSaveListSettingsController extends waJsonController
                 $conditions[] = $f_code.'.value_id='.$feature_values[$f_code];
             }
         }
-        
+
         if (isset($raw_condition['count'])) {
             $raw_condition['count'] = waRequest::post('count');
             $conditions[] = 'count' . $raw_condition['count'][0] . $raw_condition['count'][1];
@@ -375,11 +379,11 @@ class shopProductsSaveListSettingsController extends waJsonController
         if (isset($raw_condition['compare_price'])) {
             $conditions[] = 'compare_price>0';
         }
-        
+
         if ($custom_conditions = waRequest::post('custom_conditions')) {
             $conditions[] = $custom_conditions;
         }
-        
+
         $conditions = implode('&', $conditions);
         return $conditions;
     }

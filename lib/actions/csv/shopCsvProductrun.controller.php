@@ -1643,10 +1643,8 @@ class shopCsvProductrunController extends waLongActionController
             return false;
         } else {
             if (!empty($key)) {
-
-                $this->data['emulate'][$this->reader->key()] = $key.'|'.$second_key;
+                fwrite($this->fd, $this->reader->key().';;'.$key.'|'.$second_key."\n");
             }
-
             return true;
         }
     }
@@ -1710,12 +1708,14 @@ class shopCsvProductrunController extends waLongActionController
             if ($this->reader) {
                 $this->reader->delete(true);
             }
+        } else{
+            $this->info($filename);
         }
 
         return $cleanup;
     }
 
-    protected function report()
+    protected function report($collision)
     {
         $wrapper = '<li><i class="icon16 %s"></i>%s<br/></li>';
         $chunks = array();
@@ -1726,40 +1726,30 @@ class shopCsvProductrunController extends waLongActionController
                 }
             }
         }
-        $collisions = array();
-        if (!empty($this->data['emulate'])) {
-            $callback = create_function('$a', 'return count($a)>1;');
-            $emulate = array();
-            foreach ($this->data['emulate'] as $row => $key) {
-                if (!isset($emulate[$key])) {
-                    $emulate[$key] = array();
+        if ($this->data['emulate'] !== null && $collision) {
+            $collisions = array();
+            foreach ($collision as $key => $rows) {
+                switch (substr($key, 0, 1)) {
+                    case 'c':
+                        $stage = self::STAGE_CATEGORY;
+                        break;
+                    case 'p':
+                        $stage = self::STAGE_PRODUCT;
+                        break;
+                    default:
+                        $stage = false;
+                        break;
                 }
-                $emulate[$key][] = $row;
-            }
-            if ($collision = array_filter($emulate, $callback)) {
-                foreach ($collision as $key => $rows) {
-                    switch (substr($key, 0, 1)) {
-                        case 'c':
-                            $stage = self::STAGE_CATEGORY;
-                            break;
-                        case 'p':
-                            $stage = self::STAGE_PRODUCT;
-                            break;
-                        default:
-                            $stage = false;
-                            break;
+                if ($stage) {
+                    if (!isset($collisions[$stage]['collision'])) {
+                        $collisions[$stage]['collision'] = 0;
                     }
-                    if ($stage) {
-                        if (!isset($collisions[$stage]['collision'])) {
-                            $collisions[$stage]['collision'] = 0;
-                        }
-                        ++$collisions[$stage]['collision'];
-                    }
-                };
-                foreach ($collisions as $stage => $count) {
-                    if ($count && ($data = $this->getStageReport($stage, $collisions, $wrapper, ''))) {
-                        $chunks[] = $data;
-                    }
+                    ++$collisions[$stage]['collision'];
+                }
+            };
+            foreach ($collisions as $stage => $count) {
+                if ($count && ($data = $this->getStageReport($stage, $collisions, $wrapper, ''))) {
+                    $chunks[] = $data;
                 }
             }
         }
@@ -1801,7 +1791,7 @@ class shopCsvProductrunController extends waLongActionController
         return iconv('UTF-8', 'UTF-8//IGNORE', $report);
     }
 
-    protected function info()
+    protected function info($filename=null)
     {
         $interval = 0;
         if (!empty($this->data['timestamp'])) {
@@ -1840,19 +1830,16 @@ class shopCsvProductrunController extends waLongActionController
             $response['file'] = urlencode(basename($this->writer->file()));
         }
         if ($response['ready']) {
-            $response['report'] = $this->report();
+            if ($filename && $this->data['emulate'] !== null) {
+                $collision = $this->getCollision($filename);
+            } else {
+                $collision = array();
+            }
+            $response['report'] = $this->report($collision);
 
-            if (!empty($this->data['emulate'])) {
-                $callback = create_function('$a', 'return count($a)>1;');
-                $emulate = array();
-                foreach ($this->data['emulate'] as $row => $key) {
-                    if (!isset($emulate[$key])) {
-                        $emulate[$key] = array();
-                    }
-                    $emulate[$key][] = $row;
-                }
+            if ($this->data['emulate'] !== null) {
                 $params = array();
-                if ($collision = array_filter($emulate, $callback)) {
+                if ($collision) {
                     $response['collision'] = array();
                     foreach ($collision as $key => $rows) {
                         $rows = array_map('intval', $rows);
@@ -1875,6 +1862,22 @@ class shopCsvProductrunController extends waLongActionController
         }
 
         echo $this->json($response);
+    }
+
+    // Helper for info() to generate part of a final report
+    protected function getCollision($filename)
+    {
+        $emulate = array();
+        foreach (explode("\n", file_get_contents($filename)) as $line) {
+            if ($line) {
+                list($row, $key) = explode(';;', $line);
+                if (!isset($emulate[$key])) {
+                    $emulate[$key] = array();
+                }
+                $emulate[$key][] = $row;
+            }
+        }
+        return array_filter($emulate, create_function('$a', 'return count($a)>1;'));
     }
 
     protected function restore()

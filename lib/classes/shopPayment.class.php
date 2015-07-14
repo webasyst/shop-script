@@ -2,6 +2,7 @@
 
 class shopPayment extends waAppPayment
 {
+    const DUMMY = 'dummy';
     private static $instance;
 
     public static function getInstance()
@@ -49,7 +50,11 @@ class shopPayment extends waAppPayment
 
             $plugin = $info['plugin'];
         }
-        return waPayment::factory($plugin, $plugin_id, self::getInstance());
+        if ($plugin == self::DUMMY) {
+            return shopPaymentDummy::getDummy();
+        } else {
+            return waPayment::factory($plugin, $plugin_id, self::getInstance());
+        }
     }
 
     public static function getPluginInfo($id)
@@ -66,8 +71,22 @@ class shopPayment extends waAppPayment
             );
         }
 
-        $default_info = waPayment::info($info['plugin']);
+        if ($info['plugin'] == self::DUMMY) {
+            $default_info = shopPaymentDummy::dummyInfo();
+        } else {
+            $default_info = waPayment::info($info['plugin']);
+        }
         return is_array($default_info) ? array_merge($default_info, $info) : $default_info;
+    }
+
+    public static function getList()
+    {
+        if (!class_exists('waPayment')) {
+            throw new waException(_w('Payment plugins not installed yet'));
+        }
+        $list = waPayment::enumerate();
+        $list['dummy'] = shopPaymentDummy::dummyInfo();
+        return $list;
     }
 
     private static function getPluginData($id)
@@ -90,7 +109,7 @@ class shopPayment extends waAppPayment
             $plugin['type'] = shopPluginModel::TYPE_PAYMENT;
             $plugin['id'] = $model->insert($plugin);
         }
-        if (!empty($plugin['id']) && isset($plugin['settings'])) {
+        if (!empty($plugin['id']) && isset($plugin['settings']) && ($plugin['plugin'] != self::DUMMY)) {
             waPayment::factory($plugin['plugin'], $plugin['id'], self::getInstance())->saveSettings($plugin['settings']);
         }
         if (!empty($plugin['id'])) {
@@ -330,7 +349,22 @@ class shopPayment extends waAppPayment
 
     public function refund()
     {
+        //todo
+        return;
+        if (empty($params['transaction']['plugin'])) {
+            throw new ordersJsonException('Empty payment system ID');
+        }
+        $params['order']->getMerchant();
+        if (empty($params['order']['merchant_info'])) {
+            throw new ordersJsonException('Empty merechant info');
+        }
+        $module = waPayment::factory($params['transaction']['plugin'], $params['order']['merchant_info']['id'], self::getInstance());
 
+        $result = $module->refund(array(
+            'transaction'   => $params['transaction'],
+            'refund_amount' => $params['refund_amount']
+        ));
+        return $result;
     }
 
     public function auth()

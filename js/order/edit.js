@@ -195,7 +195,7 @@ $.order_edit = {
                         );
                         //tr.find('.s-orders-services .s-orders-service-variant').trigger('change');
                         tr.find('.s-orders-product-price').
-                            find('span').html(r.data.sku.price_html || r.data.sku.price_str).end().
+                            //find('span').html(r.data.sku.price_html || r.data.sku.price_str).end().
                             find('input').val(r.data.sku.price);
                         //.trigger('change');
 
@@ -772,7 +772,7 @@ $.order_edit = {
                     if (p_errors.hasOwnProperty(p_id)) {
                         if ('quantity' in p_errors[p_id]) {
                             $('.s-order-item[data-product-id='+p_id+']').each(function () {
-                                if ($(this).find('ul.s-orders-skus input:radio:checked').val() == '' + p_errors[p_id]['sku_id']) {
+                                if ($(this).find('ul.s-orders-skus input:radio:checked').val() == '' + p_errors[p_id]['sku_id'] || !$(this).find('ul.s-orders-skus').length) {
                                     $(this).find('.s-orders-quantity').addClass('error');
                                     common_errors.push(p_errors[p_id]['quantity']);
                                 }

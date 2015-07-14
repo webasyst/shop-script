@@ -22,6 +22,9 @@ class shopCustomersProfileTabAction extends waViewAction
             $o['payment_name'] = ifset($o['params']['payment_name'], '');
         }
 
+        $config = wa()->getConfig('shop');
+
+        $this->view->assign('orders_default_view', $config->getOption('orders_default_view'));
         $this->view->assign('orders',  $orders);
         $this->view->assign('contact', $contact);
         $this->view->assign('def_cur_tmpl', str_replace('0', '%s', waCurrency::format('%{h}', 0, wa()->getConfig()->getCurrency())));

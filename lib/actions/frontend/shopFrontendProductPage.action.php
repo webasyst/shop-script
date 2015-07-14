@@ -8,10 +8,16 @@ class shopFrontendProductPageAction extends shopFrontendProductAction
 
         $product_model = new shopProductModel();
         $product = $product_model->getByField('url', waRequest::param('product_url'));
-
         if (!$product) {
             throw new waException('Product not found', 404);
         }
+
+        if ($types = waRequest::param('type_id')) {
+            if (!in_array($product['type_id'], (array)$types)) {
+                throw new waException(_w('Product not found'), 404);
+            }
+        }
+
         $product = new shopProduct($product, true);
         $this->view->assign('product', $product);
 

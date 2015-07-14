@@ -29,7 +29,7 @@ class shopOrderItemsModel extends waModel
         // important: order metters!
 
         $product_items = $this->query("
-            SELECT oi.*, p.image_id, s.image_id sku_image_id, p.ext, s.file_name, s.file_size FROM `{$this->table}` oi
+            SELECT oi.*, p.image_id, p.image_filename, s.image_id sku_image_id, p.ext, s.file_name, s.file_size FROM `{$this->table}` oi
             LEFT JOIN shop_product p ON oi.product_id = p.id
             LEFT JOIN shop_product_skus s ON oi.sku_id = s.id
             WHERE order_id = ".(int)$order_id." AND type='product'
@@ -37,7 +37,7 @@ class shopOrderItemsModel extends waModel
         ")->fetchAll('id');
 
         $service_items = array();
-        
+
         $parent_id = 0;
         foreach ($this->query("
             SELECT * FROM `{$this->table}`
@@ -50,7 +50,7 @@ class shopOrderItemsModel extends waModel
             }
             $service_items[$parent_id][$item['id']] = $item;
         }
-        
+
         $data = array();
         $image_ids = array();
         foreach ($product_items as $product_item) {
@@ -69,11 +69,12 @@ class shopOrderItemsModel extends waModel
                 if (!empty($item['sku_image_id']) && ($item['sku_image_id'] != $item['image_id']) && isset($images[$item['sku_image_id']])) {
                     $item['image_id'] = $item['sku_image_id'];
                     $item['ext'] = $images[$item['sku_image_id']]['ext'];
+                    $item['image_filename'] = $images[$item['sku_image_id']]['filename'];
                 }
             }
             unset($item);
         }
-        
+
         return $data;
     }
 
@@ -189,7 +190,7 @@ class shopOrderItemsModel extends waModel
         } else {
             $sku_price = $data['price'];
         }
-        
+
         $data['services'] = $this->getServices($product_id, $sku_id, $rate, $sku_price);
         return $data;
     }
@@ -255,13 +256,12 @@ class shopOrderItemsModel extends waModel
             unset($sku);
         }
         if (!empty($product['services'])) {
-            $this->workupServices($product['services'], $order_id);
+            $this->workupServices($product['services'], $order_id, $currency);
         }
     }
 
-    private function workupServices(&$services, $order_id = null)
+    private function workupServices(&$services, $order_id, $currency)
     {
-        $currency = $this->getCurrency();
         if ($order_id) {
             $order    = $this->getOrder($order_id);
             $currency = $order['currency'];
@@ -321,9 +321,9 @@ class shopOrderItemsModel extends waModel
         $data['price']     = (float) $currency_model->convertByRate($data['primary_price'], 1, $rate);
         $data['price_str'] = wa_currency($data['price'], $currency);
         $data['price_html'] = wa_currency_html($data['price'], $currency);
-        
+
         $data['services'] = $this->getServices($data['product_id'], $sku_id, $rate, $data['price']);
-        $this->workupServices($data['services'], $order_id);
+        $this->workupServices($data['services'], $order_id, $currency);
 
         return $data;
     }
@@ -474,7 +474,7 @@ class shopOrderItemsModel extends waModel
             return;
         }
         $product_ids = array();
-        
+
         foreach ($data as $sku_id => $sku_stock) {
             $sku_id = (int) $sku_id;
             if (!isset($skus[$sku_id]['product_id'])) {
@@ -508,7 +508,7 @@ class shopOrderItemsModel extends waModel
                             'after_count' => $old_count + $count,
                             'diff_count' => $count
                         );
-                        $stocks_log_model->insert($log_data);            
+                        $stocks_log_model->insert($log_data);
                     }
                     $this->exec(
                         "UPDATE `shop_product_skus` SET count = count + ({$count})
@@ -521,7 +521,7 @@ class shopOrderItemsModel extends waModel
                 }
             }
         }
-        
+
         if (!$product_ids) {
             return;
         }
@@ -565,5 +565,5 @@ class shopOrderItemsModel extends waModel
     {
         $item['price'] = (float)$item['price'];
         return $item;
-    }    
+    }
 }

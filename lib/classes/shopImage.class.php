@@ -249,7 +249,12 @@ class shopImage
      */
     public static function getPath($image)
     {
-        return shopProduct::getPath($image['product_id'], "images/{$image['id']}.{$image['ext']}");
+        if (strlen($image['filename']) && ($image['filename'] !== (string)$image['id'])) {
+            $n = $image['id'].'.'.$image['filename'];
+        } else {
+            $n = $image['id'];
+        }
+        return shopProduct::getPath($image['product_id'], "images/{$n}.{$image['ext']}");
     }
 
     /**
@@ -282,7 +287,12 @@ class shopImage
             if (!$size) {
                 return wa()->getDataPath($path, true, 'shop')."images/{$image['id']}/";
             } else {
-                return wa()->getDataPath($path, true, 'shop')."images/{$image['id']}/{$image['id']}.{$size}.{$image['ext']}";
+                if (strlen($image['filename'])) {
+                    $n = $image['filename'];
+                } else {
+                    $n = $image['id'];
+                }
+                return wa()->getDataPath($path, true, 'shop')."images/{$image['id']}/{$n}.{$size}.{$image['ext']}";
             }
         }
     }
@@ -300,7 +310,12 @@ class shopImage
         if (!$size) {
             $size = wa('shop')->getConfig()->getImageSize('default');
         }
-        $path = shopProduct::getFolder($image['product_id'])."/{$image['product_id']}/images/{$image['id']}/{$image['id']}.{$size}.{$image['ext']}";
+        if (strlen($image['filename'])) {
+            $n = $image['filename'];
+        } else {
+            $n = $image['id'];
+        }
+        $path = shopProduct::getFolder($image['product_id'])."/{$image['product_id']}/images/{$image['id']}/{$n}.{$size}.{$image['ext']}";
 
         if (waSystemConfig::systemOption('mod_rewrite')) {
             return wa()->getDataUrl($path, true, 'shop', $absolute);

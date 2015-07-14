@@ -615,6 +615,8 @@ editClick:(function ($) {
 
             $('#s-product-profile-tabs .s-tab-block[data-tab="stock-logs"]').trigger('refresh');
 
+            this.setData('main', 'category_name', data.category_name);
+
             // TODO update name/description/etc fields
         },
 
@@ -2334,12 +2336,30 @@ editClick:(function ($) {
                 if (max <= 0) {
                     return false;
                 }
-                keywords.push($(this).val());
+                var val = $.trim($(this).val());
+                if (val) {
+                    keywords.push(val);
+                }
                 max -= 1;
             });
 
-            keywords = keywords.concat($('#product-tags').val().split(',').slice(0, 5));
+            var category_name = this.getData('main', 'category_name');
+            if (category_name !== null) {
+                keywords.push(category_name);
+            }
 
+            var all_tags = $('#product-tags').val().split(',');
+            var max = 5;
+            for (var i = 0; i < all_tags.length; i += 1) {
+                if (max <= 0) {
+                    break;
+                }
+                var val = $.trim(all_tags[i]);
+                if (val) {
+                    keywords.push(val);
+                }
+                max -= 1;
+            }
             $('#s-product-meta-keywords').attr('placeholder', keywords.join(', '));
             $('#s-product-meta-description').attr('placeholder', $('#s-product-summary').val());
         },

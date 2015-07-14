@@ -351,7 +351,7 @@ class shopOrderSaveController extends waJsonController
 
     private function getData($id)
     {
-        $data = $id ? $this->getEditData() : $this->getAddData();
+        $data = $id ? $this->getEditData($id) : $this->getAddData();
         if (!$data) {
             return array();
         }
@@ -360,7 +360,8 @@ class shopOrderSaveController extends waJsonController
         $data['discount'] = waRequest::post('discount', 0);
         $data['tax'] = 0;
         $data['total'] = $this->calcTotal($data);
-
+        $data['params']['storefront'] = waRequest::post('storefront', null, waRequest::TYPE_STRING_TRIM);
+        $data['params']['storefront'] = ifempty($data['params']['storefront']);
         return $data;
     }
 
@@ -379,7 +380,7 @@ class shopOrderSaveController extends waJsonController
     private function validate($data, $order_id)
     {
         if (empty($data['items'])) {
-            $this->errors['order']['common'] = _w('There is not one product for order');
+            $this->errors['order']['common'] = _w('Please add at least one product to save this order');
         }
 
         if (!wa('shop')->getSetting('ignore_stock_count')) {
@@ -533,7 +534,7 @@ class shopOrderSaveController extends waJsonController
         return empty($this->errors);
     }
 
-    private function getEditData()
+    private function getEditData($order_id)
     {
         if (!$this->validateEditDataStocks()) {
             return array();
@@ -613,8 +614,7 @@ class shopOrderSaveController extends waJsonController
             $skus     = $this->getFields($sku_ids, 'product_skus', 'name, sku, purchase_price');
             $services = $this->getFields($service_ids, 'service', 'name,tax_id');
             $variants = $this->getFields($variant_ids, 'service_variants');
-
-            $default_currency = wa('shop')->getConfig()->getCurrency(true);
+            $order_currency = $this->getModel()->select('currency')->where('id=?', $order_id)->fetchField();
             foreach ($data['items'] as &$item) {
                 // items with id mean for updating (old items)
                 if (isset($item['id'])) {
@@ -652,7 +652,7 @@ class shopOrderSaveController extends waJsonController
                     if (isset($skus[$item['sku_id']])) {
                         $item['sku_code'] = $skus[$item['sku_id']]['sku'];
                         if (isset($products[$item['product_id']])) {
-                            $item['purchase_price'] = shop_currency($skus[$item['sku_id']]['purchase_price'], $products[$item['product_id']]['currency'], $default_currency, false);
+                            $item['purchase_price'] = shop_currency($skus[$item['sku_id']]['purchase_price'], $products[$item['product_id']]['currency'], $order_currency, false);
                         }
                     }
                 } else {
@@ -669,13 +669,13 @@ class shopOrderSaveController extends waJsonController
                         }
                     } else {
                         $item['sku_code'] = $skus[$item['sku_id']]['sku'];
-                        $item['purchase_price'] = shop_currency($skus[$item['sku_id']]['purchase_price'], $products[$item['product_id']]['currency'], $default_currency, false);
+                        $item['purchase_price'] = shop_currency($skus[$item['sku_id']]['purchase_price'], $products[$item['product_id']]['currency'], $order_currency, false);
                     }
                 }
             }
             unset($item);
         }
-        $data['items'] = array_merge($data['items'], $this->getItems());
+        $data['items'] = array_merge($data['items'], $this->getItems($order_currency));
         return $data;
     }
 
@@ -692,11 +692,11 @@ class shopOrderSaveController extends waJsonController
         return array(
             'currency' => $currency,
             'rate' => $rate,
-            'items' => $this->getItems()
+            'items' => $this->getItems($currency),
         );
     }
 
-    private function getItems()
+    private function getItems($order_currency)
     {
         $data = array();
         $products   = $this->post('product', array(), 'add');
@@ -763,7 +763,6 @@ class shopOrderSaveController extends waJsonController
         $skus = $this->getFields($sku_ids, 'product_skus', 'name, sku, purchase_price');
         $services = $this->getFields($service_ids, 'service', 'name, tax_id');
         $variants = $this->getFields($variant_ids, 'service_variants');
-        $default_currency = wa('shop')->getConfig()->getCurrency(true);
 
         foreach ($data as &$item) {
             if ($item['service_id']) {
@@ -781,7 +780,7 @@ class shopOrderSaveController extends waJsonController
                     $name .= ' ('.$skus[$item['sku_id']]['name'].')';
                 }
                 $item['sku_code'] = $skus[$item['sku_id']]['sku'];
-                $item['purchase_price'] = shop_currency($skus[$item['sku_id']]['purchase_price'], $products[$item['product_id']]['currency'], $default_currency, false);
+                $item['purchase_price'] = shop_currency($skus[$item['sku_id']]['purchase_price'], $products[$item['product_id']]['currency'], $order_currency, false);
                 $item['tax_id'] = $products[$item['product_id']]['tax_id'];
             }
             $item['name'] = $name;

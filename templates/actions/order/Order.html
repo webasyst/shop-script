@@ -37,12 +37,15 @@
             <!-- printable docs -->
             {if count($printable_docs)}
             <br>
-            <ul class="menu-v compactt js-printable-docs">
+            <ul class="menu-v js-printable-docs">
                 {foreach $printable_docs as $plugin_id => $printable_doc}
                     <li>
                         <label>
                             <input type="checkbox" checked="true" value="{$printable_doc.url|escape}" data-name="{$plugin_id}" data-target="_printform_{$plugin_id}_{$order.id}">
                             {$printable_doc.name|escape}
+                            {if !empty($printable_doc.emailprintform)}
+                                <a href="#" class="inline js-printable-docs-send" data-order-id="{$order.id}" data-url="{$printable_doc.mail_url|escape}" title="[`Email this form to customer`]"><i class="icon16 email on-hover-only"></i></a>
+                            {/if}
                         </label>
                     </li>
                 {/foreach}
@@ -212,7 +215,7 @@
                     <td class="min-width valign-top">
                         {if $item.type != 'service'}
                             {if !empty($item.image_id)}
-                                {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'ext' => $item.ext], '48x48')}
+                                {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'image_filename' => $item.image_filename, 'ext' => $item.ext], '48x48')}
                             {else}
                                 <img src="{$wa_app_static_url}img/image-dummy-small.png" class="not-found" style="width: 48px; height: 48px;">
                             {/if}

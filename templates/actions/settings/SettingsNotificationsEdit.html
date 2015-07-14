@@ -35,7 +35,6 @@
 
 <h1>
     {$n.name}
-    <span class="hint"><i class="icon16 {$transports[$n.transport].icon}"></i>{$transports[$n.transport].name}</span>
 </h1>
 
 <form id="notification-form" method="post" action="?module=settings&action=notificationsSave&id={$n.id}">
@@ -57,6 +56,12 @@
             <div class="name">[`Notification name`]</div>
             <div class="value">
                 <input id="n-name" name="data[name]" type="text" class="bold" value="{$n.name}">
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">[`Transport`]</div>
+            <div class="value no-shift">
+                <i class="icon16 {$transports[$n.transport].icon}"></i>{$transports[$n.transport].name}
             </div>
         </div>
         <div class="field">

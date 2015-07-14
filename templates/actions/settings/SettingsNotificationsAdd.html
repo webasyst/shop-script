@@ -30,13 +30,6 @@
             </div>
         </div>
         <div class="field">
-            <div class="name">[`Enabled`]</div>
-            <div class="value no-shift">
-                <input type="checkbox" name="data[status]" value="1" checked>
-            </div>
-        </div>
-
-        <div class="field">
             <div class="name">[`Transport`]</div>
             {foreach $transports as $t_id => $t}
             <div class="value no-shift">
@@ -46,6 +39,12 @@
                 </label>
             </div>
             {/foreach}
+        </div>
+        <div class="field">
+            <div class="name">[`Enabled`]</div>
+            <div class="value no-shift">
+                <input type="checkbox" name="data[status]" value="1" checked>
+            </div>
         </div>
     </div>
 
