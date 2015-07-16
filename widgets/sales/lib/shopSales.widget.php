@@ -41,13 +41,13 @@ class shopSalesWidget extends waWidget
                 return wa_currency($total, $currency, '%0{h}');
             }
 
+            // We don't use currency formatting with shortened number
+            // because currency symbols after the letter look ugly.
             if ($exp < 6) {
-                $total_str = self::formatHelper($coeff, $exp, 3, 'K');
+                return self::formatHelper($coeff, $exp, 3, 'K');
             } else {
-                $total_str = self::formatHelper($coeff, $exp, 6, 'M');
+                return self::formatHelper($coeff, $exp, 6, 'M');
             }
-
-            return str_replace('0', $total_str, wa_currency(0, $currency, '%0{h}'));
         }
     }
 

@@ -72,8 +72,12 @@ class shopOrderTotalController extends waJsonController
         $this->response['discount_description'] = '';
         $this->response['discount'] = shopDiscounts::calculate($order, false, $this->response['discount_description']);
 
-        $this->response['shipping_methods'] = shopHelper::getShippingMethods($shipping_address, $shipping_items,
-            array('currency' => $currency, 'total_price' => $total));
+        $this->response['shipping_methods'] = shopHelper::getShippingMethods($shipping_address, $shipping_items, array(
+            'currency' => $currency,
+            'total_price' => $total,
+            'no_external' => true,
+            'allow_external_for' => array(waRequest::request('shipping_id', 0, 'int')),
+        ));
         // for saving order in js
         $this->response['shipping_method_ids'] = array_keys($this->response['shipping_methods']);
     }

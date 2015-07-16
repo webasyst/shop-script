@@ -371,10 +371,12 @@ class shopCartItemsModel extends waModel
     {
         if (is_numeric($check_count)) {
             $stock_id = $check_count;
+            $f = "IF(ps.sku_id IS NULL, s.count, ps.count)";
         } else {
             $stock_id = false;
+            $f = "s.count";
         }
-        $sql = "SELECT c.id, s.available, ".($stock_id ? "IF(ps.sku_id IS NULL, s.count, ps.count)" : "s.count")." count,
+        $sql = "SELECT c.id, s.available, ".$f." AS count,
                 p.name, s.name sku_name FROM ".$this->table." c
                 JOIN shop_product p ON c.product_id = p.id
                 JOIN shop_product_skus s ON c.sku_id = s.id";
@@ -383,7 +385,7 @@ class shopCartItemsModel extends waModel
         }
         $sql .= " WHERE c.type = 'product' AND c.code = s:code AND ";
         if ($check_count) {
-            $sql .= '(s.available = 0 OR (count IS NOT NULL AND c.quantity > count))';
+            $sql .= '(s.available = 0 OR ('.$f.' IS NOT NULL AND c.quantity > '.$f.'))';
         } else {
             $sql .= 's.available = 0';
         }

@@ -135,11 +135,10 @@ class shopHelper
         $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_SHIPPING, $options);
         if ($address !== null) {
             $config = wa('shop')->getConfig();
-            /**
-             * @var $config shopConfig
-             */
+            /** @var $config shopConfig */
             $result = array();
             $currency = isset($params['currency']) ? $params['currency'] : $config->getCurrency();
+            $params['allow_external_for'] = (array) ifempty($params['allow_external_for'], array());
             $dimensions = shopDimension::getInstance();
             foreach ($methods as $m) {
                 if ($m['available']) {
@@ -162,6 +161,7 @@ class shopHelper
                                 ),
                                 'rate'     => '',
                                 'currency' => $currency,
+                                'external' => !empty($plugin_info['external']),
                             );
                             continue;
                         }
@@ -189,7 +189,12 @@ class shopHelper
                         }
                     }
                     unset($item);
-                    $rates = $plugin->getRates($items, $address ? $address : array(), $total ? array('total_price' => $total) : array());
+
+                    if (!empty($params['no_external']) && !empty($plugin_info['external']) && !in_array($m['id'], $params['allow_external_for'])) {
+                        $rates = '';
+                    } else {
+                        $rates = $plugin->getRates($items, $address ? $address : array(), $total ? array('total_price' => $total) : array());
+                    }
                     if (is_array($rates)) {
                         foreach ($rates as $rate_id => $info) {
                             if (is_array($info)) {
@@ -203,6 +208,7 @@ class shopHelper
                                     'name'     => $m['name'].(!empty($info['name']) ? ' ('.$info['name'].')' : ''),
                                     'rate'     => $rate,
                                     'currency' => $currency,
+                                    'external' => !empty($plugin_info['external']),
                                 );
                                 foreach(array('est_delivery','comment') as $field) {
                                     if(isset($info[$field]) && !is_null($info[$field])) {
@@ -221,12 +227,14 @@ class shopHelper
                             'error'    => $rates,
                             'rate'     => '',
                             'currency' => $currency,
+                            'external' => !empty($plugin_info['external']),
                         );
                     }
                 }
             }
             return $result;
         } else {
+            // !!! TODO: filter not-available methods?..
             return $methods;
         }
     }

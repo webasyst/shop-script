@@ -304,20 +304,10 @@
                     <td class="align-right" colspan="3">
                         <div class="s-order-aux-box">
                             [`Shipping`]
-                            {if $order}
-                            {$order_items = $order.items}
-                            {$order_currency = $order.currency}
-                            {$order_total = $order.subtotal - $order.discount}
-                            {else}
-                            {$order_items = array()}
-                            {$order_currency = null}
-                            {$order_total = 0}
-                            {/if}
-                            {$shipping_methods = shopHelper::getShippingMethods($shipping_address, $order_items, ['currency' => $order_currency, 'total_price' => $order_total])}
                             <select id="shipping_methods" name="shipping_id">
                                 <option value=""></option>
                                 {foreach $shipping_methods as $m_id => $m}
-                                    <option {if !empty($order.shipping_id) && $order.shipping_id === $m_id}selected{/if} data-rate="{$m.rate}" value="{$m_id}">{$m.name|truncate:80}</option>
+                                    <option {if !empty($order.shipping_id) && $order.shipping_id === $m_id}selected{/if} data-rate="{$m.rate}" value="{$m_id}"{if !empty($m.external)} data-external="1"{/if}>{$m.name|truncate:80}</option>
                                 {/foreach}
                             </select>
                             <div id="shipping-info"></div>

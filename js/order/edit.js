@@ -299,7 +299,7 @@ $.order_edit = {
             }
         });
 
-        $("#shipping_methods").change(function() {
+        $("#shipping_methods").change(function(e) {
             var o = $(this).children(':selected');
             var rate = o.data('rate') || 0;
             $("#shipping-rate").val($.order_edit.formatFloat(rate));
@@ -319,6 +319,9 @@ $.order_edit = {
                 $("#shipping-info").empty().hide();
             }
             $.order_edit.updateTotal(false);
+            if (o.data('external') && !e.triggered_by_updateTotal) {
+                $.order_edit.updateTotal();
+            }
         });
 
         $("#payment_methods").change(function() {
@@ -524,6 +527,7 @@ $.order_edit = {
         } else {
             data['currency'] = $('#order-edit-form input[name=currency]').val();
         }
+        data['shipping_id'] = ($('#shipping_methods').val()||'').split('.')[0];
         data['customer[id]'] = $('#s-customer-id').val();
 
         if (ajax) {
@@ -545,15 +549,10 @@ $.order_edit = {
                         var ship =  shipping_methods[ship_id];
                         var o = $('<option></option>');
                         o.html(ship.name).attr('value', ship_id).data('rate', ship.rate);
-                        if (ship.error) {
-                            o.data('error', ship.error);
-                        }
-                        if(ship.est_delivery) {
-                            o.data('est_delivery', ship.est_delivery);
-                        }
-                        if(ship.comment) {
-                            o.data('comment', ship.comment);
-                        }
+                        o.data('error', ship.error || undefined);
+                        o.data('est_delivery', ship.est_delivery || undefined);
+                        o.data('comment', ship.comment || undefined);
+                        o.data('external', ship.external || false);
                         el.append(o);
 
                         // unexact match, but close
@@ -568,8 +567,14 @@ $.order_edit = {
                             }
                         }
                     }
+
                     if (found) {
-                        el.val(el_selected).change();
+                        el.val(el_selected);
+                        if (!shipping_methods[el_selected].external || data['shipping_id'] == el_selected.split('.')[0]) {
+                            el.trigger($.Event('change', {
+                                triggered_by_updateTotal: 1
+                            }));
+                        }
                     }
 
                     $('#order-edit-form').trigger('order_total_updated', response.data);

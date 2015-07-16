@@ -498,11 +498,13 @@ class shopFrontendProductAction extends shopFrontendAction
         ), null, true);
 
         $res['og'] = $product['og'] + array(
-            'type' => 'article',
+            'type' => 'og:product',
             'title' => $res['meta_title'],
             'description' => $res['meta_description'],
             'image' => $image_url,
             'url' => wa()->getConfig()->getHostUrl().wa()->getConfig()->getRequestUrl(false, true),
+            'product:price:amount' => shop_currency($product['price'], null, null, false),
+            'product:price:currency' => wa('shop')->getConfig()->getCurrency(false),
         );
 
         return $res;
