@@ -111,7 +111,7 @@ class shopCategories
      *     If then null (default) clear every items
      *     If array then clear every in array
      */
-    public static function clear($category_id = null)
+    public static function clear($category_id = null, $recurse=false)
     {
         $contact_id = wa('shop')->getUser()->getId();
 
@@ -120,6 +120,15 @@ class shopCategories
             self::getSettingsModel()->delete($contact_id, 'shop', self::$natural_mode_key);
         } else {
             $category_id = (array) $category_id;
+            if ($recurse) {
+                $ids = array_fill_keys($category_id, 1);
+                foreach ($category_id as $id) {
+                    foreach(self::getCategoryModel()->getTree($id) as $c) {
+                        $ids[$c['id']] = 1;
+                    }
+                }
+                $category_id = array_keys($ids);
+            }
         }
 
         foreach ($category_id as $id) {
@@ -144,7 +153,7 @@ class shopCategories
         $expand = self::getCategoryExpandedStatesMap();
         $unset = array();
 
-        $categories = self::getTree($parent_id);
+        $categories = $this->getTree($parent_id);
 
         $root = null;
         if ($parent_id) {
@@ -280,54 +289,13 @@ class shopCategories
         return $total ;
     }
 
-    /**
-     * TODO: remove
-     * @param int $parent_id
-     * @return array
-     */
-    private function _getTree($parent_id = 0)
-    {
-        $category_model = self::getCategoryModel();
-        if ($parent_id) {
-            $categories = $category_model->getTree($parent_id);
-        } else {
-            $categories = $category_model->getFullTree();
-        }
-
-        // children_count is number of children of category
-        // total_count is count of products for whole subtree rooted to this category
-        foreach ($categories as &$item) {
-            if (!isset($item['children_count'])) {
-                $item['children_count'] = 0;
-            }
-            if (!isset($item['total_count'])) {
-                $item['total_count'] = $item['count'];
-            }
-            if (isset($categories[$item['parent_id']])) {
-                $parent = &$categories[$item['parent_id']];
-                if (!isset($parent['children_count'])) {
-                    $parent['children_count'] = 0;
-                }
-                if (!isset($parent['total_count'])) {
-                    $parent['total_count'] = $parent['count'];
-                }
-                ++$parent['children_count'];
-                $parent['total_count'] += $item['count'];
-                unset($parent);
-            }
-        }
-        unset($item);
-
-        return $categories;
-    }
-
-    public static function setCollapsed($category_id)
+    public static function setCollapsed($category_id, $recurse=false)
     {
         self::switchToNaturalMode();
-        self::clear($category_id);
+        self::clear($category_id, $recurse);
     }
 
-    public static function setExpanded($category_id)
+    public static function setExpanded($category_id, $recurse=false)
     {
         $map = self::getCategoryExpandedStatesMap();
         if (isset($map[0]) && count($map) == 1) {
@@ -339,12 +307,26 @@ class shopCategories
                 1
             );
         }
-        self::getSettingsModel()->set(
-                wa('shop')->getUser()->getId(),
-                'shop',
-                self::$prefix . (int)$category_id,
-                1
-        );
+
+        $category_id = (array) $category_id;
+        if ($recurse) {
+            $ids = array_fill_keys($category_id, 1);
+            foreach ($category_id as $id) {
+                foreach(self::getCategoryModel()->getTree($id) as $c) {
+                    $ids[$c['id']] = 1;
+                }
+            }
+            $category_id = array_keys($ids);
+        }
+
+        foreach($category_id as $c_id) {
+            self::getSettingsModel()->set(
+                    wa('shop')->getUser()->getId(),
+                    'shop',
+                    self::$prefix . (int)$c_id,
+                    1
+            );
+        }
     }
 
     private static function switchToNaturalMode()

@@ -1048,7 +1048,7 @@
                             if (type == 'category' && self.find('input[name="s-delete-sub"]').is(':checked')) {
 
                                 // Get all children of this category by fetching its expanded HTML
-                                $.get('?action=categoryExpand&tree=1&id=' + category_id, function(html) {
+                                $.get('?action=categoryExpand&tree=1&recurse=1&id=' + category_id, function(html) {
                                     var ids = $('<div>').html(html).find('li[id^="category-"]').map(function() {
                                         return parseInt(this.id.substr(9), 10);
                                     }).get().reverse();

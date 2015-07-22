@@ -5354,7 +5354,8 @@ msgstr "Все доступные способы оплаты"
 
 # msgid "Shipping options"
 # msgstr "Способы доставки"
-#: /wa-apps/shop/lib/config/site.php:87 /wa-apps/shop/lib/config/site.php:91
+#: /wa-apps/shop/lib/config/site.php:87
+#: /wa-apps/shop/lib/config/site.php:91
 msgid "All available shipping options"
 msgstr "Все доступные способы доставки"
 
@@ -6405,7 +6406,8 @@ msgstr "Новый профиль"
 msgid "Perform action to all selected orders?"
 msgstr "Выполнить действие со всеми выбранными заказами?"
 
-#: /wa-apps/shop/js/product/list.js:407 /wa-apps/shop/js/product/list.js:568
+#: /wa-apps/shop/js/product/list.js:407
+#: /wa-apps/shop/js/product/list.js:568
 msgid "Drag products here"
 msgstr "Перетащите товары сюда"
 
@@ -6508,7 +6510,8 @@ msgstr "Автоматически перемещать товар вниз сп
 msgid "When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more."
 msgstr "Товары, которых нет на складе, будут автоматически перемещены вниз всех списков товаров на витрине интернет-магазина: в результатах поиска, в списках товаров внутри категорий, в результатах фильтрации товаров и т. д."
 
-#: /wa-apps/shop/lib/config/site.php:177 /wa-apps/shop/lib/config/site.php:181
+#: /wa-apps/shop/lib/config/site.php:177
+#: /wa-apps/shop/lib/config/site.php:181
 #: /wa-apps/shop/lib/config/site.php:182
 msgid "Setting <em>$available_only = true</em> will automatically exclude all out-of-stock products from the return"
 msgstr "Настройка <em>$available_only = true</em> автоматически исключит из результата все товары, которых нет на складе."
@@ -8292,7 +8295,7 @@ msgstr "Сообщение добавлено"
 
 #: /wa-apps/shop/lib/workflow/templates/MessageAction.html:7
 msgid "Send via"
-msgstr "Отправлено"
+msgstr "Использовать"
 
 #: /wa-apps/shop/lib/workflow/templates/MessageAction.html:27
 msgid "Sender"
@@ -8305,6 +8308,9 @@ msgstr "Сообщение"
 #: /wa-apps/shop/lib/workflow/templates/MessageAction.html:50
 msgid "Send"
 msgstr "Отправить"
+
+msgid "Error sending message to client. Message is not sent."
+msgstr "Ошибка при отправке. Сообщение клиенту не отправлено."
 
 #: /wa-apps/shop/themes/clear/checkout.confirmation.html:7
 #: /wa-apps/shop/themes/custom/checkout.confirmation.html:7
@@ -9196,7 +9202,8 @@ msgstr "Главная страница"
 msgid "Social sharing Title (og:title)"
 msgstr "Заголовок (og:title)"
 
-#: /wa-apps/shop/lib/config/site.php:41 /wa-apps/shop/lib/config/site.php:58
+#: /wa-apps/shop/lib/config/site.php:41
+#: /wa-apps/shop/lib/config/site.php:58
 msgid "For detailed information on Open Graph parameters and examples please refer to <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
 msgstr "Подробная информация о возможных вариантах значений параметров Open Graph опубликована на сайте протокола <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
 
@@ -9235,3 +9242,4 @@ msgstr "Каждый способ доставки можно установит
 #: /wa-apps/shop/lib/classes/shopPaymentDummy.class.php:17
 msgid "Manual payment"
 msgstr "Оплата в ручном режиме"
+

@@ -771,5 +771,40 @@ class shopHelper
 
         return $types_allowed;
     }
-}
 
+
+
+    /**
+     * @param string $source storefront
+     * @return string
+     */
+    public static function getStoreEmail($source)
+    {
+        $store_email = null;
+
+        $notification_model = new shopNotificationModel();
+        $sql = <<<SQL
+SELECT DISTINCT n.source, n.transport, np.value
+FROM shop_notification n
+JOIN shop_notification_params np ON n.id = np.notification_id
+WHERE
+  np.name = 'from'
+  AND
+  n.transport = 'email'
+
+SQL;
+        if ($source) {
+            $source = trim($source, '/*').'/*';
+            $sql .= " AND n.source=s:source";
+        }
+        $sql .= ' LIMIT 1';
+
+        if ($row = $notification_model->query($sql, compact('source'))->fetchRow()) {
+            $store_email = $row['value'];
+        }
+        if (empty($store_email)) {
+            $store_email = wa('shop')->getConfig()->getGeneralSettings('email');
+        }
+        return $store_email;
+    }
+}

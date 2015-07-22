@@ -89,15 +89,29 @@ $.order = {
                         order_id: $this.data('order-id')
                     },
                     function (data) {
-                        console.log(data);
                         $icon.removeClass('loading');
                         if (data.status == 'ok') {
                             $icon.addClass('yes');
+                            setTimeout(function () {
+                                $.order.reload();
+                            }, 1000);
+
                         } else {
+                            if(data.status=='fail'){
+                                if(data.errors){
+                                    var title = [];
+                                    for(var i =0; i<=data.errors.length;i++){
+                                        if(data.errors[i]) {
+                                            title.push(data.errors[i][0]);
+                                        }
+                                    }
+                                    $icon.attr('title',title.join(' \n'));
+                                }
+                            }
                             $icon.addClass('no');
                         }
                         setTimeout(function () {
-                            $icon.removeClass('yes no').addClass('email');
+                            $icon.removeClass('yes no').addClass('email').attr('title',null);
                         }, 5000);
                     },
                     'json'

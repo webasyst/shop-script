@@ -447,6 +447,10 @@ class shopConfig extends waAppConfig
                 $url = $app_url.'#/orders/id='.$l['params'].'/';
                 $logs[$l_id]['params_html'] = '<div class="activity-target"><a href="'.$url.'">'.
                     shopHelper::encodeOrderId($l['params']).'</a></div>';
+            } elseif (in_array($l['action'], array('page_add', 'page_edit', 'page_move'))) {
+                if (!empty($l['params_html'])) {
+                    $logs[$l_id]['params_html'] = str_replace('#/pages/', '?action=storefronts#/pages/', $l['params_html']);
+                }
             }
         }
         return $logs;

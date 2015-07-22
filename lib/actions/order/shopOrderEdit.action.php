@@ -93,6 +93,8 @@ class shopOrderEditAction extends waViewAction
             $order_total = $order['subtotal'] - $order['discount'];
             if (!empty($order['params']['shipping_id'])) {
                 $allow_external_for = array($order['params']['shipping_id']);
+            } else {
+                $allow_external_for = array();
             }
         } else {
             $allow_external_for = array();

@@ -31,7 +31,7 @@ class shopSettingsOrderStateSaveController extends waJsonController
 
         $id = $data['state']['id'];
         unset($data['state']['id']);
-        $this->config['states'] = !empty($this->config['states']) ? $this->config['states'] : array();
+        $this->config['states'] = ifempty($this->config['states'], array());
 
         if (!empty($data['state']['new_id']) && isset($availabe_states[$id]) && !$availabe_states[$id]['original']) {
             unset($this->config['states'][$id]);
@@ -43,12 +43,24 @@ class shopSettingsOrderStateSaveController extends waJsonController
         }
 
         $this->config['states'][$id] = $data['state'];
+
+        // Custom actions
         $this->config['actions'] = !empty($this->config['actions']) ? $this->config['actions'] + $data['new_actions'] : $data['actions'];
         foreach ($data['edited_actions'] as $action_id => $action) {
             if (isset($this->config['actions'][$action_id])) {
                 $this->config['actions'][$action_id] = $action;
             }
         }
+
+        // Options for original actions
+        foreach ($data['action_options'] as $action_id => $options) {
+            if (isset($this->config['actions'][$action_id])) {
+                foreach ($options as $name => $value) {
+                    $this->config['actions'][$action_id]['options'][$name] = $value;
+                }
+            }
+        }
+
         if (!shopWorkflow::setConfig($this->config)) {
             throw new waException(_w("Error when save config"));
         }
@@ -83,12 +95,12 @@ class shopSettingsOrderStateSaveController extends waJsonController
         $ids = !empty($this->config['new_actions']) ? array_keys($this->config['new_actions']) : array();
 
         if (!empty($data['edited_actions'])) {
-            foreach (array_unique(array_keys($data['edited_actions'])) as $action_id)
+            foreach ($data['edited_actions'] as $action_id => $action)
             {
                 if (!$action_id) {
                     $this->errors['edited_actions'][$action_id] = _w('Empty action ID');
                 }
-                if (!$data['edited_actions'][$action_id]['name']) {
+                if (!$action['name']) {
                     $this->errors['edited_actions'][$action_id] = _w('Empty action name');
                 }
                 if (strlen($action_id) > 32) {
@@ -130,7 +142,13 @@ class shopSettingsOrderStateSaveController extends waJsonController
                 unset($action['checked']);
             }
         }
-        return array('state' => $state, 'new_actions' => $new_actions, 'edited_actions' => $edited_actions);
+
+        return array(
+            'state' => $state,
+            'new_actions' => $new_actions,
+            'edited_actions' => $edited_actions,
+            'action_options' => $this->getActionOptions(),
+        );
     }
 
     public function getNewActions()
@@ -145,6 +163,18 @@ class shopSettingsOrderStateSaveController extends waJsonController
             }
         }
         return $actions;
+    }
+
+    public function getActionOptions()
+    {
+        $result = array();
+        $available_actions = $this->getWorkflow()->getAvailableActions();
+        foreach(waRequest::post('action_options', array(), 'array') as $action_id => $settings) {
+            if (is_array($settings) && !empty($available_actions[$action_id])) {
+                $result[$action_id] = $settings;
+            }
+        }
+        return $result;
     }
 
     public function getEditedActions()

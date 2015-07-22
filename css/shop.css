@@ -453,6 +453,8 @@ table#product-list.zebra a { display: inline; }
 #product-list .show-on-hover i { vertical-align: baseline; }
 #product-list tr:hover .show-on-hover,
 #product-list li:hover .show-on-hover { visibility: visible; opacity: 1; }
+#product-list .editable:hover { background: #ffa; }
+#product-list .not-editable:hover { background: rgba(0,0,0,.07); color: #555; }
 
 .s-alien a { color: #79d; }
 .s-alien span,

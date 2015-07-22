@@ -51,11 +51,13 @@ class shopOrderSendprintformController extends waJsonController
                         /**
                          * @var waShipping|waPayment $plugin
                          */
+                        $state_id = ifset($order['state_id']);
+                        $raw_order = $order;
                         $order = shopPayment::getOrderData($order, $plugin);
                         $forms = $plugin->getPrintForms($order);
                         if (!isset($forms[$form])) {
                             $this->setError('Printform not found');
-                        } elseif (empty($forms[$form]['emailprintform'])) {
+                        } elseif (!isset($forms[$form]['emailprintform'])) {
                             $this->setError('Plugin not support sending via email');
                         } else {
                             if ($order->contact_email) {
@@ -63,20 +65,30 @@ class shopOrderSendprintformController extends waJsonController
                                 $mail->setBody($plugin->displayPrintForm($form, $order));
                                 $mail->setSubject(sprintf(_w('Printform %s for order %s'), $forms[$form]['name'], $order->id_str));
                                 $mail->setTo($order->contact_email, $order->contact_name);
-                                $from = $this->getConfig()->getGeneralSettings('email');
-                                $mail->setFrom($from, $this->getConfig()->getGeneralSettings('name'));
+
+                                $from = shopHelper::getStoreEmail(ifempty($raw_order['params']['storefront']));
+
+                                $mail->setFrom($from);
                                 if ($mail->send()) {
-                                    $log = sprintf(_w("Printform <strong>%s</strong> sent to customer."), $forms[$form]['name']);
-                                    $order_log_model = new shopOrderLogModel();
-                                    $order_log_model->add(array(
+                                    $text = sprintf('<i class="icon16 email" title="%s"></i>', htmlentities($order->contact_email, ENT_QUOTES, 'utf-8'));
+                                    $text .= sprintf(_w("Printform <strong>%s</strong> sent to customer."), $forms[$form]['name']);
+
+                                    $log = array(
                                         'order_id'        => $order->id,
-                                        'contact_id'      => null,
+                                        'contact_id'      => wa()->getUser()->getId(),
                                         'action_id'       => '',
-                                        'text'            => '<i class="icon16 email"></i> '.$log,
-                                        'before_state_id' => $order->state_id,
-                                        'after_state_id'  => $order->state_id,
-                                    ));
+                                        'text'            => $text,
+                                        'before_state_id' => $state_id,
+                                        'after_state_id'  => $state_id,
+                                    );
+                                    $order_log_model = new shopOrderLogModel();
+                                    $order_log_model->add($log);
+                                    $this->response = $log;
+                                } else {
+                                    $this->setError(_w('Error sending message to client. Message is not sent.'));
                                 }
+                            } else {
+                                $this->setError(_w('Error sending message to client. Message is not sent.'));
                             }
                         }
 

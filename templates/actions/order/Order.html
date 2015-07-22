@@ -43,7 +43,7 @@
                         <label>
                             <input type="checkbox" checked="true" value="{$printable_doc.url|escape}" data-name="{$plugin_id}" data-target="_printform_{$plugin_id}_{$order.id}">
                             {$printable_doc.name|escape}
-                            {if !empty($printable_doc.emailprintform)}
+                            {if !empty($printable_doc.mail_url)}
                                 <a href="#" class="inline js-printable-docs-send" data-order-id="{$order.id}" data-url="{$printable_doc.mail_url|escape}" title="[`Email this form to customer`]"><i class="icon16 email on-hover-only"></i></a>
                             {/if}
                         </label>

@@ -2292,16 +2292,26 @@ editClick:(function ($) {
             self.call('profileLazyInit', []);
         },
         profileLazyInit: function () {
+            var $salesChart = $('#product-sales-plot');
+            
             if (sales_data && sales_data.length) {
+                if (!$salesChart.data('graph_rendered')) {
 
-                if (!$('#product-sales-plot').data('graph_rendered')) {
-                    //Render graph
-                    showSalesGraph(sales_data, typeof cash_type == 'undefined' ? null : cash_type);
-                    $('#product-sales-plot').data('graph_rendered', 1);
+                    var renderChart = function() {
+                        var is_rendered = ( $salesChart.length && $salesChart.width() > 0 );
+                        if (is_rendered) {
+                            //Render graph
+                            showSalesGraph(sales_data, typeof cash_type == 'undefined' ? null : cash_type);
+                            $salesChart.data('graph_rendered', 1);
+                        } else {
+                            setTimeout( renderChart, 1000 );
+                        }
+                    };
+                    renderChart();
                 }
 
             } else {
-                $('#product-sales-plot').remove();
+                $salesChart.remove();
             }
 
             if (sku_plot_data && sku_plot_data.length && sku_plot_data[0] && sku_plot_data[0].length) {

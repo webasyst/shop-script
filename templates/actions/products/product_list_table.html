@@ -130,7 +130,7 @@ table#product-list td.editor-on form div { overflow: visible; text-align: left; 
 </style> {* !!! move to .css ?.. *}
 
 <script id="template-list-stock-editor-many" type="text/html">
-    <form><div>{strip}
+    <form><div class="nowrap">{strip}
         {literal}
             <input type="hidden" name="product_id" value="{%=o.product_id%}">
         {/literal}
@@ -140,28 +140,28 @@ table#product-list td.editor-on form div { overflow: visible; text-align: left; 
         {/foreach}
         <br>
         <input type="submit" value="[`Save`]">
-        [`or`] <a href="javascript:void(0)" class="cancel">[`cancel`]</a>
+        <a href="javascript:void(0)" class="cancel gray large">&times;</a>
     {/strip}</div></form>
 </script>
 
 <script id="template-list-stock-editor-one" type="text/html">
-    <form><div>{strip}{literal}
+    <form><div class="nowrap">{strip}{literal}
         <input type="hidden" name="product_id" value="{%=o.product_id%}">
         <input type="text" class="short number" name="stock" value="{%=o.value%}" placeholder="∞">
         <br>
         <input type="submit" value="[`Save`]">
-        [`or`] <a href="javascript:void(0)" class="cancel">[`cancel`]</a>
+        <a href="javascript:void(0)" class="cancel gray large">&times;</a>
     {/literal}{/strip}</div></form>
 </script>
 
 <script id="template-list-price-editor-one" type="text/html">
-    <form><div>{strip}{literal}
+    <form><div class="nowrap">{strip}{literal}
         <input type="hidden" name="product_id" value="{%=o.product_id%}">
         <input type="text" class="short number" name="price" value="{%=o.value%}">
         {%=o.currency%}
         <br>
         <input type="submit" value="[`Save`]">
-        [`or`] <a href="javascript:void(0)" class="cancel">[`cancel`]</a>
+        <a href="javascript:void(0)" class="cancel gray large">&times;</a>
     {/literal}{/strip}</div></form>
 </script>
 
