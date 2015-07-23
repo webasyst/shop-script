@@ -2,8 +2,6 @@
 
 class shopReviewsWidget extends waWidget
 {
-    protected $widget;
-
     public function defaultAction()
     {
         $prm = new shopProductReviewsModel();

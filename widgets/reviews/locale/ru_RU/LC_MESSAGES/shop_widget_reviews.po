@@ -1,0 +1,37 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: shop/widgets/reviews\n"
+"POT-Creation-Date: 2015-07-22 17:37+0300\n"
+"PO-Revision-Date: \n"
+"Last-Translator: shop/widgets/reviews\n"
+"Language-Team: shop/widgets/reviews\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: .\n"
+"Language: ru_RU\n"
+"X-Generator: Poedit 1.8.2\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+#: /wa-apps/shop/widgets/reviews/templates/Default.html:24
+msgid "There are no reviews in your shop yet."
+msgstr "Отзывы о товарах еще не публиковались."
+
+#: /wa-apps/shop/widgets/reviews/templates/Default.html:31
+msgid "Show all reviews"
+msgstr "Показать все отзывы"
+
+#: /wa-apps/shop/widgets/reviews/templates/Default.html:36
+msgid "Latest reviews"
+msgstr "Последние отзывы"
+
+#: /wa-apps/shop/widgets/reviews/templates/Default.html:69
+msgid "on <a href=\"%s\">%s</a>"
+msgstr "к товару <a href=\"%s\">%s</a>"
+
+#: /wa-apps/shop/widgets/reviews/lib/config/widget.php:4
+msgid "Reviews"
+msgstr "Отзывы"
