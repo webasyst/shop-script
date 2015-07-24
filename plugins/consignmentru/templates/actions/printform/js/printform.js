@@ -3,19 +3,19 @@
  */
 if (!lang_strings) {
     var lang_strings = {
-        'edit_link' : 'edit link',
-        'field_title' : 'DoubleClick to edit',
-        'save_link' : 'save'
+        'edit_link': 'edit link',
+        'field_title': 'DoubleClick to edit',
+        'save_link': 'save'
     }
 }
 Printform = {
-    edit : function(node) {
+    edit: function (node) {
         if (node.edited != 'edited') {
             node.edited = 'edited';
             var value = node.innerHTML.replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ');
             var clean_value = value.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
             node.innerHTML = '';
-            inputTag = window.document.createElement('input');
+            var inputTag = window.document.createElement('input');
             inputTag.type = "text";
             inputTag.value = clean_value;
             inputTag.className = 'text';
@@ -26,10 +26,10 @@ Printform = {
             saveTag = window.document.createElement('input');
             saveTag.type = "button";
             saveTag.value = lang_strings['save_link'];
-            saveTag.onclick = function() {
+            saveTag.onclick = function () {
                 Printform.save(node);
                 return false;
-            }
+            };
             node.appendChild(saveTag);
 
             printTag = window.document.createElement('span');
@@ -41,7 +41,7 @@ Printform = {
             inputTag.focus();
         }
     },
-    editAll : function(class_name) {
+    editAll: function (class_name) {
         var els = document.getElementsByTagName('*');
         var elsLen = els.length;
         var pattern = new RegExp("(^|\\s)" + class_name + "(\\s|$)");
@@ -51,7 +51,7 @@ Printform = {
             }
         }
     },
-    save : function(node) {
+    save: function (node) {
         if (node.edited == 'edited') {
             node.edited = '';
             node.innerHTML = node.firstChild.value.replace(/\</g, '&lt;').replace(/\>/g, '&gt;').replace(/\s+/g, '&nbsp;');
@@ -59,7 +59,7 @@ Printform = {
         }
 
     },
-    cancel : function(node) {
+    cancel: function (node) {
         if (node.edited == 'edited') {
             node.edited = '';
             node.innerHTML = node.firstChild.defaultValue.replace(/\</g, '&lt;').replace(/\>/g, '&gt;').replace(/\s+/g, '&nbsp;');
@@ -67,7 +67,7 @@ Printform = {
         }
 
     },
-    saveAll : function(class_name) {
+    saveAll: function (class_name) {
         var els = document.getElementsByTagName('*');
         var elsLen = els.length;
         var pattern = new RegExp("(^|\\s)" + class_name + "(\\s|$)");
@@ -77,7 +77,7 @@ Printform = {
             }
         }
     },
-    init : function(class_name) {
+    init: function (class_name) {
         var els = document.getElementsByTagName('*');
         var elsLen = els.length;
         var pattern = new RegExp("(^|\\s)" + class_name + "(\\s|$)");
@@ -85,26 +85,28 @@ Printform = {
         for (var i = 0; i < elsLen; i++) {
             if (pattern.test(els[i].className)) {
                 founded++;
-                els[i].ondblclick = function() {
+                els[i].ondblclick = function () {
                     this.style.backgroundColor = '';
                     Printform.edit(this)
                 };
-                els[i].onmouseover = function() {
+                els[i].onmouseover = function () {
                     this.style.backgroundColor = '#FFC';
                 };
-                els[i].onmouseout = function() {
+                els[i].onmouseout = function () {
                     this.style.backgroundColor = '';
-                }
+                };
                 els[i].title = lang_strings['field_title'];
-                els[i].onkeydown = function(e) {
+                els[i].onkeydown = function (e) {
                     var code = null;
                     try {
-                        if (window.event)
+                        if (window.event) {
                             code = window.event.keyCode;
-                        else if (e.which)
+                        } else if (e.which) {
                             code = e.which;
-                        else if (e.keyCode)
+                        } else if (e.keyCode) {
                             code = e.keyCode;
+                        }
+
                     } catch (e) {
                         alert(e.message);
                     }
@@ -139,17 +141,17 @@ Printform = {
             var printButton = window.document.getElementById('print_button');
             if (printButton) {
                 var old_function = printButton.onclick;
-                printButton.onclick = function() {
+                printButton.onclick = function () {
                     Printform.saveAll(class_name);
                     old_function();
                 };
                 linkTag = window.document.createElement('a');
                 linkTag.href = page_url + '#edit';
-                linkTag.innerHTML = lang_strings['edit_link'];;
+                linkTag.innerHTML = lang_strings['edit_link'];
                 linkTag.style.display = 'inline';
                 linkTag.style.margin = '60px 3px';
                 linkTag.disabled = true;
-                linkTag.onclick = function() {
+                linkTag.onclick = function () {
                     Printform.editAll(class_name);
                     return false;
                 };
@@ -157,13 +159,13 @@ Printform = {
                 printButton.parentNode.appendChild(linkTag);
             }
 
-            window.document.body.onbeforeprint = function() {
+            window.document.body.onbeforeprint = function () {
                 Printform.saveAll(class_name);
             }
         }
     }
-}
+};
 
 /**
-* {/literal}
-*/
+ * {/literal}
+ */
