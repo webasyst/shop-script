@@ -111,7 +111,7 @@
                                 <option value="wavatar" {if $gravatar_default == 'wavatar'}selected="selected"{/if}>[`generated faces with differing features and backgrounds`]</option>
                                 <option value="retro" {if $gravatar_default == 'retro'}selected="selected"{/if}>[`awesome generated, 8-bit arcade-style pixelated faces`]</option>
                             </select>
-                            <img id='s-settings-general-gravatar' {if $saved}src="{shopHelper::getGravatar($wa->user('email', 'default'), 50, $gravatar_default)}"{/if} style='width: 50px; {if !$saved}display:none;{else}display:block;{/if} margin-top: 10px;'>
+                            <img id="s-settings-general-gravatar" class="userpic" {if $saved}src="{shopHelper::getGravatar($wa->user('email', 'default'), 50, $gravatar_default)}"{/if} style='width: 50px; {if !$saved}display:none;{else}display:block;{/if} margin-top: 10px;'>
                         </label>
                     </div>
                 </div>

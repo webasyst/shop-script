@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.7.5\n"
+"X-Generator: Poedit 1.8.2\n"
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
 "Language: en_US\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -10538,4 +10538,71 @@ msgstr ""
 
 #: /wa-apps/shop/lib/classes/shopPaymentDummy.class.php:17
 msgid "Manual payment"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/include.category.og.html:18
+msgid "Use these meta tags for social sharing too"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStates.html:244
+#: /wa-apps/shop/js/settings/order_states.js:144
+msgid "Order action will be deleted. Are you sure?"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:264
+msgid "An array containing information about current backend user (agent) sending a message"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:272
+msgid "User full name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:280
+msgid "User first name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:288
+msgid "User last name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:296
+msgid "User email"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:304
+msgid "User phone number"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:322
+msgid "Store name (as defined in General settings)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:330
+msgid "Store phone number"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:338
+msgid "Store primary email"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:346
+msgid "Store working days, e.g. Sun, Mon, Wed—Fri"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:354
+msgid "Start of store working hours, e.g. 9:00 am"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:362
+msgid "End of store working hours, e.g. 5:00 pm"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/order/shopOrderSendprintform.controller.php:88
+#: /wa-apps/shop/lib/actions/order/shopOrderSendprintform.controller.php:91
+#: /wa-apps/shop/lib/workflow/shopWorkflowMessageAction.class.php:240
+msgid "Error sending message to client. Message is not sent."
+msgstr ""
+
+#: /wa-apps/shop/themes/default/header.html:43
+msgid "You did not create any product categories yet."
 msgstr ""

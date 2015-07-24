@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.7.5\n"
+"X-Generator: Poedit 1.8.2\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -5354,8 +5354,7 @@ msgstr "Все доступные способы оплаты"
 
 # msgid "Shipping options"
 # msgstr "Способы доставки"
-#: /wa-apps/shop/lib/config/site.php:87
-#: /wa-apps/shop/lib/config/site.php:91
+#: /wa-apps/shop/lib/config/site.php:87 /wa-apps/shop/lib/config/site.php:91
 msgid "All available shipping options"
 msgstr "Все доступные способы доставки"
 
@@ -6406,8 +6405,7 @@ msgstr "Новый профиль"
 msgid "Perform action to all selected orders?"
 msgstr "Выполнить действие со всеми выбранными заказами?"
 
-#: /wa-apps/shop/js/product/list.js:407
-#: /wa-apps/shop/js/product/list.js:568
+#: /wa-apps/shop/js/product/list.js:407 /wa-apps/shop/js/product/list.js:568
 msgid "Drag products here"
 msgstr "Перетащите товары сюда"
 
@@ -6510,8 +6508,7 @@ msgstr "Автоматически перемещать товар вниз сп
 msgid "When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more."
 msgstr "Товары, которых нет на складе, будут автоматически перемещены вниз всех списков товаров на витрине интернет-магазина: в результатах поиска, в списках товаров внутри категорий, в результатах фильтрации товаров и т. д."
 
-#: /wa-apps/shop/lib/config/site.php:177
-#: /wa-apps/shop/lib/config/site.php:181
+#: /wa-apps/shop/lib/config/site.php:177 /wa-apps/shop/lib/config/site.php:181
 #: /wa-apps/shop/lib/config/site.php:182
 msgid "Setting <em>$available_only = true</em> will automatically exclude all out-of-stock products from the return"
 msgstr "Настройка <em>$available_only = true</em> автоматически исключит из результата все товары, которых нет на складе."
@@ -9202,8 +9199,7 @@ msgstr "Главная страница"
 msgid "Social sharing Title (og:title)"
 msgstr "Заголовок (og:title)"
 
-#: /wa-apps/shop/lib/config/site.php:41
-#: /wa-apps/shop/lib/config/site.php:58
+#: /wa-apps/shop/lib/config/site.php:41 /wa-apps/shop/lib/config/site.php:58
 msgid "For detailed information on Open Graph parameters and examples please refer to <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
 msgstr "Подробная информация о возможных вариантах значений параметров Open Graph опубликована на сайте протокола <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
 
@@ -9243,3 +9239,58 @@ msgstr "Каждый способ доставки можно установит
 msgid "Manual payment"
 msgstr "Оплата в ручном режиме"
 
+#: /wa-apps/shop/templates/actions/dialog/include.category.og.html:18
+msgid "Use these meta tags for social sharing too"
+msgstr "Для соцсетей использовать эти же заголовки"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:264
+msgid "An array containing information about current backend user (agent) sending a message"
+msgstr "Массив данных пользователя бекенда (менеджера), который отправляет сообщение"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:272
+msgid "User full name"
+msgstr "Полное имя пользователя"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:280
+msgid "User first name"
+msgstr "Имя пользователя"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:288
+msgid "User last name"
+msgstr "Фамилия пользователя"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:296
+msgid "User email"
+msgstr "Email пользователя"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:304
+msgid "User phone number"
+msgstr "Телефон пользователя"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:322
+msgid "Store name (as defined in General settings)"
+msgstr "Название магазина, заданное в общих настройках"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:330
+msgid "Store phone number"
+msgstr "Номер телефона магазина"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:338
+msgid "Store primary email"
+msgstr "Основной email магазина"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:346
+msgid "Store working days, e.g. Sun, Mon, Wed—Fri"
+msgstr "Дни работы магазина, например, Пн—Пт"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:354
+msgid "Start of store working hours, e.g. 9:00 am"
+msgstr "Начало рабочего дня, например, 10:00"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsOrderStatesActionTemplateHelp.html:362
+msgid "End of store working hours, e.g. 5:00 pm"
+msgstr "Конец рабочего дня, например, 19:00"
+
+#: /wa-apps/shop/themes/default/header.html:43
+msgid "You did not create any product categories yet."
+msgstr "Вы еще не создали ни одной категории товаров."

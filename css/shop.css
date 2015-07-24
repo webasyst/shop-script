@@ -456,6 +456,10 @@ table#product-list.zebra a { display: inline; }
 #product-list .editable:hover { background: #ffa; }
 #product-list .not-editable:hover { background: rgba(0,0,0,.07); color: #555; }
 
+table#product-list td.s-product-price, table#product-list td.s-product-stock { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+table#product-list td.editor-on form div { overflow: visible; text-align: left; }
+table#product-list td.editor-on form { overflow: visible; }
+
 .s-alien a { color: #79d; }
 .s-alien span,
 .s-alien strong { color: #aaa; }

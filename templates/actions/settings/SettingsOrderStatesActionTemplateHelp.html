@@ -1,56 +1,6 @@
 <div class="block s-cheatsheet">
     <div class="fields">
-
-        <!-- SHOP SETTINGS -->
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$wa->shop->settings('name')&#125;
-            </div>
-            <div class="value no-shift">
-                [`Shop name from general settings`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$wa->shop->settings('phone')&#125;
-            </div>
-            <div class="value no-shift">
-                [`Shop phone`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$wa->shop->settings('email')&#125;
-            </div>
-            <div class="value no-shift">
-                [`Shop email`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$workhour_days&#125;
-            </div>
-            <div class="value no-shift">
-                [`Shop working days, e.g.: Sun, Mon, Wed—Fri`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$workhour_from&#125;
-            </div>
-            <div class="value no-shift">
-                [`Start of shop working hours, e.g.: 9:00`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$workhour_to&#125;
-            </div>
-            <div class="value no-shift">
-                [`End of shop working hours, e.g.: 18:00`]
-            </div>
-        </div>
-
+        
         <!-- ORDER -->
         <div class="field">
             <div class="name bold">
@@ -305,15 +255,114 @@
             </div>
         </div>
 
-        <!-- MANAGER -->
+        <!-- USER -->
         <div class="field">
             <div class="name bold">
-                &#123;$manager&#125;
+                &#123;$user&#125;
             </div>
             <div class="value no-shift">
-                [`An array containing information about current backend user sending message. Same structure as $customer above.`]
+                [`An array containing information about current backend user (agent) sending a message`]
             </div>
         </div>
+        <div class="field s-sub-field">
+            <div class="name">
+                &#123;$user.name&#125;
+            </div>
+            <div class="value no-shift">
+                [`User full name`]
+            </div>
+        </div>
+        <div class="field s-sub-field">
+            <div class="name">
+                &#123;$user.firstname&#125;
+            </div>
+            <div class="value no-shift">
+                [`User first name`]
+            </div>
+        </div>
+        <div class="field s-sub-field">
+            <div class="name">
+                &#123;$user.lastname&#125;
+            </div>
+            <div class="value no-shift">
+                [`User last name`]
+            </div>
+        </div>
+        <div class="field s-sub-field">
+            <div class="name">
+                &#123;$user->get('email', 'default')&#125;
+            </div>
+            <div class="value no-shift">
+                [`User email`]
+            </div>
+        </div>
+        <div class="field s-sub-field">
+            <div class="name">
+                &#123;$user->get('phone', 'default')&#125;
+            </div>
+            <div class="value no-shift">
+                [`User phone number`]
+            </div>
+        </div>
+        <div class="field s-sub-field">
+            <div class="name">
+                &#123;$user. … &#125;
+            </div>
+            <div class="value no-shift">
+                [`The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step`]
+            </div>
+        </div>
+        
+        <!-- SHOP SETTINGS -->
+        <div class="field">
+            <div class="name bold">
+                &#123;$wa->shop->settings('name')&#125;
+            </div>
+            <div class="value no-shift">
+                [`Store name (as defined in General settings)`]
+            </div>
+        </div>
+        <div class="field s-sub-field">
+            <div class="name">
+                &#123;$wa->shop->settings('phone')&#125;
+            </div>
+            <div class="value no-shift">
+                [`Store phone number`]
+            </div>
+        </div>
+        <div class="field s-sub-field">
+            <div class="name">
+                &#123;$wa->shop->settings('email')&#125;
+            </div>
+            <div class="value no-shift">
+                [`Store primary email`]
+            </div>
+        </div>
+        <div class="field s-sub-field">
+            <div class="name">
+                &#123;$workhour_days&#125;
+            </div>
+            <div class="value no-shift">
+                [`Store working days, e.g. Sun, Mon, Wed—Fri`]
+            </div>
+        </div>
+        <div class="field s-sub-field">
+            <div class="name">
+                &#123;$workhour_from&#125;
+            </div>
+            <div class="value no-shift">
+                [`Start of store working hours, e.g. 9:00 am`]
+            </div>
+        </div>
+        <div class="field s-sub-field">
+            <div class="name">
+                &#123;$workhour_to&#125;
+            </div>
+            <div class="value no-shift">
+                [`End of store working hours, e.g. 5:00 pm`]
+            </div>
+        </div>
+
     </div>
     <div class="clear-both"></div>
 </div>

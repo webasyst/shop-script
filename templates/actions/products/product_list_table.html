@@ -123,12 +123,6 @@
     {/literal}
 </script>
 
-<style>
-table#product-list td.s-product-price, table#product-list td.s-product-stock { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
-table#product-list td.editor-on form { overflow: visible; }
-table#product-list td.editor-on form div { overflow: visible; text-align: left; }
-</style> {* !!! move to .css ?.. *}
-
 <script id="template-list-stock-editor-many" type="text/html">
     <form><div class="nowrap">{strip}
         {literal}
@@ -165,7 +159,6 @@ table#product-list td.editor-on form div { overflow: visible; text-align: left; 
     {/literal}{/strip}</div></form>
 </script>
 
-
 {*
  * Product list settings dialog
  *}
@@ -189,13 +182,10 @@ table#product-list td.editor-on form div { overflow: visible; text-align: left; 
                         <div class="value"><input type="checkbox" checked disabled> [`Name`]</div>
                         <div class="value"><input type="checkbox" checked disabled> [`Price`]</div>
                         <div class="value"><input type="checkbox" checked disabled> [`In stock`]</div>
-
-                        {foreach $additional_columns as $c}
-                            <div class="value"><label>
-                                <input type="checkbox" name="columns[{$c.id}]" value="1"{if $c.enabled} checked{/if}>
-                                {$c.name|escape}
-                            <label></div>
-                        {/foreach}
+                        <div class="hidden template value feature-checkbox-wrapper"><label>
+                            <input type="checkbox" name="columns[%ID%]" value="1">
+                            <span class="column-name"></span>
+                        <label></div>
                     </div>
                 </div>
 
@@ -211,11 +201,30 @@ table#product-list td.editor-on form div { overflow: visible; text-align: left; 
     </div>
     </form>
 </div>
-{/if}
 <script>(function() { "use strict";
+    var additional_columns = {$additional_columns|json_encode};
+    var additional_columns_count = {$additional_columns|count};
+
+    var features_initialized = false;
 
     var $dialog = $('#product-list-settings-dialog');
     $dialog.length && $('#product-list-table-settings').click(function() {
+
+        // Initialize features list (or autocomplete) if not initialized yet
+        if (!features_initialized) {
+            features_initialized = true;
+            var $template = $dialog.find('.feature-checkbox-wrapper.template');
+            var new_elements = $.map(additional_columns, function(col) {
+                var $wr = $template.clone().removeClass('hidden template');
+                var $cb = $wr.find('input:checkbox');
+                $cb[0].name = $cb[0].name.replace('%ID%', col.id);
+                $cb[0].checked = col.enabled;
+                $wr.find('.column-name').text(col.name);
+                return $wr[0];
+            });
+            $template.before($(new_elements));
+        }
+
         $dialog.waDialog({
             disableButtonsOnSubmit: true,
             onSubmit: function () {
@@ -232,3 +241,4 @@ table#product-list td.editor-on form div { overflow: visible; text-align: left; 
     });
 
 })();</script>
+{/if}
