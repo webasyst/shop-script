@@ -1,5 +1,5 @@
 {if !$cart.count}
-    <nav class="content-nav-wrapper transparent" role="navigation">
+    <nav class="content-nav-wrapper" role="navigation">
         <div class="nav-group">
             <div class="nav-list">
                 <div class="nav-item back-nav-item">
@@ -122,6 +122,9 @@
                     {if shopDiscounts::isEnabled('coupons')}
                         <div {if !$coupon_code}style="display: none;"{/if} id="apply-coupon-code">
                             <div class="header-block">[`Coupon code`]</div>
+                            {if $coupon_code && empty($coupon_discount)}
+                                <div class="errormsg">[`Invalid coupon code`]</div>
+                            {/if}
                             <div class="">
                                 <input type="text" name="coupon_code" value="{$coupon_code|escape}">
                                 <input type="submit" value="[`Apply`]" class="gray small">

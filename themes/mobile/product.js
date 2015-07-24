@@ -96,8 +96,14 @@ var Product = ( function($) {
             this.form.find(".skus input:radio:enabled:first").attr('checked', 'checked');
         }
 
-        this.form.submit(function () {
-            var f = $(this);
+        this.form.submit( function () {
+            var f = $(this),
+                $button = self.add2cart.find(".submit-wrapper");
+
+            // Show refreshing icon over button
+            if (typeof toggleRefreshIcon === "function") {
+                toggleRefreshIcon($button, "show");
+            }
 
             $.post(f.attr('action') + '?html=1', f.serialize(), function (response) {
                 if (response.status == 'ok') {
@@ -116,6 +122,11 @@ var Product = ( function($) {
                     // Update Cart Counter at Header Place
                     if (typeof updateHeaderCartCount === "function") {
                         updateHeaderCartCount( response );
+                    }
+
+                    // restore button
+                    if (typeof toggleRefreshIcon === "function") {
+                        toggleRefreshIcon($button, "hide");
                     }
 
                 } else if (response.status == 'fail') {
@@ -383,7 +394,7 @@ var Product = ( function($) {
                 images = images.slice(k).concat(images.slice(0, k));
             }
         } else {
-            images.push({href: $(this).attr('href')});
+            images.push({href: $('#product-core-image a:first').attr('href')||''});
         }
         $.swipebox(images, {
             useSVG: false,
@@ -395,8 +406,8 @@ var Product = ( function($) {
     };
 
     var getImageHref = function($preview_image, $main_image) {
-        var size = $main_image.attr('src').replace(/^.*\/[0-9]+\.(.*)\..*$/, '$1'),
-            src = $preview_image.attr('src').replace(/^(.*\/[0-9]+\.)(.*)(\..*)$/, '$1' + size + '$3');
+        var size = $main_image.attr('src').replace(/^.*\/[^\/]+\.(.*)\.[^\.]*$/, '$1'),
+            src = $preview_image.attr('src').replace(/^(.*\/[^\/]+\.)(.*)(\.[^\.]*)$/, '$1' + size + '$3');
 
         return src;
     };

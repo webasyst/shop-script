@@ -7,6 +7,9 @@
         current_provider = $provider.find(".selected").attr('data-provider');
 
     var initialize = function() {
+        //
+        checkAddedReview();
+
         // Show Captcha
         showCaptcha();
 
@@ -49,6 +52,26 @@
             return false;
         });
 
+    };
+
+    var checkAddedReview = function() {
+        if (sessionStorage) {
+            var new_review_id = sessionStorage.getItem("review-id"),
+                activeClass = "active-review-item";
+
+            if (new_review_id) {
+                // Marking
+                $(".review-item").each( function() {
+                    var $review = $(this);
+                    if ( $review.data("id") == new_review_id ) {
+                        $review.addClass(activeClass);
+                    }
+                });
+
+                // Restore Storage
+                sessionStorage.setItem("review-id", false);
+            }
+        }
     };
 
     var checkHash = function() {
@@ -137,7 +160,11 @@
                 showErrors($form, r.errors);
                 refreshCaptcha();
             } else {
-                location.reload();
+                // Save new review ID to sStorage
+                if (sessionStorage) { sessionStorage.setItem("review-id", r.data.id); }
+
+                // Refresh without hash
+                location.href = location.pathname;
             }
         },
         'json');
