@@ -101,7 +101,8 @@ class shopFrontendProductAction extends shopFrontendAction
         }
 
         if (!isset($product->skus[$product->sku_id])) {
-            $product->sku_id = $product->skus ? key($product->skus) : null;
+            $_skus = $product->skus;
+            $product->sku_id = $_skus ? key($_skus) : null;
         }
         if (!$product->skus) {
             $product->skus = array(

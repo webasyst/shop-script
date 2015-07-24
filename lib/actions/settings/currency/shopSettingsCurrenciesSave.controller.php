@@ -17,6 +17,7 @@ class shopSettingsCurrenciesSaveController extends waJsonController
                 'rounding' => ifempty($rounding),
                 'round_up_only' => $round_up_only,
             ));
+            $currency_model->deleteCache();
         }
     }
 }
