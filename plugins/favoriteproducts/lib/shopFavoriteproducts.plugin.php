@@ -68,5 +68,12 @@ EOJS;
         $fm = new shopFavoriteproductsPluginModel();
         $fm->deleteByField('product_id', $params['ids']); // !!! no index for this field, query may be slow
     }
+
+    /** Handler for `reset` event: truncate all shop tables and delete all settings */
+    public function reset()
+    {
+        $m = new waModel();
+        $m->query("TRUNCATE `shop_favoriteproducts`");
+    }
 }
 

@@ -14,6 +14,7 @@ return array(
         'backend_products' => 'backendProducts',
         'backend_product' => 'backendProduct',
         'product_delete' => 'productDelete',
+        'reset' => 'reset',
     ),
 );
 //EOF
