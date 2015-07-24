@@ -37,7 +37,7 @@
                     <div class="gallery" id="product-gallery">
                         {foreach $product.images as $image}
                             <div class="image{if $image.id == $product.image_id} selected{/if}">
-                                <a id="product-image-{$image.id}" href="#">{$wa->shop->productImgHtml(['id'=> $product.id, 'image_id' => $image.id, 'ext' => $image.ext, 'image_desc' => $image.description], '48x48', ['alt' => $product.name|cat:' - ':$image.description|escape])}</a>
+                                <a id="product-image-{$image.id}" href="#">{$wa->shop->imgHtml($image, '48x48')}</a>
                             </div>
                         {/foreach}
                     </div>
