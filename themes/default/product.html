@@ -34,7 +34,7 @@
     </nav>
 
     <!-- purchase -->
-    <div class="product-sidebar">
+    <div class="product-sidebar leadbox">
     
         <div class="cart" id="cart-flyer">
         
@@ -132,12 +132,12 @@
 
         <!-- categories -->
         {if count($product.categories) > 1}
-            <ul class="menu-h compact" id="product-categories">
-            [`Categories`]:
+            <p><em>
+                [`Categories`]:
                 {foreach $product.categories as $c}{if $c.status}
-                    <li><a href="{$wa->getUrl('/frontend/category', ['category_url' => $c.full_url])}">{$c.name|escape}</a></li>
+                    <a href="{$wa->getUrl('/frontend/category', ['category_url' => $c.full_url])}">{$c.name|escape}</a>
                 {/if}{/foreach}
-            </ul>
+            </em></p>
         {/if}
 
         <!-- tags -->

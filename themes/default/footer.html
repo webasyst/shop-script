@@ -1,7 +1,27 @@
+<aside class="currency-toggle">
+    {if count($currencies) > 1}
+        <select id="currency">
+            {$currency = $wa->shop->currency()}
+            {foreach $currencies as $c_code => $c}
+                <option value="{$c_code}" {if $c_code == $currency} selected{/if}>{$c.title}</option>
+            {/foreach}
+        </select>
+        <script>
+            $("#currency").change(function () {
+                var url = location.href;
+                if (url.indexOf('?') == -1) {
+                    url += '?';
+                } else {
+                    url += '&';
+                }
+                location.href = url + 'currency=' + $(this).val();
+            });
+        </script>
+    {/if}
+</aside>  
+
 <!-- plugin hook: 'frontend_footer' -->
 {* @event frontend_footer.%plugin_id% *}
 {foreach $frontend_footer as $_}{$_}{/foreach}
 
-<div class="poweredby" role="complementary">
-    [`<a href="http://www.shop-script.com/">Ecommerce software</a> by Webasyst`] <span class="dots" title="Webasyst"></span>
-</div>
+[`<a href="http://www.shop-script.com/">Ecommerce software</a> by Webasyst`]

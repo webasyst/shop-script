@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="2.3.1">
-    <name locale="en_US">Default 2.0</name>
-    <name locale="ru_RU">Дефолт 2.0</name>
+<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="3.0.0">
+    <name locale="en_US">Default 3.0</name>
+    <name locale="ru_RU">Дефолт 3.0</name>
     <files>
         <file path="index.html" parent="1">
         </file>
@@ -19,10 +19,6 @@
         <file path="header.html" custom="0">
     		<description locale="en_US">App specific header content</description>
     		<description locale="ru_RU">Содержимое «шапки» приложения</description>
-    	</file>
-    	<file path="banner.html" custom="0">
-    		<description locale="en_US">App specific banner content</description>
-    		<description locale="ru_RU">Контент в области баннера</description>
     	</file>
     	<file path="main.html">
             <description locale="en_US">Main storefront layout and navigation</description>
@@ -154,64 +150,126 @@
         </file>
     </files>
     <settings>
-        <setting var="category_nav_mode" control_type="radio">
-            <value>inline</value>
-            <name locale="ru_RU">Меню категорий товаров</name>
-            <name locale="en_US">Category navigation menu</name>
-            <options>
-                <option value="inline">
-                    <name locale="ru_RU">Горизонтальное</name>
-                    <name locale="en_US">Inline</name>
-                    <description locale="ru_RU">Рекомендуется, если в корне не более четырех-пяти категорий, и все они помещаются в один ряд.</description>
-                    <description locale="en_US">Great for menus with up to four or five top-level categories.</description>
-                </option>
-                <option value="dropdown">
-                    <name locale="ru_RU">Горизонтальное выпадающее</name>
-                    <name locale="en_US">Drop-down “Shop by Department”</name>
-                    <description locale="ru_RU">Выпадающее развернутое меню категорий товаров.</description>
-                    <description locale="en_US">Category list will be available under the "Shop by Department" header link.</description>
-                </option>
-                <option value="sidebar">
-                    <name locale="ru_RU">Боковое</name>
-                    <name locale="en_US">Sidebar</name>
-                    <description locale="ru_RU">Рекомендуется для больших многоуровневых деревьев категорий.</description>
-                    <description locale="en_US">Great for large multi-level category hierarchical menus.</description>
-                </option>
-            </options>
+    
+<setting var="divider_storefront" control_type="group_divider">
+            <value></value>
+            <name locale="en_US">Storefront</name>
+            <name locale="ru_RU">Витрина</name>
         </setting>
         <setting var="homepage_bxslider_mode" control_type="radio">
-            <value>products</value>
+            <value>promos</value>
             <name locale="ru_RU">Слайдер на витрине интернет-магазина</name>
             <name locale="en_US">Storefront homepage slider</name>
             <options>
+                <option value="promos">
+                    <name locale="ru_RU">Промо-карточки</name>
+                    <name locale="en_US">Promo cards</name>
+                    <description locale="ru_RU">В слайдере будут показаны промо-карточки, созданные в разделе Товары > Промо</description>
+                    <description locale="en_US">Promo cards will be displayed on the main slider (use Products > Promos to create new promo cards)</description>
+                </option>
                 <option value="products">
-                    <name locale="ru_RU">Товары-бестселлеры</name>
-                    <name locale="en_US">Best-selling products</name>
-                    <description locale="ru_RU">В слайдере будут показаны товары из списка с идентификатором bestsellers. Заменить идентификатор на любой другой можно в шаблоне дизайна home.html.</description>
-                    <description locale="en_US">Products will be taken from a product set with “bestsellers” ID. Replace bestsellers with any other product set ID in home.html template.</description>
+                    <name locale="ru_RU">Товары из списка «Промо»</name>
+                    <name locale="en_US">Products from “Featured on homepage” product set</name>
+                    <description locale="ru_RU">В слайдере будут показаны товары из списка «Промо», идентификатор которого задан настройкой ниже. Новые списки товаров создаются в разделе Товары > Списки.</description>
+                    <description locale="en_US">Slider will present products from a set which ID is configured in the setting below. New product sets can be created in Products > Sets.</description>
                 </option>
-                <option value="products_last_photo_as_background">
-                    <name locale="ru_RU">Товары-бестселлеры: последняя фото в качестве фона</name>
-                    <name locale="en_US">Best-selling products: last photo as a background</name>
-                    <description locale="ru_RU">В слайдере также будут показаны товары из списка с идентификатором bestsellers, но в качестве изображения будет взята не основная, а последняя по счету фотография товара, причем отображаться она будет как фоновое изображение по площади всего слайдера.</description>
-                    <description locale="en_US">Products will be also taken from a product set with “bestsellers” ID, but instead of product primary image the last image from the product gallery will be displayed as a background of entire slider area.</description>
+            </options>
+        </setting>
+        <setting var="homepage_productset_promo" control_type="text">
+            <value>promo</value>
+            <name locale="en_US">Promo set ID</name>
+            <name locale="ru_RU">Список «Промо»</name>
+            <description locale="ru_RU">Идентификатор списка товаров «Промо». Товары из этого списка будут показаны в слайдере, если так указано в настройке слайдера выше.</description>
+            <description locale="en_US">Promo set products will be shown in the storefront slider if it is setup that way in the setting above.</description>
+        </setting>
+        <setting var="homepage_productset_bestsellers" control_type="text">
+            <value>bestsellers</value>
+            <name locale="en_US">Bestsellers set ID</name>
+            <name locale="ru_RU">Список «Бестселлеры»</name>
+            <description locale="ru_RU">Идентификатор списка товаров «Бестселлеры». Товары из этого списка будут показаны на витрине магазина под слайдером в блоке лучших приложений на текущий день.</description>
+            <description locale="en_US">Bestseller products will be shown on the storefront’s hot deals for today section.</description>
+        </setting>
+        <setting var="homepage_bullet_title_1" control_type="text">
+            <value locale="en_US">Faster delivery</value>
+            <value locale="ru_RU">Доставка по России</value>
+            <name locale="en_US">Info block #1</name>
+            <name locale="ru_RU">Инфоблок №1</name>
+        </setting>
+        <setting var="homepage_bullet_body_1" control_type="text">
+            <value locale="en_US">We offer domestic and international shipping via all major shipping carriers.</value>
+            <value locale="ru_RU">Мы доставим ваш заказ курьером по Москве и Петербургу или службой экспресс-доставки по всей России.</value>
+            <name locale="en_US">Info block #1 content</name>
+            <name locale="ru_RU">Текст в инфоблоке №1</name>
+        </setting>
+        <setting var="homepage_bullet_title_2" control_type="text">
+            <value locale="en_US">Secure payment</value>
+            <value locale="ru_RU">Оплата онлайн</value>
+            <name locale="en_US">Info block #2</name>
+            <name locale="ru_RU">Инфоблок №2</name>
+        </setting>
+        <setting var="homepage_bullet_body_2" control_type="text">
+            <value locale="en_US">We accept all major credit cards and PayPal payments. All orders are paid online.</value>
+            <value locale="ru_RU">Оплатите заказ банковской картой, наличными в ближайшем платежном терминале или наличными.</value>
+            <name locale="en_US">Info block #2 content</name>
+            <name locale="ru_RU">Текст в инфоблоке №2</name>
+        </setting>
+        <setting var="homepage_bullet_title_3" control_type="text">
+            <value locale="en_US">Contact us</value>
+            <value locale="ru_RU">Магазин в Москве</value>
+            <name locale="en_US">Info block #3</name>
+            <name locale="ru_RU">Инфоблок №3</name>
+        </setting>
+        <setting var="homepage_bullet_body_3" control_type="text">
+            <value locale="en_US">If you are in SF or LA, you may pick up an order in one of our stores. Give us a call!</value>
+            <value locale="ru_RU">Будем рады видеть вас в нашем магазине по адресу г. Москва, ул. Крымский Вал, д. 3, стр. 2.</value>
+            <name locale="en_US">Info block #3 content</name>
+            <name locale="ru_RU">Текст в инфоблоке №3</name>
+        </setting>
+        <setting var="homepage_about_title" control_type="text">
+            <value locale="en_US">About us</value>
+            <value locale="ru_RU">О магазине</value>
+            <name locale="en_US">About block title</name>
+            <name locale="ru_RU">Заголовок информационного блока о магазине</name>
+        </setting>
+        <setting var="homepage_about_body" control_type="text">
+            <value locale="en_US">Edit this text in your Webasyst backend: Shop app > Storefronts > Appearance.</value>
+            <value locale="ru_RU">Добавьте информацию о вашей компании в бекенде вашего Webasyst: приложение «Магазин» > Витрины > Оформление.</value>
+            <name locale="en_US">About block body</name>
+            <name locale="ru_RU">Текст блока о магазине</name>
+        </setting>
+    
+        <setting var="divider_shop" control_type="group_divider">
+            <value></value>
+            <name locale="en_US">Shop</name>
+            <name locale="ru_RU">Магазин</name>
+        </setting>
+        <setting var="category_nav_mode" control_type="radio">
+            <value>dropdown</value>
+            <name locale="ru_RU">Каталог товаров</name>
+            <name locale="en_US">Category list</name>
+            <options>
+                <option value="dropdown">
+                    <name locale="ru_RU">Выпадающее меню «Каталог товаров»</name>
+                    <name locale="en_US">Drop-down “Shop by Department”</name>
+                    <description locale="ru_RU">Выпадающее развернутое меню с полным каталогом товаров.</description>
+                    <description locale="en_US">Category list will be available under the "Shop by Department" header link.</description>
                 </option>
-                <option value="photos">
-                    <name locale="ru_RU">Фотографии из приложения «Фото»</name>
-                    <name locale="en_US">Latest photos from Photos apps</name>
-                    <description locale="ru_RU">В слайдере будут показаны последние 10 фотографий, загруженные в приложении «Фото». Поменять условие выбора фотографий для слайдера (фото из определенного альбома, с определенным тегом и т.д.) можно в шаблоне дизайна интернет-магазина home.html. Приложение «Фото» должно быть установлено.</description>
-                    <description locale="en_US">Last 10 uploaded photos will be fetched from Photos app and displayed on the slider. Customize photo fetching criteria in home.html template of this storefront design theme. Photos app must be installed for this setting to work.</description>
+                <option value="inline">
+                    <name locale="ru_RU">Список категорий</name>
+                    <name locale="en_US">Inline list</name>
+                    <description locale="ru_RU">Рекомендуется, если в корне не более четырех-пяти категорий, и все они помещаются в один ряд.</description>
+                    <description locale="en_US">Great for menus with up to four or five top-level categories.</description>
                 </option>
             </options>
         </setting>
         <setting var="selectable_features_control" control_type="radio">
-            <value>inline</value>
-            <name locale="ru_RU">Выбор характеристик</name>
-            <name locale="en_US">Selectable features</name>
+            <value>dropdown</value>
+            <name locale="ru_RU">Выбор характеристик товара</name>
+            <name locale="en_US">Selectable product features</name>
             <options>
                 <option value="inline">
                     <name locale="ru_RU">Показывать все значения крупно в ряд</name>
-                    <name locale="en_US">Display all values inline</name>
+                    <name locale="en_US">Display all options inline</name>
                     <description locale="ru_RU">Для товаров в режиме продажи «Выбор характеристик» значения характеристик будут показаны одной строкой друг за другом. Рекомендуется, если названия значений относительно короткие и по ним однозначно можно определить, о какой характеристике товара идет речь, например, XL, 16 GB, 13”.</description>
                     <description locale="en_US">For products which are sold in selectable features mode, all feature values will be displayed inline. Great if feature value names are self-explanatory and explicit in context of a product, e.g. XL, 16 GB, 13”.</description>
                 </option>
@@ -238,69 +296,17 @@
                 </option>
             </options>
         </setting>
+        <setting var="list_features" control_type="checkbox">
+            <value></value>
+            <name locale="en_US">Show product features in product lists</name>
+            <name locale="ru_RU">Показывать значения характеристик в списках товаров</name>
+        </setting>
         <setting var="ajax_filters" control_type="checkbox">
             <value>1</value>
             <name locale="en_US">AJAX-enabled product by-feature filtering</name>
             <name locale="ru_RU">AJAX-фильтры товаров по характеристикам</name>
         </setting>
-        <setting var="homepage_bullet_title_1" control_type="text">
-            <value locale="en_US">Faster delivery</value>
-            <value locale="ru_RU">Доставка по России</value>
-            <name locale="en_US">Storefront bullet #1 title</name>
-            <name locale="ru_RU">Подзаголовок на главной странице №1</name>
-        </setting>
-        <setting var="homepage_bullet_body_1" control_type="text">
-            <value locale="en_US">We offer domestic and international shipping via all major shipping carriers.</value>
-            <value locale="ru_RU">Мы доставим ваш заказ курьером по Москве и Петербургу или службой экспресс-доставки по всей России.</value>
-            <name locale="en_US">Storefront homepage bullet #1 body</name>
-            <name locale="ru_RU">Текст на главной странице №1</name>
-        </setting>
-        <setting var="homepage_bullet_title_2" control_type="text">
-            <value locale="en_US">Secure payment</value>
-            <value locale="ru_RU">Оплата онлайн</value>
-            <name locale="en_US">Storefront bullet #2 title</name>
-            <name locale="ru_RU">Подзаголовок на главной странице №2</name>
-        </setting>
-        <setting var="homepage_bullet_body_2" control_type="text">
-            <value locale="en_US">We accept all major credit cards and PayPal payments. All orders are paid online.</value>
-            <value locale="ru_RU">Оплатите заказ банковской картой, наличными в ближайшем платежном терминале или наличными.</value>
-            <name locale="en_US">Storefront homepage bullet #2 body</name>
-            <name locale="ru_RU">Текст на главной странице №2</name>
-        </setting>
-        <setting var="homepage_bullet_title_3" control_type="text">
-            <value locale="en_US">Contact us</value>
-            <value locale="ru_RU">Магазин в Москве</value>
-            <name locale="en_US">Storefront bullet #3 title</name>
-            <name locale="ru_RU">Подзаголовок на главной странице №3</name>
-        </setting>
-        <setting var="homepage_bullet_body_3" control_type="text">
-            <value locale="en_US">If you are in SF or LA, you may pick up an order in one of our stores. Give us a call!</value>
-            <value locale="ru_RU">Будем рады видеть вас в нашем магазине по адресу г. Москва, ул. Крымский Вал, д. 3, стр. 2.</value>
-            <name locale="en_US">Storefront homepage bullet #3 body</name>
-            <name locale="ru_RU">Текст на главной странице №3</name>
-        </setting>
-        <setting var="homepage_about_title" control_type="text">
-            <value locale="en_US">About us</value>
-            <value locale="ru_RU">О магазине</value>
-            <name locale="en_US">About block title</name>
-            <name locale="ru_RU">Заголовок информационного блока о магазине</name>
-        </setting>
-        <setting var="homepage_about_body" control_type="text">
-            <value locale="en_US">Edit this text in your Webasyst backend: Shop app > Storefronts > Appearance.</value>
-            <value locale="ru_RU">Добавьте информацию о вашей компании в бекенде вашего Webasyst: приложение «Магазин» > Витрины > Оформление.</value>
-            <name locale="en_US">About block body</name>
-            <name locale="ru_RU">Текст блока о магазине</name>
-        </setting>
-        <setting var="homepage_blogposts" control_type="checkbox">
-            <value>1</value>
-            <name locale="en_US">Show latest blog posts on storefront homepage</name>
-            <name locale="ru_RU">Показывать последние посты блога на главной странице интернет-магазина</name>
-        </setting>
-        <setting var="list_features" control_type="checkbox">
-            <value></value>
-            <name locale="en_US">Show product features in product lists</name>
-            <name locale="ru_RU">Показывать характеристики в списках товаров</name>
-        </setting>
+        
     </settings>
     <thumbs>
         <thumb>48x48</thumb>
