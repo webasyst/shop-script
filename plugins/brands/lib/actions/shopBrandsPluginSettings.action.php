@@ -6,6 +6,11 @@ class shopBrandsPluginSettingsAction extends waViewAction
     {
         $feature_model = new shopFeatureModel();
         $features = $feature_model->select('*')->where('selectable = 1')->order('id DESC')->fetchAll();
+        foreach ($features as $key => $f) {
+            if ($f['type'] == 'color') {
+                unset($features[$key]);
+            }
+        }
         $this->view->assign('features', $features);
 
         $app_settings_model = new waAppSettingsModel();
