@@ -23,7 +23,7 @@
             <a href="{$review.site}" class="username" itemprop="author">{$review.author.name}</a>
         {/if}
         
-        {if !empty($review.author.is_user)}
+        {if ifempty($review.author.is_user) > 0}
             <span class="staff">{$wa->shop->settings('name')}</span>
         {/if}
         

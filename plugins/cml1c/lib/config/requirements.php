@@ -14,11 +14,14 @@ return array(
     ),
     'app.installer' => array(
         'strict' => true,
-        'value'  => '>=1.2.1.29877',
+        'version'  => '>=1.2.1.29877',
     ),
-    'app.shop'=>array(
+    'app.shop'      => array(
         'strict' => true,
-        'value'=>'>=5.2.2.30940',
-    )
+        'version'  => '>=6.0.3.38328',
+    ),
+    'php.zip'       => array(
+        'strict' => false,
+    ),
 
 );

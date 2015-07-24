@@ -9,6 +9,30 @@
  * @package Webasyst
  */
 /* Shop APP Styles */
+/* rotate icon */
+.rotate-icon-wrapper {
+  position: relative;
+}
+.rotate-icon-wrapper input {
+  background: #eee linear-gradient(to bottom, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
+  text-indent: -9999px;
+}
+.rotate-icon-wrapper:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin: 0 0 0 -1.5rem;
+  width: 3rem;
+  height: 100%;
+  background: transparent url("../../../site/themes/mobile/img/icons/refresh.png") 50% no-repeat;
+  background-size: 2rem;
+  -webkit-animation: infinity-rotate 2000ms infinite linear;
+  -moz-animation: infinity-rotate 2000ms infinite linear;
+  -ms-animation: infinity-rotate 2000ms infinite linear;
+  -o-animation: infinity-rotate 2000ms infinite linear;
+  animation: infinity-rotate 2000ms infinite linear;
+}
 .wa-shop-wrapper {
   padding: 0.5em;
 }
@@ -590,6 +614,9 @@
   padding: 0.5em;
   background: rgba(222,222,222,0.1);
 }
+.wa-shop-wrapper .review-wrapper .review-item.active-review-item {
+  background: #fff2d1;
+}
 .wa-shop-wrapper .review-wrapper .review-item .review-header {
   margin: 0 0 0.2rem;
   padding: 0 0 0.2rem;
@@ -780,38 +807,6 @@
 }
 .wa-shop-wrapper .shop-review-wrapper .review-form.is-shown {
   display: block;
-}
-.wa-shop-wrapper .shop-review-wrapper .review-form .wa-auth-adapters {
-  list-style: none;
-}
-.wa-shop-wrapper .shop-review-wrapper .review-form .wa-auth-adapters li {
-  display: inline-block;
-  vertical-align: top;
-  margin: 0;
-  padding: 0;
-}
-.wa-shop-wrapper .shop-review-wrapper .review-form .wa-auth-adapters li a {
-  display: block;
-  margin: 0 0.25em 0.25em 0;
-  padding: 0.5em;
-  border: 1px solid rgba(0,0,0,0.1);
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  font-size: 0.9em;
-  color: #121212;
-  text-decoration: none;
-  background: #fcd630;
-  background: #fcd630 -moz-linear-gradient(top, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
-  background: #fcd630 -webkit-gradient(linear, left top, left bottom, color-stop(0%, rgba(255,255,255,0.5)), color-stop(100%, rgba(255,255,255,0)));
-  background: #fcd630 -webkit-linear-gradient(top, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
-  background: #fcd630 -o-linear-gradient(top, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
-  background: #fcd630 -ms-linear-gradient(top, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
-  background: #fcd630 linear-gradient(to bottom, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
-}
-.wa-shop-wrapper .shop-review-wrapper .review-form .wa-auth-adapters li a img {
-  vertical-align: middle;
-  margin: 0 0.2rem 0 0;
 }
 .wa-shop-wrapper .shop-review-wrapper .review-form .user-name-block img {
   max-width: 1.25rem;
@@ -1231,36 +1226,13 @@
 .checkout-page-wrapper .checkout-step-content ul li {
   margin: 0.5em 0 0;
 }
-.checkout-page-wrapper .checkout-step-content .wa-auth-adapters li {
-  display: inline-block;
-  vertical-align: top;
-  margin: 0;
-}
-.checkout-page-wrapper .checkout-step-content .wa-auth-adapters li a {
-  display: block;
-  margin: 0 0.25em 0.25em 0;
-  padding: 0.5em;
-  border: 1px solid rgba(0,0,0,0.1);
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  font-size: 0.9em;
-  color: #121212;
-  text-decoration: none;
-  background: #fcd630;
-  background: #fcd630 -moz-linear-gradient(top, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
-  background: #fcd630 -webkit-gradient(linear, left top, left bottom, color-stop(0%, rgba(255,255,255,0.5)), color-stop(100%, rgba(255,255,255,0)));
-  background: #fcd630 -webkit-linear-gradient(top, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
-  background: #fcd630 -o-linear-gradient(top, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
-  background: #fcd630 -ms-linear-gradient(top, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
-  background: #fcd630 linear-gradient(to bottom, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
-}
-.checkout-page-wrapper .checkout-step-content .wa-auth-adapters li a img {
-  vertical-align: middle;
-  margin: 0 0.2rem 0 0;
-}
 .checkout-page-wrapper .checkout-step-content .checkout-options {
   margin: 0;
+}
+.checkout-page-wrapper .checkout-step-content .checkout-options .header {
+  background: #e2f4ff;
+  padding: 0.5rem;
+  margin: 0 -0.5rem;
 }
 .checkout-page-wrapper .checkout-step-content .checkout-options .header img {
   vertical-align: middle;

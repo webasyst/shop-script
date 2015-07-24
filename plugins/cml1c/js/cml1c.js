@@ -1,7 +1,8 @@
 /**
+ * {literal}
  *
  * @names cml1c_*
- * @property {} cml1c_options
+ * @property {key:value} cml1c_options
  * @method cml1cInit
  * @method cml1cAction
  * @method cml1cBlur
@@ -33,8 +34,7 @@ $.extend($.importexport.plugins, {
         },
 
         onInit: function () {
-            $.shop.trace('$.importexport.cml1cInit');
-            var self = this;
+            $.shop.trace('$.importexport.cml1c','Init');
             this.dom.container = $('#s-cml1c-form');
 
             this.dom.exportform = $("#s-plugin-cml1c-export");
@@ -196,9 +196,9 @@ $.extend($.importexport.plugins, {
                                     $container.find('li.js-cml1c-template:not(:first)').remove();
 
                                     var $item = $container.find('li:first');
-                                    $.shop.trace('$item', [$item.length, $item])
+                                    $.shop.trace('$item', [$item.length, $item]);
                                     $item.show().find(':input').attr('disabled', null);
-                                    $.shop.trace('$item', $item)
+                                    $.shop.trace('$item', $item);
                                     for (var i = 0; i < response.files.length; i++) {
                                         $item.attr('title', response.files[i]['size']);
                                         $item.find(':input').val(response.files[i]['name']);
@@ -247,7 +247,7 @@ $.extend($.importexport.plugins, {
 
                 return result;
             } else {
-                $.shop.trace('wtf???');
+                $.shop.error('wtf???');
                 result = this.submitHandler(form);
             }
             return result;
@@ -324,8 +324,7 @@ $.extend($.importexport.plugins, {
                     }
                 }
 
-                var $bar = self.form.find('.progressbar .progressbar-inner');
-                $bar.css({
+                self.form.find('.progressbar .progressbar-inner').css({
                     'width': '100%'
                 });
                 $.shop.trace('cleanup', response.processId);
@@ -413,3 +412,6 @@ $.extend($.importexport.plugins, {
         }
     }
 });
+/**
+ * {/literal}
+ */

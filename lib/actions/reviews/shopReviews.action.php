@@ -44,6 +44,7 @@ class shopReviewsAction extends waViewAction
                         array(
                             'id' => $product['image_id'],
                             'product_id' => $product['id'],
+                            'filename' => $product['image_filename'],
                             'ext' => $product['ext']
                         ),
                         $image_size);

@@ -300,8 +300,9 @@
                 var hash_ar = [];
                 $.each(hash, function(key, el) {
                     if (el.val) {
+                        el.val = format(key, el);
                         el.val = el.val.replace('/', '\\/');    // escape
-                        hash_ar.push(format(key, el));
+                        hash_ar.push(el.val);
                     }
                 });
                 return hash_ar.join('&');

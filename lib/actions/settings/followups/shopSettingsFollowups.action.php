@@ -90,10 +90,12 @@ class shopSettingsFollowupsAction extends waViewAction
 
         $test_orders = array();
 
+        $transports = $this->getTransports();
+
         if (empty($followup)) {
             $followup = $fm->getEmptyRow();
             $followup['status'] = 1;
-            $followup['body'] = self::getDefaultBody();
+            $followup['body'] = ifset($transports[$followup['transport']]['template'], '');
         } else {
             // Orders used as sample data for testing
             $om = new shopOrderModel();
@@ -117,11 +119,17 @@ class shopSettingsFollowupsAction extends waViewAction
         $this->view->assign('cron_command', 'php '.wa()->getConfig()->getRootPath().'/cli.php shop followup');
         $this->view->assign('default_email_from', $this->getConfig()->getGeneralSettings('email'));
         $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
+        $this->view->assign('transports', $transports);
+        $this->view->assign('sms_from', $this->getSmsFrom());
     }
 
-    public static function getDefaultBody()
+    public function getTransports()
     {
-        return '<p>'.sprintf( _w('Hi %s'), '{$customer->get("name", "html")}').'</p>
+        return array(
+            'email' => array(
+                'name' => _w('Email'),
+                'icon' => 'email',
+                'template' => '<p>'.sprintf( _w('Hi %s'), '{$customer->get("name", "html")}').'</p>
 
 <p>'.sprintf( _w('Thank you for your recent order %s!'), '{$order.id_str}').'</p>
 
@@ -130,7 +138,26 @@ class shopSettingsFollowupsAction extends waViewAction
 <p>--<br>
 {$wa->shop->settings("name")}<br>
 <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a><br>
-{$wa->shop->settings("phone")}<br></p>';
-
+{$wa->shop->settings("phone")}<br></p>'
+            ),
+            'sms' => array(
+                'name' => _w('SMS'),
+                'icon' => 'mobile',
+                'template' => sprintf( _w('Thank you for your recent order %s!'), '{$order.id_str}'). "\n" .
+                    _w('We will be glad working with you again!'). "\n" .
+                    '{$wa->shop->settings("name")}, {$wa->shop->settings("phone")}'
+            )
+        );
     }
+
+    public function getSmsFrom()
+    {
+        $sms_config = wa()->getConfig()->getConfigFile('sms');
+        $sms_from = array();
+        foreach ($sms_config as $from => $options) {
+            $sms_from[$from] = $from.' ('.$options['adapter'].')';
+        }
+        return $sms_from;
+    }
+
 }

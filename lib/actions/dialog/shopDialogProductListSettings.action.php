@@ -134,6 +134,8 @@ class shopDialogProductListSettingsAction extends waViewAction
         $settings['allow_filter'] = (bool)$filter;
         $settings['filter'] = $feature_filter + $features;
 
+        $category_og_model = new shopCategoryOgModel();
+        $settings['og'] = $category_og_model->get($id);
 
         if (!empty($settings['parent_id'])) {
             $parent = $category_model->getById($settings['parent_id']);
@@ -171,7 +173,7 @@ class shopDialogProductListSettingsAction extends waViewAction
 
         /**
          * @event backend_set_dialog
-         * @param array $set
+         * @param array $settings
          * @return array[string][string] $return[%plugin_id%] html output for dialog
          */
         $this->view->assign('event_dialog', wa()->event('backend_set_dialog', $settings));

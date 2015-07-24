@@ -1,5 +1,4 @@
 <?php
-
 /**
  * A list of localized strings to use in JS.
  */
@@ -11,6 +10,17 @@ class shopBackendLocAction extends waViewAction
 
         // Application locale strings
         foreach(array(
+            'Customize',
+            'Plugins',
+            'Profile name',
+            'New importexport profile',
+            'This will reset all changes you applied to the image after upload, and will restore the image to its original. Are you sure?',
+            'draft',
+            'New page',
+            'This will delete entire page. Are you sure?',
+            'clear',
+            'Click “Save” button below to apply this change.',
+            'Are you sure?',
             'Configure',
             'Turn on',
             'Disabled',
@@ -54,7 +64,8 @@ class shopBackendLocAction extends waViewAction
             "Drag products here",
             "Order action will be deleted. Are you sure?",
             'Sales',
-            'Profit'
+            'Profit',
+            '%s will be sent to customer by email. Are you sure?',
         ) as $s) {
             $strings[$s] = _w($s);
         }

@@ -37,9 +37,32 @@ class shopSettingsImagesRegenerateController extends waLongActionController
         return $this->data['offset'] >= $this->data['image_total_count'];
     }
 
+    protected function getFilename($original_filename)
+    {
+        $filename = basename($original_filename, '.' . waFiles::extension($original_filename));
+        if (!preg_match('//u', $filename)) {
+            $tmp_name = @iconv('windows-1251', 'utf-8//ignore', $filename);
+            if ($tmp_name) {
+                $filename = $tmp_name;
+            }
+        }
+        $filename = preg_replace('/\s+/u', '_', $filename);
+        if ($filename) {
+            foreach (waLocale::getAll() as $l) {
+                $filename = waLocale::transliterate($filename, $l);
+            }
+        }
+        $filename = preg_replace('/[^a-zA-Z0-9_\.-]+/', '', $filename);
+        if (!strlen(str_replace('_', '', $filename))) {
+            $filename = '';
+        }
+        return $filename;
+    }
+
     protected function step()
     {
         $image_model = new shopProductImagesModel();
+        $product_model = new shopProductModel();
         $create_thumbnails = waRequest::post('create_thumbnails');
         $restore_originals = waRequest::post('restore_originals');
         $chunk_size = 50;
@@ -48,8 +71,45 @@ class shopSettingsImagesRegenerateController extends waLongActionController
         }
         $sizes = wa('shop')->getConfig()->getImageSizes();
 
+        $use_filename = wa('shop')->getConfig()->getOption('image_filename');
+
         $images = $image_model->getAvailableImages($this->data['offset'], $chunk_size);
         foreach ($images as $i) {
+            if ($use_filename && !strlen($i['filename']) && strlen($i['original_filename'])) {
+                $filename = $this->getFilename($i['original_filename']);
+                if (strlen($filename)) {
+                    // move main image to new path
+                    $old_path = shopImage::getPath($i);
+                    $i['filename'] = $filename;
+                    $new_path = shopImage::getPath($i);
+                    if (waFiles::move($old_path, $new_path)) {
+                        $image_model->updateById($i['id'], array('filename' => $filename));
+                        if (!$i['sort']) {
+                            $product_model->updateById($i['product_id'], array(
+                                'image_filename' => $filename
+                            ));
+                        }
+                    } else {
+                        $i['filename'] = '';
+                    }
+                }
+            } elseif (!$use_filename && strlen($i['filename'])) {
+                // move main image to new path
+                $old_path = shopImage::getPath($i);
+                $old_filename = $i['filename'];
+                $i['filename'] = '';
+                $new_path = shopImage::getPath($i);
+                if (waFiles::move($old_path, $new_path)) {
+                    $image_model->updateById($i['id'], array('filename' => ''));
+                    if (!$i['sort']) {
+                        $product_model->updateById($i['product_id'], array(
+                            'image_filename' => ''
+                        ));
+                    }
+                } else {
+                    $i['filename'] = $old_filename;
+                }
+            }
             if ($this->data['product_id'] != $i['product_id']) {
                 sleep(0.2);
                 $this->data['product_id'] = $i['product_id'];

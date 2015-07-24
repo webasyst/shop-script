@@ -52,6 +52,7 @@
 
     {if $promocards = $wa->shop->promos()}
         <!-- PROMOS -->
+        {strip}
         <section class="promos">
             <ul>
                 {foreach $promocards as $promo}
@@ -65,6 +66,7 @@
                 {/foreach}
             </ul>
         </section>
+        {/strip}
     {/if}
 
     <!-- plugin hook: 'frontend_homepage' -->

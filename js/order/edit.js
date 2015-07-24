@@ -195,7 +195,7 @@ $.order_edit = {
                         );
                         //tr.find('.s-orders-services .s-orders-service-variant').trigger('change');
                         tr.find('.s-orders-product-price').
-                            find('span').html(r.data.sku.price_html || r.data.sku.price_str).end().
+                            //find('span').html(r.data.sku.price_html || r.data.sku.price_str).end().
                             find('input').val(r.data.sku.price);
                         //.trigger('change');
 
@@ -293,24 +293,35 @@ $.order_edit = {
                     $.order_edit.updateTotal
         );
 
-        $(".s-order-customer-details").on('change', 'select', function () {
+        $(".s-order-customer-details").on('change', 'input[type=text],select', function () {
             if  ($(this).attr('name').indexOf('address')) {
                 $.order_edit.updateTotal();
             }
         });
 
-        $("#shipping_methods").change(function() {
+        $("#shipping_methods").change(function(e) {
             var o = $(this).children(':selected');
             var rate = o.data('rate') || 0;
             $("#shipping-rate").val($.order_edit.formatFloat(rate));
-            if (o.data('error')) {
-                $("#shipping-rate").addClass('error');
-                $("#shipping-info").html('<span class="error">' + o.data('error') + '</span>').show();
+            var delivery_info = [];
+            if(o.data('error')) delivery_info.push('<span class="error">' + o.data('error') + '</span>');
+            if(o.data('est_delivery')) delivery_info.push('<span class="hint est_delivery">' + o.data('est_delivery') + '</span>');
+            if(o.data('comment')) delivery_info.push('<span class="hint">' + o.data('comment') + '</span>');
+            if (delivery_info) {
+                if(o.data('error')) {
+                    $("#shipping-rate").addClass('error');
+                } else {
+                    $("#shipping-rate").removeClass('error');
+                }
+                $("#shipping-info").html(delivery_info.join('<br>')).show();
             } else {
                 $("#shipping-rate").removeClass('error');
                 $("#shipping-info").empty().hide();
             }
             $.order_edit.updateTotal(false);
+            if (o.data('external') && !e.triggered_by_updateTotal) {
+                $.order_edit.updateTotal();
+            }
         });
 
         $("#payment_methods").change(function() {
@@ -516,6 +527,7 @@ $.order_edit = {
         } else {
             data['currency'] = $('#order-edit-form input[name=currency]').val();
         }
+        data['shipping_id'] = ($('#shipping_methods').val()||'').split('.')[0];
         data['customer[id]'] = $('#s-customer-id').val();
 
         if (ajax) {
@@ -537,9 +549,10 @@ $.order_edit = {
                         var ship =  shipping_methods[ship_id];
                         var o = $('<option></option>');
                         o.html(ship.name).attr('value', ship_id).data('rate', ship.rate);
-                        if (ship.error) {
-                            o.data('error', ship.error);
-                        }
+                        o.data('error', ship.error || undefined);
+                        o.data('est_delivery', ship.est_delivery || undefined);
+                        o.data('comment', ship.comment || undefined);
+                        o.data('external', ship.external || false);
                         el.append(o);
 
                         // unexact match, but close
@@ -554,8 +567,14 @@ $.order_edit = {
                             }
                         }
                     }
+
                     if (found) {
-                        el.val(el_selected).change();
+                        el.val(el_selected);
+                        if (!shipping_methods[el_selected].external || data['shipping_id'] == el_selected.split('.')[0]) {
+                            el.trigger($.Event('change', {
+                                triggered_by_updateTotal: 1
+                            }));
+                        }
                     }
 
                     $('#order-edit-form').trigger('order_total_updated', response.data);
@@ -758,7 +777,7 @@ $.order_edit = {
                     if (p_errors.hasOwnProperty(p_id)) {
                         if ('quantity' in p_errors[p_id]) {
                             $('.s-order-item[data-product-id='+p_id+']').each(function () {
-                                if ($(this).find('ul.s-orders-skus input:radio:checked').val() == '' + p_errors[p_id]['sku_id']) {
+                                if ($(this).find('ul.s-orders-skus input:radio:checked').val() == '' + p_errors[p_id]['sku_id'] || !$(this).find('ul.s-orders-skus').length) {
                                     $(this).find('.s-orders-quantity').addClass('error');
                                     common_errors.push(p_errors[p_id]['quantity']);
                                 }

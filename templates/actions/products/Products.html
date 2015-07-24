@@ -92,7 +92,7 @@
                 <a href="#"><i class="icon16 ss set"></i>[`Add to set`]</a>
             </li>
             <li data-action="assign-tags">
-                <a href="#"><i class="icon16 tags"></i>[`Tags`]</a>
+                <a href="#"><i class="icon16 tags"></i>[`Assign tags`]</a>
             </li>
 
             {if $info && $info.hash == 'set' && $info.type == shopSetModel::TYPE_STATIC && $info.count > 0}
@@ -104,10 +104,13 @@
             {/if}
 
             {if $products_rights}
-            <li data-action="type" class="top-padded">
-                <a href="#"><i class="icon16 box"></i>[`Change product type`]</a>
-            </li>
-            <li data-action="delete"><a href="#"><i class="icon16 delete"></i>[`Delete products`]</a></li>
+                <li data-action="visibility" class="top-padded">
+                    <a href="javascript:void(0)"><i class="icon16 ss visibility"></i>[`Manage visibility`]</a>
+                </li>
+                <li data-action="type">
+                    <a href="#"><i class="icon16 box"></i>[`Change product type`]</a>
+                </li>
+                <li data-action="delete"><a href="#"><i class="icon16 delete"></i>[`Delete products`]</a></li>
             {/if}
         </ul>
     </div>
@@ -367,6 +370,11 @@
 {$title = $title|cat:" — ":{$wa->accountName(false)}}
 <script type="text/javascript">
     document.title = '{$title|escape:'javascript'}';
+    $.wa.locale = $.extend($.wa.locale || {}, {
+        'Inline editing is available only for products with a single SKU': "[`Inline editing is available only for products with a single SKU`]",
+        'Insufficient access rights': "[`Insufficient access rights`]"
+    });
+
     $.product_list.init({
         view: '{$view}',
         collection_hash: {json_encode($collection_hash)},

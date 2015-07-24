@@ -75,15 +75,26 @@ class shopFrontendCartAddController extends waJsonController
         if ($product && $sku) {
             // check quantity
             if (!wa()->getSetting('ignore_stock_count')) {
+
+                // limit by main stock
+                if (wa()->getSetting('limit_main_stock') && waRequest::param('stock_id')) {
+                    $product_stocks_model = new shopProductStocksModel();
+                    $row = $product_stocks_model->getByField(array('sku_id' => $sku['id'], 'stock_id' => waRequest::param('stock_id')));
+                    if ($row) {
+                        $sku['count'] = $row['count'];
+                    }
+                }
+
                 $c = $this->cart_model->countSku($code, $sku['id']);
                 if ($sku['count'] !== null && $c + $quantity > $sku['count']) {
                     $quantity = $sku['count'] - $c;
                     $name = $product['name'].($sku['name'] ? ' ('.$sku['name'].')' : '');
                     if (!$quantity) {
-                        if ($sku['count'] > 0)
+                        if ($sku['count'] > 0) {
                             $this->errors = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
-                        else
+                        } else {
                             $this->errors = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience.'), $name);
+                        }
                         return;
                     } else {
                         $this->response['error'] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
@@ -148,12 +159,59 @@ class shopFrontendCartAddController extends waJsonController
                 $this->response['discount'] = $this->currencyFormat($discount);
                 $this->response['discount_coupon'] = $this->currencyFormat(ifset($order['params']['coupon_discount'], 0), true);
                 $this->response['count'] = $this->cart->count();
+                if (waRequest::get("items")) {
+                    $this->response['items'] = $this->getCartItems();
+                }
             } else {
                 $this->redirect(waRequest::server('HTTP_REFERER'));
             }
         } else {
             throw new waException('product not found');
         }
+    }
+
+    /**
+     * Cart items for json response
+     * @return array
+     */
+    protected function getCartItems()
+    {
+        $rows = $this->cart->items();
+        $items = array();
+        foreach($rows as $row) {
+            $item = array();
+            foreach (array('id', 'product_id', 'name', 'quantity', 'sku_id', 'sku_code', 'sku_name') as $key) {
+                $item[$key] = $row[$key];
+            }
+            $p = $row['product'];
+            $item['image_url'] = shopImage::getUrl(array(
+                'product_id' => $row['product_id'],
+                'filename' => $p['image_filename'],
+                'id' => $p['image_id'],
+                'ext' => $p['ext']
+            ), "96x96");
+            $item['frontend_url'] = wa()->getRouteUrl('shop/frontend/product', array(
+                'product_url' => $p['url'], 'category_url' => ifset($p['category_url'], '')));
+            $item['price'] = $this->currencyFormat($row['price'], $row['currency']);
+            $price = shop_currency($row['price'] * $row['quantity'], $row['currency'], null, false);
+            $item['services'] = array();
+            if (!empty($row['services'])) {
+                foreach ($row['services'] as $s) {
+                    $item_s = array();
+                    foreach (array('id', 'parent_id', 'name', 'quantity', 'service_id', 'service_name', 'service_variant_id', 'variant_name') as $key) {
+                        if (isset($s[$key])) {
+                            $item_s[$key] = $s[$key];
+                        }
+                    }
+                    $item_s['price'] = $this->currencyFormat($s['price'], $s['currency']);
+                    $price += shop_currency($s['price'] * $s['quantity'], $s['currency'], null, false);
+                    $item['services'][] = $item_s;
+                }
+            }
+            $item['full_price'] = $this->currencyFormat($price, true);
+            $items[] = $item;
+        }
+        return $items;
     }
 
     /**

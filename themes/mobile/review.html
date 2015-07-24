@@ -9,7 +9,6 @@
                 <meta itemprop="worstRating" content = "1">
                 <meta itemprop="ratingValue" content="{$rate}">
                 <meta itemprop="bestRating" content = "5">
-                <!--{print_r($rate)}-->
 
                 {for $i = 1 to 5}
                     {$icon_class = "icon-star"}
@@ -27,7 +26,7 @@
             <a href="{$review.site}" class="username" itemprop="author">{$review.author.name}</a>
         {/if}
         
-        {if !empty($review.author.is_user)}
+        {if ifempty($review.author.is_user) > 0}
             <span class="staff">{$wa->shop->settings('name')}</span>
         {/if}
         

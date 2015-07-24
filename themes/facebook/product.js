@@ -258,8 +258,8 @@ $(function () {
         $("#product-core-image").append('<div class="loading" style="position: absolute; left: 192px; top: ' + (($("#product-image").height() - 16)/2) + 'px"><i class="icon16 loading"></i></div>');
         
         var img = $(this).find('img');
-        var size = $("#product-image").attr('src').replace(/^.*\/[0-9]+\.(.*)\..*$/, '$1');
-        var src = img.attr('src').replace(/^(.*\/[0-9]+\.)(.*)(\..*)$/, '$1' + size + '$3');
+        var size = $("#product-image").attr('src').replace(/^.*\/[^\/]+\.(.*)\.[^\.]*$/, '$1');
+        var src = img.attr('src').replace(/^(.*\/[^\/]+\.)(.*)(\.[^\.]*)$/, '$1' + size + '$3');
         $('<img>').attr('src', src).load(function () {
             $("#product-image").attr('src', src);
             $("#product-core-image div.loading").remove();
@@ -267,8 +267,8 @@ $(function () {
             //ensure image load is fired. Fixes opera loading bug
             if (this.complete) { $(this).trigger("load"); }
         });
-        var size = $("#product-image").parent().attr('href').replace(/^.*\/[0-9]+\.(.*)\..*$/, '$1');
-        var href = img.attr('src').replace(/^(.*\/[0-9]+\.)(.*)(\..*)$/, '$1' + size + '$3');
+        var size = $("#product-image").parent().attr('href').replace(/^.*\/[^\/]+\.(.*)\.[^\.]*$/, '$1');
+        var href = img.attr('src').replace(/^(.*\/[^\/]+\.)(.*)(\.[^\.]*)$/, '$1' + size + '$3');
         $("#product-image").parent().attr('href', href);
         if ($(".facebook-photo-zoom").is(':visible')) {
             $("#product-image").parent().click();

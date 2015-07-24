@@ -169,6 +169,9 @@
                     <li data-tab="recent-orders"><a href="#">[`Recent orders`]</a></li>
                     {/if}
                     <li data-tab="reviews"><a href="#">[`Reviews`]</a></li>
+                    <!-- plugin hook: 'backend_product.tab_li' -->
+                    {* @event backend_product.%plugin_id%.tab_li *}
+                    {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.tab_li)}{/foreach}{/if}
                 </ul>
                 <div class="tab-content">
                     <div class="block s-tab-block" data-tab="profile">
@@ -820,7 +823,7 @@
                         <input value="{$product.meta_title|escape}"
                                             id="s-product-meta-title"
                                             name="product[meta_title]"
-                                            placeholder="{shopProduct::getDefaultMetaTitle($product)}" class="long bold"
+                                            placeholder="{shopProduct::getDefaultMetaTitle($product)|escape}" class="long bold"
                                       >
                     </div>
                 </div>
@@ -838,7 +841,71 @@
                         <span class="hint">{sprintf('[`Variables <strong>%s</strong> will be replaced with the actual product information when displaying it on the storefront. Can be used in title and META fields.`]','&#123;$name&#125;, &#123;$summary&#125;, &#123;$price&#125;')}</span>
                     </div>
                 </div>
+                <div class="field">
+                    <div class="name">[`Social sharing`]</div>
+                    <div class="value no-shift">
+                        {$editable_ogs_list = explode(',', 'title,image,video,description,type')}
+                        {$editable_ogs = array_intersect_key($product.og, array_fill_keys($editable_ogs_list, 1))}
+                        {$other_ogs = array_diff_key($product.og, $editable_ogs)}
+                        <label><input type="checkbox" id="checkbox-use-default-ogs"{if !$editable_ogs} checked{/if}> [`Use these meta tags and default product image for social sharing too`]</label>
+                    </div>
+                </div>
               </div>
+
+              {$product_og = $editable_ogs}
+              <div class="field-group" id="og-fieldgroup"{if !$editable_ogs} style="display: none;"{/if}>
+                <div class="field">
+                    <div class="name">[`Social sharing title`] <span class="hint">og:title</span></div>
+                    <div class="value">
+                        <input name="product[og][title]" value="{ifset($product_og['title'])|escape}" placeholder="{shopProduct::getDefaultMetaTitle($product)|escape}" class="long bold">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Social sharing image URL`] <span class="hint">og:image</span></div>
+                    <div class="value">
+                        <input name="product[og][image]" value="{ifset($product_og['image'])|escape}" placeholder="PRODUCT DEFAULT IMAGE 970 URL" class="long">
+                        <br>
+                        <span class="hint">[`If not set, a social network will attempt to determine preview image on it’s own.`]</span>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Social sharing video URL`] <span class="hint">og:video</span></div>
+                    <div class="value">
+                        <input name="product[og][video]" value="{ifset($product_og['video'])|escape}" placeholder="" class="long">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Social sharing description`] <span class="hint">og:description</span></div>
+                    <div class="value">
+                        <textarea name="product[og][description]" placeholder="{shopProduct::getDefaultMetaDescription($product)}">{ifset($product_og['description'])|escape}</textarea>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Social sharing type`] <span class="hint">og:type</span></div>
+                    <div class="value">
+                        <input name="product[og][type]" value="{ifset($product_og['type'])|escape}" placeholder="og:product">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="value">
+                        <p class="hint">[`Please refer to <a href="http://ogp.me" target="_blank">Open Graph</a> protocol site for more information on social sharing meta tags and available values.`]</p>
+                    </div>
+                </div>
+
+                {* Make sure not to delete OG tags we can't edit. Trying to be plugin-friendly. *}
+                {foreach $other_ogs as $k => $v}
+                    <input type="hidden" name="product[og][{$k|escape}]" value="{$v|escape}">
+                {/foreach}
+
+                {* We enable this hidden fields when user checks the checkbox "use default og values",
+                   so that the server receives empty values instead of OG fields above. *}
+                {foreach $editable_ogs_list as $k}
+                    <input type="hidden" name="product[og][{$k|escape}]" value="" class="editable-og-disabler"{if $editable_ogs} disabled{/if}>
+                {/foreach}
+
+              </div>
+
               <div class="field-group">
                 <div class="field description">
                     <div class="name">[`Description`]</div>
@@ -937,7 +1004,8 @@
         });
 
         $.product.setData('main','stocks',{$stocks|json_encode});
-        $.product.setData('main','stock_ids', {array_keys($stocks)|json_encode})
+        $.product.setData('main','stock_ids', {array_keys($stocks)|json_encode});
+        $.product.setData('main', 'category_name', {$category_name|json_encode});
         {if !empty($product.reviews)}
         $.product_reviews.init({
             container: '#s-reviews-block',
@@ -974,7 +1042,7 @@
     });
 
     {if $product.id > 0}
-        document.title = '{$product.name|escape|cat:$title_suffix}';
+        document.title = '{$product.name|escape:'javascript'|cat:$title_suffix}';
     {else}
         document.title = '[`New product`]{$title_suffix}';
     {/if}
@@ -1109,6 +1177,16 @@
         });
         $('.s-sku-name-input').change(function() {
             $.product.updateMetaFields();
+        });
+
+        $('#checkbox-use-default-ogs').change(function() {
+            if (this.checked) {
+                $('#og-fieldgroup').slideUp(200);
+                $('.editable-og-disabler').prop('disabled', false);
+            } else {
+                $('#og-fieldgroup').slideDown(200);
+                $('.editable-og-disabler').prop('disabled', true);
+            }
         });
     })();
 

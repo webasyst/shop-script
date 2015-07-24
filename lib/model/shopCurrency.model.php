@@ -150,10 +150,7 @@ class shopCurrencyModel extends waModel
 
         $this->recalcProductPrimaryPrices($convert_to);
         $this->recalcServicePrimaryPrices($convert_to);
-
-        if ($cache = wa('shop')->getCache()) {
-            $cache->delete('currencies');
-        }
+        $this->deleteCache();
         return $this->deleteById($code);
     }
 
@@ -225,13 +222,7 @@ class shopCurrencyModel extends waModel
 
             wa('shop')->getConfig()->setCurrency($new_code);
             $this->primary_currency = $new_code;
-
-            $cache = new waRuntimeCache('shop_currencies');
-            $cache->delete();
-
-            if ($cache = wa('shop')->getCache()) {
-                $cache->delete('currencies');
-            }
+            $this->deleteCache();
         }
         return true;
     }
@@ -303,12 +294,16 @@ class shopCurrencyModel extends waModel
             'code' => $code,
             'sort' => $sort
         ));
+        $this->deleteCache();
+        return $result;
+    }
+
+    public function deleteCache()
+    {
+        $cache = wa('shop')->getCache();
+        $cache && $cache->delete('currencies');
         $cache = new waRuntimeCache('shop_currencies');
         $cache->delete();
-        if ($cache = wa('shop')->getCache()) {
-            $cache->delete('currencies');
-        }
-        return $result;
     }
 
     /**
@@ -338,12 +333,7 @@ class shopCurrencyModel extends waModel
 
             $this->recalcProductPrimaryPrices($code);
             $this->recalcServicePrimaryPrices($code);
-
-            $cache = new waRuntimeCache('shop_currencies');
-            $cache->delete();
-            if ($cache = wa('shop')->getCache()) {
-                $cache->delete('currencies');
-            }
+            $this->deleteCache();
             return $result;
         }
         return true;
@@ -447,10 +437,8 @@ class shopCurrencyModel extends waModel
             $this->exec("UPDATE {$this->table} SET sort = sort + 1 WHERE sort >= $sort");
             $this->updateById($code, array('sort' => $sort));
         }
-        if ($cache = wa('shop')->getCache()) {
-            $cache->delete('currencies');
-        }
+        $this->deleteCache();
         return true;
     }
-
 }
+

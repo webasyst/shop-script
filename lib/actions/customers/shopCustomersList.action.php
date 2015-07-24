@@ -54,7 +54,8 @@ class shopCustomersListAction extends waViewAction
             'filter' => $filter,
             'filter_id' => $filter_id,
             'groups' => $this->getGroups(),
-            'in_lazy_process' => waRequest::get('lazy', false)     // is now lazy loading?
+            'in_lazy_process' => waRequest::get('lazy', false),     // is now lazy loading?
+            'lazy_loading_url' => $this->getLazyLoadingUrl()
         ));
 
         /*
@@ -113,25 +114,28 @@ class shopCustomersListAction extends waViewAction
         }
     }
 
-    public function getLazyLoadParams()
-    {
-        $limit = $this->getLimit();
-        $params = array(
-            'limit=' . $limit,
-            'start=' . ($this->getOffset() + $limit),
-            'order=' . waRequest::request('order', '!last_order'),
-        );
-        if ($this->getQuery()) {
-            $params[] = 'search=' . $this->getQuery();
-        } else if ($this->getCategoryId()) {
-            $params[] = 'category=' . $this->getCategoryId();
-        }
-        return implode('&', $params);
-    }
-
     public function getOffset()
     {
         return $this->offset === null ? ($this->offset = waRequest::request('offset', 0, 'int')) : $this->offset;
+    }
+
+    public function getLazyLoadingUrl()
+    {
+        $hash = array();
+        $filter_id = $this->getFilterId();
+        $category_id = $this->getCategoryId();
+        $query = $this->getQuery(true);
+        if ($filter_id) {
+            $hash[] = 'filter_id=' . $filter_id;
+        }
+        if ($category_id) {
+            $hash[] = 'category=' . $category_id;
+        }
+        if ($query) {
+            $hash[] = 'search=' . $query;
+        }
+        $order = $this->getOrder(false);
+        return '?module=customers&action=list' . ($hash ? '&'.implode('&', $hash) : '') . '&order=' . $order;
     }
 
     public function getLimit()

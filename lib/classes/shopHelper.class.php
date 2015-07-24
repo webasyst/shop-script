@@ -135,11 +135,10 @@ class shopHelper
         $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_SHIPPING, $options);
         if ($address !== null) {
             $config = wa('shop')->getConfig();
-            /**
-             * @var $config shopConfig
-             */
+            /** @var $config shopConfig */
             $result = array();
             $currency = isset($params['currency']) ? $params['currency'] : $config->getCurrency();
+            $params['allow_external_for'] = (array) ifempty($params['allow_external_for'], array());
             $dimensions = shopDimension::getInstance();
             foreach ($methods as $m) {
                 if ($m['available']) {
@@ -162,6 +161,7 @@ class shopHelper
                                 ),
                                 'rate'     => '',
                                 'currency' => $currency,
+                                'external' => !empty($plugin_info['external']),
                             );
                             continue;
                         }
@@ -189,7 +189,12 @@ class shopHelper
                         }
                     }
                     unset($item);
-                    $rates = $plugin->getRates($items, $address ? $address : array(), $total ? array('total_price' => $total) : array());
+
+                    if (!empty($params['no_external']) && !empty($plugin_info['external']) && !in_array($m['id'], $params['allow_external_for'])) {
+                        $rates = '';
+                    } else {
+                        $rates = $plugin->getRates($items, $address ? $address : array(), $total ? array('total_price' => $total) : array());
+                    }
                     if (is_array($rates)) {
                         foreach ($rates as $rate_id => $info) {
                             if (is_array($info)) {
@@ -203,7 +208,13 @@ class shopHelper
                                     'name'     => $m['name'].(!empty($info['name']) ? ' ('.$info['name'].')' : ''),
                                     'rate'     => $rate,
                                     'currency' => $currency,
+                                    'external' => !empty($plugin_info['external']),
                                 );
+                                foreach(array('est_delivery','comment') as $field) {
+                                    if(isset($info[$field]) && !is_null($info[$field])) {
+                                        $result[$m['id'].'.'.$rate_id][$field] = $info[$field];
+                                    }
+                                }
                             }
                         }
                     } elseif (is_string($rates)) {
@@ -216,12 +227,14 @@ class shopHelper
                             'error'    => $rates,
                             'rate'     => '',
                             'currency' => $currency,
+                            'external' => !empty($plugin_info['external']),
                         );
                     }
                 }
             }
             return $result;
         } else {
+            // !!! TODO: filter not-available methods?..
             return $methods;
         }
     }
@@ -248,6 +261,9 @@ class shopHelper
                 if (!empty($key) && ($plugin = shopPayment::getPlugin(null, $key)) && method_exists($plugin, 'getPrintForms')) {
                     $forms = $plugin->getPrintForms(shopPayment::getOrderData($order));
                     foreach ($forms as $id => $form) {
+                        if (isset($form['emailprintform'])) {
+                            $form['mail_url'] = "?module=order&action=sendprintform&form_id={$type}.{$id}";
+                        }
                         $plugins["{$type}.{$id}"] = $form;
                     }
                 }
@@ -260,6 +276,9 @@ class shopHelper
                 if (!empty($key) && ($plugin = shopShipping::getPlugin(null, $key)) && method_exists($plugin, 'getPrintForms')) {
                     $forms = $plugin->getPrintForms(shopPayment::getOrderData($order));
                     foreach ($forms as $id => $form) {
+                        if (isset($form['emailprintform'])) {
+                            $form['mail_url'] = "?module=order&action=sendprintform&form_id={$type}.{$id}";
+                        }
                         $plugins["{$type}.{$id}"] = $form;
                     }
                 }
@@ -270,6 +289,9 @@ class shopHelper
                 if (strpos($plugin_id, '.')) {
                     $plugin['url'] = "?module=order&action=printform&form_id={$plugin_id}&order_id={$order['id']}";
                 } else {
+                    if (!empty($plugin['emailprintform'])) {
+                        $plugin['mail_url'] = "?module=order&action=sendprintform&plugin_id={$plugin_id}";
+                    }
 
                     $plugin['url'] = "?plugin={$plugin_id}&module=printform&action=display&order_id={$order['id']}";
                 }
@@ -509,15 +531,17 @@ class shopHelper
             if ($count <= 0) {
                 $icon = "<i class='icon10 status-red' title='"._w("Out of stock")."'></i>";
                 $warn = 's-stock-warning-none';
-            } else if ($count <= $bounds['critical_count']) {
-                $icon = "<i class='icon10 status-red' title='"._w("Almost out of stock")."'></i>";
-                $warn = 's-stock-warning-none';
-            } elseif ($count > $bounds['critical_count'] && $count <= $bounds['low_count']) {
-                $icon = "<i class='icon10 status-yellow' title='"._w("Low stock")."'></i>";
-                $warn = 's-stock-warning-low';
             } else {
-                $icon = "<i class='icon10 status-green' title='"._w("In stock")."'></i>";
-                $warn = '';
+                if ($count <= $bounds['critical_count']) {
+                    $icon = "<i class='icon10 status-red' title='"._w("Almost out of stock")."'></i>";
+                    $warn = 's-stock-warning-none';
+                } elseif ($count > $bounds['critical_count'] && $count <= $bounds['low_count']) {
+                    $icon = "<i class='icon10 status-yellow' title='"._w("Low stock")."'></i>";
+                    $warn = 's-stock-warning-low';
+                } else {
+                    $icon = "<i class='icon10 status-green' title='"._w("In stock")."'></i>";
+                    $warn = '';
+                }
             }
             if ($count !== null && $include_text) {
                 $icon .= "<span class='small $warn'>$count left</span>";
@@ -557,22 +581,24 @@ class shopHelper
         if ($ensure_address && !isset($fields_config['address.billing']) && !isset($fields_config['address.shipping'])) {
             // In customer center, we want to show address field even if completely disabled in settings.
             $fields_config['address'] = $address_config;
-        } else if (wa()->getEnv() == 'backend') {
-            // Tweaks for backend order editor.
-            // We want shipping address to show even if disabled in settings.
-            // !!! Why is that?.. No idea. Legacy code.
-            if (!isset($fields_config['address.shipping'])) {
-                $fields_config['address.shipping'] = array();
-            }
-            // When an existing contact has address specified, we want to show all the data fields
-            if ($contact) {
-                foreach(array('address.shipping', 'address.billing') as $addr_field_id) {
-                    if (!empty($fields_config[$addr_field_id])) {
-                        $address = $contact->getFirst($addr_field_id);
-                        if ($address && !empty($address['data'])) {
-                            foreach ($address['data'] as $subfield => $v) {
-                                if (!isset($fields_config[$addr_field_id]['fields'][$subfield])) {
-                                    $fields_config[$addr_field_id]['fields'][$subfield] = array();
+        } else {
+            if (wa()->getEnv() == 'backend') {
+                // Tweaks for backend order editor.
+                // We want shipping address to show even if disabled in settings.
+                // !!! Why is that?.. No idea. Legacy code.
+                if (!isset($fields_config['address.shipping'])) {
+                    $fields_config['address.shipping'] = array();
+                }
+                // When an existing contact has address specified, we want to show all the data fields
+                if ($contact) {
+                    foreach (array('address.shipping', 'address.billing') as $addr_field_id) {
+                        if (!empty($fields_config[$addr_field_id])) {
+                            $address = $contact->getFirst($addr_field_id);
+                            if ($address && !empty($address['data'])) {
+                                foreach ($address['data'] as $subfield => $v) {
+                                    if (!isset($fields_config[$addr_field_id]['fields'][$subfield])) {
+                                        $fields_config[$addr_field_id]['fields'][$subfield] = array();
+                                    }
                                 }
                             }
                         }
@@ -724,5 +750,61 @@ class shopHelper
         $v = @filemtime(wa('shop')->getDataPath('promos/'.$id.'.'.$ext, true));
         return wa('shop')->getDataUrl('promos/'.$id.'.'.$ext, true).($v ? '?v='.$v : '');
     }
-}
 
+    public static function getWritableTypes($contact = null)
+    {
+        if (!$contact) {
+            $contact = wa()->getUser();
+        } else {
+            if (!$contact instanceof waContact) {
+                $contact = new waContact($contact);
+            }
+        }
+
+        $types_allowed = array();
+        $type_model = new shopTypeModel();
+        foreach ($type_model->getTypes() as $type_id => $type) {
+            if ($contact->getRights('shop', 'type.'.$type_id) >= 2) {
+                $types_allowed[$type_id] = $type;
+            }
+        }
+
+        return $types_allowed;
+    }
+
+
+
+    /**
+     * @param string $source storefront
+     * @return string
+     */
+    public static function getStoreEmail($source)
+    {
+        $store_email = null;
+
+        $notification_model = new shopNotificationModel();
+        $sql = <<<SQL
+SELECT DISTINCT n.source, n.transport, np.value
+FROM shop_notification n
+JOIN shop_notification_params np ON n.id = np.notification_id
+WHERE
+  np.name = 'from'
+  AND
+  n.transport = 'email'
+
+SQL;
+        if ($source) {
+            $source = trim($source, '/*').'/*';
+            $sql .= " AND n.source=s:source";
+        }
+        $sql .= ' LIMIT 1';
+
+        if ($row = $notification_model->query($sql, compact('source'))->fetchRow()) {
+            $store_email = $row['value'];
+        }
+        if (empty($store_email)) {
+            $store_email = wa('shop')->getConfig()->getGeneralSettings('email');
+        }
+        return $store_email;
+    }
+}

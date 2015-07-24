@@ -57,14 +57,16 @@ class shopViewHelper extends waAppViewHelper
     public function productSet($set_id, $offset = null, $limit = null, $options = array())
     {
         if (!$offset && !$limit && !$options && ($cache = $this->wa->getCache())) {
-            $products = $cache->get('set_'.$set_id, 'sets');
+            $route = $this->getRoute();
+            $cache_key = 'set_'.$set_id.'_'.str_replace('/', '_', waRouting::clearUrl($route['domain'].'/'.$route['url']));
+            $products = $cache->get($cache_key, 'sets');
             if ($products !== null) {
                 return $products;
             }
         }
         $products = $this->products('set/'.$set_id, $offset, $limit, $options);
         if (!empty($cache)) {
-            $cache->set('set_'.$set_id, $products, 1200, 'sets');
+            $cache->set($cache_key, $products, 1200, 'sets');
         }
         return $products;
     }
@@ -94,9 +96,26 @@ class shopViewHelper extends waAppViewHelper
         if (!$product_ids) {
             return array();
         }
+
+        $absolute = $absolute && !$this->cdn;
         $product_ids = array_map('intval', (array) $product_ids);
         $product_images_model = new shopProductImagesModel();
-        return $product_images_model->getImages($product_ids, $size, 'product_id', $absolute);
+        $result = $product_images_model->getImages($product_ids, $size, 'product_id', $absolute);
+
+        if ($this->cdn) {
+            foreach($result as &$images) {
+                foreach($images as &$image) {
+                    foreach($image as $k => &$v) {
+                        if (substr($k, 0, 4) == 'url_') {
+                            $v = $this->cdn.$v;
+                        }
+                    }
+                }
+            }
+
+            unset($image, $images, $v);
+        }
+        return $result;
     }
 
     public function settings($name = null, $escape = true)
@@ -184,12 +203,12 @@ class shopViewHelper extends waAppViewHelper
         foreach ($products as $p) {
             $tmp[(int)$p['type_id']] = true;
         }
+
         // get type features for correct sort
         $type_features_model = new shopTypeFeaturesModel();
         $sql = "SELECT type_id, feature_id FROM ".$type_features_model->getTableName()."
-                    WHERE type_id IN (i:type_id)
-                    ORDER BY sort";
-        $rows = $type_features_model->query($sql, array('type_id' => array($tmp)))->fetchAll();
+                WHERE type_id IN (i:type_id) ORDER BY sort";
+        $rows = $type_features_model->query($sql, array('type_id' => array_keys($tmp)))->fetchAll();
         $type_features = array();
         foreach ($rows as $row) {
             $type_features[$row['type_id']][] = $row['feature_id'];
@@ -334,11 +353,35 @@ class shopViewHelper extends waAppViewHelper
             }
             return '';
         }
-        if (!empty($product['image_desc']) && !isset($attributes['alt'])) {
-            $attributes['alt'] = htmlspecialchars($product['image_desc']);
+
+        if (!isset($product['image_filename'])) {
+            $p = $this->wa->getView()->getVars('product');
+            if ($p && ($p['id'] == $product['id'])) {
+                $product['image_filename'] = $p['images'][$product['image_id']]['filename'];
+            }
         }
-        if (!empty($product['image_desc']) && !isset($attributes['title'])) {
-            $attributes['title'] = htmlspecialchars($product['image_desc']);
+
+        return $this->imgHtml(array(
+            'id' => $product['image_id'],
+            'product_id' => $product['id'],
+            'filename' => $product['image_filename'],
+            'ext' => $product['ext']
+        ), $size, $attributes);
+    }
+
+    public function imgHtml($image, $size, $attributes = array())
+    {
+        if (!$image || empty($image['id'])) {
+            if (!empty($attributes['default'])) {
+                return '<img src="'.$attributes['default'].'">';
+            }
+            return '';
+        }
+        if (!empty($image['description']) && !isset($attributes['alt'])) {
+            $attributes['alt'] = htmlspecialchars($image['description']);
+        }
+        if (!empty($image['description']) && !isset($attributes['title'])) {
+            $attributes['title'] = htmlspecialchars($image['description']);
         }
         $html = '<img';
         foreach ($attributes as $k => $v) {
@@ -346,17 +389,35 @@ class shopViewHelper extends waAppViewHelper
                 $html .= ' '.$k.'="'.$v.'"';
             }
         }
-        $html .= ' src="'.$this->cdn.shopImage::getUrl(array(
-            'product_id' => $product['id'], 'id' => $product['image_id'], 'ext' => $product['ext']), $size).'">';
+        $html .= ' src="'.$this->imgUrl($image, $size).'">';
         return $html;
     }
 
     public function productImgUrl($product, $size)
     {
-        if (!$product['image_id']) {
+        if (empty($product['image_id'])) {
             return '';
         }
-        return $this->cdn.shopImage::getUrl(array('product_id' => $product['id'], 'id' => $product['image_id'], 'ext' => $product['ext']), $size);
+        if (!isset($product['image_filename'])) {
+            $p = $this->wa->getView()->getVars('product');
+            if ($p && ($p['id'] == $product['id'])) {
+                $product['image_filename'] = $p['images'][$product['image_id']]['filename'];
+            }
+        }
+        return $this->imgUrl(array(
+            'id' => $product['image_id'],
+            'product_id' => $product['id'],
+            'filename' => $product['image_filename'],
+            'ext' => $product['ext']
+        ), $size);
+    }
+
+    public function imgUrl($image, $size, $absolute=false)
+    {
+        if (!$image || empty($image['id'])) {
+            return '';
+        }
+        return $this->cdn.shopImage::getUrl($image, $size, $absolute && !$this->cdn);
     }
 
     public function product($id)
@@ -698,7 +759,7 @@ class shopViewHelper extends waAppViewHelper
         }
 
         foreach($promos as &$p) {
-            $p['image'] = shopHelper::getPromoImageUrl($p['id'], $p['ext']);
+            $p['image'] = $this->cdn.shopHelper::getPromoImageUrl($p['id'], $p['ext']);
         }
         unset($p);
 

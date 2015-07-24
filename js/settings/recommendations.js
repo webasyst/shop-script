@@ -152,7 +152,7 @@ $.extend($.settings = $.settings || {}, {
                             var vs = data.value ? data.value.split(',') : [];
                             var html = '';
                             for (var i = 0; i < f.values.length; i++) {
-                                html += '<label><input ' + ($.inArray(f.values[i][0], vs) != -1 ? 'checked' : '') + ' name="data[' + data.feature + '][value][]" value="' + f.values[i][0] + '" type="checkbox">' + f.values[i][1] + '</label> ';
+                                html += '<label><input ' + ($.inArray('' + f.values[i][0], vs) != -1 ? 'checked' : '') + ' name="data[' + data.feature + '][value][]" value="' + f.values[i][0] + '" type="checkbox">' + f.values[i][1] + '</label> ';
                             }
                             elem_values.html(html);
                         } else {

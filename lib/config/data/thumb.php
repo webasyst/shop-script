@@ -28,9 +28,14 @@ $main_thumb_file = false;
 $file = false;
 $size = false;
 $enable_2x = false;
-if (preg_match('#((?:\d{2}/){2}([0-9]+)/images/([0-9]+))/\\3\.(\d+(?:x\d+)?)(@2x)?\.([a-z]{3,4})#i', $request_file, $matches)) {
-    $file = $matches[1].'.'.$matches[6];
-    $size = $matches[4];
+if (preg_match('#((?:\d{2}/){2}([0-9]+)/images/)([0-9]+)/([a-zA-Z0-9_\.-]+)\.(\d+(?:x\d+)?)(@2x)?\.([a-z]{3,4})#i', $request_file, $matches)) {
+    if ($matches[3] === $matches[4]) {
+        $n = $matches[3];
+    } else {
+        $n = $matches[3].'.'.$matches[4];
+    }
+    $file = $matches[1].$n.'.'.$matches[7];
+    $size = $matches[5];
     $gen_thumbs = $app_config->getOption('image_thumbs_on_demand');
 
     if ($file && !$gen_thumbs) {
@@ -39,7 +44,7 @@ if (preg_match('#((?:\d{2}/){2}([0-9]+)/images/([0-9]+))/\\3\.(\d+(?:x\d+)?)(@2x
             $file = false;
         }
     }
-    if ($matches[5] && $app_config->getOption('enable_2x')) {
+    if ($matches[6] && $app_config->getOption('enable_2x')) {
         $enable_2x = true;
         $size = explode('x', $size);
         foreach ($size as &$s) {

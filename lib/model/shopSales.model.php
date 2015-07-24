@@ -10,8 +10,13 @@ class shopSalesModel extends waModel
     {
         if (empty($date_end)) {
             if (empty($date_start)) {
-                $this->exec("TRUNCATE {$this->table}");
-                return;
+                try {
+                    $this->exec("TRUNCATE {$this->table}");
+                    return;
+                } catch (Exception $e) {
+                    // DB user does not have enough rights for TRUNCATE.
+                    // No problem, falling back to DELETE below.
+                }
             }
             $date_end = $date_start;
         }
@@ -482,14 +487,14 @@ class shopSalesModel extends waModel
         $customer_source_where = '';
         if (!empty($options['customer_source'])) {
             $customer_source_where = "AND c.source='".$this->escape($options['customer_source'])."'";
+            $customer_source_join = "JOIN shop_customer AS c ON c.contact_id=o.contact_id";
         }
 
         $sql = "SELECT DATE(cn.create_datetime) AS registration_date, count(DISTINCT cn.id)
                 FROM shop_order AS o
                     JOIN wa_contact AS cn
                         ON cn.id=o.contact_id
-                    JOIN shop_customer AS c
-                        ON c.contact_id=o.contact_id
+                    {$customer_source_join}
                     {$storefront_join}
                 WHERE {$order_date_sql}
                     AND {$customer_date_sql}
@@ -538,7 +543,7 @@ class shopSalesModel extends waModel
                 return $cohorts;
             }
 
-            // Deveide profit by number of customers to calculate LTV
+            // Deveide profit by number of customers to calculate CLV
             $cohorts_customers = $this->getCohortCustomersCount($date_start, $date_end, $options);
             foreach($cohorts as $reg_date => $series) {
                 $customers_count = $cohorts_customers[$reg_date];
@@ -956,20 +961,27 @@ class shopSalesModel extends waModel
                 }
             }
 
+            if ($type == 'customer_sources') {
+                $type_sql = '';
+            } else if ($type == 'campaigns') {
+                $type_sql = "AND type='campaign'";
+            } else {
+                $type_sql = "AND type='source'";
+            }
+
             $storefront_sql = '';
             if (!empty($options['storefront'])) {
                 $storefront_sql = "AND storefront='".$this->escape($options['storefront'])."'";
             }
             $sql = "SELECT name, start, end, amount, DATEDIFF(end, start) + 1 AS days_count
                     FROM shop_expense
-                    WHERE type=?
-                        AND start <= DATE(?)
+                    WHERE start <= DATE(?)
                         AND end >= DATE(?)
+                        {$type_sql}
                         {$name_sql}
                         {$storefront_sql}
                     ORDER BY start";
             $expenses = $this->query($sql, array(
-                $type == 'campaigns' ? 'campaign' : 'source',
                 $date_end,
                 $date_start,
             ))->fetchAll();
@@ -1209,7 +1221,7 @@ class shopSalesModel extends waModel
             $paid_date_sql[] = $fld." >= DATE('".$start_date."')";
         }
         if ($end_date) {
-            $paid_date_sql[] = $fld." <= DATE('".$end_date."')";
+            $paid_date_sql[] = $fld." <= (DATE('".$end_date."') + INTERVAL ".(24*3600 - 1)." SECOND)";
         }
         if ($paid_date_sql) {
             return implode(' AND ', $paid_date_sql);

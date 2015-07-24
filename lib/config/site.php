@@ -22,6 +22,7 @@ $stocks = $stock_model->select('id,name')->order('sort')->fetchAll('id', true);
 
 return array(
     'params' => array(
+        _w('Homepage'),
         'title' => array(
             'name' => _w('Homepage title <title>'),
             'type' => 'input',
@@ -34,6 +35,29 @@ return array(
             'name' => _w('Homepage META Description'),
             'type' => 'textarea'
         ),
+        'og_title' => array(
+            'name' => _w('Social sharing Title (og:title)'),
+            'type' => 'input',
+            'description' => _w('For detailed information on Open Graph parameters and examples please refer to <a href="http://ogp.me" target="_blank">ogp.me</a>')
+        ),
+        'og_image' => array(
+            'name' => _w('Social sharing Image URL (og:image)'),
+            'type' => 'input'
+        ),
+        'og_video' => array(
+            'name' => _w('Social sharing Video URL (og:video)'),
+            'type' => 'input'
+        ),
+        'og_description' => array(
+            'name' => _w('Social sharing Description (og:description)'),
+            'type' => 'textarea'
+        ),
+        'og_type' => array(
+            'name' => _w('Social sharing Type (og:type)'),
+            'type' => 'input',
+            'description' => _w('E.g. <b>website</b>.').' '._w('For detailed information on Open Graph parameters and examples please refer to <a href="http://ogp.me" target="_blank">ogp.me</a>')
+        ),
+        _w('Products'),
         'url_type' => array(
             'name' => _w('URLs'),
             'type' => 'radio_select',
@@ -68,6 +92,23 @@ return array(
                 )
             )
         ),
+        'currency' => array(
+            'name' => _w('Default currency'),
+            'type' => 'select',
+            'items' => $currencies
+        ),
+        'stock_id' => array(
+            'name' => _w('Default stock'),
+            'description' => _w('Select primary stock to which this storefront is associated with. When you process orders from placed via this storefront, selected stock will be automatically offered for product stock update.'),
+            'type' => 'select',
+            'items' => $stocks
+        ),
+        'drop_out_of_stock' => array(
+            'name' => _w('Force drop out-of-stock products to the bottom of all lists'),
+            'description' => _w('When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more.'),
+            'type' => 'checkbox',
+        ),
+        _w('Checkout'),
         'payment_id' => array(
             'name' => _w('Payment options'),
             'type' => 'radio_checkbox',
@@ -97,22 +138,6 @@ return array(
                     'items' => $shipping_items
                 )
             )
-        ),
-        'currency' => array(
-            'name' => _w('Default currency'),
-            'type' => 'select',
-            'items' => $currencies
-        ),
-        'stock_id' => array(
-            'name' => _w('Default stock'),
-            'description' => _w('Select primary stock to which this storefront is associated with. When you process orders from placed via this storefront, selected stock will be automatically offered for product stock update.'),
-            'type' => 'select',
-            'items' => $stocks
-        ),
-        'drop_out_of_stock' => array(
-            'name' => _w('Force drop out-of-stock products to the bottom of all lists'),
-            'description' => _w('When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more.'),
-            'type' => 'checkbox',
         ),
         'ssl' => array(
             'name' => _w('Use HTTPS for checkout and personal accounts'),

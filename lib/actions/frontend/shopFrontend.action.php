@@ -79,6 +79,13 @@ class shopFrontendAction extends waViewAction
         $this->getResponse()->setMeta('keywords', waRequest::param('meta_keywords'));
         $this->getResponse()->setMeta('description', waRequest::param('meta_description'));
 
+        // Open Graph
+        foreach (array('title', 'image', 'video', 'description', 'type') as $k) {
+            if (waRequest::param('og_'.$k)) {
+                $this->getResponse()->setOGMeta($k, waRequest::param('og_'.$k));
+            }
+        }
+
         /**
          * @event frontend_homepage
          * @return array[string]string $return[%plugin_id%] html output for head section

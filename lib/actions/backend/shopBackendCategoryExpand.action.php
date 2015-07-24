@@ -18,11 +18,11 @@ class shopBackendCategoryExpandAction extends waViewAction
 
         $collapsed = waRequest::get('collapsed', 0, waRequest::TYPE_INT);
         if ($collapsed) {
-            shopCategories::setCollapsed($id);
+            shopCategories::setCollapsed($id, !!waRequest::get('recurse'));
             return;
         }
 
-        shopCategories::setExpanded($id);
+        shopCategories::setExpanded($id, !!waRequest::get('recurse'));
 
         if (waRequest::get('tree')) {
             $categories = new shopCategories($id);

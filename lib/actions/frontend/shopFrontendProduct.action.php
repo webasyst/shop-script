@@ -82,8 +82,27 @@ class shopFrontendProductAction extends shopFrontendAction
                 }
             }
         }
+
+        if ($this->appSettings('limit_main_stock')) {
+            $stock_id = waRequest::param('stock_id');
+            if ($stock_id) {
+                $skus = $product->skus;
+                $_update_flag = false;
+                foreach ($skus as $sku_id => $sku) {
+                    if (isset($sku['stock'][$stock_id])) {
+                        $skus[$sku_id]['count'] = $sku['stock'][$stock_id];
+                        $_update_flag = true;
+                    }
+                }
+                if ($_update_flag) {
+                    $product['skus'] = $skus;
+                }
+            }
+        }
+
         if (!isset($product->skus[$product->sku_id])) {
-            $product->sku_id = $product->skus ? key($product->skus) : null;
+            $_skus = $product->skus;
+            $product->sku_id = $_skus ? key($_skus) : null;
         }
         if (!$product->skus) {
             $product->skus = array(
@@ -219,10 +238,12 @@ class shopFrontendProductAction extends shopFrontendAction
             $this->view->assign('reviews_total_count', $this->getReviewsTotalCount($product['id']));
 
             $meta_fields = $this->getMetafields($product);
-
             wa()->getResponse()->setTitle($meta_fields['meta_title']);
             wa()->getResponse()->setMeta('keywords', $meta_fields['meta_keywords']);
             wa()->getResponse()->setMeta('description', $meta_fields['meta_description']);
+            foreach($meta_fields['og'] as $property => $content) {
+                $content && wa()->getResponse()->setOgMeta($property, $content);
+            }
 
             $feature_codes = array_keys($product->features);
             $feature_model = new shopFeatureModel();
@@ -251,13 +272,13 @@ class shopFrontendProductAction extends shopFrontendAction
         // default title and metas
         if (!$is_cart) {
             if (!wa()->getResponse()->getTitle()) {
-                wa()->getResponse()->setTitle(shopProduct::getDefaultMetaTitle($product));
+                wa()->getResponse()->setTitle($meta_fields['meta_title']);
             }
             if (!wa()->getResponse()->getMeta('keywords')) {
-                wa()->getResponse()->setMeta('keywords', shopProduct::getDefaultMetaKeywords($product));
+                wa()->getResponse()->setMeta('keywords', $meta_fields['meta_keywords']);
             }
             if (!wa()->getResponse()->getMeta('description')) {
-                wa()->getResponse()->setMeta('description', shopProduct::getDefaultMetaDescription($product));
+                wa()->getResponse()->setMeta('description', $meta_fields['meta_description']);
             }
         }
 
@@ -465,6 +486,27 @@ class shopFrontendProductAction extends shopFrontendAction
                 $res[$f] = str_replace($search, $replace, $product[$f]);
             }
         }
+
+        $res['meta_title'] = ifempty($res['meta_title'], shopProduct::getDefaultMetaTitle($product));
+        $res['meta_keywords'] = ifempty($res['meta_keywords'], shopProduct::getDefaultMetaKeywords($product));
+        $res['meta_description'] = ifempty($res['meta_description'], shopProduct::getDefaultMetaDescription($product));
+
+        $image_url = $this->view->getHelper()->shop->imgUrl(array(
+            'id' => $product['image_id'],
+            'product_id' => $product['id'],
+            'filename' => $product['image_filename'],
+            'ext' => $product['ext'],
+        ), null, true);
+
+        $res['og'] = $product['og'] + array(
+            'type' => 'og:product',
+            'title' => $res['meta_title'],
+            'description' => $res['meta_description'],
+            'image' => $image_url,
+            'url' => wa()->getConfig()->getHostUrl().wa()->getConfig()->getRequestUrl(false, true),
+            'product:price:amount' => shop_currency($product['price'], null, null, false),
+            'product:price:currency' => wa('shop')->getConfig()->getCurrency(false),
+        );
 
         return $res;
     }

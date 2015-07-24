@@ -9,7 +9,7 @@ class shopSettingsPaymentAction extends waViewAction
         }
         $model = new shopPluginModel();
         $this->view->assign('instances', $model->listPlugins(shopPluginModel::TYPE_PAYMENT, array('all' => true, )));
-        $this->view->assign('plugins', waPayment::enumerate());
+        $this->view->assign('plugins', shopPayment::getList());
         $this->view->assign('installer', $this->getUser()->getRights('installer', 'backend'));
     }
 }

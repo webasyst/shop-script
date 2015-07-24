@@ -15,7 +15,7 @@
 <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.mouse.min.js?v{$wa->version(true)}"></script>
 <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js?v{$wa->version(true)}"></script>
 {/if}
-<div class="filters{if !empty($theme_settings.ajax_filters)} ajax{/if}">
+<div class="filters leadbox{if !empty($theme_settings.ajax_filters)} ajax{/if}">
     <form method="get" action="{$wa->currentUrl(0,1)}" data-loading="{$wa_parent_theme_url}img/loading16.gif">
         {foreach $filters as $fid => $filter}
             <div class="filter-param">

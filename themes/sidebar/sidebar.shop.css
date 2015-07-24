@@ -43,9 +43,9 @@
 .bullet .b-glyph.b-payment { background-position: -54px -6px; left: -2px; }
 .bullet .b-glyph.b-location { background-position: -102px -6px; }
 
-.promos { margin: 5px -25px; }
+.promos { margin: 5px -10px; }
 .promos ul { padding: 0; margin: 0; }
-.promos ul li { padding: 0; margin: 0; list-style: none; display: inline-block; width: 25%; float: left; } 
+.promos ul li { padding: 0; margin: 0; list-style: none; display: inline-block; width: 25%; }
 .promos ul li a { display: block; padding: 40px 20px; height: 80px; overflow: hidden; background-size: cover; background-position: center center; color: #000; background-color: rgba(0,0,0,0.05); border: 10px solid #fff; border-width-bottom: 0px; border-width-bottom: 20px; text-align: center; position: relative; text-decoration: none; }
 .promos ul li a .background-color-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; opacity: 0.1; background-color: #000; }
 .promos ul li a h5 { font-size: 1.3em; text-shadow: 0 1px 2px #000; position: relative; z-index: 2; }

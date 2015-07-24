@@ -56,6 +56,7 @@ class shopSettingsImagesAction extends waViewAction
     {
         $config = $this->getConfig();
         $settings['image_sharpen'] = waRequest::post('image_sharpen') ? 1 : 0;
+        $settings['image_filename'] = waRequest::post('image_filename') ? 1 : 0;
         $settings['image_save_original'] = waRequest::post('image_save_original') ? 1 : 0;
         $settings['image_thumbs_on_demand'] = waRequest::post('image_thumbs_on_demand') ? 1 : 0;
         

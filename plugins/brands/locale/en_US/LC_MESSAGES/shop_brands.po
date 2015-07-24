@@ -33,3 +33,7 @@ msgstr ""
 #: /wa-apps/shop/plugins/brands/lib/config/plugin.php:5
 msgid "Storefront’s product filtering by brand (manufacturer)"
 msgstr ""
+
+#: /wa-apps/shop/plugins/brands/templates/actions/settings/Settings.html:21
+msgid "Save"
+msgstr ""

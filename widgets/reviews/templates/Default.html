@@ -1,0 +1,79 @@
+<style>
+.widget-block .s-reviews-widget .sr-link-to-all-reviews {
+    position: absolute; bottom: 0; left: 0; right: 0; text-align: center; opacity: 0; padding: 18px 0 0;
+    background: -moz-linear-gradient(top,  rgba(255,255,255,0) 0%, rgba(255,255,255,1) 47%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,0)), color-stop(47%,rgba(255,255,255,1))); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,1) 47%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,1) 47%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,1) 47%); /* IE10+ */
+    background: linear-gradient(to bottom,  rgba(255,255,255,0) 0%,rgba(255,255,255,1) 47%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#ffffff',GradientType=0 ); /* IE6-9 */
+}
+.widget-block:hover .s-reviews-widget .sr-link-to-all-reviews { opacity: 1; transition: opacity 0.5s; }
+.s-reviews-widget .sr-review { margin: 10px 0 20px; }
+.s-reviews-widget .sr-review-text { margin-top: 7px; margin-bottom: 5px; }
+.sr-no-reviews { margin: 35px 20px; font-weight: normal; }
+.widget-2x1 .sr-no-reviews { margin: 45px 55px; }
+.widget-2x2 .sr-no-reviews { margin: 105px 35px; }
+</style>
+
+<div class="block s-reviews-widget">
+
+  {if !count($reviews)}
+
+    <h5 class="align-center hint sr-no-reviews">[`There are no reviews in your shop yet.`]</h5>
+
+  {else}
+
+    <div class="sr-link-to-all-reviews">
+      <div class="block">
+        <a href="{$wa_backend_url}shop/?action=products#/reviews/">
+          [`Show all reviews`]
+        </a>
+      </div>
+    </div>
+
+    <h6 class="heading">[`Latest reviews`]</h6>
+
+    {foreach $reviews as $review}
+      <div class="sr-review">
+        <span>
+          {capture name=commentor_name}
+            {if !empty($review.author.photo_url_20)}
+              <i class="icon16 userpic20" style="background-image:url('{$review.author.photo_url_20}');"></i>
+            {/if}
+            <span class="bold">{$review.author.name}</span>
+          {/capture}
+          {if !empty($review.author.site)}
+            <a href="{$review.author.site|escape}">
+              {$smarty.capture.commentor_name}
+            </a>
+          {else}
+            {$smarty.capture.commentor_name}
+          {/if}
+          {if empty($review.author.id) && !empty($review.author.email)}
+            <span class="hint">{$review.author.email|escape}</span>
+          {/if}
+        </span>
+
+        <span class="hint">
+          {$review.datetime|wa_datetime:"humandatetime"}{if $review.ip}, {$review.ip|long2ip}{/if}
+        </span>
+
+        <p class="sr-review-text">
+          <span{if !empty($review.is_new)} class="highlighted"{/if}>{$review.text|escape|nl2br}</span>
+        </p>
+        {if !empty($review.product_name)}
+          <p class="hint">
+            {sprintf(
+              '[`on <a href="%s">%s</a>`]',
+              "{$wa_backend_url}shop/?action=products#/product/{$review.product_id}/",
+              {$review.product_name|escape}
+            )}
+          </p>
+        {/if}
+      </div>
+    {/foreach}
+
+  {/if}
+</div>

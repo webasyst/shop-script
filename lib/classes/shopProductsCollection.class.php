@@ -721,6 +721,12 @@ class shopProductsCollection
                     }
                     // smart search
                     else {
+
+                        // Following block of code might change the ordering
+                        // as part of searching logic.
+                        // Remember order-by in case we want to restore it later.
+                        $auto_order_by = $this->order_by;
+
                         $search = new shopIndexSearch();
                         $word_ids = $search->getWordIds($parts[2], true);
                         if ($word_ids) {
@@ -752,8 +758,11 @@ class shopProductsCollection
                                 }
                                 $this->frontendConditions();
                             }
-                            $this->order_by = 'p.create_datetime DESC';
-                            $this->group_by = null;
+                            if (waRequest::request('sort', 'weight', 'string') == 'weight') {
+                                $this->order_by = 'p.create_datetime DESC';
+                            } else {
+                                $this->order_by = $auto_order_by;
+                            }
                             $q = $model->escape($parts[2], 'like');
                             $this->addJoin('shop_product_skus', null, "(p.name LIKE '%" . $q . "%' OR :table.name LIKE '%" . $q . "%' OR :table.sku LIKE '%" . $q . "%')");
                             $this->group_by = 'p.id';
@@ -771,6 +780,11 @@ class shopProductsCollection
                                 $this->where[] = 'weight >= ' . $w;
                             }
                             $this->count = null;
+
+                            // Restore original order-by if were specified
+                            if (waRequest::request('sort', 'weight', 'string') != 'weight') {
+                                $this->order_by = $auto_order_by;
+                            }
                         }
                     }
                     $title[] = $parts[0].$parts[1].$parts[2];
@@ -1287,7 +1301,8 @@ class shopProductsCollection
                     $big_size = wa('shop')->getConfig()->getImageSize('big');
                     foreach ($products as &$p) {
                         if ($p['image_id']) {
-                            $tmp = array('id' => $p['image_id'], 'product_id' => $p['id'], 'ext' => $p['ext']);
+                            $tmp = array('id' => $p['image_id'], 'product_id' => $p['id'],
+                                'filename' => $p['image_filename'], 'ext' => $p['ext']);
                             $p['image']['thumb_url'] = shopImage::getUrl($tmp, $thumb_size, isset($this->options['absolute']) ? $this->options['absolute'] : false);
                             $p['image']['big_url'] = shopImage::getUrl($tmp, $big_size, isset($this->options['absolute']) ? $this->options['absolute'] : false);
                         }
@@ -1298,7 +1313,8 @@ class shopProductsCollection
                     $size = wa('shop')->getConfig()->getImageSize('crop_small');
                     foreach ($products as &$p) {
                         if ($p['image_id']) {
-                            $tmp = array('id' => $p['image_id'], 'product_id' => $p['id'], 'ext' => $p['ext']);
+                            $tmp = array('id' => $p['image_id'], 'product_id' => $p['id'],
+                                'filename' => $p['image_filename'], 'ext' => $p['ext']);
                             $p['image_crop_small'] = shopImage::getUrl($tmp, $size, isset($this->options['absolute']) ? $this->options['absolute'] : false);
                         }
                     }

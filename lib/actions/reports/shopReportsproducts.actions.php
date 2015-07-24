@@ -281,7 +281,7 @@ class shopReportsproductsActions extends waViewActions
         }
 
         // Get top-100 products by margin
-        $sql = "SELECT p.id, p.name, p.image_id, p.ext, p.sku_count, p.create_datetime,
+        $sql = "SELECT p.id, p.name, p.image_id, p.image_filename, p.ext, p.sku_count, p.create_datetime,
                     GROUP_CONCAT(s.id SEPARATOR ',') AS sku_ids,
                     GROUP_CONCAT(s.name SEPARATOR ', ') AS sku_names,
                     (s.price - s.purchase_price)*c.rate AS margin,
@@ -321,7 +321,9 @@ class shopReportsproductsActions extends waViewActions
                 'count' => (int) $p['count'],
             ) + $p + array(
                 'sold' => 0,
-                'image_url' => shopImage::getUrl(array('product_id' => $p['id'], 'id' => $p['image_id'], 'ext' => $p['ext']), $size),
+                'image_url' => shopImage::getUrl(array(
+                    'product_id' => $p['id'],
+                    'id' => $p['image_id'], 'filename' => $p['image_filename'], 'ext' => $p['ext']), $size),
             );
         }
 

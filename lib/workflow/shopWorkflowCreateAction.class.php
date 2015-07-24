@@ -25,7 +25,8 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                     $auth_config = wa()->getAuthConfig();
                     if (!empty($auth_config['params']['confirm_email']) &&
                         $shop_config->getGeneralSettings('guest_checkout') == 'merge_email' &&
-                        $contact->get('email', 'default')) {
+                        $contact->get('email', 'default')
+                    ) {
                         // try find exists contact by email
                         $contact_emails_model = new waContactEmailsModel();
                         $contact_id = $contact_emails_model->getMainContactMyEmail($contact->get('email', 'default'));
@@ -72,7 +73,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             $sku_ids = array();
             foreach ($data['items'] as $item) {
                 if ($item['type'] == 'product') {
-                    $sku_ids[] = (int) $item['sku_id'];
+                    $sku_ids[] = (int)$item['sku_id'];
                 }
             }
             $product_stocks_model = new shopProductStocksModel();
@@ -125,8 +126,10 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             $data['total'] = $subtotal;
             $data['discount_description'] = null;
             $data['discount'] = shopDiscounts::apply($data, $data['discount_description']);
-        } else if (empty($data['discount_description']) && !empty($data['discount'])) {
-            $data['discount_description'] = sprintf_wp('Discount specified manually during order creation: %s', shop_currency($data['discount'], $currency, $currency));
+        } else {
+            if (empty($data['discount_description']) && !empty($data['discount'])) {
+                $data['discount_description'] = sprintf_wp('Discount specified manually during order creation: %s', shop_currency($data['discount'], $currency, $currency));
+            }
         }
 
         // Calculate taxes
@@ -140,8 +143,8 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         }
         $discount_rate = $subtotal ? ($data['discount'] / $subtotal) : 0;
         $taxes = shopTaxes::apply($data['items'], array(
-            'shipping' => isset($shipping_address['data']) ? $shipping_address['data'] : array(),
-            'billing' => isset($billing_address['data']) ? $billing_address['data'] : array(),
+            'shipping'      => isset($shipping_address['data']) ? $shipping_address['data'] : array(),
+            'billing'       => isset($billing_address['data']) ? $billing_address['data'] : array(),
             'discount_rate' => $discount_rate
         ));
         $tax = $tax_included = 0;
@@ -156,13 +159,13 @@ class shopWorkflowCreateAction extends shopWorkflowAction
 
         $order = array(
             'state_id' => 'new',
-            'total' => $subtotal - $data['discount'] + $data['shipping'] + $tax,
+            'total'    => $subtotal - $data['discount'] + $data['shipping'] + $tax,
             'currency' => $currency,
-            'rate' => $rate,
-            'tax' => $tax_included + $tax,
+            'rate'     => $rate,
+            'tax'      => $tax_included + $tax,
             'discount' => $data['discount'],
             'shipping' => $data['shipping'],
-            'comment' => isset($data['comment']) ? $data['comment'] : ''
+            'comment'  => isset($data['comment']) ? $data['comment'] : ''
         );
         $order['contact_id'] = $contact->getId();
 
@@ -205,12 +208,12 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         if (!empty($data['discount_description']) && !empty($data['discount']) && empty($data['skip_description'])) {
             $order_log_model = new shopOrderLogModel();
             $order_log_model->add(array(
-                'order_id' => $order_id,
-                'contact_id' => $order['contact_id'],
+                'order_id'        => $order_id,
+                'contact_id'      => $order['contact_id'],
                 'before_state_id' => $order['state_id'],
-                'after_state_id' => $order['state_id'],
-                'text' => $data['discount_description'],
-                'action_id' => '',
+                'after_state_id'  => $order['state_id'],
+                'text'            => $data['discount_description'],
+                'action_id'       => '',
             ));
         }
 
@@ -218,7 +221,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         $log_model->add('order_create', $order_id, null, $order['contact_id']);
 
         return array(
-            'order_id' => $order_id,
+            'order_id'   => $order_id,
             'contact_id' => wa()->getEnv() == 'frontend' ? $contact->getId() : wa()->getUser()->getId()
         );
     }
@@ -246,11 +249,12 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         $order = $order_model->getById($order_id);
         $params_model = new shopOrderParamsModel();
         $order['params'] = $params_model->get($order_id);
+        $customer = new waContact($order['contact_id']);
         // send notifications
         shopNotifications::send('order.'.$this->getId(), array(
-            'order' => $order,
-            'customer' => new waContact($order['contact_id']),
-            'status' => $this->getWorkflow()->getStateById($data['after_state_id'])->getName(),
+            'order'       => $order,
+            'customer'    => $customer,
+            'status'      => $this->getWorkflow()->getStateById($data['after_state_id'])->getName(),
             'action_data' => $data
         ));
 
@@ -270,6 +274,10 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             shopProductStocksLogModel::clearContext();
         }
 
+        if ($email = $customer->get('email', 'default')) {
+            $this->sendPrintforms($order,$email,$data);
+        }
+
         return $order_id;
     }
 
@@ -283,6 +291,91 @@ class shopWorkflowCreateAction extends shopWorkflowAction
     /** Random 4-digit code to authorize user from email link */
     public static function generateAuthPin()
     {
-        return (string) mt_rand(1000, 9999);
+        return (string)mt_rand(1000, 9999);
+    }
+
+
+    /**
+     * @param $order
+     * @param string $email
+     * @param array
+     */
+    private function sendPrintforms($order, $email, $data)
+    {
+        $queue = array();
+        $forms = shopHelper::getPrintForms($order);
+        foreach ($forms as $id => $form) {
+            if (!empty($form['emailprintform'])) {
+                if (strpos($id, '.')) {
+                    list($type, $form_id) = explode('.', $id, 2);
+                } else {
+                    $type = 'shop';
+                    $form_id = $id;
+                }
+                try {
+                    switch ($type) {
+                        case 'shipping':
+                            $key = ifempty($order['params'][$type.'_id']);
+                            $plugin = shopShipping::getPlugin(null, $key);
+                            $html = $plugin->displayPrintForm($form_id, shopPayment::getOrderData($order, $plugin));
+                            break;
+                        case 'payment':
+                            $key = ifempty($order['params'][$type.'_id']);
+                            $plugin = shopPayment::getPlugin(null, $key);
+                            $html = $plugin->displayPrintForm($form_id, shopPayment::getOrderData($order, $plugin));
+                            break;
+                        default: # it's shop plugin
+                            $plugin = wa('shop')->getPlugin($id);
+                            /**
+                             * @var shopPrintformPlugin $plugin
+                             */
+                            if (method_exists($plugin, 'renderForm')) {
+                                $html = $plugin->renderForm(waOrder::factory($order));
+                            }
+                            break;
+                    }
+
+                    if (!empty($html)) {
+                        $queue[$id] = array(
+                            'html' => $html,
+                            'name' => ifset($form['name'], $id),
+                        );
+
+
+                    }
+                } catch (Exception $ex) {
+                    waLog::log($ex->getMessage(), 'shop/workflow.log');
+                }
+            }
+        }
+
+        if (!empty($queue)) {
+            $order_log_model = new shopOrderLogModel();
+
+            $store_email = shopHelper::getStoreEmail(ifempty($order['params']['storefront']));
+
+            foreach ($queue as $form) {
+                try {
+                    $message = new waMailMessage(sprintf(_w("Printform %s"), $form['name']), $form['html']);
+                    $message->setTo(array($email));
+                    $message->setFrom($store_email);
+
+                    if ($message->send()) {
+                        $log = sprintf(_w("Printform <strong>%s</strong> sent to customer."), $form['name']);
+
+                        $order_log_model->add(array(
+                            'order_id'        => $data['order_id'],
+                            'contact_id'      => $order['contact_id'],
+                            'action_id'       => '',
+                            'text'            => '<i class="icon16 email"></i> '.$log,
+                            'before_state_id' => $data['after_state_id'],
+                            'after_state_id'  => $data['after_state_id'],
+                        ));
+                    }
+                } catch (Exception $ex) {
+                    waLog::log($ex->getMessage(), 'shop/workflow.log');
+                }
+            }
+        }
     }
 }

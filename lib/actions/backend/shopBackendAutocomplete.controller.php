@@ -368,7 +368,7 @@ class shopBackendAutocompleteController extends waController
         }
         $where = ' AND (('.implode(') AND (',$where).'))';
         $sql = <<<SQL
-SELECT `id`,`name`,`code`,`type`,`count` FROM {$table}
+SELECT * FROM {$table}
 WHERE
   (`parent_id` IS NULL
   AND
@@ -381,15 +381,17 @@ ORDER BY `count` DESC
 LIMIT 20
 SQL;
         foreach( $model->query($sql)->fetchAll('code', true) as $code=> $f){
-            $f['type'] = shopFeatureModel::getTypeName($f);
-            $f['count'] = _w('%d value', '%d values', $f['count']);
-            $id = $f['id'];
-            unset($f['id']);
+            $label = array(
+                'name'=>$f['name'],
+                'type' => shopFeatureModel::getTypeName($f),
+                'count' => _w('%d value', '%d values', $f['count']),
+            );
+
             $result[] = array(
-                'id' => $id,
+                'id' => $f['id'],
                 'value' => $code,
                 'name' => $f['name'],
-                'label' => implode('; ', array_filter($f)),
+                'label' => implode('; ', array_filter($label)),
             );
         }
 

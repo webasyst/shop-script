@@ -65,6 +65,24 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">[`Storefront settings`]</div>                
+                    {foreach $routes as $_d => $_d_routes}
+                        {foreach $_d_routes as $_r_id => $_r}
+                            <div class="value no-shift s-settings-storefront-list">
+                                <a href="?action=storefronts#/design/theme={ifset($_r.theme, 'default')}&domain={urlencode($_d)}&route={$_r_id}&action=settings">
+                                    {$_d}/{$_r.url}
+                                    <i class="icon10 settings"></i>
+                                </a>
+                            </div>
+                        {/foreach}
+                    {/foreach}
+                </div>
+            </div>
+            
+            <h5 class="heading">[`Orders & Customers`]</h5>
             <div class="field-group">
                 <div class="field">
                     <div class="name">[`Order ID format`]</div>
@@ -93,7 +111,7 @@
                                 <option value="wavatar" {if $gravatar_default == 'wavatar'}selected="selected"{/if}>[`generated faces with differing features and backgrounds`]</option>
                                 <option value="retro" {if $gravatar_default == 'retro'}selected="selected"{/if}>[`awesome generated, 8-bit arcade-style pixelated faces`]</option>
                             </select>
-                            <img id='s-settings-general-gravatar' {if $saved}src="{shopHelper::getGravatar($wa->user('email', 'default'), 50, $gravatar_default)}"{/if} style='width: 50px; {if !$saved}display:none;{else}display:block;{/if} margin-top: 10px;'>
+                            <img id="s-settings-general-gravatar" class="userpic" {if $saved}src="{shopHelper::getGravatar($wa->user('email', 'default'), 50, $gravatar_default)}"{/if} style='width: 50px; {if !$saved}display:none;{else}display:block;{/if} margin-top: 10px;'>
                         </label>
                     </div>
                 </div>
@@ -158,7 +176,12 @@
                             <div class="field">
                                 <div class="name">{$v.title}</div>
                                 <div class="value">
-                                    <input name="sms[{$i}][{$k}]" value="{if !empty($a.config[$k])}{$a.config[$k]|escape}{/if}">
+                                    {if ifset($v.control_type) == 'checkbox'}
+                                    <input type="hidden" name="sms[{$i}][{$k}]" value="">
+                                    <input type="checkbox" name="sms[{$i}][{$k}]" value="1" {if !empty($a.config[$k])}checked{/if}>
+                                    {else}
+                                    <input type="text" name="sms[{$i}][{$k}]" value="{if !empty($a.config[$k])}{$a.config[$k]|escape}{/if}">
+                                    {/if}
                                     {if !empty($v.description)}
                                     <p class="hint">{$v.description}</p>
                                     {/if}
@@ -171,7 +194,7 @@
                             <p class="small">
                                 {sprintf('[`Once gateway is setup, add new and edit existing SMS notifications using the <a href="%s">Notifications</a> settings screen.`]', '#/notifications/')}
                                 <br>
-                                {sprintf('[`<a href="%s" target="_blank">See documentation</a> for details.`]', '[`http://www.webasyst.com/help/1061/shop-script-5-sms-setup/`]')}
+                                {sprintf('[`<a href="%s" target="_blank">See documentation</a> for details.`]', '[`http://www.shop-script.com/help/1061/shop-script-5-sms-setup/`]')}
                             </p>
                         </div>
                         {/foreach}
@@ -182,6 +205,14 @@
                             </p>
                         </div>
                     {/if}
+                </div>
+            </div>
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">[`Shop-Script version`]</div>
+                    <div class="value no-shift">
+                        {$wa->version()}
+                    </div>
                 </div>
             </div>
             <div class="field-group">

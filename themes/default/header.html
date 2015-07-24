@@ -14,6 +14,15 @@
         {/if}
     {/foreach}
     
+    <!-- product search -->
+    <form method="get" action="{$wa->getUrl('shop/frontend/search')}" class="search">
+        <div class="search-wrapper">
+            <input id="search" type="search" name="query" {if !empty($query)}value="{$query}"{/if} placeholder="[s`Find products`]">
+            <button type="submit"></button>
+            {* <span class="search-sample">{sprintf('[`E.g. %s`]', '<a href="'|cat:$wa_app_url:"search/?query=productname":'">productname</a>')} *}
+        </div>
+    </form>
+    
     <ul class="pages flyout-nav" role="navigation">
     
         {if $theme_settings.category_nav_mode != 'sidebar'}
@@ -22,11 +31,17 @@
             
                 {* DROPDOWN "Shop by Department" navigation *}
                 
-                <li class="collapsible">
+                <li>
                     <a href="javascript:void(0);" class="bold">[`Shop by Department`]</a>
                     <div class="flyout">
                         <div class="container">
-                            {wa_print_tree tree=$categories unfolded=true collapsible_class='collapsible' class="menu-v" elem ='<a href=":url" title=":name">:name</a>'}
+                            {if count($categories)}
+                                <div class="departments">
+                                    {wa_print_tree tree=$categories unfolded=true collapsible_class='collapsible' class="menu-v" elem ='<a href=":url" title=":name">:name</a>'}
+                                </div>
+                            {else}
+                                <p class="align-center gray"><br><br>[`You did not create any product categories yet.`]</p>
+                            {/if}
                         </div>
                     </div>
                 </li>
@@ -37,7 +52,7 @@
                 
                 {foreach $categories as $cat}
                     {if count($cat.childs)}
-                        <li class="collapsible">
+                        <li>
                             <a href="{$cat.url}">{$cat.name}</a>
                             <div class="flyout">
                                 <div class="container">
@@ -58,7 +73,7 @@
                 
                 {* TAGS *}
                 
-                <li class="collapsible">
+                <li>
                     <a href="javascript:void(0);">[`Tags`]</a>
                     <div class="flyout">
                         <div class="container">
@@ -77,8 +92,8 @@
                 {* PLUGINS @ frontend_nav *}
                 
                 {foreach $frontend_nav as $_key => $_}
-                    <li class="collapsible">
-                        <a href="#" onClick="return false">
+                    <li>
+                        <a href="javascript:void(0);" onClick="return false">
                             {if substr($_key, -7) == '-plugin'}{$wa->pluginName(substr($_key, 0, -7))}{else}[`More`]{/if}
                         </a>
                         <div class="flyout">
@@ -89,8 +104,8 @@
                     </li>
                 {/foreach}
                 {foreach $frontend_nav_aux as $_key => $_}
-                    <li class="collapsible">
-                        <a href="#" onClick="return false">
+                    <li>
+                        <a href="javascript:void(0);" onClick="return false">
                             {if substr($_key, -7) == '-plugin'}{$wa->pluginName(substr($_key, 0, -7))}{else}[`More`]{/if}
                         </a>
                         <div class="flyout">

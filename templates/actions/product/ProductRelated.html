@@ -141,15 +141,19 @@
 
     })();
     $('input[name="upselling"], input[name="cross_selling"]').click(function () {
-        if (this.value == 2) {
-            $(this).closest('div.field').find('.manually').show();
-        } else {
-            $(this).closest('div.field').find('.manually').hide().find('tr.p').remove();
-        }
-        var data = {}
+        var data = { };
         data[this.name] = this.value;
+        if (this.value == 2) {
+            var related_product_id = [];
+            $(this).closest('div.field').find('.manually').show().find('tr.p').each(function() {
+                related_product_id.push($(this).data('productId'));
+            });
+            data.type = this.name;
+            data.product_id = related_product_id;
+        } else {
+            $(this).closest('div.field').find('.manually').hide();
+        }
         $.post('?module=product&action=relatedSave&id={$product.id}', data, function (response) {
-
         }, "json");
     });
 

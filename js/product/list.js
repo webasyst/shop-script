@@ -58,7 +58,6 @@
         fixed_blocks: {},
 
         init: function (options) {
-
             var canonical_hash = [];
             options.collection_param && canonical_hash.push(options.collection_param);
             canonical_hash.push('view='+options.view);
@@ -127,6 +126,10 @@
                 this.initDragndrop();
                 this.initSortingNotice();
                 this.rubberTable();
+
+                if (this.options.view == 'table') {
+                    this.initInlineEditor();
+                }
             } catch (e) {
                 $.shop.error('$.product_list.init error: ' + e.message, e);
             }
@@ -174,7 +177,6 @@
                         (self.order ? '&order=' + self.order : '') + ('&enabled_columns='+(enabled_columns||'')), function (r) {
                             if (r.status == 'ok' && r.data.count) {
                                 offset += r.data.count;
-
                                 var product_list = self.container;
                                 try {
                                     self.container.append(tmpl('template-product-list-' + self.options.view, {
@@ -418,6 +420,187 @@
                 $(document).trigger('product_list_init_view');
             } catch (e) {
                 $.shop.error('$.product_list.initView error: ' + e.message, e);
+            }
+        },
+
+        highlightInlineEditorCells: function() {
+
+            // Highlight all non-editable cells with a CSS class
+            $.product_list.container.find('tr').each(function() {
+                var $tr = $(this);
+                var has_edit_rights = $tr.data('edit-rights');
+                if(!has_edit_rights || $tr.data('min-price') != $tr.data('max-price')) {
+                    $tr.find('.s-product-price .editable').addClass('not-editable');
+                }
+                if(!has_edit_rights || $tr.data('sku-count') != 1) {
+                    $tr.find('.s-product-stock .editable').addClass('not-editable');
+                }
+            });
+
+        },
+
+        initInlineEditor: function() { "use strict";
+
+            $.product_list.highlightInlineEditorCells();
+            $.product_list.container.on('append_product_list', function() {
+                $.product_list.highlightInlineEditorCells();
+            });
+
+            $.product_list.container.on('click', '.s-product-price,.s-product-stock', function() {
+                var $td = $(this);
+                var $tr = $td.closest('tr');
+                var is_price_cell = $td.hasClass('s-product-price');
+
+                if (is_price_cell) {
+                    if($tr.data('min-price') != $tr.data('max-price')) {
+                        return playDeniedAnimation($td, $_('Inline editing is available only for products with a single SKU'));
+                    }
+                } else {
+                    if ($tr.data('sku-count') != '1') {
+                        return playDeniedAnimation($td, $_('Inline editing is available only for products with a single SKU'));
+                    }
+                }
+
+                if (!$tr.data('edit-rights')) {
+                    return playDeniedAnimation($td, $_('Insufficient access rights'));
+                }
+
+                if ($td.hasClass('editor-on')) {
+                    return;//backToReadOnly($td);
+                }
+
+                $td.addClass('editor-on').data('read-only-state-html', $td.html());
+                $.product_list.container.removeClass('single-lined');
+
+                if ($tr.data('original-price') !== undefined) {
+                    // Show the editor right away when we previously loaded all data we need
+                    showEditor();
+                } else {
+                    $td.html('<i class="icon16 loading"></i>');
+                    loadInlineEditorData(showEditor);
+                }
+
+                function showEditor() {
+                    if (is_price_cell) {
+                        $td.html(tmpl('template-list-price-editor-one', {
+                            product_id: $tr.data('product-id'),
+                            currency: $tr.data('currency'),
+                            value: $tr.data('original-price')
+                        }));
+                    } else {
+                        var stocks = $tr.data('stocks');
+                        if (!stocks || typeof stocks != 'object') {
+                            $td.html(tmpl('template-list-stock-editor-one', {
+                                product_id: $tr.data('product-id'),
+                                value: stocks || ''
+                            }));
+                        } else {
+                            $td.html(tmpl('template-list-stock-editor-many', {
+                                product_id: $tr.data('product-id'),
+                                values: stocks
+                            }));
+                        }
+                    }
+
+                    $td.find('.cancel').click(function() {
+                        backToReadOnly($td);
+                    });
+
+                    var $form = $td.find('form').submit(function() {
+                        if ($form.find('.loading').length) {
+                            return false;
+                        }
+                        $form.find(':submit').after('<i class="icon16 loading"></i>');
+                        $.post('?module=products&action=inlineSave', $form.serialize(), function(r) {
+                            $form.find('.loading').remove();
+
+                            // update the whole line
+                            try {
+                                r.data && r.data[0] && (r.data[0].alien = $tr.hasClass('s-alien'));
+                                var $div = $('<table>').html(tmpl('template-product-list-table', {
+                                    products: r.data,
+                                    check_all: $.product_list.container.find('.s-select-all:first').prop('checked'),
+                                    sort: $.product_list.sort
+                                }));
+                                $tr.replaceWith($div.find('tr'));
+                                self.container.trigger('append_product_list', [r.data]);
+                            } catch (e) {
+                                console.log('Error: ' + e.message);
+                            }
+                        }, 'json');
+                        return false;
+                    });
+                    $form.on('dblclick', false);
+
+                    setTimeout(function() {
+                        $td.find(':input:visible:first').focus();
+                    }, 0);
+                }
+            });
+
+            // Visually show the user that he can not edit given table cell
+            function playDeniedAnimation($td, reason) {
+                if ($td.data('denied-reason') == reason) {
+                    $td.data('denied-reason', '');
+                    alert(reason);
+                } else {
+                    $td.data('denied-reason', reason);
+                    setTimeout(function() {
+                        $td.data('denied-reason', '');
+                    }, 3000);
+
+                    $td.wrapInner('<div class="animation-container" style="position:relative;"></div>');
+                    var $div = $td.find('.animation-container').animate({ left: '3px' }, 100, function() {
+                        $div.animate({ left: '0px' }, 100, function() {
+                            $div.animate({ left: '3px' }, 100, function() {
+                                $div.animate({ left: '0px' }, 100, function() {
+                                    $div.children().first().unwrap();
+                                });
+                            });
+                        });
+                    });
+                }
+            }
+
+            // Turn off editor for given cell
+            function backToReadOnly($td) {
+                $td.removeClass('editor-on').html($td.data('read-only-state-html'));
+                $td.data('read-only-state-html', '');
+                $td.data('denied-reason', '');
+            }
+
+            // Load data required for inline editors to work, assign them to <tr> and <td> data properties, then call callback
+            function loadInlineEditorData(callback) {
+                var product_ids = [];
+                $.product_list.container.find('tr.product').each(function() {
+                    var $tr = $(this);
+                    if ($tr.data('original-price') !== undefined) {
+                        return;
+                    }
+                    if (!$tr.data('edit-rights')) {
+                        return;
+                    }
+                    product_ids.push($(this).data('product-id'));
+                });
+
+                if (!product_ids.length) {
+                    return callback();
+                }
+
+                // Load data required and then show the editor
+                $.post('?module=products&action=inlineEditorData', { ids: product_ids }, function(r) {
+                    if (r.data) {
+                        $.product_list.container.find('tr.product').each(function() {
+                            var $tr = $(this);
+                            var p = r.data[parseInt($tr.data('product-id'), 10)];
+                            if (p) {
+                                $tr.data('stocks', p.stocks || null);
+                                $tr.data('original-price', p.price.replace(/\.?0+$/g, ''));
+                            }
+                        });
+                    }
+                    callback();
+                }, 'json');
             }
         },
 
@@ -865,7 +1048,7 @@
                             if (type == 'category' && self.find('input[name="s-delete-sub"]').is(':checked')) {
 
                                 // Get all children of this category by fetching its expanded HTML
-                                $.get('?action=categoryExpand&tree=1&id=' + category_id, function(html) {
+                                $.get('?action=categoryExpand&tree=1&recurse=1&id=' + category_id, function(html) {
                                     var ids = $('<div>').html(html).find('li[id^="category-"]').map(function() {
                                         return parseInt(this.id.substr(9), 10);
                                     }).get().reverse();
@@ -1020,10 +1203,14 @@
         initToolbar: function () {
             var toolbar = this.toolbar;
             toolbar.find('li').unbind('click.product_list').bind('click.product_list', function () {
-                var action = $(this).attr('data-action');
+                var $li = $(this);
+                var action = $li.attr('data-action');
                 if (!action) {
                     return;
                 }
+
+                // products == { count: 2, serialized: (result of $form.serializeArray() }
+                // in `serialized` there may be a single `hash`, or many `product_id[]` entities
                 var products = $.product_list.getSelectedProducts(action != 'delete');
                 if (!products.count) {
                     alert($_('Please select at least one product'));
@@ -1062,6 +1249,9 @@
                         if ($.product_list.collection_hash[0] == 'category') {
                             $.product_list.deleteFromCategory(products);
                         }
+                        break;
+                    case 'visibility':
+                        $.product_list.visibilityDialog(products, $li);
                         break;
                     case 'export':
                         $.product_list.exportProducts(products, $(this).attr('data-plugin'));
@@ -1169,6 +1359,27 @@
                 }
             }
             return data;
+        },
+
+        visibilityDialog: function (products, $li) {
+            // Sanity check...
+            if (!$.isArray(products.serialized)) {
+                return false;
+            }
+
+            var $icon = $li.find('i.icon16');
+            if (!$icon.hasClass('loading')) {
+                var $wrapper = $('#visibility-dialog-wrapper');
+                if (!$wrapper.length) {
+                    $wrapper = $('<div id="visibility-dialog-wrapper">').appendTo('#s-content');
+                }
+
+                var old_icon_class = $icon.attr('class');
+                $icon.attr('class', 'icon16 loading');
+                $wrapper.data('products', products).load('?module=dialog&action=visibility', function() {
+                    $icon.attr('class', old_icon_class);
+                });
+            }
         },
 
         categoriesDialog: function (products) {

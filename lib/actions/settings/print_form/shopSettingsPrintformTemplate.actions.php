@@ -2,32 +2,48 @@
 
 class shopSettingsPrintformTemplateActions extends waJsonActions
 {
-    public function saveAction()
+    /**
+     * @var shopPrintformPlugin
+     */
+    private $plugin;
+
+    protected function preExecute()
     {
-        $plugin_id = waRequest::post('id');
-        $plugin = waSystem::getInstance()->getPlugin($plugin_id);
-        if (!$plugin) {
+        if (!$this->getUser()->getRights('shop', 'settings')) {
+            throw new waException(_w('Access denied'));
+        }
+
+        $id = waRequest::post('id');
+        if (preg_match('@^[a-z][a-z_0-9]*$@', $id)) {
+            $this->plugin = waSystem::getInstance()->getPlugin($id);
+        } else {
             throw new waException(_w("Unknown plugin"));
         }
-        
-        $template = waRequest::post('template', '', waRequest::TYPE_STRING);
+
+        if (
+            !is_object($this->plugin)
+            ||
+            !method_exists($this->plugin, 'resetTemplate')
+            ||
+            !method_exists($this->plugin, 'saveTemplate')
+        ) {
+            throw new waException(_w("Unknown plugin"));
+        }
+    }
+
+    public function saveAction()
+    {
+        $template = waRequest::post('template', '', waRequest::TYPE_STRING_TRIM);
         if (!$template) {
             $this->errors[] = _w("Empty template");
             return;
         }
-        
-        $plugin->saveTemplate($template);
-        
+        $this->plugin->saveTemplate($template);
     }
-    
+
     public function resetAction()
     {
-        $plugin_id = waRequest::post('id');
-        $plugin = waSystem::getInstance()->getPlugin($plugin_id);
-        if (!$plugin) {
-            throw new waException(_w("Unknown plugin"));
-        }
-        $plugin->resetTemplate();
-        $this->response['template'] = $plugin->getTemplate();
+        $template = $this->plugin->resetTemplate();
+        $this->response['template'] = $template ? $template : $this->plugin->getTemplate();
     }
 }

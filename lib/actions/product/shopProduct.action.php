@@ -2,11 +2,6 @@
 
 class shopProductAction extends waViewAction
 {
-    /**
-     * @var waAppSettingsModel
-     */
-    protected $app_settings_model;
-
     public function execute()
     {
         $product = new shopProduct(waRequest::get('id', 0, waRequest::TYPE_INT));
@@ -77,7 +72,7 @@ class shopProductAction extends waViewAction
                     throw new waRightsException(_w("Access denied"));
                 } else {
                     reset($product_types);
-                    $product->type_id = key($product_types);
+                    $product->type_id = wa()->getUser()->getSettings('shop', 'last_type_id', key($product_types));
                 }
             } elseif (!$product->checkRights()) {
                 throw new waRightsException(_w("Access denied"));
@@ -240,6 +235,9 @@ class shopProductAction extends waViewAction
 
         $spm = new shopSetProductsModel();
         $this->view->assign('product_sets', $spm->getByProduct($product->id));
+
+        $this->view->assign('category_name', $product->category_id && isset($product->categories[$product->category_id]) ? strip_tags($product->categories[$product->category_id]['name']) : null);
+
     }
 
     protected function assignReportsData(shopProduct $product)

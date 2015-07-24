@@ -78,6 +78,14 @@ return array(
             'ns_keys' => array('left_key', 'right_key'),
         ),
     ),
+    'shop_category_og' => array(
+        'category_id' => array('int', 11, 'null' => 0),
+        'property' => array('varchar', 255, 'null' => 0),
+        'content' => array('text', 'null' => 0),
+        ':keys' => array(
+            'PRIMARY' => array('category_id', 'property'),
+        ),
+    ),
     'shop_category_params' => array(
         'category_id' => array('int', 11, 'null' => 0),
         'name' => array('varchar', 255, 'null' => 0),
@@ -157,6 +165,18 @@ return array(
         'source' => array('varchar', 255),
         ':keys' => array(
             'PRIMARY' => 'contact_id',
+        ),
+    ),
+    'shop_customers_filter' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'name' => array('varchar', 255, 'null' => 0, 'default' => ''),
+        'hash' => array('text'),
+        'create_datetime' => array('datetime', 'null' => 0),
+        'contact_id' => array('int', 11, 'null' => 0),
+        'icon' => array('varchar', 255, 'null' => 1),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+            'contact_id' => 'contact_id'
         ),
     ),
     'shop_discount_by_sum' => array(
@@ -275,6 +295,7 @@ return array(
         'from' => array('varchar', 32),
         'source' => array('varchar', 64),
         'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
+        'transport' => array('enum', "'email','sms'", 'null' => 0, 'default' => 'email'),
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
@@ -454,6 +475,7 @@ return array(
         'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         'type_id' => array('int', 11),
         'image_id' => array('int', 11),
+        'image_filename' => array('varchar', 225, 'null' => 0, 'default' => ''),
         'sku_id' => array('int', 11),
         'ext' => array('varchar', 10),
         'url' => array('varchar', 255),
@@ -512,6 +534,7 @@ return array(
         'width' => array('int', 5, 'null' => 0, 'default' => '0'),
         'height' => array('int', 5, 'null' => 0, 'default' => '0'),
         'size' => array('int', 11),
+        'filename' => array('varchar', 225, 'null' => 0, 'default' => ''),
         'original_filename' => array('varchar', 255),
         'ext' => array('varchar', 10),
         'badge_type' => array('int', 4),
@@ -519,6 +542,14 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
             'product_id' => 'product_id',
+        ),
+    ),
+    'shop_product_og' => array(
+        'product_id' => array('int', 11, 'null' => 0),
+        'property' => array('varchar', 255, 'null' => 0),
+        'content' => array('text', 'null' => 0),
+        ':keys' => array(
+            'PRIMARY' => array('product_id', 'property'),
         ),
     ),
     'shop_product_pages' => array(
@@ -842,18 +873,6 @@ return array(
         'value' => array('varchar', 255),
         ':keys' => array(
             'PRIMARY' => array('type_id', 'feature'),
-        ),
-    ),
-    'shop_customers_filter' => array(
-        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
-        'name' => array('varchar', 255, 'null' => 0, 'default' => ''),
-        'hash' => array('text'),
-        'create_datetime' => array('datetime', 'null' => 0),
-        'contact_id' => array('int', 11, 'null' => 0),
-        'icon' => array('varchar', 255, 'null' => 1),
-        ':keys' => array(
-            'PRIMARY' => 'id',
-            'contact_id' => 'contact_id'
         ),
     ),
 );

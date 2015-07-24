@@ -52,6 +52,12 @@ class shopOrdersCollection
             $this->options[$k] = $v;
         }
         $this->setHash($hash);
+
+        /**
+         * @event orders_collection.filter
+         * @param array shopOrdersCollection $this
+         */
+        wa()->event('orders_collection.filter', $this);
     }
 
     public function setOptions($options)
@@ -85,7 +91,24 @@ class shopOrdersCollection
                 if (method_exists($this, $method)) {
                     $this->$method(isset($this->hash[1]) ? $this->hash[1] : '', $auto_title);
                 } else {
-                    throw new waException('Unknown collection hash type: '.htmlspecialchars($type));
+                    // custom collections
+                    $params = array(
+                        'collection' => $this,
+                        'auto_title' => $auto_title,
+                        'add'        => $add,
+                    );
+                    /**
+                     * @event orders_collection
+                     * @param array [string]mixed $params
+                     * @param array [string]shopOrdersCollection $params['collection']
+                     * @param array [string]boolean $params['auto_title']
+                     * @param array [string]boolean $params['add']
+                     * @return bool null if ignored, true when something changed in the collection
+                     */
+                    $processed = wa()->event('orders_collection', $params);
+                    if (!$processed) {
+                        throw new waException('Unknown collection hash type: '.htmlspecialchars($type));
+                    }
                 }
             } else {
                 if ($auto_title) {

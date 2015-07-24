@@ -203,11 +203,22 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
                 'encoding'     => $this->encoding,
                 'data_mapping' => $this->data_mapping,
                 'key'          => $this->key,
-                'offset_map'   => $this->offset_map,
+                'offset_map'   => $this->optimizeOffsetMap(),
                 'columns'      => $this->columns,
                 'count'        => $this->count,
             )
         );
+    }
+
+    private function optimizeOffsetMap()
+    {
+        $map = array();
+        foreach ($this->offset_map as $position => $value) {
+            if (!($position % 64) && $position) {
+                $map[$position] = $value;
+            }
+        }
+        return $map;
     }
 
     public function unserialize($serialized)

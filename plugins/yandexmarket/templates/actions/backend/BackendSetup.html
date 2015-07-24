@@ -131,6 +131,7 @@
                         </li>
                     </ul>
                     <p class="hint"><br><i class="icon10 exclamation"></i> Если товар не принадлежит ни одной категории, то он не будет экспортирован в YML-файл.</p>
+                    <p class="hint"><i class="icon10 exclamation"></i> Если товар имеет цену, менее чем 0.5, то он не будет экспортирован в YML-файл.</p>
                 </div>
                 <div class="value js-hash-values js-hash-set" style="width: 400px;">
                     <div class="bordered-left" style="padding-left: 20px; margin-left: 20px;">
@@ -139,7 +140,7 @@
                                 <li>
                                     <label title="{$set.id|escape}">
                                         <span class="count">{if !empty($set.type)}&le;{/if}{$set.count}</span>
-                                        <i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}ss set-dynamic{else}ss set{/if}"></i>
+                                        <i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}funnel{else}ss set{/if}"></i>
                                         <input type="radio" name="set_id" value="{$set.id}"{if ($set@first && empty($hash.set_id))||($hash.set_id eq $set.id)} checked="checked"{/if}>
                                         {$set.name|escape}
                                     </label>
@@ -176,6 +177,15 @@
         <h2 class="gray">2. Общие параметры экспорта</h2>
 
         <div class="field">
+            <div class="name">Название магазина</div>
+            <div class="value">
+                <input name="company_name" placeholder="Название" value="{$company_name|escape}" id="s-plugin-yandexmarket-company-name"><br>
+
+                <p class="hint">Короткое название магазина — название, которое выводится в списке найденных на Яндекс.Маркете товаров.</p>
+            </div>
+        </div>
+
+        <div class="field">
             <div class="name">Компания</div>
             <div class="value">
                 <input name="company" placeholder="Компания" value="{$company|escape}" id="s-plugin-yandexmarket-company"><br>
@@ -188,10 +198,24 @@
         <div class="field">
             <div class="name">Остатки</div>
             <div class="value no-shift"><label for="s-plugin-yandexmarket-export-zero-stock">
-                <input name="export[zero_stock]" id="s-plugin-yandexmarket-export-zero-stock" type="checkbox" value="1"{if !empty($export.zero_stock) || !empty($app_settings.ignore_stock_count)} checked="checked" {/if} {if !empty($app_settings.ignore_stock_count)} readonly="readonly"{/if}> Выгружать товары с нулевым остатком
+                    <input name="export[zero_stock]" id="s-plugin-yandexmarket-export-zero-stock" type="checkbox" value="1"{if !empty($export.zero_stock) || !empty($app_settings.ignore_stock_count)} checked="checked" {/if} {if !empty($app_settings.ignore_stock_count)} disabled="disabled"{/if}> Выгружать товары с нулевым остатком
                 </label>
                 <p class="hint">Товары с нулевым остатком экспортируются как доступные под заказ</p>
-                {if !empty($app_settings.ignore_stock_count)}<p class="hint">Для отключения этой настройки в настройках складов должен быть выбран вариант «Максимальное количество товаров, которое может быть добавлено в корзину, не может превышать остаток на складе.</p>{/if}
+                {if !empty($app_settings.ignore_stock_count)}
+                    <input name="export[zero_stock]" value="1" type="hidden">
+                    <p class="hint"><i class="icon10 exclamation"></i>Для отключения этой настройки в настройках складов должен быть выбран вариант «Максимальное количество товаров, которое может быть добавлено в корзину, не может превышать остаток на складе.</p>
+                {/if}
+            </div>
+        </div>
+
+
+        <div class="field">
+            <div class="name">Скидки</div>
+            <div class="value no-shift">
+                <label for="s-plugin-yandexmarket-export-compare-price">
+                    <input name="export[compare_price]" id="s-plugin-yandexmarket-export-compare-price" type="checkbox" value="1"{if !empty($export.compare_price)} checked="checked" {/if}>
+                    Экспортировать зачеркнутую цену в параметр &lt;oldprice&gt; для рассчета скидки на товар
+                </label>
             </div>
         </div>
 
@@ -204,6 +228,55 @@
                     <input name="export[sku]" id="s-plugin-yandexmarket-export-sku" type="checkbox" value="1"{if !empty($export.sku)} checked="checked" {/if}> Экспортировать каждый артикул товара как отдельную позицию
                 </label>
                 <p class="hint"> Каждый артикул будет экспортирован отдельно как отдельное товарное предложение. Значения для полей «наименование» и «количество» будут браться из соответствующих полей артикулов.</p>
+            </div>
+        </div>
+
+
+        <div class="field">
+            <div class="name">
+                Группировка артикулов
+                <br>
+                <span class="hint">Применяется только для типа экспорта «Произвольный товар (vendor.model)»</span>
+            </div>
+            <div class="value no-shift">
+                <label for="s-plugin-yandexmarket-export-sku-group-none">
+                    <input name="export[sku_group]" id="s-plugin-yandexmarket-export-sku-group-none" type="radio" value=""{if empty($export.sku_group)} checked="checked" {/if}> Не группировать артикулы
+                </label>
+                <span class="hint"><br>Каждый артикул будет экспортирован как отдельная товарная позиция на Яндекс.Маркете.</span>
+            </div>
+            <div class="value no-shift">
+                <label for="s-plugin-yandexmarket-export-sku-group-all">
+                    <input name="export[sku_group]" id="s-plugin-yandexmarket-export-sku-group-all" type="radio" value="all"{if ifset($export.sku_group)=='all'} checked="checked" {/if}> Группировать все артикулы
+                </label>
+                <span class="hint"><br>Все артикулы одного товара будут объединены в одну товарную позицию на Яндекс.Маркете.</span>
+            </div>
+
+            <div class="value no-shift">
+                <label for="s-plugin-yandexmarket-export-sku-group-category">
+                    <input name="export[sku_group]" id="s-plugin-yandexmarket-export-sku-group-category" type="radio" value="category"{if ifset($export.sku_group)=='category'} checked="checked" {/if}> Группировать на основе настройки основной категории товара
+                </label>
+                <span class="hint"><br>Все артикулы одного товара будут объединены в одну товарную позицию на Яндекс.Маркете, только если для основной категории этого товара включена опция «Группировка товарных предложений» (настраивается в свойствах каждой категории отдельно).</span>
+            </div>
+
+
+            <div class="value no-shift">
+               <label for="s-plugin-yandexmarket-export-sku-group-auto">
+                   <input name="export[sku_group]" id="s-plugin-yandexmarket-export-sku-group-auto" type="radio" value="auto"{if ifset($export.sku_group)=='auto'} checked="checked" {/if}> Группировать на основе значения поля market_category
+               </label>
+               <span class="hint"><br>Все артикулы одного товара будут объединены в одну товарную позицию на Яндекс.Маркете, только если ниже в настройках экспорта товаров типа vendor.model явно задан параметр market_category.</span>
+           </div>
+
+        </div>
+
+
+
+
+        <div class="field">
+            <div class="name">Скрытые категории</div>
+            <div class="value no-shift"><label for="s-plugin-yandexmarket-export-hidden-categories">
+                    <input name="export[hidden_categories]" id="s-plugin-yandexmarket-export-hidden-categories" type="checkbox" value="1"{if !empty($export.hidden_categories)} checked="checked" {/if} > Выгружать скрытые категории
+                </label>
+                <p class="hint">Скрытые категории будут экспортированы без своих URL — только для классификации товаров. Также будут экспортированы товары, принадлежащие скрытым категориям (полезно для случаев, когда такие товары доступны на витрине через динамические категории).</p>
             </div>
         </div>
 
@@ -402,7 +475,7 @@
     <div class="field-group" id="plugin-yandexmarket-report" style="display: none;">
         <div class="field">
             <div class="value"></div>
-            <div class="value"><br><a href="#/yandexmarket{if !empty($profile.id)}:{$profile.id}{/if}/" name="/yandexmarket/" onclick="window.location.reload();" class="bold">Получить ссылку на файл</a></div>
+            <div class="value"><br><a href="#/yandexmarket{if !empty($profile.id)}:{$profile.id}{/if}/" name="/yandexmarket/" onclick="$.importexport.plugins.yandexmarket.getLink();" class="bold">Получить ссылку на файл</a></div>
         </div>
     </div>
     </div>

@@ -212,7 +212,11 @@ class shopCartItemsModel extends waModel
             }
 
             $product_model = new shopProductModel();
-            $products = $product_model->getByField('id', $product_ids, 'id');
+            if (waRequest::param('url_type') == 2) {
+                $products = $product_model->getWithCategoryUrl($product_ids);
+            } else {
+                $products = $product_model->getById($product_ids);
+            }
             $rounding_enabled && shopRounding::roundProducts($products);
 
             $sku_model = new shopProductSkusModel();
@@ -358,18 +362,34 @@ class shopCartItemsModel extends waModel
         return $result;
     }
 
+    /**
+     * @param string $code
+     * @param bool|int $check_count bool or stock_id
+     * @return array
+     */
     public function getNotAvailableProducts($code, $check_count)
     {
-        $sql = "SELECT c.id, s.available, s.count, p.name, s.name sku_name FROM ".$this->table." c
+        if (is_numeric($check_count)) {
+            $stock_id = $check_count;
+            $f = "IF(ps.sku_id IS NULL, s.count, ps.count)";
+        } else {
+            $stock_id = false;
+            $f = "s.count";
+        }
+        $sql = "SELECT c.id, s.available, ".$f." AS count,
+                p.name, s.name sku_name FROM ".$this->table." c
                 JOIN shop_product p ON c.product_id = p.id
-                JOIN shop_product_skus s ON c.sku_id = s.id
-                WHERE c.type = 'product' AND c.code = s:code AND ";
+                JOIN shop_product_skus s ON c.sku_id = s.id";
+        if ($stock_id) {
+            $sql .= " LEFT JOIN shop_product_stocks ps ON ps.sku_id = s.id AND ps.stock_id = i:stock_id";
+        }
+        $sql .= " WHERE c.type = 'product' AND c.code = s:code AND ";
         if ($check_count) {
-            $sql .= '(s.available = 0 OR (s.count IS NOT NULL AND c.quantity > s.count))';
+            $sql .= '(s.available = 0 OR ('.$f.' IS NOT NULL AND c.quantity > '.$f.'))';
         } else {
             $sql .= 's.available = 0';
         }
-        return $this->query($sql, array('code' => $code))->fetchAll();
+        return $this->query($sql, array('code' => $code, 'stock_id' => $stock_id))->fetchAll();
     }
 
 

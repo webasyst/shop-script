@@ -296,7 +296,9 @@ class shopProductListAction extends waViewAction
 
             // Which columns are selected
             foreach(self::getEnabledColumns() as $f_id) {
-                $columns[$f_id]['enabled'] = true;
+                if (!empty($columns[$f_id])) {
+                    $columns[$f_id]['enabled'] = true;
+                }
             }
         }
 

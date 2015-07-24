@@ -11,6 +11,10 @@ class shopContactsMergeHandler extends waEventHandler
         $merge_ids = $params['contacts'];
         $all_ids = array_merge($merge_ids, array($master_id));
 
+        if (!$merge_ids) {
+            return null;
+        }
+
         $m = new waModel();
 
         //

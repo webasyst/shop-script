@@ -19,7 +19,7 @@ class shopNotifications
      * Sends a notification set up for specified event in store settings.
      *
      * @param string $event Event type id; e.g., 'order.create', 'order.ship'
-     * @param array $data Order data array
+     * @param array $data Order data array, keys 'order', 'customer' and 'action_data'
      */
     public static function send($event, $data)
     {
@@ -44,7 +44,7 @@ class shopNotifications
      * Sends a test notification.
      *
      * @param int $id Notification id stored in table shop_notification
-     * @param array $data Order data array
+     * @param array $data Order data array, keys 'order', 'customer' and 'action_data'
      * @param string|null $to Recipient address/number. If not specified, recipient address/number from notification parameters is used.
      */
     public static function sendOne($id, $data, $to = null)

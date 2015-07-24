@@ -121,19 +121,20 @@
                         </div>
 
                     </div>
-                </div>
-                <h6 class="heading">[`Originals`]</h6>
-                <div class="field-group">
+
                     <div class="field">
                         <div class="name">
-                            [`Originals`]
+                            [`Thumbnail filenames`]
                         </div>
                         <div class="value no-shift">
-                            <label><input type="checkbox" name="image_save_original" value="1" {if !empty($settings.image_save_original)}checked{/if}> [`Backup image originals`]</label>
+                            <label>
+                                <input id="s-image-filename" type="checkbox" name="image_filename" value="1" {if !empty($settings.image_filename)}checked{/if}>
+                                [`Keep original filenames`]
+                            </label>
                             <br>
-                            <span class="hint">[`When enabled, every uploaded image file is automatically backed up and stored independently from image full size version, which is modified when you edit it, e.g. rotate, apply watermarks or image visual effects. Originals are never updated. Pros: you have backups of all uploaded images. Cons: almost twice more disk space is required for storing original images than for storing only full size versions and thumbnails.`]</span>
+                            <span class="hint">[`When enabled, each thumbnail (which is generated on demand or during the original upload) filename will be derived from the name of the original file you upload.`]</span>
+                            <p id="s-image-filename-hint" class="small"{if empty($settings.image_filename)} style="display: none"{/if}><br><em style="background-color: #ffa;">{sprintf('[`If you enable this setting for the first time, it is <strong>strongly recommended</strong> to 1) Re-generate all product image thumbnails (use the link below) right after this setting has been changed, and 2) Update your store theme product.html template with the <a href="%s" target="_blank">new product thumbnail display code</a>.`]', '[`http://www.shop-script.com/help/4750/shopscript610-design-theme-changes/`]')}</em></p>
                         </div>
-
                     </div>
                 </div>
 
@@ -158,6 +159,23 @@
                             <span class="hint">[`JPEG compression quality for photo thumbnails. From 0 (min quality, min file size) to 100 (max quality, max file size). 70 is recommended.`]</span>
                         </div>
                     </div>
+                </div>
+                
+                <h6 class="heading">[`Originals`]</h6>
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">
+                            [`Originals`]
+                        </div>
+                        <div class="value no-shift">
+                            <label><input type="checkbox" name="image_save_original" value="1" {if !empty($settings.image_save_original)}checked{/if}> [`Backup image originals`]</label>
+                            <br>
+                            <span class="hint">[`When enabled, every uploaded image file is automatically backed up and stored independently from image full size version, which is modified when you edit it, e.g. rotate, apply watermarks or image visual effects. Originals are never updated. Pros: you have backups of all uploaded images. Cons: almost twice more disk space is required for storing original images than for storing only full size versions and thumbnails.`]</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group">
                     <div class="field">
                         <div class="value submit">
                             <input type="submit" name="save" class="button green" value="[`Save`]">
@@ -171,9 +189,6 @@
                             <hr>
                         </div>
                     </div>
-                </div>
-
-                <div class="field-group">
                     <div class="field">
                         <div></div>
                         <div class="value">

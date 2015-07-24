@@ -52,9 +52,10 @@ class shopCml1cPluginFrontendController extends waController
         if (empty($uuid) || (waRequest::param('hash') != $uuid)) {
             throw new waRightsException('1C');
         }
+        $type = waRequest::get('type');
 
         try {
-            switch (waRequest::get('type')) {
+            switch ($type) {
                 case 'catalog':
                     /*Выгрузка каталогов продукции*/
                     switch (waRequest::get('mode')) {
@@ -137,7 +138,11 @@ class shopCml1cPluginFrontendController extends waController
                     break;
             }
         } catch (waException $ex) {
-            $this->response("failure", $ex->getMessage());
+            $message = $ex->getMessage();
+            $trace = $ex->getTraceAsString();
+            $ip = waRequest::getIp();
+            waLog::log(var_export(compact('message', 'type', 'trace', 'ip'), true), 'shop/plugins/cml1c.log');
+            $this->response("failure", $message);
         }
     }
 
@@ -248,6 +253,7 @@ class shopCml1cPluginFrontendController extends waController
                 ob_start();
                 $this->sleep();
                 $this->runner()->run();
+                $this->runner()->exchangeReport();
                 $out = ob_get_clean();
             }
             $this->response($out);
@@ -293,7 +299,7 @@ class shopCml1cPluginFrontendController extends waController
                 break;
         }
 
-        $limit = 10;
+        $limit = 100;
         do {
             ob_start();
             $this->runner()->run();
@@ -306,12 +312,18 @@ class shopCml1cPluginFrontendController extends waController
         } while (--$limit && $out);
 
         if ($limit) {
+            #send file if it not send yet
             $this->runner()->run();
-            $_POST['cleanup'] = true;
+
             ob_start();
+            #cleanup code & store exchange report
+            $this->sleep();
+            $_POST['cleanup'] = true;
             $this->runner(true)->run();
+            $this->runner()->exchangeReport();
             ob_get_clean();
         } else {
+            waLog::log(sprintf('Error while export sales (not enough iterations) %s', $out), 'shop/plugins/cml1c.log');
             $this->response('failure', $out);
         }
     }

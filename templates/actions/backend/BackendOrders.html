@@ -60,7 +60,7 @@
         </h5>
         <ul class="menu-v collapsible s-storefronts-filter">
             {foreach $storefronts as $url => $cnt}
-                <li data-storefront="{if $url|substr:-1 == '/'}{$url|substr:0:-1}{else}{$url}{/if}">
+                <li data-storefront="{if $url|substr:-1 == '/'}{$url|substr:0:-1}{else}{$url}{/if}" class="list">
                     <span class="count">{$cnt}</span>
                     <a href="#/orders/storefront={urlencode($url)}">{if $url|substr:-1 == '/'}{str_replace('www.','',$url|substr:0:-1)}{else}{str_replace('www.','',$url)}{/if}</a>
                 </li>

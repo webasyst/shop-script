@@ -177,6 +177,9 @@ class shopCart
                 foreach (array('code', 'contact_id', 'product_id', 'sku_id', 'create_datetime') as $k) {
                     $s[$k] = $item[$k];
                 }
+                if (!empty($item['quantity'])) {
+                    $s['quantity'] = $item['quantity'];
+                }
                 $s['id'] = $this->model->insert($s);
                 $item['services'][] = $s;
             }
@@ -257,6 +260,9 @@ class shopCart
         $frontend_currency = wa('shop')->getConfig()->getCurrency(false);
 
         foreach ($items as $s) {
+            if (!isset($prices[$s['service_variant_id']])) {
+                continue;
+            }
             $v = $prices[$s['service_variant_id']];
             if ($v['currency'] == '%') {
                 $v['price'] = $v['price'] * $item['price'] / 100;

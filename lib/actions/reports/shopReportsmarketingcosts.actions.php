@@ -140,7 +140,7 @@ class shopReportsmarketingcostsActions extends waViewActions
         $def_cur = wa()->getConfig()->getCurrency();
         $this->view->assign(array(
             'storefronts' => shopReportsSalesAction::getStorefronts(),
-            'campaigns' => self::getCampaigns($expense['type'] == 'campaign' ? $expense['name'] : null),
+            'campaigns' => self::getCampaigns($expense['type'] == 'campaign' ? $expense['name'] : null, $expense['color']),
             'sources' => self::getSources($expense['type'] == 'source' ? $expense['name'] : null, $expense['color']),
             'expense' => $expense,
             'def_cur' => $def_cur,
@@ -220,7 +220,7 @@ class shopReportsmarketingcostsActions extends waViewActions
         $traffic_sources = wa('shop')->getConfig()->getOption('traffic_sources');
 
         $m = new waModel();
-        $sql = "SELECT op.value, SUM(o.total) AS total_sales
+        $sql = "SELECT op.value, SUM(o.total*o.rate) AS total_sales
                 FROM shop_order_params AS op
                     JOIN shop_order AS o
                         ON o.id=op.order_id
@@ -285,7 +285,7 @@ class shopReportsmarketingcostsActions extends waViewActions
     public static function getCampaigns($additional_campaign=null, $color=null)
     {
         $m = new waModel();
-        $sql = "SELECT op.value, SUM(o.total) AS total_sales
+        $sql = "SELECT op.value, SUM(o.total*o.rate) AS total_sales
                 FROM shop_order_params AS op
                     JOIN shop_order AS o
                         ON o.id=op.order_id

@@ -78,7 +78,7 @@
 
 {if isset($pages_count) && $pages_count > 1}
     <!-- Lazy Load -->
-    <div class="lazyloading-paging"  data-times="2" data-link-text="[`Load more`]">
+    <div class="lazyloading-paging"  data-times="2" data-link-text="[`Load more`]" data-loading-str="[`Loading...`]">
         {wa_pagination total=$pages_count attrs=['class' => ""]}
     </div>
 {/if}

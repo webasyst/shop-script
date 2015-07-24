@@ -184,6 +184,7 @@
   border-radius: 3px;
   font: normal 13px/1.5em "Arial", sans-serif;
   color: #369;
+  z-index: 1;
 /*-webkit-transition: opacity 100ms ease-in-out*/
 /*-moz-transition: opacity 100ms ease-in-out*/
 /*transition: opacity 100ms ease-in-out*/

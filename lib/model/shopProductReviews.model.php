@@ -246,7 +246,8 @@ class shopProductReviewsModel extends waNestedSetModel
                                 array(
                                     'id' => $product['image_id'],
                                     'product_id' => $product['id'],
-                                    'ext' => $product['ext']
+                                    'ext' => $product['ext'],
+                                    'filename' => $product['image_filename']
                                 ),
                                 $image_size
                             );
@@ -323,10 +324,9 @@ class shopProductReviewsModel extends waNestedSetModel
     public function countNew($recalc = false)
     {
         $datetime = wa('shop')->getConfig()->getLastDatetime();
-        $contact_id = wa()->getUser()->getId();
         $storage = wa()->getStorage();
-        $sql = "SELECT COUNT(id) AS cnt FROM `{$this->table}` WHERE datetime > '".date('Y-m-d H:i:s', $datetime)."' AND contact_id != $contact_id";
-        $cnt = $this->query($sql)->fetchField('cnt');
+        $sql = "SELECT COUNT(id) AS cnt FROM `{$this->table}` WHERE datetime > ? AND contact_id != ?";
+        $cnt = $this->query($sql, date('Y-m-d H:i:s', $datetime), wa()->getUser()->getId())->fetchField('cnt');
         if (!$recalc) {
             $shop_outdated_reviews_count = (int)$storage->get('shop_outdated_reviews_count');
         } else {

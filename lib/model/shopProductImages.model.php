@@ -88,9 +88,10 @@ class shopProductImagesModel extends waModel
         }
 
         if ($before_id) {
-            $main_image = $this->query("SELECT id, ext FROM {$this->table} WHERE product_id = $product_id ORDER BY sort LIMIT 1")->fetch();
+            $main_image = $this->query("SELECT id, filename, ext FROM {$this->table} WHERE product_id = $product_id ORDER BY sort LIMIT 1")->fetch();
             $product_model = new shopProductModel();
-            $product_model->updateById($product_id, array('image_id' => $main_image['id'], 'ext' => $main_image['ext']));
+            $product_model->updateById($product_id, array(
+                'image_id' => $main_image['id'], 'image_filename' => $main_image['filename'], 'ext' => $main_image['ext']));
         }
 
         return true;
@@ -115,7 +116,11 @@ class shopProductImagesModel extends waModel
 
         if ($is_default) {
             $product_model = new shopProductModel();
-            $product_model->updateById($product_id, array('image_id' => $image_id, 'ext' => $data['ext']));
+            $product_model->updateById($product_id, array(
+                'image_id' => $image_id,
+                'image_filename' => $data['filename'],
+                'ext' => $data['ext']
+            ));
         }
         return $image_id;
     }
@@ -146,9 +151,9 @@ class shopProductImagesModel extends waModel
         }
 
         // first image for this product is main image for this product
-        $main_image = $this->query("SELECT id AS image_id, ext FROM {$this->table} WHERE product_id = $product_id ORDER BY sort LIMIT 1")->fetchAssoc();
+        $main_image = $this->query("SELECT id AS image_id, filename as image_filename, ext FROM {$this->table} WHERE product_id = $product_id ORDER BY sort LIMIT 1")->fetchAssoc();
         if (!$main_image) {
-            $main_image = array('image_id' => null, 'ext' => null);
+            $main_image = array('image_id' => null, 'image_filename' => '', 'ext' => null);
         }
         $product_model = new shopProductModel();
         $product_model->updateById($product_id, $main_image);

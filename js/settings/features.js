@@ -894,6 +894,8 @@ if (typeof($) != 'undefined') {
 
 
                         $this.find(':input[name="source"]').val('custom');
+                        $this.find('.js-add-type-custom').show();
+                        $this.find('.js-add-type-template').hide();
                         var name = $type.find('.js-type-name').text().replace(/(^[\r\n\s]+|[\r\n\s]+$)/mg, '');
                         var icon = $type.data('icon').replace(/^icon\.([\w\d\-_]+)$/, '$1');
 

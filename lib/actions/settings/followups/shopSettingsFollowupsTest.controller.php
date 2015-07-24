@@ -9,7 +9,7 @@ class shopSettingsFollowupsTestController extends waJsonController
     {
         $order_id = waRequest::request('order_id', 0, 'int');
         $followup_id = waRequest::request('followup_id', 0, 'int');
-        $email = waRequest::request('email');
+        $to = waRequest::request('to');
 
         $fm = new shopFollowupModel();
         $f = $fm->getById($followup_id);
@@ -24,7 +24,12 @@ class shopSettingsFollowupsTestController extends waJsonController
             $this->errors = _w('Order not found');
             return;
         }
-        shopHelper::workupOrders($o, true);
+        $ords = array(
+            $o['id'] => $o
+        );
+        shopHelper::workupOrders($ords, false);
+        $o = $ords[$o['id']];
+        unset($ords);
 
         $opm = new shopOrderParamsModel();
         $o['params'] = $opm->get($order_id);
@@ -36,15 +41,12 @@ class shopSettingsFollowupsTestController extends waJsonController
             $contact = new shopCustomer(wa()->getUser()->getId());
         }
 
-        $cm = new shopCustomerModel();
-        $customer = $cm->getById($contact->getId());
-        if (!$customer) {
-            $customer = $cm->getEmptyRow();
+        if ($f['transport'] === 'email') {
+            $to = array($to => $contact->getName());
         }
 
-        $to = array($email => $contact->getName());
-        if (!shopFollowupCli::sendOne($f, $o, $customer, $contact, $to)) {
-            $this->errors = "Unable to send follow-up #{$f['id']} for order #{$o['id']}: waMessage->send() returned FALSE.";
+        if (!shopFollowupCli::sendFollowup($f, $o, $contact, $to)) {
+            $this->errors = "Unable to send follow-up #{$f['id']} for order #{$o['id']}";
             return;
         }
 

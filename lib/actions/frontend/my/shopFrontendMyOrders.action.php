@@ -46,7 +46,7 @@ class shopFrontendMyOrdersAction extends shopFrontendAction
          * @event frontend_my_orders
          * @return array[string]string $return[%plugin_id%] html output
          */
-        $this->view->assign('frontend_my_orders', wa()->event('frontend_my_order', $orders));
+        $this->view->assign('frontend_my_orders', wa()->event('frontend_my_orders', $orders));
 
         $this->view->assign('orders', array_values($orders));
 

@@ -95,11 +95,20 @@
                 {* @event backend_menu.%plugin_id%.aux_li *}
                 {foreach $backend_menu as $_}{ifset($_.aux_li)}{/foreach}
 
-                {if $wa->shop->settings('show_tutorial') || waRequest::request('module') == 'tutorial'}
+                {if $tutorial_visible}
                     <li class="no-tab s-tutorial-tab" id="mainmenu-tutorial-tab">
                         <a href="{$wa_app_url}?module=tutorial" title="[`Welcome tutorial`]">
-                            <i class="icon16 ss info"></i>
+                            <div class="s-tutorial-progressbar" id="s-tutorial-progressbar">
+                                <div class="s-tutorial-progressbar-outer">
+                                    <div class="s-tutorial-progressbar-inner"></div>
+                                    <span id="s-tutorial-progressbar-content"></span>
+                                </div>
+                            </div>
                         </a>
+                        <script type="text/javascript">$(function() { "use strict";
+                            $('#s-tutorial-progressbar .s-tutorial-progressbar-inner').css('width', "{$tutorial_progress}%");
+                            $('#s-tutorial-progressbar-content').text("{$tutorial_progress}%");
+                        });</script>
                     </li>
                 {/if}
                 {if $wa->userRights('orders')}

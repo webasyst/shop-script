@@ -17,14 +17,24 @@ class shopFrontendCartSaveController extends waJsonController
                     $p = $product_model->getById($item['product_id']);
                     $sku_model = new shopProductSkusModel();
                     $sku = $sku_model->getById($item['sku_id']);
+
+                    // limit by main stock
+                    if (wa()->getSetting('limit_main_stock') && waRequest::param('stock_id')) {
+                        $product_stocks_model = new shopProductStocksModel();
+                        $row = $product_stocks_model->getByField(array('sku_id' => $sku['id'], 'stock_id' => waRequest::param('stock_id')));
+                        if ($row) {
+                            $sku['count'] = $row['count'];
+                        }
+                    }
                     // check quantity
                     if ($sku['count'] !== null && $q > $sku['count']) {
                         $q = $sku['count'];
                         $name = $p['name'].($sku['name'] ? ' ('.$sku['name'].')' : '');
-                        if ($q > 0)
+                        if ($q > 0) {
                             $this->response['error'] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $q, $name);
-                        else
+                        } else {
                             $this->response['error'] = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience.'), $name);
+                        }
                         $this->response['q'] = $q;
                     }
                 }

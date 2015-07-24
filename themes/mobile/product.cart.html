@@ -194,7 +194,7 @@
                     <span data-price="{shop_currency($product.price, null, null, 0)}" class="price nowrap">{shop_currency_html($product.price)}</span>
                 </div>
 
-                <div class="">
+                <div class="submit-wrapper">
                     <input type="submit" {if !$product_available}disabled="disabled"{/if} value="{if $wa->shop->cart->total() > 0}[`Add to cart`]{else}[`Buy now`]{/if}">
                 </div>
             </div>

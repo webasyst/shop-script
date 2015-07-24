@@ -1,0 +1,40 @@
+{$sales_link = "{$wa_backend_url}shop/?action=reports#/sales/type=sources"}
+
+<div class="sales-widget-wrapper">
+    <div class="graph-wrapper" id="graph-wrapper-{$widget_id}"></div>
+    <div class="text-wrapper">
+        <h6 class="heading nowrap">
+            {if ifempty($settings['metric']) == 'profit'}
+                [`Last 30 days profit`]
+            {else}
+                [`Last 30 days sales`]
+            {/if}
+        </h6>
+        <h1 class="s-sales nowrap">{$total_formatted}</h1>
+    </div>
+    <a class="redirect-to-reports-link" href="{$sales_link}" title="{shop_currency($total)|escape}"></a>
+</div>
+
+{* Initialize *}
+<script>
+( function() {
+    var is_loaded = (typeof SalesGraph !== "undefined"),
+        js_href = "{$widget_url}js/salesWidget.js?{$wa->version()}",
+        widget = DashboardWidgets["{$widget_id}"],
+        options = {
+            graph_data: {json_encode($graph_data)},
+            graph_id: "graph-wrapper-{$widget_id}"
+        };
+
+    if (is_loaded) {
+        widget.sales = new SalesGraph(options);
+    } else {
+        $.getScript(js_href, function() {
+            widget.sales = new SalesGraph(options);
+        });
+    }
+})();
+</script>
+
+{* CSS *}
+<style>{include file="../css/salesWidget.css" inline}</style>

@@ -49,6 +49,9 @@ class shopOrderPrintformAction extends waViewAction
 
         $plugin = self::getPlugin($type, ifempty($params[$type . '_id']));
         if ($type == 'shipping') { /* add weight info only for shipping modules */
+            /**
+             * @var waShipping $plugin
+             */
 
             $feature_model = new shopFeatureModel();
             $f = $feature_model->getByCode('weight');

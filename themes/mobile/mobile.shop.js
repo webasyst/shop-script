@@ -50,7 +50,8 @@
                         var loading = $lazyPadding.parent().find('.loading').parent();
 
                         if (!loading.length) {
-                            loading = $('<div><i class="icon16 loading"></i>Loading...</div>').insertBefore($lazyPadding);
+                            var loading_str = $lazyPadding.data('loading-str') || 'Loading...';
+                            loading = $('<div><i class="icon16 loading"></i>'+loading_str+'</div>').insertBefore($lazyPadding);
                         }
 
                         loading.show();
@@ -196,12 +197,18 @@
         var request = getRequest( $form),
             $list = $(".shop-list-wrapper"),
             $no_list = $(".no-product-wrapper"),
+            $button = $form.find(".button-wrapper"),
             $block;
 
         if ( $list.length ) {
             $block = $list;
         } else if ($no_list.length) {
             $block = $no_list;
+        }
+
+        // Show refreshing icon over button
+        if (typeof toggleRefreshIcon === "function") {
+            toggleRefreshIcon($button, "show");
         }
 
         request.done( function(content) {
@@ -225,6 +232,11 @@
 
                 $(window).lazyLoad && $(window).lazyLoad('reload');
 
+            }
+
+            // Show refreshing icon over button
+            if (typeof toggleRefreshIcon === "function") {
+                toggleRefreshIcon($button, "hide");
             }
 
             closeFilter();
@@ -259,7 +271,13 @@
     };
 
     var closeFilter = function() {
-        $(".show-filter-content-link").trigger("click");
+        var $wrapper = $(".catalog-filter-wrapper"),
+            activeClass = "is-shown";
+
+        // If active close
+        if ( $wrapper.hasClass(activeClass) ) {
+            $wrapper.find(".show-filter-content-link").trigger("click");
+        }
     };
 
     var scrollList = function() {
@@ -281,6 +299,19 @@
     });
 
 })(jQuery);
+
+// Adding refresh icon on AJAX-loader buttons
+var toggleRefreshIcon = function($button, option ) {
+    var activeClass = "rotate-icon-wrapper";
+
+    if ($button && $button.length && option) {
+        if (option === "show") {
+            $button.addClass(activeClass);
+        } else if (option === "hide") {
+            $button.removeClass(activeClass);
+        }
+    }
+};
 
 var showSortSelect = function() {
 
@@ -360,10 +391,61 @@ var showSortSelect = function() {
 
         $select.on("change", function() {
             var href = $(this).val();
-            if (href) {
-                location.href = href;
-            }
+            if (href) { onChange(href); }
         });
+    };
+
+    // Adding sort-fields to filter form
+    var onChange = function( href ) {
+        var array = getArray( href),
+            $form = $(".filter-content-wrapper form");
+
+        if (!(array && array.length)) {
+            array = [
+                { name: "sort", value: "" },
+                { name: "order", value: "" }
+            ];
+        }
+
+        for (var i = 0; i < array.length; i++) {
+            var $hidden_input = $form.find("input[name=\"" + array[i].name + "\"] ");
+
+            if ($hidden_input.length) {
+                $hidden_input.val(array[i].value);
+
+            } else {
+                $hidden_input = $("<input type=\"hidden\" />");
+                $hidden_input.attr("name",array[i].name);
+                $hidden_input.val(array[i].value);
+                $form.append($hidden_input);
+            }
+        }
+
+        $form.trigger("submit");
+    };
+
+    // Parse href to Obj name->value
+    var getArray = function( href ) {
+        if (href.indexOf("&") + 1) {
+            var array = href.replace("?","").split("&"),
+                params = [];
+
+            // Sort Params
+            for (var i = 0; i < array.length; i++) {
+                var array_item = array[i],
+                    sub_array = array_item.split("="),
+                    name = sub_array[0],
+                    value = sub_array[1];
+
+                if (name == "sort" || name == "order" ) {
+                    params.push({
+                        name: name,
+                        value: value
+                    });
+                }
+            }
+            return params;
+        }
     };
 
     $(document).ready( function() {

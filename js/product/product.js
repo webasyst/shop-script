@@ -615,6 +615,8 @@ editClick:(function ($) {
 
             $('#s-product-profile-tabs .s-tab-block[data-tab="stock-logs"]').trigger('refresh');
 
+            this.setData('main', 'category_name', data.category_name);
+
             // TODO update name/description/etc fields
         },
 
@@ -2290,16 +2292,26 @@ editClick:(function ($) {
             self.call('profileLazyInit', []);
         },
         profileLazyInit: function () {
+            var $salesChart = $('#product-sales-plot');
+            
             if (sales_data && sales_data.length) {
+                if (!$salesChart.data('graph_rendered')) {
 
-                if (!$('#product-sales-plot').data('graph_rendered')) {
-                    //Render graph
-                    showSalesGraph(sales_data, typeof cash_type == 'undefined' ? null : cash_type);
-                    $('#product-sales-plot').data('graph_rendered', 1);
+                    var renderChart = function() {
+                        var is_rendered = ( $salesChart.length && $salesChart.width() > 0 );
+                        if (is_rendered) {
+                            //Render graph
+                            showSalesGraph(sales_data, typeof cash_type == 'undefined' ? null : cash_type);
+                            $salesChart.data('graph_rendered', 1);
+                        } else {
+                            setTimeout( renderChart, 1000 );
+                        }
+                    };
+                    renderChart();
                 }
 
             } else {
-                $('#product-sales-plot').remove();
+                $salesChart.remove();
             }
 
             if (sku_plot_data && sku_plot_data.length && sku_plot_data[0] && sku_plot_data[0].length) {
@@ -2334,12 +2346,30 @@ editClick:(function ($) {
                 if (max <= 0) {
                     return false;
                 }
-                keywords.push($(this).val());
+                var val = $.trim($(this).val());
+                if (val) {
+                    keywords.push(val);
+                }
                 max -= 1;
             });
 
-            keywords = keywords.concat($('#product-tags').val().split(',').slice(0, 5));
+            var category_name = this.getData('main', 'category_name');
+            if (category_name !== null) {
+                keywords.push(category_name);
+            }
 
+            var all_tags = $('#product-tags').val().split(',');
+            var max = 5;
+            for (var i = 0; i < all_tags.length; i += 1) {
+                if (max <= 0) {
+                    break;
+                }
+                var val = $.trim(all_tags[i]);
+                if (val) {
+                    keywords.push(val);
+                }
+                max -= 1;
+            }
             $('#s-product-meta-keywords').attr('placeholder', keywords.join(', '));
             $('#s-product-meta-description').attr('placeholder', $('#s-product-summary').val());
         },
