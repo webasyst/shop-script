@@ -5,36 +5,44 @@
     {$param=false}
 {/if}
 <div class="field">
-    <div class="name"{if !empty($info.required)} title="Обязательно поле" {/if}>
+    <div class="name"{if !empty($info.required)} title="Обязательно поле"{/if}>
         {*<label for="s-plugin-yandexmarket-map-{$field}-source">*}
             {$info.name|escape}{if !empty($info.required)} <span style="color:red;">*</span>{/if}
         {*</label>*}
     </div>
-    <div class="value no-shift">
+    <div class="value no-shift{if !empty($info.required)} js-required{/if}">
         {* Field data source selector *}
         <select name="map[{$type_id}][{$field}][source]" id="s-plugin-yandexmarket-map-{$field}-source">
             {$selected = false}
             <option value="skip:" class="gray"{if (ifset($info['source'])=="skip:")||empty($info['source'])}{$selected=true} selected="selected"{/if}>пропустить</option>
-                {if !empty($info.values) || !$param}
-                <optgroup label="Фиксированное значение">
-                    {if !empty($info.values)}
-                        {foreach $info.values as $value_id => $value}
-                            {if is_array($value)}
-                                {foreach $value as $unit_value}
-                                    <option value="value:{$value_id|escape}:{$unit_value|escape}"{if (ifset($info['source'])=="value:`$value_id`:`$unit_value`")}{$selected = true}selected="selected"{/if}>{$unit_value|escape} {_ws($value_id)|escape}</option>
-                                {/foreach}
-                            {else}
-                                <option value="value:{$value|escape}"{if (ifset($info['source'])=="value:`$value`")}{$selected = true}selected="selected"{/if}>{$value|escape}</option>
-                            {/if}
-                        {/foreach}
-                    {/if}
-                    {if !$param}
-                    <option value="text:%s"{if strpos(ifset($info['source']),'text:')===0}{$selected = true}selected="selected"{/if}>Пользовательское значение</option>
-                    {/if}
+                {if !empty($info.values) || !$param || (!empty($info.sources)&&in_array('custom',$info.sources))}
+                    <optgroup label="Фиксированное значение">
+                        {if !empty($info.values)}
+                            {foreach $info.values as $value_id => $value}
+                                {if is_array($value)}
+                                    {foreach $value as $unit_value}
+                                        <option value="value:{$value_id|escape}:{$unit_value|escape}"{if (ifset($info['source'])=="value:`$value_id`:`$unit_value`")}{$selected = true}selected="selected"{/if}>{$unit_value|escape} {_ws($value_id)|escape}</option>
+                                    {/foreach}
+                                {else}
+                                    <option value="value:{$value|escape}"{if (ifset($info['source'])=="value:`$value`")}{$selected = true}selected="selected"{/if}>{$value|escape}</option>
+                                {/if}
+                            {/foreach}
+                        {/if}
+                        {if !$param && (empty($info.sources) || in_array('custom',$info.sources))}
+                            <option value="text:%s"{if strpos(ifset($info['source']),'text:')===0}{$selected = true}selected="selected"{/if}>Пользовательское значение</option>
+                        {/if}
 
-                </optgroup>
+                    </optgroup>
+
                 {/if}
-            {if !$param}
+                {if !empty($info.function)}
+                    <optgroup label="Вычисляемое значение">
+                    {foreach $info.function as $function_id => $value}
+                        <option value="function:{$function_id|escape}"{if (ifset($info['source'])=="function:`$function_id`")}{$selected = true}selected="selected"{/if}>{$value|escape}</option>
+                    {/foreach}
+                    </optgroup>
+                {/if}
+            {if !$param && (empty($info.sources)||in_array('field',$info.sources))}
             <optgroup label="Основное свойство товара">
                 {foreach $fields as $fid=>$f}
                     <option value="field:{$fid}"{if !$selected && (ifset($info['source']) eq "field:`$fid`")}{$selected = true} selected="selected" style="font-weight:bold;text-decoration:underline;"{/if}>{$f|escape}</option>
@@ -47,14 +55,14 @@
                 {/if}
 
                     {foreach $features as $feature}
-                        <option value="feature:{$feature.code}"{if !$selected && ((ifset($info['source']) eq "feature:`$feature['code']`")||($feature.code eq $field))}{$selected = true} selected="selected"{/if}{if $param && !empty($feature.units)} data-unit="{$feature.units|escape:'js'}"{/if}>{$feature.name|escape}</option>
+                        <option value="feature:{$feature.code}" title="{$feature.code}"{if !$selected && ((ifset($info['source']) eq "feature:`$feature['code']`")||($feature.code eq $field))}{$selected = true} selected="selected"{/if}{if $param && !empty($feature.units)} data-unit="{$feature.units|escape:'js'}"{/if}>{$feature.name|escape}</option>
                     {/foreach}
             </optgroup>
         </select>
 
         {* Field source feature autocomplete *}
         {if !empty($features_autocomplete)}<input type="hidden" name="map[{$type_id}][{$field}][feature]" value="">
-        <input type="search" class="js-autocomplete-feature" title="Поиск характеристики по названию или коду" placeholder="Начните набирать название или код характеристики" style="display:none;">
+        <input type="search" class="js-autocomplete-feature{if strpos($field,'param')===0}-param{/if}" title="Поиск характеристики по названию или коду" placeholder="Начните набирать название или код характеристики" style="display:none;">
         {/if}
 
         {* Field source user value *}
@@ -75,6 +83,12 @@
         {if !empty($info.description)}
         <br>
         <span class="hint">{$info.description|escape|nl2br}</span>
+
+        {/if}
+        {if !empty($info.help)}
+            <br>
+            <span class="hint">{$info.help}</span>
+
         {/if}
     </div>
 </div>

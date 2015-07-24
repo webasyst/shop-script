@@ -24,7 +24,7 @@
     yid CDATA #IMPLIED>
 
 <!ELEMENT offers (offer+)>
-<!ELEMENT offer (url?, buyurl?, price, wprice?, currencyId, xCategory?, categoryId+, market_category?,
+<!ELEMENT offer (url?, buyurl?, price, oldprice?, wprice?, currencyId, xCategory?, categoryId+, market_category?,
                  picture*, store?, pickup?, delivery?, deliveryIncluded?, local_delivery_cost?, orderingTime?,
                  ((typePrefix?, vendor, vendorCode?, model, (provider, tarifplan?)?) |
                   (author?, name, publisher?, series?, year?, ISBN?, volume?, part?, language?, binding?, page_extent?, table_of_contents?) |
@@ -73,6 +73,7 @@
 
 <!ELEMENT deliveryTime EMPTY>
 <!ELEMENT price (#PCDATA)>
+<!ELEMENT oldprice (#PCDATA)>
 <!ELEMENT wprice (#PCDATA)>
 <!ELEMENT currencyId (#PCDATA)>
 <!ELEMENT categoryId (#PCDATA)>

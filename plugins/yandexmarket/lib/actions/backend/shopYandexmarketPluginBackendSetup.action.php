@@ -14,7 +14,6 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
         $profile = $profile_helper->getConfig();
 
         $profile['config'] += array(
-
             'hash'     => '',
             'domain'   => '',
             'lifetime' => 0,
@@ -64,6 +63,7 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
         $this->view->assign('primary_currency', $config->getCurrency());
 
         $this->view->assign('company', ifempty($profile['config']['company'], $config->getGeneralSettings('name')));
+        $this->view->assign('company_name', ifempty($profile['config']['company_name'], $config->getGeneralSettings('name')));
 
         $type_model = new shopTypeModel();
         $this->view->assign('types', $type_model->getAll());
@@ -122,11 +122,12 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
         if ($feature_model->countByField(array('parent_id' => null)) < $limit) {
             $features = $feature_model->getFeatures(true); /*, true*/
             foreach ($features as $id => $feature) {
-                if (!empty($feature['multiple'])
-                    // || (strpos($feature['type'], shopFeatureModel::TYPE_RANGE.'.') === 0)
-                    // || (strpos($feature['type'], shopFeatureModel::TYPE_2D.'.') === 0)
-                    // || (strpos($feature['type'], shopFeatureModel::TYPE_3D.'.') === 0)
-                    || ($feature['type'] == shopFeatureModel::TYPE_DIVIDER)
+                if (
+                    // !empty($feature['multiple']) ||
+                    // (strpos($feature['type'], shopFeatureModel::TYPE_RANGE.'.') === 0) ||
+                    // (strpos($feature['type'], shopFeatureModel::TYPE_2D.'.') === 0) ||
+                    // (strpos($feature['type'], shopFeatureModel::TYPE_3D.'.') === 0) ||
+                ($feature['type'] == shopFeatureModel::TYPE_DIVIDER)
                 ) {
                     unset($features[$id]);
                 }
@@ -172,6 +173,7 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
             'description' => _w('Description'),
             'summary'     => _w('Summary'),
             'count'       => _w('In stock'),
+            'sku'         => _w('SKU code'),
         );
         $this->view->assign('fields', $fields);
     }

@@ -2,7 +2,7 @@
 
 /**
  * Class shopYandexmarketPlugin
- * @see http://help.yandex.ru/partnermarket/yml/about-yml.xml
+ * @see https://help.yandex.ru/partnermarket/yml/about-yml.xml
  */
 class shopYandexmarketPlugin extends shopPlugin
 {
@@ -37,6 +37,30 @@ class shopYandexmarketPlugin extends shopPlugin
         } else {
             $this->types = array();
         }
+    }
+
+    public static function getConfigParam($param = null)
+    {
+        static $config = null;
+        if (is_null($config)) {
+            $app_config = wa('shop');
+            $files = array(
+                $app_config->getAppPath('plugins/yandexmarket', 'shop').'/lib/config/config.php', // defaults
+                $app_config->getConfigPath('shop/plugins/yandexmarket').'/config.php' // custom
+            );
+            $config = array();
+            foreach ($files as $file_path) {
+                if (file_exists($file_path)) {
+                    $config = include($file_path);
+                    if ($config && is_array($config)) {
+                        foreach ($config as $name => $value) {
+                            $config[$name] = $value;
+                        }
+                    }
+                }
+            }
+        }
+        return ($param === null) ? $config : (isset($config[$param]) ? $config[$param] : null);
     }
 
 
@@ -104,6 +128,11 @@ class shopYandexmarketPlugin extends shopPlugin
 
     }
 
+    /**
+     * @param $a
+     * @param $b
+     * @return mixed
+     */
     private static function sort($a, $b)
     {
         $a = ifset($a['sort'], 0);
@@ -127,6 +156,65 @@ HTML;
         return array(
             'toolbar_export_li' => $html,
         );
+    }
+
+    /**
+     * @param array $settings
+     * @return string
+     */
+    public function backendCategoryDialog($settings)
+    {
+        if (!isset($settings['params'])) {
+            if (!empty($settings['id'])) {
+                $category_params_model = new shopCategoryParamsModel();
+                $params = $category_params_model->get($settings['id']);
+            } else {
+                $params = array();
+            }
+        } else {
+            $params = $settings['params'];
+        }
+        $control_params = array(
+            'namespace'           => 'yandexmarket',
+            'value'               => !empty($params['yandexmarket_group_skus']),
+            'title'               => 'Яндекс.Маркет',
+            'description'         => 'При экспорте в Яндекс.Маркет группировать все артикулы товаров <span class="hint">Настройка учитывается только для случая экспорта каждого артикула товара как отдельной товарной позиции на Яндекс.Маркете (настраивается в профиле экспорта)</span>',
+            'title_wrapper'       => '%s',
+            'description_wrapper' => '%s',
+            'control_wrapper'     => '<div class="name">%s</div><div class="value no-shift"><label>%s %s</label></div>',
+        );
+        $control = waHtmlControl::getControl(waHtmlControl::CHECKBOX, 'group_skus', $control_params);
+        return <<<HTML
+<div class="field-group">
+    <div class="field">
+        {$control}
+    </div>
+</div>
+HTML;
+
+
+    }
+
+    /**
+     * @param array $category
+     */
+    public function categorySaveHandler($category)
+    {
+        if (!empty($category['id'])) {
+            $category_id = $category['id'];
+            $data = waRequest::post($this->id, array());
+            $category_params_model = new shopCategoryParamsModel();
+
+
+            $name = 'yandexmarket_group_skus';
+            $value = ifempty($data['group_skus']) ? 1 : 0;
+            if ($value) {
+                $category_params_model->insert(compact('category_id', 'name', 'value'), 1);
+            } else {
+                $category_params_model->deleteByField(compact('category_id', 'name'));
+            }
+        }
+
     }
 
     public function categories()
@@ -157,8 +245,12 @@ HTML;
     {
         $path = wa()->getDataPath('plugins/yandexmarket/'.$file, false, 'shop', true);
         if ($file == 'shops.dtd') {
-            if (!file_exists($path)) {
-                waFiles::copy(dirname(__FILE__).'/config/'.$file, $path);
+            $original = dirname(__FILE__).'/config/'.$file;
+            if (
+                !file_exists($path)
+                ||
+                ((filesize($path) != filesize($original)) && waFiles::delete($path))) {
+                waFiles::copy($original, $path);
             }
         }
         return $path;
@@ -231,5 +323,49 @@ HTML;
             mt_rand(0, 0xffff)
         );
         return $uuid;
+    }
+
+    public static function settingsPrimaryCurrencies()
+    {
+
+        $primary = self::getConfigParam('primary_currency');
+        $currencies = array();
+        $model = new shopCurrencyModel();
+        if ($available_currencies = $model->getCurrencies($primary)) {
+            $config = wa('shop')->getConfig();
+            /**
+             * @var shopConfig $config
+             */
+            $default = $config->getCurrency();
+            if (isset($currencies[$default])) {
+                $currencies['auto'] = array(
+                    'value' => 'auto',
+                    'title' => $default.' - Основная валюта магазина.',
+                    'rate'  => 0,
+
+                );
+            }
+            foreach ($available_currencies as $currency) {
+                $currencies[$currency['code']] = array(
+                    'value' => $currency['code'],
+                    'title' => $currency['code'].' - '.$currency['title'],
+                    'rate'  => $currency['rate'],
+
+                );
+            }
+        }
+        return $currencies;
+    }
+
+    /**
+     * @param string $category
+     * @return bool
+     */
+    public function isGroupedCategory($category)
+    {
+        if (!is_array($category)) {
+            $category = explode('/', trim($category, '/'));
+        }
+        return in_array(reset($category), self::getConfigParam('group_market_category')) && !in_array(end($category), self::getConfigParam('group_market_category_exclude'));
     }
 }

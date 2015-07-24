@@ -32,7 +32,7 @@ $.extend($.importexport.plugins, {
 
         /**
          *
-         * @param el {HTMLSelectElement}
+         * @param el HTMLSelectElement
          */
         selectChangeHandler: function (el) {
             var $el = $(el);
@@ -43,7 +43,7 @@ $.extend($.importexport.plugins, {
                 $parent.find('.js-value-custom:visible').hide();
                 $parent.find('a.js-action').show();
                 $parent.find('.ui-autocomplete-input:hidden').show().focus();
-                if (el.name.match(/\[param\.[^\]]+\]\[source\]$/)) {
+                if (el.name.match(/\[param\.[^\]]+]\[source]$/)) {
                     this.setParamName($parent, '', '');
                 }
             } else if (el.value == 'text:%s') {
@@ -57,7 +57,7 @@ $.extend($.importexport.plugins, {
                 $parent.find('a.js-action').hide();
                 $parent.find('select').show();
 
-                if (el.name.match(/\[param\.[^\]]+\]\[source\]$/)) {
+                if (el.name.match(/\[param\.[^\]]+]\[source]$/)) {
                     var $selected = $el.find(':selected');
                     this.setParamName($parent, $selected.val() == 'skip:' ? '' : $selected.text(), $selected.data('unit') || '');
                 }
@@ -99,10 +99,16 @@ $.extend($.importexport.plugins, {
              * source mapping control
              */
             this.$form.find(':input[name$="\\[source\\]"]').change(function () {
+                /**
+                 * @var this HTMLSelectElement
+                 */
                 self.selectChangeHandler(this);
             });
 
             this.$form.find('a.js-action').unbind('click').bind('click.yandexmarket', function () {
+                /**
+                 * @var this HTMLInputElement
+                 */
                 return self.actionHandler($(this));
             });
 
@@ -110,17 +116,19 @@ $.extend($.importexport.plugins, {
              * type map helper
              */
             var $type_map = this.$form.find(':input.js-type-map');
-            $type_map.change(function () {
+            $type_map.unbind('change.yandexmarket').bind('change.yandexmarket', function () {
                 /**
                  * @this HTMLInputElement
                  */
 
                 var $this = $(this);
+                var $sku_group_container = self.$form.find(':input[name="export\\[sku_group\\]"]:first').parents('div.field:first');
                 var checked = $this.is(':checked');
                 $type_map.filter('[value="' + this.value + '"]').each(function () {
                     var $input = $(this);
                     $input.attr('readonly', checked ? true : null);
                     $input.attr('disabled', checked ? true : null);
+                    $sku_group_container.find(':input').attr('disabled', checked ? null : true);
 
                 });
                 $this.attr('readonly', null);
@@ -130,16 +138,18 @@ $.extend($.importexport.plugins, {
             /**
              * product export types control
              */
-            this.$form.find(':input.js-types').change(function () {
+            this.$form.find(':input.js-types').unbind('change.yandexmarket').bind('change.yandexmarket', function () {
+
                 var $container = $(this).parents('div.field-group:first');
+
                 if ($(this).is(':checked')) {
                     $container.find('> div.field:hidden :input:not(.js-type-map)').attr('disabled', null);
                     $container.find('> div.field:hidden').slideDown();
+
                 } else {
                     $container.find('> div.field :input:not(.js-type-map)').attr('disabled', true);
                     $container.find(':input.js-type-map:checked').each(function () {
                         /**
-                         *
                          * @this HTMLInputElement
                          */
                         this.checked = false;
@@ -150,8 +160,32 @@ $.extend($.importexport.plugins, {
                 }
             });
 
+            /**
+             * product export skus group control
+             */
+            this.$form.find(':input[name="export\\[sku\\]"]').unbind('change.yandexmarket').bind('change.yandexmarket', function (event) {
 
-            this.$form.find(':text[readonly="readonly"]').bind('click focus keypress focus', function () {
+                var $container = self.$form.find(':input[name="export\\[sku_group\\]"]:first').parents('div.field:first');
+                if ($(this).is(':checked')) {
+                    //    $container.find(':input').attr('disabled', null);
+                    if (event.originalEvent) {
+                        $container.slideDown();
+                    } else {
+                        $container.show();
+                    }
+                } else {
+                    //    $container.find(':input').attr('disabled', true);
+                    if (event.originalEvent) {
+                        $container.slideUp();
+                    } else {
+                        $container.hide();
+                    }
+
+                }
+            }).trigger('change');
+
+
+            this.$form.find(':text[readonly="readonly"]').unbind('click.yandexmarket focus.yandexmarket keypress.yandexmarket focus.yandexmarket').bind('click.yandexmarket focus.yandexmarket keypress.yandexmarket focus.yandexmarket', function () {
                 var $this = $(this);
                 window.setTimeout(function () {
                     $this.select();
@@ -181,6 +215,12 @@ $.extend($.importexport.plugins, {
             setTimeout(function () {
                 self.initFormLazy();
             }, 500);
+
+            var $link = $('#s-plugin-yandexmarket-last-export');
+            if ($link.length && $link.is(':visible')) {
+                window.scrollTo(0, 0);
+                $link.focus();
+            }
         },
 
         initFormLazy: function ($scope) {
@@ -195,6 +235,13 @@ $.extend($.importexport.plugins, {
             }
             $scope.find(':input.js-autocomplete-feature').autocomplete({
                 source: '?action=autocomplete&type=feature&options[single]=1',
+                minLength: 2,
+                delay: 300,
+                select: self.autocompleteFeature,
+                focus: self.autocompleteFeature
+            });
+            $scope.find(':input.js-autocomplete-feature-param').autocomplete({
+                source: '?action=autocomplete&type=feature',//&options[single]=1
                 minLength: 2,
                 delay: 300,
                 select: self.autocompleteFeature,
@@ -223,9 +270,10 @@ $.extend($.importexport.plugins, {
             var $div = $this.parent('div');
             var $input = $div.find(':input[name$="\\[feature\\]"]');
             $input.val(ui.item.value);
-            $.shop.trace('aut', $input.attr('name'));
-            if ($input.attr('name').match(/\[param\.[^\]]+\]\[feature\]$/)) {
-                var unit = ui.item.label.match(/\(([^\)]+)\);/);
+
+            if ($input.attr('name').match(/\[param\.[^\]]+]\[feature]$/)) {
+                $.shop.trace('unit', ui.item.label);
+                var unit = ui.item.label.match(/[^;]*\(([^\)]+)\);/) || ['', ''];
                 $.importexport.plugins.yandexmarket.setParamName($div, this.value, unit[1] || '');
             }
 
@@ -238,6 +286,9 @@ $.extend($.importexport.plugins, {
             var $scope = $target.prev('div');
             var self = this;
             $scope.find(':input[name$="\\[source\\]"]').change(function () {
+                /**
+                 * @var HTMLSelectElement this
+                 */
                 self.selectChangeHandler(this);
             }).trigger('change');
 
@@ -266,16 +317,46 @@ $.extend($.importexport.plugins, {
         },
 
         yandexmarketHandler: function (element) {
-            var self = this;
-            self.progress = true;
-            self.form = $(element);
-            var data = self.form.serialize();
-            self.form.find('.errormsg').text('');
-            self.form.find(':input').attr('disabled', true);
-            self.form.find(':submit').hide();
-            self.form.find('.progressbar .progressbar-inner').css('width', '0%');
-            self.form.find('.progressbar').show();
+            this.form = $(element);
+            /**
+             * reset required form fields errors
+             */
+            this.form.find('.value.js-required :input.error').removeClass('error');
+            /**
+             * verify form
+             */
+            var valid = true;
+            this.form.find('.value.js-required :input:visible:not(:disabled)').each(function () {
+                var $this = $(this);
+                var value = $this.val();
+                if (!value || (value == 'skip:')) {
+                    $this.addClass('error');
+                    valid = false;
+                }
+            });
+            if (!valid) {
+                var $target = this.form.find('.value.js-required :input.error:first');
+
+                $('html, body').animate({
+                    scrollTop: $target.offset().top - 10
+                }, 1000, function () {
+                    $target.focus();
+                });
+                this.form.find(':input, :submit').attr('disabled', null);
+                return false;
+            }
+
+            this.progress = true;
+
+            var data = this.form.serialize();
+            this.form.find('.errormsg').text('');
+            this.form.find(':input').attr('disabled', true);
+            this.form.find('a.js-action:visible').data('visible', 1).hide();
+            this.form.find(':submit').hide();
+            this.form.find('.progressbar .progressbar-inner').css('width', '0%');
+            this.form.find('.progressbar').show();
             var url = $(element).attr('action');
+            var self = this;
             $.ajax({
                 url: url,
                 data: data,
@@ -285,6 +366,13 @@ $.extend($.importexport.plugins, {
                     if (response.error) {
                         self.form.find(':input').attr('disabled', false);
                         self.form.find(':submit').show();
+                        self.form.find('a.js-action:hidden').each(function () {
+                            var $this = $(this);
+                            if ($this.data('visible')) {
+                                $this.show();
+                                $this.data('visible', null);
+                            }
+                        });
                         self.form.find('.js-progressbar-container').hide();
                         self.form.find('.shop-ajax-status-loading').remove();
                         self.progress = false;
@@ -300,14 +388,21 @@ $.extend($.importexport.plugins, {
                                 return !((xhr.status >= 500) || (xhr.status == 0));
                             };
                             self.progressHandler(url, response.processId, response);
-                        }, 100));
+                        }, 2100));
                         self.ajax_pull[response.processId].push(setTimeout(function () {
                             self.progressHandler(url, response.processId, null);
-                        }, 2000));
+                        }, 5500));
                     }
                 },
                 error: function () {
                     self.form.find(':input').attr('disabled', false);
+                    self.form.find('a.js-action:hidden').each(function () {
+                        var $this = $(this);
+                        if ($this.data('visible')) {
+                            $this.show();
+                            $this.data('visible', null);
+                        }
+                    });
                     self.form.find(':submit').show();
                     self.form.find('.js-progressbar-container').hide();
                     self.form.find('.shop-ajax-status-loading').remove();
@@ -383,7 +478,7 @@ $.extend($.importexport.plugins, {
                     self.debug.memory_avg = Math.max(0.0, self.debug.memory_avg, parseFloat(response.memory_avg) || 0);
 
                     var title = 'Memory usage: ' + self.debug.memory_avg + '/' + self.debug.memory + 'MB';
-                    title += ' (' + (1 + response.stage_num) + '/' + (0 + response.stage_count) + ')';
+                    title += ' (' + (1 + response.stage_num) + '/' + (parseInt(response.stage_count)) + ')';
 
                     var message = response.progress + ' — ' + response.stage_name;
 
@@ -415,8 +510,12 @@ $.extend($.importexport.plugins, {
                             self.progressHandler(url, id, null);
                         }
                     });
-                }, 500));
+                }, 2000));
             }
+        },
+        getLink: function () {
+            window.location.reload();
+
         },
         helpers: {
             /**

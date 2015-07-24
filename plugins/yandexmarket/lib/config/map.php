@@ -11,6 +11,7 @@ return array(
                 'id'                    => true,
                 'url'                   => true,
                 'price'                 => true,
+                'oldprice'              => true,
                 'currencyId'            => true,
                 'categoryId'            => true,
                 'market_category'       => false,
@@ -38,8 +39,10 @@ return array(
             'fields' => array(
                 'available'             => true,
                 'id'                    => true,
+                'group_id'              => false,
                 'url'                   => true,
                 'price'                 => true,
+                'oldprice'              => true,
                 'currencyId'            => true,
                 'categoryId'            => true,
                 'market_category'       => false,
@@ -71,7 +74,7 @@ return array(
                 'sales_notes'           => false,
                 'manufacturer_warranty' => false,
                 'seller_warranty'       => false,
-                'country_of_origin'     => true,
+                'country_of_origin'     => false,
                 'downloadable'          => false,
                 'adult'                 => false,
                 'age'                   => false,
@@ -92,7 +95,7 @@ return array(
                  **/
                 'expiry'                => false,
                 'weight'                => false,
-                'dimensions'            => true,
+                'dimensions'            => false,
                 'param.*'               => false,
                 /**
                  *
@@ -110,6 +113,7 @@ return array(
                 'id'                  => true,
                 'url'                 => true,
                 'price'               => true,
+                'oldprice'            => true,
                 'currencyId'          => true,
                 'categoryId'          => true,
                 'market_category'     => false,
@@ -131,6 +135,7 @@ return array(
                 'page_extent'         => false,
                 'table_of_contents'   => false,
                 'description'         => false,
+                'sales_notes'         => false,
                 'downloadable'        => false,
                 'age'                 => false,
                 'cpa'                 => false,
@@ -143,6 +148,7 @@ return array(
                 'id'                => true,
                 'url'               => true,
                 'price'             => true,
+                'oldprice'          => true,
                 'currencyId'        => true,
                 'categoryId'        => true,
                 'market_category'   => false,
@@ -163,6 +169,7 @@ return array(
                 'format'            => false,
                 'recording_length'  => false,
                 'description'       => false,
+                'sales_notes'         => false,
                 'downloadable'      => false,
                 'age'               => false,
                 'cpa'               => false,
@@ -175,6 +182,7 @@ return array(
                 'id'              => true,
                 'url'             => true,
                 'price'           => true,
+                'oldprice'        => true,
                 'currencyId'      => true,
                 'categoryId'      => true,
                 'market_category' => false,
@@ -204,6 +212,7 @@ return array(
                  */
 
                 'description'     => false,
+                'sales_notes'         => false,
                 'adult'           => false,
                 'age'             => false,
                 'barcode'         => false,
@@ -287,13 +296,15 @@ return array(
         /**
          * Fields order is user friendly
          */
-        /*
-       * 'field_id'              => array(
-       * 'type'        => 'fixed|adjustable|custom',
-       * 'name'        => '',
-       * 'description' => '',
-       * ),
-       */
+        /**
+         * 'field_id'              => array(
+         * 'type'        => 'fixed|adjustable|custom',
+         * 'name'        => '',
+         * 'description' => '',
+         * 'attribute'=>true, //(if it dom attribute only)
+         * 'field'       => 'offer',(if it dom attribute only specify dom element name)
+         * ),
+         */
         'id'                    => array(
             'type'        => 'fixed',
             'name'        => 'идентификатор товарного предложения',
@@ -301,6 +312,16 @@ return array(
             'attribute'   => true,
             'source'      => 'field:id',
             'field'       => 'offer',
+        ),
+        'group_id'              => array(
+            'type'        => 'fixed',
+            'name'        => 'идентификатор группы товарного предложения',
+            'description' => '',
+            'attribute'   => true,
+            'source'      => 'field:_group_id',
+            'field'       => 'offer',
+            'format'      => '%d',
+            'callback'    => true,
         ),
         'url'                   => array(
             'type'        => 'fixed',
@@ -315,6 +336,13 @@ return array(
             'description' => 'Цена товарного предложения округляеся и выводится в зависимости от настроек пользователя',
             'format'      => '%0.2f',
             'source'      => 'field:price',
+        ),
+        'oldprice'              => array(
+            'type'        => 'fixed',
+            'name'        => 'Старая цена',
+            'description' => 'Старая цена товарного предложения округляеся и выводится в зависимости от настроек пользователя',
+            'format'      => '%0.2f',
+            'source'      => 'field:compare_price',
         ),
         'currencyId'            => array(
             'type'        => 'fixed',
@@ -337,10 +365,12 @@ return array(
             'source'      => 'field:category_id',
         ),
         'market_category'       => array(
-            'type'        => 'fixed',
-            'name'        => 'Идентификатор категории товара ',
-            'description' => '',
-            'source'      => 'field:market_category',
+            'type'        => 'adjustable',
+            'name'        => 'Категория/раздел размещения',
+            'description' => 'Категория/раздел размещения в Яндекс.Маркете.',
+            'help'        => 'Допустимо указывать названия категорий только из товарного дерева категорий <a href="https://help.yandex.ru/partnermarket/guides/classification.xml#market-category" target="_blank">Яндекс.Маркета<i class="icon16 new-window"></i></a>.',
+            'source'      => '',
+            'sources'     => array('feature', 'custom'),
         ),
         'picture'               => array(
             'type'   => 'fixed',
@@ -456,6 +486,9 @@ return array(
             'name'        => 'Примечания',
             'description' => 'Информация о минимальной сумме заказа, минимальной партии товара или необходимости предоплаты, а также описания акций, скидок и распродаж',
             'format'      => '%50s',
+            'function'    => array(
+                'prepaid' => 'Заказ товара по предоплате (для товаров, которых нет в наличии)',
+            ),
         ),
         'manufacturer_warranty' => array(
             'type'        => 'adjustable',
@@ -465,7 +498,7 @@ return array(
 1) false — товар не имеет официальной гарантии;
 2) true — товар имеет официальную гарантию;
 3) указание срока гарантии в формате ISO 8601, например: P1Y2M10DT2H30M
-4) указание срока гарантии в чисое дней;
+4) указание срока гарантии в числе дней;
 Поддерживаются числовые данные — простое число определяет срок гарантии в днях, либо с учетом размерности характеристики типа «Время».
 Остальные типы данных приводятся к значениям true/false.',
             'values'      => array(
@@ -480,7 +513,7 @@ return array(
 1) false — товар не имеет гарантию продавца;
 2) true — товар имеет гарантию продавца;
 3) указание срока гарантии в формате ISO 8601, например: P1Y2M10DT2H30M;
-4) указание срока гарантии в чисое дней;
+4) указание срока гарантии в числе дней;
 Поддерживаются числовые данные — простое число определяет срок гарантии в днях, либо с учетом размерности характеристики типа «Время».
 Остальные типы данных приводятся к значениям true/false.',
             'values'      => array(
@@ -777,8 +810,9 @@ return array(
         'param'                 => array(
             'type'        => 'adjustable',
             'name'        => '<param>',
-            'description' => 'Дополнительные произвольные характеристики товара. Если тип характеристики магазина не имеет единицы измерения, но ее необходимо передать в Яндекс.Маркет, то можно задать название единицы измерения (параметр unit) в названии характеристики в скобках, например, «Вес (кг)».',
+            'description' => 'Дополнительные произвольные характеристики товара.
+ Если тип характеристики магазина не имеет единицы измерения, но ее необходимо передать в Яндекс.Маркет,
+ то можно задать название единицы измерения (параметр unit) в названии характеристики в скобках, например, «Вес (кг)».',
         ),
-
-    )
+    ),
 );
