@@ -9,11 +9,10 @@ return array(
     'importexport' => true,
     'frontend'     => true,
     'handlers'     => array(
-        'products_collection' => 'productsCollection',
+        //'products_collection' => 'productsCollection',
+        //'backend_products'    => 'backendProducts',
     ),
     'locale'       => array(
         'ru_RU',
     ),
 );
-
-//EOF

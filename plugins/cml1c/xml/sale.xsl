@@ -117,8 +117,12 @@
                             <xsl:if test="КоммерческаяИнформация/comment()[1]">
                                 <li><i class="icon16 info"></i>
                                     Платформа: <xsl:value-of select="КоммерческаяИнформация/comment()[1]" />
+                                    <xsl:if test="КоммерческаяИнформация/comment()[2]">
+                                        , <xsl:value-of select="КоммерческаяИнформация/comment()[2]" />
+                                    </xsl:if>
                                 </li>
                             </xsl:if>
+
                             <xsl:if test="(//comment())[last()]">
                                 <li><i class="icon16 info"></i>
                                     <xsl:value-of select="(//comment())[last()]" />

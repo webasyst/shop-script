@@ -33,6 +33,13 @@ class shopCml1cPlugin extends shopPlugin
         return $path;
     }
 
+    /**
+     * @todo complete validation
+     * @param $xml
+     * @param $path
+     * @param string $version
+     * @return bool
+     */
     public function validate($xml, $path, $version = null)
     {
         $valid = false;
@@ -434,10 +441,55 @@ HTML;
         return $options;
     }
 
+    public static function controlProductFields()
+    {
+        return array(
+            array(
+                'value'       => 'name',
+                'title'       => _w('Product name'),
+                'description' => '',
+            ),
+            array(
+                'value'       => 'sku',
+                'title'       => _w('SKU'),
+                'description' => '',
+            ),
+            array(
+                'value'       => 'sku_name',
+                'title'       => _w('SKU name'),
+                'description' => '',
+            ),
+            array(
+                'value'       => 'description',
+                'title'       => _w('Description'),
+                'description' => '',
+            ),
+            array(
+                'value'       => 'summary',
+                'title'       => _w('Summary'),
+                'description' => '',
+            ),
+            array(
+                'value'       => 'tax',
+                'title'       => _w('Tax type'),
+                'description' => '',
+            ),
+            array(
+                'value'       => 'features',
+                'title'       => _w('Features'),
+                'description' => '',
+            ),
+        );
+    }
+
+    public static function controlWeightUnits()
+    {
+        return shopDimension::getUnits('weight');
+    }
+
     public static function isGuid($string)
     {
         //14ed8b20-55bd-11d9-848a-00112f43529a
         return preg_match('@^[0-9a-f]{8}\-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$@', $string);
     }
-
 }
