@@ -158,20 +158,21 @@ class shopProductsCollection
                 }
             }
 
+            $params = array(
+                'collection' => $this,
+                'auto_title' => $auto_title,
+                'add'        => $add,
+            );
+            /**
+             * @event products_collection
+             * @param array [string]mixed $params
+             * @param array [string]shopProductsCollection $params['collection']
+             * @param array [string]boolean $params['auto_title']
+             * @param array [string]boolean $params['add']
+             */
+            wa()->event('products_collection_prepared', $params);
+
             if ($this->prepared) {
-                $params = array(
-                    'collection' => $this,
-                    'auto_title' => $auto_title,
-                    'add'        => $add,
-                );
-                /**
-                 * @event products_collection
-                 * @param array [string]mixed $params
-                 * @param array [string]shopProductsCollection $params['collection']
-                 * @param array [string]boolean $params['auto_title']
-                 * @param array [string]boolean $params['add']
-                 */
-                wa()->event('products_collection_prepared', $params);
                 return;
             }
             $this->prepared = true;
