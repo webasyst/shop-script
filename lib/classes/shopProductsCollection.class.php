@@ -164,7 +164,7 @@ class shopProductsCollection
                 'add'        => $add,
             );
             /**
-             * @event products_collection
+             * @event products_collection_prepared
              * @param array [string]mixed $params
              * @param array [string]shopProductsCollection $params['collection']
              * @param array [string]boolean $params['auto_title']
