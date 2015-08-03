@@ -22,3 +22,7 @@ msgstr ""
 #: /wa-apps/shop/widgets/orders/lib/config/widget.php:4
 msgid "Orders"
 msgstr ""
+
+#: /wa-apps/shop/widgets/orders/templates/NoAccess.html:8
+msgid "You don't have permissions to view store orders. Please ask your Webasyst admin for access."
+msgstr ""

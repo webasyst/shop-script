@@ -4,6 +4,11 @@ class shopOrdersWidget extends waWidget
 {
     public function defaultAction()
     {
+        if (!wa()->getUser()->getRights('shop', 'orders')) {
+            $this->display(array(), $this->getTemplatePath('NoAccess.html'));
+            return;
+        }
+
         $states = self::getStates();
 
         // Sum of totals for all orders currently procesing

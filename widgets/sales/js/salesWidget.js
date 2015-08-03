@@ -38,9 +38,10 @@ var SalesGraph;
         that.margin = {
             top: 0,
             right: 0,
-            bottom: 2,
+            bottom: 0,
             left: 0
         };
+        that.indent = 2;
         that.heightPercent = .6;  // 50%
         that.data = getGraphData(options.graph_data);
         that.area = getGraphArea(that);
@@ -113,7 +114,7 @@ var SalesGraph;
         var area = d3.svg.area()
             .interpolate("monotone")
             .x(function(d) { return x(d.date); })
-            .y(function(d) { return y(d.sales); })
+            .y(function(d) { return ( y(d.sales) - that.indent ); })
             .y0( function() { return y(minSales); });
 
         var svg = that.d3_wrapper
@@ -159,7 +160,8 @@ var SalesGraph;
                     return d;
                 }));
             })
-            .style("stroke", function(d) { return color(d.name); });
+            .style("stroke", function(d) { return color(d.name); })
+            .attr("transform", "translate(0,-" + that.indent + ")");
 
     };
 
