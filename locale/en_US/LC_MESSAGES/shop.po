@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.2\n"
+"X-Generator: Poedit 1.7.6\n"
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
 "Language: en_US\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -9311,7 +9311,7 @@ msgid "Smart"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsSearch.html:20
-msgid "Product search will be performed by product name and description."
+msgid "Product search will be performed by product and SKU names."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsStock.html:96

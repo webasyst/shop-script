@@ -5,13 +5,10 @@ return array(
     'description'  => 'Обмен данными с «1С: Управление торговлей» (CommerceML)',
     'img'          => 'img/1c.png',
     'vendor'       => 'webasyst',
-    'version'      => '2.0.0',
+    'version'      => '2.0.1',
     'importexport' => true,
     'frontend'     => true,
-    'handlers'     => array(
-        //'products_collection' => 'productsCollection',
-        //'backend_products'    => 'backendProducts',
-    ),
+    'handlers'     => array(),
     'locale'       => array(
         'ru_RU',
     ),

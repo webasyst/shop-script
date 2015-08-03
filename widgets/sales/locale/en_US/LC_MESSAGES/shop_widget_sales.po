@@ -34,3 +34,7 @@ msgstr ""
 #: /wa-apps/shop/widgets/sales//lib/config/settings.php:10
 msgid "Profit"
 msgstr ""
+
+#: /wa-apps/shop/widgets/sales/templates/NoAccess.html:8
+msgid "You don’t have permissions to view store sales report. Please ask your Webasyst admin for access."
+msgstr ""

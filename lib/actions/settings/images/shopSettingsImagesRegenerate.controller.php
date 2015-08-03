@@ -82,7 +82,7 @@ class shopSettingsImagesRegenerateController extends waLongActionController
                     $old_path = shopImage::getPath($i);
                     $i['filename'] = $filename;
                     $new_path = shopImage::getPath($i);
-                    if (waFiles::move($old_path, $new_path)) {
+                    if (is_readable($old_path) && @waFiles::move($old_path, $new_path)) {
                         $image_model->updateById($i['id'], array('filename' => $filename));
                         if (!$i['sort']) {
                             $product_model->updateById($i['product_id'], array(
@@ -175,6 +175,8 @@ class shopSettingsImagesRegenerateController extends waLongActionController
             }
             $this->data['offset'] += 1;
         }
+
+        return true;
     }
 
 

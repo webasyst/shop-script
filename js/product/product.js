@@ -1561,6 +1561,7 @@ editClick:(function ($) {
                     this.data.url_helper.url = data.url;
                     $.ajax({
                         'url': '?action=transliterate',
+                        'dataType': 'html',
                         'data': data
                     }).done(function (response) {
                         if ((response = $.parseJSON(response)) && (response.status == "ok")) {

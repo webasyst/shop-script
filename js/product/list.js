@@ -430,10 +430,10 @@
                 var $tr = $(this);
                 var has_edit_rights = $tr.data('edit-rights');
                 if(!has_edit_rights || $tr.data('min-price') != $tr.data('max-price')) {
-                    $tr.find('.s-product-price .editable').addClass('not-editable');
+                    $tr.find('.s-product-price .editable').filter(function() { return !$(this).data('plugin'); }).addClass('not-editable');
                 }
                 if(!has_edit_rights || $tr.data('sku-count') != 1) {
-                    $tr.find('.s-product-stock .editable').addClass('not-editable');
+                    $tr.find('.s-product-stock .editable').filter(function() { return !$(this).data('plugin'); }).addClass('not-editable');
                 }
             });
 
@@ -448,6 +448,9 @@
 
             $.product_list.container.on('click', '.s-product-price,.s-product-stock', function() {
                 var $td = $(this);
+                if ($td.data('plugin')) {
+                    return;
+                }
                 var $tr = $td.closest('tr');
                 var is_price_cell = $td.hasClass('s-product-price');
 

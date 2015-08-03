@@ -262,14 +262,21 @@ class shopCml1cPluginFrontendController extends waController
 
     private function response($response = "success")
     {
+        $encoding = 'Windows-1251';
         $response = func_get_args();
         if (!$response) {
             $response = array('success');
         }
         $this->getResponse()->addHeader('Content-type', 'text/plain');
-        $this->getResponse()->addHeader('Encoding', 'Windows-1251');
+        if ($encoding != 'UTF-8') {
+            $this->getResponse()->addHeader('Encoding', $encoding);
+        }
         $this->getResponse()->sendHeaders();
-        print(iconv('UTF-8', 'Windows-1251', implode("\r\n", $response)));
+        if ($encoding != 'UTF-8') {
+            print(iconv('UTF-8', $encoding, implode("\r\n", $response)));
+        } else {
+            print(implode("\r\n", $response));
+        }
     }
 
     private function importSale()
@@ -300,6 +307,7 @@ class shopCml1cPluginFrontendController extends waController
         }
 
         $limit = 100;
+        $trace = array();
         do {
             ob_start();
             $this->runner()->run();
@@ -307,24 +315,26 @@ class shopCml1cPluginFrontendController extends waController
                 $_POST['processId'] = $this->runner()->processId;
                 $this->getStorage()->set('processId', $_POST['processId']);
             }
+
             $out = ob_get_clean();
+            $ready = strpos(substr($out, 0, 8), 'success') === 0;
             $this->sleep();
-        } while (--$limit && $out);
+        } while (--$limit && !$ready);
 
-        if ($limit) {
-            #send file if it not send yet
-            $this->runner()->run();
+        if ($ready) {
+            $this->runner()->exchangeReport();
 
+             $this->runner()->sendFile();
+            //
             ob_start();
             #cleanup code & store exchange report
             $this->sleep();
             $_POST['cleanup'] = true;
             $this->runner(true)->run();
-            $this->runner()->exchangeReport();
             ob_get_clean();
         } else {
             waLog::log(sprintf('Error while export sales (not enough iterations) %s', $out), 'shop/plugins/cml1c.log');
-            $this->response('failure', $out);
+            $this->response('failure', var_export($trace, true)."\n\n".$out);
         }
     }
 

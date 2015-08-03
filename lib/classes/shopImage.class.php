@@ -310,7 +310,7 @@ class shopImage
         if (!$size) {
             $size = wa('shop')->getConfig()->getImageSize('default');
         }
-        if (strlen($image['filename'])) {
+        if (isset($image['filename']) && strlen($image['filename'])) {
             $n = $image['filename'];
         } else {
             $n = $image['id'];
