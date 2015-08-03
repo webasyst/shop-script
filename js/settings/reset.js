@@ -51,6 +51,7 @@ if (typeof($) != 'undefined') {
                 'url' : url,
                 'data' : data,
                 'type' : 'POST',
+                'dataType': 'html',
                 'success' : function(response, textStatus, jqXHR) {
                     $.shop.trace('$.settings.resetSubmit response', [textStatus, response]);
 

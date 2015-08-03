@@ -299,6 +299,7 @@ EOF;
         // Save to temporary folder
         $dir = wa()->getTempPath('promos', 'shop');
         $filepath = tempnam($dir, 'i');
+        waFiles::delete($filepath); // otherwise file would stay 0600 which is inconvenient for some
         $file->moveTo($filepath);
 
         // Remove old uploaded file if exists

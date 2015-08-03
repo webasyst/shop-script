@@ -75,7 +75,7 @@ class shopViewHelper extends waAppViewHelper
      * @param array $product_ids
      * @return array
      */
-    public function skus($product_ids, $apply_rounding=true)
+    public function skus($product_ids, $apply_rounding = true)
     {
         if (!$product_ids) {
             return array();
@@ -98,14 +98,14 @@ class shopViewHelper extends waAppViewHelper
         }
 
         $absolute = $absolute && !$this->cdn;
-        $product_ids = array_map('intval', (array) $product_ids);
+        $product_ids = array_map('intval', (array)$product_ids);
         $product_images_model = new shopProductImagesModel();
         $result = $product_images_model->getImages($product_ids, $size, 'product_id', $absolute);
 
         if ($this->cdn) {
-            foreach($result as &$images) {
-                foreach($images as &$image) {
-                    foreach($image as $k => &$v) {
+            foreach ($result as &$images) {
+                foreach ($images as &$image) {
+                    foreach ($image as $k => &$v) {
                         if (substr($k, 0, 4) == 'url_') {
                             $v = $this->cdn.$v;
                         }
@@ -165,7 +165,7 @@ class shopViewHelper extends waAppViewHelper
         $product_features_model = new shopProductFeaturesModel();
         $rows = $product_features_model->getByField(array(
             'product_id' => array_keys($products),
-            'sku_id' => null
+            'sku_id'     => null
         ), true);
         if (!$rows) {
             return array();
@@ -263,11 +263,11 @@ class shopViewHelper extends waAppViewHelper
     {
         $product_reviews_model = new shopProductReviewsModel();
         return $product_reviews_model->getList('*,product,contact', array(
-            'where' => array(
+            'where'  => array(
                 'review_id' => 0,
-                'status' => shopProductReviewsModel::STATUS_PUBLISHED
+                'status'    => shopProductReviewsModel::STATUS_PUBLISHED
             ),
-            'limit' => $limit,
+            'limit'  => $limit,
             'escape' => true
         ));
     }
@@ -362,10 +362,10 @@ class shopViewHelper extends waAppViewHelper
         }
 
         return $this->imgHtml(array(
-            'id' => $product['image_id'],
+            'id'         => $product['image_id'],
             'product_id' => $product['id'],
-            'filename' => $product['image_filename'],
-            'ext' => $product['ext']
+            'filename'   => $product['image_filename'],
+            'ext'        => $product['ext']
         ), $size, $attributes);
     }
 
@@ -405,14 +405,14 @@ class shopViewHelper extends waAppViewHelper
             }
         }
         return $this->imgUrl(array(
-            'id' => $product['image_id'],
+            'id'         => $product['image_id'],
             'product_id' => $product['id'],
-            'filename' => $product['image_filename'],
-            'ext' => $product['ext']
+            'filename'   => $product['image_filename'],
+            'ext'        => $product['ext']
         ), $size);
     }
 
-    public function imgUrl($image, $size, $absolute=false)
+    public function imgUrl($image, $size, $absolute = false)
     {
         if (!$image || empty($image['id'])) {
             return '';
@@ -488,24 +488,25 @@ class shopViewHelper extends waAppViewHelper
     {
         $category_model = new shopCategoryModel();
         $category = $category_model->getById($id);
-
-        $route = $this->getRoute();
-        if (!$route) {
-            $category['subcategories'] = array();
-        } else {
-            $category['subcategories'] = $category_model->getSubcategories($category, $route['domain'].'/'.$route['url']);
-            $category_url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
-            foreach ($category['subcategories'] as &$sc) {
-                $sc['url'] = str_replace('%CATEGORY_URL%', isset($route['url_type']) && $route['url_type'] == 1 ? $sc['url'] : $sc['full_url'], $category_url);
+        if ($category) {
+            $route = $this->getRoute();
+            if (!$route) {
+                $category['subcategories'] = array();
+            } else {
+                $category['subcategories'] = $category_model->getSubcategories($category, $route['domain'].'/'.$route['url']);
+                $category_url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
+                foreach ($category['subcategories'] as &$sc) {
+                    $sc['url'] = str_replace('%CATEGORY_URL%', isset($route['url_type']) && $route['url_type'] == 1 ? $sc['url'] : $sc['full_url'], $category_url);
+                }
+                unset($sc);
             }
-            unset($sc);
-        }
 
-        $category_params_model = new shopCategoryParamsModel();
-        $category['params'] = $category_params_model->get($category['id']);
+            $category_params_model = new shopCategoryParamsModel();
+            $category['params'] = $category_params_model->get($category['id']);
 
-        if ($this->wa->getConfig()->getOption('can_use_smarty') && $category['description']) {
-            $category['description'] = wa()->getView()->fetch('string:'.$category['description']);
+            if ($this->wa->getConfig()->getOption('can_use_smarty') && $category['description']) {
+                $category['description'] = wa()->getView()->fetch('string:'.$category['description']);
+            }
         }
         return $category;
     }
@@ -602,7 +603,7 @@ class shopViewHelper extends waAppViewHelper
                 $l = count($stack);
 
                 // Check if we're dealing with different levels
-                while($l > 0 && $stack[$l - 1]['depth'] >= $c['depth']) {
+                while ($l > 0 && $stack[$l - 1]['depth'] >= $c['depth']) {
                     array_pop($stack);
                     $l--;
                 }
@@ -612,12 +613,12 @@ class shopViewHelper extends waAppViewHelper
                     // Assigning the root node
                     $i = count($result);
                     $result[$i] = $c;
-                    $stack[] = & $result[$i];
+                    $stack[] = &$result[$i];
                 } else {
                     // Add node to parent
                     $i = count($stack[$l - 1]['childs']);
                     $stack[$l - 1]['childs'][$i] = $c;
-                    $stack[] = & $stack[$l - 1]['childs'][$i];
+                    $stack[] = &$stack[$l - 1]['childs'][$i];
                 }
             }
             return $result;
@@ -739,13 +740,13 @@ class shopViewHelper extends waAppViewHelper
     /**
      *
      */
-    public function promos($type_or_ids='link')
+    public function promos($type_or_ids = 'link')
     {
         $promo_model = new shopPromoModel();
         if (is_array($type_or_ids)) {
             $prs = $promo_model->getById($type_or_ids);
             $promos = array();
-            foreach($type_or_ids as $id) {
+            foreach ($type_or_ids as $id) {
                 if (!empty($prs[$id])) {
                     $promos[$id] = $prs[$id];
                 }
@@ -758,7 +759,7 @@ class shopViewHelper extends waAppViewHelper
             $promos = $promo_model->getByStorefront($storefront, $type_or_ids);
         }
 
-        foreach($promos as &$p) {
+        foreach ($promos as &$p) {
             $p['image'] = $this->cdn.shopHelper::getPromoImageUrl($p['id'], $p['ext']);
         }
         unset($p);

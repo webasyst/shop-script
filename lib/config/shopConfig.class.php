@@ -22,6 +22,8 @@ class shopConfig extends waAppConfig
             }
         } elseif ($module == 'order' || $module == 'orders') {
             return wa()->getUser()->getRights('shop', 'orders');
+        } elseif (substr($module, 0, 7) == 'reports') {
+            return wa()->getUser()->getRights('shop', 'reports');
         } elseif ($module == 'settings') {
             return wa()->getUser()->getRights('shop', 'settings');
         } elseif ($module == 'services') {

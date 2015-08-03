@@ -141,7 +141,7 @@ class shopFollowupCli extends waCliController
                 if (waSystemConfig::isDebug()) {
                     waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}: contact has no phone");
                 }
-                continue;
+                return false;
             }
         } else {
             $phone = $to;
@@ -181,7 +181,7 @@ class shopFollowupCli extends waCliController
                 if (waSystemConfig::isDebug()) {
                     waLog::log("Unable to send follow-up #{$f['id']} for order #{$o['id']}: contact has no email");
                 }
-                continue;
+                return false;
             }
             $to = array($email => $contact->getName());
         }
