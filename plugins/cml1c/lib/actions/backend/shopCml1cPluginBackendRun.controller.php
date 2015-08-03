@@ -234,8 +234,10 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         $w->setIndent(true);
         $w->setIndentString("\t");
         $w->startDocument('1.0', $this->data['encoding']);
-        $url = $this->plugin()->getPluginStaticUrl(true);
-        $w->writePi('xml-stylesheet', 'type="text/xsl" href="'.$url.'xml/sale.xsl"');
+        if (wa()->getEnv() == 'backend') {
+            $url = $this->plugin()->getPluginStaticUrl(true);
+            $w->writePi('xml-stylesheet', 'type="text/xsl" href="'.$url.'xml/sale.xsl"');
+        }
         $w->startElement('КоммерческаяИнформация');
         $w->writeAttribute('ВерсияСхемы', $this->data['version']);
         $w->writeAttribute('ДатаФормирования', date("Y-m-d\TH:i:s"));
@@ -667,11 +669,13 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             if (file_exists($path) && false) {
                 $this->plugin()->validate(file_get_contents($path), $path, $this->data['version']);
             }
-            if (waRequest::param('module') == 'frontend') {
-                waFiles::readFile($path, null, false);
-            }
         }
         return $result;
+    }
+
+    public function sendFile()
+    {
+        waFiles::readFile($this->plugin()->path($this->processId.'.xml'), null, false);
     }
 
     public function exchangeReport()
@@ -792,11 +796,8 @@ HTML;
                 $this->getResponse()->addHeader('Encoding', 'Windows-1251');
 
                 if ($response['ready']) {
-
-                    if ($this->data['direction'] == 'import') {
-                        echo "success\n";
-                        echo strip_tags($this->report());
-                    }
+                    echo "success\n";
+                    echo strip_tags($this->report());
                 } else {
                     echo "progress\n";
                     echo sprintf('%0.3f%% %s', $response['progress'], $response['stage_name']);
@@ -2131,15 +2132,16 @@ SQL;
         static $model;
         //Новые товары относятся к типу по умолчанию
         $type_id = $product->getId() ? null : $this->data['default_type_id'];
+        $update_type_id = ifset($this->data['update_product_fields']['type_id']);
         if (
             !empty($name)
             &&
-            ($this->data['update_product_fields']['type_id'] != 'skip')//не пропускать импорт типов товаров
+            ($update_type_id != 'skip')//не пропускать импорт типов товаров
             &&
             (
                 !$product->getId()//новые товары
                 ||
-                ($this->data['update_product_fields']['type_id'] == 'sync')//обновлять для всех товаров
+                ($update_type_id == 'sync')//обновлять для всех товаров
             )
         ) {
             $name = mb_strtolower($name, 'utf-8');
@@ -2150,7 +2152,7 @@ SQL;
 
                 if ($type_row = $model->getByName($name)) {
                     $types[$name] = intval($type_row['id']);
-                } elseif (in_array($this->data['update_product_fields']['type_id'], array('update', 'sync'))) {
+                } elseif (in_array($update_type_id, array('update', 'sync'), true)) {
                     $types[$name] = intval(
                         $model->insert(
                             array(
