@@ -45,4 +45,5 @@
 <aside id="compare-leash">
     {$in_comparison = $wa->shop->inComparison()}
     <a {if !$in_comparison}style="display:none;"{/if} href="{$wa->getUrl('/frontend/compare', ['id' => implode(',', $in_comparison)])}">[`Compare selected products`] (<strong>{count($in_comparison)}</strong>)</a>
+    {if $in_comparison}<style>.appfooter { padding-bottom: 60px; } </style>{/if}
 </aside>

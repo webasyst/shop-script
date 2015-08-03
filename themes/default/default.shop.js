@@ -105,7 +105,7 @@ $(document).ready(function () {
                 
                 var cart_total = $(".cart-total");
                 cart_total.closest('#cart').removeClass('empty');
-                if( $(window).scrollTop() >= 110 )
+                if( $(window).scrollTop() >= 55 )
                     $('#cart').addClass('fixed');
 
                 if ( MatchMedia("only screen and (max-width: 760px)") ) {
