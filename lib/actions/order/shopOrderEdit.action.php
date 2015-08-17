@@ -71,6 +71,7 @@ class shopOrderEditAction extends waViewAction
 
         $this->view->assign(array(
             'form'     => $form,
+            'order_storefront' => $this->getOrderStorefront($order),
             'order'    => $order,
             'stocks'   => $stocks,
             'currency' => $currency,
@@ -233,6 +234,12 @@ class shopOrderEditAction extends waViewAction
             }
         }
         return $storefronts;
+    }
+
+    public function getOrderStorefront($order)
+    {
+        $storefront = rtrim((string) ifset($order['params']['storefront'], ''), '/*') . '/';
+        return $storefront;
     }
 
 }

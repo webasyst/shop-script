@@ -185,7 +185,10 @@ class shopHelper
                     $weight_unit = $plugin->allowedWeightUnit();
                     foreach ($items as & $item) {
                         if (!empty($item['weight'])) {
-                            $item['weight'] = $dimensions->convert($item['weight'], 'weight', $weight_unit);
+                            if (empty($item['original_weight'])) {
+                                $item['original_weight'] = $item['weight'];
+                            }
+                            $item['weight'] = $dimensions->convert($item['original_weight'], 'weight', $weight_unit);
                         }
                     }
                     unset($item);
