@@ -4,18 +4,11 @@
     .followus,
     .appnav,
     .apps,
-    .cart,
-    .poweredby { display: none; }
-    .banner { margin-top: -10px; padding-bottom: 60px; }
-    .page-content { margin-left: 0 !important; padding: 0; border-left: 0 !important; }
+    .globalfooter { display: none; }
     .float-right { float: right; }
     .container { max-width: 800px; }
     #mobile-nav-toggle { display: none !important; }
-    .footer-block { display: none; }
-    .banner { min-height: 40px; }
-    .banner h3 { margin-bottom: 0; }
-    .banner h3 a { color: #fff; }
-    .banner h3 a:hover { color: yellow !important; }
+    main.maincontent { padding-top: 50px; }
 </style>
 
 <div class="checkout">
@@ -26,10 +19,7 @@
         <div class="checkout-step step-{$step_id}">
             <form class="checkout-form {if $s@last}last{/if}" method="post" action="">
                 <h2 class="{if isset($_upcoming_flag)}upcoming{/if}{if $step_id == $checkout_current_step}{$_upcoming_flag = 1}{/if}"{if $s@first} style="border-top: none;"{/if}>
-                    {if $s@first}
-                        {$cart_total = $wa->shop->cart->total()}
-                        <a href="{$wa->getUrl('/frontend/cart')}" class="hint float-right">[`Cart`]: <strong>{shop_currency_html($cart_total, true)}</strong></a>
-                    {else}
+                    {if !$s@first}
                         <a href="#" class="hint float-right back"{if $checkout_current_step != $step_id} style="display:none"{/if}>[`Back`]</a>
                     {/if}
                     <a href="#"><span class="gray">{$s@iteration}.</span> {$s.name}</a>

@@ -1,5 +1,5 @@
-<aside class="currency-toggle">
-    {if count($currencies) > 1}
+{if count($currencies) > 1}
+    <aside class="currency-toggle">
         <select id="currency">
             {$currency = $wa->shop->currency()}
             {foreach $currencies as $c_code => $c}
@@ -17,11 +17,13 @@
                 location.href = url + 'currency=' + $(this).val();
             });
         </script>
-    {/if}
-</aside>  
+    </aside>
+{/if}
 
 <!-- plugin hook: 'frontend_footer' -->
 {* @event frontend_footer.%plugin_id% *}
 {foreach $frontend_footer as $_}{$_}{/foreach}
 
-[`<a href="http://www.shop-script.com/">Ecommerce software</a> by Webasyst`]
+<div{if count($currencies) == 1} class="poweredby"{/if} role="complementary">
+    [`<a href="http://www.shop-script.com/">Ecommerce software</a> by Webasyst`]
+</div>

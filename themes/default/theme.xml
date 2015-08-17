@@ -151,15 +151,15 @@
     </files>
     <settings>
     
-<setting var="divider_storefront" control_type="group_divider">
+        <setting var="divider_storefront" control_type="group_divider">
             <value></value>
             <name locale="en_US">Storefront</name>
             <name locale="ru_RU">Витрина</name>
         </setting>
         <setting var="homepage_bxslider_mode" control_type="radio">
             <value>promos</value>
-            <name locale="ru_RU">Слайдер на витрине интернет-магазина</name>
-            <name locale="en_US">Storefront homepage slider</name>
+            <name locale="ru_RU">Слайдер</name>
+            <name locale="en_US">Slider</name>
             <options>
                 <option value="promos">
                     <name locale="ru_RU">Промо-карточки</name>
@@ -169,9 +169,13 @@
                 </option>
                 <option value="products">
                     <name locale="ru_RU">Товары из списка «Промо»</name>
-                    <name locale="en_US">Products from “Featured on homepage” product set</name>
+                    <name locale="en_US">Products from Promo product set</name>
                     <description locale="ru_RU">В слайдере будут показаны товары из списка «Промо», идентификатор которого задан настройкой ниже. Новые списки товаров создаются в разделе Товары > Списки.</description>
-                    <description locale="en_US">Slider will present products from a set which ID is configured in the setting below. New product sets can be created in Products > Sets.</description>
+                    <description locale="en_US">Slider will present products from a set which ID is configured in the setting below. New product sets can be created in Products > Sets (“Featured on homepage”).</description>
+                </option>
+                <option value="hidden">
+                    <name locale="ru_RU">Не показывать слайдер</name>
+                    <name locale="en_US">Don’t show the slider</name>
                 </option>
             </options>
         </setting>
@@ -180,14 +184,33 @@
             <name locale="en_US">Promo set ID</name>
             <name locale="ru_RU">Список «Промо»</name>
             <description locale="ru_RU">Идентификатор списка товаров «Промо». Товары из этого списка будут показаны в слайдере, если так указано в настройке слайдера выше.</description>
-            <description locale="en_US">Promo set products will be shown in the storefront slider if it is setup that way in the setting above.</description>
+            <description locale="en_US">Products from this Promo set will be shown in the storefront slider if it is setup that way in the setting above.</description>
         </setting>
         <setting var="homepage_productset_bestsellers" control_type="text">
             <value>bestsellers</value>
             <name locale="en_US">Bestsellers set ID</name>
             <name locale="ru_RU">Список «Бестселлеры»</name>
             <description locale="ru_RU">Идентификатор списка товаров «Бестселлеры». Товары из этого списка будут показаны на витрине магазина под слайдером в блоке лучших приложений на текущий день.</description>
-            <description locale="en_US">Bestseller products will be shown on the storefront’s hot deals for today section.</description>
+            <description locale="en_US">Bestseller products will be shown on the storefront homepage under the slider.</description>
+        </setting>
+        <setting var="homepage_promocards_below_the_slider" control_type="checkbox">
+            <value>1</value>
+            <name locale="en_US">Show smaller promo cards below the slider</name>
+            <name locale="ru_RU">Показывать маленькие промо-карточки под слайдером</name>
+        </setting>
+        <setting var="homepage_bestsellers_title" control_type="text">
+            <value locale="en_US">Hot deals for {$date}</value>
+            <value locale="ru_RU">Лучшие предложения на {$date}</value>
+            <name locale="en_US">Title above the bestseller list</name>
+            <name locale="ru_RU">Заголовок над списком бестселлеров</name>
+            <description locale="en_US"><![CDATA[If provided, <b>{$date}</b> will be replaced with the current date]]></description>
+            <description locale="ru_RU"><![CDATA[Переменная <b>{$date}</b> в заголовке (если указана) будет заменена на текущую дату]]></description>
+        </setting>
+        
+        <setting var="divider_storefront_sidebar" control_type="group_divider">
+            <value></value>
+            <name locale="en_US">Storefront sidebar</name>
+            <name locale="ru_RU">Боковая панель на витрине</name>
         </setting>
         <setting var="homepage_bullet_title_1" control_type="text">
             <value locale="en_US">Faster delivery</value>
@@ -225,23 +248,11 @@
             <name locale="en_US">Info block #3 content</name>
             <name locale="ru_RU">Текст в инфоблоке №3</name>
         </setting>
-        <setting var="homepage_about_title" control_type="text">
-            <value locale="en_US">About us</value>
-            <value locale="ru_RU">О магазине</value>
-            <name locale="en_US">About block title</name>
-            <name locale="ru_RU">Заголовок информационного блока о магазине</name>
-        </setting>
-        <setting var="homepage_about_body" control_type="text">
-            <value locale="en_US">Edit this text in your Webasyst backend: Shop app > Storefronts > Appearance.</value>
-            <value locale="ru_RU">Добавьте информацию о вашей компании в бекенде вашего Webasyst: приложение «Магазин» > Витрины > Оформление.</value>
-            <name locale="en_US">About block body</name>
-            <name locale="ru_RU">Текст блока о магазине</name>
-        </setting>
     
         <setting var="divider_shop" control_type="group_divider">
             <value></value>
-            <name locale="en_US">Shop</name>
-            <name locale="ru_RU">Магазин</name>
+            <name locale="en_US">Store commong settings</name>
+            <name locale="ru_RU">Общие настройки магазина</name>
         </setting>
         <setting var="category_nav_mode" control_type="radio">
             <value>dropdown</value>
@@ -263,7 +274,7 @@
             </options>
         </setting>
         <setting var="selectable_features_control" control_type="radio">
-            <value>dropdown</value>
+            <value>inline</value>
             <name locale="ru_RU">Выбор характеристик товара</name>
             <name locale="en_US">Selectable product features</name>
             <options>
