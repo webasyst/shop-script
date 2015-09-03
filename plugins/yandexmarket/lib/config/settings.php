@@ -8,4 +8,11 @@ return array(
         'control_type'     => waHtmlControl::SELECT,
         'options_callback' => array('shopYandexmarketPlugin', 'settingsPrimaryCurrencies'),
     ),
+    'convert_currency' => array(
+        'value'        => false,
+        'title'        => 'Конвертировать цены',
+        'description'  => 'Конвертировать все цены в основную валюту.<br/>
+ Полезно при использовании правил округления для основной валюты.',
+        'control_type' => waHtmlControl::CHECKBOX,
+    ),
 );

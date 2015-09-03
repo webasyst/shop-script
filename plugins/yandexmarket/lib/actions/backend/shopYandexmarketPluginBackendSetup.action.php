@@ -17,6 +17,7 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
             'hash'     => '',
             'domain'   => '',
             'lifetime' => 0,
+            'force_update' => 0,
         );
         $current_domain = &$profile['config']['domain'];
 

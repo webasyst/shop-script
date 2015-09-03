@@ -86,6 +86,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
                     'company_name' => waRequest::post('company_name'),
                     'shop'         => waRequest::post('shop'),
                     'lifetime'     => waRequest::post('lifetime', 0, waRequest::TYPE_INT),
+                    'force_update' => waRequest::post('force_update', 0, waRequest::TYPE_INT),
                     'utm_source'   => waRequest::post('utm_source'),
                     'utm_medium'   => waRequest::post('utm_medium'),
                     'utm_campaign' => waRequest::post('utm_campaign'),
@@ -168,6 +169,8 @@ class shopYandexmarketPluginRunController extends waLongActionController
             foreach ($profile_config['types'] as $type => $type_map) {
                 $this->data['types'] += array_fill_keys(array_filter(array_map('intval', $type_map)), $type);
             }
+
+            $this->data['force_update'] = $profile_config['force_update'];
 
             $this->initRouting();
 
@@ -292,7 +295,12 @@ XML;
 
             $this->data['primary_currency'] = $primary_currency;
             $rate = $available_currencies[$primary_currency]['rate'];
-            $available_currencies = $model->getCurrencies(shopYandexmarketPlugin::getConfigParam('currency'));
+
+            if ($this->plugin()->getSettings('convert_currency')) {
+                $available_currencies = $model->getCurrencies($primary_currency);
+            } else {
+                $available_currencies = $model->getCurrencies(shopYandexmarketPlugin::getConfigParam('currency'));
+            }
 
             foreach ($available_currencies as $info) {
                 if ($info['rate'] > 0) {
@@ -446,7 +454,7 @@ XML;
                 }
                 $file = $this->getTempPath();
                 $target = $this->data['path']['offers'];
-                if ($this->data['processed_count']['product']) {
+                if ($this->data['processed_count']['product'] || $this->data['force_update']) {
                     if (file_exists($file)) {
                         waFiles::delete($target);
                         waFiles::move($file, $target);
@@ -579,13 +587,22 @@ XML;
         $response['processed_count'] = $this->data['processed_count'];
         if ($response['ready']) {
             if (empty($this->data['processed_count']['product'])) {
-                $response['report'] = '<div class="errormsg"><i class="icon16 no"></i>Не выгружено ни одного товарного предложения';
-                if (file_exists($this->data['path']['offers'])) {
-                    $response['report'] .= ', файл не обновлен.';
+                if( $this->data['force_update']){
+                    $response['report'] = '<i class="icon16 exclamation"></i>Не выгружено ни одного товарного предложения';
+                    if (file_exists($this->data['path']['offers'])) {
+                        $response['report'] .= ', но файл обновлен.';
+                    } else {
+                        $response['report'] .= ', но файл создан.';
+                    }
                 } else {
-                    $response['report'] .= ', файл не создан.';
+                    $response['report'] = '<div class="errormsg"><i class="icon16 no"></i>Не выгружено ни одного товарного предложения';
+                    if (file_exists($this->data['path']['offers'])) {
+                        $response['report'] .= ', файл не обновлен.';
+                    } else {
+                        $response['report'] .= ', файл не создан.';
+                    }
+                    $response['report'] .= '</div>';
                 }
-                $response['report'] .= '</div>';
             } else {
                 $response['report'] = $this->report();
                 $response['report'] .= $this->validateReport();
@@ -936,6 +953,7 @@ SQL;
                         if ($check_sku_price && ($check_stock || ($sku['count'] === null) || ($sku['count'] > 0))) {
                             if (count($skus) == 1) {
                                 $product['price'] = $sku['price'];
+                                $product['compare_price'] = $sku['compare_price'];
                                 $product['file_name'] = $sku['file_name'];
                                 $product['sku'] = $sku['sku'];
                                 $increment = false;
@@ -1270,12 +1288,14 @@ SQL;
                     break;
                 }
             case 'price':
+                $_currency_converted = false;
                 if (!$currency_model) {
                     $currency_model = new shopCurrencyModel();
                 }
                 if ($sku_data) {
                     if (!in_array($data['currency'], $this->data['currency'])) {
 
+                        $_currency_converted = true;
                         $value = $currency_model->convert($value, $data['currency'], $this->data['primary_currency']);
                         $data['currency'] = $this->data['primary_currency'];
                     }
@@ -1283,17 +1303,19 @@ SQL;
                     if (!in_array($data['currency'], $this->data['currency'])) {
                         #value in default currency
                         if ($this->data['default_currency'] != $this->data['primary_currency']) {
+                            $_currency_converted = true;
                             $value = $currency_model->convert($value, $this->data['default_currency'], $this->data['primary_currency']);
                         }
                         $data['currency'] = $this->data['primary_currency'];
                     } elseif ($this->data['default_currency'] != $data['currency']) {
-
+                        $_currency_converted = true;
                         $value = $currency_model->convert($value, $this->data['default_currency'], $data['currency']);
                     }
                 }
-                if ($value && class_exists('shopRounding')) {
+                if ($value && class_exists('shopRounding') &&!empty($_currency_converted)) {
                     $value = shopRounding::roundCurrency($value, $data['currency']);
                 }
+                unset($_currency_converted);
                 break;
 
             case 'currencyId':
