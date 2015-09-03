@@ -358,6 +358,8 @@ class shopViewHelper extends waAppViewHelper
             $p = $this->wa->getView()->getVars('product');
             if ($p && ($p['id'] == $product['id'])) {
                 $product['image_filename'] = $p['images'][$product['image_id']]['filename'];
+            } else {
+                $product['image_filename'] = '';
             }
         }
 
@@ -402,6 +404,8 @@ class shopViewHelper extends waAppViewHelper
             $p = $this->wa->getView()->getVars('product');
             if ($p && ($p['id'] == $product['id'])) {
                 $product['image_filename'] = $p['images'][$product['image_id']]['filename'];
+            } else {
+                $product['image_filename'] = '';
             }
         }
         return $this->imgUrl(array(
