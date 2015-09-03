@@ -229,7 +229,10 @@ class shopOrderEditAction extends waViewAction
         $storefronts = array();
         foreach (wa()->getRouting()->getByApp('shop') as $domain => $domain_routes) {
             foreach ($domain_routes as $route) {
-                $url = rtrim($domain.'/'.$route['url'], '/*').'/';
+                $url = rtrim($domain.'/'.$route['url'], '/*');
+                if (strpos($url, '/') !== false) {
+                    $url .= '/';
+                }
                 $storefronts[] = $url;
             }
         }

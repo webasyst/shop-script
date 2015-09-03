@@ -13,7 +13,7 @@ class shopFrontendCheckoutAction extends waViewAction
         $steps = $this->getConfig()->getCheckoutSettings();
 
         $current_step = waRequest::param('step', waRequest::request('step'));
-        if (!$current_step) {
+        if (!$current_step && waRequest::method() != 'post') {
             $current_step = key($steps);
         }
 
@@ -68,6 +68,9 @@ class shopFrontendCheckoutAction extends waViewAction
                     }
                 } else {
                     $this->view->assign('error', '');
+                }
+                if (empty($steps[$current_step])) {
+                    throw new waException(_ws('Page not found'), 404);
                 }
                 $title .= ' - '.$steps[$current_step]['name'];
                 $steps[$current_step]['content'] = $this->getStep($current_step)->display();

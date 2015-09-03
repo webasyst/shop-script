@@ -560,7 +560,7 @@ class shopHelper
      * @param bool $ensure_address Whether address fields must be included regardless of store's contact fields settings.
      * @return waContactForm
      */
-    public static function getCustomerForm($id = null, $ensure_address = false)
+    public static function getCustomerForm($id = null, $ensure_address = false, $checkout = false)
     {
         $contact = null;
         if ($id) {
@@ -618,13 +618,22 @@ class shopHelper
             }
         }
 
+        if ($checkout && !wa()->getUser()->isAuth()) {
+            $form = shopContactForm::loadConfig(
+                $fields_config,
+                array(
+                    'namespace' => 'customer'
+                )
+            );
 
-        $form = waContactForm::loadConfig(
-            $fields_config,
-            array(
-                'namespace' => 'customer'
-            )
-        );
+        } else {
+            $form = waContactForm::loadConfig(
+                $fields_config,
+                array(
+                    'namespace' => 'customer'
+                )
+            );
+        }
         $contact && $form->setValue($contact);
         return $form;
     }

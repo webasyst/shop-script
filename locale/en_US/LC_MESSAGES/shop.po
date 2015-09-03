@@ -10606,3 +10606,76 @@ msgstr ""
 #: /wa-apps/shop/themes/default/header.html:43
 msgid "You did not create any product categories yet."
 msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:159
+msgid "Anti-spam"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:164
+msgid "Checkout anti-spam filter"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:176
+msgid "Checkout anti-spam filtering is seamless for real customers and will automatically reject spammy orders placed by robots."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:180
+msgid "Alerts on rejected checkout attempts"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:185
+msgid "Enable alerts on spammy checkout attempts to make sure none of real orders were rejected by the anti-spam filter."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:189
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:143
+msgid "Captcha"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:191
+msgid "Enable captcha for checkout (not required)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:194
+msgid "Optional. Enable checkout captcha when seamless anti-spam protection is not enough."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:206
+msgid "If your store is under spammers attack and you receive lots of fraudulent orders placed by robots, protect the checkout routine with seamless anti-spam filtering. This will automatically filter all spam and save genuine orders only."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:146
+msgid "Webasyst Captcha"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:151
+msgid "Google reCAPTCHA"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:152
+msgid "Selected captcha type will be used throughout your storefront wherever applicable."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:155
+msgid "Site Key"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:161
+msgid "Secret"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:164
+msgid "Get Google reCAPTCHA site key and secret for your site on <a href=\"https://www.google.com/recaptcha\" target=\"_blank\">https://www.google.com/recaptcha</a>"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:114
+msgid "Spammy order alert"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopContactForm.class.php:64
+msgid "Something went wrong while processing your data. Please contact store team directly regarding your order. A notification about this error has been sent to the store admin."
+msgstr ""
+
+#: /wa-apps/shop/templates/mail/AntispamAlert.html:17
+msgid "The following order attempt was REJECTED because user acted like a bot. Order record has not been created yet. If this is a valid order, you will need to confirm it with the customer and manually place the order in your store backend."
+msgstr ""

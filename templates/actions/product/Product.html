@@ -29,7 +29,7 @@
                 <br>
             {/foreach}
             <span class="s-product-frontend-url-empty gray" {if !empty($frontend_urls)}style="display:none;"{/if}>
-                {sprintf_wp('This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts', $product.type.name)}
+                {sprintf_wp('This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts', {$product.type.name|escape})}
             </span>
         </li>
     </ul>
@@ -396,7 +396,7 @@
                         {/foreach}
 
                         <p class="s-product-frontend-url-empty hint" {if !empty($frontend_urls)}style="display:none;"{/if}>
-                            {_w(sprintf('This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts', $product.type.name))}
+                            {_w(sprintf('This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts', {$product.type.name|escape}))}
                         </p>
 
                         <span class="s-product-status-text hint" {if $product.status}style="display:none;"{/if}>

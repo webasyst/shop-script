@@ -41,6 +41,33 @@ class shopSettingsGeneralAction extends waViewAction
             }
             waUtils::varExportToFile($save, $path);
 
+            if ($captcha = waRequest::post('captcha')) {
+                $config_path = $this->getConfig()->getConfigPath('config.php');
+                if (file_exists($config_path)) {
+                    $config = include($config_path);
+                }
+                if ($captcha == 'waCaptcha') {
+                    if (!empty($config['factories']['captcha'])) {
+                        unset($config['factories']['captcha']);
+                        waUtils::varExportToFile($config, $config_path);
+                    }
+                } else {
+                    $captcha_options = waRequest::post('captcha_options');
+                    $tmp = array_values($captcha_options);
+                    $tmp = array_filter($tmp, 'trim');
+                    if ($tmp) {
+                        $captcha_factory = array(
+                            $captcha,
+                            $captcha_options
+                        );
+                        if (ifset($config['factories']['captcha']) != $captcha_factory) {
+                            $config['factories']['captcha'] = $captcha_factory;
+                            waUtils::varExportToFile($config, $config_path);
+                        }
+                    }
+                }
+                $factories = ifset($config['factories'], array());
+            }
         }
         
         $cm = new waCountryModel();
@@ -63,6 +90,25 @@ class shopSettingsGeneralAction extends waViewAction
         $this->view->assign('saved', waRequest::post());
 
         $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
+
+        if (!isset($factories)) {
+            $factories = $this->getConfig()->getOption('factories');
+        }
+        if ($factories) {
+            if (!empty($factories['captcha'])) {
+                if (is_array($factories['captcha'])) {
+                    $captcha = $factories['captcha'][0];
+                    $captcha_options = $factories['captcha'][1];
+                } else {
+                    $captcha = $factories['captcha'];
+                    $captcha_options = array();
+                }
+                $this->view->assign(array(
+                    'captcha' => $captcha,
+                    'captcha_options' => $captcha_options
+                ));
+            }
+        }
     }
 
     public function getData()

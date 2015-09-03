@@ -2294,8 +2294,8 @@ editClick:(function ($) {
         },
         profileLazyInit: function () {
             var $salesChart = $('#product-sales-plot');
-            
-            if (sales_data && sales_data.length) {
+
+            if (window.sales_data && sales_data.length) {
                 if (!$salesChart.data('graph_rendered')) {
 
                     var renderChart = function() {
