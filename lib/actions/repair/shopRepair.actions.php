@@ -208,8 +208,11 @@ SET `p`.`sku_id`=NULL
 WHERE `s`.`id` IS NULL
 SQL;
 
-        $model->query($sql);
-        if ($count = $model->affected()) {
+        $result = $model->query($sql);
+        /**
+         * @var waDbResultUpdate $result
+         */
+        if ($count = $result->affectedRows()) {
             $repaired = true;
             print sprintf("%d product(s) with invalid default SKU ID restored\n", $count);
         }
@@ -221,8 +224,11 @@ ON (`s`.`product_id`=`p`.`id`)
 SET `p`.`sku_id`=`s`.`id`
 WHERE `p`.`sku_id` IS NULL
 SQL;
-        $model->query($sql);
-        if ($count = $model->affected()) {
+        $result = $model->query($sql);
+        /**
+         * @var waDbResultUpdate $result
+         */
+        if ($count = $result->affectedRows()) {
             $repaired = true;
             print sprintf("%d product(s) with missed default SKU ID restored\n", $count);
         }

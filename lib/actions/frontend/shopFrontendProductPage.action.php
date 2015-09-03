@@ -4,8 +4,6 @@ class shopFrontendProductPageAction extends shopFrontendProductAction
 {
     public function execute()
     {
-        $this->setLayout(new shopFrontendLayout());
-
         $product_model = new shopProductModel();
         $product = $product_model->getByField('url', waRequest::param('product_url'));
         if (!$product) {

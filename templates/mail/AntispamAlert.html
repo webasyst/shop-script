@@ -1,0 +1,55 @@
+<style>
+    table.table { margin-top: 25px; margin-left: -10px; width: 100%; border-spacing:0; border-collapse:collapse; }
+    table.table td { padding: 15px 7px 20px; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; }
+    table.table td.min-width { width: 1%; }
+    table.table td p { margin: 0; }
+    table.table td input.numerical { width: 50px; margin-right: 5px; text-align: right; }
+    table.table tr.no-border td { border: none; }
+    table.table tr.thin td { padding-top: 13px; padding-bottom: 0; }
+    .align-right { text-align: right; }
+    .nowrap { white-space: nowrap; }
+    .gray { color: #aaa; }
+    pre { word-wrap: break-word; }
+</style>
+
+<h1>[`Spammy order alert`]</h1>
+
+<p style="color: red; font-weight: bold; font-style: italic;">[`The following order attempt was REJECTED because user acted like a bot. Order record has not been created yet. If this is a valid order, you will need to confirm it with the customer and manually place the order in your store backend.`]</p>
+
+<table class="table">
+    <tr>
+        <th></th>
+        <th class="align-right">[`Qty`]</th>
+        <th class="align-right">[`Total`]</th>
+    </tr>
+    {$subtotal = 0}
+    {foreach $wa->shop->cart->items() as $item}
+    <tr>
+        <td>
+            {$item.name|escape}{if !empty($item.sku_code)} <span class="gray">{$item.sku_code|escape}</span>{/if}
+        </td>
+        <td class="align-right nowrap">&times; {$item.quantity}</td>
+        <td class="align-right nowrap">{shop_currency($item.price * $item.quantity, $item.currency)}</td>
+    </tr>
+    {/foreach}
+    <tr class="no-border thin large">
+        <td colspan="2" class="align-right"><b>[`Total`]</b></td>
+        <td class="align-right nowrap bold">{shop_currency($wa->shop->cart->total(), true)}</td>
+    </tr>
+</table>
+
+<h3>[`Contact info`]</h3>
+
+{foreach $customer_fields as $field_id => $field}
+    {$field->getName()|escape}: {$customer->get($field_id, 'default')|escape}<br>
+{/foreach}
+<br>
+IP: <b>{waRequest::getIp()}</b><br>
+User-Agent: {waRequest::getUserAgent()}><br>
+
+<p>
+--<br>
+{$wa->shop->settings("name")}<br>
+<a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a><br>
+{$wa->shop->settings("phone")}<br>
+</p>

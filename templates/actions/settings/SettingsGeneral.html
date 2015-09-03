@@ -138,8 +138,37 @@
                     </div>
                 </div>
             </div>
-            {if !empty($map_adapters) && count($map_adapters) > 1}
             <div class="field-group">
+                <div class="field s-captcha">
+                    <div class="name">[`Captcha`]</div>
+                    <div class="value no-shift">
+                        <label>
+                            <input type="radio" name="captcha" {if empty($captcha)}checked{/if} value="waCaptcha"> [`Webasyst Captcha`]
+                        </label>
+                    </div>
+                    <div class="value no-shift">
+                        <label>
+                            <input type="radio" name="captcha" {if ifset($captcha) == 'waReCaptcha'}checked{/if} value="waReCaptcha"> [`Google reCAPTCHA`]
+                            <p class="hint">[`Selected captcha type will be used throughout your storefront wherever applicable.`]</p>
+                            <div{if ifset($captcha) != 'waReCaptcha'} style="display: none"{/if}>
+                                <div class="field">
+                                    <div class="name">[`Site Key`]</div>
+                                    <div class="value">
+                                        <input type="text" name="captcha_options[sitekey]" value="{ifset($captcha_options.sitekey)}">
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="name">[`Secret`]</div>
+                                    <div class="value">
+                                        <input type="text" name="captcha_options[secret]" value="{ifset($captcha_options.secret)}">
+                                        <p class="hint">[`Get Google reCAPTCHA site key and secret for your site on <a href="https://www.google.com/recaptcha" target="_blank">https://www.google.com/recaptcha</a>`]</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                {if !empty($map_adapters) && count($map_adapters) > 1}
                 <div class="field">
                     <div class="name">[`Maps`]</div>
                     {foreach $map_adapters as $a}
@@ -150,8 +179,8 @@
                     </div>
                     {/foreach}
                 </div>
+                {/if}
             </div>
-            {/if}
             <div class="field-group">
                 <div class="field">
                     <div class="name">[`SMS`]</div>
@@ -228,6 +257,14 @@
 </div>
 <script type="text/javascript">
 
+    $('.s-captcha input:radio').change(function () {
+        if ($(this).is(":checked")) {
+            $('.s-captcha label > div').hide().find('input').attr('disabled');
+            $(this).parent().children('div').show().find('input').removeAttr('disabled');
+            $(this).parent().find('div input:first').focus();
+        }
+    });
+    $('.s-captcha input:radio:checked').change();
 
     $('#setting-require-auth input').change(function () {
        if ($(this).is(':checked')) {

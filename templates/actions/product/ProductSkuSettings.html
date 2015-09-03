@@ -138,7 +138,7 @@
                     <select name="skus[{$sku_id}][features][{$code}]">
                         <option value=""></option>
                         {foreach $feature.values as $value}
-                            <option value="{$value|escape}" {if !empty($sku_features[$code]) && ($value == (string)$sku_features[$code])}selected="selected"{/if}>
+                            <option value="{(string)$value|escape}" {if isset($sku_features[$code]) && ($value == (string)$sku_features[$code])}selected="selected"{/if}>
                                 {$value|escape}
                             </option>
                         {/foreach}

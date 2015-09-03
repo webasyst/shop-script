@@ -16,7 +16,10 @@
 <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js?v{$wa->version(true)}"></script>
 {/if}
 <div class="filters leadbox{if !empty($theme_settings.ajax_filters)} ajax{/if}">
-    <form method="get" action="{$wa->currentUrl(0,1)}" data-loading="{$wa_parent_theme_url}img/loading16.gif">
+    <div class="filters-toggle-wrapper">
+        <a class="filters-toggle-link" id="filters-toggle-link" href="javascript:void(0);" data-show-text="[`Show Filters`]" data-hide-text="[`Hide Filters`]">[`Show Filters`]</a>
+    </div>
+    <form class="filters-form-wrapper" method="get" action="{$wa->currentUrl(0,1)}" data-loading="{$wa_parent_theme_url}img/loading16.gif">
         {foreach $filters as $fid => $filter}
             <div class="filter-param">
                 {if $fid == 'price'}

@@ -2,7 +2,8 @@
 
 class shopSettingsImagesRegenerateController extends waLongActionController
 {
-    public function execute() {
+    public function execute()
+    {
         try {
             parent::execute();
         } catch (waException $ex) {
@@ -14,7 +15,8 @@ class shopSettingsImagesRegenerateController extends waLongActionController
         }
     }
 
-    protected function finish($filename) {
+    protected function finish($filename)
+    {
         $this->info();
         if ($this->getRequest()->post('cleanup')) {
             return true;
@@ -22,7 +24,8 @@ class shopSettingsImagesRegenerateController extends waLongActionController
         return false;
     }
 
-    protected function init() {
+    protected function init()
+    {
         $image_model = new shopProductImagesModel();
 
         $this->data['image_total_count'] = $image_model->countAvailableImages();
@@ -33,13 +36,14 @@ class shopSettingsImagesRegenerateController extends waLongActionController
         $this->data['timestamp'] = time();
     }
 
-    protected function isDone() {
+    protected function isDone()
+    {
         return $this->data['offset'] >= $this->data['image_total_count'];
     }
 
     protected function getFilename($original_filename)
     {
-        $filename = basename($original_filename, '.' . waFiles::extension($original_filename));
+        $filename = basename($original_filename, '.'.waFiles::extension($original_filename));
         if (!preg_match('//u', $filename)) {
             $tmp_name = @iconv('windows-1251', 'utf-8//ignore', $filename);
             if ($tmp_name) {
@@ -171,7 +175,7 @@ class shopSettingsImagesRegenerateController extends waLongActionController
                 $this->data['image_count'] += 1;    // image count - count of successful progessed images
 
             } catch (Exception $e) {
-               $this->error($e->getMessage());
+                $this->error($e->getMessage());
             }
             $this->data['offset'] += 1;
         }
@@ -187,13 +191,13 @@ class shopSettingsImagesRegenerateController extends waLongActionController
             $interval = time() - $this->data['timestamp'];
         }
         $response = array(
-            'time'       => sprintf('%d:%02d:%02d', floor($interval / 3600), floor($interval / 60) % 60, $interval % 60),
-            'processId'  => $this->processId,
-            'progress'   => 0.0,
-            'ready'      => $this->isDone(),
-            'offset' => $this->data['offset'],
+            'time'      => sprintf('%d:%02d:%02d', floor($interval / 3600), floor($interval / 60) % 60, $interval % 60),
+            'processId' => $this->processId,
+            'progress'  => 0.0,
+            'ready'     => $this->isDone(),
+            'offset'    => $this->data['offset'],
         );
-        $response['progress'] = ($this->data['offset'] / $this->data['image_total_count']) * 100;
+        $response['progress'] = empty($this->data['image_total_count']) ? 100 : ($this->data['offset'] / $this->data['image_total_count']) * 100;
         $response['progress'] = sprintf('%0.3f%%', $response['progress']);
 
         if ($this->getRequest()->post('cleanup')) {

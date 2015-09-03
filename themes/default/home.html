@@ -174,3 +174,53 @@
     {/if}
 
 </div>
+
+<div class="clear-both"></div>
+
+<!-- ON SALE product list -->
+{if !empty($theme_settings.homepage_productset_onsale)}
+
+    {$onsale = $wa->shop->productSet( $theme_settings.homepage_productset_onsale )}
+
+    {if !empty($onsale)}
+        <section class="onsale related">
+            {if $theme_settings.homepage_onsale_title}
+                <h4 class="section-header">{str_replace('{$date}', $smarty.now|wa_datetime:"humandate", $theme_settings.homepage_onsale_title)}</h4>
+            {/if}
+            {include file="list-thumbs-mini.html" products=$onsale ulclass="onsale-bxslider"}
+        </section>
+    {/if}
+    
+{/if}
+
+<!-- WELCOME note -->
+{if !empty($theme_settings.homepage_welcome_note)}
+    <figure class="olives">
+        <div class="olives-left">
+        <div class="olives-right">
+            <div class="olives-content">
+                {$theme_settings.homepage_welcome_note}
+            </div>
+        </div>
+        </div>
+    </figure>
+{/if}
+
+<!-- BLOG posts -->
+{if $theme_settings.homepage_blogposts && $wa->blog}
+
+    {$blog_posts = $wa->blog->posts(null,4)}
+    {if count($blog_posts)}
+
+        <h4 class="section-header">[`Latest blog updates`]</h4>
+        <ul class="thumbs text-content">
+        {foreach $blog_posts as $post}
+            <li>
+                <a href="{$post.link}" class="bold">{$post.title|escape}</a>
+                <p class="small">{strip_tags($post.text)|truncate:128}</p>
+                <span class="hint">{$post.datetime|wa_datetime:"humandate"}</span>
+            </li>
+        {/foreach}
+        </ul>
+    {/if}
+{/if}

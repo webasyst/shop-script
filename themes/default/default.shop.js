@@ -1,9 +1,11 @@
 $(document).ready(function () {
 
     //SLIDERS
-    $('.homepage-bxslider').bxSlider( { auto : $('.homepage-bxslider li').length > 1, pause : 5000, autoHover : true, pager: $('.homepage-bxslider li').length > 1 });
+    $('.homepage-bxslider').bxSlider( { auto : $('.homepage-bxslider li').length > 1, pause : 7000, autoHover : true, pager: $('.homepage-bxslider li').length > 1 });
     $('.homepage-bxslider').css('height','auto');
-    $('.related-bxslider').bxSlider( { minSlides: 1, maxSlides: 4, slideWidth: 150, slideMargin: 10, infiniteLoop: true, pager: false });
+    
+    $('.related-bxslider').bxSlider( { minSlides: 1, maxSlides: 4, slideWidth: 146, slideMargin: 10, infiniteLoop: true, pager: false });
+    $('.onsale-bxslider').bxSlider( { minSlides: 1, maxSlides: 6, slideWidth: 146, slideMargin: 10, infiniteLoop: true, pager: false });
 
     // SIDEBAR HEADER click (smartphones only)
     if ( (!!('ontouchstart' in window)) && MatchMedia("only screen and (max-width: 760px)") ) {
@@ -90,11 +92,6 @@ $(document).ready(function () {
                 f.find('.adding2cart').hide();
                 c.prepend('<a href="#" class="dialog-close">&times;</a>');
                 d.show();
-                if ((c.height() > c.find('form').height())) {
-                    c.css('bottom', 'auto');
-                } else {
-                    c.css('bottom', '15%');
-                }
             });
             return false;
         }
@@ -355,3 +352,38 @@ $(document).ready(function () {
     }
 
 });
+
+// Show Filters for Mobile
+( function($) {
+
+    var storage = {
+        shownClass: "is-shown"
+    };
+
+    var bindEvents = function() {
+        $("#filters-toggle-link").on("click", function() {
+            toggleFilters( $(this) );
+        });
+    };
+
+    var toggleFilters = function($link) {
+        var $filters = $link.closest(".filters"),
+            activeClass = storage.shownClass,
+            show_text = $link.data("show-text"),
+            hide_text = $link.data("hide-text"),
+            is_active = $filters.hasClass(activeClass);
+
+        if (is_active) {
+            $filters.removeClass(activeClass);
+            $link.text(show_text);
+        } else {
+            $filters.addClass(activeClass);
+            $link.text(hide_text);
+        }
+    };
+
+    $(document).ready( function() {
+        bindEvents();
+    });
+
+})(jQuery);

@@ -155,6 +155,64 @@
             </div>
         </div>
     </div>
+    <div class="block double-padded">
+        <h2>[`Anti-spam`]</h2>
+        {$enable_checkout_antispam_filters = $checkout_antispam}
+        <form id="s-checkout-antispam-form" method="post" action="?module=settingsCheckoutSave&action=antispam">
+        <div class="fields form">
+            <div class="field">
+                <div class="name">[`Checkout anti-spam filter`]</div>
+                <div class="value s-ibutton-checkbox">
+                    <ul class="menu-h">
+                        <li><span {if !empty($enable_checkout_antispam_filters)} class="gray"{/if} id="s-toggle-checkout-antispam-disabled-label">[`Disabled`]</span></li>
+                        <li>
+                            <input type="checkbox" id="s-toggle-checkout-antispam-status" name="enabled" value="1"{if !empty($enable_checkout_antispam_filters)} checked{/if}>
+                        </li>
+                        <li><span id="s-toggle-checkout-antispam-enabled-label" {if !!empty($enable_checkout_antispam_filters)} class="gray"{/if}>[`Enabled`]</span></li>
+                    </ul>
+                </div>
+                <div class="value description antispam-enabled"{if empty($enable_checkout_antispam_filters)} style="display:none"{/if}>
+                    <!-- enabled -->
+                    <p class="small">[`Checkout anti-spam filtering is seamless for real customers and will automatically reject spammy orders placed by robots.`]</p>
+                    
+                    <div class="fields form width100px">
+                        <div class="field">
+                            <div class="name">[`Alerts on rejected checkout attempts`]</div>
+                            <div class="value">
+                                <input name="email" type="email" placeholder="your@email.here" value="{$checkout_antispam_email|escape}" class="long">
+                            </div>
+                            <div class="value">
+                                <span class="hint">[`Enable alerts on spammy checkout attempts to make sure none of real orders were rejected by the anti-spam filter.`]</span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="name">[`Captcha`]</div>
+                            <div class="value no-shift">
+                                <label><input name="captcha" value="1" type="checkbox"{if $checkout_antispam_captcha} checked{/if}> [`Enable captcha for checkout (not required)`]</label>
+                            </div>
+                            <div class="value">
+                                <span class="hint">[`Optional. Enable checkout captcha when seamless anti-spam protection is not enough.`]</span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="value no-shift submit">
+                                <label><input type="submit" class="button green" value="[`Save`]"></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clear-both"></div>
+                </div>
+                <div class="value description antispam-disabled"{if !empty($enable_checkout_antispam_filters)} style="display:none"{/if}>
+                    <!-- disabled -->
+                    <p class="hint">[`If your store is under spammers attack and you receive lots of fraudulent orders placed by robots, protect the checkout routine with seamless anti-spam filtering. This will automatically filter all spam and save genuine orders only.`]</p>
+                </div>
+                <div class="value saved" style="opacity:0;">
+                    <i class="icon16 yes"></i> [`Saved`]
+                </div>
+            </div>
+        </div>
+        </form>
+    </div>
     <div class="clear-both"></div>
 </div>
 
@@ -168,6 +226,31 @@
             field_is_required: "[`This field is required.`]",
             saved: "[`Saved`]"
         }
+    });
+
+    $('#s-toggle-checkout-antispam-status').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
+        if (this.checked) {
+            $('#s-toggle-checkout-antispam-disabled-label').addClass('gray');
+            $('#s-toggle-checkout-antispam-enabled-label').removeClass('gray');
+            $('.antispam-enabled').show();
+            $('.antispam-disabled').hide();
+        } else {
+            $('#s-toggle-checkout-antispam-disabled-label').removeClass('gray');
+            $('#s-toggle-checkout-antispam-enabled-label').addClass('gray');
+            $('.antispam-enabled').hide();
+            $('.antispam-disabled').show();
+        }
+        $('#s-checkout-antispam-form').submit();
+    });
+
+    $('#s-checkout-antispam-form').submit(function () {
+        var self = $(this);
+        $.post(self.attr('action'), self.serialize(), function (response) {
+            setTimeout(function () {
+                self.find('.value.saved').animate({ 'opacity': 0.8}, 200).delay(500).animate({ 'opacity': 0}, 800);
+            }, 400);
+        }, 'json');
+        return false;
     });
 
     // Logic for backend validation iButton

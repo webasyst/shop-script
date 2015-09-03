@@ -35,5 +35,9 @@ class shopSettingsCheckoutAction extends waViewAction
             }
         }
         $this->view->assign('auth_alert', $auth_alert);
+
+        foreach (array('checkout_antispam', 'checkout_antispam_email', 'checkout_antispam_captcha') as $k) {
+            $this->view->assign($k, wa()->getSetting($k));
+        }
     }
 }

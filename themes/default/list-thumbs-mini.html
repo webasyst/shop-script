@@ -12,10 +12,8 @@
                 {$wa->shop->productImgHtml($p, '96x96', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy96.png"])}
                 <h5>
                     <span itemprop="name">{$p.name|truncate:30}</span>
-                    {if $p.rating > 0}
-                        <span class="rating nowrap">{$wa->shop->ratingHtml($p.rating)}</span>
-                    {/if}
                 </h5>
+                {if $p.summary}<meta itemprop="description" content="{strip_tags($p.summary)}">{/if}
             </a>
         </div>
         <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
@@ -51,6 +49,9 @@
                 <link itemprop="availability" href="http://schema.org/OutOfStock" />
             {/if}
         </div>
+        {if $p.rating > 0}
+            <span class="rating nowrap">{$wa->shop->ratingHtml($p.rating)}</span>
+        {/if}
     </li>
 {/foreach}
 </ul>

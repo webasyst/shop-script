@@ -199,7 +199,7 @@ class shopConfig extends waAppConfig
             foreach (array(
                          'name'                  => wa()->accountName(),
                          'email'                 => wa()->getSetting('email', '', 'webasyst'),
-                         'phone'                 => '+1 (212) 555-1234',
+                         'phone'                 => '+1 (234) 555-1234',
                          'country'               => '',
                          'order_format'          => $this->getOrderFormat(),
                          'use_gravatar'          => 1,
@@ -446,7 +446,7 @@ class shopConfig extends waAppConfig
                     }
                 }
             } elseif (substr($l['action'], 0, 6) == 'order_') {
-                $url = $app_url.'#/orders/id='.$l['params'].'/';
+                $url = $app_url.'#/order/'.$l['params'].'/';
                 $logs[$l_id]['params_html'] = '<div class="activity-target"><a href="'.$url.'">'.
                     shopHelper::encodeOrderId($l['params']).'</a></div>';
             } elseif (in_array($l['action'], array('page_add', 'page_edit', 'page_move'))) {

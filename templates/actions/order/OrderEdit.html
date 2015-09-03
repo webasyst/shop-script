@@ -248,7 +248,7 @@
             <select id="order-storefront" name="storefront">
                 <option value="">[`Manual order`]</option>
                 {foreach $storefronts as $storefront}
-                    <option value="{$storefront}"{if !empty($order.params.storefront) && $storefront == $order.params.storefront} selected{/if}>{$storefront}</option>
+                    <option value="{$storefront}"{if $storefront == $order_storefront} selected{/if}>{$storefront}</option>
                 {/foreach}
             </select>
         </div>
