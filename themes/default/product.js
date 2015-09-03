@@ -300,7 +300,10 @@ Product.prototype.cartButtonVisibility = function (visible) {
 $(function () {
 
     if ($("#product-core-image a").length) {
-        $('.swipebox').swipebox({useSVG : false});
+        $('.swipebox').swipebox({
+            useSVG : false,
+            hideBarsDelay: false
+        });
         $("#product-core-image a").click(function (e) {
             e.preventDefault();
             var images = [];
@@ -315,7 +318,10 @@ $(function () {
             } else {
                 images.push({href: $(this).attr('href')});
             }
-            $.swipebox(images, {useSVG : false});
+            $.swipebox(images, {
+                useSVG : false,
+                hideBarsDelay: false
+            });
             return false;
         });
     }

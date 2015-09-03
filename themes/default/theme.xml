@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="3.0.0">
+<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="3.1.0">
     <name locale="en_US">Default 3.0</name>
     <name locale="ru_RU">Дефолт 3.0</name>
     <files>
@@ -168,10 +168,10 @@
                     <description locale="en_US">Promo cards will be displayed on the main slider (use Products > Promos to create new promo cards)</description>
                 </option>
                 <option value="products">
-                    <name locale="ru_RU">Товары из списка «Промо»</name>
-                    <name locale="en_US">Products from Promo product set</name>
-                    <description locale="ru_RU">В слайдере будут показаны товары из списка «Промо», идентификатор которого задан настройкой ниже. Новые списки товаров создаются в разделе Товары > Списки.</description>
-                    <description locale="en_US">Slider will present products from a set which ID is configured in the setting below. New product sets can be created in Products > Sets (“Featured on homepage”).</description>
+                    <name locale="ru_RU">Товары</name>
+                    <name locale="en_US">Products</name>
+                    <description locale="ru_RU">В слайдере будут показаны промо-товары из списка, идентификатор которого задан настройкой ниже. Новые списки товаров создаются в разделе Товары > Списки.</description>
+                    <description locale="en_US">Slider will present products from a product set which ID is specified in the setting below. New product sets can be created in Products > Sets.</description>
                 </option>
                 <option value="hidden">
                     <name locale="ru_RU">Не показывать слайдер</name>
@@ -181,10 +181,24 @@
         </setting>
         <setting var="homepage_productset_promo" control_type="text">
             <value>promo</value>
-            <name locale="en_US">Promo set ID</name>
-            <name locale="ru_RU">Список «Промо»</name>
+            <name locale="en_US">Slider product set ID</name>
+            <name locale="ru_RU">Список промо-товаров в слайдере</name>
             <description locale="ru_RU">Идентификатор списка товаров «Промо». Товары из этого списка будут показаны в слайдере, если так указано в настройке слайдера выше.</description>
-            <description locale="en_US">Products from this Promo set will be shown in the storefront slider if it is setup that way in the setting above.</description>
+            <description locale="en_US">Products from this slider promo product set will be shown in the storefront slider if it is setup that way in the setting above.</description>
+        </setting>
+        <setting var="homepage_promocards_below_the_slider" control_type="checkbox">
+            <value>1</value>
+            <name locale="en_US">Display smaller promo cards below the slider</name>
+            <name locale="ru_RU">Показывать маленькие промо-карточки под слайдером</name>
+        </setting>
+        
+        <setting var="homepage_bestsellers_title" control_type="text">
+            <value locale="en_US">Hot deals for {$date}</value>
+            <value locale="ru_RU">Лучшие предложения на {$date}</value>
+            <name locale="en_US">Title above the bestseller (Hot deals) list</name>
+            <name locale="ru_RU">Заголовок над списком бестселлеров (лучших предложений)</name>
+            <description locale="en_US"><![CDATA[If provided, <b>{$date}</b> will be replaced with the current date]]></description>
+            <description locale="ru_RU"><![CDATA[Переменная <b>{$date}</b> в заголовке (если указана) будет заменена на текущую дату]]></description>
         </setting>
         <setting var="homepage_productset_bestsellers" control_type="text">
             <value>bestsellers</value>
@@ -193,18 +207,33 @@
             <description locale="ru_RU">Идентификатор списка товаров «Бестселлеры». Товары из этого списка будут показаны на витрине магазина под слайдером в блоке лучших приложений на текущий день.</description>
             <description locale="en_US">Bestseller products will be shown on the storefront homepage under the slider.</description>
         </setting>
-        <setting var="homepage_promocards_below_the_slider" control_type="checkbox">
-            <value>1</value>
-            <name locale="en_US">Show smaller promo cards below the slider</name>
-            <name locale="ru_RU">Показывать маленькие промо-карточки под слайдером</name>
-        </setting>
-        <setting var="homepage_bestsellers_title" control_type="text">
-            <value locale="en_US">Hot deals for {$date}</value>
-            <value locale="ru_RU">Лучшие предложения на {$date}</value>
-            <name locale="en_US">Title above the bestseller list</name>
-            <name locale="ru_RU">Заголовок над списком бестселлеров</name>
+        
+        <setting var="homepage_onsale_title" control_type="text">
+            <value locale="en_US">ON SALE</value>
+            <value locale="ru_RU">Распродажа</value>
+            <name locale="en_US">Title above the list of products featured on homepage</name>
+            <name locale="ru_RU">Заголовок над списком промо-товаров</name>
             <description locale="en_US"><![CDATA[If provided, <b>{$date}</b> will be replaced with the current date]]></description>
             <description locale="ru_RU"><![CDATA[Переменная <b>{$date}</b> в заголовке (если указана) будет заменена на текущую дату]]></description>
+        </setting>
+        <setting var="homepage_productset_onsale" control_type="text">
+            <value>promo</value>
+            <name locale="en_US">“Featured on homepage” product set ID</name>
+            <name locale="ru_RU">Список «Промо»</name>
+            <description locale="ru_RU">Идентификатор списка промо-товаров. Товары из этого списка будут показаны на витрине магазина под слайдером и под списком товаров-бестселлеров.</description>
+            <description locale="en_US">Featured products will be displayed on the storefront homepage under the slider and the best-selling product list.</description>
+        </setting>
+        
+        <setting var="homepage_welcome_note" control_type="text">
+            <name locale="en_US">Welcome note (HTML)</name>
+            <name locale="ru_RU">Приветствие (HTML)</name>
+            <value locale="ru_RU"><![CDATA[<b>Добро пожаловать!</b> Наш интернет-магазин предоставляет широкий ассортимент современной продукции и обеспечивает быструю недорогую доставку по всей территории России. Клиентская база постоянно растет и насчитывает уже более 5000 счастливых клиентов. Присоединяйтесь!]]></value>
+            <value locale="en_US"><![CDATA[<b>Welcome!</b> We are proud to offer a wide variety of items for sale and to provide best-in-class online shopping experience. Our customer base has been continuously growing and currently counts over 5000 happy customers. Come join us!]]></value>
+        </setting>
+        <setting var="homepage_blogposts" control_type="checkbox">
+            <value>1</value>
+            <name locale="en_US">Show latest blog posts on storefront homepage</name>
+            <name locale="ru_RU">Показывать последние посты блога на главной странице интернет-магазина</name>
         </setting>
         
         <setting var="divider_storefront_sidebar" control_type="group_divider">
@@ -251,7 +280,7 @@
     
         <setting var="divider_shop" control_type="group_divider">
             <value></value>
-            <name locale="en_US">Store commong settings</name>
+            <name locale="en_US">Store common settings</name>
             <name locale="ru_RU">Общие настройки магазина</name>
         </setting>
         <setting var="category_nav_mode" control_type="radio">
