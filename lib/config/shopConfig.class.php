@@ -446,7 +446,7 @@ class shopConfig extends waAppConfig
                     }
                 }
             } elseif (substr($l['action'], 0, 6) == 'order_') {
-                $url = $app_url.'#/orders/id='.$l['params'].'/';
+                $url = $app_url.'#/order/'.$l['params'].'/';
                 $logs[$l_id]['params_html'] = '<div class="activity-target"><a href="'.$url.'">'.
                     shopHelper::encodeOrderId($l['params']).'</a></div>';
             } elseif (in_array($l['action'], array('page_add', 'page_edit', 'page_move'))) {
