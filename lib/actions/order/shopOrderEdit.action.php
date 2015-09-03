@@ -241,7 +241,10 @@ class shopOrderEditAction extends waViewAction
 
     public function getOrderStorefront($order)
     {
-        $storefront = rtrim((string) ifset($order['params']['storefront'], ''), '/*') . '/';
+        $storefront = rtrim((string) ifset($order['params']['storefront'], ''), '/*');
+        if (strpos($storefront, '/') !== false) {
+            $storefront .= '/';
+        };
         return $storefront;
     }
 
