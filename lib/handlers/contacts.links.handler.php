@@ -30,6 +30,8 @@ class shopContactsLinksHandler extends waEventHandler
                 );
             }
         }
+        
+        wa()->event(array('shop', 'contacts_links'), $links);
 
         return $links;
     }
