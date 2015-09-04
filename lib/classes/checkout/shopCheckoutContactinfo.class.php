@@ -106,8 +106,6 @@ class shopCheckoutContactinfo extends shopCheckout
                 $customer->set($k, $v);
             }
 
-
-
             $customer_fields = $this->form->fields();
             $view = wa()->getView();
 
@@ -139,17 +137,20 @@ class shopCheckoutContactinfo extends shopCheckout
         }
 
         $this->form = shopHelper::getCustomerForm(null, false, true);
-        if (!$this->form->isValid($contact)) {
-            $errors = $this->form->errors();
-            if (wa('shop')->getSetting('checkout_antispam') && !empty($errors['spam'])) {
-                wa()->getView()->assign('errors', array(
-                    'all' => $errors['spam']
-                ));
-                $this->sendSpamAlert();
+        if (!wa()->getUser()->isAuth() && ($this->form instanceof shopContactForm)) {
+            if (!$this->form->isValidAntispam()) {
+                $errors = $this->form->errors();
+                if (!empty($errors['spam'])) {
+                    $this->sendSpamAlert();
+                    wa()->getView()->assign('errors', array(
+                        'all' => $errors['spam']
+                    ));
+                }
             }
+        }
+        if (!$this->form->isValid($contact)) {
             return false;
         }
-
         if (wa('shop')->getSetting('checkout_antispam') && !wa()->getUser()->isAuth()) {
             $this->setSessionData('antispam', true);
         }

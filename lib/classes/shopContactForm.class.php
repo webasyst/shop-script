@@ -38,13 +38,10 @@ HTML;
         return $html;
     }
 
-    protected function validateFields($contact = null)
+    public function isValidAntispam()
     {
-        $fields_validated = $this->fields_validated;
-        parent::validateFields($contact);
-
-        if (!$fields_validated && $this->antispam) {
-            if ((waRequest::method() == 'post') && (waRequest::param('step', waRequest::request('step')) == 'contactinfo')) {
+        if ($this->antispam) {
+            if (waRequest::method() == 'post') {
                 $is_spam = false;
                 if ($this->antispam_captcha) {
                     if (!wa('shop')->getCaptcha()->isValid(null, $error)) {
@@ -64,7 +61,9 @@ HTML;
                     $this->errors['spam'] = _w('Something went wrong while processing your data. Please contact store team directly regarding your order. A notification about this error has been sent to the store admin.');
                 }
             }
+            return empty($this->errors['spam']) && empty($this->errors['captcha']);
         }
+        return true;
     }
 
     public static function loadConfig($file, $options = array())
