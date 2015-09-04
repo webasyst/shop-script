@@ -558,7 +558,7 @@ class shopHelper
      *
      * @param int|waContact|null $id Optional id of contact or contact object whose data must be pre-filled in contact form.
      * @param bool $ensure_address Whether address fields must be included regardless of store's contact fields settings.
-     * @return waContactForm
+     * @return waContactForm|shopContactForm
      */
     public static function getCustomerForm($id = null, $ensure_address = false, $checkout = false)
     {

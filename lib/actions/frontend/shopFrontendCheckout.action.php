@@ -13,7 +13,7 @@ class shopFrontendCheckoutAction extends waViewAction
         $steps = $this->getConfig()->getCheckoutSettings();
 
         $current_step = waRequest::param('step', waRequest::request('step'));
-        if (!$current_step && waRequest::method() != 'post') {
+        if (!$current_step) {
             $current_step = key($steps);
         }
 

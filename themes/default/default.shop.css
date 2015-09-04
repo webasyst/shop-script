@@ -429,6 +429,10 @@ input.error, textarea.error { border: 2px solid red; }
 .checkout h2.upcoming a:hover { color: #000 !important; cursor: default; }
 .checkout h2 a.hint { font-size: 0.6em; color: #aaa; text-decoration: none; margin-top: 2px; }
 .checkout h2 a.hint strong { text-decoration: underline; }
+
+.checkout h2.is-done { position: relative; }
+.checkout h2.is-done:after { content: ""; position: absolute; top: 0; right: 0; width: 60px; height: 100%; background: transparent url("img/cheackout-done.png") 50% no-repeat; background-size: 30px; }
+
 .checkout .checkout-step-content { padding: 20px; background: #fff; }
 .checkout ul { list-style: none; padding-left: 0; margin-top: 0; }
 .checkout ul li { font-size: 1.1em; margin-bottom: 5px; }
