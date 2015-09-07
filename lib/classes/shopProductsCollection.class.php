@@ -726,6 +726,7 @@ class shopProductsCollection
                         // as part of searching logic.
                         // Remember order-by in case we want to restore it later.
                         $auto_order_by = $this->order_by;
+                        $auto_fields = $this->fields; // save fie
 
                         $search = new shopIndexSearch();
                         $word_ids = $search->getWordIds($parts[2], true);
@@ -751,7 +752,8 @@ class shopProductsCollection
                         // if not found try find by name
                         if (!$this->count()) {
                             $this->count = null;
-                            $this->joins = $this->where = $this->having = $this->fields = array();
+                            $this->joins = $this->where = $this->having = array();
+                            $this->fields = $auto_fields; //restore fields;
                             if ($this->is_frontend) {
                                 if ($this->filtered) {
                                     $this->filtered = false;
