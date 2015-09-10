@@ -125,11 +125,13 @@ class shopOrderParamsModel extends waModel
                         unset($old_params[$order_id][$name]);
                     } else {
                         // param to add
-                        $add_params[] = array(
-                            'order_id' => $order_id,
-                            'name' => $name,
-                            'value' => $value
-                        );
+                        if ($value !== null) { //skip null values
+                            $add_params[] = array(
+                                'order_id' => $order_id,
+                                'name' => $name,
+                                'value' => $value
+                            );
+                        }
                     }
                 }
             }
