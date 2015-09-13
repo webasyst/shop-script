@@ -71,7 +71,7 @@
                         <ul class="menu-v compact" style="margin-left: 15px;">
                             {foreach $product_types as $pt}
                                 <li><label>
-                                    <input type="checkbox" value="{$pt.id}"{if !empty($conf.affiliate_product_types[$pt.id])} checked{/if}> <i class="icon16 {$pt.icon}"></i>{$pt.name}
+                                    <input type="checkbox" value="{$pt.id}"{if !empty($conf.affiliate_product_types[$pt.id])} checked{/if}> <i class="icon16 {$pt.icon}"></i>{$pt.name|escape}
                                 </label></li>
                             {/foreach}
                         </ul>
