@@ -45,10 +45,10 @@
 
         /** Global customers search above content block */
         initSearch: function() {
-            var search_field = $('#s-customers-search');
+            var search_field = $('#s-customers-search'),
+                hash = $.customers.getHash(),
+                m = hash.match(/^(?:#\/)?search\/([\s\S]*)/);
 
-            var hash = $.customers.getHash();
-            var m = hash.match(/^(?:#\/)?search\/([\s\S]*)/);
             if (m) {
                 m[1] = m[1].replace(/(\/)+$/, '');
                 m = m[1].match(/^(?:phone|email|name\|email|email\|name)\*=([\s\S]*)/);
@@ -62,9 +62,9 @@
             }
 
             var search = function() {
-                var q = this.value.trim();
+                var q = this.value.trim(),
+                    query = '';
 
-                var query = '';
                 try {
                     q = decodeURIComponent(q);
                 } catch (e) {}
@@ -134,12 +134,12 @@
         },
 
         initLazyLoad: function(options) {
-            var count = options.count;
-            var offset = count;
-            var total_count = options.total_count;
-            var url = options.url;
-            var container = $(options.container);
-            var auto = typeof options.auto === 'undefined' ? true : options.auto;
+            var count = options.count,
+                offset = count,
+                total_count = options.total_count,
+                url = options.url,
+                container = $(options.container),
+                auto = typeof options.auto === 'undefined' ? true : options.auto;
 
             $(window).lazyLoad('stop'); // stop previous lazy-load implementation
 
@@ -153,8 +153,8 @@
                         $('.lazyloading-progress').show();
                         $.get(url + '&lazy=1&offset=' + offset + '&total_count=' + total_count, function(data) {
 
-                            var html = $('<div></div>').html(data);
-                            var list = html.find('.s-customers tbody tr');
+                            var html = $('<div></div>').html(data),
+                                list = html.find('.s-customers tbody tr');
                             if (list.length) {
                                 offset += list.length;
                                 $('.s-customers tbody', container).append(list);
@@ -242,8 +242,8 @@
                     hash[i] = hash[i].replace(/ESCAPED_SLASH/g, '/');
                 }
                 if (hash[0]) {
-                    var actionName = "";
-                    var attrMarker = hash.length;
+                    var actionName = "",
+                        attrMarker = hash.length;
 
                     for (var i = 0; i < hash.length; i++) {
                         var h = hash[i];
@@ -387,9 +387,9 @@
                 $('#s-sidebar a[href="#/searchform/"]').closest('li').addClass('selected');
                 return;
             }
-            var partialMatch = false;
-            var partialMatchLength = 2;
-            var match = false;
+            var partialMatch = false,
+                partialMatchLength = 2,
+                match = false;
             $('#s-sidebar a').each(function(k, v) {
                 v = $(v);
                 if (!v.attr('href')) {
@@ -473,15 +473,18 @@
         },
 
         load: function (url, options, fn) {
+            
+            var self = this,
+                r = Math.random();
+            this.random = r;
+            
             if (typeof options === 'function') {
                 fn = options;
                 options = {};
             } else {
                 options = options || {};
             }
-            var r = Math.random();
-            this.random = r;
-            var self = this;
+            
             return  $.get(url, function(result) {
                 if ((typeof options.check === 'undefined' || options.check) && self.random != r) {
                     // too late: user clicked something else.
