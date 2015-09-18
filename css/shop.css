@@ -1051,6 +1051,8 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 .s-fixed-save-button-wrapper br { display: none; }
 .s-fixed-save-button-wrapper input { margin: 0 !important; padding: 0 1em !important; cursor: pointer; }
 
+table.zebra p.hint { margin-bottom: 0; }
+
 /* ICONS
 -------- */
 

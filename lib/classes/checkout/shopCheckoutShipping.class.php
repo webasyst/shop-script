@@ -57,7 +57,7 @@ class shopCheckoutShipping extends shopCheckout
             $rate_id = waRequest::post('rate_id');
             $selected_shipping = array(
                 'id' => $shipping_id,
-                'rate_id' => !empty($rate_id[$shipping_id]) ? $rate_id[$shipping_id] : ''
+                'rate_id' => isset($rate_id[$shipping_id]) ? $rate_id[$shipping_id] : ''
             );
         } else {
             $selected_shipping = $this->getSessionData('shipping', array());

@@ -1170,7 +1170,7 @@ class shopSalesModel extends waModel
         return array($join, $where);
     }
 
-    protected function getStorefrontSql($options)
+    public function getStorefrontSql($options)
     {
         $storefront_join = '';
         $storefront_where = '';

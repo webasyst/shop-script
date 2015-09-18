@@ -1726,7 +1726,8 @@ class shopCsvProductrunController extends waLongActionController
                 }
             }
         }
-        if ($this->data['emulate'] !== null && $collision) {
+
+        if ($this->emulate() && $collision) {
             $collisions = array();
             foreach ($collision as $key => $rows) {
                 switch (substr($key, 0, 1)) {
@@ -1830,14 +1831,14 @@ class shopCsvProductrunController extends waLongActionController
             $response['file'] = urlencode(basename($this->writer->file()));
         }
         if ($response['ready']) {
-            if ($filename && $this->data['emulate'] !== null) {
+            if ($filename && $this->emulate()) {
                 $collision = $this->getCollision($filename);
             } else {
                 $collision = array();
             }
             $response['report'] = $this->report($collision);
 
-            if ($this->data['emulate'] !== null) {
+            if ($this->emulate()) {
                 $params = array();
                 if ($collision) {
                     $response['collision'] = array();

@@ -100,9 +100,9 @@ ul.homepage-bxslider li { list-style: none; margin: 0; padding: 0; max-height: 3
 .slider a .image img { max-height: 320px; }
 .slider a .image .corner.right { right: 30px; }
 .slider a .image .corner.top { top: 20px; }
-.slider a h3 { font-size: 2.8em; color: #000; line-height: 1.2em; margin-bottom: 0.4em; margin-left: 60px; margin-right: 60px; }
+.slider a h3 { font-size: 2.3em; color: #000; line-height: 1.2em; margin-bottom: 0.4em; margin-left: 60px; margin-right: 60px; }
 .slider a .info { margin-left: 60px; z-index: 183; }
-.slider a p { margin-left: 60px; color: #555; margin-top: 15px; }
+.slider a p { margin-left: 60px; color: #555; margin-top: 15px; margin-right: 100px; }
 .slider .compare-at-price { font-size: 120%; margin-right: 10px; }
 .slider .price { font-size: 160%; }
 
@@ -114,6 +114,9 @@ ul.homepage-bxslider li { list-style: none; margin: 0; padding: 0; max-height: 3
 .slider .bx-wrapper .bx-next { right: -12px; background: url('img/bx-controls.png') no-repeat; background-size: 192px 96px; background-position: -96px 0 !important; }
 .slider .bx-wrapper .bx-controls-direction a { z-index: 99; width: 96px; height: 96px; top: 40%; opacity: 0.5; }
 .slider .bx-wrapper .bx-controls-direction a:hover { transition: none; opacity: 1; }
+.slider .bx-wrapper .bx-pager.bx-default-pager a { background: rgba(255,255,255,0.5); }
+.slider .bx-wrapper .bx-pager.bx-default-pager a.active { background: #fff; }
+.slider .bx-wrapper .bx-pager.bx-default-pager a:hover { background: yellow !important; }
 
 .slider.fill-entire-area { box-shadow: 0 5px 10px -5px rgba(0, 0, 0, 0.2); position: relative; z-index: 1; }
 .slider.fill-entire-area .bx-wrapper .bx-prev { left: -18px; background-image: url('img/bx-controls-white.png'); }
@@ -135,8 +138,7 @@ ul.homepage-bxslider li { list-style: none; margin: 0; padding: 0; max-height: 3
 .promos ul li { padding: 0; margin: 0; list-style: none; display: inline-block; width: 25%; vertical-align: top; } 
 .promos ul li a { display: block; padding: 35px 13px 0; height: 83px; overflow: hidden; background-size: cover; background-position: center center; color: #000; background-color: rgba(0,0,0,0.05); border: 5px solid #fff; text-align: center; position: relative; }
 .promos ul li a .background-color-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; opacity: 0.1; background-color: #000; }
-.promos ul li a h5 { font-size: 1.2em; text-shadow: 0 1px 1px #000; position: relative; z-index: 2; margin-bottom: 10px; font-weight: normal; }
-/* .promos ul li a p { font-size: 0.9em; text-shadow: 0 1px 0px #000; position: relative; z-index: 2; line-height: 1.2em; } */
+.promos ul li a h5 { font-size: 1em; text-shadow: 0 1px 1px #000; position: relative; z-index: 2; margin-bottom: 10px; font-weight: normal; }
 .promos ul li a:hover .background-color-layer { opacity: 0.5; transition: 0.3s; }
 
 .bullets { padding: 0; margin: 20px 0px 40px; }
@@ -153,6 +155,11 @@ ul.homepage-bxslider li { list-style: none; margin: 0; padding: 0; max-height: 3
 .section-header { color: #999; font-size: 1.4em; font-weight: normal; }
 
 .onsale.related { border-top: none; margin-top: 0; margin-bottom: 30px; overflow-x: hidden; }
+
+.sidebar.left-sidebar { float: left; }
+.content.with-sidebar.left-sidebar { margin-right: 0; margin-left: 290px; }
+
+.sidebar ul.tree li a { padding-left: 0; }
 
 /* Product page
 --------------- */
@@ -517,7 +524,7 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
 
 @media screen and (max-width: 760px) {
     
-    .content.with-sidebar { padding: 0; }
+    .content.with-sidebar { padding: 0; margin: 0 !important; }
     .promos ul li { width: 50%; }
     .welcome { margin-left: 0; margin-right: 0; }
     header ul.flyout-nav li .flyout { padding: 15px; }
@@ -653,6 +660,7 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
     ul.homepage-bxslider,
     ul.homepage-bxslider li { max-height: 460px; }
     .slider a { height: 460px; }
+    .slider a h3 { font-size: 2.8em; }
     ul.thumbs.text-content li { width: 225px; margin-right: 55px; }
     
 }
