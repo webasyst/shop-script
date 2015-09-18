@@ -4,12 +4,6 @@ class shopSalesWidget extends waWidget
 {
     public function defaultAction()
     {
-        // Check if user has access to shop reports
-        if (!wa()->getUser()->getRights('shop', 'reports')) {
-            $this->display(array(), $this->getTemplatePath('NoAccess.html'));
-            return;
-        }
-
         $settings = $this->getSettings();
         $start_date = date('Y-m-d', time() - 30 * 24 * 3600);   // 30 days ago
         $end_date = date('Y-m-d', time() + 3600*24); // tomorrow

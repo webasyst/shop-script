@@ -2,6 +2,17 @@ var SalesGraph;
 
 ( function($) {
 
+    var storage = {
+        defaultColors: [
+            "#a7e0a7",
+            "#009900"
+        ],
+        tvColors: [
+            "#9a799a",
+            "#fda4fd"
+        ]
+    };
+
     var getGraphArea = function(that) {
         var $wrapper = that.$wrapper,
             margin = that.margin,
@@ -45,10 +56,8 @@ var SalesGraph;
         that.heightPercent = .6;  // 50%
         that.data = getGraphData(options.graph_data);
         that.area = getGraphArea(that);
-        that.colors = [
-            "#a7e0a7",
-            "#009900"
-        ];
+        that.is_tv = $("body").hasClass("tv");
+        that.colors = ( that.is_tv ) ? storage.tvColors : storage.defaultColors ;
 
         // Functions
         that.renderSalesGraph();
