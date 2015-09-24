@@ -12,30 +12,52 @@ msgstr ""
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
 "Language: ru_RU\n"
-"X-Generator: Poedit 1.7.6\n"
+"X-Generator: Poedit 1.8.4\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
-#: /wa-apps/shop/widgets/sales//templates/Default.html:8
-msgid "Last 30 days profit"
-msgstr "Прибыль за 30 дней"
+msgid "Last %d days profit"
+msgstr "Прибыль за %d дней"
 
-#: /wa-apps/shop/widgets/sales//templates/Default.html:10
-msgid "Last 30 days sales"
-msgstr "Продажи за 30 дней"
+msgid "Last %d days sales"
+msgstr "Продажи за %d дней"
 
-#: /wa-apps/shop/widgets/sales//lib/config/settings.php:4
 msgid "Metric"
 msgstr "График"
 
-#: /wa-apps/shop/widgets/sales//lib/config/settings.php:9
 msgid "Sales"
 msgstr "Продажи"
 
-#: /wa-apps/shop/widgets/sales//lib/config/settings.php:10
 msgid "Profit"
 msgstr "Прибыль"
 
-#: /wa-apps/shop/widgets/sales/templates/NoAccess.html:8
-msgid "You don’t have permissions to view store sales report. Please ask your Webasyst admin for access."
-msgstr "У вас нет прав на просмотр отчетов о продажах. Обратитесь к администратору сайта."
+msgid "Period"
+msgstr "Период"
+
+msgid "Storefront"
+msgstr "Витрина"
+
+msgid "Last 7 days"
+msgstr "Последние 7 дней"
+
+msgid "Last 30 days"
+msgstr "Последние 30 дней"
+
+msgid "Last 90 days"
+msgstr "Последние 90 дней"
+
+msgid "All storefronts"
+msgstr "Все витрины"
+
+msgid "Compare to"
+msgstr "Сравнение"
+
+msgid "Disabled"
+msgstr "Выключено"
+
+msgid "Previous period"
+msgstr "Предшествующий период"
+
+msgid "Same period one year ago"
+msgstr "Аналогичный период год назад"
+

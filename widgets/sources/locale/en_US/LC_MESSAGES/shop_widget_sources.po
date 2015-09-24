@@ -1,0 +1,76 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: shop/widgets/sources\n"
+"POT-Creation-Date: 2015-09-23 10:09+0000\n"
+"PO-Revision-Date: \n"
+"Last-Translator: shop/widgets/sources\n"
+"Language-Team: shop/widgets/sources\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: .\n"
+"Language: en_US\n"
+"X-Generator: Poedit 1.8.4\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+#: /wa-apps/shop/widgets/sources/templates/Default.html:12
+msgid "Sales by source"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sources/templates/Default.html:14
+msgid "Profit by source"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sources/templates/Default.html:16
+msgid "Orders by source"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sources/templates/Default.html:43
+msgid "No sources to show."
+msgstr ""
+
+#: /wa-apps/shop/widgets/sources/lib/config/settings.php:4
+msgid "Metric"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sources/lib/config/settings.php:9
+msgid "Sales"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sources/lib/config/settings.php:10
+msgid "Profit"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sources/lib/config/settings.php:11
+msgid "Number of paid orders"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sources/lib/config/settings.php:15
+msgid "Period"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sources/lib/config/settings.php:20
+msgid "Last 7 days"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sources/lib/config/settings.php:21
+msgid "Last 30 days"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sources/lib/config/settings.php:22
+msgid "Last 90 days"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sources/lib/config/settings.php:26
+msgid "Storefront"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sources/lib/config/settings.php:31
+msgid "All storefronts"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sources/lib/config/widget.php:3
+msgid "Sources"
+msgstr ""

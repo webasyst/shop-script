@@ -28,6 +28,7 @@
     box-sizing: border-box;
 }
 .sales-widget-wrapper .text-wrapper .s-sales {
+    margin-bottom: 0;
     color: #008000;
 }
 .sales-widget-wrapper .graph-wrapper {
@@ -68,16 +69,16 @@
 .sales-widget-wrapper .graph-wrapper svg.profit .area {
     opacity: 0.5;
 }
-.widget-1x1 .text-wrapper {
+.widget-1x1 .sales-widget-wrapper .text-wrapper {
     padding: 0.5rem;
 }
-.widget-1x1 .text-wrapper {
+.widget-1x1 .sales-widget-wrapper .text-wrapper {
     padding: 0.5rem;
 }
-.widget-2x1 .text-wrapper {
+.widget-2x1 .sales-widget-wrapper .text-wrapper {
     padding: 0.75rem;
 }
-.widget-2x2 .text-wrapper {
+.widget-2x2 .sales-widget-wrapper .text-wrapper {
     padding: 0.75rem;
 }
 .tv .sales-widget-wrapper {
@@ -86,3 +87,6 @@
 .tv .sales-widget-wrapper .text-wrapper .s-sales {
     color: #5ac847;
 }
+.sales-widget-wrapper .s-sales-compare.red { color: red; }
+.sales-widget-wrapper .s-sales-compare.green { color: #86cd86; }
+.tv .sales-widget-wrapper .s-sales-compare.green { color: #437843; }

@@ -1,6 +1,6 @@
 <?php
 return array (
-  'name' => 'customers',
+  'name' => /*_wp*/('Customers'),
   'size' => 
   array (
     0 => '2x2',
@@ -8,6 +8,11 @@ return array (
     2 => '1x1',
   ),
   'img' => 'img/customers.png',
-  'version' => '0.1',
-  'vendor' => '--',
+  'version' => '1.0',
+  'vendor' => 'webasyst',
+  'rights' => array(
+      'shop' => array(
+          'reports' => true,
+      )
+  )
 );

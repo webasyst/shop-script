@@ -11,7 +11,7 @@ msgstr ""
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
 "Language: en_US\n"
-"X-Generator: Poedit 1.8.2\n"
+"X-Generator: Poedit 1.8.4\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -37,4 +37,28 @@ msgstr ""
 
 #: /wa-apps/shop/widgets/sales/templates/NoAccess.html:8
 msgid "You don’t have permissions to view store sales report. Please ask your Webasyst admin for access."
+msgstr ""
+
+#: /wa-apps/shop/widgets/sales/lib/config/settings.php:14
+msgid "Period"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sales/lib/config/settings.php:19
+msgid "Last 7 days"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sales/lib/config/settings.php:20
+msgid "Last 30 days"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sales/lib/config/settings.php:21
+msgid "Last 90 days"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sales/lib/config/settings.php:25
+msgid "Storefront"
+msgstr ""
+
+#: /wa-apps/shop/widgets/sales/lib/config/settings.php:30
+msgid "All storefronts"
 msgstr ""

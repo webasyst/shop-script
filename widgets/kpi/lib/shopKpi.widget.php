@@ -6,23 +6,33 @@ class shopKpiWidget extends waWidget
     {
         $settings = $this->getSettings();
 
-        $total = self::getTotal($settings);
+        $period = (int) $settings['period'];
+        $period = ifempty($period, 30*24*3600);
+        $date_end = date('Y-m-d 23:59:59');
+        $date_start = date('Y-m-d', strtotime($date_end) - $period);
+
+        $total = self::getTotal($settings, $date_start, $date_end);
+        list($dynamic, $dynamic_html, $dynamic_color) = self::getDynamic($total, $period, $settings);
+
+        if ($settings['metric'] == 'roi') {
+            $total .= '%';
+        }
 
         $this->display(array(
+            'settings' => $settings,
             'widget_id' => $this->id,
             'total_formatted' => self::formatTotal($total, $this->info),
             'widget_url' => $this->getStaticUrl(),
             'title' => $this->getTitle($settings),
-            'settings' => $settings,
+            'dynamic_color' => $dynamic_color,
+            'dynamic_html' => $dynamic_html,
+            'dynamic' => $dynamic,
             'total' => $total,
         ));
     }
 
-    public static function getTotal($settings)
+    protected static function getTotal($settings, $date_start, $date_end)
     {
-        $period = (int) $settings['period'];
-        $date_end = date('Y-m-d 23:59:59');
-        $date_start = date('Y-m-d 23:59:59', strtotime($date_end) - ifempty($period, 30*24*3600));
         if (wa()->getSetting('reports_date_type', 'paid', 'shop') == 'create') {
             $order_date_sql = shopSalesModel::getDateSql('o.create_datetime', $date_start, $date_end).' AND o.paid_date IS NOT NULL';
         } else {
@@ -37,7 +47,6 @@ class shopKpiWidget extends waWidget
         // Total customers for the period
         $total_customers = 0;
         if (in_array($settings['metric'], array('arpu', 'ampu', 'cac'))) {
-            // total customers for the period
             $sql = "SELECT COUNT(DISTINCT o.contact_id)
                     FROM shop_order AS o
                         JOIN shop_customer AS c
@@ -109,10 +118,96 @@ class shopKpiWidget extends waWidget
                 if (!$total_profit || !$total_expenses) {
                     return 0;
                 }
-                return round($total_profit*100 / $total_expenses).'%';
+                return round($total_profit*100 / $total_expenses);
+
+            case 'ltv':
+                // Total customers for the whole time
+                $sql = "SELECT COUNT(DISTINCT o.contact_id) AS customers_count
+                        FROM shop_order AS o
+                            JOIN shop_customer AS c
+                                ON o.contact_id=c.contact_id
+                            {$storefront_join}
+                        WHERE o.paid_date IS NOT NULL
+                            {$storefront_where}";
+                $customers_count = $sales_model->query($sql)->fetchField();
+                if (!$customers_count) {
+                    return 0;
+                }
+
+                // Total sales for the whole time, minus tax and shipping costs
+                $sql = "SELECT SUM((o.total - o.tax - o.shipping)*o.rate)
+                        FROM shop_order AS o
+                            {$storefront_join}
+                        WHERE o.paid_date IS NOT NULL
+                            {$storefront_where}";
+                $total_sales = $sales_model->query($sql)->fetchField();
+
+                // Total purchase expenses for the whole time
+                $sql = "SELECT SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, IFNULL(ps.purchase_price*pcur.rate, 0))*oi.quantity)
+                        FROM shop_order AS o
+                            JOIN shop_order_items AS oi
+                                ON oi.order_id=o.id
+                                    AND oi.type='product'
+                            LEFT JOIN shop_product AS p
+                                ON oi.product_id=p.id
+                            LEFT JOIN shop_product_skus AS ps
+                                ON oi.sku_id=ps.id
+                            LEFT JOIN shop_currency AS pcur
+                                ON pcur.code=p.currency
+                            {$storefront_join}
+                        WHERE o.paid_date IS NOT NULL
+                            {$storefront_where}";
+                $total_purchase = $sales_model->query($sql)->fetchField();
+                return ($total_sales - $total_purchase) / $customers_count;
         }
 
-        return $settings['metric'].'<br><span style="font-size:12px;position:relative;top:-40px;">is not implemented yet</span>';
+        return 0;
+    }
+
+    protected static function getDynamic($total, $period, $settings)
+    {
+        $no_dynamic = array(null, null, null);
+        if (!$settings['compare'] || $settings['metric'] == 'ltv') {
+            return $no_dynamic;
+        }
+
+        switch ($settings['compare']) {
+            case 'previous':
+                $date_end = date('Y-m-d 23:59:59', time() - $period);
+                break;
+            case 'year_ago':
+                $date_end = date('Y-m-d 23:59:59', time() - 365*24*3600);
+                break;
+            default:
+                return $no_dynamic;
+        }
+
+        $date_start = date('Y-m-d', strtotime($date_end) - $period);
+        $prev_total = self::getTotal($settings, $date_start, $date_end);
+        if (!$prev_total || $prev_total <= 0) {
+            return $no_dynamic;
+        }
+
+        $dynamic = ($total - $prev_total)*100 / $prev_total;
+        $dynamic_html = round($dynamic);
+        if ($dynamic > 0) {
+            $dynamic_html = '+'.$dynamic_html;
+        }
+        $dynamic_html .= '%';
+
+        if ($settings['metric'] == 'cac') {
+            $dynamic = -$dynamic;
+        }
+        if ($dynamic > 0) {
+            $dynamic_color = 'green';
+        } else {
+            $dynamic_color = 'red';
+        }
+        if ($settings['metric'] == 'cac') {
+            $dynamic = -$dynamic;
+        }
+
+        return array($dynamic, $dynamic_html, $dynamic_color);
     }
 
     public static function formatTotal($total, $info)
@@ -167,13 +262,14 @@ class shopKpiWidget extends waWidget
 
     protected function getTitle($settings)
     {
-        $config = $this->getSettingsConfig();
-        foreach($config['metric']['options'] as $item) {
-            if ($item['value'] == $settings['metric']) {
-                return $item['title'];
-            }
-        }
-        return '';
+        $titles = array(
+            'arpu' => _wp('ARPU'),
+            'ampu' => _wp('AMPU'),
+            'cac' => _wp('CAC'),
+            'ltv' => _wp('LTV'),
+            'roi' => _wp('ROI'),
+        );
+        return ifset($titles[$settings['metric']], $settings['metric']);
     }
 
     protected function getSettingsConfig()
