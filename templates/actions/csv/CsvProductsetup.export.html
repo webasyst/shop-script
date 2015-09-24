@@ -111,6 +111,12 @@
             <label><input type="checkbox" name="extra_categories"{if !empty($profile.config.extra_categories)} checked="checked"{/if}> [`Duplicate product row under each category it belongs to`]</label>
         </div>
     </div>
+    <div class="field">
+        <div class="name">
+            [`Custom parameters`]
+        </div>
+        <div class="value no-shift"><label><input type="checkbox" name="params"{if !empty($profile.config.params)} checked="checked"{/if}> [`Export product and category custom parameters`]</label></div>
+    </div>
 
     <div class="field">
         <div class="name">

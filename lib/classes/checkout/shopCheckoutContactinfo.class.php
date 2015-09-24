@@ -137,6 +137,20 @@ class shopCheckoutContactinfo extends shopCheckout
         }
 
         $this->form = shopHelper::getCustomerForm(null, false, true);
+
+        // Do not validate required subfields of billing address
+        // when billing is set up to match shipping address.
+        if (waRequest::request('billing_matches_shipping') && $this->form->fields('address.shipping') && $this->form->fields('address.billing')) {
+            $subfields = $this->form->fields('address.billing')->getParameter('fields');
+            foreach($subfields as $i => $sf) {
+                if ($sf->isRequired()) {
+                    $subfields[$i] = clone $sf;
+                    $subfields[$i]->setParameter('required', false);
+                }
+            }
+            $this->form->fields('address.billing')->setParameter('fields', $subfields);
+        }
+
         if (!wa()->getUser()->isAuth() && ($this->form instanceof shopContactForm)) {
             if (!$this->form->isValidAntispam()) {
                 $errors = $this->form->errors();

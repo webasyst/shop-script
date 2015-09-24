@@ -15,7 +15,6 @@ class shopCsvProductuploadController extends shopUploadController
                 'currency'         => _w('Currency'), //4
                 'summary'          => _w('Summary'),
                 'description'      => _w('Description'),
-
                 'badge'            => _w('Badge'),
                 'status'           => _w('Status'),
                 //'sort'             => _w('Product sort order'),
@@ -28,6 +27,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'url'              => _w('Storefront link'),
                 'images'           => _w('Product images'),
                 //   'rating'                 => _w('Rating'),
+                'params'           => _w('Custom parameters'),
             ),
             'sku'     => array(
                 'skus:-1:name'           => _w('SKU name'), //2
@@ -49,17 +49,18 @@ class shopCsvProductuploadController extends shopUploadController
             );
             $black_list = array(
                 'id',
-                "contact_id",
-                "create_datetime",
-                "edit_datetime",
-                "type_id",
-                "image_id",
-                "tax_id",
-                "cross_selling",
-                "upselling",
-                "total_sales",
-                "sku_type",
-                "sku_count",
+                'contact_id',
+                'create_datetime',
+                'edit_datetime',
+                'type_id',
+                'image_id',
+                'image_filename',
+                'tax_id',
+                'cross_selling',
+                'upselling',
+                'total_sales',
+                'sku_type',
+                'sku_count',
                 'sku_id',
                 'ext',
                 'price',
@@ -70,12 +71,17 @@ class shopCsvProductuploadController extends shopUploadController
                 'rating_count',
                 'category_id',
                 'base_price_selectable',
+                'compare_price_selectable',
+                'purchase_price_selectable',
                 'rating',
             );
 
             $white_list = array(
-                'id_1c' => '1C',
+                'id_1c' => 'Идентификатор 1C',
             );
+
+            //XXX add callback for custom fields
+            //TODO implode
             foreach ($meta_fields['product'] as $field => $info) {
                 if (!in_array($field, $black_list)) {
                     $name = ifset($white_list[$field], $field);
@@ -83,6 +89,11 @@ class shopCsvProductuploadController extends shopUploadController
                         if (!isset($fields['sku']['skus:-1:'.$field])) {
                             $fields['sku']['skus:-1:'.$field] = $name;
                         }
+
+                        if (!isset($fields['product'][$field])) {
+                            $fields['product'][$field] = sprintf('%s: %s', _w('Product'), $name);
+                        }
+
                     } else {
                         if (!isset($fields['product'][$field])) {
                             $fields['product'][$field] = $name;
@@ -135,10 +146,10 @@ class shopCsvProductuploadController extends shopUploadController
 
 
         $options = array();
-        $fields = self::getMapFields();
+        $fields = self::getMapFields(false, true);
         foreach ($fields as $group => $group_fields) {
             foreach ($group_fields as $id => $name) {
-                $options[] = array(
+                $option = array(
                     'group' => array(
                         'title' => ifset($translates[$group]),
                         'class' => $group,
@@ -146,6 +157,11 @@ class shopCsvProductuploadController extends shopUploadController
                     'value' => $id,
                     'title' => ifempty($name, $id),
                 );
+                if (preg_match('@^[a-z][a-z0-9_]+$@', $option['title'])) {
+                    $option['no_match'] = true;
+                    $option['title'] = $option['title'].' *';
+                }
+                $options[] = $option;
             }
         }
 
@@ -163,16 +179,18 @@ class shopCsvProductuploadController extends shopUploadController
             $features = $feature_model->getFeatures('name', $header);
         }
         foreach ($features as $id => $feature) {
-            if (
-            ($feature['type'] == shopFeatureModel::TYPE_DIVIDER)
-            ) {
+            if ($feature['type'] == shopFeatureModel::TYPE_DIVIDER) {
                 unset($features[$id]);
             }
         }
 
         foreach ($features as $code => $feature) {
             $code = $feature['code'];
-            if (!preg_match('/\.\d$/', $code) && ($feature['type'] != shopFeatureModel::TYPE_DIVIDER)) {
+            if (
+                !preg_match('/\.\d$/', $code)
+                &&
+                ($feature['type'] != shopFeatureModel::TYPE_DIVIDER)
+            ) {
                 $options[] = array(
                     'group'       => array(
                         'title' => ifset($translates[$group]),
@@ -194,6 +212,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'value'    => 'features:%s',
                 'title'    => _w('Select feature'),
                 'callback' => array(),
+                'no_match' => true,
             );
         }
 
@@ -201,13 +220,18 @@ class shopCsvProductuploadController extends shopUploadController
 
             $group = 'feature+';
             foreach (shopFeatureModel::getTypes() as $f) {
-                if ($f['available']) {
+                if (
+                    $f['available']
+                    &&
+                    ($f['type'] != shopFeatureModel::TYPE_DIVIDER)
+                ) {
                     if (empty($f['subtype'])) {
                         if ($multiple || (empty($f['multiple']) && !preg_match('@^(range|2d|3d)\.@', $f['type']))) {
                             $options[] = array(
-                                'group' => & $translates[$group],
-                                'value' => sprintf("f+:%s:%d:%d", $f['type'], $f['multiple'], $f['selectable']),
-                                'title' => empty($f['group']) ? $f['name'] : ($f['group'].': '.$f['name']),
+                                'group'    => & $translates[$group],
+                                'value'    => sprintf("f+:%s:%d:%d", $f['type'], $f['multiple'], $f['selectable']),
+                                'title'    => empty($f['group']) ? $f['name'] : ($f['group'].': '.$f['name']),
+                                'no_match' => true,
                             );
                         }
                     } else {
@@ -216,10 +240,10 @@ class shopCsvProductuploadController extends shopUploadController
                                 $type = str_replace('*', $sf['type'], $f['type']);
                                 if ($multiple || (empty($f['multiple']) && !preg_match('@^(range|2d|3d)\.@', $type))) {
                                     $options[] = array(
-                                        'group' => & $translates[$group],
-                                        'value' => sprintf("f+:%s:%d:%d", $type, $f['multiple'], $f['selectable']),
-                                        'title' => (empty($f['group']) ? $f['name'] : ($f['group'].': '.$f['name']))." — {$sf['name']}",
-
+                                        'group'    => & $translates[$group],
+                                        'value'    => sprintf("f+:%s:%d:%d", $type, $f['multiple'], $f['selectable']),
+                                        'title'    => (empty($f['group']) ? $f['name'] : ($f['group'].': '.$f['name']))." — {$sf['name']}",
+                                        'no_match' => true,
                                     );
                                 }
                             }

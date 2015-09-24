@@ -1125,7 +1125,7 @@ class shopSalesModel extends waModel
         $sql = "INSERT INTO shop_sales_tmp (order_id, name)
                 SELECT o.id, IFNULL(c.source, '')
                 FROM shop_order AS o
-                    JOIN shop_customer AS c
+                    LEFT JOIN shop_customer AS c
                         ON o.contact_id=c.contact_id
                     {$storefront_join}
                     {$abtest_join}
