@@ -301,7 +301,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
         wa()->getResponse()->setMeta('keywords', $category['meta_keywords']);
         wa()->getResponse()->setMeta('description', $category['meta_description']);
         foreach(ifset($category['og'], array()) as $property => $content) {
-            $content && wa()->getResponse()->setOgMeta($property, $content);
+            $content && wa()->getResponse()->setOgMeta('og:'.$property, $content);
         }
 
         /**

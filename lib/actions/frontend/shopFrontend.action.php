@@ -82,7 +82,7 @@ class shopFrontendAction extends waViewAction
         // Open Graph
         foreach (array('title', 'image', 'video', 'description', 'type') as $k) {
             if (waRequest::param('og_'.$k)) {
-                $this->getResponse()->setOGMeta($k, waRequest::param('og_'.$k));
+                $this->getResponse()->setOGMeta('og:'.$k, waRequest::param('og_'.$k));
             }
         }
 

@@ -46,11 +46,16 @@ class shopExpenseModel extends waModel
         if ($group_by !== 'months') {
             $group_by = 'days';
         }
+        $storefront_sql = '';
+        if (!empty($options['storefront'])) {
+            $storefront_sql = "AND storefront='".$this->escape($options['storefront'])."'";
+        }
 
         $sql = "SELECT *, DATEDIFF(end, start) + 1 AS days_count
                 FROM {$this->table}
                 WHERE start <= ?
                     AND end >= ?
+                    {$storefront_sql}
                 ORDER BY start";
         $expenses = $this->query($sql, $date_end, $date_start)->fetchAll();
 

@@ -421,7 +421,7 @@
         initSearch: function () {
             var search = function () {
                 // encodeURIComponent ?..
-                $.wa.setHash('#/products/'+($.products.list_params && $.products.list_params.view ? 'view='+$.products.list_params.view+'&' : '')+'text='+this.value);
+                $.wa.setHash('#/products/'+($.products.list_params && $.products.list_params.view ? 'view='+$.products.list_params.view+'&' : '')+'text='+encodeURIComponent(this.value));
             };
             var $products_search = $('#s-products-search');
 

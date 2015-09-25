@@ -3,14 +3,9 @@
 <div class="sales-widget-wrapper">
     <div class="graph-wrapper" id="graph-wrapper-{$widget_id}"></div>
     <div class="text-wrapper">
-        <h6 class="heading nowrap">
-            {if ifempty($settings['metric']) == 'profit'}
-                [`Last 30 days profit`]
-            {else}
-                [`Last 30 days sales`]
-            {/if}
-        </h6>
+        <h6 class="heading nowrap">{$title|escape}</h6>
         <h1 class="s-sales nowrap">{$total_formatted}</h1>
+        <h3 class="s-sales-compare {$dynamic_class}">{$dynamic_html}</h3>
     </div>
     <a class="redirect-to-reports-link" href="{$sales_link}" title="{shop_currency($total)|escape}"></a>
 </div>
@@ -22,6 +17,7 @@
         js_href = "{$widget_url}js/salesWidget.js?{$wa->version()}",
         widget = DashboardWidgets["{$widget_id}"],
         options = {
+            widget_id: {$widget_id},
             graph_data: {json_encode($graph_data)},
             graph_id: "graph-wrapper-{$widget_id}"
         };

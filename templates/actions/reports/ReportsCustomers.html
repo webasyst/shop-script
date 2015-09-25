@@ -204,7 +204,7 @@
                 {foreach $country_customers as $c}
                     <tr>
                         <td>{if $c.iso3letter}
-                            <i class="icon16 country" style="background-image: url('/wa-content/img/country/{$c.iso3letter}.gif');"></i>
+                            <i class="icon16 country" style="background-image: url('{$wa_url}wa-content/img/country/{$c.iso3letter}.gif');"></i>
                         {else}
                             <i class="icon16 globe"></i>
                         {/if}{$c.name|escape}</td>

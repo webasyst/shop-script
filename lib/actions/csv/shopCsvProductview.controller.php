@@ -48,7 +48,7 @@ class shopCsvProductviewController extends waJsonController
             }
 
         }
-        if ($data) {
+        if ($data && isset($value)) {
 
             return '<td data-rows="'.htmlentities($data, ENT_QUOTES, 'utf-8').'">'.$value.'</td>';
         } else {

@@ -56,7 +56,7 @@
                 </strong>
             </td>
             <td class="align-right s-roi column-alltime-roi">
-                {if !empty($row.lifetime_roi)}{$row.lifetime_roi}%{else}<span class="gray">&mdash;</span>{/if}
+                {if $row.cost && !empty($row.lifetime_roi)}{$row.lifetime_roi}%{else}<span class="gray">&mdash;</span>{/if}
             </td>
         {/if}
 

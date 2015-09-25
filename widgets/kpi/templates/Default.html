@@ -1,0 +1,38 @@
+<style>
+    .heading { cursor: default; }
+    .widget-1x1 h1 { margin-bottom: 0.1em; }
+</style>
+
+<div class="block top-padded align-center">
+    <h3 class="heading">
+        {$title|escape}
+    </h3>
+    <h1 class="nowrap">{$total_formatted}</h1>
+    {if $dynamic !== null}
+        <h2 style="color:{$dynamic_color};">{$dynamic_html}</h2>
+    {/if}
+</div>
+
+<script>(function($) {
+
+    var widget_id = "{$widget_id}",
+        uniqid = '' + (new Date).getTime() + Math.random();
+
+    setTimeout(function() {
+        try {
+            DashboardWidgets[widget_id].uniqid = uniqid;
+            setTimeout(function() {
+                try {
+                    if (uniqid == DashboardWidgets[widget_id].uniqid) {
+                        DashboardWidgets[widget_id].renderWidget();
+                    }
+                } catch (e) {
+                    console && console.log('Error updating KPI widget', e);
+                }
+            }, 30*60*1000);
+        } catch (e) {
+            console && console.log('Error setting up KPI widget updater', e);
+        }
+    }, 0);
+
+})(jQuery);</script>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="3.1.0">
+<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="3.1.1">
     <name locale="en_US">Default 3.0</name>
     <name locale="ru_RU">Дефолт 3.0</name>
     <files>
@@ -240,6 +240,35 @@
             <value></value>
             <name locale="en_US">Storefront sidebar</name>
             <name locale="ru_RU">Боковая панель на витрине</name>
+        </setting>
+        <setting var="homepage_sidebar_layout" control_type="select">
+            <value>right</value>
+            <name locale="en_US">Display homepage sidebar</name>
+            <name locale="ru_RU">Показывать боковую панель на витрине</name>
+            <options>
+                <option value="right">
+                    <name locale="ru_RU">Справа</name>
+                    <name locale="en_US">Right</name>
+                </option>
+                <option value="left">
+                    <name locale="ru_RU">Слева</name>
+                    <name locale="en_US">Left</name>
+                </option>
+                <option value="hidden">
+                    <name locale="ru_RU">Не показывать</name>
+                    <name locale="en_US">Don’t show sidebar</name>
+                </option>
+            </options>
+        </setting>
+        <setting var="homepage_sidebar_storeinfo" control_type="checkbox">
+            <value>1</value>
+            <name locale="en_US">Store name, phone number, and working hours</name>
+            <name locale="ru_RU">Название магазина, номер телефона и часы работы</name>
+        </setting>
+        <setting var="homepage_sidebar_categories" control_type="checkbox">
+            <value>1</value>
+            <name locale="en_US">Root product categories in the homepage sidebar</name>
+            <name locale="ru_RU">Корневые категории в боковой панели</name>
         </setting>
         <setting var="homepage_bullet_title_1" control_type="text">
             <value locale="en_US">Faster delivery</value>

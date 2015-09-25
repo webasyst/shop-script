@@ -55,7 +55,7 @@ class shopShipping extends waAppShipping
             $plugin = $info['plugin'];
         }
         if ($plugin == self::DUMMY) {
-            return shopShippingDummy::getDummy($plugin_id);
+            return shopShippingDummy::getDummy();
         } else {
             return waShipping::factory($plugin, $plugin_id, self::getInstance());
         }

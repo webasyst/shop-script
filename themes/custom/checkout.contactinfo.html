@@ -37,7 +37,15 @@
                         // Fill all fields in billing address
                         $shipping_address_wrapper.find(':input[name^="customer[address.shipping]"]').each(function() {
                             var $fld = $(this);
-                            $billing_address_wrapper.find('[name="'+$fld.attr('name').replace('address.shipping', 'address.billing')+'"]').val($fld.val()).change();
+                            if ($fld.is(':radio')) {
+                                if ($fld.is(':checked')) {
+                                    $billing_address_wrapper.find('[name="'+$fld.attr('name').replace('address.shipping', 'address.billing')+'"]').filter(function() {
+                                        return this.value == $fld.val();
+                                    }).prop('checked', true);
+                                }
+                            } else {
+                                $billing_address_wrapper.find('[name="'+$fld.attr('name').replace('address.shipping', 'address.billing')+'"]').val($fld.val()).change();
+                            }
                         });
                     });
 

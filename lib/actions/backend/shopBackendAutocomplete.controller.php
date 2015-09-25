@@ -647,10 +647,11 @@ SQL;
         $term_safe = htmlspecialchars($q);
         $limit = (int) $limit;
         $result = array();
+        $url = wa()->getRootUrl();
         foreach ($rm->query("SELECT DISTINCT code, country_iso3, name FROM `wa_region` WHERE name LIKE '%{$q}%' LIMIT {$limit}") as $item) {
             $result[] = array(
                 'value' => $item['country_iso3'] . ':' . $item['code'],
-                'label' => '<img src="/wa-content/img/country/'.$item['country_iso3'].'.gif"> ' . $this->prepare($item['name'], $term_safe),
+                'label' => '<img src="'.$url.'wa-content/img/country/'.$item['country_iso3'].'.gif"> ' . $this->prepare($item['name'], $term_safe),
                 'autocomplete_item_type' => 'region'
             );
         }
@@ -663,11 +664,12 @@ SQL;
         $q = $cm->escape($q, 'like');
         $term_safe = htmlspecialchars($q);
         $limit = (int) $limit;
+        $url = wa()->getRootUrl();
         $result = array();
         foreach ($cm->query("SELECT DISTINCT name, iso3letter FROM `wa_country` WHERE name LIKE '%{$q}%' LIMIT {$limit}") as $item) {
             $result[] = array(
                 'value' => $item['iso3letter'],
-                'label' => '<img src="/wa-content/img/country/'.$item['iso3letter'].'.gif"> ' . $this->prepare($item['name'], $term_safe),
+                'label' => '<img src="'.$url.'wa-content/img/country/'.$item['iso3letter'].'.gif"> ' . $this->prepare($item['name'], $term_safe),
                 'autocomplete_item_type' => 'country'
             );
         }
@@ -680,7 +682,7 @@ SQL;
                     $count += 1;
                     $result[] = array(
                         'value' => $item['iso3letter'],
-                        'label' =>  '<img src="/wa-content/img/country/'.$item['iso3letter'].'.gif"> ' . $this->prepare($name, $term_safe),
+                        'label' =>  '<img src="'.$url.'wa-content/img/country/'.$item['iso3letter'].'.gif"> ' . $this->prepare($name, $term_safe),
                         'autocomplete_item_type' => 'country'
                     );
                     if ($count >= $limit) {

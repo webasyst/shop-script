@@ -1,13 +1,18 @@
 <style>
-    .s-orders-widget ul.menu-v { margin-top: 0; }
+    .s-orders-widget { font-size: 14px; }
+    .s-orders-widget ul.menu-v { margin-top: 0; font-size: 1em; }
     .s-orders-widget ul.menu-v li { padding: 0; }
-    .s-orders-widget ul.menu-v li a { margin: 0; padding: 5px 10px; }
+    .s-orders-widget ul.menu-v li a { margin: 0; padding: .35em .75em; }
     .s-orders-widget ul.menu-v li a:hover span { color: red !important; }
-    .s-orders-widget ul.menu-v li.s-processing a { background: #eafada !important; padding: 10px; margin-bottom: 4px; }
+    .s-orders-widget ul.menu-v li.s-processing a { background: #eafada !important; padding: .75em; margin-bottom: .25em; }
     .s-count { display: none; }
 
     .widget-1x1 .s-amount { display: none; }
     .widget-1x1 .s-count { display: inline; }
+
+    .tv .s-orders-widget,
+    .mobile .s-orders-widget { font-size: 1rem; }
+    .tv .s-orders-widget ul.menu-v li.s-processing a { background: #555 !important; }
 </style>
 <div class="s-orders-widget">
 
