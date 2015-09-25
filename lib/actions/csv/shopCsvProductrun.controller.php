@@ -473,6 +473,7 @@ class shopCsvProductrunController extends waLongActionController
         if (!$this->collection) {
             $hash = null;
             if ($this->data['export_category']) {
+                //it's * or category/##
                 $id = $this->data['map'][self::STAGE_CATEGORY];
                 if ($id || !preg_match('@^category/\d+$@', $this->data['hash'])) {
                     $hash = 'search/category_id='.($id ? $id : '=null');
@@ -481,9 +482,12 @@ class shopCsvProductrunController extends waLongActionController
                 }
 
                 if (preg_match("@^category/{$id}\$@", $this->data['hash'])) {
-                    $this->data['hash'] = '*';
-                }
-                if (($this->data['hash'] != '*')) {
+                    if ($this->data['config']['extra_categories']) {
+                        $hash = 'search/category_id='.($id ? $id : '=null');
+                    } else {
+                        $hash = $this->data['hash'];
+                    }
+                } elseif (($this->data['hash'] != '*')) {
                     $hash .= (substr($hash, -1) == '/' ? '' : '&').str_replace('/', '_id=', $this->data['hash']);
                 }
             } else {
@@ -1697,8 +1701,8 @@ class shopCsvProductrunController extends waLongActionController
             !$res
             &&
             $this->data['export_category']
-            &&
-            ($this->data['current'][self::STAGE_CATEGORY] < $this->data['count'][self::STAGE_CATEGORY])
+            //      &&
+            //      ($this->data['current'][self::STAGE_CATEGORY] < $this->data['count'][self::STAGE_CATEGORY])
         ) {
             $res = $this->stepExportCategory($this->data['current'], $this->data['count'], $this->data['processed_count']);
         }

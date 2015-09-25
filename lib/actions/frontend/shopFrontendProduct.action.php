@@ -498,16 +498,19 @@ class shopFrontendProductAction extends shopFrontendAction
             'ext' => $product['ext'],
         ), null, true);
 
-        $res['og'] = $product['og'] + array(
-            'type' => 'og:product',
-            'title' => $res['meta_title'],
-            'description' => $res['meta_description'],
-            'image' => $image_url,
-            'url' => wa()->getConfig()->getHostUrl().wa()->getConfig()->getRequestUrl(false, true),
+
+        $res['og'] = array(
+            'og:type' => 'og:product',
+            'og:title' => $res['meta_title'],
+            'og:description' => $res['meta_description'],
+            'og:image' => $image_url,
+            'og:url' => wa()->getConfig()->getHostUrl().wa()->getConfig()->getRequestUrl(false, true),
             'product:price:amount' => shop_currency($product['price'], null, null, false),
             'product:price:currency' => wa('shop')->getConfig()->getCurrency(false),
         );
-
+        foreach ($product['og'] as $k => $v) {
+            $res['og']['og:'.$k] = $v;
+        }
         return $res;
     }
 }
