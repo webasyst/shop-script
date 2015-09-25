@@ -278,7 +278,9 @@ class shopDiscounts
         }
 
         foreach($order['items'] as &$item) {
-            $item['currency'] = $order['currency'];
+            if (!isset($item['currency'])) {
+                $item['currency'] = $order['currency'];
+            }
         }
         unset($item);
 
