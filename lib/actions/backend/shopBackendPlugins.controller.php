@@ -1,9 +1,10 @@
 <?php
 
-class shopBackendPluginsController extends waViewController
+class shopBackendPluginsController extends waController
 {
     public function execute()
     {
-        $this->executeAction(new shopPluginsAction());
+        $c = new shopPluginsActions();
+        $c->run();
     }
 }

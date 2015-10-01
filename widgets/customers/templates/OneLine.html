@@ -1,0 +1,34 @@
+<div class="customers-oneline-widget-wrapper">
+    <div class="graph-wrapper" id="graph-wrapper-{$widget_id}"></div>
+    <div class="text-wrapper">
+        <h6 class="heading">
+            [`Customers`]
+        </h6>
+        <h1 class="s-customer-count">
+            {$total_customers}
+        </h1>
+        <h3 class="s-customer-count-new">{_wp('+%d new', '+%d new', $new_customers)}</h3>
+    </div>
+</div>
+<script>(function() {
+    var widget_id = "{$widget_id}";
+    var script_url = "{$widget_url}js/customersGraph.js?{$wa->version()}";
+    var graph_data = {json_encode($graph_data)};
+
+    if (typeof CustomersGraph !== "undefined") {
+        initGraph();
+    } else {
+        $.getScript(script_url, function() {
+            initGraph();
+        });
+    }
+
+    function initGraph() {
+        DashboardWidgets[widget_id].sales = new CustomersGraph({
+            widget_id: widget_id,
+            graph_data: graph_data,
+            graph_id: "graph-wrapper-"+widget_id
+        });
+    }
+})();</script>
+<style>{include file="../css/oneline.css" inline}</style>

@@ -11,8 +11,9 @@ class shopCheckoutContactinfo extends shopCheckout
     public function display()
     {
         if (!$this->form) {
-            $this->form = shopHelper::getCustomerForm();
+            $this->form = shopHelper::getCustomerForm(null, false, true);
         }
+
         $contact = $this->getContact();
         if ($contact) {
             $this->form->setValue($contact);
@@ -85,7 +86,42 @@ class shopCheckoutContactinfo extends shopCheckout
                 $errors[] = _w('Oops! For some reason your contact information was lost during the checkout. Please return to the contact information checkout step to finalize your order.');
             }
         }
+        if (wa('shop')->getSetting('checkout_antispam') && !wa()->getUser()->isAuth()) {
+            if (!$this->getSessionData('antispam')) {
+                $errors[] = _w('Oops! For some reason your contact information was lost during the checkout. Please return to the contact information checkout step to finalize your order.');
+            }
+        }
         return $errors;
+    }
+
+    protected function sendSpamAlert()
+    {
+        $email = wa('shop')->getSetting('checkout_antispam_email');
+        if (!$email) {
+            return;
+        }
+        try {
+            $customer = new waContact();
+            foreach ((array)waRequest::post('customer') as $k => $v) {
+                $customer->set($k, $v);
+            }
+
+            $customer_fields = $this->form->fields();
+            $view = wa()->getView();
+
+            $subject = _w('Spammy order alert');
+            $view->assign(array(
+                'customer' => $customer,
+                'customer_fields' => $customer_fields
+            ));
+            $body = $view->fetch(wa()->getAppPath('templates/mail/AntispamAlert.html', 'shop'));
+
+            $m = new waMailMessage($subject, $body);
+            $m->setTo($email);
+            $m->send();
+        } catch (Exception $e) {
+            waLog::log($e->getMessage());
+        }
     }
 
     /**
@@ -100,9 +136,37 @@ class shopCheckoutContactinfo extends shopCheckout
             $contact = new waContact();
         }
 
-        $this->form = shopHelper::getCustomerForm();
+        $this->form = shopHelper::getCustomerForm(null, false, true);
+
+        // Do not validate required subfields of billing address
+        // when billing is set up to match shipping address.
+        if (waRequest::request('billing_matches_shipping') && $this->form->fields('address.shipping') && $this->form->fields('address.billing')) {
+            $subfields = $this->form->fields('address.billing')->getParameter('fields');
+            foreach($subfields as $i => $sf) {
+                if ($sf->isRequired()) {
+                    $subfields[$i] = clone $sf;
+                    $subfields[$i]->setParameter('required', false);
+                }
+            }
+            $this->form->fields('address.billing')->setParameter('fields', $subfields);
+        }
+
+        if (!wa()->getUser()->isAuth() && ($this->form instanceof shopContactForm)) {
+            if (!$this->form->isValidAntispam()) {
+                $errors = $this->form->errors();
+                if (!empty($errors['spam'])) {
+                    $this->sendSpamAlert();
+                    wa()->getView()->assign('errors', array(
+                        'all' => $errors['spam']
+                    ));
+                }
+            }
+        }
         if (!$this->form->isValid($contact)) {
             return false;
+        }
+        if (wa('shop')->getSetting('checkout_antispam') && !wa()->getUser()->isAuth()) {
+            $this->setSessionData('antispam', true);
         }
 
         $data = waRequest::post('customer');

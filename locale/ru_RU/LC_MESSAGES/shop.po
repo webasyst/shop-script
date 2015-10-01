@@ -9294,3 +9294,76 @@ msgstr "Конец рабочего дня, например, 19:00"
 #: /wa-apps/shop/themes/default/header.html:43
 msgid "You did not create any product categories yet."
 msgstr "Вы еще не создали ни одной категории товаров."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:159
+msgid "Anti-spam"
+msgstr "Анти-спам"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:164
+msgid "Checkout anti-spam filter"
+msgstr "Анти-спам фильтр для заказов"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:176
+msgid "Checkout anti-spam filtering is seamless for real customers and will automatically reject spammy orders placed by robots."
+msgstr "Анти-спам фильтр для заказов работает незаметно для реальных покупателей и автоматически отвергает все заказы, оформленные ботами."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:180
+msgid "Alerts on rejected checkout attempts"
+msgstr "Уведомления об отвергнутых попытках заказа"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:185
+msgid "Enable alerts on spammy checkout attempts to make sure none of real orders were rejected by the anti-spam filter."
+msgstr "Включите email-уведомления о попытках оформления заказов ботами, чтобы быть уверенным, что ни один реальный заказ не был отвергнут по ошибке."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:189
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:143
+msgid "Captcha"
+msgstr "Капча"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:191
+msgid "Enable captcha for checkout (not required)"
+msgstr "Включить капчу для оформления заказов (не обязательно)"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:194
+msgid "Optional. Enable checkout captcha when seamless anti-spam protection is not enough."
+msgstr "Капча (ввод кода на изображении) — дополнительная защита от заказов, оформляемых ботами. Включите капчу, если встроенная система защиты, незаметная для покупателя, недостаточно хорошо фильтрует заказы от спамеров."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:206
+msgid "If your store is under spammers attack and you receive lots of fraudulent orders placed by robots, protect the checkout routine with seamless anti-spam filtering. This will automatically filter all spam and save genuine orders only."
+msgstr "Если вы получаете поток заказов, и ни один из них не подтверждается, значит заказы оформляют не реальные покупатели, а роботы. Ваш магазин под атакой спамеров. Включите анти-спам фильтр, чтобы автоматически отфильтровать поток реальных заказов от спама."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:146
+msgid "Webasyst Captcha"
+msgstr "Капча Webasyst"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:151
+msgid "Google reCAPTCHA"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:152
+msgid "Selected captcha type will be used throughout your storefront wherever applicable."
+msgstr "Выбранный тип будет использован на витрине вашего интернет-магазина везде, где показывается капча."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:155
+msgid "Site Key"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:161
+msgid "Secret"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:164
+msgid "Get Google reCAPTCHA site key and secret for your site on <a href=\"https://www.google.com/recaptcha\" target=\"_blank\">https://www.google.com/recaptcha</a>"
+msgstr "Получите ключи Google reCAPTCHA для вашего сайта по адресу <a href=\"https://www.google.com/recaptcha\" target=\"_blank\">https://www.google.com/recaptcha</a>"
+
+#: /wa-apps/shop/lib/classes/checkout/shopCheckoutContactinfo.class.php:114
+msgid "Spammy order alert"
+msgstr "Отклоненная попытка заказа"
+
+#: /wa-apps/shop/lib/classes/shopContactForm.class.php:64
+msgid "Something went wrong while processing your data. Please contact store team directly regarding your order. A notification about this error has been sent to the store admin."
+msgstr "Что-то прошло не так при обработке вашего запроса. Уведомление о попытке заказа отправлено в отдел продаж Пожалуйста, свяжитесь со отделом продаж напрямую, чтобы подтвердить ваш заказ."
+
+#: /wa-apps/shop/templates/mail/AntispamAlert.html:17
+msgid "The following order attempt was REJECTED because user acted like a bot. Order record has not been created yet. If this is a valid order, you will need to confirm it with the customer and manually place the order in your store backend."
+msgstr "Попытка заказа была ОТКЛОНЕНА, так как пользователя вел себя, как бот. Заказ не был сохранен. Если это реальный заказ, подтвержденный покупателем, добавьте заказ вручную в бекенде вашего интернет-магазина."

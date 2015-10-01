@@ -1,0 +1,62 @@
+.s-customer-count { color: #4d7ab3; margin-bottom: 0 !important; }
+.s-customer-count-new { color: #8ab; }
+.tv .s-customer-count { color: #7be; }
+
+.customers-oneline-widget-wrapper .graph-wrapper {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    overflow: hidden;
+}
+.customers-oneline-widget-wrapper .graph-wrapper svg {
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    fill: rgba(0,0,0,0.1);
+    -webkit-border-radius: 0 0 3px 3px;
+    -moz-border-radius: 0 0 3px 3px;
+    border-radius: 0 0 3px 3px;
+}
+.customers-oneline-widget-wrapper .graph-wrapper svg path,
+.customers-oneline-widget-wrapper .graph-wrapper svg line {
+    fill: none;
+    stroke: #aaa;
+    shape-rendering: auto;
+}
+.customers-oneline-widget-wrapper .graph-wrapper svg .line {
+    stroke-width: 3px;
+    opacity: 1;
+}
+.customers-oneline-widget-wrapper .graph-wrapper svg .area {
+    stroke: none;
+    opacity: 0.3;
+}
+.customers-oneline-widget-wrapper .graph-wrapper svg.profit .area {
+    opacity: 0.5;
+}
+.customers-oneline-widget-wrapper .text-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+.widget-1x1 .customers-oneline-widget-wrapper .text-wrapper {
+    padding: 0.5rem;
+}
+.widget-1x1 .customers-oneline-widget-wrapper .text-wrapper {
+    padding: 0.5rem;
+}
+.widget-2x1 .customers-oneline-widget-wrapper .text-wrapper {
+    padding: 0.75rem;
+}
+.widget-2x2 .customers-oneline-widget-wrapper .text-wrapper {
+    padding: 0.75rem;
+}

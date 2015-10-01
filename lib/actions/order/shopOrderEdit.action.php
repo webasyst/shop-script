@@ -71,6 +71,7 @@ class shopOrderEditAction extends waViewAction
 
         $this->view->assign(array(
             'form'     => $form,
+            'order_storefront' => $this->getOrderStorefront($order),
             'order'    => $order,
             'stocks'   => $stocks,
             'currency' => $currency,
@@ -228,12 +229,23 @@ class shopOrderEditAction extends waViewAction
         $storefronts = array();
         foreach (wa()->getRouting()->getByApp('shop') as $domain => $domain_routes) {
             foreach ($domain_routes as $route) {
-                $url = rtrim($domain.'/'.$route['url'], '/*').'/';
+                $url = rtrim($domain.'/'.$route['url'], '/*');
+                if (strpos($url, '/') !== false) {
+                    $url .= '/';
+                }
                 $storefronts[] = $url;
             }
         }
         return $storefronts;
     }
 
+    public function getOrderStorefront($order)
+    {
+        $storefront = rtrim((string) ifset($order['params']['storefront'], ''), '/*');
+        if (strpos($storefront, '/') !== false) {
+            $storefront .= '/';
+        }
+        return $storefront;
+    }
 }
 

@@ -248,7 +248,7 @@
             <select id="order-storefront" name="storefront">
                 <option value="">[`Manual order`]</option>
                 {foreach $storefronts as $storefront}
-                    <option value="{$storefront}"{if !empty($order.params.storefront) && $storefront == $order.params.storefront} selected{/if}>{$storefront}</option>
+                    <option value="{$storefront}"{if $storefront == $order_storefront} selected{/if}>{$storefront}</option>
                 {/foreach}
             </select>
         </div>
@@ -304,7 +304,7 @@
                     <td class="align-right" colspan="3">
                         <div class="s-order-aux-box">
                             [`Shipping`]
-                            <select id="shipping_methods" name="shipping_id">
+                            <select id="shipping_methods" name="shipping_id" style="max-width: 250px;">
                                 <option value=""></option>
                                 {foreach $shipping_methods as $m_id => $m}
                                     <option {if !empty($order.shipping_id) && $order.shipping_id === $m_id}selected{/if} data-rate="{$m.rate}" value="{$m_id}"{if !empty($m.external)} data-external="1"{/if}>{$m.name|truncate:80}</option>
@@ -327,7 +327,7 @@
                         <div class="s-order-aux-box">
                         [`Payment`]
                         {$payment_methods = shopHelper::getPaymentMethods($order)}
-                        <select id="payment_methods" name="payment_id">
+                        <select id="payment_methods" name="payment_id" style="max-width: 250px;">
                             <option value=""></option>
                             {foreach $payment_methods as $m}
                             <option {if !empty($order.params.payment_id) && $order.params.payment_id == $m.id}selected="true"{/if} value="{$m.id}">{$m.name|truncate:80}</option>

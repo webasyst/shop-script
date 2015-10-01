@@ -378,10 +378,13 @@ return array(
             'source' => 'field:images',
         ),
         'downloadable'          => array(
-            'type'        => 'fixed',
+            'type'        => 'adjustable',
             'name'        => 'Цифровой товар',
             'description' => 'Обозначение товара, который можно скачать',
             'source'      => 'field:file_name',
+            'values'      => array(
+                true  => 'true',
+            ),
         ),
         /**
          * adjustable

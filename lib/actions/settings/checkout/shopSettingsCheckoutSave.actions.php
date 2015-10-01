@@ -108,4 +108,24 @@ class shopSettingsCheckoutSaveActions extends waJsonActions
         $asm = new waAppSettingsModel();
         $asm->set('shop', 'disable_backend_customer_form_validation', waRequest::post('enable') ? null : '1');
     }
+
+    public function antispamAction()
+    {
+        $enabled = waRequest::post('enabled');
+        $asm = new waAppSettingsModel();
+
+        if ($enabled) {
+            $asm->set('shop', 'checkout_antispam', 1);
+            foreach (array('email', 'captcha') as $key) {
+                $v = trim(waRequest::post($key));
+                if ($v) {
+                    $asm->set('shop', 'checkout_antispam_'.$key, $v);
+                } else {
+                    $asm->del('shop', 'checkout_antispam_'.$key);
+                }
+            }
+        } else {
+            $asm->del('shop', 'checkout_antispam');
+        }
+    }
 }

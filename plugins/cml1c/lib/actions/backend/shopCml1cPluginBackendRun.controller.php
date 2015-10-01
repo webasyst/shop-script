@@ -2171,6 +2171,26 @@ SQL;
         return $type_id;
     }
 
+    private function findCurrency($currency)
+    {
+        static $map;
+        if (!$map) {
+            $map = array(
+                'ГРН.'                                                               => 'UAH',
+                'ГРН'                                                                => 'UAH',
+                'РУБ'                                                                => 'RUB',
+                'РУБ.'                                                               => 'RUB',
+                'RUR'                                                                => 'RUB',
+                mb_strtoupper($this->plugin()->getSettings('currency_map'), 'UTF-8') => $this->plugin()->getSettings('currency'),
+            );
+        }
+        $currency = mb_strtoupper($currency, 'UTF-8');
+        if (isset($map[$currency])) {
+            $currency = $map[$currency];
+        }
+        return $currency;
+    }
+
     private function stepImportPrice(&$current_stage, &$count, &$processed)
     {
         $map =& $this->data['map'][self::STAGE_PRICE];
@@ -2294,9 +2314,7 @@ SQL;
                     $value *= $k;
                 }
                 if ($currency = self::field($p, 'Валюта')) {
-                    if (in_array(mb_strtoupper($currency, 'UTF-8'), array('РУБ', 'РУБ.', 'RUB', 'RUR',))) {
-                        $currency = 'RUB';
-                    }
+                    $currency = $this->findCurrency($currency);
                 }
 
                 if ($price_info = ifset($price_map[self::field($p, 'ИдТипаЦены')])) {
@@ -2737,8 +2755,16 @@ SQL;
             if (!empty($this->data['base_path'])) {
                 $file = $this->data['base_path'].$file;
             }
+            if ($file) {
+                try {
+                    $file = $this->extract($file);
+                } catch (waException $ex) {
+                    $this->error(sprintf("Ошибка при получения файла изображения: ", $ex->getMessage()));
+                    $file = false;
+                }
+            }
 
-            if ($file && ($file = $this->extract($file)) && is_file($file)) {
+            if ($file && is_file($file)) {
                 if (!$model) {
                     $model = new shopProductImagesModel();
                 }
@@ -2815,6 +2841,9 @@ SQL;
                 if ($file) {
                     waFiles::delete($file);
                 }
+            } else {
+                $target = 'skip';
+                $processed[self::STAGE_IMAGE][$target]++;
             }
             array_shift($this->data['map'][self::STAGE_IMAGE]);
             ++$current_stage[self::STAGE_IMAGE];

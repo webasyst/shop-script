@@ -14,9 +14,10 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
         $profile = $profile_helper->getConfig();
 
         $profile['config'] += array(
-            'hash'     => '',
-            'domain'   => '',
-            'lifetime' => 0,
+            'hash'         => '',
+            'domain'       => '',
+            'lifetime'     => 0,
+            'force_update' => 0,
         );
         $current_domain = &$profile['config']['domain'];
 
@@ -174,6 +175,7 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
             'summary'     => _w('Summary'),
             'count'       => _w('In stock'),
             'sku'         => _w('SKU code'),
+            'file_name'   => _w('Attachment'),
         );
         $this->view->assign('fields', $fields);
     }

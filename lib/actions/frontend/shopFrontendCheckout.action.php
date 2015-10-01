@@ -56,9 +56,11 @@ class shopFrontendCheckoutAction extends waViewAction
                         }
                         // last step
                         if ($redirect && !$errors) {
-                            if ($order_id = $this->createOrder()) {
+                            if ($order_id = $this->createOrder($errors)) {
                                 wa()->getStorage()->set('shop/success_order_id', $order_id);
                                 $this->redirect(wa()->getRouteUrl('/frontend/checkout', array('step' => 'success')));
+                            } else {
+                                $current_step = 'error';
                             }
                         }
 
@@ -69,9 +71,14 @@ class shopFrontendCheckoutAction extends waViewAction
                 } else {
                     $this->view->assign('error', '');
                 }
-                $title .= ' - '.$steps[$current_step]['name'];
-                $steps[$current_step]['content'] = $this->getStep($current_step)->display();
-                $this->view->assign('checkout_steps', $steps);
+                if ($current_step != 'error') {
+                    if (empty($steps[$current_step])) {
+                        throw new waException(_ws('Page not found'), 404);
+                    }
+                    $title .= ' - ' . $steps[$current_step]['name'];
+                    $steps[$current_step]['content'] = $this->getStep($current_step)->display();
+                    $this->view->assign('checkout_steps', $steps);
+                }
             }
         }
         $this->getResponse()->setTitle($title);
@@ -244,8 +251,35 @@ class shopFrontendCheckoutAction extends waViewAction
     }
 
 
-    protected function createOrder()
+    protected function createOrder(&$errors = array())
     {
+        $cart = new shopCart();
+        if (!wa()->getSetting('ignore_stock_count')) {
+            $check_count = true;
+            if (wa()->getSetting('limit_main_stock') && waRequest::param('stock_id')) {
+                $check_count = waRequest::param('stock_id');
+            }
+            $cart_model = new shopCartItemsModel();
+            $not_available_items = $cart_model->getNotAvailableProducts($cart->getCode(), $check_count);
+            foreach ($not_available_items as $row) {
+                if ($row['sku_name']) {
+                    $row['name'] .= ' (' . $row['sku_name'] . ')';
+                }
+                if ($row['available']) {
+                    if ($row['count'] > 0) {
+                        $errors[] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $row['count'], $row['name']);
+                    } else {
+                        $errors[] = sprintf(_w('Oops! %s just went out of stock and is not available for purchase at the moment. We apologize for the inconvenience. Please remove this product from your shopping cart to proceed.'), $row['name']);
+                    }
+                } else {
+                    $errors[] = sprintf(_w('Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed.'), $row['name']);
+                }
+            }
+            if ($errors) {
+                return false;
+            }
+        }
+
         $checkout_data = $this->getStorage()->get('shop/checkout');
 
         if ($this->getUser()->isAuth()) {
@@ -256,7 +290,6 @@ class shopFrontendCheckoutAction extends waViewAction
             $contact = new waContact();
         }
 
-        $cart = new shopCart();
         $items = $cart->items(false);
         // remove id from item
         foreach ($items as &$item) {

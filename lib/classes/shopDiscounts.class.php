@@ -64,6 +64,7 @@ class shopDiscounts
          * @return string[string] $return['description'] discount description to save in order log
          * @return float[string] $return['discount'] discount amount in order currency
          */
+        $order = self::prepareOrderData($order, $contact);
         $event_params = array('order' => &$order, 'contact' => $contact, 'apply' => $apply);
         $plugins_discounts = wa('shop')->event('order_calculate_discount', $event_params);
         foreach ($plugins_discounts as $plugin_id => $plugin_discount) {
@@ -189,7 +190,7 @@ class shopDiscounts
     /** Coupon discounts implementation. */
     protected static function byCoupons(&$order, $contact, $apply, &$d=null)
     {
-        $currency = isset($order['currency']) ? $order['currency'] :  wa('shop')->getConfig()->getCurrency(false);
+        $currency = isset($order['currency']) ? $order['currency'] : wa('shop')->getConfig()->getCurrency(false);
 
         $cm = new shopCouponModel();
         $checkout_data = wa('shop')->getStorage()->read('shop/checkout');
@@ -264,5 +265,25 @@ class shopDiscounts
             return wa()->getUser();
         }
         return null;
+    }
+
+    protected static function prepareOrderData($order, $contact)
+    {
+        $order['id'] = ifempty($order['id']);
+        $order['total'] = ifset($order['total'], 0);
+        $order['currency'] = ifset($order['currency'], wa('shop')->getConfig()->getCurrency(false));
+        $order['contact'] = $contact;
+        if (empty($order['params'])) {
+            unset($order['params']);
+        }
+
+        foreach($order['items'] as &$item) {
+            if (!isset($item['currency'])) {
+                $item['currency'] = $order['currency'];
+            }
+        }
+        unset($item);
+
+        return $order;
     }
 }

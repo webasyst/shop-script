@@ -99,7 +99,7 @@
                             <input type="checkbox" disabled="disabled" checked="checked">
                         </td>
                         <td colspan="3">
-                            {sprintf('[`<strong>%s</strong> category only`]', $parent.name)}
+                            {sprintf('[`<strong>%s</strong> category only`]', $parent.name|escape)}
                             <p class="hint" style="margin-bottom: 0;">[`Dynamic categories filter products only from parent categories they belong to.`]</p>
                         </td>
                     </tr>

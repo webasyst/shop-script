@@ -1,4 +1,8 @@
-{$shop_pages = $wa->shop->pages()}
+{if $theme_settings.header_links == 'shop-pages'}
+    {$shop_pages = []} {* pages were shown in the core layout index.html template already *}
+{else}
+    {$shop_pages = $wa->shop->pages()}
+{/if}
 
 {if $shop_pages || $theme_settings.category_nav_mode != 'sidebar'}
     
@@ -23,7 +27,7 @@
         </div>
     </form>
     
-    <ul class="pages flyout-nav" role="navigation">
+    <ul class="pages flyout-nav">
     
         {if $theme_settings.category_nav_mode != 'sidebar'}
             

@@ -104,7 +104,11 @@
                             {/if}
                         </td>
                         <td class="align-right">
-                            {$totals.lifetime_roi}%
+                            {if $totals.cost}
+                                {$totals.lifetime_roi}%
+                            {else}
+                                <span class="gray">&mdash;</span>
+                            {/if}
                         </td>
                     {/if}
                 </tr>

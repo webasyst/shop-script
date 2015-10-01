@@ -2,6 +2,17 @@ var SalesGraph;
 
 ( function($) {
 
+    var storage = {
+        defaultColors: [
+            "#a7e0a7",
+            "#009900"
+        ],
+        tvColors: [
+            "#437843",
+            "#5ac847"
+        ]
+    };
+
     var getGraphArea = function(that) {
         var $wrapper = that.$wrapper,
             margin = that.margin,
@@ -45,14 +56,36 @@ var SalesGraph;
         that.heightPercent = .6;  // 50%
         that.data = getGraphData(options.graph_data);
         that.area = getGraphArea(that);
-        that.colors = [
-            "#a7e0a7",
-            "#009900"
-        ];
+        that.is_tv = $("body").hasClass("tv");
+        that.colors = ( that.is_tv ) ? storage.tvColors : storage.defaultColors ;
+        that.uniqid = '' + (new Date).getTime() + Math.random();
+        that.widget_id = options.widget_id;
 
         // Functions
         that.renderSalesGraph();
+        that.setupAutoReload();
     };
+
+    SalesGraph.prototype.setupAutoReload = function() {
+        var that = this;
+        setTimeout(function() {
+            try {
+                DashboardWidgets[that.widget_id].uniqid = that.uniqid;
+                setTimeout(function() {
+                    try {
+                        if (that.uniqid == DashboardWidgets[that.widget_id].uniqid) {
+                            DashboardWidgets[that.widget_id].renderWidget();
+                        }
+                    } catch (e) {
+                        console && console.log('Error updating Sales widget', e);
+                    }
+                }, 30*60*1000);
+            } catch (e) {
+                console && console.log('Error setting up Sales widget updater', e);
+            }
+        }, 0);
+    };
+
 
     SalesGraph.prototype.renderSalesGraph = function() {
         var that = this,

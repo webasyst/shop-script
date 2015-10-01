@@ -1,0 +1,78 @@
+<style>
+    table.zebra.s-sources-widget-table td,
+    table.zebra.s-sources-widget-table tr:hover td { background: transparent; }
+    table.zebra.s-sources-widget-table tr { background: transparent; }
+    table.zebra.s-sources-widget-table tr:nth-child(2n+1) { background: #f2f7ff; }
+    
+    .s-sources-widget-table .source-name { padding-left: 0.8rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 10rem; }
+    .s-sources-widget-table .source-metric { text-align: right; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+    
+    .widget-1x1 .s-sources-widget-table .source-name { max-width: 5rem; }
+    .widget-2x2 .s-sources-widget-table .source-metric { white-space: nowrap; }
+    
+    .tv .s-sources-widget-table .source-metric { color: #ffa; }
+    .tv table.zebra.s-sources-widget-table tr:nth-child(2n+1) { background: #282828; }
+
+</style>
+<div class="block">
+    <h6 class="heading nowrap">
+        {if $metric == 'sales'}
+            [`Sales by source`]
+        {elseif $metric == 'profit'}
+            [`Profit by source`]
+        {elseif $metric == 'orders'}
+            [`Orders by source`]
+        {/if}
+    </h6>
+</div>
+
+{if $is_tv}
+    {$progressbar_color1 = '#197a8f'}
+    {$progressbar_color2 = '#0a6478'}
+{else}
+    {$progressbar_color1 = '#8ec7ec'}
+    {$progressbar_color2 = '#55a9df'}
+{/if}
+
+<table class="zebra s-sources-widget-table">
+    {foreach $sources as $s}
+        {if $s@index % 2}
+            {$progressbar_color = $progressbar_color1}
+        {else}
+            {$progressbar_color = $progressbar_color2}
+        {/if}
+        {$background_style = "background:linear-gradient(to right, {$progressbar_color} 0%, {$progressbar_color} {$s.percent}%, transparent {$s.percent}%, transparent 100%);"}
+        <tr>
+            <td class="source-name" style="{$background_style}">{$s.name|escape}</td>
+            <td class="source-metric">{$s.metric_html}</td>
+        </tr>
+    {foreachelse}
+        <tr>
+            <td colspan="2"><div class="align-center">[`No sources to show.`]</div></td>
+        </tr>
+    {/foreach}
+</table>
+
+<script>(function($) {
+
+    var widget_id = "{$widget_id}",
+        uniqid = '' + (new Date).getTime() + Math.random();
+
+    setTimeout(function() {
+        try {
+            DashboardWidgets[widget_id].uniqid = uniqid;
+            setTimeout(function() {
+                try {
+                    if (uniqid == DashboardWidgets[widget_id].uniqid) {
+                        DashboardWidgets[widget_id].renderWidget();
+                    }
+                } catch (e) {
+                    console && console.log('Error updating Sources widget', e);
+                }
+            }, 15*60*1000);
+        } catch (e) {
+            console && console.log('Error setting up Sources widget updater', e);
+        }
+    }, 0);
+
+})(jQuery);</script>

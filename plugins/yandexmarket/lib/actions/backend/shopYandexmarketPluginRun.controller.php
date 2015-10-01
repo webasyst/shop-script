@@ -33,7 +33,14 @@ class shopYandexmarketPluginRunController extends waLongActionController
                         $this->data['type_id'] = array_map('intval', $this->data['type_id']);
                     }
                     waRequest::setParam($route);
-                    $this->data['base_url'] = parse_url('http://'.preg_replace('@https?://@', '', $domain), PHP_URL_HOST);
+
+                    if (!preg_match('@^https?://@', $domain)) {
+                        $domain = 'http://'.$domain;
+                    }
+                    $this->data['base_url'] = parse_url($domain, PHP_URL_HOST);
+                    if ($path = parse_url($domain, PHP_URL_PATH)) {
+                        $this->data['base_url'] .= $path;
+                    }
                     $success = true;
                     break;
                 }
@@ -86,6 +93,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
                     'company_name' => waRequest::post('company_name'),
                     'shop'         => waRequest::post('shop'),
                     'lifetime'     => waRequest::post('lifetime', 0, waRequest::TYPE_INT),
+                    'force_update' => waRequest::post('force_update', 0, waRequest::TYPE_INT),
                     'utm_source'   => waRequest::post('utm_source'),
                     'utm_medium'   => waRequest::post('utm_medium'),
                     'utm_campaign' => waRequest::post('utm_campaign'),
@@ -169,6 +177,8 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 $this->data['types'] += array_fill_keys(array_filter(array_map('intval', $type_map)), $type);
             }
 
+            $this->data['force_update'] = !empty($profile_config['force_update']);
+
             $this->initRouting();
 
             $model = new shopCategoryModel();
@@ -239,8 +249,6 @@ XML;
             $original = shopYandexmarketPlugin::path('shops.dtd');
 
             $target = $this->getTempPath('shops.dtd');
-            $ft = filesize($target);
-            $fo = filesize($original);
             if (
                 !file_exists($target)
                 ||
@@ -292,7 +300,12 @@ XML;
 
             $this->data['primary_currency'] = $primary_currency;
             $rate = $available_currencies[$primary_currency]['rate'];
-            $available_currencies = $model->getCurrencies(shopYandexmarketPlugin::getConfigParam('currency'));
+
+            if ($this->plugin()->getSettings('convert_currency')) {
+                $available_currencies = $model->getCurrencies($primary_currency);
+            } else {
+                $available_currencies = $model->getCurrencies(shopYandexmarketPlugin::getConfigParam('currency'));
+            }
 
             foreach ($available_currencies as $info) {
                 if ($info['rate'] > 0) {
@@ -446,7 +459,7 @@ XML;
                 }
                 $file = $this->getTempPath();
                 $target = $this->data['path']['offers'];
-                if ($this->data['processed_count']['product']) {
+                if ($this->data['processed_count']['product'] || $this->data['force_update']) {
                     if (file_exists($file)) {
                         waFiles::delete($target);
                         waFiles::move($file, $target);
@@ -579,13 +592,22 @@ XML;
         $response['processed_count'] = $this->data['processed_count'];
         if ($response['ready']) {
             if (empty($this->data['processed_count']['product'])) {
-                $response['report'] = '<div class="errormsg"><i class="icon16 no"></i>Не выгружено ни одного товарного предложения';
-                if (file_exists($this->data['path']['offers'])) {
-                    $response['report'] .= ', файл не обновлен.';
+                if ($this->data['force_update']) {
+                    $response['report'] = '<i class="icon16 exclamation"></i>Не выгружено ни одного товарного предложения';
+                    if (file_exists($this->data['path']['offers'])) {
+                        $response['report'] .= ', но файл обновлен.';
+                    } else {
+                        $response['report'] .= ', но файл создан.';
+                    }
                 } else {
-                    $response['report'] .= ', файл не создан.';
+                    $response['report'] = '<div class="errormsg"><i class="icon16 no"></i>Не выгружено ни одного товарного предложения';
+                    if (file_exists($this->data['path']['offers'])) {
+                        $response['report'] .= ', файл не обновлен.';
+                    } else {
+                        $response['report'] .= ', файл не создан.';
+                    }
+                    $response['report'] .= '</div>';
                 }
-                $response['report'] .= '</div>';
             } else {
                 $response['report'] = $this->report();
                 $response['report'] .= $this->validateReport();
@@ -897,12 +919,30 @@ SQL;
                     }
                 }
 
+            } else {
+                $sql_params = array(
+                    'product_id' => array_keys($products),
+                );
+                if (empty($sku_model)) {
+                    $sku_model = new shopProductSkusModel();
+                }
+                $files = $sku_model->select('DISTINCT product_id, file_name')->where("product_id IN (i:product_id) AND file_name !=''", $sql_params)->fetchAll('product_id', true);
+                foreach ($files as $id => $file_name) {
+                    $products[$id]['file_name'] = $file_name;
+                }
+
+                $available = $sku_model->select('DISTINCT product_id, available')->where("product_id IN (i:product_id) AND available", $sql_params)->fetchAll('product_id', true);
+                foreach ($products as $id => &$product) {
+                    $product['available'] = !empty($available[$id]);
+                    unset($product);
+                }
             }
             $params = array(
                 'products' => &$products,
                 'type'     => 'YML',
             );
             wa('shop')->event('products_export', $params);
+
         }
         $check_stock = !empty($this->data['export']['zero_stock']) || !empty($this->data['app_settings']['ignore_stock_count']);
 
@@ -933,9 +973,12 @@ SQL;
                     unset($product['skus']);
                     foreach ($skus as $sku) {
                         $check_sku_price = $sku['price'] >= 0.5;
-                        if ($check_sku_price && ($check_stock || ($sku['count'] === null) || ($sku['count'] > 0))) {
+                        $check_available = !empty($sku['available']);
+                        $check_count = $check_stock || ($sku['count'] === null) || ($sku['count'] > 0);
+                        if ($check_available && $check_sku_price && $check_count) {
                             if (count($skus) == 1) {
                                 $product['price'] = $sku['price'];
+                                $product['compare_price'] = $sku['compare_price'];
                                 $product['file_name'] = $sku['file_name'];
                                 $product['sku'] = $sku['sku'];
                                 $increment = false;
@@ -950,7 +993,9 @@ SQL;
                         }
                     }
                 } else {
-                    if ($check_stock || ($product['count'] === null) || ($product['count'] > 0)) {
+                    $check_available = !empty($product['available']);
+                    $check_count = $check_stock || ($product['count'] === null) || ($product['count'] > 0);
+                    if ($check_available && $check_count) {
                         $this->addOffer($product, $type);
                         ++$processed;
                     }
@@ -1270,12 +1315,14 @@ SQL;
                     break;
                 }
             case 'price':
+                $_currency_converted = false;
                 if (!$currency_model) {
                     $currency_model = new shopCurrencyModel();
                 }
                 if ($sku_data) {
                     if (!in_array($data['currency'], $this->data['currency'])) {
 
+                        $_currency_converted = true;
                         $value = $currency_model->convert($value, $data['currency'], $this->data['primary_currency']);
                         $data['currency'] = $this->data['primary_currency'];
                     }
@@ -1283,17 +1330,19 @@ SQL;
                     if (!in_array($data['currency'], $this->data['currency'])) {
                         #value in default currency
                         if ($this->data['default_currency'] != $this->data['primary_currency']) {
+                            $_currency_converted = true;
                             $value = $currency_model->convert($value, $this->data['default_currency'], $this->data['primary_currency']);
                         }
                         $data['currency'] = $this->data['primary_currency'];
                     } elseif ($this->data['default_currency'] != $data['currency']) {
-
+                        $_currency_converted = true;
                         $value = $currency_model->convert($value, $this->data['default_currency'], $data['currency']);
                     }
                 }
-                if ($value && class_exists('shopRounding')) {
+                if ($value && class_exists('shopRounding') && !empty($_currency_converted)) {
                     $value = shopRounding::roundCurrency($value, $data['currency']);
                 }
+                unset($_currency_converted);
                 break;
 
             case 'currencyId':
@@ -1632,12 +1681,13 @@ SQL;
                     $_value = reset($value);
                     if ($_value instanceof shopDimensionValue) {
                         $unit = $_value->unit_name;
+                        $dimension_unit = $_value->unit;
                         $values = array();
                         foreach ($value as $_value) {
                             /**
                              * @var shopDimensionValue $_value
                              */
-                            $values[] = $_value->convert($unit, '%s');
+                            $values[] = $_value->convert($dimension_unit, '%s');
                         }
                         $value = implode(', ', $values);
                     } else {
@@ -1664,6 +1714,9 @@ SQL;
                         'value' => trim((string)$value),
                     );
                 }
+                break;
+            case 'downloadable':
+                $value = !empty($value) ? 'true' : null;
                 break;
         }
         $format = ifempty($info['format'], '%s');
