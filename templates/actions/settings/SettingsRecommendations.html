@@ -10,7 +10,7 @@
         {foreach $types as $type_id => $type}
         <div class="field" data-type-id="{$type_id}">
             <div class="name">
-                {shopHelper::getIcon($type.icon)}<strong>{$type.name}</strong>
+                {shopHelper::getIcon($type.icon)}<strong>{$type.name|escape}</strong>
             </div>
             <div class="value no-shift">
                 <div class="float-left s-ibutton-checkbox">
@@ -49,7 +49,7 @@
         {foreach $types as $type}
         <div class="field" data-type-id="{$type.id}">
             <div class="name">
-                {shopHelper::getIcon($type.icon)}<strong>{$type.name}</strong>
+                {shopHelper::getIcon($type.icon)}<strong>{$type.name|escape}</strong>
             </div>
             <div class="value s-ibutton-checkbox">
                 <ul class="menu-h">
