@@ -34,6 +34,18 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                             $contact_data = $contact->load();
                             $contact = new waContact($contact_id);
                             foreach ($contact_data as $k => $v) {
+                                if ($k == 'email') {
+                                    $f = waContactFields::get($k);
+                                    if ($f && $f->isMulti()) {
+                                        foreach ($v as $sk => $sv) {
+                                            if (isset($v[$sk]['status'])) {
+                                                unset($v[$sk]['status']);
+                                            }
+                                        }
+                                    } elseif (isset($v['status'])) {
+                                        unset($v['status']);
+                                    }
+                                }
                                 $contact->set($k, $v);
                             }
                         }
@@ -43,7 +55,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                         $contact->save();
                     }
                     // if user has been created
-                    if ($contact['password']) {
+                    if ($contact['password'] && empty($contact_id)) {
                         $signup_action = new shopSignupAction();
                         $signup_action->send($contact);
 

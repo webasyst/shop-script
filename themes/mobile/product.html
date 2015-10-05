@@ -223,21 +223,32 @@
 </article>
 
 <!-- RELATED PRODUCTS -->
-{$upselling = $product->upSelling(12)}
 {$crossselling = $product->crossSelling(12)}
-
-{if $upselling || $crossselling}
+{if !empty($crossselling)}
     <section class="related-product-info">
-        {if $crossselling}
+        <h3>{sprintf('[`Customers who bought %s also bought`]', $product.name|escape)}</h3>
 
-            <h3>{sprintf('[`Customers who bought %s also bought`]', $product.name|escape)}</h3>
-
-            {$type = $theme_settings.related_view_type}
-            {$template_url = 'list-thumbs.html'}
-            {if $type && $type == 'thumbs'}
-                {$template_url = 'list-table.html'}
-            {/if}
-            {include file=$template_url products=$crossselling ulclass="related-bxslider"}
+        {$type = $theme_settings.related_view_type}
+        {$template_url = 'list-thumbs.html'}
+        {if $type && $type == 'thumbs'}
+            {$template_url = 'list-table.html'}
         {/if}
+
+        {include file=$template_url products=$crossselling ulclass="related-bxslider"}
+    </section>
+{/if}
+
+{$upselling = $product->upSelling(12)}
+{if !empty($upselling)}
+    <section class="related-product-info">
+        <h3>[`See also`]</h3>
+
+        {$type = $theme_settings.related_view_type}
+        {$template_url = 'list-thumbs.html'}
+        {if $type && $type == 'thumbs'}
+            {$template_url = 'list-table.html'}
+        {/if}
+
+        {include file=$template_url products=$upselling ulclass="related-bxslider"}
     </section>
 {/if}

@@ -1,0 +1,82 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: shop/widgets/products\n"
+"POT-Creation-Date: 2015-09-23 10:05+0000\n"
+"PO-Revision-Date: \n"
+"Last-Translator: shop/widgets/products\n"
+"Language-Team: shop/widgets/products\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: .\n"
+"Language: ru_RU\n"
+"X-Generator: Poedit 1.8.4\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+#: /wa-apps/shop/widgets/products/templates/Default.html:29
+msgid "No products to show."
+msgstr "Не найдено товаров для отображения."
+
+#: /wa-apps/shop/widgets/products/lib/config/settings.php:4
+msgid "Product list"
+msgstr "Список товаров"
+
+#: /wa-apps/shop/widgets/products/lib/config/settings.php:9
+msgid "Last 7 days bestsellers"
+msgstr "Бестселлеры за последние 7 дней"
+
+#: /wa-apps/shop/widgets/products/lib/config/settings.php:10
+msgid "Last 30 days bestsellers"
+msgstr "Бестселлеры за последние 30 дней"
+
+#: /wa-apps/shop/widgets/products/lib/config/settings.php:11
+msgid "Last 90 days bestsellers"
+msgstr "Бестселлеры за последние 90 дней"
+
+#: /wa-apps/shop/widgets/products/lib/config/settings.php:12
+msgid "Out of stock"
+msgstr "Нет на складе"
+
+#: /wa-apps/shop/widgets/products/lib/config/settings.php:13
+msgid "Running out of stock"
+msgstr "Заканчиваются"
+
+#: /wa-apps/shop/widgets/products/lib/config/settings.php:14
+msgid "Last ordered"
+msgstr "Заказаны"
+
+#: /wa-apps/shop/widgets/products/lib/config/settings.php:15
+msgid "In-stock assets"
+msgstr "Активы"
+
+#: /wa-apps/shop/widgets/products/lib/shopProducts.widget.php:94
+msgid "%d min ago"
+msgid_plural "%d mins ago"
+msgstr[0] "%d мин"
+msgstr[1] "%d мин"
+msgstr[2] "%d мин"
+
+#: /wa-apps/shop/widgets/products/lib/shopProducts.widget.php:96
+msgid "%d hr ago"
+msgid_plural "%d hrs ago"
+msgstr[0] "%d ч"
+msgstr[1] "%d ч"
+msgstr[2] "%d ч"
+
+#: /wa-apps/shop/widgets/products/lib/shopProducts.widget.php:176
+msgid "%d day"
+msgid_plural "%d days"
+msgstr[0] "%d дн"
+msgstr[1] "%d дн"
+msgstr[2] "%d дн"
+
+#: /wa-apps/shop/widgets/products/lib/shopProducts.widget.php:92
+msgid "Just now"
+msgstr "Только что"
+
+#: /wa-apps/shop/widgets/products/lib/config/widget.php:3
+msgid "Products"
+msgstr "Товары"

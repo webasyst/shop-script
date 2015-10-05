@@ -1,0 +1,56 @@
+<style>
+    td.s-product-img img { width: 48px; height: 48px; padding-left: 0.4rem !important; }
+    td.s-product-metric { text-align: right; }
+    
+    .widget-1x1 .s-product-img { display: none; }
+    .widget-1x1 .s-product-name { padding-left: 0.7rem !important; }
+    .widget-2x2 .s-product-metric { white-space: nowrap; }
+    
+    .tv td.s-product-img img { width: 4rem; height: 4rem; }
+    .tv td.s-product-metric { color: #ffa; }
+</style>
+<div class="block">
+    <h6 class="heading nowrap">{$title|escape}</h6>
+</div>
+<table class="zebra s-products-widget-table">
+    {if $wa->shop->config('enable_2x')}
+        {$size = '48x48@2x'}
+    {else}
+        {$size = '48x48'}
+    {/if}
+    {foreach $products as $p}
+        <tr>
+            <td class="s-product-img">{$wa->shop->getProductImgHtml($p, $size, ['height' => 96, 'width' => 96])}</td>
+            <td class="s-product-name">{$p.name|escape}</td>
+            <td class="s-product-metric">{$p.metric}</td>
+        </tr>
+    {foreachelse}
+        <tr>
+            <td colspan="2"><div class="align-center">[`No products to show.`]</div></td>
+        </tr>
+    {/foreach}
+</table>
+
+<script>(function($) {
+
+    var widget_id = "{$widget_id}",
+        uniqid = '' + (new Date).getTime() + Math.random();
+
+    setTimeout(function() {
+        try {
+            DashboardWidgets[widget_id].uniqid = uniqid;
+            setTimeout(function() {
+                try {
+                    if (uniqid == DashboardWidgets[widget_id].uniqid) {
+                        DashboardWidgets[widget_id].renderWidget();
+                    }
+                } catch (e) {
+                    console && console.log('Error updating Products widget', e);
+                }
+            }, 60*60*1000);
+        } catch (e) {
+            console && console.log('Error setting up Products widget updater', e);
+        }
+    }, 0);
+
+})(jQuery);</script>

@@ -16,7 +16,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
     private $fsize = null;
     private $header = null;
 
-    protected $data_mapping = array();
+    protected $data_mapping = null;
     private $delimiter = ';';
     private $encoding;
     private $header_count = 0;
@@ -24,7 +24,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
 
     private $offset_map = array();
     private $current = null;
-    private $mapped = false;
+    private $mapped = null;
     private $key = 0;
     private $file;
     private $files = array();
@@ -315,8 +315,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
 
     public function current()
     {
-
-        if ($this->current) {
+        if ($this->current && ($this->mapped === null)) {
             foreach ($this->current as & $cell) {
                 $cell = $this->utf8_bad_replace($cell);
             }
@@ -331,12 +330,12 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
                 $this->header();
             }
         }
-        return $this->current && !$this->mapped ? $this->applyDataMapping($this->current) : $this->current;
+        return $this->current ? (($this->mapped === null) ? $this->applyDataMapping($this->current) : $this->mapped) : $this->current;
     }
 
     public function next()
     {
-        $this->mapped = false;
+        $this->mapped = null;
         if (!$this->fp || !$this->fsize) {
             return false;
         }
@@ -407,6 +406,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
     {
         rewind($this->fp);
         $this->key = 0;
+        $this->mapped = null;
         // $this->next();
     }
 
@@ -450,21 +450,25 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
      */
     public function setMap($map)
     {
-        $this->data_mapping = array();
-        foreach ($map as $field => $columns) {
-            if (strpos($columns, ':')) {
-                $columns = explode(':', $columns);
+        if (is_array($map)) {
+            $this->data_mapping = array();
+            foreach ($map as $field => $columns) {
+                if (strpos($columns, ':')) {
+                    $columns = explode(':', $columns);
+                }
+                if (is_array($columns)) {
+                    $columns = array_unique(array_map('intval', $columns));
+                    $add = count($columns);
+                } else {
+                    $columns = intval($columns);
+                    $add = ($columns >= 0) ? true : false;
+                }
+                if ($add) {
+                    $this->data_mapping[$field] = $columns;
+                }
             }
-            if (is_array($columns)) {
-                $columns = array_unique(array_map('intval', $columns));
-                $add = count($columns);
-            } else {
-                $columns = intval($columns);
-                $add = ($columns >= 0) ? true : false;
-            }
-            if ($add) {
-                $this->data_mapping[$field] = $columns;
-            }
+        } else {
+            $this->data_mapping = null;
         }
     }
 
@@ -484,32 +488,35 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
      */
     private function applyDataMapping($line)
     {
-        $data = array();
-        foreach ($this->data_mapping as $field => $column) {
-            $insert = null;
-            if (is_array($column)) {
-                $insert = array();
-                foreach ($column as $id) {
-                    $cell = ifset($line[$id]);
+        $this->mapped = array();
+        if ($this->data_mapping === null) {
+            $this->mapped = $line;
+        } else {
+            foreach ($this->data_mapping as $field => $column) {
+                $insert = null;
+                if (is_array($column)) {
+                    $insert = array();
+                    foreach ($column as $id) {
+                        $cell = ifset($line[$id]);
+                        if (($cell !== '') || !$this->params['ignore_empty_cells']) {
+                            $insert[] = $cell;
+                        }
+                    }
+                    if (!count($insert)) {
+                        $insert = null;
+                    }
+                } elseif ($column >= 0) {
+                    $cell = ifset($line[$column]);
                     if (($cell !== '') || !$this->params['ignore_empty_cells']) {
-                        $insert[] = $cell;
+                        $insert = $cell;
                     }
                 }
-                if (!count($insert)) {
-                    $insert = null;
+                if ($insert !== null) {
+                    self::insert($this->mapped, $field, $insert);
                 }
-            } elseif ($column >= 0) {
-                $cell = ifset($line[$column]);
-                if (($cell !== '') || !$this->params['ignore_empty_cells']) {
-                    $insert = $cell;
-                }
-            }
-            if ($insert !== null) {
-                self::insert($data, $field, $insert);
             }
         }
-        $this->mapped = true;
-        return $data;
+        return $this->mapped;
     }
 
     private $empty = null;
@@ -1026,14 +1033,18 @@ HTML;
 
             if (!empty($options['similar'])) {
                 foreach ($params['options'] as & $column) {
-                    similar_text($column['title'], $target, $column['like']);
-                    if ($column['like'] >= 90) {
-                        $max = $column['like'];
-                        $selected =& $column;
-                    } else {
+                    if(!empty($column['no_match'])){
                         $column['like'] = 0;
+                    } else {
+                        similar_text($column['title'], $target, $column['like']);
+                        if ($column['like'] >= 90) {
+                            $max = $column['like'];
+                            $selected =& $column;
+                        } else {
+                            $column['like'] = 0;
+                        }
+                        unset($column);
                     }
-                    unset($column);
                 }
             }
 
@@ -1042,7 +1053,7 @@ HTML;
                 $max = 0;
                 $to = mb_strtolower($target);
                 foreach ($params['options'] as & $column) {
-                    if ($column['like'] < 90) {
+                    if (empty($column['no_match']) && ($column['like'] < 90)) {
                         $from = mb_strtolower($column['title']);
                         if ($from && $to && ((strpos($from, $to) === 0) || (strpos($to, $from) === 0))) {
                             $l_from = mb_strlen($from);

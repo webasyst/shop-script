@@ -116,11 +116,6 @@ table.s-big-table td table.zebra td { border: none; padding: 5px; }
 .block.drop-target.drag-active { padding: 9px; border: 1px dashed #ddd; background: #ffffe0;  }
 .block.drop-target ul li.active { border-top: 2px solid #BB8; background: none; }
 
-.s-inner-sidebar { padding-top: 18px; }
-.s-inner-sidebar ul.menu-v li.selected a { background: #e7e7e7; }
-.s-inner-sidebar .s-inner-search input[type="search"] { width: 83%; }
-.s-inner-sidebar .s-inner-search .icon16.search-bw { opacity: 0.4; margin-left: -15px !important; margin-top: 1px !important; }
-
 .s-banner-success { background: #dfd; border-bottom: 1px solid #ddd; }
 .s-banner-error { background: #fdd; border-bottom: 1px solid #ddd; }
 
@@ -927,6 +922,7 @@ table.s-bulk-image-uploader-map .preload-files li.ui-state-highlight { line-heig
 .content.right15px { margin-right: 15px; }
 .s-nolevel2-sidebar { background: #f0f0f0; padding-left: 15px; position: relative; top: -5px; z-index: 130; }
 .left15px .s-nolevel2-sidebar { padding-left: 0; }
+.right15px .s-nolevel2-sidebar { padding-right: 0; }
 .s-nolevel2-sidebar ul.menu-v { padding-top: 5px; }
 .s-nolevel2-sidebar ul.menu-v li a { color: #777; }
 .s-nolevel2-sidebar ul.menu-v li a:hover { color: #333 !important; }
@@ -1050,6 +1046,8 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 .s-fixed-save-button-wrapper .value { margin: 0 !important; padding: 0 0 0 385px; }
 .s-fixed-save-button-wrapper br { display: none; }
 .s-fixed-save-button-wrapper input { margin: 0 !important; padding: 0 1em !important; cursor: pointer; }
+
+table.zebra p.hint { margin-bottom: 0; }
 
 /* ICONS
 -------- */

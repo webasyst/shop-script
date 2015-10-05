@@ -119,7 +119,17 @@ class shopCsvWriter implements Serializable
 
     public function write($data, $raw = false)
     {
-        fputcsv($this->fp, $raw ? $data : $this->applyDataMapping($data), $this->delimiter);
+        if (!$raw) {
+            $data = $this->applyDataMapping($data);
+        }
+
+        #dummy bug fix https://bugs.php.net/bug.php?id=43225
+        foreach ($data as &$cell) {
+            $cell = str_replace('\\"', '"', $cell);
+            unset($cell);
+        }
+
+        fputcsv($this->fp, $data, $this->delimiter, $this->enclosure);
         $this->offset = ftell($this->fp);
     }
 
@@ -128,10 +138,10 @@ class shopCsvWriter implements Serializable
         setlocale(LC_CTYPE, 'ru_RU.UTF-8', 'en_US.UTF-8');
         if ($this->file) {
 
-            $fsize = file_exists($this->file) ? filesize($this->file) : false;
+            $file_size = file_exists($this->file) ? filesize($this->file) : false;
             $this->fp = @fopen($this->file, 'a');
             if (!$this->fp) {
-                throw new waException("error while open CSV file");
+                throw new waException("error while open CSV file for write");
             }
             fseek($this->fp, 0, SEEK_END);
 
@@ -144,11 +154,10 @@ class shopCsvWriter implements Serializable
                         }
                         break;
                 }
-
             }
 
             if (!$this->offset) {
-                if ($fsize) {
+                if ($file_size) {
                     fseek($this->fp, 0);
                     ftruncate($this->fp, 0);
                     fseek($this->fp, 0);
@@ -174,7 +183,7 @@ class shopCsvWriter implements Serializable
     private function applyDataMapping($data)
     {
         $enclosure = '"';
-        $pattern = sprintf("/(?:%s|%s|%s|\s)/", preg_quote($this->delimiter, '/'), preg_quote(',', '/'), preg_quote($enclosure, '/'));
+        $pattern = sprintf("/(?:%s|%s|%s|\\s)/", preg_quote($this->delimiter, '/'), preg_quote(',', '/'), preg_quote($enclosure, '/'));
         $mapped = array();
         if (empty($this->data_mapping)) {
             $mapped = $data;

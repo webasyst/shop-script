@@ -187,11 +187,25 @@ class shopProductsCollection
 
     protected function alsoboughtPrepare($id)
     {
-        $alias = $this->addJoin('shop_order_items', null, ':table.product_id != '.(int)$id." AND :table.type = 'product'");
-        $this->addJoin('shop_order_items', $alias.".order_id = :table.order_id", ':table.product_id = '.(int)$id);
-        $this->fields[] = "COUNT(*) orders_count";
-        $this->group_by = 'p.id';
-        $this->order_by = 'orders_count DESC';
+        $alias = 'alsobought';
+        $this->joins[] = array(
+            'table' => '(SELECT oi1.product_id, COUNT(*) orders_count FROM shop_order_items oi1
+                JOIN (
+                  SELECT order_id FROM shop_order_items WHERE product_id = '.(int)$id.' ORDER BY id DESC LIMIT 2000
+                ) t ON oi1.order_id = t.order_id
+                WHERE oi1.product_id != '.(int)$id.' AND oi1.type = "product"
+                GROUP BY oi1.product_id
+                ORDER BY orders_count DESC
+                LIMIT 50)',
+            'alias' => $alias
+        );
+        if (!isset($this->join_index[$alias])) {
+            $this->join_index[$alias] = 1;
+        } else {
+            $this->join_index[$alias]++;
+        }
+        $this->fields[] = $alias.'.orders_count';
+        $this->order_by = $alias.'.orders_count DESC';
     }
 
     protected function toFloat($value)

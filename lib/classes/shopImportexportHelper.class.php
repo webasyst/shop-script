@@ -235,7 +235,7 @@ class shopImportexportHelper
         }
         if (!empty($params['categories']) || true) {
             $model = new shopCategoryModel();
-            $categories = $model->getTree(null, 0);
+            $categories = $model->getTree(null, 0, true);
             foreach ($categories as $id => $category) {
                 if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
                     unset($categories[$id]);
@@ -256,6 +256,7 @@ class shopImportexportHelper
             }
             $category_id = array_diff($category_id, array_keys($categories));
             foreach ($model->getById($category_id) as $category) {
+                $category['name'] = htmlspecialchars($category['name'], ENT_NOQUOTES, 'utf-8');
                 $map[$category['id']] = &$category;
                 if (isset($map[$category['parent_id']])) {
                     if (!isset($map['childs'])) {
