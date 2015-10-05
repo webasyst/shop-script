@@ -103,7 +103,7 @@ class shopCategoryModel extends waNestedSetModel
             $sql .= " ORDER BY c.`{$this->left}`";
 
             $data = $this->query($sql, array('left' => $left, 'right' => $right, 'depth' => $depth))->fetchAll($this->id);
-            if (!$id && $depth == null && $route && $cache) {
+            if (!$id && $depth == null && $route && ifset($cache)) {
                 $cache->set($cache_key, $data, 3600, 'categories');
             }
         }
