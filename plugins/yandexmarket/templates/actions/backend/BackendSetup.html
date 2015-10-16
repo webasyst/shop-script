@@ -138,7 +138,6 @@
                         </li>
                     </ul>
                     <p class="hint"><br><i class="icon10 exclamation"></i> Если товар не принадлежит ни одной категории, то он не будет экспортирован в YML-файл.</p>
-                    <p class="hint"><i class="icon10 exclamation"></i> Если товар имеет цену, менее чем 0.5, то он не будет экспортирован в YML-файл.</p>
                 </div>
                 <div class="value js-hash-values js-hash-set" style="width: 400px;">
                     <div class="bordered-left" style="padding-left: 20px; margin-left: 20px;">
@@ -215,7 +214,15 @@
             </div>
         </div>
 
+      <div class="field">
+            <div class="name">Минимальная цена</div>
+            <div class="value">
+                <input type="text" name="export[min_price]" value="{$export.min_price|escape}" placeholder="0.5" class="numerical short" id="s-plugin-yandexmarket-export-min_price" ><br>
 
+                <p class="hint">Если товар имеет цену, менее чем укажите, то он не будет экспортирован в YML-файл</p>
+            </div>
+        </div>
+		
         <div class="field">
             <div class="name">Скидки</div>
             <div class="value no-shift">
