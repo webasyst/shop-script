@@ -570,6 +570,7 @@ $.order_edit = {
 
                     if (found) {
                         el.val(el_selected);
+                        el_selected += '';
                         if (!shipping_methods[el_selected].external || data['shipping_id'] == el_selected.split('.')[0]) {
                             el.trigger($.Event('change', {
                                 triggered_by_updateTotal: 1
