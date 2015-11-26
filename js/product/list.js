@@ -63,6 +63,7 @@
             canonical_hash.push('view='+options.view);
             options.sort && canonical_hash.push('sort='+options.sort);
             options.order && canonical_hash.push('order='+options.order);
+            options.page && options.page > 1 && canonical_hash.push('page='+options.page);
             canonical_hash = '#/products/' + canonical_hash.join('&');
             $.products.forceHash(canonical_hash);
 
@@ -119,6 +120,12 @@
                 }
                 if (this.options.lazy_loading) {
                     this.initLazyLoad(this.options.lazy_loading);
+                } else {
+                    var hash_with_page = canonical_hash.replace(/&page=\d+/, '') + '&page=';
+                    $('.pagination a').each(function () {
+                        var m = $(this).attr('href').match(/\?page=(\d+)/);
+                        $(this).attr('href', hash_with_page + (m ? m[1] : 1));
+                    });
                 }
 
                 this.initSelecting();

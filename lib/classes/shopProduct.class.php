@@ -189,7 +189,10 @@ class shopProduct implements ArrayAccess
      * Saves product data to database.
      *
      * @param array $data
+     * @param bool $validate
+     * @param array $errors
      * @return bool Whether saved successfully
+     * @throws waException
      */
     public function save($data = array(), $validate = true, &$errors = array())
     {

@@ -39,7 +39,12 @@ class shopSalesModel extends waModel
             return $type;
         }
         ksort($options);
-        return $type.'_'.hash("crc32b", serialize($options));
+
+        if (function_exists('hash')) {
+            return $type.'_'.hash("crc32b", serialize($options));
+        } else {
+            return $type.'_'.str_pad(dechex(crc32(serialize($options))), 8, '0', STR_PAD_LEFT);
+        }
     }
 
     public function getMinDate()
@@ -110,7 +115,7 @@ class shopSalesModel extends waModel
         );
         $end_ts = strtotime($date_end);
         $start_ts = strtotime($date_start);
-        for ($t = $start_ts; $t <= $end_ts; $t += 3600*24) {
+        for ($t = $start_ts; $t <= $end_ts; $t = strtotime(date('Y-m-d', $t) . ' +1 day')) {
             $date = date(($date_group == 'months') ? 'Y-m-01' : 'Y-m-d', $t);
             if (empty($sales_by_date[$date])) {
                 $sales_by_date[$date] = array(
@@ -447,7 +452,7 @@ class shopSalesModel extends waModel
         $result = array();
         $start_ts = strtotime($date_start);
         $end_ts = $date_end ? strtotime($date_end) : time();
-        for ($t = $start_ts; $t <= $end_ts; $t += 3600*24) {
+        for ($t = $start_ts; $t <= $end_ts; $t = strtotime(date('Y-m-d', $t) . ' +1 day')) {
             $period_date = self::getPeriodStart($t, $group_by);
             if (empty($result[$period_date])) {
                 $result[$period_date] = 0;
@@ -507,7 +512,7 @@ class shopSalesModel extends waModel
         $result = array();
         $start_ts = strtotime($date_start);
         $end_ts = $date_end ? strtotime($date_end) : time();
-        for ($t = $start_ts; $t <= $end_ts; $t += 3600*24) {
+        for ($t = $start_ts; $t <= $end_ts; $t = strtotime(date('Y-m-d', $t) . ' +1 day')) {
             $date = date('Y-m-d', $t);
             $period_date = self::getPeriodStart($t, $group_by);
 
@@ -543,34 +548,34 @@ class shopSalesModel extends waModel
                 return $cohorts;
             }
 
-            // Deveide profit by number of customers to calculate CLV
-            $cohorts_customers = $this->getCohortCustomersCount($date_start, $date_end, $options);
-            foreach($cohorts as $reg_date => $series) {
-                $customers_count = $cohorts_customers[$reg_date];
-                $total_profit_so_far = 0;
-                foreach($series as $order_date => $stats) {
-                    $total_profit_so_far += $cohorts[$reg_date][$order_date]['metric'];
-                    if ($customers_count) {
-                        $cohorts[$reg_date][$order_date]['metric'] = $total_profit_so_far / $customers_count;
-                    } else {
-                        $cohorts[$reg_date][$order_date]['metric'] = 0;
+            if ($cohorts_type == 'clv') {
+                // Divide profit by number of customers to calculate CLV
+                $cohorts_customers = $this->getCohortCustomersCount($date_start, $date_end, $options);
+                foreach($cohorts as $reg_date => $series) {
+                    $total_profit_so_far = 0;
+                    $customers_count = $cohorts_customers[$reg_date];
+                    foreach($series as $order_date => $stats) {
+                        $total_profit_so_far += $cohorts[$reg_date][$order_date]['metric'];
+                        if ($customers_count) {
+                            $cohorts[$reg_date][$order_date]['metric'] = $total_profit_so_far / $customers_count;
+                        } else {
+                            $cohorts[$reg_date][$order_date]['metric'] = 0;
+                        }
                     }
                 }
-            }
-            unset($cohorts_customers);
-            if ($cohorts_type == 'clv') {
-                return $cohorts;
-            }
-
-            // Calculate ROI based on CLV
-            $cohort_cost = $this->getCohortCost($date_start, $date_end, $options);
-            foreach($cohorts as $reg_date => $series) {
-                $cost = $cohort_cost[$reg_date];
-                foreach($series as $order_date => $stats) {
-                    if ($cost) {
-                        $cohorts[$reg_date][$order_date]['metric'] *= 100/$cost;
-                    } else {
-                        $cohorts[$reg_date][$order_date]['metric'] = 0;
+            } else {
+                // Calculate ROI based on profit and expenses
+                $cohort_cost = $this->getCohortCost($date_start, $date_end, $options);
+                foreach($cohorts as $reg_date => $series) {
+                    $total_profit_so_far = 0;
+                    $cost = $cohort_cost[$reg_date];
+                    foreach($series as $order_date => $stats) {
+                        $total_profit_so_far += $cohorts[$reg_date][$order_date]['metric'];
+                        if ($cost) {
+                            $cohorts[$reg_date][$order_date]['metric'] = $total_profit_so_far*100/$cost;
+                        } else {
+                            $cohorts[$reg_date][$order_date]['metric'] = 0;
+                        }
                     }
                 }
             }
@@ -650,7 +655,7 @@ class shopSalesModel extends waModel
         // Loop over all days of a period and add empty dates into $result
         $start_ts = strtotime($date_start);
         $end_ts = $date_end ? strtotime($date_end) : time();
-        for ($t = $start_ts; $t <= $end_ts; $t += 3600*24) {
+        for ($t = $start_ts; $t <= $end_ts; $t = strtotime(date('Y-m-d', $t) . ' +1 day')) {
             $date = self::getPeriodStart($t, $group_by);
             if (empty($result[$date])) {
                 $result[$date] = array();
@@ -729,7 +734,7 @@ class shopSalesModel extends waModel
         $dates = $this->query($sql, $hash)->fetchAll('date');
         $start_ts = strtotime($date_start);
         $end_ts = strtotime($date_end);
-        for ($t = $start_ts; $t <= $end_ts; $t += 3600*24) {
+        for ($t = $start_ts; $t <= $end_ts; $t = strtotime(date('Y-m-d', $t) . ' +1 day')) {
             $date = date('Y-m-d', $t);
             if (empty($dates[$date])) {
                 $missing_period_end = $date;
@@ -1001,7 +1006,7 @@ class shopSalesModel extends waModel
         $marketing_costs = array();
         $start_ts = strtotime($date_start);
         $end_ts = strtotime($date_end);
-        for ($t = $start_ts; $t <= $end_ts; $t += 3600*24) {
+        for ($t = $start_ts; $t <= $end_ts; $t = strtotime(date('Y-m-d', $t) . ' +1 day')) {
             $date = date('Y-m-d', $t);
             if (empty($dates[$date])) {
                 $empty_values[] = "('$escaped_hash','$date','')";
@@ -1031,6 +1036,7 @@ class shopSalesModel extends waModel
         $cost_values = array();
         foreach($marketing_costs as $date => $exps) {
             foreach($exps as $name => $amount) {
+                $amount = $this->castValue('float', $amount);
                 $cost_values[] = "('{$escaped_hash}', '".$this->escape($name)."', '{$date}', '{$amount}')";
             }
         }

@@ -182,6 +182,10 @@ class shopProductsCollection
             }
         }
 
+        if (waRequest::param('drop_out_of_stock') == 2) {
+            $this->where[] = '(p.count > 0 || p.count IS NULL)';
+        }
+
         $this->where[] = 'p.status = 1';
     }
 
@@ -253,6 +257,14 @@ class shopProductsCollection
         }
         $feature_model = new shopFeatureModel();
         $features = $feature_model->getByField('code', array_keys($data), 'code');
+
+        if ($this->getModel('product')->existsSelectableProducts()) {
+            $skus_alias = $this->addJoin('shop_product_skus', ':table.product_id = p.id', ':table.available = 1');
+            if (waRequest::param('drop_out_of_stock') == 2) {
+                $this->addWhere('(' . $skus_alias . '.count IS NULL OR ' . $skus_alias . '.count > 0)');
+            }
+        }
+
         foreach ($data as $feature_code => $values) {
             if (!is_array($values)) {
                 if ($values === '') {
@@ -292,7 +304,8 @@ class shopProductsCollection
                 if ($values) {
                     $this->addJoin('shop_product_features',
                         'p.id = :table.product_id AND :table.feature_id = '.(int)$features[$feature_code]['id'],
-                        ':table.feature_value_id IN ('.implode(',', $values).')');
+                        ':table.feature_value_id IN ('.implode(',', $values).')'.
+                        (!empty($skus_alias) ? ' AND (:table.sku_id IS NULL OR :table.sku_id = '.$skus_alias.'.id)': ''));
                     $this->group_by = 'p.id';
                 } else {
                     $this->where[] = '0';
@@ -937,7 +950,7 @@ class shopProductsCollection
             }
         }
 
-        if (waRequest::param('drop_out_of_stock')) {
+        if (waRequest::param('drop_out_of_stock') == 1) {
             $fields[] = '(p.count > 0 || p.count IS NULL) AS in_stock';
         }
 
@@ -952,7 +965,7 @@ class shopProductsCollection
     protected function _getOrderBy()
     {
         if ($this->order_by) {
-            return " ORDER BY ".(waRequest::param('drop_out_of_stock') ? 'in_stock DESC,' : '').$this->order_by;
+            return " ORDER BY ".(waRequest::param('drop_out_of_stock') == 1 ? 'in_stock DESC,' : '').$this->order_by;
         } else {
             return "";
         }

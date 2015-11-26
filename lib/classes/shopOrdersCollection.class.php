@@ -138,6 +138,16 @@ class shopOrdersCollection
         $this->where[] = "o.id IN (".implode(',', $ids).")";
     }
 
+    /**
+     * Returns collection hash.
+     *
+     * @return string
+     */
+    public function getHash()
+    {
+        return $this->hash;
+    }
+
     public function getFields($fields)
     {
         if ($fields == '*') {

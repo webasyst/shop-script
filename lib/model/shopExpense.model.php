@@ -66,7 +66,7 @@ class shopExpenseModel extends waModel
         $data = array(); // date => [name => [type#color => array of data]]
         $result = array();
 
-        for ($t = $start_ts; $t <= $end_ts; $t += 3600*24) {
+        for ($t = $start_ts; $t <= $end_ts; $t = strtotime(date('Y-m-d', $t) . ' +1 day')) {
             if ($group_by == 'days') {
                 $date = date('Y-m-d', $t);
             } else {
@@ -74,7 +74,9 @@ class shopExpenseModel extends waModel
             }
 
             // Prepare data for marketing costs for this day
-            $data[$date] = array();
+            if (empty($data[$date])) {
+                $data[$date] = array();
+            }
             foreach($expenses as $i => $e) {
                 if (strtotime($e['end']) < $t) {
                     unset($expenses[$i]);
@@ -102,9 +104,6 @@ class shopExpenseModel extends waModel
                         }
                     }
                     $amount = $e['amount'] / $e['days_count'];
-                    if ($group_by != 'days') {
-                        $amount *= date('t', $t); // number of days in given month
-                    }
                     $data[$date][$serie_id]['amount'] += $amount;
                 }
             }

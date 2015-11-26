@@ -68,18 +68,20 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         return $this->query($sql)->fetchField();
     }
 
-    public function getSkusByFeatures($product_ids, $features)
+    public function getSkusByFeatures($product_ids, $features, $in_stock_only = false)
     {
         if (!$product_ids || !$features) {
             return array();
         }
-        $sql = "SELECT s.id, s.product_id, s.price, s.compare_price, s.sort FROM ".$this->table." t0
-                JOIN shop_product_skus s ON t0.sku_id = s.id";
-        for ($i = 1; $i < count($features); $i++) {
+        $sql = "SELECT s.id, s.image_id, s.product_id, s.price, s.compare_price, s.sort FROM shop_product_skus s";
+        for ($i = 0; $i < count($features); $i++) {
             $sql .= " JOIN ".$this->table." t".$i."
-                ON t0.product_id = t".$i.".product_id AND (t0.sku_id = t".$i.".sku_id OR t".$i.".sku_id IS NULL)";
+                ON t".$i.".product_id = s.product_id AND (t".$i.".sku_id IS NULL OR t".$i.".sku_id = s.id)";
         }
-        $sql .= " WHERE t0.product_id IN (i:product_ids) AND t0.sku_id IS NOT NULL";
+        $sql .= " WHERE s.product_id IN (i:product_ids) AND s.available = 1";
+        if ($in_stock_only) {
+            $sql .= ' AND (s.count IS NULL OR s.count > 0)';
+        }
         $i = 0;
         foreach ($features as $f => $v) {
             $sql .= " AND t".$i.".feature_id = ".(int)$f." AND t".$i.".feature_value_id ";
@@ -104,10 +106,10 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
     public function getData(shopProduct $product)
     {
-        return $this->getValues($product->getId(), null, $product->type_id);
+        return $this->getValues($product->getId(), null, $product->type_id, $product->sku_type);
     }
 
-    public function getValues($product_id, $sku_id = null, $type_id = null)
+    public function getValues($product_id, $sku_id = null, $type_id = null, $sku_type = 0)
     {
         $result = array();
         $features = array();
@@ -127,7 +129,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             $data = $this->query($sql, array(
                 'type_id' => $type_id,
             ));
-            foreach($data as $row) {
+            foreach ($data as $row) {
                 $features[$row['feature_id']] = array(
                     'type'     => $row['type'],
                     'code'     => $row['code'],
@@ -169,6 +171,13 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             }
         } else {
             $sku_where = 'pf.sku_id IS NULL';
+            if ($sku_type) {
+                $selectable_model = new shopProductFeaturesSelectableModel();
+                $selectable_feature_ids = $selectable_model->getProductFeatureIds($product_id);
+                if ($selectable_feature_ids) {
+                    $sku_where = '(pf.sku_id IS NULL OR pf.feature_id IN ('.implode(',', $selectable_feature_ids).'))';
+                }
+            }
         }
 
         if ($order_by) {
@@ -251,7 +260,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         }
 
         // Remove all features without values (except dividers)
-        foreach(array_keys($codes_to_remove) as $code) {
+        foreach (array_keys($codes_to_remove) as $code) {
             unset($result[$code]);
         }
 
@@ -276,10 +285,21 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
     {
         $product_id = $product->getId();
 
-        $feature_model = new shopFeatureModel();
         $codes = array_keys($data);
-        $features = $feature_model->getByCode($codes);
 
+        /**
+         * unset features_selectable and don't save them
+         */
+        foreach ($codes as $code) {
+            if (isset($product->features_selectable[$code])) {
+                $data[$code]=array();
+            }
+        }
+
+        $codes = array_keys($data);
+
+        $feature_model = new shopFeatureModel();
+        $features = $feature_model->getByCode($codes);
 
         /**
          * composite fields workaround
@@ -433,6 +453,6 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
      */
     public function countProductsByFeature($feature_id)
     {
-        return (int)$this->select('COUNT(DISTINCT product_id)')->where('feature_id IN (i:feature_id)',compact('feature_id'))->fetchField();
+        return (int)$this->select('COUNT(DISTINCT product_id)')->where('feature_id IN (i:feature_id)', compact('feature_id'))->fetchField();
     }
 }

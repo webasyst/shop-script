@@ -11,6 +11,10 @@ class shopFrontendCartSaveController extends waJsonController
 
         $is_html = waRequest::request('html');
         if ($q = waRequest::post('quantity', 0, 'int')) {
+            if ($q < 0) {
+                $q = 1;
+                $this->response['q'] = 1;
+            }
             if (!wa()->getSetting('ignore_stock_count')) {
                 if ($item['type'] == 'product') {
                     $product_model = new shopProductModel();

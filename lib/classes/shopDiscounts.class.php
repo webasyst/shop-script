@@ -13,25 +13,24 @@ class shopDiscounts
     public static function calculate(&$order, $apply = false, &$description = null)
     {
         $currency = isset($order['currency']) ? $order['currency'] :  wa('shop')->getConfig()->getCurrency(false);
-
-        $descriptions = array();
-        $applicable_discounts = array();
         $contact = self::getContact($order);
+        $order = self::prepareOrderData($order, $contact);
+        $discounts = array();
 
         // Discount by contact category applicable?
         if (self::isEnabled('category')) {
-            $d = null;
-            $amount = self::byCategory($order, $contact, $apply, $d);
-            $amount > 0 && ($descriptions[] = sprintf($d, shop_currency_html($amount, $currency, $currency)));
-            $applicable_discounts[] = $amount;
+            $tmp = self::byCategory($order, $contact);
+            if ($tmp) {
+                $discounts[] = $tmp;
+            }
         }
 
         // Discount by coupon applicable?
         if (self::isEnabled('coupons')) {
-            $d = null;
-            $amount = self::byCoupons($order, $contact, $apply, $d);
-            $d && ($descriptions[] = sprintf($d, shop_currency_html($amount, $currency, $currency)));
-            $applicable_discounts[] = $amount;
+            $tmp = self::byCoupons($order, $contact, $apply);
+            if ($tmp) {
+                $discounts[] = $tmp;
+            }
         }
 
         // Discount by order total applicable?
@@ -41,18 +40,18 @@ class shopDiscounts
             // Order total in default currency
             $order_total = (float) shop_currency($order['total'], $currency, wa('shop')->getConfig()->getCurrency(), false);
             $percent = (float) $dbsm->getDiscount('order_total', $order_total);
-
-            $amount = max(0.0, min(100.0, $percent)) * $order['total'] / 100.0;
-            $amount > 0 && ($descriptions[] = sprintf_wp('By order total, %s%%', $percent).': '.shop_currency_html($amount, $currency, $currency));
-            $applicable_discounts[] = $amount;
+            $tmp = self::byPercent($order, $percent, sprintf_wp('By order total, %s%%', $percent));
+            if ($tmp) {
+                $discounts[] = $tmp;
+            }
         }
 
         // Discount by customer total spent applicable?
         if (self::isEnabled('customer_total')) {
-            $d = null;
-            $amount = self::byCustomerTotal($order, $contact, $apply, $d);
-            $d && $amount > 0 && ($descriptions[] = sprintf($d, shop_currency_html($amount, $currency, $currency)));
-            $applicable_discounts[] = $amount;
+            $tmp = self::byCustomerTotal($order, $contact, $apply);
+            if ($tmp) {
+                $discounts[] = $tmp;
+            }
         }
 
         /**
@@ -64,55 +63,86 @@ class shopDiscounts
          * @return string[string] $return['description'] discount description to save in order log
          * @return float[string] $return['discount'] discount amount in order currency
          */
-        $order = self::prepareOrderData($order, $contact);
         $event_params = array('order' => &$order, 'contact' => $contact, 'apply' => $apply);
         $plugins_discounts = wa('shop')->event('order_calculate_discount', $event_params);
         foreach ($plugins_discounts as $plugin_id => $plugin_discount) {
             if (is_array($plugin_discount)) {
-                $amount = ifset($plugin_discount['discount'], 0);
-                $d = ifset($plugin_discount['description']);
-                $d && $amount != 0 && ($descriptions[] = sprintf($d, shop_currency_html($amount, $currency, $currency)));
+                $discounts[] = $plugin_discount;
             } else {
-                $amount = $plugin_discount;
-                if ($amount != 0) {
-                    if (wa()->appExists($plugin_id)) {
-                        $apps = wa()->getApps();
-                        $d = ifset($apps[$plugin_id]['name'], $plugin_id);
-                    } else {
-                        $d = null;
-                        $pid = str_replace('-plugin', '', $plugin_id);
-                        try {
-                            $d = wa('shop')->getPlugin($pid)->getName();
-                        } catch (Exception $e) { }
-                        $d = ifempty($d, $plugin_id);
-                    }
-
-                    $descriptions[] = $d.': '.shop_currency_html($amount, $currency, $currency);
-                }
+                $plugin_description = self::getPluginName($plugin_id).': '.shop_currency_html($plugin_discount, $currency, $currency);
+                $discounts[] = array(
+                    'discount' => $plugin_discount,
+                    'description' => $plugin_description
+                );
             }
-            $applicable_discounts[] = $amount;
         }
 
-        if ($descriptions) {
-            $description = _w('The following discounts are applicable for this order:')."\n<ul>\n<li>";
-            $description .= join("</li>\n<li>", $descriptions);
-            $description .= "</li>\n</ul>\n";
-        }
-
-        // Select max discount or sum depending on global setting.
         $discount = 0.0;
-        if ( ( $applicable_discounts = array_filter($applicable_discounts, 'is_numeric'))) {
-            if ($descriptions) {
-                if (waSystem::getSetting('discounts_combine', null, 'shop') == 'sum') {
-                    $discount = (float) array_sum($applicable_discounts);
-                    $description .= sprintf_wp('Shop is set up to use sum of all discounts: %s', shop_currency_html($discount, $currency, $currency));
+        $discount_type = waSystem::getSetting('discounts_combine', null, 'shop');
+        $description = '';
+        foreach ($order['items'] as $item_id => $item) {
+            $item_discount = 0;
+            $item_discount_description = '';
+            foreach ($discounts as $d) {
+                if (isset($d['items'][$item_id])) {
+                    $item_d = $d['items'][$item_id];
+                    $tmp_d = $item_d['description'].': '.shop_currency($item_d['discount'], $currency, $currency);
+                    if ($discount_type == 'sum') {
+                        $item_discount += $item_d['discount'];
+                        $item_discount_description .= '<li>'.$tmp_d.'</li>';
+                    } else {
+                        if ($item_d['discount'] > $item_discount) {
+                            $item_discount = $item_d['discount'];
+                            $item_discount_description = $tmp_d;
+                        }
+                    }
+                }
+            }
+            if ($item_discount) {
+                $item_discount = min(max(0, $item_discount), shop_currency($item['price'], $item['currency'], $currency, false) * $item['quantity']);
+                $order['items'][$item_id]['total_discount'] = $item_discount;
+                $description .= $item['name'].' &minus; ';
+                if ($discount_type == 'sum') {
+                    $description .= '<ul>'.$item_discount_description.'</ul>';
                 } else {
-                    $discount = (float) max($applicable_discounts);
-                    $description .= sprintf_wp('Shop is set up to use single largest of all discounts: %s', shop_currency_html($discount, $currency, $currency));
+                    $description .= $item_discount_description;
+                }
+                $description .= '<br>';
+                $discount += $item_discount;
+            }
+        }
+        $order_discount = 0;
+        $order_discount_description = '';
+        foreach ($discounts as $d) {
+            if (isset($d['discount'])) {
+                $d['description'] = $d['description'].': '.shop_currency($d['discount'], $currency, $currency);
+                if ($discount_type == 'sum') {
+                    $order_discount += $d['discount'];
+                    $order_discount_description .= '<li>'.$d['description'].'</li>';
+                } else {
+                    if ($d['discount'] > $order_discount) {
+                        $order_discount = $d['discount'];
+                        $order_discount_description = $d['description'];
+                    }
                 }
             }
         }
-
+        if ($order_discount) {
+            $discount += $order_discount;
+        }
+        if ($discount) {
+            if ($discount_type == 'sum') {
+                if ($order_discount) {
+                    $description .= '<ul>'.$order_discount_description.'</ul><br>';
+                }
+                $description .= sprintf_wp('Shop is set up to use sum of all discounts: %s', shop_currency_html($discount, $currency, $currency));
+            } else {
+                if ($order_discount) {
+                    $description .= $order_discount_description.'<br>';
+                }
+                $description .= sprintf_wp('Shop is set up to use single largest of all discounts: %s', shop_currency_html($discount, $currency, $currency));
+            }
+        }
         // Discount based on affiliate bonus?
         if (shopAffiliate::isEnabled()) {
             $d = null;
@@ -120,8 +150,23 @@ class shopDiscounts
             $discount = $discount + $amount;
             $d && $amount > 0 && ($description .= "\n<br>".sprintf($d, shop_currency_html($amount, $currency, $currency)));
         }
-
         return min(max(0, $discount), ifset($order['total'], 0));
+    }
+
+    protected static function getPluginName($plugin_id)
+    {
+        if (wa()->appExists($plugin_id)) {
+            $apps = wa()->getApps();
+            $d = ifset($apps[$plugin_id]['name'], $plugin_id);
+        } else {
+            $d = null;
+            $pid = str_replace('-plugin', '', $plugin_id);
+            try {
+                $d = wa('shop')->getPlugin($pid)->getName();
+            } catch (Exception $e) { }
+            $d = ifempty($d, $plugin_id);
+        }
+        return $d;
     }
 
     /**
@@ -154,42 +199,67 @@ class shopDiscounts
         return !empty($discount_type) && waSystem::getSetting('discount_'.$discount_type, null, 'shop');
     }
 
+    protected static function byPercent($order, $percent, $description)
+    {
+        $result = array();
+        $discount = max(0.0, min(100.0, $percent)) * $order['total'] / 100.0;
+        foreach ($order['items'] as $item_id => $item) {
+            $item_discount = max(0.0, min(100.0, $percent)) * $item['price'] / 100.0;
+            $item_discount = shop_currency($item_discount, $item['currency'], $order['currency'], false) * $item['quantity'];
+            $result['items'][$item_id] = array(
+                'discount' => $item_discount,
+                'description' => $description
+            );
+            $discount -= $item_discount;
+        }
+        if ($discount) {
+            $result['discount'] = $discount;
+            $result['description'] = $description;
+        }
+        return $result;
+    }
+
     /** Discounts by amount of money previously spent by this customer. */
-    protected static function byCustomerTotal($order, $contact, $apply, &$d=null)
+    protected static function byCustomerTotal($order, $contact, $apply)
     {
         if (!$contact || !$contact->getId()) {
             return 0;
         }
-
         $cm = new shopCustomerModel();
         $customer = $cm->getById($contact->getId());
         if ($customer && $customer['total_spent'] > 0) {
             $dbsm = new shopDiscountBySumModel();
-            $d = _w('By customers overall purchases').' ('.shop_currency_html($customer['total_spent'], null, wa('shop')->getConfig()->getCurrency(true)).'): %s';
-            return max(0.0, min(100.0, (float) $dbsm->getDiscount('customer_total', $customer['total_spent']))) * $order['total'] / 100.0;
+            $description = _w('By customers overall purchases').' ('.shop_currency_html($customer['total_spent'], null, wa('shop')->getConfig()->getCurrency(true)).')';
+            $percent = (float) $dbsm->getDiscount('customer_total', $customer['total_spent']);
+            return self::byPercent($order, $percent, $description);
         }
-        return 0.0;
+        return null;
     }
 
-    /** Discounts by category implementation. */
-    protected static function byCategory($order, $contact, $apply, &$d = null)
+    /**
+     * Discounts by category implementation.
+     * @param array $order
+     * @param array $contact
+     * @return array
+     */
+    protected static function byCategory($order, $contact)
     {
         if (!$contact) {
-            return 0;
+            return null;
         }
-
         $ccdm = new shopContactCategoryDiscountModel();
         $percent = $ccdm->getByContact($contact->getId());
         if ($percent != 0) {
-            $d = sprintf_wp('By customer category, %s%%%%', $percent).': %s';
+            $description = sprintf_wp('By customer category, %s%%', $percent);
+            return self::byPercent($order, $percent, $description);
         }
-
-        return max(0.0, min(100.0, $percent)) * $order['total'] / 100.0;
+        return null;
     }
 
     /** Coupon discounts implementation. */
-    protected static function byCoupons(&$order, $contact, $apply, &$d=null)
+    protected static function byCoupons(&$order, $contact, $apply)
     {
+        $d = '';
         $currency = isset($order['currency']) ? $order['currency'] : wa('shop')->getConfig()->getCurrency(false);
 
         $cm = new shopCouponModel();
@@ -210,10 +280,12 @@ class shopDiscounts
             if (ifset($coupon['type']) == '$FS') {
                 $d = sprintf($d, _w('Free shipping'));
             }
-
-            return $discount;
+            return array(
+                'discount' => $discount,
+                'description' => $d
+            );
         } else if (empty($checkout_data['coupon_code'])) {
-            return 0;
+            return null;
         }
 
         $coupon = $cm->getByField('code', $checkout_data['coupon_code']);
@@ -221,24 +293,33 @@ class shopDiscounts
             return 0;
         }
 
-        $d = _w('Coupon code').' '.$coupon['code'].': %s';
+        $d = _w('Coupon code').' '.$coupon['code'];
 
         switch ($coupon['type']) {
             case '$FS':
                 $order['shipping'] = 0;
-                $result = 0;
-                $d = sprintf($d, _w('Free shipping'));
+                $discount = 0;
+                $result = array(
+                    'discount' => $discount,
+                    'description' => $d.': '._w('Free shipping')
+                );
                 break;
             case '%':
-                $result = max(0.0, min(100.0, (float) $coupon['value'])) * $order['total'] / 100.0;
+                $percent = (float) $coupon['value'];
+                $discount = max(0.0, min(100.0, $percent)) * $order['total'] / 100.0;
+                $result = self::byPercent($order, $percent, $d);
                 break;
             default:
                 // Flat value in currency
-                $result = max(0.0, (float) $coupon['value']);
+                $discount = max(0.0, (float) $coupon['value']);
                 if ($currency != $coupon['type']) {
                     $crm = new shopCurrencyModel();
-                    $result = (float) $crm->convert($result, $coupon['type'], $currency);
+                    $discount = (float) $crm->convert($discount, $coupon['type'], $currency);
                 }
+                $result = array(
+                    'discount' => $discount,
+                    'description' => $d
+                );
                 break;
         }
 
@@ -249,7 +330,7 @@ class shopDiscounts
             }
             $order['params']['coupon_id'] = $coupon['id'];
         }
-        $order['params']['coupon_discount'] = $result;
+        $order['params']['coupon_discount'] = $discount;
 
         return $result;
     }

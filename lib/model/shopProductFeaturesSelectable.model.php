@@ -609,4 +609,10 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
         }
         return in_array((int)$feature_id, $ignored, true);
     }
+
+    public function getProductFeatureIds($product_id)
+    {
+        $sql = 'SELECT DISTINCT feature_id FROM '.$this->table.' WHERE product_id = i:0';
+        return $this->query($sql, $product_id)->fetchAll(null, true);
+    }
 }

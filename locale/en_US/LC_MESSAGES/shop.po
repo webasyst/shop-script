@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.7.6\n"
+"X-Generator: Poedit 1.8.6\n"
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
 "Language: en_US\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -2700,8 +2700,7 @@ msgstr ""
 #: /wa-apps/shop/themes/default/home.html:8
 #: /wa-apps/shop/themes/facebook/home.html:8
 #: /wa-apps/shop/themes/nifty/home.html:8
-#: /wa-apps/shop/themes/sidebar/home.html:8
-#: /wa-apps/shop/themes/vk/home.html:8
+#: /wa-apps/shop/themes/sidebar/home.html:8 /wa-apps/shop/themes/vk/home.html:8
 msgid "Welcome to your new online store!"
 msgstr ""
 
@@ -3308,7 +3307,7 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscountsCategory.html:3
 msgid "By contact category"
-msgstr ""
+msgstr "By customer category"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsDiscountsCategory.html:41
 msgid "No customer categories are defined in your store. Define one using the main <a href=\"%s\">Customers</a> screen."
@@ -4834,8 +4833,7 @@ msgstr ""
 #: /wa-apps/shop/themes/default/cart.html:6
 #: /wa-apps/shop/themes/facebook/cart.html:6
 #: /wa-apps/shop/themes/nifty/cart.html:6
-#: /wa-apps/shop/themes/sidebar/cart.html:6
-#: /wa-apps/shop/themes/vk/cart.html:6
+#: /wa-apps/shop/themes/sidebar/cart.html:6 /wa-apps/shop/themes/vk/cart.html:6
 msgid "Your shopping cart is empty."
 msgstr ""
 
@@ -5832,8 +5830,7 @@ msgstr ""
 #: /wa-apps/shop/themes/default/home.html:9
 #: /wa-apps/shop/themes/facebook/home.html:9
 #: /wa-apps/shop/themes/nifty/home.html:9
-#: /wa-apps/shop/themes/sidebar/home.html:9
-#: /wa-apps/shop/themes/vk/home.html:9
+#: /wa-apps/shop/themes/sidebar/home.html:9 /wa-apps/shop/themes/vk/home.html:9
 msgid "Start by creating a product in your <a href=\"%s\">store backend</a>."
 msgstr ""
 
@@ -8343,8 +8340,7 @@ msgstr ""
 #: /wa-apps/shop/themes/facebook/home.html:9
 #: /wa-apps/shop/themes/nifty/home.html:9
 #: /wa-apps/shop/themes/pinboard/home.html:9
-#: /wa-apps/shop/themes/sidebar/home.html:9
-#: /wa-apps/shop/themes/vk/home.html:9
+#: /wa-apps/shop/themes/sidebar/home.html:9 /wa-apps/shop/themes/vk/home.html:9
 msgid "Start by <a href=\"%s\">creating a product</a> in your store backend."
 msgstr ""
 
@@ -10678,4 +10674,40 @@ msgstr ""
 
 #: /wa-apps/shop/templates/mail/AntispamAlert.html:17
 msgid "The following order attempt was REJECTED because user acted like a bot. Order record has not been created yet. If this is a valid order, you will need to confirm it with the customer and manually place the order in your store backend."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:118
+msgid "Export product and category custom parameters"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:242
+msgid "Product lists"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:247
+msgid "Use lazy loading"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:249
+msgid "New products will be loaded automatically when you scroll. If disabled, pagination will be used instead."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:116
+msgid "Hide out-of-stock products"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:117
+msgid "Out-of-stock products will remain published, but will be automatically hidden from all product lists on this storefront, e.g. product search results, category product filtering, and others."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:120
+msgid "Display as is"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:121
+msgid "All product lists will contain both in-stock and out-of-stock products."
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:107
+msgid "Out-of-stock products"
 msgstr ""

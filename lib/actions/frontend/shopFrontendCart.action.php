@@ -32,7 +32,18 @@ class shopFrontendCartAction extends shopFrontendAction
 
         $errors = array();
         $cart_model = new shopCartItemsModel();
-        $items = $cart_model->where('code= ?', $code)->order('parent_id')->fetchAll('id');
+        //$items = $cart_model->where('code= ?', $code)->order('parent_id')->fetchAll('id');
+        $items = $cart->items(false);
+
+        $total = $cart->total(false);
+        $order = array(
+            'currency' => wa()->getConfig()->getCurrency(false),
+            'total' => $total,
+            'items' => $items
+        );
+        $discount_description = '';
+        $order['discount'] = $discount = shopDiscounts::calculate($order, false, $discount_description);
+        $order['total'] = $total = $total - $order['discount'];
 
         if (waRequest::post('checkout')) {
             $saved_quantity = $cart_model->select('id,quantity')->where("type='product' AND code = s:code", array('code' => $code))->fetchAll('id');
@@ -87,42 +98,8 @@ class shopFrontendCartAction extends shopFrontendAction
         $product_ids = array_unique($product_ids);
         $sku_ids = array_unique($sku_ids);
 
-        $product_model = new shopProductModel();
-        if (waRequest::param('url_type') == 2) {
-            $products = $product_model->getWithCategoryUrl($product_ids);
-        } else {
-            $products = $product_model->getById($product_ids);
-        }
-        shopRounding::roundProducts($products);
-
-        $sku_model = new shopProductSkusModel();
-        $skus = $sku_model->getByField('id', $sku_ids, 'id');
-        shopRounding::roundSkus($skus, $products);
-
-        $image_model = new shopProductImagesModel();
-
-        $delete_items = array();
         foreach ($items as $item_id => &$item) {
-            if (!isset($skus[$item['sku_id']])) {
-                unset($items[$item_id]);
-                $delete_items[] = $item_id;
-                continue;
-            }
             if ($item['type'] == 'product') {
-                $item['product'] = $products[$item['product_id']];
-                $sku = $skus[$item['sku_id']];
-                if ($sku['image_id'] && $sku['image_id'] != $item['product']['image_id']) {
-                    $img = $image_model->getById($sku['image_id']);
-                    if ($img) {
-                        $item['product']['image_id'] = $sku['image_id'];
-                        $item['product']['ext'] = $img['ext'];
-                    }
-                }
-                $item['sku_name'] = $sku['name'];
-                $item['sku_code'] = $sku['sku'];
-                $item['price'] = $sku['price'];
-                $item['compare_price'] = $sku['compare_price'];
-                $item['currency'] = $item['product']['currency'];
                 $type_ids[] = $item['product']['type_id'];
 
                 if (!$item['quantity'] && !isset($errors[$item_id])) {
@@ -138,10 +115,6 @@ class shopFrontendCartAction extends shopFrontendAction
             }
         }
         unset($item);
-
-        if ($delete_items) {
-            $cart_model->deleteByField(array('code' => $code, 'id' => $delete_items));
-        }
 
         $type_ids = array_unique($type_ids);
 
@@ -198,6 +171,7 @@ class shopFrontendCartAction extends shopFrontendAction
             unset($s['id']);
         }
         unset($s);
+
 
         // Assign service and product data into cart items
         foreach ($items as $item_id => $item) {
@@ -285,7 +259,6 @@ class shopFrontendCartAction extends shopFrontendAction
             }
         }
 
-
         foreach ($items as $item_id => $item) {
             $price = shop_currency($item['price'] * $item['quantity'], $item['currency'], null, false);
             if (isset($item['services'])) {
@@ -301,12 +274,6 @@ class shopFrontendCartAction extends shopFrontendAction
             }
             $items[$item_id]['full_price'] = $price;
         }
-
-
-        $total = $cart->total(false);
-        $order = array('total' => $total, 'items' => $items);
-        $order['discount'] = $discount = shopDiscounts::calculate($order);
-        $order['total'] = $total = $total - $order['discount'];
 
         $data = wa()->getStorage()->get('shop/checkout');
         $this->view->assign('cart', array(
@@ -334,7 +301,6 @@ class shopFrontendCartAction extends shopFrontendAction
                 $this->view->assign('used_affiliate_bonus', $order['params']['affiliate_bonus']);
             }
 
-            $order['currency'] = $this->getConfig()->getCurrency(false);
             $add_affiliate_bonus = shopAffiliate::calculateBonus($order);
             $this->view->assign('add_affiliate_bonus', round($add_affiliate_bonus, 2));
         }

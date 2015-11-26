@@ -285,7 +285,7 @@
             {/if}
         {/if}
 
-
+        {if $lazy_loading}
         <div class="lazyloading-wrapper">
             <div class="lazyloading-progress-string">{_w('%d product','%d products', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
              <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more products`]</a>
@@ -293,6 +293,13 @@
                 <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d product', '%d products', min($total_count - $count, $count))}...</span>
             </span>
         </div>
+        {else}
+            {if isset($pages_count) && $pages_count > 1}
+                <div class="block pagination">
+                    {wa_pagination total=$pages_count attrs=['class' => "menu-h"] url="#" nb=3}
+                </div>
+            {/if}
+        {/if}
     </div>
 
 
@@ -386,13 +393,16 @@
         category_count: {if $info && $info['hash'] == 'category' && $info['type'] == shopCategoryModel::TYPE_STATIC && !$info['include_sub_categories']}{$info['count']}{else}null{/if},
         edit: '{$wa->get("edit")}',
         sortable: {if $manual && $sort == 'sort'}true{else}false{/if},
-        enable_2x: {if $wa->shop->config('enable_2x')}true{else}false{/if},
-        {if !empty($text)}
-            text: {json_encode($text)},
+        enable_2x: {if $wa->shop->config('enable_2x')}true{else}false{/if}
+        {if !empty($text)},
+        text: {json_encode($text)}
         {/if}
+        {if $lazy_loading},
         lazy_loading: {
             auto: true,
             count: {$count}
         }
+        {else},page: {$page}
+        {/if}
     });
 </script>

@@ -787,4 +787,9 @@ class shopProductModel extends waModel
         }
         return parent::updateById($id, $data, $options, $return_object);
     }
+
+    public function existsSelectableProducts()
+    {
+        return $this->select(1)->where('sku_type = 1')->limit(1);
+    }
 }

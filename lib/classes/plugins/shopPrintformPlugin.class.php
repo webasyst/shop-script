@@ -8,6 +8,9 @@ abstract class shopPrintformPlugin extends shopPlugin
     const TYPE_CHANGED = 'changed';
     const TYPE_ORIGINAL = 'original';
     private $templates = array();
+    private $order_options = array(
+        'items' => true,
+    );
 
     public function __construct($info)
     {
@@ -148,28 +151,37 @@ abstract class shopPrintformPlugin extends shopPlugin
     /**
      *
      * @param waOrder $order
-     * @param $params
+     * @param mixed[] $params
      * @return array
      */
     private function extendItems(&$order, $params)
     {
         $items = $order->items;
         $product_model = new shopProductModel();
+        $discount = $order->discount;
         foreach ($items as & $item) {
             $data = $product_model->getById($item['product_id']);
             $item['tax_id'] = ifset($data['tax_id']);
             $item['currency'] = $order->currency;
+            if (!empty($item['total_discount'])) {
+                $discount -= $item['total_discount'];
+                $item['total'] -= $item['total_discount'];
+                $item['price'] -= $item['total_discount'] / $item['quantity'];
+            }
         }
 
         unset($item);
-        shopTaxes::apply($items, array(
+        $taxes_params = array(
             'billing'  => $order->billing_address,
             'shipping' => $order->shipping_address,
-        ), $order->currency);
+        );
+        shopTaxes::apply($items, $taxes_params, $order->currency);
 
-        if ($order->discount) {
-            if ($order->total + $order->discount - $order->shipping > 0) {
-                $k = 1.0 - ($order->discount) / ($order->total + $order->discount - $order->shipping);
+        //TODO allow setup tax & discount calculation
+        if ($discount) {
+            #calculate discount as part of price
+            if ($order->total + $discount - $order->shipping > 0) {
+                $k = 1.0 - ($discount) / ($order->total + $discount - $order->shipping);
             } else {
                 $k = 0.0;
             }
@@ -202,7 +214,7 @@ abstract class shopPrintformPlugin extends shopPlugin
     public function renderForm($order)
     {
         if (!($order instanceof waOrder)) {
-            $order = $this->getOrder($order, array('items' => true));
+            $order = $this->getOrder($order, $this->order_options);
         }
         $view = wa()->getView();
         $view->assign(array(
@@ -211,6 +223,11 @@ abstract class shopPrintformPlugin extends shopPlugin
         ));
         $this->prepareForm($order, $view);
         return $view->fetch($this->getTemplatePath());
+    }
+
+    protected function setOrderOption($name, $value = null)
+    {
+        $this->order_options[$name] = $value;
     }
 
     /**
