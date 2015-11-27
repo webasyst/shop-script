@@ -101,9 +101,8 @@ class shopCsvProductrunController extends waLongActionController
             foreach ($routes as $route) {
                 if ($domain.'/'.$route['url'] == $this->data['config']['domain']) {
                     $routing->setRoute($route, $domain);
-
-                    if ($types = ifempty($route['type_id'], array())) {
-                        $types = array_map('intval', $types);
+                    $types = array_map('intval', ifempty($route['type_id'], array()));
+                    if ($types) {
                         $this->data['types'] = array_intersect($this->data['types'], $types);
                     }
                     $this->data['base_url'] = $domain;
@@ -274,7 +273,18 @@ class shopCsvProductrunController extends waLongActionController
     private function initExport()
     {
         $hash = shopImportexportHelper::getCollectionHash();
-        $this->data['export_category'] = !in_array($hash['type'], array('id', 'set', 'type'));
+        //$this->data['export_category'] = !in_array($hash['type'], array('id', 'set', 'type'));
+        #category exported only for all products or for category
+        if (in_array($hash['type'], array('category', ''), true)) {
+            if (preg_match('@^category/(\d+)$@', $hash['hash'], $matches)) {
+                $this->data['export_category'] = intval($matches[1]);
+            } else {
+                $this->data['export_category'] = true;
+            }
+        } else {
+            $this->data['export_category'] = false;
+        }
+
 
         $this->data['timestamp'] = time();
         $this->data['hash'] = $hash['hash'];
@@ -314,7 +324,8 @@ class shopCsvProductrunController extends waLongActionController
                 $features = $features_model->getByProduct($product_ids);
                 $feature_selectable_model = new shopProductFeaturesSelectableModel();
                 $feature_ids = $feature_selectable_model->getFeatures($product_ids);
-                if ($feature_ids = array_diff($feature_ids, array_keys($features))) {
+                $feature_ids = array_diff($feature_ids, array_keys($features));
+                if ($feature_ids) {
                     $features += $features_model->getById($feature_ids);
                 }
 
@@ -351,7 +362,8 @@ class shopCsvProductrunController extends waLongActionController
         }
 
         $tax_model = new shopTaxModel();
-        if ($taxes = $tax_model->getAll()) {
+        $taxes = $tax_model->getAll();
+        if ($taxes) {
             $this->data['taxes'] = array();
             foreach ($taxes as $tax) {
                 $this->data['taxes'][$tax['id']] = $tax['name'];
@@ -360,7 +372,8 @@ class shopCsvProductrunController extends waLongActionController
 
         if (!empty($config['images'])) {
             $sql = 'SELECT COUNT(1) AS `cnt` FROM `shop_product_images` GROUP BY `product_id` ORDER BY `cnt` DESC LIMIT 1';
-            if ($cnt = $features_model->query($sql)->fetchField('cnt')) {
+            $cnt = $features_model->query($sql)->fetchField('cnt');
+            if ($cnt) {
                 $options['images'] = true;
                 for ($n = 0; $n < $cnt; $n++) {
                     $field = sprintf('images:%d', $n);
@@ -414,7 +427,8 @@ class shopCsvProductrunController extends waLongActionController
             $model = new shopCategoryModel();
             if (preg_match('@^category/(\d+)$@', $this->data['hash'], $matches)) {
                 $category_id = (int)$matches[1];
-                if ($category = $model->getById($matches[1])) {
+                $category = $model->getById($matches[1]);
+                if ($category) {
                     $this->data['count'][self::STAGE_CATEGORY] = count($model->getPath($category_id)) + 1;
                     if (!empty($category['include_sub_categories']) || $this->data['config']['include_sub_categories']) {
                         $route = null;
@@ -432,6 +446,7 @@ class shopCsvProductrunController extends waLongActionController
         }
 
         $this->data['count'][self::STAGE_PRODUCT] = $this->getCollection()->count();
+        $this->collection = null;
     }
 
     private static function getData($data, $key)
@@ -473,22 +488,24 @@ class shopCsvProductrunController extends waLongActionController
         if (!$this->collection) {
             $hash = null;
             if ($this->data['export_category']) {
-                //it's * or category/##
+                //hash is * or category/id
+                #rebuild hash with current category id
                 $id = $this->data['map'][self::STAGE_CATEGORY];
-                if ($id || !preg_match('@^category/\d+$@', $this->data['hash'])) {
+                if ($this->data['hash'] == '*') {
                     $hash = 'search/category_id='.($id ? $id : '=null');
                 } else {
-                    $hash = 'search/';
-                }
-
-                if (preg_match("@^category/{$id}\$@", $this->data['hash'])) {
-                    if ($this->data['config']['extra_categories']) {
+                    #hash = category/%id%
+                    if (($this->data['export_category'] !== true) && ($this->data['export_category'] == $id)) {
+                        $this->data['export_category'] = true;
+                    }
+                    if ($this->data['export_category'] === true) {
                         $hash = 'search/category_id='.($id ? $id : '=null');
                     } else {
-                        $hash = $this->data['hash'];
+                        //this hash always return empty collection
+                        //used to skip parent categories entries
+                        $hash = 'category/0';
                     }
-                } elseif (($this->data['hash'] != '*')) {
-                    $hash .= (substr($hash, -1) == '/' ? '' : '&').str_replace('/', '_id=', $this->data['hash']);
+
                 }
             } else {
                 $hash = $this->data['hash'];
@@ -498,8 +515,9 @@ class shopCsvProductrunController extends waLongActionController
 
             if (!empty($this->data['config']['params'])) {
                 #get product's params
-                $options['params'] = true;;
+                $options['params'] = true;
             }
+
             $this->collection = new shopProductsCollection($hash, $options);
             $this->collection->orderBy('name');
         }
@@ -789,7 +807,8 @@ class shopCsvProductrunController extends waLongActionController
         } else {
             if ($this->reader->next() && ($current = $this->reader->current())) {
                 $this->data['current'][self::STAGE_FILE] = $this->reader->offset();
-                if ($type = self::getDataType($current)) {
+                $type = self::getDataType($current);
+                if ($type) {
                     $method_name = 'stepImport'.ucfirst($type);
                     if (method_exists($this, $method_name)) {
                         $result = $this->{$method_name}($current);
@@ -1580,6 +1599,10 @@ class shopCsvProductrunController extends waLongActionController
          * @var shopCategoryModel $model
          */
         static $model;
+        /**
+         * @var shopCategoryParamsModel $params_model
+         */
+        static $params_model;
         $empty = $this->reader->getEmpty();
         $data += $empty;
         if (!$model) {
@@ -1617,15 +1640,20 @@ class shopCsvProductrunController extends waLongActionController
         try {
             self::filterEmptyRows($data, array('url'));
             $key = 'c:';
+            $id = null;
             if ($current_data = $model->getByField($fields)) {
                 $key .= 'u:'.$current_data['id'];
-                $stack[] = $current_data['id'];
+                $id = $current_data['id'];
+                $stack[] = $id;
+
                 if (!$this->emulate($key)) {
                     $target = 'update';
                     if (!$model->update($current_data['id'], $data)) {
                         $target = 'error';
+                        $id = null;
                     }
                 } else {
+                    $id = null;
                     $target = 'found';
                 }
             } else {
@@ -1642,6 +1670,19 @@ class shopCsvProductrunController extends waLongActionController
                     $this->emulate($key);
                 }
 
+            }
+            if (!empty($data['params']) && !empty($id)) {
+                if (!$params_model) {
+                    $params_model = new shopCategoryParamsModel();
+                }
+                $params = array();
+                foreach (explode("\n", $data['params']) as $param_str) {
+                    $param = explode('=', $param_str);
+                    if (count($param) > 1) {
+                        $params[$param[0]] = trim($param[1]);
+                    }
+                }
+                $params_model->set($id, $params);
             }
         } catch (waDbException $ex) {
             $target = 'error';
@@ -1698,8 +1739,10 @@ class shopCsvProductrunController extends waLongActionController
     {
         $res = $this->stepExportProduct($this->data['current'], $this->data['count'], $this->data['processed_count']);
         if (
+            #export products chunk complete
             !$res
-            &&
+            && #export categories is enabled
+
             $this->data['export_category']
             //      &&
             //      ($this->data['current'][self::STAGE_CATEGORY] < $this->data['count'][self::STAGE_CATEGORY])
@@ -1873,7 +1916,7 @@ class shopCsvProductrunController extends waLongActionController
                         asort($rows);
                         $response['collision'][] = array(
                             'key'  => $key,
-                            'rows' => $rows,
+                            'rows' => array_values($rows),
                         );
                         $params[$key] = $rows;
                     }
@@ -1926,8 +1969,8 @@ class shopCsvProductrunController extends waLongActionController
             $model = new shopCategoryModel();
             if (preg_match('@^category/(\d+)$@', $this->data['hash'], $matches)) {
                 $category_id = $matches[1];
-
-                if ($category = $model->getById($category_id)) {
+                $category = $model->getById($category_id);
+                if ($category) {
                     if (!empty($category['include_sub_categories']) || $this->params['include_sub_categories']) {
                         $categories = array_reverse($model->getTree($category_id));
                     } else {
@@ -1963,7 +2006,8 @@ class shopCsvProductrunController extends waLongActionController
             }
 
         }
-        if ($category = reset($categories)) {
+        $category = reset($categories);
+        if ($category) {
             //XXX category hidden at current settlement are not skipped
             $category['name'] = str_repeat('!', $category['depth']).$category['name'];
 
@@ -1981,8 +2025,8 @@ class shopCsvProductrunController extends waLongActionController
             $this->data['map'][self::STAGE_PRODUCT] = $current_stage[self::STAGE_PRODUCT];
 
             $count[self::STAGE_PRODUCT] += $this->getCollection()->count();
+            //$this->collection = null;
         }
-
         return ($current_stage[self::STAGE_CATEGORY] < $count[self::STAGE_CATEGORY]);
     }
 

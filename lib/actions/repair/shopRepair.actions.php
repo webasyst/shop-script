@@ -64,6 +64,18 @@ class shopRepairActions extends waActions
         echo "OK";
     }
 
+    public function productRemoveFeaturesSelectableAction()
+    {
+        $model = new waModel();
+        $model->exec('DELETE pf FROM shop_product_features pf
+JOIN shop_product_features_selectable pfs
+ON pf.product_id = pfs.product_id AND pf.feature_id = pfs.feature_id
+WHERE pf.sku_id IS NULL');
+
+        echo 'OK';
+    }
+
+
     public function sortAction()
     {
         $this->getResponse()->addHeader('Content-type', 'text/plain');

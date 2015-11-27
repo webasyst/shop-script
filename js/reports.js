@@ -192,7 +192,7 @@
                     var attr = hash.slice(attrMarker);
                     this.preExecute(actionName, attr);
                     if (typeof(this[actionName + 'Action']) == 'function') {
-                        $.shop.trace('$.products.dispatch',[actionName + 'Action',attr]);
+                        $.shop.trace('$.reports.dispatch',[actionName + 'Action',attr]);
                         this.setActiveTop(actionName);
                         this[actionName + 'Action'].apply(this, attr);
                     } else {

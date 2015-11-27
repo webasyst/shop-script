@@ -68,6 +68,27 @@ class shopSettingsGeneralAction extends waViewAction
                 }
                 $factories = ifset($config['factories'], array());
             }
+
+            $config_file = $this->getConfig()->getConfigPath('config.php');
+            $lazy_loading = waRequest::post('lazy_loading', 0, waRequest::TYPE_INT);
+
+            if (!$lazy_loading) {
+                if (file_exists($config_file)) {
+                    $config = include($config_file);
+                } else {
+                    $config = array();
+                }
+                $config['lazy_loading'] = 0;
+                waUtils::varExportToFile($config, $config_file);
+            } else {
+                if (file_exists($config_file)) {
+                    $config = include($config_file);
+                    if (isset($config['lazy_loading'])) {
+                        unset($config['lazy_loading']);
+                        waUtils::varExportToFile($config, $config_file);
+                    }
+                }
+            }
         }
         
         $cm = new waCountryModel();
@@ -90,6 +111,8 @@ class shopSettingsGeneralAction extends waViewAction
         $this->view->assign('saved', waRequest::post());
 
         $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
+
+        $this->view->assign('lazy_loading', isset($lazy_loading) ? $lazy_loading : $this->getConfig()->getOption('lazy_loading'));
 
         if (!isset($factories)) {
             $factories = $this->getConfig()->getOption('factories');
@@ -122,7 +145,8 @@ class shopSettingsGeneralAction extends waViewAction
             'use_gravatar' => waRequest::post('use_gravatar', '', waRequest::TYPE_INT),
             'gravatar_default' => waRequest::post('gravatar_default', '', waRequest::TYPE_STRING_TRIM),
             'require_captcha'  => waRequest::post('require_captcha', 0, waRequest::TYPE_INT),
-            'require_authorization' => waRequest::post('require_authorization', 0, waRequest::TYPE_INT)
+            'require_authorization' => waRequest::post('require_authorization', 0, waRequest::TYPE_INT),
+            'lazy_loading' => waRequest::post('lazy_loading', 0, waRequest::TYPE_INT)
         );
         if (waRequest::post('map')) {
             $data['map'] = waRequest::post('map', '', waRequest::TYPE_STRING_TRIM);

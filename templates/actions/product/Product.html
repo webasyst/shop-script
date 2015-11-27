@@ -503,6 +503,8 @@
                     <div class="value s-product-categories">
                         <ul class="menu-v s-category-action">
                             <li><a href="#/product/{$product.id}/edit/main/categories/add/" class="small inline-link js-action"><i class="icon10 add"></i> <b><i>[`Additional category`]</i></b></a></li>
+                            {* @event backend_product.%plugin_id%.category_action_li *}
+                            {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.category_action_li)}{/foreach}{/if}
                         </ul>
                     </div>
                 </div>
@@ -513,7 +515,7 @@
 
                         {function sets_select set_id=null}
                             <select name="product[sets][]">
-                                <option value="">[`Please select a set`]</option>
+                                <option value="" {if empty($set_id)} selected="selected"{/if}>[`Please select a set`]</option>
                                 <option class="separator" value="" disabled="disabled">---</option>
                                 {foreach $sets as $set}
                                     <option value="{$set.id}"{if $set_id && $set_id == $set.id} selected="selected"{/if}>{$set.name|escape} ({$set.id|escape})</option>

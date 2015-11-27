@@ -248,15 +248,16 @@ class shopPayment extends waAppPayment
                     $item['price'] = shop_currency($item['price'], $order['currency'], $currency_id, false);
                 }
                 $items[] = array(
-                    'id'          => ifset($item['id']),
-                    'name'        => ifset($item['name']),
-                    'sku'         => ifset($item['sku_code']),
-                    'description' => '',
-                    'price'       => $item['price'],
-                    'quantity'    => ifset($item['quantity'], 0),
-                    'total'       => $item['price'] * $item['quantity'],
-                    'type'        => ifset($item['type'], 'product'),
-                    'product_id'  => ifset($item['product_id']),
+                    'id'             => ifset($item['id']),
+                    'name'           => ifset($item['name']),
+                    'sku'            => ifset($item['sku_code']),
+                    'description'    => '',
+                    'price'          => $item['price'],
+                    'quantity'       => ifset($item['quantity'], 0),
+                    'total'          => $item['price'] * $item['quantity'],
+                    'type'           => ifset($item['type'], 'product'),
+                    'product_id'     => ifset($item['product_id']),
+                    'total_discount' => ifset($item['total_discount']),
                 );
                 if (isset($item['weight'])) {
                     $items[count($items) - 1]['weight'] = $item['weight'];

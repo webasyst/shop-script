@@ -186,6 +186,7 @@
                     });
                     $(".checkout-step.step-" + step_id + " .checkout-step-content").css({ height: 'auto'}).show(200, function () {
                         $(document).scrollTop($(".checkout-step.step-" + step_id).offset().top);
+                        VK.callMethod("resizeWindow", $("body").outerWidth(), $("body").outerHeight());
                     });
                     current.parent().find('a.back').hide();
                 }

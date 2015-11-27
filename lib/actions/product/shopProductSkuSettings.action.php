@@ -24,6 +24,22 @@ class shopProductSkuSettingsAction extends waViewAction
         //$this->view->assign('features', $features_model->getByType($product->type_id, 'code', true));
         $this->view->assign('features', $this->getFeatures($product));
         $this->view->assign('sku_features', $product_features_model->getValues($product_id, -$sku_id));
+
+        $event_params = array(
+            'product' => $product,
+            'sku' => $sku,
+            'sku_id' => $sku_id
+        );
+        /**
+         * Plugin hook for handling product entry saving event
+         * @event backend_product_sku_settings
+         *
+         * @param array [string]mixed $params
+         * @param array [string][string]mixed $params['product']
+         * @param array [string][string]mixed $params['sku']
+         * @return void
+         */
+        $this->view->assign('backend_product_sku_settings', wa()->event('backend_product_sku_settings', $event_params));
     }
 
     public function getFeatures(shopProduct $product)

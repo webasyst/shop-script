@@ -72,6 +72,9 @@ class shopFrontendCartAddController extends waJsonController
         }
 
         $quantity = waRequest::post('quantity', 1);
+        if ($quantity < 0) {
+            $quantity = 1;
+        }
         if ($product && $sku) {
             // check quantity
             if (!wa()->getSetting('ignore_stock_count')) {

@@ -478,12 +478,12 @@ editClick:(function ($) {
                 var html = '';
                 for (var i = 0, len = data.frontend_urls.length; i < len; i += 1) {
                     html += ' <span class="s-product-frontend-url-not-empty">' +
-                    '<a href="' + data.frontend_urls[i].url + '" target="_blank">' + data.frontend_urls[i].url + '</a><i class="icon10 new-window"></i>' +
-                    '</span> ';
+                        '<a href="' + data.frontend_urls[i].url + '" target="_blank">' + data.frontend_urls[i].url + '</a><i class="icon10 new-window"></i>' +
+                        '</span> ';
                 }
                 if (html) {
                     $('#s-product-frontend-links').find('.s-product-frontend-url-not-empty').
-                        wrapAll('<div></div>').closest('div').replaceWith(html);
+                    wrapAll('<div></div>').closest('div').replaceWith(html);
                 }
 
 
@@ -597,8 +597,8 @@ editClick:(function ($) {
                 var feature_li = feature_superposition.find('ul.features li');
                 feature_li.find('.count').text('');
                 feature_li.find('i').
-                    removeClass('status-blue-tiny status-gray-tiny').
-                    addClass('status-gray-tiny');
+                removeClass('status-blue-tiny status-gray-tiny').
+                addClass('status-gray-tiny');
 
                 // blank counter
                 var counters = feature_superposition.find('.superposition-count');
@@ -871,10 +871,10 @@ editClick:(function ($) {
             }, duration);
 
             $('#shop-productprofile').
-                off('click.edit-product', 'a.js-action').
-                on('click.edit-product', 'a.js-action', function () {
-                    return self.editClick($(this));
-                });
+            off('click.edit-product', 'a.js-action').
+            on('click.edit-product', 'a.js-action', function () {
+                return self.editClick($(this));
+            });
 
         },
 
@@ -994,6 +994,7 @@ editClick:(function ($) {
             var $this = $('#s-product-feature-superposition');
             var product_skus = form.find('.s-product-skus');
             var base_price_selectable = form.find(':input[name="product[base_price_selectable]"]');
+            var self = this;
 
             // change salling mode (sku type)
 
@@ -1016,8 +1017,8 @@ editClick:(function ($) {
             // click to feature value checkbox
             $this.on('change', 'ul.values>li input', function () {
 
-                var self = $(this);
-                var li = self.parents('li:first');
+                var $self = $(this);
+                var li = $self.parents('li:first');
                 var ul = li.parent();
                 var count = ul.find('>li input:checked').length;
 
@@ -1028,14 +1029,14 @@ editClick:(function ($) {
                 // update icon
                 var icon_class = count ? 'status-blue-tiny' : 'status-gray-tiny';
                 feature_li.find('i').
-                    removeClass('status-blue-tiny status-gray-tiny').
-                    addClass(icon_class);
+                removeClass('status-blue-tiny status-gray-tiny').
+                addClass(icon_class);
 
-                updateSuperpositionCount();
+                self.featureSelectableCount($this);
             });
 
 
-            $.shop.changeListener(base_price_selectable, function() {
+            $.shop.changeListener(base_price_selectable, function () {
                 product_skus.find('.s-sku-virtual .s-price input').val($(this).val());
             });
 
@@ -1066,49 +1067,82 @@ editClick:(function ($) {
                 $('#s-product-view').find('tr[data-id=' + sku_id + ']').removeClass('s-sku-virtual');
             }, 'input, textarea');
 
-            // update superposition count texts helper
-            var updateSuperpositionCount = function () {
-                var factors = [];
-                $this.find('ul.features>li').each(function () {
-                    var li = $(this);
-                    var cnt = parseInt(li.find('.count').text(), 10);
-                    if (cnt) {
-                        factors.push(cnt);
-                    }
-                });
-
-                var counter = $this.find('.superposition-count');
-                if (factors.length) {
-                    counter.find('.options').text(factors.join(' x ') + ' ' + $_('options'));
-
-                    var count = 1;
-                    for (var i = 0, n = factors.length; i < n; i += 1) {
-                        count *= factors[i];
-                    }
-                    counter.find('.skus').html(
-                        '<span class="highlighted">' + $_('%d SKUs in total').replace('%d', count) + '</span>'
-                    );
-
-                } else {
-                    counter.find('.options').text('');
-                    counter.find('.skus').html('');
-                }
-            };
-
             $this.find('i.status-blue-tiny:first').parents('li').trigger('click');
             return $this;
+        },
+
+        // update superposition count texts helper
+        featureSelectableCount: function ($this) {
+            if (!$this) {
+                $this = $('#s-product-feature-superposition');
+            }
+            var factors = [];
+            var $features_tab = $('#s-product-edit-forms .s-product-form.features');
+            $this.find('ul.features>li').each(function () {
+                var $li = $(this);
+                var cnt = parseInt($li.find('.count').text(), 10);
+                if (cnt) {
+                    factors.push(cnt);
+                }
+
+                if ($features_tab.length) {
+                    var $values_container = $features_tab.find('div[data-code="' + $li.data('feature-code') + '"] div.value');
+
+                    if (cnt) {
+                        var id = $li.data('feature-id');
+                        var $selected_values = $this.find('div.feature-values[data-feature-id="' + id + '"] ul.values input:checked');
+
+                        $values_container.each(function () {
+                            var $value = $(this);
+
+                            var checked = $selected_values.filter('[value="' + $value.data('value-id') + '"]').length;
+                            var $checkbox = $value.find('input:checkbox');
+                            $checkbox.attr('checked', checked ? 'checked' : null).attr('disabled', 'disabled');
+                            if (checked) {
+                                $value.show();
+                            } else {
+                                $value.hide();
+                            }
+                        });
+                    } else {
+                        $values_container.show();
+                        $values_container.find('input:checkbox').each(function (index, el) {
+                            el.checked = el.defaultChecked;
+                            el.disabled = null;
+                        });
+                        //TODO fire event?
+                    }
+                }
+            });
+
+            var counter = $this.find('.superposition-count');
+            if (factors.length) {
+                counter.find('.options').text(factors.join(' x ') + ' ' + $_('options'));
+
+                var count = 1;
+                for (var i = 0, n = factors.length; i < n; i += 1) {
+                    count *= factors[i];
+                }
+                counter.find('.skus').html(
+                    '<span class="highlighted">' + $_('%d SKUs in total').replace('%d', count) + '</span>'
+                );
+
+            } else {
+                counter.find('.options').text('');
+                counter.find('.skus').html('');
+            }
         },
 
         editInit: function () {
 
             // Ctrl+S hotkey handler
             $('#s-product-edit-forms').unbind('keydown.product').
-                bind('keydown.product', function (e) {
-                    if ($(e.target).is(':input') && e.ctrlKey && e.keyCode == 83) {
-                        $('#s-product-save-button').click();
-                        return false;
-                    }
-                });
+            bind('keydown.product', function (e) {
+                if ($(e.target).is(':input') && e.ctrlKey && e.keyCode == 83) {
+                    $('#s-product-save-button').click();
+                    return false;
+                }
+            });
 
             $.shop.makeFlexibleInput('s-product-meta-title');
 
@@ -1133,14 +1167,14 @@ editClick:(function ($) {
                 product_tags.tagsInput({
                     autocomplete_url: '?module=product&action=tagsAutocomplete',
                     height: 120,
-                    onChange: function() {
+                    onChange: function () {
                         $.product.updateMetaFields();
                     },
                     defaultText: ''
                 }).data('tags_input_init', true);
 
                 $('#s-product-popular-tags').off('click.product', 'a').
-                    on('click.product', 'a', function () {
+                on('click.product', 'a', function () {
                         var name = $(this).text();
                         product_tags.removeTag(name);
                         product_tags.addTag(name);
@@ -1208,10 +1242,10 @@ editClick:(function ($) {
             }, duration);
 
             $('#shop-productprofile').
-                off('click.edit-product', 'a.js-action').
-                on('click.edit-product', 'a.js-action', function () {
-                    return self.editClick($(this));
-                });
+            off('click.edit-product', 'a.js-action').
+            on('click.edit-product', 'a.js-action', function () {
+                return self.editClick($(this));
+            });
         },
 
         editBlur: function () {
@@ -1396,8 +1430,8 @@ editClick:(function ($) {
 
             // delete category
             main_tab_content.
-                off('click.product', '.s-product-delete-from-category').
-                on('click.product', '.s-product-delete-from-category',
+            off('click.product', '.s-product-delete-from-category').
+            on('click.product', '.s-product-delete-from-category',
                 function () {
                     var self = $(this);
                     var parent = self.parent('div');
@@ -2060,7 +2094,7 @@ editClick:(function ($) {
         editTabMainSkuEproductSave: function (sku_id) {
             // upload eproduct files for existing skus
             var $sku_files = $('#s-product-edit-forms .s-product-form.main tr.js-sku-settings' + ((sku_id && sku_id > 0) ? ('[data-id="' + sku_id + '"]') : '')
-            + ' > td:first .fileupload');
+                + ' > td:first .fileupload');
             $.shop.trace('$.product.editTabMainSkuEproductSave', $sku_files.length);
             if ($sku_files.length) {
                 $sku_files.fileupload('start');
@@ -2202,8 +2236,8 @@ editClick:(function ($) {
             var replace = '#/product/' + data.id + '/';
             $('#s-product-edit-forms .s-product-form.main table.s-product-skus tbody, #s-product-view table.s-product-skus tbody')
                 .find('[href*="#/product/new/"]').each(function () {
-                    $(this).attr('href', $(this).attr('href').replace(pattern, replace));
-                });
+                $(this).attr('href', $(this).attr('href').replace(pattern, replace));
+            });
         },
 
         editTabDescriptionsBlur: function () {
@@ -2298,14 +2332,14 @@ editClick:(function ($) {
             if (window.sales_data && sales_data.length) {
                 if (!$salesChart.data('graph_rendered')) {
 
-                    var renderChart = function() {
+                    var renderChart = function () {
                         var is_rendered = ( $salesChart.length && $salesChart.width() > 0 );
                         if (is_rendered) {
                             //Render graph
                             showSalesGraph(sales_data, typeof cash_type == 'undefined' ? null : cash_type);
                             $salesChart.data('graph_rendered', 1);
                         } else {
-                            setTimeout( renderChart, 1000 );
+                            setTimeout(renderChart, 1000);
                         }
                     };
                     renderChart();
@@ -2319,7 +2353,7 @@ editClick:(function ($) {
 
                 if (!$('#product-sku-plot').data('graph_rendered')) {
                     var data_array = [];
-                    $.each(sku_plot_data[0], function(i, el) {
+                    $.each(sku_plot_data[0], function (i, el) {
                         data_array.push({
                             label: el[0],
                             value: el[1]
@@ -2335,7 +2369,7 @@ editClick:(function ($) {
                 $('#product-sku-plot').remove();
             }
         },
-        updateMetaFields: function() {
+        updateMetaFields: function () {
             var product_name = $('.s-product-name-input').val();
             $('#s-product-meta-title').attr('placeholder', product_name);
             var keywords = [
@@ -2343,7 +2377,7 @@ editClick:(function ($) {
             ];
 
             var max = 5;
-            $('.s-sku-name-input').each(function() {
+            $('.s-sku-name-input').each(function () {
                 if (max <= 0) {
                     return false;
                 }
@@ -2375,7 +2409,7 @@ editClick:(function ($) {
             $('#s-product-meta-description').attr('placeholder', $('#s-product-summary').val());
         },
 
-        getId: function() {
+        getId: function () {
             return this.path.id;
         }
 

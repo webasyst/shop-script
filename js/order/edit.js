@@ -570,6 +570,7 @@ $.order_edit = {
 
                     if (found) {
                         el.val(el_selected);
+                        el_selected += '';
                         if (!shipping_methods[el_selected].external || data['shipping_id'] == el_selected.split('.')[0]) {
                             el.trigger($.Event('change', {
                                 triggered_by_updateTotal: 1
@@ -810,9 +811,10 @@ $.order_edit = {
     initCustomerForm : function(editing_mode) {
         editing_mode = typeof editing_mode === 'undefined' ? 'add' : editing_mode;
 
+        $.order_edit.bindValidateErrorPlaceholders();
+
         // editing mode (no autocomplete)
         if (editing_mode !== 'add') {
-            $.order_edit.bindValidateErrorPlaceholders();
             return;
         }
 
@@ -836,7 +838,7 @@ $.order_edit = {
                 autocompete_input.val('').hide(200);
             } else {
                 disable();
-                $.order_edit.customer_inputs.val('');
+                resetInputValues();
                 autocompete_input.val('').show();
             }
         };
@@ -847,7 +849,20 @@ $.order_edit = {
             return str.indexOf('@') !== -1;
         };
 
-        $.order_edit.bindValidateErrorPlaceholders();
+        var resetInputValues = (function() {
+            var initial_values = {};
+            $.order_edit.customer_inputs.each(function() {
+                var $self = $(this);
+                initial_values[$self.attr('name')] = $self.val();
+            });
+
+            return function() {
+                $.order_edit.customer_inputs.each(function() {
+                    var $self = $(this);
+                    $self.val(initial_values[$self.attr('name')] || '');
+                });
+            };
+        });
 
         // mark whole form as disabled (disactivated) to user want use autocomplete
         activate(false);
@@ -855,16 +870,14 @@ $.order_edit = {
             disable(false);
         });
 
-        if (editing_mode == 'add') {
-            $('#s-order-new-customer').click(function() {
-                $.order_edit.customer_fields.find('.field-group:first').find(':input').val('');
-                activate();
-                $.order_edit.customer_inputs.first().focus();
-                $('#s-customer-id').val(0);
-                return false;
-            });
-        }
-
+        // Link to create a new customer resets fields even after something is selected in autocomplete
+        $('#s-order-new-customer').click(function() {
+            resetInputValues();
+            activate();
+            $.order_edit.customer_inputs.first().focus();
+            $('#s-customer-id').val(0);
+            return false;
+        });
 
         var term = '';
 

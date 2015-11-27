@@ -372,6 +372,7 @@ return array(
         'parent_id' => array('int', 11),
         'stock_id' => array('int', 11),
         'purchase_price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
+        'total_discount' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'order_type' => array('order_id', 'type'),

@@ -240,7 +240,24 @@ class shopFrontendCategoryAction extends shopFrontendAction
                 $rows = array();
                 if ($tmp) {
                     $pf_model = new shopProductFeaturesModel();
-                    $rows = $pf_model->getSkusByFeatures($product_ids, $tmp);
+                    $rows = $pf_model->getSkusByFeatures($product_ids, $tmp, waRequest::param('drop_out_of_stock') == 2);
+                    $image_ids = array();
+                    foreach ($rows as $row) {
+                        if ($row['image_id']) {
+                            $image_ids[] = $row['image_id'];
+                        }
+                    }
+                    if ($image_ids) {
+                        $image_model = new shopProductImagesModel();
+                        $images = $image_model->getById($image_ids);
+                        foreach ($rows as &$row) {
+                            if ($row['image_id'] && isset($images[$row['image_id']])) {
+                                $row['ext'] = $images[$row['image_id']]['ext'];
+                                $row['image_filename'] = $images[$row['image_id']]['filename'];
+                            }
+                        }
+                        unset($row);
+                    }
                 } elseif ($min_price || $max_price) {
                     $ps_model = new shopProductSkusModel();
                     $rows = $ps_model->getByField('product_id', $product_ids, true);
@@ -287,6 +304,13 @@ class shopFrontendCategoryAction extends shopFrontendAction
                             $products[$product_id]['compare_price'] = shop_currency($sku['compare_price'], $currency, $default_currency, false);
                             $products[$product_id]['frontend_compare_price'] = $sku['compare_price'];
                             $products[$product_id]['unconverted_compare_price'] = shop_currency($sku['unconverted_compare_price'], $currency, $default_currency, false);
+                            if ($sku['image_id'] && $products[$product_id]['image_id'] != $sku['image_id']) {
+                                if (isset($sku['ext'])) {
+                                    $products[$product_id]['image_id'] = $sku['image_id'];
+                                    $products[$product_id]['ext'] = $sku['ext'];
+                                    $products[$product_id]['image_filename'] = $sku['image_filename'];
+                                }
+                            }
                         }
                     }
                     $this->view->assign('products', $products);

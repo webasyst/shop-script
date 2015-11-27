@@ -157,12 +157,6 @@ class shopImage
                 }
                 $image->resize($width, $height);
                 break;
-            case 'crop':
-                if (is_numeric($max_size) && $width > $max_size) {
-                    return null;
-                }
-                $image->resize($width, $height, waImage::INVERSE)->crop($width, $height);
-                break;
             case 'width':
                 if (is_numeric($max_size) && ($width > $max_size || $height > $max_size)) {
                     return null;
@@ -175,18 +169,12 @@ class shopImage
                 }
                 $image->resize($width, $height);
                 break;
+            case 'crop':
             case 'rectangle':
                 if (is_numeric($max_size) && ($width > $max_size || $height > $max_size)) {
                     return null;
                 }
-                if ($width > $height) {
-                    $w = $image->width;
-                    $h = $image->width * $height / $width;
-                } else {
-                    $h = $image->height;
-                    $w = $image->height * $width / $height;
-                }
-                $image->crop($w, $h)->resize($width, $height, waImage::INVERSE);
+                $image->resize($width, $height, waImage::INVERSE)->crop($width, $height);
                 break;
             default:
                 throw new waException("Unknown type");
