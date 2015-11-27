@@ -166,6 +166,7 @@ class shopProductAction extends waViewAction
          * @return array[string][string]string $return[%plugin_id%]['toolbar_section'] html output
          * @return array[string][string]string $return[%plugin_id%]['info_section'] html output*
          * @return array[string][string]string $return[%plugin_id%]['edit_section_li'] html output
+         * @return array[string][string]string $return[%plugin_id%]['category_action_li'] html output
          */
         $this->view->assign('backend_product', wa()->event('backend_product', $product, array()));
 

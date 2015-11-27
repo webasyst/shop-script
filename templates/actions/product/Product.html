@@ -503,6 +503,8 @@
                     <div class="value s-product-categories">
                         <ul class="menu-v s-category-action">
                             <li><a href="#/product/{$product.id}/edit/main/categories/add/" class="small inline-link js-action"><i class="icon10 add"></i> <b><i>[`Additional category`]</i></b></a></li>
+                            {* @event backend_product.%plugin_id%.category_action_li *}
+                            {if !empty($backend_product)}{foreach $backend_product as $_}{ifset($_.category_action_li)}{/foreach}{/if}
                         </ul>
                     </div>
                 </div>
