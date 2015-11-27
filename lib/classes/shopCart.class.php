@@ -80,6 +80,7 @@ class shopCart
         if ($total === null) {
             $total = $this->model->total($this->code);
             $order = array(
+                'currency' => wa()->getConfig()->getCurrency(false),
                 'total' => $total,
                 'items' => $this->items(false)
             );

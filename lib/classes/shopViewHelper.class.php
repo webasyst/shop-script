@@ -167,6 +167,19 @@ class shopViewHelper extends waAppViewHelper
             'product_id' => array_keys($products),
             'sku_id'     => null
         ), true);
+
+        $selectable_product_ids = array();
+        foreach ($products as $p) {
+            if ($p['sku_type']) {
+                $selectable_product_ids[] = $p['id'];
+            }
+        }
+        if ($selectable_product_ids) {
+            $sql = 'SELECT pf.* FROM shop_product_features pf
+                    JOIN shop_product_features_selectable pfs ON pf.product_id = pfs.product_id AND pf.feature_id = pfs.feature_id
+                    WHERE pf.sku_id IS NOT NULL AND pf.product_id IN (i:ids)';
+            $rows = array_merge($rows, $product_features_model->query($sql, array('ids' => $selectable_product_ids))->fetchAll());
+        }
         if (!$rows) {
             return array();
         }
@@ -186,10 +199,10 @@ class shopViewHelper extends waAppViewHelper
             $f = $features[$row['feature_id']];
             $type = preg_replace('/\..*$/', '', $f['type']);
             if ($type != shopFeatureModel::TYPE_BOOLEAN && $type != shopFeatureModel::TYPE_DIVIDER) {
-                $type_values[$type][] = $row['feature_value_id'];
+                $type_values[$type][$row['feature_value_id']] = $row['feature_value_id'];
             }
             if ($f['multiple']) {
-                $product_features[$row['product_id']][$f['id']][] = $row['feature_value_id'];
+                $product_features[$row['product_id']][$f['id']][$row['feature_value_id']] = $row['feature_value_id'];
             } else {
                 $product_features[$row['product_id']][$f['id']] = $row['feature_value_id'];
             }
