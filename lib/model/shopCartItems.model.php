@@ -265,12 +265,14 @@ class shopCartItemsModel extends waModel
                         $img = $image_model->getById($sku['image_id']);
                         if ($img) {
                             $item['product']['image_id'] = $sku['image_id'];
+                            $item['product']['image_filename'] = $img['filename'];
                             $item['product']['ext'] = $img['ext'];
                         }
                     }
 
                     $item['sku_code'] = $sku['sku'];
                     $item['purchase_price'] = $sku['purchase_price'];
+                    $item['compare_price'] = $sku['compare_price'];
                     $item['sku_name'] = $sku['name'];
                     $item['currency'] = $item['product']['currency'];
                     $item['price'] = $sku['price'];

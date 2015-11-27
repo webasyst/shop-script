@@ -22,6 +22,10 @@
         </div>
     </div>
 
+    <!-- plugin hook: 'backend_product_sku_settings' -->
+    {* @event backend_product_sku_settings *}
+    {if !empty($backend_product_sku_settings)}{foreach $backend_product_sku_settings as $_}{$_}{/foreach}{/if}
+
     {*
      * Show weight here separately from other features.
      *}

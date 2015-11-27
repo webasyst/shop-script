@@ -104,9 +104,23 @@ return array(
             'items' => $stocks
         ),
         'drop_out_of_stock' => array(
-            'name' => _w('Force drop out-of-stock products to the bottom of all lists'),
-            'description' => _w('When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more.'),
-            'type' => 'checkbox',
+            'name' => _w('Out-of-stock products'),
+            'type' => 'radio_select',
+            'items' => array(
+
+                1 => array(
+                    'name' => _w('Force drop out-of-stock products to the bottom of all lists'),
+                    'description' => _w('When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more.'),
+                ),
+                2 => array(
+                    'name' => _w('Hide out-of-stock products'),
+                    'description' => _w('Out-of-stock products will remain published, but will be automatically hidden from all product lists on this storefront, e.g. product search results, category product filtering, and others.')
+                ),
+                0 => array(
+                    'name' => _w('Display as is'),
+                    'description' => _w('All product lists will contain both in-stock and out-of-stock products.'),
+                )
+            )
         ),
         _w('Checkout'),
         'payment_id' => array(
@@ -157,7 +171,7 @@ return array(
             '$content' => _w('Core content loaded according to the requested resource: product, category, search results, static page, etc.'),
         ),
         'product.html' => array(
-        
+
             '$product.id' => _w('Product id. Other elements of <em>$product</em> available in this template are listed below'),
             '$product.name' => _w('Product name'),
             '$product.summary' => _w('Product summary (brief description)'),
@@ -221,7 +235,7 @@ return array(
                 '$product.<strong>pages</strong>: '._w('Array of product static info pages').'<br>'.
                 '$product.<strong>features</strong>: '._w('Array of product features and values').'<br>',
                 '$product.<strong>reviews</strong>: '._w('Array of product reviews').'<br>',
-            
+
             '$wa->shop->productImgHtml($product, $size, $attributes = array())' => _w('Displays specified $product object’s default image'),
             '$wa->shop->productImgUrl($product, $size)' => _w('Returns specified $product default image URL'),
             '$wa->shop->products(<em>search_conditions</em>[,<em>offset</em>[, <em>limit</em>[, <em>options</em>]]])' => _w('Returns array of products by search criteria, e.g. <em>"tag/new"</em>, <em>"category/12"</em>, <em>"id/1,5,7"</em>, <em>"set/1"</em>, or <em>"*"</em> for all products list.').' '._w('Optional <em>options</em> parameter indicates additional product options, e.g. <em>["params" => 1]</em> to include product custom parameter values into the output.'),

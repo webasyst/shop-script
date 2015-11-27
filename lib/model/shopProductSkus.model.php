@@ -687,7 +687,7 @@ SQL;
         $product->price = $product_data['price'];
         $product->compare_price = $product_data['compare_price'];
         $product->count = $product_data['count'];
-        $product->sku_count = count($data);
+        $product->setData('sku_count', count($data));
         $product->sku_id = $default_sku_id;
         if (isset($features)) {
             $product->features = $features;

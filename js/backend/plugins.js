@@ -177,6 +177,7 @@
                     }
                     self.message('success', message);
                     $(self).trigger('success', [r]);
+                    $(form).trigger('success', [r])
                 } else {
                     self.message('error', r && r.errors || 'parsererror');
                     $(self).trigger('error', [r]);
@@ -202,6 +203,7 @@
                         }
                         self.message('success', message);
                         $(self).trigger('success', [data]);
+                        $form.trigger('success', [data])
                     } else {
                         self.message('error', data.errors || []);
                         $(self).trigger('error', [data]);

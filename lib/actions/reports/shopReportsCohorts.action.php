@@ -51,6 +51,7 @@ class shopReportsCohortsAction extends waViewAction
         $min_ts = null;
         $max_ts = strtotime(key($cohorts));
         $all_zeroes = true;
+        $max_metric = 0;
         foreach($cohorts as $reg_date => $periods) {
             $total = 0;
             $reg_ts = strtotime($reg_date);
@@ -62,29 +63,25 @@ class shopReportsCohortsAction extends waViewAction
             $chart_serie = array();
             foreach($periods as $order_date => $stats) {
                 $order_ts = strtotime($order_date);
-                $chart_serie[] = array(
-                    'y' => max($stats['metric'], 0),
-                    'x' => $order_ts*1000,
-                );
-                $stats += array(
-                    'order_ts' => $order_ts,
-                    'percent_of_max' => 0,
-                    'color' => $color,
-                );
-                $total += $stats['metric'];
-                $max_for_period = max($max_for_period, $stats['metric']);
                 if ($order_ts >= $reg_ts) {
+                    $chart_serie[] = array(
+                        'y' => max($stats['metric'], 0),
+                        'x' => $order_ts*1000,
+                    );
+                    $stats += array(
+                        'order_ts' => $order_ts,
+                        'percent_of_max' => 0,
+                        'color' => $color,
+                    );
+                    $total += $stats['metric'];
+                    $max_for_period = max($max_for_period, $stats['metric']);
                     $table_data[$reg_date][] = $stats;
+                } else {
+                    $chart_serie[] = array(
+                        'y' => 0,
+                        'x' => $order_ts*1000,
+                    );
                 }
-            }
-
-            if ($max_for_period > 0) {
-                foreach($table_data[$reg_date] as &$stats) {
-                    if ($stats['metric'] > 0) {
-                        $stats['percent_of_max'] = $stats['metric']*100/$max_for_period;
-                    }
-                }
-                unset($stats);
             }
 
             if ($cohorts_type == 'clv' || $cohorts_type == 'roi') {
@@ -104,6 +101,7 @@ class shopReportsCohortsAction extends waViewAction
             $table_headers[$reg_date] = $row_header = shopExpenseModel::getCohortHeader($group_by, $reg_ts);
 
             $all_zeroes = $all_zeroes && $table_totals[$reg_date] <= 0;
+            $max_metric = max($max_metric, $max_for_period);
 
             $chart_data[] = array(
                 'color' => $color,
@@ -112,6 +110,17 @@ class shopReportsCohortsAction extends waViewAction
                 'name' => _w('Cohort').': '.$row_header,
                 'date' => waDateTime::format('humandate', $reg_date),
             );
+        }
+
+        if ($max_metric > 0) {
+            foreach($table_data as &$row) {
+                foreach($row as &$stats) {
+                    if ($stats['metric'] > 0) {
+                        $stats['percent_of_max'] = $stats['metric']*100/$max_metric;
+                    }
+                }
+            }
+            unset($row, $stats);
         }
 
         $this->view->assign(array(

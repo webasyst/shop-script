@@ -37,6 +37,8 @@ $.product = $.extend(true, $.product, {
                 $.storage.set('shop/product_features_alert_hidden', 1);
             });
         }
+
+        this.featureSelectableCount();
     },
 
     editTabFeaturesAction: function (path) {

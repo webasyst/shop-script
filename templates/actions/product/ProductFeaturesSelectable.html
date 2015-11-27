@@ -4,7 +4,7 @@
             <div class="block not-padded right-padded">
                 <ul class="menu-v with-icons features">
                     {foreach $features as $code => $f}
-                        <li class="{if $f@first}selected{/if}" data-feature-id="{$f.id}">
+                        <li class="{if $f@first}selected{/if}" data-feature-id="{$f.id}" data-feature-code="{$f.code|escape}">
                             <a href="#">
                                 <strong class="count">{$f.selected|string_format:'%d'}</strong>
                                 <i class="icon16 {if $f.selected}status-blue-tiny{else}status-gray-tiny{/if}"></i>{$f.name}

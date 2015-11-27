@@ -264,6 +264,7 @@
                 + (params.text ? '&text=' + params.text : '')
                 + (params.edit ? '&edit=' + params.edit : '')
                 + (params.hash ? '&hash=' + params.hash : '')
+                + (params.page ? '&page=' + params.page : '')
                 + (params.type_id ? '&type_id=' + params.type_id : '')).
                 slice(1) // cut of first '&'
             ;

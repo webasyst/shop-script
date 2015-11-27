@@ -7,6 +7,13 @@
 
 <div class="fields form">
 {$product_features = $product.features}
+{if true}
+    {* Make features readonly for selectable features *}
+    {$features_selectable = $product.features_selectable}
+{else}
+    {* Or not make features readonly for selectable features *}
+    {$features_selectable = []}
+{/if}
 
 {$feature_type=0}
 
@@ -33,15 +40,28 @@
 
 
                 {if $feature.selectable}
+                    {$feature_selectable=($feature.multiple && !empty($features_selectable[$code]) && !empty($features_selectable[$code]['selected']))}
+                    {$feature_selectable_disabled = 0}
                     {if $feature.multiple}
                         <input type="hidden" name="product[features][{$code}][]" value="">
                         {foreach $feature.values as $value_id => $value}
-                            <div class="value">
+                            {$value_checked = !empty($product_features[$code][$value_id])}
+
+                            <div class="value"
+                                 data-value="{$value|escape}"
+                                 data-value-id="{$value_id}"
+                                    {if $feature_selectable && !$value_checked} style="display: none;"{/if}>
                             <label>
-                                <input type="checkbox" name="product[features][{$code}][]" value="{$value|escape}"{if !empty($product_features[$code][$value_id])} checked="checked"{/if}>
+                                <input type="checkbox"
+                                       name="product[features][{$code}][]"
+                                       value="{$value|escape}"
+                                        {if $value_checked} checked="checked"{/if}
+                                        {if $feature_selectable} disabled="disabled"{/if}
+                                >
                                 {if is_object($value) && isset($value.icon)}{$value.icon}{/if}{$value|escape}
                             </label>
                             </div>
+
                         {/foreach}
 
                         {if empty($smarty.capture) || empty($smarty.capture['feature-value-multiple-template-js'])}
@@ -76,7 +96,7 @@
                         </select>
                         </div>
                     {/if}
-                    <div class="value">
+                    <div class="value js-value-add" {if $feature_selectable} style="display: none;"{/if}>
                         <a href="#/product/{$product.id}/edit/features/value/add/" class="inline-link hint js-action"><b><i>[`other`]</i></b></a>
                     </div>
                 {else}

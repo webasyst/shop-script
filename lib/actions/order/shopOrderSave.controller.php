@@ -137,6 +137,38 @@ class shopOrderSaveController extends waJsonController
             }
 
             $previous_discount = (float) $this->getModel()->select('discount')->where('id=?', $id)->fetchField();
+        } else {
+            if (!$id && !empty($data['discount']) && !empty($discount_description)) {
+                $tmp = $data;
+                $tmp['total'] = $data['total'] + $this->cast($data['discount']) - $data['shipping'];
+                $tmp_discount = shopDiscounts::apply($tmp);
+                if ($tmp_discount == $data['discount']) {
+                    $tmp_total = $data['total'];
+                    $data = $tmp;
+                    $data['total'] = $tmp_total;
+                }
+            }
+        }
+
+        // check discounts
+        if (isset($data['discount'])) {
+            $tmp_discount = 0;
+            if ($id) {
+                $items_model = new shopOrderItemsModel();
+                $old_items = $items_model->getByField('order_id', $id, 'id');
+            }
+            foreach ($data['items'] as $item) {
+                if ($id && !isset($item['total_discount'])) {
+                    $item['total_discount'] = ifset($old_items[$item['id']]['total_discount'], 0);
+                }
+                $tmp_discount += ifset($item['total_discount'], 0);
+            }
+            if ($tmp_discount > $data['discount']) {
+                foreach ($data['items'] as &$item) {
+                    $item['total_discount'] = 0;
+                }
+                unset($item);
+            }
         }
 
         // Fill in shipping and payment-specific params
