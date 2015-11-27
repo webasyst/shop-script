@@ -258,7 +258,7 @@ class shopProductsCollection
         $feature_model = new shopFeatureModel();
         $features = $feature_model->getByField('code', array_keys($data), 'code');
 
-        if ($this->getModel('product')->existsSelectableProducts()) {
+        if ($features && $this->getModel('product')->existsSelectableProducts()) {
             $skus_alias = $this->addJoin('shop_product_skus', ':table.product_id = p.id', ':table.available = 1');
             if (waRequest::param('drop_out_of_stock') == 2) {
                 $this->addWhere('(' . $skus_alias . '.count IS NULL OR ' . $skus_alias . '.count > 0)');
@@ -1111,7 +1111,7 @@ class shopProductsCollection
         if ($this->having) {
             $sql .= $this->_getGroupBy();
             $sql .= " HAVING ".implode(' AND ', $this->having);
-            $sql = "SELECT COUNT(*) FROM (SELECT * ".$sql.") AS t";
+            $sql = "SELECT COUNT(*) FROM (SELECT p.* ".$sql.") AS t";
         } else {
             $sql = "SELECT COUNT(".($this->joins ? 'DISTINCT ' : '')."p.id) ".$sql;
         }
