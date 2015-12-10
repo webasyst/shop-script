@@ -7,7 +7,7 @@ class shopProductAddMethod extends shopProductUpdateMethod
     public function execute()
     {
         $data = waRequest::post();
-        $exclude = array('id', 'sku_type');
+        $exclude = array('id');
         foreach ($exclude as $k) {
             if (isset($data[$k])) {
                 unset($data[$k]);
@@ -15,7 +15,9 @@ class shopProductAddMethod extends shopProductUpdateMethod
         }
 
         $this->post("name", true);
-        $this->post("skus", true);
+        if (ifset($data['sku_type']) != 1) {
+            $this->post("skus", true);
+        }
         $this->checkSku($data);
         // check access rights
         $this->checkRights($this->post("type_id", true));
