@@ -180,7 +180,7 @@ class shopProductsSaveListSettingsController extends waJsonController
             $model->update($set['id'], $data);
         }
         if ($id) {
-            $data['id'] = $data;
+            $data['id'] = $id;
             /**
              * @event set_save
              * @param array $set
