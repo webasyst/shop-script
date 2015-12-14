@@ -433,7 +433,7 @@
                 <td class=leftAlign>Всего отпущено на сумму</td>
             </tr>
             <tr>
-                <td class="underlined leftAlign"><b>{waCurrency::format('%.W{n0} %.2{f0}', $total_amount, $order.currency, 'ru_RU')}, {if !empty($order.nds)}в т.ч. НДС{else}без налога (НДС){/if}</b></td>
+                <td class="underlined leftAlign"><b>{waCurrency::format('%.W{n0} %.2{f0}', $total_amount, $order.currency, 'ru_RU')}, {if !empty($order.tax)}в т.ч. НДС{else}без налога (НДС){/if}</b></td>
             </tr>
             <tr>
                 <td class=separatorCell>&nbsp;</td>
