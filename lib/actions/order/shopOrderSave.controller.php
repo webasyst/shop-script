@@ -304,7 +304,7 @@ class shopOrderSaveController extends waJsonController
         $empty_address = false;
         // shipping
         if ($shipping_id = waRequest::post('shipping_id')) {
-            $shipping_parts = explode('.', $shipping_id);
+            $shipping_parts = explode('.', $shipping_id, 2);
             $shipping_id = $shipping_parts[0];
             $rate_id = isset($shipping_parts[1]) ? $shipping_parts[1] : '';
             $data['params']['shipping_id'] = $shipping_id;
