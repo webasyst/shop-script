@@ -230,7 +230,7 @@ class shopOrderSaveController extends waJsonController
                     break;
                 }
             }
-            if ($flag) {
+            if (!$flag) {
                 $tmp = $contact['address.'.$ext];
                 $tmp[$i] = ($ext == 'shipping') ? $this->shipping_address : $this->billing_address;
                 $contact['address.'.$ext] = $tmp;
