@@ -140,7 +140,21 @@ class shopFrontendProductAction extends shopFrontendAction
             }
             $product['categories'] = $categories;
         }
-
+        $skus = $product->skus;
+        foreach ($skus as $s_id => $s) {
+            $skus[$s_id]['original_price'] = $s['price'];
+            $skus[$s_id]['original_compare_price'] = $s['compare_price'];
+        }
+        $product['original_price'] = $product['price'];
+        $product['original_compare_price'] = $product['compare_price'];
+        $event_params = array(
+            'products' => array(
+                $product->id => &$product
+            ),
+            'skus' => &$skus
+        );
+        wa('shop')->event('frontend_products', $event_params);
+        $product['skus'] = $skus;
 
         $this->view->assign('product', $product);
 

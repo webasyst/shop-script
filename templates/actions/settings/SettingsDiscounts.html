@@ -20,6 +20,18 @@
             </p>
             <input type="button" id="combiner-save-button" value="[`Save`]" style="display:none">
         </div>
+
+        <div class="hr"></div>
+        <div class="block small">
+            <p>[`Save detailed description on how discount was calculated:`]</p>
+            <p>
+                <label><input type="radio" name="discount_description" value="1" {if $discount_description}checked{/if}> [`For each product`]</label>
+                <br><br>
+                <label><input type="radio" name="discount_description" value="0" {if !$discount_description}checked{/if}> [`For the entire order`]</label>
+            </p>
+            <p class="gray">[`Depending on your store setup, different levels of discount detalization may be useful.`]</p>
+            <input type="button" id="discount-desc-save-button" value="[`Save`]" style="display:none">
+        </div>
     </div>
 </div>
 
@@ -91,6 +103,21 @@
             button.hide();
             radios.attr('disabled', true);
             $.post('?module=settings&action=discountsCombineSave', { value: radios.filter(':checked').val() }, function() {
+                radios.attr('disabled', false);
+            });
+        });
+    })();
+
+    (function() {
+        var radios = $('input:radio[name="discount_description"]');
+        var button = $('#discount-desc-save-button');
+        radios.change(function() {
+            button.show();
+        });
+        button.click(function() {
+            button.hide();
+            radios.attr('disabled', true);
+            $.post('?module=settings&action=configSave', { discount_description: radios.filter(':checked').val() }, function() {
                 radios.attr('disabled', false);
             });
         });

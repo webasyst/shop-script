@@ -1002,7 +1002,7 @@
     $(function() {
 
         $('#s-product-description-content').data('uploadFields', {
-            '_csrf': "{waRequest::cookie('_csrf', '')}"
+            '_csrf': {waRequest::cookie('_csrf', '')|json_encode}
         });
 
         $.product.setData('main','stocks',{$stocks|json_encode});

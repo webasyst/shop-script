@@ -218,6 +218,11 @@ class shopProductListAction extends waViewAction
 
             $cols = array(
                 array(
+                    'id' => 'sku',
+                    'name' => _w('SKU code'),
+                    'sortable' => false,
+                ),
+                array(
                     'id' => 'image_crop_small',
                     'name' => _w('Image'),
                     'sortable' => false,

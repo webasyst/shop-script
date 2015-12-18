@@ -6,6 +6,9 @@ class shopCartItemsModel extends waModel
 
     public function total($code)
     {
+        if (!$code) {
+            return 0;
+        }
         $products_total = $this->getProductsTotal($code);
         $services_total = $this->getServicesTotal($code);
         return (float) ($products_total + $services_total);
@@ -22,6 +25,28 @@ class shopCartItemsModel extends waModel
                     AND type = 'product'";
 
         $skus = $this->query($sql, array('code' => $code))->fetchAll();
+        if (!$skus) {
+            return 0.0;
+        }
+        $product_ids = array();
+        foreach ($skus as $k => $sku) {
+            $product_ids[] = $sku['product_id'];
+            $skus[$k]['original_price'] = $sku['price'];
+            $skus[$k]['original_compare_price'] = $sku['compare_price'];
+        }
+        $product_ids = array_unique($product_ids);
+        $product_model = new shopProductModel();
+        $products = $product_model->getById($product_ids);
+
+        foreach ($products as $p_id => $p) {
+            $products[$p_id]['original_price'] = $p['price'];
+            $products[$p_id]['original_compare_price'] = $p['compare_price'];
+        }
+        $event_params = array(
+            'products' => &$products,
+            'skus' => &$skus
+        );
+        wa('shop')->event('frontend_products', $event_params);
 
         shopRounding::roundSkus($skus);
         $products_total = 0.0;
@@ -125,6 +150,9 @@ class shopCartItemsModel extends waModel
 
     public function count($code, $type = null)
     {
+        if (!$code) {
+            return 0;
+        }
         $sql = "SELECT SUM(quantity) FROM ".$this->table." WHERE code = s:code";
         if ($type) {
             $sql .= ' AND type = s:type';
@@ -217,10 +245,27 @@ class shopCartItemsModel extends waModel
             } else {
                 $products = $product_model->getById($product_ids);
             }
-            $rounding_enabled && shopRounding::roundProducts($products);
+
+            foreach ($products as $p_id => $p) {
+                $products[$p_id]['original_price'] = $p['price'];
+                $products[$p_id]['original_compare_price'] = $p['compare_price'];
+            }
 
             $sku_model = new shopProductSkusModel();
             $skus = $sku_model->getByField('id', $sku_ids, 'id');
+
+            foreach ($skus as $s_id => $s) {
+                $skus[$s_id]['original_price'] = $s['price'];
+                $skus[$s_id]['original_compare_price'] = $s['compare_price'];
+            }
+
+            $event_params = array(
+                'products' => &$products,
+                'skus' => &$skus
+            );
+            wa('shop')->event('frontend_products', $event_params);
+
+            $rounding_enabled && shopRounding::roundProducts($products);
             $rounding_enabled && shopRounding::roundSkus($skus, $products);
 
             $service_model = new shopServiceModel();
@@ -320,6 +365,7 @@ class shopCartItemsModel extends waModel
                 unset($items[$item_id]);
             }
         }
+
         if (!$hierarchy) {
             $result = array();
             foreach ($items as $item_id => $item) {

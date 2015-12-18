@@ -11,6 +11,9 @@
             {if !empty($enabled_columns.image_crop_small)}
                 <th class="min-width" data-additional-column="image_crop_small"></th>
             {/if}
+            {if !empty($enabled_columns.sku)}
+                <th class="min-width" data-additional-column="sku">{$enabled_columns.sku.name}</th>
+            {/if}
             <th>
                 <span class="sort" title="[`Name`]">
                     <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}" class="inline-link selected">
@@ -35,7 +38,7 @@
                 </div>
             </th>
 
-            {foreach $enabled_columns as $c}{if $c.id != 'image_crop_small'}
+            {foreach $enabled_columns as $c}{if $c.id != 'image_crop_small' && $c.id != 'sku'}
                 <th data-additional-column="{$c.id}" title="{$c.name|escape}">
                     <div>
                         {if $c.sortable}
@@ -99,6 +102,9 @@
             </td>
             {/literal}
         {/if}
+        {if !empty($enabled_columns.sku)}
+            <td class="s-product-col-sku" title="{$enabled_columns.sku.name|escape}">{literal}{%#p.{/literal}sku_html || p.sku{literal}%}{/literal}</td>
+        {/if}
         {literal}
         <td class="drag-handle s-product-name" title="{%#p.name%}">
             <a href="#/product/{%#p.id%}/"><div>{%#p.name%}<i class="shortener"></i></div></a>
@@ -109,7 +115,7 @@
         </td>
         {/literal}
         {foreach $enabled_columns as $c}
-            {if $c.id != 'image_crop_small'}
+            {if $c.id != 'image_crop_small' && $c.id != 'sku'}
                 <td class="s-product-col-{$c.id}" title="{$c.name|escape}">{literal}{%#p.{/literal}{$c.id}_html || p.{$c.id}{literal}%}{/literal}</td>
             {/if}
         {/foreach}

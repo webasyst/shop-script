@@ -201,7 +201,29 @@ class shopNotifications
             }
         }
         if ($from) {
-            $message->setFrom($from, $general['name']);
+            $from_name = $general['name'];
+            if (wa('shop')->getConfig()->getOption('notification_name') == 'route_params') {
+                if (wa()->getEnv() == 'frontend') {
+                    $from_name = waRequest::param('_name');
+                } elseif (!empty($data['order']['params']['storefront'])) {
+                    if ($routes = wa()->getRouting()->getByApp('shop')) {
+                        foreach ($routes as $domain => $domain_routes) {
+                            foreach ($domain_routes as $route) {
+                                $route_storefront = $domain;
+                                $route_url = waRouting::clearUrl($route['url']);
+                                if ($route_url) {
+                                    $route_storefront .= '/'.$route_url;
+                                }
+                                if ($route_storefront == $data['order']['params']['storefront']) {
+                                    $from_name = ifempty($route['_name']);
+                                    break 2;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            $message->setFrom($from, $from_name);
         }
 
         if ($message->send()) {

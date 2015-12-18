@@ -9401,3 +9401,47 @@ msgstr "Списки товаров на этой витрине будут со
 #: /wa-apps/shop/lib/config/site.php:107
 msgid "Out-of-stock products"
 msgstr "Нет на складе"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsAffiliate.html:90
+msgid "Usage % limit"
+msgstr "Максимальная скидка %"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsAffiliate.html:93
+msgid "Limits the maximum % of order amount that can be paid with bonus (i.e. maximum discount a customer can get by applying the bonus)."
+msgstr "Ограничение на максимальную скидку на заказ, которую можно получить, используя бонусную программу (% от суммы заказа)."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:26
+msgid "Save detailed description on how discount was calculated:"
+msgstr "Сохранять описание как была рассчитана скидка:"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:28
+msgid "For each product"
+msgstr "Для каждого товара"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:30
+msgid "For the entire order"
+msgstr "Для всего заказа"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:32
+msgid "Depending on your store setup, different levels of discount detalization may be useful."
+msgstr "В зависимости от настройки магазина могут быть удобны разные варианты сохранения детализации расчета скидки."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:24
+msgid "Sender name"
+msgstr "Имя отправителя"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:26
+msgid "provided in Settings &gt; General settings"
+msgstr "задается в разделе Настройки &gt; Общие настройки"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:28
+msgid "provided in Storefronts &gt; Settings and customizable for each storefront"
+msgstr "задается в разделе Витрина &gt; Настройки отдельно для каждой витрины"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:166
+msgid "Custom product's fields"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:168
+msgid "Custom skus' fields"
+msgstr ""

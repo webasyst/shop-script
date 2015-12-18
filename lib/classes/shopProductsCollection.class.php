@@ -264,7 +264,7 @@ class shopProductsCollection
                 $this->addWhere('(' . $skus_alias . '.count IS NULL OR ' . $skus_alias . '.count > 0)');
             }
         }
-
+        $alias_index = 1;
         foreach ($data as $feature_code => $values) {
             if (!is_array($values)) {
                 if ($values === '') {
@@ -302,10 +302,20 @@ class shopProductsCollection
                     }
                 }
                 if ($values) {
-                    $this->addJoin('shop_product_features',
-                        'p.id = :table.product_id AND :table.feature_id = '.(int)$features[$feature_code]['id'],
-                        ':table.feature_value_id IN ('.implode(',', $values).')'.
-                        (!empty($skus_alias) ? ' AND (:table.sku_id IS NULL OR :table.sku_id = '.$skus_alias.'.id)': ''));
+                    if (wa('shop')->getConfig()->getOption('filters_features') == 'exists') {
+                        $t = 'tpf' . ($alias_index++);
+                        $this->where[] = 'EXISTS (
+                        SELECT 1 FROM shop_product_features ' . $t . ' WHERE
+                            p.id = ' . $t . '.product_id AND ' . $t . '.feature_id = ' . (int)$features[$feature_code]['id'] . ' AND
+                            ' . $t . '.feature_value_id IN (' . implode(',', $values) . ')' .
+                            (!empty($skus_alias) ? ' AND (' . $t . '.sku_id IS NULL OR ' . $t . '.sku_id = ' . $skus_alias . '.id)' : '') . '
+                        )';
+                    } else {
+                        $this->addJoin('shop_product_features',
+                            'p.id = :table.product_id AND :table.feature_id = '.(int)$features[$feature_code]['id'],
+                            ':table.feature_value_id IN ('.implode(',', $values).')'.
+                            (!empty($skus_alias) ? ' AND (:table.sku_id IS NULL OR :table.sku_id = '.$skus_alias.'.id)': ''));
+                    }
                     $this->group_by = 'p.id';
                 } else {
                     $this->where[] = '0';
@@ -925,7 +935,7 @@ class shopProductsCollection
             }
             if (!$model->fieldExists($f)) {
                 unset($fields[$i]);
-                if (in_array($f, array('images', 'image', 'frontend_url', 'image_count', 'sales_30days', 'image_crop_small', 'stock_worth'))) {
+                if (in_array($f, array('images', 'image', 'sku', 'frontend_url', 'image_count', 'sales_30days', 'image_crop_small', 'stock_worth'))) {
                     $this->post_fields['_internal'][] = $f;
                 } else if (substr($f, 0, 8) == 'feature_') {
                     $this->post_fields['_features'][substr($f, 8)] = $f;
@@ -1361,6 +1371,18 @@ class shopProductsCollection
                         }
                     }
                 }
+                if (isset($fields['sku'])) {
+                    $sku_ids = array();
+                    foreach ($products as $p) {
+                        $sku_ids[] = $p['sku_id'];
+                    }
+                    $skus_model = new shopProductSkusModel();
+                    $skus = $skus_model->getByField('id', $sku_ids, 'id');
+                    foreach ($products as &$p) {
+                        $p['sku'] = ifset($skus[$p['sku_id']]['sku'], '');
+                    }
+                    unset($p);
+                }
                 if (isset($fields['frontend_url'])) {
                     foreach ($products as &$p) {
                         $route_params = array('product_url' => $p['url']);
@@ -1501,6 +1523,21 @@ class shopProductsCollection
             if ($unprocessed) {
                 // !!!
             }
+        }
+
+        if ($this->is_frontend) {
+            foreach ($products as $p_id => $p) {
+                if (isset($p['price'])) {
+                    $products[$p_id]['original_price'] = $p['price'];
+                }
+                if (isset($p['compare_price'])) {
+                    $products[$p_id]['original_compare_price'] = $p['compare_price'];
+                }
+            }
+            $event_params = array(
+                'products' => &$products
+            );
+            wa('shop')->event('frontend_products', $event_params);
         }
     }
 

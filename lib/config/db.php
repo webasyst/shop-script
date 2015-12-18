@@ -642,7 +642,7 @@ return array(
         'purchase_price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'compare_price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'count' => array('int', 11),
-        'available' => array('int', 11, 'null' => 0, 'default' => '1'),
+        'available' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         'dimension_id' => array('int', 11),
         'file_name' => array('varchar', 255, 'null' => 0, 'default' => ''),
         'file_size' => array('int', 11, 'null' => 0, 'default' => '0'),

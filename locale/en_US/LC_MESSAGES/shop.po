@@ -10711,3 +10711,51 @@ msgstr ""
 #: /wa-apps/shop/lib/config/site.php:107
 msgid "Out-of-stock products"
 msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsAffiliate.html:90
+msgid "Usage % limit"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsAffiliate.html:93
+msgid "Limits the maximum % of order amount that can be paid with bonus (i.e. maximum discount a customer can get by applying the bonus)."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:26
+msgid "Save detailed description on how discount was calculated:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:28
+msgid "For each product"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:30
+msgid "For the entire order"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:32
+msgid "Depending on your store setup, different levels of discount detalization may be useful."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:24
+msgid "Sender name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:26
+msgid "provided in Settings &gt; General settings"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:28
+msgid "Storefront name"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:28
+msgid "provided in Storefronts &gt; Settings and customizable for each storefront"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:166
+msgid "Custom product's fields"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:168
+msgid "Custom skus' fields"
+msgstr ""
