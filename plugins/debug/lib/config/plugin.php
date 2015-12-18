@@ -14,7 +14,13 @@ return array(
         /* data hooks */
         'product_delete' => 'productDeleteHandler',
         'product_save'   => 'productSaveHandler',
+        'product_custom_fields'=>'productCustomFieldsHandler',
         /* frontend UI hooks */
+
+        'backend_product_sku_settings' => 'backendProductSkuSettings',
+        'order_calculate_discount' => 'orderCalculateDiscount',
+
+        'frontend_products' => 'frontendProducts',
 
     ),
 );
