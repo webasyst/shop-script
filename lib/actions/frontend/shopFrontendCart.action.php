@@ -287,19 +287,30 @@ class shopFrontendCartAction extends shopFrontendAction
             $this->view->assign('coupon_discount', $order['params']['coupon_discount']);
         }
         if (shopAffiliate::isEnabled()) {
-            $affiliate_bonus = 0;
+            $affiliate_bonus = $affiliate_discount = 0;
             if ($this->getUser()->isAuth()) {
                 $customer_model = new shopCustomerModel();
                 $customer = $customer_model->getById($this->getUser()->getId());
                 $affiliate_bonus = $customer ? round($customer['affiliate_bonus'], 2) : 0;
             }
             $this->view->assign('affiliate_bonus', $affiliate_bonus);
+
             $use = !empty($data['use_affiliate']);
             $this->view->assign('use_affiliate', $use);
             if ($use) {
-                $discount -= shop_currency(shopAffiliate::convertBonus($order['params']['affiliate_bonus']), $this->getConfig()->getCurrency(true), null, false);
+                $affiliate_discount = shop_currency(shopAffiliate::convertBonus($order['params']['affiliate_bonus']), $this->getConfig()->getCurrency(true), null, false);
+                if ($usage_percent = (float) wa()->getSetting('affiliate_usage_percent', 0, 'shop')) {
+                    $affiliate_discount = min($affiliate_discount, ($total + $affiliate_discount) * $usage_percent / 100.0);
+                }
+                $discount -= $affiliate_discount;
                 $this->view->assign('used_affiliate_bonus', $order['params']['affiliate_bonus']);
+            } elseif ($affiliate_bonus) {
+                $affiliate_discount = shop_currency(shopAffiliate::convertBonus($affiliate_bonus), $this->getConfig()->getCurrency(true), null, false);
+                if ($usage_percent = (float) wa()->getSetting('affiliate_usage_percent', 0, 'shop')) {
+                    $affiliate_discount = min($affiliate_discount, $total * $usage_percent / 100.0);
+                }
             }
+            $this->view->assign('affiliate_discount', $affiliate_discount);
 
             $add_affiliate_bonus = shopAffiliate::calculateBonus($order);
             $this->view->assign('add_affiliate_bonus', round($add_affiliate_bonus, 2));
