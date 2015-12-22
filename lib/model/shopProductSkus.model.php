@@ -127,6 +127,13 @@ SQL;
         if ($diff) {
             $product_model->updateById($product['id'], $diff); // we'll have difference after sku's deleting, so up product info
         }
+
+        /**
+         * @event product_sku_delete
+         * @param array $sku
+         */
+        wa('shop')->event('product_sku_delete', $sku);
+        
         if (!$this->deleteById($sku_id)) { // delete sku
             return false;
         }

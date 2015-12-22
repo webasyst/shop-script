@@ -131,7 +131,7 @@ class shopCsvProductuploadController extends shopUploadController
                 }
                 if (isset($custom_plugin_fields['sku'])) {
                     foreach ($custom_plugin_fields['sku'] as $field_id => $field_name) {
-                        $fields['sku_custom_fields']['sku:skus:-1:'.$plugin_id.':'.$field_id] = $field_name;
+                        $fields['sku_custom_fields']['skus:-1:'.$plugin_id.':'.$field_id] = $field_name;
                     }
                 }
             }

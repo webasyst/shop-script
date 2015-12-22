@@ -116,7 +116,7 @@ class shopCartItemsModel extends waModel
             }
 
             if ($s['currency'] == '%') {
-                if (0 && isset($products_skus['skus'][$s['parent_id']])) {
+                if (isset($products_skus['skus'][$s['parent_id']])) {
                     $sku_price = $products_skus['skus'][$s['parent_id']]['frontend_price'];
                 } else {
                     $sku_price = $products_skus['products'][$s['product_id']]['price'];
@@ -306,6 +306,7 @@ class shopCartItemsModel extends waModel
                     $item['currency'] = $item['product']['currency'];
                     $item['price'] = $sku['price'];
                     $item['name'] = $item['product']['name'];
+                    $item['sku_file_name'] = $sku['file_name'];
                     if ($item['sku_name']) {
                         $item['name'] .= ' ('.$item['sku_name'].')';
                     }
