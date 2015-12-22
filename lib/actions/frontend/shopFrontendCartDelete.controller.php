@@ -39,6 +39,14 @@ class shopFrontendCartDeleteController extends waJsonController
                 _w("This order will add +%s points to your affiliate bonus."), 
                 round($add_affiliate_bonus, 2)
             );
+            $affiliate_bonus = $affiliate_discount = 0;
+            if ($this->getUser()->isAuth()) {
+                $customer_model = new shopCustomerModel();
+                $customer = $customer_model->getById($this->getUser()->getId());
+                $affiliate_bonus = $customer ? round($customer['affiliate_bonus'], 2) : 0;
+            }
+            $affiliate_discount = shopFrontendCartAction::getAffiliateDiscount($affiliate_bonus, $order);
+            $this->response['affiliate_discount'] = $is_html ? shop_currency_html($affiliate_discount, true) : shop_currency($affiliate_discount, true);
         }
     }
 }

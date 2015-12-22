@@ -219,10 +219,10 @@ class shopCart
         if (is_array($item_id)) {
             $item_id = $item_id['id'];
             $item = $this->getItem($item_id);
+        } else {
+            // this gives price already rounded for frontend
+            $item = $this->getItem($item_id);
         }
-
-        // this gives price already rounded for frontend
-        $item = $this->getItem($item_id);
 
         $cart_items_model = new shopCartItemsModel();
         $items = $cart_items_model->getByField('parent_id', $item['id'], true);

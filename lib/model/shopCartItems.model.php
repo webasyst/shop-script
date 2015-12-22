@@ -399,7 +399,7 @@ class shopCartItemsModel extends waModel
         wa('shop')->event('frontend_products', $event_params);
         $result = $row;
         $result['price'] = $skus[$result['sku_id']]['price'];
-        $result['currency'] = $products[$result['product_id']]['price'];
+        $result['currency'] = $products[$result['product_id']]['currency'];
         $result['unconverted_price'] = $result['price'];
         $result['unconverted_currency'] = $result['currency'];
         if ($result['price'] && shopRounding::isEnabled()) {
