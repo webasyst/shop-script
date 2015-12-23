@@ -7448,6 +7448,9 @@ msgstr "Округлять до 0.1"
 msgid "Round to nearest 0.01"
 msgstr "Округлять до 0.01"
 
+msgid "Not round"
+msgstr "Не округлять"
+
 msgid "Incorrect format."
 msgstr "Неправильный формат."
 

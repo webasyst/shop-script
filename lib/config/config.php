@@ -74,7 +74,8 @@ return array(
         '1' => /*_w*/("Round to nearest 1.00"),
         '0.99' => /*_w*/("Round to nearest .99"),
         '0.1' => /*_w*/("Round to nearest 0.1"),
-        '' => /*_w*/("Round to nearest 0.01"),
+        '0.01' => /*_w*/("Round to nearest 0.01"),
+        '' => /*_w*/("Not round"),
     ),
 
     /**
