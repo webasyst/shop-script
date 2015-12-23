@@ -336,6 +336,7 @@ class shopFrontendCartAction extends shopFrontendAction
         if (!$usage_percent) {
             $usage_percent = 100;
         }
+        $affiliate_discount = 0;
         if ($use) {
             $affiliate_discount = shop_currency(shopAffiliate::convertBonus($order['params']['affiliate_bonus']), wa('shop')->getConfig()->getCurrency(true), null, false);
             if ($usage_percent) {
