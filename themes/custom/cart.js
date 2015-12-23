@@ -13,7 +13,13 @@ $(function () {
         } else {
             $(".affiliate").hide();
         }
-        
+
+        if (data.affiliate_discount) {
+            $('.affiliate-discount-available').html(data.affiliate_discount);
+            if ($('.affiliate-discount').data('use')) {
+                $('.affiliate-discount').html('&minus; ' + data.affiliate_discount);
+            }
+        }
     }
 
     // add to cart block: services
