@@ -299,12 +299,17 @@ Product.prototype.cartButtonVisibility = function (visible) {
 
 $(function () {
 
-    if ($("#product-core-image a").length) {
-        $('.swipebox').swipebox({
+    var $ = jQuery,
+        $coreWrapper = $("#product-core-image"),
+        $coreImages = $coreWrapper.find("a");
+
+    if ($coreImages.length) {
+        $(".swipebox").swipebox({
             useSVG : false,
             hideBarsDelay: false
         });
-        $("#product-core-image a").click(function (e) {
+
+        $coreImages.on("click", function(e) {
             e.preventDefault();
             var images = [];
             if ($("#product-gallery a").length) {
@@ -320,7 +325,18 @@ $(function () {
             }
             $.swipebox(images, {
                 useSVG : false,
-                hideBarsDelay: false
+                hideBarsDelay: false,
+                afterOpen: function() {
+                    var closeSwipe = function() {
+                        var $closeButton = $("#swipebox-close");
+                        if ($closeButton.length) {
+                            $closeButton.trigger("click");
+                        }
+                        $(document).off("scroll", closeSwipe);
+                    };
+
+                    $(document).on("scroll", closeSwipe);
+                }
             });
             return false;
         });

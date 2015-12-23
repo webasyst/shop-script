@@ -590,7 +590,7 @@ class shopHelper
                 // We want shipping address to show even if disabled in settings.
                 // !!! Why is that?.. No idea. Legacy code.
                 if (!isset($fields_config['address.shipping'])) {
-                    $fields_config['address.shipping'] = array();
+                    $fields_config['address.shipping'] = $address_config;
                 }
                 // When an existing contact has address specified, we want to show all the data fields
                 if ($contact) {

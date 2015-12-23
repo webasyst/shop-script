@@ -777,12 +777,15 @@ class shopOrderModel extends waModel
 
     public function getMinDate()
     {
-        // Using subquery since there's no index by shop_order.create_datetime
-        // MySQL is smart enough to optimize the subquery away.
-        $result = $this->query("SELECT create_datetime
+        $cache = new waSerializeCache('shop_order_min_date');
+        if ($cache->isCached()) {
+            return $cache->get();
+        }
+        $result = $this->query("SELECT MIN(create_datetime)
                                 FROM shop_order
-                                WHERE id=(SELECT MIN(id) FROM shop_order)")->fetchField();
+                                WHERE create_datetime > '0000-00-00 00:00:00'")->fetchField();
         if ($result) {
+            $cache->set($result);
             return $result;
         } else {
             return date('Y-m-01', strtotime("-1 months"));

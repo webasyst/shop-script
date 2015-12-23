@@ -17,6 +17,9 @@
  */
 return array(
     'lazy_loading' =>   1,
+    'notification_name'  => 'general',
+    'discount_description'  => 1,
+    'filters_features' => 'join', // or exists
     'products_per_page'        => 30,
     'reviews_per_page_total'   => 30,
     'reviews_per_page_product' => 5,
@@ -71,7 +74,8 @@ return array(
         '1' => /*_w*/("Round to nearest 1.00"),
         '0.99' => /*_w*/("Round to nearest .99"),
         '0.1' => /*_w*/("Round to nearest 0.1"),
-        '' => /*_w*/("Round to nearest 0.01"),
+        '0.01' => /*_w*/("Round to nearest 0.01"),
+        '' => /*_w*/("Not round"),
     ),
 
     /**

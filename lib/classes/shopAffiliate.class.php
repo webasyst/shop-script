@@ -179,6 +179,7 @@ class shopAffiliate
             return 0;
         }
         $usage_rate = (float) wa()->getSetting('affiliate_usage_rate', 0, 'shop');
+        $usage_percent = (float) wa()->getSetting('affiliate_usage_percent', 0, 'shop');
         if ($usage_rate <= 0) {
             return 0;
         }
@@ -210,6 +211,9 @@ class shopAffiliate
         }
 
         $order_total = $order['total'] - $other_discounts;
+        if ($usage_percent) {
+            $order_total = $usage_percent * $order_total / 100.0;
+        }
         $max_bonus = $customer['affiliate_bonus'] + $prev_affiliate_bonus;
 
         $default_currency = wa('shop')->getConfig()->getCurrency(true);

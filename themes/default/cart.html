@@ -99,14 +99,14 @@
             <!-- affiliate bonus -->
             <div class="row no-border">
                 <div class="col w12 no-border">
-                    {sprintf('[`Your current affiliate bonus of %s points allows you to get an additonal discount of up to %s`]', $affiliate_bonus, shop_currency_html(shopAffiliate::convertBonus($affiliate_bonus)))}
+                    {sprintf('[`Your current affiliate bonus of %s points allows you to get an additonal discount of up to %s`]', $affiliate_bonus, "<span class=\"affiliate-discount-available\">{shop_currency_html($affiliate_discount)}</span>")}
                     {if $use_affiliate}
                     <a id="cancel-affiliate" href="#">[`Don’t use bonus discount`]</a>
                     {else}
                     <input type="submit" name="use_affiliate" class="small gray" value="[`Use bonus`]">
                     {/if}
                 </div>
-                <div class="col w3 align-center affiliate-discount">&minus; {if $use_affiliate}{shop_currency_html(shopAffiliate::convertBonus($used_affiliate_bonus))}{else}0{/if}</div>
+                <div class="col w3 align-center affiliate-discount"{if $use_affiliate} data-use="1"{/if}>&minus; {if $use_affiliate}{shop_currency_html(shopAffiliate::convertBonus($used_affiliate_bonus))}{else}0{/if}</div>
                 <div class="col w1">&nbsp;</div>
             </div>
             {/if}

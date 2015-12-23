@@ -49,6 +49,7 @@ class shopSettingsDiscountsAction extends waViewAction
 
         $this->view->assign('types', $all_types);
         $this->view->assign('combiner', wa()->getSetting('discounts_combine', 'max'));
+        $this->view->assign('discount_description', wa()->getConfig()->getOption('discount_description'));
     }
 
     protected static function getCoreTypes()

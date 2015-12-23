@@ -131,6 +131,9 @@ class shopDiscounts
             $discount += $order_discount;
         }
         if ($discount) {
+            if (!wa('shop')->getConfig()->getOption('discount_description')) {
+                $description = '';
+            }
             if ($discount_type == 'sum') {
                 if ($order_discount) {
                     $description .= '<ul>'.$order_discount_description.'</ul><br>';

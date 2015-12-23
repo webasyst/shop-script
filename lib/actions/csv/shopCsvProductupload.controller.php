@@ -10,7 +10,7 @@ class shopCsvProductuploadController extends shopUploadController
     public static function getMapFields($flat = false, $extra_fields = false)
     {
         $fields = array(
-            'product' => array(
+            'product'               => array(
                 'name'             => _w('Product name'), //1
                 'currency'         => _w('Currency'), //4
                 'summary'          => _w('Summary'),
@@ -29,7 +29,8 @@ class shopCsvProductuploadController extends shopUploadController
                 //   'rating'                 => _w('Rating'),
                 'params'           => _w('Custom parameters'),
             ),
-            'sku'     => array(
+            'product_custom_fields' => array(),
+            'sku'                   => array(
                 'skus:-1:name'           => _w('SKU name'), //2
                 'skus:-1:sku'            => _w('SKU code'), //3
                 'skus:-1:price'          => _w('Price'),
@@ -38,6 +39,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'skus:-1:purchase_price' => _w('Purchase price'),
                 'skus:-1:stock:0'        => _w('In stock'),
             ),
+            'sku_custom_fields'     => array(),
         );
 
         if ($extra_fields) {
@@ -81,6 +83,7 @@ class shopCsvProductuploadController extends shopUploadController
             );
 
             //XXX add callback for custom fields
+
             //TODO implode
             foreach ($meta_fields['product'] as $field => $info) {
                 if (!in_array($field, $black_list)) {
@@ -104,12 +107,36 @@ class shopCsvProductuploadController extends shopUploadController
         }
 
         $stock_model = new shopStockModel();
-        if ($stocks = $stock_model->getAll('id')) {
-
+        $stocks = $stock_model->getAll('id');
+        if ($stocks) {
             foreach ($stocks as $stock_id => $stock) {
                 $fields['sku']['skus:-1:stock:'.$stock_id] = _w('In stock').' @'.$stock['name'];
             }
         }
+
+        /**
+         * @event product_custom_fields
+         * @return array[string]string $return[%plugin_id%]['product'] array
+         * @return array[string]string $return[%plugin_id%]['sku'] array
+         */
+        $custom_fields = wa('shop')->event('product_custom_fields');
+        if ($custom_fields) {
+            foreach ($custom_fields as $plugin_id => $custom_plugin_fields) {
+                # %plugin_id%-plugin became %plugin_id%_plugin
+                $plugin_id = preg_replace('@-plugin$@', '_plugin', $plugin_id);
+                if (isset($custom_plugin_fields['product'])) {
+                    foreach ($custom_plugin_fields['product'] as $field_id => $field_name) {
+                        $fields['product_custom_fields'][$plugin_id.':'.$field_id] = $field_name;
+                    }
+                }
+                if (isset($custom_plugin_fields['sku'])) {
+                    foreach ($custom_plugin_fields['sku'] as $field_id => $field_name) {
+                        $fields['sku_custom_fields']['skus:-1:'.$plugin_id.':'.$field_id] = $field_name;
+                    }
+                }
+            }
+        }
+
 
         if ($flat) {
             $fields_ = $fields;
@@ -140,7 +167,10 @@ class shopCsvProductuploadController extends shopUploadController
 
         $translates = array();
         $translates['product'] = _w('Basic fields');
+        $translates['product_custom_fields'] = _w("Custom product's fields");
         $translates['sku'] = _w('SKU fields');
+        $translates['sku_custom_fields'] = _w("Custom skus' fields");
+
         $translates['feature'] = _w('Add to existing');
         $translates['feature+'] = _w('Add as new feature');
 

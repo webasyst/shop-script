@@ -19,10 +19,20 @@
                 </a>
             </li>
         </ul>
+        <div class="hr"></div>
+        <div class="block small">
+            <p>[`Sender name`]</p>
+            <p>
+                <label><input type="radio" name="notification_name" value="general" {if !$notification_name || $notification_name == 'general'}checked{/if}> [`Store name`] <span class="gray">[`provided in Settings &gt; General settings`]</span> </label>
+                <br><br>
+                <label><input type="radio" name="notification_name" value="route_params" {if $notification_name == 'route_params'}checked{/if}> [`Storefront name`] <span class="gray">[`provided in Storefronts &gt; Settings and customizable for each storefront`]</span> </label>
+            </p>
+            <input type="button" id="notification-name-save-button" value="[`Save`]" style="display:none">
+        </div>
     </div>
-    
+
 </div>
-    
+
 <div class="content left200px s-settings-form blank bordered-left">
     <div class="block double-padded" id="notifications-content">
         <i class="icon16 loading"></i> [`Loading...`]
@@ -51,4 +61,20 @@
     </div>
 </div>
 
-<script>document.title = '{"[`Notifications`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';</script>
+<script>
+    document.title = '{"[`Notifications`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+    (function() {
+        var radios = $('input:radio[name="notification_name"]');
+        var button = $('#notification-name-save-button');
+        radios.change(function() {
+            button.show();
+        });
+        button.click(function() {
+            button.hide();
+            radios.attr('disabled', true);
+            $.post('?module=settings&action=configSave', { notification_name: radios.filter(':checked').val() }, function() {
+                radios.attr('disabled', false);
+            });
+        });
+    })();
+</script>

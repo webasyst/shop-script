@@ -48,5 +48,7 @@ class shopSettingsNotificationsAction extends waViewAction
         $notifications = $model->getAll();
         $this->view->assign('notifications', $notifications);
         $this->view->assign('transports', self::getTransports());
+
+        $this->view->assign('notification_name', $this->getConfig()->getOption('notification_name'));
     }
 }

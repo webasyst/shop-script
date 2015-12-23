@@ -86,6 +86,13 @@
                         <input type="text" class="short numerical" name="conf[affiliate_usage_rate]" value="{ifset($conf.affiliate_usage_rate)|wa_format_number:false}" placeholder="0">{$def_cur_sym}
                     </div>
                 </div>
+                <div class="field">
+                    <div class="name">[`Usage % limit`]</div>
+                    <div class="value">
+                        <input type="text" class="short numerical" name="conf[affiliate_usage_percent]" value="{ifset($conf.affiliate_usage_percent)}" placeholder="100">%
+                        <p class="hint">[`Limits the maximum % of order amount that can be paid with bonus (i.e. maximum discount a customer can get by applying the bonus).`]</p>
+                    </div>
+                </div>
             </div>
             <div class="field-group"{if !$enabled} style="display:none;"{/if}>
                 <div class="field">

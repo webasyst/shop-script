@@ -287,19 +287,24 @@ class shopFrontendCartAction extends shopFrontendAction
             $this->view->assign('coupon_discount', $order['params']['coupon_discount']);
         }
         if (shopAffiliate::isEnabled()) {
-            $affiliate_bonus = 0;
+            $affiliate_bonus = $affiliate_discount = 0;
             if ($this->getUser()->isAuth()) {
                 $customer_model = new shopCustomerModel();
                 $customer = $customer_model->getById($this->getUser()->getId());
                 $affiliate_bonus = $customer ? round($customer['affiliate_bonus'], 2) : 0;
             }
             $this->view->assign('affiliate_bonus', $affiliate_bonus);
+
             $use = !empty($data['use_affiliate']);
             $this->view->assign('use_affiliate', $use);
+            $usage_percent = (float) wa()->getSetting('affiliate_usage_percent', 0, 'shop');
+            $this->view->assign('affiliate_percent', $usage_percent);
+            $affiliate_discount = self::getAffiliateDiscount($affiliate_bonus, $order);
             if ($use) {
-                $discount -= shop_currency(shopAffiliate::convertBonus($order['params']['affiliate_bonus']), $this->getConfig()->getCurrency(true), null, false);
+                $discount -= $affiliate_discount;
                 $this->view->assign('used_affiliate_bonus', $order['params']['affiliate_bonus']);
             }
+            $this->view->assign('affiliate_discount', $affiliate_discount);
 
             $add_affiliate_bonus = shopAffiliate::calculateBonus($order);
             $this->view->assign('add_affiliate_bonus', round($add_affiliate_bonus, 2));
@@ -321,6 +326,28 @@ class shopFrontendCartAction extends shopFrontendAction
             'description' => null /* TODO: Error message here if exists */
         ));
 
+    }
+
+    public static function getAffiliateDiscount($affiliate_bonus, $order)
+    {
+        $data = wa()->getStorage()->get('shop/checkout');
+        $use = !empty($data['use_affiliate']);
+        $usage_percent = (float) wa()->getSetting('affiliate_usage_percent', 0, 'shop');
+        if (!$usage_percent) {
+            $usage_percent = 100;
+        }
+        if ($use) {
+            $affiliate_discount = shop_currency(shopAffiliate::convertBonus($order['params']['affiliate_bonus']), wa('shop')->getConfig()->getCurrency(true), null, false);
+            if ($usage_percent) {
+                $affiliate_discount = min($affiliate_discount, ($order['total'] + $affiliate_discount) * $usage_percent / 100.0);
+            }
+        } elseif ($affiliate_bonus) {
+            $affiliate_discount = shop_currency(shopAffiliate::convertBonus($affiliate_bonus), wa('shop')->getConfig()->getCurrency(true), null, false);
+            if ($usage_percent) {
+                $affiliate_discount = min($affiliate_discount, $order['total'] * $usage_percent / 100.0);
+            }
+        }
+        return $affiliate_discount;
     }
 
 }
