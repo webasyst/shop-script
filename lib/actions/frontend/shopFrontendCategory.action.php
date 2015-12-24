@@ -263,6 +263,12 @@ class shopFrontendCategoryAction extends shopFrontendAction
                     $rows = $ps_model->getByField('product_id', $product_ids, true);
                 }
 
+                $event_params = array(
+                    'products' => $products,
+                    'skus' => &$rows
+                );
+                wa('shop')->event('frontend_products', $event_params);
+
                 $product_skus = array();
                 shopRounding::roundSkus($rows, $products);
                 foreach ($rows as $row) {
