@@ -79,6 +79,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 'sku'               => 0,
                 'sku_group'         => '',
                 'hidden_categories' => 0,
+				'min_price' => 0.5,
             );
 
             if ($backend) {
@@ -949,7 +950,7 @@ SQL;
         $chunk = 100;
         while ((--$chunk >= 0) && ($product = reset($products))) {
             $check_type = empty($this->data['type_id']) || in_array($product['type_id'], $this->data['type_id']);
-            $check_price = $product['price'] >= 0.5;
+            $check_price = $product['price'] >= floatval($this->data['export']['min_price']);
             $check_category = !empty($product['category_id']) && isset($this->data['categories'][$product['category_id']]);
             if ($check_category && ($product['category_id'] != $this->data['categories'][$product['category_id']])) {
                 // remap product category
@@ -972,7 +973,7 @@ SQL;
                     $skus = $product['skus'];
                     unset($product['skus']);
                     foreach ($skus as $sku) {
-                        $check_sku_price = $sku['price'] >= 0.5;
+                        $check_sku_price = $sku['price'] >= floatval($this->data['export']['min_price']);
                         $check_available = !empty($sku['available']);
                         $check_count = $check_stock || ($sku['count'] === null) || ($sku['count'] > 0);
                         if ($check_available && $check_sku_price && $check_count) {
