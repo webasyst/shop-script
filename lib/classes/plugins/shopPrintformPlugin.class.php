@@ -154,7 +154,7 @@ abstract class shopPrintformPlugin extends shopPlugin
      * @param mixed[] $params
      * @return array
      */
-    private function extendItems(&$order, $params)
+    protected function extendItems(&$order, $params)
     {
         $items = $order->items;
         $product_model = new shopProductModel();
