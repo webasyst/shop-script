@@ -30,7 +30,7 @@ class shopOAuthController extends waOAuthController
                 $email = $contact->get('email', 'default');
                 if ($email) {
                     $sql = "SELECT contact_id FROM " . $contact_emails_model->getTableName(). "
-                        WHERE email LIKE '" . $this->escape($email, 'like') . "' AND sort = 0 AND contact_id = i:0";
+                        WHERE email LIKE '" . $contact_emails_model->escape($email, 'like') . "' AND sort = 0 AND contact_id = i:0";
                     $contact_ids = $contact_emails_model->query($sql, $contact->getId())->fetchAll(null, true);
                     if ($contact_ids && wa()->appExists('contacts')) {
                         wa('contacts');
