@@ -158,7 +158,7 @@ class shopOrderSaveController extends waJsonController
                 $old_items = $items_model->getByField('order_id', $id, 'id');
             }
             foreach ($data['items'] as $item) {
-                if ($id && !isset($item['total_discount'])) {
+                if ($id && !isset($item['total_discount']) && isset($item['id'])) {
                     $item['total_discount'] = ifset($old_items[$item['id']]['total_discount'], 0);
                 }
                 $tmp_discount += ifset($item['total_discount'], 0);
