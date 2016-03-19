@@ -75,6 +75,9 @@ $(function () {
            var variants = $('select[name="service_variant[' + parent_id + '][' + $(this).val() + ']"]');
            if (variants.length) {
                data['service_variant_id'] = variants.val();
+           } else {
+                variants = $(this).closest('tr').find('input[name="service_variant[' + $(this).val() + ']"]');
+                data['service_variant_id'] = variants.val();
            }
            $.post('add/', data, function(response) {
                div.data('id', response.data.id);
