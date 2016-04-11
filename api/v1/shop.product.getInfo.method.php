@@ -46,5 +46,6 @@ class shopProductGetInfoMethod extends waAPIMethod
                 $this->response['features'][$f] = (string)$v;
             }
         }
+        $this->response['params'] = $p->params;
     }
 }
