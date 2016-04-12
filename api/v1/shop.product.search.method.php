@@ -7,7 +7,8 @@ class shopProductSearchMethod extends waAPIMethod
     public function execute()
     {
         $hash = $this->get('hash');
-        $collection = new shopProductsCollection($hash);
+        $options = waRequest::get('options', array(), waRequest::TYPE_ARRAY);
+        $collection = new shopProductsCollection($hash, $options);
 
         $offset = waRequest::get('offset', 0, 'int');
         if ($offset < 0) {
