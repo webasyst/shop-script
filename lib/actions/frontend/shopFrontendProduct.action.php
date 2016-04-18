@@ -270,6 +270,9 @@ class shopFrontendProductAction extends shopFrontendAction
 
         $this->view->assign('currency_info', $this->getCurrencyInfo());
 
+        $stock_model = new shopStockModel();
+        $this->view->assign('stocks', $stock_model->getAll('id'));
+        
         /**
          * @event frontend_product
          * @param shopProduct $product
@@ -279,9 +282,6 @@ class shopFrontendProductAction extends shopFrontendAction
          * @return array[string][string]string $return[%plugin_id%]['block'] html output
          */
         $this->view->assign('frontend_product', wa()->event('frontend_product', $product, array('menu', 'cart', 'block_aux', 'block')));
-
-        $stock_model = new shopStockModel();
-        $this->view->assign('stocks', $stock_model->getAll('id'));
 
         // default title and metas
         if (!$is_cart) {
