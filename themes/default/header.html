@@ -5,7 +5,7 @@
 {/if}
 
 {if $shop_pages || $theme_settings.category_nav_mode != 'sidebar'}
-    
+
     {if isset($category)}{$selected_category=$category.id}{else}{$selected_category=null}{/if}
     {$categories = $wa->shop->categories(0, null, true)}
     {$tagcloud = $wa->shop->tags()}
@@ -17,7 +17,7 @@
             {$_hook_frontend_sidebar_section = true}
         {/if}
     {/foreach}
-    
+
     <!-- product search -->
     <form method="get" action="{$wa->getUrl('shop/frontend/search')}" class="search">
         <div class="search-wrapper">
@@ -26,16 +26,16 @@
             {* <span class="search-sample">{sprintf('[`E.g. %s`]', '<a href="'|cat:$wa_app_url:"search/?query=productname":'">productname</a>')} *}
         </div>
     </form>
-    
+
     <ul class="pages flyout-nav">
-    
+
         {if $theme_settings.category_nav_mode != 'sidebar'}
-            
+
             {if $theme_settings.category_nav_mode == 'dropdown'}
-            
+
                 {* DROPDOWN "Shop by Department" navigation *}
-                
-                <li>
+
+                <li class="collapsible">
                     <a href="{$wa_app_url}" class="bold">[`Shop by Department`]</a>
                     <div class="flyout">
                         <div class="container">
@@ -49,20 +49,20 @@
                         </div>
                     </div>
                 </li>
-                
+
             {else}
-            
+
                 {* INLINE category navigation *}
-                
+
                 {foreach $categories as $cat}
                     {if count($cat.childs)}
-                        <li>
+                        <li class="collapsible">
                             <a href="{$cat.url}">{$cat.name}</a>
                             <div class="flyout">
                                 <div class="container">
                                     {wa_print_tree tree=$cat.childs unfolded=true collapsible_class='collapsible' class="menu-v" elem ='<a href=":url" title=":name">:name</a>'}
                                 </div>
-                            </div>                    
+                            </div>
                         </li>
                     {else}
                         <li>
@@ -70,14 +70,14 @@
                         </li>
                     {/if}
                 {/foreach}
-                
+
             {/if}
-    
+
             {if $tagcloud}
-                
+
                 {* TAGS *}
-                
-                <li>
+
+                <li class="collapsible">
                     <a href="javascript:void(0);">[`Tags`]</a>
                     <div class="flyout">
                         <div class="container">
@@ -90,13 +90,13 @@
                     </div>
                 </li>
             {/if}
-    
+
             {if $_hook_frontend_sidebar_section}
-                
+
                 {* PLUGINS @ frontend_nav *}
-                
+
                 {foreach $frontend_nav as $_key => $_}
-                    <li>
+                    <li class="collapsible">
                         <a href="javascript:void(0);" onClick="return false">
                             {if substr($_key, -7) == '-plugin'}{$wa->pluginName(substr($_key, 0, -7))}{else}[`More`]{/if}
                         </a>
@@ -108,7 +108,7 @@
                     </li>
                 {/foreach}
                 {foreach $frontend_nav_aux as $_key => $_}
-                    <li>
+                    <li class="collapsible">
                         <a href="javascript:void(0);" onClick="return false">
                             {if substr($_key, -7) == '-plugin'}{$wa->pluginName(substr($_key, 0, -7))}{else}[`More`]{/if}
                         </a>
@@ -127,12 +127,12 @@
 
 
         {* PAGES *}
-        
+
         {foreach $shop_pages as $page}
             <li{if strlen($page.url)>1 && $wa->currentUrl()|strstr:$page.url} class="selected"{/if}><a href="{$page.url}">{$page.name}</a></li>
         {/foreach}
-            
-        
+
+
     </ul>
 
 {/if}

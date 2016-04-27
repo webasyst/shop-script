@@ -126,7 +126,7 @@ function Product(form, options) {
                     }, 600, function () {
                         $(this).remove();
                         cart_total.html(response.data.total);
-                        $('#cart-content').append($('<div class="cart-just-added"></div>').html(self.add2cart.find('span.added2cart').text()));
+                        $('#cart-content').append($('<div class="cart-just-added"></div>').html( self.getEscapedText( self.add2cart.find('span.added2cart').text() ) ));
                         if ($('#cart').hasClass('fixed'))
                             $('.cart-to-checkout').slideDown(200);
                     });
@@ -157,6 +157,9 @@ function Product(form, options) {
     });
 
 }
+Product.prototype.getEscapedText = function( bad_string ) {
+    return $("<div>").text( bad_string ).html();
+};
 
 Product.prototype.currencyFormat = function (number, no_html) {
     // Format a number with grouped thousands
@@ -290,7 +293,7 @@ Product.prototype.cartButtonVisibility = function (visible) {
             this.add2cart.find('span.added2cart').show();
             if( $(window).scrollTop() >= 110 )
                 $('#cart').addClass('fixed');
-            $('#cart-content').append($('<div class="cart-just-added"></div>').html(this.add2cart.find('span.added2cart').text()));
+            $('#cart-content').append($('<div class="cart-just-added"></div>').html( this.getEscapedText( this.add2cart.find('span.added2cart').text() ) ));
             if ($('#cart').hasClass('fixed'))
                 $('.cart-to-checkout').slideDown(200);
         }
@@ -343,7 +346,9 @@ $(function () {
     }
 
     // product images
-    $("#product-gallery a").click(function () {
+    $("#product-gallery a").not('#product-image-video').click(function () {
+        $('#product-core-image').show();
+        $('#video-container').hide();
         $('.product-gallery .image').removeClass('selected');
         $(this).parent().addClass('selected');
 
@@ -364,6 +369,15 @@ $(function () {
         var size = $("#product-image").parent().attr('href').replace(/^.*\/[^\/]+\.(.*)\.[^\.]*$/, '$1');
         var href = img.attr('src').replace(/^(.*\/[^\/]+\.)(.*)(\.[^\.]*)$/, '$1' + size + '$3');
         $("#product-image").parent().attr('href', href);
+        return false;
+    });
+
+    // product image video
+    $('#product-image-video').click(function () {
+        $('#product-core-image').hide();
+        $('#video-container').show();
+        $('.product-gallery .image').removeClass('selected');
+        $(this).parent().addClass('selected');
         return false;
     });
 

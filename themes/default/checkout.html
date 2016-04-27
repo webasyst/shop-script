@@ -21,11 +21,12 @@
 <div class="checkout">
 
     {if isset($checkout_steps)}
+        {$current_step_index = array_search($checkout_current_step, array_keys($checkout_steps)) + 1}
     <!-- checkout step content -->
     {foreach $checkout_steps as $step_id => $s}
-        <div class="checkout-step step-{$step_id}">
+        <div class="checkout-step step-{$step_id} {if $current_step_index > 0 && $current_step_index > $s@iteration}is-done{/if}" data-step-index="{$s@iteration}">
             <form class="checkout-form {if $s@last}last{/if}" method="post" action="">
-                <h2 class="{if isset($_upcoming_flag)}upcoming{/if}{if $step_id == $checkout_current_step}{$_upcoming_flag = 1}{/if}"{if $s@first} style="border-top: none;"{/if}>
+                <h2 class="step-header {if isset($_upcoming_flag)}upcoming{/if}{if $step_id == $checkout_current_step}{$_upcoming_flag = 1}{/if}"{if $s@first} style="border-top: none;"{/if}>
                     {if !$s@first}
                         <a href="#" class="hint float-right back"{if $checkout_current_step != $step_id} style="display:none"{/if}>[`Back`]</a>
                     {/if}
@@ -112,12 +113,42 @@
 
 </div>
 
-<script type="text/javascript">
-    $(function () {
-    
-        $('header .banner h3').text('[`Checkout`]');
-        $('header .banner h3').show();
-    
+<script>
+( function($) {
+    $(document).ready( function() {
+        $('header .banner h3').text('[`Checkout`]').show();
+
+        var $steps = $(".checkout-step");
+
+        function setStepOrnament( $step ) {
+            var step_index = $step.data("step-index"),
+                done_class = "is-done",
+                upcoming_class = "upcoming";
+
+            if (step_index > 0) {
+                $steps.each( function(index) {
+                    var $step = $(this),
+                        $header = $step.find(".step-header");
+
+                    if (index + 1 >= step_index) {
+                        $step.removeClass(done_class);
+
+                        if (index + 1 === step_index) {
+                            $header.removeClass(upcoming_class);
+                        }
+
+                        if (index + 1 > step_index) {
+                            $header.addClass(upcoming_class);
+                        }
+
+                    } else {
+                        $header.removeClass(upcoming_class);
+                        $step.addClass(done_class);
+                    }
+                })
+            }
+        }
+
         function checkoutStep(step_id) {
             $.get("{$wa->getUrl('/frontend/checkout')}" + step_id + '/', function (response) {
                 var current = $(".checkout-step .checkout-step-content:visible");
@@ -128,19 +159,15 @@
                 }
                 $(".checkout-step.step-" + step_id + " .checkout-content").replaceWith(response);
                 $(".checkout-step.step-" + step_id + " a.back").show();
-                $(".checkout-step.step-" + step_id + ' h2').removeClass('upcoming')
-                $(".checkout-step.step-" + step_id).next('.checkout-step').each(function () {
-                    $(this).find('h2').addClass('upcoming');
-                });
-                $(".checkout-step.step-" + step_id).prev('.checkout-step').each(function () {
-                    $(this).find('h2').removeClass('upcoming');
-                });
                 if (current_step_id != step_id) {
                     $(".checkout-step.step-" + step_id + " .checkout-step-content").show(0).css({ height: 'auto'});
                 }
                 if ($(".checkout-step.step-" + step_id + ' .auth').length) {
                     $("input[name='user_type']").change();
                 }
+
+                var $step = $(".checkout-step.step-" + step_id);
+                setStepOrnament( $step );
             });
         }
         $(".checkout h2 a").click(function () {
@@ -199,13 +226,10 @@
                 if (current_step_id != step_id) {
                     $(".checkout-step.step-" + step_id + " .checkout-step-content").show(0).css({ height: 'auto'});
                 }
-                $(".checkout-step.step-" + step_id + ' h2').removeClass('upcoming')
-                $(".checkout-step.step-" + step_id).next('.checkout-step').each(function () {
-                    $(this).find('h2').addClass('upcoming');
-                });
-                $(".checkout-step.step-" + step_id).prev('.checkout-step').each(function () {
-                    $(this).find('h2').removeClass('upcoming');
-                });
+
+                var $step = $(".checkout-step.step-" + step_id);
+                setStepOrnament( $step );
+
             }).always(function () {
                 f.find('span.loading').remove();
                 f.find('input:submit:last').removeAttr('disabled');
@@ -213,4 +237,5 @@
             return false;
         });
     });
+})(jQuery);
 </script>
