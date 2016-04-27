@@ -24,6 +24,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
         $app_id = $this->getAppId();
         $domain_routes = $routing->getByApp($app_id);
         $success = false;
+        $current_domain = $routing->getDomain();
         foreach ($domain_routes as $domain => $routes) {
             foreach ($routes as $route) {
                 if ($domain.'/'.$route['url'] == $this->data['domain']) {
@@ -33,13 +34,22 @@ class shopYandexmarketPluginRunController extends waLongActionController
                         $this->data['type_id'] = array_map('intval', $this->data['type_id']);
                     }
                     waRequest::setParam($route);
-
-                    if (!preg_match('@^https?://@', $domain)) {
-                        $domain = 'http://'.$domain;
+                    $base_url = $domain;
+                    if (!preg_match('@^https?://@', $base_url)) {
+                        $base_url = (waRequest::isHttps() ? 'https://' : 'http://').$base_url;
                     }
-                    $this->data['base_url'] = parse_url($domain, PHP_URL_HOST);
-                    if ($path = parse_url($domain, PHP_URL_PATH)) {
-                        $this->data['base_url'] .= $path;
+                    $this->data['base_url'] = parse_url($base_url, PHP_URL_HOST);
+                    if ($current_domain != $domain) {
+                        $current_url = $current_domain;
+                        if (!preg_match('@^https?://@', $current_url)) {
+                            $current_url = (waRequest::isHttps() ? 'https://' : 'http://').$current_url;
+                        }
+
+                        if (parse_url($base_url, PHP_URL_PATH) != parse_url($current_url, PHP_URL_PATH)) {
+                            //TODO remove it while waRouting will'be fixed
+                            $hint = 'Для корректного экспорта URL следует выполнять экспорт на том же домене %s';
+                            throw new waException(sprintf($hint, $base_url));
+                        }
                     }
                     $success = true;
                     break;
@@ -79,6 +89,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 'sku'               => 0,
                 'sku_group'         => '',
                 'hidden_categories' => 0,
+                'min_price'         => 0.5,
             );
 
             if ($backend) {
@@ -215,8 +226,9 @@ SQL;
 
 
             $this->data['count'] = array(
-                'category' => (int)$model->query($sql, $params)->fetchField('cnt'),
-                'product'  => $this->getCollection()->count(),
+                'category'         => (int)$model->query($sql, $params)->fetchField('cnt'),
+                'delivery_options' => 0,//
+                'product'          => $this->getCollection()->count(),
             );
             $stages = array_keys($this->data['count']);
 
@@ -249,8 +261,7 @@ XML;
             $original = shopYandexmarketPlugin::path('shops.dtd');
 
             $target = $this->getTempPath('shops.dtd');
-            if (
-                !file_exists($target)
+            if (!file_exists($target)
                 ||
                 ((filesize($target) != filesize($original)) && waFiles::delete($target))
             ) {
@@ -270,7 +281,8 @@ XML;
             $this->addDomValue($shop, 'company', $company);
 
             $this->addDomValue($shop, 'url', preg_replace('@^https@', 'http', wa()->getRouteUrl('shop/frontend', array(), true)));
-            if ($phone = $config->getGeneralSettings('phone')) {
+            $phone = $config->getGeneralSettings('phone');
+            if ($phone) {
                 $shop->appendChild($this->dom->createElement('phone', $phone));
             }
 
@@ -334,11 +346,30 @@ XML;
                 'local_delivery_cost' => '%0.2f',
                 'adult'               => true,
             );
+
+            if (!empty($profile_config['shop']['local_delivery_estimate'])) {
+                $delivery_options = $this->dom->createElement('delivery-options');
+                $delivery_option = array(
+                    //стоимость доставки в рублях (wtf? а как же мультивалютность и рынки UAH/KAZ/etc?)
+                    'cost' => sprintf('%0.2f', max(0, floatval($profile_config['shop']['local_delivery_cost']))),
+
+                    //срок доставки в рабочих днях;
+                    'days' => max(1, intval($profile_config['shop']['local_delivery_estimate'])),
+
+                    // 'order-before'=>'16',//(необязательный) — время (только часы) оформления заказа, до наступления которого действуют указанные сроки и условия доставки.
+                );
+                $this->addDomValue($delivery_options, 'option', $delivery_option);
+                $shop->appendChild($delivery_options);
+                unset($fields['local_delivery_cost']);
+            }
+
             foreach ($fields as $field => $include_value) {
                 $value = ifset($profile_config['shop'][$field], '');
                 if ($value || ($value !== '')) {
                     if ($include_value) {
-                        $value = ($include_value === true) ? $value : $this->format($field, $value, array('format', $include_value));
+                        if ($include_value !== true) {
+                            $value = $this->format($field, $value, array('format', $include_value));
+                        }
                         $this->addDomValue($shop, $field, $value);
                     } else {
                         $shop->appendChild($this->dom->createElement($field));
@@ -374,6 +405,9 @@ XML;
             case 'category':
                 $name = 'Дерево категорий';
                 break;
+            case 'delivery_options':
+                $name = 'Стоимость доставки';
+                break;
             case 'product':
                 $name = 'Товарные предложения';
                 break;
@@ -388,6 +422,9 @@ XML;
             switch ($stage) {
                 case 'category':
                     $info = _w('%d категория', '%d категорий', $count[$stage]);
+                    break;
+                case 'delivery_options':
+                    $info = _w('%d способ доставки', '%d способа доставки', $count[$stage]);
                     break;
                 case 'product':
                     $info = _w('%d товарное предложение', '%d товарных предложения', $count[$stage]);
@@ -543,7 +580,8 @@ XML;
         $chunks = array();
         foreach ($this->data['current'] as $stage => $current) {
             if ($current) {
-                if ($data = $this->getStageReport($stage, $this->data['processed_count'])) {
+                $data = $this->getStageReport($stage, $this->data['processed_count']);
+                if ($data) {
                     $chunks[] = htmlentities($data, ENT_QUOTES, 'utf-8');
                 }
             }
@@ -730,6 +768,26 @@ XML;
             $plugin = wa()->getPlugin('yandexmarket');
         }
         return $plugin;
+    }
+
+    private function stepDeliveryOptions(&$current_stage, &$count, &$processed)
+    {
+        //calculate delivery options for every method
+        $delivery_option = array(
+            //стоимость доставки в рублях (wtf? а как же мультивалютность и рынки UAH/KAZ/etc?)
+            'cost' => sprintf('%0.2f', max(0, floatval($profile_config['shop']['local_delivery_cost']))),
+
+            //срок доставки в рабочих днях;
+            'days' => max(1, intval($profile_config['shop']['local_delivery_estimate'])),
+
+            // 'order-before'=>'16',//(необязательный) — время (только часы) оформления заказа, до наступления которого действуют указанные сроки и условия доставки.
+        );
+
+        $nodes = $this->dom->getElementsByTagName('delivery-options');
+
+        $this->addDomValue($nodes->item(0), 'option', $delivery_option);
+
+
     }
 
     /**
@@ -1101,7 +1159,7 @@ SQL;
             $field = preg_replace('/\\..*$/', '', $field_id);
 
             if (!empty($info['source']) && (!ifempty($info['category'], array()) || in_array('simple', $info['category']))) {
-                $value = $this->getValue($product, $sku, $field, $info, $offer_map);
+                $value = $this->getValue($product, $sku, $field, $info);
                 if (!in_array($value, array(null, false, ''), true)) {
                     $offer[$field_id] = $value;
                     $map[$field_id] = array(

@@ -138,7 +138,6 @@
                         </li>
                     </ul>
                     <p class="hint"><br><i class="icon10 exclamation"></i> Если товар не принадлежит ни одной категории, то он не будет экспортирован в YML-файл.</p>
-                    <p class="hint"><i class="icon10 exclamation"></i> Если товар имеет цену, менее чем 0.5, то он не будет экспортирован в YML-файл.</p>
                 </div>
                 <div class="value js-hash-values js-hash-set" style="width: 400px;">
                     <div class="bordered-left" style="padding-left: 20px; margin-left: 20px;">
@@ -212,6 +211,18 @@
                     <input name="export[zero_stock]" value="1" type="hidden">
                     <p class="hint"><i class="icon10 exclamation"></i>Для отключения этой настройки в настройках складов должен быть выбран вариант «Максимальное количество товаров, которое может быть добавлено в корзину, не может превышать остаток на складе.</p>
                 {/if}
+            </div>
+        </div>
+
+
+        <div class="field">
+            <div class="name">Минимальная цена</div>
+            <div class="value">
+                <input type="text" name="export[min_price]" value="{$export.min_price|escape}"
+                       placeholder="0.5" class="numerical short"
+                       id="s-plugin-yandexmarket-export-min_price">{$primary_currency|escape}<br>
+
+                <p class="hint">Товары, у которых цена меньше указанной, не будут экспортированы в YML-файл</p>
             </div>
         </div>
 
@@ -336,20 +347,53 @@
         </div>
 
 
-        <div class="field">
+        <div class="field js-delivery-included">
             <div class="name">Доставка включена</div>
             <div class="value no-shift">
                 <label><input type="checkbox" name="shop[deliveryIncluded]" value="true"{if ifempty($profile.config.shop.deliveryIncluded) eq 'true'} checked="checked"{/if}> Доставка уже включена в стоимость товара</label>
             </div>
+            {*
+            @todo hide price settings when it checked
+            *}
+
         </div>
 
 
-        <div class="field">
+        <div class="field js-delivery-options">
             <div class="name">
                 Стоимость доставки
             </div>
             <div class="value">
                 <input type="text" name="shop[local_delivery_cost]" value="{ifset($profile.config.shop.local_delivery_cost)|escape}" placeholder="0" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_cost"> {$primary_currency|escape}
+                Фиксированная стоимость доставки
+            </div>
+            {*
+            {foreach $shipping_methods as $method_id => $method}
+            <div class="value">
+                <label>
+                    {shopHelper::getIcon($method.logo)}
+                    <input type="checkbox" name="shop[shipping_methods][{$method_id}]" value="1" id="s-plugin-yandexmarket-shop-shipping_methods_{$method_id}">{$method.name|escape}
+                </label>
+                <span class="hint"> {shop_currency_html($method.rate,$method.currency,$primary_currency)}</span>
+            </div>
+            {/foreach}
+            <div class="value">
+                <span class="hint">Стоимость доставки приведена для справки. При изменении настроек плагинов доставки суммы будут пересчитаны
+                    @TODO поправить кривой текст
+                </span>
+            </div>
+            *}
+        </div>
+
+
+        <div class="field">
+            <div class="name">
+                Сроки доставки
+            </div>
+            <div class="value">
+                <input type="text" name="shop[local_delivery_estimate]" value="{ifset($profile.config.shop.local_delivery_estimate)|escape}" placeholder="3" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_estimate">
+                <br/>
+                <span class="hint">срок доставки в рабочих днях</span>
             </div>
         </div>
 

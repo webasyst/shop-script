@@ -104,6 +104,8 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
         $this->view->assign('params', array('params' => $params));
         $this->view->assign('export', $export);
 
+        $this->view->assign('shipping_methods', shopHelper::getShippingMethods(array()));
+
 
         $this->view->assign('types_map', ifset($profile['config']['types'], array()));
 
@@ -123,13 +125,7 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
         if ($feature_model->countByField(array('parent_id' => null)) < $limit) {
             $features = $feature_model->getFeatures(true); /*, true*/
             foreach ($features as $id => $feature) {
-                if (
-                    // !empty($feature['multiple']) ||
-                    // (strpos($feature['type'], shopFeatureModel::TYPE_RANGE.'.') === 0) ||
-                    // (strpos($feature['type'], shopFeatureModel::TYPE_2D.'.') === 0) ||
-                    // (strpos($feature['type'], shopFeatureModel::TYPE_3D.'.') === 0) ||
-                ($feature['type'] == shopFeatureModel::TYPE_DIVIDER)
-                ) {
+                if ($feature['type'] == shopFeatureModel::TYPE_DIVIDER) {
                     unset($features[$id]);
                 }
             }
@@ -144,8 +140,8 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
                 }
             }
 
-            if ($features = array_unique($features)) {
-                $features = $feature_model->getFeatures('code', $features);
+            if ($features) {
+                $features = $feature_model->getFeatures('code', array_unique($features));
             } else {
                 $features = array();
             }
@@ -173,11 +169,18 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
             'name'        => _w('Product name'),
             'description' => _w('Description'),
             'summary'     => _w('Summary'),
-            'count'       => _w('In stock'),
             'sku'         => _w('SKU code'),
             'file_name'   => _w('Attachment'),
+            'count'       => _w('In stock'),
         );
+        $stock_model = new shopStockModel();
+        foreach ($stock_model->getAll() as $stock) {
+            $fields[sprintf('todo:stock:%d', $stock['id'])] = sprintf('%s @ %s', _w('In stock'), $stock['name']);
+        }
+
         $this->view->assign('fields', $fields);
+
+        $this->view->assign('shipping', shopHelper::getShippingMethods());
     }
 
     /**
