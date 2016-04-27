@@ -39,7 +39,7 @@ class shopProductsWidget extends waWidget
         $config = $this->getSettingsConfig();
         foreach($config['list_type']['options'] as $item) {
             if ($item['value'] == $list_type) {
-                return $item['title'];
+                return _wp($item['title']);
             }
         }
         return $list_type;
