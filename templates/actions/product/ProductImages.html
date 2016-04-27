@@ -41,33 +41,49 @@
 </div>
 
 <div class="content right200px">
+
+    <div>
+        <form id="s-product-video">
+            <div>
+                <input type="text" name="url" value="{$product.video_url|escape}" placeholder="[`Video URL on YouTube or Vimeo`]" class="long">
+                <input type="submit" value="[`Link video`]">
+                <i class="icon16 loading" style="display: none; margin-top: 5px;"></i>
+                <i class="icon16 yes" style="margin-top: 5px;{if !$product.video_url} display: none;{/if}"></i>
+            </div>
+            <p>
+                <em class="s-product-video-error-url errormsg" style="display: none;"></em>
+            </p>
+        </form>
+    </div>
+
     <form id="fileupload" action="?module=product&amp;action=imageUpload" method="POST" enctype="multipart/form-data">
         <div class="s-image-upload-dropbox">
         	<a href="javascript:void(0);" id="s-upload-images-link" class="fileinput-button">
                 <i class="icon16 upload"></i>[`Select images`]<input type="file" name="files[]" multiple=""></a>
         	<span class="gray">[`or drag them here to start upload`]</span>
         </div>
-        
+
         <input type="hidden" name="product_id" value="{$product_id}">
         {$wa->csrf()}
-        
+
         {include './include.imageUpload.html' inline}
-        
+
     </form>
     <ul class="thumbs li250px" id="s-product-image-list"></ul>
 </div>
 
 <script type="text/javascript">
+
 $.product_images.init({
     product_id:   {$product_id},
     placeholder: '{$placeholder}',
     images: {json_encode(array_values($images))},
     count: {count($images)},
     enable_2x: {if $wa->shop->config('enable_2x')}true{else}false{/if},
-    
+
     // handler triggered after drag-n-drop sort
     onSort: function(id, before_id) {
-        
+
         // update product profile image list
         var product_view_images_list = $('#s-product-view .s-product-image-crops');
         var item = product_view_images_list.find('li[data-image-id=' + id + ']');
@@ -76,13 +92,13 @@ $.product_images.init({
         } else {
             product_view_images_list.append(item);
         }
-        
+
         // update images for sku settings blocks
         var sku_settings_blocks = $('#shop-productprofile .js-sku-settings');
         sku_settings_blocks.each(function() {
             var self   = $(this);
             var sku_id = self.attr('data-id');
-            
+
             var image_crops = self.find('.s-product-image-crops');
             var item = image_crops.find('li[data-image-id=' + id + ']');
             if (before_id) {
@@ -92,6 +108,39 @@ $.product_images.init({
             }
         });
     }
-    
+
 });
+
+$('#s-product-video').submit(function(e) {
+    e.preventDefault();
+    var form = $(this);
+    form.find('.loading').show();
+
+    form.find('.error').removeClass();
+    form.find('.errormsg').hide();
+
+    $.shop.jsonPost(
+        '?module=productVideoSave&id={$product_id}',
+        form.serialize(),
+        function (r) {
+            form.find('.loading').hide();
+            form.find('.yes').show();
+            if (!r.data.product.video_url) {
+                setTimeout(function() {
+                    form.find('.yes').hide();
+                }, 250);
+            }
+        },
+        function (r) {
+            var errors = (r && r.errors) || [];
+            form.find('.loading').hide();
+            $.each(errors, function (i, error) {
+                var input = form.find('[name="' + error.name + '"]');
+                input.addClass('error');
+                form.find('.s-product-video-error-url').show().text(error.msg);
+            });
+        }
+    );
+});
+
 </script>

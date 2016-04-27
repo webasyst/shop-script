@@ -41,10 +41,13 @@ class shopCustomersSearchFormAction extends waViewAction
                             $value['val'] = substr($value['val'], $pos + 1);
                         }
                     }
-                    $html_field = $field->getHTML(array(
-                        'value' => $value['val'],
-                        'parent' => 'contact_info.address'
-                    ));
+                    $html_field = $field->getHTML(
+                        array(
+                            'value' => $value['val'],
+                            'parent' => 'contact_info.address'
+                        ),
+                        'data-val="'.$value['val'].'"'
+                    );
                     $fields[$field->getId()] = array(
                         'name' => $field->getName(),
                         'type' => $field->getType(),
@@ -163,14 +166,12 @@ class shopCustomersSearchFormAction extends waViewAction
 
     public function getStorefronts()
     {
-        foreach (wa()->getRouting()->getByApp('shop') as $domain => $domain_routes) {
-            foreach ($domain_routes as $route) {
-                $url = rtrim($domain.'/'.$route['url'], '/*');
-                $storefronts[] = array(
-                    'id' => $url,
-                    'name' => $url
-                );
-            }
+        $storefronts = array();
+        foreach (shopHelper::getStorefronts() as $url) {
+            $storefronts[] = array(
+                'id' => $url,
+                'name' => $url
+            );
         }
         $storefronts[] = array(
             'id' => ':backend',

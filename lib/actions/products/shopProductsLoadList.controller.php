@@ -11,8 +11,13 @@ class shopProductsLoadListController extends shopProductListAction
 
         $columns = self::getEnabledColumns();
         $columns[] = 'image';
-        $products = $this->collection->getProducts('*,'.join(',', $columns), $offset, $products_per_page);
-        $this->workupProducts($products);
+        $options = array(
+            'fields' => '*,'.join(',', $columns),
+            'offset' => $offset,
+            'products_per_page' => $products_per_page,
+            'view' => $this->getProductView()
+        );
+        $products = $this->getProducts($options);
 
         $count = count($products);
         if (!$total_count) {
@@ -29,6 +34,18 @@ class shopProductsLoadListController extends shopProductListAction
                 'chunk' => _w('%d product','%d products', max(0, min($total_count - ($offset + $count), $count))),
             )
         ));
+    }
+
+    private function getProducts($options)
+    {
+        $fields = $options['fields'];
+        if ($options['view'] === 'skus') {
+            $fields .= ',skus,stock_counts';
+        }
+        $products = $this->collection->getProducts($fields, $options['offset'], $options['products_per_page']);
+        $this->workupProducts($products);
+        $products = array_values($products);
+        return $products;
     }
 
     protected function assign($data)

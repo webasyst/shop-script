@@ -86,11 +86,19 @@
             <li data-action="duplicate">
                 <a href="#"><i class="icon16 split"></i>[`Duplicate`]</a>
             </li>
-            <li data-action="category">
-                <a href="#"><i class="icon16 folder"></i>[`Add to category`]</a>
-            </li><li data-action="set">
-                <a href="#"><i class="icon16 ss set"></i>[`Add to set`]</a>
-            </li>
+
+            {if $wa->userRights('setscategories')}
+                <li data-action="category">
+                    <a href="#"><i class="icon16 folder"></i>[`Add to category`]</a>
+                </li>
+            {/if}
+
+            {if $wa->userRights('setscategories')}
+                <li data-action="set">
+                    <a href="#"><i class="icon16 ss set"></i>[`Add to set`]</a>
+                </li>
+            {/if}
+            
             <li data-action="assign-tags">
                 <a href="#"><i class="icon16 tags"></i>[`Assign tags`]</a>
             </li>
@@ -233,11 +241,14 @@
             </li>
 
             <!-- view mode -->
-            <li class="list-view-mode list-view-mode-thumbs{if $view != 'table'} selected{/if}">
-                <a href="#/products/{if $collection_param}{$collection_param}&{/if}view=thumbs&sort={$sort}"><i class="icon16 view-thumbs"></i></a>
+            <li class="list-view-mode list-view-mode-thumbs{if $view == 'thumbs'} selected{/if}">
+                <a href="#/products/{if $collection_param}{$collection_param}&{/if}view=thumbs&sort={$sort}&order={$order}" title="[`Thumbs`]"><i class="icon16 view-thumbs"></i></a>
             </li>
             <li class="list-view-mode list-view-mode-table{if $view == 'table'} selected{/if}">
-                <a href="#/products/{if $collection_param}{$collection_param}&{/if}view=table&sort={$sort}"><i class="icon16 view-table"></i></a>
+                <a href="#/products/{if $collection_param}{$collection_param}&{/if}view=table&sort={$sort}&order={$order}" title="[`Table`]"><i class="icon16 view-thumb-list"></i></a>
+            </li>
+            <li class="list-view-mode list-view-mode-skus{if $view == 'skus'} selected{/if}">
+                <a href="#/products/{if $collection_param}{$collection_param}&{/if}view=skus&sort={$sort}&order={$order}" title="[`SKUs`]"><i class="icon16 ss view-skus"></i></a>
             </li>
 
             <!-- plugin hook: 'backend_products.viewmode_li' -->
@@ -393,16 +404,21 @@
         category_count: {if $info && $info['hash'] == 'category' && $info['type'] == shopCategoryModel::TYPE_STATIC && !$info['include_sub_categories']}{$info['count']}{else}null{/if},
         edit: '{$wa->get("edit")}',
         sortable: {if $manual && $sort == 'sort'}true{else}false{/if},
-        enable_2x: {if $wa->shop->config('enable_2x')}true{else}false{/if}
-        {if !empty($text)},
-        text: {json_encode($text)}
-        {/if}
-        {if $lazy_loading},
-        lazy_loading: {
-            auto: true,
-            count: {$count}
-        }
-        {else},page: {$page}
+        enable_2x: {if $wa->shop->config('enable_2x')}true{else}false{/if},
+        text: {$text|default:''|json_encode},
+        primary_currency: {$primary_currency|json_encode},
+        {*
+        use_product_currency: {if $use_product_currency}true{else}false{/if},
+        currencies: {$currencies|json_encode},
+        *}
+        stocks: {$stocks|json_encode},
+        {if $lazy_loading}
+            lazy_loading: {
+                auto: true,
+                count: {$count}
+            }
+        {else}
+            page: {$page}
         {/if}
     });
 </script>

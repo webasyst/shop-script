@@ -79,14 +79,18 @@ class shopCart
         $total = $this->getSessionData('total');
         if ($total === null) {
             $total = $this->model->total($this->code);
-            $order = array(
-                'currency' => wa('shop')->getConfig()->getCurrency(false),
-                'total' => $total,
-                'items' => $this->items(false)
-            );
-            $discount = shopDiscounts::calculate($order);
-            $total = $total - $discount;
-            $this->setSessionData('total', $total);
+            if ($total > 0) {
+                $order = array(
+                    'currency' => wa('shop')->getConfig()->getCurrency(false),
+                    'total' => $total,
+                    'items' => $this->items(false)
+                );
+                $discount = shopDiscounts::calculate($order);
+                $total = $total - $discount;
+            }
+            if ($this->code) {
+                $this->setSessionData('total', $total);
+            }
         }
         return (float) $total;
     }

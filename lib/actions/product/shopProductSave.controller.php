@@ -231,6 +231,8 @@ class shopProductSaveController extends waJsonController
             $sku['price_loc'] = (string)((float)$sku['price']);
             $sku['price_str'] = wa_currency($sku['price'], $currency);
             $sku['price_html'] = wa_currency_html($sku['price'], $currency);
+            $sku['compare_price_loc'] = (string) ((float)$sku['compare_price']);
+            $sku['purchase_price_loc'] = (string) ((float)$sku['purchase_price']);
             $sku['stock_icon'] = array();
             $sku['stock_icon'][0] = shopHelper::getStockCountIcon(ifset($sku['count']));
             if (!empty($sku['stock'])) {

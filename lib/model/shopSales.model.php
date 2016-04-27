@@ -32,6 +32,7 @@ class shopSalesModel extends waModel
         }
         $options = array_intersect_key($options, array(
             'storefront' => 1,
+            'sales_channel' => 1,
             'abtest_variant_id' => 1,
             'abtest_id' => 1,
         ));
@@ -1184,8 +1185,14 @@ class shopSalesModel extends waModel
         if (!empty($options['storefront'])) {
             $storefront_join = "JOIN shop_order_params AS opst
                                     ON opst.order_id=o.id
-                                        AND opst.name='storefront'";
-            $storefront_where = "AND opst.value='".$this->escape($options['storefront'])."'";
+                                        AND opst.name='storefront' ";
+            $storefront_where = "AND opst.value='".$this->escape($options['storefront'])."' ";
+        }
+        if (!empty($options['sales_channel'])) {
+            $storefront_join .= "JOIN shop_order_params AS opst2
+                                    ON opst2.order_id=o.id
+                                        AND opst2.name='sales_channel' ";
+            $storefront_where .= "AND opst2.value='".$this->escape($options['sales_channel'])."' ";
         }
         return array($storefront_join, $storefront_where);
     }

@@ -24,10 +24,11 @@ class shopFrontendCartSaveController extends waJsonController
 
                     // limit by main stock
                     if (wa()->getSetting('limit_main_stock') && waRequest::param('stock_id')) {
+                        $stock_id = waRequest::param('stock_id');
                         $product_stocks_model = new shopProductStocksModel();
-                        $row = $product_stocks_model->getByField(array('sku_id' => $sku['id'], 'stock_id' => waRequest::param('stock_id')));
-                        if ($row) {
-                            $sku['count'] = $row['count'];
+                        $sku_stock = shopHelper::fillVirtulStock($product_stocks_model->getCounts($sku['id']));
+                        if (isset($sku_stock[$stock_id])) {
+                            $sku['count'] = $sku_stock[$stock_id];
                         }
                     }
                     // check quantity
@@ -53,21 +54,21 @@ class shopFrontendCartSaveController extends waJsonController
                 shop_currency_html($cart->getItemTotal($item['parent_id']), true):
                 shop_currency($cart->getItemTotal($item['parent_id']), true);
         }
-        
+
         $total = $cart->total();
         $discount = $cart->discount($order);
 
         if (!empty($order['params']['affiliate_bonus'])) {
             $discount -= shop_currency(shopAffiliate::convertBonus($order['params']['affiliate_bonus']), $this->getConfig()->getCurrency(true), null, false);
         }
-        
+
         $this->response['total'] = $is_html ? shop_currency_html($total, true) : shop_currency($total, true);
         $this->response['discount'] = $is_html ? shop_currency_html($discount, true) : shop_currency($discount, true);
         $this->response['discount_numeric'] = $discount;
         $discount_coupon = ifset($order['params']['coupon_discount'], 0);
         $this->response['discount_coupon'] = $is_html ? shop_currency_html($discount_coupon, true) : shop_currency($discount_coupon, true);
         $this->response['count'] = $cart->count();
-        
+
         if (shopAffiliate::isEnabled()) {
             $add_affiliate_bonus = shopAffiliate::calculateBonus(array(
                 'total' => $total,
@@ -75,7 +76,7 @@ class shopFrontendCartSaveController extends waJsonController
                 'items' => $cart->items(false)
             ));
             $this->response['add_affiliate_bonus'] = sprintf(
-                _w("This order will add +%s points to your affiliate bonus."), 
+                _w("This order will add +%s points to your affiliate bonus."),
                 round($add_affiliate_bonus, 2)
             );
             $affiliate_bonus = $affiliate_discount = 0;

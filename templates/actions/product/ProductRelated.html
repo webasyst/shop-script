@@ -46,6 +46,17 @@
             </div>
             <div class="value">
                 <label><input {if !$type.upselling}disabled="disabled"{/if} type="radio" name="upselling" value="1" {if $product.upselling == 1}checked="true"{/if}> [`On`]
+                {if !$type.upselling}
+                    <span class="hint">
+                        {$product.type = null}
+                        {sprintf(
+                            _w('Upselling & Similar product recommendations are not configured for %s product type. Setup filtering conditions for %s in the master <a href="%s">recommendation settings</a>.'),
+                            $product.type.name|default:'',
+                            $product.type.name|default:'',
+                            '?action=settings#/recommendations/'
+                        )}
+                    </span>
+                {/if}
                 {if $type.upselling}
                 <em class="hint">[`Auto`]</em>
                 {/if}

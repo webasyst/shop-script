@@ -10,7 +10,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.6\n"
+"X-Generator: Poedit 1.8.7\n"
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
 "Language: en_US\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -10752,10 +10752,428 @@ msgstr ""
 msgid "provided in Storefronts &gt; Settings and customizable for each storefront"
 msgstr ""
 
-#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:166
-msgid "Custom product's fields"
+#: /wa-apps/shop/templates/actions/backend/BackendOrders.html:38
+msgid "Unsettled"
 msgstr ""
 
-#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:168
-msgid "Custom skus' fields"
+#: /wa-apps/shop/templates/actions/backend/BackendOrders.html:69
+msgid "Sales channels"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductSetCreate.html:38
+msgid "Compare at price is set"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:130
+#: /wa-apps/shop/templates/actions/orders/Orders.html:47
+msgid "(no name)"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:262
+msgid "Order content is unknown"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:32
+#: /wa-apps/shop/templates/actions/product/Product.html:403
+msgid "This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:174
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:192
+msgid "Buy button"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/Product.html:322
+msgid "Images &amp; Video"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:21
+msgid "Customers will be able to collect multiple products in the cart before proceeding to checkout"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:24
+msgid "Customers will be promptly redirected the main checkout"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:28
+msgid "Font family"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:38
+msgid "Widget width"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:44
+msgid "Link color"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:54
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:49
+msgid "Text color"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:64
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:57
+msgid "Background color"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:74
+msgid "Button color"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:84
+msgid "Product image"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:91
+msgid "Widget code"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductImages.html:48
+msgid "Video URL on YouTube or Vimeo"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductImages.html:49
+msgid "Link video"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductRelated.html:53
+msgid "Upselling & Similar product recommendations are not configured for %s product type. Setup filtering conditions for %s in the master <a href=\"%s\">recommendation settings</a>."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/product_list_skus.html:145
+#: /wa-apps/shop/templates/actions/products/product_list_table.html:79
+msgid "Hidden product"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/product_list_skus.html:233
+msgid "Data you have entered will not be saved. Are you sure you want to leave this page?"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:245
+msgid "Thumbs"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/products/Products.html:248
+msgid "Table"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosDefault.html:30
+msgid "Countdown: <strong>%s</strong>"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:62
+msgid "Default background color below the promo image."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:66
+msgid "Timer"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:70
+msgid "Enable countdown"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:94
+msgid "format"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:94
+msgid "current time is"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:135
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:231
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:204
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:135
+msgid "All channels"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:36
+msgid "Visible in storefronts"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:45
+msgid "Stocks and priority"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:64
+msgid "Indicator"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:90
+msgid "Add virtual stock"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/stocks/Stocks.html:6
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:7
+msgid "New transfer"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/stocks/Stocks.html:12
+msgid "There are no pending stock transfers."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/stocks/Stocks.html:18
+msgid "Show all %d completed transfers"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:11
+msgid "Transfers is an easy way to move inventory from one stock to another. When you create new transfer, it automatically writes off selected products from the source stock. And once transfer has been completed, products are added to the destination stock."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:18
+msgid "ID"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:26
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:21
+msgid "Source stock"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:33
+#: /wa-apps/shop/templates/actions/transfer/TransferInfo.html:35
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:40
+msgid "New arrival"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:39
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:23
+msgid "Destination stock"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:92
+msgid "Create transfer"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:95
+msgid "Transfer complete"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/TransferInfo.html:10
+#: /wa-apps/shop/lib/model/shopProductStocksLog.model.php:41
+#: /wa-apps/shop/lib/model/shopTransfer.model.php:370
+msgid "Transfer %s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/TransferInfo.html:31
+msgid "From this stock"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/TransferInfo.html:43
+msgid "To this stock"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/TransferInfo.html:84
+msgid "Transfer completed!"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/TransferInfo.html:85
+msgid "Rollback this transfer"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:19
+msgid "Transfer ID"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:33
+msgid "On its way"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:37
+msgid "Cancelled"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:57
+msgid "Show more transfers"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:54
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:63
+msgid "%d transfer"
+msgid_plural "%d transfers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/js/order/list.js:632
+msgid "Maximum of %d orders is allowed for bulk form printing."
+msgstr ""
+
+#: /wa-apps/shop/js/settings/order_states.js:297
+msgid "This is a preview of actions available for orders in this state"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:170
+msgid "Custom product fields"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:172
+msgid "Custom sku fields"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/order/shopOrderEdit.action.php:216
+#: /wa-apps/shop/lib/actions/orders/shopOrdersGetProduct.controller.php:100
+#: /wa-apps/shop/lib/classes/shopHelper.class.php:586
+msgid "%d left"
+msgid_plural "%d left"
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/lib/actions/order/shopOrderSettle.controller.php:52
+#: /wa-apps/shop/lib/workflow/shopWorkflowPayAction.class.php:74
+#: /wa-apps/shop/lib/workflow/shopWorkflowSettleAction.class.php:128
+msgid "Field %s changed %s → %s"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/order/shopOrderSettle.controller.php:62
+msgid "Order was updated via merge by order %s"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/order/shopOrderSettle.controller.php:98
+msgid "Order data was merged into %s"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/product/shopProductVideoSave.controller.php:32
+msgid "Simply copy-and-paste the URL of product video on YouTube or Vimeo."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransfer.actions.php:29
+msgid "Product list is empty"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransfer.actions.php:36
+msgid "Count must be >= 1"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransfer.actions.php:43
+msgid "Destination stock is required"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransfer.actions.php:54
+msgid "Transfer ID is already in use"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransferSkus.controller.php:102
+msgid "Not in stock on %s"
+msgstr ""
+
+#: /wa-apps/shop/lib/classes/shopNotifications.class.php:332
+msgid "New order nofication"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/config.php:78
+msgid "Not round"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/data/workflow.php:240
+msgid "Merge"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/data/workflow.php:243
+msgid "Order was settled"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:113
+msgid "Visible stocks"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:117
+msgid "All public stocks"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowEditAction.class.php:134
+msgid ""
+"Editing this order will mark this order as settled and will re-calculate it's current amount (%s) based on the order content your enter.\n"
+"Are you sure you want to settle this order and reset the order amount?"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowSettleAction.class.php:36
+#: /wa-apps/shop/lib/workflow/shopWorkflowSettleAction.class.php:79
+msgid "Order was merged (settled) with %s"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/MessageAction.html:55
+msgid "Edit template"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/SettleAction.html:2
+msgid "Unsettled order"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/SettleAction.html:3
+msgid "This order was received via sales channel that did not provide any information on the order content and the customer. If it is a duplicate of an existing order (or a payment confirmation for an existing order), merge orders by <strong>selecting the master order below</strong>."
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/SettleAction.html:49
+msgid "Merge orders"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/SettleAction.html:49
+msgid "This will replace selected order %id% details with the amount (%amount%) and status (%state%) of this unsettled order. Are you sure?"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/SettleAction.html:49
+msgid "mark this order as settled"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:37
+msgid "Visible to customers"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:47
+msgid "Low"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:52
+msgid "Critical"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:75
+msgid "Virtual stock is a group of real stocks. The order of real stocks defines the priority for product stock update when order is placed. This is handy for grouping real stocks and points of sale which are located within the same geographical region, and defining rules for automated product stock updates. <a href=\"%s\" target=\"_blank\">Help</a> <i class=\"icon10 new-window\"></i>"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:112
+msgid "Not visible to customers"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/backend/shopBackendLoc.action.php:96
+msgid "You've added %d product to this transfer already. Are you sure you want to change the source stock?"
+msgid_plural "You've added %d products to this transfer already. Are you sure you want to change the source stock?"
+msgstr[0] ""
+msgstr[1] ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowEditAction.class.php:134
+msgid "Editing this order will mark this order as settled and will re-calculate it's current amount (%s) based on the order content your enter. Are you sure you want to settle this order and reset the order amount?"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:65
+msgid "Price color"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:72
+msgid "Virtual stock must include at least one real stock."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:30
+msgid "New arrival (no source stock)"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransfer.actions.php:29
+msgid "Add at least one product to the transfer"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransfer.actions.php:36
+msgid "Product count must be not less than 1"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransfer.actions.php:65
+msgid "Source and destination stocks must not be the same"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/TransferInfo.html:152
+msgid "Products will be returned to the source stock. Are you sure?"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:19
+msgid "Locale"
 msgstr ""

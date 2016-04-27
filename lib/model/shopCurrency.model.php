@@ -82,7 +82,8 @@ class shopCurrencyModel extends waModel
         }
     }
 
-    public function convertByRate($price, $rate_from, $rate_to) {
+    public function convertByRate($price, $rate_from, $rate_to)
+    {
         $price = $this->castValue('double', $price);
         if ($rate_from == $rate_to) {
             return $price;
@@ -118,38 +119,50 @@ class shopCurrencyModel extends waModel
      * Remove currency with (or not) converting
      * @param string $code
      * @param string|null $convert_to If null than converting is omitted
-     * @return boolean
+     * @return bool
+     * @throws waException
      */
     public function removeCurrency($code, $convert_to)
     {
-        if (!$convert_to) {
-            return $this->deleteById($code);
-        }
+        if ($convert_to) {
+            if ($code == $convert_to) {
+                return false;
+            }
 
-        if ($code == $convert_to) {
-            return false;
-        }
-        $currencies = $this->getCurrencies(array($code, $convert_to));
-        if (!isset($currencies[$code])) {
-            throw new waException("Unknown currency: $code");
-        }
-        if (!isset($currencies[$convert_to])) {
-            throw new waException("Unknown currency: $convert_to");
-        }
+            $currencies = $this->getCurrencies(array($code, $convert_to));
+            if (!isset($currencies[$code])) {
+                throw new waException("Unknown currency: $code");
+            }
+            if (!isset($currencies[$convert_to])) {
+                throw new waException("Unknown currency: $convert_to");
+            }
 
-        $rate    = (double) $currencies[$code]['rate'];
-        $rate_to = (double) $currencies[$convert_to]['rate'];
-        if (!$rate || !$rate_to) {
-            return false;
+            $rate = (double)$currencies[$code]['rate'];
+            $rate_to = (double)$currencies[$convert_to]['rate'];
+            if (!$rate || !$rate_to) {
+                return false;
+            }
+
+            $this->convertPrices($code, $rate, $convert_to, $rate_to);
+            $convert_to = $this->escape($convert_to);
+            $this->exec("UPDATE `shop_product` SET currency = s:0 WHERE currency = s:1", $convert_to, $code);
+            $this->exec("UPDATE `shop_service` SET currency = s:0 WHERE currency = s:1", $convert_to, $code);
+
+            $this->recalcProductPrimaryPrices($convert_to);
+            $this->recalcServicePrimaryPrices($convert_to);
         }
-
-        $this->convertPrices($code, $rate, $convert_to, $rate_to);
-        $convert_to = $this->escape($convert_to);
-        $this->exec("UPDATE `shop_product` SET currency = s:0 WHERE currency = s:1", $convert_to, $code);
-        $this->exec("UPDATE `shop_service` SET currency = s:0 WHERE currency = s:1", $convert_to, $code);
-
-        $this->recalcProductPrimaryPrices($convert_to);
-        $this->recalcServicePrimaryPrices($convert_to);
+        /**
+         * @event currency_delete
+         * @param string [string]mixed $params
+         * @param string [string]string $params['code'] Currency code
+         * @param string [string]string $params['convert_to'] Target convert currency code
+         * @return void
+         */
+        $params = array(
+            'code'       => $code,
+            'convert_to' => $code,
+        );
+        wa()->event('currency_delete', $params);
         $this->deleteCache();
         return $this->deleteById($code);
     }
@@ -166,8 +179,9 @@ class shopCurrencyModel extends waModel
      * Set new primary currency
      *
      * @param string $new_code
-     * @param boolean $convert need converting prices in old currency
-     * @return boolean
+     * @param bool $convert need converting prices in old currency
+     * @return bool
+     * @throws waException
      */
     public function setPrimaryCurrency($new_code, $convert = true)
     {
@@ -311,6 +325,7 @@ class shopCurrencyModel extends waModel
      *
      * @param string $code
      * @param double $rate
+     * @return bool|null|waDbResultUpdate
      */
     public function changeRate($code, $rate)
     {
@@ -341,7 +356,7 @@ class shopCurrencyModel extends waModel
 
     /**
      *
-     * Recalc all "primary_price" fields of products
+     * Recalculate all "primary_price" fields of products
      *
      * @param string|null $code Affecting to products with this currency code or to all products in case null
      */
@@ -384,7 +399,7 @@ class shopCurrencyModel extends waModel
     }
 
     /**
-     * Recalc all "primary_price" fields of services
+     * Recalculate all "primary_price" fields of services
      *
      * @param string|null $code Affecting to services with this currency code or to all services in case null
      */
@@ -441,4 +456,3 @@ class shopCurrencyModel extends waModel
         return true;
     }
 }
-

@@ -50,7 +50,7 @@
                             $(window).lazyLoad('stop');
                         };
                         $.get(
-                            '?module=stocks&offset=' + offset + 
+                            '?module=stocksBalance&offset=' + offset +
                                 '&total_count=' + total_count + 
                                 (self.options.order ? '&order=' + self.options.order : ''),
                             function(r) {
@@ -146,109 +146,19 @@
                         return false;
                     }
 
-                    $.product_stocks.transferDialog(
-                        /*{ name: dr.find('a').text(), id: src_item_id[0] },*/
-                        {
-                            product_image: td.parent().find('td.s-product img').attr('src'),
-                            product_name:  td.parent().find('td.s-product span').text(),
-                            sku_name: dr.find('a').text(),
-                            sku_id: src_item_id[0]
-                        },
-                        src_stock_id,
-                        dst_stock_id,
-                        function(r) {
-                            td.html(
-                                tmpl('template-product-stocks-sku-list', {
-                                    stock:   { id: src_stock_id },
-                                    product: { id: r.data.product_id },
-                                    skus: r.data.stocks[src_stock_id] || []
-                                })
-                            );
-                            self.html(
-                                tmpl('template-product-stocks-sku-list', {
-                                    stock:   { id: dst_stock_id },
-                                    product: { id: r.data.product_id },
-                                    skus: r.data.stocks[dst_stock_id] || []
-                                })
-                            );
-                        }
-                    );
-                }
-            });
-        },
-
-        transferDialog: function(data/*sku*/, src_stock_id, dst_stock_id, success) {
-            var d = $("#s-product-sku-transfer");
-            d.waDialog({
-                disableButtonsOnSubmit: false,
-                onLoad: function() {
-                    var self = $(this);
-                    //$('#s-stock-name-editable').text(sku.name);
-                    //$('#s-stock-name-autocomplete').val(sku.name);
-                    //self.find('input[name=sku_id]').val(sku.id);
-
-                    self.find('#s-stock-product-image').attr('src', data.product_image);
-                    self.find('#s-stock-product-name').text(data.product_name);
-                    self.find('#s-stock-sku-name').text(data.sku_name);
-
-                    self.find('input[name=sku_id]').val(data.sku_id);
-                    self.find('select[name=src_stock]').val(src_stock_id);
-                    self.find('select[name=dst_stock]').val(dst_stock_id);
-
-                    /*
-                    if (!$('#s-stock-name-editable').data('inited')) {
-
-                        $('#s-stock-name-autocomplete').autocomplete({
-                            source: '?action=autocomplete&type=sku',
-                            minLength: 3,
-                            delay: 300,
-                            select: function(event, ui) {
-                                self.find('input[name=sku_id]').val(ui.item.id);
-                            }
-                        });
-
-                        $('#s-stock-name-editable').bind('editable', function(event, editable) {
-                            var self = $(this);
-                            var autocomplete = $('#s-stock-name-autocomplete');
-                            editable = typeof editable === 'undefined' ? true : editable;
-                            if (editable) {
-                                self.hide();
-                                autocomplete.val(self.text()).show();
-                            } else {
-                                var val = autocomplete.val();
-                                if (val) {
-                                    self.text(val);
-                                }
-                                self.show();
-                                autocomplete.hide();
-                            }
-                        });
-
-                        $('#s-stock-name-editable').click(function() {
-                            $(this).trigger('editable');
-                        });
-
-                        $('#s-stock-name-editable').data('inited', true);
+                    var d = $('#s-transfer-product-dialog');
+                    if (d.length) {
+                        d.parent().remove();
                     }
-                    */
-
-                    return false;
-                },
-                onSubmit: function() {
-                    //$('#s-stock-name-editable').trigger('editable', false);
-                    var self = $(this);
-                    $.shop.jsonPost(self.attr('action'), self.serializeArray(),
-                        function(r) {
-                            if (typeof success === 'function') {
-                                success(r);
-                            }
-                            d.trigger('close');
-                        },
-                        function(r) {
-                            d.trigger('close');
+                    var p = $('<div></div>').appendTo('body');
+                    p.load(
+                        '?module=transfer',
+                        {
+                            sku_id: src_item_id[0],
+                            from: src_stock_id,
+                            to: dst_stock_id
                         }
                     );
-                    return false;
                 }
             });
         },

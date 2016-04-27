@@ -133,7 +133,7 @@ SQL;
          * @param array $sku
          */
         wa('shop')->event('product_sku_delete', $sku);
-        
+
         if (!$this->deleteById($sku_id)) { // delete sku
             return false;
         }
@@ -316,10 +316,12 @@ SQL;
         $product = $product_model->getById($data['product_id']);
         $primary_currency = wa('shop')->getConfig()->getCurrency();
 
-        if ($product['currency'] == $primary_currency) {
-            $data['primary_price'] = $data['price'];
-        } else {
-            $data['primary_price'] = $this->convertPrice($data['price'], $product['currency']);
+        if (!empty($data['price'])) {
+            if ($product['currency'] == $primary_currency) {
+                $data['primary_price'] = $data['price'];
+            } else {
+                $data['primary_price'] = $this->convertPrice($data['price'], $product['currency']);
+            }
         }
 
         if (empty($sku['available'])) {

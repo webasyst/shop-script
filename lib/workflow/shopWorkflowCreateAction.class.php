@@ -18,13 +18,9 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                  */
                 $contact = $data['contact'];
                 if (!$contact->getId()) {
-                    /**
-                     * @var shopConfig $shop_config
-                     */
-                    $shop_config = wa('shop')->getConfig();
                     $auth_config = wa()->getAuthConfig();
                     if (!empty($auth_config['params']['confirm_email']) &&
-                        $shop_config->getGeneralSettings('guest_checkout') == 'merge_email' &&
+                        $this->getConfig()->getGeneralSettings('guest_checkout') == 'merge_email' &&
                         $contact->get('email', 'default')
                     ) {
                         // try find exists contact by email
@@ -76,41 +72,16 @@ class shopWorkflowCreateAction extends shopWorkflowAction
     public function execute($data = null)
     {
         if (wa()->getEnv() == 'frontend') {
-
-            // Now we are in frontend, so fill stock_id for items. Stock_id get from storefront-settings
-            // But:
-            //   - some skus may have not any stock
-            //   - stock_id from storefront isn't setted (empty)
-
-            $sku_ids = array();
-            foreach ($data['items'] as $item) {
-                if ($item['type'] == 'product') {
-                    $sku_ids[] = (int)$item['sku_id'];
-                }
-            }
-            $product_stocks_model = new shopProductStocksModel();
-            $sku_ids = $product_stocks_model->filterSkusByNoStocks($sku_ids);
-            $sku_ids_map = array_fill_keys($sku_ids, true);
-
-            // storefront stock-id
-            $stock_id = waRequest::param('stock_id');
-            $stock_model = new shopStockModel();
-            if (!$stock_id || !$stock_model->stockExists($stock_id)) {
-                $stock_id = $stock_model->select('id')->order('sort')->limit(1)->fetchField();
-            }
-
-            foreach ($data['items'] as &$item) {
-                if ($item['type'] == 'product') {
-                    if (!isset($sku_ids_map[$item['sku_id']])) {    // have stocks
-                        $item['stock_id'] = $stock_id;
-                    }
-                }
-            }
+            // Save final stock and virtual stock in order params
+            list($virtualstock, $stock) = self::determineOrderStocks($data);
+            $data['params']['virtualstock_id'] = $virtualstock ? $virtualstock['id'] : null;
+            $data['params']['stock_id'] = $stock ? $stock['id'] : null;
+            self::fillItemsStockIds($data['items'], $virtualstock, $stock);
         }
         if (!empty($data['currency'])) {
             $currency = $data['currency'];
         } else {
-            $currency = wa('shop')->getConfig()->getCurrency(false);
+            $currency = $this->getConfig()->getCurrency(false);
         }
         $rate_model = new shopCurrencyModel();
         $row = $rate_model->getById($currency);
@@ -177,7 +148,9 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             'tax'      => $tax_included + $tax,
             'discount' => $data['discount'],
             'shipping' => $data['shipping'],
-            'comment'  => isset($data['comment']) ? $data['comment'] : ''
+            'comment'  => isset($data['comment']) ? $data['comment'] : '',
+            'unsettled' => !empty($data['unsettled']) ? 1 : 0,
+
         );
         $order['contact_id'] = $contact->getId();
 
@@ -211,6 +184,13 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         }
         $data['params']['auth_code'] = self::generateAuthCode($order_id);
         $data['params']['auth_pin'] = self::generateAuthPin();
+        if (empty($data['params']['sales_channel'])) {
+            if (empty($data['params']['storefront'])) {
+                $data['params']['sales_channel'] = 'other:';
+            } else {
+                $data['params']['sales_channel'] = 'storefront:'.$data['params']['storefront'];
+            }
+        }
 
         // Save params
         $params_model = new shopOrderParamsModel();
@@ -236,6 +216,94 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             'order_id'   => $order_id,
             'contact_id' => wa()->getEnv() == 'frontend' ? $contact->getId() : wa()->getUser()->getId()
         );
+    }
+
+    // Fill stock_id for order items when irder is created in frontend.
+    protected static function fillItemsStockIds(&$items, $virtualstock, $stock)
+    {
+        if (!$virtualstock && !$stock) {
+            return;
+        }
+
+        // Not all SKUs have stocks enabled. Figure out which ones don't.
+        $sku_ids = array();
+        foreach ($items as $item) {
+            if ($item['type'] == 'product') {
+                $sku_ids[(int)$item['sku_id']] = true;
+            }
+        }
+        $product_stocks_model = new shopProductStocksModel();
+        $sku_ids = $product_stocks_model->filterSkusByNoStocks(array_keys($sku_ids));
+        $sku_ids_map = array_fill_keys($sku_ids, true);
+
+        // Set stock_id and virtualstock_id for $items where applicable
+        foreach ($items as &$item) {
+            if ($item['type'] != 'product' || isset($sku_ids_map[$item['sku_id']])) {
+                // Ignore services and SKUs that do not use stocks
+                continue;
+            }
+            if(array_key_exists('stock_id', $item)) {
+                // Do not overwrite SKU stock if already specified
+                continue;
+            }
+
+            $item['stock_id'] = $stock ? $stock['id'] : null;
+            if ($virtualstock) {
+                $item['virtualstock_id'] = $virtualstock['id'];
+                if (!$item['stock_id']) {
+                    // Determine real stock_id from virtual stock
+                    $sku_stock = $product_stocks_model->getCounts($item['sku_id']);
+                    foreach($virtualstock['substocks'] as $substock_id) {
+                        if (!isset($sku_stock[$substock_id]) || $sku_stock[$substock_id] > 0) {
+                            $item['stock_id'] = $substock_id;
+                            break;
+                        }
+                    }
+                    if (!$item['stock_id']) {
+                        $item['stock_id'] = reset($virtualstock['substocks']);
+                    }
+                }
+            }
+        }
+        unset($item);
+    }
+
+    // Determine virtual stock and/or stock applicable for the order from order params and routing params
+    protected static function determineOrderStocks($data)
+    {
+        $stock_id = $virtualstock_id = null;
+        if (!empty($data['params']['virtualstock_id']) && wa_is_int($data['params']['virtualstock_id'])) {
+            $virtualstock_id = $data['params']['virtualstock_id'];
+        }
+        if (!empty($data['params']['stock_id'])) {
+            $stock_id = $data['params']['stock_id'];
+        } else {
+            $stock_id = waRequest::param('stock_id');
+        }
+        if (!wa_is_int($stock_id)) {
+            if ($stock_id && empty($virtualstock_id) && is_string($stock_id) && $stock_id{0} == 'v') {
+                $virtualstock_id = (int) substr($stock_id, 1);
+                $virtualstock_id = ifempty($virtualstock_id);
+            }
+            $stock_id = null;
+        }
+
+        // Make sure specified stocks exist
+        $stocks = shopHelper::getStocks();
+        if ($virtualstock_id && empty($stocks['v'.$virtualstock_id]['substocks'])) {
+            $virtualstock_id = null;
+        }
+        if ($stock_id && empty($stocks[$stock_id])) {
+            $stock_id = null;
+        }
+
+        // If we couldn't determine the stock, use first available
+        if (!$virtualstock_id && !$stock_id) {
+            $stock_ids = array_filter(array_keys($stocks), 'wa_is_int');
+            $stock_id = key($stock_ids);
+        }
+
+        return array(ifset($stocks['v'.$virtualstock_id]), ifset($stocks[$stock_id]));
     }
 
     public function postExecute($order_id = null, $result = null)
@@ -286,14 +354,19 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             shopProductStocksLogModel::clearContext();
         }
 
-        if ($email = $customer->get('email', 'default')) {
-            $this->sendPrintforms($order,$email,$data);
+        $email = $customer->get('email', 'default');
+        if ($email) {
+            $this->sendPrintforms($order, $email, $data);
         }
 
         return $order_id;
     }
 
-    /** Random string to authorize user from email link */
+    /**
+     * Random string to authorize user from email link
+     * @param $order_id
+     * @return string
+     */
     public static function generateAuthCode($order_id)
     {
         $md5 = md5(uniqid($order_id, true).mt_rand().mt_rand().mt_rand());
@@ -315,7 +388,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
     private function sendPrintforms($order, $email, $data)
     {
         $queue = array();
-        $forms = shopHelper::getPrintForms($order);
+        $forms = shopPrintforms::getOrderPrintforms($order);
         foreach ($forms as $id => $form) {
             if (!empty($form['emailprintform'])) {
                 if (strpos($id, '.')) {

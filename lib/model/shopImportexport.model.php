@@ -1,4 +1,5 @@
 <?php
+
 class shopImportexportModel extends shopSortableModel
 {
     protected $table = 'shop_importexport';

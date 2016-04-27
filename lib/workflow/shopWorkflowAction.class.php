@@ -39,14 +39,18 @@ class shopWorkflowAction extends waWorkflowAction
 
     public function getButton()
     {
-        $name = htmlspecialchars($this->getName());
+        $name = htmlspecialchars($this->getName(), ENT_QUOTES, 'utf-8');
         if (func_num_args()) {
             $attrs = func_get_arg(0);
         } else {
             $attrs = '';
         }
         if ($this->getOption('position') || $this->getOption('top')) {
-            return '<a '.$attrs.' href="#" class="wf-action '.$this->getOption('button_class').'" data-action-id="'.$this->getId().'"><i class="icon16 '.$this->getOption('icon').'"></i>'.$name.'</a>';
+            return <<<HTML
+<a {$attrs} href="#" class="wf-action {$this->getOption('button_class')}" data-action-id="{$this->getId()}">
+    <i class="icon16 {$this->getOption('icon')}"></i>{$name}
+</a>
+HTML;
         } else {
             if ($this->getOption('icon')) {
                 $icons = (array)$this->getOption('icon');
@@ -62,7 +66,16 @@ class shopWorkflowAction extends waWorkflowAction
             if ($this->getOption('border_color')) {
                 $style[] = 'border-color: #'.$this->getOption('border_color');
             }
-            return '<a href="#" '.$attrs.' class="wf-action button '.$this->getOption('button_class').'" data-action-id="'.$this->getId().'" style="'.implode(' ', $style).'">'.$name.$icons.'</a>';
+            $style = implode(' ', $style);
+            $class = array(
+                'wf-action',
+                'button',
+                $this->getOption('button_class'),
+            );
+            $class = implode(' ', array_filter($class));
+            return <<<HTML
+<a href="#" {$attrs} class="{$class}" data-action-id="{$this->getId()}" style="{$style}">{$name}{$icons}</a>
+HTML;
         }
     }
 
@@ -72,7 +85,7 @@ class shopWorkflowAction extends waWorkflowAction
             return null;
         }
         $this->getView()->assign(array(
-            'order_id' => $order_id,
+            'order_id'  => $order_id,
             'action_id' => $this->getId()
         ));
         return $this->display();
@@ -92,7 +105,7 @@ class shopWorkflowAction extends waWorkflowAction
     public function postExecute($order_id = null, $result = null)
     {
         if (!$result) {
-            return;
+            return null;
         }
         $order_model = new shopOrderModel();
         if (is_array($order_id)) {
@@ -133,9 +146,9 @@ class shopWorkflowAction extends waWorkflowAction
         $order['params'] = $order_params_model->get($order_id);
         // send notifications
         shopNotifications::send('order.'.$this->getId(), array(
-            'order' => $order,
-            'customer' => new waContact($order['contact_id']),
-            'status' => $this->getWorkflow()->getStateById($data['after_state_id'])->getName(),
+            'order'       => $order,
+            'customer'    => new waContact($order['contact_id']),
+            'status'      => $this->getWorkflow()->getStateById($data['after_state_id'])->getName(),
             'action_data' => $data
         ));
 
@@ -159,12 +172,12 @@ class shopWorkflowAction extends waWorkflowAction
          * @event order_action.complete
          * @event order_action.comment
          *
-         * @param array[string]mixed $data
-         * @param array[string]int $data['order_id']
-         * @param array[string]int $data['action_id']
-         * @param array[string]int $data['before_state_id']
-         * @param array[string]int $data['after_state_id']
-         * @param array[string]int $data['id'] Order log record id
+         * @param array [string]mixed $data
+         * @param array [string]int $data['order_id']
+         * @param array [string]int $data['action_id']
+         * @param array [string]int $data['before_state_id']
+         * @param array [string]int $data['after_state_id']
+         * @param array [string]int $data['id'] Order log record id
          */
         wa('shop')->event('order_action.'.$this->getId(), $data);
         return $data;
@@ -174,7 +187,7 @@ class shopWorkflowAction extends waWorkflowAction
      * @param string $template suffix to add to template basename
      * @return string template file basename for this action. Can be overriden in subclasses.
      */
-    protected function getTemplateBasename($template='')
+    protected function getTemplateBasename($template = '')
     {
         return substr(get_class($this), 12).($template ? '_'.$template : '').$this->getView()->getPostfix();
     }
@@ -185,5 +198,17 @@ class shopWorkflowAction extends waWorkflowAction
     protected function getTemplateDir()
     {
         return $this->workflow->getPath('/templates/');
+    }
+
+    /**
+     * @return shopConfig
+     */
+    protected function getConfig()
+    {
+        static $config;
+        if (empty($config)) {
+            $config = wa('shop')->getConfig();
+        }
+        return $config;
     }
 }

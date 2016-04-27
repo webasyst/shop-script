@@ -132,9 +132,9 @@
     <ul class="menu-h">
         <li>
             <select id="s-sales-report-storefront-selector" class="storefront-selector">
-                <option value="">[`All storefronts`]</option>
-                {foreach $storefronts as $stf}
-                    <option value="{$stf|escape}"{if ifset($request_options.storefront) == $stf} selected{/if}>{$stf|escape}</option>
+                <option value="">[`All channels`]</option>
+                {foreach $sales_channels as $id => $name}
+                    <option value="{$id|escape}"{if ifset($request_options.sales_channel) == $id} selected{/if}>{$name|escape}</option>
                 {/foreach}
             </select>
         </li>
@@ -237,7 +237,7 @@
 
         // Reload page when user changes something in the selector
         $storefront_selector.change(function() {
-            $.post(action_url, $.extend({ }, request_params, { storefront: $storefront_selector.val() }), function(r) {
+            $.post(action_url, $.extend({ }, request_params, { sales_channel: $storefront_selector.val() }), function(r) {
                 $('#reportscontent').html(r);
             });
         });

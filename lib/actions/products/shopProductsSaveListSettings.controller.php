@@ -6,6 +6,10 @@ class shopProductsSaveListSettingsController extends waJsonController
 
     public function execute()
     {
+        if (!$this->getUser()->getRights('shop', 'setscategories')) {
+            throw new waRightsException(_w('Access denied'));
+        }
+
         $hash = $this->getHash();        // hash that identify 'destination' list (settings of which is changing)
         if (!$hash) {
             throw new waException("Unknown type of list");

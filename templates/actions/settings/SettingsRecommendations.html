@@ -10,7 +10,7 @@
         {foreach $types as $type_id => $type}
         <div class="field" data-type-id="{$type_id}">
             <div class="name">
-                {shopHelper::getIcon($type.icon)}<strong>{$type.name}</strong>
+                {shopHelper::getIcon($type.icon)}<strong>{$type.name|escape}</strong>
             </div>
             <div class="value no-shift">
                 <div class="float-left s-ibutton-checkbox">
@@ -40,7 +40,7 @@
     <div class="clear-left"></div>
 </div>
 
-<div class="blank block double-padded">
+<div class="blank block double-padded s-settings-form">
 
     <h2>[`Upselling &amp; Similar products`]</h2>
     <p class="gray">[`Upselling is a technique of encouraging customer to purchase more expensive products or upgrades. In Shop-Script, up-selling is based on suggesting customers to view and purchase similar and/or alternative products. Similar product list is fetched automatically based on the product that the customer is currently viewing, or recently viewed, and filtering conditions which can be customized individually for every product type.`]</p>
@@ -49,7 +49,7 @@
         {foreach $types as $type}
         <div class="field" data-type-id="{$type.id}">
             <div class="name">
-                {shopHelper::getIcon($type.icon)}<strong>{$type.name}</strong>
+                {shopHelper::getIcon($type.icon)}<strong>{$type.name|escape}</strong>
             </div>
             <div class="value s-ibutton-checkbox">
                 <ul class="menu-h">

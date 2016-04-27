@@ -209,7 +209,7 @@ class shopProductReviewsModel extends waNestedSetModel
                 $products = $product_model->getById($product_ids);
                 if (wa()->getEnv() == 'frontend' && waRequest::param('url_type') == 2) {
                     $cat_ids = array();
-                    foreach ($products as &$p) {
+                    foreach ($products as $p) {
                         if (!empty($p['category_id'])) {
                             $cat_ids[] = $p['category_id'];
                         }
@@ -256,6 +256,7 @@ class shopProductReviewsModel extends waNestedSetModel
                         }
                     }
                 }
+                unset($item);
             }
         }
 

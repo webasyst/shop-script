@@ -198,22 +198,35 @@
                         menu.show();
                     });
                 };
-                var fs_block = $("#s-filter-settings").slideDown().trigger('init')
-                    .find('.cancel').click(function() {
-                        hide();
-                        return false;
-                    }).end().bind('afterSubmit', function(e, r) {
-                        hide();
-                        if (r.status === 'ok') {
-                            header.find('.s-title').text(r.data.filter.name);
-                            if (!r.data.filter_id) {
-                                $.wa.setHash('#/filter/' + r.data.filter.id + '/');
-                            } else {
-                                $.customers.redispatch();
+                var fs_block = $("#s-filter-settings");
+                fs_block.slideDown(function() {
+                    fs_block
+                        .trigger('init')
+                        .find('.cancel').click(function() {
+                            hide();
+                            return false;
+                        }).end().bind('afterSubmit', function(e, r) {
+                            hide();
+                            if (r.status === 'ok') {
+                                header.find('.s-title').text(r.data.filter.name);
+                                if (!r.data.filter_id) {
+                                    $.wa.setHash('#/filter/' + r.data.filter.id + '/');
+                                } else {
+                                    $.customers.redispatch();
+                                }
                             }
-                        }
-                        return false;
-                    });
+                            return false;
+                        });
+
+                    // fix system region select !!feature!!
+                    var region_select = fs_block.find('[name="contact_info.address[region]"]');
+                    var val = region_select.data('val');
+                    if (val) {
+                        region_select.find('option[value="' + val + '"]').attr('selected', true);
+                    }
+
+                });
+
             });
         {/if}
 

@@ -39,8 +39,9 @@ class shopOrderAddMethod extends waAPIMethod
             }
         }
 
-        if (!empty($this->post('comment'))) {
-            $order['comment'] = $this->post('comment');
+        $comment = $this->post('comment');
+        if (!empty($comment)) {
+            $order['comment'] = $comment;
         }
         $workflow = new shopWorkflow();
         if ($order_id = $workflow->getActionById('create')->run($order)) {

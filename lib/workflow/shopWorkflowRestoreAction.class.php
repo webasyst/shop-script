@@ -38,20 +38,20 @@ class shopWorkflowRestoreAction extends shopWorkflowAction
             $app_settings_model = new waAppSettingsModel();
 
             if ($this->state_id != 'refunded') {
-                
+
                 // for logging changes in stocks
                 shopProductStocksLogModel::setContext(
-                        shopProductStocksLogModel::TYPE_ORDER,
-                        'Order %s was restored',
-                        array(
-                            'order_id' => $order_id
-                        )
+                    shopProductStocksLogModel::TYPE_ORDER,
+                    'Order %s was restored',
+                    array(
+                        'order_id' => $order_id
+                    )
                 );
                 
                 $update_on_create = $app_settings_model->get('shop', 'update_stock_count_on_create_order');
                 if ($update_on_create) {
                     $order_model->reduceProductsFromStocks($order_id);
-                } else if (!$update_on_create && $this->state_id != 'new') {
+                } elseif (!$update_on_create && $this->state_id != 'new') {
                     $order_model->reduceProductsFromStocks($order_id);
                 }
                 

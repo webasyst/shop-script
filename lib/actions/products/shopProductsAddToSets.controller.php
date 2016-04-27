@@ -20,6 +20,10 @@ class shopProductsAddToSetsController extends waJsonController
 
     public function execute()
     {
+        if (!$this->getUser()->getRights('shop', 'setscategories')) {
+            throw new waRightsException(_w('Access denied'));
+        }
+
         $set_ids = waRequest::post('set_id', array());
 
         // create new set

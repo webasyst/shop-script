@@ -5,9 +5,7 @@ class shopProductsCollection
     protected $hash;
     protected $info = array();
 
-    protected $options = array(
-        'check_rights' => true
-    );
+    protected $options = array();
     protected $prepared = false;
     protected $filtered = false;
     protected $title;
@@ -53,9 +51,9 @@ class shopProductsCollection
         $this->setOptions($options);
         if ($this->is_frontend === null) {
             $this->is_frontend = wa()->getEnv() == 'frontend';
-            if (!isset($this->options['round_prices'])) {
-                $this->options['round_prices'] = true;
-            }
+        }
+        if (!isset($this->options['round_prices'])) {
+            $this->options['round_prices'] = $this->is_frontend;
         }
         $this->setHash($hash);
     }
@@ -128,6 +126,7 @@ class shopProductsCollection
                         $this->order_by = implode(', ',$order_by);
                     }
                 }
+                //#
             }
             if ($type) {
                 $method = strtolower($type).'Prepare';
@@ -243,18 +242,26 @@ class shopProductsCollection
 
         $config = wa('shop')->getConfig();
 
-        if (isset($data['in_stock_only'])) {
+        if (!empty($data['in_stock_only'])) {
             $this->where[] = '(p.count > 0 OR p.count IS NULL)';
+        } else if (!empty($data['out_of_stock_only'])) {
+            $this->where[] = 'p.count <= 0';
         }
 
         if (isset($data['price_min']) && $data['price_min'] !== '') {
             $this->where[] = 'p.max_price >= '.$this->toFloat(shop_currency($data['price_min'], true, $config->getCurrency(true), false));
-            unset($data['price_min']);
         }
         if (isset($data['price_max']) && $data['price_max'] !== '') {
             $this->where[] = 'p.min_price <= '.$this->toFloat(shop_currency($data['price_max'], true, $config->getCurrency(true), false));
             unset($data['price_max']);
         }
+        unset(
+            $data['in_stock_only'],
+            $data['out_of_stock_only'],
+            $data['price_min'],
+            $data['price_max']
+        );
+
         $feature_model = new shopFeatureModel();
         $features = $feature_model->getByField('code', array_keys($data), 'code');
 
@@ -714,6 +721,30 @@ class shopProductsCollection
         }
     }
 
+    protected function bestsellersPrepare($query, $auto_title = true)
+    {
+        $this->group_by = 'p.id';
+        $this->fields[] = 'oi.price*o.rate*oi.quantity AS sales';
+        $this->joins[] = array(
+            'table' => 'shop_order_items',
+            'alias' => 'oi',
+            'on'    => "oi.product_id=p.id AND oi.type='product'",
+        );
+        $this->joins[] = array(
+            'table' => 'shop_order',
+            'alias' => 'o',
+            'on'    => "oi.order_id=o.id",
+        );
+        $this->order_by = 'sales DESC';
+
+        if ($query && wa_is_int($query)) {
+            $date_start = date('Y-m-d H:i:s', time() - $query);
+            $this->where[] = "o.paid_date >= '{$date_start}'";
+        } else {
+            $this->where[] = "o.paid_date IS NOT NULL";
+        }
+    }
+
     protected function searchPrepare($query, $auto_title = true)
     {
         $query = urldecode($query);
@@ -935,7 +966,7 @@ class shopProductsCollection
             }
             if (!$model->fieldExists($f)) {
                 unset($fields[$i]);
-                if (in_array($f, array('images', 'image', 'sku', 'frontend_url', 'image_count', 'sales_30days', 'image_crop_small', 'stock_worth'))) {
+                if (in_array($f, array('images', 'images2x', 'image', 'sku', 'skus', 'frontend_url', 'image_count', 'sales_30days', 'image_crop_small', 'stock_worth', 'stock_counts'))) {
                     $this->post_fields['_internal'][] = $f;
                 } else if (substr($f, 0, 8) == 'feature_') {
                     $this->post_fields['_features'][substr($f, 8)] = $f;
@@ -1324,26 +1355,45 @@ class shopProductsCollection
                 $fields = array_fill_keys($unprocessed['_internal'], true);
                 unset($unprocessed['_internal']);
 
-                if (isset($fields['images'])) {
+                if (isset($fields['images']) || isset($fields['images2x'])) {
+                    $fields['images'] = 1;
                     foreach ($products as &$p) {
                         $p['images'] = array();
                     }
                     unset($p);
+
+                    $sizes = array();
+                    $enabled_2x = isset($fields['images2x']) && wa('shop')->getConfig()->getOption('enable_2x');
+                    foreach(array('thumb', 'crop', 'big') as $size) {
+                        $sizes[$size] = wa('shop')->getConfig()->getImageSize($size);
+                        if ($enabled_2x) {
+                            $sizes[$size] .= '@2x';
+                        }
+                    }
                     $product_images_model = new shopProductImagesModel();
-                    $product_images = $product_images_model->getImages(array_keys($products), 'thumb', 'product_id');
+                    $product_images = $product_images_model->getImages(array_keys($products), $sizes, 'product_id');
                     foreach ($product_images as $product_id => $images) {
                         $products[$product_id]['images'] = $images;
                     }
                 }
                 if (isset($fields['image'])) {
+                    $sizes = array();
+                    foreach(array('thumb', 'crop', 'big') as $size) {
+                        $sizes[$size] = wa('shop')->getConfig()->getImageSize($size);
+                    }
                     $thumb_size = wa('shop')->getConfig()->getImageSize('thumb');
                     $big_size = wa('shop')->getConfig()->getImageSize('big');
                     foreach ($products as &$p) {
                         if ($p['image_id']) {
                             $tmp = array('id' => $p['image_id'], 'product_id' => $p['id'],
                                 'filename' => $p['image_filename'], 'ext' => $p['ext']);
-                            $p['image']['thumb_url'] = shopImage::getUrl($tmp, $thumb_size, isset($this->options['absolute']) ? $this->options['absolute'] : false);
-                            $p['image']['big_url'] = shopImage::getUrl($tmp, $big_size, isset($this->options['absolute']) ? $this->options['absolute'] : false);
+                            foreach($sizes as $size_id => $size) {
+                                $p['image'][$size_id.'_url'] = shopImage::getUrl($tmp, $size, ifset($this->options['absolute'], false));
+                            }
+                        } else {
+                            foreach($sizes as $size_id => $size) {
+                                $p['image'] = null;
+                            }
                         }
                     }
                     unset($p);
@@ -1369,6 +1419,58 @@ class shopProductsCollection
                         foreach($product_images_model->countImages(array_keys($products)) as $product_id => $count) {
                             isset($products[$product_id]) && ($products[$product_id]['image_count'] = $count);
                         }
+                    }
+                }
+                if (isset($fields['skus'])) {
+                    $skus_model = new shopProductSkusModel();
+                    $skus = $skus_model->getByField('product_id', array_keys($products), 'id');
+
+                    foreach ($skus as &$sku) {
+                        $sku['price_float'] = (float)$sku['price'];
+                        $sku['purchase_price_float'] = (float)$sku['purchase_price'];
+                        $sku['compare_price_float'] = (float)$sku['compare_price'];
+                        $sku['primary_price_float'] = (float)$sku['primary_price'];
+                    }
+                    unset($sku);
+
+                    foreach ($products as &$p) {
+                        $p['skus'] = array();
+                        if (isset($fields['stock_counts'])) {
+                            $p['has_stock_counts'] = false;
+                        }
+                    }
+                    unset($p);
+
+                    if (isset($fields['stock_counts'])) {
+                        $stock_model = new shopStockModel();
+                        $stocks = $stock_model->getAll('id');
+                        $empty_stocks = array_fill_keys(array_keys($stocks), null);
+
+                        $product_stocks_model = new shopProductStocksModel();
+                        $rows = $product_stocks_model->getByField('product_id', array_keys($products), true);
+                        foreach($rows as $row) {
+                            if(!empty($skus[$row['sku_id']])) {
+                                $skus[$row['sku_id']]['stock'][$row['stock_id']] = $row['count'];
+                            }
+                            if (!empty($products[$row['product_id']])) {
+                                $products[$row['product_id']]['has_stock_counts'] = true;
+                            }
+                        }
+                        unset($rows, $row);
+                    }
+
+                    foreach($skus as $s) {
+                        if (empty($products[$s['product_id']])) {
+                            continue;
+                        }
+                        if (isset($fields['stock_counts'])) {
+                            if (empty($products[$s['product_id']]['has_stock_counts'])) {
+                                $s['stock'] = null;
+                            } else {
+                                $s['stock'] = ifempty($s['stock'], array()) + $empty_stocks;
+                            }
+                        }
+                        $products[$s['product_id']]['skus'][$s['id']] = $s;
                     }
                 }
                 if (isset($fields['sku'])) {

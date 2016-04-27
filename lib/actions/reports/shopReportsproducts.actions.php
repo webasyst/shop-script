@@ -13,12 +13,12 @@ class shopReportsproductsActions extends waViewActions
     public function defaultAction()
     {
         list($start_date, $end_date, $group_by, $request_options) = shopReportsSalesAction::getTimeframeParams();
-        $storefront = waRequest::request('storefront', null, 'string');
+        $sales_channel = waRequest::request('sales_channel', null, 'string');
         $order_by = waRequest::request('sort', 'profit', 'string');
         $model_options = array();
-        if ($storefront) {
-            $request_options['storefront'] = $storefront;
-            $model_options['storefront'] = $storefront;
+        if ($sales_channel) {
+            $request_options['sales_channel'] = $sales_channel;
+            $model_options['sales_channel'] = $sales_channel;
         }
         if ($order_by != 'sales') {
             $order_by = 'profit';
@@ -112,7 +112,7 @@ class shopReportsproductsActions extends waViewActions
             'product_total_sales' => $product_total_sales,
             'product_total_profit' => $product_total_profit,
             'service_total_percent' => $service_total_percent,
-            'storefronts' => shopReportsSalesAction::getStorefronts(),
+            'sales_channels' => shopReportsSalesAction::getSalesChannels(),
             'service_total_val' => $service_total_val,
             'request_options' => $request_options,
             'graph_data' => $graph_data,

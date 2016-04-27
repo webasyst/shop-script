@@ -25,9 +25,26 @@ class shopWorkflowState extends waWorkflowState
         }
     }
 
+    /**
+     * @param array $params array with order data
+     * @return array
+     */
     public function getActions($params = null)
     {
         $actions = parent::getActions($params);
+        //add internal actions: merge
+        if (!empty($params['unsettled'])) {
+            $args = func_get_args();
+            $name_only = isset($args[1]) ? $args[1] : false;
+            $action_id = 'settle';
+            if ($action = $this->workflow->getActionById($action_id)) {
+                if (!$name_only) {
+                    $actions[$action->getId()] = $action;
+                } else {
+                    $actions[$action->getId()] = $action->getName();
+                }
+            }
+        }
         foreach ($actions as $a_id => $a) {
             if ($a instanceof shopWorkflowAction) {
                 if (!$a->isAvailable($params)) {
@@ -43,7 +60,7 @@ class shopWorkflowState extends waWorkflowState
         return $this->available_actions;
     }
 
-    public function getStyle($frontend=false)
+    public function getStyle($frontend = false)
     {
         if ($frontend) {
             if ($this->frontend_style_html === null) {
@@ -70,4 +87,3 @@ class shopWorkflowState extends waWorkflowState
         return $this->style_html;
     }
 }
-

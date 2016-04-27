@@ -3,11 +3,16 @@
 /**
  * Class shopPrintformPlugin
  */
-abstract class shopPrintformPlugin extends shopPlugin
+abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformInterface
 {
     const TYPE_CHANGED = 'changed';
     const TYPE_ORIGINAL = 'original';
-    private $templates = array();
+
+    /**
+     * @var shopPrintformTemplate
+     */
+    private $template;
+
     private $order_options = array(
         'items' => true,
     );
@@ -15,6 +20,12 @@ abstract class shopPrintformPlugin extends shopPlugin
     public function __construct($info)
     {
         parent::__construct($info);
+
+        $this->template = new shopPrintformTemplate(
+            $this->path.'/templates/actions/printform/template.html',
+            wa()->getDataPath('plugins/'.$this->id.'/template.html')
+        );
+
         if (!empty($info['emailprintform'])) {
             $this->common_settings_config['emailprintform'] = array(
                 'value'        => false,
@@ -24,63 +35,6 @@ abstract class shopPrintformPlugin extends shopPlugin
                 'subject'      => 'printform',
             );
         }
-    }
-
-    private function getTemplatePaths($type = null)
-    {
-        if (!$this->templates) {
-            $this->templates = array(
-                self::TYPE_CHANGED  => wa()->getDataPath('plugins/'.$this->id.'/template.html'),
-                self::TYPE_ORIGINAL => $this->path.'/templates/actions/printform/template.html'
-            );
-        }
-        return $type ? $this->templates[$type] : $this->templates;
-    }
-
-    public function getTemplatePath()
-    {
-        foreach ($this->getTemplatePaths() as $path) {
-            if (file_exists($path)) {
-                return $path;
-            }
-        }
-        return '';
-    }
-
-    /**
-     * @return string HTML code of template
-     */
-    public function getTemplate()
-    {
-        return ($path = $this->getTemplatePath()) ? file_get_contents($path) : '';
-    }
-
-    /**
-     * @return bool
-     */
-    public function isTemplateChanged()
-    {
-        return file_exists($this->getTemplatePaths(self::TYPE_CHANGED));
-    }
-
-    public function resetTemplate()
-    {
-        waFiles::delete(dirname($this->getTemplatePaths(self::TYPE_CHANGED)));
-        return $this->getTemplate();
-    }
-
-    /**
-     * @param $html
-     */
-    public function saveTemplate($html)
-    {
-        $paths = $this->getTemplatePaths();
-        $exclude = array(
-            '@PrintformDisplay\.html$@',
-            '@\.js$@'
-        );
-        waFiles::copy(dirname($paths['original']), dirname($paths['changed']), $exclude);
-        file_put_contents($paths['changed'], $html);
     }
 
     /**
@@ -207,6 +161,7 @@ abstract class shopPrintformPlugin extends shopPlugin
     }
 
     /**
+     * @deprecated
      * @param waOrder|int $order
      * @return string HTML form
      * @throws waException
@@ -216,13 +171,13 @@ abstract class shopPrintformPlugin extends shopPlugin
         if (!($order instanceof waOrder)) {
             $order = $this->getOrder($order, $this->order_options);
         }
-        $view = wa()->getView();
+        $view = $this->template->getView();
         $view->assign(array(
             'settings' => $this->getSettings(),
             'order'    => $order,
         ));
         $this->prepareForm($order, $view);
-        return $view->fetch($this->getTemplatePath());
+        return $this->template->display();
     }
 
     protected function setOrderOption($name, $value = null)
@@ -231,6 +186,7 @@ abstract class shopPrintformPlugin extends shopPlugin
     }
 
     /**
+     * @deprecated 
      * @param waOrder $order
      * @param waView $view
      */
@@ -273,4 +229,66 @@ abstract class shopPrintformPlugin extends shopPlugin
         return $result;
 
     }
+
+    /**
+     * @return string
+     */
+    public function getTemplatePath()
+    {
+        return $this->template->getPath();
+    }
+
+    /**
+     * @return string
+     */
+    public function getTemplate()
+    {
+        return $this->template->getContent();
+    }
+
+    /**
+     * @return bool
+     */
+    public function isTemplateChanged()
+    {
+        return $this->template->isChanged();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function resetTemplate()
+    {
+        return $this->template->reset();
+    }
+
+    /**
+     * @param string $html
+     * @return bool
+     */
+    public function saveTemplate($html)
+    {
+        return $this->template->save($html);
+    }
+
+    /**
+     * @param mixed $data
+     * @return string
+     */
+    public function renderPrintform($data)
+    {
+        return $this->renderForm($data);
+    }
+
+    /**
+     * @param $data
+     * @param waView $view
+     * @return mixed
+     */
+    public function preparePrintform($data, waView $view)
+    {
+        $this->prepareForm($data, $view);
+        return $data;
+    }
+
 }

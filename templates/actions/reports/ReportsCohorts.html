@@ -87,7 +87,17 @@
                                 {else}
                                     {$stats = $row[$col_date@index]}
                                     {$percent = 100-$stats.percent_of_max}
-                                    <td data-default-color="{$stats.color}" class="td-with-data nowrap" style="background: linear-gradient(to bottom, transparent 0%, transparent {number_format($percent,2)}%, {$stats.color} {number_format($percent,2)}%, {$stats.color} 100%);">
+
+                                    {$_bg_style = "linear-gradient(to bottom, transparent 0%, transparent {number_format($percent,2)}%, {$stats.color} {number_format($percent,2)}%, {$stats.color} 100%)"}
+
+                                    {if !empty($request_options.type) && $request_options.type == "roi" && (round($stats.metric) <= 100)}
+                                        {$_image_url = "{$wa_url}wa-apps/shop/img/patterns/white-pattern.png"}
+                                        {$_bg_style = "background: url('{$_image_url}'), {$_bg_style};"}
+                                    {else}
+                                        {$_bg_style = "background: {$_bg_style};"}
+                                    {/if}
+
+                                    <td data-default-color="{$stats.color}" class="td-with-data nowrap" style="{$_bg_style}">
                                         {if in_array(ifset($request_options.type), ['sales', 'profit', 'clv'])}
                                             {wa_currency_html($stats.metric, $def_cur)}
                                         {elseif ifset($request_options.type) == 'roi'}
@@ -122,9 +132,9 @@
     <ul class="menu-h">
         <li>
             <select id="s-cohorts-report-storefront-selector" class="storefront-selector">
-                <option value="">[`All storefronts`]</option>
-                {foreach $storefronts as $stf}
-                    <option value="{$stf|escape}"{if ifset($request_options.storefront) == $stf} selected{/if}>{$stf|escape}</option>
+                <option value="">[`All channels`]</option>
+                {foreach $sales_channels as $id => $name}
+                    <option value="{$id|escape}"{if ifset($request_options.sales_channel) == $id} selected{/if}>{$name|escape}</option>
                 {/foreach}
             </select>
         </li>
@@ -140,7 +150,7 @@
     var action_url = '?module=reports&action=cohorts';
 
     // Storefront selector logic
-    (function() { "use strict";
+    (function() {
 
         var $storefront_selector = $('#s-cohorts-report-storefront-selector').removeAttr('id');
 
@@ -150,7 +160,7 @@
         // Reload page when user changes something in the selector
         $storefront_selector.change(function() {
             $storefront_selector.after('<i class="icon16 loading"></i>');
-            $.post(action_url, $.extend({ }, request_params, { storefront: $storefront_selector.val() }), function(r) {
+            $.post(action_url, $.extend({ }, request_params, { sales_channel: $storefront_selector.val() }), function(r) {
                 $('#reportscontent').html(r);
             });
         });

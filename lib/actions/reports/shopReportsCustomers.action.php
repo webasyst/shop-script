@@ -9,13 +9,13 @@ class shopReportsCustomersAction extends waViewAction
         shopReportsSalesAction::jsRedirectIfDisabled();
 
         list($start_date, $end_date, $group_by, $request_options) = shopReportsSalesAction::getTimeframeParams();
-        $storefront = waRequest::request('storefront', null, 'string');
+        $sales_channel = waRequest::request('sales_channel', null, 'string');
         $model_options = array(
             'sort' => '!sales',
         );
-        if ($storefront) {
-            $request_options['storefront'] = $storefront;
-            $model_options['storefront'] = $storefront;
+        if ($sales_channel) {
+            $request_options['sales_channel'] = $sales_channel;
+            $model_options['sales_channel'] = $sales_channel;
         }
         $sort = waRequest::request('sort', '!profit', 'string');
 
@@ -64,7 +64,7 @@ class shopReportsCustomersAction extends waViewAction
 
         $this->view->assign(array(
             'total' => self::getTotals($table_data),
-            'storefronts' => shopReportsSalesAction::getStorefronts(),
+            'sales_channels' => shopReportsSalesAction::getSalesChannels(),
             'country_customers' => $country_customers,
             'request_options' => $request_options,
             'more_rows_exist' => $more_rows_exist,

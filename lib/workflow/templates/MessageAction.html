@@ -22,7 +22,7 @@
             </div>
             {/if}
         </div>
-    
+
         <div class="field">
             <div class="name">[`Sender`]</div>
             <div class="value no-shift">
@@ -48,9 +48,13 @@
         </div>
     </div>
 
-    <textarea name="text" placeholder="[`Message`]">{$message_template|escape}</textarea>
+    <textarea name="text" placeholder="[`Message`]" style="width: 100%;">{$message_template|escape}</textarea>
 
     <br><br>
+    <div class="float-right block">
+        <a href="?action=settings#/orderStates/{$state_id}/edit_action={$action_id}/" class="gray"><i class="icon16 settings"></i>[`Edit template`]</a>
+    </div>
+
     <input class="button green" type="submit" value="[`Send`]"> [`or`] <a class="cancel inline-link" href="#"><b><i>[`cancel`]</i></b></a>
 </form>
 

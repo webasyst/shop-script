@@ -216,7 +216,11 @@
   position: relative;
   margin-left: 30px;
 }
-#s-report-cohorts-table td.td-with-data {
+#s-report-cohorts-table tbody th,
+#s-report-cohorts-table tbody td {
+  border-color: #a1a1a1;
+}
+#s-report-cohorts-table tbody td.td-with-data {
   cursor: pointer;
 }
 .empty-graph {

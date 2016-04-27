@@ -20,10 +20,10 @@ class shopCustomersCollectionPreparator
     public function __construct(waContactsCollection $collection, $options = array()) {
         $this->collection = $collection;
         $this->customer_table_alias = $this->addJoinOnce('shop_customer');
-        $this->order_table_alias = $this->addJoinOnce('shop_order');
+        $this->order_table_alias = $this->addJoinOnce('shop_order', $this->customer_table_alias.'.last_order_id = :table.id');
         $this->options = $options;
     }
-    
+
     public function getCustomerTableAlias()
     {
         return $this->customer_table_alias;
@@ -113,7 +113,7 @@ class shopCustomersCollectionPreparator
         }
         $this->addJoin('wa_contact_categories', null, ':table.category_id = '.(int)$id);
     }
-    
+
     public function searchPrepare($query, $auto_title = true, $rest_prepare = true)
     {
         $query = $this->middlewareSearchPrepare($query, $auto_title);
@@ -171,7 +171,7 @@ class shopCustomersCollectionPreparator
             return $query;
         }
     }
-    
+
     protected function middlewareSearchPrepare(&$query, $auto_title = true)
     {
         $hash_ar = self::parseSearchHash($query);

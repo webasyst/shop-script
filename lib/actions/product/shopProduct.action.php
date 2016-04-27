@@ -87,6 +87,7 @@ class shopProductAction extends waViewAction
                     'name'           => '',
                     'price'          => 0.0,
                     'purchase_price' => 0.0,
+                    'compare_price' => 0.0,
                     'count'          => null,
                     'stock'          => array(),
                     'virtual'        => 0

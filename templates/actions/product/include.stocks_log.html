@@ -46,26 +46,26 @@
                 {foreach $stocks as $stock}
                     <td class="s-stock-column" title="{$stock.name|escape}">
                         {if $stock['id'] == $row['stock_id']}
-                            {if $row['diff_count'] > 0}+{$row['diff_count']}{else}{$row['diff_count']}{/if}
                             {shopHelper::getStockCountIcon($row['after_count'], $row['stock_id'])}
-                            <span class="hint" title="[`In stock`]">
-                                {if $row['after_count'] !== null}{$row['after_count']}{else}∞{/if}
+                            {if $row['after_count'] !== null}{$row['after_count']}{else}∞{/if}
+                            <span class="hint">
+                                {if $row['diff_count'] > 0}+{$row['diff_count']}{else}{$row['diff_count']}{/if}
                             </span>
                         {/if}
                     </td>
                 {/foreach}
-                <td title="{strip_tags($row['description'])}">
-                    <div>{$row['description']}<i class="shortener"></i></div>
-                </td>
-                <td class="s-stock-column">
+                <td class="s-stock-column" title="[`All stocks`]">
                     {if $row.sku_count_show}
-                        {if $row['diff_count'] > 0}+{$row['diff_count']}{else}{$row['diff_count']}{/if}
                         {shopHelper::getStockCountIcon($row['after_count'])}
-                        <span class="hint" title="[`In stock`]">
-                            {if $row['after_count'] === null}∞{else}{$row['after_count']}{/if}
-                            {if $row['stock_name']}@{$row['stock_name']|escape}{/if}
+                        {if $row['after_count'] === null}∞{else}{$row['after_count']}{/if}
+                        {if $row['stock_name']}{$row['stock_name']|escape}{/if}
+                        <span class="hint">
+                            {if $row['diff_count'] > 0}+{$row['diff_count']}{else}{$row['diff_count']}{/if}
                         </span>
                     {/if}
+                </td>
+                <td title="{strip_tags($row['description'])}">
+                    <div>{$row['description']}<i class="shortener"></i></div>
                 </td>
                 <td class="gray align-right"><div>{$row['datetime']|wa_datetime:humandatetime}</div></td>
             </tr>
@@ -116,10 +116,10 @@
                     <th class="min-width"></th>
                     <th></th>
                     {foreach $stocks as $stock}
-                        <th class="s-stock-column" title="{$stock.name|escape}"><div>@{$stock.name|escape}<i class="shortener"></i></div></th>
+                        <th class="s-stock-column" title="{$stock.name|escape}"><div>{$stock.name|escape}<i class="shortener"></i></div></th>
                     {/foreach}
-                    <th>[`Description`]</th>
-                    <th class="s-stock-column">[`Total`]</th>
+                    <th class="s-stock-column"></th>
+                    <th></th>
                     <th></th>
                 </tr>
                 {$log_list}

@@ -31,6 +31,16 @@
                     <i class="icon16 ss orders-all"></i>[`All orders`]
                 </a>
             </li>
+            {if !empty($unsettled_count)}
+            <li id="s-unsettled-orders" class="list" style="opacity: 0.6;">
+                <span class="count">{if !empty($unsettled_count)}{$unsettled_count}{/if}</span>
+                <a href="#/orders/unsettled=1">
+                    <i class="icon16 ss flag-purple"></i>[`Unsettled`]
+                    <strong class="highlighted small"></strong>
+                </a>
+            </li>
+            {/if}
+
         </ul>
     </div>
 
@@ -53,22 +63,18 @@
         </ul>
     </div>
 
-    {if !empty($storefronts)}
+    {if !empty($sales_channels)}
     <div class="block">
         <h5 class="heading collapse-handler">
-            [`Storefronts`]
+            [`Sales channels`]
         </h5>
         <ul class="menu-v collapsible s-storefronts-filter">
-            {foreach $storefronts as $url => $cnt}
-                <li data-storefront="{if $url|substr:-1 == '/'}{$url|substr:0:-1}{else}{$url}{/if}" class="list">
-                    <span class="count">{$cnt}</span>
-                    <a href="#/orders/storefront={urlencode($url)}">{if $url|substr:-1 == '/'}{str_replace('www.','',$url|substr:0:-1)}{else}{str_replace('www.','',$url)}{/if}</a>
+            {foreach $sales_channels as $channel_id => $channel}
+                <li data-storefront="{$channel.storefront|escape}" data-sales-channel="{$channel_id|escape}" class="list">
+                    <span class="count">{$channel.count}</span>
+                    <a href="{$channel.url|escape}">{$channel.name|escape}</a>
                 </li>
             {/foreach}
-            <li data-storefront="NULL">
-                <span class="count">{$backend_count}</span>
-                <a href="#/orders/storefront=NULL">[`Backend`]</a>
-            </li>
         </ul>
     </div>
     {/if}
@@ -111,7 +117,6 @@
     {% var sku_count = $.shop.helper.size(product.skus); %}
     {% var chosen_sku_id = product.sku_id; %}
     {% var currency = options.currency; %}
-    {% var product_sku = null; %}
     {% var stocks = o.options.stocks || {}; %}
     <tr data-product-id="{%#product.id%}" data-index={%#index%} class="s-order-item">
         <td class="min-width valign-top">{% include('template-order-product-img', { url: product.url_crop_small }); %}</td>
@@ -128,36 +133,50 @@
                 {%#product.icon%}
             {% } %}
 
-            {% if (sku_count > 1) { %}
-                <p>
+            <p>
+                {% if (sku_count > 1) { %}
                     <ul class="menu-v compact small s-orders-skus">
-                        {% for (var i = 0, n = sku_ids.length; i < n; i += 1) { %}
-                            {% var sku_id = sku_ids[i]; %}
-                            {% if (product.skus[sku_id].checked) { %}
-                                {% product_sku = product.skus[sku_id]; %}
+                        {% var sku_id, sku_id_iterator = $.shop.iterator(sku_ids); %}
+                        {% while (sku_id = sku_id_iterator.next()) { %}
+                            {% var sku = product.skus[sku_id]; %}
+                            {% var checked = sku.checked; %}
+                            {% if (checked) { %}
+                                {% chosen_sku_id = sku_id; %}
                             {% } %}
                             <li>
                                 <label>
-                                    <input type="radio" name="sku[add][{%#index%}]" value="{%#sku_id%}"
-                                                                {% if (product.skus[sku_id].checked) { %}
-                                            checked="checked" {% chosen_sku_id = sku_id; %}
-                                        {% } %}
-                                    >{%=product.skus[sku_id].name%}
-                                    {% if (product.skus[sku_id].sku) { %}<span class="gray">{%=product.skus[sku_id].name%}</span>{% } %}
-                                    <strong>{%#product.skus[sku_id].price_html%}</strong>
+
+                                    <input type="radio"
+                                        name="sku[add][{%#index%}]"
+                                        value="{%#sku_id%}"
+                                        {% if (checked) { %} checked="checked" {% } %}>
+                                            {%=sku.name%}
+
+                                    {% if (sku.sku) { %}
+                                        <span class="gray">{%=sku.sku%}</span>
+                                    {% } %}
+
+                                    <strong>{%#sku.price_html%}</strong>
                                     <span class="s-orders-stock-icon-aggregate">
-                                        {%#product.skus[sku_id].icon%}
+                                        {%#sku.icon%}
                                     </span>
                                     <span class="s-orders-stock-icon" style="display:none;"></span>
+                                    <div class="s-orders-sku-stock-place">
+                                        {% if (checked) { %}
+                                            {% include('template-order-stocks-add', { sku: sku, stocks: stocks, index: index }); %}
+                                        {% } %}
+                                    </div>
                                 </label>
                             </li>
                         {% } %}
                     </ul>
-                </p>
-            {% } else { %}
-                {% product_sku = product.skus[product.sku_id]; %}
-                <input type="hidden" name="sku[add][{%#index%}]" value="{%#product.sku_id%}">
-            {% } %}
+                {% } else { %}
+                    <div class="s-orders-sku-stock-place">
+                        {% include('template-order-stocks-add', { sku: product.skus[product.sku_id], stocks: stocks, index: index }); %}
+                    </div>
+                    <input type="hidden" name="sku[add][{%#index%}]" value="{%#product.sku_id%}">
+                {% } %}
+            </p>
 
             {% if (!$.isEmptyObject(product.services)) { %}
                 <p>{% include('template-order-services', {
@@ -177,7 +196,6 @@
             >
         </td>
 
-        {% include('template-order-stocks-add', { sku: product_sku, stocks: stocks, index: index }); %}
         <td class="valign-top align-right s-orders-product-price">
             {% if (!options.price_edit) { %}
                 <span>{%#product.skus[chosen_sku_id].price_html%}</span>
@@ -195,24 +213,19 @@
         {% var sku = o.sku; %}
         {% var stocks = o.stocks; %}
         {% var item_id = o.item_id; %}
-        <td class="valign-top align-right nowrap s-orders-product-stocks">
-            {% if (sku && !$.isEmptyObject(sku.stock)) { %}
-                @ <select name="stock[edit][{%#item_id%}]" class="s-orders-stock">
-                    {% for (var i = 0; i < stocks.length; i += 1) { %}
-                        {% var stock_id = stocks[i].id; %}
-                        <option value="{%#stock_id%}"
-                                           data-icon="{%#''+sku.icons[stock_id]%}"
-                                      >
-                            {%#stocks[i].name%}
-                        </option>
-                    {% } %}
-                </select>
-                <em class="errormsg s-error-item-stock_id"></em>
-            {% } else { %}
-                <input type="hidden" name="stock[edit][{%#item_id%}]" value="0">
-            {% } %}
-        </td>
-
+        {% if (sku && !$.isEmptyObject(sku.stock)) { %}
+            <select name="stock[edit][{%#item_id%}]" class="s-orders-sku-stock-select">
+                {% for (var i = 0; i < stocks.length; i += 1) { %}
+                    {% var stock_id = stocks[i].id; %}
+                    <option value="{%#stock_id%}" data-icon="{%#''+sku.icons[stock_id]%}">
+                        @{%=stocks[i].name%} ({%#sku.count_htmls[stock_id]%})
+                    </option>
+                {% } %}
+            </select>
+            <em class="errormsg s-error-item-stock_id"></em>
+        {% } else { %}
+            <input type="hidden" name="stock[edit][{%#item_id%}]" value="0">
+        {% } %}
     {/literal}
 {/capture}
 {capture name="template-order-stocks-add"}
@@ -220,23 +233,21 @@
         {% var sku = o.sku; %}
         {% var stocks = o.stocks; %}
         {% var index = o.index; %}
-        <td class="valign-top align-right nowrap s-orders-product-stocks">
-            {% if (sku && !$.isEmptyObject(sku.stock)) { %}
-                @ <select name="stock[add][{%#index%}][product]" class="s-orders-stock">
-                    {% for (var i = 0; i < stocks.length; i += 1) { %}
-                        {% var stock_id = stocks[i].id; %}
-                        <option value="{%#stocks[i].id%}"
-                                          data-icon="{%#''+sku.icons[stock_id]%}"
-                                      >
-                            {%#stocks[i].name%}
-                        </option>
-                    {% } %}
-                </select>
-                <em class="errormsg s-error-item-stock_id"></em>
-            {% } else { %}
-                <input type="hidden" name="stock[add][{%#index%}][product]" value="0">
-            {% } %}
-        </td>
+
+        {% if (sku && !$.isEmptyObject(sku.stock)) { %}
+            <select name="stock[add][{%#index%}][product]" class="s-orders-sku-stock-select">
+                {% for (var i = 0; i < stocks.length; i += 1) { %}
+                    {% var stock_id = stocks[i].id; %}
+                    <option value="{%#stocks[i].id%}" data-icon="{%#''+sku.icons[stock_id]%}">
+                        @{%#stocks[i].name%} ({%#sku.count_htmls[stock_id]%})
+                    </option>
+                {% } %}
+            </select>
+            <em class="errormsg s-error-item-stock_id"></em>
+        {% } else { %}
+            <input type="hidden" name="stock[add][{%#index%}][product]" value="0">
+        {% } %}
+
     {/literal}
 {/capture}
 {capture name="template-order-services"}

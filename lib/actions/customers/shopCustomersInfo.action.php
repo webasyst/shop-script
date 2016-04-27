@@ -150,15 +150,9 @@ class shopCustomersInfoAction extends waViewAction
 
     public function getContactCategories($id)
     {
-        $ccsm = new waContactCategoriesModel();
-        $ccm = new waContactCategoryModel();
-        $all_categories = array();
-        foreach ($ccm->getAll('id') as $category) {
-            if ($category['app_id'] === 'shop') {
-                $all_categories[$category['id']] = $category;
-            }
-        }
-        $contact_categories = $ccsm->getContactCategories($id);
+        $all_categories = shopCustomer::getAllCategories();
+        $customer = new shopCustomer($id);
+        $contact_categories = $customer->getCategories();
         foreach ($contact_categories as $category) {
             if (isset($all_categories[$category['id']])) {
                 $all_categories[$category['id']]['checked'] = true;

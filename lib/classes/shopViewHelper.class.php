@@ -147,10 +147,9 @@ class shopViewHelper extends waAppViewHelper
     /**
      * @return array
      */
-    public function stocks()
+    public function stocks($frontend = true)
     {
-        $stock_model = new shopStockModel();
-        return $stock_model->getAll('id');
+        return shopHelper::getStocks($frontend);
     }
 
     /**
@@ -769,7 +768,7 @@ class shopViewHelper extends waAppViewHelper
             if (!$storefront) {
                 $storefront = '%all%';
             }
-            $promos = $promo_model->getByStorefront($storefront, $type_or_ids);
+            $promos = $promo_model->getByStorefront($storefront, $type_or_ids, true);
         }
 
         foreach ($promos as &$p) {

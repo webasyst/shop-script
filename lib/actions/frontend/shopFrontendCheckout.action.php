@@ -345,12 +345,16 @@ class shopFrontendCheckoutAction extends waViewAction
             }
         }
 
-        if ($skock_id = waRequest::post('stock_id')) {
+        if ( ( $skock_id = waRequest::param('stock_id'))) {
+            // !!! use stock rules instead
             $order['params']['stock_id'] = $skock_id;
         }
 
         $routing_url = wa()->getRouting()->getRootUrl();
         $order['params']['storefront'] = wa()->getConfig()->getDomain().($routing_url ? '/'.$routing_url : '');
+        if(wa()->getStorage()->get('shop_order_buybutton')) {
+            $order['params']['sales_channel'] = 'buy_button:';
+        }
 
         if ( ( $ref = waRequest::cookie('referer'))) {
             $order['params']['referer'] = $ref;

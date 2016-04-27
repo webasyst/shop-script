@@ -1,0 +1,130 @@
+{if !empty($product_stocks)}
+
+    <table class="zebra" id="s-product-stocks">
+        <tr class="header white">
+            <th colspan=2>&nbsp;</th>
+            {foreach $stocks as $stock}
+                <th>{$stock.name|escape}</th>
+            {/foreach}
+            <th><a href="#/stocks/{if $order == 'desc'}asc{else}desc{/if}/" class="s-sort-handler bold">[`All stocks`] <i class="icon16 {if $order == 'desc'}darr{else}uarr{/if}"></i></a></th>
+        </tr>
+    </table>
+
+    <div class="lazyloading-wrapper">
+        <div class="lazyloading-progress-string">{_w('%d product','%d products', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+        <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more products`]</a>
+            <span class="lazyloading-progress" style="display:none">
+                <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d product', '%d products', min($total_count - $count, $count))}...</span>
+            </span>
+    </div>
+
+{else}
+    <p>[`Please add at least one stock in your store settings.`]</p>
+{/if}
+
+{if !empty($product_stocks)}
+
+    {*
+      table of info
+      @see 'template-product-stocks-sku-list' template
+    *}
+    {literal}
+    <script type="text/html" id="template-product-stocks">
+        {% var data = o.product_stocks; %}
+        {% for (var i = 0, sz = data.length; i < sz; i += 1) { %}
+            {% var product = data[i], skus = product.skus, stocks = product.stocks; %}
+            {% var sku_count = skus.length; %}
+            <tr>
+                {% var hash = "#/product/"+product.id+"/edit/"; %}
+                <td class="s-product min-width">
+                    <a href="{%#hash%}">
+                        {% if (product.url_crop_small) { %}
+                            <img src="{%#product.url_crop_small%}">
+                        {% } else { %}
+                            <img src="{/literal}{$wa_app_static_url}{literal}img/image-dummy-small.png" class="not-found">
+                        {% } %}
+                    </a>
+                </td>
+
+                <td class="s-product"><span>{%=product.name%}</span></td>
+
+                <!-- detailed by stocks -->
+                {% for (var k = 0, l = stocks.length; k < l; k += 1) { %}
+                    {% var stock_id = o.stocks[k].id; %}
+                    <td class="s-stock-cell" data-stock-id="{%#stock_id%}">
+                        {% stock_skus = stocks[k]; %}
+                        <ul class="menu-v">
+                            {% for (var j = 0, n = stock_skus.length; j < n; j += 1) { %}
+                                {% var sku_id = stock_skus[j].id; %}
+                                {% if (stock_skus[j].num_of_stocks > 0) { %}
+                                    <li id="s-item-{%#sku_id%}-{%#stock_id%}" class="item {% if (stock_skus[j].count === null) { %}infinity{% } %}">{%#stock_skus[j].icon%}
+                                        {% if (sku_count > 1) { %}
+                                        <a href="{%#hash+'focus=stock&sku='+sku_id+'&stock='+stock_id%}">{%=stock_skus[j].name%}</a>
+                                        {% } %}
+                                        {% if (stock_skus[j].count !== null) { %}{%#stock_skus[j].count%}{% } else { %}∞{% } %}
+                                    </li>
+                                {% } else { %}
+                                    <li class="gray">&mdash;</li>
+                                {% } %}
+                            {% } %}
+                        </ul>
+                    </td>
+                {% } %}
+
+                <td><ul class="menu-v">
+                    {% for (var k = 0, l = skus.length; k < l; k += 1) { %}
+                        <li>{%#skus[k].icon%}
+                            {% if (sku_count > 1) { %}
+                                <a href="{%#hash+'focus=price&sku='+skus[k].id%}">{%=skus[k].name%}</a>
+                            {% } %}
+                            <strong>{% if (skus[k].count !== null) { %}{%#skus[k].count%}{% } else { %}∞{% } %}</strong>
+                        </li>
+                    {% } %}
+                </ul></td>
+
+            </tr>
+        {% } %}
+    </script>
+    {/literal}
+
+    {*
+      sku-list in one cell
+      @see 'template-product-stocks' template
+    *}
+    {literal}
+    <script type="text/html" id="template-product-stocks-sku-list">
+        {% var skus = o.skus; %}
+        {% var hash = "#/product/"+o.product.id+"/edit/"; %}
+        <ul class="menu-v">
+            {% for (var k = 0, sku_count = skus.length; k < sku_count; k += 1) { %}
+                {% var sku_id = skus[k].id; %}
+                {% if (skus[k].num_of_stocks > 0) { %}
+                    <li id="s-item-{%#sku_id%}-{%#o.stock.id%}" class="item {% if (skus[k].count === null) { %}infinity{% } %}">{%#skus[k].icon%}
+                        {% if (sku_count > 1) { %}
+                            <a href="{%#hash+'focus=stock&sku='+sku_id+'&stock='+o.stock.id%}" class="small">{%=skus[k].name%}</a>
+                        {% } %}
+                        <strong>{% if (skus[k].count !== null) { %}{%#skus[k].count%}{% } else { %}∞{% } %}</strong>
+                    </li>
+                {% } else { %}
+                    <li>&mdash;</li>
+                {% } %}
+            {% } %}
+        </ul>
+    </script>
+    {/literal}
+
+    <script type="text/javascript">
+        document.title = '{"[`Stocks`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+        $.product_stocks.init({
+            product_stocks: {json_encode($product_stocks)},
+            stocks: {json_encode($stocks)},
+            order: '{$order}',
+            lazy_loading: {
+                auto: true,
+                count: {$count},
+                total_count: {$total_count}
+            }
+        });
+    </script>
+
+{/if}

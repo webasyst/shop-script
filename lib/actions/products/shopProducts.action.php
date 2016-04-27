@@ -23,8 +23,6 @@ class shopProductsAction extends shopProductListAction
             $offset = ($page - 1) * $products_per_page;
             $this->view->assign('page', $page);
         }
-        $products = $this->collection->getProducts('*,'.join(',', $columns), $offset, $products_per_page);
-        $this->workupProducts($products);
 
         /*
          * @event backend_products
@@ -34,11 +32,25 @@ class shopProductsAction extends shopProductListAction
 
         $this->view->assign('products_rights', $this->getUser()->isAdmin('shop') || $this->getUser()->getRights('shop', 'type.%'));
 
-        $total_count = $this->collection->count();
+        /**
+         * @var $config shopConfig
+         */
+        $config = $this->getConfig();
+
         $stock_model = new shopStockModel();
+        $stocks = $stock_model->getAll('id');
+
+        $products = $this->getProducts(array(
+            'fields' => '*,'.join(',', $columns),
+            'offset' => $offset,
+            'products_per_page' => $products_per_page,
+            'view' => $view
+        ));
+
+        $total_count = $this->collection->count();
         $this->assign(array(
             'lazy_loading' => $lazy_loading,
-            'products' => array_values($products),
+            'products' => $products,
             'total_count' => $total_count,
             'count' => count($products),
             'sort' => $this->sort,
@@ -47,14 +59,31 @@ class shopProductsAction extends shopProductListAction
             'title' => $this->hash[0] != 'search' ? $this->collection->getTitle() : $this->text,
             'info' => $this->collection->getInfo(),
             'view' => $view,
-            'stocks' => $stock_model->getAll('id'),
+            'stocks' => array_values($stocks),
             'additional_columns' => self::getAdditionalColumns(),
+            'additional_columns_autocomplete' => self::isColumnsAutocomplete(),
+            'primary_currency' => $config->getCurrency(),
+            /*
+            'use_product_currency' => wa()->getSetting('use_product_currency'),
+            'currencies' => $config->getCurrencies()*/
         ));
 
         if (!$lazy_loading) {
             $pages_count = ceil((float)$total_count / $products_per_page);
             $this->view->assign('pages_count', $pages_count);
         }
+    }
+
+    private function getProducts($options)
+    {
+        $fields = $options['fields'];
+        if ($options['view'] === 'skus') {
+            $fields .= ',skus,stock_counts';
+        }
+        $products = $this->collection->getProducts($fields, $options['offset'], $options['products_per_page']);
+        $this->workupProducts($products);
+        $products = array_values($products);
+        return $products;
     }
 }
 

@@ -14,7 +14,7 @@ class shopSettingsPrintformSetupAction extends waViewAction
 
                 $plugin = waSystem::getInstance()->getPlugin($plugin_id);
                 /**
-                 * @var shopPlugin|shopPrintformPlugin $plugin
+                 * @var shopPlugin|shopPrintformInterface $plugin
                  */
 
                 $namespace = 'printform_'.$plugin_id;

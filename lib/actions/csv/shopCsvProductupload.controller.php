@@ -167,9 +167,9 @@ class shopCsvProductuploadController extends shopUploadController
 
         $translates = array();
         $translates['product'] = _w('Basic fields');
-        $translates['product_custom_fields'] = _w("Custom product's fields");
+        $translates['product_custom_fields'] = _w("Custom product fields");
         $translates['sku'] = _w('SKU fields');
-        $translates['sku_custom_fields'] = _w("Custom skus' fields");
+        $translates['sku_custom_fields'] = _w("Custom sku fields");
 
         $translates['feature'] = _w('Add to existing');
         $translates['feature+'] = _w('Add as new feature');

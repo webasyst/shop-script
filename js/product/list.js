@@ -93,7 +93,9 @@
                     try {
                         this.container.append(tmpl('template-product-list-' + this.options.view, {
                             products: products,
-                            sort: this.sort
+                            sort: this.sort,
+                            primary_currency: this.options.primary_currency,
+                            stocks: this.options.stocks
                         }, this.options.view == 'table'));
                         this.container.trigger('append_product_list', [products]);
                     } catch (e) {
@@ -189,7 +191,9 @@
                                     self.container.append(tmpl('template-product-list-' + self.options.view, {
                                         products: r.data.products,
                                         check_all: self.options.view == 'table' ? product_list.find('.s-select-all:first').attr('checked') : false,
-                                        sort: $.product_list.sort
+                                        sort: $.product_list.sort,
+                                        primary_currency: $.product_list.options.primary_currency,
+                                        stocks: $.product_list.options.stocks
                                     }));
                                     self.container.trigger('append_product_list', [r.data.products]);
                                 } catch (e) {
@@ -1949,7 +1953,7 @@
                 $content = $("#s-content > .content"),
                 left_margin = parseInt( $content_wrapper.css("margin-left")),
                 right_margin = parseInt( $content.css("margin-right")),
-                $table = $("#s-product-list-table-container table"),
+                $table = $(".s-product-list-table-container table"),
                 table_width = $table.width(),
                 old_styles = $wrapper.attr("style"),
                 content_width,
@@ -1958,7 +1962,7 @@
             // Save old styles
             if (old_styles) { $wrapper.data("style", old_styles); }
 
-            content_width = parseInt( $content.width() - $("#s-product-list-table-container").width() ) + table_width;
+            content_width = parseInt( $content.width() - $(".s-product-list-table-container").width() ) + table_width;
             page_width = content_width + left_margin + right_margin;
 
             if ($wrapper.width() < page_width) {

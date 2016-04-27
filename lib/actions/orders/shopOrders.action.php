@@ -56,7 +56,6 @@ class shopOrdersAction extends shopOrderListAction
                 'all' => $this->model->countAll()
             );
         }
-        
         $this->assign(array(
             'orders' => array_values($orders),
             'total_count' => $this->getTotalCount(),

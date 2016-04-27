@@ -11,7 +11,6 @@ class shopOrdersCollection
     protected $prepared = false;
     protected $title;
 
-    protected $fields = array();
     protected $where;
     protected $having = array();
     protected $count;
@@ -20,15 +19,13 @@ class shopOrdersCollection
     protected $joins;
     protected $join_index = array();
 
-    protected $other_fields = array();
-
-    protected $models = array();
+    protected static $models = array();
 
     /**
      * Creates a new order collection.
      *
      * @param string|array $hash Order selection conditions. Examples:
-     *     array(12,23,34) or 'id/12,23,34' — explicitely specified order ids
+     *     array(12,23,34) or 'id/12,23,34' — explicitly specified order ids
      *     'search/state_id=new||processing||paid' — search by 'state' field of shop_order table; supported comparison/matching operators:
      *         $=    inexact matching by value end (LIKE 'value%')
      *         ^=    inexact matching by value start (LIKE '%value')
@@ -107,7 +104,7 @@ class shopOrdersCollection
                      */
                     $processed = wa()->event('orders_collection', $params);
                     if (!$processed) {
-                        throw new waException('Unknown collection hash type: '.htmlspecialchars($type));
+                        throw new waException('Unknown collection hash type: '.htmlspecialchars($type, ENT_COMPAT, 'utf-8'));
                     }
                 }
             } else {
@@ -130,7 +127,7 @@ class shopOrdersCollection
         );
         $ids = array();
         foreach (explode(',', $ids_str) as $id) {
-            $ids[] = (int) $id;
+            $ids[] = (int)$id;
         }
         if (!$ids) {
             $this->where[] = '0';
@@ -146,33 +143,6 @@ class shopOrdersCollection
     public function getHash()
     {
         return $this->hash;
-    }
-
-    public function getFields($fields)
-    {
-        if ($fields == '*') {
-            return 'o.*'.($this->fields ? ",".implode(",", $this->fields) : '');
-        }
-
-        if (!is_array($fields)) {
-            $fields = explode(",", $fields);
-            $fields = array_map('trim', $fields);
-        }
-        foreach ($fields as $i => $f) {
-            if ($f == '*') {
-                $fields[$i] = 'o.*';
-                continue;
-            } else {
-                $this->other_fields[] = $f;
-                unset($fields[$i]);
-            }
-        }
-        if ($this->fields) {
-            foreach ($this->fields as $f) {
-                $fields[] = $f;
-            }
-        }
-        return implode(",", $fields);
     }
 
     public function getJoinedAlias($table)
@@ -230,7 +200,7 @@ class shopOrdersCollection
         $join = array(
             'table' => $table,
             'alias' => $alias,
-            'type' => $type
+            'type'  => $type
         );
         if ($on) {
             $join['on'] = str_replace(':table', $alias, $on);
@@ -295,27 +265,27 @@ class shopOrdersCollection
         }
         $sql = $this->getSQL();
         $sql = "SELECT COUNT(".($this->joins ? 'DISTINCT ' : '')."o.id) ".$sql;
-        return $this->count = (int)$this->getModel()->query($sql)->fetchField();
+        return $this->count = (int)self::getModel()->query($sql)->fetchField();
     }
 
     /**
      * @param string $name
      * @return shopOrderModel
      */
-    protected function getModel($name = 'order')
+    protected static function getModel($name = 'order')
     {
-        if (!isset($this->models[$name])) {
+        if (!isset(self::$models[$name])) {
             if (in_array($name, array('order', 'items', 'params', 'log'))) {
                 $class_name = 'shop'.($name != 'order' ? 'Order' : '').ucfirst($name).'Model';
-                $this->models[$name] = new $class_name();
+                self::$models[$name] = new $class_name();
             }
         }
-        return $this->models[$name];
+        return self::$models[$name];
     }
 
     /**
      * Parses order selection condition string of the form acceptable by class constructor.
-     * @see __constructor()
+     * @see __construct()
      *
      * @param string $query Order selection query; e.g., 'total>=3&state_id>=new||paid'
      * @return array Parsed condition data; e.g.:
@@ -348,25 +318,61 @@ class shopOrdersCollection
                 continue;
             }
             $part = str_replace(array($escapedBS, $escapedAmp), array('\\\\', '\\&'), $part);
-            if ($temp = preg_split("/(\\\$=|\^=|\*=|==|!=|>=|<=|=|>|<)/uis", $part, 2, PREG_SPLIT_DELIM_CAPTURE)) {
-                $name = array_shift($temp);
+            $parts = self::splitConditions($part);
+            if ($parts) {
+                $name = array_shift($parts);
+
                 if ($name == 'tag') {
-                    $temp[1] = explode('||', $temp[1]);
+                    $parts[1] = explode('||', $parts[1]);
                 }
                 if ($name != 'price') {
-                    $result[$name] = $temp;
+                    $result[$name] = $parts;
                 } else {
-                    if ($temp[0] == '>=') {
-                        $result[$name][0] = $temp;
-                    } else if ($temp[0] == '<=') {
-                        $result[$name][1] = $temp;
+                    if ($parts[0] == '>=') {
+                        $result[$name][0] = $parts;
+                    } elseif ($parts[0] == '<=') {
+                        $result[$name][1] = $parts;
                     } else {
-                        $result[$name] = $temp;
+                        $result[$name] = $parts;
                     }
                 }
             }
         }
         return $result;
+    }
+
+    /**
+     * @see __construct()
+     * @param $string
+     * @return string[]
+     * @return string[0] field
+     * @return string[1] relation operand eg $=, ==, > etc
+     * @return string[2] value
+     * @
+     */
+    private static function splitConditions($string)
+    {
+        return preg_split('/(\$=|\^=|\*=|==|!=|>=|<=|=|>|<)/uis', $string, 2, PREG_SPLIT_DELIM_CAPTURE);
+    }
+
+    private static function splitValues($value, $ignore_empty_string = false)
+    {
+        if (strstr($value, '||') !== false) {
+            $values = array_map('trim', explode('||', $value));
+            if ($ignore_empty_string) {
+                $values = array_filter($values, 'strlen');
+            }
+            if ($values) {
+                $model = self::getModel();
+                foreach ($values as &$v) {
+                    $v = $model->escape(trim($v));
+                }
+
+                unset($v);
+            }
+            $value = $values;
+        }
+        return $value;
     }
 
     /**
@@ -378,12 +384,18 @@ class shopOrdersCollection
      */
     protected function getExpression($op, $value)
     {
-        $model = $this->getModel();
+        $model = self::getModel();
         switch ($op) {
             case '!=':
                 if ($value === 'NULL') {
                     return ' IS NOT NULL';
                 }
+
+                $value = self::splitValues($value);
+                if (is_array($value)) {
+                    return " NOT IN ('".implode("','", $value)."')";
+                }
+            //no-break
             case '>':
             case '>=':
             case '<':
@@ -396,20 +408,14 @@ class shopOrdersCollection
             case "*=":
                 return " LIKE '%".$model->escape($value, 'like')."%'";
             case "==":
-            case "=";
+            case "=":
             default:
                 if ($value === 'NULL') {
                     return ' IS NULL';
                 }
-                if (strstr($value, '||') !== false) {
-                    $parts = explode('||', $value);
-                    foreach ($parts as &$p) {
-                        $p = $model->escape(trim($p));
-                    }
-                    unset($p);
-                    if ($parts) {
-                        return " IN ('".implode("','", $parts)."')";
-                    }
+                $value = self::splitValues($value);
+                if (is_array($value)) {
+                    return " IN ('".implode("','", $value)."')";
                 }
                 return " = '".$model->escape($value)."'";
         }
@@ -445,61 +451,229 @@ class shopOrdersCollection
             }
         }
 
+        list($sql_fields, $postprocess_fields) = $this->getFields($fields);
+
         $sql = $this->getSQL();
-        $sql = "SELECT ".$this->getFields($fields)." ".$sql;
-        $sql .= " LIMIT ".($offset ? $offset.',' : '').(int) $limit;
+        $sql = "SELECT ".$sql_fields." ".$sql;
+        $sql .= " LIMIT ".($offset ? $offset.',' : '').(int)$limit;
 
-        $data = $this->getModel()->query($sql)->fetchAll('id');
-        if (!$data) {
-            return array();
+        $data = self::getModel()->query($sql)->fetchAll('id');
+        if ($data) {
+            $this->addPostprocessFields($data, $postprocess_fields, $escape);
         }
+        return $data;
+    }
 
-        $ids = array_keys($data);
-
-        // add other fields
-        foreach ($this->other_fields as $field) {
-            switch ($field) {
-                case 'items':
-                case 'params':
-                    $rows = $this->getModel($field)->getByField('order_id', $ids, true);
-                    foreach ($rows as $row) {
-                        if ($field == 'params') {
-                            $data[$row['order_id']][$field][$row['name']] = $row['value'];
-                        } else {
-                            if ($escape) {
-                                $row['name'] = htmlspecialchars($row['name']);
-                            }
-                            $data[$row['order_id']][$field][] = $row;
-                        }
+    public function getFields($raw_fields)
+    {
+        if (!is_array($raw_fields)) {
+            $raw_fields = array_map('trim', explode(",", $raw_fields));
+        }
+        $fields = array();
+        $postprocess_fields = array();
+        foreach ($raw_fields as $i => $f) {
+            if ($f == '*') {
+                $fields[$f] = 'o.*';
+            } elseif (self::getModel('order')->fieldExists($f)) {
+                $fields[$f] = 'o.'.$f;
+            } else {
+                $postprocess_fields[$f] = $f;
+                if ($f == 'subtotal' || $f == 'products') {
+                    $postprocess_fields['items'] = 'items';
+                } elseif ($f == 'shipping_info' || $f == 'billing_info') {
+                    $postprocess_fields['params'] = 'params';
+                }
+                if (empty($fields['*'])) {
+                    if ($f == 'shipping_info') {
+                        $fields['shipping'] = 'shipping';
+                    } elseif ($f == 'contact' || $f == 'contact_full') {
+                        $fields['contact_id'] = 'contact_id';
+                    } elseif ($f == 'state') {
+                        $fields['state_id'] = 'state_id';
                     }
-                    break;
-                case 'contact':
-                    $contact_ids = array();
-                    foreach ($data as $o) {
-                        $contact_ids[] = $o['contact_id'];
-                    }
-                    $contact_model = new waContactModel();
-                    $contacts = $contact_model->getById(array_unique($contact_ids));
-                    foreach ($data as &$o) {
-                        if (isset($contacts[$o['contact_id']])) {
-                            $c = $contacts[$o['contact_id']];
-                            $o['contact'] = array(
-                                'id' => $c['id'],
-                                'name' => waContactNameField::formatName($c),
-                                'photo' => $c['photo']
-                            );
-                            if ($escape) {
-                                $o['contact']['name'] = htmlspecialchars($o['contact']['name']);
-                            }
-                        }
-                    }
-                    unset($o);
-                    break;
+                }
             }
         }
-        unset($t);
+        return array(implode(",", $fields), $postprocess_fields);
+    }
 
-        return $data;
+    public static function addPostprocessFields(&$data, $postprocess_fields, $escape = true)
+    {
+        $ids = array_keys($data);
+        $default_values = array_fill_keys($postprocess_fields, null);
+
+        if (isset($postprocess_fields['items'])) {
+            $default_values['items'] = array();
+            $rows = self::getModel('items')->getByField('order_id', $ids, true);
+            foreach ($rows as $row) {
+                if ($escape) {
+                    $row['name'] = htmlspecialchars($row['name'], ENT_COMPAT, 'utf-8');
+                }
+                $data[$row['order_id']]['items'][] = $row;
+            }
+        }
+        if (isset($postprocess_fields['products'])) {
+            $product_ids = array();
+            foreach ($data as $o) {
+                if (!empty($o['items'])) {
+                    foreach ($o['items'] as $it) {
+                        $product_ids[$it['product_id']] = $it['product_id'];
+                    }
+                }
+            }
+            $products_collection = new shopProductsCollection('id/'.join(',', $product_ids));
+            $product_fields = array(
+                'id',
+                'name',
+                'summary',
+                'type_id',
+                'image_id',
+                'image_filename',
+                'sku_id',
+                'ext',
+                'url',
+                'rating',
+                'rating_count',
+                'currency',
+                'tax_id',
+                'cross_selling',
+                'upselling',
+                'category_id',
+                'badge',
+                'sku_type',
+                'image',
+                'image_crop_small',
+                'frontend_url',
+            );
+            $products = $products_collection->getProducts(implode(',', $product_fields));
+            foreach ($data as &$o) {
+                foreach ($o['items'] as &$it) {
+                    $it['product'] = ifset($products[$it['product_id']]);
+                }
+            }
+            unset($o, $it);
+        }
+
+        if (isset($postprocess_fields['params'])) {
+            $default_values['params'] = array();
+            $rows = self::getModel('params')->getByField('order_id', $ids, true);
+            foreach ($rows as $row) {
+                $data[$row['order_id']]['params'][$row['name']] = $row['value'];
+            }
+        }
+
+        if (isset($postprocess_fields['contact']) || isset($postprocess_fields['contact_full'])) {
+            unset($default_values['contact_full']);
+            $contact_ids = array();
+            foreach ($data as $o) {
+                $contact_ids[$o['contact_id']] = $o['contact_id'];
+            }
+            $contact_ids = array_values($contact_ids);
+            $contact_fields = 'id,name,photo,firstname,middlename,lastname';
+            if (isset($postprocess_fields['contact_full'])) {
+                $contact_fields .= ',phone,email,address,photo_url_40,photo_url_96';
+            }
+            $contacts_collection = new waContactsCollection('id/'.join(',', $contact_ids), array(
+                'photo_url_2x' => true,
+            ));
+            $contacts = $contacts_collection->getContacts($contact_fields, 0, 100500);
+            foreach ($contacts as &$c) {
+                $c['name'] = waContactNameField::formatName($c);
+                unset($c['firstname'], $c['middlename'], $c['lastname']);
+                if ($escape) {
+                    $c['name'] = htmlspecialchars($c['name'], ENT_COMPAT, 'utf-8');
+                }
+            }
+            unset($c);
+            foreach ($data as &$o) {
+                if (isset($contacts[$o['contact_id']])) {
+                    $o['contact'] = $contacts[$o['contact_id']];
+                } else {
+                    $o['contact'] = array(
+                        'id'    => $o['contact_id'],
+                        'name'  => 'deleted contact id='.$o['contact_id'],
+                        'photo' => '',
+                    );
+                }
+            }
+            unset($o);
+        }
+
+        if (isset($postprocess_fields['state'])) {
+            $workflow = new shopWorkflow();
+            $states = $workflow->getAvailableStates();
+            foreach ($data as &$o) {
+                if (isset($states[$o['state_id']])) {
+                    $s = $states[$o['state_id']];
+                    $o['state'] = array(
+                        'id'    => $o['state_id'],
+                        'name'  => $s['name'],
+                        'style' => ifset($s['options']['style'], array()),
+                        'icon'  => ifset($s['options']['icon'], ''),
+                    );
+                } else {
+                    $o['state'] = array(
+                        'id'    => $o['state_id'],
+                        'name'  => $o['state_id'],
+                        'style' => array(),
+                        'icon'  => '',
+                    );
+                }
+            }
+            unset($o);
+        }
+
+        if (isset($postprocess_fields['subtotal'])) {
+            foreach ($data as &$o) {
+                $subtotal = 0;
+                foreach ($o['items'] as $i) {
+                    $subtotal += $i['price'] * $i['quantity'];
+                }
+                $o['subtotal'] = $subtotal;
+            }
+            unset($o);
+        }
+
+        if (class_exists('waContactAddressField') && class_exists('waContactAddressDataFormatter')) {
+            if (isset($postprocess_fields['shipping_info'])) {
+                $formatter = new waContactAddressDataFormatter();
+                foreach ($data as &$o) {
+                    $o['shipping_info'] = array();
+                    if (isset($o['params']['shipping_name'])) {
+                        $o['shipping_info']['name'] = $o['params']['shipping_name'];
+                    }
+                    if (isset($o['params']['shipping_est_delivery'])) {
+                        $o['shipping_info']['est_delivery'] = $o['params']['shipping_est_delivery'];
+                    }
+
+                    $shipping_address = shopHelper::getOrderAddress($o['params'], 'shipping');
+                    if ($shipping_address) {
+                        $o['shipping_info']['address'] = $formatter->format(array('data' => $shipping_address));
+                    }
+
+                    if ($o['shipping'] || $o['shipping_info']) {
+                        $o['shipping_info']['price'] = $o['shipping'];
+                    }
+                }
+            }
+
+            if (isset($postprocess_fields['billing_info'])) {
+                $formatter = new waContactAddressDataFormatter();
+                foreach ($data as &$o) {
+                    $o['billing_info'] = array();
+                    $billing_address = shopHelper::getOrderAddress($o['params'], 'billing');
+                    if ($billing_address) {
+                        $o['billing_info']['address'] = $formatter->format(array('data' => $billing_address));
+                    }
+                }
+            }
+        }
+
+        foreach ($data as &$o) {
+            $o['id_encoded'] = shopHelper::encodeOrderId($o['id']);
+            $o += $default_values;
+        }
+        unset($o);
     }
 
     /**
@@ -510,13 +684,13 @@ class shopOrdersCollection
      */
     public function getOrderOffset($order)
     {
-        $model = $this->getModel();
+        $model = self::getModel();
 
         if (!is_array($order)) {
-            $order_id = (int) $order;
+            $order_id = (int)$order;
             $order = $model->getById($order_id);
         } else {
-            $order_id = (int) $order['id'];
+            $order_id = (int)$order['id'];
         }
         if (!$order || !$order_id) {
             return false;
@@ -559,35 +733,52 @@ class shopOrdersCollection
         }
         $query_parts[] = substr($query, $i);
 
-        $model = $this->getModel();
+        $model = self::getModel();
         $title = array();
         foreach ($query_parts as $part) {
             if (!($part = trim($part))) {
                 continue;
             }
-            $parts = preg_split("/(\\\$=|\^=|\*=|==|!=|>=|<=|=|>|<)/uis", $part, 2, PREG_SPLIT_DELIM_CAPTURE);
+
+            $parts = self::splitConditions($part);
             if ($parts) {
-                if (substr($parts[0], 0, 7) == 'params.') {
-                    $this->addJoin(array('table' => 'shop_order_params', 'type' => $parts[2] === 'NULL' ? 'left' : ''),
-                        "o.id = :table.order_id AND :table.name = '".$model->escape(substr($parts[0] ,7))."'",
-                        ":table.value".$this->getExpression($parts[1], $parts[2]));
-                } elseif (substr($parts[0], 0, 6) == 'items.' && $this->getModel('items')->fieldExists(substr($parts[0], 6))) {
-                    $this->addJoin('shop_order_items', null, ':table.'.substr($parts[0], 6).$this->getExpression($parts[1], $parts[2]));
-                } elseif (substr($parts[0], 0, 8) === 'address.') {
-                    $subfield = $this->getModel()->escape(substr($parts[0], 8));
-                    $fields = array(
-                        'billing_address', 'shipping_address'
+                $param = $parts[0];
+                $op = ifset($parts[1], '');
+                $val = ifset($parts[2], '');
+
+                if (substr($param, 0, 7) == 'params.') {
+
+                    #search by order params
+                    $join = array(
+                        'table' => 'shop_order_params',
+                        'type'  => $val === 'NULL' ? 'LEFT' : '',
                     );
-                    $op = ifset($parts[1], '');
-                    $val = ifset($parts[2], '');
+                    $on = "o.id = :table.order_id AND :table.name = '".$model->escape(substr($param, 7))."'";
+                    $where = ":table.value".$this->getExpression($op, $val);
+                    $this->addJoin($join, $on, $where);
+                } elseif ((substr($param, 0, 6) == 'items.')
+                    && self::getModel('items')->fieldExists(substr($param, 6))
+                ) {
+
+                    #search by order items fields
+                    $where = ':table.'.substr($param, 6).$this->getExpression($op, $val);
+                    $this->addJoin('shop_order_items', null, $where);
+                } elseif (substr($param, 0, 8) === 'address.') {
+
+                    #search by address stored ad order
+                    $sub_field = self::getModel()->escape(substr($param, 8));
+                    $fields = array(
+                        'billing_address',
+                        'shipping_address'
+                    );
 
                     $on = array();
                     foreach ($fields as $field) {
-                        $on[] = ":table.name = '" . $field . "." . $subfield . "'";
+                        $on[] = ":table.name = '".$field.".".$sub_field."'";
                     }
-                    $on = ':table.order_id = o.id AND (' . implode(' OR ', $on) . ')';
+                    $on = ':table.order_id = o.id AND ('.implode(' OR ', $on).')';
 
-                    if ($subfield === 'region' && strstr($val, ':') !== false) {
+                    if ($sub_field === 'region' && strstr($val, ':') !== false) {
                         $val = explode(':', $val);
                         $val = ifset($val[1], '');
                         // TODO: for region join wa_region and filter by country
@@ -595,15 +786,20 @@ class shopOrdersCollection
 
                     $where = array();
                     foreach ($fields as $field) {
-                        $where[] = "(:table.name = '" . $field . "." . $subfield . "' AND :table.value " .
-                                $this->getExpression($op, $val) . ')';
+                        $where[] = "(:table.name = '".$field.".".$sub_field."' AND :table.value ".
+                            $this->getExpression($op, $val).')';
                     }
                     $where = implode(' OR ', $where);
                     $this->addJoin('shop_order_params', $on, $where);
 
-                } elseif ($model->fieldExists($parts[0])) {
-                    $title[] = $parts[0].$parts[1].$parts[2];
-                    $this->where[] = 'o.'.$parts[0].$this->getExpression($parts[1], $parts[2]);
+                } elseif ($model->fieldExists($param)) {
+
+                    #search by own table fields
+                    $title[] = $param.$op.$val;
+                    $this->where[] = 'o.'.$param.$this->getExpression($op, $val);
+                } else {
+
+                    #condition ignored
                 }
             }
         }
@@ -645,28 +841,65 @@ class shopOrdersCollection
     /**
      * Changes ORDER BY clause of order selection query.
      *
-     * @param string $field Name of field in 'shop_order' table
+     * @param string|array $field Name of field in 'shop_order' table
      * @param string $order 'ASC' or 'DESC' modifier, defaults to 'ASC'
+     * @return string
      */
     public function orderBy($field, $order = 'ASC')
     {
-        $alias = 'o';
-        $this->order_by = "{$alias}.{$field} {$order}";
+        $order = strtoupper($order);
+        if (!in_array($order, array('DESC', 'ASC'))) {
+            $order = 'ASC';
+        }
+
+        if (is_array($field)) {
+            $fields = $field;
+            $order_by = array();
+            foreach ($fields as $field => $field_order) {
+                if (is_int($field)) {
+                    $field = $field_order;
+                    $field_order = $order;
+                }
+                $order_by[] = $this->orderBy($field, $field_order);
+            }
+            $this->order_by = implode(', ', $order_by);
+        } else {
+            $param = null;
+            if (strpos($field, ':') !== false) {
+                list($field, $param) = explode(':', $field, 2);
+            }
+            switch ($field) {
+                case 'amount':
+                    if ($param !== null) {
+                        $this->order_by = sprintf("ABS(o.total * o.rate - %s) %s", str_replace(',', '.', (float)$param), $order);
+                    } else {
+                        $this->order_by = "o.total * o.rate {$order}";
+                    }
+                    break;
+                default:
+                    if (self::getModel()->fieldExists($field)) {
+                        $this->order_by = "o.{$field} {$order}";
+                    }
+                    break;
+            }
+
+        }
+        return $this->order_by;
     }
 
     /**
      * Adds custom string to current collection title, separated by optional delimiter.
      *
      * @param string $title Custom string to be added
-     * @param string $delim Delimiter
+     * @param string $delimiter Delimiter
      */
-    public function addTitle($title, $delim = ', ')
+    public function addTitle($title, $delimiter = ', ')
     {
         if (!$title) {
             return;
         }
         if ($this->title) {
-            $this->title .= $delim;
+            $this->title .= $delimiter;
         }
         $this->title .= $title;
     }

@@ -243,66 +243,17 @@ class shopHelper
     }
 
     /**
-     * Returns array of print forms available for specified order.
+     * @deprecated
+     * Use shopPrintforms::getOrderPrintforms instead of that method
      *
-     * @param array|null $order Order data; if not specified, print forms applicable to any orders are returned
+     * Returns array of ORDER print forms available for specified order.
+     *
+     * @param waOrder|array|null $order Order data; if not specified, print forms applicable to any orders are returned
      * @return array
      */
     public static function getPrintForms($order = null)
     {
-        $plugins = wa('shop')->getConfig()->getPlugins();
-        foreach ($plugins as $id => $plugin) {
-            if (empty($plugin['printform'])) {
-                unset($plugins[$id]);
-            }
-        }
-        if ($order) {
-
-            $type = 'payment';
-            $key = ifempty($order['params'][$type.'_id']);
-            try {
-                if (!empty($key) && ($plugin = shopPayment::getPlugin(null, $key)) && method_exists($plugin, 'getPrintForms')) {
-                    $forms = $plugin->getPrintForms(shopPayment::getOrderData($order));
-                    foreach ($forms as $id => $form) {
-                        if (isset($form['emailprintform'])) {
-                            $form['mail_url'] = "?module=order&action=sendprintform&form_id={$type}.{$id}";
-                        }
-                        $plugins["{$type}.{$id}"] = $form;
-                    }
-                }
-            } catch (waException $e) {
-            }
-
-            $type = 'shipping';
-            $key = ifempty($order['params'][$type.'_id']);
-            try {
-                if (!empty($key) && ($plugin = shopShipping::getPlugin(null, $key)) && method_exists($plugin, 'getPrintForms')) {
-                    $forms = $plugin->getPrintForms(shopPayment::getOrderData($order));
-                    foreach ($forms as $id => $form) {
-                        if (isset($form['emailprintform'])) {
-                            $form['mail_url'] = "?module=order&action=sendprintform&form_id={$type}.{$id}";
-                        }
-                        $plugins["{$type}.{$id}"] = $form;
-                    }
-                }
-            } catch (waException $e) {
-            }
-
-            foreach ($plugins as $plugin_id => & $plugin) {
-                if (strpos($plugin_id, '.')) {
-                    $plugin['url'] = "?module=order&action=printform&form_id={$plugin_id}&order_id={$order['id']}";
-                } else {
-                    if (!empty($plugin['emailprintform'])) {
-                        $plugin['mail_url'] = "?module=order&action=sendprintform&plugin_id={$plugin_id}";
-                    }
-
-                    $plugin['url'] = "?plugin={$plugin_id}&module=printform&action=display&order_id={$order['id']}";
-                }
-            }
-            unset($plugin);
-        }
-        //TODO separate backend & frontend
-        return $plugins;
+        return shopPrintforms::getOrderPrintforms($order);
     }
 
     protected static $badges = array();
@@ -506,6 +457,108 @@ class shopHelper
     }
 
     /**
+     * List of stocks (both virtual and non-virtual).
+     *
+     * $frontend_stocks == false (default):
+     *      Returns all stocks, including non-public. Useful for backend.
+     * $frontend_stocks == true:
+     *      When in frontend, returns list of stocks enabled for current settlement.
+     *      When in backend, returns all public stocks.
+     * $frontend_stocks is an array:
+     *      A list of stock_ids. Integer stock_ids are non-virtual.
+     *      Virtual stock_ids are strings 'v<integer>'.
+     *
+     * Returns array of stocks as rows from shop_stock/shop_virtualstock table.
+     * Virtual stocks have additional 'substocks' key that lists stock_ids
+     * of non-virtual stocks included.
+     *
+     * Caches all SQLs in memory and hence safe to use many times in one page load.
+     *
+     * @param mixed $frontend_stocks
+     * @return array
+     */
+    public static function getStocks($frontend_stocks = false)
+    {
+        static $cache_all = null;
+        if ($cache_all === null) {
+
+            // Fetch stocks info
+            $stock_model = new shopStockModel();
+            $virtualstock_model = new shopVirtualstockModel();
+            $stocks = (array)$stock_model->getAll('id');
+            $virtual_stocks = (array)$virtualstock_model->getAll('id');
+
+            // Fetch list of substocks for virtual stocks
+            if ($virtual_stocks) {
+                foreach($virtual_stocks as $id => $s) {
+                    $virtual_stocks[$id]['substocks'] = array();
+                }
+                $virtualstock_stocks_model = new shopVirtualstockStocksModel();
+                $rows = $virtualstock_stocks_model->where('virtualstock_id IN (?)', array_keys($virtual_stocks))->order('sort')->fetchAll();
+                foreach($rows as $row) {
+                    $virtual_stocks[$row['virtualstock_id']]['substocks'][] = $row['stock_id'];
+                }
+            }
+
+            // Order by 'sort'
+            $all_stocks = array_merge(array_values($stocks), array_values($virtual_stocks));
+            usort($all_stocks, wa_lambda('$a, $b', 'return ((int) ($a["sort"] > $b["sort"])) - ((int) ($a["sort"] < $b["sort"]));'));
+
+            // Index resulting array by id
+            $cache_all = array();
+            foreach($all_stocks as $s) {
+                if (isset($s['substocks'])) {
+                    $cache_all['v'.$s['id']] = $s;
+                } else {
+                    $cache_all[$s['id']] = $s;
+                }
+            }
+        }
+
+        // Fetch list of frontend stock ids from routing params
+        if ($frontend_stocks && !is_array($frontend_stocks) && wa()->getEnv() == 'frontend') {
+            $frontend_stocks = waRequest::param('public_stocks');
+            if (empty($frontend_stocks) && !is_array($frontend_stocks)) {
+                $frontend_stocks = true;
+            }
+        }
+
+        // Filter $cache_all to return what's requested
+        if ($frontend_stocks && is_array($frontend_stocks)) {
+            return array_intersect_key($cache_all, array_flip($frontend_stocks));
+        } else if ($frontend_stocks) {
+            return array_filter($cache_all, wa_lambda('$a', 'return !empty($a["public"]);'));
+        } else {
+            return $cache_all;
+        }
+    }
+
+    /**
+     * @param $sku_stock array stock_id => count (for real stocks)
+     * @return array stock_id => count (for both real and virtual stocks; virtual stock_id keys are strings prefixed with 'v')
+     */
+    public static function fillVirtulStock($sku_stock)
+    {
+        $result = array_map('intval', $sku_stock);
+        foreach(shopHelper::getStocks() as $virtualstock_id => $s) {
+            if (isset($s['substocks'])) {
+                $result[$virtualstock_id] = 0;
+                foreach($s['substocks'] as $substock_id) {
+                    if (!isset($sku_stock[$substock_id])) {
+                        $result[$virtualstock_id] = null;
+                        break;
+                    } else {
+                        $result[$virtualstock_id] += $sku_stock[$substock_id];
+                    }
+                }
+            } elseif (!isset($result[$s['id']])) {
+                $result[$s['id']] = null;
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Returns HTML code of stock icon (normal, low, critical).
      *
      * @param int|null $count SKU stock count; if not specified, normal icon is returned
@@ -547,7 +600,7 @@ class shopHelper
                 }
             }
             if ($count !== null && $include_text) {
-                $icon .= "<span class='small $warn'>$count left</span>";
+                $icon .= "<span class='small s-stock-left-text $warn'>"._w('%d left', '%d left', $count)."</span>";
             }
         }
         return $icon;
@@ -818,5 +871,17 @@ SQL;
             $store_email = wa('shop')->getConfig()->getGeneralSettings('email');
         }
         return $store_email;
+    }
+
+    public static function getStorefronts()
+    {
+        $storefronts = array();
+        foreach (wa()->getRouting()->getByApp('shop') as $domain => $domain_routes) {
+            foreach ($domain_routes as $route) {
+                $url = rtrim($domain.'/'.$route['url'], '/*').'/';
+                $storefronts[] = $url;
+            }
+        }
+        return $storefronts;
     }
 }

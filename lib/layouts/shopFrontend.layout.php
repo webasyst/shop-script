@@ -3,15 +3,29 @@ class shopFrontendLayout extends waLayout
 {
     public function execute()
     {
-
-        if (wa()->getEnv() == 'frontend' && ($currency = waRequest::get("currency"))) {
-            if ($this->getConfig()->getCurrencies(array($currency))) {
-                wa()->getStorage()->set('shop/currency', $currency);
-                wa()->getStorage()->remove('shop/cart');
+        if (wa()->getEnv() == 'frontend') {
+            $redirect_url = null;
+            $currency = waRequest::get('currency', null, 'string');
+            if ($currency) {
+                if ($this->getConfig()->getCurrencies(array($currency))) {
+                    wa()->getStorage()->set('shop/currency', $currency);
+                    wa()->getStorage()->remove('shop/cart');
+                }
+                $redirect_url = $this->getConfig()->getCurrentUrl();
+                $redirect_url = preg_replace('~&?currency='.$currency.'~i', '', $redirect_url);
             }
-            $url = $this->getConfig()->getCurrentUrl();
-            $url = preg_replace('/[\?&]currency='.$currency.'/i', '', $url);
-            $this->redirect($url);
+            $locale = waRequest::get('locale', null, 'string');
+            if ($locale && waLocale::getInfo($locale)) {
+                if (!$redirect_url) {
+                    $redirect_url = $this->getConfig()->getCurrentUrl();
+                }
+                wa()->getStorage()->set('locale', $locale);
+                $redirect_url = preg_replace('~&?locale='.$locale.'~i', '', $redirect_url);
+            }
+
+            if ($redirect_url) {
+                $this->redirect(rtrim($redirect_url, '?&'));
+            }
         }
 
         $this->view->assign('action', waRequest::param('action', 'default'));

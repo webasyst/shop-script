@@ -8,7 +8,10 @@
             </li>
             {foreach $plugins as $p}
             <li>
-                <a href="#/affiliate/{$p.id}/" data-url="{$p.url}"><i class="icon16 {if !isset($p.img)} plugins{else}" style="background-image: url('{$wa_url}{$p.img}'); background-size: 16px 16px;{/if}"></i>{$p.name}</a>
+                <a href="#/affiliate/{$p.id}/" data-url="{$p.url}">
+                    <span class="count s-exclamation" {if $enabled}style="display: none;"{/if}><i class="icon16 exclamation" title="[`Disabled`]"></i></span>
+                    <i class="icon16 {if !isset($p.img)} plugins{else}" style="background-image: url('{$wa_url}{$p.img}'); background-size: 16px 16px;{/if}"></i>{$p.name}
+                </a>
             </li>
             {/foreach}
         </ul>
@@ -71,7 +74,7 @@
                         <ul class="menu-v compact" style="margin-left: 15px;">
                             {foreach $product_types as $pt}
                                 <li><label>
-                                    <input type="checkbox" value="{$pt.id}"{if !empty($conf.affiliate_product_types[$pt.id])} checked{/if}> <i class="icon16 {$pt.icon}"></i>{$pt.name}
+                                    <input type="checkbox" value="{$pt.id}"{if !empty($conf.affiliate_product_types[$pt.id])} checked{/if}> <i class="icon16 {$pt.icon}"></i>{$pt.name|escape}
                                 </label></li>
                             {/foreach}
                         </ul>
@@ -141,7 +144,18 @@
         } else {
             self.closest('.field-group').siblings().hide(200);
         }
-        $.post('?module=settings&action=affiliateEnable', { enable: enabled ? '1' : '0' });
+        $.post(
+            '?module=settings&action=affiliateEnable',
+            { enable: enabled ? '1' : '0' },
+            function (r) {
+                if (r.status === 'ok') {
+                    if (enabled) {
+                        $('.s-exclamation').hide();
+                    } else {
+                        $('.s-exclamation').show();
+                    }
+                }
+            });
     });
 
     // Submit via XHR

@@ -13,10 +13,10 @@ class shopReportsSalesAction extends waViewAction
         list($start_date, $end_date, $group_by, $request_options) = self::getTimeframeParams();
 
         $model_options = array();
-        $storefront = waRequest::request('storefront', null, 'string');
-        if ($storefront) {
-            $request_options['storefront'] = $storefront;
-            $model_options['storefront'] = $storefront;
+        $sales_channel = waRequest::request('sales_channel', null, 'string');
+        if ($sales_channel) {
+            $request_options['sales_channel'] = $sales_channel;
+            $model_options['sales_channel'] = $sales_channel;
         }
         $sort = waRequest::request('sort', '!profit', 'string');
         $request_options['sort'] = $sort;
@@ -145,7 +145,7 @@ class shopReportsSalesAction extends waViewAction
         $abtests = $sales_model->getAvailableABtests($start_date, $end_date, $model_options);
 
         $this->view->assign(array(
-            'storefronts' => self::getStorefronts(),
+            'sales_channels' => self::getSalesChannels(),
             'request_options' => $request_options,
             'more_rows_exist' => $more_rows_exist,
             'abtest_variants' => $abtest_variants,
@@ -173,6 +173,25 @@ class shopReportsSalesAction extends waViewAction
         }
         unset($d);
         return $graph_data;
+    }
+
+    public static function getSalesChannels()
+    {
+        $result = array();
+        $m = new waModel();
+        $sql = "SELECT DISTINCT value FROM shop_order_params WHERE name='sales_channel' ORDER BY value";
+        foreach(array_keys($m->query($sql)->fetchAll('value')) as $id) {
+            $name = $id;
+            @list($type, $data) = explode(':', $id, 2);
+            if ($type == 'storefront') {
+                $name = $data;
+            }
+            $result[$id] = $name;
+        }
+        unset($result['backend:'], $result['buy_button:']);
+        $result['buy_button:'] = _w('Buy button');
+        $result['backend:'] = _w('Backend');
+        return $result;
     }
 
     public static function getStorefronts()

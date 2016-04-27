@@ -26,7 +26,8 @@ class shopOrderListAction extends waViewAction
      */
     protected $collection;
 
-    public function __construct($params=null) {
+    public function __construct($params = null)
+    {
         parent::__construct($params);
         $this->model = new shopOrderModel();
         $this->collection = new shopOrdersCollection($this->getHash());
@@ -93,22 +94,19 @@ class shopOrderListAction extends waViewAction
                     if ($k == 'storefront') {
                         $k = 'params.'.$k;
                         if (strlen($v) && $v !== 'NULL') {
-                            if (substr($v, -1) == '*') {
-                                $v = substr($v, 0, -1);
-                            }
-                            if (substr($v, -1) == '/') {
-                                $v = substr($v, 0, -1);
-                            }
+                            $v = rtrim($v, '/*');
                             $v .= "||$v/";
                         }
+                    } elseif ($k == 'sales_channel') {
+                        $k = 'params.'.$k;
                     } elseif ($k == 'product_id') {
                         $k = 'items.'.$k;
-                    } elseif ($k == 'city' || $k == 'country' || $k == 'region')  {
+                    } elseif ($k == 'city' || $k == 'country' || $k == 'region') {
                         if ($k == 'city') {
                             $op = '*=';
                         }
                         $k = 'address.'.$k;
-                    }  elseif (!$this->model->fieldExists($k)) {
+                    } elseif (!$this->model->fieldExists($k)) {
                         $k = 'params.'.$k;
                     }
                     $hash = "search/{$k}{$op}{$v}";
@@ -141,6 +139,10 @@ class shopOrderListAction extends waViewAction
             if ($storefront) {
                 $params['storefront'] = $storefront;
             }
+            $sales_channel = urldecode(waRequest::get('sales_channel', null, waRequest::TYPE_STRING_TRIM));
+            if ($sales_channel) {
+                $params['sales_channel'] = $sales_channel;
+            }
             $product_id = waRequest::get('product_id', null, waRequest::TYPE_INT);
             if ($product_id) {
                 $params['product_id'] = $product_id;
@@ -157,6 +159,10 @@ class shopOrderListAction extends waViewAction
             if ($coupon_id) {
                 $params['coupon_id'] = $coupon_id;
             }
+            $tracking_number = waRequest::get('tracking_number', null, waRequest::TYPE_STRING_TRIM);
+            if ($tracking_number) {
+                $params['tracking_number'] = $tracking_number;
+            }
             $city = waRequest::get('city', null, waRequest::TYPE_STRING_TRIM);
             if ($city) {
                 $params['city'] = $city;
@@ -168,6 +174,11 @@ class shopOrderListAction extends waViewAction
             $country = waRequest::get('country', null, waRequest::TYPE_STRING_TRIM);
             if ($country) {
                 $params['country'] = $country;
+            }
+
+            $unsettled = waRequest::get('unsettled', null, waRequest::TYPE_INT);
+            if ($unsettled) {
+                $params['unsettled'] = $unsettled;
             }
             $this->filter_params = $params;
         }
@@ -189,6 +200,9 @@ class shopOrderListAction extends waViewAction
     public static function extendContacts(&$orders)
     {
         $config = wa('shop')->getConfig();
+        /**
+         * @var shopConfig $config
+         */
         $use_gravatar = $config->getGeneralSettings('use_gravatar');
         $gravatar_default = $config->getGeneralSettings('gravatar_default');
 

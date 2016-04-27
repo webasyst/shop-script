@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Note: all prices in this table (total, tax, shipping, discount)
  * are stored in shop_order.curency, not the default shop currency.
@@ -22,7 +23,7 @@ class shopOrderModel extends waModel
 
     public function getOffset($order_id, $where, $check_presenting = false)
     {
-        $order_id = (int) $order_id;
+        $order_id = (int)$order_id;
 
         $where = $this->getWhereByField($where);
 
@@ -69,11 +70,11 @@ class shopOrderModel extends waModel
         $post_fields = substr($post_fields, 1);
 
         $where = $this->getWhereByField($options['where']);
-        if(!empty($options['change_datetime'])) {
-            if($where) {
+        if (!empty($options['change_datetime'])) {
+            if ($where) {
                 $where .= ' AND ';
             }
-            $where .= sprintf("IFNULL(`update_datetime`,`create_datetime`) > '%s'",date("Y-m-d H:i:s", $options['change_datetime']));
+            $where .= sprintf("IFNULL(`update_datetime`,`create_datetime`) > '%s'", date("Y-m-d H:i:s", $options['change_datetime']));
         }
 
         $sql = "SELECT $main_fields FROM `{$this->table}`".
@@ -131,7 +132,7 @@ class shopOrderModel extends waModel
 
                 foreach ($data as &$item) {
                     $contact_id = $item['contact_id'];
-                    $order_id  = $item['id'];
+                    $order_id = $item['id'];
                     if ($contact_id) {
                         $item['contact'] = $contacts_info['contacts'][$contact_id];
                     } else {
@@ -141,7 +142,7 @@ class shopOrderModel extends waModel
                         $item['contact']['name'] = htmlspecialchars($item['contact']['name']);
                     }
                 }
-            } else if ($field == 'params') {
+            } elseif ($field == 'params') {
                 if ($opm === null) {
                     $opm = new shopOrderParamsModel();
                 }
@@ -160,7 +161,7 @@ class shopOrderModel extends waModel
     {
         $where = "";
         if ($state_id !== null) {
-            $where = "WHERE " . $this->getWhereByField('state_id', $state_id);
+            $where = "WHERE ".$this->getWhereByField('state_id', $state_id);
         }
         $sql = "
             SELECT state_id, COUNT(state_id) cnt FROM `{$this->table}`
@@ -193,18 +194,34 @@ class shopOrderModel extends waModel
         $storefronts = array();
         foreach ($this->query($sql)->fetchAll() as $row) {
             $url = rtrim($row['value'], '/*').'/';
-            $storefronts[$url] = $row['cnt'];
+            $storefronts[$url] = ifset($storefronts[$url], 0) + $row['cnt'];
         }
         return $storefronts;
     }
 
+    public function getSalesChannelCounters()
+    {
+        $sql = "SELECT p.value, COUNT(p.order_id) AS cnt
+            FROM `{$this->table}` AS o
+            JOIN `shop_order_params` p ON o.id = p.order_id
+            WHERE p.name = 'sales_channel'
+            GROUP BY p.value";
+
+        $result = array();
+        foreach ($this->query($sql)->fetchAll() as $row) {
+            $result[$row['value']] = $row['cnt'];
+        }
+        return $result;
+    }
+
     public function getContactCounters()
     {
-        $counters = $this->query("
-            SELECT contact_id, COUNT(contact_id) FROM `{$this->table}`
-            GROUP BY contact_id
-        ")->
-        fetchAll('contact_id', true);
+        $sql = <<<SQL
+SELECT contact_id, COUNT(contact_id) FROM `{$this->table}`
+GROUP BY contact_id
+SQL;
+
+        $counters = $this->query($sql)->fetchAll('contact_id', true);
         return $counters ? $counters : array();
     }
 
@@ -212,24 +229,38 @@ class shopOrderModel extends waModel
      * Receive contacts info from contacts and order-params
      * @param array $contact_ids IDs of contact
      * @param array $order_ids IDs of orders with deleted contacts (info will be received from order-params)
+     * @return array
      */
     private function getContactsInfo(array $contact_ids, array $order_ids)
     {
         $data = array('contacts' => $this->getContacts($contact_ids), 'order_params' => array());
         $order_params_model = new shopOrderParamsModel();
         foreach ($order_params_model->get($order_ids) as $order_id => $info) {
-            $data['order_params'][$order_id] = $this->extractConctactInfo($info);
+            $data['order_params'][$order_id] = $this->extractContactInfo($info);
         }
         return $data;
     }
 
-    public function extractConctactInfo($order_params_info)
+    /**
+     * @deprecated
+     * @param $order_params_info
+     * @return array
+     */
+    public static function extractConctactInfo($order_params_info)
+    {
+        return self::extractContactInfo($order_params_info);
+    }
+
+    public static function extractContactInfo($order_params_info)
     {
         $info = array();
-        $info['name'] =  !empty($order_params_info['contact_name']) ? $order_params_info['contact_name'] : '';
+        $info['name'] = !empty($order_params_info['contact_name']) ? $order_params_info['contact_name'] : '';
         $info['email'] = !empty($order_params_info['contact_email']) ? $order_params_info['contact_email'] : '';
         $info['phone'] = !empty($order_params_info['contact_phone']) ? $order_params_info['contact_phone'] : '';
         $config = wa('shop')->getConfig();
+        /**
+         * @var shopConfig $config
+         */
         if ($config->getGeneralSettings('use_gravatar')) {
             $info['photo_50x50'] = shopHelper::getGravatar($info['email'], 50, $config->getGeneralSettings('gravatar_default'));
         } else {
@@ -247,7 +278,10 @@ class shopOrderModel extends waModel
         $contact_model = new waContactModel();
         $contacts = $contact_model->getByField('id', $ids, 'id');
         $config = wa('shop')->getConfig();
-        $use_gravatar     = $config->getGeneralSettings('use_gravatar');
+        /**
+         * @var shopConfig $config
+         */
+        $use_gravatar = $config->getGeneralSettings('use_gravatar');
         $gravatar_default = $config->getGeneralSettings('gravatar_default');
 
         // Put everything into one array
@@ -282,14 +316,17 @@ class shopOrderModel extends waModel
                 $contact['name'] = 'Contact does not exist: id='.$order['contact_id'];
             }
             $order['contact'] = array(
-                'id' => $order['contact_id'],
-                'name' => $contact->getName(),
-                'email' => $contact->get('email', 'default'),
-                'phone' => $contact->get('phone', 'default'),
+                'id'         => $order['contact_id'],
+                'name'       => $contact->getName(),
+                'email'      => $contact->get('email', 'default'),
+                'phone'      => $contact->get('phone', 'default'),
                 'registered' => !empty($contact['password'])
             );
             $config = wa('shop')->getConfig();
-            $use_gravatar     = $config->getGeneralSettings('use_gravatar');
+            /**
+             * @var shopConfig $config
+             */
+            $use_gravatar = $config->getGeneralSettings('use_gravatar');
             $gravatar_default = $config->getGeneralSettings('gravatar_default');
             if (!$contact->get('photo') && $use_gravatar) {
                 $order['contact']['photo_50x50'] = shopHelper::getGravatar($order['contact']['email'], 50, $gravatar_default);
@@ -297,7 +334,7 @@ class shopOrderModel extends waModel
                 $order['contact']['photo_50x50'] = $contact->getPhoto(50);
             }
         } else {
-            $order['contact'] = $this->extractConctactInfo($order['params']);
+            $order['contact'] = $this->extractContactInfo($order['params']);
         }
 
         if (!empty($order['params']['coupon_id'])) {
@@ -306,7 +343,7 @@ class shopOrderModel extends waModel
             $order['coupon'] = array();
             if ($coupon) {
                 $order['coupon'] = $coupon;
-            } else if (!empty($order['params']['coupon_code'])) {
+            } elseif (!empty($order['params']['coupon_code'])) {
                 $order['coupon']['code'] = $order['params']['coupon_code'];
             }
         }
@@ -369,10 +406,10 @@ class shopOrderModel extends waModel
         if (is_array($field)) {
             $pdata = &$value;
         } else {
-            $pdate = &$data;
+            $pdata = &$data;
         }
-        if (!isset($pdata['create_datetime'])) {
-            $pdata['create_datetime'] = date('Y-m-d H:i:s');
+        if (!isset($pdata['update_datetime'])) {
+            $pdata['update_datetime'] = date('Y-m-d H:i:s');
         }
         unset($pdata);
 
@@ -385,7 +422,7 @@ class shopOrderModel extends waModel
      * Important: order metters. Each product-item must be directly before related services-items.
      * Example:
      *     // first product
-          array(
+     * array(
      *         'product_id' => '1'
      *         'sku_id' => '1'
      *         ...
@@ -406,7 +443,7 @@ class shopOrderModel extends waModel
      *         'type'=>'service'
      *     ),
      *     // second product
-           array(
+     * array(
      *         'product_id' => '2'
      *         'sku_id' => '2'
      *         ...
@@ -440,9 +477,9 @@ class shopOrderModel extends waModel
             unset($data['id']);
         }
 
-        $items_model = new shopOrderItemsModel();
 
         if ($id) {
+            $items_model = new shopOrderItemsModel();
             $items_model->update($data['items'], $id);
             unset($data['items']);
             $diff = array_diff_assoc($data, $this->getById($id));
@@ -462,79 +499,6 @@ class shopOrderModel extends waModel
         return $this->updateById($id, array('state_id' => 'deleted'));
     }
 
-
-    /**
-     * @param int $order_id
-     */
-    /*
-    private function doProductsOnStocks($order_id, $op)
-    {
-        $op = $op == 'debit' ? '-' : '+';
-
-        // models
-        $product_stocks_model = new shopProductStocksModel();
-        $order_params_model   = new shopOrderParamsModel();
-
-        // try receive from order params
-        $stock_id = null;
-        $params = $order_params_model->get($order_id);
-        if (!empty($params['stock_id'])) {
-            $stock_id = $params['stock_id'];
-        }
-
-        // receive products (skus) of order
-        $sql = "SELECT oi.sku_id AS id, oi.product_id, SUM(oi.quantity) count
-            FROM ".$this->table." o
-            JOIN shop_order_items oi ON o.id = oi.order_id AND oi.type = 'product'
-            WHERE o.id = i:order_id
-            GROUP BY oi.sku_id
-            ORDER BY oi.product_id";
-
-        $product_count = array();
-        $product_id = null;
-        foreach ($this->query($sql, array('order_id' => $order_id)) as $item) {
-            if ($product_id != $item['product_id']) {
-                $product_id = $item['product_id'];
-                $product_count[$product_id] = 0;
-            }
-            $product_count[$product_id] += $item['count'];
-            $this->exec("UPDATE `shop_product_skus` SET count = count $op {$item['count']} WHERE id = {$item['id']}");
-            if ($stock_id) {
-                // if doesn't exist this stock for this sku - get first available stock for this sku
-                if (!$product_stocks_model->getByField(array('stock_id' => $stock_id, 'sku_id' => $item['id']))) {
-                    $stock_id = $product_stocks_model->getByField('sku_id', $item['id']);
-                    if ($stock_id) {
-                        $stock_id = $stock_id['stock_id'];
-                    }
-                }
-            } else {
-                $stock_id = $product_stocks_model->getByField('sku_id', $item['id']);
-                if ($stock_id) {
-                    $stock_id = $stock_id['stock_id'];
-                }
-            }
-            // if stock founded - do op under this stock
-            if ($stock_id) {
-                $this->exec("UPDATE `shop_product_stocks` SET count = count $op {$item['count']} WHERE sku_id = {$item['id']} AND stock_id = $stock_id");
-            }
-        }
-        foreach ($product_count as $product_id => $count) {
-            $this->exec("UPDATE `shop_product` SET count = count $op {$count} WHERE id = {$product_id}");
-        }
-        return true;
-    }
-
-    public function returnProductsToStocks($order_id)
-    {
-        $this->doProductsOnStocks($order_id, 'charge');
-    }
-
-    public function reduceProductsFromStocks($order_id)
-    {
-        $this->doProductsOnStocks($order_id, 'debit');
-    }
-*/
-
     public function returnProductsToStocks($order_id)
     {
         $order_params_model = new shopOrderParamsModel();
@@ -543,7 +507,7 @@ class shopOrderModel extends waModel
             return;
         }
         $items_model = new shopOrderItemsModel();
-        $items = $items_model->select('*')->where("type='product' AND order_id = ".(int) $order_id)->fetchAll();
+        $items = $items_model->select('*')->where("type='product' AND order_id = ".(int)$order_id)->fetchAll();
         $sku_stock = array();
         foreach ($items as $item) {
             if (!isset($sku_stock[$item['sku_id']][$item['stock_id']])) {
@@ -563,7 +527,7 @@ class shopOrderModel extends waModel
             return;
         }
         $items_model = new shopOrderItemsModel();
-        $items = $items_model->select('*')->where("type='product' AND order_id = ".(int) $order_id)->fetchAll();
+        $items = $items_model->select('*')->where("type='product' AND order_id = ".(int)$order_id)->fetchAll();
         $sku_stock = array();
         foreach ($items as $item) {
             if (!isset($sku_stock[$item['sku_id']][$item['stock_id']])) {
@@ -583,8 +547,9 @@ class shopOrderModel extends waModel
         $product_ids = array();
         if ($order_id !== null) {
             $order_id = (array)$order_id;
-            $product_ids = $this->query("SELECT DISTINCT product_id FROM shop_order_items
-                WHERE type = 'product' AND order_id IN (i:order_id)", array('order_id' => $order_id))->fetchAll(null, true);
+            $sql = "SELECT DISTINCT product_id FROM shop_order_items
+                WHERE type = 'product' AND order_id IN (i:order_id)";
+            $product_ids = $this->query($sql, array('order_id' => $order_id))->fetchAll(null, true);
         }
         $sql = "SELECT oi.product_id AS id, SUM(oi.price * o.rate * oi.quantity) total_sales FROM ".$this->table." o JOIN shop_order_items oi
                 ON o.id = oi.order_id AND oi.type = 'product'
@@ -593,7 +558,7 @@ class shopOrderModel extends waModel
                 ORDER BY oi.product_id";
         if ($order_id === null) {
             $sql = "UPDATE `shop_product` p JOIN ($sql) r ON p.id = r.id SET p.total_sales = r.total_sales";
-        } else if ($product_ids) {
+        } elseif ($product_ids) {
             $sql = "UPDATE `shop_product` p JOIN ($sql) r ON p.id = r.id
                 SET p.total_sales = r.total_sales
                 WHERE p.id IN(".implode(',', $product_ids).")";
@@ -629,7 +594,7 @@ class shopOrderModel extends waModel
         $data = array();
         foreach ($this->query($sql, array('product_id' => $product_id))->fetch() as $key => $value) {
             if (!is_numeric($key)) {
-                $data[$key] = (int) $value;
+                $data[$key] = (int)$value;
             }
         }
 
@@ -640,11 +605,12 @@ class shopOrderModel extends waModel
 
     public function getSalesByProduct($product_id, $start_date)
     {
-        $product_id = (int) $product_id;
+        $product_id = (int)$product_id;
 
         $order_subtotal = '(o.total+o.discount-o.tax-o.shipping)';
         $sql = "SELECT
             o.paid_date AS date,
+            SUM(oi.quantity) AS quantity,
             SUM(oi.price*o.rate*oi.quantity) AS subtotal_sales,
             SUM(IF({$order_subtotal} <= 0, 0, oi.price*o.rate*oi.quantity*o.discount / {$order_subtotal})) AS discount,
             SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, IFNULL(ps.purchase_price*pcur.rate, 0))*oi.quantity) AS purchase
@@ -661,10 +627,10 @@ class shopOrderModel extends waModel
             GROUP BY o.paid_date";
 
         $result = $this->query($sql, array(
-                'product_id' => $product_id,
-                'start_date' => $start_date
+            'product_id' => $product_id,
+            'start_date' => $start_date
         ))->fetchAll('date');
-        foreach($result as  &$row) {
+        foreach ($result as &$row) {
             $row['sales'] = $row['subtotal_sales'] - $row['discount'];
         }
         return $result;
@@ -757,7 +723,7 @@ class shopOrderModel extends waModel
         return $result ? $result : array();
     }
 
-    public function autocompleteById($q, $limit, $full=false)
+    public function autocompleteById($q, $limit, $full = false)
     {
         $q = $this->escape($q, 'like');
         if ($full) {
@@ -781,9 +747,10 @@ class shopOrderModel extends waModel
         if ($cache->isCached()) {
             return $cache->get();
         }
-        $result = $this->query("SELECT MIN(create_datetime)
-                                FROM shop_order
-                                WHERE create_datetime > '0000-00-00 00:00:00'")->fetchField();
+        $sql = "SELECT MIN(create_datetime)
+        FROM shop_order
+        WHERE create_datetime > '0000-00-00 00:00:00'";
+        $result = $this->query($sql)->fetchField();
         if ($result) {
             $cache->set($result);
             return $result;
@@ -800,7 +767,6 @@ class shopOrderModel extends waModel
         if ($paid_only) {
             $sql .= "AND paid_date IS NOT NULL";
         }
-        return (float) $this->query($sql, array('cid' => $contact_id))->fetchField();
+        return (float)$this->query($sql, array('cid' => $contact_id))->fetchField();
     }
 }
-

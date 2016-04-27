@@ -52,7 +52,7 @@ class shopOrderLogModel extends waModel
         return $data;
     }
 
-    public function getPreviousState($order_id, &$params=null)
+    public function getPreviousState($order_id, &$params = null)
     {
         $sql = "SELECT id, before_state_id FROM ".$this->table." WHERE order_id = i:id AND
             before_state_id != after_state_id

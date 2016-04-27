@@ -123,8 +123,22 @@
     </li>
 {/function}
 
+{function name='sku_stocks_select' sku=[] item=[] stocks=[]}
+    <select name="stock[edit][{$item.id}]" class="s-orders-sku-stock-select">
+        {if empty($sku.stock[$item.stock_id])}
+            <option value="0"></option>
+        {/if}
+        {foreach $stocks as $stock_id => $stock}
+            <option value="{$stock_id}"
+                data-icon="{$sku.icons[$stock_id]}"
+                {if $stock_id == $item.stock_id}selected="selected"{/if}>
+                    @{$stock.name|escape} ({$sku.count_htmls[$stock_id]})
+            </option>
+        {/foreach}
+    </select>
+{/function}
+
 {function name="product_item"}
-    {$product_sku = null}
     <tr data-product-id="{$product.id}" data-index="{$index}" class="s-order-item">
         <td class="min-width valign-top">
             {if $product.url_crop_small}
@@ -157,13 +171,9 @@
                 {if count($product.skus) > 1}
                     <ul class="menu-v compact small s-orders-skus">
                         {foreach $product.skus as $sku_id => $sku}
-                            {if $product.item.sku_id == $sku_id}
-                                {$product_sku = $sku}
-                            {/if}
                             <li><label>
                                 <input type="radio" name="sku[edit][{$product.item.id}]" value="{$sku_id}"
-                                    {if $product.item.sku_id == $sku_id}checked="checked"{/if}
-                                >
+                                    {if $product.item.sku_id == $sku_id}checked="checked"{/if}>
                                 {$sku.name}
                                 {if $sku.sku}<span class="gray">{$sku.sku}</span>{/if}
                                 <strong>{$sku.price_html}</strong>
@@ -171,22 +181,31 @@
                                     {$sku.icon}
                                 </span>
                                 <span class="s-orders-stock-icon" style="display:none;"></span>
+                                <div class="s-orders-sku-stock-place">
+                                    {if $product.item.sku_id == $sku_id && !empty($sku.stock)}
+                                        {sku_stocks_select sku=$sku item=$product.item stocks=$stocks}
+                                    {/if}
+                                </div>
                             </label></li>
                         {/foreach}
                     </ul>
                 {else}
-                    {$product_sku = $product.skus[$product.item.sku_id]}
-                    {if $product_sku && empty($product_sku.fake) && !empty($product_sku.sku)}
-                        <span class="hint">{$product_sku.sku}</span>
+                    {$sku = $product.skus[$product.item.sku_id]}
+                    {if $sku && empty($sku.fake) && !empty($sku.sku)}
+                        <span class="hint">{$sku.sku}</span>
                     {/if}
+                    <div class="s-orders-sku-stock-place">
+                        {sku_stocks_select sku=$sku item=$product.item stocks=$stocks}
+                    </div>
                     {if !empty($product.fake)}
                         <p><input type="text" name="name[edit][{$product.item.id}]" value="{$product.item.name}" class="small"></p>
-                    {else if !empty($product_sku.fake)}
+                    {elseif !empty($sku.fake)}
                         <p class="small red">
-                            <i class="icon10 exclamation"></i> <span>{sprintf(_w('SKU %s no longer exists for this product'), $product_sku['name'])}</span>
+                            <i class="icon10 exclamation"></i> <span>{sprintf(_w('SKU %s no longer exists for this product'), $sku['name'])}</span>
                         </p>
                         <input type="hidden" name="name[edit][{$product.item.id}]" value="{$product.item.name}" class="small">
                     {/if}
+
                     <input type="hidden" name="sku[edit][{$product.item.id}]"   value="{$product.item.sku_id}">
                 {/if}
             </p>
@@ -206,30 +225,6 @@
                    value="{$product.item.quantity}"
                    class="s-orders-quantity short numerical"
             >
-        </td>
-        <td class="valign-top align-right nowrap s-orders-product-stocks">
-
-            {if $product_sku && !empty($product_sku.stock)}
-
-                @ <select name="stock[edit][{$product.item.id}]" class="s-orders-stock">
-                    {if empty($product_sku.stock[$product.item.stock_id])}
-                        <option value="0"></option>
-                    {/if}
-                    {foreach $stocks as $stock_id => $stock}
-                        {$selected = $stock_id == $product.item.stock_id}
-                        <option value="{$stock_id}" data-icon="{$product_sku.icons[$stock_id]}"
-                                        {if $selected}selected="selected"{/if}
-                                      >
-                            {$stock.name|escape}
-                        </option>
-                    {/foreach}
-                </select>
-
-                <em class="errormsg s-error-item-stock_id"></em>
-            {else}
-                <input type="hidden" name="stock[edit][{$product.item.id}]" value="0">
-            {/if}
-
         </td>
         <td class="valign-top s-orders-product-price nowrap align-right">
             <input type="text" name="price[edit][{$product.item.id}]" value="{$product.item.price}" class="short numerical"><span style="padding-top: 2px;">{$currency}</span>
@@ -281,14 +276,14 @@
                 <!-- add product -->
                 <tr class="white" id="s-orders-add-row">
                     <td class="min-width align-center"><i class="icon16 add"></i></td>
-                    <td colspan="5" style="width: 100%;">
+                    <td colspan="4" style="width: 100%;">
                         <input id="orders-add-autocomplete" type="search" class="search bold large long" placeholder="[`Type product or SKU name`]">
                     </td>
                 </tr>
                 <!-- subtotal -->
                 <tr class="white large">
                     <td class="min-width"></td>
-                    <td class="align-right" colspan="3">
+                    <td class="align-right" colspan="2">
                         [`Subtotal`]
                     </td>
                     <td class="align-right nowrap">
@@ -301,7 +296,7 @@
                 <!-- shipping -->
                 <tr class="white">
                     <td class="min-width"></td>
-                    <td class="align-right" colspan="3">
+                    <td class="align-right" colspan="2">
                         <div class="s-order-aux-box">
                             [`Shipping`]
                             <select id="shipping_methods" name="shipping_id" style="max-width: 250px;">
@@ -317,13 +312,13 @@
                         <input type="text" name="shipping" class="numerical short" id="shipping-rate" {if $order}value="{(float)$order.shipping}"{/if}>
                         <span class="currency">{$currency}</span>
                     </td>
-                    <td></td>
+                    <td colspan="2"></td>
                 </tr>
 
                 <!-- payment -->
                 <tr class="white">
                     <td class="min-width"></td>
-                    <td class="align-right nowrap" colspan="3">
+                    <td class="align-right nowrap" colspan="2">
                         <div class="s-order-aux-box">
                         [`Payment`]
                         {$payment_methods = shopHelper::getPaymentMethods($order)}
@@ -344,7 +339,7 @@
                 </tr>
                 <tr class="white">
                     <td class="min-width"></td>
-                    <td class="align-right" colspan="3">
+                    <td class="align-right" colspan="2">
                         <i class="icon16 info" style="display:none;" id="discount-tooltip-icon"></i>
                         [`Discount`]
                     </td>
@@ -361,7 +356,7 @@
                 <!-- total -->
                 <tr class="white large">
                     <td class="min-width"></td>
-                    <td class="align-right large" colspan="3">[`Total`]</td>
+                    <td class="align-right large" colspan="2">[`Total`]</td>
                     <td class="align-right large bold nowrap">
                         <span id="total"></span>
                         <span class="currency">{$currency}</span>
@@ -370,7 +365,7 @@
                 </tr>
 
                 <tr class="white large">
-                    <td colspan="4" class="align-right">
+                    <td colspan="3" class="align-right">
                         {if !empty($taxes_count)}
                         <em class="hint">[`Tax will be calculated after the order is saved.`]</em>
                         {/if}

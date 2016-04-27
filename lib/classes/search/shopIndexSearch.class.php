@@ -88,7 +88,7 @@ class shopIndexSearch extends shopSearch
                     $this->addToIndex($index, $sku['sku'], 'sku', false, true);
                 }
                 if ($sku['name']) {
-                    $this->addToIndex($index, $sku['name'], false, true, true);
+                    $this->addToIndex($index, $sku['name'], 'sku', true, true);
                 }
             }
         }

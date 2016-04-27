@@ -14,11 +14,11 @@ class shopWorkflowProcessAction extends shopWorkflowAction
                 $data['before_state_id'] == 'refunded') {
                 // for logging changes in stocks
                 shopProductStocksLogModel::setContext(
-                        shopProductStocksLogModel::TYPE_ORDER,
-                        'Order %s was processed',
-                        array(
-                            'order_id' => $order_id
-                        )
+                    shopProductStocksLogModel::TYPE_ORDER,
+                    'Order %s was processed',
+                    array(
+                        'order_id' => $order_id
+                    )
                 );
                 
                 $order_model = new shopOrderModel();

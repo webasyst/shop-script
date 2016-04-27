@@ -9,10 +9,17 @@
 
 <form action="?module=promos&action=editor" enctype="multipart/form-data" target="promos-editor-target" method="post">
 <div class="fields form">
+  <div class="field-group">
     <input type="hidden" name="id" value="{$p.id}">
     <div class="field">
+        <div class="name">[`Enabled`]</div>
+        <div class="value no-shift">
+            <input type="checkbox" name="promo[enabled]" value="1" {if $p.enabled}checked="checked"{/if}>
+        </div>
+    </div>
+    <div class="field">
         <div class="name">[`Promo title`]</div>
-        <div class="value"><input type="text" name="promo[title]" value="{$p.title|escape}" class="bold large"></div>
+        <div class="value"><input type="text" name="promo[title]" value="{$p.title|escape}" class="bold large long"></div>
     </div>
     <div class="field">
         <div class="name">[`Promo subtitle`]</div>
@@ -22,6 +29,8 @@
         <div class="name">[`Link`]</div>
         <div class="value"><input type="text" name="promo[link]" value="{$p.link|escape}" class="long" placeholder="http://"></div>
     </div>
+  </div>
+  <div class="field-group">
     <div class="field">
         <div class="name">[`Image`]</div>
         <div class="value image-field">
@@ -37,14 +46,58 @@
         </div>
     </div>
     <div class="field">
-        <div class="name">[`Color`]</div>
+        <div class="name">[`Text color`]</div>
         <div class="value">
-            <input type="text" name="promo[color]" value="{$p.color|escape}" class="short">
+            <input type="text" name="promo[color]" value="{$p.color|default:'#ffffff'|escape}" class="short">
             <i class="icon16 color" style="cursor:pointer;"></i>
             <div class="js-colorpicker"></div>
-            <p class="hint">[`Design theme will use this color either for text labels or base background color.`]</p>
         </div>
     </div>
+    <div class="field">
+        <div class="name">[`Background color`]</div>
+        <div class="value">
+            <input type="text" name="promo[background_color]" value="{$p.background_color|default:'#aaaaaa'|escape}" class="short">
+            <i class="icon16 color" style="cursor:pointer;"></i>
+            <div class="js-colorpicker"></div>
+            <p class="hint">[`Default background color below the promo image.`]</p>
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">[`Timer`]</div>
+        <div class="value no-shift">
+            <label>
+                <input type="checkbox" class="s-countdown-on" value="1" {if !empty($p.countdown_datetime)}checked="checked"{/if}>
+                [`Enable countdown`]
+            </label>
+            <div style="margin-top: 10px; {if empty($p.countdown_datetime)}display: none;{/if}" class="s-countdown-datetime-block">
+                <i class="icon16 clock"></i>
+                <input type="input" class="s-countdown-datetime-date-input"
+                       name="promo[countdown_datetime][date]"
+                       size="8"
+                       maxlenth="10"
+                       autocomplete="off"
+                       value="{if !empty($p.countdown_datetime)}{$p.countdown_datetime|wa_date}{/if}">
+                <input type="input" class="s-countdown-datetime-hour-input"
+                       name="promo[countdown_datetime][hour]"
+                       size="2"
+                       maxlength="2"
+                       autocomplete="off"
+                       value="{if !empty($p.countdown_datetime)}{$p.countdown_datetime|wa_datetime:'H'}{else}23{/if}">
+                <span>:</span>
+                <input type="input" class="s-countdown-datetime-minute-input"
+                       name="promo[countdown_datetime][minute]"
+                       size="2"
+                       maxlength="2"
+                       autocomplete="off"
+                       value="{if !empty($p.countdown_datetime)}{$p.countdown_datetime|wa_datetime:'i'}{else}59{/if}">
+                <div>
+                    <span class="hint">(<span class="s-countdown-user-date-format"><!-- format placeholder --></span> [`format`], [`current time is`] <span class="s-countdown-current-user-time">{time()|wa_date:'time'}</span>)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+  <div class="field-group">
     <div class="storefronts field">
         <div class="name">[`Storefronts`]</div>
         {foreach $storefronts as $s}{if !empty($s.active)}
@@ -57,6 +110,7 @@
     <div class="field">
         <div class="value place-for-other-errors"></div>
     </div>
+  </div>
 </div>
 </form>
 <iframe name="promos-editor-target" style="display:none"></iframe>
@@ -112,8 +166,12 @@
         var $button = $(this);
         $button.parent().append('<i class="icon16 loading"></i>');
         $.post($form.attr('action'), $form.serialize(), function(r) {
-            $buttons.closest('.dialog-buttons-gradient').empty();
-            $form.closest('.dialog-content-indent').html(r);
+            {if $wa->get('disabled')}
+                $.products.dispatch();
+            {else}
+                $buttons.closest('.dialog-buttons-gradient').empty();
+                $form.closest('.dialog-content-indent').html(r);
+            {/if}
         });
         return false;
     });
@@ -181,32 +239,51 @@
           url: "{$wa_url}wa-content/js/farbtastic/farbtastic.js?{$wa->version(true)}",
           cache: true
     }).done(function() {
-        var $colorpicker_wrapper = $form.find('.js-colorpicker').hide();
-        var $icon = $colorpicker_wrapper.closest('.value').find('i.icon16.color');
-        var $input = $colorpicker_wrapper.closest('.value').find(':input');
+        $form.find('.js-colorpicker').each(function () {
+            var $colorpicker_wrapper = $(this).hide();
+            var $icon = $colorpicker_wrapper.closest('.value').find('i.icon16.color');
+            var $input = $colorpicker_wrapper.closest('.value').find(':input');
 
-        var farbtastic = $.farbtastic($colorpicker_wrapper, setColor);
-        farbtastic.widgetCoords = function (event) {
-            var offset = $(farbtastic.wheel).offset();
-            return { x: (event.pageX - offset.left) - farbtastic.width / 2, y: (event.pageY - offset.top) - farbtastic.width / 2 };
-        };
+            var farbtastic = $.farbtastic($colorpicker_wrapper, setColor);
+            farbtastic.widgetCoords = function (event) {
+                var offset = $(farbtastic.wheel).offset();
+                return { x: (event.pageX - offset.left) - farbtastic.width / 2, y: (event.pageY - offset.top) - farbtastic.width / 2 };
+            };
 
-        $icon.css('cursor', 'pointer').click(function() {
-            $colorpicker_wrapper.slideToggle();
+            $icon.css('cursor', 'pointer').click(function() {
+                $colorpicker_wrapper.slideToggle();
+            });
+
+            setColor($input.val() || '#ffffff');
+
+            $input.on('change keyup', function() {
+                $icon.css('background', $input.val());
+                farbtastic.setColor($input.val());
+            });
+
+            function setColor(color) {
+                $icon.css('background', color);
+                farbtastic.setColor(color);
+                $input.val(color);
+            }
         });
-
-        setColor($input.val() || '#ffffff');
-
-        $input.on('change keyup', function() {
-            $icon.css('background', $input.val());
-            farbtastic.setColor($input.val());
-        });
-
-        function setColor(color) {
-            $icon.css('background', color);
-            farbtastic.setColor(color);
-            $input.val(color);
-        }
     });
+
+    // countdown datetime
+    (function() { 'use strict';
+        $('.s-countdown-on', $dialog).change(function () {
+            var $this = $(this);
+            if ($this.is(':checked')) {
+                $('.s-countdown-datetime-block', $dialog).show().find(':input').attr('disabled', false);
+            } else {
+                $('.s-countdown-datetime-block', $dialog).hide().find(':input').attr('disabled', true);
+            }
+        }).trigger('change');
+        $('.s-countdown-datetime-date-input', $dialog).datepicker({
+            gotoCurrent: true,
+            minDate: new Date()
+        });
+        $('.s-countdown-user-date-format', $dialog).text($.datepicker._defaults.dateFormat.toUpperCase().replace('YY', 'YYYY'));
+    })();
 
 });</script>

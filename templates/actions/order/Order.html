@@ -9,462 +9,483 @@
 
 {else}
 
-    <div class="block double-padded s-order">
-        <div class="float-right s-order-aux">
+    <div class="s-order">
+        {if !empty($actions_html)}
+            {foreach $actions_html as $h}
+                {$h}
+            {/foreach}
+        {/if}
 
-            {if $order.paid_date}
-                <div class="s-paid-order-stamp" title="{sprintf('[`Order was paid on %s`]', $order.paid_date|wa_date:'humandate')}"><div class="s-stamp-inner"></div><span>[`Paid`]</span></div>
-            {/if}
+        <div class="s-split-order-wrapper block double-padded" id="s-split-order-wrapper">
 
-            <div class="block half-padded s-printable-print-button align-center">
-                <input type="button" value="[`Print`]" onClick="window.print();">
-            </div>
+            <div class="float-right s-order-aux ">
 
-            <!-- order action links -->
-            <ul class="menu-v with-icons compact workflow-actions">
-                <li><a href="#" target="_blank" class="js-print" data-selector="div.s-order"><i class="icon16 print"></i>[`Printable version`]</a></li>
-                {foreach $top_buttons as $b}
-                    <li>{$b}</li>
-                {/foreach}
-
-                <!-- plugin hook: 'backend_order.action_link' -->
-                {* @event backend_order.%plugin_id%.action_link *}
-                {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.action_link))}<li>{$_.action_link}</li>{/if}{/foreach}{/if}
-
-            </ul>
-            <div class="workflow-content"></div>
-
-            <!-- printable docs -->
-            {if count($printable_docs)}
-            <br>
-            <ul class="menu-v js-printable-docs">
-                {foreach $printable_docs as $plugin_id => $printable_doc}
-                    <li>
-                        <label>
-                            <input type="checkbox" checked="true" value="{$printable_doc.url|escape}" data-name="{$plugin_id}" data-target="_printform_{$plugin_id}_{$order.id}">
-                            {$printable_doc.name|escape}
-                            {if !empty($printable_doc.mail_url)}
-                                <a href="#" class="inline js-printable-docs-send" data-order-id="{$order.id}" data-url="{$printable_doc.mail_url|escape}" title="[`Email this form to customer`]"><i class="icon16 email on-hover-only"></i></a>
-                            {/if}
-                        </label>
-                    </li>
-                {/foreach}
-            </ul>
-            <input type="button" value="[`Print`]" class="js-printable-docs">
-            <br><br>
-            {/if}
-
-            <!-- order aux info -->
-            <p class="gray">
-                [`Order created`]: <strong>{$order.create_datetime|wa_datetime:"humandatetime"}</strong><br>
-                {if !empty($order.params.referer)}[`Referrer`]: <strong><a href="{$order.params.referer}" target="_blank" style="color: #03c;">{$order.params.referer|truncate:42}</a></strong><br>{/if}
-                {if !empty($order.params.utm_campaign)}[`UTM campaign`]: <strong>{$order.params.utm_campaign}</strong><br>{/if}
-                {if !empty($order.params.storefront)}[`Storefront`]: <strong>{$order.params.storefront}</strong><br>{/if}
-                {if !empty($order.params.keyword)}[`Keyword`]: <strong>{$order.params.keyword}</strong><br>{/if}
-                {if !empty($order.params.ip)}[`IP`]: <strong>{$order.params.ip}</strong><br>{/if}
-
-                <!-- plugin hook: 'backend_order.aux_info' -->
-                {* @event backend_order.%plugin_id%.aux_info *}
-                {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.aux_info))}{$_.aux_info}<br>{/if}{/foreach}{/if}
-            </p>
-
-        </div>
-
-        <!-- order title -->
-        <h1 id="s-order-title">
-            <a href="#/orders/{if $filter_params_str}{$filter_params_str}&view=table/{/if}" class="back order-list" style="display:none;">&larr; [`Orders`]</a>
-            <a href="#/order/{$order.id}/{if $filter_params_str}{$filter_params_str}/{/if}" class="back read-mode" style="display:none;">&larr; [`Back`]</a>
-
-            {$wa->shop->orderId($order.id)}
-            <i class="icon16 loading" style="display:none"></i>
-
-            <!-- plugin hook: 'backend_order.title_suffix' -->
-            {* @event backend_order.%plugin_id%.title_suffix *}
-            {if !empty($backend_order)}{foreach $backend_order as $_}{ifset($_.title_suffix)}{/foreach}{/if}
-
-            {if $order.state}
-                <span class="small" style="font-size: 16px; margin-left: 10px; position: relative; top: -2px; {$order.state->getStyle()}">
-                    <i class="{$order.state->getOption('icon')}" style="margin-top: 11px;"></i><span style="margin-right: 10px;">{$order.state->getName()|escape}</span>
-                    {if $last_action_datetime}
-                        <em class="hint nowrap">{$last_action_datetime|wa_datetime:'humandatetime'}</em>
-                        <em class="hint nowrap s-print-only">{$last_action_datetime|wa_datetime:'datetime'}</em>
-                    {/if}
-                </span>
-            {else}
-                [`Unknown state`]: {$order.state_id}
-            {/if}
-
-        </h1>
-
-        <!-- order action buttons -->
-        <div class="block not-padded s-order-readable">
-            <ul class="menu-h s-order-actions workflow-actions">
-                {foreach $buttons as $b}
-                    <li>{$b}</li>
-                {/foreach}
-
-                <!-- plugin hook: 'backend_order.action_button' -->
-                {* @event backend_order.%plugin_id%.action_button *}
-                {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.action_button))}<li>{$_.action_button}</li>{/if}{/foreach}{/if}
-            </ul>
-            <div class="workflow-content" id="workflow-content"></div>
-        </div>
-
-        <!-- customer info -->
-        <div class="profile image50px">
-            <div class="image">
-                <a href="?action=customers#/id/{$order.contact.id}"><img src="{$order.contact.photo_50x50}" class="userpic" /></a>
-            </div>
-            <div class="details">
-                {$customers_rights = $wa->userRights('customers')}
-                <h3>
-                    {if $customers_rights}<a href="?action=customers#/id/{$order.contact.id}">{/if}{$order.contact.name}{if $customers_rights}</a>{/if}
-                    {if $order.contact.registered|default:false}
-                        <i class="icon10 lock" title="[`Registered customer`]"></i>
-                    {/if}
-                    {if $customer.number_of_orders == 1}
-                        <em class="hint">[`New customer`]</em>
-                    {else}
-                        <em class="hint">{_w('%d order', '%d orders', $customer.number_of_orders)}</em>
-                    {/if}
-                </h3>
-                {if $main_contact_info}
-                    <ul class="menu-v with-icons compact">
-                        {foreach $main_contact_info as $top_field}
-                            <li>{if $top_field.id != 'im'}<i class="icon16 {$top_field.id}"></i>{/if}{$top_field.value}
-                                {if $top_field.id == 'email' && !empty($similar_contacts.email.count)}
-                                <span class="similar hint">
-                                    {if $customers_rights}<a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer', '%d more customers', $similar_contacts.email.count)}{if $customers_rights}</a>{/if} [`with same email found`]
-                                </span>
-                                {elseif $top_field.id == 'phone' && !empty($similar_contacts.phone.count)}
-                                <span class="similar hint">
-                                    {if $customers_rights}<a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer', '%d more customers', $similar_contacts.phone.count)}{if $customers_rights}</a>{/if} [`with same phone found`]
-                                </span>
-                                {/if}
-                            </li>
-                        {/foreach}
-                    </ul>
+                {if !empty($order.paid_date)}
+                    <div class="s-paid-order-stamp" title="{sprintf('[`Order was paid on %s`]', $order.paid_date|wa_date:'humandate')}"><div class="s-stamp-inner"></div><span>[`Paid`]</span></div>
                 {/if}
+
+                <div class="block half-padded s-printable-print-button align-center">
+                    <input type="button" value="[`Print`]" onClick="window.print();">
+                </div>
+
+                <!-- order action links -->
+                <ul class="menu-v with-icons compact workflow-actions">
+                    <li><a href="#" target="_blank" class="js-print" data-selector="div.s-order"><i class="icon16 print"></i>[`Printable version`]</a></li>
+                    {foreach $top_buttons as $b}
+                        <li>{$b}</li>
+                    {/foreach}
+
+                    <!-- plugin hook: 'backend_order.action_link' -->
+                    {* @event backend_order.%plugin_id%.action_link *}
+                    {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.action_link))}<li>{$_.action_link}</li>{/if}{/foreach}{/if}
+
+                </ul>
+                <div class="workflow-content"></div>
+
+                <!-- printable docs -->
+                {if count($printable_docs)}
+                <br>
+                <ul class="menu-v js-printable-docs">
+                    {foreach $printable_docs as $plugin_id => $printable_doc}
+                        <li>
+                            <label>
+                                <input type="checkbox" checked="true" value="{$printable_doc.url|escape}" data-name="{$plugin_id}" data-target="_printform_{$plugin_id}_{$order.id}">
+                                {$printable_doc.name|escape}
+                                {if !empty($printable_doc.mail_url)}
+                                    <a href="#" class="inline js-printable-docs-send" data-order-id="{$order.id}" data-url="{$printable_doc.mail_url|escape}" title="[`Email this form to customer`]"><i class="icon16 email on-hover-only"></i></a>
+                                {/if}
+                            </label>
+                        </li>
+                    {/foreach}
+                </ul>
+                <input type="button" value="[`Print`]" class="js-printable-docs">
+                <br><br>
+                {/if}
+
+                <!-- order aux info -->
+                <p class="gray">
+                    [`Order created`]: <strong>{$order.create_datetime|wa_datetime:"humandatetime"}</strong><br>
+                    {if !empty($order.params.referer)}[`Referrer`]: <strong><a href="{$order.params.referer}" target="_blank" style="color: #03c;">{$order.params.referer|truncate:42}</a></strong><br>{/if}
+                    {if !empty($order.params.utm_campaign)}[`UTM campaign`]: <strong>{$order.params.utm_campaign}</strong><br>{/if}
+                    {if !empty($order.params.storefront)}[`Storefront`]: <strong>{$order.params.storefront}</strong><br>{/if}
+                    {if !empty($order.params.keyword)}[`Keyword`]: <strong>{$order.params.keyword}</strong><br>{/if}
+                    {if !empty($order.params.ip)}[`IP`]: <strong>{$order.params.ip}</strong><br>{/if}
+
+                    <!-- plugin hook: 'backend_order.aux_info' -->
+                    {* @event backend_order.%plugin_id%.aux_info *}
+                    {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.aux_info))}{$_.aux_info}<br>{/if}{/foreach}{/if}
+                </p>
+
             </div>
-        </div>
 
-        <!-- plugin hook: 'backend_order.info_section' -->
-        {* @event backend_order.%plugin_id%.info_section *}
-        {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.info_section))}{$_.info_section}{/if}{/foreach}{/if}
 
-        <div class="clear-right"></div>
+            <!-- order title -->
+            <h1 id="s-order-title">
+                <a href="#/orders/{if $filter_params_str}{$filter_params_str}&view=table/{/if}" class="back order-list" style="display:none;">&larr; [`Orders`]</a>
+                <a href="#/order/{$order.id}/{if $filter_params_str}{$filter_params_str}/{/if}" class="back read-mode" style="display:none;">&larr; [`Back`]</a>
 
-        <!-- order comment -->
-        {if $order.comment}
-            <pre class="block double-padded s-order-comment">{$order.comment|escape}</pre>
-        {/if}
+                {$wa->shop->orderId($order.id)}
+                <i class="icon16 loading" style="display:none"></i>
 
-        {if $shipping_address}
+                <!-- plugin hook: 'backend_order.title_suffix' -->
+                {* @event backend_order.%plugin_id%.title_suffix *}
+                {if !empty($backend_order)}{foreach $backend_order as $_}{ifset($_.title_suffix)}{/foreach}{/if}
 
-        <!-- order shipping & billing addresses -->
-        <div class="float-right s-order-aux">
-            {$map}
-        </div>
-        {/if}
+                {if $order.state}
+                    <span class="small" style="font-size: 16px; margin-left: 10px; position: relative; top: -2px; {$order.state->getStyle()}">
+                        <i class="{$order.state->getOption('icon')}" style="margin-top: 9px;"></i><span style="margin-right: 10px;">{$order.state->getName()|escape}</span>
+                        {if $last_action_datetime}
+                            <em class="hint nowrap">{$last_action_datetime|wa_datetime:'humandatetime'}</em>
+                            <em class="hint nowrap s-print-only">{$last_action_datetime|wa_datetime:'datetime'}</em>
+                        {/if}
+                    </span>
+                {else}
+                    [`Unknown state`]: {$order.state_id}
+                {/if}
 
-        <h3><span class="gray">[`Shipping`]{if !empty($params.shipping_name)} &mdash;{/if}</span> <strong>{ifset($params.shipping_name)}</strong></h3>
-        {if $shipping_address !== null}
-            <p class="s-order-address">
-                {$shipping_address}
-            </p>
-            {if !empty($custom_fields)}
-                <p>
-                    {foreach $custom_fields as $f}
-                        {$f.title}: {$f.value}<br>
+            </h1>
+
+            <!-- order action buttons -->
+            <div class="block not-padded s-order-readable">
+                <ul class="menu-h s-order-actions workflow-actions">
+                    {foreach $buttons as $b}
+                        <li>{$b}</li>
+                    {/foreach}
+
+                    <!-- plugin hook: 'backend_order.action_button' -->
+                    {* @event backend_order.%plugin_id%.action_button *}
+                    {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.action_button))}<li>{$_.action_button}</li>{/if}{/foreach}{/if}
+                </ul>
+                <div class="workflow-content" id="workflow-content"></div>
+            </div>
+
+            <!-- customer info -->
+            <div class="profile image50px">
+                <div class="image">
+                    <a href="?action=customers#/id/{$order.contact.id|default:'0'}"><img src="{$order.contact.photo_50x50}" class="userpic" /></a>
+                </div>
+                <div class="details">
+                    {$customers_rights = $wa->userRights('customers')}
+                    <h3>
+                        {if $customers_rights}<a href="?action=customers#/id/{$order.contact.id|default:'0'}" {if !$order.contact.name} class="gray"{/if}>{/if}{$order.contact.name|default:'[`(no name)`]'}{if $customers_rights}</a>{/if}
+                        {if $order.contact.registered|default:false}
+                            <i class="icon10 lock" title="[`Registered customer`]"></i>
+                        {/if}
+                        {if $customer.number_of_orders == 1}
+                            <em class="hint">[`New customer`]</em>
+                        {else}
+                            <em class="hint">{_w('%d order', '%d orders', $customer.number_of_orders)}</em>
+                        {/if}
+                    </h3>
+                    {if $main_contact_info}
+                        <ul class="menu-v with-icons compact">
+                            {foreach $main_contact_info as $top_field}
+                                <li>{if $top_field.id != 'im'}<i class="icon16 {$top_field.id}"></i>{/if}{$top_field.value}
+                                    {if $top_field.id == 'email' && !empty($similar_contacts.email.count)}
+                                    <span class="similar hint">
+                                        {if $customers_rights}<a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer', '%d more customers', $similar_contacts.email.count)}{if $customers_rights}</a>{/if} [`with same email found`]
+                                    </span>
+                                    {elseif $top_field.id == 'phone' && !empty($similar_contacts.phone.count)}
+                                    <span class="similar hint">
+                                        {if $customers_rights}<a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer', '%d more customers', $similar_contacts.phone.count)}{if $customers_rights}</a>{/if} [`with same phone found`]
+                                    </span>
+                                    {/if}
+                                </li>
+                            {/foreach}
+                        </ul>
+                    {/if}
+                </div>
+            </div>
+
+            <!-- plugin hook: 'backend_order.info_section' -->
+            {* @event backend_order.%plugin_id%.info_section *}
+            {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.info_section))}{$_.info_section}{/if}{/foreach}{/if}
+
+            <div class="clear-right"></div>
+
+            <!-- order comment -->
+            {if $order.comment}
+                <pre class="block double-padded s-order-comment">{$order.comment|escape}</pre>
+            {/if}
+
+            {if $shipping_address}
+
+            <!-- order shipping & billing addresses -->
+            <div class="float-right s-order-aux">
+                {$map}
+            </div>
+            {/if}
+
+            {if ($shipping_address) || !empty($params.shipping_name)}
+            <h3><span class="gray">[`Shipping`]{if !empty($params.shipping_name)} —{/if}</span> <strong>{ifset($params.shipping_name)}</strong></h3>
+            {if $shipping_address}
+                <p class="s-order-address">
+                    {$shipping_address}
+                </p>
+                {if !empty($custom_fields)}
+                    <p>
+                        {foreach $custom_fields as $f}
+                            {$f.title}: {$f.value}<br>
+                        {/foreach}
+                    </p>
+                {/if}
+                <!-- shipping plugin output -->
+                {if !empty($params.tracking_number)}
+                    <h3><span class="gray">[`Shipment tracking number`] —</span> <strong class="highlighted">{$params.tracking_number}</strong></h3>
+                {/if}
+                {if !empty($tracking) && $order.state_id != 'completed'}
+                    <blockquote class="plugin s-tracking">
+                        {$tracking}
+                    </blockquote>
+                {/if}
+            {/if}
+            {/if}
+
+            {if !empty($params.payment_name)}
+                <h3><span class="gray">[`Payment`] —</span> <strong>{$params.payment_name}</strong></h3>
+                {if $billing_address !== null}
+                    <p class="s-order-address">
+                        {$billing_address}
+                    </p>
+                {/if}
+            {/if}
+
+            <div class="clear-right"></div>
+
+            <!-- order content -->
+
+            <table id="s-order-items" class="light s-order-readable">
+                {if $order.items}
+                <tr>
+                    <th colspan="2"></th>
+                    <th class="align-right">[`Qty`]</th>
+                    <th class="align-right">[`Total`]</th>
+                </tr>
+
+                {$subtotal = 0}
+                {foreach $order.items as $item}
+                    <tr data-id="{$item.id}" {if $item.type == 'service'} class="small"{/if}>
+                        <td class="min-width valign-top">
+                            {if $item.type != 'service'}
+                                {if !empty($item.image_id)}
+                                    {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'image_filename' => $item.image_filename, 'ext' => $item.ext], '48x48')}
+                                {else}
+                                    <img src="{$wa_app_static_url}img/image-dummy-small.png" class="not-found" style="width: 48px; height: 48px;">
+                                {/if}
+                            {/if}
+                        </td>
+                        <td>
+                            {if $item.type == 'service'}<span class="gray s-overhanging-plus">+</span> {/if}
+                            <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name}</a>
+                            {if !empty($item.sku_code)}
+                                <span class="hint">{$item.sku_code|escape}</span>
+                            {/if}
+                            {if !empty($item.stock)}
+                                <span class="small">@{$item.stock.name|escape}</span>
+                            {/if}
+                            {if !empty($item.stock_icon)}
+                                {$item.stock_icon}
+                            {/if}
+                        </td>
+                        <td class="align-right nowrap"><span class="gray">{wa_currency_html($item.price, $order.currency)} &times;</span> {$item.quantity}</td>
+                        <td class="align-right nowrap">{wa_currency_html($item.price * $item.quantity, $order.currency)}</td>
+                    </tr>
+                    {$subtotal = $subtotal + $item.price*$item.quantity}
+                {/foreach}
+                <tr class="no-border">
+                    <td colspan="2"></td>
+                    <td class="align-right"><br>[`Subtotal`]</td>
+                    <td class="align-right nowrap"><br>{wa_currency_html($subtotal, $order.currency)}</td>
+                </tr>
+                {else}
+                    <tr>
+                        <td colspan="4" class="s-empty-order-note">[`Order content is unknown`]</td>
+                    </tr>
+                {/if}
+                <tr class="no-border">
+                    <td colspan="2"></td>
+                    <td class="align-right">
+                        [`Discount`]
+                        {if !empty($order.coupon)}
+                            <a href="#/coupons/{$order.coupon.id|escape}"><i class="icon16 ss coupon"></i><strong>{$order.coupon.code|escape}</strong></a>
+                        {/if}
+                    </td>
+                    <td class="align-right nowrap">&minus; {wa_currency_html($order.discount, $order.currency)}</td>
+                </tr>
+                {if isset($params.shipping_name) || $order.shipping > 0}
+                <tr class="no-border">
+                    <td colspan="2"></td>
+                    <td class="align-right">[`Shipping`]</td>
+                    <td class="align-right nowrap">{wa_currency_html($order.shipping, $order.currency)}</td>
+                </tr>
+                {/if}
+                <tr class="no-border">
+                    <td colspan="2"></td>
+                    <td class="align-right">[`Tax`]</td>
+                    <td class="align-right nowrap">{wa_currency_html($order.tax, $order.currency)}</td>
+                </tr>
+                <tr class="no-border bold large" style="font-size: 150%;">
+                    <td colspan="2"></td>
+                    <td class="align-right">[`Total`]</td>
+                    <td class="align-right nowrap">{wa_currency_html($order.total, $order.currency)}</td>
+                </tr>
+            </table>
+
+
+            <div id="s-order-items-edit" class="s-order-editable" style="display:none;"></div>
+
+        {*
+
+            <form id="order-edit-form" method="post" action="?module=order&action=save&id={$order.id}" style="display:none;" class="s-order-editable">
+                <div class="sidebar left400px">
+                    <div class="block s-order-edit-customer">
+                        <div class="fields form width100px" id="s-order-customer-edit">
+                            <div class="field-group">
+                            </div>
+                            <input type="hidden" value="0" name="customer_id" id="s-customer-id">
+                        </div>
+                    </div>
+                </div>
+                <div class="content left400px bordered-left">
+                    <table id="s-order-items-edit" class="zebra s-order-items-edit">
+                        <tbody></tbody>
+                        <tbody>
+                            <!-- subtotal -->
+                            <tr class="white large">
+                                <td class="min-width"></td>
+                                <td class="align-right">
+                                    [`Subtotal`]
+                                </td>
+                                <td colspan="2" class="align-right">
+                                    <span id="subtotal"></span>
+                                    <span class="currency">{$currency}</span>
+                                </td>
+                            </tr>
+
+                            <tr class="white">
+                                <td colspan="4"></td>
+                            </tr>
+
+                            <!-- shipping, payment & tax -->
+                            <tr class="white">
+                                <td class="min-width"></td>
+                                <td class="align-right">
+                                    [`Shipping`]
+                                    {$shipping_methods = shopHelper::getShippingMethods(array())}
+                                    <select id="shipping_methods" name="shipping_id">
+                                        <option value=""></option>
+                                        {foreach $shipping_methods as $m_id => $m}
+                                        <option {if $shipping_id == $m_id}selected{/if} data-rate="{$m.rate}" value="{$m_id}">{$m.name}</option>
+                                        {/foreach}
+                                    </select>
+                                </td>
+                                <td colspan="2" class="align-right"><input type="text" name="shipping" class="numerical short" id="shipping-rate" value="{(float)$order.shipping}"></td>
+                            </tr>
+                            <tr class="white">
+                                <td class="min-width"></td>
+                                <td class="align-right">
+                                    [`Payment`]
+                                    {$payment_methods = shopHelper::getPaymentMethods()}
+                                    <select name="payment_id">
+                                        {foreach $payment_methods as $m}
+                                        <option {if !empty($params.payment_id) && $params.payment_id == $m.id}selected{/if} value="{$m.id}">{$m.name}</option>
+                                        {/foreach}
+                                    </select>
+                                </td>
+                                <td colspan="2"></td>
+                            </tr>
+                            <tr class="white">
+                                <td class="min-width"></td>
+                                <td class="align-right">[`Discount`]</td>
+                                <td colspan="2" class="align-right"><input type="text" class="numerical short" id="discount" name="discount" value="{(float)$order.discount}"></td>
+                            </tr>
+
+                            <tr class="white">
+                                <td colspan="4"></td>
+                            </tr>
+
+                            <!-- total -->
+                            <tr class="white large">
+                                <td class="min-width"></td>
+                                <td class="align-right large">[`Total`]</td>
+                                <td colspan="2" class="align-right large bold">
+                                    <span id="total"></span>
+                                    <span class="currency">{$currency}</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tbody>
+                            <tr class="white large">
+                                <td colspan="4" class="align-right large">
+                                    <input type="submit" class="button green" value="[`Save changes`]">
+                                </td>
+                            </tr>
+                            <tr class="gray highlighted template-deleted" style="display:none;">
+                                <td colspan="2" class="bold strike insert-name-here"></td>
+                                <td colspan="2"><em>[`Click “Save” button below to commit the delete.`]</em></td>
+                                <td class="min-width"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                {$wa->csrf()}
+            </form>
+
+        *}
+
+            <!-- order processing timeline -->
+            <div class="s-order-readable s-order-timeline">
+                <h3>[`Order timeline`]</h3><br>
+                <p class="workflow-actions">
+                    {foreach $bottom_buttons as $b}
+                    {$b}
                     {/foreach}
                 </p>
-            {/if}
-            <!-- shipping plugin output -->
-            {if !empty($params.tracking_number)}
-                <h3><span class="gray">[`Shipment tracking number`] &mdash;</span> <strong class="highlighted">{$params.tracking_number}</strong></h3>
-            {/if}
-            {if !empty($tracking) && $order.state_id != 'completed'}
-                <blockquote class="plugin s-tracking">
-                    {$tracking}
-                </blockquote>
-            {/if}
-        {/if}
+                <div class="workflow-content"></div>
+                <div class="fields">
+                    {foreach $log as $row}
+                    <div class="field">
+                        <div class="name">{$row.datetime|wa_datetime:"humandatetime"}</div>
+                        <div class="value">
+                            {if $row.action_id}
+                                {if $row.contact_id}
+                                    <i class="icon16 userpic20" style="background-image: url({waContact::getPhotoUrl($row.contact_id, $row.contact_photo, 20)});"></i>
+                                    {$row.contact_name|escape}
+                                {elseif $row.action_id == 'callback' && !empty($row.plugin)}
+                                    {if !empty($row.plugin_icon_url)}
+                                    <i class="icon16" style="background-image: url('{$row.plugin_icon_url}');"></i>
+                                    {/if}
+                                    {$row.plugin|default:''|escape}
+                                {/if}
+                                <strong>{if $row.action}{$row.action->getOption('log_record')|escape}{else}{$row.action_id}{/if}</strong>
 
-        {if !empty($params.payment_name)}
-            <h3><span class="gray">[`Payment`] &mdash;</span> <strong>{$params.payment_name}</strong></h3>
-            {if $billing_address !== null}
-                <p class="s-order-address">
-                    {$billing_address}
-                </p>
-            {/if}
-        {/if}
-
-        <div class="clear-right"></div>
-
-        <!-- order content -->
-        {if $order.items}
-        <table id="s-order-items" class="light s-order-readable">
-            <tr>
-                <th colspan="2"></th>
-                <th class="align-right">[`Qty`]</th>
-                <th class="align-right">[`Total`]</th>
-            </tr>
-            {$subtotal = 0}
-            {foreach $order.items as $item}
-                <tr data-id="{$item.id}" {if $item.type == 'service'} class="small"{/if}>
-                    <td class="min-width valign-top">
-                        {if $item.type != 'service'}
-                            {if !empty($item.image_id)}
-                                {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'image_filename' => $item.image_filename, 'ext' => $item.ext], '48x48')}
+                                {if $row.text}
+                                    <p{if $row.action_id == 'message' || $row.action_id == 'comment' || $row.action_id == 'pay' || $row.action_id == 'ship'} class="s-order-timeline-message{if $row.action_id == 'message'} blue{elseif $row.action_id == 'ship'} yellow{/if}"{/if}>{$row.text}</p>
+                                {/if}
                             {else}
-                                <img src="{$wa_app_static_url}img/image-dummy-small.png" class="not-found" style="width: 48px; height: 48px;">
+                                {if $row.text}
+                                    <p>{$row.text}</p>
+                                {/if}
                             {/if}
-                        {/if}
-                    </td>
-                    <td>
-                        {if $item.type == 'service'}<span class="gray s-overhanging-plus">+</span> {/if}
-                        <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name}</a>
-                        {if !empty($item.sku_code)}
-                            <span class="hint">{$item.sku_code|escape}</span>
-                        {/if}
-                        {if !empty($item.stock)}
-                            <span class="small">@{$item.stock.name|escape}</span>
-                        {/if}
-                        {if !empty($item.stock_icon)}
-                            {$item.stock_icon}
-                        {/if}
-                    </td>
-                    <td class="align-right nowrap"><span class="gray">{wa_currency_html($item.price, $order.currency)} &times;</span> {$item.quantity}</td>
-                    <td class="align-right nowrap">{wa_currency_html($item.price * $item.quantity, $order.currency)}</td>
-                </tr>
-                {$subtotal = $subtotal + $item.price*$item.quantity}
-            {/foreach}
-            <tr class="no-border">
-                <td colspan="2"></td>
-                <td class="align-right"><br>[`Subtotal`]</td>
-                <td class="align-right nowrap"><br>{wa_currency_html($subtotal, $order.currency)}</td>
-            </tr>
-            <tr class="no-border">
-                <td colspan="2"></td>
-                <td class="align-right">
-                    [`Discount`]
-                    {if !empty($order.coupon)}
-                        <a href="#/coupons/{$order.coupon.id|escape}"><i class="icon16 ss coupon"></i><strong>{$order.coupon.code|escape}</strong></a>
-                    {/if}
-                </td>
-                <td class="align-right nowrap">&minus; {wa_currency_html($order.discount, $order.currency)}</td>
-            </tr>
-            {if isset($params.shipping_name) || $order.shipping > 0}
-            <tr class="no-border">
-                <td colspan="2"></td>
-                <td class="align-right">[`Shipping`]</td>
-                <td class="align-right nowrap">{wa_currency_html($order.shipping, $order.currency)}</td>
-            </tr>
-            {/if}
-            <tr class="no-border">
-                <td colspan="2"></td>
-                <td class="align-right">[`Tax`]</td>
-                <td class="align-right nowrap">{wa_currency_html($order.tax, $order.currency)}</td>
-            </tr>
-            <tr class="no-border bold large" style="font-size: 150%;">
-                <td colspan="2"></td>
-                <td class="align-right">[`Total`]</td>
-                <td class="align-right nowrap">{wa_currency_html($order.total, $order.currency)}</td>
-            </tr>
-        </table>
-        {/if}
-
-        <div id="s-order-items-edit" class="s-order-editable" style="display:none;"></div>
-
-    {*
-
-        <form id="order-edit-form" method="post" action="?module=order&action=save&id={$order.id}" style="display:none;" class="s-order-editable">
-            <div class="sidebar left400px">
-                <div class="block s-order-edit-customer">
-                    <div class="fields form width100px" id="s-order-customer-edit">
-                        <div class="field-group">
                         </div>
-                        <input type="hidden" value="0" name="customer_id" id="s-customer-id">
                     </div>
+                    {/foreach}
                 </div>
             </div>
-            <div class="content left400px bordered-left">
-                <table id="s-order-items-edit" class="zebra s-order-items-edit">
-                    <tbody></tbody>
-                    <tbody>
-                        <!-- subtotal -->
-                        <tr class="white large">
-                            <td class="min-width"></td>
-                            <td class="align-right">
-                                [`Subtotal`]
-                            </td>
-                            <td colspan="2" class="align-right">
-                                <span id="subtotal"></span>
-                                <span class="currency">{$currency}</span>
-                            </td>
-                        </tr>
 
-                        <tr class="white">
-                            <td colspan="4"></td>
-                        </tr>
-
-                        <!-- shipping, payment & tax -->
-                        <tr class="white">
-                            <td class="min-width"></td>
-                            <td class="align-right">
-                                [`Shipping`]
-                                {$shipping_methods = shopHelper::getShippingMethods(array())}
-                                <select id="shipping_methods" name="shipping_id">
-                                    <option value=""></option>
-                                    {foreach $shipping_methods as $m_id => $m}
-                                    <option {if $shipping_id == $m_id}selected{/if} data-rate="{$m.rate}" value="{$m_id}">{$m.name}</option>
-                                    {/foreach}
-                                </select>
-                            </td>
-                            <td colspan="2" class="align-right"><input type="text" name="shipping" class="numerical short" id="shipping-rate" value="{(float)$order.shipping}"></td>
-                        </tr>
-                        <tr class="white">
-                            <td class="min-width"></td>
-                            <td class="align-right">
-                                [`Payment`]
-                                {$payment_methods = shopHelper::getPaymentMethods()}
-                                <select name="payment_id">
-                                    {foreach $payment_methods as $m}
-                                    <option {if !empty($params.payment_id) && $params.payment_id == $m.id}selected{/if} value="{$m.id}">{$m.name}</option>
-                                    {/foreach}
-                                </select>
-                            </td>
-                            <td colspan="2"></td>
-                        </tr>
-                        <tr class="white">
-                            <td class="min-width"></td>
-                            <td class="align-right">[`Discount`]</td>
-                            <td colspan="2" class="align-right"><input type="text" class="numerical short" id="discount" name="discount" value="{(float)$order.discount}"></td>
-                        </tr>
-
-                        <tr class="white">
-                            <td colspan="4"></td>
-                        </tr>
-
-                        <!-- total -->
-                        <tr class="white large">
-                            <td class="min-width"></td>
-                            <td class="align-right large">[`Total`]</td>
-                            <td colspan="2" class="align-right large bold">
-                                <span id="total"></span>
-                                <span class="currency">{$currency}</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                    <tbody>
-                        <tr class="white large">
-                            <td colspan="4" class="align-right large">
-                                <input type="submit" class="button green" value="[`Save changes`]">
-                            </td>
-                        </tr>
-                        <tr class="gray highlighted template-deleted" style="display:none;">
-                            <td colspan="2" class="bold strike insert-name-here"></td>
-                            <td colspan="2"><em>[`Click “Save” button below to commit the delete.`]</em></td>
-                            <td class="min-width"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            {$wa->csrf()}
-        </form>
-
-    *}
-
-        <!-- order processing timeline -->
-        <div class="s-order-readable s-order-timeline">
-            <h3>[`Order timeline`]</h3><br>
-            <p class="workflow-actions">
-                {foreach $bottom_buttons as $b}
-                {$b}
-                {/foreach}
-            </p>
-            <div class="workflow-content"></div>
-            <div class="fields">
-                {foreach $log as $row}
-                <div class="field">
-                    <div class="name">{$row.datetime|wa_datetime:"humandatetime"}</div>
-                    <div class="value">
-                        {if $row.action_id}
-                            {if $row.contact_id}
-                                <i class="icon16 userpic20" style="background-image: url({waContact::getPhotoUrl($row.contact_id, $row.contact_photo, 20)});"></i>
-                                {$row.contact_name|escape}
-                            {elseif $row.action_id == 'callback' && $row.text}
-                                {$_tmp = explode(' ', $row.text, 2)}
-                                {$pl = shopPayment::getPluginInfo($_tmp[0])}
-                                {$row.text = $_tmp[1]}
-                                <i class="icon16" style="background-image: url('{$pl.icon.16}');"></i>
-                                {$pl.name|escape}
-                            {/if}
-                            <strong>{if $row.action}{$row.action->getOption('log_record')|escape}{else}{$row.action_id}{/if}</strong>
-
-                            {if $row.text}
-                                <p{if $row.action_id == 'message' || $row.action_id == 'comment' || $row.action_id == 'pay' || $row.action_id == 'ship'} class="s-order-timeline-message{if $row.action_id == 'message'} blue{elseif $row.action_id == 'ship'} yellow{/if}"{/if}>{$row.text}</p>
-                            {/if}
-                        {else}
-                            {if $row.text}
-                                <p>{$row.text}</p>
-                            {/if}
-                        {/if}
-                    </div>
-                </div>
-                {/foreach}
-                <div class="clear-left"></div>
-            </div>
-            <div class="clear-left"></div>
         </div>
+
+        <div class="clear-left"></div>
 
     </div>
     <div class="clear-both"></div>
-    <script type="text/javascript">
-        $.ajax({
-              dataType: "script",
-              url: "{$wa_app_static_url}js/order/order.js?v{$wa->version()}",
-              cache: true
-        }).done(function() {
-            var view      = "{$wa->get('view')}";
-            var count_new = {if !empty($count_new)}{$count_new}{else}0{/if};
-            var options = {
-                order: {json_encode($order)},
-                currency: '{$currency}',
-                view: view,
-                offset: {json_encode($offset)},
-            };
-
-            // title has to be overridden in this cases
-            if (view == 'table') {
-                options.title = '{$wa->shop->orderId($order.id)|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
-                if (count_new) {
-                    options.title = '(' + count_new + ') ' + options.title;
-                }
-            }
-
-            if (!$.order_list || view == 'table') {
-                if ($.order_list) {
-                    $.order_list.finit();   // destructor
-                }
-                options.dependencies = options.dependencies || {};
-                options.dependencies.order_list = {
+    <script>
+        ( function($) {
+            $.ajax({
+                  dataType: "script",
+                  url: "{$wa_app_static_url}js/order/order.js?v{$wa->version()}",
+                  cache: true
+            }).done(function() {
+                var view      = "{$wa->get('view')}";
+                var count_new = {if !empty($count_new)}{$count_new}{else}0{/if};
+                var options = {
+                    order: {json_encode($order)},
+                    currency: '{$currency}',
                     view: view,
-                    update_process: {
-                        timeout: {$timeout}
-                    },
-                    count_new: {$count_new},
-                    title_suffix: " — {$wa->accountName(false)|escape:javascript}",
-                    filter_params: {json_encode($filter_params)},
-                    filter_params_str: '{$filter_params_str}'
+                    offset: {json_encode($offset)}
                 };
-            }
-            $.order.init(options);
 
-            {if $wa->shop->config('enable_2x')}
-                $.fn.retina && $('#s-order-items img').retina();
-            {/if}
-        });
+                // title has to be overridden in this cases
+                if (view == 'table') {
+                    options.title = '{$wa->shop->orderId($order.id)|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+                    if (count_new) {
+                        options.title = '(' + count_new + ') ' + options.title;
+                    }
+                }
+
+                if (!$.order_list || view == 'table') {
+                    if ($.order_list) {
+                        $.order_list.finit();   // destructor
+                    }
+                    options.dependencies = options.dependencies || {};
+                    options.dependencies.order_list = {
+                        view: view,
+                        update_process: {
+                            timeout: {$timeout}
+                        },
+                        count_new: {$count_new},
+                        title_suffix: " — {$wa->accountName(false)|escape:javascript}",
+                        filter_params: {json_encode($filter_params)},
+                        filter_params_str: '{$filter_params_str}'
+                    };
+                }
+                $.order.init(options);
+
+                {if $wa->shop->config('enable_2x')}
+                    $.fn.retina && $('#s-order-items img').retina();
+                {/if}
+            });
+        })(jQuery);
     </script>
 
 {/if}

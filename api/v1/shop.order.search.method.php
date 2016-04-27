@@ -23,7 +23,7 @@ class shopOrderSearchMethod extends waAPIMethod
         $this->response['count'] = $collection->count();
         $this->response['offset'] = $offset;
         $this->response['limit'] = $limit;
-        $this->response['orders'] = array_values($collection->getOrders('*,items,params', $offset, $limit));
+        $this->response['orders'] = array_values($collection->getOrders(self::getColelctionFields(), $offset, $limit));
         if ($this->response['orders']) {
             foreach ($this->response['orders'] as &$o) {
                 foreach (array('auth_code', 'auth_pin') as $k) {
@@ -34,5 +34,20 @@ class shopOrderSearchMethod extends waAPIMethod
             }
             unset($o);
         }
+    }
+
+    protected static function getColelctionFields()
+    {
+        $fields = array_fill_keys(array('*', 'items', 'params'), 1);
+        $additional_fields = waRequest::request('fields', '', 'string');
+        if ($additional_fields) {
+            foreach(explode(',', $additional_fields) as $f) {
+                $fields[$f] = 1;
+            }
+        }
+        if (!empty($fields['contact_full'])) {
+            unset($fields['contact']);
+        }
+        return join(',', array_keys($fields));
     }
 }

@@ -350,6 +350,7 @@ return array(
         'paid_month' => array('smallint', 6),
         'paid_date' => array('date'),
         'is_first' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
+        'unsettled' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
         'comment' => array('text'),
         ':keys' => array(
             'PRIMARY' => 'id',
@@ -371,6 +372,7 @@ return array(
         'quantity' => array('int', 11, 'null' => 0),
         'parent_id' => array('int', 11),
         'stock_id' => array('int', 11),
+        'virtualstock_id' => array('int', 11),
         'purchase_price' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         'total_discount' => array('decimal', "15,4", 'null' => 0, 'default' => '0.0000'),
         ':keys' => array(
@@ -477,6 +479,7 @@ return array(
         'type_id' => array('int', 11),
         'image_id' => array('int', 11),
         'image_filename' => array('varchar', 225, 'null' => 0, 'default' => ''),
+        'video_url' => array('varchar', 225),
         'sku_id' => array('int', 11),
         'ext' => array('varchar', 10),
         'url' => array('varchar', 255),
@@ -676,6 +679,7 @@ return array(
         'description' => array('text'),
         'datetime' => array('datetime', 'null' => 0),
         'order_id' => array('int', 11),
+        'transfer_id' => array('int', 11),
         ':keys' => array(
             'PRIMARY' => 'id',
             'product_id' => array('product_id', 'sku_id'),
@@ -696,7 +700,10 @@ return array(
         'body' => array('text'),
         'link' => array('text'),
         'color' => array('varchar', 8),
+        'background_color' => array('varchar', 8),
         'ext' => array('varchar', 6, 'null' => 0),
+        'enabled' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
+        'countdown_datetime' => array('datetime'),
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
@@ -707,6 +714,14 @@ return array(
         'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => array('storefront', 'promo_id'),
+        ),
+    ),
+    'shop_push_client' => array(
+        'contact_id' => array('int', 11, 'null' => 0),
+        'client_id' => array('varchar', 64, 'null' => 0),
+        'shop_url' => array('varchar', 255, 'null' => 0),
+        ':keys' => array(
+            'client' => array('client_id', 'unique' => 1),
         ),
     ),
     'shop_sales' => array(
@@ -795,6 +810,7 @@ return array(
         'critical_count' => array('int', 11, 'null' => 0, 'default' => '0'),
         'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         'name' => array('varchar', 255),
+        'public' => array('int', 1, 'null' => 0, 'default' => '1'),
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
@@ -876,4 +892,44 @@ return array(
             'PRIMARY' => array('type_id', 'feature'),
         ),
     ),
+    'shop_transfer' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'string_id' => array('varchar', 255),
+        'create_datetime' => array('datetime'),
+        'finalize_datetime' => array('datetime'),
+        'status' => array('enum', "'sent','completed','cancelled'", 'null' => 0, 'default' => 'sent'),
+        'stock_id_from' => array('int', 11, 'null' => 0),
+        'stock_id_to' => array('int', 11, 'null' => 0),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+            'string_id' => array('string_id', 'unique' => 1)
+        )
+    ),
+    'shop_transfer_products' => array(
+        'product_id' => array('int', 11, 'null' => 0),
+        'sku_id' => array('int', 11, 'null' => 0),
+        'transfer_id' => array('int', 11, 'null' => 0),
+        'count' => array('int', 11, 'null' => 0, 'default' => '0'),
+        ':keys' => array(
+            'PRIMARY' => array('product_id', 'sku_id', 'transfer_id')
+        )
+    ),
+    'shop_virtualstock' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'low_count' => array('int', 11, 'null' => 0, 'default' => '0'),
+        'critical_count' => array('int', 11, 'null' => 0, 'default' => '0'),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
+        'name' => array('varchar', 255),
+        'public' => array('int', 1, 'null' => 0, 'default' => '1'),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+        ),
+    ),
+    'shop_virtualstock_stocks' => array(
+        'virtualstock_id' => array('int', 11, 'null' => 0),
+        'stock_id' => array('int', 11, 'null' => 0),
+        'sort' => array('int', 11, 'null' => 0),
+        ':keys' => array(
+        ),
+    )
 );

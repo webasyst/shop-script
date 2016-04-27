@@ -33,6 +33,18 @@ class shopPayment extends waAppPayment
     }
 
     /**
+     * @return shopPluginModel
+     */
+    private static function pluginModel()
+    {
+        static $model;
+        if (!$model) {
+            $model = new shopPluginModel();
+        }
+        return $model;
+    }
+
+    /**
      *
      * @param string $plugin plugin identity string (e.g. PayPal/WebMoney)
      * @param int $plugin_id plugin instance id
@@ -59,7 +71,8 @@ class shopPayment extends waAppPayment
 
     public static function getPluginInfo($id)
     {
-        if ($plugin_id = max(0, intval($id))) {
+        $plugin_id = max(0, intval($id));
+        if ($plugin_id) {
             $info = self::getPluginData($plugin_id);
             if (!$info) {
                 throw new waException("Payment plugin {$plugin_id} not found", 404);
@@ -91,8 +104,7 @@ class shopPayment extends waAppPayment
 
     private static function getPluginData($id)
     {
-        $model = new shopPluginModel();
-        return $model->getPlugin($id, shopPluginModel::TYPE_PAYMENT);
+        return self::pluginModel()->getPlugin($id, shopPluginModel::TYPE_PAYMENT);
     }
 
     public static function savePlugin($plugin)
@@ -101,7 +113,7 @@ class shopPayment extends waAppPayment
             'status' => 0,
         );
         $plugin = array_merge($default, $plugin);
-        $model = new shopPluginModel();
+        $model = self::pluginModel();
         if (!empty($plugin['id']) && ($id = max(0, intval($plugin['id']))) && ($row = $model->getByField(array('id' => $id, 'type' => shopPluginModel::TYPE_PAYMENT)))) {
             $plugin['plugin'] = $row['plugin'];
             $model->updateById($plugin['id'], $plugin);
@@ -149,6 +161,81 @@ class shopPayment extends waAppPayment
     {
         $params_model = new shopOrderParamsModel();
         $params_model->set($order_id, $params, false);
+    }
+
+    /**
+     * @param $transaction_data
+     * @return int
+     */
+    private function createOrder($transaction_data)
+    {
+        $contact = $this->createContact();
+
+        $order = array(
+            'contact'   => $contact,
+            'items'     => array(),
+            'shipping'  => 0,
+            'discount'  => false,//not apply discounts
+            'currency'  => ifset($transaction_data['currency_id']),
+            'unsettled' => 1,
+            'params'    => array(),
+
+        );
+
+        $order['items'][] = array(
+            'name'       => 'unknown_name',
+            'currency'   => ifset($transaction_data['currency_id']),
+            'type'       => 'dummy',//type dummy will be ignored by default it's 'product' or 'service'
+            'sku_id'     => null,
+            'product_id' => null,
+            'price'      => $transaction_data['amount'],
+            'quantity'   => 1,
+        );
+
+        $plugin_info = self::pluginModel()->getById($this->merchant_id);
+        $order['params']['payment_id'] = $this->merchant_id;
+        $order['params']['payment_plugin'] = $transaction_data['plugin'];
+        $order['params']['payment_name'] = $plugin_info['name'];
+        $order['params']['payment_description'] = $plugin_info['description'];
+
+        //TODO setup offline item
+        //$order['params']['shipping_name'] = 'Offline store';
+        //$order['params']['storefront'] = wa()->getConfig()->getDomain();
+        //TODO add stock_id
+        //$order['params']['stock_id'] = 100500;
+
+        $order['params']['ip'] = waRequest::getIp();
+        $order['params']['user_agent'] = waRequest::getUserAgent();
+
+        if (!$order['params']['user_agent']) {
+            $order['params']['user_agent'] = 'payment';
+        }
+        if ($contact) {
+            foreach (array('shipping', 'billing') as $ext) {
+                $address = $contact->getFirst('address.'.$ext);
+                if ($address) {
+                    foreach ($address['data'] as $k => $v) {
+                        $order['params'][$ext.'_address.'.$k] = $v;
+                    }
+                }
+            }
+        }
+
+        $comment = null;
+        if (!empty($comment)) {
+            $order['comment'] = $comment;
+        }
+        $workflow = new shopWorkflow();
+        return $workflow->getActionById('create')->run($order);
+    }
+
+    private function createContact()
+    {
+        $contact = new waContact();
+        $contact['firstname'] = '(nobody)';
+        $contact['create_app_id'] = 'shop';
+
+        return $contact;
     }
 
     /**
@@ -322,11 +409,46 @@ class shopPayment extends waAppPayment
 
     public function getSettings($payment_id, $merchant_key)
     {
-        $this->merchant_id = max(0, intval($merchant_key));
+        $this->merchant_id = max(0, is_array($merchant_key) || is_callable($merchant_key) ? null : intval($merchant_key));
         if (wa()->getEnv() == 'frontend') {
-            if ($info = self::getPluginData($this->merchant_id)) {
+            if (!$this->merchant_id && (($merchant_key === '*') || (is_callable($merchant_key)))) {
+                //magic case for suggest merchant_id
+                $suggest = array(
+                    'plugin' => $payment_id,
+                    'type'   => shopPluginModel::TYPE_PAYMENT,
+                    'status' => 1,
+                );
+
+                $count = self::pluginModel()->countByField($suggest);
+
+                if ($count == 1) {
+                    $info = self::pluginModel()->getByField($suggest);
+                    $this->merchant_id = (int)$info['id'];
+                } elseif ($count && is_callable($merchant_key)) {
+                    $matched = self::pluginModel()->getByField($suggest, true);
+                    $info = null;
+                    foreach ($matched as $_info) {
+                        $settings = $this->model()->get($_info['id']);
+                        if ($settings && call_user_func($merchant_key, $settings)) {
+                            if ($info) {
+                                throw new waException('Empty merchant id', 404);
+                            }
+                            $info = $_info;
+                        }
+                    }
+                    if (!$info) {
+                        throw new waException('Empty merchant id', 404);
+                    }
+                    $this->merchant_id = (int)$info['id'];
+                } else {
+                    throw new waException('Empty merchant id', 404);
+                }
+            } else {
+                $info = self::getPluginData($this->merchant_id);
+            }
+            if ($info) {
                 if ($payment_id != ifset($info['plugin'])) {
-                    throw new waException ('Invalid merchant id', 404);
+                    throw new waException('Invalid merchant id', 404);
                 }
                 if (!$info['status']) {
                     throw new waException('Plugin status is disabled', 503);
@@ -335,7 +457,7 @@ class shopPayment extends waAppPayment
                 throw new waException('Plugin not found', 404);
             }
         }
-        return $this->model()->get($merchant_key);
+        return $this->model()->get($this->merchant_id);
     }
 
     public function setSettings($plugin_id, $key, $name, $value)
@@ -350,21 +472,23 @@ class shopPayment extends waAppPayment
 
     public function refund()
     {
-        //todo
-        return;
-        if (empty($params['transaction']['plugin'])) {
-            throw new ordersJsonException('Empty payment system ID');
-        }
-        $params['order']->getMerchant();
-        if (empty($params['order']['merchant_info'])) {
-            throw new ordersJsonException('Empty merechant info');
-        }
-        $module = waPayment::factory($params['transaction']['plugin'], $params['order']['merchant_info']['id'], self::getInstance());
 
-        $result = $module->refund(array(
-            'transaction'   => $params['transaction'],
-            'refund_amount' => $params['refund_amount']
-        ));
+        $result = null;
+        if (false) {
+            if (empty($params['payment_id'])) {
+                throw new waException('Empty payment system ID');
+            }
+
+            $module = waPayment::factory(null, $params['payment_id'], self::getInstance());
+
+            if ($module instanceof waIPaymentRefund) {
+                //todo
+                $result = $module->refund(array(
+                    'transaction'   => $params['transaction'],
+                    'refund_amount' => $params['refund_amount']
+                ));
+            }
+        }
         return $result;
     }
 
@@ -392,12 +516,30 @@ class shopPayment extends waAppPayment
     {
         //TODO
         $success_back_url = wa()->getRouteUrl('shop/checkout/success', true);
+        return compact('success_back_url');
     }
 
     public function getBackUrl($type = self::URL_SUCCESS, $transaction_data = array())
     {
         if (!empty($transaction_data['order_id'])) {
-            //TODO set routing params for request (domain & etc)
+            //TODO test it
+            # set routing params for request (domain & etc)
+            $model = new shopOrderParamsModel();
+            $order_domain = $model->getOne($transaction_data['order_id'], 'storefront');
+            if ($order_domain) {
+                $routing = wa()->getRouting();
+                $domain_routes = $routing->getByApp('shop');
+                foreach ($domain_routes as $domain => $routes) {
+                    foreach ($routes as $route) {
+                        $settlement = $domain.'/'.$route['url'];
+                        if ($settlement == $order_domain) {
+                            $routing->setRoute($route, $domain);
+                            waRequest::setParam($route);
+                            break;
+                        }
+                    }
+                }
+            }
         }
         switch ($type) {
             case self::URL_PRINTFORM:
@@ -437,21 +579,34 @@ class shopPayment extends waAppPayment
         return $url;
     }
 
-
     protected function workflowAction($method, $transaction_data)
     {
+        $result = array();
         $order_model = new shopOrderModel();
-        $order = $order_model->getById($transaction_data['order_id']);
-        if (!$order) {
-            return array('error' => 'Order not found');
-        }
-        $appropriate = $this->isSuitable($order['id']);
-        if ($appropriate !== true) {
-            return array('error' => $appropriate);
+        if (empty($transaction_data['order_id']) || ($transaction_data['order_id'] === 'offline')) {
+            $plugin = ifset($transaction_data['payment_plugin_instance']);
+            /**
+             * @var waPayment $plugin
+             */
+            if ($plugin && ($plugin instanceof waPayment) && $plugin->getProperties('offline')) {
+                $transaction_data['order_id'] = $this->createOrder($transaction_data);
+                $result['order_id'] = $transaction_data['order_id'];
+            } else {
+                return array('error' => 'Order not found');
+            }
+        } else {
+            $order = $order_model->getById($transaction_data['order_id']);
+            if (!$order) {
+                return array('error' => 'Order not found');
+            } else {
+                $appropriate = $this->isSuitable($order['id']);
+                if ($appropriate !== true) {
+                    return array('error' => $appropriate);
+                }
+            }
         }
 
-        $result = array();
-        if (empty($transaction_data['customer_id'])) {
+        if (empty($transaction_data['customer_id']) && !empty($order['contact_id'])) {
             $result['customer_id'] = $order['contact_id'];
         }
         $workflow = new shopWorkflow();
@@ -488,6 +643,9 @@ class shopPayment extends waAppPayment
         $result = $this->workflowAction('callback', $transaction_data);
         if (empty($result['error'])) {
             $workflow = new shopWorkflow();
+            if (!empty($result['order_id'])) {
+                $transaction_data['order_id'] = $result['order_id'];
+            }
             $workflow->getActionById('pay')->run($transaction_data['order_id']);
             $result['result'] = true;
         }
@@ -552,6 +710,9 @@ class shopPayment extends waAppPayment
     {
         $result = $this->workflowAction('callback', $transaction_data);
         if (empty($result['error'])) {
+            if (!empty($result['order_id'])) {
+                $transaction_data['order_id'] = $result['order_id'];
+            }
             $order_model = new shopOrderModel();
             $order = $order_model->getById($transaction_data['order_id']);
             $result['result'] = true;
@@ -562,7 +723,7 @@ class shopPayment extends waAppPayment
             } else {
                 $order_total = $order['total'];
             }
-            if (abs($order_total - $total) > 0.01) {
+            if (!empty($order_total) && (abs($order_total - $total) > 0.01)) {
                 $result['result'] = false;
                 $result['error'] = sprintf('Invalid order amount: expect %f, but get %f in %s', $order_total, $total, $transaction_data['currency_id']);
             } else {

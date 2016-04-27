@@ -38,6 +38,8 @@ class shopNotifications
                 }
             }
         }
+
+        self::sendPushNotifications($event, $data);
     }
 
     /**
@@ -303,5 +305,59 @@ class shopNotifications
     protected static function sendHttp($n, $data)
     {
 
+    }
+
+    protected static function sendPushNotifications($event, $data)
+    {
+        if ($event != 'order.create') {
+            return;
+        }
+
+        $client_ids = array();
+        $push_client_model = new shopPushClientModel();
+        foreach($push_client_model->getAll() as $row) {
+            $client_ids[$row['client_id']] = $row['client_id'];
+        }
+        if (!$client_ids) {
+            return;
+        }
+
+        $request_data = json_encode(array(
+            'app_id' => "0b854471-089a-4850-896b-86b33c5a0198",
+            'data' => array(
+                'order_id' => $data['order']['id'],
+            ),
+            'include_player_ids' => array_values($client_ids),
+            'contents' => array(
+                "en" => _w('New order nofication'),
+            ),
+
+            'ios_badgeType' => 'Increase',
+            'ios_badgeCount' => 1,
+            'android_group' => 'shop_orders',
+        ));
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+
+        curl_setopt($ch, CURLOPT_POST, TRUE);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $request_data);
+
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_HEADER, FALSE);
+
+        $result = curl_exec($ch);
+        curl_close($ch);
+        $result = @json_decode($result, true);
+        if (!empty($result['errors'])) {
+            if (!empty($result['errors']['invalid_player_ids'])) {
+                $push_client_model->deleteById($result['errors']['invalid_player_ids']);
+            } else {
+                waLog::log('Unable to send PUSH notifications: '.wa_dump_helper($result));
+            }
+        }
+        return $result;
     }
 }
