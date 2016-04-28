@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>[`Transfer consignment`]</title>
+    {strip}
+        <script type="text/javascript">
+            {if $wa->locale() === 'ru_RU'}
+                {literal}
+                    var lang_strings = {
+                        'edit_link':'Редактировать',
+                        'field_title':'Корректировка перед печатью',
+                        'save_link':'OK'
+                    };
+                {/literal}
+            {/if}
+            var page_url = '';
+        </script>
+        <script type="text/javascript">
+            {include file="./js/printform.js" inline}
+        </script>
+        <style>
+            @media screen {
+                input, .noprint {
+                    display: inline;
+                    height: auto;
+                }
+                .inline_edit input.text {
+                    background-color: #FAFAE7;
+                }
+                .printable {
+                    display: none;
+                }
+            }
+            @media print {
+                input, .noprint {
+                    display: none;
+                }
+                .printable {
+                    display: inline;
+                }
+            }
+        </style>
+        <style>
+            {include file="../../../css/plugin.css" inline}
+        </style>
+    {/strip}
+</head>
+<body onload="Printform.init('inline_edit');">
+    {strip}{$content}{/strip}
+</body>

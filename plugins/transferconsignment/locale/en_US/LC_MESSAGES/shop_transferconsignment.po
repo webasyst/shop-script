@@ -1,0 +1,66 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: shop/plugins/transferconsignment\n"
+"POT-Creation-Date: 2016-04-27 09:17+0000\n"
+"PO-Revision-Date: \n"
+"Last-Translator: shop/plugins/transferconsignment\n"
+"Language-Team: shop/plugins/transferconsignment\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: .\n"
+"Language: en_US\n"
+"X-Generator: Poedit 1.8.7\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+#: /wa-apps/shop/plugins/transferconsignment/templates/actions/printform/PrintformDisplay.html:5
+msgid "Transfer consignment"
+msgstr ""
+
+#: /wa-apps/shop/plugins/transferconsignment/templates/actions/printform/template.html:23
+msgid "Transfer"
+msgstr ""
+
+#: /wa-apps/shop/plugins/transferconsignment/templates/actions/printform/template.html:41
+#: /wa-apps/shop/plugins/transferconsignment/templates/actions/printform/template.html:99
+msgid "Transfer by"
+msgstr ""
+
+#: /wa-apps/shop/plugins/transferconsignment/templates/actions/printform/template.html:52
+msgid "Phone/Fax"
+msgstr ""
+
+#: /wa-apps/shop/plugins/transferconsignment/templates/actions/printform/template.html:63
+msgid "Approved by"
+msgstr ""
+
+#: /wa-apps/shop/plugins/transferconsignment/templates/actions/printform/template.html:77
+msgid "Transfer date"
+msgstr ""
+
+#: /wa-apps/shop/plugins/transferconsignment/templates/actions/printform/template.html:88
+msgid "Received by"
+msgstr ""
+
+#: /wa-apps/shop/plugins/transferconsignment/templates/actions/printform/template.html:113
+msgid "Qty"
+msgstr ""
+
+#: /wa-apps/shop/plugins/transferconsignment/templates/actions/printform/template.html:114
+msgid "Item description"
+msgstr ""
+
+#: /wa-apps/shop/plugins/transferconsignment/templates/actions/printform/template.html:115
+msgid "Currency code"
+msgstr ""
+
+#: /wa-apps/shop/plugins/transferconsignment/templates/actions/printform/template.html:116
+msgid "Cost"
+msgstr ""
+
+#: /wa-apps/shop/plugins/transferconsignment/templates/actions/printform/template.html:117
+#: /wa-apps/shop/plugins/transferconsignment/templates/actions/printform/template.html:146
+msgid "Total"
+msgstr ""
