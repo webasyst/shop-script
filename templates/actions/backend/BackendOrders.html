@@ -192,7 +192,7 @@
             <input type="text"
                 name="quantity[add][{%#index%}][product]"
                 class="s-orders-quantity short numerical"
-                value="1"
+                value="{% if (product.quantity > 0) { %}{%=product.quantity%}{% } else { %}1{% } %}"
             >
         </td>
 
