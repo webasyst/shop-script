@@ -411,11 +411,8 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                             break;
                         default: # it's shop plugin
                             $plugin = wa('shop')->getPlugin($id);
-                            /**
-                             * @var shopPrintformPlugin $plugin
-                             */
-                            if (method_exists($plugin, 'renderForm')) {
-                                $html = $plugin->renderForm(waOrder::factory($order));
+                            if ($plugin instanceof shopPrintformPlugin) {
+                                $html = $plugin->renderPrintform(waOrder::factory($order));
                             }
                             break;
                     }

@@ -86,7 +86,7 @@
                     [`or`] <a class="cancel" href="javascript:void(0);">[`close`]</a>
 
                     <div class="float-right block">
-                        <a href="javascript:void(0)" class="a-rollback-transfer"><i class="icon16 cross"></i>[`Rollback this transfer`]</a>
+                        <a href="javascript:void(0)" class="f-rollback-transfer"><i class="icon16 cross"></i>[`Rollback this transfer`]</a>
                     </div>
 
                 {else}
@@ -148,7 +148,7 @@
                     return false;
                 });
 
-                form.find('.a-rollback-transfer').click(function () {
+                form.find('.f-rollback-transfer').click(function () {
                     if (confirm('[`Products will be returned to the source stock. Are you sure?`]')) {
                         submit('?module=transfer&action=cancel');
                     }

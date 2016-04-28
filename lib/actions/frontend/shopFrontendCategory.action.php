@@ -281,24 +281,30 @@ class shopFrontendCategoryAction extends shopFrontendAction
                         $currency = $products[$product_id]['currency'];
 
                         usort($skus, array($this, 'sortSkus'));
-                        $k = 0;
-                        if ($min_price || $max_price) {
-                            foreach ($skus as $i => $sku) {
-                                if ($min_price) {
-                                    $tmp_price = shop_currency($min_price, true, $currency, false);
-                                    if ($sku['price'] < $tmp_price) {
-                                        continue;
-                                    }
+                        $k = null;
+                        foreach ($skus as $i => $sku) {
+                            if ($min_price) {
+                                $tmp_price = shop_currency($min_price, true, $currency, false);
+                                if ($sku['price'] < $tmp_price) {
+                                    continue;
                                 }
-                                if ($max_price) {
-                                    $tmp_price = shop_currency($max_price, true, $currency, false);
-                                    if ($sku['price'] > $tmp_price) {
-                                        continue;
-                                    }
+                            }
+                            if ($max_price) {
+                                $tmp_price = shop_currency($max_price, true, $currency, false);
+                                if ($sku['price'] > $tmp_price) {
+                                    continue;
                                 }
+                            }
+                            if ($products[$product_id]['sku_id'] == $sku['id']) {
                                 $k = $i;
                                 break;
                             }
+                            if ($k === null) {
+                                $k = $i;
+                            }
+                        }
+                        if ($k === null) {
+                            $k = 0;
                         }
                         $sku = $skus[$k];
                         if ($products[$product_id]['sku_id'] != $sku['id']) {

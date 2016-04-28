@@ -5,12 +5,8 @@
     <div style="margin: 20px 0">
         <a href="javascript:void(0);" id="s-transfer-product" class="bold"><i class="icon16 move"></i> [`New transfer`]</a>
 
-        <div class="s-stocks-transfers" style="margin: 20px 0 0;">
-            {if $transfers.count}
-                {$transfers.html}
-            {else}
-                <p>[`There are no pending stock transfers.`]</p>
-            {/if}
+        <div class="s-stocks-transfers" style="margin: 20px 0 0;" {if $transfers.count <= 0}data-empty="1"{/if}>
+            {$transfers.html}
         </div>
 
         {if $transfers.rest_count > 0}
@@ -78,9 +74,15 @@
                 var d = $(this).find('.dialog');
                 d.on('afterSubmit', function(e, r) {
                     var $list = $('.s-stocks-transfers');
-                    var tmp = $('<div>').html(r.data.html);
-                    var item = $('.s-transfer-item[data-id="' + r.data.transfer.id  + '"]', tmp).addClass('highlighted');
-                    $list.find('tbody').prepend(item);
+                    if ($list.data('empty')) {
+                        $list.data('empty', 0);
+                        $list.html(r.data.html);
+                        $('.s-transfer-item[data-id="' + r.data.transfer.id + '"]', $list).addClass('highlighted');
+                    } else {
+                        var tmp = $('<div>').html(r.data.html);
+                        var item = $('.s-transfer-item[data-id="' + r.data.transfer.id + '"]', tmp).addClass('highlighted');
+                        $list.find('tbody').prepend(item);
+                    }
                 });
             });
         });

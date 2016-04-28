@@ -202,7 +202,7 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
             $order = $this->getOrder($order, array('items' => true));
             if ($email = $order->getContactField('email', 'default')) {
                 $subject = sprintf(_w("Printform %s"), $this->getName());
-                $message = new waMailMessage($subject, $this->renderForm($order));
+                $message = new waMailMessage($subject, $this->renderPrintform($order));
                 $message->setTo(array($email));
 
                 $general = wa('shop')->getConfig()->getGeneralSettings();
@@ -272,22 +272,36 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
     }
 
     /**
-     * @param mixed $data
+     * @param waOrder|int $data
      * @return string
      */
     public function renderPrintform($data)
     {
-        return $this->renderForm($data);
+        $order = $data;
+        if (!($order instanceof waOrder)) {
+            $order = $this->getOrder($order, $this->order_options);
+        }
+        $view = $this->template->getView();
+
+        $data = array(
+            'settings' => $this->getSettings(),
+            'order'    => $order
+        );
+        $data = $this->preparePrintform($data, $view);
+        $view->assign($data);
+
+        return $this->template->display();
     }
 
     /**
-     * @param $data
+     * @param array $data Associative array of data with keys:
+     *   waOrder $data['order'] order
+     *   array $data['settings'] settings of plugin
      * @param waView $view
      * @return mixed
      */
     public function preparePrintform($data, waView $view)
     {
-        $this->prepareForm($data, $view);
         return $data;
     }
 

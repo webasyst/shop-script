@@ -21,7 +21,7 @@ class shopPrintformTemplate
 
     public function getPath()
     {
-        foreach (array($this->original_path, $this->changed_path) as $path) {
+        foreach (array($this->changed_path, $this->original_path) as $path) {
             if (file_exists($path)) {
                 return $path;
             }
