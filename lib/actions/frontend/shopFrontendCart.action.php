@@ -243,6 +243,7 @@ class shopFrontendCartAction extends shopFrontendAction
                     if (count($s['variants']) == 1) {
                         $v = reset($s['variants']);
                         $s['price'] = $v['price'];
+                        $s['variant_id'] = key($s['variants']);
                         unset($s['variants']);
                     }
                 }
