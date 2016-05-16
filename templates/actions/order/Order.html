@@ -176,40 +176,42 @@
             </div>
             {/if}
 
-            {if ($shipping_address) || !empty($params.shipping_name)}
-            <h3><span class="gray">[`Shipping`]{if !empty($params.shipping_name)} —{/if}</span> <strong>{ifset($params.shipping_name)}</strong></h3>
-            {if $shipping_address}
-                <p class="s-order-address">
-                    {$shipping_address}
-                </p>
-                {if !empty($custom_fields)}
-                    <p>
-                        {foreach $custom_fields as $f}
-                            {$f.title}: {$f.value}<br>
-                        {/foreach}
-                    </p>
-                {/if}
-                <!-- shipping plugin output -->
-                {if !empty($params.tracking_number)}
-                    <h3><span class="gray">[`Shipment tracking number`] —</span> <strong class="highlighted">{$params.tracking_number}</strong></h3>
-                {/if}
-                {if !empty($tracking) && $order.state_id != 'completed'}
-                    <blockquote class="plugin s-tracking">
-                        {$tracking}
-                    </blockquote>
-                {/if}
-            {/if}
-            {/if}
-
-            {if !empty($params.payment_name)}
-                <h3><span class="gray">[`Payment`] —</span> <strong>{$params.payment_name}</strong></h3>
-                {if $billing_address !== null}
+            <div id="s-order-shipping-info">
+                {if ($shipping_address) || !empty($params.shipping_name)}
+                <h3><span class="gray">[`Shipping`]{if !empty($params.shipping_name)} —{/if}</span> <strong>{ifset($params.shipping_name)}</strong></h3>
+                {if $shipping_address}
                     <p class="s-order-address">
-                        {$billing_address}
+                        {$shipping_address}
                     </p>
+                    {if !empty($custom_fields)}
+                        <p>
+                            {foreach $custom_fields as $f}
+                                {$f.title}: {$f.value}<br>
+                            {/foreach}
+                        </p>
+                    {/if}
+                    <!-- shipping plugin output -->
+                    {if !empty($params.tracking_number)}
+                        <h3><span class="gray">[`Shipment tracking number`] —</span> <strong class="highlighted">{$params.tracking_number}</strong></h3>
+                    {/if}
+                    {if !empty($tracking) && $order.state_id != 'completed'}
+                        <blockquote class="plugin s-tracking">
+                            {$tracking}
+                        </blockquote>
+                    {/if}
                 {/if}
-            {/if}
-
+                {/if}
+            </div>
+            <div id="s-order-payment-info">
+                {if !empty($params.payment_name)}
+                    <h3><span class="gray">[`Payment`] —</span> <strong>{$params.payment_name}</strong></h3>
+                    {if $billing_address !== null}
+                        <p class="s-order-address">
+                            {$billing_address}
+                        </p>
+                    {/if}
+                {/if}
+            </div>
             <div class="clear-right"></div>
 
             <!-- order content -->
