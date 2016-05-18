@@ -13,6 +13,7 @@ class shopInvoiceruPluginPrintformDisplayAction extends waViewAction
          * @var shopInvoiceruPlugin $plugin
          */
         $order_id = waRequest::request('order_id', null, waRequest::TYPE_INT);
+        // For backward compatibility with SS6 use renderForm
         $this->view->assign('content', $plugin->renderForm($order_id));
     }
 }
