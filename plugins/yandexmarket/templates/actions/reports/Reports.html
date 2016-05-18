@@ -2,7 +2,9 @@
     <h1>Интеграция с Яндекс.Маркет</h1>
 
     <p>Отчет показывает состояния кампаний в Яндекс.Маркет, статус программы «Заказ на Маркете»</p>
-    <p><span class="hint">@TODO описать назначение и смысл экрана</span>
+    <p><span class="hint">{*
+    @TODO описать назначение и смысл экрана
+    *}</span>
         {if !empty($error)}
     <p class="errormsg">
 
@@ -184,7 +186,7 @@
         "use strict";
         document.title = '{"Яндекс.Маркет"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 
-        var request_params = {json_encode($request_options)};
+        var request_params = {json_encode(ifset($request_options,array()))};
 {literal}
         var $storefront_selector = $('#s-yandexmarket-report-storefront-selector').removeAttr('id');
         var action_url = '?plugin=yandexmarket&module=reports';

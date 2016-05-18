@@ -139,6 +139,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 }
 
             }
+
             foreach ($this->data['map'] as $type => &$offer_map) {
                 if ($type != 'simple') {
                     $offer_map['fields']['type'] = array(
@@ -146,6 +147,13 @@ class shopYandexmarketPluginRunController extends waLongActionController
                         'attribute' => true,
                     );
                 }
+
+                foreach (array('name', 'description', 'help') as $field) {
+                    if (isset($offer_map[$field])) {
+                        unset($offer_map[$field]);
+                    }
+                }
+
                 unset($offer_map);
             }
 
@@ -299,9 +307,24 @@ XML;
                 throw new waException('Экспорт не может быть выполнен: не задано ни одной валюты, которая могла бы использоваться в качестве основной.');
             }
             unset($available_currencies['auto']);
+            unset($available_currencies['front']);
 
             $primary_currency = $this->plugin()->getSettings('primary_currency');
+
             $this->data['default_currency'] = $config->getCurrency();
+            switch ($primary_currency) {
+                case 'auto':
+                    $primary_currency = $this->data['default_currency'];
+                    break;
+                case 'front':
+                    if (waRequest::param('currency')) {
+                        $primary_currency = waRequest::param('currency');
+                    } else {
+                        $primary_currency = $this->data['default_currency'];
+                    }
+                    break;
+            }
+
             if (!isset($available_currencies[$primary_currency])) {
                 $primary_currency = $this->data['default_currency'];
                 if (!isset($available_currencies[$primary_currency])) {
@@ -786,8 +809,7 @@ XML;
         $nodes = $this->dom->getElementsByTagName('delivery-options');
 
         $this->addDomValue($nodes->item(0), 'option', $delivery_option);
-
-
+        //TODO cache calculated data
     }
 
     /**
@@ -1007,10 +1029,13 @@ SQL;
         $chunk = 100;
         while ((--$chunk >= 0) && ($product = reset($products))) {
             $check_type = empty($this->data['type_id']) || in_array($product['type_id'], $this->data['type_id']);
-            $check_price = $product['price'] >= 0.5;
+
+            $check_price = $this->checkMinPrice($product['price'], $product);
+
             $check_category = !empty($product['category_id']) && isset($this->data['categories'][$product['category_id']]);
             if ($check_category && ($product['category_id'] != $this->data['categories'][$product['category_id']])) {
                 // remap product category
+                //TODO check available parent category
                 $product['category_id'] = $this->data['categories'][$product['category_id']];
             }
             if (false && $check_type && $check_price && !$check_category) {
@@ -1030,8 +1055,13 @@ SQL;
                     $skus = $product['skus'];
                     unset($product['skus']);
                     foreach ($skus as $sku) {
-                        $check_sku_price = $sku['price'] >= 0.5;
+                        //TODO use min_price && convert into default currency
+
+                        $check_sku_price = $this->checkMinPrice($sku['primary_price'], $sku);
+
                         $check_available = !empty($sku['available']);
+                        //TODO use
+
                         $check_count = $check_stock || ($sku['count'] === null) || ($sku['count'] > 0);
                         if ($check_available && $check_sku_price && $check_count) {
                             if (count($skus) == 1) {
@@ -1372,6 +1402,7 @@ SQL;
                     $value = null;
                     break;
                 }
+
             case 'price':
                 $_currency_converted = false;
                 if (!$currency_model) {
@@ -1461,6 +1492,7 @@ SQL;
                         $size = $shop_config->getImageSize('big');
                     }
                     $values[] = 'http://'.ifempty($this->data['base_url'], 'localhost').shopImage::getUrl($image, $size);
+                    //TODO check SCHEMA
                 }
                 $value = $values;
                 break;
@@ -1804,6 +1836,21 @@ SQL;
         }
         return $value;
     }
+
+    private function checkMinPrice($price, $raw = null)
+    {
+        static $currency_model;
+        $original_price = $price;
+        if ($this->data['default_currency'] != $this->data['primary_currency']) {
+            if (empty($currency_model)) {
+                $currency_model = new shopCurrencyModel();
+            }
+            $price = $currency_model->convert($price, $this->data['default_currency'], $this->data['primary_currency']);
+        }
+
+        return $price >= ifempty($this->data['export']['min_price'], 0.5);
+    }
+
 
     private function sprintf($format, $value)
     {

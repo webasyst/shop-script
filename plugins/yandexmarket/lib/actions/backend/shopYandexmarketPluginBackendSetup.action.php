@@ -70,6 +70,7 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
         $this->view->assign('types', $type_model->getAll());
         $profile_map = ifset($profile['config']['map'], array());
         $export = ifset($profile['config']['export'], array());
+
         $set_model = new shopSetModel();
         $map = $this->plugin()->map(array(), null, true);
         $params = array();
@@ -173,9 +174,11 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
             'file_name'   => _w('Attachment'),
             'count'       => _w('In stock'),
         );
-        $stock_model = new shopStockModel();
-        foreach ($stock_model->getAll() as $stock) {
-            $fields[sprintf('todo:stock:%d', $stock['id'])] = sprintf('%s @ %s', _w('In stock'), $stock['name']);
+        if (false) {
+            $stock_model = new shopStockModel();
+            foreach ($stock_model->getAll() as $stock) {
+                $fields[sprintf('todo:stock:%d', $stock['id'])] = sprintf('%s @ %s', _w('In stock'), $stock['name']);
+            }
         }
 
         $this->view->assign('fields', $fields);

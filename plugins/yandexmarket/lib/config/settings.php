@@ -17,18 +17,39 @@ return array(
         'control_type' => waHtmlControl::CHECKBOX,
     ),
 
+    'title1'           => array(
+        'control_type' => waHtmlControl::HIDDEN,
+        'description'  => '<h4>Заказ на Маркете</h4>',
+    ),
+
     'market_token' => array(
         'value'        => '',
         'placeholder'  => 'B3000001C136C238',
         'title'        => 'Авторизационный токен',
-        'description'  => 'Укажите <i>авторизационный токен</i> сгенерированный на странице «Настройки API» заказа в кабинете Яндекс.Маркета.',
+        'description'  => 'Укажите <i>авторизационный токен</i>, сгенерированный на странице «Настройки API заказа» в кабинете «Яндекс.Маркета».',
         'control_type' => waHtmlControl::INPUT,
     ),
-    'contact_id'       => array(
+    'contact_id'   => array(
         'value'        => '',
         'placeholder'  => '123',
         'title'        => 'ID контакта',
         'description'  => 'Укажите <i>id</i> контакта, от имени которого будут проводиться действия программы «Заказ на Маркете».',
+        'control_type' => waHtmlControl::INPUT,
+    ),
+
+    'title2'           => array(
+        'control_type' => waHtmlControl::HIDDEN,
+        'description'  => '<h4>OAuth-приложение</h4>',
+    ),
+
+    'api_client_id' => array(
+        'value'        => '00e02a11a94943e58a1e191266335567',
+        'title'        => 'ID приложения',
+        'description'  => <<<HTML
+Используйте уже созданное <a href="https://oauth.yandex.ru/client/00e02a11a94943e58a1e191266335567" target="_blank">приложение<i class="icon16 new-window"></i></a>
+или <a href="https://oauth.yandex.ru/client/new" target="_blank">создайте<i class="icon16 new-window"></i></a> свое собственное для большего контроля.
+HTML
+        ,
         'control_type' => waHtmlControl::INPUT,
     ),
 
@@ -37,36 +58,31 @@ return array(
         'placeholder' => '',
         'title'       => 'Авторизационный токен',
         'description' => <<<HTML
-Укажите <i>авторизационный токен</i> приложения, имеющего доступ к  Яндекс.Маркет.<br/>
-Используется для отображения статистики и обновления статусов заказов<br/>
-Для получения токена пройдите по 
-        <a href="https://oauth.yandex.ru/authorize?response_type=token&client_id=%api_client_id%" target="_blank">ссылке</a>, подтвердите права и введите токен в это поле.
+Укажите <i>авторизационный токен</i> приложения, имеющего доступ к «Яндекс.Маркету».<br/>
+Используется для отображения статистики и обновления статусов заказов.<br/>
+<p>Для получения токена перейдите по
+        <a data-href="https://oauth.yandex.ru/authorize?response_type=token&client_id=%api_client_id%" href="https://oauth.yandex.ru/authorize?response_type=token&client_id=%api_client_id%" target="_blank">ссылке</a>, подтвердите права и введите токен в это поле.</p>
 <script type="text/javascript">
-var input = $('input[name$="\[api_client_id\]"');
-
-var href = $('input[name$="\[api_oauth_token\]"').parent().find('a:first'); 
-$.shop.trace('input',[input, href]);
-if(input.length && input.val()!=''){
-    href.attr('href', href.attr('href').replace(/%api_client_id%/, input.val()));
-} else {
-    href.hide();
-}
-
+(function () {
+    "use strict";
+    var input = $('input[name$="\[api_client_id\]"');
+    if(input.length){
+        input.bind('change',function(){
+            var href = $('input[name$="\[api_oauth_token\]"').parent().find('a:first');
+            if(this.value!=''){
+                href.attr('href', href.data('href').replace(/%api_client_id%/, this.value));
+                href.parents('p').show();
+            } else {
+                href.parents('p').hide();
+            }
+        }).trigger('change');
+    }
+})();
 </script>
 HTML
         ,
 
         'control_type' => waHtmlControl::INPUT,
         'autocomplete' => 'off',
-    ),
-
-    //https://tech.yandex.ru/market/partner/
-    //https://oauth.yandex.ru/client/new
-    //https://oauth.yandex.ru/verification_code
-    'api_client_id'   => array(
-        'value'        => '',
-        'title'        => 'ID приложения',
-        'description'  => 'TODO: оставить единый идентификатор приложения (ключи сохраняются в контексте установок, поэтому это достаточно безопасно).',
-        'control_type' => waHtmlControl::INPUT,
     ),
 );

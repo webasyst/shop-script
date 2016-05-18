@@ -224,6 +224,7 @@ class shopYandexmarketPluginOrder extends waOrder
             $data['description'] .= ($data['description'] ? "\n" : '').$json['notes'];
         }
 
+
         if (!empty($json['delivery'])) {
             $delivery = $json['delivery'];
             if (!empty($delivery['type'])) {
@@ -232,19 +233,19 @@ class shopYandexmarketPluginOrder extends waOrder
                 $data['shipping'] = floatval($delivery['price']);
             }
 
+            $address = array();
+
+            $formats = array(
+                'subway' => 'метро %s',
+                'house'  => 'дом %s',
+                'block'  => 'корпус %s',
+                'floor'  => 'этаж %s',
+            );
+
             if (!empty($delivery['address'])) {
                 /**
                  *
-                 * "address": {
-                 * "country": "Россия",
-                 * "city": "Москва",
-                 * "subway": "Октябрьская",
-                 * "street": "Крымский вал",
-                 * "house": "3",
-                 * "block": "2"
-                 * }
-                 *
-                 *  * @property array $shipping_address
+                 * @property array $shipping_address
                  * @property array[string]string $shipping_address['name']
                  * @property array[string]string $shipping_address['firstname']
                  * @property array[string]string $shipping_address['lastname']
@@ -258,54 +259,76 @@ class shopYandexmarketPluginOrder extends waOrder
                  * @property array[string]string $shipping_address['address']
                  */
 
-                $address = array();
-                $fields = array('country', 'city', 'subway', 'postcode' => 'zip');
-                foreach ($fields as $field => $target) {
+                $address_map = array(
+                    'country',
+                    'city',
+                    'subway'   => 'street',
+                    'postcode' => 'zip',
+                    'street'   => 'street',
+                    'house'    => 'street',
+                    'block'    => 'street',
+                    'floor'    => 'street',
+                );
+
+                foreach ($address_map as $field => $target) {
                     if (is_int($field)) {
                         $field = $target;
                     }
 
                     if (isset($delivery['address'][$field])) {
-                        $address[$target] = $delivery['address'][$field];
+                        $address[$target][$field] = trim($delivery['address'][$field]);
                         unset($delivery['address'][$field]);
                     }
                 }
-                $address['street'] = implode(' ', $delivery['address']);
-                $data['shipping_address'] = $address;
+
             } else {
 
-                $address = ifset($delivery['region'], array());
+                $region = ifset($delivery['region']);
                 $address_map = array(
-                    'REGION'                      => 'region', //регион;
-                    'COUNTRY'                     => array('name' => 'country_name', 'id' => 'country',), //страна;
-                    'COUNTRY_DISTRICT'            => array('name' => 'region_name', 'id' => 'region2'), //федеральный округ;
-                    'SUBJECT_FEDERATION'          => array('name' => 'region_name', 'id' => 'region'), //субъект федерации;
-                    'SUBJECT_FEDERATION_DISTRICT' => array('name' => 'city', 'id' => 'zip'), //район субъекта федерации;
-                    'CITY'                        => 'city', //город;
-                    'VILLAGE'                     => 'city', //поселок или село;
-                    'CITY_DISTRICT'               => 'street', //район города;
-                    'SUBWAY_STATION'              => 'subway', //станция метро;
-                    'OTHER'                       => '', //дополнительный тип для регионов, отличных от перечисленных.
+                    'REGION'                      => 'region',
+                    'COUNTRY'                     => array('name' => 'country_name', 'id' => 'country',),
+                    'COUNTRY_DISTRICT'            => array('name' => 'region_name', 'id' => 'region'),
+                    'SUBJECT_FEDERATION'          => array('name' => 'region_name', 'id' => 'region'),
+                    'SUBJECT_FEDERATION_DISTRICT' => array('name' => 'city', 'id' => 'zip'),
+                    'CITY'                        => 'city',
+                    'VILLAGE'                     => 'city',
+                    'CITY_DISTRICT'               => 'street',
+                    'SUBWAY_STATION'              => 'subway',
+                    'OTHER'                       => '',
                 );
 
-                while ($address) {
-                    $field = ifset($address_map[$address['type']], false);
+                while ($region !== null) {
+                    $field = ifset($address_map[$region['type']], false);
                     if ($field) {
                         if (is_array($field)) {
                             foreach ($field as $property => $key) {
-                                $data['shipping_address'][$key][] = $address[$property];
+                                $address[$key][] = trim($region[$property]);
                             }
                         } else {
-                            $data['shipping_address'][$field][] = $address['name'];
+                            $address[$field][] = trim($region['name']);
                         }
                     }
-                    $address = ifempty($address['parent']);
+                    $region = ifset($region['parent']);
                 }
+            }
 
-                foreach ($data['shipping_address'] as &$address) {
-                    $address = implode(', ', $address);
+
+            foreach ($address as &$address_item) {
+                $address_item = array_filter($address_item, 'strlen');
+                if ($address_item) {
+                    foreach ($address_item as $type => &$address_item_element) {
+                        if (isset($formats[$type])) {
+                            $address_item_element = sprintf($formats[$type], $address_item_element);
+                        }
+                        unset($address_item_element);
+                    }
+                    $address_item = implode(' ', $address_item);
                 }
-                unset($address);
+                unset($address_item);
+            }
+            $address = array_filter($address, 'strlen');
+            if (!empty($address)) {
+                $data['shipping_address'] = $address;
             }
         }
 

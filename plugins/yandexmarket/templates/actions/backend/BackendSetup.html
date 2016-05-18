@@ -218,7 +218,7 @@
         <div class="field">
             <div class="name">Минимальная цена</div>
             <div class="value">
-                <input type="text" name="export[min_price]" value="{$export.min_price|escape}"
+                <input type="text" name="export[min_price]" value="{$export.min_price|default:''|escape}"
                        placeholder="0.5" class="numerical short"
                        id="s-plugin-yandexmarket-export-min_price">{$primary_currency|escape}<br>
 

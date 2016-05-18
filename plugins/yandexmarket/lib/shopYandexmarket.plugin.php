@@ -13,32 +13,42 @@ class shopYandexmarketPlugin extends shopPlugin
 
     private function initTypes()
     {
-        $config_path = $this->path.'/lib/config/map.php';
-        if (file_exists($config_path)) {
-            $data = include($config_path);
-            /**
-             * @var $data array
-             */
+        $app_config = wa('shop');
+        $files = array(
+            $app_config->getAppPath('plugins/yandexmarket', 'shop').'/lib/config/map.php',
+            $app_config->getConfigPath('shop/plugins/yandexmarket').'/map.php',
+        );
 
-            $missed = array();
-            $sort = array_flip(array_keys($data['fields']));
-            foreach ($data['types'] as &$type) {
-                foreach ($type['fields'] as $field => $required) {
-                    $field_type = (strpos($field, 'param.') === 0) ? 'param' : $field;
-                    if (empty($data['fields'][$field_type])) {
-                        $missed[] = $field;
+        $this->types = array();
+
+        foreach ($files as $file_path) {
+            if (file_exists($file_path)) {
+                $data = include($file_path);
+                if (is_array($data)) {
+                    /**
+                     * @var $data array
+                     */
+
+                    $missed = array();
+                    $sort = array_flip(array_keys($data['fields']));
+                    foreach ($data['types'] as &$type) {
+                        foreach ($type['fields'] as $field => $required) {
+                            $field_type = (strpos($field, 'param.') === 0) ? 'param' : $field;
+                            if (empty($data['fields'][$field_type])) {
+                                $missed[] = $field;
+                            }
+                            $type['fields'][$field] = array(
+                                'required' => $required,
+                                'sort'     => ifset($sort[$field_type], 0),
+                            );
+                            $type['fields'][$field] += ifempty($data['fields'][$field_type], array());
+                        }
+                        unset($type);
                     }
-                    $type['fields'][$field] = array(
-                        'required' => $required,
-                        'sort'     => ifset($sort[$field_type], 0),
-                    );
-                    $type['fields'][$field] += ifempty($data['fields'][$field_type], array());
+                    $this->types = $data['types'];
+                    break;
                 }
-                unset($type);
             }
-            $this->types = $data['types'];
-        } else {
-            $this->types = array();
         }
     }
 
@@ -49,7 +59,7 @@ class shopYandexmarketPlugin extends shopPlugin
             $app_config = wa('shop');
             $files = array(
                 $app_config->getAppPath('plugins/yandexmarket', 'shop').'/lib/config/config.php', // defaults
-                $app_config->getConfigPath('shop/plugins/yandexmarket').'/config.php' // custom
+                $app_config->getConfigPath('shop/plugins/yandexmarket').'/config.php', // custom
             );
             $config = array();
             foreach ($files as $file_path) {
@@ -388,7 +398,7 @@ HTML;
              * @var shopConfig $config
              */
             $default = $config->getCurrency();
-            if (isset($currencies[$default])) {
+            if (isset($available_currencies[$default])) {
                 $currencies['auto'] = array(
                     'value' => 'auto',
                     'title' => $default.' - Основная валюта магазина.',
@@ -396,6 +406,14 @@ HTML;
 
                 );
             }
+
+            $currencies['front'] = array(
+                'value' => 'front',
+                'title' => 'Использовать валюту витрины.',
+                'rate'  => 0,
+
+            );
+
             foreach ($available_currencies as $currency) {
                 $currencies[$currency['code']] = array(
                     'value' => $currency['code'],
