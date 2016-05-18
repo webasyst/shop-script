@@ -7,8 +7,24 @@ class shopConsignmentruPlugin extends shopPrintformPlugin
         return array('RUB', 'UAH');
     }
 
-    protected function prepareForm(waOrder &$order, waView &$view)
+    /**
+     * For backward compatibility with SS6 use this method
+     * @param waOrder $order
+     * @param waView $view
+     */
+    public function prepareForm(waOrder &$order, waView &$view)
     {
         $view->assign('items', $order->items);
+    }
+
+    public function preparePrintform($data, waView $view)
+    {
+        $order = $data['order'];
+        /**
+         * @var waOrder $order
+         */
+        $view->assign('items', $order->items);
+
+        return $data;
     }
 }
