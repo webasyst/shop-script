@@ -145,6 +145,10 @@ class shopDialogProductListSettingsAction extends waViewAction
         }
         $this->view->assign('parent', $parent);
 
+
+        $has_children = $category_model->countByField('parent_id', $settings['id']);
+        $settings['has_children'] = $has_children;
+
         return $settings;
     }
 

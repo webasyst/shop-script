@@ -28,6 +28,9 @@ class shopPromosActions extends waViewActions
         }
 
         $storefront_route = waRequest::request('storefront');
+        if ($storefront_route) {
+            $storefront_route = rtrim($storefront_route, '/') . '/';
+        }
         if (empty($storefront_route) || empty($storefronts[$storefront_route])) {
             $storefront = reset($storefronts);
         } else {
@@ -35,7 +38,12 @@ class shopPromosActions extends waViewActions
         }
 
         $promo_model = new shopPromoModel();
-        $promos = $promo_model->getByStorefront($storefront['storefront']);
+        if ($this->getRequest()->get('disabled')) {
+            $storefront = null;
+            $promos = $promo_model->getDisabled();
+        } else {
+            $promos = $promo_model->getByStorefront($storefront['storefront']);
+        }
         foreach($promos as &$p) {
             $p['image_url'] = shopHelper::getPromoImageUrl($p['id'], $p['ext']);
         }
@@ -49,9 +57,11 @@ class shopPromosActions extends waViewActions
 
         $this->view->assign(array(
             'promos_count' => $promo_model->countAll(),
+            'disabled_count' => $promo_model->countDisabled(),
             'storefronts' => $storefronts,
             'storefront' => $storefront,
             'promos' => $promos,
+            'is_disabled' => $this->getRequest()->get('disabled')
         ));
     }
 
@@ -98,6 +108,9 @@ class shopPromosActions extends waViewActions
         $errors = array();
         $data = waRequest::post('promo', array(), 'array');
         if ($data) {
+
+            $data['enabled'] = ifset($data['enabled'], 0);
+
             $data = array_intersect_key($data, $promo) + $promo;
             unset($data['id']);
 
@@ -135,6 +148,18 @@ class shopPromosActions extends waViewActions
             }
             if(empty($storefronts_data)) {
                 $errors['storefronts'] = _w('Select at least one storefront.');
+            }
+
+            // maybe it's better for model, but let it be just here for a while
+            if (!empty($data['countdown_datetime'])) {
+                $d = $data['countdown_datetime']['date'];
+                $h = (int) $data['countdown_datetime']['hour'];
+                $m = (int) $data['countdown_datetime']['minute'];
+                $date = $d . ' ' . ($h < 10 ? '0'.$h : $h) . ':' . ($m < 10 ? '0'.$m : $m);
+                $data['countdown_datetime'] = null;
+                if ($countdown_datetime = waDateTime::parse('datetime', $date)) {
+                    $data['countdown_datetime'] = $countdown_datetime;
+                }
             }
 
             if (!$errors) {
@@ -233,6 +258,11 @@ EOF;
             $promo_routes_model = new shopPromoRoutesModel();
             $promo_routes_model->deleteByField('promo_id', $id);
         }
+        echo json_encode(array(
+            'status' => 'ok',
+            'data' => 'ok',
+        ));
+        exit;
     }
 
     // Upload file to temporary dir, later to save to promo in editorAction()
@@ -326,13 +356,13 @@ EOF;
         wa()->getStorage()->del('shop/promo/uploaded');
     }
 
-    protected function getStorefronts($promo_id=null, $all=false)
+    protected function getStorefronts($promo_id=null)
     {
         $storefronts = array();
-        foreach(wa()->getRouting()->getDomains() as $d) {
-            $storefronts[$d] = array(
-                'storefront' => $d,
-                'name' => $d,
+        foreach(shopHelper::getStorefronts() as $url) {
+            $storefronts[$url] = array(
+                'storefront' => $url,
+                'name' => $url,
                 'active' => true,
                 'sort' => -1,
             );
@@ -341,15 +371,15 @@ EOF;
         if ($promo_id) {
             $promo_routes_model = new shopPromoRoutesModel();
             $rows = $promo_routes_model->getByField('promo_id', $promo_id, 'storefront');
-            foreach($rows as $d => $row) {
-                if (empty($storefronts[$d])) {
-                    $storefronts[$d] = array(
-                        'storefront' => $d,
-                        'name' => $d,
+            foreach($rows as $url => $row) {
+                if (empty($storefronts[$url])) {
+                    $storefronts[$url] = array(
+                        'storefront' => $url,
+                        'name' => $url,
                         'active' => false,
                     );
                 }
-                $storefronts[$d]['sort'] = $row['sort'];
+                $storefronts[$url]['sort'] = $row['sort'];
             }
         }
 

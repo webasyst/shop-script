@@ -38,6 +38,8 @@ class shopNotifications
                 }
             }
         }
+
+        self::sendPushNotifications($event, $data);
     }
 
     /**
@@ -119,6 +121,7 @@ class shopNotifications
             if (!empty($p['image'])) {
                 $p['image']['thumb_url'] = $d.$p['image']['thumb_url'];
                 $p['image']['big_url'] = $d.$p['image']['big_url'];
+                $p['image']['crop_url'] = $d.$p['image']['crop_url'];
             }
         }
         unset($p);
@@ -146,6 +149,98 @@ class shopNotifications
                 $data['shipping_plugin'] = shopShipping::getPlugin($data['order']['params']['shipping_plugin'], $data['order']['params']['shipping_id']);
             } catch (waException $e) {}
         }
+
+
+        if (isset($data['order']['params']['signup_url'])) {
+            $data['signup_url'] = $data['order']['params']['signup_url'];
+            unset($data['order']['params']['signup_url']);
+        }
+
+        // normalize customer
+        $customer = ifset($data['customer'], new shopCustomer(0));
+        if (!($customer instanceof shopCustomer)) {
+            if (($customer instanceof waContact) || (is_array($customer) && isset($customer['id']))) {
+                $customer = new shopCustomer($customer['id']);
+            } else {
+                $customer = new shopCustomer(ifset($data['order']['contact_id'], 0));
+            }
+        }
+        $customer_data = $customer->getCustomerData();
+        foreach (ifempty($customer_data, array()) as $field_id => $value) {
+            if ($field_id !== 'contact_id') {
+                $customer[$field_id] = $value;
+            }
+        }
+        $data['customer'] = $customer;
+
+
+        // affiliate bonus
+        if (shopAffiliate::isEnabled()) {
+            $data['is_affiliate_enabled'] = true;
+            $data['add_affiliate_bonus'] = shopAffiliate::calculateBonus($data['order']);
+        }
+
+        $data['order_url'] = wa()->getRouteUrl('/frontend/myOrderByCode', array('id' => $data['order']['id'], 'code' => ifset($data['order']['params']['auth_code'])), true);
+
+        shopHelper::workupOrders($data['order'], true);
+
+        // empty defaults, to avoid notices
+        $empties = self::getDataEmpties();
+        $data = self::arrayMergeRecursive($data, $empties);
+    }
+
+    private static function getDataEmpties()
+    {
+        return array(
+            'status' => '',
+            'order_url' => '',
+            'signup_url' => '',
+            'add_affiliate_bonus' => 0,
+            'is_affiliate_enabled' => false,
+            'order' => array(
+                'id' => '',
+                'currency' => '',
+                'items' => array(),
+                'discount' => '',
+                'tax' => '',
+                'shipping' => 0,
+                'total' => 0,
+                'comment' => '',
+                'params' => array(
+                    'shipping_name' => '',
+                    'shipping_description' => '',
+                    'payment_name' => '',
+                    'payment_description' => '',
+                    'auth_pin' => '',
+                    'storefront' => '',
+                    'ip' => '',
+                    'user_agent' => '',
+                    'shipping_est_delivery' => '',
+                    'tracking_number' => ''
+                )
+            ),
+            'customer' => new shopCustomer(0),
+            'shipping_address' => '',
+            'billing_address' => '',
+            'action_data' => array(
+                'text' => '',
+                'params' => array(
+                    'tracking_number' => ''
+                )
+            )
+        );
+    }
+
+    public static function arrayMergeRecursive($merge_to, $merge_from)
+    {
+        foreach ($merge_from as $key => $value) {
+            if (!array_key_exists($key, $merge_to)) {
+                $merge_to[$key] = $value;
+            } else if (is_array($merge_to[$key]) && is_array($merge_from[$key])) {
+                $merge_to[$key] = self::arrayMergeRecursive($merge_to[$key], $merge_from[$key]);
+            }
+        }
+        return $merge_to;
     }
 
     protected static function sendEmail($n, $data)
@@ -188,7 +283,6 @@ class shopNotifications
         }
         $order_id = $data['order']['id'];
         $data['order']['id'] = shopHelper::encodeOrderId($order_id);
-        $view->assign('order_url', wa()->getRouteUrl('/frontend/myOrderByCode', array('id' => $order_id, 'code' => ifset($data['order']['params']['auth_code'])), true));
         $view->assign($data);
         $subject = $view->fetch('string:'.$n['subject']);
         $body = $view->fetch('string:'.$n['body']);
@@ -280,7 +374,6 @@ class shopNotifications
         }
         $order_id = $data['order']['id'];
         $data['order']['id'] = shopHelper::encodeOrderId($order_id);
-        $view->assign('order_url', wa()->getRouteUrl('/frontend/myOrderByCode', array('id' => $order_id, 'code' => $data['order']['params']['auth_code']), true));
         $view->assign($data);
         $text = $view->fetch('string:'.$n['text']);
 
@@ -303,5 +396,64 @@ class shopNotifications
     protected static function sendHttp($n, $data)
     {
 
+    }
+
+    protected static function sendPushNotifications($event, $data)
+    {
+        if ($event != 'order.create') {
+            return;
+        }
+
+        $host_client_ids = array();
+        $push_client_model = new shopPushClientModel();
+        foreach($push_client_model->getAll() as $row) {
+            $host_client_ids[$row['shop_url']][$row['client_id']] = $row['client_id'];
+        }
+        if (!$host_client_ids) {
+            return;
+        }
+
+        $results = array();
+        foreach($host_client_ids as $shop_url => $client_ids) {
+            $request_data = json_encode(array(
+                'app_id' => "0b854471-089a-4850-896b-86b33c5a0198",
+                'data' => array(
+                    'order_id' => $data['order']['id'],
+                    'shop_url' => $shop_url,
+                ),
+                'include_player_ids' => array_values($client_ids),
+                'contents' => array(
+                    "en" => _w('New order').' '.shopHelper::encodeOrderId($data['order']['id']),
+                ),
+
+                'ios_badgeType' => 'Increase',
+                'ios_badgeCount' => 1,
+                'android_group' => 'shop_orders',
+            ));
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+
+            curl_setopt($ch, CURLOPT_POST, TRUE);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $request_data);
+
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+            curl_setopt($ch, CURLOPT_HEADER, FALSE);
+
+            $result = curl_exec($ch);
+            curl_close($ch);
+            $result = @json_decode($result, true);
+            if (!empty($result['errors'])) {
+                if (!empty($result['errors']['invalid_player_ids'])) {
+                    $push_client_model->deleteById($result['errors']['invalid_player_ids']);
+                } else {
+                    waLog::log('Unable to send PUSH notifications: '.wa_dump_helper($result));
+                }
+            }
+            $results[] = $result;
+        }
+        return $result;
     }
 }

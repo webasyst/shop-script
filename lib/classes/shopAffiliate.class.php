@@ -37,7 +37,7 @@ class shopAffiliate
         $curm = new shopCurrencyModel();
         $order_currency = isset($order['currency']) ? $order['currency'] : null;
         $def_cur = wa('shop')->getConfig()->getCurrency(true);
-        $affiliatable_total = $curm->convert($order['total'] - ifset($order['shipping'], 0), ifempty($order_currency, $def_cur), $def_cur);
+        $affiliatable_total = $curm->convert(ifset($order['total'], 0) - ifset($order['shipping'], 0), ifempty($order_currency, $def_cur), $def_cur);
 
         $product_types = wa()->getSetting('affiliate_product_types', '', 'shop');
         if (!empty($product_types)) {

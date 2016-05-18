@@ -23,18 +23,18 @@ class shopReportsCohortsAction extends waViewAction
 
         $group_by = waRequest::request('group_period', $default_group_by, 'string');
         $cohorts_type = waRequest::request('type', 'sales', 'string');
-        $storefront = waRequest::request('storefront', null, 'string');
+        $sales_channel = waRequest::request('sales_channel', null, 'string');
         $customer_source = waRequest::request('source', '', 'string');
         $request_options = array(
             'type' => $cohorts_type,
-            'storefront' => $storefront,
+            'sales_channel' => $sales_channel,
             //'group_period' => $group_by,
             'source' => $customer_source,
         ) + $request_options;
 
         $model_options = array(
             'customer_source' => $customer_source,
-            'storefront' => $storefront,
+            'sales_channel' => $sales_channel,
             'group' => $group_by,
         );
 
@@ -125,7 +125,7 @@ class shopReportsCohortsAction extends waViewAction
 
         $this->view->assign(array(
             'sources' => shopReportsmarketingcostsActions::getSources(),
-            'storefronts' => shopReportsSalesAction::getStorefronts(),
+            'sales_channels' => shopReportsSalesAction::getSalesChannels(),
             'request_options' => $request_options,
             'table_headers' => $table_headers,
             'table_totals' => $table_totals,

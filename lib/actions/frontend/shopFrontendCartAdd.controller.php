@@ -81,10 +81,11 @@ class shopFrontendCartAddController extends waJsonController
 
                 // limit by main stock
                 if (wa()->getSetting('limit_main_stock') && waRequest::param('stock_id')) {
+                    $stock_id = waRequest::param('stock_id');
                     $product_stocks_model = new shopProductStocksModel();
-                    $row = $product_stocks_model->getByField(array('sku_id' => $sku['id'], 'stock_id' => waRequest::param('stock_id')));
-                    if ($row) {
-                        $sku['count'] = $row['count'];
+                    $sku_stock = shopHelper::fillVirtulStock($product_stocks_model->getCounts($sku['id']));
+                    if (isset($sku_stock[$stock_id])) {
+                        $sku['count'] = $sku_stock[$stock_id];
                     }
                 }
 
@@ -100,7 +101,7 @@ class shopFrontendCartAddController extends waJsonController
                         }
                         return;
                     } else {
-                        $this->response['error'] = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
+                        $this->errors = sprintf(_w('Only %d pcs of %s are available, and you already have all of them in your shopping cart.'), $sku['count'], $name);
                     }
                 }
             }
@@ -165,7 +166,7 @@ class shopFrontendCartAddController extends waJsonController
                 if (waRequest::get("items")) {
                     $this->response['items'] = $this->getCartItems();
                 }
-            } else {
+            } else if (!waRequest::param('noredirect')) {
                 $this->redirect(waRequest::server('HTTP_REFERER'));
             }
         } else {

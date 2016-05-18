@@ -83,6 +83,13 @@ class shopFrontendProductAction extends shopFrontendAction
             }
         }
 
+        // Public virtual stock counts for each SKU
+        $skus = $product->skus;
+        foreach($skus as $sku_id => $sku) {
+            $skus[$sku_id]['stock'] = shopHelper::fillVirtulStock($skus[$sku_id]['stock']);
+        }
+        $product->skus = $skus;
+
         if ($this->appSettings('limit_main_stock')) {
             $stock_id = waRequest::param('stock_id');
             if ($stock_id) {
@@ -258,6 +265,10 @@ class shopFrontendProductAction extends shopFrontendAction
             foreach($meta_fields['og'] as $property => $content) {
                 $content && wa()->getResponse()->setOgMeta($property, $content);
             }
+            // yes, override previous og:video url
+            if ($product['video_url']) {
+                wa()->getResponse()->setOgMeta('og:video', $product['video_url']);
+            }
 
             $feature_codes = array_keys($product->features);
             $feature_model = new shopFeatureModel();
@@ -280,8 +291,7 @@ class shopFrontendProductAction extends shopFrontendAction
          */
         $this->view->assign('frontend_product', wa()->event('frontend_product', $product, array('menu', 'cart', 'block_aux', 'block')));
 
-        $stock_model = new shopStockModel();
-        $this->view->assign('stocks', $stock_model->getAll('id'));
+        $this->view->assign('stocks', shopHelper::getStocks(true));
 
         // default title and metas
         if (!$is_cart) {
@@ -350,7 +360,7 @@ class shopFrontendProductAction extends shopFrontendAction
                     // !!! also set other keys related to price
                 }
                 if ($row['status'] == shopProductServicesModel::STATUS_DEFAULT) {
-                    // default varians is different for this product
+                    // default variant is different for this product
                     $services[$row['service_id']]['variant_id'] = $row['service_variant_id'];
                 }
             } else {

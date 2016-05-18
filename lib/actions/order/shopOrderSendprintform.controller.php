@@ -63,7 +63,8 @@ class shopOrderSendprintformController extends waJsonController
                             if ($order->contact_email) {
                                 $mail = new waMailMessage();
                                 $mail->setBody($plugin->displayPrintForm($form, $order));
-                                $mail->setSubject(sprintf(_w('Printform %s for order %s'), $forms[$form]['name'], $order->id_str));
+                                //_w('Printform %s for order %s')
+                                $mail->setSubject(sprintf('%s %s', $forms[$form]['name'], $order->id_str));
                                 $mail->setTo($order->contact_email, $order->contact_name);
 
                                 $from = shopHelper::getStoreEmail(ifempty($raw_order['params']['storefront']));

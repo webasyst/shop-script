@@ -68,7 +68,7 @@ $.order_edit = {
 
         // helpers and handlers here
         var updateStockIcon = function(order_item) {
-            var select   = order_item.find('.s-orders-stock');
+            var select   = order_item.find('.s-orders-sku-stock-select');
             var option   = select.find('option:selected');
             var sku_item = order_item.find('.s-orders-skus').
                 find('input[type=radio]:checked').
@@ -87,6 +87,8 @@ $.order_edit = {
                 item.find('.s-orders-stock-icon').html(
                     option.attr('data-icon')
                 ).show();
+                order_item.find('.s-orders-stock-icon .s-stock-left-text').show();
+                item.find('.s-orders-stock-icon .s-stock-left-text').hide();
             }
         };
 
@@ -117,7 +119,7 @@ $.order_edit = {
 
         var add_order_input = $("#orders-add-autocomplete");
         add_order_input.autocomplete({
-            source : '?action=autocomplete&with_counts=1&with_sku_name=1',
+            source : '?action=autocomplete&with_counts=1',
             minLength : 3,
             delay : 300,
             select : function(event, ui) {
@@ -169,6 +171,7 @@ $.order_edit = {
                 function() {
                     var self = $(this);
                     var tr = self.parents('tr:first');
+                    var li = self.closest('li');
                     var sku_id = this.value;
                     var product_id = tr.attr('data-product-id');
                     var index = tr.attr('data-index');
@@ -193,7 +196,6 @@ $.order_edit = {
                                 }
                             })
                         );
-                        //tr.find('.s-orders-services .s-orders-service-variant').trigger('change');
                         tr.find('.s-orders-product-price').
                             //find('span').html(r.data.sku.price_html || r.data.sku.price_str).end().
                             find('input').val(r.data.sku.price);
@@ -206,7 +208,8 @@ $.order_edit = {
                             ns = 'edit';
                         }
 
-                        tr.find('.s-orders-product-stocks').replaceWith(
+                        tr.find('.s-orders-sku-stock-place').empty();
+                        li.find('.s-orders-sku-stock-place').html(
                             tmpl('template-order-stocks-' + ns, {
                                 sku:     r.data.sku,
                                 index:   index,
@@ -224,8 +227,8 @@ $.order_edit = {
 
         // change stocks select
         this.container.
-            off('change', '.s-orders-stock').
-            on( 'change', '.s-orders-stock', function() {
+            off('change', '.s-orders-sku-stock-select').
+            on( 'change', '.s-orders-sku-stock-select', function() {
                 var item = $(this).parents('tr.s-order-item:first');
                 updateStockIcon(item);
             });

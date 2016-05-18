@@ -45,6 +45,13 @@ class shopOrderSaveController extends waJsonController
 
         $params_model = new shopOrderParamsModel();
         $params = $params_model->get($id);
+        if (!empty($data['params']['storefront'])) {
+            $data['params']['sales_channel'] = 'storefront:'.$data['params']['storefront'];
+        } else if (!empty($params['sales_channel'])) {
+            $data['params']['sales_channel'] = $params['sales_channel'];
+        } else {
+            $data['params']['sales_channel'] = 'backend:';
+        }
 
         // Save customer
         if ($customer_id !== null) {
@@ -158,7 +165,7 @@ class shopOrderSaveController extends waJsonController
                 $old_items = $items_model->getByField('order_id', $id, 'id');
             }
             foreach ($data['items'] as $item) {
-                if ($id && !isset($item['total_discount'])) {
+                if ($id && !empty($item['id']) && !isset($item['total_discount'])) {
                     $item['total_discount'] = ifset($old_items[$item['id']]['total_discount'], 0);
                 }
                 $tmp_discount += ifset($item['total_discount'], 0);
@@ -557,8 +564,7 @@ class shopOrderSaveController extends waJsonController
         $sku_stocks = $this->getSkuStocks($sku_ids);
         foreach ($items as $index => $item_id) {
             $sku_id   = $skus[$item_id];
-            $stock_id = $stocks[$item_id];
-            if (empty($stock_id) && !empty($sku_stocks[$sku_id])) {
+            if (empty($stocks[$item_id]) && !empty($sku_stocks[$sku_id])) {
                 $this->errors['order']['items'][$index]['stock_id'] = _w('Select stock');
             }
         }
@@ -641,12 +647,12 @@ class shopOrderSaveController extends waJsonController
             }
         }
 
+        $order_currency = $this->getModel()->select('currency')->where('id=?', $order_id)->fetchField();
         if ($product_ids) {
             $products = $this->getFields($product_ids, 'product', 'name,tax_id, currency');
             $skus     = $this->getFields($sku_ids, 'product_skus', 'name, sku, purchase_price');
             $services = $this->getFields($service_ids, 'service', 'name,tax_id');
             $variants = $this->getFields($variant_ids, 'service_variants');
-            $order_currency = $this->getModel()->select('currency')->where('id=?', $order_id)->fetchField();
             foreach ($data['items'] as &$item) {
                 // items with id mean for updating (old items)
                 if (isset($item['id'])) {

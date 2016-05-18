@@ -3,7 +3,7 @@
     {$enabled_columns[$c.id] = $c}
 {/if}{/foreach}
 
-<div id="s-product-list-table-container">
+<div id="s-product-list-table-container" class="s-product-list-table-container">
     <table class="zebra single-lined" id="product-list">
         <tr class="header">
             {if $manual && $sort == 'sort'}<th class="min-width"></th>{/if}
@@ -75,7 +75,9 @@
         data-min-price="{%#p.min_price%}"
         data-max-price="{%#p.max_price%}"
         data-currency="{%#p.currency%}"
-        {% if (p.alien) { %}title="[`This is a subcategory product`]"{% } %}
+        {% if (p.alien) { %}title="([`This is a subcategory product`]) {%#p.name%}"{% } %}
+        {% if (p.status == '0' && !p.alien) { %}title="([`Hidden product`]) {%#p.name%}"{% } %}
+        {% if (p.status != '0' && !p.alien) { %}title="{%#p.name%}"{% } %}
     >
         {/literal}
         {if $manual && $sort == 'sort'}
@@ -106,7 +108,7 @@
             <td class="s-product-col-sku" title="{$enabled_columns.sku.name|escape}">{literal}{%#p.{/literal}sku_html || p.sku{literal}%}{/literal}</td>
         {/if}
         {literal}
-        <td class="drag-handle s-product-name" title="{%#p.name%}">
+        <td class="drag-handle s-product-name">
             <a href="#/product/{%#p.id%}/"><div>{%#p.name%}<i class="shortener"></i></div></a>
         </td>
         <td class="short nowrap align-right s-product-price" title="[`Price`]"><span class="editable">{%#p.price_range%}</span></td>
@@ -116,7 +118,7 @@
         {/literal}
         {foreach $enabled_columns as $c}
             {if $c.id != 'image_crop_small' && $c.id != 'sku'}
-                <td class="s-product-col-{$c.id}" title="{$c.name|escape}">{literal}{%#p.{/literal}{$c.id}_html || p.{$c.id}{literal}%}{/literal}</td>
+                <td class="s-product-col-{$c.id} align-center" title="{$c.name|escape}">{literal}{%#p.{/literal}{$c.id}_html || p.{$c.id}{literal}%}{/literal}</td>
             {/if}
         {/foreach}
         <td class="min-width">
@@ -192,6 +194,11 @@
                             <input type="checkbox" name="columns[%ID%]" value="1">
                             <span class="column-name"></span>
                         <label></div>
+                        {if !empty($additional_columns_autocomplete)}
+                        <div class="value"> {* Field source feature autocomplete *}
+                            <input type="search" class="js-autocomplete-feature" title="Поиск характеристики по названию или коду" placeholder="[`Feature name`]" style="_display:none;">
+                        </div>
+                        {/if}
                     </div>
                 </div>
 
@@ -210,7 +217,7 @@
 <script>(function() { "use strict";
     var additional_columns = {$additional_columns|json_encode};
     var additional_columns_count = {$additional_columns|count};
-
+{literal}
     var features_initialized = false;
 
     var $dialog = $('#product-list-settings-dialog');
@@ -229,6 +236,36 @@
                 return $wr[0];
             });
             $template.before($(new_elements));
+
+            $dialog.find(':input.js-autocomplete-feature').autocomplete({
+                source: '?action=autocomplete&type=feature&options[single]=1',
+                minLength: 2,
+                delay: 300,
+                select: function (event, ui) {
+                    /**
+                     * @this {HTMLInputElement}
+                     */
+                    $.shop.trace('autocomplete', ui.item);
+                    var $element = $dialog.find(':input[name="columns\[feature_'+ui.item.id+'\]"]');
+
+                    if($element.length) {
+                        $element.parents('div.value').addClass('highlighted');
+                        setTimeout(function () {
+                            $element.parents('div.value').removeClass('highlighted')
+                        }, 3000);
+                    } else {
+                        $element = $template.clone().removeClass('hidden template');
+                        var $cb = $element.find('input:checkbox');
+                        $cb[0].name = $cb[0].name.replace('%ID%', 'feature_' + ui.item.id);
+                        $cb[0].checked = true;
+                        $element.find('.column-name').text(ui.item.name).attr('title', ui.item.value);
+
+                        $template.before($($element[0]));
+                    }
+                    $(this).val('').change();
+                    return false;
+                }
+            });
         }
 
         $dialog.waDialog({
@@ -242,9 +279,12 @@
                     $loading.remove();
                 });
                 return false;
+            },
+            onCancel: function() {
+                //TODO uncheck not saved items
             }
         });
     });
-
+{/literal}
 })();</script>
 {/if}

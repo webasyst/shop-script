@@ -29,11 +29,11 @@ class shopWorkflowRefundAction extends shopWorkflowAction
 
             // for logging changes in stocks
             shopProductStocksLogModel::setContext(
-                    shopProductStocksLogModel::TYPE_ORDER,
-                    'Order %s was refunded',
-                    array(
-                        'order_id' => $order_id
-                    )
+                shopProductStocksLogModel::TYPE_ORDER,
+                'Order %s was refunded',
+                array(
+                    'order_id' => $order_id
+                )
             );
 
             $order_model->returnProductsToStocks($order_id);

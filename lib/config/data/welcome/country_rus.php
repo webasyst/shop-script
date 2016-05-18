@@ -2,8 +2,8 @@
 return array(
     'currency' => array(
         'RUB' => 1.0,
-        'USD' => 30,
-        'EUR' => 40,
+        'USD' => 65,
+        'EUR' => 75,
     ),
     'taxes' => array(
         array(
@@ -20,7 +20,7 @@ return array(
                 // '%AL' = All countries
                 // '%EU' = All european countries
                 // '%RW' = Rest of the world
-                
+
             ),
         ),
     ),

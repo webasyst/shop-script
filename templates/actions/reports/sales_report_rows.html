@@ -2,6 +2,7 @@
  * This template is included in ReportSales.html as a subtemplate,
  * as well as used separately to load additional rows via XHR.
  *}
+
 {foreach $table_data as $row}
     {strip}
         {$abt_rows = []}
@@ -9,12 +10,22 @@
             {$abt_rows[$v.name] = $v.data[ifset($row.orig_name, $row.name)]}
         {/if}{/foreach}
     {/strip}
-    <tr>
+    {$chart_num = min($row@index, $max_n_graphs)}
+    <tr data-chart-num="{$chart_num}">
         <td class="column-name">{strip}
+            {if !empty($details_graph_data)}
+                <span class="s-chart-color" data-color-id="{$chart_num}"></span>
+            {/if}
             {if !empty($row.icon_class)}
                 <i class="icon16 {$row.icon_class}"></i>
             {/if}
-            {$row.name|escape}
+            {if !isset($filter.name)}
+                <a href="javascript:void(0)" class="s-reports-drilldown-link" data-name="{$row.orig_name|escape}" style="display: inline-block;">
+                    {$row.name|escape}
+                </a>
+            {else}
+                {$row.name|escape}
+            {/if}
         {/strip}</td>
         <td class="align-right column-order_count">
             {$row.order_count}

@@ -29,7 +29,7 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
             $tag_model->query("DELETE FROM ".$tag_model->getTableName()." WHERE count <= 0");
         }
 
-        if ($cache = wa()->getCache()) {
+        if ($cache = wa('shop')->getCache()) {
             $cache->delete('tags');
         }
         return $this->deleteByField('product_id', $product_ids);
@@ -89,7 +89,7 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         }
 
         if ($add_tag_ids || $remove_tag_ids) {
-            if ($cache = wa()->getCache()) {
+            if ($cache = wa('shop')->getCache()) {
                 $cache->delete('tags');
             }
         }
@@ -111,7 +111,7 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
             $this->multipleInsert(array('product_id' => $product_id, 'tag_id' => $add_tag_ids));
             $tag_model->incCounters($add_tag_ids);
         }
-        if ($cache = wa()->getCache()) {
+        if ($cache = wa('shop')->getCache()) {
             $cache->delete('tags');
         }
         return true;
@@ -131,7 +131,7 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
             $this->deleteByField(array('product_id' => $product_id, 'tag_id' => $delete_tag_ids));
             $tag_model->incCounters($delete_tag_ids, -1);
         }
-        if ($cache = wa()->getCache()) {
+        if ($cache = wa('shop')->getCache()) {
             $cache->delete('tags');
         }
         return true;
@@ -194,7 +194,7 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         $tag_model = new shopTagModel();
         $tag_model->recount($tag_id);
         // clear cache
-        if ($cache = wa()->getCache()) {
+        if ($cache = wa('shop')->getCache()) {
             $cache->delete('tags');
         }
     }
@@ -217,7 +217,7 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         $tag_model = new shopTagModel();
         $tag_model->recount($tag_id);
         // clear cache
-        if ($cache = wa()->getCache()) {
+        if ($cache = wa('shop')->getCache()) {
             $cache->delete('tags');
         }
     }

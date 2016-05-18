@@ -1080,6 +1080,7 @@ SQL;
         //$data['view_order_url']
         $order['params']['auth_code'] = shopWorkflowCreateAction::generateAuthCode($order['id']);
         $order['params']['auth_pin'] = shopWorkflowCreateAction::generateAuthPin();
+        $order['params']['sales_channel'] = 'import:magento';
 
         if (!empty($order['params'])) {
 

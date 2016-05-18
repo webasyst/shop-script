@@ -1,0 +1,160 @@
+{strip}
+
+{$empty_fields = ( 15 - count($transfer.skus) ) }
+
+<div class="p-wrapper">
+
+    <div class="p-header">
+        <div class="table-layout">
+            <div class="column-item">
+
+                <div class="p-header-address">
+                    <div class="line"><div class="p-with-line inline_edit">&nbsp;</div></div>
+                    <div class="line"><div class="p-with-line inline_edit">&nbsp;</div></div>
+                    <div class="line"><div class="p-with-line inline_edit">&nbsp;</div></div>
+                </div>
+
+            </div>
+            <div class="column-item">
+
+                <div class="p-transfer">
+                    <div class="header">[`Transfer`]</div>
+                    <div class="number-wrapper">
+                        <span class="label">№</span>
+                        <span class="number inline_edit">{$transfer.string_id|escape}</span>
+                    </div>
+                    <div class="number-wrapper status-wrapper">
+                        <span class="number"><em>
+                            {if $transfer.status == 'sent'}
+                                [`On its way`]
+                            {elseif $transfer.status == 'completed'}
+                                [`Completed`]
+                            {elseif $transfer.status == 'cancelled'}
+                                [`Cancelled`]
+                            {/if}
+                        </em></span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="p-transfer-details">
+        <div class="table-layout">
+            <div class="column-item left">
+
+                <div class="field-item table-layout">
+                    <div class="row-item">
+                        <div class="column-item left">
+                            <span class="field-name">[`Transfer by`]</span>
+                        </div>
+                        <div class="column-item right">
+                            <div class="field-value inline_edit">&nbsp;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-item table-layout">
+                    <div class="row-item">
+                        <div class="column-item left">
+                            <span class="field-name inline_edit">[`Phone/Fax`]</span>
+                        </div>
+                        <div class="column-item right">
+                            <div class="field-value inline_edit"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-item table-layout">
+                    <div class="row-item">
+                        <div class="column-item left">
+                            <span class="field-name">[`Approved by`]</span>
+                        </div>
+                        <div class="column-item right">
+                            <div class="field-value inline_edit"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="column-item right">
+
+                <div class="field-item table-layout">
+                    <div class="row-item">
+                        <div class="column-item left">
+                            <span class="field-name">[`Transfer date`]</span>
+                        </div>
+                        <div class="column-item right">
+                            <div class="field-value inline_edit"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-item table-layout">
+                    <div class="row-item">
+                        <div class="column-item left">
+                            <span class="field-name">[`Received by`]</span>
+                        </div>
+                        <div class="column-item right">
+                            <div class="field-value inline_edit"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-item table-layout">
+                    <div class="row-item">
+                        <div class="column-item left">
+                            <span class="field-name">[`Transfer by`]</span>
+                        </div>
+                        <div class="column-item right">
+                            <div class="field-value inline_edit"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <table class="p-transfer-table">
+        <tr>
+            <th class="column-1">[`Qty`]</th>
+            <th class="column-2">[`Item description`]</th>
+            <th class="column-3">[`Currency code`]</th>
+            <th class="column-4">[`Cost`]</th>
+            <th class="column-5">[`Total`]</th>
+        </tr>
+
+        {foreach $transfer.skus as $item}
+            <tr>
+                <td class="column-1">{$item.count}</td>
+                <td class="column-2">{$item.info.name|escape}</td>
+                <td class="column-3">{$item.info.currency|escape}</td>
+                <td class="column-4">{$item.info.price}</td>
+                <td class="column-5">{$item.info.total}</td>
+            </tr>
+        {/foreach}
+
+        {if ($empty_fields > 0)}
+            {for $var=0 to $empty_fields}
+                <tr>
+                    <td class="column-1">&nbsp;</td>
+                    <td class="column-2">&nbsp;</td>
+                    <td class="column-3">&nbsp;</td>
+                    <td class="column-4">&nbsp;</td>
+                    <td class="column-5">&nbsp;</td>
+                </tr>
+            {/for}
+        {/if}
+    </table>
+
+    <div class="p-transfer-total">
+        <span class="label">[`Total`]</span>
+        <span class="inline_edit">{$primary_currency_info.sign|escape}</span>
+        <span class="number inline_edit">{$total_price}</span>
+    </div>
+
+</div>
+
+{/strip}

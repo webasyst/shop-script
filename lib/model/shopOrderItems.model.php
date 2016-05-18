@@ -366,6 +366,7 @@ class shopOrderItemsModel extends waModel
      */
     public function update($items, $order_id)
     {
+        $stocks = shopHelper::getStocks();
         $old_items = $this->getByField('order_id', $order_id, 'id');
         $add = array();
         $update = array();
@@ -409,6 +410,14 @@ class shopOrderItemsModel extends waModel
 
                 // check stock changes
                 if ($item['type'] == 'product') {
+                    // Reset virtualstock_id to NULL if stock_id changed to something not included in original virtual stock
+                    if (array_key_exists('stock_id', $diff) && $old_item['virtualstock_id'] && !array_key_exists('virtualstock_id', $diff)) {
+                        $diff['virtualstock_id'] = null;
+                        $stock = ifset($stocks['v'.$old_item['virtualstock_id']]);
+                        if ($diff['stock_id'] && $stock && !empty($stock['substocks']) && in_array($diff['stock_id'], $stock['substocks'])) {
+                            unset($diff['virtualstock_id']);
+                        }
+                    }
                     if (isset($diff['stock_id']) || isset($diff['sku_id'])) {
                         if (!isset($sku_stock[$old_item['sku_id']][$old_item['stock_id']])) {
                             $sku_stock[$old_item['sku_id']][$old_item['stock_id']] = 0;

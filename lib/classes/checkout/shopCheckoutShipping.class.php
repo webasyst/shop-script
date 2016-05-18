@@ -31,12 +31,17 @@ class shopCheckoutShipping extends shopCheckout
         $cart = new shopCart();
         $total = $cart->total();
 
+        $config = wa('shop')->getConfig();
+        /**
+         * @var shopConfig $config
+         */
 
-        $settings = wa('shop')->getConfig()->getCheckoutSettings();
+
+        $settings = $config->getCheckoutSettings();
         $address_form = !isset($settings['contactinfo']) || !isset($settings['contactinfo']['fields']['address.shipping']);
         if (!isset($settings['contactinfo']) ||
             (!isset($settings['contactinfo']['fields']['address.shipping']) && !isset($settings['contactinfo']['fields']['address']))) {
-            $settings = wa('shop')->getConfig()->getCheckoutSettings(true);
+            $settings = $config->getCheckoutSettings(true);
         }
         if (!$address) {
             $shipping_address = array();
@@ -64,7 +69,7 @@ class shopCheckoutShipping extends shopCheckout
         }
 
         $dimension = shopDimension::getInstance()->getDimension('weight');
-        $currencies = wa('shop')->getConfig()->getCurrencies();
+        $currencies = $config->getCurrencies();
         foreach ($methods as $method_id => $m) {
             $plugin = shopShipping::getPlugin($m['plugin'], $m['id']);
             $plugin_info = $plugin->info($m['plugin']);
@@ -142,7 +147,7 @@ class shopCheckoutShipping extends shopCheckout
                 $coupon = $cm->getByField('code', $checkout_data['coupon_code']);
                 if ($coupon && $coupon['type'] == '$FS') {
                     $m['rate'] = 0;
-                    foreach($m['rates'] as &$r) {
+                    foreach ($m['rates'] as &$r) {
                         $r['rate'] = 0;
                     }
                     unset($r);
@@ -163,7 +168,7 @@ class shopCheckoutShipping extends shopCheckout
                 $m['form'] = $f;
                 $m['form']->setValue($this->getContact());
                 // Make sure there are no more than one address of each type in the form
-                foreach(array('address.shipping') as $fld) {
+                foreach (array('address.shipping') as $fld) {
                     if (isset($m['form']->values[$fld]) && count($m['form']->values[$fld]) > 1) {
                         $m['form']->values[$fld] = array(reset($m['form']->values[$fld]));
                     }
@@ -221,8 +226,12 @@ class shopCheckoutShipping extends shopCheckout
             if (count($allowed) == 1) {
                 $one = true;
                 if (!isset($config_address['fields'])) {
+                    $fields = array();
                     $address_field = waContactFields::get('address');
                     foreach ($address_field->getFields() as $f) {
+                        /**
+                         * @var waContactAddressField $f
+                         */
                         $fields[$f->getId()] = array();
                     }
                 } else {
@@ -260,7 +269,7 @@ class shopCheckoutShipping extends shopCheckout
                             unset($fields[$f_id]);
                         }
                     }
-                    foreach ($address_fields as $f_id  => $f) {
+                    foreach ($address_fields as $f_id => $f) {
                         if (!isset($fields[$f_id])) {
                             $fields[$f_id] = $f;
                         }
@@ -382,9 +391,9 @@ class shopCheckoutShipping extends shopCheckout
         $cart = new shopCart();
         $total = $cart->total();
         $currency = $plugin->allowedCurrency();
-        $currrent_currency = wa('shop')->getConfig()->getCurrency(false);
-        if ($currency != $currrent_currency) {
-            $total = shop_currency($total, $currrent_currency, $currency, false);
+        $current_currency = wa('shop')->getConfig()->getCurrency(false);
+        if ($currency != $current_currency) {
+            $total = shop_currency($total, $current_currency, $currency, false);
         }
         $rates = $plugin->getRates($this->getItems($plugin->allowedWeightUnit()), $this->getAddress($contact), array('total_price' => $total));
         if (!$rates) {
@@ -405,8 +414,8 @@ class shopCheckoutShipping extends shopCheckout
             if (is_array($result['rate'])) {
                 $result['rate'] = max($result['rate']);
             }
-            if ($currency != $currrent_currency) {
-                $result['rate'] = shop_currency($result['rate'], $currency, $currrent_currency, false);
+            if ($currency != $current_currency) {
+                $result['rate'] = shop_currency($result['rate'], $currency, $current_currency, false);
             }
         }
         $result['plugin'] = $plugin->getId();
@@ -454,10 +463,15 @@ class shopCheckoutShipping extends shopCheckout
 
             if ($data = waRequest::post('customer_'.$shipping_id)) {
 
-                $settings = wa('shop')->getConfig()->getCheckoutSettings();
+                $config =  wa('shop')->getConfig();
+                /**
+                 * @var shopConfig $config
+                 */
+
+                $settings = $config->getCheckoutSettings();
                 if (!isset($settings['contactinfo']) ||
                     (!isset($settings['contactinfo']['fields']['address.shipping']) && !isset($settings['contactinfo']['fields']['address']))) {
-                    $settings = wa('shop')->getConfig()->getCheckoutSettings(true);
+                    $settings = $config->getCheckoutSettings(true);
                 }
                 $plugin = shopShipping::getPlugin(null, $shipping_id);
                 $form = $this->getAddressForm($shipping_id, $plugin, $settings, array(), true);
@@ -588,6 +602,4 @@ class shopCheckoutShipping extends shopCheckout
 
         return $controls;
     }
-
-
 }

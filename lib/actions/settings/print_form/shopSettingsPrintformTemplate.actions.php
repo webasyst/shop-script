@@ -3,7 +3,7 @@
 class shopSettingsPrintformTemplateActions extends waJsonActions
 {
     /**
-     * @var shopPrintformPlugin
+     * @var shopPlugin|shopPrintformInterface
      */
     private $plugin;
 

@@ -12,6 +12,7 @@
             {foreach $states as $id => $s}
             <li class="dr {if $id == $info.id}selected{/if}" id="state-{$id}">
                 <a href="#/orderStates/{$id}/" style="{$s->getStyle()}">
+                    <i class="icon16 sort count"></i>
                     <i class="{$s->getOption('icon')}"></i>{$s->getName()|escape}
                 </a>
             </li>
@@ -35,8 +36,18 @@
             </div>
         {/if}
         <h1>{$info.name|escape}</h1>
+    </div>
+    <div class="s-workflow-action-buttons-preview">
+        <ul class="menu-h s-workflow-action-buttons s-order-actions" style="margin-top: 20px;">
+            {foreach $buttons as $id => $b}
+                <li>{$b}</li>
+            {/foreach}
+        </ul>
+    </div>
+    <div class="block double-padded">
         <div class="fields form">
             <form id="s-save-order-state" method="post" action="?module=settings&action=orderStateSave&id={$info.id}">
+
               <div class="field-group">
                 <div class="field">
                     <div class="name">
@@ -102,6 +113,7 @@
                         [`Allowed actions`]
                     </div>
                     {foreach $actions as $id => $a}
+                        {if empty($a.internal)}
                         <div class="value no-shift s-order-action"
                                                 data-id="{$id|escape}"
                                                 data-name="{$a.name|escape}"
@@ -114,11 +126,12 @@
                                 {$a.name|escape} <span class="hint">{$id|upper}</span>
                             </label>
                             {if empty($a.original)}
-                                <a href="javascript:void(0)" class="inline-link small s-edit-action"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
+                                <a href="javascript:void(0)" class="inline-link small s-edit-action" data-id="{$id}"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
                             {elseif $id == 'message'}
-                                <a href="javascript:void(0)" class="inline-link small" id="s-edit-message-action"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
+                                <a href="javascript:void(0)" class="inline-link small s-edit-action" data-id="{$id}" id="s-edit-message-action"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
                             {/if}
                         </div>
+                        {/if}
                     {/foreach}
                     <br>
 
@@ -245,6 +258,7 @@
     });
     document.title = "[`Order States`] — {$wa->accountName(false)|escape:javascript}";
     $.settings.orderStatesInit({
-        id: "{$info.id}"
+        id: "{$info.id}",
+        edit_actions_map: {$edit_actions_map|json_encode}
     });
 </script>

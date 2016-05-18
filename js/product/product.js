@@ -936,14 +936,11 @@ editClick:(function ($) {
             }
             $features.show();
             $features.find('input').attr('disabled', false);
-
             if ($.product.path.id == 'new') {
                 $.product.disableSkus(false, true);
             } else {
                 $.product.disableSkus(true, false);
             }
-
-            $(this.options.form_selector).find('.s-product-skus').closest('.field').find('.name').hide();
         },
 
 
@@ -1138,7 +1135,7 @@ editClick:(function ($) {
             // Ctrl+S hotkey handler
             $('#s-product-edit-forms').unbind('keydown.product').
             bind('keydown.product', function (e) {
-                if ($(e.target).is(':input') && e.ctrlKey && e.keyCode == 83) {
+                if ($(e.target).is(':input') && (e.ctrlKey || e.metaKey) && e.keyCode == 83) {
                     $('#s-product-save-button').click();
                     return false;
                 }
@@ -1661,14 +1658,12 @@ editClick:(function ($) {
                     selector = '.s-product-form:not(.ajax) ' + selector;
                 }
                 $container.find(selector).each(function () {
+                    /** @this HTMLInputElement */
                     var type = ($(this).attr('type') || this.tagName).toLowerCase();
                     switch (type) {
                         case 'input':
                         case 'text':
                         case 'textarea':
-                            /**
-                             * @this HTMLInputElement
-                             */
                             if ($(this).hasClass('ace_text-input')) {
                                 break;
                             }
@@ -1682,9 +1677,6 @@ editClick:(function ($) {
                             break;
                         case 'radio':
                         case 'checkbox':
-                            /**
-                             * @this HTMLInputElement
-                             */
                             if (this.defaultChecked != this.checked) {
                                 changed = true;
                                 if (update) {
@@ -1695,9 +1687,6 @@ editClick:(function ($) {
                         case 'select':
                             if (this.length) {
                                 $(this).find('option').each(function () {
-                                    /**
-                                     * @this HTMLSelectElement
-                                     */
                                     if (this.defaultSelected != this.selected) {
                                         changed = true;
                                         if (update) {
@@ -1709,9 +1698,6 @@ editClick:(function ($) {
                             }
                             break;
                         case 'file':
-                            /**
-                             * @this HTMLInputElement
-                             */
                             if (this.value) {
                                 changed = true;
                                 if (update) {
@@ -2196,6 +2182,7 @@ editClick:(function ($) {
                 html += tmpl('template-sku-edit', {
                     'sku_id': skus[i].id,
                     'sku': skus[i],
+                    'hide_sort_column': n <= 1,
                     'stocks': stocks,
                     'stock_ids': stock_ids,
                     'checked': skus[i].id == data.sku_id
@@ -2259,6 +2246,16 @@ editClick:(function ($) {
                     changeCallback: function () {
                         if ($description.length) {
                             $description.waEditor('sync');
+                            $.product.helper.onChange($container);
+                        }
+                    },
+                    keydownCallback: function (e) {
+                        //Ctrl+S
+                        if ((e.which == '115' || e.which == '83' ) && (e.ctrlKey || e.metaKey)) {
+                            e.preventDefault();
+                            $('#s-product-save-button').click();
+                            return false;
+                        } else {
                             $.product.helper.onChange($container);
                         }
                     }

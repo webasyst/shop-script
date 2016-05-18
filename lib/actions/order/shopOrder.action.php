@@ -22,7 +22,7 @@ class shopOrderAction extends waViewAction
 
         $workflow = new shopWorkflow();
         $actions = $workflow->getStateById($order['state_id'])->getActions($order);
-        $bottom_buttons = $top_buttons = $buttons = array();
+        $bottom_buttons = $top_buttons = $actions_html = $buttons = array();
 
         $source = 'backend';
         if (isset($order['params']['storefront'])) {
@@ -43,6 +43,13 @@ class shopOrderAction extends waViewAction
                 $top_buttons[] = $action->getButton();
             } elseif ($action->getOption('position') == 'bottom') {
                 $bottom_buttons[] = $action->getButton();
+            } elseif ($action->getOption('head')) {
+                $html = $action->getHTML($order['id']);
+                if ($html) {
+                    $actions_html[] = $html;
+                } else {
+                    $buttons[] = $action->getButton();
+                }
             } else {
                 $icons = array();
                 if (!empty($transports[$action->getId()]['email'])) {
@@ -67,9 +74,50 @@ class shopOrderAction extends waViewAction
 
         $log_model = new shopOrderLogModel();
         $log = $log_model->getLog($order['id']);
+        $plugins = null;
+        $root_url = wa()->getRootUrl();
         foreach ($log as &$l) {
             if ($l['action_id']) {
                 $l['action'] = $workflow->getActionById($l['action_id']);
+
+                if (!empty($l['text']) && ($l['action_id'] == 'callback') && strpos($l['text'], ' ')) {
+                    $type = 'payment';
+                    $chunks = explode(' ', $l['text'], 2);
+                    $l['plugin'] = ifset($chunks[0]);
+                    $l['text'] = $chunks[1];
+                    if ($l['plugin']) {
+                        if (preg_match('@^(shop|payment|shipping):(\w+)$@', $l['plugin'], $matches)) {
+                            $type = $matches[1];
+                            $l['plugin'] = $matches[2];
+                        }
+                        $info = array();
+                        switch ($type) {
+                            case 'payment':
+                                $info = shopPayment::getPluginInfo($l['plugin']);
+                                break;
+                            case 'shipping':
+                                $info = shopShipping::getPluginInfo($l['plugin']);
+                                break;
+                            case 'shop':
+                                if ($plugins === null) {
+                                    $plugins = $this->getConfig()->getPlugins();
+                                }
+                                $info = ifset($plugins[$l['plugin']]);
+                                break;
+                        }
+
+                        $l['plugin'] = ifset($info['name'], $l['plugin']);
+                        $l['plugin_icon_url'] = ifset($info['icon'][16], ifset($info['img']));
+                        if (($root_url !== '/')
+                            && !empty($l['plugin_icon_url'])
+                            && (strpos($l['plugin_icon_url'], $root_url) !== 0)
+                        ) {
+                            $l['plugin_icon_url'] = $root_url.$l['plugin_icon_url'];
+                        }
+
+                    }
+                }
+
             }
             if ($order['state_id'] == $l['after_state_id']) {
                 $last_action_datetime = $l['datetime'];
@@ -82,7 +130,24 @@ class shopOrderAction extends waViewAction
             try {
                 $plugin = shopShipping::getPlugin(null, $params['shipping_id']);
                 if (!empty($params['tracking_number'])) {
-                    $tracking = $plugin->tracking($params['tracking_number']);
+                    if ($plugin->getProperties('external_tracking')) {
+                        $id = sprintf('shop_tracking_%s', $order['id']);
+                        $tracking = <<<HTML
+<i class="icon16 loading" id="{$id}"></i>
+<script type="text/javascript">
+(function () {
+    $.get('?module=order&action=tracking&order_id={$order['id']}',function(data){
+        if(data && data.status=='ok'){
+            $('#{$id}').replaceWith(data.data.tracking);
+        }
+    });
+})();
+</script>
+HTML;
+
+                    } else {
+                        $tracking = $plugin->tracking($params['tracking_number']);
+                    }
                 }
                 if ($custom_fields = $plugin->customFields(new waOrder())) {
                     foreach ($custom_fields as $k => $v) {
@@ -105,9 +170,8 @@ class shopOrderAction extends waViewAction
             $order['coupon'] = $coupon_model->getById($params['coupon_id']);
         }
 
-        $settings = wa('shop')->getConfig()->getCheckoutSettings();
+        $settings = $config->getCheckoutSettings();
         $form_fields = ifset($settings['contactinfo']['fields'], array());
-
 
 
         $map_adapter = $config->getGeneralSettings('map');
@@ -116,7 +180,10 @@ class shopOrderAction extends waViewAction
         }
         try {
             $map = wa()->getMap($map_adapter)->getHTML(shopHelper::getShippingAddressText($params), array(
-                'width' => '200px', 'height' => '200px', 'zoom' => 13, 'static' => true,
+                'width'  => '200px',
+                'height' => '200px',
+                'zoom'   => 13,
+                'static' => true,
             ));
         } catch (waException $e) {
             $map = '';
@@ -144,10 +211,11 @@ class shopOrderAction extends waViewAction
         // Customer info
         $main_contact_info = array();
         foreach (array('email', 'phone', 'im') as $f) {
-            if ( ( $v = $customer_contact->get($f, 'top,html'))) {
+            $v = $customer_contact->get($f, 'top,html');
+            if ($v) {
                 $main_contact_info[] = array(
-                    'id' => $f,
-                    'name' => waContactFields::get($f)->getName(),
+                    'id'    => $f,
+                    'name'  => waContactFields::get($f)->getName(),
                     'value' => is_array($v) ? implode(', ', $v) : $v,
                 );
             }
@@ -179,29 +247,29 @@ class shopOrderAction extends waViewAction
             $similar_contacts = array();
         }
 
-
         $this->view->assign(array(
-            'customer'          => $customer,
-            'customer_contact'  => $customer_contact,
-            'main_contact_info' => $main_contact_info,
-            'similar_contacts'  => $similar_contacts,
-            'currency'          => $config->getCurrency(),
-            'order'             => $order,
-            'params'            => $params,
-            'log'               => $log,
+            'customer'             => $customer,
+            'customer_contact'     => $customer_contact,
+            'main_contact_info'    => $main_contact_info,
+            'similar_contacts'     => $similar_contacts,
+            'currency'             => $config->getCurrency(),
+            'order'                => $order,
+            'params'               => $params,
+            'log'                  => $log,
             'last_action_datetime' => $last_action_datetime,
-            'bottom_buttons'    => $bottom_buttons,
-            'top_buttons'       => $top_buttons,
-            'buttons'           => $buttons,
-            'filter_params'     => $this->getParams(),
-            'filter_params_str' => $this->getParams(true),
-            'count_new'         => $this->getModel()->getStateCounters('new'),
-            'timeout'           => $config->getOption('orders_update_list'),
-            'printable_docs'    => shopHelper::getPrintForms(array_merge($order, array('params' => $params))),
-            'billing_address'   => $billing_address,
-            'shipping_address'  => $shipping_address,
-            'shipping_id'       => ifset($params['shipping_id'], '').'.'.ifset($params['shipping_rate_id'], ''),
-            'offset'            => $this->getModel()->getOffset($order['id'], $this->getParams(), true)
+            'bottom_buttons'       => $bottom_buttons,
+            'top_buttons'          => $top_buttons,
+            'actions_html'         => $actions_html,
+            'buttons'              => $buttons,
+            'filter_params'        => $this->getParams(),
+            'filter_params_str'    => $this->getParams(true),
+            'count_new'            => $this->getModel()->getStateCounters('new'),
+            'timeout'              => $config->getOption('orders_update_list'),
+            'printable_docs'       => shopPrintforms::getOrderPrintforms(array_merge($order, array('params' => $params))),
+            'billing_address'      => $billing_address,
+            'shipping_address'     => $shipping_address,
+            'shipping_id'          => ifset($params['shipping_id'], '').'.'.ifset($params['shipping_rate_id'], ''),
+            'offset'               => $this->getModel()->getOffset($order['id'], $this->getParams(), true),
         ));
 
         /**
@@ -215,13 +283,16 @@ class shopOrderAction extends waViewAction
          * @return array[string][string]string $return[%plugin_id%]['info_section'] html output
          */
         $this->view->assign('backend_order', wa()->event('backend_order', $order, array(
-            'title_suffix', 'action_button', 'action_link', 'info_section'
+            'title_suffix',
+            'action_button',
+            'action_link',
+            'info_section'
         )));
     }
 
     public function getOrder()
     {
-        $id = (int) waRequest::get('id');
+        $id = (int)waRequest::get('id');
         if (!$id) {
             return array();
         }
@@ -259,7 +330,7 @@ class shopOrderAction extends waViewAction
         }
         $params_str = '';
         foreach ($this->filter_params as $p => $v) {
-            $params_str .= '&'.$p.'='. (is_array($v) ? implode('|', $v) : $v);
+            $params_str .= '&'.$p.'='.(is_array($v) ? implode('|', $v) : $v);
         }
         return substr($params_str, 1);
     }
@@ -325,7 +396,7 @@ class shopOrderAction extends waViewAction
                                 $item['stock_icon'] = shopHelper::getStockCountIcon($count, $item['stock']['id'], true);
                             }
                         }
-                    } else if ($s['count'] <= shopStockModel::LOW_DEFAULT) {
+                    } elseif ($s['count'] <= shopStockModel::LOW_DEFAULT) {
                         $item['stock_icon'] = shopHelper::getStockCountIcon($s['count'], null, true);
                     }
                 }

@@ -162,34 +162,9 @@
 
 {/capture}
 
+{include file='./include.category_visibility_setting.html'}
 {capture ext_fields}
-    <div class="field">
-        <div class="name">
-            [`Category visibility`]
-        </div>
-        <div class="value no-shift">
-            <label><input type="radio" name="storefront" value="" {if !$settings.routes}checked="checked"{/if}>
-                [`All storefronts`]
-            </label>
-        </div>
-        <div class="value no-shift">
-            <label><input type="radio" name="storefront" value="route" {if $settings.routes}checked="checked"{/if}>
-                [`Selected storefronts only`]
-            </label>
-            {if !empty($routes)}
-            </div>
-            <div class="value">
-                {foreach $routes as $domain => $domain_routes}
-                    {foreach $domain_routes as $route}
-                        {$url = $domain|cat:"/":$route.url}
-                        <label>
-                            <input {if in_array($url, $settings.routes)}checked{/if} {if !$settings.routes}disabled{/if} type="checkbox" name="routes[]" value="{$url}"> {$url}
-                        </label><br>
-                    {/foreach}
-                {/foreach}
-            {/if}
-        </div>
-    </div>
+    {$smarty.capture.category_visibility_setting}
 {/capture}
 
 {capture custom_params}
@@ -386,14 +361,6 @@
             $('#s-category-filter').show();
         } else {
             $('#s-category-filter').hide();
-        }
-    });
-
-    $('input[name=storefront]', d).change(function() {
-        if (this.value == 'route') {
-            $('input[name="routes[]"]', d).attr('disabled', false);
-        } else {
-            $('input[name="routes[]"]', d).attr('disabled', true);
         }
     });
 

@@ -26,6 +26,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'meta_description' => _w('META Description'),
                 'url'              => _w('Storefront link'),
                 'images'           => _w('Product images'),
+                'video_url'        => _w('Video URL on YouTube or Vimeo'),
                 //   'rating'                 => _w('Rating'),
                 'params'           => _w('Custom parameters'),
             ),
@@ -167,9 +168,9 @@ class shopCsvProductuploadController extends shopUploadController
 
         $translates = array();
         $translates['product'] = _w('Basic fields');
-        $translates['product_custom_fields'] = _w("Custom product's fields");
+        $translates['product_custom_fields'] = _w("Custom product fields");
         $translates['sku'] = _w('SKU fields');
-        $translates['sku_custom_fields'] = _w("Custom skus' fields");
+        $translates['sku_custom_fields'] = _w("Custom sku fields");
 
         $translates['feature'] = _w('Add to existing');
         $translates['feature+'] = _w('Add as new feature');

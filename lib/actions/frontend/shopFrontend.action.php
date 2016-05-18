@@ -114,7 +114,7 @@ class shopFrontendAction extends waViewAction
         $params = waRequest::param();
         foreach ($params as $k => $v) {
             if (in_array($k, array('url', 'module', 'action', 'meta_keywords', 'meta_description', 'private',
-                'url_type', 'type_id', 'payment_id', 'shipping_id', 'currency', 'stock_id'))) {
+                'url_type', 'type_id', 'payment_id', 'shipping_id', 'currency', 'stock_id', 'public_stocks'))) {
                 unset($params[$k]);
             }
         }

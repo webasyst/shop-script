@@ -1,4 +1,4 @@
-<link type="text/css" rel="stylesheet" href="{$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.css">
+<link type="text/css" rel="stylesheet" href="{$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.css?{$wa->version(true)}">
 
 {wa_js file="js/product/product.min.js"}
     {$wa_app_static_url}js/tmpl.min.js
@@ -14,7 +14,9 @@
     {$wa_app_static_url}js/rate.widget.js
     {$wa_app_static_url}js/product/reviews.js
     {$wa_app_static_url}js/product/images.js
+    {$wa_app_static_url}js/product/stocks.js
     {$wa_app_static_url}js/product/stocks_log.js
+    {$wa_app_static_url}js/stocks_log.js
     {$wa_app_static_url}js/product/orders.js
     {$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.min.js
     {$wa_app_static_url}js/product/list.js
@@ -98,7 +100,7 @@
         {/if}
         <h5 class="heading">
             <i class="icon16 loading" style="float:right; display:none;"></i>
-            <i class="icon16 {if $categories->isExpanded()}darr{else}rarr{/if} collapse-handler-ajax" id="s-category-list-handler"></i>[`Categories`]{if $wa->userRights('setscategories') && $categories->count()} <i class="icon16 ss sort-bw" id="s-forcesort-by-name"></i>{/if}
+            <i class="icon16 {if $categories->isExpanded()}darr{else}rarr{/if} collapse-handler-ajax" id="s-category-list-handler"></i>[`Categories`]{if $wa->userRights('setscategories') && $categories->count()} <i class="icon16 ss sort-bw" id="s-forcesort-by-name" title="[`Sort by alphabet`]"></i>{/if}
         </h5>
 
         <div class="hierarchical s-collection-list" id="s-category-list"
@@ -261,4 +263,3 @@
         view: '{$default_view}'
     });
 });</script>
-

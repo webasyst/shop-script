@@ -5,7 +5,7 @@
         <a href="#" class="s-alert-close">&times;</a>
         [`Promos is an efficient and super easy way to display your custom offers and specials on your online store homepage. Every promo card has a picture, a title, and a custom link.`]
         <br><br>
-        <i class="icon10 exclamation"></i> <em>{sprintf('[`If you don’t see promos on your storefront homepage, you might be using an outdated version of the design theme (home.html template file). Please <a href="%s" target="_blank">follow this guide</a> to embed this new Shop-Script 6 feature to your online store.`]','[`https://www.shop-script.com/help/3069/adding-promo-cards-to-shop-script-5-design-theme/`]')}</em>
+        <i class="icon10 exclamation"></i> <em>{sprintf('[`If you don’t see promos on your storefront homepage, you might be using an outdated version of the design theme (home.html template file). Please <a href="%s" target="_blank">follow this guide</a> to embed this new Shop-Script 7 feature to your online store.`]','[`https://www.shop-script.com/help/3069/adding-promo-cards-to-shop-script-5-design-theme/`]')}</em>
     </div>
 
     <ul class="menu-h">
@@ -15,23 +15,29 @@
                 <a href="#/promos/storefront={$s.storefront|escape}">{$s.name|escape} <span class="hint">{$s.count}</span></a>
             </li>
         {/foreach}
+        <li {if $is_disabled}class="selected"{/if}>
+            <a href="#/promos/disabled=1" class="gray">[`Disabled`] <span class="hint">{$disabled_count}</span></a>
+        </li>
     </ul>
 
     <ul class="s-promos-list" id="s-promos-list">
         {foreach $promos as $p}
-            <li class="s-promo" data-promo-id="{$p.id}">
-                <div class="s-promo-image" style="background-image: url('{$p.image_url}');"></div>
+            <li class="s-promo" data-promo-id="{$p.id}"{if !$p.enabled} style="opacity: 0.5;"{/if}>
+                <div class="s-promo-image" style="background-image: url('{$p.image_url}'); background-color: {$p.background_color|default:'ffffff'|escape}"></div>
                 <div class="s-promo-summary">
                     <h5{if empty($p.title)} class="gray"{/if}>{$p.title|escape|default:'(no title)'|truncate:55}</h5>
                     <p class="small">{$p.body|escape|truncate:90}</p>
+                    {if !empty($p.countdown_datetime)}<span class="small s-promo-countdown{if strtotime($p.countdown_datetime) < $smarty.now} over{/if}">{sprintf('[`Countdown: <strong>%s</strong>`]', $p.countdown_datetime|wa_datetime:'humandatetime')}</span>{/if}
                 </div>
             </li>
         {/foreach}
-        <li class="new-promo-placeholder">
-            <div class="s-promo-dummy">
-                <h5><i class="icon16 add"></i>[`New promo`]</h5>
-            </div>
-        </li>
+        {if !$is_disabled}
+            <li class="new-promo-placeholder">
+                <div class="s-promo-dummy">
+                    <h5><i class="icon16 add"></i>[`New promo`]</h5>
+                </div>
+            </li>
+        {/if}
     </ul>
 </div>
 
@@ -72,27 +78,29 @@
         return false;
     });
 
-    // Drag-and-drop promos to reorder them
-    $ul.sortable({
-        distance: 5,
-        helper: 'clone',
-        items: '> li[data-promo-id]',
-        opacity: 0.75,
-        tolerance: 'pointer',
-        update: function (event, ui) {
-            var ids = $ul.children('li[data-promo-id]').map(function() {
-                return $(this).data('promo-id');
-            }).get();
-            $.post('?module=promos&action=sort', { ids: ids, storefront: storefront });
-        }
-    });
+    {if !$is_disabled}
+        // Drag-and-drop promos to reorder them
+        $ul.sortable({
+            distance: 5,
+            helper: 'clone',
+            items: '> li[data-promo-id]',
+            opacity: 0.75,
+            tolerance: 'pointer',
+            update: function (event, ui) {
+                var ids = $ul.children('li[data-promo-id]').map(function() {
+                    return $(this).data('promo-id');
+                }).get();
+                $.post('?module=promos&action=sort', { ids: ids, storefront: storefront });
+            }
+        });
+    {/if}
 
     function showEditor(id) {
         var $d = $('#promo-editor-dialog');
         $d.find('.dialog-buttons-gradient').empty();
         $d.find('.dialog-content-indent').html('<i class="icon16 loading"></i>');
         $d.waDialog({
-            url: '?module=promos&action=editor&id='+id
+            url: '?module=promos&action=editor&id='+id {if $is_disabled} + '&disabled=1' {/if}
         });
     }
 

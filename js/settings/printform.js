@@ -94,64 +94,87 @@ if (typeof($) != 'undefined') {
                         $.settings.printform_options.plugin_id = plugin_id;
                         this.printformPlugins();
                     } else {
+
                         var url = '?&module=settings&action=printformSetup&id=' + plugin_id + '&tab=' + tab;
 
                         $('#s-printform-content').show().html(this.printform_options.loading).load(url, function () {
 
+                            var ns = 'printform-' + plugin_id;
+                            var content = $(this);
+
                             $.settings.printform_options.plugin_id = plugin_id;
-                            var save_button = $('.s-plugin-template-save');
+                            var getSaveButton = function () {
+                                return $('#s-printform-content .s-plugin-template-save');
+                            };
                             var template_modified = false;
                             var templateModified = function () {
                                 if (!template_modified) {
                                     template_modified = true;
-                                    save_button.removeClass('green').addClass('yellow');
+                                    getSaveButton().removeClass('green').addClass('yellow');
                                 }
                             };
                             var resetTemplateModified = function () {
                                 template_modified = false;
-                                save_button.removeClass('yellow').addClass('green');
+                                getSaveButton().removeClass('yellow').addClass('green');
                             };
 
                             wa_editor.on('change', templateModified);
 
-                            $('.s-plugin-template-reset').off('click').on('click', function () {
-                                if (confirm($('.plugins-settings-template-reset-confirm').text())) {
-                                    $.post('?module=settingsPrintformTemplate&action=reset', {
-                                            id: $.settings.printform_options.plugin_id
-                                        },
-                                        function (r) {
-                                            if (r && r.status === 'ok') {
-                                                wa_editor.setValue(r.data.template);
-                                                wa_editor.clearSelection();
-                                                waEditorUpdateSource({
-                                                    'id': 'plugins-settings-printform-template',
-                                                    'ace_editor_container': 'plugins-settings-printform-template-container'
-                                                });
-                                                resetTemplateModified();
-                                                $('.s-plugin-template-reset').hide();
-                                            }
-                                        }, 'json'
-                                    );
-                                }
-                                return false;
-                            });
+                            var onEvent = function (event, selector, handler) {
+                                event += '.' + ns;
+                                return content.off(event, selector).on(event, selector, handler);
+                            };
+                            var onClick = function (selector, handler) {
+                                return onEvent('click', selector, handler);
+                            };
 
-                            $('.s-plugin-template-save').off('click').on('click', function () {
-                                $.post('?module=settingsPrintformTemplate&action=save', {
-                                    id: $.settings.printform_options.plugin_id,
-                                    template: wa_editor.getValue()
-                                }, function (r) {
-                                    if (r && r.status === 'ok') {
-                                        waEditorUpdateSource({
-                                            'id': 'plugins-settings-printform-template',
-                                            'ace_editor_container': 'plugins-settings-printform-template-container'
-                                        });
-                                        resetTemplateModified();
-                                        $('.s-plugin-template-reset').show();
+                            onClick('.s-plugin-template-reset',
+                                function () {
+                                    if (confirm($('.plugins-settings-template-reset-confirm').text())) {
+                                        $.post('?module=settingsPrintformTemplate&action=reset', {
+                                                id: $.settings.printform_options.plugin_id
+                                            },
+                                            function (r) {
+                                                if (r && r.status === 'ok') {
+                                                    wa_editor.setValue(r.data.template);
+                                                    wa_editor.clearSelection();
+                                                    waEditorUpdateSource({
+                                                        'id': 'plugins-settings-printform-template',
+                                                        'ace_editor_container': 'plugins-settings-printform-template-container'
+                                                    });
+                                                    resetTemplateModified();
+                                                    $('.s-plugin-template-reset').hide();
+                                                }
+                                            }, 'json'
+                                        );
                                     }
-                                }, 'json');
-                            });
+                                    return false;
+                                });
 
+                            onClick('.s-plugin-template-save',
+                                function () {
+                                    $('.s-plugins-settings-form-status-process').show();
+                                    $.post('?module=settingsPrintformTemplate&action=save', {
+                                        id: $.settings.printform_options.plugin_id,
+                                        template: wa_editor.getValue()
+                                    }, function (r) {
+                                        $('.s-plugins-settings-form-status-process').hide();
+                                        if (r && r.status === 'ok') {
+                                            waEditorUpdateSource({
+                                                'id': 'plugins-settings-printform-template',
+                                                'ace_editor_container': 'plugins-settings-printform-template-container'
+                                            });
+                                            resetTemplateModified();
+                                            $('.s-plugin-template-reset').show();
+
+                                            $('.s-plugins-settings-form-status-saved').show();
+                                            setTimeout(function () {
+                                                $('.s-plugins-settings-form-status-saved').hide()
+                                            }, 500);
+
+                                        }
+                                    }, 'json');
+                                });
                         });
                     }
                 } else {

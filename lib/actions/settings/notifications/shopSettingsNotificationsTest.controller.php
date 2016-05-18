@@ -24,10 +24,9 @@ class shopSettingsNotificationsTestController extends waJsonController
             $this->errors = _w('Order not found');
             return;
         }
-        shopHelper::workupOrders($o, true);
 
         $opm = new shopOrderParamsModel();
-        $o['params'] = $opm->get($order_id);
+        $o['params'] = $opm->get($order_id, true);
 
         try {
             $contact = $o['contact_id'] ? new shopCustomer($o['contact_id']) : wa()->getUser();
@@ -43,7 +42,7 @@ class shopSettingsNotificationsTestController extends waJsonController
         }
         
         $workflow = new shopWorkflow();
-        
+
         // send notifications
         shopNotifications::sendOne($id, array(
             'order' => $o,

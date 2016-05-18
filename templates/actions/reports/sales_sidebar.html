@@ -8,7 +8,17 @@
             {/foreach}
 
             <li class="top-padded"><a href="#/sales/costs/" class="gray"><i class="icon16 dollar"></i>[`Marketing costs`]</a></li>
-            <li><a href="#/sales/abtesting/" class="gray"><i class="icon16 split"></i>[`A/B tests`]</a></li>
+            <li class="bottom-padded"><a href="#/sales/abtesting/" class="gray"><i class="icon16 split"></i>[`A/B tests`]</a></li>
+
+            <li class="top-padded bordered-top">
+                <label>
+                    <input type="checkbox" class="s-sales-details" id="s-sales-details"
+                       {if !isset($filter.name) && !empty($is_details)}checked="checked"{/if}
+                       {if isset($filter.name)}disabled="disabled"{/if}>
+                            [`Stacked chart`]
+                </label>
+            </li>
+
         </ul>
     </div>
 </div>
@@ -24,7 +34,7 @@
     $ul.on('click', 'li', function() {
         var $li = $(this);
         var $a = $li.find('a');
-        if ($a.attr('href') != window.location.hash) {
+        if ($a.length && $a.attr('href') != window.location.hash) {
             $li.addClass('selected').siblings().removeClass('selected');
         }
     });

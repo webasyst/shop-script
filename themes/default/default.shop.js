@@ -1,9 +1,25 @@
 $(document).ready(function () {
 
+    // countdown
+    if ($.fn.countdowntimer) {
+        $('.js-promo-countdown').each(function () {
+            var $this = $(this).html('');
+            var id = ($this.attr('id') || 'js-promo-countdown' + ('' + Math.random()).slice(2));
+            $this.attr('id', id);
+            var start = $this.data('start').replace(/-/g, '/');
+            var end = $this.data('end').replace(/-/g, '/');
+            $this.countdowntimer({
+                startDate: start,
+                dateAndTime: end,
+                size: 'lg'
+            });
+        });
+    }
+
     //SLIDERS
     $('.homepage-bxslider').bxSlider( { auto : $('.homepage-bxslider li').length > 1, pause : 7000, autoHover : true, pager: $('.homepage-bxslider li').length > 1 });
     $('.homepage-bxslider').css('height','auto');
-    
+
     $('.related-bxslider').bxSlider( { minSlides: 1, maxSlides: 4, slideWidth: 146, slideMargin: 10, infiniteLoop: true, pager: false });
     $('.onsale-bxslider').bxSlider( { minSlides: 1, maxSlides: 6, slideWidth: 146, slideMargin: 10, infiniteLoop: true, pager: false });
 
@@ -97,16 +113,16 @@ $(document).ready(function () {
         }
         $.post(f.attr('action') + '?html=1', f.serialize(), function (response) {
             f.find('.adding2cart').hide();
-            
+
             if (response.status == 'ok') {
-                
+
                 var cart_total = $(".cart-total");
                 cart_total.closest('#cart').removeClass('empty');
                 if( $(window).scrollTop() >= 55 )
                     $('#cart').addClass('fixed');
 
                 if ( MatchMedia("only screen and (max-width: 760px)") ) {
-                
+
                     // mobile: show "added to cart" message
                     f.find('input[type="submit"]').hide();
                     f.find('.price').hide();
@@ -116,7 +132,7 @@ $(document).ready(function () {
                     if ($('#cart').hasClass('fixed'))
                         $('.cart-to-checkout').hide();
                 } else {
-                
+
                     // flying cart
                     var origin = f.closest('li');
                     var block = $('<div></div>').append(origin.html());
@@ -245,7 +261,7 @@ $(document).ready(function () {
         });
     };
     f();
-    
+
     //SLIDEMENU sidebar navigation
     $('.slidemenu')
         .on('afterLoadDone.waSlideMenu', function () {

@@ -19,6 +19,10 @@ class shopProductsAddToCategoriesController extends waJsonController
 
     public function execute()
     {
+        if (!$this->getUser()->getRights('shop', 'setscategories')) {
+            throw new waRightsException(_w('Access denied'));
+        }
+        
         $category_ids = waRequest::post('category_id', array(), waRequest::TYPE_ARRAY_INT);
 
         // create new category
@@ -35,7 +39,7 @@ class shopProductsAddToCategoriesController extends waJsonController
         }
 
         // add products to categories
-        $hash = waRequest::post('hash', '');
+        $hash = $this->getHash();
         if (!$hash) {
             $product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
             if (!$product_ids) {
@@ -76,5 +80,15 @@ class shopProductsAddToCategoriesController extends waJsonController
             'name' => $name,
             'url'  => $url
         ));
+    }
+
+    public function getHash()
+    {
+        $hash = waRequest::post('hash', '');
+        $hash_decoded = urldecode($hash);
+        if ($hash_decoded) {
+            $hash = $hash_decoded;
+        }
+        return $hash;
     }
 }

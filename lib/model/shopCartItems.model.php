@@ -38,7 +38,6 @@ class shopCartItemsModel extends waModel
             'skus' => &$skus
         );
         wa('shop')->event('frontend_products', $event_params);
-
         shopRounding::roundSkus($skus);
         $products_total = 0.0;
         foreach($skus as $s) {
@@ -97,6 +96,7 @@ class shopCartItemsModel extends waModel
         $products_services = $product_services_model->getByProducts($product_ids, true);
 
         $primary = wa('shop')->getConfig()->getCurrency();
+        $frontend_currency = wa('shop')->getConfig()->getCurrency(false);
 
         // Calculate total amount for all services
         $services_total = 0;
@@ -119,17 +119,20 @@ class shopCartItemsModel extends waModel
                 if (isset($products_skus['skus'][$s['parent_id']])) {
                     $sku_price = $products_skus['skus'][$s['parent_id']]['frontend_price'];
                 } else {
-                    $sku_price = $products_skus['products'][$s['product_id']]['price'];
+                    // most likely never happen case, but just in case
+                    $product = $products_skus['products'][$s['product_id']];
+                    $product_price = $product['price'];
+                    $product_currency = $product['currency'] !== null ? $product['currency'] : $primary;
+                    $sku_price = shop_currency($product_price, $product_currency, $frontend_currency, false);
                 }
                 $s['price'] = $s['price'] * $sku_price  / 100;
             } else {
-                $s['price'] = shop_currency($s['price'], $variants[$v_id]['currency'], $primary, false);
+                $s['price'] = shop_currency($s['price'], $variants[$v_id]['currency'], $frontend_currency, false);
             }
 
             $services_total += $s['price'] * $s['quantity'];
         }
-
-        return (float) shop_currency($services_total, null, null, false);
+        return $services_total;
     }
 
     public function count($code, $type = null)
@@ -414,34 +417,61 @@ class shopCartItemsModel extends waModel
 
     /**
      * @param string $code
-     * @param bool|int $check_count bool or stock_id
+     * @param bool|int|string $check_count bool or stock_id or 'v<virtualstock_id>'
      * @return array
      */
     public function getNotAvailableProducts($code, $check_count)
     {
-        if (is_numeric($check_count)) {
-            $stock_id = $check_count;
-            $f = "IF(ps.sku_id IS NULL, s.count, ps.count)";
-        } else {
-            $stock_id = false;
-            $f = "s.count";
-        }
-        $sql = "SELECT c.id, s.available, ".$f." AS count,
-                p.name, s.name sku_name FROM ".$this->table." c
-                JOIN shop_product p ON c.product_id = p.id
-                JOIN shop_product_skus s ON c.sku_id = s.id";
-        if ($stock_id) {
-            $sql .= " LEFT JOIN shop_product_stocks ps ON ps.sku_id = s.id AND ps.stock_id = i:stock_id";
-        }
-        $sql .= " WHERE c.type = 'product' AND c.code = s:code AND ";
+        $count_join = '';
+        $count_condition = '';
+        $count_field = 's.count';
         if ($check_count) {
-            $sql .= '(s.available = 0 OR ('.$f.' IS NOT NULL AND c.quantity > '.$f.'))';
-        } else {
-            $sql .= 's.available = 0';
+            if (is_string($check_count) && $check_count{0} == 'v') {
+                // Virtual stock id: check against sum of several stock counts
+                $virtualsku_id = substr($check_count, 1);
+                if (wa_is_int($virtualsku_id)) {
+                    $sql = "SELECT stock_id FROM shop_virtualstock_stocks WHERE virtualstock_id=?";
+                    $stock_ids = array_keys($this->query($sql, $virtualsku_id)->fetchAll('stock_id'));
+                    if ($stock_ids) {
+                        $count_field = 't.count';
+                        $count_join = "LEFT JOIN (
+                                           SELECT ci2.sku_id, SUM(ps.count) AS count
+                                           FROM shop_product_stocks AS ps
+                                               JOIN (
+                                                   SELECT DISTINCT sku_id
+                                                   FROM {$this->table}
+                                                   WHERE type = 'product'
+                                                       AND code = s:code
+                                               ) AS ci2 ON ci2.sku_id=ps.sku_id
+                                           WHERE ps.stock_id IN (".join(',', $stock_ids).")
+                                           GROUP BY ci2.sku_id
+                                       ) AS t ON t.sku_id=ci.sku_id";
+                    }
+                }
+            } else if (wa_is_int($check_count)) {
+                // Normal stock id: check against stock count
+                $count_field = "ps.count";
+                $count_join = "LEFT JOIN shop_product_stocks AS ps
+                                   ON ps.sku_id = ci.sku_id AND ps.stock_id = '{$check_count}'";
+            } else {
+                // No stock specified; check against total count of the SKU
+                $count_field = 's.count';
+            }
+            $count_condition = "OR ({$count_field} IS NOT NULL AND ci.quantity > {$count_field})";
         }
-        return $this->query($sql, array('code' => $code, 'stock_id' => $stock_id))->fetchAll();
-    }
 
+        $sql = "SELECT ci.id, p.name, s.name AS sku_name, s.available, {$count_field} AS `count`
+                FROM {$this->table} AS ci
+                    JOIN shop_product AS p
+                        ON ci.product_id = p.id
+                    JOIN shop_product_skus AS s
+                        ON ci.sku_id = s.id
+                    {$count_join}
+                WHERE ci.type = 'product'
+                    AND ci.code = s:code
+                    AND (s.available = 0 {$count_condition})";
+        return $this->query($sql, array('code' => $code))->fetchAll();
+    }
 
     public function deleteByProducts($product_ids)
     {

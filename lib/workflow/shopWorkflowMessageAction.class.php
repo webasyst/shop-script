@@ -47,8 +47,8 @@ class shopWorkflowMessageAction extends shopWorkflowAction
                 $source = $storefront.'/*';
             }
 
-            foreach(wa()->getRouting()->getByApp('shop') as $domain => $routes) {
-                foreach($routes as $r) {
+            foreach (wa()->getRouting()->getByApp('shop') as $domain => $routes) {
+                foreach ($routes as $r) {
                     if (!isset($r['url'])) {
                         continue;
                     }
@@ -75,7 +75,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
         }
         $collection = new shopProductsCollection('id/'.join(',', array_keys($product_ids)));
         $products = $collection->getProducts('*,image');
-        foreach($products as &$p) {
+        foreach ($products as &$p) {
             $p['frontend_url'] = wa()->getRouteUrl('shop/frontend/product', array(
                 'product_url' => $p['url'],
             ), true, $storefront_domain, $storefront_route['url']);
@@ -149,7 +149,8 @@ class shopWorkflowMessageAction extends shopWorkflowAction
 
         if ($contact->get('email', 'default')) {
             $transport = 'email';
-            $email = wa('shop')->getConfig()->getGeneralSettings('email');
+            $email = $this->getConfig()->getGeneralSettings('email');
+            $email_from = array();
             if ($email) {
                 $email_from[$email] = $email;
             }
@@ -170,6 +171,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
         $view->assign(array(
             'transport' => $transport,
             'message_template' => $this->getMessageTemplate($order, $contact),
+            'state_id' => ifset($order['state_id'], '')
         ));
         return parent::getHTML($order_id);
     }
@@ -182,7 +184,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
         }
 
         $view = $this->getView();
-        $settings = wa('shop')->getConfig()->getGeneralSettings();
+        $settings = $this->getConfig()->getGeneralSettings();
 
         $view->assign(array(
             'action' => null,
@@ -210,23 +212,23 @@ class shopWorkflowMessageAction extends shopWorkflowAction
         $contact = new waContact($order['contact_id']);
 
         $transport = waRequest::post('transport');
-        $from = waRequest::post('sender', wa('shop')->getConfig()->getGeneralSettings('email'), 'string');
+        $from = waRequest::post('sender', $this->getConfig()->getGeneralSettings('email'), 'string');
         $text = waRequest::post('text');
         $success = false;
         if ($transport == 'email') {
-            $message = new waMailMessage(sprintf(_w('Order %s'), shopHelper::encodeOrderId($order_id)), nl2br(htmlspecialchars($text)));
+            $message = new waMailMessage(sprintf(_w('Order %s'), shopHelper::encodeOrderId($order_id)), nl2br(htmlspecialchars($text, ENT_QUOTES, 'utf-8')));
             $message->setFrom($from);
             $email = $contact->get('email', 'default');
             $message->setTo(array(
                  $email => $contact->getName()
             ));
-            $text = '<i class="icon16 email float-right" title="'.htmlspecialchars($email).'"></i> '.nl2br(htmlspecialchars($text));
+            $text = '<i class="icon16 email float-right" title="'.htmlspecialchars($email, ENT_QUOTES, 'utf-8').'"></i> '.nl2br(htmlspecialchars($text, ENT_QUOTES, 'utf-8'));
             $success = $message->send();
         } elseif ($transport == 'sms') {
             $sms = new waSMS();
             $phone = $contact->get('phone', 'default');
             $success = $sms->send($phone, $text, $from ? $from : null);
-            $text = '<i class="icon16 mobile float-right" title="'.htmlspecialchars($phone).'"></i> '.nl2br(htmlspecialchars($text));
+            $text = '<i class="icon16 mobile float-right" title="'.htmlspecialchars($phone, ENT_QUOTES, 'utf-8').'"></i> '.nl2br(htmlspecialchars($text, ENT_QUOTES, 'utf-8'));
         }
 
         if ($success) {

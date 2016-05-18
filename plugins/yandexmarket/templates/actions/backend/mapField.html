@@ -54,10 +54,24 @@
                     <option value="feature:%s">Выбрать характеристику...</option>
                 {/if}
 
-                    {foreach $features as $feature}
-                        <option value="feature:{$feature.code}" title="{$feature.code}"{if !$selected && ((ifset($info['source']) eq "feature:`$feature['code']`")||($feature.code eq $field))}{$selected = true} selected="selected"{/if}{if $param && !empty($feature.units)} data-unit="{$feature.units|escape:'js'}"{/if}>{$feature.name|escape}</option>
-                    {/foreach}
+                {foreach $features as $feature}
+                    <option value="feature:{$feature.code}" title="{$feature.code}"{if !$selected && ((ifset($info['source']) eq "feature:`$feature['code']`")||($feature.code eq $field))}{$selected = true} selected="selected"{/if}{if $param && !empty($feature.units)} data-unit="{$feature.units|escape:'js'}"{/if}>{$feature.name|escape}</option>
+                {/foreach}
             </optgroup>
+            {if !empty($info.plugins.shipping)}
+                <optgroup label="Плагины доставки">
+                    {foreach $shipping as $method}
+                        <option value="shipping:{$method.id}" title="{$method.description|escape}"{if !$selected && ((ifset($info['source']) eq "shipping:`$method['id']`")||($method.id eq $field))}{$selected = true} selected="selected"{/if}>{$method.name|escape}</option>
+                    {/foreach}
+                </optgroup>
+            {/if}
+            {if !empty($info.plugins.shop)}
+                <optgroup label="Плагины магазина">
+                    {foreach $plugins as $plugin}
+                        <option value="plugin:{$plugin.id}" title="{$plugin.description|escape}"{if !$selected && ((ifset($info['source']) eq "plugin:`$plugin['id']`")||($plugin.id eq $field))}{$selected = true} selected="selected"{/if}>{$plugin.name|escape}</option>
+                    {/foreach}
+                </optgroup>
+            {/if}
         </select>
 
         {* Field source feature autocomplete *}
@@ -87,7 +101,7 @@
         {/if}
         {if !empty($info.help)}
             <br>
-            <span class="hint">{$info.help}</span>
+            <span class="hint""><i class="icon10 info"></i>{$info.help|nl2br}</span>
 
         {/if}
     </div>

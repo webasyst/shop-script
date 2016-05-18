@@ -109,9 +109,8 @@ class shopProductModel extends waModel
     /**
      * Get aggregated data about placing products(skus) in stocks
      *
-     * @param int $offset
-     * @param int $count
-     * @param string $order default is 'desc'
+     * @param $options array
+     *
      * @return array multilevel array
      *
      * First level: products
@@ -153,14 +152,32 @@ class shopProductModel extends waModel
      *   )
      * )
      */
-    public function getProductStocks($offset, $count, $order = 'desc')
+    public function getProductStocks($options = array())
     {
-        $order = ($order == 'desc' || $order == 'DESC') ? 'DESC' : 'ASC';
+        if (func_num_args() > 1 && !is_array(func_get_arg(0))) {
+            $args = func_get_args();
+            $options['offset'] = ifset($args[0], 0);
+            $options['limit'] = ifset($args[1], 0);
+            $options['order'] = ifset($args[2], '');
+        }
+
+        $order = strtolower(ifset($options['order'], '')) === 'desc' ? 'DESC' : 'ASC';
+        $offset = (int) ifset($options['offset']);
+        $limit = (int) ifset($options['limit']);
+
+        $where = '';
+        if (!empty($options['count_is_not_null'])) {
+            $where = "WHERE `count` IS NOT NULL";
+        }
 
         // get products ids
-        $sql = "SELECT id, IF(count IS NULL, 1, 0) count_null FROM {$this->table}
-        ORDER BY count_null $order, count $order
-        LIMIT ".(int)$offset.", ".(int)$count;
+        $sql = "
+            SELECT id
+            FROM {$this->table}
+            {$where}
+            ORDER BY `count` $order
+            LIMIT {$offset}, {$limit}
+        ";
 
         $ids = array_keys($this->query($sql)->fetchAll('id'));
 
@@ -483,14 +500,13 @@ class shopProductModel extends waModel
         $this->exec($sql);
     }
 
-    public function countProductStocks()
+    public function countProductStocks($options = array())
     {
-        return $this->query("SELECT COUNT(id) cnt FROM (
-                SELECT p.id
-                FROM shop_product_skus sk
-                JOIN {$this->table} p ON sk.product_id = p.id
-                GROUP BY sk.product_id
-        ) r")->fetchField('cnt');
+        $where = '';
+        if (!empty($options['count_is_not_null'])) {
+            $where = "WHERE `count` IS NOT NULL";
+        }
+        return $this->query("SELECT COUNT(*) FROM `{$this->table}` {$where}")->fetchField();
     }
 
     /**
@@ -568,6 +584,12 @@ class shopProductModel extends waModel
                                     ON op2.order_id=o.id
                                         AND op2.name='storefront'";
             $storefront_where = "AND op2.value='".$this->escape($options['storefront'])."'";
+        }
+        if (!empty($options['sales_channel'])) {
+            $storefront_join .= " JOIN shop_order_params AS opst2
+                                    ON opst2.order_id=o.id
+                                        AND opst2.name='sales_channel' ";
+            $storefront_where .= " AND opst2.value='".$this->escape($options['sales_channel'])."' ";
         }
 
         $sales_subtotal = '(oi.price*o.rate*oi.quantity)';

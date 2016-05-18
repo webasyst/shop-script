@@ -158,21 +158,38 @@ class shopCustomerModel extends waModel
         return array($customers, $total);
     }
 
+    /**
+     * @param null $category_id
+     * @return array|int
+     */
     public function getCategoryCounts($category_id = null)
     {
-        $where = $category_id !== null ? "WHERE cc.category_id=".(int)$category_id : "";
+        $category_ids = array_map('intval', (array) $category_id);
+        if (!$category_ids && $category_id !== null) {
+            return array();
+        }
+
+        $where = "";
+        if ($category_id !== null) {
+            $where = "WHERE cc.category_id IN (i:0)";
+        }
+
         $sql = "SELECT cc.category_id, count(*) AS cnt
                 FROM wa_contact_categories AS cc
-                    JOIN shop_customer AS sc
-                        ON cc.contact_id=sc.contact_id
+                JOIN shop_customer AS sc ON cc.contact_id=sc.contact_id
                 {$where}
                 GROUP BY cc.category_id";
-        if ($category_id !== null) {
-            $f = $this->query($sql)->fetchAssoc();
-            return $f ? $f['cnt'] : 0;
-        } else {
-            return $this->query($sql)->fetchAll('category_id', true);
+
+        $res = $this->query($sql, array($category_ids))->fetchAll('category_id', true);
+        if ($category_id === null) {
+            return $res;
         }
+
+        foreach ($category_ids as $id) {
+            $res[$id] = ifset($res[$id], 0);
+        }
+
+        return is_array($category_id) ? $res : $res[(int) $category_id];
     }
 
     public function getAllCoupons()

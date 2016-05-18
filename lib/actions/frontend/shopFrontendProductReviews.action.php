@@ -26,8 +26,7 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
         $this->view->assign('sku_services', $skus_services);
         $this->view->assign('services', $services);
 
-        $stock_model = new shopStockModel();
-        $this->view->assign('stocks', $stock_model->getAll('id'));
+        $this->view->assign('stocks', shopHelper::getStocks(true));
 
         $this->view->assign('currency_info', $this->getCurrencyInfo());
 

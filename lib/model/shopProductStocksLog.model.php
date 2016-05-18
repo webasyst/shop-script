@@ -8,6 +8,7 @@ class shopProductStocksLogModel extends waModel {
     const TYPE_IMPORT = 'import';
     const TYPE_STOCK = 'stock';
     const TYPE_ORDER = 'order';
+    const TYPE_TRANSFER = 'transfer';
 
     private static $transaction_type = '';
     private static $description;
@@ -35,6 +36,9 @@ class shopProductStocksLogModel extends waModel {
                 break;
             case self::TYPE_STOCK:
                 $icon = '<i class="icon16 ss transfer-bw" title="'._w('Inventory transferred from one stock to another').'"></i>';
+                break;
+            case self::TYPE_TRANSFER:
+                $icon = '<i class="icon16 ss transfer-bw" title="'._w('Transfer %s').'"></i>';
                 break;
             default:
                 $icon = '<i class="icon16 ss pencil-bw" title="'._w('Unrecognized stock operation').'"></i>';
@@ -119,6 +123,20 @@ class shopProductStocksLogModel extends waModel {
         if (!$list) {
             return;
         }
+
+        $transfers = array();
+        foreach ($list as $v) {
+            if ($v['type'] == self::TYPE_TRANSFER) {
+                $transfers[] = (int) $v['transfer_id'];
+            }
+        }
+
+        $transfer_id_string_id_map = array();
+        if ($transfers) {
+            $tm = new shopTransferModel();
+            $transfer_id_string_id_map = $tm->mapIdToStringId($transfers);
+        }
+
         foreach ($list as &$v) {
             $v['icon'] = shopProductStocksLogModel::getIcon($v['type']);
             if (!$v['description']) {
@@ -127,13 +145,17 @@ class shopProductStocksLogModel extends waModel {
                 } else {
                     $v['description'] = sprintf(_w('In stock value updated to %d'), $v['after_count']);
                 }
-            } else {
-                if ($v['type'] == self::TYPE_ORDER) {
-                    $v['description'] = sprintf(
-                            _w($v['description']),
-                            '<a href="?action=orders#/order/'.$v['order_id'].'/">'.shopHelper::encodeOrderId($v['order_id']).'</a>'
-                    );
-                }
+            } else if ($v['type'] == self::TYPE_ORDER) {
+                $v['description'] = sprintf(
+                    _w($v['description']),
+                    '<a href="?action=orders#/order/'.$v['order_id'].'/">'.shopHelper::encodeOrderId($v['order_id']).'</a>'
+                );
+            } else if ($v['type'] == self::TYPE_TRANSFER) {
+                $transfer_string_id = ifset($transfer_id_string_id_map[$v['transfer_id']], $v['transfer_id']);
+                $v['description'] = sprintf(
+                    _w($v['description']),
+                    '<a class="s-transfer-log-link" data-transfer-id="'.$v['transfer_id'].'" href="?action=products#/stockslog/transfer_id=' . $v['transfer_id'] . '/">'.$transfer_string_id.'</a>'
+                );
             }
         }
         unset($v);
@@ -258,8 +280,10 @@ class shopProductStocksLogModel extends waModel {
         $data['description'] = self::$description;
         $data['type'] = self::$transaction_type;
         if (self::$params) {
-            if (isset(self::$params['order_id'])) {
-                $data['order_id'] = self::$params['order_id'];
+            foreach (self::$params as $key => $val) {
+                if (!array_key_exists($key, $data)) {
+                    $data[$key] = $val;
+                }
             }
         }
         return parent::insert($data, $type);

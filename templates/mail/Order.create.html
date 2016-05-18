@@ -1,0 +1,316 @@
+{strip}
+
+{$_background_color = "#eeeeee"}
+{$_products_bg = "#ffffff"}
+{$_bonus_background = "#ffffcc"}
+{$_button_background = "#fcd630"}
+{$_main_border_color = "#cccccc"}
+{$_border_color = "#dddddd"}
+
+<table cellspacing="0" border="0" cellpadding="0" width="100%" bgcolor="{$_background_color}" style="
+        font-family:Helvetica,Arial,sans-serif;
+        letter-spacing:normal;
+        text-indent:0;
+        text-transform:none;
+        word-spacing:0;
+        background-color:rgb(232,232,232);
+        border-collapse:collapse
+    ">
+    <tr>
+        <td style="padding: 20px;">
+            <table width="600" border="0" align="center" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="
+                width: 600px !important;
+                background-color:#fff;
+                border:1px solid {$_main_border_color};
+                border-radius: 4px;
+                margin:auto;
+                overflow: hidden;
+                ">
+
+                <!-- HEADER -->
+                <tr>
+                    <td width="50" style="width:50px !important; border: solid {$_border_color}; border-width: 0 0 1px 0;"></td>
+                    <td height="70" align="center" valign="middle" style="border: solid {$_border_color}; border-width: 0 0 1px 0;">
+                        <table width="500" border="0" align="center" cellpadding="0" cellspacing="0" style="width: 100% !important;">
+                            <tr>
+                                <td>
+                                    <font style="font-weight: bold; font-size: 20px; margin: 0 12px 0 0;"><b>{$order.id}</b></font>
+                                    <font style="color: #888">{$order.create_datetime|wa_date:'humandate'}</font>
+                                </td>
+                                <td style="text-align: right;">
+                                    <font style="{if !empty($order.style)}{$order.style}{/if}">{$status}</font>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td width="50" style="width:50px !important; border: solid {$_border_color}; border-width: 0 0 1px 0;"></td>
+                </tr>
+
+                <!-- STATUS -->
+                <tr>
+                    <td></td>
+                    <td>
+                        <table cellspacing="0" border="0" cellpadding="0" width="100%" style="border-collapse:collapse">
+                            <tr>
+                                <td>
+                                    <p style="
+                                        color:rgb(48,48,48);
+                                        font-style:normal;
+                                        font-variant:normal;
+                                        font-weight:normal;
+                                        font-size:14px;
+                                        line-height:16px;
+                                        font-family:Helvetica,Arial,sans-serif;
+                                        margin: 20px 0 0;
+                                        text-align:center;
+                                        ">%17%</p>
+                                    <p align="center" style="margin: 20px 0;">
+                                        <a href="{$order_url}" style="
+                                        text-decoration:none;
+                                        font-style:normal;
+                                        font-variant:normal;
+                                        font-weight:normal;font-size:17px;line-height:40px;font-family:Helvetica,Arial,sans-serif;color:rgb(48,48,48);display:block;
+                                        width:225px;
+                                        background: {$_button_background};
+                                        border-radius: 4px;
+                                        " target="_blank">[`Order status`]</a>
+                                    </p>
+                                    {if !empty($order.params.auth_pin)}
+                                        <p style="
+                                            color:rgb(48,48,48);
+                                            font-style:normal;
+                                            font-variant:normal;
+                                            font-weight:normal;
+                                            font-size:14px;
+                                            line-height:16px;
+                                            font-family:Helvetica,Arial,sans-serif;
+                                            margin: 20px 0;
+                                            text-align:center;
+                                            text-transform: uppercase;
+                                            ">
+                                            %16%: <b>{$order.params.auth_pin}</b>
+                                        </p>
+                                    {/if}
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td></td>
+                </tr>
+
+                <!-- LIST -->
+                <tr>
+                    <td bgcolor="{$_products_bg}">
+                    </td>
+                    <td bgcolor="{$_products_bg}" style="">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse">
+                            {$subtotal = 0}
+                            {foreach $order.items as $item}
+                                {$_border_style = "border: 0;"}
+                                {$_is_service = ($item.type == "service")}
+                                {if $item@index > 0}
+                                    {$_border_style = "border: solid `{$_border_color}`; border-width: 1px 0  0;"}
+                                {/if}
+                                <tr>
+                                    <td width="40" style="padding: 8px 4px 8px 0; {$_border_style}">
+                                        {if !$_is_service}
+                                            <img src="{$item.product.image.crop_url}" alt="" style="width: 48px; height: 48px; vertical-align: middle;">
+                                        {/if}
+                                    </td>
+                                    <td style="padding: 8px 0 8px 4px; {$_border_style}">
+                                        <p style="
+                                            font-style:normal;
+                                            font-variant:normal;
+                                            font-weight:normal;
+                                            font-size: {if $_is_service}12{else}14{/if}px;
+                                            line-height:16px;
+                                            font-family:Helvetica,Arial,sans-serif;
+                                            ">
+                                            {if !$_is_service}
+                                                <a href="{$item.product.frontend_url|default:'javascript:void(0);'}">
+                                                    <font style="text-decoration: underline;">{if $_is_service}+&nbsp;{/if}{$item.name|escape}</font>
+                                                    {if !empty($item.sku_code)} <font style="color: #aaaaaa; font-size: 0.8em;">{$item.sku_code|escape}</font>{/if}
+                                                </a>
+                                            {else}
+                                                {if $_is_service}+&nbsp;{/if}{$item.name|escape}
+                                                {if !empty($item.sku_code)} <font style="color: #aaaaaa; font-size: 0.8em;">{$item.sku_code|escape}</font>{/if}
+                                            {/if}
+                                            {if !empty($item.download_link)}<a href="{$item.download_link}"><strong>%3%</strong></a>{/if}
+                                        </p>
+                                    </td>
+                                    <td style="padding: 8px 4px 8px 4px; white-space: nowrap; text-align: right; {$_border_style}">
+                                        <font style="color:#aaa;">{wa_currency($item.price, $order.currency)}&nbsp;&times;</font>&nbsp;{$item.quantity}
+                                    </td>
+                                    <td style="padding: 8px 0 8px 8px; white-space: nowrap; text-align: right; {$_border_style}">
+                                        <font style="font-weight: bold;">{wa_currency($item.price * $item.quantity, $order.currency)}</font>
+                                    </td>
+                                </tr>
+                                {$subtotal = $subtotal + $item.price * $item.quantity}
+                            {/foreach}
+                        </table>
+                    </td>
+                    <td bgcolor="{$_products_bg}"></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td style="padding: 20px 0; border-bottom: 1px solid {$_border_color}">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse; text-align: right;">
+                            <tr>
+                                <td style="padding: 8px 0;">%4%</td>
+                                <td style="white-space: nowrap; width: 20%; padding: 8px 0 8px 8px;">{wa_currency($subtotal, $order.currency)}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0;">%5%</td>
+                                <td style="white-space: nowrap; padding: 8px 0 8px 8px;">{wa_currency($order.discount, $order.currency)}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0;">%6%</td>
+                                <td style="white-space: nowrap; padding: 8px 0 8px 8px;">{wa_currency($order.shipping, $order.currency)}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0;">%7%</td>
+                                <td style="white-space: nowrap; padding: 8px 0 8px 8px;">{wa_currency($order.tax, $order.currency)}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0;">
+                                    <h3 style="font-size:18px;margin:0;">%2%</h3>
+                                </td>
+                                <td style="white-space: nowrap; padding: 8px 0 8px 8px;">
+                                    <h3 style="font-size:18px;margin:0;">{wa_currency($order.total, $order.currency)}</h3>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td></td>
+                </tr>
+
+                <!-- DETAILS -->
+                <tr>
+                    <td style="border: 0;">
+                    </td>
+                    <td style="border: 0; padding: 16px 0 0;">
+                        {if !empty($customer.email)}
+                            <p style="margin: 10px 0 0;">
+                                [`Email`]: {$customer->get("email", "default")|escape}
+                            </p>
+                        {/if}
+                        {if !empty($customer.phone)}
+                            <p style="margin: 10px 0 0;">
+                                [`Phone`]: {$customer->get("phone", "default")|escape}
+                            </p>
+                        {/if}
+                    </td>
+                    <td style="border: 0;">
+                    </td>
+                </tr>
+                {if $order.comment}
+                    <tr>
+                        <td style="border: 0;">
+                        </td>
+                        <td style="border: 0; padding: 16px 0 0;">
+                            <h3>%14%</h3>
+                            <p style="margin: 10px 0 0;">
+                                <pre>{$order.comment|escape}</pre>
+                            </p>
+                        </td>
+                        <td style="border: 0;">
+                        </td>
+                    </tr>
+                {/if}
+                <tr>
+                    <td style="border: 0;">
+                    </td>
+                    <td style="border: 0; padding: 16px 0;">
+                        <b>
+                            {if !empty($order.params.shipping_name)}
+                                <font style="color: #aaa;">%11%&nbsp;—</font>&nbsp;{$order.params.shipping_name}
+                            {else}
+                                <font style="color: #aaa;">%11%</font>
+                            {/if}
+                        </b>
+                        <p style="margin: 10px 0 0;">
+                            {$customer.name|escape}<br>{$shipping_address}
+                        </p>
+                    </td>
+                    <td style="border: 0;">
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: 0;">
+                    </td>
+                    <td style="border: 0; padding: 16px 0;">
+                        <b>
+                            {if !empty($order.params.payment_name)}
+                                <font style="color: #aaa;">%12%&nbsp;—</font>&nbsp;{$order.params.payment_name}
+                            {else}
+                                <font style="color: #aaa;">%12%</font>
+                            {/if}
+                        </b>
+                        <p style="margin: 10px 0 0;">{$customer.name|escape}<br>{$billing_address}</p>
+                    </td>
+                    <td style="border: 0;">
+                    </td>
+                </tr>
+
+                <!-- BONUS POINTS -->
+                {if $is_affiliate_enabled}
+                    <tr>
+                        <td style="background: {$_bonus_background};"></td>
+                        <td height="50" align="center" style="background: {$_bonus_background}; padding: 16px 0;">
+                            {if $add_affiliate_bonus}
+                                <p style="
+                                    font-style:normal;
+                                    font-variant:normal;
+                                    font-size:16px;
+                                    line-height:16px;
+                                    font-family:Helvetica,Arial,sans-serif;
+                                    margin: 0;
+                                    color:rgb(48,48,48);
+                                        ">
+                                    <b>{sprintf("[`This order will add +%s points to your affiliate bonus.`]", round($add_affiliate_bonus, 2))}</b>
+                                </p>
+                                <p style="margin: 16px 0 0;">
+                                {if $signup_url}
+                                    [`Registered customers apply for affiliate bonuses and discounts on future orders.`]
+&nbsp;<a href="{$signup_url}" target="_blank">[`Create permanent user account`]</a>
+                                {else}
+                                    {sprintf('[`When this order is paid, your affiliate bonus will be increased to %s.`]', round($customer.affiliate_bonus + $add_affiliate_bonus, 2))}
+                                {/if}
+                                </p>
+
+                            {/if}
+                        </td>
+                        <td style="background: {$_bonus_background}"></td>
+                    </tr>
+                {else}
+                    <br>
+                    <br>
+                {/if}
+            </table>
+
+            <!-- BOTTOM SITE INFORMATION -->
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse">
+                <tr>
+                    <td valign="middle" align="center" height="45">
+                        <p style="
+                            font-style:normal;
+                            font-variant:normal;
+                            font-weight:normal;
+                            font-size:13px;
+                            line-height:16px;
+                            font-family:Arial,sans-serif,Helvetica;
+                            color:rgb(147,154,164);
+                            margin: 20px 0 0;
+                            ">
+                            &copy;&nbsp;{date("Y")}&nbsp;{$wa->shop->settings("name")}<br>
+                            <a href="http://{$order.params.storefront}" target="_blank">{$order.params.storefront}</a>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+{/strip}

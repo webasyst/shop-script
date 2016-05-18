@@ -12,11 +12,11 @@
 
     <link href="{$wa_app_static_url}css/shop.css?v{$wa->version()}" rel="stylesheet" type="text/css" />
     <!-- link your CSS files here -->
-    <script src="{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js" type="text/javascript"></script>
-    <script src="{$wa_url}wa-content/js/jquery/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
+    <script src="{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js"></script>
+    <script src="{$wa_url}wa-content/js/jquery/jquery-migrate-1.2.1.min.js"></script>
 
-    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/jquery.jqplot.min.js"></script>
-    <!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/excanvas.min.js"></script><![endif]-->
+    <script src="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/jquery.jqplot.min.js"></script>
+    <!--[if lt IE 9]><script language="javascript" src="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/excanvas.min.js"></script><![endif]-->
     {wa_js file="js/shop-jquery.min.js"}
         {$wa_url}wa-content/js/jquery-wa/wa.core.js
         {$wa_url}wa-content/js/jquery-wa/wa.dialog.js
@@ -42,15 +42,15 @@
         {$wa_url}wa-content/js/jquery-plugins/jquery-plot/plugins/jqplot.pieRenderer.min.js
     {/wa_js}
     {if is_readable("wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js")}
-        <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js"></script>
+        <script src="{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js"></script>
     {/if}
-    <script type="text/javascript" src="{$wa_app_static_url}js/shop.js?{$wa->version()}"></script>
-    <script type="text/javascript" src="?action=loc&amp;v{$wa->version()}"></script>
+    <script src="{$wa_app_static_url}js/shop.js?{$wa->version()}"></script>
+    <script src="?action=loc&amp;v{$wa->version()}"></script>
     {$wa->js()}
     {block name="head"} {/block}
 
     <!-- link your JS files here -->
-    <script type="text/javascript">
+    <script>
         var menu_floating = true;
         {if in_array($page, ['settings', 'importexport', 'plugins', 'storefronts', 'tutorial:default'])}
             menu_floating = false;
@@ -72,185 +72,200 @@
 
     <div id="wa-app">
 
-        <div id="mainmenu">
-            <ul class="tabs">
-                {$rightmost_li_margin = ' style="margin-right: 30px;"'}
-                {if $wa->userRights('settings')}
-                    <li class="small float-right{if $page=='plugins'} selected{else} no-tab{/if}"{$rightmost_li_margin}>
-                        <a href="?action=plugins">[`Plugins`]</a>
-                    </li>
-                    <li class="small float-right{if $page=='settings'} selected{else} no-tab{/if}">
-                        <a href="?action=settings">[`Settings`]</a>
-                    </li>
-                    {$rightmost_li_margin = ''}
-                {/if}
-                {if $wa->userRights('importexport')}
-                    <li class="small float-right{if $page=='importexport'} selected{else} no-tab{/if}"{$rightmost_li_margin}>
-                        <a href="?action=importexport">[`Import / Export`]</a>
-                    </li>
-                    {$rightmost_li_margin = ''}
-                {/if}
-
-                <!-- plugin hook: 'backend_menu.aux_li' -->
-                {* @event backend_menu.%plugin_id%.aux_li *}
-                {foreach $backend_menu as $_}{ifset($_.aux_li)}{/foreach}
-
-                {if $tutorial_visible}
-                    <li class="no-tab s-tutorial-tab" id="mainmenu-tutorial-tab">
-                        <a href="{$wa_app_url}?module=tutorial" title="[`Welcome tutorial`]">
-                            <div class="s-tutorial-progressbar" id="s-tutorial-progressbar">
-                                <div class="s-tutorial-progressbar-outer">
-                                    <div class="s-tutorial-progressbar-inner"></div>
-                                    <span id="s-tutorial-progressbar-content"></span>
-                                </div>
-                            </div>
-                        </a>
-                        <script type="text/javascript">$(function() { "use strict";
-                            $('#s-tutorial-progressbar .s-tutorial-progressbar-inner').css('width', "{$tutorial_progress}%");
-                            $('#s-tutorial-progressbar-content').text("{$tutorial_progress}%");
-                        });</script>
-                    </li>
-                {/if}
-                {if $wa->userRights('orders')}
-                    <li class="{if !$page || $page=='orders'}selected{else}no-tab{/if}" id="mainmenu-orders-tab">
-                        <a href="{$wa_app_url}?action=orders#/orders/">
-                            [`Orders`]
-                            <sup class="red" {if $page != 'orders' && !empty($new_orders_count)}style="display:inline"{/if}>{if !empty($new_orders_count)}{$new_orders_count}{/if}</sup>
-                        </a>
-                    </li>
-                {/if}
-                {if $wa->userRights('customers')}
-                    <li class="{if $page=='customers'}selected{else}no-tab{/if}">
-                        <a href="?action=customers">[`Customers`]</a>
-                    </li>
-                {/if}
-                <li class="{if $page=='products'}selected{else}no-tab{/if}">
-                    <a href="?action=products">[`Products`]</a>
-                </li>
-                {if $wa->userRights('reports')}
-                    <li class="{if $page=='reports'}selected{else}no-tab{/if}">
-                        <a href="?action=reports">[`Reports`]</a>
-                    </li>
-                {/if}
-
-                {if $wa->userRights('design') || $wa->userRights('pages')}
-                    <li class="{if $page=='storefronts'}selected{else}no-tab{/if} s-storefronts-tab">
-                        <a href="?action=storefronts">[`Storefront`]</a>
-                    </li>
-                {/if}
-
-                <!-- plugin hook: 'backend_menu.core_li' -->
-                {* @event backend_menu.%plugin_id%.core_li *}
-                {foreach $backend_menu as $_}{ifset($_.core_li)}{/foreach}
-
-                <li class="no-tab s-openstorefront">
-                    <a href="{$frontend_url}" target="_blank">[`Open storefront`]</a>
-                </li>
-            </ul>
-            {if !isset($no_level2)}
-            <div class="s-level2">
-                <div class="block bordered-bottom">
-
-                    {if $page == 'products'}
-
-                        <div class="s-search-form">
-                            <i class="icon16 ss search-bw"></i>
-                            <input type="search" placeholder="[`Search products`]" id="s-products-search">
-                        </div>
-
-                    {elseif $page == 'customers'}
-
-                        <ul class="menu-h with-icons">
-                            <div class="s-search-form">
-                                <i class="icon16 ss search-bw"></i>
-                                <input type="search" placeholder="[`Search customers`]" id="s-customers-search">
-                            </div>
-                        </ul>
-
-                    {elseif $page == 'reports'}
-
-                        {* Reports common period selector *}
-                        <div class="float-right">
-                            <ul class="menu-h dropdown s-reports-timeframe" style="float: right;">
-                                <li class="hidden s-custom-timeframe">
-                                    [`from`] <input type="text" name="from">
-                                    [`to`] <input type="text" name="to">
-                                    <select name="groupby">
-                                        <option value="days">[`by day`]</option>
-                                        <option value="months">[`by month`]</option>
-                                    </select>
-                                </li>
-                                <li class="s-reports-timeframe-dropdown">
-                                    <a href="javascript:void(0)" class="inline-link float-right"><b><i>{* Changed by JS *}</i></b>
-                                        <i class="icon10 darr"></i>
-                                    </a>
-                                    <ul class="menu-v">
-                                        <li data-timeframe="30" data-groupby="days" class="selected"><a href="javascript:void(0)" class="nowrap">{_w('Last %d day', 'Last %d days', 30)}</a></li>
-                                        <li data-timeframe="90" data-groupby="days" data-default-choice="1"><a href="javascript:void(0)" class="nowrap">{_w('Last %d day', 'Last %d days', 90)}</a></li>
-                                        <li data-timeframe="365" data-groupby="months"><a href="javascript:void(0)" class="nowrap">{_w('Last %d day', 'Last %d days', 365)}</a></li>
-                                        <li data-timeframe="all" data-groupby="months"><a href="javascript:void(0)" class="nowrap">[`All time`]</a></li>
-                                        <li data-timeframe="custom"><a href="javascript:void(0)" class="nowrap">[`Select dates...`]</a></li>
-                                    </ul>
-                                </li>
-                            </ul>
-                            <div id="s-reports-custom-controls" class="float-right"></div>
-                        </div>
-
-                        <ul class="menu-h s-reports">
-                            {if $wa->shop->config('reports_simple')}
-                                <li>
-                                    <a href="#/summary/">[`Sales`]</a>
-                                </li>
-                            {else}
-                                <li>
-                                    <a href="#/sales/">[`Sales`]</a>
-                                </li>
-                                <li>
-                                    <a href="#/customers/">[`Customers`]</a>
-                                </li>
-                                <li>
-                                    <a href="#/cohorts/">[`Cohorts`]</a>
-                                </li>
-                                <li>
-                                    <a href="#/products/">[`Products`]</a>
-                                </li>
-                            {/if}
-                            <li>
-                                <a href="#/checkoutflow/">[`Checkout funnel`]</a>
-                            </li>
-
-                            <!-- plugin hook: 'backend_reports.menu_li' -->
-                            {* @event backend_reports.%plugin_id%.menu_li *}
-                            {foreach $backend_reports as $_}{ifset($_.menu_li)}{/foreach}
-
-                        </ul>
-
-                    {elseif $page == 'orders'}
-
-                        <ul class="menu-h with-icons float-right" id="s-orders-views">
-                            <li data-view="split">
-                                <a href="#"><i class="icon16 view-splitview"></i></a>
-                            </li>
-                            <li data-view="table">
-                                <a href="#"><i class="icon16 view-table"></i></a>
-                            </li>
-
-                            <!-- plugin hook: 'backend_orders.viewmode_li' -->
-                            {* @event backend_orders.%plugin_id%.viewmode_li *}
-                            {foreach $backend_orders as $_}{ifset($_.viewmode_li)}{/foreach}
-
-                        </ul>
-                        <div class="s-search-form">
-                            <i class="icon16 ss search-bw"></i>
-                            <input type="search" placeholder="[`Search orders`]" id="s-orders-search">
-                        </div>
-
+        {strip}
+            <div id="mainmenu">
+                <ul class="tabs">
+                    {$rightmost_li_margin = ' style="margin-right: 30px;"'}
+                    {if $wa->userRights('settings')}
+                        <li class="small float-right{if $page=='plugins'} selected{else} no-tab{/if}"{$rightmost_li_margin}>
+                            <a href="?action=plugins">[`Plugins`]</a>
+                        </li>
+                        <li class="small float-right{if $page=='settings'} selected{else} no-tab{/if}">
+                            <a href="?action=settings">[`Settings`]</a>
+                        </li>
+                        {$rightmost_li_margin = ''}
+                    {/if}
+                    {if $wa->userRights('importexport')}
+                        <li class="small float-right{if $page=='importexport'} selected{else} no-tab{/if}"{$rightmost_li_margin}>
+                            <a href="?action=importexport">[`Import / Export`]</a>
+                        </li>
+                        {$rightmost_li_margin = ''}
                     {/if}
 
-                </div>
+                    <!-- plugin hook: 'backend_menu.aux_li' -->
+                    {* @event backend_menu.%plugin_id%.aux_li *}
+                    {foreach $backend_menu as $_}{ifset($_.aux_li)}{/foreach}
+
+                    {if $tutorial_visible}
+                        <li class="no-tab s-tutorial-tab" id="mainmenu-tutorial-tab">
+                            <a href="{$wa_app_url}?module=tutorial" title="[`Welcome tutorial`]">
+                                <div class="s-tutorial-progressbar" id="s-tutorial-progressbar">
+                                    <div class="s-tutorial-progressbar-outer">
+                                        <div class="s-tutorial-progressbar-inner" style="width: {$tutorial_progress}%;"></div>
+                                        <span id="s-tutorial-progressbar-content">{$tutorial_progress}%</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    {/if}
+                    {if $wa->userRights('orders')}
+                        <li class="{if !$page || $page=='orders'}selected{else}no-tab{/if}" id="mainmenu-orders-tab">
+                            <a href="{$wa_app_url}?action=orders#/orders/">
+                                [`Orders`]
+                                <sup class="red" {if $page != 'orders' && !empty($new_orders_count)}style="display:inline"{/if}>{if !empty($new_orders_count)}{$new_orders_count}{/if}</sup>
+                            </a>
+                        </li>
+                    {/if}
+                    {if $wa->userRights('customers')}
+                        <li class="{if $page=='customers'}selected{else}no-tab{/if}">
+                            <a href="?action=customers">[`Customers`]</a>
+                        </li>
+                    {/if}
+                    <li class="{if $page=='products'}selected{else}no-tab{/if}">
+                        <a href="?action=products">[`Products`]</a>
+                    </li>
+                    {if $wa->userRights('reports')}
+                        <li class="{if $page=='reports'}selected{else}no-tab{/if}">
+                            <a href="?action=reports">[`Reports`]</a>
+                        </li>
+                    {/if}
+
+                    {if $wa->userRights('design') || $wa->userRights('pages')}
+                        <li class="{if $page=='storefronts'}selected{else}no-tab{/if} s-storefronts-tab">
+                            <a href="?action=storefronts">[`Storefront`]</a>
+                        </li>
+                    {/if}
+
+                    <!-- plugin hook: 'backend_menu.core_li' -->
+                    {* @event backend_menu.%plugin_id%.core_li *}
+                    {foreach $backend_menu as $_}{ifset($_.core_li)}{/foreach}
+
+                    <li class="no-tab s-hidden-list" id="s-hidden-list" style="display: none;">
+                        <ul class="menu-h dropdown">
+                            <li class="no-tab">
+                                <a class="s-more-link" href="javascript:void(0);">[`More`]<i class="icon10 darr"></i></a>
+                                <ul class="menu-v" style="width: 200px;"></ul>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="no-tab s-openstorefront">
+                        <a href="{$frontend_url}" target="_blank">[`Open storefront`]</a>
+                    </li>
+                </ul>
+                {if !isset($no_level2)}
+                    <div class="s-level2">
+                        <div class="block bordered-bottom">
+
+                            {if $page == 'products'}
+
+                                <div class="s-search-form">
+                                    <i class="icon16 ss search-bw"></i>
+                                    <input type="search" placeholder="[`Search products`]" id="s-products-search">
+                                </div>
+
+                            {elseif $page == 'customers'}
+
+                                <ul class="menu-h with-icons">
+                                    <div class="s-search-form">
+                                        <i class="icon16 ss search-bw"></i>
+                                        <input type="search" placeholder="[`Search customers`]" id="s-customers-search">
+                                    </div>
+                                </ul>
+
+                            {elseif $page == 'reports'}
+
+                                {* Reports common period selector *}
+                                <div class="float-right">
+                                    <ul class="menu-h dropdown s-reports-timeframe" style="float: right;">
+                                        <li class="hidden s-custom-timeframe">
+                                            [`from`] <input type="text" name="from">
+                                            [`to`] <input type="text" name="to">
+                                            <select name="groupby">
+                                                <option value="days">[`by day`]</option>
+                                                <option value="months">[`by month`]</option>
+                                            </select>
+                                        </li>
+                                        <li class="s-reports-timeframe-dropdown">
+                                            <a href="javascript:void(0)" class="inline-link float-right"><b><i>{* Changed by JS *}</i></b>
+                                                <i class="icon10 darr"></i>
+                                            </a>
+                                            <ul class="menu-v">
+                                                <li data-timeframe="30" data-groupby="days" class="selected"><a href="javascript:void(0)" class="nowrap">{_w('Last %d day', 'Last %d days', 30)}</a></li>
+                                                <li data-timeframe="90" data-groupby="days" data-default-choice="1"><a href="javascript:void(0)" class="nowrap">{_w('Last %d day', 'Last %d days', 90)}</a></li>
+                                                <li data-timeframe="365" data-groupby="months"><a href="javascript:void(0)" class="nowrap">{_w('Last %d day', 'Last %d days', 365)}</a></li>
+                                                <li data-timeframe="all" data-groupby="months"><a href="javascript:void(0)" class="nowrap">[`All time`]</a></li>
+                                                <li data-timeframe="custom"><a href="javascript:void(0)" class="nowrap">[`Select dates...`]</a></li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                    <div id="s-reports-custom-controls" class="float-right"></div>
+                                </div>
+
+                                <ul class="menu-h s-reports">
+                                    {if $wa->shop->config('reports_simple')}
+                                        <li>
+                                            <a href="#/summary/">[`Sales`]</a>
+                                        </li>
+                                    {else}
+                                        <li>
+                                            <a href="#/sales/">[`Sales`]</a>
+                                        </li>
+                                        <li>
+                                            <a href="#/customers/">[`Customers`]</a>
+                                        </li>
+                                        <li>
+                                            <a href="#/cohorts/">[`Cohorts`]</a>
+                                        </li>
+                                        <li>
+                                            <a href="#/products/">[`Products`]</a>
+                                        </li>
+                                    {/if}
+                                    <li>
+                                        <a href="#/checkoutflow/">[`Checkout funnel`]</a>
+                                    </li>
+
+                                    <!-- plugin hook: 'backend_reports.menu_li' -->
+                                    {* @event backend_reports.%plugin_id%.menu_li *}
+                                    {foreach $backend_reports as $_}{ifset($_.menu_li)}{/foreach}
+
+                                </ul>
+
+                            {elseif $page == 'orders'}
+
+                                <ul class="menu-h with-icons float-right" id="s-orders-views">
+                                    <li data-view="split">
+                                        <a href="#"><i class="icon16 view-splitview"></i></a>
+                                    </li>
+                                    <li data-view="table">
+                                        <a href="#"><i class="icon16 view-table"></i></a>
+                                    </li>
+
+                                    <!-- plugin hook: 'backend_orders.viewmode_li' -->
+                                    {* @event backend_orders.%plugin_id%.viewmode_li *}
+                                    {foreach $backend_orders as $_}{ifset($_.viewmode_li)}{/foreach}
+
+                                </ul>
+                                <div class="s-search-form">
+                                    <i class="icon16 ss search-bw"></i>
+                                    <input type="search" placeholder="[`Search orders`]" id="s-orders-search">
+                                </div>
+
+                            {/if}
+
+                        </div>
+                    </div>
+                {/if}
             </div>
-            {/if}
-        </div>
+            <script>
+                ( function($) {
+                    $.shop.initElasticMenu({
+                        $wrapper: $("#mainmenu")
+                    });
+                })(jQuery);
+            </script>
+        {/strip}
+
         <div id="maincontent"{if isset($no_level2)} class="s-no-level2"{/if}>
         {block name="content"}
             {$content}

@@ -85,7 +85,6 @@ $.extend($.importexport.plugins, {
             return false;
         },
 
-
         initForm: function () {
             /**
              * collection control
@@ -113,6 +112,26 @@ $.extend($.importexport.plugins, {
             });
 
             /**
+             * delivery settings control
+             */
+            this.$form.find(':input[name$="\\[delivery\\]"]').change(function (event) {
+                /**
+                 * @this HTMLSelectElement
+                 */
+                self.helpers.toggle(self.$form.find('div.js-delivery-options, div.js-delivery-included'), event, this.value != 'false');
+            }).change();
+
+            /**
+             * delivery price control
+             */
+            this.$form.find(':input[name$="\\[deliveryIncluded\\]"]').change(function (event) {
+                /**
+                 * @this HTMLInputElement
+                 */
+                self.helpers.toggle(self.$form.find('div.js-delivery-options'), event, !this.checked);
+            }).change();
+
+            /**
              * type map helper
              */
             var $type_map = this.$form.find(':input.js-type-map');
@@ -138,14 +157,12 @@ $.extend($.importexport.plugins, {
             /**
              * product export types control
              */
-            this.$form.find(':input.js-types').unbind('change.yandexmarket').bind('change.yandexmarket', function () {
+            this.$form.find(':input.js-types').unbind('change.yandexmarket').bind('change.yandexmarket', function (event) {
 
                 var $container = $(this).parents('div.field-group:first');
-
-                if ($(this).is(':checked')) {
+                var show = $(this).is(':checked');
+                if (show) {
                     $container.find('> div.field:hidden :input:not(.js-type-map)').attr('disabled', null);
-                    $container.find('> div.field:hidden').slideDown();
-
                 } else {
                     $container.find('> div.field :input:not(.js-type-map)').attr('disabled', true);
                     $container.find(':input.js-type-map:checked').each(function () {
@@ -155,9 +172,8 @@ $.extend($.importexport.plugins, {
                         this.checked = false;
                         $(this).trigger('change');
                     });
-                    $container.find('> div.field:visible').slideUp();
-
                 }
+                self.helpers.toggle($container.find('> div.field' + (show ? ':hidden' : ':visible')), event, show);
             });
 
             /**
@@ -166,24 +182,8 @@ $.extend($.importexport.plugins, {
             this.$form.find(':input[name="export\\[sku\\]"]').unbind('change.yandexmarket').bind('change.yandexmarket', function (event) {
 
                 var $container = self.$form.find(':input[name="export\\[sku_group\\]"]:first').parents('div.field:first');
-                if ($(this).is(':checked')) {
-                    //    $container.find(':input').attr('disabled', null);
-                    if (event.originalEvent) {
-                        $container.slideDown();
-                    } else {
-                        $container.show();
-                    }
-                } else {
-                    //    $container.find(':input').attr('disabled', true);
-                    if (event.originalEvent) {
-                        $container.slideUp();
-                    } else {
-                        $container.hide();
-                    }
-
-                }
+                self.helpers.toggle($container, event, $(this).is(':checked'));
             }).trigger('change');
-
 
             this.$form.find(':text[readonly="readonly"]').unbind('click.yandexmarket focus.yandexmarket keypress.yandexmarket focus.yandexmarket').bind('click.yandexmarket focus.yandexmarket keypress.yandexmarket focus.yandexmarket', function () {
                 var $this = $(this);
@@ -311,7 +311,6 @@ $.extend($.importexport.plugins, {
             $.shop.trace('setParamName', [name, unit]);
         },
 
-
         sourceSelect: function ($el) {
             $el.parent('div').find(':input[name$="\\[source\\]"]:first').val('slip:').trigger('change');
         },
@@ -435,7 +434,6 @@ $.extend($.importexport.plugins, {
                 });
                 $.shop.trace('cleanup', response.processId);
 
-
                 $.ajax({
                     url: url,
                     data: {
@@ -537,6 +535,24 @@ $.extend($.importexport.plugins, {
                         (($.shop && $.shop.error) || console.log)('compile template ' + id + ' at ' + selector + ' (' + e.message + ')', template);
                     }
                 });
+            },
+            toggle: function ($item, event, show) {
+                if (show === null) {
+                    show = !$item.is(':visible');
+                }
+                if (show) {
+                    if (event.originalEvent) {
+                        $item.slideDown();
+                    } else {
+                        $item.show();
+                    }
+                } else {
+                    if (event.originalEvent) {
+                        $item.slideUp();
+                    } else {
+                        $item.hide();
+                    }
+                }
             }
         }
     }

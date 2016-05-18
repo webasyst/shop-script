@@ -61,6 +61,7 @@ class shopFrontendMyOrderByCodeAction extends shopFrontendMyOrderAction
         $this->view->assign('wrong_pin', !!$pin);
         $this->view->assign('pin_required', true);
         $this->view->assign('encoded_order_id', $encoded_order_id);
+        $this->view->assign('frontend_my_order', array()); // avoids notice in theme
 
         $this->view->assign('my_nav_selected', 'orders');
         // Set up layout and template from theme

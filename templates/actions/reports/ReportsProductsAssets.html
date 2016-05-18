@@ -38,6 +38,11 @@
                     <th></th>
                     <th class="align-right s-wider-cell"><a href="javascript:void(0)" data-sort-php="stock">[`Stock count`]{if $sort == 'stock'} <i class="icon16 darr"></i>{/if}</a></th>
                     <th class="align-right s-wider-cell">
+                        <a href="javascript:void(0)" data-sort-php="purchase_worth">
+                            [`Purchase worth`]{if $sort === 'purchase_worth'} <i class="icon16 darr"></i>{/if}
+                        </a>
+                    </th>
+                    <th class="align-right s-wider-cell">
                         <a href="javascript:void(0)" data-sort-php="net_worth" title="[`The overall amount you will get if you sell the entire stock`]">[`Net worth`]{if $sort == 'net_worth'}<i class="icon16 darr"></i>{/if}</a>
                     </th>
                     <th class="s-wider-cell" style="width:50%;"><a href="javascript:void(0)" data-sort-js="1">[`Selling time`]</a></th>
@@ -46,6 +51,7 @@
                     <td style="width:50px;"></td>
                     <td></td>
                     <td class="align-right nowrap s-wider-cell">{_w('%d item', '%d items', $total_stock)}</td>
+                    <td class="nowrap s-wider-cell align-right">{wa_currency_html($purchase_worth, $def_cur)}</td>
                     <td class="s-profit-cell nowrap s-wider-cell align-right">{wa_currency_html($net_worth, $def_cur)}</td>
                     <td style="position: relative;"><div style="position: absolute; left:0;right:0;top:-2px;bottom:-5px;background:#fff;"><!-- hoax element for hiding <tr> shadow --></div></td>
                 </tr>
@@ -70,6 +76,7 @@
                             {/if}
                             {$p.count}
                         </td>
+                        <td class="align-right nowrap s-wider-cell">{wa_currency_html($p.purchase_worth, $def_cur)}</td>
                         <td class="align-right nowrap s-wider-cell">{wa_currency_html($p.net_worth, $def_cur)}</td>
                         <td class="est-bar-td s-wider-cell nowrap" data-sort="{if $p.sold > 0}{$p.est}{else}-1{/if}"{if $p.sold > 0} title="{sprintf('[`Selling time is estimated based on the average monthly sales during last 90 days (%d items per month for this product).`]', $p.sold)}"{/if}>
                             {if $p.est > 0}

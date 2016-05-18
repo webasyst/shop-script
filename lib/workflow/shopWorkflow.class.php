@@ -43,6 +43,7 @@ class shopWorkflow extends waWorkflow
     public static function setConfig(array $config)
     {
         $file = wa()->getConfig()->getConfigPath('workflow.php', true, 'shop');
+        self::$config = null;
         return waUtils::varExportToFile($config, $file);
     }
 
@@ -87,6 +88,9 @@ class shopWorkflow extends waWorkflow
      */
     protected function createEntity($id, $data)
     {
+        if (!isset($data['classname'])) {
+            throw new waException('Workflow entity class not defined for entity: '.$id);
+        }
         $class_name = $data['classname'];
         if (!class_exists($class_name)) {
             throw new waException('Workflow entity class not found: '.$class_name);
@@ -114,7 +118,8 @@ class shopWorkflow extends waWorkflow
      * @param string $name
      * @return string
      */
-    public static function generateActionId($name) {
+    public static function generateActionId($name)
+    {
         return self::generateEntityId($name, 32, 'actions');
     }
 
@@ -136,5 +141,4 @@ class shopWorkflow extends waWorkflow
         }
         return $id;
     }
-
 }

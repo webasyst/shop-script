@@ -1700,10 +1700,25 @@ if (typeof($) != 'undefined') {
             if ($colorpicker.length == 0) {
                 $value.append('<div class="js-colorpicker" style="display:none;"></div>');
 
+                var timer_id;
+
+                var $name = $input.parent().find(':input[name$="\\[value\\]"]:first');
+
+                var handleChange = function (color) {
+                    if (timer_id) {
+                        clearTimeout(timer_id);
+                    }
+                    timer_id = setTimeout(function () {
+                        if (!$name.data('changed')) {
+                            $.settings.featuresHelper.nameByCode(color, $name);
+                        }
+                    }, 250);
+                };
+
                 $colorpicker = $value.find('.js-colorpicker');
                 var farbtastic = $.farbtastic($colorpicker, function (color) {
                     color = 0xFFFFFF & (parseInt(color.substr(1), 16));
-                    $.settings.featuresHelper.nameByCode(color, $input.parent().find(':input[name$="\\[value\\]"]'));
+                    handleChange(color);
                     color = (0xF000000 | color).toString(16).toUpperCase().replace(/^F/, '');
                     if (($input.val() + '000000').substr(0, 6) != color) {
                         $input.val(color);
@@ -1716,21 +1731,15 @@ if (typeof($) != 'undefined') {
 
                 farbtastic.setColor('#' + $input.val());
                 $colorpicker.slideToggle(200);
-                var timer_id;
+
                 $input.unbind('keydown').bind('keydown.farbtastic', function () {
-                    if (timer_id) {
-                        clearTimeout(timer_id);
-                    }
-                    if ($input.val().match(/^[0-9A-F]{6}$/gi)) {
-                        timer_id = setTimeout(function () {
-                            var color = parseInt(($input.val() + '000000').replace(/[^0-9A-F]+/gi, '').substr(0, 6), 16) & 0xFFFFFF;
-                            var $name = $input.parent().find(':input[name$="\\[value\\]"]:first');
-                            if (!$name.data('changed')) {
-                                $.settings.featuresHelper.nameByCode(color, $name);
-                            }
-                            color = (0xF000000 | color).toString(16).toUpperCase().replace(/^F/, '#');
-                            farbtastic.setColor(color);
-                        }, 250);
+                    if ($input.val().match(/^[0-9A-F]{6,}$/gi)) {
+                        var color = parseInt(($input.val() + '000000').replace(/[^0-9A-F]+/gi, '').substr(0, 6), 16) & 0xFFFFFF;
+                        if (!$name.data('changed')) {
+                            handleChange(color);
+                        }
+                        color = (0xF000000 | color).toString(16).toUpperCase().replace(/^F/, '#');
+                        farbtastic.setColor(color);
                     }
                 });
             } else {
@@ -1872,7 +1881,12 @@ if (typeof($) != 'undefined') {
              * @param $input
              */
             nameByCode: function (value, $input) {
-                if (value && !$input.data('changed') && (($input.prop("defaultValue") == '') || ($input.val() == ''))) {
+                if (value
+                    && !$input.data('changed')
+                    && ($input.data('code') != value)
+                    && (($input.prop("defaultValue") == '') || ($input.val() == ''))
+                ) {
+                    $input.data('code', value);
                     $.ajax({
                         url: '?module=settings&action=featuresHelper',
                         dataType: 'json',

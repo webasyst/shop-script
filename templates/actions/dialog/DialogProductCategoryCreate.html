@@ -4,7 +4,10 @@
 {$static_type_text="[`A static category for adding and arranging products manually.`]"}
 {$dynamic_type_text="[`A dynamic category based on a search criteria, e.g. rating or tags.`]"}
 
-{capture ext_fields}{/capture}
+{include file='./include.category_visibility_setting.html'}
+{capture ext_fields}
+    {$smarty.capture.category_visibility_setting}
+{/capture}
 
 {capture frontend_url}
 <div class="field">

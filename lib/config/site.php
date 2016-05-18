@@ -18,7 +18,13 @@ foreach (shopHelper::getShippingMethods() as $s) {
 }
 
 $stock_model = new shopStockModel();
-$stocks = $stock_model->select('id,name')->order('sort')->fetchAll('id', true);
+$public_stocks = $stocks = array();
+foreach(shopHelper::getStocks() as $id => $s) {
+    $stocks[$id] = $s['name'];
+    if ($s['public']) {
+        $public_stocks[$id] = $s['name'];
+    }
+}
 
 return array(
     'params' => array(
@@ -102,6 +108,21 @@ return array(
             'description' => _w('Select primary stock to which this storefront is associated with. When you process orders from placed via this storefront, selected stock will be automatically offered for product stock update.'),
             'type' => 'select',
             'items' => $stocks
+        ),
+        'public_stocks' => array(
+            'name' => _w('Visible stocks'),
+            'type' => 'radio_checkbox',
+            'items' => array(
+                0 => array(
+                    'name' => _w('All public stocks'),
+                    'description' => '',
+                ),
+                array(
+                    'name' => _w('Selected only'),
+                    'description' => '',
+                    'items' => $public_stocks,
+                )
+            )
         ),
         'drop_out_of_stock' => array(
             'name' => _w('Out-of-stock products'),
@@ -233,7 +254,7 @@ return array(
                 '$product.<strong>categories</strong>: '._w('Array of product categories').'<br>'.
                 '$product.<strong>tags</strong>: '._w('Array of product tags').'<br>'.
                 '$product.<strong>pages</strong>: '._w('Array of product static info pages').'<br>'.
-                '$product.<strong>features</strong>: '._w('Array of product features and values').'<br>',
+                '$product.<strong>features</strong>: '._w('Array of product features and values').'<br>'.
                 '$product.<strong>reviews</strong>: '._w('Array of product reviews').'<br>',
 
             '$wa->shop->productImgHtml($product, $size, $attributes = array())' => _w('Displays specified $product object’s default image'),

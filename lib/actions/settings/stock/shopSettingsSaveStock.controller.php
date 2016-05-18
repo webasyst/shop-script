@@ -4,28 +4,77 @@ class shopSettingsSaveStockController extends waJsonController
 {
     public function execute()
     {
-        $model = new shopStockModel();
-        foreach ($this->getEditData() as $id => $item) {
-            $model->updateById($id, $item);
-        }
+        // Read data from POST
+        $stocks_add = $this->getAddData();
+        $stocks_edit = $this->getEditData();
+        $virtualstocks_add = $this->getAddData('vadd');
+        $virtualstocks_edit = $this->getEditData('vedit');
 
-        $inventory_stock_id = null;
-
-        foreach ($this->getAddData() as $before_id => $data) {
-            foreach ($data as $item) {
-                $id = $model->add($item, $before_id);
-                if (!empty($item['inventory'])) {
-                    $inventory_stock_id = $id;
+        // Insert 'sort' field into items of four arrays above
+        $stocks_order = waRequest::post('stocks_order');
+        if ($stocks_order) {
+            $sort = $iadd = $ivadd = 0;
+            foreach(explode(',', $stocks_order) as $id) {
+                if ($id && $id{0} == 'v') {
+                    $id = substr($id, 1);
+                    if ($id) {
+                        if (!isset($virtualstocks_edit[$id])) {
+                            $virtualstocks_edit[$id] = array();
+                        }
+                        $virtualstocks_edit[$id]['sort'] = $sort;
+                    } else if (isset($virtualstocks_add[$ivadd])) {
+                        $virtualstocks_add[$ivadd]['sort'] = $sort;
+                        $ivadd++;
+                    }
+                } else {
+                    if ($id) {
+                        if (!isset($stocks_edit[$id])) {
+                            $stocks_edit[$id] = array();
+                        }
+                        $stocks_edit[$id]['sort'] = $sort;
+                    } else if (isset($stocks_add[$iadd])) {
+                        $stocks_add[$iadd]['sort'] = $sort;
+                        $iadd++;
+                    }
                 }
+                $sort++;
             }
         }
 
-        if ($inventory_stock_id) {
-            // Assign all inventory to this stock
-            $product_stocks_model = new shopProductStocksModel();
-            $product_stocks_model->insertFromSkus($inventory_stock_id);
+        // Update existing stocks
+        $stock_model = new shopStockModel();
+        foreach ($stocks_edit as $id => $item) {
+            $stock_model->updateById($id, $item);
         }
 
+        // Create new stocks
+        $inventory_stock_id = null;
+        foreach ($stocks_add as $item) {
+            $id = $stock_model->add($item);
+            if (!empty($item['inventory'])) {
+                $inventory_stock_id = $id;
+            }
+        }
+
+        // Update existing virtual stocks
+        $virtualstock_model = new shopVirtualstockModel();
+        $virtualstock_stocks_model = new shopVirtualstockStocksModel();
+        foreach ($virtualstocks_edit as $id => $item) {
+            $virtualstock_model->updateById($id, $item);
+            if (!empty($item['substocks'])) {
+                $virtualstock_stocks_model->set($id, $item['substocks']);
+            }
+        }
+
+        // Create new virtual stocks
+        foreach ($virtualstocks_add as $item) {
+            if (!empty($item['substocks'])) {
+                $id = $virtualstock_model->add($item);
+                $virtualstock_stocks_model->set($id, $item['substocks']);
+            }
+        }
+
+        // Save settings
         $app_id = $this->getAppId();
         $app_settings_model = new waAppSettingsModel();
         if (waRequest::post('ignore_stock_count')) {
@@ -43,13 +92,19 @@ class shopSettingsSaveStockController extends waJsonController
         } else {
             $app_settings_model->set($app_id, 'update_stock_count_on_create_order', 0);
         }
+
+        // Assign all inventory to new stock, if specified
+        if ($inventory_stock_id) {
+            $product_stocks_model = new shopProductStocksModel();
+            $product_stocks_model->insertFromSkus($inventory_stock_id);
+        }
     }
 
-    public function getEditData()
+    public function getEditData($field = 'edit')
     {
         $data = array();
         $ids = array();
-        foreach (waRequest::post('edit', array()) as $name => $items) {
+        foreach (waRequest::post($field, array()) as $name => $items) {
             foreach ($items as $k => $value) {
                 if ($name == 'id') {
                     $ids[$k] = (int)$value;
@@ -65,28 +120,16 @@ class shopSettingsSaveStockController extends waJsonController
         return $data;
     }
 
-    public function getAddData()
+    public function getAddData($field = 'add')
     {
         $add = array();
-        foreach (waRequest::post('add', array()) as $name => $items) {
+        foreach (waRequest::post($field, array()) as $name => $items) {
             foreach ($items as $k => $value) {
                 $add[$k][$name] = $value;
             }
         }
         $this->correct($add);
-
-
-        // group by before_id values
-        $data = array();
-        foreach ($add as $item) {
-            $before_id = (int)$item['before_id'];
-            if (!isset($data[$before_id])) {
-                $data[$before_id] = array();
-            }
-            unset($item['before_id']);
-            $data[$before_id][] = $item;
-        }
-        return $data;
+        return $add;
     }
 
     public function correct(&$data)
@@ -119,6 +162,17 @@ class shopSettingsSaveStockController extends waJsonController
             }
             $item['low_count'] = $low_count;
             $item['critical_count'] = $critical_count;
+            if (empty($item['public'])) {
+                $item['public'] = 0;
+            } else {
+                $item['public'] = 1;
+            }
+            if (!empty($item['substocks'])) {
+                $item['substocks'] = array_filter(explode(',', $item['substocks']), 'wa_is_int');
+            }
+            if (empty($item['substocks'])) {
+                unset($item['substocks']);
+            }
         }
         unset($item);
     }

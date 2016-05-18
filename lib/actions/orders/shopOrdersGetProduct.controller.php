@@ -92,16 +92,17 @@ class shopOrdersGetProductController extends waJsonController
             $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);
         } else {
             $icons = array();
+            $counts_htmls = array();
             foreach ($sku_stocks[$sku['id']] as $stock_id => $stock) {
                 $icon  = &$icons[$stock_id];
                 $icon  = shopHelper::getStockCountIcon($stock['count'], $stock_id)." ";
-                $icon .= $stock['count']." ";
-                $icon .= "<span class='small'>@".htmlspecialchars($stock['name'])."</span>";
-                unset($icon);
+                $count_html = &$counts_htmls[$stock_id];
+                $count_html = _w('%d left', '%d left', $stock['count']);
+                unset($icon, $count_html);
             }
-//             $sku['icon'] = implode(', ', $icons);
             $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);
             $sku['icons'] = $icons;
+            $sku['count_htmls'] = $counts_htmls;
         }
     }
 

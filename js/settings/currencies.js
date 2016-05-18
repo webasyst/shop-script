@@ -164,7 +164,7 @@ $.extend($.settings = $.settings || {}, {
                     var rate = $(input).val();
                     var rate_num = parseFloat(rate.replace(',', '.'));
                     input.removeClass('error');
-                    if (isNaN(rate_num) || rate_num <= 0) {
+                    if (isNaN(rate_num) || (rate_num <= 0) || (Math.round(rate_num * 1000000) <= 0)) {
                         input.addClass('error');
                         return false;
                     }
@@ -187,11 +187,12 @@ $.extend($.settings = $.settings || {}, {
 
                     jsonPost('?module=settings&action=currencyChangeRate', post,
                         function(r) {
-                            self.text(r[code].rate);
-                            $input.val(r[code].rate);
+                            var data = r.data;
+                            self.text(data[code].rate);
+                            $input.val(data[code].rate);
 
                             var select = change_dialog.find('select');
-                            select.find('option[value='+code+']').attr('data-rate', r[code].rate);
+                            select.find('option[value='+code+']').attr('data-rate', data[code].rate);
                             select.trigger('change');
                         },
                         function() {

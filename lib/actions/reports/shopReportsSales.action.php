@@ -5,6 +5,8 @@
  */
 class shopReportsSalesAction extends waViewAction
 {
+    private $max_n_graphs = 20;
+
     public function execute()
     {
         shopReportsSalesAction::jsRedirectIfDisabled();
@@ -12,11 +14,14 @@ class shopReportsSalesAction extends waViewAction
         // Get parameters from GET/POST
         list($start_date, $end_date, $group_by, $request_options) = self::getTimeframeParams();
 
+        $filter = $this->getFilter();
+        $request_options['filter'] = $filter;
+
         $model_options = array();
-        $storefront = waRequest::request('storefront', null, 'string');
-        if ($storefront) {
-            $request_options['storefront'] = $storefront;
-            $model_options['storefront'] = $storefront;
+        $sales_channel = waRequest::request('sales_channel', null, 'string');
+        if ($sales_channel) {
+            $request_options['sales_channel'] = $sales_channel;
+            $model_options['sales_channel'] = $sales_channel;
         }
         $sort = waRequest::request('sort', '!profit', 'string');
         $request_options['sort'] = $sort;
@@ -44,6 +49,7 @@ class shopReportsSalesAction extends waViewAction
         $table_data = $sales_model->getPeriod($type_id, $start_date, $end_date, $model_options + array(
             'order' => $sort,
             'start' => waRequest::request('start', 0, 'int'),
+            'filter' => $filter
         ), $total_rows);
         $more_rows_exist = $total_rows > count($table_data);
         $model_options['ensured'] = true;
@@ -58,7 +64,7 @@ class shopReportsSalesAction extends waViewAction
             $lifetime_sales = array();
             $rows = $sales_model->getPeriod($type_id, $min_date, $max_date, array(
                 'limit' => 100500,
-                'names' => array_keys($names),
+                'filter' => array('name' => array_keys($names)),
             ) + $model_options);
             foreach($rows as $row) {
                 $lifetime_sales[$row['name']] = $row;
@@ -75,9 +81,9 @@ class shopReportsSalesAction extends waViewAction
         if ($abtest_id) {
             $opts = array( 'abtest_id' => $abtest_id );
             if ($more_rows_exist) {
-                $opts['names'] = array();
+                $opts['filter'] = array('name' => array());
                 foreach($table_data as $row) {
-                    $opts['names'][] = $row['name'];
+                    $opts['filter']['name'][] = $row['name'];
                 }
             }
 
@@ -137,15 +143,35 @@ class shopReportsSalesAction extends waViewAction
         $totals['avg_order_formatted'] = waCurrency::format('%{h}', $totals['avg_order'], $def_cur);
 
         // Data for main chart
-        $graph_data = self::getGraphData($sales_model->getPeriodByDate($type_id, $start_date, $end_date, $model_options + array(
-            'date_group' => $group_by,
-        )));
+        $graph_data = self::getGraphData(
+            $sales_model->getPeriodByDate($type_id, $start_date, $end_date, $model_options +
+                array(
+                    'date_group' => $group_by,
+                    'filter' => $filter
+                )
+            )
+        );
+
+        // details graphs
+        $details_graph_data = array();
+        if ($this->isDetails()) {
+            $request_options['details'] = '1';
+            $details_graph_data = $this->getDetailsGraphData($table_data, $model_options +
+                array(
+                    'type_id' => $type_id,
+                    'start_date' => $start_date,
+                    'end_date' => $end_date,
+                    'date_group' => $group_by,
+                    'filter' => $filter
+                )
+            );
+        }
 
         // All abtests for the period for selector
         $abtests = $sales_model->getAvailableABtests($start_date, $end_date, $model_options);
 
         $this->view->assign(array(
-            'storefronts' => self::getStorefronts(),
+            'sales_channels' => self::getSalesChannels(),
             'request_options' => $request_options,
             'more_rows_exist' => $more_rows_exist,
             'abtest_variants' => $abtest_variants,
@@ -157,22 +183,104 @@ class shopReportsSalesAction extends waViewAction
             'abtests' => $abtests,
             'def_cur' => $def_cur,
             'totals' => $totals,
+            'filter' => $filter,
+            'filter_title' => $this->getFilterTitle($filter, $type_id),
+            'type_id' => $type_id,
+            'is_details' => $this->isDetails(),
+            'details_graph_data' => $details_graph_data,
+            'max_n_graphs' => $this->max_n_graphs
         ));
+
+        // orders block
+        if (isset($filter['name'])) {
+            $this->view->assign('order_list_html',
+                $this->getOrderListHtml(
+                    array(
+                        'report_type' => $type_id,
+                        'filter' => $filter,
+                        'sales_channel' => $sales_channel,
+                        'timerange' => array(
+                            'start' => $start_date,
+                            'end' => $end_date
+                        )
+                    )
+                )
+            );
+        }
+    }
+
+    public function getFilterTitle($filter, $type_id)
+    {
+        $title = '';
+        if (isset($filter['name'])) {
+            $title = $this->formatTableRowName($type_id, $filter['name']);
+        }
+        if (!$title) {
+            $title = _w('(not defined)');
+        }
+        return $title;
     }
 
     public static function getGraphData($sales_by_day)
     {
+        $graph_row_numeric_fields = self::graphRowNumericFields();
         $graph_data = array();
         foreach($sales_by_day as &$d) {
-            $graph_data[] = array(
-                'date' => str_replace('-', '', $d['date']),
-                'sales' => $d['sales'],
-                'profit' => $d['profit'],
-                'loss' => $d['profit'],
+            $graph_row = array(
+                'date' => str_replace('-', '', $d['date'])
             );
+            foreach ($graph_row_numeric_fields as $field) {
+                $graph_row[$field] = ifset($d[$field], 0);
+            }
+            $graph_data[] = $graph_row;
         }
         unset($d);
         return $graph_data;
+    }
+
+    private function addGraphs($graph_1, $graph_2)
+    {
+        $graph_row_numeric_field_map = array_fill_keys(self::graphRowNumericFields(), true);
+
+        $len = min(count($graph_1), count($graph_2));
+        $graph_3 = array();
+        for ($i = 0; $i < $len; $i += 1) {
+            $graph_3[$i] = array();
+            foreach ($graph_1[$i] as $field => $value) {
+                if (!empty($graph_row_numeric_field_map[$field])) {
+                    $graph_3[$i][$field] = $value + ifset($graph_2[$i][$field], 0);
+                } else {
+                    $graph_3[$i][$field] = $graph_1[$i][$field];
+                }
+            }
+        }
+        return $graph_3;
+    }
+
+    private static function graphRowNumericFields()
+    {
+        return array('sales', 'profit', 'loss');
+    }
+
+    public static function getSalesChannels($with_storefronts = true)
+    {
+        $result = array();
+        $m = new waModel();
+        $sql = "SELECT DISTINCT value FROM shop_order_params WHERE name='sales_channel' ORDER BY value";
+        foreach(array_keys($m->query($sql)->fetchAll('value')) as $id) {
+            $name = $id;
+            @list($type, $data) = explode(':', $id, 2);
+            if ($with_storefronts) {
+                if ($type == 'storefront') {
+                    $name = $data;
+                }
+                $result[$id] = $name;
+            }
+        }
+        unset($result['backend:'], $result['buy_button:']);
+        $result['buy_button:'] = _w('Buy button');
+        $result['backend:'] = _w('Backend');
+        return $result;
     }
 
     public static function getStorefronts()
@@ -237,6 +345,14 @@ class shopReportsSalesAction extends waViewAction
                 'menu_name' => _w("Campaigns"),
                 'header_name' => _w("Sales by campaign"),
             ),
+            'sales_channels' => array(
+                'menu_name' => _w("Sales channels"),
+                'header_name' => _w("Sales by sales channel")
+            ),
+            'storefronts' => array(
+                'menu_name' => _w("Storefronts"),
+                'header_name' => _w("Sales by storefront")
+            ),
             'shipping' => array(
                 'menu_name' => _w("Shipping"),
                 'header_name' => _w("Sales by shipping option"),
@@ -269,39 +385,109 @@ class shopReportsSalesAction extends waViewAction
         }
     }
 
-    protected function prepareTableData($type_id, &$table_data) {
-        if ($type_id == 'countries') {
+    protected function formatTableRowName($type_id, $name, $params = array())
+    {
+        $type_name = array();
+        foreach (explode('_', $type_id) as $part) {
+            $type_name[] = ucfirst($part);
+        }
+        $method_name = __FUNCTION__ . 'ByType' . join('', $type_name);
+
+        if (method_exists($this, $method_name)) {
+            return call_user_func(array($this, $method_name), $name, $params);
+        }
+        return $name;
+    }
+
+    public static function formatTableRowNameByTypeCountries($name)
+    {
+        static $country_model;
+        static $region_model;
+        static $regions;
+
+        if ($country_model === null) {
             $country_model = new waCountryModel();
             $country_model->preload();
-            $region_model = new waRegionModel();
-            $regions = array();
-            foreach($table_data as &$row) {
-                $row['orig_name'] = $row['name'];
-                if (!$row['name']) {
-                    $row['name'] = _w('(not defined)');
-                } else {
-                    @list($country, $region) = explode(' ', $row['name']);
-                    $c = $country_model->get($country);
-                    if ($c) {
-                        if (!isset($regions[$country])) {
-                            $regions[$country] = $region_model->getByCountry($country);
-                            if (!$regions[$country]) {
-                                $regions[$country] = array();
-                            }
-                        }
-                        $rs = $regions[$country];
-                        if (!$region) {
-                            $region = _w('region not specified');
-                        } else if (!empty($rs[$region])) {
-                            $region = $rs[$region]['name'];
-                        }
+        }
 
-                        $row['name'] = $c['name'].' ('.$region.')';
+        if ($region_model === null) {
+            $region_model = new waRegionModel();
+        }
+
+        if ($regions === null) {
+            $regions = array();
+        }
+
+        if ($name) {
+            @list($country, $region) = explode(' ', $name);
+            $c = $country_model->get($country);
+            if ($c) {
+                if (!isset($regions[$country])) {
+                    $regions[$country] = $region_model->getByCountry($country);
+                    if (!$regions[$country]) {
+                        $regions[$country] = array();
                     }
                 }
+                $rs = $regions[$country];
+                if (!$region) {
+                    $region = _w('region not specified');
+                } else if (!empty($rs[$region])) {
+                    $region = $rs[$region]['name'];
+                }
+                $name = $c['name'] .' ('.$region.')';
             }
-            unset($row);
-        } else if ($type_id == 'coupons') {
+        }
+
+        return $name ? $name : _w('(not defined)');
+    }
+
+    protected function formatTableRowNameByTypeCampaigns($name)
+    {
+        return $name ? $name : null;
+    }
+
+    protected function formatTableRowNameByTypeCoupons($name, $coupons = array())
+    {
+        if (empty($coupons[$name])) {
+            $coupon_model = new shopCouponModel();
+            $coupons[$name] = $coupon_model->getById($name);
+        }
+        if (!empty($coupons[$name])) {
+            $name = $coupons[$name]['code'];
+        }
+        return $name;
+    }
+
+    protected function formatTableRowNameByTypeSources($name)
+    {
+        return $name ? $name : _w('(direct)');
+    }
+
+    protected function formatTableRowNameByTypeSocial($name)
+    {
+        $social_domains = wa('shop')->getConfig()->getOption('social_domains');
+        if (!empty($social_domains[$name]['name'])) {
+            $name = _w($social_domains[$name]['name']);
+        }
+        return $name;
+    }
+
+    protected function formatTableRowNameByTypeSalesChannels($name)
+    {
+        if ($name === 'buy_button:') {
+            $name = _w('Buy button');
+        } else if ($name === 'backend:') {
+            $name = _w('Backend');
+        } else if (!$name) {
+            $name = _w('(not defined)');
+        }
+        return $name;
+    }
+
+    protected function prepareTableData($type_id, &$table_data) {
+
+        $params = array();
+        if ($type_id === 'coupons') {
             $coupon_ids = array();
             foreach($table_data as $i => $row) {
                 if (!$row['name']) {
@@ -311,54 +497,114 @@ class shopReportsSalesAction extends waViewAction
                 }
             }
             $table_data = array_values($table_data);
-
             if ($coupon_ids) {
                 $coupon_model = new shopCouponModel();
                 $coupons = $coupon_model->getById($coupon_ids);
+                $params = $coupons;
             }
-            foreach($table_data as &$row) {
-                $row['orig_name'] = $row['name'];
-                if (!empty($coupons[$row['name']])) {
-                    $row['name'] = $coupons[$row['name']]['code'];
-                }
+        }
+
+        foreach($table_data as $i => &$row) {
+            $row['orig_name'] = $row['name'];
+            $row['name'] = $this->formatTableRowName($type_id, $row['name'], $params);
+            if ($row['name'] === null) {
+                unset($table_data[$i]);
             }
-            unset($row);
-        } else if ($type_id == 'campaigns') {
-            foreach($table_data as $i => $row) {
-                if (!$row['name']) {
-                    unset($table_data[$i]);
-                }
+            if (!$row['name']) {
+                $row['name'] = _w('(not defined)');
             }
-            $table_data = array_values($table_data);
-        } else if ($type_id == 'sources') {
-            foreach($table_data as &$row) {
-                $row['orig_name'] = $row['name'];
-                if (!$row['name']) {
-                    $row['name'] = _w('(direct)');
-                }
-            }
-            unset($row);
-        } else if ($type_id == 'social') {
+        }
+        unset($row);
+
+        $table_data = array_values($table_data);
+
+        if ($type_id == 'social') {
             $social_domains = wa('shop')->getConfig()->getOption('social_domains');
             foreach($table_data as &$row) {
-                $row['orig_name'] = $row['name'];
-                if (!empty($social_domains[$row['orig_name']]['name'])) {
-                    $row['name'] = _w($social_domains[$row['orig_name']]['name']);
-                }
                 if (!empty($social_domains[$row['orig_name']]['icon_class'])) {
                     $row['icon_class'] = $social_domains[$row['orig_name']]['icon_class'];
                 }
             }
             unset($row);
-        } else {
-            foreach($table_data as &$row) {
-                $row['orig_name'] = $row['name'];
-                if (!$row['name']) {
-                    $row['name'] = _w('(not defined)');
-                }
-            }
-            unset($row);
         }
     }
+
+    public function getFilter()
+    {
+        $filter = (array) $this->getRequest()->request('filter');
+        foreach ($filter as $field => $value) {
+            $filter[$field] = urldecode($value);
+        }
+        return $filter;
+    }
+
+    public function getOrderListHtml($params)
+    {
+        $vars = $this->view->getVars();
+        $this->view->clearAllAssign();
+        $order_list_action = new shopReportsOrderListAction($params);
+        $html = $order_list_action->display();
+        $this->view->clearAllAssign();
+        $this->view->assign($vars);
+        return $html;
+    }
+
+    protected function isDetails()
+    {
+        return $this->getRequest()->request('details');
+    }
+
+    protected function getDetailsGraphData($table_data, $options)
+    {
+        $sales_model = new shopSalesModel();
+
+        $type_id = ifset($options['type_id']);
+        $start_date = ifset($options['start_date']);
+        $end_date = ifset($options['end_date']);
+
+        $graph_data = array();
+        $graph_names = array();
+
+        $name_map = array();
+        foreach ($table_data as $row) {
+            $name = isset($row['orig_name']) ? $row['orig_name'] : $row['name'];
+            $name_map[$name] = true;
+        }
+
+        $max_n = $this->max_n_graphs;
+        $count = count($table_data);
+        $n = min($max_n, $count);
+        for ($i = 0; $i < $n; $i += 1) {
+            $name = isset($table_data[$i]['orig_name']) ? $table_data[$i]['orig_name'] : $table_data[$i]['name'];
+            unset($name_map[$name]);
+            $options['filter'] = array('name' => $name);
+            $graph_data[$i] = self::getGraphData(
+                $sales_model->getPeriodByDate(
+                    $type_id,
+                    $start_date,
+                    $end_date,
+                    $options
+                )
+            );
+            $graph_names[$i] = $table_data[$i]['name'];
+        }
+
+        // rest graphs in one merged graph
+        $options['filter'] = array('name' => array_keys($name_map));
+        if ($options['filter']['name']) {
+            $graph_data[] = self::getGraphData(
+                $sales_model->getPeriodByDate(
+                    $type_id,
+                    $start_date,
+                    $end_date,
+                    $options
+                )
+            );
+            $graph_names[] = _w('Other');
+        }
+
+        return array('data' => $graph_data, 'names' => $graph_names);
+    }
+
 }
 

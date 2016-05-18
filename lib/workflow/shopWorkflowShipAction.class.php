@@ -50,11 +50,11 @@ class shopWorkflowShipAction extends shopWorkflowAction
             
             // for logging changes in stocks
             shopProductStocksLogModel::setContext(
-                    shopProductStocksLogModel::TYPE_ORDER,
-                    'Order %s was shipped',
-                    array(
-                        'order_id' => $order_id
-                    )
+                shopProductStocksLogModel::TYPE_ORDER,
+                'Order %s was shipped',
+                array(
+                    'order_id' => $order_id
+                )
             );
             
             // jump through 'processing' state - reduce

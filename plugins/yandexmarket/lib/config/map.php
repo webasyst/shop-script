@@ -169,7 +169,7 @@ return array(
                 'format'            => false,
                 'recording_length'  => false,
                 'description'       => false,
-                'sales_notes'         => false,
+                'sales_notes'       => false,
                 'downloadable'      => false,
                 'age'               => false,
                 'cpa'               => false,
@@ -211,12 +211,12 @@ return array(
                  * Страна.
                  */
 
-                'description'     => false,
-                'sales_notes'         => false,
-                'adult'           => false,
-                'age'             => false,
-                'barcode'         => false,
-                'cpa'             => false,
+                'description' => false,
+                'sales_notes' => false,
+                'adult'       => false,
+                'age'         => false,
+                'barcode'     => false,
+                'cpa'         => false,
             ),
         ),
         'tour'         => array(
@@ -305,7 +305,7 @@ return array(
          * 'field'       => 'offer',(if it dom attribute only specify dom element name)
          * ),
          */
-        'id'                    => array(
+        'id'              => array(
             'type'        => 'fixed',
             'name'        => 'идентификатор товарного предложения',
             'description' => '',
@@ -313,7 +313,7 @@ return array(
             'source'      => 'field:id',
             'field'       => 'offer',
         ),
-        'group_id'              => array(
+        'group_id'        => array(
             'type'        => 'fixed',
             'name'        => 'идентификатор группы товарного предложения',
             'description' => '',
@@ -323,28 +323,28 @@ return array(
             'format'      => '%d',
             'callback'    => true,
         ),
-        'url'                   => array(
+        'url'             => array(
             'type'        => 'fixed',
             'name'        => 'URL — адрес страницы товара',
             'description' => '',
             'format'      => '%0.512s',
             'source'      => 'field:frontend_url',
         ),
-        'price'                 => array(
+        'price'           => array(
             'type'        => 'fixed',
             'name'        => 'Цена',
             'description' => 'Цена товарного предложения округляеся и выводится в зависимости от настроек пользователя',
             'format'      => '%0.2f',
             'source'      => 'field:price',
         ),
-        'oldprice'              => array(
+        'oldprice'        => array(
             'type'        => 'fixed',
             'name'        => 'Старая цена',
             'description' => 'Старая цена товарного предложения округляеся и выводится в зависимости от настроек пользователя',
             'format'      => '%0.2f',
             'source'      => 'field:compare_price',
         ),
-        'currencyId'            => array(
+        'currencyId'      => array(
             'type'        => 'fixed',
             'name'        => 'Идентификатор валюты товара',
             'description' => 'Для корректного отображения цены в национальной валюте необходимо использовать идентификатор с соответствующим значением цены',
@@ -358,13 +358,13 @@ return array(
             ),
             'source'      => 'field:currency',
         ),
-        'categoryId'            => array(
+        'categoryId'      => array(
             'type'        => 'fixed',
             'name'        => 'Идентификатор категории товара ',
             'description' => '(целое число не более 18 знаков). Товарное предложение может принадлежать только к одной категории',
             'source'      => 'field:category_id',
         ),
-        'market_category'       => array(
+        'market_category' => array(
             'type'        => 'adjustable',
             'name'        => 'Категория/раздел размещения',
             'description' => 'Категория/раздел размещения в Яндекс.Маркете.',
@@ -372,18 +372,18 @@ return array(
             'source'      => '',
             'sources'     => array('feature', 'custom'),
         ),
-        'picture'               => array(
+        'picture'         => array(
             'type'   => 'fixed',
             'name'   => 'Ссылка на изображение соответствующего товарного предложения',
             'source' => 'field:images',
         ),
-        'downloadable'          => array(
+        'downloadable'    => array(
             'type'        => 'adjustable',
             'name'        => 'Цифровой товар',
             'description' => 'Обозначение товара, который можно скачать',
             'source'      => 'field:file_name',
             'values'      => array(
-                true  => 'true',
+                true => 'true',
             ),
         ),
         /**
@@ -496,11 +496,11 @@ return array(
         'manufacturer_warranty' => array(
             'type'        => 'adjustable',
             'name'        => 'Гарантия производителя',
-            'description' => 'Информация об официальной гарантии производителя
-Возможные пользовательские значения:
+            'description' => 'Информация об официальной гарантии производителя',
+            'help'        => 'Возможные пользовательские значения:
 1) false — товар не имеет официальной гарантии;
 2) true — товар имеет официальную гарантию;
-3) указание срока гарантии в формате ISO 8601, например: P1Y2M10DT2H30M
+3) указание срока гарантии в формате <a href="https://ru.wikipedia.org/wiki/ISO_8601" class="inline-link" target="_blank">ISO 8601<i class="icon16 new-window"></i></a>, например: <i>P1Y2M10DT2H30M</i>
 4) указание срока гарантии в числе дней;
 Поддерживаются числовые данные — простое число определяет срок гарантии в днях, либо с учетом размерности характеристики типа «Время».
 Остальные типы данных приводятся к значениям true/false.',
@@ -512,10 +512,11 @@ return array(
         'seller_warranty'       => array(
             'type'        => 'adjustable',
             'name'        => 'Гарантия продавца',
-            'description' => 'Возможные пользовательские значения:
+            'description' => '',
+            'help'        => 'Возможные пользовательские значения:
 1) false — товар не имеет гарантию продавца;
 2) true — товар имеет гарантию продавца;
-3) указание срока гарантии в формате ISO 8601, например: P1Y2M10DT2H30M;
+3) указание срока гарантии в формате <a href="https://ru.wikipedia.org/wiki/ISO_8601" class="inline-link" target="_blank">ISO 8601<i class="icon16 new-window"></i></a>, например: <i>P1Y2M10DT2H30M</i>
 4) указание срока гарантии в числе дней;
 Поддерживаются числовые данные — простое число определяет срок гарантии в днях, либо с учетом размерности характеристики типа «Время».
 Остальные типы данных приводятся к значениям true/false.',
@@ -527,9 +528,9 @@ return array(
         'expiry'                => array(
             'type'        => 'adjustable',
             'name'        => 'Срок годности/службы',
-            'description' => '
-Возможные пользовательские значения:
-1) указание срока гарантии в формате ISO 8601, например: P1Y2M10DT2H30M
+            'description' => '',
+            'help'        => 'Возможные пользовательские значения:
+1) указание срока гарантии в формате <a href="https://ru.wikipedia.org/wiki/ISO_8601" class="inline-link" target="_blank">ISO 8601<i class="icon16 new-window"></i></a>, например: <i>P1Y2M10DT2H30M</i>
 2) указание числа дней
 Поддерживаются числовые данные — простое число определяет срок гарантии в днях, либо с учетом размерности характеристики типа «Время».',
             'source'      => 'feature:expiry',
@@ -808,14 +809,16 @@ return array(
         'local_delivery_cost'   => array(
             'type'        => 'adjustable',
             'name'        => 'Стоимость доставки',
+            'plugins'     => array(
+                'shipping' => true,
+            ),
             'description' => 'Стоимость доставки данного товара в своем регионе',
         ),
         'param'                 => array(
             'type'        => 'adjustable',
             'name'        => '<param>',
-            'description' => 'Дополнительные произвольные характеристики товара.
- Если тип характеристики магазина не имеет единицы измерения, но ее необходимо передать в Яндекс.Маркет,
- то можно задать название единицы измерения (параметр unit) в названии характеристики в скобках, например, «Вес (кг)».',
+            'description' => 'Дополнительные произвольные характеристики товара.',
+            'help'        => 'Если тип характеристики магазина не имеет единицы измерения, но ее необходимо передать в Яндекс.Маркет, то можно задать название единицы измерения (параметр unit) в названии характеристики в скобках, например, «Вес (кг)».',
         ),
     ),
 );

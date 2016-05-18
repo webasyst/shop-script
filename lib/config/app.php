@@ -1,6 +1,6 @@
 <?php
 return array(
-    'name'        => /*_w*/('Shop'),
+    'name'        => /*_w*/('Store'),
     'description' => /*_w*/('Shop-Script is a robust shopping cart software that allows you to quickly establish your own online store and sell online.'),
     'icon'        => array(
         16 => 'img/shop16.png',
@@ -8,7 +8,7 @@ return array(
         48 => 'img/shop.png',
         96 => 'img/shop96.png',
     ),
-    'sash_color' => '#a5cb19',
+    'sash_color' => '#27bf52',
     'rights'      => true,
     'frontend'    => true,
     'auth'        => true,
@@ -17,8 +17,8 @@ return array(
     'pages'       => true,
     'mobile'      => true,
     'my_account'  => true,
-    'version'     => '6.3.0',
-    'critical'    => '6.3.0',
+    'version'     => '7.0.1',
+    'critical'    => '7.0.0',
     'vendor'      => 'webasyst',
     'csrf'        => true,
     'payment_plugins' => true,

@@ -66,19 +66,34 @@ class shopBackendLocAction extends waViewAction
             'Sales',
             'Profit',
             '%s will be sent to customer by email. Are you sure?',
+            'This is a preview of actions available for orders in this state',
+            'Maximum of %d orders is allowed for bulk form printing.'
         ) as $s) {
             $strings[$s] = _w($s);
         }
 
-        $n = 5;
         // plural forms hack
-        $strings['options'] = _w('option', 'options', $n);
-        $strings['%d SKUs in total'] = str_replace($n, '%d', _w('%d SKU in total', '%d SKUs in total', $n));
-        $strings['%d column will be processed'] = str_replace($n, '%d', _w('%d column will be processed', '%d columns will be processed', $n));
-        $strings['%d column will be ignored'] = str_replace($n, '%d', _w('%d column will be ignored', '%d columns will be ignored', $n));
+        foreach ($this->getPlurals() as $pair) {
+            $strings[$pair[0]] = array(
+                _w($pair[0]),
+                str_replace(2, '%d', _w($pair[0], $pair[1], 2)),
+                str_replace(5, '%d', _w($pair[0], $pair[1], 5))
+            );
+        }
 
         $this->view->assign('strings', $strings ? $strings : new stdClass()); // stdClass is used to show {} instead of [] when there's no strings
 
         $this->getResponse()->addHeader('Content-Type', 'text/javascript; charset=utf-8');
+    }
+
+    public function getPlurals()
+    {
+        return array(
+            array/*_w*/('option', 'options'),
+            array/*_w*/('%d SKU in total', '%d SKUs in total'),
+            array/*_w*/('%d column will be processed', '%d columns will be processed'),
+            array/*_w*/('%d column will be ignored', '%d columns will be ignored'),
+            array/*_w*/("You've added %d product to this transfer already. Are you sure you want to change the source stock?", "You've added %d products to this transfer already. Are you sure you want to change the source stock?")
+        );
     }
 }

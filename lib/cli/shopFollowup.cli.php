@@ -211,6 +211,20 @@ class shopFollowupCli extends waCliController
 
     }
 
+    private static function getOrderUrl($o)
+    {
+        $storefront = ifset($o['params']['storefront'], '');
+        if (!$storefront) {
+            // not storefront - get first storefront
+            $storefronts = shopHelper::getStorefronts();
+            $storefront = (string) reset($storefronts);
+        }
+
+        $order_domain = shopHelper::getDomainByStorefront($storefront);
+        $order_url = wa()->getRouteUrl('/frontend/myOrderByCode', array('id' => $o['id'], 'code' => $o['params']['auth_code']), true, $order_domain);
+        return $order_url;
+    }
+    
     public static function fetchBodyAndSubject($f, $o, $contact)
     {
         $view = wa()->getView();
@@ -227,12 +241,16 @@ class shopFollowupCli extends waCliController
         }
         unset($i);
 
+        $order_url = self::getOrderUrl($o);
+        $signup_url = ifset($o['params']['signup_url'], '');
+
         // Assign template vars
         $view->clearAllAssign();
         $view->assign('followup', $f); // row from shop_followup
         $view->assign('order', $o); // row from shop_order, + 'params' key
         $view->assign('customer', $contact); // shopCustomer
-        $view->assign('order_url', wa()->getRouteUrl('/frontend/myOrderByCode', array('id' => $o['id'], 'code' => $o['params']['auth_code']), true));
+        $view->assign('order_url', $order_url);
+        $view->assign('signup_url', $signup_url);
         $view->assign('status', $workflow->getStateById($o['state_id'])->getName());
 
         // $shipping_address, $billing_address

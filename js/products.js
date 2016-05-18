@@ -100,7 +100,17 @@
             if (hash === undefined) {
                 hash = window.location.hash;
             }
+
             hash = hash.replace(/(^[^#]*#\/*|\/$)/g, '');
+
+            var beforeDispatchEvent = new $.Event('shop_before_dispatched');
+            $(window).trigger(beforeDispatchEvent);
+            if (beforeDispatchEvent.isDefaultPrevented()) {
+                $.products.skip_dispatch = 1;
+                window.location.hash = $.products.list_hash;
+                return false;
+            }
+
             /* fix syntax highlight */
             this.hash = hash;
             try {
@@ -325,12 +335,25 @@
         },
 
         stocksAction: function (order) {
-            this.load('?module=stocks' + (order ? '&order=' + order : ''));
+            if (!$('#s-stocks-container').length) {
+                this.load('?module=stocks' + (order ? '&order=' + order : '') + '&tab=balance');
+            } else {
+                $('#s-stocks-container').trigger('load', ['balance', (order ? 'order=' + order : '')]);
+            }
         },
 
         stockslogAction: function (params) {
-            this.load('?module=stocksLog' + (params ? '&' + params : ''));
+            if (!$('#s-stocks-container').length) {
+                this.load('?module=stocks' + (params ? '&' + params : '') + '&tab=log');
+            } else {
+                $('#s-stocks-container').trigger('load', ['log', (params ? params : '')]);
+            }
         },
+
+        /*transfersAction: function (params) {
+            this.load('?module=stocks' + (params ? '&' + params : '') + '&tab=transfers');
+            //this.load('?module=transferList' + (params ? '&' + params : ''));
+        },*/
 
         promosAction: function (params) {
             this.load('?module=promos' + (params ? '&' + Array.prototype.join.call(arguments, '/') : ''));

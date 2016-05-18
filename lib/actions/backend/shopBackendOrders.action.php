@@ -23,10 +23,9 @@ class shopBackendOrdersAction extends waViewAction
         $cm = new shopCouponModel();
 
         $all_count = $order_model->countAll();
+        $sales_channels = self::getSalesChannelsWithCounts($order_model);
 
-        $storefronts = self::getStorefronts();
-        $cnts = $order_model->getStorefrontCounters();
-        $storefronts = array_intersect_key($cnts, $storefronts) + $storefronts;
+        $unsettled_count = $order_model->countByField('unsettled',1);
 
         /*
          * @event backend_orders
@@ -39,35 +38,81 @@ class shopBackendOrdersAction extends waViewAction
         $this->getLayout()->assign('backend_orders', $backend_orders);
 
         $this->view->assign(array(
-            'states'           => $this->getStates(),
-            'user_id'          => $this->getUser()->getId(),
-            'contacts'         => array() /*$order_model->getContacts()*/,
-            'default_view'     => $config->getOption('orders_default_view'),
-            'coupons_count'    => $cm->countActive(),
-            'state_counters'   => $state_counters,
-            'pending_count'    => $pending_count,
-            'all_count'        => $all_count,
-            'backend_count'    => $all_count - array_sum($cnts),
-            'storefronts'      => $storefronts,
-            'backend_orders'   => $backend_orders
+            'states'          => $this->getStates(),
+            'user_id'         => $this->getUser()->getId(),
+            'contacts'        => array() /*$order_model->getContacts()*/,
+            'default_view'    => $config->getOption('orders_default_view'),
+            'coupons_count'   => $cm->countActive(),
+            'state_counters'  => $state_counters,
+            'pending_count'   => $pending_count,
+            'all_count'       => $all_count,
+            'sales_channels'  => $sales_channels,
+            'backend_orders'  => $backend_orders,
+            'unsettled_count' => $unsettled_count,
         ));
     }
 
     public static function getStorefronts()
     {
-        $storefronts = array();
-        foreach (wa()->getRouting()->getByApp('shop') as $domain => $domain_routes) {
-            foreach ($domain_routes as $route) {
-                $url = rtrim($domain.'/'.$route['url'], '/*').'/';
-                $storefronts[$url] = 0;
-            }
-        }
-        return $storefronts;
+        return array_fill_keys(shopHelper::getStorefronts(), 0);
     }
 
     public function getStates()
     {
         $workflow = new shopWorkflow();
         return $workflow->getAllStates();
+    }
+
+    protected static function getSalesChannelsWithCounts($order_model)
+    {
+        // Existing storefronts should be at the top,
+        // and should show even with zero counts
+        $result = array();
+        foreach(shopHelper::getStorefronts() as $s) {
+            $s = rtrim($s, '/');
+            $result['storefront:'.$s] = array(
+                'url' => '#/orders/storefront='.urlencode($s),
+                'name' => $s,
+                'count' => 0,
+                'storefront' => $s,
+            );
+        }
+
+        // Real storefront counts (including deleted storefronts) and sales channels
+        $backend_count = 0;
+        foreach($order_model->getSalesChannelCounters() as $channel_id => $cnt) {
+            @list($type, $s) = explode(':', $channel_id, 2);
+            if ($type == 'storefront') {
+                $s = rtrim($s, '/');
+                if (empty($result['storefront:'.$s])) {
+                    $result['storefront:'.$s] = array(
+                        'url' => '#/orders/storefront='.urlencode($s),
+                        'name' => $s,
+                        'count' => 0,
+                        'storefront' => $s,
+                    );
+                }
+                $result['storefront:'.$s]['count'] += $cnt;
+            } elseif ($type == 'backend') {
+                $backend_count = $cnt;
+            } else {
+                $result[$channel_id] = array(
+                    'url' => '#/orders/sales_channel='.urlencode($channel_id),
+                    'name' => $channel_id,
+                    'count' => $cnt,
+                    'storefront' => '',
+                );
+            }
+        }
+
+        // Backend is always the last line
+        $result['backend:'] = array(
+            'url' => '#/orders/sales_channel=backend:',
+            'name' => _w('Backend'),
+            'count' => $backend_count,
+            'storefront' => 'NULL',
+        );
+
+        return $result;
     }
 }

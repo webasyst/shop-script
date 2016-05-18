@@ -25,7 +25,7 @@
  * @property string $url
  * @property int $sort
  * @property float $price
- * @property float $compare_pricese
+ * @property float $compare_price
  * @property float $base_price_selectable
  * @property float $compare_price_selectable
  * @property float $purchase_price_selectable
@@ -35,6 +35,14 @@
  * @property float $max_price
  * @property int $tax_id
  * @property int|null $count
+ * @property mixed[string] $video
+ * @property string $video_url
+ * @property-read int $video['product_id']
+ * @property-read string[string] $video['url']
+ * @property-read int[string] $video['width']
+ * @property-read int[string] $video['height']
+ * @property-read string[string] $video['images']
+ *
  *
  * @property-read array $pages
  *
@@ -52,6 +60,11 @@
  * @property array $sets
  * @property array $tags
  * @property array $params
+ * @property array $og
+ * @property array $images
+ * @property array $next_forecast
+ * @property array $reviews
+ * @property array $sku_features
  */
 class shopProduct implements ArrayAccess
 {
@@ -70,7 +83,7 @@ class shopProduct implements ArrayAccess
      *
      * @param int|array $data Product id or product data array
      */
-    public function __construct($data = array(), $is_frontend=false)
+    public function __construct($data = array(), $is_frontend = false)
     {
         $this->is_frontend = $is_frontend;
         $this->model = new shopProductModel();
@@ -158,6 +171,54 @@ class shopProduct implements ArrayAccess
         }
     }
 
+    public function getVideo($sizes = array(), $absolute = false)
+    {
+        $video = array(
+            'product_id' => $this->getId(),
+            'url'        => $this['video_url'],
+            'width'      => '',
+            'height'     => '',
+            'images'     => array()
+        );
+        if (!$video['url']) {
+            return $video;
+        }
+
+        $domain = parse_url($video['url'], PHP_URL_HOST);
+        $url = '';
+        switch ($domain) {
+            case 'youtube.com':
+                $video['width'] = 560;
+                $video['height'] = 315;
+                if (preg_match('/v=([^&]+)/i', $video['url'], $match)) {
+                    $url = '//www.youtube.com/embed/'.$match[1];
+                }
+                break;
+            case 'youtu.be':
+                $video['width'] = 560;
+                $video['height'] = 315;
+                if (preg_match('/youtu.be\/([^&]+)/i', $video['url'], $match)) {
+                    $url = '//www.youtube.com/embed/'.$match[1];
+                }
+                break;
+            case 'vimeo.com':
+                $video['width'] = 600;
+                $video['height'] = 338;
+                if (preg_match('/vimeo.com\/([0-9]+)/i', $video['url'], $match)) {
+                    $url = '//player.vimeo.com/video/'.$match[1];
+                }
+                break;
+        }
+
+        if ($url && shopVideo::checkVideoThumb($this->getId(), $video['url'])) {
+            foreach ((array)$sizes as $k => $size) {
+                $video['images'][$k] = shopVideo::getThumbUrl($this->getId(), $size, $absolute);
+            }
+        }
+        $video['url'] = $url;
+        return $video;
+    }
+
     /**
      * Returns product's subpages.
      *
@@ -223,6 +284,10 @@ class shopProduct implements ArrayAccess
             foreach ($this->is_dirty as $field => $v) {
                 if ($this->model->fieldExists($field)) {
                     $product[$field] = $this->data[$field];
+                    if ($id && ($field == 'video_url')) {
+                        waFiles::delete(shopVideo::getPath($id));
+                        waFiles::delete(shopVideo::getThumbsPath($id));
+                    }
                     unset($this->is_dirty[$field]);
                 }
             }
@@ -253,10 +318,10 @@ class shopProduct implements ArrayAccess
                     $product['currency'] = wa('shop')->getConfig()->getCurrency();
                 }
                 if ($id = $this->model->insert($product)) {
-                    $this->data['id'] = $id;
+                    $this->data = $this->model->getById($id) + $this->data;
 
                     // update empty url by ID
-                    if (empty($product['url'])) {
+                    if (empty($this->data['url'])) {
                         $this->data['url'] = $id;
                         $this->model->updateById($id, array('url' => $this->data['url']));
                     }
@@ -406,9 +471,15 @@ class shopProduct implements ArrayAccess
      */
     public function setData($name, $value)
     {
-        if ($name =='name') {
-            $value = preg_replace('@[\r\n]+@',' ',$value);
+        switch ($name) {
+            case 'name':
+                $value = preg_replace('@[\r\n]+@', ' ', $value);
+                break;
+            case 'video_url':
+                $value = shopVideo::checkVideo($value);
+                break;
         }
+
         if ($this->getData($name) !== $value) {
             $this->data[$name] = $value;
             $this->is_dirty[$name] = true;
@@ -510,7 +581,7 @@ class shopProduct implements ArrayAccess
     public function upSelling($limit = 5, $available_only = false)
     {
         $upselling = $this->getData('upselling');
-        // upselling on (usign similar settting for type)
+        // upselling on (using similar setting for type)
         if ($upselling == 1 || $upselling === null) {
             $type_upselling_model = new shopTypeUpsellingModel();
             $conditions = $type_upselling_model->getByField('type_id', $this->getData('type_id'), true);
@@ -525,8 +596,8 @@ class shopProduct implements ArrayAccess
             }
         } elseif (!$upselling) {
             return array();
-        } // upselling on (manually)
-        else {
+        } else {
+            // upselling on (manually)
             $collection = new shopProductsCollection('related/upselling/'.$this->getId());
             if ($available_only) {
                 $collection->addWhere('(p.count > 0 OR p.count IS NULL)');
@@ -547,11 +618,12 @@ class shopProduct implements ArrayAccess
     public function crossSelling($limit = 5, $available_only = false, $exclude = array())
     {
         $cross_selling = $this->getData('cross_selling');
-        // cross selling on (usign similar settting for type)
+        // cross selling on (using similar setting for type)
         if ($cross_selling == 1 || $cross_selling === null) {
             $type = $this->getType();
             if ($type['cross_selling']) {
-                $collection = new shopProductsCollection($type['cross_selling'].($type['cross_selling'] == 'alsobought' ? '/'.$this->getId() : ''));
+                $hash = $type['cross_selling'].($type['cross_selling'] == 'alsobought' ? '/'.$this->getId() : '');
+                $collection = new shopProductsCollection($hash);
                 if ($type['cross_selling'] != 'alsobought') {
                     $collection->orderBy('RAND()');
                 }
@@ -651,19 +723,19 @@ class shopProduct implements ArrayAccess
                     AND oi.type='product'
                 GROUP BY product_id, sku_id";
 
-        $time_threshold = time() - 90*24*3600;
-        foreach($product_skus_model->query($sql,
-                array(
-                    $this->id,
-                    date('Y-m-d', $time_threshold))) as $oi)
-        {
+        $time_threshold = time() - 90 * 24 * 3600;
+        $params = array(
+            $this->id,
+            date('Y-m-d', $time_threshold),
+        );
+        foreach ($product_skus_model->query($sql, $params) as $oi) {
             if (isset($skus[$oi['sku_id']])) {
                 // Normalize number of sales for products created recently
                 if (!empty($this->create_datetime)) {
                     $create_ts = strtotime($this->create_datetime);
                     if ($create_ts > $time_threshold) {
                         $days = max(30, (time() - $create_ts) / 24 / 3600);
-                        $oi['sold'] = $oi['sold']*90/$days;
+                        $oi['sold'] = $oi['sold'] * 90 / $days;
                     }
                 }
                 $skus[$oi['sku_id']]['sold'] = ifset($skus[$oi['sku_id']]['sold'], 0);
@@ -678,22 +750,22 @@ class shopProduct implements ArrayAccess
         }
 
         $data = array(
-            'sales' => $sales / 3,
-            'sold' => $sold / 3,
-            'sold_rounded' => round($sold / 3),
-            'sold_rounded_1' => round($sold / 3, 1),
+            'sales'              => $sales / 3,
+            'sold'               => $sold / 3,
+            'sold_rounded'       => round($sold / 3),
+            'sold_rounded_1'     => round($sold / 3, 1),
             'sold_rounded_1_str' => number_format(round($sold / 3, 1), 1),
-            'profit' => ($sales - $purchase) / 3,
-            'days' => 0,
-            'date' => null,
-            'count' => $this->count
+            'profit'             => ($sales - $purchase) / 3,
+            'days'               => 0,
+            'date'               => null,
+            'count'              => $this->count
         );
 
         if ($this->count !== null && $data['sold_rounded'] > 0) {
             $sold_per_day = $data['sold_rounded'] / 30;
             $days = round($this->count / $sold_per_day);
             $data['days'] = $days;
-            $data['date'] = strtotime("+ " . $days . "days");
+            $data['date'] = strtotime("+ ".$days."days");
         }
 
         return $data;
@@ -706,9 +778,7 @@ class shopProduct implements ArrayAccess
     {
         if ($this->getId()) {
             $reviews_model = new shopProductReviewsModel();
-            return $reviews_model->getFullTree(
-                $this->getId(), 0, null, 'datetime DESC', array('escape' => true)
-            );
+            return $reviews_model->getFullTree($this->getId(), 0, null, 'datetime DESC', array('escape' => true));
         }
         return array();
     }
@@ -1068,6 +1138,4 @@ class shopProduct implements ArrayAccess
     {
         return strip_tags($product['summary']);
     }
-
-
 }

@@ -7,23 +7,9 @@ class shopCustomersSidebarAction extends waViewAction
 {
     public function execute()
     {
-        // Category counts
-        // !!! Probably not the best idea to fetch category counts on the fly...
-        $cm = new shopCustomerModel();
-        $counts = $cm->getCategoryCounts();
-
-        // Categories
-        $ccm = new waContactCategoryModel();
-        $categories = array();
-        foreach($ccm->getAll() as $c) {
-            if ($c['app_id'] == 'shop') {
-                $c['cnt'] = ifset($counts[$c['id']], 0);
-                $categories[$c['id']] = $c;
-            }
-        }
+        $categories = shopCustomer::getAllCategories();
 
         $cfm = new shopCustomersFilterModel();
-
         $col = new shopCustomersCollection();
 
         $this->view->assign('all_customers_count', $col->count());

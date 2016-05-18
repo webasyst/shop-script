@@ -13,7 +13,7 @@
         
         init: function(options) {
             this.options = options;
-            this.container = $('#s-content');
+            this.container = options.container || $('#s-content');
             
             if (this.options.lazy_loading) {
                 this.initLazyLoad(this.options.lazy_loading);
@@ -76,7 +76,7 @@
                     return false;
                 });
             }
-        },
+        }
         
     };
 })(jQuery);

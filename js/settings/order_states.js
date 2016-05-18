@@ -179,21 +179,45 @@ $.extend($.settings || {}, {
             });
         })();
 
+        if (!$.isEmptyObject(options.edit_actions_map)) {
+            var offset_top = null;
+            $('#s-save-order-state').find('.s-edit-action').each(function () {
+                var el = $(this);
+                var id = el.data('id');
+                if (options.edit_actions_map[id]) {
+                    if (offset_top === null) {
+                        offset_top = el.offset().top;
+                    }
+                    offset_top = Math.min(offset_top, el.offset().top);
+                    el.click();
+                }
+            });
+            if (offset_top !== null) {
+                setTimeout(function () {
+                    $(window).scrollTop(offset_top - 10);
+                }, 250);
+
+            }
+        }
+
         // Initialize drag-and-drop of states in sidebar
         orderStatesSortableInit();
 
         // Form submit handler
         var $form = $('#s-save-order-state');
-        $form.submit(function() {
+        var formSerialize = function () {
             var data = $form.serializeArray();
-
-            // Selected icon
             var icon = $('.s-icons .selected i');
             if (icon.length) {
                 data.push({
                     name: 'icon', value: icon.attr('class')
                 });
             }
+            return data;
+        };
+        $form.submit(function() {
+
+            var data = formSerialize();
 
             // send post
             showLoadingIcon();
@@ -265,8 +289,59 @@ $.extend($.settings || {}, {
             }
         }); // end of form submit handler
 
+        // init buttons preview
+        (function () {
+
+            $('.s-settings-form .wf-action').click(function (e) {
+                e.preventDefault();
+                alert($_('This is a preview of actions available for orders in this state'));
+            });
+
+            var updatePreview = function() {
+                var url = '?module=settings&action=orderStates&id=' + options.id;
+                var place = $('.s-workflow-action-buttons-preview');
+                var tmp = $('<div style="display: none;">').insertAfter(place);
+                var data = formSerialize();
+                $.post(url, data, function (html) {
+                    var t = $('<div>').html(html);
+                    var new_preview = t.find('.s-workflow-action-buttons-preview');
+                    t.remove();
+                    tmp.html(new_preview.html());
+                    var new_height = tmp.show().height();
+                    place.height(place.height());       // fix height
+                    place.html(tmp.html());
+                    tmp.remove();
+                    place.animate({
+                        height: new_height
+                    });
+                });
+            };
+            var updatePreviewRadio = function () {
+                var el = $(this);
+                if (el.is(':checked')) {
+                    updatePreview();
+                }
+            };
+
+            $('.s-settings-form')
+                .on('change', '[name="action[]"]', updatePreview)
+                .on('change', '.s-action-icon', updatePreview)
+                .on('change', '[name^="new_action["]', updatePreview)
+                .on('change', '[name^="new_action_name["]', updatePreview)
+                .on('change', '[name^="edit_action_name["]', updatePreview)
+                .on('change', '[name^="edit_action_border_color["]', updatePreview)
+                .on('change', '[name^="new_action_border_color["]', updatePreview)
+                .on('click', ':radio[name^="edit_action_link["]', updatePreviewRadio)
+                .on('click', ':radio[name^="new_action_link["]', updatePreviewRadio)
+            ;
+
+            $.shop.changeListener($('.s-settings-form'), '[name^="edit_action_border_color["]', updatePreview);
+            $.shop.changeListener($('.s-settings-form'), '[name^="new_action_border_color["]', updatePreview);
+            $.shop.changeListener($('.s-settings-form'), '[name^="edit_action_name["]', updatePreview);
+            $.shop.changeListener($('.s-settings-form'), '[name^="new_action_name["]', updatePreview);
+        })();
+
         $(document).trigger('order_states_init');
-        return;
 
         function initColorPicker($block) {
             var $color_input = $('.s-color', $block);
@@ -276,6 +351,7 @@ $.extend($.settings || {}, {
                 $color_replacer.find('i').css('background', color);
                 $color_input.val(color.substr(1));
                 $color_input.css('color', color);
+                $color_input.trigger('change');
             });
             farbtastic.setColor('#'+$color_input.val());
             $color_replacer.click(function() {
@@ -292,6 +368,7 @@ $.extend($.settings || {}, {
                 $icons.find('.selected').removeClass('selected');
                 $(this).parents('li:first').addClass('selected');
                 $input.val($icons.find('.selected').data('icon'));
+                $input.trigger('change');
                 return false;
             });
             $icons.find('li[data-icon="' + $input.val() + '"]').addClass('selected');

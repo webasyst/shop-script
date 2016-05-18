@@ -873,7 +873,7 @@ class shopMigrateInsalesTransport extends shopMigrateTransport
             if ($order['id'] = $order_model->insert($order)) {
                 $order['params']['auth_code'] = shopWorkflowCreateAction::generateAuthCode($order['id']);
                 $order['params']['auth_pin'] = shopWorkflowCreateAction::generateAuthPin();
-
+                $order['params']['sales_channel'] = 'import:insales';
 
                 if (!empty($order['params'])) {
                     if (empty($order_params_model)) {

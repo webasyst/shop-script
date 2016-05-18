@@ -1,6 +1,6 @@
 <!-- plugin hook: 'frontend_header' -->
 {* @event frontend_header.%plugin_id% *}
-{foreach $frontend_header as $_}{$_}{/foreach}            
+{foreach $frontend_header as $_}{$_}{/foreach}
 
 <div class="content" id="page-content" itemscope itemtype="http://schema.org/{if $action == 'default'}Store{else}WebPage{/if}">
 
@@ -22,9 +22,9 @@
     {/if}
 
     {$content}
-    
+
     <div class="clear-both"></div>
-    
+
 </div>
 
 
@@ -42,8 +42,10 @@
     </div>
 </div>
 
+{if $theme_settings.compare_products}
 <aside id="compare-leash">
     {$in_comparison = $wa->shop->inComparison()}
     <a {if !$in_comparison}style="display:none;"{/if} href="{$wa->getUrl('/frontend/compare', ['id' => implode(',', $in_comparison)])}">[`Compare selected products`] (<strong>{count($in_comparison)}</strong>)</a>
     {if $in_comparison}<style>.appfooter { padding-bottom: 60px; } </style>{/if}
 </aside>
+{/if}

@@ -3,7 +3,7 @@
 <!ATTLIST yml_catalog
     date CDATA #REQUIRED>
 
-<!ELEMENT shop (name, company, url, phone?, platform?, version?, agency?, email*, currencies, categories, store?, pickup?, delivery?, deliveryIncluded?, local_delivery_cost?, adult?, offers)>
+<!ELEMENT shop (name, company, url, phone?, platform?, version?, agency?, email*, currencies, categories, delivery-options?, store?, pickup?, delivery?, deliveryIncluded?, local_delivery_cost?, adult?, offers)>
 <!ELEMENT company (#PCDATA)>
 <!ELEMENT phone (#PCDATA)>
 
@@ -22,6 +22,13 @@
     parentId CDATA #IMPLIED
     tid CDATA #IMPLIED
     yid CDATA #IMPLIED>
+
+<!ELEMENT delivery-options (option+)>
+<!ELEMENT option (#PCDATA)>
+<!ATTLIST option
+    cost CDATA #REQUIRED
+    days CDATA #REQUIRED
+    order-before CDATA #IMPLIED>
 
 <!ELEMENT offers (offer+)>
 <!ELEMENT offer (url?, buyurl?, price, oldprice?, wprice?, currencyId, xCategory?, categoryId+, market_category?,

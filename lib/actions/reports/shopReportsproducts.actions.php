@@ -13,12 +13,12 @@ class shopReportsproductsActions extends waViewActions
     public function defaultAction()
     {
         list($start_date, $end_date, $group_by, $request_options) = shopReportsSalesAction::getTimeframeParams();
-        $storefront = waRequest::request('storefront', null, 'string');
+        $sales_channel = waRequest::request('sales_channel', null, 'string');
         $order_by = waRequest::request('sort', 'profit', 'string');
         $model_options = array();
-        if ($storefront) {
-            $request_options['storefront'] = $storefront;
-            $model_options['storefront'] = $storefront;
+        if ($sales_channel) {
+            $request_options['sales_channel'] = $sales_channel;
+            $model_options['sales_channel'] = $sales_channel;
         }
         if ($order_by != 'sales') {
             $order_by = 'profit';
@@ -112,7 +112,7 @@ class shopReportsproductsActions extends waViewActions
             'product_total_sales' => $product_total_sales,
             'product_total_profit' => $product_total_profit,
             'service_total_percent' => $service_total_percent,
-            'storefronts' => shopReportsSalesAction::getStorefronts(),
+            'sales_channels' => shopReportsSalesAction::getSalesChannels(),
             'service_total_val' => $service_total_val,
             'request_options' => $request_options,
             'graph_data' => $graph_data,
@@ -133,8 +133,8 @@ class shopReportsproductsActions extends waViewActions
         $limit = (int) waRequest::request('limit', 100, 'int');
         $limit || ($limit = 100);
         $order_by = waRequest::request('sort', '', 'string');
-        if ($order_by !== 'stock') {
-            $order_by = 'net_worth';
+        if (!in_array($order_by, array('stock', 'net_worth', 'purchase_worth'))) {
+            $order_by = 'stock';
         }
 
         $request_options = array(
@@ -148,33 +148,41 @@ class shopReportsproductsActions extends waViewActions
         // Product info and net worth
         if ($stock_id) {
             $stock_expr = "SUM(IF(ps.count > 0, ps.count, 0))";
-            $net_worth_expr = "SUM(s.price*c.rate*IF(ps.count > 0, ps.count, 0))";
+            $net_worth_expr = "SUM(s.price*c.rate*IF(s.count > 0, ps.count, 0))";
+            $purchase_worth_expr = "SUM(s.purchase_price*c.rate*IF(ps.count > 0, ps.count, 0))";
             $stock_join = "JOIN shop_product_stocks AS ps ON ps.sku_id=s.id";
             $stock_where = "AND ps.stock_id={$stock_id}";
         } else {
             $stock_expr = "SUM(IF(s.count > 0, s.count, 0))";
             $net_worth_expr = "SUM(s.price*c.rate*IF(s.count > 0, s.count, 0))";
+            $purchase_worth_expr = "SUM(s.purchase_price*c.rate*IF(s.count > 0, s.count, 0))";
             $stock_where = "";
             $stock_join = "";
         }
-        $sql = "SELECT p.*, {$net_worth_expr} AS net_worth, {$stock_expr} AS stock
-            FROM shop_product AS p
-                JOIN shop_product_skus AS s
-                    ON s.product_id=p.id
-                JOIN shop_currency AS c
-                    ON c.code=p.currency
-                {$stock_join}
-            WHERE s.count > 0
-                {$stock_where}
-            GROUP BY p.id
-            ORDER BY {$order_by} DESC
-            LIMIT {$limit}";
+        $sql = "SELECT 
+                  p.*, 
+                  {$net_worth_expr} AS net_worth, 
+                  {$purchase_worth_expr} AS purchase_worth, 
+                  {$stock_expr} AS stock
+                FROM shop_product AS p
+                    JOIN shop_product_skus AS s
+                      ON s.product_id=p.id
+                    JOIN shop_currency AS c
+                      ON c.code=p.currency
+                  {$stock_join}
+                WHERE s.count > 0
+                  {$stock_where}
+                GROUP BY p.id
+                ORDER BY {$order_by} DESC
+                LIMIT {$limit}";
         $products = array();
         $total_stock = 0;
         $net_worth = 0;
+        $purchase_worth = 0;
         foreach($product_model->query($sql) as $p) {
             $total_stock += $p['stock'];
             $net_worth += $p['net_worth'];
+            $purchase_worth += $p['purchase_worth'];
             $products[$p['id']] = $p + array(
                 'sold' => 0,
                 'est' => 0,
@@ -236,6 +244,7 @@ class shopReportsproductsActions extends waViewActions
             'request_options' => $request_options,
             'total_stock' => $total_stock,
             'net_worth' => $net_worth,
+            'purchase_worth' => $purchase_worth,
             'products' => $products,
             'limit' => $limit,
         ));

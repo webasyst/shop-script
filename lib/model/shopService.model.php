@@ -259,6 +259,12 @@ class shopServiceModel extends waModel
                                         AND op2.name='storefront'";
             $storefront_where = "AND op2.value='".$this->escape($options['storefront'])."'";
         }
+        if (!empty($options['sales_channel'])) {
+            $storefront_join .= " JOIN shop_order_params AS opst2
+                                    ON opst2.order_id=o.id
+                                        AND opst2.name='sales_channel' ";
+            $storefront_where .= " AND opst2.value='".$this->escape($options['sales_channel'])."' ";
+        }
 
         $sql = "SELECT
                     s.*,

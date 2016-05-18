@@ -275,6 +275,35 @@
                 [`Billing address as string`]
             </div>
         </div>
+
+        <!-- OTHER -->
+        <div class="field">
+            <div class="name bold">
+                &#123;$signup_url&#125;
+            </div>
+            <div class="value no-shift">
+                [`Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href="?action=settings#/checkout/">Guest checkout setting</a> is not enabled.`]
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name bold">
+                &#123;$is_affiliate_enabled&#125;
+            </div>
+            <div class="value no-shift">
+                [`Indicates if <a href="?action=settings#/affiliate/">Loyalty program</a> is enabled in store settings.`]
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name bold">
+                &#123;$add_affiliate_bonus&#125;
+            </div>
+            <div class="value no-shift">
+                [`Amount of affiliate bonus that will be credited to customer account when order is paid.`]
+            </div>
+        </div>
+
     </div>
     <div class="clear-both"></div>
 </div>

@@ -29,16 +29,16 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
                 
                 // for logging changes in stocks
                 shopProductStocksLogModel::setContext(
-                        shopProductStocksLogModel::TYPE_ORDER,
-                        /*_w*/('Order %s was deleted'),
-                        array(
-                            'order_id' => $order_id
-                        )
+                    shopProductStocksLogModel::TYPE_ORDER,
+                    /*_w*/('Order %s was deleted'),
+                    array(
+                        'order_id' => $order_id
+                    )
                 );
                 
                 if ($update_on_create) {
                     $order_model->returnProductsToStocks($order_id);
-                } else if (!$update_on_create && $data['before_state_id'] != 'new') {
+                } elseif (!$update_on_create && $data['before_state_id'] != 'new') {
                     $order_model->returnProductsToStocks($order_id);
                 }
                 

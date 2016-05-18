@@ -88,6 +88,9 @@
                     case 'coupon':
                         $.wa.setHash('#/orders/coupon_id=' + autocomplete_item.id + '/');
                         break;
+                    case 'tracking_number':
+                        $.wa.setHash('#/orders/tracking_number=' + autocomplete_item.value + '/');
+                        break;
                     case 'shipping':
                         $.wa.setHash('#/orders/shipping_id=' + autocomplete_item.id + '/');
                         break;
@@ -373,10 +376,32 @@
                 if (typeof fn === 'function') {
                     fn.call(this);
                 }
-                $('html, body').animate({scrollTop:0}, 200);
+
+                // $('html, body').animate({scrollTop:0}, 200);
+                var $window = $(window);
+                setTimeout( function () {
+                    $window.trigger("scroll");
+                }, 250);
+
+                showOrdersViewToggle();
+
+
                 $('.level2').show();
                 $('#s-sidebar').width(200).show();
             });
+
+            function showOrdersViewToggle() {
+                var $ordersViewToggle = $("#s-orders-views"),
+                    is_orders_page = $("#s-order, #s-orders").length;
+
+                if ($ordersViewToggle.length) {
+                    if (is_orders_page) {
+                        $ordersViewToggle.css("visibility", "visible");
+                    } else {
+                        $ordersViewToggle.css("visibility", "hidden");
+                    }
+                }
+            }
         }
     };
 })(jQuery);

@@ -19,36 +19,71 @@
         </div>
 
         <h1>
-            {if !empty($request_options.type) && !empty($menu_types[$request_options.type])}
-                {$menu_types[$request_options.type].header_name|escape}
+            {if $filter}
+                <a href="javascript:void(0)" class="back s-reset-filter" id="s-reset-filter">&larr; <span class="s-back-title"></span></a>
+                <span class="s-header-title">{$filter_title|default:''|escape}</span>
             {else}
-                [`Sales report`]
+                <span class="s-header-title">
+                    {if !empty($request_options.type) && !empty($menu_types[$request_options.type])}
+                        {$menu_types[$request_options.type].header_name|escape}
+                    {else}
+                        [`Sales report`]
+                    {/if}
+                </span>
             {/if}
+
             <span class="hint" id="period-description">[`Custom range`]</span>
         </h1>
 
-        <div class="graph-wrapper">
-            <script>
-                (function() {
-                    if (typeof showSalesGraph == 'undefined') {
-                        return $.ajax({
-                              dataType: "script",
-                              url: "{$wa_url}wa-apps/shop/js/charts/d3chart-sales.js?{$wa->version()}",
-                              cache: true
-                        });
-                    } else {
-                        return $.Deferred(function(d) {
-                            d.resolve();
-                        });
-                    }
-                })().done(function() {
-                    showSalesGraph({json_encode($graph_data)}, {wa_currency_html(0, $def_cur)|replace:'0':'%s'|json_encode});
-                });
-            </script>
-            <!-- CHART WRAPPERS -->
-            <div class="sales-wrapper"></div>
-            <div class="hint-wrapper" id="hint-wrapper"></div>
-        </div>
+        {if $details_graph_data}
+            <div class="extended-sales-graph-wrapper">
+                <div class="extended-sales-graph" id="extended-sales-graph"></div>
+                <div class="extended-sales-hint" id="extended-sales-hint"></div>
+                <div class="extended-sales-divider" id="extended-sales-divider"></div>
+                <script>
+                    ( function($) {
+                        if (typeof ExtendedSalesGraph === "function") {
+                            initGraph();
+                        } else {
+                            $.getScript("{$wa_url}wa-apps/shop/js/charts/d3chart-sales.extended.js?v={$wa->version()}", initGraph);
+                        }
+                        function initGraph() {
+                            new ExtendedSalesGraph({
+                                data: {$details_graph_data.data|default:[]|json_encode},
+                                currency: {wa_currency_html(0, $def_cur)|replace:'0':':value:'|json_encode},
+                                chart_names: {$details_graph_data.names|default:[]|json_encode},
+                                $wrapper: $("#extended-sales-graph"),
+                                $tooltip: $("#extended-sales-hint"),
+                                $divider: $("#extended-sales-divider")
+                            });
+                        }
+                    })(jQuery);
+                </script>
+            </div>
+        {else}
+            <div class="graph-wrapper">
+                <script>
+                    (function() {
+                        if (typeof showSalesGraph == 'undefined') {
+                            return $.ajax({
+                                  dataType: "script",
+                                  url: "{$wa_url}wa-apps/shop/js/charts/d3chart-sales.js?{$wa->version()}",
+                                  cache: true
+                            });
+                        } else {
+                            return $.Deferred(function(d) {
+                                d.resolve();
+                            });
+                        }
+                    })().done(function() {
+                        showSalesGraph({json_encode($graph_data)}, {wa_currency_html(0, $def_cur)|replace:'0':'%s'|json_encode});
+                    });
+                </script>
+                <!-- CHART WRAPPERS -->
+                <div class="sales-wrapper"></div>
+                <div class="hint-wrapper" id="hint-wrapper"></div>
+            </div>
+        {/if}
 
         <table class="zebra" id="sales-report-table">
             <thead>
@@ -120,6 +155,12 @@
 
         </table>
 
+        <!-- BEGIN ORDERS -->
+        <div style="margin-top: 30px;">
+            {$order_list_html|default:''}
+        </div>
+        <!-- END ORDERS -->
+
         <p id="load-more-rows">
             <a href="javascript:void" class="inline-link"><b>[`Load more...`]</i></a>
         </p>
@@ -132,9 +173,9 @@
     <ul class="menu-h">
         <li>
             <select id="s-sales-report-storefront-selector" class="storefront-selector">
-                <option value="">[`All storefronts`]</option>
-                {foreach $storefronts as $stf}
-                    <option value="{$stf|escape}"{if ifset($request_options.storefront) == $stf} selected{/if}>{$stf|escape}</option>
+                <option value="">[`All channels`]</option>
+                {foreach $sales_channels as $id => $name}
+                    <option value="{$id|escape}"{if ifset($request_options.sales_channel) == $id} selected{/if}>{$name|escape}</option>
                 {/foreach}
             </select>
         </li>
@@ -219,6 +260,9 @@
     // Highlight active item in sidebar
     request_params.type && $('#s-sidebar a[href="#/sales/type='+request_params.type+'"]').closest('li').addClass('selected').siblings().removeClass('selected');
 
+    // drilldown, backlink text
+    $('#reportscontent .s-back-title').text($('#grouping-type-selector .selected').text());
+
     // Human-readable period description in page header
     (function() {
         var $timeframe_selected_li = $('#mainmenu .s-reports-timeframe .selected');
@@ -237,7 +281,7 @@
 
         // Reload page when user changes something in the selector
         $storefront_selector.change(function() {
-            $.post(action_url, $.extend({ }, request_params, { storefront: $storefront_selector.val() }), function(r) {
+            $.post(action_url, $.extend({ }, request_params, { sales_channel: $storefront_selector.val() }), function(r) {
                 $('#reportscontent').html(r);
             });
         });
@@ -281,14 +325,15 @@
             request_params['sort'] = (current_order == 'desc' ?'!':'')+current_sort;
             $a.append('<i class="icon16 loading"></i>');
             var rnd_protect = $.reports.rnd_protect = Math.random();
-            $.post(action_url, $.extend({ }, request_params, { table_only: 1 }), function(r) {
+            $.post(action_url, $.extend({ }, request_params/*, { table_only: 1 }*/), function(r) {
                 if (rnd_protect != $.reports.rnd_protect) {
                     return; // too late, user clicked something else
                 }
-                $a.children('.loading').remove();
+                /*$a.children('.loading').remove();
                 $table.children('tbody').html(r);
                 highlightSortingColumn();
-                $load_more_link.show();
+                $load_more_link.show();*/
+                $('#reportscontent').html(r);
             });
         });
 
@@ -329,5 +374,85 @@
                 .closest('th').addClass('bold').siblings().removeClass('bold');
         }
     })();
+
+    var getParamsFromHash = function () {
+        var hash = $.reports.hash || 'sales/type=sources';
+        var prefix = 'sales/';
+        var prefix_len = prefix.length;
+        var hash_slice = hash.slice(0, prefix_len);
+        if (hash_slice === prefix || hash === prefix.slice(0, -1)) {
+            var hash_params = hash.slice(prefix.length) || '';
+            hash_params = hash_params.slice(-1) !== '/' ? hash_params : hash_params.slice(0, -1);
+            return hash_params;
+        }
+        return '';
+    };
+
+    // drilldown logic
+    (function () { "use strict";
+        var $table = $('#sales-report-table');
+
+        var applyNameFilterToHash = function (name) {
+            name = name !== null ? name : undefined;
+            var params = getParamsFromHash();
+            var map = $.reports.parseParams(params);
+            var key = 'filter[name]';
+            if (map[key] !== name) {
+                map[key] = name;
+            }
+            if (map[key] === undefined) {
+                delete map[key];
+            } else {
+                delete map.details; // details in drill-down graph is prohibited
+            }
+            params = $.reports.unparseParams(map);
+
+            return 'sales/' + params;
+        };
+
+        $table.on('click', '.s-reports-drilldown-link', function() {
+            var link = $(this);
+            var hash = applyNameFilterToHash(link.data('name'));
+            if (hash !== $.reports.hash) {
+                $.wa.setHash('/' + hash);
+            }
+            $('#s-sales-details').attr('disabled', true);
+        });
+
+        $('#s-reset-filter').click(function () {
+            var hash = applyNameFilterToHash(null);
+            if (hash !== $.reports.hash) {
+                if (hash) {
+                    $.wa.setHash('/' + hash);
+                } else {
+                    $.wa.setHash('');
+                }
+            }
+            $('#s-sales-details').attr('disabled', false);
+        });
+
+    })();
+
+    // details logic
+    $('#s-sales-details').click(function () {
+        var $this = $(this);
+        var params = getParamsFromHash();
+        var map = $.reports.parseParams(params);
+        var details = $this.is(':checked') ? '1' : undefined;
+        if (details) {
+            $.storage.set('shop/reports/sales-details', '1')
+        } else {
+            $.storage.del('shop/reports/sales-details')
+        }
+        if (map.details !== details) {
+            map.details = details;
+        }
+        if (map.details === undefined) {
+            delete map.details;
+        }
+        params = $.reports.unparseParams(map);
+        var hash = 'sales/' + params;
+        hash !== $.reports.hash && $.wa.setHash(hash);
+    });
 
 })();</script>

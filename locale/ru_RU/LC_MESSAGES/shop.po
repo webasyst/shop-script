@@ -11,13 +11,17 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.6\n"
+"X-Generator: Poedit 1.8.7\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
 #: /wa-apps/shop/lib/config/app.php:3
 msgid "Shop"
+msgstr "Магазин"
+
+#: /wa-apps/shop/lib/config/app.php:3
+msgid "Store"
 msgstr "Магазин"
 
 #: /wa-apps/shop/lib/config/app.php:4
@@ -743,7 +747,7 @@ msgstr "Изменение цены"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:27
 msgid "Follow-up"
-msgstr "Отложенное сообщение"
+msgstr "Триггерная рассылка"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotifications.html:121
 msgid "Add custom notification"
@@ -1655,8 +1659,8 @@ msgstr "Новый товар"
 msgid "Storefront link"
 msgstr "Ссылка на витрину"
 
-msgid "This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts"
-msgstr "Этот товар не показывается ни на одной из витрин, поскольку тип «%s», к которому принадлежит этот товар, не разрешён к публикации ни на одной витрине"
+msgid "This product is not visible in the storefront because product type “%s” which this product belongs to is not allowed for publishing in any of your storefronts."
+msgstr "Этот товар не показывается ни на одной из витрин, поскольку тип «%s», к которому принадлежит этот товар, не разрешён к публикации ни на одной витрине."
 
 #: /wa-apps/shop/templates/actions/product/Product.html:61
 msgid "Last 30 days"
@@ -1786,7 +1790,7 @@ msgstr "Создать артикулы на основании значений
 
 #: /wa-apps/shop/templates/actions/product/Product.html:543
 msgid "SKU code"
-msgstr "Артикул"
+msgstr "Код артикула"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:579
 msgid "Multiple stocks"
@@ -4109,7 +4113,7 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/backend/BackendSettings.html:92
 msgid "Follow-ups"
-msgstr "Отложенные сообщения"
+msgstr "Триггерные рассылки"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:124
 msgid "Follow-up has been deleted."
@@ -4189,7 +4193,7 @@ msgstr "Начислено за"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:69
 msgid "Send follow-up for given customer’s recurrent orders too"
-msgstr "Отправлять отложенное сообщение (фоллоу-ап) для повторных заказов клиента"
+msgstr "Отправлять триггерное (отложенное) сообщение для повторных заказов клиента"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsAdd.html:29
 msgid "Notification name is published in the order processing log."
@@ -4201,7 +4205,7 @@ msgstr "CRON для интернет-магазина включен и рабо
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:33
 msgid "Follow-ups will not be sent, because cron is not properly configured."
-msgstr "Отправка отложенных сообщений в данный момент не работает, так как не настроен планировщик CRON."
+msgstr "Отправка триггерных (отложенных) сообщений в данный момент не работает, так как не настроен планировщик CRON."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:35
 msgid "What is cron?"
@@ -4209,7 +4213,7 @@ msgstr "Что такое CRON?"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:45
 msgid "Follow-ups require CRON to be properly setup for the Shop-Script app, which is currently not the case."
-msgstr "Для автоматизированной отправки отложенных сообщений (фоллоу-апов) необходимо настроить CRON, который будет запускать скрипт отправки по расписанию без вашего участия."
+msgstr "Для автоматизированной отправки триггерных (отложенных) сообщений необходимо настроить CRON, который будет запускать скрипт отправки по расписанию без вашего участия."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:47
 msgid "Setup cron with the following command (<a href=\"%s\" target=\"_blank\">cron setup instructions</a>):"
@@ -4285,11 +4289,11 @@ msgstr "Номер отправления"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:28
 msgid "Cron for follow-ups is configured properly. Latest execution time: <strong>%s</strong>"
-msgstr "CRON для отправки отложенных сообщений настроен и работает. Последнее время запуска: <strong>%s</strong>."
+msgstr "CRON для отправки триггерных (отложенных) сообщений настроен и работает. Последнее время запуска: <strong>%s</strong>."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:28
 msgid "Follow-ups are configured properly. Latest Cron execution time: <strong>%s</strong>"
-msgstr "Отправка отложенных сообщений настроена и готова к работе. Последний запуск планировщика CRON: <strong>%s</strong>."
+msgstr "Отправка триггерных (отложенных) сообщений настроена и готова к работе. Последний запуск планировщика CRON: <strong>%s</strong>."
 
 #: /wa-apps/shop/themes/default/category.html:52
 msgid "This category does not contain any products."
@@ -4313,6 +4317,12 @@ msgid_plural "Only %d left in stock"
 msgstr[0] "Осталась %d штука"
 msgstr[1] "Осталось %d штуки"
 msgstr[2] "Осталось %d штук"
+
+msgid "%d left"
+msgid_plural "%d left"
+msgstr[0] "Осталось %d"
+msgstr[1] "Осталось %d"
+msgstr[2] "Осталось %d"
 
 #: /wa-apps/shop/templates/actions/backend/BackendSettings.html:49
 msgid "Order states"
@@ -4766,11 +4776,11 @@ msgstr "Неподдерживаемая структура CSV-файла"
 
 #: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:91
 msgid "Your order number is %s. Order total: %s"
-msgstr "Ваш номер заказа: %s. Сумма заказа: %s."
+msgstr "Ваш номер заказа: %s. Сумма заказа: %s"
 
 #: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:95
 msgid "Order %s has been confirmed"
-msgstr "Заказ %s подтвержден."
+msgstr "Заказ %s подтвержден"
 
 #: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:106
 msgid "Your order %s has been confirmed and accepted for processing."
@@ -4782,15 +4792,15 @@ msgstr "Ваш заказ %s отправлен!"
 
 #: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:147
 msgid "Your order %s has been cancelled"
-msgstr "Ваш заказ %s отменен."
+msgstr "Ваш заказ %s отменен"
 
 #: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:163
 msgid "Your order %s status has been updated to “%s”"
-msgstr "Статус вашего заказа %s изменен на «%s»."
+msgstr "Статус вашего заказа %s изменен на «%s»"
 
 #: /wa-apps/shop/lib/classes/shopCsvReader.class.php:406
 msgid "Column %s meets %d times"
-msgstr "Столбец %s обнаружен в %d экземплярах."
+msgstr "Столбец %s обнаружен в %d экземплярах"
 
 #: /wa-apps/shop/lib/classes/shopCsvReader.class.php:409
 msgid "Warning"
@@ -4810,7 +4820,7 @@ msgstr "Игнорировать столбец"
 
 #: /wa-apps/shop/lib/classes/shopShipping.class.php:103
 msgid "Shipping plugins not installed yet"
-msgstr "Плагины расчета стоимости доставки не установлены."
+msgstr "Плагины расчета стоимости доставки не установлены"
 
 #: /wa-apps/shop/themes/default/my.orders.html:41
 msgid "You have no order history yet."
@@ -5733,8 +5743,8 @@ msgid "We are using <a href=\"http://www.shop-script.com/\">Shop-Script 5</a>"
 msgstr "Мы используем <a href=\"http://www.shop-script.ru/\">Shop-Script 5</a>"
 
 #: /wa-apps/shop/themes/default/index.html:98
-msgid "We are using <a href=\"http://www.shop-script.com/\">Shop-Script 6</a>"
-msgstr "Мы используем <a href=\"http://www.shop-script.ru/\">Shop-Script 6</a>"
+msgid "We are using <a href=\"http://www.shop-script.com/\">Shop-Script 7</a>"
+msgstr "Мы используем <a href=\"http://www.shop-script.ru/\">Shop-Script 7</a>"
 
 #: /wa-apps/shop/themes/clear/home.html:43
 msgid "Special offers for %s"
@@ -5781,8 +5791,8 @@ msgid "We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Sh
 msgstr "Мы используем <a href=\"http://www.shop-script.ru/\" target=\"_blank\">Shop-Script 5</a>"
 
 #: /wa-apps/shop/themes/vk/footer.html:4
-msgid "We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Shop-Script 6</a>"
-msgstr "Мы используем <a href=\"http://www.shop-script.ru/\" target=\"_blank\">Shop-Script 6</a>"
+msgid "We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Shop-Script 7</a>"
+msgstr "Мы используем <a href=\"http://www.shop-script.ru/\" target=\"_blank\">Shop-Script 7</a>"
 
 #: /wa-apps/shop/themes/vk/navigation.html:7
 msgid "Order by phone"
@@ -6592,7 +6602,7 @@ msgstr "Пожалуйста, выберите способ доставки"
 #: /wa-apps/shop/themes/nifty/footer.html:4
 #: /wa-apps/shop/themes/sidebar/footer.html:4
 msgid "<a href=\"http://www.shop-script.com/\">Ecommerce software</a> by Webasyst"
-msgstr "<a href=\"http://www.shop-script.ru/\">Создание интернет-магазина</a> — Shop-Script 6"
+msgstr "<a href=\"http://www.shop-script.ru/\">Создание интернет-магазина</a> — Shop-Script 7"
 
 #: /wa-apps/shop/themes/clear/list-thumbs-mini.html:38
 #: /wa-apps/shop/themes/clear/list-thumbs.html:57
@@ -7318,7 +7328,7 @@ msgstr "принял заказ в обработку"
 
 #: /wa-apps/shop/lib/config/logs.php:40
 msgid "marked an order as paid"
-msgstr "отметил заказ как выполненный"
+msgstr "отметил заказ как оплаченный"
 
 #: /wa-apps/shop/lib/config/logs.php:43
 msgid "paid an order"
@@ -7606,7 +7616,7 @@ msgstr "Временно скрывает товар на сайте"
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:69
 #: /wa-apps/shop/lib/classes/shopProductListAction.class.php:257
 msgid "Stock net worth"
-msgstr "Стоимость активов"
+msgstr "Стоимость активов после реализации"
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductListCreate.html:32
 msgid "Category"
@@ -8637,7 +8647,7 @@ msgid "When enabled, products will be fetched from both the current category and
 msgstr "Включение этой настройки автоматически добавит в список товаров данной категории все товары из ее подкатегорий"
 
 #: /wa-apps/shop/templates/actions/promos/PromosDefault.html:8
-msgid "If you don’t see promos on your storefront homepage, you might be using an outdated version of the design theme (home.html template file). Please <a href=\"%s\" target=\"_blank\">follow this guide</a> to embed this new Shop-Script 6 feature to your online store."
+msgid "If you don’t see promos on your storefront homepage, you might be using an outdated version of the design theme (home.html template file). Please <a href=\"%s\" target=\"_blank\">follow this guide</a> to embed this new Shop-Script 7 feature to your online store."
 msgstr "Если вы не видите промо-карточки на витрине вашего интернет-магазина, возможно, вы используете устаревшую версию темы дизайна (шаблона home.html). Пожалуйста, <a href=\"%s\" target=\"_blank\">следуйте инструкции по обновлению шаблона дизайна</a> для вывода промо-карточек."
 
 #: /wa-apps/shop/templates/actions/promos/PromosEditor.html:3
@@ -9441,10 +9451,529 @@ msgstr "задается в разделе Настройки &gt; Общие н
 msgid "provided in Storefronts &gt; Settings and customizable for each storefront"
 msgstr "задается в разделе Витрина &gt; Настройки отдельно для каждой витрины"
 
-#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:166
-msgid "Custom product's fields"
+#: /wa-apps/shop/templates/actions/backend/BackendOrders.html:31
+msgid "Unsettled"
+msgstr "Подвешенные"
+
+#: /wa-apps/shop/templates/actions/order/Order.html:52
+#: /wa-apps/shop/lib/config/data/workflow.php:240
+msgid "Merge"
+msgstr "Объединить"
+
+#: /wa-apps/shop/templates/actions/order/Order.html:52
+#: /wa-apps/shop/lib/workflow/templates/SettleAction.html:40
+msgid "mark this order as settled"
+msgstr "оставить без объединения"
+
+#: /wa-apps/shop/templates/actions/order/Order.html:328
+msgid "Order content is unknown"
+msgstr "Содержимое заказа не задано"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:174
+msgid "Buy button"
+msgstr "Виджет «Купить»"
+
+#: /wa-apps/shop/templates/actions/product/Product.html:322
+msgid "Images &amp; Video"
+msgstr "Фото и видео"
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:41
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:49
+msgid "Text color"
+msgstr "Цвет текста"
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:51
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:57
+msgid "Background color"
+msgstr "Цвет фона"
+
+#: /wa-apps/shop/templates/actions/product/ProductRelated.html:53
+msgid "Upselling & Similar product recommendations are not configured for %s product type. Setup filtering conditions for %s in the master <a href=\"%s\">recommendation settings</a>."
+msgstr "Для типа товаров «%s» условия подбора схожих и альтернативных товаров не заданы. Настройте условия подбора для товаров типа «%s» в основных <a href=\"%s\">настройках рекомендаций</a>."
+
+#: /wa-apps/shop/templates/actions/products/product_list_skus.html:145
+#: /wa-apps/shop/templates/actions/products/product_list_table.html:79
+msgid "Hidden product"
+msgstr "Скрытый товар"
+
+#: /wa-apps/shop/templates/actions/products/product_list_skus.html:233
+msgid "Data you have entered will not be saved. Are you sure you want to leave this page?"
+msgstr "Введенная информация не будет сохранена. Вы уверены, что хотите уйти со страницы без сохранения?"
+
+#: /wa-apps/shop/templates/actions/products/Products.html:237
+msgid "Thumbs"
+msgstr "Эскизы"
+
+#: /wa-apps/shop/templates/actions/products/Products.html:240
+msgid "Table"
+msgstr "Таблица"
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:62
+msgid "Default background color below the promo image."
+msgstr "Цвет фона под изображением."
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:66
+msgid "Timer"
+msgstr "Таймер"
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:70
+msgid "Countdown"
+msgstr "Обратный отсчет"
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:94
+msgid "format"
+msgstr "формат"
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:94
+msgid "current time is"
+msgstr "текущее время:"
+
+#: /wa-apps/shop/templates/actions/stocks/Stocks.html:6
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:7
+msgid "New transfer"
+msgstr "Новый трансфер"
+
+#: /wa-apps/shop/templates/actions/stocks/Stocks.html:18
+msgid "Show all %d completed transfers"
+msgstr "Показать все выполненные трансферы (%d)"
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:11
+msgid "Transfers is an easy way to move inventory from one stock to another. When you create new transfer, it automatically writes off selected products from the source stock. And once transfer has been completed, products are added to the destination stock."
+msgstr "Трансферы — это простой способ перемещения товаров со склада на склад. Во время создания трансфера товары автоматически списываются со склада-источника, а когда трансфер выполнен, добавляются на склад-приемник."
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:26
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:21
+msgid "Source stock"
+msgstr "Откуда"
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:33
+#: /wa-apps/shop/templates/actions/transfer/TransferInfo.html:19
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:40
+msgid "New arrival"
+msgstr "Новое поступление"
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:39
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:23
+msgid "Destination stock"
+msgstr "Куда"
+
+#: /wa-apps/shop/templates/actions/transfer/TransferInfo.html:88
+msgid "Transfer completed!"
+msgstr "Трансфер выполнен!"
+
+#: /wa-apps/shop/templates/actions/transfer/TransferInfo.html:89
+msgid "Rollback this transfer"
+msgstr "Откатить трансфер"
+
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:19
+msgid "Transfer ID"
+msgstr "ID"
+
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:37
+msgid "Cancelled"
+msgstr "Отменен"
+
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:54
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:63
+msgid "%d transfer"
+msgid_plural "%d transfers"
+msgstr[0] "%d трансфер"
+msgstr[1] "%d трансфера"
+msgstr[2] "%d трансферов"
+
+#: /wa-apps/shop/js/settings/order_states.js:297
+msgid "This is a preview of actions available for orders in this state"
+msgstr "Для заказов этого типа будут доступны все перечисленные здесь действия"
+
+#: /wa-apps/shop/lib/model/shopProductStocksLog.model.php:41
+#: /wa-apps/shop/lib/model/shopTransfer.model.php:370
+msgid "Transfer %s"
+msgstr "Трансфер %s"
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowSettleAction.class.php:30
+#: /wa-apps/shop/lib/workflow/shopWorkflowSettleAction.class.php:61
+msgid "Order was merged (settled) with %s"
+msgstr "Заказ был объединен с %s"
+
+#: /wa-apps/shop/lib/workflow/templates/MessageAction.html:55
+msgid "Edit template"
+msgstr "Редактировать шаблон"
+
+#: /wa-apps/shop/lib/workflow/templates/SettleAction.html:2
+msgid "Unsettled order"
+msgstr "Подвешенный заказ"
+
+#: /wa-apps/shop/lib/workflow/templates/SettleAction.html:3
+msgid "This order was received via sales channel that did not provide any information on the order content and the customer. If it is a duplicate of an existing order (or a payment confirmation for an existing order), merge orders by <strong>selecting the master order below</strong>."
+msgstr "Этот заказ был оформлен через канал продаж, который не предоставляет информации о покупателе и заказанных товарах. Если это дубликат или подтверждение оплаты ранее оформленного заказа, <strong>объедините заказы, выбрав главный заказ</strong> в списке ниже."
+
+#: /wa-apps/shop/lib/workflow/templates/SettleAction.html:40
+msgid "Merge orders"
+msgstr "Объединить заказы"
+
+#: /wa-apps/shop/templates/actions/backend/BackendOrders.html:69
+msgid "Sales channels"
+msgstr "Каналы продаж"
+
+#: /wa-apps/shop/templates/actions/dialog/DialogProductSetCreate.html:38
+msgid "Compare at price is set"
+msgstr "С зачеркнутой ценой"
+
+#: /wa-apps/shop/templates/actions/order/Order.html:130
+#: /wa-apps/shop/templates/actions/orders/Orders.html:47
+msgid "(no name)"
+msgstr "(без имени)"
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:19
+msgid "Customers will be able to collect multiple products in the cart before proceeding to checkout"
+msgstr "Покупатели смогут добавить несколько товаров в корзину, прежде чем перейти к оформлению заказа"
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:22
+msgid "Customers will be promptly redirected the main checkout"
+msgstr "Покупатели будут сразу же отправлены к оформлению заказа"
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:26
+msgid "Font family"
+msgstr "Шрифт"
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:36
+msgid "Widget width"
+msgstr "Ширина"
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:42
+msgid "Link color"
+msgstr "Цвет ссылки"
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:72
+msgid "Button color"
+msgstr "Цвет кнопки"
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:82
+msgid "Product image"
+msgstr "Изображение товара"
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:90
+msgid "Widget code"
+msgstr "Код виджета"
+
+#: /wa-apps/shop/templates/actions/product/ProductImages.html:48
+msgid "Video URL on YouTube or Vimeo"
+msgstr "Адрес видео на YouTube или Vimeo"
+
+#: /wa-apps/shop/templates/actions/product/ProductImages.html:49
+msgid "Link video"
+msgstr "Добавить видео"
+
+#: /wa-apps/shop/templates/actions/promos/PromosDefault.html:30
+msgid "Countdown: <strong>%s</strong>"
+msgstr "Обратный отсчет: <strong>%s</strong>"
+
+#: /wa-apps/shop/templates/actions/promos/PromosEditor.html:70
+msgid "Enable countdown"
+msgstr "Включить обратный отсчет"
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCohorts.html:135
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:231
+#: /wa-apps/shop/templates/actions/reports/ReportsProducts.html:204
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:135
+msgid "All channels"
+msgstr "Все каналы"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:45
+msgid "Stocks and priority"
+msgstr "Склады и приоритеты"
+
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:33
+msgid "On its way"
+msgstr "В пути"
+
+#: /wa-apps/shop/js/order/list.js:632
+msgid "Maximum of %d orders is allowed for bulk form printing."
+msgstr "Максимальное количество заказов, которые можно распечатать за раз — %d."
+
+#: /wa-apps/shop/lib/actions/product/shopProductVideoSave.controller.php:32
+msgid "Simply copy-and-paste the URL of product video on YouTube or Vimeo."
+msgstr "Просто скопируйте в это поле адрес видео на YouTube или Vimeo."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:57
+msgid "Virtual stock must include at least one real stock."
+msgstr "Выберите хотя бы один реальный склад для этого виртуального склада."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:64
+msgid "Indicator"
+msgstr "Индикатор"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:90
+msgid "Add virtual stock"
+msgstr "Добавить виртуальный склад"
+
+#: /wa-apps/shop/templates/actions/stocks/Stocks.html:12
+msgid "There are no pending stock transfers."
+msgstr "Нет трансферов в статусе «В пути»."
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:18
+msgid "ID"
 msgstr ""
 
-#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:168
-msgid "Custom skus' fields"
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:92
+msgid "Create transfer"
+msgstr "Новый трансфер"
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:95
+msgid "Transfer complete"
+msgstr "Трансфер выполнен"
+
+#: /wa-apps/shop/templates/actions/transfer/TransferList.html:57
+msgid "Show more transfers"
+msgstr "Показать еще"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:170
+msgid "Custom product fields"
+msgstr "Дополнительные характеристики товаров"
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:172
+msgid "Custom sku fields"
+msgstr "Дополнительные характеристики артикулов"
+
+#: /wa-apps/shop/lib/actions/order/shopOrderSettle.controller.php:52
+#: /wa-apps/shop/lib/workflow/shopWorkflowPayAction.class.php:74
+#: /wa-apps/shop/lib/workflow/shopWorkflowSettleAction.class.php:128
+msgid "Field %s changed %s → %s"
+msgstr "Обновлено поле %s: %s → %s"
+
+#: /wa-apps/shop/lib/actions/order/shopOrderSettle.controller.php:62
+msgid "Order was updated via merge by order %s"
+msgstr "Заказ был обновлен при объединении с %s"
+
+#: /wa-apps/shop/lib/actions/order/shopOrderSettle.controller.php:98
+msgid "Order data was merged into %s"
+msgstr "Заказ был объединен с %s"
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransfer.actions.php:29
+msgid "Product list is empty"
+msgstr "Список товаров пуст"
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransfer.actions.php:36
+msgid "Count must be >= 1"
+msgstr "Количество должно быть не менее 1"
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransfer.actions.php:43
+msgid "Destination stock is required"
+msgstr "Необходимо выбрать склад, на который производится трансфер"
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransfer.actions.php:54
+msgid "Transfer ID is already in use"
+msgstr "Идентификатор трансфера уже используется"
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransferSkus.controller.php:102
+msgid "Not in stock on %s"
+msgstr "Нет на складе %s"
+
+#: /wa-apps/shop/lib/config/data/workflow.php:243
+msgid "Order was settled"
+msgstr "Заказ был объединен с другим"
+
+#: /wa-apps/shop/lib/config/site.php:113
+msgid "Visible stocks"
+msgstr "Показывать склады"
+
+#: /wa-apps/shop/lib/config/site.php:117
+msgid "All public stocks"
+msgstr "Все склады, видимые покупателям"
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowEditAction.class.php:134
+msgid "Editing this order will mark this order as settled and will re-calculate it's current amount (%s) based on the order content your enter. Are you sure you want to settle this order and reset the order amount?"
 msgstr ""
+"Редактирование автоматически снимет статус подвешенного заказа и приведет к автоматическому пересчету общей суммы заказа (%s) согласно товарам, которые вы добавите в заказ.\n"
+"Продолжить?"
+
+#: /wa-apps/shop/lib/workflow/templates/SettleAction.html:49
+msgid "This will replace selected order %id% details with the amount (%amount%) and status (%state%) of this unsettled order. Are you sure?"
+msgstr "При объединении данные основного заказа %id% будут обновлены: сумма и статус будут установлены равными сумме (%amount%) и статусу (%state%) текущего подвешенного заказа. Продолжить?"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:37
+msgid "Visible to customers"
+msgstr "Виден на витрине"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:47
+msgid "Low"
+msgstr "Мало"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:52
+msgid "Critical"
+msgstr "Очень мало"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:75
+msgid "Virtual stock is a group of real stocks. The order of real stocks defines the priority for product stock update when order is placed. This is handy for grouping real stocks and points of sale which are located within the same geographical region, and defining rules for automated product stock updates. <a href=\"%s\" target=\"_blank\">Help</a> <i class=\"icon10 new-window\"></i>"
+msgstr "Виртуальный склад — это группа реальных складов. Порядок складов в рамках виртуального склада определяет приоритет списания товаров со складов во время оформления заказа и позволяет автоматизировать, например, правила списания для складов хранения и точек продаж, находящихся в одном географическом регионе. <a href=\"%s\" target=\"_blank\">Помощь</a> <i class=\"icon10 new-window\"></i>"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:112
+msgid "Not visible to customers"
+msgstr "Не виден на витрине"
+
+#: /wa-apps/shop/lib/actions/backend/shopBackendLoc.action.php:96
+msgid "You've added %d product to this transfer already. Are you sure you want to change the source stock?"
+msgid_plural "You've added %d products to this transfer already. Are you sure you want to change the source stock?"
+msgstr[0] "Вы уже добавили %d товар в этот трансфер. Вы уверены, что хотите сменить склад-источник, откуда производится трансфер?"
+msgstr[1] "Вы уже добавили %d товара в этот трансфер. Вы уверены, что хотите сменить склад-источник, откуда производится трансфер?"
+msgstr[2] "Вы уже добавили %d товаров в этот трансфер. Вы уверены, что хотите сменить склад-источник, откуда производится трансфер?"
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:65
+msgid "Price color"
+msgstr "Цвет цены"
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:30
+msgid "New arrival (no source stock)"
+msgstr "Новое поступление (нет склада-источника)"
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransfer.actions.php:29
+msgid "Add at least one product to the transfer"
+msgstr "Добавьте в трансфер хотя бы один товар"
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransfer.actions.php:36
+msgid "Product count must be not less than 1"
+msgstr "Количество товара должно быть не менее единицы"
+
+#: /wa-apps/shop/lib/actions/transfer/shopTransfer.actions.php:65
+msgid "Source and destination stocks must not be the same"
+msgstr "Склады «откуда» и «куда» должны быть разными"
+
+#: /wa-apps/shop/templates/actions/transfer/TransferInfo.html:152
+msgid "Products will be returned to the source stock. Are you sure?"
+msgstr "Товары будут возвращены на исходный склад. Вы уверены?"
+
+#: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:19
+msgid "Locale"
+msgstr "Язык"
+
+#: /wa-apps/shop/templates/actions/order/Order.html:71
+msgid "Sales channel"
+msgstr "Канал продаж"
+
+#: /wa-apps/shop/templates/actions/reports/ReportsOrderList.html:119
+msgid "No orders"
+msgstr "Нет заказов"
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:42
+msgid "Purchase worth"
+msgstr "Стоимость активов"
+
+#: /wa-apps/shop/templates/actions/reports/sales_sidebar.html:18
+msgid "Stacked chart"
+msgstr "Детализация"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPrintform.html:18
+msgid "There are no printforms installed."
+msgstr "Печатные формы не установлены."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:317
+msgid "Condition"
+msgstr "Условие"
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:80
+msgid "Start typing name of an existing product or SKU"
+msgstr "Начните вводить название уже добавленного товара или артикула"
+
+#: /wa-apps/shop/templates/mail/Order.create.html:109
+msgid "Order status"
+msgstr "Статус заказа"
+
+#: /wa-apps/shop/templates/mail/Order.create.html:309
+msgid "When this order is paid, your affiliate bonus will be increased to %s."
+msgstr "После оплаты заказа ваш партнерский бонус увеличится до %s."
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:350
+msgid "Sales by sales channel"
+msgstr "Продажи по каналам"
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:354
+msgid "Sales by storefront"
+msgstr "Продажи по витринам"
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowCallbackAction.class.php:17
+msgid "Unsettled order %s was created so you could resolve this case manually."
+msgstr "Подвешенный заказ %s был создан, чтобы вы смогли разобрать этот случай вручную."
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowCallbackAction.class.php:22
+msgid "Original order that did not accept the callback request: %s"
+msgstr "Ответ платежной системы не был применен к основному заказу: %s"
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowCallbackAction.class.php:15
+msgid "Callback request was received but not applied to this order the following reason: <strong>%s</strong>"
+msgstr "Ответ платежной системы получен, но не применен к этому заказу по следующей причине: <strong>%s</strong>"
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowCallbackAction.class.php:19
+msgid "This unsettled order was created because its initiating callback request was rejected by the original order it was addressed to. We thought you should resolve this case manually. The reason was: <strong>%s</strong>"
+msgstr "Этот подвешенный заказ был создан, потому что ответ платежной системы был принят, но не применен к основному заказу. Причина: <strong>%s</strong>. Мы решили, что вам следуем разобрать этот случай вручную."
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowSettleAction.class.php:133
+msgid "%s was updated: %s → %s"
+msgstr "%s обновлено: %s → %s"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:242
+msgid "Add condition..."
+msgstr "Добавить условие..."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:286
+msgid "Real stock linking:"
+msgstr "Выбор реального склада:"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:289
+msgid "Link items to most suitable stock according to availability"
+msgstr "Назначать подходящий склад согласно приоритету и наличию"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:292
+msgid "Always link to %s"
+msgstr "Всегда назначать на %s"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:305
+msgid "Stock linking rules"
+msgstr "Правила автоматического выбора складов"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:306
+msgid "When order is placed, ordered items will be automatically linked with a stock according to the rules defined below. E.g. different stocks may be preferred depending on selected shipping option or particular customer location. When no matching stock rule were found, ordered items will be linked to the current storefront default stock."
+msgstr "Когда заказ оформлен, заказанные товары списываются со склада, который выбирается в зависимости от заданных ниже правил. Например, может быть удобно автоматически списывать с разных складов в зависимости от выбранного способа доставки или адреса покупателя. В случае, если не будет найдено ни одного подходящего правила, заказанные товары будут списаны со склада, указанного в настройках витрины в качестве склада по умолчанию."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:75
+msgid "http://www.shop-script.com/help/12062/stocks/"
+msgstr "http://www.shop-script.ru/help/11897/stocks/"
+
+#: /wa-apps/shop/lib/actions/settings/stock/shopSettingsStock.action.php:123
+msgid "By shipping option"
+msgstr "По способу доставки"
+
+#: /wa-apps/shop/lib/actions/settings/stock/shopSettingsStock.action.php:128
+msgid "By region"
+msgstr "По региону"
+
+#: /wa-apps/shop/templates/actions/dialog/include.category_visibility_setting.html:33
+msgid "Apply new visibility settings to all subcategories"
+msgstr "Применить новые настройки видимости к подкатегориям"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:285
+msgid "Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href=\"?action=settings#/checkout/\">Guest checkout setting</a> is not enabled."
+msgstr "Адрес (URL) страницы регистрации. Значение будет пустым, если заказ был оформлен ранее зарегистрированным покупателем или если в основных настройках магазина выключена возможность оформления <a href=\"?action=settings#/checkout/\">заказа без авторизации</a>."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:294
+msgid "Indicates if <a href=\"?action=settings#/affiliate/\">Loyalty program</a> is enabled in store settings."
+msgstr "Переменная указывает, включена ли <a href=\"?action=settings#/affiliate/\">бонусная программа</a> в общих настройках магазина."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:303
+msgid "Amount of affiliate bonus that will be credited to customer account when order is paid."
+msgstr "Сумма баллов, которые будут начислены на бонусный счет покупателя после оплаты заказа."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:413
+msgid "At least one condition is required"
+msgstr "Необходимо добавить хотя бы одно условие"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStockByRegion.html:5
+msgid "Shipping countries and regions"
+msgstr "Страны и регионы доставки"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStockByRegion.html:6
+msgid "country or region name"
+msgstr "страна или регион"
+
+#: /wa-apps/shop/lib/actions/settings/stock/shopSettingsStock.action.php:145
+msgid "By shipping location"
+msgstr "По адресу доставки"
