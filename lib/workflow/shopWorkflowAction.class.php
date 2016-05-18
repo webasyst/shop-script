@@ -130,6 +130,11 @@ HTML;
         $data['id'] = $order_log_model->add($data);
 
         $update = isset($result['update']) ? $result['update'] : array();
+
+        if (!empty($order['unsettled']) && (wa()->getEnv() == 'backend')) {
+            $update['unsettled'] = 0;
+        }
+
         $update['update_datetime'] = date('Y-m-d H:i:s');
         $data['update'] = $update;
 
@@ -185,7 +190,7 @@ HTML;
 
     /**
      * @param string $template suffix to add to template basename
-     * @return string template file basename for this action. Can be overriden in subclasses.
+     * @return string template file basename for this action. Can be overridden in subclasses.
      */
     protected function getTemplateBasename($template = '')
     {

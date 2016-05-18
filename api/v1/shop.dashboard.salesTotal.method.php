@@ -6,7 +6,22 @@ class shopDashboardSalesTotalMethod extends waAPIMethod
 
     public function execute()
     {
-        $totals = self::getTotals();
+        if (wa()->getUser()->getRights('shop', 'reports')) {
+            $totals = self::getTotals();
+        } else {
+            $totals = array(
+                "order_count" => 0,
+                "customer_count" => 0,
+                "new_customer_count" => 0,
+                "cost" => 0,
+                "sales" => 0,
+                "shipping" => 0,
+                "tax" => 0,
+                "purchase" => 0,
+                "profit" => 0,
+                "products" => 0,
+            );
+        }
         $this->response = array(
             'totals' => $totals,
             'avg_order_sales' => 0,

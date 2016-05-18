@@ -297,7 +297,9 @@
                     if (name === 'storefront') {
                         params.push("data-" + (name.replace('_', '-')) + "='" + ':storefront' + "'");
                     } else {
-                        params.push("data-" + (name.replace('_', '-')) + "='" + val + "'");
+                        if (val) {
+                            params.push("data-" + (name.replace('_', '-')) + "='" + val + "'");
+                        }
                     }
                 }
 

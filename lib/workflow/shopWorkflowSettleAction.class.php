@@ -35,10 +35,7 @@ class shopWorkflowSettleAction extends shopWorkflowAction
             }
 
             if ($master_id != $order_id) {
-                $master_id_str = htmlentities(shopHelper::encodeOrderId($master_id), ENT_QUOTES, 'utf-8');
-                $link = sprintf('<a href="#/orders/id=%d" class="inline-link">%s</a>', $master_id, $master_id_str);
-
-                $text = sprintf(_w('Order was merged (settled) with %s'), $link);
+                $text = sprintf(_w('Order was merged (settled) with %s'), $this->getOrderLink($master_id));
             } else {
                 $text = null;
             }
@@ -81,10 +78,7 @@ class shopWorkflowSettleAction extends shopWorkflowAction
                     $log_model = new waLogModel();
                     $log_model->add('order_delete', $order_id);
 
-                    $id_str = htmlentities(shopHelper::encodeOrderId($order_id), ENT_QUOTES, 'utf-8');
-                    $link = sprintf('<a href="#/orders/id=%d" class="inline-link">%s</a>', $order_id, $id_str);
-
-                    $text = sprintf(_w('Order was merged (settled) with %s'), $link);
+                    $text = sprintf(_w('Order was merged (settled) with %s'), $this->getOrderLink($order_id));
                     $text .= sprintf('(%s %s)', $order['total'], $order['currency']);
 
                     $update = array(
@@ -136,7 +130,7 @@ class shopWorkflowSettleAction extends shopWorkflowAction
                     $changes = array();
                     foreach ($fields as $field) {
                         if (isset($result['update'][$field]) && ($result['update'][$field] != $order[$field])) {
-                            $change = sprintf(_w('Field %s changed %s → %s'), $field, $order[$field], $result['update'][$field]);
+                            $change = sprintf(_w('%s was updated: %s → %s'), $field, $order[$field], $result['update'][$field]);
                             $changes[] = sprintf('<li>%s</li>', $change);
                         }
                     }
@@ -201,5 +195,11 @@ class shopWorkflowSettleAction extends shopWorkflowAction
 
         $this->getView()->assign(compact('unsettled_suggest_orders', 'order', 'filter', 'order_by'));
         return parent::getHTML($order_id);
+    }
+
+    private function getOrderLink($id)
+    {
+        $id_str = htmlentities(shopHelper::encodeOrderId($id), ENT_QUOTES, 'utf-8');
+        return sprintf('<a href="#/order/%d/" class="inline-link">%s</a>', $id, $id_str);
     }
 }

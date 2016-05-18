@@ -26,6 +26,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'meta_description' => _w('META Description'),
                 'url'              => _w('Storefront link'),
                 'images'           => _w('Product images'),
+                'video_url'        => _w('Video URL on YouTube or Vimeo'),
                 //   'rating'                 => _w('Rating'),
                 'params'           => _w('Custom parameters'),
             ),

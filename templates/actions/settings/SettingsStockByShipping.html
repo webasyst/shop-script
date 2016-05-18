@@ -1,0 +1,23 @@
+<script type="text/template" id="by_shipping_condition_template">
+    <p>[`Shipping option`]:
+    <select name="rules[%%ID%%][rule_data]">
+        {foreach $shipping_types as $t}
+            <option value="{$t.id|escape}">{$t.name|escape}</option>
+        {/foreach}
+    </select></p>
+</script>
+
+<script>(function() { "use strict";
+
+    var template_form = $('#by_shipping_condition_template').html();
+    var $table_tbody = $('#s-settings-stock-rules-form table tbody').first();
+    $table_tbody.on('rules:condition_init.by_shipping', '.stock-rule-condition', function(evt) {
+        var $condition_wrapper = $(this);
+        var tmpl = template_form.replace(/%%ID%%/g, evt.rule_id);
+        // Replace default hidden field with our custom form
+        $condition_wrapper.find('input[name$="[rule_data]"]').replaceWith($.parseHTML(tmpl));
+        // Set values in our custom form
+        $condition_wrapper.find('select[name$="[rule_data]"]').val(evt.rule_data);
+    });
+
+})();</script>

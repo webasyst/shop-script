@@ -106,6 +106,21 @@
 <script type="text/javascript">
     $('#s-product-save > div.s-product-form.related').addClass('ajax');
 
+    var save = function (data, after) {
+        $('#product-save-message').html('<i class="icon16 loading"></i>');
+        return $.shop.jsonPost(
+                '?module=product&action=relatedSave&id={$product.id}',
+                data,
+                function (response) {
+                    $('#product-save-message').html('<i class="icon16 yes"></i>');
+                    setTimeout(function () {
+                        $('#product-save-message').html('')
+                    }, 300);
+                    after && after(response);
+                }
+        );
+    };
+
     (function() {
         var $autocompletes = $('.product-autocomplete').autocomplete({
             source: '?action=autocomplete',
@@ -119,10 +134,10 @@
                 tr.insertBefore($(this).closest('tr'));
 
                 // save
-                $.post('?module=product&action=relatedSave&id={$product.id}', {
+                save({
                     'type': $(this).data('type'),
                     'product_id': ui.item.id
-                }, function (response) { }, "json");
+                });
 
                 // Do not close autocompletion list after select
                 var autocomplete = $(this).data('autocomplete');
@@ -164,14 +179,13 @@
         } else {
             $(this).closest('div.field').find('.manually').hide();
         }
-        $.post('?module=product&action=relatedSave&id={$product.id}', data, function (response) {
-        }, "json");
+        save(data);
     });
 
     $("table.related").on('click', 'a.delete', function () {
         var tr = $(this).closest('tr');
         var type = tr.closest('table.related').find('input').data('type');
-        $.post('?module=product&action=relatedSave&id={$product.id}', {
+        save({
             'type': type,
             'delete': 1,
             'product_id': tr.data('product-id')
@@ -179,7 +193,7 @@
             if (response.status == 'ok') {
                 tr.remove();
             }
-        }, "json");
+        });
         return false;
     });
 </script>

@@ -1,6 +1,6 @@
 
 {function stock_editor_form stock=null substocks=null}
-    <div class="fields form width100px">
+    <div class="fields form width100px" style="margin-top: -10px;">
       <div class="field-group">
         {strip}{if !empty($stock.id)}
             {if $substocks !== null}
@@ -38,7 +38,7 @@
                 </label>
             </div>
             <div class="value no-shift storefonts-checklist {if empty($stock.public)} hidden{/if}">
-                <em class="gray">(coming soon: limit visibility by storefront)</em>
+                <em class="hidden gray">(coming soon: limit visibility by storefront)</em>
             </div>
         </div>
         <div class="field">
@@ -59,7 +59,7 @@
             <div class="field">
                 <div class="name">[`Stocks and priority`]</div>
                 <div class="sortable substocks-wrapper">
-                {foreach $stocks as $s}{if empty($s.substocks)}
+                {foreach array_replace(array_flip($substocks), $stocks) as $s}{if empty($s.substocks)}
                     <div class="value no-shift substock-checkbox-wrapper">
                         <i class="icon16 sort substocks-handle"></i>
                         <label>
@@ -72,7 +72,7 @@
                         [`Virtual stock must include at least one real stock.`]
                     </div>
                     <div class="value no-shift">
-                        <p class="hint">{sprintf('[`Virtual stock is a group of real stocks. The order of real stocks defines the priority for product stock update when order is placed. This is handy for grouping real stocks and points of sale which are located within the same geographical region, and defining rules for automated product stock updates. <a href="%s" target="_blank">Help</a> <i class="icon10 new-window"></i>`]', '#')}</p>
+                        <p class="hint">{sprintf('[`Virtual stock is a group of real stocks. The order of real stocks defines the priority for product stock update when order is placed. This is handy for grouping real stocks and points of sale which are located within the same geographical region, and defining rules for automated product stock updates. <a href="%s" target="_blank">Help</a> <i class="icon10 new-window"></i>`]', '[`http://www.shop-script.com/help/12062/stocks/`]')}</p>
                     </div>
                 </div>
                 <input type="hidden" name="{$input_var}[substocks][]" value="{join(',', $substocks)}" class="substocks"{$disabled}>
@@ -82,7 +82,7 @@
     </div>
 {/function}
 
-<script type="text/javascript" src="{$wa_app_static_url}js/settings/stocks.js?{$wa->version()}"></script>
+<script src="{$wa_app_static_url}js/settings/stocks.js?{$wa->version()}"></script>
 <div class="blank block double-padded s-settings-form">
     <h1 style="margin-bottom: 0.75em;">[`Stocking`]</h1>
     <p>[`Inventory tracking is performed by stocks (warehouses) listed below. Yellow and red indicators are used to visually display low and critical stock levels in both backend and storefront.`]</p>
@@ -196,7 +196,139 @@
     </form>
 </div>
 
-{* dialogs section *}
+{*
+ * Stock rules form
+ *}
+
+{*
+ * Helper to draw condition editor for rules
+ *}
+{function rule_condition_editor_form conditions=null}
+    {if $conditions}
+        {foreach $conditions as $rule}
+
+            {str_replace(['%%RULE_ID%%', '%%RULE_TYPE%%', '%%RULE_DATA%%'], [
+                $rule.id,
+                $rule.rule_type,
+                $rule.rule_data
+            ], $smarty.capture.new_condition)}
+
+        {/foreach}
+    {/if}
+
+    <select class="add-condition-selector">
+        <option value="">[`Add condition...`]</option>
+        {foreach $rule_condition_types as $ct}
+            <option value="{$ct.id|escape}">{$ct.name|escape}</option>
+        {/foreach}
+    </select>
+{/function}
+
+{*
+ * HTML for new rule condition (before plugins have chance to alter its form)
+ *}
+
+{capture "new_condition"}
+    <div class="stock-rule-condition condition-type-%%RULE_TYPE%%" data-rule-id="%%RULE_ID%%">
+        <div class="float-right">
+            <a href="javascript:void(0)" title="[`Delete`]" class="inline nowrap no-underline s-delete-condition"><i class="icon16 delete"></i></a>
+        </div>
+        <input type="hidden" name="rules[%%RULE_ID%%][rule_type]" value="%%RULE_TYPE%%">
+        <input type="hidden" name="rules[%%RULE_ID%%][rule_data]" value="%%RULE_DATA%%">
+    </div>
+{/capture}
+
+{* Helper to draw rulegroup rows *}
+{function rulegroup group=null}
+    <tr class="s-stock-rule">
+        <td class="min-width s-stock-sort-handle">
+            <a style="display: inline;" href="javascript: void(0)"><i class="icon16 sort"></i></a>
+        </td>
+        <td>
+            {if $group}
+                {rule_condition_editor_form conditions=$group.conditions}
+            {else}
+                {rule_condition_editor_form}
+            {/if}
+        </td>
+        <td class="min-width"><i class="icon16 move"></i></td>
+        <td>
+            <select class="stock-selector">
+                {if $group && empty($stocks[$group.parent_stock_id])}
+                    <option value="{$group.parent_stock_id|escape}" selected>Deleted stock_id={$group.parent_stock_id|escape}</option>
+                {/if}
+                {foreach $stocks as $stock_id => $s}
+                    <option value="{$stock_id|escape}"{if $group && $group.parent_stock_id == $stock_id} selected{/if}>{$s.name|escape}</option>
+                {/foreach}
+            </select>
+            {*
+            <div class="hint" style="margin-top:20px;display:none;">
+                [`Real stock linking:`]<br>
+                {foreach $stocks as $stock_id => $s}{if !empty($s.substocks)}
+                    <select class="hidden substock-selector" data-stock-id="{$stock_id|escape}">
+                        <option value="">[`Link items to most suitable stock according to availability`]</option>
+                        {foreach $s.substocks as $substock_id}{if !empty($stocks[$substock_id])}
+                            {$substock = $stocks[$substock_id]}
+                            <option value="{$substock.id|escape}"{if $group && $group.substock_id == $substock_id} selected{/if}>{sprintf('[`Always link to %s`]',$substock.name|escape)}</option>
+                        {/if}{/foreach}
+                    </select>
+                {/if}{/foreach}
+            </div>
+            *}
+        </td>
+        <td class="min-width">
+            <a href="javascript:void(0)" title="[`Delete`]" class="inline nowrap no-underline s-delete-rule"><i class="icon16 delete"></i></a>
+        </td>
+    </tr>
+{/function}
+
+<div class="blank block double-padded">
+    <h1 style="margin-bottom: 0.75em;">[`Stock linking rules`]</h1>
+    <p>[`When order is placed, ordered items will be automatically linked with a stock according to the rules defined below. E.g. different stocks may be preferred depending on selected shipping option or particular customer location. When no matching stock rule were found, ordered items will be linked to the current storefront default stock.`]</p>
+    <div class="block bottom-padded">
+        <a href="javascript:void(0)" class="inline-link bold" id="s-settings-add-rule">
+            <i class="icon16 add"></i><b><i><strong>[`Add rule`]</strong></i></b>
+        </a>
+    </div>
+    <form action="?module=settings&action=saveStockRules" method="post" id="s-settings-stock-rules-form">
+        <table class="s-big-table zebra">
+            <thead>
+                <tr class="white">
+                    <th class="min-width"></th>
+                    <th class="grey" style="">[`Condition`]</th>
+                    <th class="min-width"></th>
+                    <th class="grey" style="padding:20px 15px 15px;text-align:left;">[`Stock`]</th>
+                    <th class="min-width"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {foreach $rule_groups as $group}
+                    {rulegroup group=$group}
+                {/foreach}
+                {capture "new_rule"}{strip}
+                    {rulegroup}
+                {/strip}{/capture}
+                {foreach $storefront_rule_groups as $row}
+                    <tr class="s-stock-rule disabled">
+                        <td class="min-width"></td>
+                        <td>[`Storefront`] {$row.storefront|escape}</td>
+                        <td class="min-width"><i class="icon16 move"></i></td>
+                        <td>{$row.stock_name|escape}</td>
+                        <td class="min-width"></td>
+                    </tr>
+                {/foreach}
+            </tbody>
+        </table>
+        <br><br>
+
+        <input type="submit" name="save" class="button green" value="[`Save`]">
+        <span class="hidden s-msg-after-button"><i class="icon16 yes after-submit"></i></span>
+    </form>
+</div>
+
+{*
+ * dialogs section
+ *}
 
 <div class="dialog width400px height150px" id="s-settings-delete-last-stock">
     <div class="dialog-background"></div>
@@ -243,9 +375,9 @@
                     <li>
                         <label>
                             <select name="dst_stock" disabled="disabled">
-                                {foreach $stocks as $stock}
+                                {foreach $stocks as $stock}{if empty($s.substocks)}
                                     <option value="{$stock.id}">{$stock.name|escape}</option>
-                                {/foreach}
+                                {/if}{/foreach}
                             </select>
                         </label>
                     </li>
@@ -271,7 +403,22 @@ $.settings.stocksInit({
         no_greater: "[`This value must be no greater than previous field count`]",
         empty: "[`Empty value`]"
     },
+    new_rule: {json_encode($smarty.capture.new_rule)},
     new_stock: {json_encode($smarty.capture.new_stock)},
     new_virtualstock: {json_encode($smarty.capture.new_virtualstock)}
 });
+$.settings.stockRulesInit(
+    {json_encode(trim($smarty.capture.new_rule))},
+    {json_encode(trim($smarty.capture.new_condition))},
+    "[`At least one condition is required`]"
+);
 </script>
+
+<div class="hidden">
+{foreach $plugins_html as $html}
+<div>{$html}</div>
+{/foreach}
+</div>
+
+<script>setTimeout($.settings.stockConditionsInit, 30);</script>
+

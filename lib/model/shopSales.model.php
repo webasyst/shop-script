@@ -64,6 +64,13 @@ class shopSalesModel extends waModel
      */
     public function getPeriodByDate($type, $date_start, $date_end, $options=array())
     {
+
+        $filter = array();
+        if (array_key_exists('filter', $options)) {
+            $filter = $options['filter'];
+            unset($options['filter']);
+        }
+
         // Check parameters
         empty($date_end) && ($date_end = date('Y-m-d 23:59:59'));
         empty($date_start) && ($date_start = $this->getMinDate());
@@ -80,6 +87,10 @@ class shopSalesModel extends waModel
         if ($type == 'coupons' || $type == 'campaigns' || $type == 'social') {
             $type_sql = "AND name <> ''";
         }
+
+        $filter_sql = $this->getWhereByField($filter);
+        $filter_sql = $filter_sql ? ' AND ' . $filter_sql : '';
+
 
         // Make sure data is prepared in table
         empty($options['ensured']) && $this->ensurePeriod($type, $date_start, $date_end, $options);
@@ -98,8 +109,10 @@ class shopSalesModel extends waModel
                 WHERE hash=?
                     AND {$date_sql}
                     {$type_sql}
+                    {$filter_sql}
                 GROUP BY {$date_col}
                 ORDER BY `date`";
+
 
         $sales_by_date = $this->query($sql, $hash)->fetchAll('date');
 
@@ -179,6 +192,13 @@ class shopSalesModel extends waModel
      */
     public function getPeriod($type, $date_start, $date_end, $options=array(), &$total_rows=null)
     {
+
+        $filter = array();
+        if (array_key_exists('filter', $options)) {
+            $filter = (array) $options['filter'];
+            unset($options['filter']);
+        }
+
         // Check parameters
         empty($date_end) && ($date_end = date('Y-m-d 23:59:59'));
         empty($date_start) && ($date_start = $this->getMinDate());
@@ -197,10 +217,8 @@ class shopSalesModel extends waModel
 
         $date_sql = self::getDateSql('`date`', $date_start, $date_end);
 
-        $name_sql = '';
-        if (!empty($options['names'])) {
-            $name_sql = 'AND name IN (:names)';
-        }
+        $filter_sql = $this->getWhereByField($filter);
+        $filter_sql = $filter_sql ? ' AND ' . $filter_sql : '';
 
         // Using derived query because otherwise
         // ORDER BY would not work for some columns (average_order)
@@ -218,14 +236,15 @@ class shopSalesModel extends waModel
                     FROM {$this->table}
                     WHERE hash=:hash
                         AND {$date_sql}
-                        {$name_sql}
+                        {$filter_sql}
                     GROUP BY name) AS t
                 ORDER BY ".$this->getOrderBy(ifset($options['order']))."
                 LIMIT ".ifset($options['start'], 0).", ".ifset($options['limit'], wa('shop')->getConfig()->getOption('statrows_per_page'));
+
         $rows = $this->query($sql, array(
-            'hash' => $hash,
-            'names' => ifset($options['names']),
+            'hash' => $hash
         ));
+
         $total_rows = $this->query("SELECT FOUND_ROWS()")->fetchField();
         $result = array();
         foreach($rows as $row) {
@@ -843,34 +862,33 @@ class shopSalesModel extends waModel
         // Fill in our temporary table.
         // This part differs for different `$type`s
         switch($type) {
-            case 'sources':
-                $this->rebuildTmpByParam($order_date_sql, $options, 'referer_host');
-                break;
             case 'customer_sources':
                 $this->rebuildTmpCustomerSources($order_date_sql, $options);
                 break;
             case 'countries':
                 $this->rebuildTmpCountries($order_date_sql, $options);
                 break;
-            case 'shipping':
-                $this->rebuildTmpByParam($order_date_sql, $options, 'shipping_name');
-                break;
-            case 'payment':
-                $this->rebuildTmpByParam($order_date_sql, $options, 'payment_name');
-                break;
             case 'coupons':
                 $this->rebuildTmpCoupons($order_date_sql, $options);
-                break;
-            case 'campaigns':
-                $this->rebuildTmpByParam($order_date_sql, $options, 'utm_campaign');
-                break;
-            case 'landings':
-                $this->rebuildTmpByParam($order_date_sql, $options, 'landing');
                 break;
             case 'social':
                 $this->rebuildTmpSocial($order_date_sql, $options);
                 break;
+            case 'sales_channels':
+                $this->rebuildTmpBySalesChannels($order_date_sql, $options);
+                break;
             default:
+                $param_map = array(
+                    'sources' => 'referer_host',
+                    'shipping' => 'shipping_name',
+                    'payment' => 'payment_name',
+                    'campaigns' => 'utm_campaign',
+                    'landings' => 'landing',
+                    'storefronts' => 'storefront'
+                );
+                if (isset($param_map[$type])) {
+                    return $this->rebuildTmpByParam($order_date_sql, $options, $param_map[$type]);
+                }
                 throw new waException('Unknown type: '.$type);
         }
     }
@@ -1159,6 +1177,25 @@ class shopSalesModel extends waModel
                     {$storefront_where}
                     {$abtest_where}";
         $this->exec($sql, $param_name);
+    }
+
+    protected function rebuildTmpBySalesChannels($date_sql, $options)
+    {
+        list($abtest_join, $abtest_where) = $this->getAbtestSql($options);
+        list($storefront_join, $storefront_where) = $this->getStorefrontSql($options);
+        $sql = "INSERT INTO shop_sales_tmp (order_id, name)
+                SELECT o.id, IFNULL(op.value, '')
+                FROM shop_order AS o
+                    LEFT JOIN shop_order_params AS op
+                        ON op.order_id=o.id
+                            AND op.name='sales_channel'
+                    {$storefront_join}
+                    {$abtest_join}
+                WHERE {$date_sql}
+                    {$storefront_where}
+                    {$abtest_where}
+                    AND SUBSTRING(IFNULL(op.value, ''), 1, 11) != 'storefront:'";
+        $this->exec($sql);
     }
 
     protected function getAbtestSql($options)

@@ -200,6 +200,10 @@ class shopFrontendCartAction extends shopFrontendAction
                                 } else {
                                     unset($item_services[$service_id]['variants'][$variant_id]);
                                 }
+                                // default variant is different for this product
+                                if ($v['status'] == shopProductServicesModel::STATUS_DEFAULT) {
+                                    $item_services[$service_id]['variant_id'] = $variant_id;
+                                }
                             }
                         } elseif (isset($item_services[$service_id])) {
                             // remove disabled service
@@ -241,7 +245,9 @@ class shopFrontendCartAction extends shopFrontendAction
                     }
 
                     if (count($s['variants']) == 1) {
-                        $v = reset($s['variants']);
+                        $v_id = key($s['variants']);
+                        $v = $s['variants'][$v_id];
+                        $s['variant_id'] = $v_id;
                         $s['price'] = $v['price'];
                         unset($s['variants']);
                     }

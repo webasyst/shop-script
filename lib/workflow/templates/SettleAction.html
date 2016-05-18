@@ -46,7 +46,8 @@
     <br>
 
     <div class="js-settle-form-actions">
-        <input type="submit" class="button yellow" value="[`Merge orders`]" data-confirm="[`This will replace selected order %id% details with the amount (%amount%) and status (%state%) of this unsettled order. Are you sure?`]'"> [`or`] <a href="#" class="inline">[`mark this order as settled`]</a>
+        <input type="submit" class="button yellow" value="[`Merge orders`]" data-confirm="{'[`This will replace selected order %id% details with the amount (%amount%) and status (%state%) of this unsettled order. Are you sure?`]'|replace:'%state%':"%state% → {$order.state->getName()|default:$order.state_id|default:'error'}"|replace:'%amount%':"%amount% → {$order.total_str|default:'unknown'|strip_tags}"|escape}"
+        > [`or`] <a href="#" class="inline">[`mark this order as settled`]</a>
     </div>
 
 </form>
@@ -90,8 +91,16 @@
             var data =$form.serialize();
             $form.find(':input').attr('disabled','disabled');
             $('.s-unsettled-order-settle-form i.icon16.loading:first').show();
-            $.post($form.attr('action'), data, function () {
-                $.order.reload();
+            $.post($form.attr('action'), data, function (response) {
+                if (response.data.params
+                        && response.data.params['workflow.settle_target_id']
+                        && (response.data.params['workflow.settle_target_id'] != response.data.order_id)
+                ) {
+                    window.location.hash = '/order/' + response.data.params['workflow.settle_target_id'] + '/';
+                } else {
+                    $.order.reload();
+                }
+
             }, "json");
             return false;
         });

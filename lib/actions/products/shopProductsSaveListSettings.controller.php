@@ -2,8 +2,6 @@
 
 class shopProductsSaveListSettingsController extends waJsonController
 {
-    private $model;
-
     public function execute()
     {
         if (!$this->getUser()->getRights('shop', 'setscategories')) {
@@ -111,8 +109,11 @@ class shopProductsSaveListSettingsController extends waJsonController
             $category_params_model = new shopCategoryParamsModel();
             $category_params_model->set($id, !empty($data['params']) ? $data['params'] : null);
 
+            $data['routes'] = ifset($data['routes'], array());
+            $data['propagate_visibility'] = waRequest::post('propagate_visibility');
+
             $category_routes_model = new shopCategoryRoutesModel();
-            $category_routes_model->setRoutes($id, isset($data['routes']) ? $data['routes'] : array());
+            $category_routes_model->setRoutes($id, $data['routes'], $data['propagate_visibility']);
 
             $category_og_model = new shopCategoryOgModel();
             $category_og_model->set($id, ifempty($data['og'], array()));

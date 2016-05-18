@@ -13,6 +13,7 @@
 <head>
     <link href="{$wa_url}wa-content/font/ruble/arial/fontface.css" rel="stylesheet" />
     <style>{include file="../../../css/buyButton.css" inline}</style>
+    <script src="{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js"></script>
     <style>
         .wa-widget-wrapper {
             font-family: {$_font_family};
@@ -34,7 +35,7 @@
 </head>
 <body>
 
-<form action="{$wa->get('storefront')}" method="post" target="_blank">
+<form class="wa-buy-button-form" action="{$wa->get('storefront')}" method="post" target="_blank">
     <div class="wa-widget-wrapper">
         <div class="wa-widget" id="{$container_id}">
             {if $_show_image}
@@ -52,6 +53,26 @@
 
                     <div class="table-layout">
                         <div class="left-column">
+                            {if $product.sku_type}
+                                {$default_sku_features = $product.sku_features}
+                                <div class="wa-options">
+                                    {foreach $features_selectable as $f}
+                                        {$f.name}:
+                                        <select data-feature-id="{$f.id}" class="wa-sku-feature" name="buybutton[features][{$f.id}]">
+                                            {foreach $f.values as $v_id => $v}
+                                                <option value="{$v_id}" {if $v_id == ifset($default_sku_features[$f.id])}selected{/if}>{$v}</option>
+                                            {/foreach}
+                                        </select>
+                                        <br>
+                                    {/foreach}
+                                </div>
+                            {else}
+                                <select class="wa-sku-selector" name="buybutton[sku_id]">
+                                    {foreach $product.skus as $sku}
+                                        <option {if $sku.id == $product.sku_id} selected="selected"{/if} {if !$sku.orig_available}disabled="disabled"{/if} value="{$sku.id}">{$sku.name|escape}</option>
+                                    {/foreach}
+                                </select>
+                            {/if}
                             <span class="wa-price">{shop_currency_html($product.price)}</span>
                         </div>
                         <div class="right-column">
@@ -65,7 +86,7 @@
     </div>
 
     {foreach $params as $name => $value}
-        <input type="hidden" name="{$name}" value="{$value}">
+        <input type="hidden" name="buybutton[{$name}]" value="{$value}">
     {/foreach}
 </form>
 
@@ -73,3 +94,51 @@
 </html>
 
 {/strip}
+
+<script>
+    $(function () {
+
+        var purchasing_disabled = true;
+
+        {if $product.sku_type}
+            purchasing_disabled = false;
+            var features = {json_encode($sku_features_selectable)};
+            $(".wa-sku-feature").change(function () {
+                var key = "";
+                $(".wa-sku-feature").each(function () {
+                    key += $(this).data('feature-id') + ':' + $(this).val() + ';';
+                });
+                var sku = features[key];
+                if (sku) {
+                    purchasing_disabled = !sku.available;
+                    $('.wa-price').html(sku.price_html || '');
+                } else {
+                    $('.wa-price').html('');
+                    purchasing_disabled = true;
+                }
+            }).trigger('change');
+        {else}
+            var skus = {json_encode($product->skus)};
+            purchasing_disabled = skus.length <= 0;
+            $('.wa-sku-selector').change(function () {
+                var val = $(this).find('option:selected').val() || '';
+                var sku = skus[val];
+                if (sku) {
+                    purchasing_disabled = !sku.available;
+                    $('.wa-price').html(skus[val].price_html || '');
+                    $('.wa-price[data-sku-id="' + val + '"]').show();
+                } else {
+                    $('.wa-price').html('');
+                    purchasing_disabled = true;
+                }
+            }).trigger('change');
+        {/if}
+
+        $('.wa-buy-button-form').submit(function (e) {
+            if (purchasing_disabled) {
+                alert('[`Out of stock`]');
+                e.preventDefault();
+            }
+        });
+    });
+</script>

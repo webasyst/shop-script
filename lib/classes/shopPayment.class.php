@@ -165,9 +165,10 @@ class shopPayment extends waAppPayment
 
     /**
      * @param $transaction_data
+     * @param string $comment
      * @return int
      */
-    private function createOrder($transaction_data)
+    private function createOrder($transaction_data, $comment = null)
     {
         $contact = $this->createContact();
 
@@ -221,7 +222,6 @@ class shopPayment extends waAppPayment
             }
         }
 
-        $comment = null;
         if (!empty($comment)) {
             $order['comment'] = $comment;
         }
@@ -579,44 +579,98 @@ class shopPayment extends waAppPayment
         return $url;
     }
 
-    protected function workflowAction($method, $transaction_data)
+    protected function callbackAction($transaction_data, $check_amount = false)
     {
         $result = array();
-        $order_model = new shopOrderModel();
-        if (empty($transaction_data['order_id']) || ($transaction_data['order_id'] === 'offline')) {
-            $plugin = ifset($transaction_data['payment_plugin_instance']);
-            /**
-             * @var waPayment $plugin
-             */
-            if ($plugin && ($plugin instanceof waPayment) && $plugin->getProperties('offline')) {
-                $transaction_data['order_id'] = $this->createOrder($transaction_data);
-                $result['order_id'] = $transaction_data['order_id'];
-            } else {
-                return array('error' => 'Order not found');
-            }
+
+        if (!$this->merchant_id) {
+            $result['error'] = 'Invalid plugin id';
         } else {
-            $order = $order_model->getById($transaction_data['order_id']);
-            if (!$order) {
-                return array('error' => 'Order not found');
+
+            $unsettled_order_id = null;
+            $order_model = new shopOrderModel();
+
+            $workflow = new shopWorkflow();
+            $callback = $workflow->getActionById('callback');
+            /**
+             * @var shopWorkflowCallbackAction $callback
+             */
+
+            if (empty($transaction_data['order_id']) || ($transaction_data['order_id'] === 'offline')) {
+                $plugin = ifset($transaction_data['payment_plugin_instance']);
+                /**
+                 * @var waPayment $plugin
+                 */
+                if (!empty($transaction_data['unsettled'])
+                    && $plugin
+                    && ($plugin instanceof waPayment) && $plugin->getProperties('offline')
+                ) {
+                    #create unsettled order for mobile terminals callback
+                    $unsettled_order_id = $this->createOrder($transaction_data);
+                } else {
+                    $result['error'] = 'Order not found';
+                }
             } else {
-                $appropriate = $this->isSuitable($order['id']);
-                if ($appropriate !== true) {
-                    return array('error' => $appropriate);
+                $order = $order_model->getById($transaction_data['order_id']);
+                if (!$order) {
+                    $result['error'] = 'Order not found';
+                } else {
+                    $appropriate = $this->isSuitable($order['id']);
+                    if ($appropriate !== true) {
+                        $result['error'] = $appropriate;
+                    } elseif ($check_amount) {
+                        $result['error'] = null;
+                        $this->isOrderAmountInvalid($transaction_data, $result['error']);
+                    }
+                }
+
+
+                if (!empty($result['error'])) {
+                    $transaction_data['callback_declined'] = $result['error'];
+
+                    if (!empty($transaction_data['unsettled'])) {
+                        $plugin = ifset($transaction_data['payment_plugin_instance']);
+                        /**
+                         * @var waPayment $plugin
+                         */
+                        if ($plugin && ($plugin instanceof waPayment) && $plugin->getProperties('offline')) {
+                            #create unsettled order for mobile terminals callback
+                            $unsettled_order_id = $this->createOrder($transaction_data);
+                        }
+                    }
+
+                    if ($order) {
+                        $log_transaction_data = $transaction_data;
+                        $log_transaction_data['unsettled_order_id'] = $unsettled_order_id;
+                        $callback->run($log_transaction_data);
+                    }
                 }
             }
-        }
 
-        if (empty($transaction_data['customer_id']) && !empty($order['contact_id'])) {
-            $result['customer_id'] = $order['contact_id'];
+            if (!empty($unsettled_order_id)) {
+                if (!empty($result['error'])) {
+                    if (!empty($order)) {
+                        $transaction_data['original_order_id'] = $order['id'];
+                    }
+                    unset($result['error']);
+                }
+                $transaction_data['order_id'] = $unsettled_order_id;
+                $result['order_id'] = $unsettled_order_id;
+            }
+
+            if (empty($transaction_data['customer_id']) && !empty($order['contact_id'])) {
+                $result['customer_id'] = $order['contact_id'];
+            }
+            if (empty($result['error'])) {
+                $callback->run($transaction_data);
+            }
         }
-        $workflow = new shopWorkflow();
-        $workflow->getActionById($method)->run($transaction_data);
 
         return $result;
     }
 
     /**
-     * Verify that the plugin is suitable for payment of the order
+     * Verify if payment type is valid for this order
      * @param int $order_id
      * @return bool|string
      */
@@ -628,7 +682,7 @@ class shopPayment extends waAppPayment
             $order_params_model = new shopOrderParamsModel();
 
             if ($this->merchant_id != $order_params_model->getOne($order_id, 'payment_id')) {
-                return 'Plugin does not suitable to payment of the order';
+                return 'Order payment type did not match the callback request';
             }
         }
         return true;
@@ -640,12 +694,13 @@ class shopPayment extends waAppPayment
      */
     public function callbackPaymentHandler($transaction_data)
     {
-        $result = $this->workflowAction('callback', $transaction_data);
+        $result = $this->callbackAction($transaction_data, true);
         if (empty($result['error'])) {
             $workflow = new shopWorkflow();
             if (!empty($result['order_id'])) {
                 $transaction_data['order_id'] = $result['order_id'];
             }
+
             $workflow->getActionById('pay')->run($transaction_data['order_id']);
             $result['result'] = true;
         }
@@ -658,7 +713,7 @@ class shopPayment extends waAppPayment
      */
     public function callbackCancelHandler($transaction_data)
     {
-        return $this->workflowAction('callback', $transaction_data);
+        return $this->callbackAction($transaction_data);
     }
 
     /**
@@ -667,7 +722,7 @@ class shopPayment extends waAppPayment
      */
     public function callbackDeclineHandler($transaction_data)
     {
-        return $this->workflowAction('callback', $transaction_data);
+        return $this->callbackAction($transaction_data);
     }
 
     /**
@@ -676,7 +731,7 @@ class shopPayment extends waAppPayment
      */
     public function callbackRefundHandler($transaction_data)
     {
-        $result = $this->workflowAction('callback', $transaction_data);
+        $result = $this->callbackAction($transaction_data);
         if (empty($result['error'])) {
             $workflow = new shopWorkflow();
             $workflow->getActionById('refund')->run($transaction_data['order_id']);
@@ -699,7 +754,7 @@ class shopPayment extends waAppPayment
      */
     public function callbackChargebackHandler($transaction_data)
     {
-        return $this->workflowAction('callback', $transaction_data);
+        return $this->callbackAction($transaction_data);
     }
 
     /**
@@ -708,24 +763,18 @@ class shopPayment extends waAppPayment
      */
     public function callbackConfirmationHandler($transaction_data)
     {
-        $result = $this->workflowAction('callback', $transaction_data);
+        $result = $this->callbackAction($transaction_data);
         if (empty($result['error'])) {
             if (!empty($result['order_id'])) {
                 $transaction_data['order_id'] = $result['order_id'];
             }
-            $order_model = new shopOrderModel();
-            $order = $order_model->getById($transaction_data['order_id']);
-            $result['result'] = true;
-            $total = $transaction_data['amount'];
 
-            if ($transaction_data['currency_id'] != $order['currency']) {
-                $order_total = shop_currency($order['total'], $order['currency'], $transaction_data['currency_id'], false);
-            } else {
-                $order_total = $order['total'];
-            }
-            if (!empty($order_total) && (abs($order_total - $total) > 0.01)) {
+            $result['result'] = true;
+
+            $error = null;
+            if ($this->isOrderAmountInvalid($transaction_data, $error)) {
                 $result['result'] = false;
-                $result['error'] = sprintf('Invalid order amount: expect %f, but get %f in %s', $order_total, $total, $transaction_data['currency_id']);
+                $result['error'] = $error;
             } else {
                 $workflow = new shopWorkflow();
                 $workflow->getActionById('process')->run($transaction_data['order_id']);
@@ -734,12 +783,40 @@ class shopPayment extends waAppPayment
         return $result;
     }
 
+    private function isOrderAmountInvalid($transaction_data, &$error)
+    {
+        $order_model = new shopOrderModel();
+        $order = $order_model->getById($transaction_data['order_id']);
+        $result['result'] = true;
+
+
+        if (isset($transaction_data['amount'])) {
+            $total = floatval(str_replace(',', '.', $transaction_data['amount']));
+
+            if ($transaction_data['currency_id'] != $order['currency']) {
+                $order_total = shop_currency($order['total'], $order['currency'], $transaction_data['currency_id'], false);
+            } else {
+                $order_total = $order['total'];
+            }
+
+
+            $invalid = !empty($order_total) && (abs($order_total - $total) > 0.01);
+            if ($invalid) {
+                $error = sprintf('Invalid order amount: %0.2f expected, %0.2f received (%s)', $order_total, $total, $transaction_data['currency_id']);
+            }
+        } else {
+            $invalid = false;
+        }
+
+        return $invalid;
+    }
+
     /**
      * @param array $transaction_data
      * @return array
      */
     public function callbackNotifyHandler($transaction_data)
     {
-        return $this->workflowAction('callback', $transaction_data);
+        return $this->callbackAction($transaction_data);
     }
 }

@@ -28,7 +28,12 @@ $main_thumb_file = false;
 $file = false;
 $size = false;
 $enable_2x = false;
-if (preg_match('#((?:\d{2}/){2}([0-9]+)/images/)([0-9]+)/([a-zA-Z0-9_\.-]+)\.(\d+(?:x\d+)?)(@2x)?\.([a-z]{3,4})#i', $request_file, $matches)) {
+
+// /wa-data/public/shop/products/69/42/14269/images/194/194.96x96.jpg
+$image_pattern = '#((?:\d{2}/){2}([0-9]+)/images/)([0-9]+)/([a-zA-Z0-9_\.-]+)\.(\d+(?:x\d+)?)(@2x)?\.([a-z]{3,4})#i';
+// /wa-data/public/shop/products/69/42/14269/video/96x96.jpg
+$video_pattern = '#((?:\d{2}/){2}([0-9]+)/video)/(\d+(?:x\d+)?)(@2x)?\.([a-z]{3,4})#i';
+if (preg_match($image_pattern, $request_file, $matches)) {
     if ($matches[3] === $matches[4]) {
         $n = $matches[3];
     } else {
@@ -52,6 +57,17 @@ if (preg_match('#((?:\d{2}/){2}([0-9]+)/images/)([0-9]+)/([a-zA-Z0-9_\.-]+)\.(\d
         }
         unset($s);
         $size = implode('x', $size);
+    }
+} elseif (preg_match($video_pattern, $request_file, $matches)) {
+    $file = $matches[1].'.'.$matches[5];
+    $size = $matches[3];
+    $gen_thumbs = $app_config->getOption('image_thumbs_on_demand');
+
+    if ($file && !$gen_thumbs) {
+        $thumbnail_sizes = $app_config->getImageSizes();
+        if (in_array($size, $thumbnail_sizes) === false) {
+            $file = false;
+        }
     }
 }
 wa()->getStorage()->close();

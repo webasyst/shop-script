@@ -360,7 +360,7 @@ class shopFrontendProductAction extends shopFrontendAction
                     // !!! also set other keys related to price
                 }
                 if ($row['status'] == shopProductServicesModel::STATUS_DEFAULT) {
-                    // default varians is different for this product
+                    // default variant is different for this product
                     $services[$row['service_id']]['variant_id'] = $row['service_variant_id'];
                 }
             } else {

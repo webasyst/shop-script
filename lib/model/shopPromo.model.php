@@ -25,7 +25,11 @@ class shopPromoModel extends waModel
             $sql = str_replace(':enable', 'AND p.enabled <= 0', $sql);
         }
 
-        $result = $this->query($sql, array($storefront, $type))->fetchAll('id');
+        $storefronts = array(
+            rtrim($storefront, '/') . '/',
+            rtrim($storefront, '/')
+        );
+        $result = $this->query($sql, array($storefronts, $type))->fetchAll('id');
 
         $result_all = array_diff_key($this->query($sql, array('%all%', $type))->fetchAll('id'), $result);
         if ($result_all) {

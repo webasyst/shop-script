@@ -41,10 +41,26 @@ class shopDashboardSalesMethod extends waAPIMethod
         $end_date = date('Y-m-d 23:59:59');
         $start_date = date('Y-m-d 23:59:59', strtotime($end_date) - $period);
 
-        $sales_model = new shopSalesModel();
-        $sales_by_day = $sales_model->getPeriodByDate('sources', $start_date, $end_date, array(
-            'date_group' => 'days',
-        ));
+        if (wa()->getUser()->getRights('shop', 'reports')) {
+            $sales_model = new shopSalesModel();
+            $sales_by_day = $sales_model->getPeriodByDate('sources', $start_date, $end_date, array(
+                'date_group' => 'days',
+            ));
+        } else {
+            $sales_by_day = array(
+                array(
+                    "date" => date('Y-m-d'),
+                    "order_count" => 0,
+                    "new_customer_count" => 0,
+                    "profit" => 0,
+                    "sales" => 0,
+                    "purchase" => 0,
+                    "shipping" => 0,
+                    "tax" => 0,
+                    "cost" => 0,
+                ),
+            );
+        }
 
         $totals = array();
         $graph_data = array();

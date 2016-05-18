@@ -47,13 +47,28 @@ class shopCategoryRoutesModel extends waModel
         return $result;
     }
 
-    public function setRoutes($category_id, $routes)
+    public function setRoutes($category_id, $routes, $include_descendants = false)
     {
-        $this->deleteByField('category_id', $category_id);
+        $category_ids = array();
+        if (!$include_descendants) {
+            $category_ids[] = $category_id;
+        } else {
+            $category_ids = $this->query("
+                SELECT c.id FROM shop_category c
+                JOIN shop_category p ON c.left_key > p.left_key AND c.right_key < p.right_key
+                WHERE p.id  = ?", $category_id)->fetchAll(null, true);
+            $category_ids[] = $category_id;
+        }
+        $this->deleteByField('category_id', $category_ids);
         if ($routes) {
-            $this->multipleInsert(array('category_id' => $category_id, 'route' => $routes));
+            $data = array();
+            foreach ($category_ids as $category_id) {
+                foreach ($routes as $route) {
+                    $data[] = array('category_id' => $category_id, 'route' => $route);
+                }
+            }
+            $this->multipleInsert($data);
         }
     }
-
 }
 

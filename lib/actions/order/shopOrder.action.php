@@ -80,7 +80,7 @@ class shopOrderAction extends waViewAction
             if ($l['action_id']) {
                 $l['action'] = $workflow->getActionById($l['action_id']);
 
-                if ($l['text'] && strpos($l['text'], ' ')) {
+                if (!empty($l['text']) && ($l['action_id'] == 'callback') && strpos($l['text'], ' ')) {
                     $type = 'payment';
                     $chunks = explode(' ', $l['text'], 2);
                     $l['plugin'] = ifset($chunks[0]);
@@ -130,7 +130,24 @@ class shopOrderAction extends waViewAction
             try {
                 $plugin = shopShipping::getPlugin(null, $params['shipping_id']);
                 if (!empty($params['tracking_number'])) {
-                    $tracking = $plugin->tracking($params['tracking_number']);
+                    if ($plugin->getProperties('external_tracking')) {
+                        $id = sprintf('shop_tracking_%s', $order['id']);
+                        $tracking = <<<HTML
+<i class="icon16 loading" id="{$id}"></i>
+<script type="text/javascript">
+(function () {
+    $.get('?module=order&action=tracking&order_id={$order['id']}',function(data){
+        if(data && data.status=='ok'){
+            $('#{$id}').replaceWith(data.data.tracking);
+        }
+    });
+})();
+</script>
+HTML;
+
+                    } else {
+                        $tracking = $plugin->tracking($params['tracking_number']);
+                    }
                 }
                 if ($custom_fields = $plugin->customFields(new waOrder())) {
                     foreach ($custom_fields as $k => $v) {

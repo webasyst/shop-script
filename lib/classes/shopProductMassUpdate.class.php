@@ -100,7 +100,12 @@ class shopProductMassUpdate
         $empty_stock_data = array_fill_keys(array_keys($stocks), 0);
         $new_sku_stocks = $old_sku_stocks;
         foreach($sku_stocks_change as $sku_id => $stock_counts) {
-            // Update sku counts in memorys
+            // $stock_counts === null means that sku does not use detailed stock counts
+            if ($stock_counts === null) {
+                unset($new_sku_stocks[$sku_id]);
+                continue;
+            }
+            // Update sku counts in memory
             $new_sku_stocks[$sku_id] = ifset($new_sku_stocks[$sku_id], array()) + $empty_stock_data;
             foreach($stock_counts as $stock_id => $count) {
                 $new_sku_stocks[$sku_id][$stock_id] = wa_is_int($count) ? (int) $count : null;
@@ -424,6 +429,7 @@ class shopProductMassUpdate
                 }
                 unset($sku['count']);
             } else if (array_key_exists('count', $sku)) {
+                $sku_stocks[$sku['id']] = null;
                 if (wa_is_int($sku['count'])) {
                     $sku['count'] = (int) $sku['count'];
                 } else {

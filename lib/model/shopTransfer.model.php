@@ -343,24 +343,32 @@ class shopTransferModel extends waModel
 
     private function applyStockDiffs($diff_map, $transfer_id)
     {
+        $stock_model = new shopStockModel();
+        $all_stocks = $stock_model->getAll('id');
         foreach ($diff_map as $product_id => $sku_diff_map) {
             $product = new shopProduct($product_id);
 
             $data = array();
             foreach ($sku_diff_map as $sku_id => $stock_diff_map) {
-                if (!isset($product->skus[$sku_id])) {
+                if (!isset($product->skus[$sku_id]) && empty($product->skus[$sku_id]['stock'])) {
                     continue;
                 }
                 foreach ($stock_diff_map as $stock_id => $diff) {
-                    if (!isset($product->skus[$sku_id]['stock'][$stock_id])) {
+                    if (!isset($all_stocks[$stock_id])) {
                         continue;
                     }
                     $diff = (int) $diff;
                     if ($diff == 0) {
                         continue;
                     }
-                    $data[$sku_id]['stock'][$stock_id] = $product->skus[$sku_id]['stock'][$stock_id] + $diff;
+                    if (isset($product->skus[$sku_id]['stock'][$stock_id])) {
+                        $data[$sku_id]['stock'][$stock_id] = $product->skus[$sku_id]['stock'][$stock_id] + $diff;
+                    } else {
+                        $data[$sku_id]['stock'][$stock_id] = $diff;
+                    }
                 }
+                // crazy, but without it available will be reset %)
+                $data[$sku_id]['available'] = $product->skus[$sku_id]['available'];
             }
 
             if ($data) {

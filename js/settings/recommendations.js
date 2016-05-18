@@ -28,17 +28,18 @@ $.extend($.settings = $.settings || {}, {
             labelOff : "",
             className: 'mini'
         }).change(function () {
-                $(this).closest("label.s-ibutton-and-label").children('span')
-                    .html(this.checked ? $_("On") : $_("Off")).toggleClass('s-off');
-                var f = $(this).closest('div.field');
-                if (this.checked) {
-                    f.children('.field-settings').show();
-                    self.recommendationsRenderEdit(f);
-                } else {
-                    // save off
-                    self.recommendationsSaveUpSelling(this);
-                    f.children('.field-settings').empty().hide();
-                }
+            $(this).closest("div.s-ibutton-checkbox").find('span.status')
+            .   html(this.checked ? $_("On") : $_("Off")).toggleClass('s-off');
+
+            var f = $(this).closest('div.field');
+            if (this.checked) {
+                f.children('.field-settings').show();
+                self.recommendationsRenderEdit(f);
+            } else {
+                // save off
+                self.recommendationsSaveUpSelling(this);
+                f.children('.field-settings').empty().hide();
+            }
         });
         $("div.upselling").on('click', 'a.customize', function () {
             self.recommendationsRenderEdit($(this).closest('div.field'));

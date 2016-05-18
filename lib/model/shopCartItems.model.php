@@ -38,7 +38,6 @@ class shopCartItemsModel extends waModel
             'skus' => &$skus
         );
         wa('shop')->event('frontend_products', $event_params);
-
         shopRounding::roundSkus($skus);
         $products_total = 0.0;
         foreach($skus as $s) {
@@ -97,6 +96,7 @@ class shopCartItemsModel extends waModel
         $products_services = $product_services_model->getByProducts($product_ids, true);
 
         $primary = wa('shop')->getConfig()->getCurrency();
+        $frontend_currency = wa('shop')->getConfig()->getCurrency(false);
 
         // Calculate total amount for all services
         $services_total = 0;
@@ -119,17 +119,20 @@ class shopCartItemsModel extends waModel
                 if (isset($products_skus['skus'][$s['parent_id']])) {
                     $sku_price = $products_skus['skus'][$s['parent_id']]['frontend_price'];
                 } else {
-                    $sku_price = $products_skus['products'][$s['product_id']]['price'];
+                    // most likely never happen case, but just in case
+                    $product = $products_skus['products'][$s['product_id']];
+                    $product_price = $product['price'];
+                    $product_currency = $product['currency'] !== null ? $product['currency'] : $primary;
+                    $sku_price = shop_currency($product_price, $product_currency, $frontend_currency, false);
                 }
                 $s['price'] = $s['price'] * $sku_price  / 100;
             } else {
-                $s['price'] = shop_currency($s['price'], $variants[$v_id]['currency'], $primary, false);
+                $s['price'] = shop_currency($s['price'], $variants[$v_id]['currency'], $frontend_currency, false);
             }
 
             $services_total += $s['price'] * $s['quantity'];
         }
-
-        return (float) shop_currency($services_total, null, null, false);
+        return $services_total;
     }
 
     public function count($code, $type = null)
@@ -457,7 +460,7 @@ class shopCartItemsModel extends waModel
             $count_condition = "OR ({$count_field} IS NOT NULL AND ci.quantity > {$count_field})";
         }
 
-        $sql = "SELECT ci.id, s.available, {$count_field} AS `count`
+        $sql = "SELECT ci.id, p.name, s.name AS sku_name, s.available, {$count_field} AS `count`
                 FROM {$this->table} AS ci
                     JOIN shop_product AS p
                         ON ci.product_id = p.id

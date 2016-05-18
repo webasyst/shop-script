@@ -28,6 +28,9 @@ class shopPromosActions extends waViewActions
         }
 
         $storefront_route = waRequest::request('storefront');
+        if ($storefront_route) {
+            $storefront_route = rtrim($storefront_route, '/') . '/';
+        }
         if (empty($storefront_route) || empty($storefronts[$storefront_route])) {
             $storefront = reset($storefronts);
         } else {
@@ -353,13 +356,13 @@ EOF;
         wa()->getStorage()->del('shop/promo/uploaded');
     }
 
-    protected function getStorefronts($promo_id=null, $all=false)
+    protected function getStorefronts($promo_id=null)
     {
         $storefronts = array();
-        foreach(wa()->getRouting()->getDomains() as $d) {
-            $storefronts[$d] = array(
-                'storefront' => $d,
-                'name' => $d,
+        foreach(shopHelper::getStorefronts() as $url) {
+            $storefronts[$url] = array(
+                'storefront' => $url,
+                'name' => $url,
                 'active' => true,
                 'sort' => -1,
             );
@@ -368,15 +371,15 @@ EOF;
         if ($promo_id) {
             $promo_routes_model = new shopPromoRoutesModel();
             $rows = $promo_routes_model->getByField('promo_id', $promo_id, 'storefront');
-            foreach($rows as $d => $row) {
-                if (empty($storefronts[$d])) {
-                    $storefronts[$d] = array(
-                        'storefront' => $d,
-                        'name' => $d,
+            foreach($rows as $url => $row) {
+                if (empty($storefronts[$url])) {
+                    $storefronts[$url] = array(
+                        'storefront' => $url,
+                        'name' => $url,
                         'active' => false,
                     );
                 }
-                $storefronts[$d]['sort'] = $row['sort'];
+                $storefronts[$url]['sort'] = $row['sort'];
             }
         }
 

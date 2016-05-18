@@ -46,7 +46,7 @@ class shopSettingsAffiliateAction extends waViewAction
          *   'url'  => string,  // Required (unless you hack into JS using 'html' parameter). Content for settings page is fetched from this URL.
          * )
          *
-         * @event backend_settings_discounts
+         * @event backend_settings_affiliate
          */
         $plugins = wa()->event('backend_settings_affiliate');
         $config = wa('shop')->getConfig();

@@ -233,17 +233,70 @@
             this.salesAction();
         },
 
+        parseParams: function (params) {
+            var map = { };
+            var sort = 0;
+            $.each((params || '').split('&'), function (i, val) {
+                val = (val || '');
+                var exp = val.split('=');
+                var left = exp[0] || '';
+                var right = exp[1] || '';
+                if (left) {
+                    map[left] = {
+                        value: right,
+                        sort: sort++
+                    };
+                }
+            });
+            return map;
+        },
+
+        unparseParams: function (map) {
+            var params_ar = $.map(map, function (item, key) {
+                if (key && item !== undefined) {
+                    var sort = 0, value = '';
+                    if ($.isPlainObject(item)) {
+                        sort = parseInt(item.sort, 10) || 0;
+                        value = '' + (item.value || '');
+                    } else {
+                        value = '' + (item || '');
+                    }
+                    return { key: key, value: value, sort: sort };
+                }
+            });
+            params_ar = params_ar.sort(function (a, b) {
+                return a.value === 'type' && (a.sort > b.sort || a.value > b.value);
+            });
+            return $.map(params_ar, function (item) { return item.key + '=' + item.value; }).join('&');
+        },
+
         salesAction: function (params) {
             var action_url = '?module=reports&action=sales'+this.getTimeframeParams();
 
-            var request_params = [];
-            params && request_params.push(params);
+            var params_map = $.reports.parseParams(params);
+
+            var redirect = function () {
+                var hash = 'sales/' + $.reports.unparseParams(params_map);
+                $.wa.setHash(hash);
+            };
+
+            if (!params_map['details'] && !params_map['filter[name]'] && $.storage.get('shop/reports/sales-details')) {
+                params_map['details'] = 1;
+                redirect();
+                return;
+            }
+            if (params_map['details'] && params_map['filter[name]']) {
+                delete params_map['details'];
+                redirect();
+            }
 
             var $storefront_selector = $('#s-reports-custom-controls .storefront-selector');
-            $storefront_selector.length && request_params.push('storefront='+$storefront_selector.val());
+            if ($storefront_selector.val()) {
+                params_map['sales_channel'] = $storefront_selector.val();
+            }
 
             var rnd_protect = $.reports.rnd_protect = Math.random();
-            $.post(action_url, request_params.join('&'), function(r) {
+            $.post(action_url, $.reports.unparseParams(params_map), function(r) {
                 if (rnd_protect != $.reports.rnd_protect) {
                     return; // too late, user clicked something else
                 }
@@ -305,7 +358,7 @@
 
             var $storefront_selector = $('#s-reports-custom-controls .storefront-selector');
             if ($storefront_selector.length && $storefront_selector.val()) {
-                result.storefront = $storefront_selector.val();
+                result.sales_channel = $storefront_selector.val();
             }
 
             return result;
@@ -333,7 +386,7 @@
                 var value;
                 if (data !== undefined) {
                     value = parseFloat(data);
-                    if (value === NaN) {
+                    if (isNaN(value)) {
                         value = data;
                         sort_as_strings = true;
                     }

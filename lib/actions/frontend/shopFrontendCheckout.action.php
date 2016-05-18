@@ -345,11 +345,6 @@ class shopFrontendCheckoutAction extends waViewAction
             }
         }
 
-        if ( ( $skock_id = waRequest::param('stock_id'))) {
-            // !!! use stock rules instead
-            $order['params']['stock_id'] = $skock_id;
-        }
-
         $routing_url = wa()->getRouting()->getRootUrl();
         $order['params']['storefront'] = wa()->getConfig()->getDomain().($routing_url ? '/'.$routing_url : '');
         if(wa()->getStorage()->get('shop_order_buybutton')) {
@@ -442,6 +437,14 @@ class shopFrontendCheckoutAction extends waViewAction
             $order['comment'] = $checkout_data['comment'];
         }
 
+        list($stock_id, $virtualstock_id) = self::determineStockIds($order);
+        if ($virtualstock_id) {
+            $order['params']['virtualstock_id'] = $virtualstock_id;
+        }
+        if ($stock_id) {
+            $order['params']['stock_id'] = $stock_id;
+        }
+
         $workflow = new shopWorkflow();
         if ($order_id = $workflow->getActionById('create')->run($order)) {
 
@@ -459,6 +462,97 @@ class shopFrontendCheckoutAction extends waViewAction
         } else {
             return false;
         }
+    }
+
+    protected static function determineStockIds($order)
+    {
+        $stock_rules_model = new shopStockRulesModel();
+        $rules = $stock_rules_model->getRules();
+        $stocks = shopHelper::getStocks();
+
+        /**
+         * @event frontend_checkout_stock_rules
+         *
+         * Hook allows to implement custom rules to automatically select stock for new orders.
+         *
+         * $params['rules'] is a list of rules from `shop_stock_rules` table.
+         * Plugins are expected to modify items in $params['rules'] by creating 'fulfilled' key (boolean)
+         * for rule types plugin is responsible for.
+         *
+         * See also `backend_settings_stocks` event for how to set up settings form for such rules.
+         *
+         * @param array $params
+         * @param array[array] $params['order'] order data
+         * @param array[array] $params['rules'] list of rules to modify.
+         * @param array[array] $params['stocks'] same as shopHelper::getStocks()
+         * @return none
+         */
+        $event_params = array(
+            'order' => $order,
+            'stocks' => $stocks,
+            'rules' => &$rules,
+        );
+        self::processBuiltInRules($event_params);
+        wa('shop')->event('frontend_checkout_stock_rules', $event_params);
+
+        $groups = $stock_rules_model->prepareRuleGroups($rules);
+        foreach($groups as $g) {
+            if (($g['stock_id'] && empty($stocks[$g['stock_id']])) || ($g['virtualstock_id'] && empty($stocks['v'.$g['virtualstock_id']]))) {
+                continue;
+            }
+
+            $all_fulfilled = true;
+            foreach($g['conditions'] as $rule) {
+                if (!ifset($rule['fulfilled'], false)) {
+                    $all_fulfilled = false;
+                    break;
+                }
+            }
+            if ($all_fulfilled) {
+                return array($g['stock_id'], $g['virtualstock_id']);
+            }
+        }
+
+        // No rule matched the order. Use stock specified in routing params.
+        $virtualstock_id = null;
+        $stock_id = waRequest::param('stock_id', null, 'string');
+        if (empty($stocks[$stock_id])) {
+            $stock_id = null;
+        } else if (isset($stocks[$stock_id]['substocks'])) {
+            $virtualstock_id = $stocks[$stock_id]['id'];
+            $stock_id = null;
+        }
+        return array($stock_id, $virtualstock_id);
+    }
+
+    protected static function processBuiltInRules(&$params)
+    {
+        $shipping_type_id = null;
+        if (!empty($params['order']['params']['shipping_id'])) {
+            $shipping_type_id = $params['order']['params']['shipping_id'];
+        }
+        $shipping_country = $shipping_region = null;
+        if (!empty($params['order']['params']['shipping_address.country'])) {
+            $shipping_country = (string) $params['order']['params']['shipping_address.country'];
+            if (!empty($params['order']['params']['shipping_address.region'])) {
+                $shipping_region = $shipping_country.':'.$params['order']['params']['shipping_address.region'];
+            }
+        }
+
+        foreach($params['rules'] as &$rule) {
+            if ($rule['rule_type'] == 'by_shipping') {
+                $rule['fulfilled'] = $shipping_type_id && $shipping_type_id == $rule['rule_data'];
+            } else if ($rule['rule_type'] == 'by_region') {
+                $rule['fulfilled'] = false;
+                foreach(explode(',', $rule['rule_data']) as $candidate) {
+                    if ($candidate === $shipping_country || $candidate === $shipping_region) {
+                        $rule['fulfilled'] = true;
+                        break;
+                    }
+                }
+            }
+        }
+        unset($rule);
     }
 
     /**

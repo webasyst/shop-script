@@ -2,7 +2,6 @@
 
 class shopWorkflowCreateAction extends shopWorkflowAction
 {
-
     /**
      * @param array $data
      * @return waContact
@@ -141,14 +140,14 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         }
 
         $order = array(
-            'state_id' => 'new',
-            'total'    => $subtotal - $data['discount'] + $data['shipping'] + $tax,
-            'currency' => $currency,
-            'rate'     => $rate,
-            'tax'      => $tax_included + $tax,
-            'discount' => $data['discount'],
-            'shipping' => $data['shipping'],
-            'comment'  => isset($data['comment']) ? $data['comment'] : '',
+            'state_id'  => 'new',
+            'total'     => $subtotal - $data['discount'] + $data['shipping'] + $tax,
+            'currency'  => $currency,
+            'rate'      => $rate,
+            'tax'       => $tax_included + $tax,
+            'discount'  => $data['discount'],
+            'shipping'  => $data['shipping'],
+            'comment'   => isset($data['comment']) ? $data['comment'] : '',
             'unsettled' => !empty($data['unsettled']) ? 1 : 0,
 
         );
@@ -190,6 +189,10 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             } else {
                 $data['params']['sales_channel'] = 'storefront:'.$data['params']['storefront'];
             }
+        }
+
+        if (!empty($data['params']['storefront'])) {
+            $data['params']['signup_url'] = shopHelper::generateSignupUrl($contact, $data['params']['storefront']);
         }
 
         // Save params
@@ -242,7 +245,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                 // Ignore services and SKUs that do not use stocks
                 continue;
             }
-            if(array_key_exists('stock_id', $item)) {
+            if (array_key_exists('stock_id', $item)) {
                 // Do not overwrite SKU stock if already specified
                 continue;
             }
@@ -253,7 +256,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                 if (!$item['stock_id']) {
                     // Determine real stock_id from virtual stock
                     $sku_stock = $product_stocks_model->getCounts($item['sku_id']);
-                    foreach($virtualstock['substocks'] as $substock_id) {
+                    foreach ($virtualstock['substocks'] as $substock_id) {
                         if (!isset($sku_stock[$substock_id]) || $sku_stock[$substock_id] > 0) {
                             $item['stock_id'] = $substock_id;
                             break;
@@ -282,7 +285,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         }
         if (!wa_is_int($stock_id)) {
             if ($stock_id && empty($virtualstock_id) && is_string($stock_id) && $stock_id{0} == 'v') {
-                $virtualstock_id = (int) substr($stock_id, 1);
+                $virtualstock_id = (int)substr($stock_id, 1);
                 $virtualstock_id = ifempty($virtualstock_id);
             }
             $stock_id = null;
@@ -326,9 +329,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         wa('shop')->event('order_action.create', $data);
 
         $order_model = new shopOrderModel();
-        $order = $order_model->getById($order_id);
-        $params_model = new shopOrderParamsModel();
-        $order['params'] = $params_model->get($order_id);
+        $order = $order_model->getOrder($order_id);
         $customer = new waContact($order['contact_id']);
         // send notifications
         shopNotifications::send('order.'.$this->getId(), array(
@@ -411,8 +412,9 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                             break;
                         default: # it's shop plugin
                             $plugin = wa('shop')->getPlugin($id);
-                            if ($plugin instanceof shopPrintformPlugin) {
-                                $html = $plugin->renderPrintform(waOrder::factory($order));
+                            $html = null;
+                            if (($plugin instanceof shopPrintformPlugin) && $plugin->getSettings('emailprintform')) {
+                                $html = $plugin->renderPrintform($order);
                             }
                             break;
                     }
@@ -436,9 +438,11 @@ class shopWorkflowCreateAction extends shopWorkflowAction
 
             $store_email = shopHelper::getStoreEmail(ifempty($order['params']['storefront']));
 
+            $order_id_str = shopHelper::encodeOrderId($order['id']);
+
             foreach ($queue as $form) {
                 try {
-                    $message = new waMailMessage(sprintf(_w("Printform %s"), $form['name']), $form['html']);
+                    $message = new waMailMessage(sprintf("%s %s", $form['name'], $order_id_str), $form['html']);
                     $message->setTo(array($email));
                     $message->setFrom($store_email);
 

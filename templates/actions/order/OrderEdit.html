@@ -195,7 +195,9 @@
                         <span class="hint">{$sku.sku}</span>
                     {/if}
                     <div class="s-orders-sku-stock-place">
-                        {sku_stocks_select sku=$sku item=$product.item stocks=$stocks}
+                        {if !empty($sku.stock)}
+                            {sku_stocks_select sku=$sku item=$product.item stocks=$stocks}
+                        {/if}
                     </div>
                     {if !empty($product.fake)}
                         <p><input type="text" name="name[edit][{$product.item.id}]" value="{$product.item.name}" class="small"></p>

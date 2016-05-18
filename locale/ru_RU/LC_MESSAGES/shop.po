@@ -20,6 +20,10 @@ msgstr ""
 msgid "Shop"
 msgstr "Магазин"
 
+#: /wa-apps/shop/lib/config/app.php:3
+msgid "Store"
+msgstr "Магазин"
+
 #: /wa-apps/shop/lib/config/app.php:4
 msgid "Shop-Script is a robust shopping cart software that allows you to quickly establish your own online store and sell online."
 msgstr "Shop-Script позволяет быстро открыть собственный интернет-магазин и продавать через интернет."
@@ -5739,8 +5743,8 @@ msgid "We are using <a href=\"http://www.shop-script.com/\">Shop-Script 5</a>"
 msgstr "Мы используем <a href=\"http://www.shop-script.ru/\">Shop-Script 5</a>"
 
 #: /wa-apps/shop/themes/default/index.html:98
-msgid "We are using <a href=\"http://www.shop-script.com/\">Shop-Script 6</a>"
-msgstr "Мы используем <a href=\"http://www.shop-script.ru/\">Shop-Script 6</a>"
+msgid "We are using <a href=\"http://www.shop-script.com/\">Shop-Script 7</a>"
+msgstr "Мы используем <a href=\"http://www.shop-script.ru/\">Shop-Script 7</a>"
 
 #: /wa-apps/shop/themes/clear/home.html:43
 msgid "Special offers for %s"
@@ -5787,8 +5791,8 @@ msgid "We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Sh
 msgstr "Мы используем <a href=\"http://www.shop-script.ru/\" target=\"_blank\">Shop-Script 5</a>"
 
 #: /wa-apps/shop/themes/vk/footer.html:4
-msgid "We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Shop-Script 6</a>"
-msgstr "Мы используем <a href=\"http://www.shop-script.ru/\" target=\"_blank\">Shop-Script 6</a>"
+msgid "We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Shop-Script 7</a>"
+msgstr "Мы используем <a href=\"http://www.shop-script.ru/\" target=\"_blank\">Shop-Script 7</a>"
 
 #: /wa-apps/shop/themes/vk/navigation.html:7
 msgid "Order by phone"
@@ -6598,7 +6602,7 @@ msgstr "Пожалуйста, выберите способ доставки"
 #: /wa-apps/shop/themes/nifty/footer.html:4
 #: /wa-apps/shop/themes/sidebar/footer.html:4
 msgid "<a href=\"http://www.shop-script.com/\">Ecommerce software</a> by Webasyst"
-msgstr "<a href=\"http://www.shop-script.ru/\">Создание интернет-магазина</a> — Shop-Script 6"
+msgstr "<a href=\"http://www.shop-script.ru/\">Создание интернет-магазина</a> — Shop-Script 7"
 
 #: /wa-apps/shop/themes/clear/list-thumbs-mini.html:38
 #: /wa-apps/shop/themes/clear/list-thumbs.html:57
@@ -7612,7 +7616,7 @@ msgstr "Временно скрывает товар на сайте"
 #: /wa-apps/shop/templates/actions/dialog/DialogProductCategorySettings.html:69
 #: /wa-apps/shop/lib/classes/shopProductListAction.class.php:257
 msgid "Stock net worth"
-msgstr "Стоимость активов"
+msgstr "Стоимость активов после реализации"
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductListCreate.html:32
 msgid "Category"
@@ -8643,7 +8647,7 @@ msgid "When enabled, products will be fetched from both the current category and
 msgstr "Включение этой настройки автоматически добавит в список товаров данной категории все товары из ее подкатегорий"
 
 #: /wa-apps/shop/templates/actions/promos/PromosDefault.html:8
-msgid "If you don’t see promos on your storefront homepage, you might be using an outdated version of the design theme (home.html template file). Please <a href=\"%s\" target=\"_blank\">follow this guide</a> to embed this new Shop-Script 6 feature to your online store."
+msgid "If you don’t see promos on your storefront homepage, you might be using an outdated version of the design theme (home.html template file). Please <a href=\"%s\" target=\"_blank\">follow this guide</a> to embed this new Shop-Script 7 feature to your online store."
 msgstr "Если вы не видите промо-карточки на витрине вашего интернет-магазина, возможно, вы используете устаревшую версию темы дизайна (шаблона home.html). Пожалуйста, <a href=\"%s\" target=\"_blank\">следуйте инструкции по обновлению шаблона дизайна</a> для вывода промо-карточек."
 
 #: /wa-apps/shop/templates/actions/promos/PromosEditor.html:3
@@ -9841,3 +9845,135 @@ msgstr "Товары будут возвращены на исходный ск�
 #: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:19
 msgid "Locale"
 msgstr "Язык"
+
+#: /wa-apps/shop/templates/actions/order/Order.html:71
+msgid "Sales channel"
+msgstr "Канал продаж"
+
+#: /wa-apps/shop/templates/actions/reports/ReportsOrderList.html:119
+msgid "No orders"
+msgstr "Нет заказов"
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:42
+msgid "Purchase worth"
+msgstr "Стоимость активов"
+
+#: /wa-apps/shop/templates/actions/reports/sales_sidebar.html:18
+msgid "Stacked chart"
+msgstr "Детализация"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPrintform.html:18
+msgid "There are no printforms installed."
+msgstr "Печатные формы не установлены."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:317
+msgid "Condition"
+msgstr "Условие"
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:80
+msgid "Start typing name of an existing product or SKU"
+msgstr "Начните вводить название уже добавленного товара или артикула"
+
+#: /wa-apps/shop/templates/mail/Order.create.html:109
+msgid "Order status"
+msgstr "Статус заказа"
+
+#: /wa-apps/shop/templates/mail/Order.create.html:309
+msgid "When this order is paid, your affiliate bonus will be increased to %s."
+msgstr "После оплаты заказа ваш партнерский бонус увеличится до %s."
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:350
+msgid "Sales by sales channel"
+msgstr "Продажи по каналам"
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:354
+msgid "Sales by storefront"
+msgstr "Продажи по витринам"
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowCallbackAction.class.php:17
+msgid "Unsettled order %s was created so you could resolve this case manually."
+msgstr "Подвешенный заказ %s был создан, чтобы вы смогли разобрать этот случай вручную."
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowCallbackAction.class.php:22
+msgid "Original order that did not accept the callback request: %s"
+msgstr "Ответ платежной системы не был применен к основному заказу: %s"
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowCallbackAction.class.php:15
+msgid "Callback request was received but not applied to this order the following reason: <strong>%s</strong>"
+msgstr "Ответ платежной системы получен, но не применен к этому заказу по следующей причине: <strong>%s</strong>"
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowCallbackAction.class.php:19
+msgid "This unsettled order was created because its initiating callback request was rejected by the original order it was addressed to. We thought you should resolve this case manually. The reason was: <strong>%s</strong>"
+msgstr "Этот подвешенный заказ был создан, потому что ответ платежной системы был принят, но не применен к основному заказу. Причина: <strong>%s</strong>. Мы решили, что вам следуем разобрать этот случай вручную."
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowSettleAction.class.php:133
+msgid "%s was updated: %s → %s"
+msgstr "%s обновлено: %s → %s"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:242
+msgid "Add condition..."
+msgstr "Добавить условие..."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:286
+msgid "Real stock linking:"
+msgstr "Выбор реального склада:"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:289
+msgid "Link items to most suitable stock according to availability"
+msgstr "Назначать подходящий склад согласно приоритету и наличию"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:292
+msgid "Always link to %s"
+msgstr "Всегда назначать на %s"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:305
+msgid "Stock linking rules"
+msgstr "Правила автоматического выбора складов"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:306
+msgid "When order is placed, ordered items will be automatically linked with a stock according to the rules defined below. E.g. different stocks may be preferred depending on selected shipping option or particular customer location. When no matching stock rule were found, ordered items will be linked to the current storefront default stock."
+msgstr "Когда заказ оформлен, заказанные товары списываются со склада, который выбирается в зависимости от заданных ниже правил. Например, может быть удобно автоматически списывать с разных складов в зависимости от выбранного способа доставки или адреса покупателя. В случае, если не будет найдено ни одного подходящего правила, заказанные товары будут списаны со склада, указанного в настройках витрины в качестве склада по умолчанию."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:75
+msgid "http://www.shop-script.com/help/12062/stocks/"
+msgstr "http://www.shop-script.ru/help/11897/stocks/"
+
+#: /wa-apps/shop/lib/actions/settings/stock/shopSettingsStock.action.php:123
+msgid "By shipping option"
+msgstr "По способу доставки"
+
+#: /wa-apps/shop/lib/actions/settings/stock/shopSettingsStock.action.php:128
+msgid "By region"
+msgstr "По региону"
+
+#: /wa-apps/shop/templates/actions/dialog/include.category_visibility_setting.html:33
+msgid "Apply new visibility settings to all subcategories"
+msgstr "Применить новые настройки видимости к подкатегориям"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:285
+msgid "Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href=\"?action=settings#/checkout/\">Guest checkout setting</a> is not enabled."
+msgstr "Адрес (URL) страницы регистрации. Значение будет пустым, если заказ был оформлен ранее зарегистрированным покупателем или если в основных настройках магазина выключена возможность оформления <a href=\"?action=settings#/checkout/\">заказа без авторизации</a>."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:294
+msgid "Indicates if <a href=\"?action=settings#/affiliate/\">Loyalty program</a> is enabled in store settings."
+msgstr "Переменная указывает, включена ли <a href=\"?action=settings#/affiliate/\">бонусная программа</a> в общих настройках магазина."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:303
+msgid "Amount of affiliate bonus that will be credited to customer account when order is paid."
+msgstr "Сумма баллов, которые будут начислены на бонусный счет покупателя после оплаты заказа."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:413
+msgid "At least one condition is required"
+msgstr "Необходимо добавить хотя бы одно условие"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStockByRegion.html:5
+msgid "Shipping countries and regions"
+msgstr "Страны и регионы доставки"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStockByRegion.html:6
+msgid "country or region name"
+msgstr "страна или регион"
+
+#: /wa-apps/shop/lib/actions/settings/stock/shopSettingsStock.action.php:145
+msgid "By shipping location"
+msgstr "По адресу доставки"

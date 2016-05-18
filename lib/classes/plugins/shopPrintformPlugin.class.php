@@ -162,7 +162,7 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
 
     /**
      * @deprecated
-     * @param waOrder|int $order
+     * @param waOrder|int|data $order
      * @return string HTML form
      * @throws waException
      */
@@ -201,7 +201,7 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
         if ($force || $this->getSettings('emailprintform')) {
             $order = $this->getOrder($order, array('items' => true));
             if ($email = $order->getContactField('email', 'default')) {
-                $subject = sprintf(_w("Printform %s"), $this->getName());
+                $subject = sprintf("%s %s", $this->getName(), $order->id_str);
                 $message = new waMailMessage($subject, $this->renderPrintform($order));
                 $message->setTo(array($email));
 
@@ -272,7 +272,7 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
     }
 
     /**
-     * @param waOrder|int $data
+     * @param waOrder|int|array $data
      * @return string
      */
     public function renderPrintform($data)

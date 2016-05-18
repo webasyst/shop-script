@@ -210,16 +210,16 @@ td.s-empty-order-note { border-top: 1px solid #ddd; border-bottom: 1px solid #dd
 #s-orders table.zebra th { padding-left: 4px; padding-right: 4px; }
 #s-orders table.zebra td i.icon16 { margin-top: 0; }
 #s-orders table.zebra td a span.highlighted { background: #ff9; }
-#s-order #workflow-content { margin: 10px 250px 20px 0; }
-#s-order #workflow-content form,
-#s-order .workflow-content form { background: #eee; padding: 20px; margin-bottom: 10px; }
-#s-order #workflow-content form#wf-message-form { background: #eef3ff; border: 1px dashed #cde; }
-#s-order #workflow-content form#wf-message-form textarea { min-height: 100px; }
-#s-order #workflow-content form#wf-ship-form { background: #ffc; }
 #s-orders ul.menu-h.s-with-selected { margin-bottom: 0; }
 #s-orders ul.menu-h.s-with-selected a { padding: 0 0 6px; color: #03c; }
 #s-orders ul.menu-h.s-with-selected ul.menu-v a { padding: 5px; }
 #s-orders table.zebra .s-select-all { margin-top: 5px; }
+#workflow-content { margin: 10px 250px 20px 0; }
+#workflow-content form,
+.workflow-content form { background: #eee; padding: 20px; margin-bottom: 10px; }
+#workflow-content form#wf-message-form { background: #eef3ff; border: 1px dashed #cde; }
+#workflow-content form#wf-message-form textarea { min-height: 100px; }
+#workflow-content form#wf-ship-form { background: #eef7ff; border: 1px dashed #cde; }
 
 ul.s-orders li { width: 282px; padding: 10px !important; }
 ul.s-orders li a { color: #555; line-height: 1em; }
@@ -255,6 +255,7 @@ ul.s-order-actions li i.icon16.loading { margin-top: 7px; margin-left: 3px; }
 .s-order-timeline .workflow-actions i.icon16 { margin-top: 0.2em; }
 .s-order-timeline .fields { font-size: 0.9em; width: 100%; float: none; }
 .s-order-timeline .fields .field { clear: none; }
+.s-order-timeline .fields .field .value { margin-bottom: 10px; }
 .s-order-timeline .fields .field .value p { margin-top: -4px; }
 .s-order-timeline .fields .field .value p i.icon16 { float: none; left: auto; position: static; margin-top: 0; }
 .s-order-timeline .fields .field .value p i.icon16.float-right { float: right; }
@@ -538,7 +539,6 @@ ul.menu-v.tags li a { color: green; }
 .s-tab-block { padding-top: 20px; }
 
 /* buy button preview animation */
-#s-product-buybuttons .s-product-embed-preview { -webkit-transition: opacity 1s linear; -moz-transition: opacity 1s linear; transition: opacity 1s linear; }
 #s-product-buybuttons .s-product-embed-preview.is-waiting { opacity: 0.66 }
 
 /* image gallery */
@@ -728,6 +728,10 @@ table#s-product-stocks.zebra td.drag-active.first{ border-left: 1px dashed #ddd;
 #s-settings-stocks tr.has-errors td { vertical-align: top; }
 #s-settings-stocks td.s-stock-sort-handle { vertical-align: top; padding-top: 24px; }
 #s-settings-stocks-form .submit { margin-top: 20px; }
+
+#s-settings-stock-rules-form .stock-rule-condition { border-bottom: 1px solid #ccc; margin-bottom: 10px; }
+#s-settings-stock-rules-form .stock-rule-condition p { font-family: 'Helvetica Neue', Arial, sans-serif; margin-bottom: 10px; }
+#s-settings-stock-rules-form td.s-stock-sort-handle { padding-top: 24px; }
 
 #s-transfer-list td a { color: inherit; }
 #s-transfer-list td a span.s-link { color: #03c; }

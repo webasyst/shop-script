@@ -815,6 +815,17 @@ return array(
             'PRIMARY' => 'id',
         ),
     ),
+    'shop_stock_rules' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
+        'stock_id' => array('int', 11),
+        'virtualstock_id' => array('int', 11),
+        'rule_type' => array('varchar', 255, 'null' => 0),
+        'rule_data' => array('text'),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+        ),
+    ),
     'shop_tag' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
         'name' => array('varchar', 255, 'null' => 0),

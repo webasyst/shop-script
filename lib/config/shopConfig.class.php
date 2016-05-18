@@ -149,6 +149,17 @@ class shopConfig extends waAppConfig
         return $this->_routes[$url_type];
     }
 
+    /**
+     * Get current or primary currency
+     * Important note: has implicit dependency on environment
+     *
+     * @param bool $settings_only
+     *      In frontend environment
+     *          if true then return current currency (storefront currency),
+     *          otherwise return primary currency
+     *      In other environment always return primary currency
+     * @return mixed|null
+     */
     public function getCurrency($settings_only = true)
     {
         $c = null;
@@ -465,9 +476,13 @@ function shop_currency($n, $in_currency = null, $out_currency = null, $format = 
      * @var shopConfig $config
      */
     $config = wa('shop')->getConfig();
+
+    // primary currency
     $primary = $config->getCurrency(true);
-    // current currency
+
+    // current currency (in backend - it's primary, in frontend - currency of storefront)
     $currency = $config->getCurrency(false);
+
     if (!$in_currency) {
         $in_currency = $primary;
     }

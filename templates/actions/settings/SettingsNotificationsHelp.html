@@ -14,7 +14,7 @@
         <div class="value" id="s-n-help-content" style="display:none">
             <div class="block s-cheatsheet">
                 <div class="fields">
-                
+
                     <!-- ORDER -->
                     <div class="field">
                         <div class="name bold">
@@ -112,7 +112,7 @@
                             [`Customer’s comment to the order`]
                         </div>
                     </div>
-                    
+
                     <!-- STATUS -->
                     <div class="field">
                         <div class="name bold">
@@ -131,7 +131,7 @@
                             [`An URL to access order page in customer personal account in storefront`]
                         </div>
                     </div>
-                    
+
                     <!-- ORDER.PARAMS -->
                     <div class="field">
                         <div class="name bold">
@@ -188,7 +188,7 @@
                         <div class="value no-shift">
                             [`Domain and path to Shop-Script storefront where the order was placed`]
                         </div>
-                    </div>                    
+                    </div>
                     <div class="field s-sub-field">
                         <div class="name">
                             &#123;$order.params.ip&#125;
@@ -220,7 +220,7 @@
                         <div class="value no-shift">
                             [`Order shipment tracking number (if defined)`]
                         </div>
-                    </div>                    
+                    </div>
                     <div class="field s-sub-field">
                         <div class="name">
                             &#123;$order.params. … &#125;
@@ -228,8 +228,8 @@
                         <div class="value no-shift">
                             [`The list of order params may vary depending on your workflow and plugin setup`]
                         </div>
-                    </div>  
-                    
+                    </div>
+
                     <!-- CUSTOMER -->
                     <div class="field">
                         <div class="name bold">
@@ -286,7 +286,7 @@
                         <div class="value no-shift">
                             [`The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step`]
                         </div>
-                    </div>                    
+                    </div>
 
                     <!-- ADDRESSES -->
                     <div class="field">
@@ -305,7 +305,7 @@
                             [`Billing address as string`]
                         </div>
                     </div>
-                    
+
                     <!-- ACTION DATA -->
                     <div class="field">
                         <div class="name bold">
@@ -331,13 +331,23 @@
                             [`An array of action-dependent parameters, e.g. &#123;$action_data.params.tracking_number&#125; for Ship’s action tracking number`]
                         </div>
                     </div>
+
+                    <!-- OTHER -->
+                    <div class="field">
+                        <div class="name bold">
+                            &#123;$signup_url&#125;
+                        </div>
+                        <div class="value no-shift">
+                            [`Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href="?action=settings#/checkout/">Guest checkout setting</a> is not enabled.`]
+                        </div>
+                    </div>
                 </div>
                 <div class="clear-both"></div>
             </div>
         </div>
     </div>
 </div>
-        
+
 {if !empty($n)}
     <div id="send-test-dialog" class="dialog" style="display:none">
         <div class="dialog-background"></div>
@@ -403,7 +413,7 @@
         </div>
     </div>
 {/if}
-        
+
 <script type="text/javascript">
     $("#s-n-help").click(function () {
         $("#s-n-help-content").toggle();

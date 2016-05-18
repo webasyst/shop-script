@@ -153,6 +153,7 @@ class shopRounding
          * @var shopConfig $config
          */
         $curs = $config->getCurrencies();
+        $primary_currency = $config->getCurrency(true);
         $frontend_currency = $config->getCurrency(false);
         foreach ($skus as &$sku) {
             $product = ifset($products[$sku['product_id']]);
@@ -183,7 +184,6 @@ class shopRounding
             }
 
             if ($convert_currency && isset($sku['primary_price'])) {
-                $primary_currency = $config->getCurrency(true);
                 $sku['primary_price'] = shop_currency($sku['frontend_price'], $frontend_currency, $primary_currency, false);
             }
         }

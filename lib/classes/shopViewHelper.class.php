@@ -764,9 +764,11 @@ class shopViewHelper extends waAppViewHelper
                 }
             }
         } else {
-            $storefront = wa()->getRouting()->getDomain();
-            if (!$storefront) {
-                $storefront = '%all%';
+            $storefront = '%all%';
+            $domain = wa()->getRouting()->getDomain();
+            if ($domain) {
+                $routing_url = wa()->getRouting()->getRootUrl();
+                $storefront = $domain . ($routing_url ? '/'.$routing_url : '');
             }
             $promos = $promo_model->getByStorefront($storefront, $type_or_ids, true);
         }

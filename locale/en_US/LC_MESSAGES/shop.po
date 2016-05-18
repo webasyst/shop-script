@@ -5971,7 +5971,7 @@ msgstr ""
 
 #: /wa-apps/shop/themes/facebook/footer.html:4
 #: /wa-apps/shop/themes/vk/footer.html:4
-msgid "We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Shop-Script 6</a>"
+msgid "We are using <a href=\"http://www.shop-script.com/\" target=\"_blank\">Shop-Script 7</a>"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/dialog/DialogProductListEmbed.html:10
@@ -9831,7 +9831,7 @@ msgid "Latest blog updates"
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/promos/PromosDefault.html:8
-msgid "If you don’t see promos on your storefront homepage, you might be using an outdated version of the design theme (home.html template file). Please <a href=\"%s\" target=\"_blank\">follow this guide</a> to embed this new Shop-Script 6 feature to your online store."
+msgid "If you don’t see promos on your storefront homepage, you might be using an outdated version of the design theme (home.html template file). Please <a href=\"%s\" target=\"_blank\">follow this guide</a> to embed this new Shop-Script 7 feature to your online store."
 msgstr ""
 
 #: /wa-apps/shop/templates/actions/promos/PromosEditor.html:3
@@ -9864,6 +9864,10 @@ msgstr ""
 
 #: /wa-apps/shop/lib/config/app.php:3
 msgid "Shop"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/app.php:3
+msgid "Store"
 msgstr ""
 
 #: /wa-apps/shop/lib/config/app.php:4
@@ -11176,4 +11180,136 @@ msgstr ""
 
 #: /wa-apps/shop/templates/actions/product/ProductBuybuttons.html:19
 msgid "Locale"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/order/Order.html:71
+msgid "Sales channel"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsOrderList.html:119
+msgid "No orders"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/ReportsProductsAssets.html:42
+msgid "Purchase worth"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/reports/sales_sidebar.html:18
+msgid "Stacked chart"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPrintform.html:18
+msgid "There are no printforms installed."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:75
+msgid "http://www.shop-script.com/help/12062/stocks/"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:242
+msgid "Add condition..."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:286
+msgid "Real stock linking:"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:289
+msgid "Link items to most suitable stock according to availability"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:292
+msgid "Always link to %s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:305
+msgid "Stock linking rules"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:306
+msgid "When order is placed, ordered items will be automatically linked with a stock according to the rules defined below. E.g. different stocks may be preferred depending on selected shipping option or particular customer location. When no matching stock rule were found, ordered items will be linked to the current storefront default stock."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:317
+msgid "Condition"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/transfer/Transfer.html:80
+msgid "Start typing name of an existing product or SKU"
+msgstr ""
+
+#: /wa-apps/shop/templates/mail/Order.create.html:109
+msgid "Order status"
+msgstr ""
+
+#: /wa-apps/shop/templates/mail/Order.create.html:309
+msgid "When this order is paid, your affiliate bonus will be increased to %s."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:350
+msgid "Sales by sales channel"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/reports/shopReportsSales.action.php:354
+msgid "Sales by storefront"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/stock/shopSettingsStock.action.php:123
+msgid "By shipping option"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/stock/shopSettingsStock.action.php:128
+msgid "By region"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowCallbackAction.class.php:17
+msgid "Unsettled order %s was created so you could resolve this case manually."
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowCallbackAction.class.php:22
+msgid "Original order that did not accept the callback request: %s"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowCallbackAction.class.php:15
+msgid "Callback request was received but not applied to this order the following reason: <strong>%s</strong>"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowCallbackAction.class.php:19
+msgid "This unsettled order was created because its initiating callback request was rejected by the original order it was addressed to. We thought you should resolve this case manually. The reason was: <strong>%s</strong>"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/shopWorkflowSettleAction.class.php:133
+msgid "%s was updated: %s → %s"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/dialog/include.category_visibility_setting.html:33
+msgid "Apply new visibility settings to all subcategories"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:285
+msgid "Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href=\"?action=settings#/checkout/\">Guest checkout setting</a> is not enabled."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:294
+msgid "Indicates if <a href=\"?action=settings#/affiliate/\">Loyalty program</a> is enabled in store settings."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsFollowupsHelp.html:303
+msgid "Amount of affiliate bonus that will be credited to customer account when order is paid."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStock.html:413
+msgid "At least one condition is required"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStockByRegion.html:5
+msgid "Shipping countries and regions"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsStockByRegion.html:6
+msgid "country or region name"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/settings/stock/shopSettingsStock.action.php:145
+msgid "By shipping location"
 msgstr ""

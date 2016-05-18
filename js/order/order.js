@@ -43,7 +43,9 @@
 
             this.initView();
 
-            this.initScroll();
+            if ( $("#order-list").length ) {
+                this.initScroll();
+            }
 
             // workflow
             // action buttons click handler

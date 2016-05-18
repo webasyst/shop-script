@@ -278,6 +278,10 @@ class shopOrdersCollection
             if (in_array($name, array('order', 'items', 'params', 'log'))) {
                 $class_name = 'shop'.($name != 'order' ? 'Order' : '').ucfirst($name).'Model';
                 self::$models[$name] = new $class_name();
+            } else if ($name === 'customer') {
+                self::$models['customer'] = new shopCustomerModel();
+            } else if ($name === 'contact') {
+                self::$models['contact'] = new waContactModel();
             }
         }
         return self::$models[$name];
@@ -746,27 +750,31 @@ class shopOrdersCollection
                 $op = ifset($parts[1], '');
                 $val = ifset($parts[2], '');
 
-                if (substr($param, 0, 7) == 'params.') {
+                if ($field = $this->dropPrefix($param, 'params.')) {
 
                     #search by order params
                     $join = array(
                         'table' => 'shop_order_params',
-                        'type'  => $val === 'NULL' ? 'LEFT' : '',
+                        'type'  => $val === 'NULL' || $val === 'EMPTY' ? 'LEFT' : '',
                     );
-                    $on = "o.id = :table.order_id AND :table.name = '".$model->escape(substr($param, 7))."'";
-                    $where = ":table.value".$this->getExpression($op, $val);
+                    $on = "o.id = :table.order_id AND :table.name = '".$model->escape($field)."'";
+                    if ($val === 'EMPTY') {
+                        $where = "(:table.value IS NULL OR :table.value = '')";
+                    } else {
+                        $where = ":table.value".$this->getExpression($op, $val);
+                    }
+
                     $this->addJoin($join, $on, $where);
-                } elseif ((substr($param, 0, 6) == 'items.')
-                    && self::getModel('items')->fieldExists(substr($param, 6))
-                ) {
+                } elseif (($field = $this->dropPrefix($param, 'items.')) && self::getModel('items')->fieldExists($field)) {
 
                     #search by order items fields
                     $where = ':table.'.substr($param, 6).$this->getExpression($op, $val);
                     $this->addJoin('shop_order_items', null, $where);
-                } elseif (substr($param, 0, 8) === 'address.') {
+
+                } elseif ($sub_field = $this->dropPrefix($param, 'address.')) {
 
                     #search by address stored ad order
-                    $sub_field = self::getModel()->escape(substr($param, 8));
+                    $sub_field = self::getModel()->escape($sub_field);
                     $fields = array(
                         'billing_address',
                         'shipping_address'
@@ -774,9 +782,9 @@ class shopOrdersCollection
 
                     $on = array();
                     foreach ($fields as $field) {
-                        $on[] = ":table.name = '".$field.".".$sub_field."'";
+                        $on[] = ":table.name = '" . $field . "." . $sub_field . "'";
                     }
-                    $on = ':table.order_id = o.id AND ('.implode(' OR ', $on).')';
+                    $on = ':table.order_id = o.id AND (' . implode(' OR ', $on) . ')';
 
                     if ($sub_field === 'region' && strstr($val, ':') !== false) {
                         $val = explode(':', $val);
@@ -786,17 +794,86 @@ class shopOrdersCollection
 
                     $where = array();
                     foreach ($fields as $field) {
-                        $where[] = "(:table.name = '".$field.".".$sub_field."' AND :table.value ".
-                            $this->getExpression($op, $val).')';
+                        $where[] = "(:table.name = '" . $field . "." . $sub_field . "' AND :table.value " .
+                            $this->getExpression($op, $val) . ')';
                     }
                     $where = implode(' OR ', $where);
                     $this->addJoin('shop_order_params', $on, $where);
 
+                } elseif (($customer_field = $this->dropPrefix($param, 'customer.')) ||
+                    ($contact_field = $this->dropPrefix($param, 'contact.'))) {
+
+                    // search by customer or contact field
+
+                    $on = '';
+                    $table = '';
+                    if ($customer_field && self::getModel('customer')->fieldExists($customer_field)) {
+                        $field = $customer_field;
+                        $table = 'shop_customer';
+                        $on = ':table.contact_id = o.contact_id';
+                    } elseif ($contact_field && self::getModel('contact')->fieldExists($contact_field)) {
+                        $field = $contact_field;
+                        $table = 'wa_contact';
+                        $on = ':table.id = o.contact_id';
+                    }
+
+                    $join = array(
+                        'table' => $table,
+                        'type' => $val === 'NULL' || $val === 'EMPTY' ? 'LEFT' : ''
+                    );
+                    if ($val === 'EMPTY') {
+                        $where = "(:table.{$field} IS NULL OR :table.{$field} = '')";
+                    } else {
+                        $where = ":table.{$field}" . $this->getExpression($op, $val);
+                    }
+
+                    if ($table) {
+                        $this->addJoin($join, $on, $where);
+                    }
+
+                } elseif ($field = $this->dropPrefix($param, 'params_')) {
+
+                    // special params cases
+                    if ($field === 'coupon') {
+
+                        $t1 = $this->addJoin(
+                            array(
+                                'table' => 'shop_order_params',
+                                'type' => 'LEFT'
+                            ),
+                            ":table.order_id = o.id AND :table.name = 'coupon_id'"
+                        );
+
+                        $t2 = $this->addJoin(
+                            array(
+                                'table' => 'shop_order_params',
+                                'type' => 'LEFT'
+                            ),
+                            ":table.order_id = o.id AND :table.name = 'coupon_code'"
+                        );
+
+                        $field = "IFNULL(:t2.value, IFNULL(:t1.value, ''))";
+                        $where = $field . $this->getExpression($op, $val);
+                        $where = str_replace(':t1', $t1, $where);
+                        $where = str_replace(':t2', $t2, $where);
+                        $this->where[] = $where;
+
+                    }
+
                 } elseif ($model->fieldExists($param)) {
+
+                    // Try to convert order id from frontend format
+                    if ($param == 'id') {
+                        $decoded_id = shopBackendAutocompleteController::decodeOrderId($val);
+                        if ($decoded_id) {
+                            $val = $decoded_id;
+                        }
+                    }
 
                     #search by own table fields
                     $title[] = $param.$op.$val;
                     $this->where[] = 'o.'.$param.$this->getExpression($op, $val);
+
                 } else {
 
                     #condition ignored
@@ -813,6 +890,15 @@ class shopOrdersCollection
         if ($auto_title) {
             $this->addTitle($title, ' ');
         }
+    }
+
+    private function dropPrefix($string, $prefix)
+    {
+        $len = strlen($prefix);
+        if (substr($string, 0, $len) === $prefix) {
+            return substr($string, $len);
+        }
+        return '';
     }
 
     /**

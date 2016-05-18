@@ -91,7 +91,7 @@
             $('.s-stocks-transfers-show-all', container).click(function () {
                 $('.s-stocks-transfers-show-all-wrapper', container).find('.loading').show();
                 var limit = {$transfers.count} + {$transfers.limit};
-                var url = '?module=transfer&action=list&sort=status&order=asc&limit=' + limit;
+                var url = '?module=transfer&action=list&sort=create_datetime&order=desc&limit=' + limit;
                 $('.s-stocks-transfers', container).load(url, function () {
                     $('.s-stocks-transfers-show-all-wrapper', container).hide();
                 });

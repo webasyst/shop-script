@@ -6,21 +6,21 @@
                 <li>
                     <a href="#/printform/{$info.id}/">
                         <i class="icon16{if !isset($info.img)} plugins{else}" style="background-image: url('{wa_url()}{$info.img}');{/if}"></i>
-                        {if !empty($info.emailprintform)}
-                            <i class="icon16 email"></i>
-                        {/if}
+                        {* if !empty($info.emailprintform)}
+                            <i class="icon16 ss notification-bw count" style="opacity: 0.3;"></i>
+                        {/if *}
                         {$info.name|escape}
                     </a>
 
                 </li>
                 {foreachelse}
                 <li>
-                    [`There no printforms`]
+                    [`There are no printforms installed.`]
                 </li>
                 {/foreach}
-        
+
         </ul>
-            
+
         {if !empty($installer)}
         <div class="align-center hint hr block double-padded">
             <p>

@@ -35,6 +35,14 @@
  * @property float $max_price
  * @property int $tax_id
  * @property int|null $count
+ * @property mixed[string] $video
+ * @property string $video_url
+ * @property-read int $video['product_id']
+ * @property-read string[string] $video['url']
+ * @property-read int[string] $video['width']
+ * @property-read int[string] $video['height']
+ * @property-read string[string] $video['images']
+ *
  *
  * @property-read array $pages
  *
@@ -167,45 +175,47 @@ class shopProduct implements ArrayAccess
     {
         $video = array(
             'product_id' => $this->getId(),
-            'url' => $this['video_url'],
-            'width' => '',
-            'height' => '',
-            'images' => array()
+            'url'        => $this['video_url'],
+            'width'      => '',
+            'height'     => '',
+            'images'     => array()
         );
         if (!$video['url']) {
             return $video;
         }
 
-        if (strpos($video['url'], 'youtube.com') !== false) {
-            $video['width'] = 560;
-            $video['height'] = 315;
-            if (preg_match('/v=([^&]+)/i', $video['url'], $match)) {
-                $video['url'] = '//www.youtube.com/embed/'.$match[1];
-            } else {
-                $video['url'] = '';
-            }
-        } elseif (strpos($video['url'], 'youtu.be') !== false) {
-            $video['width'] = 560;
-            $video['height'] = 315;
-            if (preg_match('/youtu.be\/([^&]+)/i', $video['url'], $match)) {
-                $video['url'] = '//www.youtube.com/embed/'.$match[1];
-            } else {
-                $video['url'] = '';
-            }
-        } elseif (strpos($video['url'], 'vimeo.com') !== false) {
-            $video['width'] = 600;
-            $video['height'] = 338;
-            if (preg_match('/vimeo.com\/([0-9]+)/i', $video['url'], $match)) {
-                $video['url'] = '//player.vimeo.com/video/'.$match[1];
-            } else {
-                $video['url'] = '';
-            }
+        $domain = parse_url($video['url'], PHP_URL_HOST);
+        $url = '';
+        switch ($domain) {
+            case 'youtube.com':
+                $video['width'] = 560;
+                $video['height'] = 315;
+                if (preg_match('/v=([^&]+)/i', $video['url'], $match)) {
+                    $url = '//www.youtube.com/embed/'.$match[1];
+                }
+                break;
+            case 'youtu.be':
+                $video['width'] = 560;
+                $video['height'] = 315;
+                if (preg_match('/youtu.be\/([^&]+)/i', $video['url'], $match)) {
+                    $url = '//www.youtube.com/embed/'.$match[1];
+                }
+                break;
+            case 'vimeo.com':
+                $video['width'] = 600;
+                $video['height'] = 338;
+                if (preg_match('/vimeo.com\/([0-9]+)/i', $video['url'], $match)) {
+                    $url = '//player.vimeo.com/video/'.$match[1];
+                }
+                break;
         }
-        if ($video['url']) {
+
+        if ($url && shopVideo::checkVideoThumb($this->getId(), $video['url'])) {
             foreach ((array)$sizes as $k => $size) {
                 $video['images'][$k] = shopVideo::getThumbUrl($this->getId(), $size, $absolute);
             }
         }
+        $video['url'] = $url;
         return $video;
     }
 
@@ -274,6 +284,10 @@ class shopProduct implements ArrayAccess
             foreach ($this->is_dirty as $field => $v) {
                 if ($this->model->fieldExists($field)) {
                     $product[$field] = $this->data[$field];
+                    if ($id && ($field == 'video_url')) {
+                        waFiles::delete(shopVideo::getPath($id));
+                        waFiles::delete(shopVideo::getThumbsPath($id));
+                    }
                     unset($this->is_dirty[$field]);
                 }
             }
@@ -457,9 +471,15 @@ class shopProduct implements ArrayAccess
      */
     public function setData($name, $value)
     {
-        if ($name == 'name') {
-            $value = preg_replace('@[\r\n]+@', ' ', $value);
+        switch ($name) {
+            case 'name':
+                $value = preg_replace('@[\r\n]+@', ' ', $value);
+                break;
+            case 'video_url':
+                $value = shopVideo::checkVideo($value);
+                break;
         }
+
         if ($this->getData($name) !== $value) {
             $this->data[$name] = $value;
             $this->is_dirty[$name] = true;

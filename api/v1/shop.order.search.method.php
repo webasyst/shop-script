@@ -7,7 +7,6 @@ class shopOrderSearchMethod extends waAPIMethod
     public function execute()
     {
         $hash = $this->get('hash');
-        $collection = new shopOrdersCollection($hash);
 
         $offset = waRequest::get('offset', 0, 'int');
         if ($offset < 0) {
@@ -20,19 +19,25 @@ class shopOrderSearchMethod extends waAPIMethod
         if ($limit > 1000) {
             throw new waAPIException('invalid_param', 'Param limit must be less or equal 1000');
         }
-        $this->response['count'] = $collection->count();
         $this->response['offset'] = $offset;
         $this->response['limit'] = $limit;
-        $this->response['orders'] = array_values($collection->getOrders(self::getColelctionFields(), $offset, $limit));
-        if ($this->response['orders']) {
-            foreach ($this->response['orders'] as &$o) {
-                foreach (array('auth_code', 'auth_pin') as $k) {
-                    if (!empty($o['params'][$k])) {
-                        unset($o['params'][$k]);
+        if (wa()->getUser()->getRights('shop', 'orders')) {
+            $collection = new shopOrdersCollection($hash);
+            $this->response['count'] = $collection->count();
+            $this->response['orders'] = array_values($collection->getOrders(self::getColelctionFields(), $offset, $limit));
+            if ($this->response['orders']) {
+                foreach ($this->response['orders'] as &$o) {
+                    foreach (array('auth_code', 'auth_pin') as $k) {
+                        if (!empty($o['params'][$k])) {
+                            unset($o['params'][$k]);
+                        }
                     }
                 }
+                unset($o);
             }
-            unset($o);
+        } else {
+            $this->response['count'] = 0;
+            $this->response['orders'] = array();
         }
     }
 

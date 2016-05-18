@@ -325,16 +325,15 @@ class shopHelper
             $orders = array($orders);
         }
 
-
         $workflow = new shopWorkflow();
         $states = $workflow->getAllStates();
         foreach ($orders as & $order) {
             $order['id_str'] = self::encodeOrderId($order['id']);
-            $order['total_str'] = wa_currency_html($order['total'], $order['currency']);
+            $order['total_str'] = wa_currency_html(ifset($order['total'], 0), ifset($order['currency']));
             if (!empty($order['create_datetime'])) {
                 $order['create_datetime_str'] = wa_date('humandatetime', $order['create_datetime']);
             }
-            $state = isset($states[$order['state_id']]) ? $states[$order['state_id']] : null;
+            $state = (isset($order['state_id']) && isset($states[$order['state_id']])) ? $states[$order['state_id']] : null;
 
             $icon = '';
             $style = '';
@@ -873,15 +872,65 @@ SQL;
         return $store_email;
     }
 
-    public static function getStorefronts()
+    public static function getStorefronts($verbose = false)
     {
         $storefronts = array();
         foreach (wa()->getRouting()->getByApp('shop') as $domain => $domain_routes) {
             foreach ($domain_routes as $route) {
                 $url = rtrim($domain.'/'.$route['url'], '/*').'/';
-                $storefronts[] = $url;
+                if ($verbose) {
+                    $storefronts[] = array(
+                        'domain' => $domain,
+                        'route' => $route,
+                        'url' => $url
+                    );
+                } else {
+                    $storefronts[] = $url;
+                }
             }
         }
         return $storefronts;
+    }
+
+    public static function generateSignupUrl($customer, $order_storefront)
+    {
+        $signup_url = '';
+        if (wa_is_int($customer)) {
+            $customer = new shopCustomer($customer);
+        } else if (!($customer instanceof waContact)) {
+            $customer = new shopCustomer(0);
+        }
+        $guest_checkout = wa('shop')->getConfig()->getGeneralSettings('guest_checkout');
+        if ($guest_checkout === 'merge_email' && strlen($customer['password']) <= 0 && $customer['is_user'] >= 0) {
+            $order_domain = self::getDomainByStorefront($order_storefront);
+            $auth = wa()->getAuthConfig();
+            $auth_app = ifset($auth['app'], '');
+            $signup_url = wa()->getRouteUrl($auth_app . '/signup', array(), true, $order_domain);
+
+            if ($signup_url && $auth_app === 'shop') {
+                $hash = md5(uniqid($order_storefront . $customer->getId(), true));
+                $hash = substr($hash, 0, 16) . $customer->getId() . substr($hash, 16);
+                if (substr($signup_url, 0, -1) === '?') {
+                    $signup_url .= '&';
+                } else {
+                    $signup_url .= '?';
+                }
+                $signup_url .= "prefilling={$hash}";
+            }
+        }
+        return $signup_url;
+    }
+
+    public static function getDomainByStorefront($storefront)
+    {
+        $domain = null;
+        $storefronts = shopHelper::getStorefronts(true);
+        foreach ($storefronts as $st) {
+            if (trim($st['url'], '/') === trim($storefront, '/')) {
+                $domain = $st['domain'];
+                break;
+            }
+        }
+        return $domain;
     }
 }

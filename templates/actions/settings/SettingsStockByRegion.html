@@ -1,0 +1,108 @@
+<link type="text/css" rel="stylesheet" href="{$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.css?{$wa->version(true)}">
+<script src="{$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.min.js?{$wa->version(true)}"></script>
+
+<script type="text/template" id="by_region_condition_template">
+    <p>[`Shipping countries and regions`]:
+        <input class="tagsinput" placeholder="[`country or region name`]" value="">
+    </p>
+</script>
+
+<script>(function() { "use strict";
+
+    var template_form = $('#by_region_condition_template').html();
+    var $table_tbody = $('#s-settings-stock-rules-form table tbody').first();
+    var autocomplete_options = prepareAutocompleteOptions({json_encode($countries)});
+
+    // Initialize condition editor when new one is added or existing loaded
+    $table_tbody.on('rules:condition_init.by_region', '.stock-rule-condition', function(evt) {
+        var $condition_wrapper = $(this).append($.parseHTML(template_form));
+        var tag_names = (evt.rule_data || '').split(',').map(function(id) {
+            return autocomplete_options.hash[id] || '';
+        }).join(',');
+        initTagsInput($condition_wrapper.find('.tagsinput').val(tag_names));
+    });
+
+    function initTagsInput($input) {
+
+        var $hidden_input = $input.closest('.stock-rule-condition').find('input[name$="[rule_data]"]');
+
+        // tagsInput() breaks unless input has an id attribute
+        if (!$input.attr('id')) {
+            $input.attr('id', 'ti'+String(Math.random()).substr(2));
+        }
+
+        var timeout = null;
+
+        $input.tagsInput({
+            width: '300px',
+            height: '120px',
+            defaultText: $input.attr('placeholder'),
+            autocomplete_url: function(data, callback) {
+                var matcher = new RegExp('\\'+data.term.split('').join('\\'), 'i');
+                var candidates = autocomplete_options.options;
+                var len = candidates.length;
+                var options = [];
+                for (var i = 0; i < len; i++) {
+                    if (matcher.test(candidates[i].name)) {
+                        options.push(candidates[i].name);
+                        if (options.length >= 5) {
+                            break;
+                        }
+                    }
+                }
+                callback(options);
+            },
+            onChange: function(_, tag) {
+                // Filter out bad tags and prepare ids for hidden input
+                var ids = [];
+                var original_tags = $input.val();
+                var tags = original_tags.split(',').map(function(tag_name) {
+                    if (autocomplete_options.hash[tag_name]) {
+                        ids.push(autocomplete_options.hash[tag_name]);
+                        return tag_name;
+                    } else {
+                        return null;
+                    }
+                }).filter(function(v) { return !!v; });
+
+                // Set ids into hidden input
+                $hidden_input.val(ids.join(','));
+
+                // Change human-readable tags removing bad ones
+                var new_tags = tags.join(',');
+                timeout && clearTimeout(timeout);
+                if (original_tags != new_tags) {
+                    setTimeout(function() {
+                        $input.importTags(new_tags);
+                    }, 100);
+                }
+            }
+        });
+    }
+
+    function prepareAutocompleteOptions(countries) {
+        var options = [], hash = {};
+        $.each(countries, function(i, country) {
+            hash[country.name] = country.id;
+            hash[country.id] = country.name;
+            options.push({
+                id: country.id,
+                name: country.name
+            });
+
+            $.each(country.regions, function(i, region) {
+                hash[region.name] = country.id + ':' + region.id;
+                hash[country.id + ':' + region.id] = region.name;
+                options.push({
+                    id: country.id + ':' + region.id,
+                    name: region.name
+                });
+            });
+        });
+        return {
+            options: options,
+            hash: hash
+        };
+    }
+
+})();</script>

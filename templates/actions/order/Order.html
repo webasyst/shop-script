@@ -68,6 +68,7 @@
                     {if !empty($order.params.referer)}[`Referrer`]: <strong><a href="{$order.params.referer}" target="_blank" style="color: #03c;">{$order.params.referer|truncate:42}</a></strong><br>{/if}
                     {if !empty($order.params.utm_campaign)}[`UTM campaign`]: <strong>{$order.params.utm_campaign}</strong><br>{/if}
                     {if !empty($order.params.storefront)}[`Storefront`]: <strong>{$order.params.storefront}</strong><br>{/if}
+                    {if !empty($order.params.sales_channel)}[`Sales channel`]: <strong>{$order.params.sales_channel}</strong><br>{/if}
                     {if !empty($order.params.keyword)}[`Keyword`]: <strong>{$order.params.keyword}</strong><br>{/if}
                     {if !empty($order.params.ip)}[`IP`]: <strong>{$order.params.ip}</strong><br>{/if}
 
@@ -191,7 +192,7 @@
                 {/if}
                 <!-- shipping plugin output -->
                 {if !empty($params.tracking_number)}
-                    <h3><span class="gray">[`Shipment tracking number`] —</span> <strong class="highlighted">{$params.tracking_number}</strong></h3>
+                    <h3><span class="gray">[`Shipment tracking number`] —</span> <strong class="highlighted">{$params.tracking_number|escape}</strong></h3>
                 {/if}
                 {if !empty($tracking) && $order.state_id != 'completed'}
                     <blockquote class="plugin s-tracking">
@@ -420,11 +421,11 @@
                                 <strong>{if $row.action}{$row.action->getOption('log_record')|escape}{else}{$row.action_id}{/if}</strong>
 
                                 {if $row.text}
-                                    <p{if $row.action_id == 'message' || $row.action_id == 'comment' || $row.action_id == 'pay' || $row.action_id == 'ship'} class="s-order-timeline-message{if $row.action_id == 'message'} blue{elseif $row.action_id == 'ship'} yellow{/if}"{/if}>{$row.text}</p>
+                                    <p{if $row.action_id == 'message' || $row.action_id == 'comment' || $row.action_id == 'pay' || $row.action_id == 'ship'} class="s-order-timeline-message{if $row.action_id == 'message'} blue{elseif $row.action_id == 'ship'} yellow{/if}"{/if}>{$row.text|nl2br}</p>
                                 {/if}
                             {else}
                                 {if $row.text}
-                                    <p>{$row.text}</p>
+                                    <p>{$row.text|nl2br}</p>
                                 {/if}
                             {/if}
                         </div>
