@@ -72,9 +72,9 @@ $(function () {
         if ($(this).is(':checked')) {
            var parent_id = row.data('id')
            var data = {html: 1, parent_id: parent_id, service_id: $(this).val()};
-           var variants = $('select[name="service_variant[' + parent_id + '][' + $(this).val() + ']"]');
-           if (variants.length) {
-               data['service_variant_id'] = variants.val();
+           var $variants = $('[name="service_variant[' + parent_id + '][' + $(this).val() + ']"]');
+           if ($variants.length) {
+               data['service_variant_id'] = $variants.val();
            }
            $.post('add/', data, function(response) {
                div.data('id', response.data.id);
@@ -109,6 +109,28 @@ $(function () {
         $('#apply-coupon-code:hidden').show();        
         $('#apply-coupon-code input[type="text"]').focus();
         return false;
+    });
+
+    // listen coupon input value for change and hide its error message if changing have been happened
+
+    var onInputChange = function ($input, onChange) {
+        var prev_input_val = $input.val() || '';
+        var timer_id, timeout = 500;
+        $input.keydown(function () {
+            if (timer_id) {
+                clearTimeout(timer_id);
+            }
+            timer_id = setTimeout(function () {
+                if (prev_input_val !== $input.val()) {
+                    onChange.apply($input, arguments);
+                }
+                prev_input_val = $input.val();
+            }, timeout);
+        }).change(onChange);
+    };
+
+    onInputChange($('#apply-coupon-code input[type="text"]'), function () {
+        $('#apply-coupon-code .errormsg').hide();
     });
 
     $("div.addtocart input:button").click(function () {

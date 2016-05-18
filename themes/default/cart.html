@@ -46,6 +46,8 @@
                                 <option {if $s.variant_id == $variant_id}selected{/if} value="{$variant_id}">{$v.name|escape} (+{shop_currency($v.price, $s.currency)})</option>
                                 {/foreach}
                             </select>
+                            {else}
+                            <input type="hidden" name="service_variant[{$item.id}][{$service_id}]" value="{$s.variant_id}">
                             {/if}
                             </div>
                             {/foreach}
