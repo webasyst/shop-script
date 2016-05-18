@@ -1,6 +1,6 @@
 # Shop-Script 7 #
 
-Shop-Script 7 is a robust PHP shopping cart software powered by Webasyst Framework.
+Shop-Script 7 is a robust PHP ecommerce framework with best-in-class analytics tools. Powered by Webasyst Framework.
 
 http://www.shop-script.com
 http://www.webasyst.com
@@ -9,7 +9,7 @@ http://www.webasyst.com
 
   * Web Server
 		* e.g. Apache or IIS
-		
+
 	* PHP 5.2+
 		* spl extension
 		* mbstring
@@ -23,7 +23,7 @@ http://www.webasyst.com
 
 Install Webasyst Framework via http://github.com/webasyst/webasyst-framework/ or http://www.webasyst.com/framework/
 
-## Installing Shop-Script 7 ##
+## Installing Shop-Script ##
 
 1. Once Webasyst Framework is installed, get Shop-Script code into your /PATH_TO_WEBASYST/wa-apps/shop/ folder:
 
@@ -33,14 +33,14 @@ Install Webasyst Framework via http://github.com/webasyst/webasyst-framework/ or
 		git clone git://github.com/webasyst/shop-script.git ./
 
 	via SVN:
-	
+
 		cd /PATH_TO_WEBASYST/wa-apps/shop/
 		svn checkout http://svn.github.com/webasyst/shop-script.git ./
 
 2. Add the following line into the /wa-config/apps.php file (this file lists all installed apps):
 
 		'shop' => true,
-		
+
 3. Done. Run Webasyst backend in a web browser and click on Shop-Script icon in the main app list.
 
 ## Updating Webasyst Framework ##
