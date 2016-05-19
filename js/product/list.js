@@ -1680,7 +1680,7 @@
                             li.attr('id', collection_hash[0] + '-' + r.data.id);
                             li.find('a').attr('href', hash);
 
-                            if ('sort_products' in r.data) {
+                            if (('sort_products' in r.data) || ('rule' in r.data)) {
                                 hash = hash.replace(/&sort=[^&]*/, '&sort=');
                                 hash = hash.replace(/&order=[^&]*/, '&order=');
                             }

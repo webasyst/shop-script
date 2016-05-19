@@ -400,7 +400,7 @@ class shopNotifications
 
     protected static function sendPushNotifications($event, $data)
     {
-        if ($event != 'order.create') {
+        if ($event != 'order.create' || !function_exists('curl_init')) {
             return;
         }
 

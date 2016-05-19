@@ -37,6 +37,7 @@
                 <option value="total_sales DESC" {if $settings.rule == 'total_sales DESC'}selected="selected"{/if}>[`Best sellers`]</option>
                 <option value="total_sales ASC" {if $settings.rule == 'total_sales ASC'}selected="selected"{/if}>[`Worst sellers`]</option>
                 <option value="name ASC" {if $settings.rule == 'name ASC'}selected="selected"{/if}>[`By name`]</option>
+                <option value="compare_price DESC" {if $settings.rule == 'compare_price DESC'}selected="selected"{/if}>[`Compare at price is set`]</option>
                 <option value="" {if empty($settings.rule)}selected="selected"{/if}>[`Date added`]</option>
             </select>
         </div>

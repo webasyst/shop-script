@@ -59,7 +59,8 @@
             <div class="field">
                 <div class="name">[`Stocks and priority`]</div>
                 <div class="sortable substocks-wrapper">
-                {foreach array_replace(array_flip($substocks), $stocks) as $s}{if empty($s.substocks)}
+                {foreach array_keys(array_flip($substocks) + $stocks) as $sid}{if !empty($stocks[$sid]) && empty($stocks[$sid].substocks)}
+                    {$s = $stocks[$sid]}
                     <div class="value no-shift substock-checkbox-wrapper">
                         <i class="icon16 sort substocks-handle"></i>
                         <label>
@@ -282,7 +283,7 @@
     </tr>
 {/function}
 
-<div class="blank block double-padded">
+<div class="blank block double-padded{if !$stocks && !$rule_groups} hidden{/if}">
     <h1 style="margin-bottom: 0.75em;">[`Stock linking rules`]</h1>
     <p>[`When order is placed, ordered items will be automatically linked with a stock according to the rules defined below. E.g. different stocks may be preferred depending on selected shipping option or particular customer location. When no matching stock rule were found, ordered items will be linked to the current storefront default stock.`]</p>
     <div class="block bottom-padded">

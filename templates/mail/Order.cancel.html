@@ -113,12 +113,12 @@ border-collapse:collapse
                     <td></td>
                     <td style="padding: 24px 0 36px 0;">
                         <h3 style="margin: 0;">%contact_info%</h3>
-                        {if !empty($wa->shop->settings("email"))}
+                        {if strlen($wa->shop->settings("email"))}
                             <p style="margin: 10px 0 0;">
                                 [`Email`]: <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a>
                             </p>
                         {/if}
-                        {if !empty($wa->shop->settings("phone"))}
+                        {if strlen($wa->shop->settings("phone"))}
                             <p style="margin: 10px 0 0;">
                                 [`Phone`]: {$wa->shop->settings("phone")}
                             </p>

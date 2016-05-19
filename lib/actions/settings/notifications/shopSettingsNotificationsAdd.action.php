@@ -13,7 +13,7 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
 
     protected static function getOrderCreateTemplate() {
         $template = file_get_contents(wa('shop')->getAppPath('templates/mail/Order.create.html'));
-        $locales = [
+        $locales = array(
             "%1%" => _w('Qty'),
             "%2%" => _w('Total'),
             "%3%" => _w('Download'),
@@ -30,7 +30,7 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
             "%15%" => _w('View and manage your order'),
             "%16%" => _w('PIN'),
             "%17%" => sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}')
-        ];
+        );
 
         foreach ($locales as $index => $locale) {
             $template = str_replace($index, $locale, $template);
@@ -41,13 +41,13 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
 
     protected static function getOrderConfirmedTemplate() {
         $template = file_get_contents(wa('shop')->getAppPath('templates/mail/Order.confirmed.html'));
-        $locales = [
+        $locales = array(
             "%1%" => sprintf( _w('Hi %s'), '{$customer->get("name", "html")}'),
             "%2%" => sprintf( _w('Your order %s has been confirmed and accepted for processing.'), '{$order.id}'),
             "%contact_info%" => _w('Contact info'),
             "%16%" => _w('PIN'),
             "%17%" => sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}')
-        ];
+        );
 
         foreach ($locales as $index => $locale) {
             $template = str_replace($index, $locale, $template);
@@ -58,14 +58,14 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
 
     protected static function getOrderShipmentTemplate() {
         $template = file_get_contents(wa('shop')->getAppPath('templates/mail/Order.shipment.html'));
-        $locales = [
+        $locales = array(
             "%1%" => sprintf( _w('Hi %s'), '{$customer->get("name", "html")}'),
             "%2%" => sprintf( _w('Your order %s has been shipped!'), '{$order.id}'),
             "%3%" => sprintf( _w('The shipment tracking number is <strong>%s</strong>'), '{$action_data.params.tracking_number|escape}'),
             "%contact_info%" => _w('Contact info'),
             "%16%" => _w('PIN'),
             "%17%" => sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}')
-        ];
+        );
 
         foreach ($locales as $index => $locale) {
             $template = str_replace($index, $locale, $template);
@@ -76,13 +76,13 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
 
     protected static function getOrderCancelTemplate() {
         $template = file_get_contents(wa('shop')->getAppPath('templates/mail/Order.cancel.html'));
-        $locales = [
+        $locales = array(
             "%1%" => sprintf( _w('Hi %s'), '{$customer.name|escape}'),
             "%2%" => sprintf( _w('Your order %s has been cancelled. If you want your order to be re-opened, please contact us.'), '{$order.id}'),
             "%contact_info%" => _w('Contact info'),
             "%16%" => _w('PIN'),
             "%17%" => sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}')
-        ];
+        );
 
         foreach ($locales as $index => $locale) {
             $template = str_replace($index, $locale, $template);
@@ -93,13 +93,13 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
 
     protected static function getOrderStatusChangeTemplate() {
         $template = file_get_contents(wa('shop')->getAppPath('templates/mail/Order.status_change.html'));
-        $locales = [
+        $locales = array(
             "%1%" => sprintf( _w('Hi %s'), '{$customer.name|escape}'),
             "%2%" => sprintf( _w('Your order %s status has been updated to <strong>%s</strong>'), '{$order.id}', '{$status}'),
             "%contact_info%" => _w('Contact info'),
             "%16%" => _w('PIN'),
             "%17%" => sprintf( _w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}')
-        ];
+        );
 
         foreach ($locales as $index => $locale) {
             $template = str_replace($index, $locale, $template);

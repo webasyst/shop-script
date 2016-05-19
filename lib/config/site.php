@@ -8,6 +8,7 @@ $currencies = wa('shop')->getConfig()->getCurrencies();
 foreach ($currencies as &$c) {
     $c = $c['title'];
 }
+unset($c);
 
 $payment_items = $shipping_items = array();
 foreach (shopHelper::getPaymentMethods() as $p) {
@@ -19,10 +20,10 @@ foreach (shopHelper::getShippingMethods() as $s) {
 
 $stock_model = new shopStockModel();
 $public_stocks = $stocks = array();
-foreach(shopHelper::getStocks() as $id => $s) {
-    $stocks[$id] = $s['name'];
+foreach(shopHelper::getStocks() as $stock_id => $s) {
+    $stocks[$stock_id] = $s['name'];
     if ($s['public']) {
-        $public_stocks[$id] = $s['name'];
+        $public_stocks[$stock_id] = $s['name'];
     }
 }
 
