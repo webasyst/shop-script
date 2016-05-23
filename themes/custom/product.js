@@ -167,7 +167,7 @@ Product.prototype.currencyFormat = function (number, no_html) {
             return s + this.currency.sign_delim + number;
         } else {
             return number + this.currency.sign_delim + s;
-        }        
+        }
 };
 
 
@@ -251,8 +251,21 @@ $(function () {
             $(".aux").show();
         }
     });
+
+    // product image video
+    $('#product-image-video').click(function () {
+        $('#product-core-image').hide();
+        $('#video-container').show();
+        $('#product-gallery .image').removeClass('selected');
+        $(this).parent().addClass('selected');
+        return false;
+    });
+
     // product images
-    $("#product-gallery a").click(function () {
+    $("#product-gallery a").not("#product-image-video").click(function () {
+        $('#product-core-image').show();
+        $('#video-container').hide();
+
         $("#product-image").parent().find("div.loading").remove();
         $("#product-image").parent().append('<div class="loading" style="position: absolute; left: ' + (($("#product-image").width() - 16) / 2) + 'px; top: ' + (($("#product-image").height() - 16)/2) + 'px"><i class="icon16 loading"></i></div>');
         var img = $(this).find('img');
@@ -267,6 +280,8 @@ $(function () {
         });
         return false;
     });
+
+
 
     // compare block
     $("a.compare-add").click(function () {
