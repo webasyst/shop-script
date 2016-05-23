@@ -248,13 +248,16 @@ $(function () {
     }
 
     // product images
-    $("#product-gallery a").click(function () {
+    $("#product-gallery a").not("#product-image-video").click(function () {
+        $('#product-core-image').show();
+        $('#video-container').hide();
+
         $('.gallery .image').removeClass('selected');
         $(this).parent().addClass('selected');
 
         $("#product-core-image div.loading").remove();
         $("#product-core-image").append('<div class="loading" style="position: absolute; left: 192px; top: ' + (($("#product-image").height() - 16)/2) + 'px"><i class="icon16 loading"></i></div>');
-        
+
         var img = $(this).find('img');
         var size = $("#product-image").attr('src').replace(/^.*\/[^\/]+\.(.*)\.[^\.]*$/, '$1');
         var src = img.attr('src').replace(/^(.*\/[^\/]+\.)(.*)(\.[^\.]*)$/, '$1' + size + '$3');
@@ -269,6 +272,15 @@ $(function () {
         var href = img.attr('src').replace(/^(.*\/[^\/]+\.)(.*)(\.[^\.]*)$/, '$1' + size + '$3');
         $("#product-image").parent().attr('href', href);
         $("a.easyzoom").easyZoom({parent: '#product-core-image'});
+        return false;
+    });
+
+    // product image video
+    $('#product-image-video').click(function () {
+        $('#product-core-image').hide();
+        $('#video-container').show();
+        $('#product-gallery .image').removeClass('selected');
+        $(this).parent().addClass('selected');
         return false;
     });
 
