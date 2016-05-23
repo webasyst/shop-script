@@ -1,3 +1,12 @@
+{$_video = false}
+{$_video_url = false}
+{if $product->video}
+    {$_video = $product->getVideo(['96x96'])}
+    {if $_video.orig_url}
+        {$_video_url = $_video.orig_url}
+    {/if}
+{/if}
+
 <!-- SWIPEBOX PLUGIN -->
 <link rel="stylesheet" href="{$wa_theme_url}plugin/swipebox/css/swipebox.min.css">
 <script src="{$wa_theme_url}plugin/swipebox/js/jquery.swipebox.js"></script>
@@ -49,6 +58,13 @@
             <!-- thumbs -->
             {if count($product.images) > 1}
             <div class="product-gallery more-images" id="product-gallery">
+                {if $_video_url}
+                    <div class="image video selected">
+                        <a id="product-image-video" href="{$_video_url}" class="swipebox swipebox-video">
+                            <img src="{$_video.images[0]}">
+                        </a>
+                    </div>
+                {/if}
                 {foreach $product.images as $image}
                 <div class="image {if $image.id == $product.image_id}selected{/if}">
                     <a id="product-image-{$image.id}" href="{$wa->shop->imgUrl($image, '970')}" class="swipebox">
