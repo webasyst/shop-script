@@ -68,8 +68,8 @@
     <!-- product info & gallery -->
     <div class="product-info" id="overview">
 
-        {$video = $product->getVideo(['96x96'])}
-        {if $video.url}
+        {$video = $product->video}
+        {if $video}
             <div id="video-container" class="video-container" itemprop="video" itemscope itemtype="http://schema.org/VideoObject">
                 <div itemprop="embedHTML">
                     <iframe src="{$video.url}" width="{$video.width}" height="{$video.height}" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
@@ -79,14 +79,14 @@
             </div>
         {/if}
 
-        {if $product.images || $video.url}
+        {if $product.images || $video}
 
             <figure class="product-gallery">
 
                 {if $product.images}
 
                     <!-- main image -->
-                    <div class="image" id="product-core-image" {if $video.url}style="display:none"{/if}>
+                    <div class="image" id="product-core-image" {if $video}style="display:none"{/if}>
 
                         <div class="corner top right">
                             {$wa->shop->badgeHtml($product.badge)}
@@ -100,9 +100,9 @@
                 {/if}
 
                 <!-- thumbs -->
-                {if count($product.images) > 1 || (count($product.images) === 1 && $video.url)}
+                {if count($product.images) > 1 || (count($product.images) === 1 && $video)}
                     <div class="more-images" id="product-gallery">
-                        {if $video.url}
+                        {if $video}
                             <div class="image video selected">
                                 <a id="product-image-video" href="{$video.url}" class="swipebox">
                                     <img src="{$video.images[0]}">
@@ -110,7 +110,7 @@
                             </div>
                         {/if}
                         {foreach $product.images as $image}
-                            <div class="image{if $image.id == $product.image_id && empty($product.video_url)} selected{/if}">
+                            <div class="image{if $image.id == $product.image_id && empty($video)} selected{/if}">
                                 <a id="product-image-{$image.id}" href="{$wa->shop->imgUrl($image, '970')}" class="swipebox">
                                     {$wa->shop->imgHtml($image, '96x96')}
                                 </a>
