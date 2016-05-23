@@ -130,15 +130,8 @@ class shopYandexmarketPluginOrder extends waOrder
              */
 
             $feeds[] = $item['feedId'];
-
-            $id = preg_split('@\D+@', $item['offerId'], 2);
-            if (count($id) == 1) {
-                $product_ids[] = intval($id);
-            } else {
-                $product_ids[] = intval($item['offerId']);
-            }
+            $product_ids[] = intval(preg_replace('@\D.*$@', '', $item['offerId']));
         }
-
 
         $feeds = array_unique($feeds);
         $profile = null;
@@ -157,6 +150,7 @@ class shopYandexmarketPluginOrder extends waOrder
         if ($product_ids) {
             $product_ids = array_unique($product_ids);
             $product_model = new shopProductModel();
+
             $product_ids = $product_model->select('id,name,currency,sku_id')->where('id IN (i:product_ids)', compact('product_ids'))->fetchAll('id', true);
         }
 
@@ -186,7 +180,7 @@ class shopYandexmarketPluginOrder extends waOrder
                 'product_id'      => $product_id,
                 'sku_id'          => $sku_id,
                 'sku_code'        => '',
-                'name'            => $product['name'],
+                'name'            => ifset($product['name'], $item['offerName']),
                 'count'           => 0,
                 'price'           => false,
                 'profile_id'      => ifset($profile_map[$item['feedId']]),
@@ -196,7 +190,8 @@ class shopYandexmarketPluginOrder extends waOrder
         }
 
         $skus_model = new shopProductSkusModel();
-        $skus = $skus_model->select('id,count,sku,primary_price')->where('id IN (?)', $sku_ids)->fetchAll('id');
+        $skus = $skus_model->select('id,count,sku,primary_price')->where('id IN (i:sku_ids)', compact('sku_ids'))->fetchAll('id');
+
         foreach ($data['items'] as &$item) {
             if (isset($skus[$item['sku_id']])) {
                 $sku = $skus[$item['sku_id']];
@@ -224,7 +219,6 @@ class shopYandexmarketPluginOrder extends waOrder
             $data['description'] .= ($data['description'] ? "\n" : '').$json['notes'];
         }
 
-
         if (!empty($json['delivery'])) {
             $delivery = $json['delivery'];
             if (!empty($delivery['type'])) {
@@ -243,22 +237,6 @@ class shopYandexmarketPluginOrder extends waOrder
             );
 
             if (!empty($delivery['address'])) {
-                /**
-                 *
-                 * @property array $shipping_address
-                 * @property array[string]string $shipping_address['name']
-                 * @property array[string]string $shipping_address['firstname']
-                 * @property array[string]string $shipping_address['lastname']
-                 * @property array[string]string $shipping_address['zip']
-                 * @property array[string]string $shipping_address['street']
-                 * @property array[string]string $shipping_address['city']
-                 * @property array[string]string $shipping_address['region']
-                 * @property array[string]string $shipping_address['region_name']
-                 * @property array[string]string $shipping_address['country']
-                 * @property array[string]string $shipping_address['country_name']
-                 * @property array[string]string $shipping_address['address']
-                 */
-
                 $address_map = array(
                     'country',
                     'city',

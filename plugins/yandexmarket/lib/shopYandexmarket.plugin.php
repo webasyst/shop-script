@@ -174,6 +174,17 @@ HTML;
      * UI event handler
      * @return array
      */
+    public function backendReportsChannelsEvent(&$params)
+    {
+        if (isset($params['plugin_yandexmarket:'])) {
+            $params['plugin_yandexmarket:'] = 'Яндекс.Быстрый заказ';
+        }
+    }
+
+    /**
+     * UI event handler
+     * @return array
+     */
     public function backendReportsEvent()
     {
         //check access via API
@@ -322,6 +333,7 @@ HTML;
 
     public function getInfoByFeed($feed_id)
     {
+        static $updated = false;
         $path = null;
         $campaign_id = null;
         $profile_id = null;
@@ -332,7 +344,11 @@ HTML;
             list($profile_id, $campaign_id) = explode(':', $feeds[$feed_id]);
             $path = self::path($profile_id.'.xml');
         } else {
-            //TODO update map
+            if (!$updated) {
+                $updated = true;
+                $this->getCampaigns();
+                return $this->getInfoByFeed($feed_id);
+            }
         }
         return array($path, $profile_id, $campaign_id);
     }
@@ -564,7 +580,9 @@ HTML;
 
     /**
      * @param array $options
+     * @param bool [string] $options['offers']
      * @param bool [string] $options['outlets']
+     * @param bool [string] $options['balance']
      * @param bool [string] $options['orders']
      * @return null
      * @throws waException
@@ -630,6 +648,7 @@ HTML;
         $domain_routes = wa()->getRouting()->getByApp('shop');
         foreach ($domain_routes as $domain => $routes) {
             foreach ($routes as $route) {
+                $domain = preg_replace('@^www\.@', '', $domain);
                 $settlement = $domain.'/'.$route['url'];
                 $settlements[] = compact('domain', 'settlement');
             }
@@ -650,7 +669,7 @@ HTML;
             #add settlement info
             $campaign['settlements'] = array();
             foreach ($settlements as $settlement) {
-                if (preg_replace('@/.*$@', '', $settlement['domain']) == $campaign['domain']) {
+                if (preg_replace('@/.*$@', '', $settlement['domain']) == preg_replace('@^www\.@', '', $campaign['domain'])) {
                     $campaign['settlements'][] = $settlement['settlement'];
                 }
             }
@@ -688,8 +707,10 @@ HTML;
                 }
 
                 #add exported offers info
-                $data = $this->apiRequest(sprintf('campaigns/%d/offers', $campaign['id']));
-                $campaign['offers_count'] = ifset($data['pager']['total'], '-');
+                if (!empty($options['offers'])) {
+                    $data = $this->apiRequest(sprintf('campaigns/%d/offers', $campaign['id']));
+                    $campaign['offers_count'] = ifset($data['pager']['total'], '-');
+                }
 
                 #add orders info
                 if (!empty($options['orders'])) {
@@ -715,12 +736,12 @@ HTML;
                     $data = $this->apiRequest(sprintf('campaigns/%d/balance', $campaign['id']));
                     $campaign['balance'] = ifset($data['balance'], array());
                     if (isset($campaign['balance']['balance'])) {
-                        $campaign['balance']['balance_str'] = shop_currency($campaign['balance']['balance'], 'USD', 'RUB', 'h');
+                        $campaign['balance']['balance_str'] = sprintf('%0.2f у.е.', $campaign['balance']['balance']);
                     }
                 }
 
                 #Outlets info
-                if (!empty($options['outlets']) || true) {
+                if (!empty($options['outlets'])) {
                     $campaign['outlets'] = $this->getOutlets($campaign['id']);
                 }
             }

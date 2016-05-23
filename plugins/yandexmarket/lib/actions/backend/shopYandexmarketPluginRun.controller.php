@@ -767,7 +767,8 @@ XML;
     {
         if (!$this->collection) {
             $options = array(
-                'frontend' => true,
+                'frontend'     => true,
+                'round_prices' => false,
             );
 
             $hash = $this->data['hash'];
@@ -1405,9 +1406,11 @@ SQL;
 
             case 'price':
                 $_currency_converted = false;
+
                 if (!$currency_model) {
                     $currency_model = new shopCurrencyModel();
                 }
+
                 if ($sku_data) {
                     if (!in_array($data['currency'], $this->data['currency'])) {
 
@@ -1428,10 +1431,13 @@ SQL;
                         $value = $currency_model->convert($value, $this->data['default_currency'], $data['currency']);
                     }
                 }
+
+
                 if ($value && class_exists('shopRounding') && !empty($_currency_converted)) {
                     $value = shopRounding::roundCurrency($value, $data['currency']);
                 }
                 unset($_currency_converted);
+
                 break;
 
             case 'currencyId':
@@ -1767,6 +1773,8 @@ SQL;
                 if ($value instanceof shopDimensionValue) {
                     $unit = $value->unit_name;
                     $value = $value->format('%s');
+                } elseif ($value instanceof shopColorValue) {
+                    $value = (string)$value->value;
                 } elseif (is_array($value)) {
                     $_value = reset($value);
                     if ($_value instanceof shopDimensionValue) {
@@ -1778,6 +1786,15 @@ SQL;
                              * @var shopDimensionValue $_value
                              */
                             $values[] = $_value->convert($dimension_unit, '%s');
+                        }
+                        $value = implode(', ', $values);
+                    } elseif ($_value instanceof shopColorValue) {
+                        $values = array();
+                        foreach ($value as $_value) {
+                            /**
+                             * @var shopColorValue $_value
+                             */
+                            $values[] = (string)$_value->value;
                         }
                         $value = implode(', ', $values);
                     } else {

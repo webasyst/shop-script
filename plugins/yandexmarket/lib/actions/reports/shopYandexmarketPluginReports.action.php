@@ -23,6 +23,8 @@ class shopYandexmarketPluginReportsAction extends waViewAction
                 $options = array(
                     'balance' => true,
                     'orders'  => true,
+                    'offers'  => true,
+                    'outlets' => true,
                 );
                 $campaigns = $this->plugin->getCampaigns($options);
             }
