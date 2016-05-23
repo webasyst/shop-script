@@ -46,7 +46,7 @@ class shopKpiWidget extends waWidget
 
         // Total customers for the period
         $total_customers = 0;
-        if (in_array($settings['metric'], array('arpu', 'ampu', 'cac'))) {
+        if (in_array($settings['metric'], array('arpu', 'ampu'))) {
             $sql = "SELECT COUNT(DISTINCT o.contact_id)
                     FROM shop_order AS o
                         JOIN shop_customer AS c
@@ -57,46 +57,31 @@ class shopKpiWidget extends waWidget
             $total_customers = $sales_model->query($sql)->fetchField();
         }
 
-        // Total profit for the period
+        // Total sales/profit/customers/expenses for the period
+        $total_sales = 0;
         $total_profit = 0;
-        if (in_array($settings['metric'], array('ampu', 'roi'))) {
+        $new_customers = 0;
+        $total_expenses = 0;
+        if (in_array($settings['metric'], array('arpu', 'ampu', 'roi', 'cac'))) {
             $opts = array( 'storefront' => $settings['storefront'] );
-            $sales_model->ensurePeriod('sources', $date_start, $date_end, $opts);
+            $sales_model->ensurePeriod('customer_sources', $date_start, $date_end, $opts);
             $date_sql = shopSalesModel::getDateSql('`date`', $date_start, $date_end);
-            $sql = "SELECT SUM(sales - purchase - shipping - tax)
+            $sql = "SELECT  SUM(sales) AS sales,
+                            SUM(sales - purchase - shipping - tax) AS profit,
+                            SUM(new_customer_count) AS new_customer_count,
+                            SUM(cost) AS cost
                     FROM shop_sales
                     WHERE hash=?
                         AND ".$date_sql;
-            $total_profit = $sales_model->query($sql, shopSalesModel::getHash('sources', $opts))->fetchField();
-        }
-
-        // Total marketing expenses for the period
-        $total_expenses = 0;
-        if (in_array($settings['metric'], array('cac', 'roi'))) {
-            $expense_model = new shopExpenseModel();
-            $data = $expense_model->getChart(array(
-                'storefront' => $settings['storefront'],
-                'start_date' => $date_start,
-                'end_date' => $date_end,
-                'group_by' => 'months',
-            ));
-            $total_expenses = 0;
-            foreach($data as $serie) {
-                foreach($serie['data'] as $p) {
-                    $total_expenses += $p['y'];
-                }
-            }
+            $row = $sales_model->query($sql, shopSalesModel::getHash('customer_sources', $opts))->fetchAssoc();
+            $new_customers = $row['new_customer_count'];
+            $total_expenses = $row['cost'];
+            $total_profit = $row['profit'];
+            $total_sales = $row['sales'];
         }
 
         switch($settings['metric']) {
             case 'arpu':
-                // Total sales for the period
-                $sql = "SELECT SUM(o.total*o.rate)
-                        FROM shop_order AS o
-                            {$storefront_join}
-                        WHERE {$order_date_sql}
-                            {$storefront_where}";
-                $total_sales = $sales_model->query($sql)->fetchField();
                 if (!$total_sales || !$total_customers) {
                     return 0;
                 }
@@ -109,10 +94,10 @@ class shopKpiWidget extends waWidget
                 return $total_profit / $total_customers;
 
             case 'cac':
-                if (!$total_expenses || !$total_customers) {
+                if (!$total_expenses || !$new_customers) {
                     return 0;
                 }
-                return $total_expenses / $total_customers;
+                return $total_expenses / $new_customers;
 
             case 'roi':
                 if (!$total_profit || !$total_expenses) {
@@ -124,8 +109,6 @@ class shopKpiWidget extends waWidget
                 // Total customers for the whole time
                 $sql = "SELECT COUNT(DISTINCT o.contact_id) AS customers_count
                         FROM shop_order AS o
-                            JOIN shop_customer AS c
-                                ON o.contact_id=c.contact_id
                             {$storefront_join}
                         WHERE o.paid_date IS NOT NULL
                             {$storefront_where}";
@@ -134,31 +117,8 @@ class shopKpiWidget extends waWidget
                     return 0;
                 }
 
-                // Total sales for the whole time, minus tax and shipping costs
-                $sql = "SELECT SUM((o.total - o.tax - o.shipping)*o.rate)
-                        FROM shop_order AS o
-                            {$storefront_join}
-                        WHERE o.paid_date IS NOT NULL
-                            {$storefront_where}";
-                $total_sales = $sales_model->query($sql)->fetchField();
-
-                // Total purchase expenses for the whole time
-                $sql = "SELECT SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, IFNULL(ps.purchase_price*pcur.rate, 0))*oi.quantity)
-                        FROM shop_order AS o
-                            JOIN shop_order_items AS oi
-                                ON oi.order_id=o.id
-                                    AND oi.type='product'
-                            LEFT JOIN shop_product AS p
-                                ON oi.product_id=p.id
-                            LEFT JOIN shop_product_skus AS ps
-                                ON oi.sku_id=ps.id
-                            LEFT JOIN shop_currency AS pcur
-                                ON pcur.code=p.currency
-                            {$storefront_join}
-                        WHERE o.paid_date IS NOT NULL
-                            {$storefront_where}";
-                $total_purchase = $sales_model->query($sql)->fetchField();
-                return ($total_sales - $total_purchase) / $customers_count;
+                $totals = $sales_model->getTotals('sources', 0, 0);
+                return $totals['profit'] / $customers_count;
         }
 
         return 0;
