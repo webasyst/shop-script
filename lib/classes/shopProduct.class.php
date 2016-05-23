@@ -173,16 +173,18 @@ class shopProduct implements ArrayAccess
 
     public function getVideo($sizes = array(), $absolute = false)
     {
+        if (!$this['video_url']) {
+            return array();
+        }
+
         $video = array(
             'product_id' => $this->getId(),
+            'orig_url'   => $this['video_url'],
             'url'        => $this['video_url'],
             'width'      => '',
             'height'     => '',
             'images'     => array()
         );
-        if (!$video['url']) {
-            return $video;
-        }
 
         $domain = parse_url($video['url'], PHP_URL_HOST);
         $url = '';
@@ -211,10 +213,14 @@ class shopProduct implements ArrayAccess
         }
 
         if ($url && shopVideo::checkVideoThumb($this->getId(), $video['url'])) {
+            if (empty($sizes)) {
+                $sizes = '96x96';
+            }
             foreach ((array)$sizes as $k => $size) {
                 $video['images'][$k] = shopVideo::getThumbUrl($this->getId(), $size, $absolute);
             }
         }
+        $video['orig_url'] = $video['url'];
         $video['url'] = $url;
         return $video;
     }

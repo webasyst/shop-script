@@ -153,6 +153,7 @@ class shopFrontendCartAddController extends waJsonController
                 }
                 $item_id = $this->cart->addItem($data, $data_services);
             }
+            wa()->getStorage()->set('shop/currency', wa('shop')->getConfig()->getCurrency(false));
             if (waRequest::isXMLHttpRequest()) {
                 $discount = $this->cart->discount($order);
                 if (!empty($order['params']['affiliate_bonus'])) {

@@ -4,12 +4,20 @@ class shopOrdersPrintformsController extends waJsonController
 {
     public function execute()
     {
-        $order_ids = $this->getRequest()->request('order_id', null, waRequest::TYPE_ARRAY_INT);
-        if ($order_ids === null) {
-            $printforms = self::getAllPrintforms();
-        } else {
-            $printforms = self::getUnionOfPrintforms($order_ids);
+        $hash = $this->getHash();
+        if ($hash === null) {
+            return;
         }
+
+        $limit = 100;
+        $collection = new shopOrdersCollection($hash);
+        $orders = $collection->getOrders('*', 0, $limit);
+        $order_ids = array();
+        foreach ($orders as $order) {
+            $order_ids[] = $order['id'];
+        }
+
+        $printforms = self::getUnionOfPrintforms($order_ids);
         $this->response = array(
             'printforms' => $printforms
         );
@@ -55,55 +63,39 @@ class shopOrdersPrintformsController extends waJsonController
 
     }
 
-    public static function getAllPrintforms()
+    public function getHash()
     {
-        $plugins = wa('shop')->getConfig()->getPlugins();
-        foreach ($plugins as $id => $plugin) {
-            $printform = ifset($plugin['printform']);
-            $printform = $printform === true ? 'order' : $printform;
-            if ($printform !== 'order') {
-                unset($plugins[$id]);
-            }
-        }
-
-        $model = new shopPluginModel();
-
-        foreach (array(shopPluginModel::TYPE_PAYMENT, shopPluginModel::TYPE_SHIPPING) as $plugin_type) {
-            foreach ($model->listPlugins($plugin_type, array('all' => true)) as $id => $info) {
-                $plugin_id = $info['plugin'];
-                try {
-                    if ($plugin_type === shopPluginModel::TYPE_PAYMENT) {
-                        $plugin = shopPayment::getPlugin($plugin_id);
-                    } else {
-                        $plugin = shopShipping::getPlugin($plugin_id);
-                    }
-
-                    if (!$plugin && !method_exists($plugin, 'getPrintForms')) {
-                        continue;
-                    }
-
-                    $forms = $plugin->getPrintForms();
-                    foreach ($forms as $id => $form) {
-                        $key = $plugin_type . '.' . $id;
-                        $plugins[$key] = $form;
-                        $plugins[$key]['owner_name'] = $info['name'];
-                    }
-                } catch (Exception $e) {
-                    // ignore
-                }
-            }
-        }
-
-        foreach ($plugins as $plugin_id => &$plugin) {
-            if (strpos($plugin_id, '.')) {
-                $plugin['url'] = "?module=order&action=printform&form_id={$plugin_id}&order_id=:order_id";
+        $order_ids = waRequest::request('order_id', null, waRequest::TYPE_ARRAY_INT);
+        if ($order_ids !== null) {
+            if ($order_ids) {
+                return 'id/'.implode(',',$order_ids);
             } else {
-                $plugin['url'] = "?plugin={$plugin_id}&module=printform&action=display&order_id=:order_id";
+                return null;
             }
-            $plugin['all'] = true;
         }
-        unset($plugin);
 
-        return $plugins;
+        $filter_params = waRequest::request('filter_params', null);
+        if ($filter_params === null) {
+            return null;
+        }
+
+        $hash = '';
+        if ($filter_params) {
+            if (count($filter_params) == 1) {
+                $k = key($filter_params);
+                $v = $filter_params[$k];
+                if (is_array($v)) {
+                    $v = implode("||", $v);
+                }
+                if ($k == 'storefront') {
+                    $k = 'params.'.$k;
+                    if (substr($v, -1) == '*') {
+                        $v = substr($v, 0, -1);
+                    }
+                }
+                $hash = "search/{$k}={$v}";
+            }
+        }
+        return $hash;
     }
 }

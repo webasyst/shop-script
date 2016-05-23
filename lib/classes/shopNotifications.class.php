@@ -273,16 +273,16 @@ class shopNotifications
             $log = sprintf(_w("Notification <strong>%s</strong> sent to %s."), $n['name'], $n['to']);
         }
 
-        $view = wa()->getView();
-
         foreach (array('shipping', 'billing') as $k) {
             $address = shopHelper::getOrderAddress($data['order']['params'], $k);
             $formatter = new waContactAddressOneLineFormatter(array('image' => false));
             $address = $formatter->format(array('data' => $address));
-            $view->assign($k.'_address', $address['value']);
+            $data[$k.'_address'] = $address['value'];
         }
         $order_id = $data['order']['id'];
         $data['order']['id'] = shopHelper::encodeOrderId($order_id);
+
+        $view = wa()->getView();
         $view->assign($data);
         $subject = $view->fetch('string:'.$n['subject']);
         $body = $view->fetch('string:'.$n['body']);
@@ -364,16 +364,16 @@ class shopNotifications
             wa()->setLocale($locale);
         }
 
-        $view = wa()->getView();
-
         foreach (array('shipping', 'billing') as $k) {
             $address = shopHelper::getOrderAddress($data['order']['params'], $k);
             $formatter = new waContactAddressOneLineFormatter(array('image' => false));
             $address = $formatter->format(array('data' => $address));
-            $view->assign($k.'_address', $address['value']);
+            $data[$k.'_address'] = $address['value'];
         }
         $order_id = $data['order']['id'];
         $data['order']['id'] = shopHelper::encodeOrderId($order_id);
+
+        $view = wa()->getView();
         $view->assign($data);
         $text = $view->fetch('string:'.$n['text']);
 

@@ -1128,6 +1128,7 @@ table.zebra p.hint { margin-bottom: 0; }
 */
 
 .js-action .icon16.color { margin-top: 0.25em !important; }
+.icon16.restore { background-position:0 -16px; }
 
 /* settings */
 .icon16.ss { background-image: url('../img/ss-icon16.png?1503'); }

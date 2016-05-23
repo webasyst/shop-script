@@ -27,8 +27,10 @@ class shopDashboardSalesMethod extends waAPIMethod
         }
         if ($totals['new_customer_count'] > 0) {
             $this->response['cac'] = $totals['cost'] / $totals['new_customer_count'];
-            $this->response['arpu'] = $totals['sales'] / $totals['new_customer_count'];
-            $this->response['ampu'] = $totals['profit'] / $totals['new_customer_count'];
+        }
+        if ($totals['total_customer_count'] > 0) {
+            $this->response['arpu'] = $totals['sales'] / $totals['total_customer_count'];
+            $this->response['ampu'] = $totals['profit'] / $totals['total_customer_count'];
         }
         if ($totals['cost'] > 0) {
             $this->response['roi'] = $totals['profit']*100 / $totals['cost'];
@@ -39,19 +41,30 @@ class shopDashboardSalesMethod extends waAPIMethod
     protected static function getGraphData($period)
     {
         $end_date = date('Y-m-d 23:59:59');
-        $start_date = date('Y-m-d 23:59:59', strtotime($end_date) - $period);
+        $start_date = date('Y-m-d 00:00:00', strtotime($end_date) - $period);
 
+        $totals = array();
         if (wa()->getUser()->getRights('shop', 'reports')) {
             $sales_model = new shopSalesModel();
-            $sales_by_day = $sales_model->getPeriodByDate('sources', $start_date, $end_date, array(
+            $sales_by_day = $sales_model->getPeriodByDate('customer_sources', $start_date, $end_date, array(
                 'date_group' => 'days',
             ));
+
+            // Total customers for the period
+            $order_date_sql = shopSalesModel::getDateSql('o.paid_date', $start_date, $end_date);
+            $sql = "SELECT COUNT(DISTINCT o.contact_id)
+                    FROM shop_order AS o
+                        JOIN shop_customer AS c
+                            ON o.contact_id=c.contact_id
+                    WHERE {$order_date_sql}";
+            $totals['total_customer_count'] = $sales_model->query($sql)->fetchField();
         } else {
             $sales_by_day = array(
                 array(
                     "date" => date('Y-m-d'),
                     "order_count" => 0,
                     "new_customer_count" => 0,
+                    "total_customer_count" => 0,
                     "profit" => 0,
                     "sales" => 0,
                     "purchase" => 0,
@@ -62,7 +75,6 @@ class shopDashboardSalesMethod extends waAPIMethod
             );
         }
 
-        $totals = array();
         $graph_data = array();
         foreach($sales_by_day as $d) {
             $graph_data[] = $d;

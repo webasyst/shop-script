@@ -264,6 +264,7 @@ class shopReportsSalesAction extends waViewAction
 
     public static function getSalesChannels($with_storefronts = true)
     {
+        // Storefront channels
         $result = array();
         $m = new waModel();
         $sql = "SELECT DISTINCT value FROM shop_order_params WHERE name='sales_channel' ORDER BY value";
@@ -277,9 +278,30 @@ class shopReportsSalesAction extends waViewAction
                 $result[$id] = $name;
             }
         }
+
+        /**
+         * @event backend_reports_channels
+         *
+         * Hook allows to set human-readable sales channel names for custom channes.
+         *
+         * Event $params is an array with keys being channel identifiers as specified
+         * in `sales_channel` order param.
+         *
+         * Plugins are expected to modify values in $params, setting human readable names
+         * to show in channel selector.
+         *
+         * @param array [string]string
+         * @return none
+         */
+        wa('shop')->event('backend_reports_channels', $result);
+
+        // Buy button and backend
         unset($result['backend:'], $result['buy_button:']);
         $result['buy_button:'] = _w('Buy button');
         $result['backend:'] = _w('Backend');
+        if (!empty($result['other:'])) {
+            $result['other:'] = _w('Unknown channel');
+        }
         return $result;
     }
 

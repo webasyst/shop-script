@@ -5364,7 +5364,8 @@ msgstr "Все доступные способы оплаты"
 
 # msgid "Shipping options"
 # msgstr "Способы доставки"
-#: /wa-apps/shop/lib/config/site.php:87 /wa-apps/shop/lib/config/site.php:91
+#: /wa-apps/shop/lib/config/site.php:87
+#: /wa-apps/shop/lib/config/site.php:91
 msgid "All available shipping options"
 msgstr "Все доступные способы доставки"
 
@@ -6415,7 +6416,8 @@ msgstr "Новый профиль"
 msgid "Perform action to all selected orders?"
 msgstr "Выполнить действие со всеми выбранными заказами?"
 
-#: /wa-apps/shop/js/product/list.js:407 /wa-apps/shop/js/product/list.js:568
+#: /wa-apps/shop/js/product/list.js:407
+#: /wa-apps/shop/js/product/list.js:568
 msgid "Drag products here"
 msgstr "Перетащите товары сюда"
 
@@ -6518,7 +6520,8 @@ msgstr "Автоматически перемещать вниз списка в
 msgid "When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more."
 msgstr "Товары, которых нет на складе, будут автоматически перемещены вниз всех списков товаров на витрине интернет-магазина: в результатах поиска, в списках товаров внутри категорий, в результатах фильтрации товаров и т. д."
 
-#: /wa-apps/shop/lib/config/site.php:177 /wa-apps/shop/lib/config/site.php:181
+#: /wa-apps/shop/lib/config/site.php:177
+#: /wa-apps/shop/lib/config/site.php:181
 #: /wa-apps/shop/lib/config/site.php:182
 msgid "Setting <em>$available_only = true</em> will automatically exclude all out-of-stock products from the return"
 msgstr "Настройка <em>$available_only = true</em> автоматически исключит из результата все товары, которых нет на складе."
@@ -7266,7 +7269,8 @@ msgstr "Купить"
 #: /wa-apps/shop/themes/facebook/home.html:9
 #: /wa-apps/shop/themes/nifty/home.html:9
 #: /wa-apps/shop/themes/pinboard/home.html:9
-#: /wa-apps/shop/themes/sidebar/home.html:9 /wa-apps/shop/themes/vk/home.html:9
+#: /wa-apps/shop/themes/sidebar/home.html:9
+#: /wa-apps/shop/themes/vk/home.html:9
 msgid "Start by <a href=\"%s\">creating a product</a> in your store backend."
 msgstr "Начните с <a href=\"%s\">создания товара</a> в бекенде интернет-магазина."
 
@@ -9211,7 +9215,8 @@ msgstr "Главная страница"
 msgid "Social sharing Title (og:title)"
 msgstr "Заголовок (og:title)"
 
-#: /wa-apps/shop/lib/config/site.php:41 /wa-apps/shop/lib/config/site.php:58
+#: /wa-apps/shop/lib/config/site.php:41
+#: /wa-apps/shop/lib/config/site.php:58
 msgid "For detailed information on Open Graph parameters and examples please refer to <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
 msgstr "Подробная информация о возможных вариантах значений параметров Open Graph опубликована на сайте протокола <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
 
@@ -9468,6 +9473,10 @@ msgstr "оставить без объединения"
 #: /wa-apps/shop/templates/actions/order/Order.html:328
 msgid "Order content is unknown"
 msgstr "Содержимое заказа не задано"
+
+#: /wa-apps/shop/templates/actions/order/Order.html:328
+msgid "Unknown channel"
+msgstr "Неизвестный канал"
 
 #: /wa-apps/shop/templates/actions/product/Product.html:174
 msgid "Buy button"
@@ -9977,3 +9986,4 @@ msgstr "страна или регион"
 #: /wa-apps/shop/lib/actions/settings/stock/shopSettingsStock.action.php:145
 msgid "By shipping location"
 msgstr "По адресу доставки"
+

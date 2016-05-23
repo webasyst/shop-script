@@ -54,7 +54,7 @@ class shopProductMassUpdate
         // Prepare a copy of old data with modifications from POST, but do not update anything in DB yet.
         $new_sku_stocks = self::getUpdatedStockCounts($sku_stocks, $old_sku_stocks, $stocks);
         list($skus, $new_sku_data) = self::setSkuData($skus, $old_sku_data, $new_sku_stocks);
-        $products = self::setProductData($products, $new_sku_data);
+        $products = self::setProductData($products, $new_sku_data, $old_sku_data);
 
         // Update in DB
         self::updateStockCounts($skus, array_keys($sku_stocks), $new_sku_stocks);
@@ -64,7 +64,30 @@ class shopProductMassUpdate
         // Stock change log in shop_product_stocks_log
         self::updateStockLog($old_sku_stocks, $new_sku_stocks, $old_sku_data, $new_sku_data);
 
-        // !!! event for plugins
+        /**
+         * @event product_mass_update
+         * @param array
+         * @return none
+         */
+        $params = array(
+            'skus_changed' => $skus,
+            'products_changed' => $products,
+            'old_sku_data' => $old_sku_data,
+            'new_sku_data' => $new_sku_data,
+            'old_product_data' => $old_product_data,
+            'old_sku_stocks' => $old_sku_stocks,
+            'new_sku_stocks' => $new_sku_stocks,
+            'stocks_changed_sku_ids' => array_keys($sku_stocks),
+        );
+        wa('shop')->event('product_mass_update', $params);
+
+        // Trigger a `product_save` event when updating a single product.
+        // This compromise makes this new class more friendly for old style plugins.
+        if (count($products) == 1) {
+            $product = reset($products);
+            $product = new shopProduct($product['id']);
+            $product->save();
+        }
     }
 
     protected static function getStockCounts($product_ids)
@@ -178,13 +201,6 @@ class shopProductMassUpdate
 
         // Update data in $new_sku_data from $skus
         foreach($skus as $sku_id => &$sku) {
-
-            // update primary_price if price changed
-            unset($sku['primary_price']);
-            if (array_key_exists('price', $sku)) {
-                $sku['primary_price'] = shop_currency($sku['price'], $old_sku_data[$sku['product_id']][$sku_id]['product_currency'], $default_currency, false);
-            }
-
             foreach($new_sku_data[$sku['product_id']][$sku_id] as $k => $v) {
                 if (array_key_exists($k, $sku)) {
                     $new_sku_data[$sku['product_id']][$sku_id][$k] = $sku[$k];
@@ -253,9 +269,26 @@ class shopProductMassUpdate
         }
     }
 
-    protected static function setProductData($products, $new_sku_data)
+    protected static function setProductData($products, $new_sku_data, $old_sku_data)
     {
-        // !!! min_price, max_price, price
+        // Update product.min_price and .max_price to match SKU prices accordingly
+        foreach($old_sku_data as $product_id => $product_skus) {
+            if (!$product_skus || empty($products[$product_id])) {
+                continue;
+            }
+            $prices = array();
+            foreach($product_skus as $sku) {
+                if (isset($new_sku_data[$product_id][$sku['id']]['primary_price'])) {
+                    $prices[] = $new_sku_data[$product_id][$sku['id']]['primary_price'];
+                } else {
+                    $prices[] = $sku['primary_price'];
+                }
+            }
+            $products[$product_id]['min_price'] = min($prices);
+            $products[$product_id]['max_price'] = max($prices);
+        }
+
+        // Update product.count to match counts of SKUs
         foreach($new_sku_data as $product_id => $product_skus) {
             $count = 0;
             foreach($product_skus as $sku) {
@@ -472,14 +505,24 @@ class shopProductMassUpdate
         $product_data = array();
         if ($product_ids) {
             $product_model = new shopProductModel();
-            $product_data = $product_model->select('id, type_id, currency, price, min_price, max_price')->where('id IN (?)', array($product_ids))->fetchAll('id');
+            $product_data = $product_model->select('id, type_id, sku_id, currency, price, min_price, max_price')->where('id IN (?)', array($product_ids))->fetchAll('id');
         }
         return array($sku_product_ids, $product_data);
     }
 
     protected static function prepareInputs($skus, $products, $sku_product_ids, $product_data, $has_access)
     {
+        // Add products that are missing in raw inputs
+        foreach($product_data as $product) {
+            if (empty($products[$product['id']])) {
+                $products[$product['id']] = array(
+                    'id' => $product['id'],
+                );
+            }
+        }
+
         // Check that sku exists, its product exists, and user has access rights to modify them.
+        $default_currency = wa('shop')->getConfig()->getCurrency(true);
         foreach($skus as $sku) {
             // Unknown sku_id?
             if (empty($sku_product_ids[$sku['id']])) {
@@ -495,22 +538,25 @@ class shopProductMassUpdate
             }
 
             // No access to product?
-            $type_id = $product_data[$product_id]['type_id'];
-            if (!isset($has_access[$type_id])) {
+            $product = $product_data[$product_id];
+            if (!isset($has_access[$product['type_id']])) {
                 unset($skus[$sku['id']]);
                 continue;
             }
 
             // All fine
             $skus[$sku['id']]['product_id'] = $product_id;
-        }
 
-        // Add products that are missing in raw inputs
-        foreach($product_data as $product) {
-            if (empty($products[$product['id']])) {
-                $products[$product['id']] = array(
-                    'id' => $product['id'],
-                );
+            // update SKU primary_price if price changed (or vice versa)
+            if (array_key_exists('price', $sku)) {
+                $sku['primary_price'] = $skus[$sku['id']]['primary_price'] = shop_currency($sku['price'], $product['currency'], $default_currency, false);
+            } else if (array_key_exists('primary_price', $sku)) {
+                $skus[$sku['id']]['price'] = shop_currency($sku['primary_price'], $default_currency, $product['currency'], false);
+            }
+
+            // Update product prices according to main SKU price
+            if (isset($sku['primary_price']) && $product['sku_id'] == $sku['id']) {
+                $products[$product_id]['price'] = $sku['primary_price'];
             }
         }
 

@@ -20,6 +20,8 @@ class shopDashboardSalesTotalMethod extends waAPIMethod
                 "purchase" => 0,
                 "profit" => 0,
                 "products" => 0,
+                "paid_customer_count" => 0,
+                "total_days" => 0,
             );
         }
         $this->response = array(
@@ -36,10 +38,10 @@ class shopDashboardSalesTotalMethod extends waAPIMethod
             $this->response['avg_order_sales'] = $totals['sales'] / $totals['order_count'];
             $this->response['avg_order_profit'] = $totals['profit'] / $totals['order_count'];
         }
-        if ($totals['new_customer_count'] > 0) {
-            $this->response['cac'] = $totals['cost'] / $totals['new_customer_count'];
-            $this->response['arpu'] = $totals['sales'] / $totals['new_customer_count'];
-            $this->response['ampu'] = $totals['profit'] / $totals['new_customer_count'];
+        if ($totals['paid_customer_count'] > 0) {
+            $this->response['cac'] = $totals['cost'] / $totals['paid_customer_count'];
+            $this->response['arpu'] = $totals['sales'] / $totals['paid_customer_count'];
+            $this->response['ampu'] = $totals['profit'] / $totals['paid_customer_count'];
             $this->response['ltv'] = $this->response['ampu'];
         }
         if ($totals['cost'] > 0) {
@@ -49,41 +51,24 @@ class shopDashboardSalesTotalMethod extends waAPIMethod
 
     protected static function getTotals()
     {
-        $totals = array();
-        $m = new waModel();
-
-        // Total number of orders
-        $sql = "SELECT COUNT(*) FROM shop_order WHERE paid_date IS NOT NULL";
-        $totals['order_count'] = $m->query($sql)->fetchField();
+        // order_count, profit, purchase, sales, shipping, tax, total_days
+        $sales_model = new shopSalesModel();
+        $totals = $sales_model->getTotals('customer_sources', 0, 0);
+        unset($totals['roi'], $totals['avg_day'], $totals['avg_order'], $totals['total_names']);
 
         // Total number of customers
         $sql = "SELECT COUNT(*) FROM shop_customer";
-        $totals['customer_count'] = $m->query($sql)->fetchField();
-        $totals['new_customer_count'] = $totals['customer_count'];
+        $totals['new_customer_count'] = $totals['customer_count'] = $sales_model->query($sql)->fetchField();
 
-        // Total marketing expenses
-        $sql = "SELECT SUM(amount) FROM shop_expense";
-        $totals['cost'] = $m->query($sql)->fetchField();
-
-        // Sales, shipping, and tax
-        $sql = "SELECT SUM(o.total) AS sales, SUM(o.shipping) AS shipping, SUM(o.tax) AS tax
+        // Total number of customers who eventually paid
+        $sql = "SELECT COUNT(DISTINCT o.contact_id) AS customers_count
                 FROM shop_order AS o
                 WHERE o.paid_date IS NOT NULL";
-        $totals += $m->query($sql)->fetchAssoc();
-
-        // Purchase and profit
-        $sql = "SELECT SUM(oi.purchase_price*o.rate*oi.quantity)
-                FROM shop_order AS o
-                    JOIN shop_order_items AS oi
-                        ON oi.order_id=o.id
-                            AND oi.type='product'
-                WHERE o.paid_date IS NOT NULL";
-        $totals['purchase'] = $m->query($sql)->fetchField();
-        $totals['profit'] = $totals['sales'] - $totals['purchase'];
+        $totals['paid_customer_count'] = $sales_model->query($sql)->fetchField();
 
         // Total products
         $sql = "SELECT COUNT(*) FROM shop_product";
-        $totals['products'] = $m->query($sql)->fetchField();
+        $totals['products'] = $sales_model->query($sql)->fetchField();
 
         return $totals;
     }
