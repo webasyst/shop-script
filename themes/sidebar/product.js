@@ -83,7 +83,7 @@ function Product(form, options) {
     this.form.submit(function () {
         var f = $(this);
         f.find('.adding2cart').addClass('icon24 loading').show();
-        
+
         $.post(f.attr('action') + '?html=1', f.serialize(), function (response) {
             f.find('.adding2cart').hide();
             if (response.status == 'ok') {
@@ -251,7 +251,10 @@ $(function () {
     }
 
     // product images
-    $("#product-gallery a").click(function () {
+    $("#product-gallery a").not("#product-image-video").click(function () {
+        $('#product-core-image').show();
+        $('#video-container').hide();
+
         $('.gallery .image').removeClass('selected');
         $(this).parent().addClass('selected');
 
@@ -272,6 +275,15 @@ $(function () {
         var href = img.attr('src').replace(/^(.*\/[^\/]+\.)(.*)(\.[^\.]*)$/, '$1' + size + '$3');
         $("#product-image").parent().attr('href', href);
         $("a.easyzoom").easyZoom({parent: '#product-core-image'});
+        return false;
+    });
+
+    // product image video
+    $('#product-image-video').click(function () {
+        $('#product-core-image').hide();
+        $('#video-container').show();
+        $('#product-gallery .image').removeClass('selected');
+        $(this).parent().addClass('selected');
         return false;
     });
 
