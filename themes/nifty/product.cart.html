@@ -14,7 +14,7 @@
         {$f.name}:
         <select data-feature-id="{$f.id}" class="sku-feature" name="features[{$f.id}]">
             {foreach $f.values as $v_id => $v}
-            <option value="{$v_id}" {if $v_id == ifset($default_sku_features[$f.id])}}selected{/if}>{$v}</option>
+            <option value="{$v_id}" {if $v_id == ifset($default_sku_features[$f.id])}selected{/if}>{$v}</option>
             {/foreach}
         </select>
         <br>
