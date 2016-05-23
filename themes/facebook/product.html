@@ -1,3 +1,12 @@
+{$_video = false}
+{$_video_url = false}
+{if $product->video}
+    {$_video = $product->getVideo(['96x96'])}
+    {if $_video.url}
+        {$_video_url = $_video.url}
+    {/if}
+{/if}
+
 <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-plugins/jquery.cookie.js"></script>
 
 <div itemscope itemtype="http://schema.org/Product">
@@ -11,19 +20,30 @@
             <span itemprop="ratingValue" style="display: none;">{$product.rating}</span>
             <span itemprop="reviewCount" style="display: none;">{$reviews_total_count}</span>
         </span>
-        {/if}   
+        {/if}
     </h1>
-    
+
     <!-- GALLERY -->
     {if $product.images}
     <div class="sidebar left triple">
-    
+
         <div class="product-page" id="overview">
-        
+
             <!-- image gallery -->
             <div class="align-center">
+
+                {if $_video_url}
+                    <div id="video-container" class="video-container" itemprop="video" itemscope itemtype="http://schema.org/VideoObject">
+                        <div class="video-wrapper" itemprop="embedHTML">
+                            <iframe src="{$_video_url}" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+                        </div>
+                        <meta itemprop="width" content="{$_video.width}">
+                        <meta itemprop="height" content="{$_video.height}">
+                    </div>
+                {/if}
+
                 <!-- main image -->
-                <div class="image" id="product-core-image">
+                <div class="image" id="product-core-image" style="{if $_video_url}display: none;{/if}">
                     <div class="corner top right">
                         {$wa->shop->badgeHtml($product.badge)}
                     </div>
@@ -32,10 +52,17 @@
                     </a>
                 </div>
                 <!-- gallery -->
-                {if count($product.images) > 1}
+                {if count($product.images) > 1 || $_video_url}
                     <div class="gallery" id="product-gallery">
+                        {if $_video_url}
+                            <div class="image video selected">
+                                <a id="product-image-video" href="{$_video_url}" class="swipebox">
+                                    <img src="{$_video.images[0]}">
+                                </a>
+                            </div>
+                        {/if}
                         {foreach $product.images as $image}
-                            <div class="image{if $image.id == $product.image_id} selected{/if}">
+                            <div class="image {if $image.id == $product.image_id && !$_video_url}selected{/if}">
                                 <a id="product-image-{$image.id}" href="#">{$wa->shop->imgHtml($image, '48x48')}</a>
                             </div>
                         {/foreach}
@@ -46,10 +73,10 @@
         </div>
     </div>
     {/if}
-    
+
     <!-- PURCHASE -->
     <div class="content{if $product.images} left triple{/if}">
-    
+
         <div class="cart" id="cart-flyer">
             <!-- add to cart -->
             {include file="product.cart.html" inline}
@@ -60,23 +87,23 @@
                 <a {if !$compare}style="display:none"{/if} class="compare-remove inline-link" data-product="{$product.id}" href="#"><b><i>[`Remove from comparison table`]</i></b></a>
                 <a id="compare-link" {if count($compare) lt 2}style="display:none"{/if} rel="nofollow" href="{$wa->getUrl('/frontend/compare/', ['id' => implode(',', $compare) ])}" class="bold">[`Compare`] <span class="count">{count($compare)}</span></a>
             </div>
-            
+
             <!-- plugin hook: 'frontend_product.cart' -->
             {* @event frontend_product.%plugin_id%.cart *}
             {foreach $frontend_product as $_}{$_.cart}{/foreach}
-            
+
         </div>
-    
+
         <!-- plugin hook: 'frontend_product.block_aux' -->
         {* @event frontend_product.%plugin_id%.block_aux *}
         {if !empty($frontend_product)}
             <div class="aux">
-                {foreach $frontend_product as $_}{$_.block_aux}{/foreach}    
+                {foreach $frontend_product as $_}{$_.block_aux}{/foreach}
             </div>
         {/if}
-        
+
     </div>
-    
+
     <div class="clear-both"></div>
 
     <!-- INTERNAL PRODUCT NAVIGATION -->
@@ -89,15 +116,15 @@
         {foreach $product.pages as $page}
             <li><a href="{$wa->shop->productUrl($product, 'page', ['page_url' => $page.url])}">{$page.name|escape}</a></li>
         {/foreach}
-        
+
         <!-- plugin hook: 'frontend_product.menu' -->
         {* @event frontend_product.%plugin_id%.menu *}
         {foreach $frontend_product as $_}{$_.menu}{/foreach}
-    
+
     </ul>
-    
+
     <div class="content">
-        
+
         <!-- plugin hook: 'frontend_product.block' -->
         {* @event frontend_product.%plugin_id%.block *}
         {foreach $frontend_product as $_}{$_.block}{/foreach}
@@ -166,8 +193,8 @@
                 <p>{sprintf('[`Be the first to <a href="%s">write a review</a> of this product!`]', 'reviews/')}</p>
             {else}
                 {sprintf(_w(
-                        'Read <a href="%s">all %d review</a> on %s', 
-                        'Read <a href="%s">all %d reviews</a> on %s', 
+                        'Read <a href="%s">all %d review</a> on %s',
+                        'Read <a href="%s">all %d reviews</a> on %s',
                         $reviews_total_count, false
                     ), 'reviews/', $reviews_total_count, $product.name|escape)
                 }
@@ -175,7 +202,7 @@
         </div>
 
     </div>
-        
+
 </div>
 
 <!-- RELATED PRODUCTS -->
@@ -190,7 +217,7 @@
                 [`See also`]
                 {$compare_ids = array_merge(array($product.id), array_keys($upselling))}
                 <input type="button" onClick="javascript:window.location='{$wa->getUrl('/frontend/compare', ['id' => implode(',', $compare_ids)])}';" value="[`Compare all`]" />
-                
+
             </h3>
             {include file="list-thumbs-mini.html" products=$upselling}
         </div>

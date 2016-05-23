@@ -147,17 +147,20 @@
 
 </form>
 
-<script type="text/javascript" src="{$wa_theme_url}product.js?v{$wa_theme_version}"></script>
-<script type="text/javascript">
-    $(function () {
-        new Product('#cart-form{if $wa->get('cart')}-dialog{/if}', {
-            currency: {json_encode($currency_info)}
-            {if count($product.skus) > 1 or $product.sku_type}
-            ,services: {json_encode($sku_services)}
-            {/if}
-            {if $product.sku_type}
-            ,features: {json_encode($sku_features_selectable)}
-            {/if}
-        });
+<script>
+( function($) {
+    $.getScript("{$wa_theme_url}product.js?v{$wa_theme_version}", function() {
+        if (typeof Product === "function") {
+            new Product('#cart-form{if $wa->get('cart')}-dialog{/if}', {
+                currency: {json_encode($currency_info)}
+                {if count($product.skus) > 1 or $product.sku_type}
+                ,services: {json_encode($sku_services)}
+                {/if}
+                {if $product.sku_type}
+                ,features: {json_encode($sku_features_selectable)}
+                {/if}
+            });
+        }
     });
+})(jQuery);
 </script>

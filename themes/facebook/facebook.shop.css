@@ -9,7 +9,7 @@
  * @copyright 2013 Webasyst LLC
  * @package Webasyst
  */
- 
+
 /* Misc layout and elements */
 
 .sidebar { padding-top: 15px; }
@@ -38,7 +38,7 @@
 
 .promos { margin: 5px -25px; }
 .promos ul { padding: 0; margin: 0; }
-.promos ul li { padding: 0; margin: 0; list-style: none; display: inline-block; width: 25%; float: left; } 
+.promos ul li { padding: 0; margin: 0; list-style: none; display: inline-block; width: 25%; float: left; }
 .promos ul li a { display: block; padding: 40px 20px; height: 80px; overflow: hidden; background-size: cover; background-position: center center; color: #000; background-color: rgba(0,0,0,0.05); border: 5px solid #fff; text-align: center; position: relative; }
 .promos ul li a .background-color-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; opacity: 0.1; background-color: #000; }
 .promos ul li a h5 { font-size: 1.3em; text-shadow: 0 1px 1px #000; position: relative; z-index: 2; }
@@ -53,6 +53,10 @@
 .filters input[type="text"] { font-size: 0.9em; width: 50px; text-align: right; }
 
 /* Product info and lists */
+
+#video-container { margin: 0 0 12px; padding: 0 22px; }
+#video-container .video-wrapper { position: relative; width: 100%; height: 0; padding: 0 0 56%; overflow: hidden }
+#video-container .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 
 ul.skus { padding-left: 2px; }
 ul.skus li { list-style: none; padding-bottom: 3px; }
