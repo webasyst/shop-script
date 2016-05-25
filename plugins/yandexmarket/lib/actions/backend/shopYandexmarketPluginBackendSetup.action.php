@@ -174,11 +174,10 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
             'file_name'   => _w('Attachment'),
             'count'       => _w('In stock'),
         );
-        if (false) {
-            $stock_model = new shopStockModel();
-            foreach ($stock_model->getAll() as $stock) {
-                $fields[sprintf('todo:stock:%d', $stock['id'])] = sprintf('%s @ %s', _w('In stock'), $stock['name']);
-            }
+
+        $stock_model = new shopStockModel();
+        foreach ($stock_model->getAll() as $stock) {
+            $fields[sprintf('stock_counts.%d', $stock['id'])] = sprintf('%s @ %s', _w('In stock'), $stock['name']);
         }
 
         $this->view->assign('fields', $fields);

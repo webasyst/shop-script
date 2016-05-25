@@ -771,6 +771,21 @@ XML;
                 'round_prices' => false,
             );
 
+            foreach ($this->data['map'] as $map) {
+                foreach ($map['fields'] as $info) {
+                    if (!empty($info['source']) && !ifempty($info['category'])) {
+                        $value = null;
+
+                        list($source, $param) = explode(':', $info['source'], 2);
+                        switch ($source) {
+                            case 'params':
+                                $options['params'] = true;
+                                break;
+                        }
+                    }
+                }
+            }
+
             $hash = $this->data['hash'];
             if ($hash == '*') {
                 $hash = '';
@@ -915,21 +930,32 @@ SQL;
 
     private function getProductFields()
     {
-        $fields = array(
-            '*',
-        );
-        foreach ($this->data['map'] as $map) {
-            foreach ($map['fields'] as $info) {
-                if (!empty($info['source']) && !ifempty($info['category'])) {
-                    $value = null;
+        static $fields = null;
+        if (!$fields) {
+            $fields = array(
+                '*',
+            );
+            foreach ($this->data['map'] as $map) {
+                foreach ($map['fields'] as $info) {
+                    if (!empty($info['source']) && !ifempty($info['category'])) {
+                        $value = null;
 
-                    list($source, $param) = explode(':', $info['source'], 2);
-                    switch ($source) {
-                        case 'field':
-                            $fields[] = $param;
-                            break;
+                        list($source, $param) = explode(':', $info['source'], 2);
+                        switch ($source) {
+                            case 'field':
+                                $field = preg_replace('@\..+$@', '', $param);
+                                $fields[] = $field;
+                                if ($field == 'stock_counts') {
+                                    $this->data['stock_id'] = intval(preg_replace('@^[^\.]+\.@', '', $param));
+                                }
+                                break;
+
+                        }
                     }
                 }
+            }
+            if (in_array('stock_counts', $fields)) {
+                unset($fields[array_search('stock_counts', $fields)]);
             }
         }
         return implode(',', array_unique($fields));
@@ -947,6 +973,7 @@ SQL;
         static $products;
         static $sku_model;
         static $categories;
+        static $stocks_model;
         if (!$products) {
             $products = $this->getCollection()->getProducts($this->getProductFields(), $current_stage, self::PRODUCT_PER_REQUEST, false);
             if (!$products) {
@@ -961,6 +988,14 @@ SQL;
                         if (!isset($products[$sku['product_id']]['skus'])) {
                             $products[$sku['product_id']]['skus'] = array();
                         }
+
+                        if (!empty($this->data['stock_id'])) {
+                            if (isset($sku['stock'][$this->data['stock_id']])) {
+                                $sku['_count'] = $sku['count'];
+                                $sku['count'] = $sku['stock'][$this->data['stock_id']];
+                            }
+                        }
+
                         $products[$sku['product_id']]['skus'][$sku_id] = $sku;
                         if (count($products[$sku['product_id']]['skus']) > 1) {
                             $group = false;
@@ -1001,12 +1036,47 @@ SQL;
                 }
 
             } else {
+
+
+                if (!empty($this->data['stock_id'])) {
+                    if (empty($stocks_model)) {
+                        $stocks_model = new shopProductStocksModel();
+                    }
+                    $sql_params = array(
+                        'product_id' => array_keys($products),
+                        'stock_id'   => array(null, $this->data['stock_id']),
+                    );
+
+                    foreach ($products as &$product) {
+                        $product['_count'] = false;
+                    }
+                    unset($product);
+
+                    $stocks = $stocks_model->getByField($sql_params, true);
+                    foreach ($stocks as $stock) {
+                        $product_id = $stock['product_id'];
+                        if ($products[$product_id]['_count'] !== null) {
+                            $products[$product_id]['_count'] = $stock['count'];
+                        }
+                    }
+
+                    foreach ($products as &$product) {
+                        if ($product['_count'] !== false) {
+                            $product['count'] = $product['_count'];
+                        }
+                    }
+                    unset($product);
+                }
+
+
                 $sql_params = array(
                     'product_id' => array_keys($products),
                 );
+
                 if (empty($sku_model)) {
                     $sku_model = new shopProductSkusModel();
                 }
+
                 $files = $sku_model->select('DISTINCT product_id, file_name')->where("product_id IN (i:product_id) AND file_name !=''", $sql_params)->fetchAll('product_id', true);
                 foreach ($files as $id => $file_name) {
                     $products[$id]['file_name'] = $file_name;
@@ -1070,6 +1140,7 @@ SQL;
                                 $product['compare_price'] = $sku['compare_price'];
                                 $product['file_name'] = $sku['file_name'];
                                 $product['sku'] = $sku['sku'];
+                                $product['count'] = $sku['count'];
                                 $increment = false;
                             } else {
                                 $increment = true;
@@ -1100,11 +1171,27 @@ SQL;
         static $features_model;
         $value = null;
         list($source, $param) = explode(':', $info['source'], 2);
+        $sub_param = null;
+        if (strpos($param, '.')) {
+            list($param, $sub_param) = explode('.', $param, 2);
+        }
         switch ($source) {
             case 'field':
-                $value = isset($product[$param]) ? $product[$param] : null;
+                switch ($param) {
+                    case 'stock_counts':
+                        //it's already remapped
+                        $value = $product['count'];
+                        break;
+                    default:
+                        $value = isset($product[$param]) ? $product[$param] : null;
+                        break;
+                }
+
                 if (!empty($this->data['export']['sku'])) {
                     switch ($param) {
+                        case 'stock_counts':
+                            $value = ifset($sku['count'], $value);
+                            break;
                         case 'id':
                             if (!empty($sku['id']) && ($sku['id'] != $product['sku_id'])) {
                                 $value .= 's'.$sku['id'];
@@ -1153,6 +1240,9 @@ SQL;
                     $product['features'] = $features_model->getValues($product['id'], ifset($sku['id']));
                 }
                 $value = $this->format($field, ifempty($product['features'][$param]), $info, $product, $sku);
+                break;
+            case 'params':
+                $value = $this->format($field, ifset($product['params']['yandexmarket.'.$param]), $info, $product, $sku);
                 break;
             case 'function':
                 switch ($param) {
@@ -1311,9 +1401,6 @@ SQL;
     private function format($field, $value, $info = array(), $data = array(), $sku_data = null)
     {
         /**
-         * @todo cpa field
-         */
-        /**
          * <yml_catalog>
          * <shop>
          * <currencies>
@@ -1325,7 +1412,7 @@ SQL;
          * <delivery>, <pickup> и <store>
          * <adult>
          * <barcode>
-         * <cpa> TODO
+         * <cpa>
          * <rec>
          * <param> (name,unit,value)
          * <vendor>
@@ -1375,6 +1462,11 @@ SQL;
                 $value = preg_replace('@\\D+@', '', $value);
                 if (!in_array(strlen($value), array(8, 12, 13))) {
                     $value = null;
+                }
+                break;
+            case 'cpa':
+                if ($value !== null) {
+                    $value = $value ? '1' : '0';
                 }
                 break;
             case 'sales_notes':

@@ -49,6 +49,15 @@
                 {/foreach}
             </optgroup>
             {/if}
+
+            {if !empty($info.params)}
+                <optgroup label="Дополнительные параметры">
+                    {foreach $info.params as $param_id => $value}
+                        <option value="params:{$param_id|escape}"{if (ifset($info['source'])=="params:`$param_id`")}{$selected = true}selected="selected"{/if}>yandexmarket.{$value|escape}</option>
+                    {/foreach}
+                </optgroup>
+            {/if}
+
             <optgroup label="Характеристика">
                 {if !empty($features_autocomplete)}
                     <option value="feature:%s">Выбрать характеристику...</option>

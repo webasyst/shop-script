@@ -64,6 +64,16 @@ $.extend($.importexport.plugins, {
             }
         },
 
+        invalidInputChangeHandler: function () {
+            var $el = $(this);
+            var value = $el.val();
+            if (!value || (value == 'skip:')) {
+                $el.addClass('error');
+            } else {
+                $el.removeClass('error');
+            }
+        },
+
         actionHandler: function ($el) {
             try {
                 var args = $el.attr('href').replace(/.*#\/?/, '').replace(/\/$/, '').split('/');
@@ -180,9 +190,11 @@ $.extend($.importexport.plugins, {
              * product export skus group control
              */
             this.$form.find(':input[name="export\\[sku\\]"]').unbind('change.yandexmarket').bind('change.yandexmarket', function (event) {
+                var checked = $(this).is(':checked');
+                self.$form.find('select option[value="field:sku"]').attr('disabled', checked ? null : 'disabled');
 
                 var $container = self.$form.find(':input[name="export\\[sku_group\\]"]:first').parents('div.field:first');
-                self.helpers.toggle($container, event, $(this).is(':checked'));
+                self.helpers.toggle($container, event, checked);
             }).trigger('change');
 
             this.$form.find(':text[readonly="readonly"]').unbind('click.yandexmarket focus.yandexmarket keypress.yandexmarket focus.yandexmarket').bind('click.yandexmarket focus.yandexmarket keypress.yandexmarket focus.yandexmarket', function () {
@@ -316,20 +328,24 @@ $.extend($.importexport.plugins, {
         },
 
         yandexmarketHandler: function (element) {
+            var self = this;
             this.form = $(element);
             /**
              * reset required form fields errors
              */
-            this.form.find('.value.js-required :input.error').removeClass('error');
+            this.form.find('.value.js-required :input.error').unbind('change.yandexmarket').removeClass('error');
+
             /**
              * verify form
              */
             var valid = true;
+
             this.form.find('.value.js-required :input:visible:not(:disabled)').each(function () {
                 var $this = $(this);
                 var value = $this.val();
                 if (!value || (value == 'skip:')) {
                     $this.addClass('error');
+                    $this.bind('change.yandexmarket', self.invalidInputChangeHandler);
                     valid = false;
                 }
             });
@@ -355,7 +371,6 @@ $.extend($.importexport.plugins, {
             this.form.find('.progressbar .progressbar-inner').css('width', '0%');
             this.form.find('.progressbar').show();
             var url = $(element).attr('action');
-            var self = this;
             $.ajax({
                 url: url,
                 data: data,

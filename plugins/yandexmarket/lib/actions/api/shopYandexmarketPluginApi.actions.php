@@ -23,6 +23,8 @@ class shopYandexmarketPluginApiActions extends waActions
 
         $items = array();
 
+        $total = 0;
+
         foreach ($order->items as $item) {
             $items[] = array(
                 'feedId'   => $item['raw_data']['feedId'],
@@ -31,6 +33,8 @@ class shopYandexmarketPluginApiActions extends waActions
                 'count'    => (int)$item['count'],
                 'delivery' => true,
             );
+
+            $total += floatval($item['price']) * (int)$item['count'];
         }
 
         $carriers = array();
@@ -42,6 +46,8 @@ class shopYandexmarketPluginApiActions extends waActions
             $this->getProfile($order->items);
 
             $plugin_model = new shopPluginModel();
+
+            $internal_added = false;
 
             if (ifset($this->profile['config']['shop']['delivery'], '') === 'true') {
                 if (ifset($this->profile['config']['shop']['deliveryIncluded']) === 'true') {
@@ -55,19 +61,22 @@ class shopYandexmarketPluginApiActions extends waActions
                     $days = max(0, intval($this->profile['config']['shop']['local_delivery_estimate']));
                 }
 
-                $carriers[] = array(
-                    'id'          => '0',
-                    'type'        => 'DELIVERY',
-                    'serviceName' => 'Курьер',
-                    'price'       => $price,
-                    'dates'       => array(
-                        'fromDate' => date('d-m-Y', strtotime(sprintf('+%ddays', $days))),
-                        'toDate'   => date('d-m-Y', strtotime(sprintf('+%ddays', $days + 7))),
-                    ),
-                );
+
+                if (true) {
+                    $internal_added = true;
+                    $carriers[] = array(
+                        'id'          => 'courier',
+                        'type'        => 'DELIVERY',
+                        'serviceName' => 'Курьер',
+                        'price'       => $price,
+                        'dates'       => array(
+                            'fromDate' => date('d-m-Y', strtotime(sprintf('+%ddays', $days))),
+                            'toDate'   => date('d-m-Y', strtotime(sprintf('+%ddays', $days + 7))),
+                        ),
+                    );
+                }
 
                 if (false) {
-
                     $methods = $plugin_model->listPlugins('shipping');
                     if (count($methods)) {
                         foreach ($methods as $result) {
@@ -76,10 +85,10 @@ class shopYandexmarketPluginApiActions extends waActions
                             }
                             //TODO calculate delivery prices
                             $carriers[] = array(
-                                'id'          => $result['id'],
+                                'id'          => sprintf('shipping.%s', $result['id']),
                                 'type'        => 'DELIVERY',
                                 'serviceName' => $result['name'],
-                                'price'       => $price,
+                                'price'       => floatval($price),
                                 'dates'       => array(
                                     'fromDate' => date('d-m-Y'),
                                     'toDate'   => date('d-m-Y', strtotime('+3days')),
@@ -89,6 +98,7 @@ class shopYandexmarketPluginApiActions extends waActions
                     }
                 }
             }
+
 
             $outlets_added = false;
             if (ifset($this->profile['config']['shop']['pickup'], '') === 'true') {
@@ -100,33 +110,62 @@ class shopYandexmarketPluginApiActions extends waActions
                     waLog::log(sprintf('%d: %s', $order->campaign_id, $message).var_export($items, true), 'shop/plugins/yandexmarket/api.error.log');
                 }
                 if ($outlets) {
+                    # PICKUP delivery options
                     foreach ($outlets as $outlet) {
                         if (true
                             && (ifset($outlet['status']) == 'MODERATED')
                             && (ifset($outlet['visibility']) != 'HIDDEN ')
                             && in_array(ifset($outlet['type']), array('MIXED', 'DEPOT'), true)
                         ) {
-                            //TODO calculate cost based on delivery rules
+
+                            $price = 0;
+                            if (!empty($outlet['deliveryRules'])) {
+                                foreach ($outlet['deliveryRules'] as $delivery_rule) {
+                                    $match = false;
+                                    if (empty($delivery_rule['priceFrom']) || (floatval($delivery_rule['priceFrom']) >= $total)) {
+                                        $match = true;
+                                    }
+                                    if (!empty($delivery_rule['priceTo']) && (floatval($delivery_rule['priceTo']) > $total)) {
+                                        $match = false;
+                                    }
+                                    if ($match) {
+                                        $price = floatval($delivery_rule['cost']);
+                                    }
+                                }
+                            }
 
                             //TODO parse dates
+                            $address = '';
+                            if (!empty($outlet['address'])) {
+                                //TODO check max ServiceName length
+                                //$address = implode(', ', $outlet['address']);
+                            }
+                            //TODO group outlets by delivery service
                             $carriers[] = array(
-                                'id'          => $outlet['id'],
-                                'serviceName' => $outlet['name'],
+                                'id'          => sprintf('outlet.%s', $outlet['id']),
+                                'serviceName' => trim(sprintf('%s %s', $outlet['name'], $address)),
                                 'type'        => 'PICKUP',
-                                'price'       => 0,
+                                'price'       => $price,
                                 'dates'       => array(
                                     'fromDate' => date('d-m-Y'),
-                                    'toDate'   => date('d-m-Y'),
+                                    'toDate'   => date('d-m-Y', strtotime('+3days')),
+                                ),
+                                'outlets'     => array(
+                                    array(
+                                        'id' => $outlet['id'],
+                                    ),
                                 ),
                             );
                             $outlets_added = true;
                         }
 
                     }
-                    if ($outlets_added) {
-                        $payments[] = 'CASH_ON_DELIVERY';
-                    }
+
                 }
+            }
+
+            if ($outlets_added || $internal_added) {
+                $payments[] = 'CASH_ON_DELIVERY';
             }
 
             $fields = array(
@@ -142,7 +181,7 @@ class shopYandexmarketPluginApiActions extends waActions
                 //'SHOP_PREPAID' — предоплата напрямую магазину (только для Украины).
 
                 if ($outlets_added && false) { #if mPOS enabled
-                    //TODO add custom settings for courier
+                    //TODO add custom settings for courier or detect it automatically
                     $payments[] = 'CARD_ON_DELIVERY';
                 }
             }
@@ -201,9 +240,18 @@ class shopYandexmarketPluginApiActions extends waActions
         $routing_url = wa()->getRouting()->getRootUrl();
         $order['params']['storefront'] = wa()->getConfig()->getDomain().($routing_url ? '/'.$routing_url : '');
 
-        if ($raw_order->shipping_id) {
-            $order['params']['shipping_id'] = $raw_order->shipping_id;
-            //$order['params']['shipping_plugin'] = $data->order->delivery->serviceName;
+        if ($raw_order->shipping_id || $raw_order->shipping_name) {
+            if ($raw_order->shipping_id) {
+                $order['params']['shipping_id'] = $raw_order->shipping_id;
+            }
+            if ($raw_order->outlet_id) {
+                $order['params']['yandexmarket.outlet_id'] = $raw_order->outlet_id;
+            }
+
+            if ($raw_order->shipping_plugin) {
+                $order['params']['shipping_plugin'] = $raw_order->shipping_plugin;
+            }
+
             $order['params']['shipping_name'] = $raw_order->shipping_name;
             $order['params']['shipping_rate_id'] = 'delivery';
             $order['shipping'] = $raw_order->shipping;

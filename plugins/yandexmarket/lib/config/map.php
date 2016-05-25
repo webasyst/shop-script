@@ -556,8 +556,17 @@ return array(
             'source'      => 'feature:barcode'
         ),
         'cpa'                   => array(
-            'type'   => 'fixed',
-            'source' => 'skip:'
+            'type'        => 'adjustable',
+            'name'        => 'CPA',
+            'description' => 'Участие товара в программе «Заказ на Маркете»',
+            'source'      => 'skip:',
+            'values'      => array(
+                0 => 'Да',
+                1 => 'Нет',
+            ),
+            'params'      => array(
+                'cpa' => 'cpa',
+            ),
         ),
         'series'                => array(
             'type' => 'adjustable',

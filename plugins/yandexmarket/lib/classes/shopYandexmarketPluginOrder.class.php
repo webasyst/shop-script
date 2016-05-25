@@ -8,6 +8,8 @@
  * @property-read string $sub_status
  * @property-read string $sub_status_description
  * @property-read int $shipping_id
+ * @property-read string $shipping_plugin
+ * @property-read int $outlet_id
  * @property-read int $yandex_id
  *
  * @property array[][string]string  $items[]['raw_data']
@@ -222,8 +224,27 @@ class shopYandexmarketPluginOrder extends waOrder
         if (!empty($json['delivery'])) {
             $delivery = $json['delivery'];
             if (!empty($delivery['type'])) {
-                $data['shipping_id'] = $delivery['id'];
-                $data['shipping_name'] = $delivery['serviceName'];
+                if (strpos($delivery['id'], '.')) {
+                    list($type, $id) = explode('.', $delivery['id'], 2);
+                    switch ($type) {
+                        case 'outlet':
+                            $data['shipping_name'] = sprintf('Точка продаж %s', $delivery['serviceName']);
+                            $data['outlet_id'] = $id;
+                            break;
+                        case 'shipping':
+                            $data['shipping_id'] = $id;
+                            $data['shipping_name'] = $delivery['serviceName'];
+                            $plugin_model = new shopPluginModel();
+                            $plugin = $plugin_model->getPlugin($id, shopPluginModel::TYPE_SHIPPING);
+                            if ($plugin) {
+                                $data['shipping_plugin'] = $plugin['plugin'];
+                                $data['shipping_name'] = $plugin['name'];
+                            }
+                            break;
+                    }
+                } else {
+                    $data['shipping_name'] = $delivery['serviceName'];
+                }
                 $data['shipping'] = floatval($delivery['price']);
             }
 
