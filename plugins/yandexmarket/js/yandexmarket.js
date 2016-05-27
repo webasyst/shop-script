@@ -191,7 +191,6 @@ $.extend($.importexport.plugins, {
              */
             this.$form.find(':input[name="export\\[sku\\]"]').unbind('change.yandexmarket').bind('change.yandexmarket', function (event) {
                 var checked = $(this).is(':checked');
-                self.$form.find('select option[value="field:sku"]').attr('disabled', checked ? null : 'disabled');
 
                 var $container = self.$form.find(':input[name="export\\[sku_group\\]"]:first').parents('div.field:first');
                 self.helpers.toggle($container, event, checked);

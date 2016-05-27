@@ -5,6 +5,7 @@
 return array(
     'currency'                      => array('RUR', 'RUB', 'BYR', 'KZT', 'UAH', 'USD', 'EUR'),
     'primary_currency'              => array('RUR', 'RUB', 'BYR', 'KZT', 'UAH',),
+    'currency_source'               => 'CB', //it could be one of 'CB', 'CBRF', 'NBU', 'NBK',
     'group_market_category'         => array(
         'Мягкая мебель',
         'Одежда, обувь и аксессуары',

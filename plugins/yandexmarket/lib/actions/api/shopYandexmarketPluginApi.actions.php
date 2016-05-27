@@ -49,18 +49,20 @@ class shopYandexmarketPluginApiActions extends waActions
 
             $internal_added = false;
 
+            $days = 7;
+            if (ifset($this->profile['config']['shop']['local_delivery_estimate'])) {
+                $days = max(1, intval($this->profile['config']['shop']['local_delivery_estimate']));
+            }
+
+            $to_date_timestamp = strtotime(sprintf('+%ddays', $days));
+            $from_date_timestamp = time();
+
             if (ifset($this->profile['config']['shop']['delivery'], '') === 'true') {
                 if (ifset($this->profile['config']['shop']['deliveryIncluded']) === 'true') {
                     $price = 0;
                 } else {
                     $price = intval(ifset($this->profile['config']['shop']['local_delivery_cost']));
                 }
-
-                $days = 7;
-                if (ifset($this->profile['config']['shop']['local_delivery_estimate'])) {
-                    $days = max(0, intval($this->profile['config']['shop']['local_delivery_estimate']));
-                }
-
 
                 if (true) {
                     $internal_added = true;
@@ -70,8 +72,8 @@ class shopYandexmarketPluginApiActions extends waActions
                         'serviceName' => 'Курьер',
                         'price'       => $price,
                         'dates'       => array(
-                            'fromDate' => date('d-m-Y', strtotime(sprintf('+%ddays', $days))),
-                            'toDate'   => date('d-m-Y', strtotime(sprintf('+%ddays', $days + 7))),
+                            'fromDate' => date('d-m-Y', $from_date_timestamp),
+                            'toDate'   => date('d-m-Y', $to_date_timestamp),
                         ),
                     );
                 }
@@ -90,8 +92,8 @@ class shopYandexmarketPluginApiActions extends waActions
                                 'serviceName' => $result['name'],
                                 'price'       => floatval($price),
                                 'dates'       => array(
-                                    'fromDate' => date('d-m-Y'),
-                                    'toDate'   => date('d-m-Y', strtotime('+3days')),
+                                    'fromDate' => date('d-m-Y', $from_date_timestamp),
+                                    'toDate'   => date('d-m-Y', $to_date_timestamp),
                                 ),
                             );
                         }
@@ -147,8 +149,8 @@ class shopYandexmarketPluginApiActions extends waActions
                                 'type'        => 'PICKUP',
                                 'price'       => $price,
                                 'dates'       => array(
-                                    'fromDate' => date('d-m-Y'),
-                                    'toDate'   => date('d-m-Y', strtotime('+3days')),
+                                    'fromDate' => date('d-m-Y', $from_date_timestamp),
+                                    'toDate'   => date('d-m-Y', $to_date_timestamp),
                                 ),
                                 'outlets'     => array(
                                     array(

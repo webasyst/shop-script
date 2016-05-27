@@ -128,16 +128,19 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 if (!$profile_id || !($profile = $profiles->getConfig($profile_id))) {
                     throw new waException('Profile not found', 404);
                 }
+
                 $profile_config = $profile['config'];
+
                 $profile_config['export'] += $default_export_config;
                 $this->data['map'] = $this->plugin()->map($profile_config['map'], $profile_config['types']);
+
                 foreach ($this->data['map'] as $type => &$offer_map) {
                     foreach ($offer_map['fields'] as $field => &$info) {
                         $info['source'] = ifempty($profile_config['map'][$type][$field], 'skip:');
+                        unset($info);
                     }
                     unset($offer_map);
                 }
-
             }
 
             foreach ($this->data['map'] as $type => &$offer_map) {
@@ -147,30 +150,40 @@ class shopYandexmarketPluginRunController extends waLongActionController
                         'attribute' => true,
                     );
                 }
-
-                foreach (array('name', 'description', 'help') as $field) {
-                    if (isset($offer_map[$field])) {
-                        unset($offer_map[$field]);
-                    }
-                }
-
                 unset($offer_map);
             }
 
             $feature_model = new shopFeatureModel();
+
+            $setup_fields = array('name', 'description', 'help', 'required', 'function', 'sort', 'type', 'values', 'params');
+
             foreach ($this->data['map'] as $type => &$offer_map) {
+                if (isset($offer_map['name'])) {
+                    unset($offer_map['name']);
+                }
                 foreach ($offer_map['fields'] as $field => &$info) {
-                    if ((strpos($field, 'param.') === 0) && isset($info['source'])) {
-                        switch (preg_replace('@:.+$@', '', $info['source'])) {
-                            case 'feature':
-                                if ($feature = $feature_model->getByCode(preg_replace('@^[^:]+:@', '', $info['source']))) {
-                                    $info['source_name'] = $feature['name'];
-                                }
-                                break;
+                    if (empty($info['source']) || ($info['source'] == 'skip:')) {
+                        unset($offer_map['fields'][$field]);
+                    } else {
+                        foreach ($setup_fields as $info_field) {
+                            if (isset($info[$info_field])) {
+                                unset($info[$info_field]);
+                            }
+                        }
+
+                        if ((strpos($field, 'param.') === 0) && isset($info['source'])) {
+                            switch (preg_replace('@:.+$@', '', $info['source'])) {
+                                case 'feature':
+                                    $feature_code = preg_replace('@^[^:]+:@', '', $info['source']);
+                                    if ($feature = $feature_model->getByCode($feature_code)) {
+                                        $info['source_name'] = $feature['name'];
+                                    }
+                                    break;
+                            }
                         }
                     }
+                    unset($info);
                 }
-                unset($info);
                 unset($offer_map);
             }
 
@@ -347,7 +360,10 @@ XML;
                     $info['rate'] = $info['rate'] / $rate;
                     $this->data['currency'][] = $info['code'];
                     if (abs(round($info['rate'], 4) - $info['rate']) / $info['rate'] > 0.01) {
-                        $info['rate'] = 'CB';
+                        $info['rate'] = shopYandexmarketPlugin::getConfigParam('currency_source');
+                        if (!in_array($info['rate'], array('CB', 'CBRF', 'NBU', 'NBK'))) {
+                            $info['rate'] = 'CB';
+                        }
                     }
 
                     $value = array(

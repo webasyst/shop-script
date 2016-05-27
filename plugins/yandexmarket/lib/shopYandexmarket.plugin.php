@@ -105,25 +105,36 @@ class shopYandexmarketPlugin extends shopPlugin
                 if (isset($map[$type])) {
                     foreach ($info as $field => $post_data) {
                         $field_type = (strpos($field, 'param.') === 0) ? 'param.*' : $field;
-                        if (isset($map[$type]['fields'][$field_type]) && !empty($post_data['source'])) {
-                            if (preg_match($source_pattern, $post_data['source'], $matches)) {
-                                switch ($source = $matches[1]) {
-                                    case 'feature':
-                                    case 'text':
-                                        if (isset($post_data[$source]) && ($post_data[$source] !== '')) {
-                                            $post_data['source'] = $source.':'.$post_data[$source];
-                                        } else {
-                                            $post_data['source'] = null;
+
+                        if (isset($map[$type]['fields'][$field_type]) && !empty($post_data)) {
+                            if (is_array($post_data)) {
+                                if (!empty($post_data['source'])) {
+                                    if (preg_match($source_pattern, $post_data['source'], $matches)) {
+                                        switch ($source = $matches[1]) {
+                                            case 'feature':
+                                            case 'text':
+                                                if (isset($post_data[$source]) && ($post_data[$source] !== '')) {
+                                                    $post_data['source'] = $source.':'.$post_data[$source];
+                                                } else {
+                                                    $post_data['source'] = null;
+                                                }
+                                                break;
                                         }
-                                        break;
+                                    }
+                                    $map[$type]['fields'][$field]['source'] = $post_data['source'];
                                 }
+                            } else {
+                                $map[$type]['fields'][$field]['source'] = $post_data;
                             }
-                            $map[$type]['fields'][$field]['source'] = $post_data['source'];
+                        } else {
+                            $map[$type]['fields'][$field]['source'] = null;
                         }
+
                     }
                 }
             }
         }
+
 
         if ($sort) {
             foreach ($map as &$info) {
