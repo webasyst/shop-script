@@ -1187,20 +1187,13 @@ SQL;
         static $features_model;
         $value = null;
         list($source, $param) = explode(':', $info['source'], 2);
-        $sub_param = null;
-        if (strpos($param, '.')) {
-            list($param, $sub_param) = explode('.', $param, 2);
-        }
         switch ($source) {
             case 'field':
-                switch ($param) {
-                    case 'stock_counts':
-                        //it's already remapped
-                        $value = $product['count'];
-                        break;
-                    default:
-                        $value = isset($product[$param]) ? $product[$param] : null;
-                        break;
+                if (strpos($param, 'stock_counts.') === 0) {
+                    //it's already remapped
+                    $value = $product['count'];
+                } else {
+                    $value = isset($product[$param]) ? $product[$param] : null;
                 }
 
                 if (!empty($this->data['export']['sku'])) {
@@ -1236,6 +1229,12 @@ SQL;
                         case 'group_id':
                         case 'compare_price':
                             $value = ifset($sku[$param], $value);
+                            break;
+                        default:
+                            if (strpos($param, 'stock_counts.') === 0) {
+                                //it's already remapped
+                                $value = ifset($sku['count'], $value);
+                            }
                             break;
 
                     }
