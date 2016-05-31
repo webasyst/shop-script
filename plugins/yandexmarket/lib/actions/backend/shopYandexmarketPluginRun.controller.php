@@ -1481,7 +1481,11 @@ SQL;
                 break;
             case 'cpa':
                 if ($value !== null) {
-                    $value = $value ? '1' : '0';
+                    if (in_array($value, array('false', '0', 'Нет', 'нет', 0, false), true)) {
+                        $value = '0';
+                    } else {
+                        $value = $value ? '1' : '0';
+                    }
                 }
                 break;
             case 'sales_notes':

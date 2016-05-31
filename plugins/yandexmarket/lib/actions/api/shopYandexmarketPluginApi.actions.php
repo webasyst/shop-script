@@ -145,7 +145,7 @@ class shopYandexmarketPluginApiActions extends waActions
                             //TODO group outlets by delivery service
                             $carriers[] = array(
                                 'id'          => sprintf('outlet.%s', $outlet['id']),
-                                'serviceName' => trim(sprintf('%s %s', $outlet['name'], $address)),
+                                'serviceName' => mb_substr(trim(sprintf('%s %s', $outlet['name'], $address)), 0, 50),
                                 'type'        => 'PICKUP',
                                 'price'       => $price,
                                 'dates'       => array(

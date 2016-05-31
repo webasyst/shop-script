@@ -561,8 +561,8 @@ return array(
             'description' => 'Участие товара в программе «Заказ на Маркете»',
             'source'      => 'skip:',
             'values'      => array(
-                0 => 'Да',
-                1 => 'Нет',
+                0 => 'Нет',
+                1 => 'Да',
             ),
             'params'      => array(
                 'cpa' => 'cpa',
