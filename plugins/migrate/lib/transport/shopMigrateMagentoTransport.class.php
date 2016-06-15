@@ -161,7 +161,7 @@ For more information please refer to Magento Manual: <a href="http://devdocs.mag
         }
 
         # 3. validate hashes
-        $pattern = '@^[0-9a-f]{32}$@i';
+        $pattern = '@^[0-9a-z]{32}$@i';
         $fields = array(
             'consumer_key',
             'consumer_secret',
