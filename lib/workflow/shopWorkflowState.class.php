@@ -27,15 +27,14 @@ class shopWorkflowState extends waWorkflowState
 
     /**
      * @param array $params array with order data
+     * @param bool $name_only option to return only action names allowed for this state
      * @return array
      */
-    public function getActions($params = null)
+    public function getActions($params = null, $name_only=false)
     {
-        $actions = parent::getActions($params);
+        $actions = parent::getActions($params, $name_only);
         //add internal actions: merge
         if (!empty($params['unsettled'])) {
-            $args = func_get_args();
-            $name_only = isset($args[1]) ? $args[1] : false;
             $action_id = 'settle';
             if ($action = $this->workflow->getActionById($action_id)) {
                 if (!$name_only) {
