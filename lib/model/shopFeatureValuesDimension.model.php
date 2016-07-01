@@ -8,9 +8,9 @@ class shopFeatureValuesDimensionModel extends shopFeatureValuesModel
         return new shopDimensionValue($row);
     }
 
-    public function getProductValues($product_id, $feature_id, $field = 'value')
+    public function getProductValues($product_id, $feature_id, $field = 'value_base_unit')
     {
-        return parent::getProductValues($product_id, $feature_id, 'value_base_unit');
+        return parent::getProductValues($product_id, $feature_id, $field);
     }
 
     protected function parseValue($value, $type)
