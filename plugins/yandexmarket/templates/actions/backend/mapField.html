@@ -52,9 +52,13 @@
 
             {if !empty($info.params)}
                 <optgroup label="Дополнительные параметры">
+                    {if $info.params===true}
+                        <option value="params:{$field|escape}"{if (ifset($info['source'])=="params:`$field`")}{$selected = true}selected="selected"{/if}>yandexmarket.{$field|escape}</option>
+                    {else}
                     {foreach $info.params as $param_id => $value}
                         <option value="params:{$param_id|escape}"{if (ifset($info['source'])=="params:`$param_id`")}{$selected = true}selected="selected"{/if}>yandexmarket.{$value|escape}</option>
                     {/foreach}
+                    {/if}
                 </optgroup>
             {/if}
 
@@ -91,15 +95,21 @@
         {* Field source user value *}
         <input type="text" name="map[{$type_id}][{$field}][text]" class="js-value-custom" placeholder="Пользовательское значение"{if strpos(ifset($info['source']),'text:')!==0} value="" style="display: none;"{else} value="{$info['source']|regex_replace:'@^text:@':''|escape}"{/if}>
         <a href="{$js_base_href|default:'#'}/source/select/{$type_id}/{$field}/" class="js-action" style="display: none;"><i class="icon16 close"></i></a>
-        &nbsp;&rarr;
-        {if $param}
+        {if empty($info.virtual)}
+            &nbsp;&rarr;
+            {if $param}
 
-            <span class="js-target">&lt;param <b>name</b>="<span class="js-target-name">name</span>" <b>unit</b>="<span class="js-target-unit">unit</span>"&gt;</span>
-        {else}
-            {if !empty($info.attribute)}
-                &lt;{$info.field|regex_replace:'/\..*$/':''} <b>{$field|regex_replace:'/\..*$/':''}</b>="..." &gt;
+                <span class="js-target">&lt;param <b>name</b>="<span class="js-target-name">name</span>" <b>unit</b>="<span class="js-target-unit">unit</span>"&gt;</span>
             {else}
-                &lt;{$field|regex_replace:'/\..*$/':''}&gt;
+                {if !empty($info.attribute)}
+                    &lt;{$info.field|regex_replace:'/\..*$/':''} <b>{$field|regex_replace:'/\..*$/':''}</b>="..." &gt;
+                {else}
+                    &lt;{$field|regex_replace:'/\..*$/':''}&gt;
+                    {if !empty($info.path)}
+                        &nbsp;или&nbsp;&rarr;
+                    &lt;{$info.path|regex_replace:'/\//':'><'|escape}&gt;
+                    {/if}
+                {/if}
             {/if}
         {/if}
 

@@ -4,7 +4,7 @@ return array(
         'value'            => '',
         'title'            => 'Основная валюта',
         'description'      => 'Основная валюта товарных предложений.<br/>
- Все цены, указанные в валюте, отличной от RUB, UAH, BYR, KZT, USD и EUR, будут сконвертированы в цены в основной валюте.',
+ Все цены, указанные в валюте, отличной от RUB, UAH, BYR, BYN, KZT, USD и EUR, будут сконвертированы в цены в основной валюте.',
         'control_type'     => waHtmlControl::SELECT,
         'options_callback' => array('shopYandexmarketPlugin', 'settingsPrimaryCurrencies'),
     ),
@@ -17,7 +17,7 @@ return array(
         'control_type' => waHtmlControl::CHECKBOX,
     ),
 
-    'title1'           => array(
+    'title1' => array(
         'control_type' => waHtmlControl::HIDDEN,
         'description'  => '<h4>Заказ на Маркете</h4>',
     ),
@@ -37,7 +37,7 @@ return array(
         'control_type' => waHtmlControl::INPUT,
     ),
 
-    'title2'           => array(
+    'title2' => array(
         'control_type' => waHtmlControl::HIDDEN,
         'description'  => '<h4>OAuth-приложение</h4>',
     ),

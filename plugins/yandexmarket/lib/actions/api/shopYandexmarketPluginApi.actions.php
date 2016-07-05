@@ -49,13 +49,19 @@ class shopYandexmarketPluginApiActions extends waActions
 
             $internal_added = false;
 
-            $days = 7;
+            $days = array(7);
             if (ifset($this->profile['config']['shop']['local_delivery_estimate'])) {
-                $days = max(1, intval($this->profile['config']['shop']['local_delivery_estimate']));
+                $days = array_map('intval', preg_split('@\D+@', $this->profile['config']['shop']['local_delivery_estimate'], 2));
             }
 
-            $to_date_timestamp = strtotime(sprintf('+%ddays', $days));
-            $from_date_timestamp = time();
+            //TODO check local_delivery_order_before
+            if (count($days) == 2) {
+                $to_date_timestamp = strtotime(sprintf('+%ddays', end($days)));
+                $from_date_timestamp = strtotime(sprintf('+%ddays', reset($days)));
+            } else {
+                $to_date_timestamp = strtotime(sprintf('+%ddays', reset($days)));
+                $from_date_timestamp = time();
+            }
 
             if (ifset($this->profile['config']['shop']['delivery'], '') === 'true') {
                 if (ifset($this->profile['config']['shop']['deliveryIncluded']) === 'true') {
@@ -323,16 +329,29 @@ class shopYandexmarketPluginApiActions extends waActions
                     $params = $raw_order->id;
                     $action_id = 'delete';
                     break;
+                case 'RESERVED': # заказ в резерве (ожидается подтверждение от пользователя);
                 case 'PROCESSING':# заказ можно выполнять
+                case 'UNPAID':# заказ оформлен, но еще не оплачен (если выбрана оплата при оформлении)
+
                     $callback_params = array(
                         'id'          => $raw_order->yandex_id,
                         'order_id'    => $raw_order->id,
                         'plugin'      => 'shop:yandexmarket',
                         'currency_id' => $raw_order->currency,
                         'amount'      => $raw_order->total,
-                        'view_data'   => 'Заказ оплачен',
-                        'state'       => waPayment::STATE_VERIFIED,
+                        'view_data'   => 'Заказ в обработке',
+                        'state'       => 'UNPAID',
                     );
+
+                    if ($raw_order->paid_datetime) {
+                        $action_id = 'pay';
+                        $callback_params['view_data'] = 'Заказ оплачен';
+                        $callback_params['state'] = waPayment::STATE_VERIFIED;
+                    } else {
+                        if ($raw_order->status == 'RESERVED') {
+                            $callback_params['view_data'] = 'Заказ зарезевирован';
+                        }
+                    }
 
                     if ($raw_order->contact_id) {
                         if ($this->getPlugin()->getSettings('contact_id') != $raw_order->contact_id) {
@@ -344,25 +363,10 @@ class shopYandexmarketPluginApiActions extends waActions
                     $customer = new shopCustomerModel();
                     $customer->updateFromNewOrder($raw_order->contact_id, $raw_order->id);
 
-                    $action_id = 'pay';
                     $params = $raw_order->id;
 
-                    break;
-                case 'UNPAID':# заказ оформлен, но еще не оплачен (если выбрана оплата при оформлении)
-                    $action_id = 'process';
-                    $params = $raw_order->id;
-
-                    $callback_params = array(
-                        'order_id'    => $raw_order->id,
-                        'plugin'      => 'shop:yandexmarket',
-                        'currency_id' => $raw_order->currency,
-                        'amount'      => $raw_order->total,
-                        'view_data'   => 'Заказ ожидает оплаты',
-                        'state'       => 'UNPAID',
-                    );
                     break;
                 default:
-
                     //XXX log error — unknown order state
                     break;
             }
@@ -480,7 +484,11 @@ class shopYandexmarketPluginApiActions extends waActions
                 break;
         }
 
-        $server = waRequest::server();
+        if (!empty($json)) {
+            unset($raw);
+        } else {
+            $server = waRequest::server();
+        }
         waLog::log(var_export(compact('raw', 'server', 'headers', 'json'), true), 'shop/plugins/yandexmarket/api.request.log');
         return $order;
     }

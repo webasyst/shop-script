@@ -878,25 +878,46 @@ HTML;
     }
 
     /**
-     * @param $data [order_id] int Номер заказа
-     * @param $data [action_id] int ID действия
-     * @param $data [before_state_id] int ID статуса до выполнения действия
-     * @param $data [after_state_id] int ID статуса после выполнения действия
-     * @param $data [id] int ID записи в логе истории заказа
+     * @param mixed [string] $data
+     * @param int [string] $data[order_id]        Номер заказа
+     * @param string [string] $data[action_id]       ID действия
+     * @param string [string] $data[before_state_id] ID статуса до выполнения действия
+     * @param string [string] $data[after_state_id]  ID статуса после выполнения действия
+     * @param int [string] $data[id]              ID записи в логе истории заказа
+     * @param string $event_name
      */
-    public function orderStatus($data)
+    public function orderActionHandler($data, $event_name = null)
     {
-        $params_model = new shopOrderParamsModel();
-        $search = array(
-            'order_id' => $data['order_id'],
-            'name'     => array('yandexmarket.id', 'yandexmarket.campaign_id'),
-        );
-        $params = $params_model->getByField($search, 'name');
+        $params = null;
+        $action = null;
+        if ($this->checkApi()) {
+            $available_actions = array('ship', 'complete', 'delete');
+            if (in_array($data['action_id'], $available_actions)) {
+                $action = $data['action_id'];
+            } else {
+                foreach ($available_actions as $available_action) {
+                    $settings = $this->getSettings('order_action_'.$available_action);
+                    $matched = in_array($action, array_keys(array_filter($settings)));
+                    if ($matched) {
+                        $action = $available_action;
+                        break;
+                    }
+                }
+            }
+        }
+        if ($action && !empty($data['order_id'])) {
+            $params_model = new shopOrderParamsModel();
+            $search = array(
+                'order_id' => $data['order_id'],
+                'name'     => array('yandexmarket.id', 'yandexmarket.campaign_id'),
+            );
+            $params = $params_model->getByField($search, 'name');
+        }
         if ($params && (count($params) == 2)) {
             $method = 'campaigns/%d/orders/%d/status';
             $method = sprintf($method, $params['yandexmarket.campaign_id']['value'], $params['yandexmarket.id']['value']);
 
-            switch ($data['action_id']) {
+            switch ($action) {
                 case 'ship':
                     $order = array(
                         'status' => 'DELIVERY',
@@ -911,32 +932,112 @@ HTML;
                     break;
                 case 'delete':
                     if (wa()->getEnv() == 'backend') {
+                        $post = waRequest::post('plugins');
+                        $substatus = 'USER_CHANGED_MIND';
+                        if (!empty($post['yandexmarket']['substatus'])) {
+                            $substatus = $post['yandexmarket']['substatus'];
+                            $available = self::getCancelSubstatus();
+                            if (!isset($available[$substatus])) {
+                                $substatus = 'USER_CHANGED_MIND';
+                            }
+                        }
                         $order = array(
                             'status'    => 'CANCELLED',
-                            'substatus' => 'USER_CHANGED_MIND',
+                            'substatus' => $substatus,
                         );
                         $this->apiRequest($method, array(), compact('order'));
                     }
-                    /**
-                     *
-                     *
-                     * USER_UNREACHABLE — не удалось связаться с покупателем;
-                     *
-                     * USER_CHANGED_MIND — покупатель отменил заказ по собственным причинам;
-                     *
-                     * USER_REFUSED_DELIVERY — покупателя не устраивают условия доставки;
-                     *
-                     * USER_REFUSED_PRODUCT — покупателю не подошел товар;
-                     *
-                     * USER_REFUSED_QUALITY — покупателя не устраивает качество товара;
-                     *
-                     * SHOP_FAILED — магазин не может выполнить заказ.
-                     */
-
-
                     break;
             }
         }
 
+    }
+
+    private static function getActions($default_id = null)
+    {
+        static $actions = null;
+        if ($actions === null) {
+            $actions = array();
+            $workflow = new shopWorkflow();
+            $available_actions = $workflow->getAvailableActions();
+            foreach ($available_actions as $id => $available_action) {
+                $actions[$id] = $available_action['name'];
+            }
+        }
+        if (!empty($default_id) && isset($actions[$default_id])) {
+            $result = $actions;
+            $result[$default_id] = array(
+                'title'    => $actions[$default_id],
+                'value'    => $default_id,
+                'disabled' => true,
+                'checked'  => true,
+            );
+            return $result;
+
+        }
+
+        return $actions;
+    }
+
+    public static function getShipActions()
+    {
+        return self::getActions('ship');
+    }
+
+    public static function getCompleteActions()
+    {
+        return self::getActions('complete');
+    }
+
+    public static function getDeleteActions()
+    {
+        return self::getActions('delete');
+    }
+
+    private static function getCancelSubstatus()
+    {
+        return array(
+            'USER_UNREACHABLE'      => 'не удалось связаться с покупателем',
+            'USER_CHANGED_MIND'     => 'покупатель отменил заказ по собственным причинам',
+            'USER_REFUSED_DELIVERY' => 'покупателя не устраивают условия доставки',
+            'USER_REFUSED_PRODUCT'  => 'покупателю не подошел товар',
+            'USER_REFUSED_QUALITY'  => 'покупателя не устраивает качество товара',
+            'SHOP_FAILED'           => 'магазин не может выполнить заказ',
+        );
+    }
+
+    public function orderDeleteFormHandler($data, $event_name = null)
+    {
+        $raw_id = null;
+        if ($this->checkApi()) {
+            if (empty($event_name)) {
+                $matched = true;
+            } else {
+                $action = str_replace('order_action_form.', '', $event_name);
+                $settings = $this->getSettings('order_action_delete');
+                $matched = in_array($action, array_keys(array_filter($settings)));
+            }
+            if ($matched && !empty($data['order_id'])) {
+                $order_params_model = new shopOrderParamsModel();
+                $raw_id = $order_params_model->getOne($data['order_id'], 'yandexmarket.id');
+            }
+        }
+        if (empty($raw_id)) {
+            return null;
+        } else {
+            $sub_status = self::getCancelSubstatus();
+            $html = <<<HTML
+        Причина отмены заказа:
+        <select name="plugins[yandexmarket][substatus]">
+HTML;
+            foreach ($sub_status as $id => $description) {
+                $html .= <<<HTML
+<option value="{$id}">{$description}</option> 
+HTML;
+
+            }
+            $html .= "</select>";
+            return $html;
+        }
     }
 }

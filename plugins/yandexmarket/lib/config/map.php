@@ -20,6 +20,7 @@ return array(
                 'pickup'                => false,
                 'delivery'              => false,
                 'local_delivery_cost'   => false,
+                'local_delivery_days'   => false,
                 'name'                  => true,
                 'vendor'                => false,
                 'vendorCode'            => false,
@@ -60,6 +61,7 @@ return array(
                 'pickup'                => false,
                 'delivery'              => false,
                 'local_delivery_cost'   => false,
+                'local_delivery_days'   => false,
                 'typePrefix'            => false,
                 /**
                  *
@@ -122,6 +124,7 @@ return array(
                 'pickup'              => false,
                 'delivery'            => false,
                 'local_delivery_cost' => false,
+                'local_delivery_days' => false,
                 'author'              => false,
                 'name'                => true,
                 'publisher'           => false,
@@ -299,10 +302,20 @@ return array(
         /**
          * 'field_id'              => array(
          * 'type'        => 'fixed|adjustable|custom',
-         * 'name'        => '',
-         * 'description' => '',
+         * 'name'        => 'Field name for settings screen',
+         * 'description' => 'Field description',
+         * 'help'=>'Explained field description with possible html tags',
          * 'attribute'=>true, //(if it dom attribute only)
-         * 'field'       => 'offer',(if it dom attribute only specify dom element name)
+         * 'field'       => 'offer',(if it dom attribute only specify dom element name),
+         * 'source'=>'',
+         * 'format'=>'%d',//field value format for sprintf PHP method
+         * 'callback'=>true,
+         * 'sources'=>array(
+         *      'feature',
+         *      'custom',
+         * ),
+         * 'values'=>array(
+         * ),
          * ),
          */
         'id'              => array(
@@ -354,6 +367,7 @@ return array(
                 'UAH',
                 'KZT',
                 'BYR',
+                'BYN',
                 'EUR',
             ),
             'source'      => 'field:currency',
@@ -371,6 +385,7 @@ return array(
             'help'        => 'Допустимо указывать названия категорий только из товарного дерева категорий <a href="https://help.yandex.ru/partnermarket/guides/classification.xml#market-category" target="_blank">Яндекс.Маркета<i class="icon16 new-window"></i></a>.',
             'source'      => '',
             'sources'     => array('feature', 'custom'),
+            'params'      => true,
         ),
         'picture'         => array(
             'type'   => 'fixed',
@@ -385,6 +400,7 @@ return array(
             'values'      => array(
                 true => 'true',
             ),
+            'params'      => true,
         ),
         /**
          * adjustable
@@ -498,12 +514,12 @@ return array(
             'name'        => 'Гарантия производителя',
             'description' => 'Информация об официальной гарантии производителя',
             'help'        => 'Возможные пользовательские значения:
-1) false — товар не имеет официальной гарантии;
-2) true — товар имеет официальную гарантию;
+1) <b>false</b> — товар не имеет официальной гарантии;
+2) <b>true</b> — товар имеет официальную гарантию;
 3) указание срока гарантии в формате <a href="https://ru.wikipedia.org/wiki/ISO_8601" class="inline-link" target="_blank">ISO 8601<i class="icon16 new-window"></i></a>, например: <i>P1Y2M10DT2H30M</i>
 4) указание срока гарантии в числе дней;
 Поддерживаются числовые данные — простое число определяет срок гарантии в днях, либо с учетом размерности характеристики типа «Время».
-Остальные типы данных приводятся к значениям true/false.',
+Остальные типы данных приводятся к значениям <b>true</b>/<b>false</b>.',
             'values'      => array(
                 false => 'false',
                 true  => 'true',
@@ -514,12 +530,12 @@ return array(
             'name'        => 'Гарантия продавца',
             'description' => '',
             'help'        => 'Возможные пользовательские значения:
-1) false — товар не имеет гарантию продавца;
-2) true — товар имеет гарантию продавца;
+1) <b>false</b> — товар не имеет гарантию продавца;
+2) <b>true</b> — товар имеет гарантию продавца;
 3) указание срока гарантии в формате <a href="https://ru.wikipedia.org/wiki/ISO_8601" class="inline-link" target="_blank">ISO 8601<i class="icon16 new-window"></i></a>, например: <i>P1Y2M10DT2H30M</i>
 4) указание срока гарантии в числе дней;
 Поддерживаются числовые данные — простое число определяет срок гарантии в днях, либо с учетом размерности характеристики типа «Время».
-Остальные типы данных приводятся к значениям true/false.',
+Остальные типы данных приводятся к значениям <b>true</b>/<b>false</b>.',
             'values'      => array(
                 false => 'false',
                 true  => 'true',
@@ -559,6 +575,12 @@ return array(
             'type'        => 'adjustable',
             'name'        => 'CPA',
             'description' => 'Участие товара в программе «Заказ на Маркете»',
+            'help'        => 'Элемент может принимать следующие значения:
+1) <b>0</b> — товар не участвует в программе «Заказ на Маркете»;
+2) <b>1</b> — товар участвует в программе «Заказ на Маркете».
+Если элемент не указан, то значение автоматически принимается равным 1 (то есть предложение без элемента cpa участвует в программе).
+Добавить дополнительный параметр возможно при редактировании товара, вкладка Описание и SEO, поле Дополнительные параметры.  
+В текстовое поле добавьте строку <b>yandexmarket.cpa=0</b> или <b>yandexmarket.cpa=1</b>',
             'source'      => 'skip:',
             'values'      => array(
                 0 => 'Нет',
@@ -788,6 +810,7 @@ return array(
                 false => 'false',
                 true  => 'true',
             ),
+            'params'      => true,
         ),
         'pickup'                => array(
             'type'        => 'adjustable',
@@ -797,6 +820,7 @@ return array(
                 false => 'false',
                 true  => 'true',
             ),
+            'params'      => true,
         ),
         'delivery'              => array(
             'type'        => 'adjustable',
@@ -813,15 +837,33 @@ return array(
                  **/
                 true  => 'true',
             ),
+            'params'      => true,
 
         ),
         'local_delivery_cost'   => array(
             'type'        => 'adjustable',
             'name'        => 'Стоимость доставки',
             'plugins'     => array(
-                'shipping' => true,
+                //@future
+                // 'shipping' => true,
             ),
-            'description' => 'Стоимость доставки данного товара в своем регионе',
+            'description' => 'Стоимость доставки данного товара в своем регионе (например, дополнительный параметр товара yandexmarket.local_delivery_cost)
+Добавить дополнительный параметр yandexmarket.local_delivery_cost возможно при редактировании товара, вкладка Описание и SEO, поле Дополнительные параметры.',
+            'params'      => true,
+            'path'        => 'delivery-options/option',
+            'callback'    => true,
+            'test'        => array(
+                array(null, ''),
+                array(null, false),
+            ),
+        ),
+        'local_delivery_days'   => array(
+            'type'        => 'adjustable',
+            'name'        => 'Сроки доставки',
+            'description' => 'Срок доставки данного товара в своем регионе (например, дополнительный параметр товара yandexmarket.local_delivery_days)
+Добавить дополнительный параметр yandexmarket.local_delivery_days возможно при редактировании товара, вкладка Описание и SEO, поле Дополнительные параметры.',
+            'params'      => true,
+            'virtual'     => true,
         ),
         'param'                 => array(
             'type'        => 'adjustable',
