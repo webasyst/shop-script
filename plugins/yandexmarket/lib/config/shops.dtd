@@ -10,7 +10,7 @@
 <!ELEMENT currencies (currency+)>
 <!ELEMENT currency EMPTY>
 <!ATTLIST currency
-    id (RUR|RUB|USD|BYR|KZT|EUR|UAH) #REQUIRED
+    id (RUR|RUB|USD|BYN|BYR|KZT|EUR|UAH) #REQUIRED
     rate CDATA "1"
     plus CDATA "0">
 
@@ -32,7 +32,7 @@
 
 <!ELEMENT offers (offer+)>
 <!ELEMENT offer (url?, buyurl?, price, oldprice?, wprice?, currencyId, xCategory?, categoryId+, market_category?,
-                 picture*, store?, pickup?, delivery?, deliveryIncluded?, local_delivery_cost?, orderingTime?,
+                 picture*, store?, pickup?, delivery?, deliveryIncluded?, ((local_delivery_cost?, orderingTime?)|(delivery-options?))?,
                  ((typePrefix?, vendor, vendorCode?, model, (provider, tarifplan?)?) |
                   (author?, name, publisher?, series?, year?, ISBN?, volume?, part?, language?, binding?, page_extent?, table_of_contents?) |
                   (author?, name, publisher?, series?, year?, ISBN?, volume?, part?, language?, table_of_contents?, performed_by?, performance_type?, storage?, format?, recording_length?) |

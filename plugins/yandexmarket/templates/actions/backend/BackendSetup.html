@@ -55,6 +55,9 @@
                 {else}
                     <span class="errormsg">Не удалось обнаружить витрину магазина. Проверьте настройки поселения магазина.</span>
                 {/if}
+                    <div class="value no-shift">
+                        <label><input type="checkbox" name="ssl" value="1" {if !empty($profile.config.ssl)} checked="checked"{/if}> Формировать ссылки, используя https</label>
+                    </div>
             </div>
             <div class="field js-profile-description">
                 <div class="name">UTM-метки</div>
@@ -72,6 +75,28 @@
                 </div>
                 <div class="value">
                     <p class="hint">Ко всем адресам (URL), содержащимся в файле, будут автоматически добавлены UTM-метки, которые позволят средствам веб-аналитики отследить открытия страниц по этим адресам.  Если вы не используете UTM-метки, просто оставьте поля пустыми.</p>
+                </div>
+            </div>
+            <div class="field js-profile-description">
+                <div class="name">Дополнительные параметры в URL</div>
+                <div class="value no-shift">
+                    <textarea name="custom_url" placeholder="utm_my_param1=100500&extraparam=500100&my_var=%sku%">{$profile.config.custom_url|default:''|escape}</textarea>
+                </div>
+                <div class="value no-shift hint">
+                    Ко всем адресам (URL), содержащимся в файле, будут автоматически добавлена строка, сформированная на основе шаблона параметров, разделенных амперсандом (&amp;).
+                    <br/>
+                    <i class="icon10 info"></i>
+                    Возможные переменные для использования в шаблоне:
+                    <ul class="menu-v">
+                        <li><b>%id%</b> — id товара</li>
+                        <li><b>%sku%</b> — артикул товара</li>
+                        <li><b>%name%</b> — название товара</li>
+                        <li><b>%contact_id%</b> — id контакта, создавшего товар</li>
+                        <li><b>%badge%</b> — значок на товаре</li>
+                    </ul>
+                    <b>Примеры:</b><br/>
+                        utm_term=%id% (для PriceLab дополнительно заполните поле utm_source)<br/>
+                        promo_id=1234 (для указания реферальной ссылки)
                 </div>
             </div>
 
@@ -92,8 +117,7 @@
 
                 <div class="value no-shift">
                     <label>
-                    <input name="force_update" id="s-plugin-yandexmarket-force-update" type="checkbox" value="1"{if !empty($profile.config.force_update)} checked="checked"{/if}>
-                    Обновлять файл, даже если в выгрузку не попадает ни одного товарного предложения
+                    <input name="force_update" id="s-plugin-yandexmarket-force-update" type="checkbox" value="1"{if !empty($profile.config.force_update)} checked="checked"{/if}> Обновлять файл, даже если в выгрузку не попадает ни одного товарного предложения
                     </label>
                 </div>
             </div>
@@ -228,11 +252,24 @@
 
 
         <div class="field">
+            <div class="name">Фильтр</div>
+            <div class="value">
+                <label>
+                <input type="checkbox" name="export[skip_ignored]" value="1"
+                       {if !empty($export.skip_ignored)}checked="checked"{/if}
+                       id="s-plugin-yandexmarket-export-skip_ignored"> Товары, у которых указано в дополнительных параметрах значение <i>yandexmarket.ignored=1</i>, не будут экспортированы в YML-файл.
+                </label>
+                <p class="hint">Добавить дополнительный параметр возможно при редактировании товара, в вкладка Описание и SEO, поле Дополнительные параметры.<br/>
+                Также отдельные товары для экспорта можно выбрать в списке раздела магазина Товары, и потом создать для них свой профиль экспорта.</p>
+            </div>
+        </div>
+
+
+        <div class="field">
             <div class="name">Скидки</div>
             <div class="value no-shift">
                 <label for="s-plugin-yandexmarket-export-compare-price">
-                    <input name="export[compare_price]" id="s-plugin-yandexmarket-export-compare-price" type="checkbox" value="1"{if !empty($export.compare_price)} checked="checked" {/if}>
-                    Экспортировать зачеркнутую цену в параметр &lt;oldprice&gt; для рассчета скидки на товар
+                    <input name="export[compare_price]" id="s-plugin-yandexmarket-export-compare-price" type="checkbox" value="1"{if !empty($export.compare_price)} checked="checked" {/if}> Экспортировать зачеркнутую цену в параметр &lt;oldprice&gt; для рассчета скидки на товар
                 </label>
             </div>
         </div>
@@ -361,11 +398,12 @@
 
         <div class="field js-delivery-options">
             <div class="name">
-                Стоимость доставки
-            </div>
+                Стоимость доставки<br/>
+                <span class="hint">(глобальный атрибут cost)</span>
+           </div>
             <div class="value">
-                <input type="text" name="shop[local_delivery_cost]" value="{ifset($profile.config.shop.local_delivery_cost)|escape}" placeholder="0" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_cost"> {$primary_currency|escape}
-                Фиксированная стоимость доставки
+                <input type="text" name="shop[local_delivery_cost]" value="{ifset($profile.config.shop.local_delivery_cost)|escape}" placeholder="0" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_cost"> {$primary_currency|escape} 
+                 -фиксированная стоимость доставки
             </div>
             {*
             {foreach $shipping_methods as $method_id => $method}
@@ -379,24 +417,35 @@
             {/foreach}
             <div class="value">
                 <span class="hint">Стоимость доставки приведена для справки. При изменении настроек плагинов доставки суммы будут пересчитаны
-                    @TODO поправить кривой текст
+                    @TODO поправить текст
                 </span>
             </div>
             *}
         </div>
 
-
         <div class="field">
             <div class="name">
-                Сроки доставки
-            </div>
+                Сроки доставки<br/>
+                <span class="hint">(глобальный атрибут days)</span>
+                </div>
             <div class="value">
-                <input type="text" name="shop[local_delivery_estimate]" value="{ifset($profile.config.shop.local_delivery_estimate)|escape}" placeholder="3" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_estimate">
+                <input type="text" name="shop[local_delivery_estimate]" value="{ifset($profile.config.shop.local_delivery_estimate)|escape}" placeholder="2-4" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_estimate">
                 <br/>
-                <span class="hint">срок доставки в рабочих днях</span>
+                <span class="hint">срок доставки в рабочих днях (Значение или интервал с разницой не более 3х дней)</span>
             </div>
         </div>
 
+        <div class="field">
+            <div class="name">
+                Время приема заказа<br/>
+                <span class="hint">(глобальный атрибут order-before)</span>
+            </div>
+            <div class="value">
+                <input type="text" name="shop[local_delivery_order_before]" value="{ifset($profile.config.shop.local_delivery_order_before)|escape}" placeholder="24" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_order_before">
+                <br/>
+                <span class="hint">время оформления заказа (только часы), до наступления которого действуют указанные сроки и условия доставки</span>
+            </div>
+        </div>
 
         <div class="field">
             <div class="name">Товары для взрослых</div>

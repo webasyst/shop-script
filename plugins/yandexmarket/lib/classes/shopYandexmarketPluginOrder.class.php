@@ -90,6 +90,9 @@ class shopYandexmarketPluginOrder extends waOrder
                         switch (ifset($json['paymentMethod'])) {
                             case 'YANDEX':
                                 $data['payment_name'] = 'Яндекс.Деньги';
+                                if (ifset($json['status']) === self::STATUS_PROCESSING) {
+                                    $data['paid_datetime'] = date('d.m.Y H:i:s');
+                                }
                                 break;
                             default:
                                 break;

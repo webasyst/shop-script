@@ -21,6 +21,9 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
         );
         $current_domain = &$profile['config']['domain'];
 
+        $host = preg_replace('@^www\.@', '', waRequest::server('http_host'));
+        $current_host = preg_replace('@(^www\.|/.*$)@', '', $current_domain);
+
         $this->view->assign('current_domain', $current_domain);
         $domain_routes = $routing->getByApp('shop');
         foreach ($domain_routes as $domain => $routes) {
@@ -38,6 +41,7 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
         $this->view->assign('profile', $profile);
         $info = array();
 
+        $this->view->assign('ssl', ifset($profile['config']['ssl'], $host == $current_host ? waRequest::isHttps() : false));
         $this->view->assign('settlements', $settlements);
         if (!empty($profile['id'])) {
             $path = shopYandexmarketPlugin::path($profile['id'].'.xml');
