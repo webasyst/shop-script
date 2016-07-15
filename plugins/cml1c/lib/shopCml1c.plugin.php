@@ -278,8 +278,7 @@ HTML;
          */
 
         $hash = $collection->getHash();
-        if (
-            ($hash[0] !== $this->id) ||
+        if (($hash[0] !== $this->id) ||
             (wa()->getEnv() != 'backend')
         ) {
             return null;

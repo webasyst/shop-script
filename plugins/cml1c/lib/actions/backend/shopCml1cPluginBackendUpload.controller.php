@@ -32,8 +32,8 @@ class shopCml1cPluginBackendUploadController extends shopUploadController
 
                             if (strtolower(pathinfo($filename, PATHINFO_EXTENSION) == 'xml')) {
                                 $files[] = array(
-                                    'name'  => $filename,
-                                    'size'  => waFiles::formatSize(zip_entry_filesize($entry)),
+                                    'name' => $filename,
+                                    'size' => waFiles::formatSize(zip_entry_filesize($entry)),
                                 );
                             }
                         }
