@@ -7,13 +7,13 @@
     {if $product.summary}
         <p>{$product.summary|truncate:512}</p>
     {/if}
-    
+
     {if $product.sku_type}
 
         <!-- SELECTABLE FEATURES selling mode -->
         {$default_sku_features = $product.sku_features}
         {$product_available = $product.status}
-        
+
         {if $theme_settings.selectable_features_control == 'inline'}
             <div class="options">
                 {foreach $features_selectable as $f}
@@ -29,7 +29,7 @@
                     </div>
 
                 {/foreach}
-            </div>        
+            </div>
         {else}
             <div class="options">
                 {foreach $features_selectable as $f}
@@ -43,7 +43,7 @@
                 {/foreach}
             </div>
         {/if}
-        
+
         <!-- list all SKUs for Schema.org markup -->
         {foreach $product.skus as $sku}
             <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
@@ -58,15 +58,14 @@
                 {/if}
             </div>
         {/foreach}
-        
+
     {else}
 
         <!-- FLAT SKU LIST selling mode -->
         {$product_available = false}
         {if count($product.skus) > 1}
-    
-            {* SKU radio buttons *}
-        
+
+            {* When there is more than one SKU, display selector *}
             <ul class="skus">
                 {foreach $product.skus as $sku}
                 {$sku_available =  $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
@@ -89,8 +88,8 @@
             </ul>
 
         {else}
-    
-            {* in case there is only one SKU, don't display the selector *}
+
+            {* When there is only one SKU, don't display the selector *}
             <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                 {$sku = $product.skus[$product.sku_id]}
                 {if $sku.sku}<span class="hint">{$sku.sku|escape}</span>{/if}
@@ -109,7 +108,7 @@
                 <input name="sku_id" type="hidden" value="{$product.sku_id}">
                 {$product_available = $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
             </div>
-    
+
         {/if}
 
     {/if}
@@ -145,9 +144,9 @@
                 </div>
             {/foreach}
             {if $product.sku_type}
-            <div class="sku-no-stock">
-                <strong class="stock-none">[`Product with the selected option combination is not available for purchase`]</strong>
-            </div>
+                <div class="sku-no-stock">
+                    <strong class="stock-none">[`Product with the selected option combination is not available for purchase`]</strong>
+                </div>
             {/if}
         </div>
     {/if}
