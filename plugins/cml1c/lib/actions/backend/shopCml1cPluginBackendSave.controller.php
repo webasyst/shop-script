@@ -1,4 +1,5 @@
 <?php
+
 class shopCml1cPluginBackendSaveController extends waJsonController
 {
     /**

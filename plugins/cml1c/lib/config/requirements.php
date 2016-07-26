@@ -12,6 +12,10 @@ return array(
         'strict' => true,
         'value'  => 1,
     ),
+    'php.iconv'     => array(
+        'strict' => true,
+        'value'  => 1,
+    ),
     'app.installer' => array(
         'strict'  => true,
         'version' => '>=1.4.0.40859',
