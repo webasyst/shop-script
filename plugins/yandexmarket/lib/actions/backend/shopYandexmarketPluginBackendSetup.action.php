@@ -186,6 +186,8 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
 
         $this->view->assign('fields', $fields);
 
+        $this->view->assign('timezones', waDateTime::getTimeZones());
+
         $this->view->assign('shipping', shopHelper::getShippingMethods());
     }
 

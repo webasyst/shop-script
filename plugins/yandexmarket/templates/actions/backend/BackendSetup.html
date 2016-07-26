@@ -427,11 +427,11 @@
             <div class="name">
                 Сроки доставки<br/>
                 <span class="hint">(глобальный атрибут days)</span>
-                </div>
+            </div>
             <div class="value">
                 <input type="text" name="shop[local_delivery_estimate]" value="{ifset($profile.config.shop.local_delivery_estimate)|escape}" placeholder="2-4" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_estimate">
                 <br/>
-                <span class="hint">срок доставки в рабочих днях (Значение или интервал с разницой не более 3х дней)</span>
+                <span class="hint">срок доставки в рабочих днях (значение или интервал с разницей не более 3х дней)</span>
             </div>
         </div>
 
@@ -441,9 +441,44 @@
                 <span class="hint">(глобальный атрибут order-before)</span>
             </div>
             <div class="value">
-                <input type="text" name="shop[local_delivery_order_before]" value="{ifset($profile.config.shop.local_delivery_order_before)|escape}" placeholder="24" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_order_before">
-                <br/>
+                <label><input type="radio" name="shop[local_delivery_order_before_mode]" value="generic" {if ifset($profile.config.shop.local_delivery_order_before_mode)!=='per-day'} checked="checked"{/if}>&nbsp;Без учета дня недели</label>
+            </div>
+            <div class="value">
+                <label><input type="radio" name="shop[local_delivery_order_before_mode]" value="per-day" {if ifset($profile.config.shop.local_delivery_order_before_mode)==='per-day'} checked="checked"{/if}>&nbsp;В соответствии с режимом работы</label>
+            </div>
+
+            <div class="value js-delivery-time-generic-options">
+                {$profile.config.shop.local_delivery_order_before=min(24,max(1,intval(ifset($profile.config.shop.local_delivery_order_before,24))))}
+                <input type="text" name="shop[local_delivery_order_before]" value="{$profile.config.shop.local_delivery_order_before|escape}" placeholder="24" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_order_before">
+            </div>
+
+            {$_week_days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']}
+            {foreach $_week_days as $_day => $_name}
+            <div class="value js-delivery-time-options">
+                <input type="text" placeholder="17" class="numerical short" size="2"
+                       name="shop[local_delivery_order_before_per_day][{$_day}][before]"
+                       value="{$profile.config.shop.local_delivery_order_before_per_day[$_day]['before']|default:$profile.config.shop.local_delivery_order_before|default:24|escape}"
+                >&nbsp;
+                <label>
+                    <input type="checkbox" name="shop[local_delivery_order_before_per_day][{$_day}][workday]" value="1"
+                    {if (isset($profile.config.shop.local_delivery_order_before_per_day[$_day])&&!empty($profile.config.shop.local_delivery_order_before_per_day[$_day]['workday']))||(!isset($profile.config.shop.local_delivery_order_before_per_day[$_day]))} checked="checked"{/if}>&nbsp;{$_name|escape}
+                </label>
+
+            </div>
+            {/foreach}
+            <div class="value">
                 <span class="hint">время оформления заказа (только часы), до наступления которого действуют указанные сроки и условия доставки</span>
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">Часовой пояс сервера</div>
+            <div class="value">
+                <select name="shop[timezone]">
+                    <option value=""{if empty($profile.config.shop.timezone)} selected="selected"{/if}></option>
+                    {foreach $timezones as $timezone=>$timezone_name}
+                        <option value="{$timezone}"{if ifset($profile.config.shop.timezone)==$timezone} selected="selected"{/if}>{$timezone_name|escape}</option>
+                    {/foreach}
+                </select>
             </div>
         </div>
 

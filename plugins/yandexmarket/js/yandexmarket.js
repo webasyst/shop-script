@@ -142,6 +142,32 @@ $.extend($.importexport.plugins, {
             }).change();
 
             /**
+             * delivery mode control
+             */
+            this.$form.find(':input[name="shop\\[local_delivery_order_before_mode\\]"]').change(function (event) {
+                /**
+                 * @this HTMLInputElement
+                 */
+                var checked = this.checked;
+                if (this.value == 'generic') {
+                    checked = !checked;
+                }
+                self.helpers.toggle(self.$form.find('div.js-delivery-time-generic-options'), event, !checked);
+                self.helpers.toggle(self.$form.find('div.js-delivery-time-options'), event, checked);
+            }).change();
+
+            /**
+             * delivery time control
+             */
+            this.$form.find(':input[name^="shop\\[local_delivery_order_before_per_day\\]"][name$="\\[workday\\]"]').change(function (event) {
+                /**
+                 * @this HTMLInputElement
+                 */
+                var $hours = $(this).parents('div.value:first').find(':input[name$="\\[before\\]"]');
+                $hours.attr('disabled', this.checked ? null : 'disabled');
+            }).change();
+
+            /**
              * type map helper
              */
             var $type_map = this.$form.find(':input.js-type-map');

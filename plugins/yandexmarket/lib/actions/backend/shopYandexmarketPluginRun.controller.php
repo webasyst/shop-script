@@ -413,8 +413,39 @@ XML;
                 );
                 if (!empty($profile_config['shop']['local_delivery_order_before'])) {
                     //время (только часы) оформления заказа, до наступления которого действуют указанные сроки и условия доставки.
-                    $delivery_option['order-before'] = max(0, min(24, intval($profile_config['shop']['local_delivery_order_before'])));
+                    $delivery_option['order-before'] = $profile_config['shop']['local_delivery_order_before'];
                 }
+
+                if (ifset($profile_config['shop']['local_delivery_order_before_mode']) == 'per-day') {
+
+                    $now = time();
+                    $week_day = date('N', $now) - 1;
+                    $timezone = ifset($profile_config['shop']['timezone']);
+                    if ($timezone) {
+                        $week_day = waDateTime::date('N', $now, $timezone) - 1;
+                    }
+                    $working_days = array();
+                    for ($day = 0; $day < 7; $day++) {
+                        $day_info = ifset($profile_config['shop']['local_delivery_order_before_per_day'][$day], array());
+                        if (!empty($day_info['workday'])) {
+                            $working_days[$day] = ifset($day_info['before'], 24);
+                        }
+                    }
+                    if ($working_days) {
+                        $offset = 0;
+                        while (empty($working_days[($week_day + $offset) % 7])) {
+                            ++$offset;
+
+                        }
+                        $delivery_option['order-before'] = ifset($working_days[($week_day + $offset) % 7]);
+                    }
+
+                }
+
+                if (isset($delivery_option['order-before'])) {
+                    $delivery_option['order-before'] = max(0, min(24, intval($delivery_option['order-before'])));
+                }
+
                 $this->data['delivery-option'] = $delivery_option;
                 $this->addDomValue($delivery_options, 'option', $delivery_option);
                 $shop->appendChild($delivery_options);
@@ -1322,9 +1353,10 @@ SQL;
 
                     $product['features'] = $features_model->getValues($product['id'], ifset($sku['id']));
                 }
-                $value = $this->format($field, ifempty($product['features'][$param]), $info, $product, $sku);
+                $value = $this->format($field, ifset($product['features'][$param]), $info, $product, $sku);
                 break;
             case 'params':
+
                 $value = $this->format($field, ifset($product['params']['yandexmarket.'.$param]), $info, $product, $sku);
                 break;
             case 'function':

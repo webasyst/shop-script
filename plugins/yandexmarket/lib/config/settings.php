@@ -81,8 +81,36 @@ HTML
 </script>
 HTML
         ,
-
         'control_type' => waHtmlControl::INPUT,
         'autocomplete' => 'off',
+    ),
+
+
+    'title3' => array(
+        'control_type' => waHtmlControl::HIDDEN,
+        'description'  => '<h4>Действия с заказами</h4>',
+    ),
+    'order_action_ship' => array(
+        'value'            => array('ship' => true,),
+        'title'            => 'Доставка заказа',
+        'description'      => 'Выберите действия, подтверждаюшие доставку заказа',
+        'control_type'     => waHtmlControl::GROUPBOX,
+        'options_callback' => array('shopYandexmarketPlugin', 'getShipActions'),
+    ),
+
+    'order_action_complete' => array(
+        'value'            => array('complete' => true,),
+        'title'            => 'Выполнение заказа',
+        'description'      => 'Выберите действия, подтверждаюшие завершение обработки заказа',
+        'control_type'     => waHtmlControl::GROUPBOX,
+        'options_callback' => array('shopYandexmarketPlugin', 'getCompleteActions'),
+    ),
+
+    'order_action_delete' => array(
+        'value'            => array('delete' => true,),
+        'title'            => 'Удаление заказа',
+        'description'      => 'Выберите действия, подтверждаюшие отмену или удаление заказа',
+        'control_type'     => waHtmlControl::GROUPBOX,
+        'options_callback' => array('shopYandexmarketPlugin', 'getDeleteActions'),
     ),
 );

@@ -528,7 +528,6 @@ HTML;
             }
         }
 
-
         return $response;
     }
 
@@ -897,7 +896,8 @@ HTML;
             } else {
                 foreach ($available_actions as $available_action) {
                     $settings = $this->getSettings('order_action_'.$available_action);
-                    $matched = in_array($action, array_keys(array_filter($settings)));
+                    $matched_actions = array_keys(array_filter($settings));
+                    $matched = in_array( $data['action_id'], $matched_actions);
                     if ($matched) {
                         $action = $available_action;
                         break;
@@ -913,6 +913,7 @@ HTML;
             );
             $params = $params_model->getByField($search, 'name');
         }
+
         if ($params && (count($params) == 2)) {
             $method = 'campaigns/%d/orders/%d/status';
             $method = sprintf($method, $params['yandexmarket.campaign_id']['value'], $params['yandexmarket.id']['value']);

@@ -54,14 +54,58 @@ class shopYandexmarketPluginApiActions extends waActions
                 $days = array_map('intval', preg_split('@\D+@', $this->profile['config']['shop']['local_delivery_estimate'], 2));
             }
 
-            //TODO check local_delivery_order_before
-            if (count($days) == 2) {
-                $to_date_timestamp = strtotime(sprintf('+%ddays', end($days)));
-                $from_date_timestamp = strtotime(sprintf('+%ddays', reset($days)));
-            } else {
-                $to_date_timestamp = strtotime(sprintf('+%ddays', reset($days)));
-                $from_date_timestamp = time();
+            $working_days = array();
+            $offset = 0;
+
+            $now = time();
+            $time = (int)date('G', $now);
+            $week_day = (int)date('N', $now) - 1;
+            $timezone = ifset($this->profile['config']['shop']['timezone']);
+            if ($timezone) {
+                $time = (int)waDateTime::date('G', $now, $timezone);
+                $week_day = (int)waDateTime::date('N', $now, $timezone) - 1;
             }
+
+            if (ifset($this->profile['config']['shop']['local_delivery_order_before_mode']) == 'per-day') {
+                for ($day = 0; $day < 7; $day++) {
+                    $day_info = ifset($this->profile['config']['shop']['local_delivery_order_before_per_day'][$day], array());
+                    if (!empty($day_info['workday'])) {
+                        $working_days[$day] = ifset($day_info['before'], 24);
+                    }
+                }
+                if ($working_days) {
+                    while ($time >= ifset($working_days[($week_day + $offset) % 7])) {
+                        ++$offset;
+                        $time = null;
+                    }
+                    $working_days = array_filter($working_days);
+                }
+
+            } else {
+                $order_before = ifset($this->profile['config']['shop']['local_delivery_order_before'], 24);
+                if ($time >= $order_before) {
+                    $offset = 1;//next day
+                }
+            }
+
+            if (count($days) == 2) {
+                $to_days = end($days) + $offset;
+                $from_days = reset($days) + $offset;
+            } else {
+                $to_days = reset($days) + $offset;
+                $from_days = $offset;
+            }
+
+            if (!empty($working_days) && (count($working_days) < 7)) {
+                for ($day = $from_days; $day <= $to_days; $day++) {
+                    if (empty($working_days[($day + $week_day) % 7])) {
+                        ++$to_days;
+                    }
+                }
+            }
+
+            $to_date_timestamp = strtotime(sprintf('+%ddays', $to_days));
+            $from_date_timestamp = $from_days ? strtotime(sprintf('+%ddays', $from_days)) : time();
 
             if (ifset($this->profile['config']['shop']['delivery'], '') === 'true') {
                 if (ifset($this->profile['config']['shop']['deliveryIncluded']) === 'true') {
