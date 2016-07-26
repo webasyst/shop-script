@@ -1,0 +1,200 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: shop/plugins/invoice\n"
+"POT-Creation-Date: 2016-07-22 13:49+0400\n"
+"PO-Revision-Date: \n"
+"Last-Translator: shop/plugins/invoice\n"
+"Language-Team: shop/plugins/invoice\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n"
+"%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: .\n"
+"X-Generator: Poedit 1.8.7.1\n"
+"Language: ru_RU\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/PrintformDisplay.html:4
+msgid "Invoice"
+msgstr "Invoice"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/PrintformDisplay.html:16
+msgid "Edit"
+msgstr "Редактировать"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/PrintformDisplay.html:17
+msgid "Edit before print"
+msgstr "Редактировать перед печатью"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/PrintformDisplay.html:18
+msgid "OK"
+msgstr ""
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:35
+msgid "INVOICE"
+msgstr "INVOICE"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:39
+msgid "DATE:"
+msgstr "DATE:"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:43
+msgid "INVOICE #"
+msgstr "INVOICE #"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:47
+msgid "Customer ID"
+msgstr "Customer ID"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:61
+msgid "BILL TO:"
+msgstr "BILL TO:"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:62
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:74
+msgid "Name"
+msgstr "Имя"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:63
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:75
+msgid "Company name"
+msgstr "Название компании"
+
+msgid "Client company name"
+msgstr "Название компании-заказчика"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:64
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:76
+msgid "Street address"
+msgstr "Улица"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:65
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:77
+msgid "City, St, ZIP"
+msgstr "Город, регион, индекс"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:66
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:78
+msgid "Phone No."
+msgstr "Телефон"
+
+msgid "Client company phone No."
+msgstr "Телефон компании-заказчика"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:73
+msgid "SHIP TO (if different):"
+msgstr "SHIP TO (if different):"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:89
+msgid "SALESPERSON"
+msgstr "SALESPERSON"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:90
+msgid "P.O. #"
+msgstr "P.O. #"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:91
+msgid "SHIP DATE"
+msgstr "SHIP DATE"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:92
+msgid "SHIP VIA"
+msgstr "SHIP VIA"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:93
+msgid "F.O.B."
+msgstr "F.O.B."
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:94
+msgid "TERMS"
+msgstr "TERMS"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:120
+msgid "ITEM #"
+msgstr "ITEM #"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:121
+msgid "DESCRIPTION"
+msgstr "DESCRIPTION"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:122
+msgid "QTY"
+msgstr "QTY"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:123
+msgid "UNIT PRICE"
+msgstr "UNIT PRICE"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:124
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:168
+msgid "TOTAL"
+msgstr "TOTAL"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:141
+msgid "Other Comments or Special Instructions"
+msgstr "Other Comments or Special Instructions"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:148
+msgid "SUBTOTAL"
+msgstr "SUBTOTAL"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:152
+msgid "TAX RATE"
+msgstr "TAX RATE"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:156
+msgid "TAX"
+msgstr "TAX"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:160
+msgid "SHIPPING"
+msgstr "SHIPPING"
+
+#: /wa-apps/shop/plugins/invoice/templates/actions/printform/template.html:164
+msgid "DISCOUNT"
+msgstr "DISCOUNT"
+
+#: /wa-apps/shop/plugins/invoice/lib/shopInvoicePlugin.class.php:62
+msgid "File isn't an image"
+msgstr "Файл не является изображением"
+
+#: /wa-apps/shop/plugins/invoice/lib/shopInvoicePlugin.class.php:69
+msgid ""
+"File could not be saved due to the insufficient file write permissions for "
+"the %s folder."
+msgstr ""
+"Не удалось сохранить файл из-за недостаточных прав доступа к директории %s."
+
+#: /wa-apps/shop/plugins/invoice/lib/shopInvoicePlugin.class.php:72
+msgid "Failed to upload file."
+msgstr "Не удалось загрузить файл."
+
+msgid "Logo"
+msgstr "Логотип"
+
+msgid "Tagline"
+msgstr "Слоган"
+
+msgid "City, state"
+msgstr "Город, область"
+
+msgid "Fax No."
+msgstr "Факс"
+
+msgid "Comments"
+msgstr "Комментарии"
+
+msgid "HTML code allowed"
+msgstr "Допускается HTML-код"
+
+msgid "Your company info"
+msgstr "Данные вашей компании"
+
+msgid "Client info"
+msgstr "Данные заказчика"
+
+msgid "Common settings"
+msgstr "Общие настройки"

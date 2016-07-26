@@ -1,0 +1,174 @@
+{*
+@param string[string] $settings
+@param waOrder $order
+*}
+
+<div class="i-template-wrapper">
+
+    <div class="i-table">
+        <div class="i-column">
+
+            <div class="i-company">
+                <div class="i-company-name">{$settings.name|default:$shop_settings.name|escape}</div>
+                <div>{$settings.tagline|escape}</div>
+                <div>{$order.params.storefront|default:$shop_settings.url|escape}</div>
+
+                <div style="margin-top: 1em;">
+                    <div>{$settings.address_street|escape}</div>
+                    <div>{$settings.address_city|escape}</div>
+                    <div>[`Phone`]: {$settings.phone|default:$shop_settings.phone|escape}</div>
+                    <div>[`Fax`]: {$settings.fax|default:$shop_settings.phone|escape}</div>
+                </div>
+            </div>
+
+        </div>
+        <div class="i-column">
+
+            {if $settings.logo}<div class="i-logo-wrapper">
+                <img src="{$shop_settings.img_url}{$settings.logo}" alt="">
+            </div>{/if}
+
+        </div>
+        <div class="i-column">
+
+            <div class="i-data-wrapper">
+                <div class="i-header">[`INVOICE`]</div>
+
+                <table class="i-data">
+                    <tr>
+                        <td class="i-name">[`DATE:`]</td>
+                        <td class="i-value i-date inline_edit">{$order.datetime|wa_date|escape}</td>
+                    </tr>
+                    <tr>
+                        <td class="i-name">[`INVOICE #`]</td>
+                        <td class="i-value inline_edit">{$order.id_str|escape}</td>
+                    </tr>
+                    <tr>
+                        <td class="i-name">[`Customer ID`]</td>
+                        <td class="i-value inline_edit">{$order.contact_id|escape}</td>
+                    </tr>
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="i-table">
+        <div class="i-column">
+
+            <div class="i-billing">
+                <div class="i-column-header">[`BILL TO:`]</div>
+                <div class="inline_edit" title="[`Name`]">{$order.billing_address.name|default:"`$order.contact.name`"|escape}</div>
+                <div class="inline_edit" title="[`Company name`]">{if !empty($settings.contact_company)}{$order.billing_address[$settings.contact_company]|default:"`$order->getContactField($settings.contact_company)`"|escape}{/if}</div>
+                <div class="inline_edit" title="[`Street address`]">{$order.billing_address.street|escape}</div>
+                <div class="inline_edit" title="[`City, St, ZIP`]">{$order.billing_address.city|escape} {$order.billing_address.region_name|escape} {$order.billing_address.zip|escape}</div>
+                <div class="inline_edit" title="[`Phone`]">{if !empty($settings.contact_phone)}{$order.billing_address[$settings.contact_phone]|default:"`$order->getContactField($settings.contact_phone)`"|escape}{/if}</div>
+            </div>
+
+        </div>
+        <div class="i-column">
+
+            <div class="i-shipping">
+                <div class="i-column-header">[`SHIP TO (if different):`]</div>
+                <div class="inline_edit" title="[`Name`]">{if !$same_address}{$order.shipping_address.name|default:$order.contact.name|escape}{/if}</div>
+                <div class="inline_edit" title="[`Company name`]">{if !$same_address}{if !empty($settings.company_name)}{$order.shipping_address[$settings.company_name]|default:"`$order->getContactField($settings.company_name)`"|escape}{/if}{/if}</div>
+                <div class="inline_edit" title="[`Street address`]">{if !$same_address}{$order.shipping_address.street|escape}{/if}</div>
+                <div class="inline_edit" title="[`City, St, ZIP`]">{if !$same_address}{$order.shipping_address.city|escape} {$order.shipping_address.region_name|escape} {$order.shipping_address.zip|escape}{/if}</div>
+                <div class="inline_edit" title="[`Phone`]">{if !$same_address}{if !empty($settings.contact_phone)}{$order.shipping_address[$settings.contact_phone]|default:"`$order->getContactField($settings.contact_phone)`"|escape}{/if}{/if}</div>
+            </div>
+
+        </div>
+        <div class="i-column">
+
+        </div>
+    </div>
+
+    <table class="i-sales-table">
+        <tr>
+            <td class="i-column-1 i-center i-column-header">[`SALESPERSON`]</td>
+            <td class="i-column-2 i-center i-column-header">[`P.O. #`]</td>
+            <td class="i-column-3 i-center i-column-header">[`SHIP DATE`]</td>
+            <td class="i-column-4 i-center i-column-header">[`SHIP VIA`]</td>
+            <td class="i-column-5 i-center i-column-header">[`F.O.B.`]</td>
+            <td class="i-column-6 i-center i-column-header">[`TERMS`]</td>
+        </tr>
+        <tr>
+            <td class="i-column-1">
+                <div class="inline_edit">&nbsp;</div>
+            </td>
+            <td class="i-column-2">
+                <div class="inline_edit">&nbsp;</div>
+            </td>
+            <td class="i-column-3">
+                <div class="inline_edit">&nbsp;</div>
+            </td>
+            <td class="i-column-4">
+                <div class="inline_edit">&nbsp;</div>
+            </td>
+            <td class="i-column-5">
+                <div class="inline_edit">&nbsp;</div>
+            </td>
+            <td class="i-column-6">
+                <div class="inline_edit">&nbsp;</div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="i-items-table">
+        <tr>
+            <td class="i-column-1 i-center i-column-header">[`ITEM #`]</td>
+            <td class="i-column-2 i-center i-column-header">[`DESCRIPTION`]</td>
+            <td class="i-column-3 i-center i-column-header">[`QTY`]</td>
+            <td class="i-column-4 i-center i-column-header">[`UNIT PRICE`]</td>
+            <td class="i-column-5 i-center i-column-header">[`TOTAL`]</td>
+        </tr>
+
+        {foreach $order.items as $item}
+        <tr>
+            <td class="i-column-1">{$item@iteration|escape}</td>
+            <td class="i-column-2">{$item.name|escape}</td>
+            <td class="i-column-3">{$item.quantity|escape}</td>
+            <td class="i-column-4 i-right">{$item.price|wa_currency:$order.currency|escape}</td>
+            <td class="i-column-5 i-right i-column-value">{($item.price*$item.quantity)|wa_currency:$order.currency|escape}</td>
+        </tr>
+        {/foreach}
+
+        <tr>
+            <td colspan="3" rowspan="6" style="border-bottom-color: transparent; border-left-color: transparent; border-right-color: transparent; vertical-align: top;">
+
+                <div class="i-comments">
+                    <div class="i-header i-column-header">[`Other Comments or Special Instructions`]</div>
+                    <div class="i-content">
+                        {$settings.comments|default:'&nbsp;'}
+                    </div>
+                </div>
+
+            </td>
+            <td class="i-column-4">[`SUBTOTAL`]</td>
+            <td class="i-column-5 i-right i-column-value">{$order.subtotal|wa_currency:$order.currency|escape}</td>
+        </tr>
+        <tr>
+            <td class="i-column-4">[`TAX RATE`]</td>
+            <td class="i-column-5 i-right">{if !empty($order.tax)}{($order.tax/$order.subtotal)|string_format:'%0.3f%%'}{else}—{/if}</td>
+        </tr>
+        <tr>
+            <td class="i-column-4">[`TAX`]</td>
+            <td class="i-column-5 i-right i-column-value">{$order.tax|wa_currency:$order.currency|escape}</td>
+        </tr>
+        <tr>
+            <td class="i-column-4">[`SHIPPING`]</td>
+            <td class="i-column-5 i-right">{$order.shipping|wa_currency:$order.currency|escape}</td>
+        </tr>
+        <tr>
+            <td class="i-column-4">[`DISCOUNT`]</td>
+            <td class="i-column-5 i-right">{if !empty($order.discount)}{(-1.0*$order.discount)|wa_currency:$order.currency|escape}{else}—{/if}</td>
+        </tr>
+        <tr class="i-total-column">
+            <td class="i-column-4">[`TOTAL`]</td>
+            <td class="i-column-5 i-right i-column-value">{$order.total|wa_currency:$order.currency|escape}</td>
+        </tr>
+
+    </table>
+
+</div>

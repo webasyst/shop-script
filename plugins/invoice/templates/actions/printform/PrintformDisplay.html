@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>[`Invoice`]</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    {if empty($strict)}
+    {literal}
+        <script type="text/javascript">
+            var lang_strings = {
+                'edit_link': '[`Edit`]',
+                'field_title': '[`Edit before print`]',
+                'save_link': '[`OK`]'
+            };
+            {/literal}
+            var page_url = '';
+        </script>
+        <script type="text/javascript">
+            {include file="./js/printform.js" inline}
+        </script>
+    {/if}
+    <style type="text/css">
+        {include file="./css/printform.css" inline}
+    </style>
+</head>
+<body{if empty($strict)} onload="Printform.init('inline_edit');"{/if}>
+{$content}
+</body>
+</html>
