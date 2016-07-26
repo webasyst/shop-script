@@ -20,17 +20,17 @@ class shopConfig extends waAppConfig
                 $url = 'https://'.waRequest::server('HTTP_HOST').wa()->getConfig()->getCurrentUrl();
                 wa()->getResponse()->redirect($url, 301);
             }
-        } elseif ($module == 'order' || $module == 'orders') {
+        } elseif ($module == 'order' || $module == 'orders' || $module == 'coupons' || $module == 'workflow') {
             return wa()->getUser()->getRights('shop', 'orders');
         } elseif (substr($module, 0, 7) == 'reports') {
             return wa()->getUser()->getRights('shop', 'reports');
-        } elseif ($module == 'settings') {
+        } elseif (substr($module, 0, 8) == 'settings') {
             return wa()->getUser()->getRights('shop', 'settings');
-        } elseif ($module == 'services') {
+        } elseif (substr($module, 0, 7) == 'service') {
             return wa()->getUser()->getRights('shop', 'services');
         } elseif ($module == 'customers') {
             return wa()->getUser()->getRights('shop', 'customers');
-        } elseif ($module == 'importexport') {
+        } elseif ($module == 'importexport' || $module == 'csv' || $module == 'images') {
             return wa()->getUser()->getRights('shop', 'importexport');
         } elseif ($module == 'promos') {
             return wa()->getUser()->getRights('shop', 'setscategories');

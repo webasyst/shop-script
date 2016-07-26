@@ -1,6 +1,6 @@
 <?php
 
-class shopCategorySearchMethod extends waAPIMethod
+class shopCategorySearchMethod extends shopApiMethod
 {
     public function execute()
     {

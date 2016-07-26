@@ -1,8 +1,9 @@
 <?php
 
-class shopOrderActionMethod extends waAPIMethod
+class shopOrderActionMethod extends shopApiMethod
 {
     protected $method = 'POST';
+    protected $courier_allowed = true;
 
     public function execute()
     {
@@ -11,7 +12,20 @@ class shopOrderActionMethod extends waAPIMethod
 
         $order_model = new shopOrderModel();
         if (!$order_model->getById($order_id)) {
-            throw new waAPIException('invalid_param', 'Order not found', 404);
+            if ($this->courier) {
+                throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
+            } else {
+                throw new waAPIException('invalid_param', 'Order not found', 404);
+            }
+        }
+
+        // Check courier access rights
+        if ($this->courier) {
+            $order_params_model = new shopOrderParamsModel();
+            $params = $order_params_model->get($order_id);
+            if (ifset($params['courier_id']) != $this->courier['id']) {
+                throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
+            }
         }
 
         try {

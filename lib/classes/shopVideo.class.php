@@ -57,9 +57,9 @@ class shopVideo
     {
         $path = shopProduct::getFolder($product_id)."/{$product_id}/";
         if (!$size) {
-            return wa()->getDataPath($path, true, 'shop')."video/";
+            return wa()->getDataPath($path, true, 'shop', false)."video/";
         } else {
-            return wa()->getDataPath($path, true, 'shop')."video/{$size}.jpg";
+            return wa()->getDataPath($path, true, 'shop', false)."video/{$size}.jpg";
         }
     }
 
@@ -96,7 +96,7 @@ class shopVideo
         if (waSystemConfig::systemOption('mod_rewrite')) {
             return wa()->getDataUrl($path, true, 'shop', $absolute);
         } else {
-            if (file_exists(wa()->getDataPath($path, true, 'shop'))) {
+            if (file_exists(wa()->getDataPath($path, true, 'shop', false))) {
                 return wa()->getDataUrl($path, true, 'shop', $absolute);
             } else {
                 $path = str_replace('products/', 'products/thumb.php/', $path);

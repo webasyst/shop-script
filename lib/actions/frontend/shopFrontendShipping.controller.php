@@ -80,6 +80,7 @@ class shopFrontendShippingController extends waJsonController
                     }
                 }
             }
+            $round_shipping = wa()->getSetting('round_shipping');
             $currency = $plugin->allowedCurrency();
             $config = wa('shop')->getConfig();
             /**
@@ -94,7 +95,22 @@ class shopFrontendShippingController extends waJsonController
                 $is_html = waRequest::request('html');
                 foreach ($rates as $r_id => &$r) {
                     $r['id'] = $r_id;
+                    if (!isset($r['rate'])) {
+                        $r['rate'] = null;
+                    } else if (is_array($r['rate'])) {
+                        if ($r['rate']) {
+                            $r['rate'] = max($r['rate']);
+                        } else {
+                            $r['rate'] = null;
+                        }
+                    }
                     if ($r['rate'] !== null) {
+                        // Apply rounding. This converts all rates to current frontend currency.
+                        if ($r['rate'] && $round_shipping) {
+                            $r['rate'] = shopRounding::roundCurrency(shop_currency($r['rate'], $r['currency'], $current_currency, false), $current_currency);
+                            $r['currency'] = $current_currency;
+                        }
+
                         $r['rate_html'] = $is_html ? shop_currency_html($r['rate'], $r['currency']) : shop_currency($r['rate'], $r['currency']);
                         $r['rate'] = shop_currency($r['rate'], $r['currency']);
                     }

@@ -46,6 +46,13 @@ class shopOrderModel extends waModel
         return $this->query($sql)->fetchField('offset');
     }
 
+    /**
+     * @deprecated since version 7.1
+     * @param string $fields
+     * @param array $options
+     * @return array
+     * @throws waException
+     */
     public function getList($fields = "*", $options = array())
     {
         $options += $this->getDefaultSearchOptions();

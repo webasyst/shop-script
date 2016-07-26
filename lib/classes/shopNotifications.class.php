@@ -24,17 +24,15 @@ class shopNotifications
     public static function send($event, $data)
     {
         $notifications = self::getModel()->getByEvent($event, true);
-        if (!$notifications) {
-            return;
-        }
-
         self::prepareData($data);
 
-        foreach ($notifications as $n) {
-            if (!$n['source'] || ($n['source'] == $data['source'])) {
-                $method = 'send'.ucfirst($n['transport']);
-                if (method_exists('shopNotifications', $method)) {
-                    self::$method($n, $data);
+        if ($notifications) {
+            foreach ($notifications as $n) {
+                if (!$n['source'] || ($n['source'] == $data['source'])) {
+                    $method = 'send'.ucfirst($n['transport']);
+                    if (method_exists('shopNotifications', $method)) {
+                        self::$method($n, $data);
+                    }
                 }
             }
         }
@@ -86,8 +84,8 @@ class shopNotifications
                 $source = $storefront.'/*';
             }
 
-            foreach(wa()->getRouting()->getByApp('shop') as $domain => $routes) {
-                foreach($routes as $r) {
+            foreach (wa()->getRouting()->getByApp('shop') as $domain => $routes) {
+                foreach ($routes as $r) {
                     if (!isset($r['url'])) {
                         continue;
                     }
@@ -114,7 +112,7 @@ class shopNotifications
         }
         $collection = new shopProductsCollection('id/'.join(',', array_keys($product_ids)));
         $products = $collection->getProducts('*,image');
-        foreach($products as &$p) {
+        foreach ($products as &$p) {
             $p['frontend_url'] = wa()->getRouteUrl('shop/frontend/product', array(
                 'product_url' => $p['url'],
             ), true, $storefront_domain, $storefront_route['url']);
@@ -130,7 +128,7 @@ class shopNotifications
         foreach ($data['order']['items'] as &$i) {
             if (!empty($i['file_name'])) {
                 $i['download_link'] = wa()->getRouteUrl('shop/frontend/myOrderDownload', array(
-                    'id' => $data['order']['id'],
+                    'id'   => $data['order']['id'],
                     'code' => $data['order']['params']['auth_code'],
                     'item' => $i['id'],
                 ), true, $storefront_domain, $storefront_route['url']);
@@ -146,8 +144,9 @@ class shopNotifications
         // Shipping info
         if (!empty($data['order']['params']['shipping_id'])) {
             try {
-                $data['shipping_plugin'] = shopShipping::getPlugin($data['order']['params']['shipping_plugin'], $data['order']['params']['shipping_id']);
-            } catch (waException $e) {}
+                $data['shipping_plugin'] = shopShipping::getPlugin(ifset($data['order']['params']['shipping_plugin']), $data['order']['params']['shipping_id']);
+            } catch (waException $e) {
+            }
         }
 
 
@@ -157,14 +156,17 @@ class shopNotifications
         }
 
         // normalize customer
-        $customer = ifset($data['customer'], new shopCustomer(0));
+        $customer = ifset($data['customer'], new shopCustomer(ifset($data['order']['contact_id'], 0)));
         if (!($customer instanceof shopCustomer)) {
-            if (($customer instanceof waContact) || (is_array($customer) && isset($customer['id']))) {
+            if ($customer instanceof waContact) {
+                $customer = new shopCustomer($customer->getId());
+            } elseif (is_array($customer) && isset($customer['id'])) {
                 $customer = new shopCustomer($customer['id']);
             } else {
                 $customer = new shopCustomer(ifset($data['order']['contact_id'], 0));
             }
         }
+
         $customer_data = $customer->getCustomerData();
         foreach (ifempty($customer_data, array()) as $field_id => $value) {
             if ($field_id !== 'contact_id') {
@@ -192,38 +194,38 @@ class shopNotifications
     private static function getDataEmpties()
     {
         return array(
-            'status' => '',
-            'order_url' => '',
-            'signup_url' => '',
-            'add_affiliate_bonus' => 0,
+            'status'               => '',
+            'order_url'            => '',
+            'signup_url'           => '',
+            'add_affiliate_bonus'  => 0,
             'is_affiliate_enabled' => false,
-            'order' => array(
-                'id' => '',
+            'order'                => array(
+                'id'       => '',
                 'currency' => '',
-                'items' => array(),
+                'items'    => array(),
                 'discount' => '',
-                'tax' => '',
+                'tax'      => '',
                 'shipping' => 0,
-                'total' => 0,
-                'comment' => '',
-                'params' => array(
-                    'shipping_name' => '',
-                    'shipping_description' => '',
-                    'payment_name' => '',
-                    'payment_description' => '',
-                    'auth_pin' => '',
-                    'storefront' => '',
-                    'ip' => '',
-                    'user_agent' => '',
+                'total'    => 0,
+                'comment'  => '',
+                'params'   => array(
+                    'shipping_name'         => '',
+                    'shipping_description'  => '',
+                    'payment_name'          => '',
+                    'payment_description'   => '',
+                    'auth_pin'              => '',
+                    'storefront'            => '',
+                    'ip'                    => '',
+                    'user_agent'            => '',
                     'shipping_est_delivery' => '',
-                    'tracking_number' => ''
+                    'tracking_number'       => ''
                 )
             ),
-            'customer' => new shopCustomer(0),
-            'shipping_address' => '',
-            'billing_address' => '',
-            'action_data' => array(
-                'text' => '',
+            'customer'             => new shopCustomer(0),
+            'shipping_address'     => '',
+            'billing_address'      => '',
+            'action_data'          => array(
+                'text'   => '',
                 'params' => array(
                     'tracking_number' => ''
                 )
@@ -236,7 +238,7 @@ class shopNotifications
         foreach ($merge_from as $key => $value) {
             if (!array_key_exists($key, $merge_to)) {
                 $merge_to[$key] = $value;
-            } else if (is_array($merge_to[$key]) && is_array($merge_from[$key])) {
+            } elseif (is_array($merge_to[$key]) && is_array($merge_from[$key])) {
                 $merge_to[$key] = self::arrayMergeRecursive($merge_to[$key], $merge_from[$key]);
             }
         }
@@ -245,7 +247,11 @@ class shopNotifications
 
     protected static function sendEmail($n, $data)
     {
-        $general = wa('shop')->getConfig()->getGeneralSettings();
+        /**
+         * @var shopConfig $config ;
+         */
+        $config = wa('shop')->getConfig();
+        $general = $config->getGeneralSettings();
         if (!empty($n['from'])) {
             $from = $n['from'];
         } else {
@@ -296,7 +302,7 @@ class shopNotifications
         }
         if ($from) {
             $from_name = $general['name'];
-            if (wa('shop')->getConfig()->getOption('notification_name') == 'route_params') {
+            if ($config->getOption('notification_name') == 'route_params') {
                 if (wa()->getEnv() == 'frontend') {
                     $from_name = waRequest::param('_name');
                 } elseif (!empty($data['order']['params']['storefront'])) {
@@ -323,12 +329,12 @@ class shopNotifications
         if ($message->send()) {
             $order_log_model = new shopOrderLogModel();
             $order_log_model->add(array(
-                'order_id' => $order_id,
-                'contact_id' => null,
-                'action_id' => '',
-                'text' => '<i class="icon16 email"></i> '.$log,
+                'order_id'        => $order_id,
+                'contact_id'      => null,
+                'action_id'       => '',
+                'text'            => '<i class="icon16 email"></i> '.$log,
                 'before_state_id' => $data['order']['state_id'],
-                'after_state_id' => $data['order']['state_id'],
+                'after_state_id'  => $data['order']['state_id'],
             ));
         }
     }
@@ -381,12 +387,12 @@ class shopNotifications
         if ($sms->send($to, $text, isset($n['from']) ? $n['from'] : null)) {
             $order_log_model = new shopOrderLogModel();
             $order_log_model->add(array(
-                'order_id' => $order_id,
-                'contact_id' => null,
-                'action_id' => '',
-                'text' => '<i class="icon16 mobile"></i> '.$log,
+                'order_id'        => $order_id,
+                'contact_id'      => null,
+                'action_id'       => '',
+                'text'            => '<i class="icon16 mobile"></i> '.$log,
                 'before_state_id' => $data['order']['state_id'],
-                'after_state_id' => $data['order']['state_id'],
+                'after_state_id'  => $data['order']['state_id'],
             ));
         }
 
@@ -400,13 +406,16 @@ class shopNotifications
 
     protected static function sendPushNotifications($event, $data)
     {
-        if ($event != 'order.create' || !function_exists('curl_init')) {
+        if ($event != 'order.create') {
             return;
         }
 
+        $web_push = new shopWebPushNotifications();
+        $web_push->send($data);
+
         $host_client_ids = array();
         $push_client_model = new shopPushClientModel();
-        foreach($push_client_model->getAll() as $row) {
+        foreach ($push_client_model->getAllMobileClients() as $row) {
             $host_client_ids[$row['shop_url']][$row['client_id']] = $row['client_id'];
         }
         if (!$host_client_ids) {
@@ -414,46 +423,42 @@ class shopNotifications
         }
 
         $results = array();
-        foreach($host_client_ids as $shop_url => $client_ids) {
-            $request_data = json_encode(array(
-                'app_id' => "0b854471-089a-4850-896b-86b33c5a0198",
-                'data' => array(
+        foreach ($host_client_ids as $shop_url => $client_ids) {
+            $request_data = array(
+                'app_id'             => "0b854471-089a-4850-896b-86b33c5a0198",
+                'data'               => array(
                     'order_id' => $data['order']['id'],
                     'shop_url' => $shop_url,
                 ),
                 'include_player_ids' => array_values($client_ids),
-                'contents' => array(
+                'contents'           => array(
                     "en" => _w('New order').' '.shopHelper::encodeOrderId($data['order']['id']),
                 ),
 
-                'ios_badgeType' => 'Increase',
+                'ios_badgeType'  => 'Increase',
                 'ios_badgeCount' => 1,
-                'android_group' => 'shop_orders',
-            ));
+                'android_group'  => 'shop_orders',
+            );
 
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-
-            curl_setopt($ch, CURLOPT_POST, TRUE);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $request_data);
-
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-            curl_setopt($ch, CURLOPT_HEADER, FALSE);
-
-            $result = curl_exec($ch);
-            curl_close($ch);
-            $result = @json_decode($result, true);
-            if (!empty($result['errors'])) {
-                if (!empty($result['errors']['invalid_player_ids'])) {
-                    $push_client_model->deleteById($result['errors']['invalid_player_ids']);
-                } else {
-                    waLog::log('Unable to send PUSH notifications: '.wa_dump_helper($result));
+            try {
+                $net = new waNet(array('format' => waNet::FORMAT_JSON));
+                $net->query("https://onesignal.com/api/v1/notifications", $request_data, waNet::METHOD_POST);
+                $result = $net->getResponse();
+                if (!empty($result['errors'])) {
+                    if (!empty($result['errors']['invalid_player_ids'])) {
+                        $push_client_model->deleteById($result['errors']['invalid_player_ids']);
+                    } else {
+                        waLog::log('Unable to send PUSH notifications: '.wa_dump_helper($result));
+                    }
                 }
+            } catch (waException $ex) {
+                $result = $ex->getMessage();
+                waLog::log('Unable to send PUSH notifications: '.$result);
             }
+
             $results[] = $result;
         }
-        return $result;
+
+        return $results;
     }
 }

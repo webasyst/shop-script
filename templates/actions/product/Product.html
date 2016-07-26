@@ -360,6 +360,7 @@
                 </div>
                 <div class="field">
                     <div class="value no-shift">
+
                         <div class="s-product-status">
                             <i class="icon10 {if $product.status}yes{else}no-bw{/if}"></i>
                             <select name="product[status]">
@@ -382,9 +383,8 @@
                                             <span class="slash">/</span>
                                         </a>
                                         <input type="text" class="s-product-url-input" id="s-product-frontend-url-input"
-                                                                    value="{$product.url|escape}"
-                                                                    name="product[url]" style="display:none;"
-                                                                >
+                                            value="{$product.url|escape}"
+                                            name="product[url]" style="display:none;">
                                     {/strip}
                                     <a href="javascript:void(0);" class="small gray inline-link" id="s-product-frontend-url-edit-link">
                                         <i class="icon10 edit"></i><b><i>[`edit`]</i></b>
@@ -408,6 +408,14 @@
                             [`Hidden products are not shown among other products in the storefront, are not available for purchase, and can be viewed by the direct URL only.`]
                         </span>
                     </div>
+
+                    <div class="value no-shift s-product-url-in-use-block" id="s-product-url-in-use-block" {if !$url_in_use}style="display: none"{/if}>
+                        <p class="small italic">
+                            <i class="icon10 exclamation"></i>
+                            <span class="s-text">{$url_in_use}</span>
+                        </p>
+                    </div>
+
                 </div>
             </div>
             <div class="field-group">
@@ -659,7 +667,7 @@
                                             {/if}
                                         {/if}
                                         {if count($stocks) >= 1}
-                                        <div{if empty($sku.stock)} style="display: none;{/if}" id="s-product-sku-stock-{$sku_id}">
+                                        <div{if empty($sku.stock)} style="display: none;"{/if} id="s-product-sku-stock-{$sku_id}">
 
                                         {foreach $stocks as $stock_id => $stock}
                                             {if isset($sku.stock[$stock_id])}
@@ -744,7 +752,7 @@
                                         {% } %}
 
                                         {% if(!$.isEmptyObject(stocks)) { %}
-                                        <div{% if($.isEmptyObject(sku.stock)) { %} style="display: none;{% } %}" id="s-product-sku-stock-{%=sku_id%}">
+                                        <div{% if($.isEmptyObject(sku.stock)) { %} style="display: none;"{% } %} id="s-product-sku-stock-{%=sku_id%}">
 
                                             {% for (var i = 0, n = stock_ids.length; i < n; i += 1) { %}
                                                 {% var stock_id = stock_ids[i]; %}
@@ -815,7 +823,7 @@
                 <div class="field">
                     <div class="name">[`Tags`]</div>
                     <div class="value">
-                        <input id="product-tags" value="{implode(',', $product.tags)}" name="product[tags]">
+                        <input id="product-tags" value="{implode(',', $product.tags)|escape}" name="product[tags]">
                         <span class="hint">[`Separate tags with comma (,).`]</span>
 
                         <div id="s-product-popular-tags" class="tags small">

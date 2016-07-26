@@ -1,6 +1,7 @@
 (function($) {
 
     $.fn.lazyLoad = function(options, ext) {
+
         if (options == 'stop') {
             var settings = this.data('lazyLoadSettings');
             if (settings) {
@@ -59,8 +60,8 @@
         settings.loading = false;
         settings.stopped = false;
 
-        var win = this;
-        var container = settings.container;
+        var win = $(window);
+        var container = settings.container || $(this);
 
         init();
 

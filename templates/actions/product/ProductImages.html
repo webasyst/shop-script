@@ -72,6 +72,11 @@
                 <input type="submit" value="[`Link video`]">
                 <i class="icon16 loading" style="display: none; margin-top: 5px;"></i>
                 <i class="icon16 yes" style="margin-top: 5px;{if !$product.video_url} display: none;{/if}"></i>
+                <a class="small s-product-video-unlink"
+                    style="{if !$product.video_url} display: none;{/if}"
+                    href="javascript:void(0);"
+                    data-confirm="[`This will remove video from the product page. Are you sure?`]">[`Unlink video`]
+                </a>
             </div>
             <p>
                 <em class="s-product-video-error-url errormsg" style="display: none;"></em>
@@ -134,14 +139,11 @@ $.product_images.init({
 
 });
 
-$('#s-product-video').submit(function(e) {
-    e.preventDefault();
-    var form = $(this);
+var saveProductVideo = function () {
+    var form = $('#s-product-video');
     form.find('.loading').show();
-
     form.find('.error').removeClass();
     form.find('.errormsg').hide();
-
     $.shop.jsonPost(
         '?module=productVideoSave&id={$product_id}',
         form.serialize(),
@@ -151,6 +153,11 @@ $('#s-product-video').submit(function(e) {
             if (!r.data.product.video_url) {
                 setTimeout(function() {
                     form.find('.yes').hide();
+                    form.find('.s-product-video-unlink').hide();
+                }, 250);
+            } else {
+                setTimeout(function () {
+                    form.find('.s-product-video-unlink').show();
                 }, 250);
             }
         },
@@ -164,6 +171,19 @@ $('#s-product-video').submit(function(e) {
             });
         }
     );
-});
+};
+
+(function (form) {
+    form.submit(function(e) {
+        e.preventDefault();
+        saveProductVideo();
+    });
+    form.find('.s-product-video-unlink').click(function () {
+        if (confirm($(this).data('confirm'))) {
+            form.find('[name=url]').val('');
+            saveProductVideo();
+        }
+    });
+})($('#s-product-video'));
 
 </script>

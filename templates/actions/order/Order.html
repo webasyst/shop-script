@@ -67,8 +67,8 @@
                     [`Order created`]: <strong>{$order.create_datetime|wa_datetime:"humandatetime"}</strong><br>
                     {if !empty($order.params.referer)}[`Referrer`]: <strong><a href="{$order.params.referer}" target="_blank" style="color: #03c;">{$order.params.referer|truncate:42}</a></strong><br>{/if}
                     {if !empty($order.params.utm_campaign)}[`UTM campaign`]: <strong>{$order.params.utm_campaign}</strong><br>{/if}
+                    {if !empty($sales_channel)}[`Sales channel`]: <strong title="{ifset($order.params.sales_channel, '?')}">{$sales_channel}</strong><br>{/if}
                     {if !empty($order.params.storefront)}[`Storefront`]: <strong>{$order.params.storefront}</strong><br>{/if}
-                    {if !empty($order.params.sales_channel)}[`Sales channel`]: <strong>{$order.params.sales_channel}</strong><br>{/if}
                     {if !empty($order.params.keyword)}[`Keyword`]: <strong>{$order.params.keyword}</strong><br>{/if}
                     {if !empty($order.params.ip)}[`IP`]: <strong>{$order.params.ip}</strong><br>{/if}
 
@@ -123,12 +123,25 @@
             <!-- customer info -->
             <div class="profile image50px">
                 <div class="image">
-                    <a href="?action=customers#/id/{$order.contact.id|default:'0'}"><img src="{$order.contact.photo_50x50}" class="userpic" /></a>
+                    {if $order.contact.id|default:'0'}
+                        <a href="?action=customers#/id/{$order.contact.id|default:'0'}">
+                            <img src="{$order.contact.photo_50x50}" class="userpic" />
+                        </a>
+                    {else}
+                        <img src="{$order.contact.photo_50x50}" class="userpic" />
+                    {/if}
                 </div>
                 <div class="details">
                     {$customers_rights = $wa->userRights('customers')}
                     <h3>
-                        {if $customers_rights}<a href="?action=customers#/id/{$order.contact.id|default:'0'}" {if !$order.contact.name} class="gray"{/if}>{/if}{$order.contact.name|default:'[`(no name)`]'}{if $customers_rights}</a>{/if}
+                        {if $customers_rights && $order.contact.id|default:'0'}
+                            <a href="?action=customers#/id/{$order.contact.id|default:'0'}" {if !$order.contact.name} class="gray"{/if}>
+                                {$order.contact.name|default:'[`(no name)`]'}
+                            </a>
+                        {else}
+                            {$order.contact.name|default:'[`(no name)`]'}
+                            {if !$order.contact.id|default:'0'} <span class="hint">[`deleted`]</span>{/if}
+                        {/if}
                         {if $order.contact.registered|default:false}
                             <i class="icon10 lock" title="[`Registered customer`]"></i>
                         {/if}
@@ -143,13 +156,13 @@
                             {foreach $main_contact_info as $top_field}
                                 <li>{if $top_field.id != 'im'}<i class="icon16 {$top_field.id}"></i>{/if}{$top_field.value}
                                     {if $top_field.id == 'email' && !empty($similar_contacts.email.count)}
-                                    <span class="similar hint">
-                                        {if $customers_rights}<a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer', '%d more customers', $similar_contacts.email.count)}{if $customers_rights}</a>{/if} [`with same email found`]
-                                    </span>
+                                        <span class="similar hint">
+                                            {if $customers_rights}<a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer', '%d more customers', $similar_contacts.email.count)}{if $customers_rights}</a>{/if} [`with same email found`]
+                                        </span>
                                     {elseif $top_field.id == 'phone' && !empty($similar_contacts.phone.count)}
-                                    <span class="similar hint">
-                                        {if $customers_rights}<a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer', '%d more customers', $similar_contacts.phone.count)}{if $customers_rights}</a>{/if} [`with same phone found`]
-                                    </span>
+                                        <span class="similar hint">
+                                            {if $customers_rights}<a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer', '%d more customers', $similar_contacts.phone.count)}{if $customers_rights}</a>{/if} [`with same phone found`]
+                                        </span>
                                     {/if}
                                 </li>
                             {/foreach}
@@ -190,9 +203,19 @@
                         {/foreach}
                     </p>
                 {/if}
+                {if !empty($courier)}
+                    <!-- Courier -->
+                    <h3>
+                        <span class="gray">[`Courier`] —</span> <a href="#/orders/search/params.courier_id={$courier.id}/" class="bold highlighted">{$courier.name|escape}</a>
+                        <a href="javascript:void(0)"  class="wf-action hint" data-action-id="ship" data-container="#workflow-content"><i class="icon10 edit"></i></a>
+                    </h3>
+                {/if}
                 <!-- shipping plugin output -->
                 {if !empty($params.tracking_number)}
-                    <h3><span class="gray">[`Shipment tracking number`] —</span> <strong class="highlighted">{$params.tracking_number|escape}</strong></h3>
+                    <h3>
+                        <span class="gray">[`Shipment tracking number`] —</span> <strong class="highlighted">{$params.tracking_number|escape}</strong>
+                        <a href="javascript:void(0)"  class="wf-action hint" data-action-id="ship" data-container="#workflow-content"><i class="icon10 edit"></i></a>
+                    </h3>
                 {/if}
                 {if !empty($tracking) && $order.state_id != 'completed'}
                     <blockquote class="plugin s-tracking">
@@ -417,6 +440,11 @@
                                     <i class="icon16" style="background-image: url('{$row.plugin_icon_url}');"></i>
                                     {/if}
                                     {$row.plugin|default:''|escape}
+                                {/if}
+                                {if !empty($row.params.actor_courier_name)}
+                                    {if $row.contact_id}<br>{/if}
+                                    <i class="icon16 ss courier"></i>
+                                    {$row.params.actor_courier_name|escape}
                                 {/if}
                                 <strong>{if $row.action}{$row.action->getOption('log_record')|escape}{else}{$row.action_id}{/if}</strong>
 

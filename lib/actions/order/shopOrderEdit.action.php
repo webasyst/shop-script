@@ -82,7 +82,7 @@ class shopOrderEditAction extends waViewAction
             'customer_validation_disabled' => wa()->getSetting('disable_backend_customer_form_validation'),
             'shipping_methods' => $this->getShipMethods($shipping_address, $order),
             'ignore_stock_count' => wa()->getSetting('ignore_stock_count'),
-            'storefronts' => $this->getStorefronts(),
+            'storefronts' => shopHelper::getStorefronts(),
         ));
     }
 
@@ -223,21 +223,6 @@ class shopOrderEditAction extends waViewAction
             }
         }
         unset($sku);
-    }
-
-    public function getStorefronts()
-    {
-        $storefronts = array();
-        foreach (wa()->getRouting()->getByApp('shop') as $domain => $domain_routes) {
-            foreach ($domain_routes as $route) {
-                $url = rtrim($domain.'/'.$route['url'], '/*');
-                if (strpos($url, '/') !== false) {
-                    $url .= '/';
-                }
-                $storefronts[] = $url;
-            }
-        }
-        return $storefronts;
     }
 
     public function getOrderStorefront($order)

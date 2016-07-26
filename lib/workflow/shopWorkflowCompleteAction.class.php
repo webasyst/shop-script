@@ -6,6 +6,16 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
     {
         $order_model = new shopOrderModel();
         $order = $order_model->getById($order_id);
+
+        // update orders counter of a courier this order is assigned to
+        $order_params_model = new shopOrderParamsModel();
+        $params = $order_params_model->get($order_id);
+        $courier_id = ifset($params['courier_id'], '');
+        if ($courier_id) {
+            $courier_model = new shopApiCourierModel();
+            $courier_model->incrOrdersProcessed($courier_id);
+        }
+
         if ($order['paid_year']) {
             return true;
         } else {

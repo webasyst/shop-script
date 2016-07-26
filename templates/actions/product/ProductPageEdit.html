@@ -99,10 +99,8 @@
             lang: "{$lang}",
             toolbarFixedTopOffset: $('#mainmenu').length ? $('#mainmenu').height() : 0,
             changeCallback: function() {
-                if ($('#s-product-save-button').hasClass('green')) {
-                    $('#s-product-save-button').addClass('yellow');
-                    $('#s-page-content').waEditor('sync');
-                }
+                $('#s-product-save-button').addClass('yellow');
+                $('#s-page-content').waEditor('sync');
             },
             uploadFields: {
                 '_csrf': "{waRequest::cookie('_csrf', '')}"

@@ -43,13 +43,20 @@ class shopProductModel extends waModel
             $delete_ids = $product_ids;
         }
 
-
         // remove files
         foreach ($delete_ids as $product_id) {
-            try {
-                waFiles::delete(shopProduct::getPath($product_id, null, false));
-                waFiles::delete(shopProduct::getPath($product_id, null, true));
-            } catch (waException $e) {
+            $paths = array(
+                shopProduct::getPath($product_id, null, false),
+                shopProduct::getPath($product_id, null, true),
+            );
+            foreach($paths as $path) {
+                try {
+                    waFiles::delete($path);                 // xx/yy/product_id/
+                    if (@rmdir(dirname($path))) {           // xx/yy/    (if empty)
+                        @rmdir(dirname(dirname($path)));    // xx/       (if empty)
+                    }
+                } catch (waException $e) {
+                }
             }
         }
 
@@ -161,27 +168,61 @@ class shopProductModel extends waModel
             $options['order'] = ifset($args[2], '');
         }
 
-        $order = strtolower(ifset($options['order'], '')) === 'desc' ? 'DESC' : 'ASC';
+        $order = strtolower((string) ifset($options['order'])) === 'desc' ? 'DESC' : 'ASC';
         $offset = (int) ifset($options['offset']);
         $limit = (int) ifset($options['limit']);
+        $sort = (string) ifset($options['sort']);
 
-        $where = '';
-        if (!empty($options['count_is_not_null'])) {
-            $where = "WHERE `count` IS NOT NULL";
+        $sql_ar = array(
+            'SELECT' => array('p.id'),
+            'FROM' => $this->table . ' p',
+            'LEFT JOIN' => array(),
+            'WHERE' => array(),
+            'GROUP BY' => array(),
+            'ORDER BY' => array(),
+            'LIMIT' => "{$offset}, {$limit}"
+        );
+
+        // define stock_id for sorting
+        $parsed = $this->parseStockSortKey($sort);
+        $stock_id = $parsed['id'];
+
+        // fill sql array
+        if ($stock_id) {
+            $sql_ar['LEFT JOIN'] = "shop_product_stocks sps ON sps.product_id = p.id AND sps.stock_id = {$stock_id}";
+            if (!empty($options['count_is_not_null'])) {
+                $sql_ar['WHERE'][] = "sps.`count` IS NOT NULL";
+            }
+            $sql_ar['GROUP BY'][] = "p.id";
+            $sql_ar['ORDER BY'][] = "SUM(sps.count) {$order}";
+        } else {
+            if (!empty($options['count_is_not_null'])) {
+                $sql_ar['WHERE'][] = "p.`count` IS NOT NULL";
+            }
+            $sql_ar['ORDER BY'][] = "p.`count` {$order}";
         }
 
-        // get products ids
-        $sql = "
-            SELECT id
-            FROM {$this->table}
-            {$where}
-            ORDER BY `count` $order
-            LIMIT {$offset}, {$limit}
-        ";
+        $sql = $this->buildSql($sql_ar);
 
         $ids = array_keys($this->query($sql)->fetchAll('id'));
 
-        return $this->getProductStocksByProductId($ids, $order);
+        $sort = 'count';
+        if ($stock_id) {
+            $sort = 'stock_count_' . $stock_id;
+        }
+
+        return $this->getProductStocksByProductId($ids, $order, $sort);
+    }
+
+    private function parseStockSortKey($sort)
+    {
+        $stock_id = null;
+        $prefix = 'stock_count';
+        $prefix_len = strlen($prefix);
+        if (strpos($sort, $prefix) === 0) {
+            $stock_id = (int) substr($sort, $prefix_len + 1);
+        }
+        return array('id' => $stock_id, 'field' => 'count');
     }
 
     public function getWithCategoryUrl($ids)
@@ -204,7 +245,7 @@ class shopProductModel extends waModel
      * @param string $order
      * @return array
      */
-    public function getProductStocksByProductId($product_id, $order = 'desc')
+    public function getProductStocksByProductId($product_id, $order = 'desc', $sort = 'count')
     {
         if (!$product_id) {
             return array();
@@ -221,22 +262,41 @@ class shopProductModel extends waModel
         // stock ids of items ordered by sort
         $stock_ids = array_keys($stock_model->getAll('id'));
 
+        // get products sql array structure
+        $sql_ar = array(
+            'SELECT' => array('p.id', 'p.name', 'p.count', 'p.image_id'),
+            'FROM' => $this->table . ' p',
+            'LEFT JOIN' => array(),
+            'WHERE' => array("p.id IN ( {$product_ids_str} )"),
+            'GROUP BY' => array(),
+            'ORDER BY' => array(),
+        );
+
+        // define stock_id for sorting
+        $parsed = $this->parseStockSortKey($sort);
+        $stock_id = $parsed['id'];
+
+        // fill sql array
+        if ($stock_id) {
+            $sql_ar['SELECT'][] = "{$stock_id} AS selected_stock_id, SUM(sps.count) AS selected_stock_count";
+            $sql_ar['LEFT JOIN'] = "shop_product_stocks sps ON sps.product_id = p.id AND sps.stock_id = {$stock_id}";
+            $sql_ar['GROUP BY'][] = "p.id";
+            $sql_ar['ORDER BY'][] = "IF(SUM(sps.count) IS NULL, 1, 0) ASC, SUM(sps.count) {$order}";
+        } else {
+            if (!empty($options['count_is_not_null'])) {
+                $sql_ar['WHERE'][] = "p.`count` IS NOT NULL";
+            }
+            $sql_ar['ORDER BY'][] = "p.`count` {$order}";
+        }
+
         // get products
-        $sql = "
-            SELECT id, name, count, image_id
-            FROM {$this->table}
-            WHERE id IN ( {$product_ids_str} )
-            ORDER BY count $order
-        ";
+        $sql = $this->buildSql($sql_ar);
 
         $data = array();
         $image_ids = array();
         foreach ($this->query($sql) as $item) {
-            $data[$item['id']] = array(
-                'id'             => $item['id'],
-                'name'           => $item['name'],
+            $data[$item['id']] = $item + array(
                 'url_crop_small' => null,
-                'count'          => $item['count'],
                 'skus'           => array(),
                 'stocks'         => array()
             );
@@ -334,6 +394,32 @@ class shopProductModel extends waModel
         }
 
         return $data;
+    }
+
+    private function buildSql($sql_ar)
+    {
+        $glues = array(
+            'SELECT' => ',',
+            'WHERE' => ' AND ',
+            'JOIN' => ' ',
+            'LEFT JOIN' => ' ',
+            'ORDER BY' => ','
+        );
+
+        foreach ($sql_ar as $statement => $values) {
+            if (empty($values)) {
+                unset($sql_ar[$statement]);
+                continue;
+            }
+            if (is_array($values)) {
+                $glue = ifset($glues[$statement], ' ');
+                $sql_ar[$statement] = join($glue, $values);
+            }
+
+            $sql_ar[$statement] = $statement . ' ' . $sql_ar[$statement];
+        }
+
+        return join(PHP_EOL, $sql_ar);
     }
 
     /**

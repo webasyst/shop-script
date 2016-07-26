@@ -39,5 +39,8 @@ class shopSettingsCheckoutAction extends waViewAction
         foreach (array('checkout_antispam', 'checkout_antispam_email', 'checkout_antispam_captcha') as $k) {
             $this->view->assign($k, wa()->getSetting($k));
         }
+        
+        $this->view->assign('web_push', new shopWebPushNotifications());
+
     }
 }

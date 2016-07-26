@@ -108,7 +108,13 @@
         >
             {include './include.categories.html' categories=$categories->getList() inline}
             <div class="block s-empty-list" {if $categories->count()}style="display:none;"{/if}>
-                <p class="hint align-center">[`Create a product category using the green icon above.`]</p>
+                <p class="hint align-center">
+                    {if $wa->userRights('setscategories')}
+                        [`Create a product category using the green icon above.`]
+                    {else}
+                        [`No categories available.`]
+                    {/if}
+                </p>
             </div>
         </div>
     </div>

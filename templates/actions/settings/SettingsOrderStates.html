@@ -112,27 +112,30 @@
                     <div class="name">
                         [`Allowed actions`]
                     </div>
-                    {foreach $actions as $id => $a}
-                        {if empty($a.internal)}
-                        <div class="value no-shift s-order-action"
-                                                data-id="{$id|escape}"
-                                                data-name="{$a.name|escape}"
-                                                data-state="{$a.state|default:''|escape}"
-                                                data-link="{if !empty($a.options) && !empty($a.options.position)}1{/if}"
-                                                data-border_color="{if !empty($a.options) && !empty($a.options.border_color)}{$a.options.border_color}{else}dddddd{/if}"
-                                                data-icon="{if !empty($a.options) && !empty($a.options.icon)}{$a.options.icon}{/if}">
-                            <label>
-                                <input type="checkbox" name="action[]" value="{$id|escape}" {if in_array($id, $info.actions)}checked="checked"{/if} {if $id == 'create'}disabled="disabled"{/if}>
-                                {$a.name|escape} <span class="hint">{$id|upper}</span>
-                            </label>
-                            {if empty($a.original)}
-                                <a href="javascript:void(0)" class="inline-link small s-edit-action" data-id="{$id}"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
-                            {elseif $id == 'message'}
-                                <a href="javascript:void(0)" class="inline-link small s-edit-action" data-id="{$id}" id="s-edit-message-action"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
+                    <div class="s-order-allowed-actions">
+                        {foreach $actions as $id => $a}
+                            {if empty($a.internal)}
+                            <div class="value no-shift s-order-action"
+                                    data-id="{$id|escape}"
+                                    data-name="{$a.name|escape}"
+                                    data-state="{$a.state|default:''|escape}"
+                                    data-link="{if !empty($a.options) && !empty($a.options.position)}1{/if}"
+                                    data-border_color="{if !empty($a.options) && !empty($a.options.border_color)}{$a.options.border_color}{else}dddddd{/if}"
+                                    data-icon="{if !empty($a.options) && !empty($a.options.icon)}{$a.options.icon}{/if}">
+                                <label>
+                                    <i class="icon16 sort"></i>
+                                    <input type="checkbox" name="action[]" value="{$id|escape}" {if in_array($id, $info.actions)}checked="checked"{/if} {if $id == 'create'}disabled="disabled"{/if}>
+                                    {$a.name|escape} <span class="hint">{$id|upper}</span>
+                                </label>
+                                {if empty($a.original)}
+                                    <a href="javascript:void(0)" class="inline-link small s-edit-action" data-id="{$id}"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
+                                {elseif $id == 'message'}
+                                    <a href="javascript:void(0)" class="inline-link small s-edit-action" data-id="{$id}" id="s-edit-message-action"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
+                                {/if}
+                            </div>
                             {/if}
-                        </div>
-                        {/if}
-                    {/foreach}
+                        {/foreach}
+                    </div>
                     <br>
 
                     {*

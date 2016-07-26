@@ -3,7 +3,7 @@
 class shopProductAddMethod extends shopProductUpdateMethod
 {
     protected $method = 'POST';
-    
+
     public function execute()
     {
         $data = waRequest::post();
@@ -20,7 +20,9 @@ class shopProductAddMethod extends shopProductUpdateMethod
         }
         $this->checkSku($data);
         // check access rights
-        $this->checkRights($this->post("type_id", true));
+        if (!wa()->getUser()->isAdmin('shop')) {
+            $this->checkRights($this->post("type_id", true));
+        }
 
         $p = new shopProduct();
         if ($p->save($data, true, $errors)) {

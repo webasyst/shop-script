@@ -74,6 +74,11 @@
         all_printforms: null,
 
         /**
+         * Sort of list
+         */
+        sort: ['create_datetime', 'desc'],
+
+        /**
          * Collection of xhr-deffered objects for synchronization
          * {Object}
          */
@@ -128,6 +133,20 @@
 
             if (options.update_process && options.count) {
                 this.updateProcess('run', options.update_process);
+            }
+
+            if (options.sort && options.sort[0]) {
+                options.sort[0] = '' + options.sort[0];
+                var available_sort_values = $('#s-orders-sort .s-sort').map(function () {
+                    var sort = $(this).data('sort') || '';
+                    return sort ? sort : false;
+                }).toArray();
+                if (available_sort_values.indexOf(options.sort[0]) < 0) {
+                    options.sort[0] = available_sort_values[0];
+                }
+                options.sort[1] = (options.sort[1] || '');
+                options.sort[1] = options.sort[1].toLowerCase() === 'desc' ? 'desc' : 'asc';
+                this.sort = options.sort;
             }
 
             this.initView();
@@ -235,6 +254,8 @@
         initView: function() {
             var that = this;
 
+            this.initSortMenu();
+
             this.initSidebar();
             if (this.options.view == 'table' && that.$selectionMenu && that.$selectionMenu.length) {
                 this.initSelecting();
@@ -244,7 +265,7 @@
             }
             var orders_view_ul = $('#s-orders-views');
             orders_view_ul.find('li.selected').removeClass('selected');
-            orders_view_ul.find('li[data-view='+this.options.view+']').addClass('selected');
+            orders_view_ul.find('li[data-view="'+this.options.view+'"]').addClass('selected');
             orders_view_ul.find('li a').each(function() {
                 var self = $(this);
                 var li = $(this).parents('li:first');
@@ -399,6 +420,64 @@
             return data;
         },
 
+        initSortMenu: function () {
+
+            var $menu = $('#s-orders-sort');
+
+            // update ui menu helper
+            var update = function (sort, change_hash) {
+                var sort_field = sort[0];
+                var sort_order = sort[1];
+                var text = $('.s-sort[data-sort="' + sort_field + '"] a', $menu).text();
+                $menu.find('.s-current-sort').data('sort', sort_field);
+                $menu.find('.s-current-sort').data('order', sort_order);
+                $menu.find('.s-current-sort .f-text').text(text);
+                $menu.find('.s-sort-order').hide().filter('[data-order="' + sort_order + '"]').show();
+                if (change_hash) {
+
+                    var hash = window.location.hash || '';
+                    // clear hash, delete substring like sort[0]=foo and sort[1]=bar
+                    hash = hash.replace(/(&*sort\[[01]\]=.*?[&\/]|&*sort\[[01]\]=.*?$)/g, '');
+
+                    // check if exists any params in hash
+                    var params_tail_exists = hash.indexOf('=') > 0;
+
+                    if (params_tail_exists) {
+                        // delete / and & in the end of hash
+                        hash = hash.replace(/[\/&]$/, '');
+                    }
+                    // append new sort params
+                    hash += (params_tail_exists ? '&' : '') + 'sort[0]=' + sort_field + '&sort[1]=' + sort_order + '/';
+
+                    // update page
+                    $.wa.setHash(hash);
+
+                }
+            };
+
+            update(this.sort);
+
+            // prevent binding events twice, cause menu item located in layout block and it isn't updated when inner content changed
+            if (!$menu.data('inited')) {
+
+                // when click to option click, change sort and order
+                $menu.find('.s-sort a').click(function () {
+                    var el = $(this);
+                    var data = $menu.find('.s-current-sort').data();
+                    var sort_field = data.sort;
+                    var sort_order = data.order;
+                    if (el.data('sort') === sort_field) {
+                        sort_order = sort_order === 'desc' ? 'asc' : 'desc';
+                    } else {
+                        sort_field = el.data('sort');
+                        sort_order = 'desc';
+                    }
+                    update([sort_field, sort_order], true);
+                });
+
+                $menu.data('inited', 1);
+            }
+        },
 
         initSidebar: function() {
             var sidebar = this.sidebar;
@@ -875,7 +954,8 @@
                 (this.filter_params_str ? '&' + this.filter_params_str : '') +
                 (lt ? '&lt=1' : '') +
                 (counters ? '&counters=1' : '') +
-                (this.options.view ? '&view='+this.options.view : '');
+                (this.options.view ? '&view='+this.options.view : '') +
+                ('&sort[0]=' + this.sort[0] + '&sort[1]=' + this.sort[1]);
         },
 
         updateProcess: function(status, options) {

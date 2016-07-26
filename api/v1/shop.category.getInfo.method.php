@@ -1,6 +1,6 @@
 <?php
 
-class shopCategoryGetInfoMethod extends waAPIMethod
+class shopCategoryGetInfoMethod extends shopApiMethod
 {
     protected $method = 'GET';
 

@@ -5,7 +5,7 @@
 {$_text_color = "#`$params['text_color']`"}
 {$_button_color = "#`$params['button_color']`"}
 {$_price_color = "#`$params['price_color']`"}
-{$_font_family = $params['font_family']}
+{$_font_family = $params['font_family']|default:''}
 {$_show_image = ( !empty($params['show_image']) && $img_url )}
 
 <!DOCTYPE html>
@@ -15,9 +15,11 @@
     <style>{include file="../../../css/buyButton.css" inline}</style>
     <script src="{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js"></script>
     <style>
-        .wa-widget-wrapper {
-            font-family: {$_font_family};
-        }
+        {if $_font_family}
+            .wa-widget-wrapper {
+                font-family: {$_font_family};
+            }
+        {/if}
         .wa-content-wrapper {
             background: {$_background_color};
             color: {$_text_color};
@@ -47,7 +49,7 @@
             <div class="wa-content-wrapper">
                 <div class="wa-text-wrapper">
                     <h3><a href="{$product_url}" target="_blank">{$product.name|escape}</a></h3>
-                    <p>{$product.summary|escape}</p>
+                    <p>{$product.summary}</p>
                 </div>
                 <div class="wa-footer-wrapper">
 
@@ -66,7 +68,7 @@
                                         <br>
                                     {/foreach}
                                 </div>
-                            {else}
+                            {elseif count($product.skus) > 1}
                                 <select class="wa-sku-selector" name="buybutton[sku_id]">
                                     {foreach $product.skus as $sku}
                                         <option {if $sku.id == $product.sku_id} selected="selected"{/if} {if !$sku.orig_available}disabled="disabled"{/if} value="{$sku.id}">{$sku.name|escape}</option>

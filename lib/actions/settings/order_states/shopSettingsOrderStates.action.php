@@ -25,6 +25,8 @@ class shopSettingsOrderStatesAction extends waViewAction
         $actions = $workflow->getAvailableActions();
         $info = $states ? $this->getStateInfo($id) : $this->getDummyStateInfo();
 
+        $actions = $this->sortActions($actions, $info['actions']);
+
         $buttons = $this->getButtons($actions, $info);
 
         $this->view->assign(array(
@@ -130,4 +132,17 @@ class shopSettingsOrderStatesAction extends waViewAction
         }
         return $flat_buttons;
     }
+
+    public function sortActions($actions, $state_actions)
+    {
+        foreach ($state_actions as $action_id) {
+            if (isset($actions[$action_id])) {
+                $action = $actions[$action_id];
+                unset($actions[$action_id]);
+                $actions[$action_id] = $action;     // push back
+            }
+        }
+        return $actions;
+    }
+
 }

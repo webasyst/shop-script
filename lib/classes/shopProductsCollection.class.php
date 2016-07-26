@@ -1257,6 +1257,119 @@ class shopProductsCollection
         return $data;
     }
 
+    /**
+     * Sets $p['category_url'] for each product in list,
+     * based on its $p['category_id']
+     * @param mixed[] $products
+     */
+    protected function updateCategoryUrls(&$products)
+    {
+        /*
+         * We need to build a full frontend URL for each product,
+         * which for url_type=2 includes the category breadcrumbs.
+         * Each product has the main category_id that is used to build the URL.
+         *
+         * Sometimes the main category of a product is set up not to be visible
+         * in current frontend settlement. For such products we will build the URL
+         * as if the product has no main category set.
+         */
+
+        $cat_ids = array();
+        foreach ($products as &$p) {
+            if (!empty($p['category_id'])) {
+                $cat_ids[$p['category_id']] = $p['category_id'];
+            }
+        }
+        unset($p);
+        if (!$cat_ids) {
+            return;
+        }
+
+        // Figure out which categories are disabled for current settlement
+        $category_disabled = array();
+        $route = wa()->getRouting()->getDomain(null, true) . '/' . wa()->getRouting()->getRoute('url');
+        $category_routes = $this->getModel('categoryRoutes')->getRoutes(array_values($cat_ids), false);
+        foreach ($category_routes as $category_id => $routes) {
+            if ($routes && !in_array($route, $routes)) {
+                $category_disabled[$category_id] = true;
+            }
+        }
+        unset($category_routes);
+
+        // Set empty main category for products when it's disabled.
+        // This generates a short URL for such products (i.e. no category breadcrumbs).
+        foreach ($products as &$p) {
+            if (!empty($p['category_id']) && !empty($category_disabled[$p['category_id']])) {
+                $p['category_id'] = null;
+            }
+        }
+        unset($p);
+
+        // For products with no main category (or main category disabled in current settlement),
+        // there's an experimental option to use URL from some other category the product is in.
+        // This can be DB-heavy, so it's disabled by default.
+        if (waRequest::param('correct_category_urls') || !empty($this->options['correct_category_urls'])) {
+            // Products that need replacement of main category
+            $product_ids = array();
+            foreach ($products as $p) {
+                if (empty($p['category_id'])) {
+                    $product_ids[] = $p['id'];
+                }
+            }
+
+            // Fetch info about which products are in which categories
+            $more_cat_ids = array();
+            $product_categories = array();
+            if ($product_ids) {
+                $rows = $this->getModel('categoryProducts')->getByField('product_id', $product_ids, true);
+                foreach ($rows as $row) {
+                    $product_categories[$row['product_id']][] = $row['category_id'];
+                    $more_cat_ids[$row['category_id']] = $row['category_id'];
+                }
+                unset($rows, $row, $product_ids);
+            }
+
+            // Fetch info about which categories are disabled in current storefront
+            $more_cat_ids = array_values(array_diff_key($more_cat_ids, $cat_ids));
+            if ($more_cat_ids) {
+                $category_routes = $this->getModel('categoryRoutes')->getRoutes($more_cat_ids, false);
+                foreach ($category_routes as $category_id => $routes) {
+                    if ($routes && !in_array($route, $routes)) {
+                        $category_disabled[$category_id] = true;
+                    }
+                }
+                unset($category_routes, $more_cat_ids);
+            }
+
+            // Update main categories of products, selecting any category
+            // that is enabled for current frontend settlement.
+            if ($product_categories) {
+                foreach ($product_categories as $p_id => $pcats) {
+                    foreach (ifempty($pcats, array()) as $category_id) {
+                        if (empty($category_disabled[$category_id])) {
+                            $cat_ids[$category_id] = $category_id;
+                            $products[$p_id]['category_id'] = $category_id;
+                            break;
+                        }
+                    }
+                }
+                unset($p);
+            }
+        }
+
+        // Update products data. For products with valid frontend category, set the full URL.
+        $cat_ids = array_values(array_diff_key($cat_ids, $category_disabled));
+        $categories = $this->getModel('category')->getById($cat_ids);
+        foreach ($products as &$p) {
+            if (!empty($p['category_id']) && !empty($categories[$p['category_id']]['full_url'])) {
+                $p['category_url'] = $categories[$p['category_id']]['full_url'];
+            } else {
+                $p['category_id'] = null;
+            }
+        }
+        unset($p);
+    }
+
     private function workupProducts(&$products = array(), $escape = true)
     {
         if (empty($products)) {
@@ -1358,22 +1471,7 @@ class shopProductsCollection
 
         // Get 'category_url' for each product
         if ($this->is_frontend && waRequest::param('url_type') == 2) {
-            $cat_ids = array();
-            foreach ($products as &$p) {
-                if (!empty($p['category_id'])) {
-                    $cat_ids[] = $p['category_id'];
-                }
-            }
-            $cat_ids = array_unique($cat_ids);
-            if ($cat_ids) {
-                $categories = $this->getModel('category')->getById($cat_ids);
-                foreach ($products as &$p) {
-                    if (!empty($p['category_id'])) {
-                        $p['category_url'] = $categories[$p['category_id']]['full_url'];
-                    }
-                }
-                unset($p);
-            }
+            $this->updateCategoryUrls($products);
         }
 
         if ($this->post_fields) {
@@ -1686,12 +1784,12 @@ class shopProductsCollection
 
     /**
      * @param string $name
-     * @return shopProductModel
+     * @return shopProductModel|shopCategoryModel|shopTagModel|shopSetModel|shopFeatureModel|shopCategoryRoutesModel|shopCategoryProductsModel
      */
     protected function getModel($name = 'product')
     {
         if (!isset($this->models[$name])) {
-            if (in_array($name, array('product', 'category', 'tag', 'set', 'feature'))) {
+            if (in_array($name, array('product', 'category', 'tag', 'set', 'feature', 'categoryRoutes', 'categoryProducts'))) {
                 $class_name = 'shop'.ucfirst($name).'Model';
                 $this->models[$name] = new $class_name();
             }

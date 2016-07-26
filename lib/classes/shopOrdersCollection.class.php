@@ -81,6 +81,25 @@ class shopOrdersCollection
 
     protected function prepare($add = false, $auto_title = true)
     {
+        // Filter orders allowed for the courier
+        if (!$this->prepared && !empty($this->options['courier_id'])) {
+            // orders assigned to courier...
+            $this->options['courier_id'] = (int) $this->options['courier_id'];
+            $this->addJoin(array(
+                'type'  => '',
+                'table' => 'shop_order_params',
+                'on' => "o.id = :table.order_id AND :table.name = 'courier_id'",
+                'where' => ":table.value = '".$this->options['courier_id']."'",
+            ));
+            // ...either not completed at all or completed in last 24 hours
+            $this->addJoin(array(
+                'type'  => 'LEFT',
+                'table' => 'shop_order_log',
+                'on' => "o.id = :table.order_id AND :table.action_id IN ('complete', 'delete')",
+                'where' => "(:table.id IS NULL OR datetime >= '".date('Y-m-d H:i:s', time() - 3600*24)."')",
+            ));
+        }
+
         if (!$this->prepared || $add) {
             $type = $this->hash[0];
             if ($type) {
@@ -113,9 +132,6 @@ class shopOrdersCollection
                 }
             }
 
-            if ($this->prepared) {
-                return;
-            }
             $this->prepared = true;
         }
     }
@@ -232,7 +248,7 @@ class shopOrdersCollection
     public function getSQL()
     {
         $this->prepare();
-        $sql = "FROM shop_order o";
+        $sql = "\nFROM shop_order o";
 
         if ($this->joins) {
             foreach ($this->joins as $join) {
@@ -242,14 +258,13 @@ class shopOrdersCollection
                 } else {
                     $on = "o.id = ".($alias ? $alias : $join['table']).".order_id";
                 }
-                $sql .= (!empty($join['type']) ? " ".$join['type'] : '')." JOIN ".$join['table']." ".$alias." ON ".$on;
+                $sql .= "\n\t".trim((!empty($join['type']) ? " ".$join['type'] : '')." JOIN").' '.$join['table']." AS ".$alias." ON ".$on;
             }
         }
-
         if ($this->where) {
-            $sql .= " WHERE ".implode(" AND ", $this->where);
+            $sql .= "\nWHERE ".implode("\n\tAND ", $this->where);
         }
-        $sql .= $this->getOrderBy();
+        $sql .= "\n".trim($this->getOrderBy());
         return $sql;
     }
 
@@ -548,11 +563,14 @@ class shopOrdersCollection
                 'image',
                 'image_crop_small',
                 'frontend_url',
+                'images2x',
             );
             $products = $products_collection->getProducts(implode(',', $product_fields));
             foreach ($data as &$o) {
-                foreach ($o['items'] as &$it) {
-                    $it['product'] = ifset($products[$it['product_id']]);
+                if (!empty($o['items'])) {
+                    foreach ($o['items'] as &$it) {
+                        $it['product'] = ifset($products[$it['product_id']]);
+                    }
                 }
             }
             unset($o, $it);
@@ -630,8 +648,10 @@ class shopOrdersCollection
         if (isset($postprocess_fields['subtotal'])) {
             foreach ($data as &$o) {
                 $subtotal = 0;
-                foreach ($o['items'] as $i) {
-                    $subtotal += $i['price'] * $i['quantity'];
+                if (!empty($o['items'])) {
+                    foreach ($o['items'] as $i) {
+                        $subtotal += $i['price'] * $i['quantity'];
+                    }
                 }
                 $o['subtotal'] = $subtotal;
             }
@@ -650,9 +670,11 @@ class shopOrdersCollection
                         $o['shipping_info']['est_delivery'] = $o['params']['shipping_est_delivery'];
                     }
 
-                    $shipping_address = shopHelper::getOrderAddress($o['params'], 'shipping');
-                    if ($shipping_address) {
-                        $o['shipping_info']['address'] = $formatter->format(array('data' => $shipping_address));
+                    if(!empty($o['params'])) {
+                        $shipping_address = shopHelper::getOrderAddress($o['params'], 'shipping');
+                        if ($shipping_address) {
+                            $o['shipping_info']['address'] = $formatter->format(array('data' => $shipping_address));
+                        }
                     }
 
                     if ($o['shipping'] || $o['shipping_info']) {
@@ -665,9 +687,11 @@ class shopOrdersCollection
                 $formatter = new waContactAddressDataFormatter();
                 foreach ($data as &$o) {
                     $o['billing_info'] = array();
-                    $billing_address = shopHelper::getOrderAddress($o['params'], 'billing');
-                    if ($billing_address) {
-                        $o['billing_info']['address'] = $formatter->format(array('data' => $billing_address));
+                    if (!empty($o['params'])) {
+                        $billing_address = shopHelper::getOrderAddress($o['params'], 'billing');
+                        if ($billing_address) {
+                            $o['billing_info']['address'] = $formatter->format(array('data' => $billing_address));
+                        }
                     }
                 }
             }
@@ -701,8 +725,8 @@ class shopOrdersCollection
         }
         $create_datetime = $model->escape($order['create_datetime']);
 
-        // for calling prepare
-        $this->getSQL();
+        // Prepare beforehand to make sure calling getSQL() won't modify $this->where.
+        $this->prepare();
 
         // first, check existing in collection
         $this->where[] = 'o.id = '.$order_id;
@@ -955,6 +979,9 @@ class shopOrdersCollection
                 list($field, $param) = explode(':', $field, 2);
             }
             switch ($field) {
+                case 'updated':
+                    $this->order_by = "IFNULL(update_datetime, create_datetime) {$order}";
+                    break;
                 case 'amount':
                     if ($param !== null) {
                         $this->order_by = sprintf("ABS(o.total * o.rate - %s) %s", str_replace(',', '.', (float)$param), $order);

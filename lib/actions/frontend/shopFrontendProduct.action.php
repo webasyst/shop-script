@@ -15,53 +15,56 @@ class shopFrontendProductAction extends shopFrontendAction
 
     public function getBreadcrumbs(shopProduct $product, $product_link = false)
     {
-        if ($product['category_id']) {
-            $category_model = new shopCategoryModel();
-            $category = $category_model->getById($product['category_id']);
-            $product['category_url'] = waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'];
-
-            if (waRequest::param('url_type') == 2 && !waRequest::param('category_url')) {
-                $this->redirect(wa()->getRouteUrl('/frontend/product', array('product_url' => $product['url'], 'category_url' => $product['category_url'])), 301);
-            }
-            $breadcrumbs = array();
-            $path = $category_model->getPath($category['id']);
-            $path = array_reverse($path);
+        $category = null;
+        $breadcrumbs = array();
+        $root_category_id = null;
+        $product_categories = $product['categories'];
+        if ($product['category_id'] && isset($product_categories[$category['id']])) {
+            $category = $product_categories[$category['id']];
+        } else {
+            $product['category_id'] = null;
+        }
+        if (!$category && $product_categories) {
+            $category = reset($product_categories);
+        }
+        if ($category) {
             $root_category_id = $category['id'];
+            $category_model = new shopCategoryModel();
+            $path = $category_model->getPath($category['id']);
             if ($path) {
+                $path = array_reverse($path);
+                foreach ($path as $row) {
+                    $breadcrumbs[] = array(
+                        'url'  => wa()->getRouteUrl('/frontend/category', array(
+                            'category_url' => waRequest::param('url_type') == 1 ? $row['url'] : $row['full_url']
+                        )),
+                        'name' => $row['name']
+                    );
+                }
                 $temp = reset($path);
                 $root_category_id = $temp['id'];
             }
-            foreach ($path as $row) {
-                $breadcrumbs[] = array(
-                    'url'  => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $row['url'] : $row['full_url'])),
-                    'name' => $row['name']
-                );
-            }
-            if (!isset($product['categories'][$category['id']])) {
-                $product_categories = $product['categories'];
-                if ($product_categories) {
-                    $category = reset($product_categories);
-                } else {
-                    $category = array();
-                }
-            }
+            $breadcrumbs[] = array(
+                'url' => wa()->getRouteUrl('/frontend/category', array(
+                    'category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url']
+                )),
+                'name' => $category['name']
+            );
+        }
+        if ($product_link) {
+            $url_params = array(
+                'product_url' => $product['url'],
+            );
             if ($category) {
-                $breadcrumbs[] = array(
-                    'url' => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'])),
-                    'name' => $category['name']
-                );
+                $url_params['category_url'] = waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'];
             }
-            if ($product_link) {
-                $breadcrumbs[] = array(
-                    'url'  => wa()->getRouteUrl('/frontend/product', array('product_url' => $product['url'], 'category_url' => $product['category_url'])),
-                    'name' => $product['name']
-                );
-            }
-            if ($breadcrumbs) {
-                $this->view->assign('breadcrumbs', $breadcrumbs);
-            }
-        } else {
-            $root_category_id = null;
+            $breadcrumbs[] = array(
+                'url'  => wa()->getRouteUrl('/frontend/product', $url_params),
+                'name' => $product['name']
+            );
+        }
+        if ($breadcrumbs) {
+            $this->view->assign('breadcrumbs', $breadcrumbs);
         }
         $this->view->assign('root_category_id', $root_category_id);
     }
@@ -69,10 +72,6 @@ class shopFrontendProductAction extends shopFrontendAction
     protected function prepareProduct(shopProduct $product)
     {
         if (waRequest::get('sku')) {
-            $url_params = array('product_url' => $product['url']);
-            if ($product['category_url']) {
-                $url_params['category_url'] = $product['category_url'];
-            }
             if (isset($product->skus[waRequest::get('sku')])) {
                 $product['sku_id'] = waRequest::get('sku');
                 $s = $product->skus[$product['sku_id']];
@@ -86,7 +85,9 @@ class shopFrontendProductAction extends shopFrontendAction
         // Public virtual stock counts for each SKU
         $skus = $product->skus;
         foreach($skus as $sku_id => $sku) {
-            $skus[$sku_id]['stock'] = shopHelper::fillVirtulStock($skus[$sku_id]['stock']);
+            if(!empty($skus[$sku_id]['stock'])) {
+                $skus[$sku_id]['stock'] = shopHelper::fillVirtulStock($skus[$sku_id]['stock']);
+            }
         }
         $product->skus = $skus;
 
@@ -120,6 +121,7 @@ class shopFrontendProductAction extends shopFrontendAction
                     'available' => false,
                     'count'     => 0,
                     'price'     => null,
+                    'compare_price' => null,
                     'stock'     => array()
                 )
             );
@@ -134,7 +136,7 @@ class shopFrontendProductAction extends shopFrontendAction
             $product->compare_price = 0;
         }
 
-        // check categories
+        // check categories, only keeping those enabled for current storefront
         if ($product['categories']) {
             $categories = $product['categories'];
             $route = wa()->getRouting()->getDomain(null, true).'/'.wa()->getRouting()->getRoute('url');
@@ -147,6 +149,18 @@ class shopFrontendProductAction extends shopFrontendAction
             }
             $product['categories'] = $categories;
         }
+
+        // Ensure main category is enabled for current storefront
+        $product['category_url'] = null;
+        if ($product['category_id']) {
+            if (empty($product['categories'][$product['category_id']])) {
+                $product['category_id'] = null;
+            } else {
+                $category = $product['categories'][$product['category_id']];
+                $product['category_url'] = waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url'];
+            }
+        }
+
         $skus = $product->skus;
         foreach ($skus as $s_id => $s) {
             $skus[$s_id]['original_price'] = $s['price'];
@@ -227,17 +241,8 @@ class shopFrontendProductAction extends shopFrontendAction
         }
 
         $product = new shopProduct($product, true);
-
-        // check url
-        if ($product['url'] !== urldecode(waRequest::param('product_url'))) {
-            $url_params = array('product_url' => $product['url']);
-            if ($product['category_id']) {
-                $url_params['category_url'] = $product['category_url'];
-            }
-            $q = waRequest::server('QUERY_STRING');
-            $this->redirect(wa()->getRouteUrl('/frontend/product', $url_params).($q ? '?'.$q : ''), 301);
-        }
         $this->prepareProduct($product);
+        $this->ensureCanonicalUrl($product);
 
         if (!$is_cart) {
             $this->getBreadcrumbs($product);
@@ -307,6 +312,25 @@ class shopFrontendProductAction extends shopFrontendAction
         }
 
         $this->setThemeTemplate($is_cart ? 'product.cart.html' : 'product.html');
+    }
+
+    protected function ensureCanonicalUrl($product)
+    {
+        $url_params = array(
+            'product_url' => $product['url'],
+            'category_url' => $product['category_url'],
+        );
+        if (!$product['category_id']) {
+            unset($url_params['category_url']);
+        }
+
+        $canonical_url = ltrim(wa()->getRouteUrl('/frontend/product', $url_params), '/');
+        $actual_url = explode('?', wa()->getConfig()->getRequestUrl(), 2);
+        $actual_url = ltrim(urldecode($actual_url[0]), '/');
+        if ($canonical_url != $actual_url) {
+            $q = waRequest::server('QUERY_STRING');
+            $this->redirect('/'.$canonical_url.($q ? '?'.$q : ''), 301);
+        }
     }
 
     protected function getServiceVars($product)

@@ -404,7 +404,7 @@ class shopPayment extends waAppPayment
     {
         $str = str_pad($order_id, 4, '0', STR_PAD_LEFT);
         $path = 'orders/'.substr($str, -2).'/'.substr($str, -4, 2).'/'.$order_id.'/payment/'.$path;
-        return wa('shop')->getDataPath($path, false, 'shop');
+        return wa('shop')->getDataPath($path, false, 'shop', false);
     }
 
     public function getSettings($payment_id, $merchant_key)
@@ -522,20 +522,21 @@ class shopPayment extends waAppPayment
     public function getBackUrl($type = self::URL_SUCCESS, $transaction_data = array())
     {
         if (!empty($transaction_data['order_id'])) {
-            //TODO test it
             # set routing params for request (domain & etc)
             $model = new shopOrderParamsModel();
             $order_domain = $model->getOne($transaction_data['order_id'], 'storefront');
             if ($order_domain) {
+                $order_domain = preg_replace('@^(https?://)?(www\.)?@', '', rtrim($order_domain, '/'));
                 $routing = wa()->getRouting();
                 $domain_routes = $routing->getByApp('shop');
                 foreach ($domain_routes as $domain => $routes) {
                     foreach ($routes as $route) {
                         $settlement = $domain.'/'.$route['url'];
+                        $settlement = preg_replace('@^(https?://)?(www\.)?@', '', rtrim($settlement, '/*'));
                         if ($settlement == $order_domain) {
                             $routing->setRoute($route, $domain);
                             waRequest::setParam($route);
-                            break;
+                            break 2;
                         }
                     }
                 }

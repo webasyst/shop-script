@@ -186,6 +186,8 @@ class shopProductAction extends waViewAction
         $this->view->assign('sidebar_counters', $sidebar_counters);
         $this->view->assign('lang', substr(wa()->getLocale(), 0, 2));
         $this->view->assign('frontend_urls', $frontend_urls);
+        $this->view->assign('url_in_use', shopHelper::isProductUrlInUse($product));
+
 
         $tag_model = new shopTagModel();
         $this->view->assign('popular_tags', $tag_model->popularTags());

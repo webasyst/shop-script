@@ -153,6 +153,16 @@ class shopDiscounts
             $discount = $discount + $amount;
             $d && $amount > 0 && ($description .= "\n<br>".sprintf($d, shop_currency_html($amount, $currency, $currency)));
         }
+
+        // Round the discount if set up to do so
+        if ($discount && wa()->getEnv() == 'frontend' && wa()->getSetting('round_discounts') && $discount < ifset($order['total'], 0)) {
+            $rounded_discount = shopRounding::roundCurrency($discount, $currency);
+            if ($rounded_discount != $discount) {
+                $discount = $rounded_discount;
+                $description .= "\n<br>";
+                $description .= sprintf_wp('Discount rounded to %s', shop_currency_html($discount, $currency, $currency));
+            }
+        }
         return min(max(0, $discount), ifset($order['total'], 0));
     }
 

@@ -27,7 +27,7 @@ if (typeof($) != 'undefined') {
             /* init settings */
             var self = this;
 
-            $('#s-printform-content').on('submit', 'form',function () {
+            $('#s-printform-content').on('submit', 'form', function () {
                 var $this = $(this);
                 if ($this.hasClass('js-installer')) {
                     return (!$this.hasClass('js-confirm') || confirm($this.data('confirm-text') || $this.attr('title') || $_('Are you sure?')));
@@ -201,11 +201,22 @@ if (typeof($) != 'undefined') {
             }
         },
         printformSave: function ($form) {
-            $.shop.trace('d', this);
-            $.post($form.attr('action'), $form.serialize(), function (response) {
-                $('#s-printform-content').show().html($.settings.printform_options.loading).html(response);
-            });
-            return false;
+            var $content = $('#s-printform-content');
+            if ($form.find(':input[type="file"]').length) {
+                $("#plugins-settings-iframe").one('load', function () {
+                    try {
+                        var response = $(this).contents().find('body').html();
+                        $content.show().html($.settings.printform_options.loading).html(response);
+                    } catch (e) {
+                        $.shop.error(e);
+                    }
+                });
+            } else {
+                $.post($form.attr('action'), $form.serialize(), function (response) {
+                    $content.show().html($.settings.printform_options.loading).html(response);
+                });
+                return false;
+            }
         },
 
         printformHelper: {

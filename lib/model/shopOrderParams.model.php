@@ -16,7 +16,9 @@ class shopOrderParamsModel extends waModel
         }
         $params = array();
         $payment = $shipping = array();
-        $plugin_model = new shopPluginModel();
+        if ($full) {
+            $plugin_model = new shopPluginModel();
+        }
         foreach ($this->getByField('order_id', $ids, true) as $p) {
             $params[$p['order_id']][$p['name']] = $p['value'];
             if ($full) {

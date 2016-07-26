@@ -86,8 +86,8 @@ class shopFrontendBuybuttonsAction extends waViewAction
                 $available = false;
             }
             $_POST['features'] = $features;
-        } else {
-            $sku_id = (int)$post['sku_id'];
+        } else if (count($product->skus) > 1) {
+            $sku_id = (int) ifset($post['sku_id']);
             $skus = $product->skus;
             if (!isset($skus[$sku_id]) || !$skus[$sku_id]['available']) {
                 $available = false;
@@ -149,10 +149,10 @@ class shopFrontendBuybuttonsAction extends waViewAction
     public function getProduct($id)
     {
         if ($this->product === null) {
-            $product = new shopProduct($id);
+            $product = new shopProduct($id, true);
             $skus = $product->skus;
             foreach ($skus as &$sku) {
-                $sku['price_html'] = shop_currency_html($sku['price']);
+                $sku['price_html'] = shop_currency_html($sku['price'], $product['currency']);
                 $sku['orig_available'] = $sku['available'];
                 $sku['available'] = $this->isProductSkuAvailable($product, $sku);
             }

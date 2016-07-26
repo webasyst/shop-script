@@ -1,6 +1,6 @@
 <?php
 
-class shopDashboardSalesMethod extends waAPIMethod
+class shopDashboardSalesMethod extends shopApiMethod
 {
     protected $method = 'GET';
 

@@ -1,7 +1,8 @@
 <?php
-class shopPushnotificationDisableMethod extends waAPIMethod
+class shopPushnotificationDisableMethod extends shopApiMethod
 {
     protected $method = 'POST';
+    protected $courier_allowed = true;
 
     public function execute()
     {

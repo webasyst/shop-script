@@ -2,13 +2,20 @@
     <input type="hidden" name="id" value="{$order_id}">
     <input type="hidden" name="action_id" value="{$action_id}">
     <textarea name="text" placeholder="[`Optional comments`]"></textarea>
+
+    {if !empty($plugins_html)}
+        {foreach $plugins_html as $plugin_id => $html}
+            <!-- {$plugin_id} -->
+            {$html}
+        {/foreach}
+    {/if}
     <br><br>
     <input type="submit" value="[`Save`]"> [`or`] <a class="cancel inline-link" href="#"><b><i>[`cancel`]</i></b></a>
 </form>
 
 <script type="text/javascript">
     // cancel link
-    $('a.cancel').click(function() {
+    $('#wf-pay-form > a.cancel').click(function() {
         $('#workflow-content').empty().hide();
         $('.workflow-actions').show();
         return false;

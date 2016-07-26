@@ -10,7 +10,7 @@
             <li>
                 <a href="#/affiliate/{$p.id}/" data-url="{$p.url}">
                     <span class="count s-exclamation" {if $enabled}style="display: none;"{/if}><i class="icon16 exclamation" title="[`Disabled`]"></i></span>
-                    <i class="icon16 {if !isset($p.img)} plugins{else}" style="background-image: url('{$wa_url}{$p.img}'); background-size: 16px 16px;{/if}"></i>{$p.name}
+                    <i class="icon16 {if !isset($p.img)} plugins{else}" style="background-image: url('{$wa_url}{$p.img}'); background-size: 16px 16px;{/if}"></i>{$p.name|escape}
                 </a>
             </li>
             {/foreach}

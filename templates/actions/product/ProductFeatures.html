@@ -36,6 +36,7 @@
             <div class="name"><label for="product-features-{$code}">
                     {if empty($feature.internal)}<i class="icon10 exclamation"
                                                     title="[`This feature is not listed for the product type this product belongs to`]"></i> {/if}{$feature.name|escape}
+                                                    {if $feature.status != 'public'}<i class="icon16 ss visibility" title="[`Only visible in backend`]"></i>{/if}
                 </label></div>
 
 

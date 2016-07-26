@@ -14,6 +14,7 @@ class shopOrderAction extends waViewAction
 
     public function execute()
     {
+        wa()->getRequest();
         $order = $this->getOrder();
         if (!$order) {
             $this->view->assign('order', $order);
@@ -247,6 +248,12 @@ HTML;
             $similar_contacts = array();
         }
 
+        $courier = null;
+        if (!empty($params['courier_id'])) {
+            $courier_model = new shopApiCourierModel();
+            $courier = $courier_model->getById($params['courier_id']);
+        }
+
         $this->view->assign(array(
             'customer'             => $customer,
             'customer_contact'     => $customer_contact,
@@ -261,6 +268,7 @@ HTML;
             'top_buttons'          => $top_buttons,
             'actions_html'         => $actions_html,
             'buttons'              => $buttons,
+            'sales_channel'        => $this->formatSalesChannel($params),
             'filter_params'        => $this->getParams(),
             'filter_params_str'    => $this->getParams(true),
             'count_new'            => $this->getModel()->getStateCounters('new'),
@@ -270,6 +278,7 @@ HTML;
             'shipping_address'     => $shipping_address,
             'shipping_id'          => ifset($params['shipping_id'], '').'.'.ifset($params['shipping_rate_id'], ''),
             'offset'               => $this->getModel()->getOffset($order['id'], $this->getParams(), true),
+            'courier'              => $courier,
         ));
 
         /**
@@ -288,6 +297,25 @@ HTML;
             'action_link',
             'info_section'
         )));
+    }
+
+    protected function formatSalesChannel($params)
+    {
+        if (empty($params['sales_channel']) || $params['sales_channel'] == 'other:') {
+            return _w('Unknown channel');
+        } elseif ($params['sales_channel'] == 'backend:') {
+            return _w('Backend');
+        } elseif ($params['sales_channel'] == 'buy_button:') {
+            return _w('Buy button');
+        } else if (substr($params['sales_channel'], 0, 11) == 'storefront:') {
+            return _w('Storefront');
+        } else {
+            $result = array(
+                $params['sales_channel'] => $params['sales_channel'],
+            );
+            wa('shop')->event('backend_reports_channels', $result);
+            return ifempty($result[$params['sales_channel']], $params['sales_channel']);
+        }
     }
 
     public function getOrder()

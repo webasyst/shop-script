@@ -54,7 +54,7 @@
         </tr>
     </table>
 
-    <div class="s-product-list-save-panel block bordered-top">
+    <div class="s-product-list-save-panel block bordered-top" style="display:none;">
         <input type="button" class="button green" value="[`Save`]">
         <span class="s-loading" style="display: none"><i class="icon16 loading" style="margin-top: 0.5em;"></i></span>
         <span class="s-yes" style="display: none"><i class="icon16 yes" style="margin-top: 0.5em;"></i> [`Saved`]</span>
@@ -81,19 +81,25 @@
             <input class="short"
                    placeholder="0"
                    name="product[{%#product.id%}][sku][{%#sku.id%}][purchase_price]"
-                   value="{%#sku.purchase_price_float%}">
+                   value="{%#sku.purchase_price_float%}"
+                   {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
+            >
         </td>
         <td class="short align-right s-product-sku-compare-price">
             <input class="short strike"
                    placeholder="0"
                    name="product[{%#product.id%}][sku][{%#sku.id%}][compare_price]"
-                   value="{%#sku.compare_price_float%}">
+                   value="{%#sku.compare_price_float%}"
+                   {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
+            >
         </td>
         <td class="short align-right s-product-sku-price">
             <input class="short"
                    placeholder="0"
                    name="product[{%#product.id%}][sku][{%#sku.id%}][price]"
-                   value="{%#sku.price_float%}">
+                   value="{%#sku.price_float%}"
+                   {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
+            >
         </td>
     {% }; %}
 
@@ -107,7 +113,9 @@
                             placeholder="∞" value=""
                        {% } else { %}
                             placeholder="{%#sku.count%}" value="{%#sku.count%}"
-                       {% } %}>
+                       {% } %}
+                       {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
+                >
             </td>
         {% } else { %}
             {% var stock, stock_iterator = $.shop.iterator(stocks); %}
@@ -119,10 +127,12 @@
                     <input class="short small instock"
                            name="product[{%#product.id%}][sku][{%#sku.id%}][stock][{%#stock.id%}]"
                            {% if (count === null) { %}
-                           placeholder="∞" value=""
+                                placeholder="∞" value=""
                            {% } else { %}
-                           placeholder="{%#count%}" value="{%#count%}"
-                           {% } %}>
+                                placeholder="{%#count%}" value="{%#count%}"
+                           {% } %}
+                           {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
+                    >
                 {% } %}
             </td>
             {% } %}
@@ -197,10 +207,6 @@
     {/literal}
 </script>
 
-{*
- * Product list settings dialog
- *}
-{if $wa->user()->isAdmin()}
 <script>
 
     (function() { "use strict";
@@ -211,6 +217,18 @@
         save_panel.css({
             paddingLeft: $('#s-sidebar').width()
         });
+        
+        // listen for appending, check rights and available save button
+        $('#product-list').unbind('append_product_list.product_list_skus')
+            .bind('append_product_list.product_list_skus', function (e, products) {
+                var product, product_iterator = $.shop.iterator(products);
+                while (product = product_iterator.next()) {
+                    if (product.edit_rights) {
+                        save_panel.show().find('[type=button]').attr('disabled', false);
+                        break;
+                    }
+                }
+            });
 
         var save_button = save_panel.find(':button');
         var changed = false;
@@ -225,7 +243,11 @@
             changed = true;
         };
 
-        $.shop.changeListener(product_list_container, ':input:not(:button)', onAnyChange);
+        $.shop.changeListener(
+            product_list_container,
+            ':input:not(:button):not(.s-select-all):not([type=checkbox])',
+            onAnyChange
+        );
 
         $.shop.confirmLeave({
             keepListen: function () { return !product_list_container.is(':hidden'); },
@@ -286,4 +308,3 @@
 
     })();
 </script>
-{/if}

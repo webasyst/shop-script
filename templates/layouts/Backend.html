@@ -64,6 +64,26 @@
             });
         });
     </script>
+
+    {if $is_web_push_on}
+        <link rel="manifest" href="/manifest.json">
+        <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
+        <script>
+
+            var OneSignal = OneSignal || [];
+            OneSignal.push(function() {
+                OneSignal.LOGGING = true;
+                if (OneSignal.isPushNotificationsSupported()) {
+                    console.log("Push notifications are supported");
+                }
+                if (OneSignal.isPushNotificationsEnabled()) {
+                    console.log("Push notifications are enabled");
+                }
+            });
+
+        </script>
+    {/if}
+
 </head>
 <body>
 <div id="wa"{if isset($no_level2)} class="s-no-level2"{/if}>
@@ -233,7 +253,7 @@
 
                             {elseif $page == 'orders'}
 
-                                <ul class="menu-h with-icons float-right" id="s-orders-views">
+                                <ul class="menu-h float-right" id="s-orders-views">
                                     <li data-view="split">
                                         <a href="#"><i class="icon16 view-splitview"></i></a>
                                     </li>
@@ -246,6 +266,28 @@
                                     {foreach $backend_orders as $_}{ifset($_.viewmode_li)}{/foreach}
 
                                 </ul>
+
+                                <ul class="menu-v dropdown  with-icons float-right s-orders-sort" id="s-orders-sort">
+                                    <li>
+                                        <a href="javascript:void(0);" class="inline-link s-current-sort" data-sort=""><b><i>
+                                            <span class="f-text"></span>
+                                        </i></b></a>
+                                        <i class="icon10 darr-tiny s-sort-order" style="display: none;" data-order="desc"></i>
+                                        <i class="icon10 uarr-tiny s-sort-order" style="display: none;" data-order="asc"></i>
+                                        <ul class="menu-v with-icon">
+                                            <li class="s-sort" data-sort="create_datetime">
+                                                <a href="javascript:void(0);" data-sort="create_datetime">[`Date created`]</a>
+                                            </li>
+                                            <li class="s-sort" data-sort="updated">
+                                                <a href="javascript:void(0);" data-sort="updated">[`Date updated`]</a>
+                                            </li>
+                                            <li class="s-sort" data-sort="paid_date">
+                                                <a href="javascript:void(0);" data-sort="paid_date">[`Date paid`]</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+
                                 <div class="s-search-form">
                                     <i class="icon16 ss search-bw"></i>
                                     <input type="search" placeholder="[`Search orders`]" id="s-orders-search">

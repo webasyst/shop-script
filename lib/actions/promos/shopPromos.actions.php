@@ -17,13 +17,16 @@ class shopPromosActions extends waViewActions
         $storefronts = $this->getStorefronts();
         $promo_routes_model = new shopPromoRoutesModel();
         foreach($promo_routes_model->getMaxSorts() as $d => $sort) {
-            if (empty($storefronts[$d]) && $d != '%all%') {
-                $storefronts[$d] = array(
-                    'storefront' => $d,
-                    'name' => $d,
-                    'active' => false,
-                    'sort' => 0,
-                );
+            if ($d != '%all%') {
+                $d = rtrim($d, '/') . '/';
+                if (empty($storefronts[$d])) {
+                    $storefronts[$d] = array(
+                        'storefront' => $d,
+                        'name' => $d,
+                        'active' => false,
+                        'sort' => 0,
+                    );
+                }
             }
         }
 
@@ -52,6 +55,13 @@ class shopPromosActions extends waViewActions
         $counts = $promo_routes_model->getStorefrontCounts();
         foreach($storefronts as &$s) {
             $s['count'] = ifset($counts[$s['storefront']], 0);
+            unset($counts[$s['storefront']]);
+        }
+        foreach($counts as $d => $count) {
+            $d = rtrim($d, '/') . '/';
+            if (!empty($storefronts[$d])) {
+                $storefronts[$d]['count'] += $count;
+            }
         }
         unset($s);
 
@@ -360,6 +370,7 @@ EOF;
     {
         $storefronts = array();
         foreach(shopHelper::getStorefronts() as $url) {
+            $url = rtrim($url, '/').'/';
             $storefronts[$url] = array(
                 'storefront' => $url,
                 'name' => $url,
@@ -372,6 +383,7 @@ EOF;
             $promo_routes_model = new shopPromoRoutesModel();
             $rows = $promo_routes_model->getByField('promo_id', $promo_id, 'storefront');
             foreach($rows as $url => $row) {
+                $url = rtrim($url, '/').'/';
                 if (empty($storefronts[$url])) {
                     $storefronts[$url] = array(
                         'storefront' => $url,

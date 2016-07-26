@@ -12,7 +12,7 @@ class shopSettingsPrintformSetupAction extends waViewAction
             $plugins = $this->getConfig()->getPlugins();
             if (isset($plugins[$plugin_id]) && !empty($plugins[$plugin_id]['printform'])) {
 
-                $plugin = waSystem::getInstance()->getPlugin($plugin_id);
+                $plugin = waSystem::getInstance()->getPlugin($plugin_id, true);
                 /**
                  * @var shopPlugin|shopPrintformInterface $plugin
                  */
@@ -20,9 +20,17 @@ class shopSettingsPrintformSetupAction extends waViewAction
                 $namespace = 'printform_'.$plugin_id;
 
                 if ($settings = waRequest::post($namespace)) {
-                    //TODO save common plugin settings
-                    $plugin->saveSettings($settings);
-                    $this->view->assign('saved', true);
+                    if ($files = waRequest::file($namespace)) {
+                        foreach ($files as $name => $file) {
+                            $settings[$name] = $file;
+                        }
+                    }
+                    try {
+                        $plugin->saveSettings($settings);
+                        $this->view->assign('saved', true);
+                    } catch (waException $ex) {
+                        $this->view->assign('error', $ex->getMessage());
+                    }
                 }
 
                 $params = array(

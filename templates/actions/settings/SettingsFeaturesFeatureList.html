@@ -1,17 +1,21 @@
 {foreach $features as $id => $feature}{strip}
     {$_types = array_keys($feature.types)}
     {if sort($_types)}{/if}
-    <tr data-types="{implode(' ',$_types)|escape}" data-feature="{$id}" 
-            data-type="{$feature.type|default:shopFeatureModel::TYPE_VARCHAR|escape}" 
-            data-sort="{$feature.sort|default:array()|json_encode|escape}" 
-            data-selectable="{$feature.selectable|escape}" 
-            data-multiple="{$feature.multiple|escape}" 
+    <tr data-types="{implode(' ',$_types)|escape}" data-feature="{$id}"
+            data-type="{$feature.type|default:shopFeatureModel::TYPE_VARCHAR|escape}"
+            data-sort="{$feature.sort|default:array()|json_encode|escape}"
+            data-selectable="{$feature.selectable|escape}"
+            data-multiple="{$feature.multiple|escape}"
+            data-status="{$feature.status|escape}"
             {if $feature.type eq 'divider'} class="gray"{/if}
       >
         <td class="min-width">
             <i class="icon16 sort"></i>
         </td>
         <td>
+            {if $feature.status != 'public'}
+                <div class="float-right" style="margin-top:8px;"><i class="icon16 ss visibility" title="[`Only visible in backend`]"></i></div>
+            {/if}
             <span class="js-feature-name">{$feature.name|escape}</span>
             <br>
             <span class="js-feature-code hint">{$feature.code|escape}</span>

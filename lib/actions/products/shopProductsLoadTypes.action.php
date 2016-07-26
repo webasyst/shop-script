@@ -10,7 +10,7 @@ class shopProductsLoadTypesAction extends waViewAction
         } else {
             $type_model = new shopTypeModel();
             wa()->getUser()->setSettings('shop', 'collapse_types', 0);
-            $this->view->assign('types', $type_model->getTypes());
+            $this->view->assign('types', $type_model->getAll('id'));
         }
     }
 }

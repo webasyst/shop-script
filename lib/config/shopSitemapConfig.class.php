@@ -10,12 +10,14 @@ class shopSitemapConfig extends waSitemapConfig
 
         $this->app_id = wa()->getApp();
 
+        $category_routes_model = new shopCategoryRoutesModel();
         $category_model = new shopCategoryModel();
         $product_model = new shopProductModel();
         $page_model = new shopPageModel();
 
         $count = 0;
 
+        $category_routes = array();
         $real_domain = $this->routing->getDomain(null, true, false);
 
         foreach ($routes as $route) {
@@ -23,6 +25,7 @@ class shopSitemapConfig extends waSitemapConfig
             $domain = $this->routing->getDomain(null, true);
             $route_url = $domain.'/'.$this->routing->getRoute('url');
 
+            // First page of sitemap contains categories and pages
             if ($n == 1) {
                 // categories
                 $sql = "SELECT c.id,c.parent_id,c.left_key,c.url,c.full_url,c.create_datetime,c.edit_datetime
@@ -64,6 +67,9 @@ class shopSitemapConfig extends waSitemapConfig
                 $plugin_urls = wa()->event(array($this->app_id, 'sitemap'), $route);
                 if ($plugin_urls) {
                     foreach ($plugin_urls as $urls) {
+                        if (!is_array($urls)) {
+                            continue;
+                        }
                         foreach ($urls as $url) {
                             $this->addUrl($url['loc'], ifset($url['lastmod'], time()), ifset($url['changefreq']), ifset($url['priority']));
                         }
@@ -74,10 +80,11 @@ class shopSitemapConfig extends waSitemapConfig
                 $this->addUrl($main_url, time(), self::CHANGE_DAILY, 1);
             }
 
-            // products
+            // count products for pagination
             $c = $this->countProductsByRoute($route);
 
             if ($count + $c <= ($n - 1) * $this->limit) {
+                // Skip routes until start of page $n reached
                 $count += $c;
                 continue;
             } else {
@@ -90,9 +97,10 @@ class shopSitemapConfig extends waSitemapConfig
                 $limit = min($this->limit, $n * $this->limit - $count);
             }
 
+            // SQL for products info
             $sql = "SELECT p.id, p.url, p.create_datetime, p.edit_datetime";
             if (isset($route['url_type']) && $route['url_type'] == 2) {
-                $sql .= ', c.full_url category_url';
+                $sql .= ', c.full_url category_url, p.category_id';
             }
             $sql .= " FROM ".$product_model->getTableName().' p';
             if (isset($route['url_type']) && $route['url_type'] == 2) {
@@ -104,48 +112,71 @@ class shopSitemapConfig extends waSitemapConfig
             }
             $sql .= ' LIMIT '.$offset.','.$limit;
             $products = $product_model->query($sql, $route);
-
             $count += $products->count();
 
-            // products pages
-            try {
-                $sql = "SELECT p.id FROM " . $product_model->getTableName() . ' p WHERE p.status = 1';
-                if (!empty($route['type_id'])) {
-                    $sql .= ' AND p.type_id IN (i:type_id)';
-                }
-                $sql .= ' LIMIT ' . $offset . ',' . $limit;
-                $sql = 'SELECT pp.product_id, pp.url, pp.create_datetime, pp.update_datetime
-                        FROM shop_product_pages pp JOIN (' . $sql . ') as t ON pp.product_id = t.id
-                        WHERE pp.status = 1';
-                $rows = $product_model->query($sql, $route);
-                $products_pages = array();
-                foreach ($rows as $row) {
-                    $products_pages[$row['product_id']][] = $row;
-                }
-            } catch (waDbException $e) {
-                $products_pages = array();
-            }
-
+            // Product URL template
             $product_url = $this->routing->getUrl($this->app_id.'/frontend/product', array(
                 'product_url' => '%PRODUCT_URL%',
                 'category_url' => '%CATEGORY_URL%'
             ), true, $real_domain);
 
-            foreach ($products as $p) {
-                if (!empty($p['category_url'])) {
-                    $url = str_replace(array('%PRODUCT_URL%', '%CATEGORY_URL%'), array($p['url'], $p['category_url']), $product_url);
-                } else {
-                    $url = str_replace(array('%PRODUCT_URL%', '/%CATEGORY_URL%'), array($p['url'], ''), $product_url);
+            // Output products, fetching product pages in batch
+            $batch_size = 120;
+            $iterator = $products->getIterator();
+            while($iterator->valid()) {
+                // Fetch next $batch_size products
+                $ps = array();
+                $new_category_ids = array();
+                for ($i = 0; $i < $batch_size && $iterator->valid(); $i++) {
+                    $p = $iterator->current();
+                    $p['pages'] = array();
+                    $ps[$p['id']] = $p;
+                    $iterator->next();
+                    if (!empty($p['category_id'])) {
+                        $new_category_ids[$p['category_id']] = $p['category_id'];
+                    }
                 }
-                $this->addUrl($url, $p['edit_datetime'] ? $p['edit_datetime'] : $p['create_datetime'], self::CHANGE_MONTHLY, 0.8);
 
-                if (isset($products_pages[$p['id']])) {
-                    foreach ($products_pages[$p['id']] as $pp) {
+                // Fetch product pages of current batch
+                $sql = 'SELECT pp.product_id, pp.url, pp.create_datetime, pp.update_datetime
+                        FROM shop_product_pages pp
+                        WHERE pp.product_id IN ('.join(',', array_keys($ps)).')
+                            AND pp.status = 1';
+                $rows = $product_model->query($sql, $route);
+                foreach ($rows as $row) {
+                    $ps[$row['product_id']]['pages'][] = $row;
+                }
+
+                // Fetch info about which categories are enabled for current storefront
+                $category_disabled = array();
+                $category_routes += $category_routes_model->getRoutes(array_values(array_diff_key($new_category_ids, $category_routes)), false);
+                $category_routes += array_fill_keys(array_keys($new_category_ids), null);
+                foreach($new_category_ids as $category_id) {
+                    if (!empty($category_routes[$category_id])) {
+                        if (!in_array($route_url, $category_routes[$category_id])) {
+                            $category_disabled[$category_id] = true;
+                        }
+                    }
+                }
+
+                // Add urls to sitemap
+                foreach($ps as $p) {
+                    if (empty($p['category_id']) || !empty($category_disabled[$p['category_id']])) {
+                        $p['category_url'] = null;
+                    }
+                    if (!empty($p['category_url'])) {
+                        $url = str_replace(array('%PRODUCT_URL%', '%CATEGORY_URL%'), array($p['url'], $p['category_url']), $product_url);
+                    } else {
+                        $url = str_replace(array('%PRODUCT_URL%', '/%CATEGORY_URL%'), array($p['url'], ''), $product_url);
+                    }
+                    $this->addUrl($url, $p['edit_datetime'] ? $p['edit_datetime'] : $p['create_datetime'], self::CHANGE_MONTHLY, 0.8);
+                    foreach ($p['pages'] as $pp) {
                         $this->addUrl($url.$pp['url'].'/', $pp['update_datetime'] ? $pp['update_datetime'] : $pp['create_datetime'], self::CHANGE_MONTHLY, 0.4);
                     }
                 }
             }
 
+            // Check if end of current sitemap page is reached
             if ($count >= $n * $this->limit) {
                 break;
             }

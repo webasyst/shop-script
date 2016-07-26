@@ -1,4 +1,5 @@
 <?php
+
 class shopBackendOrdersAction extends waViewAction
 {
     public function execute()
@@ -37,11 +38,16 @@ class shopBackendOrdersAction extends waViewAction
         $backend_orders = wa()->event('backend_orders');
         $this->getLayout()->assign('backend_orders', $backend_orders);
 
+        $courier_model = new shopApiCourierModel();
+        $couriers = $courier_model->getEnabled();
+        $courier_model->getOrderCounts($couriers);
+
         $this->view->assign(array(
             'states'          => $this->getStates(),
             'user_id'         => $this->getUser()->getId(),
             'contacts'        => array() /*$order_model->getContacts()*/,
             'default_view'    => $config->getOption('orders_default_view'),
+            'couriers'        => $couriers,
             'coupons_count'   => $cm->countActive(),
             'state_counters'  => $state_counters,
             'pending_count'   => $pending_count,
@@ -49,6 +55,7 @@ class shopBackendOrdersAction extends waViewAction
             'sales_channels'  => $sales_channels,
             'backend_orders'  => $backend_orders,
             'unsettled_count' => $unsettled_count,
+            'web_push' => new shopWebPushNotifications()
         ));
     }
 

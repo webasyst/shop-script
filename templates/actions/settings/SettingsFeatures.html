@@ -122,9 +122,12 @@
                 {/if}
 
 <!-- {capture name="feature-template-js"}{literal} feature jquery template -->
-                <tr data-types="${feature.types.join(" ")}" data-feature="${feature.id}" data-sort="${feature.sort_json}" data-type="${feature.type}" data-selectable="${feature.selectable}" data-multiple="${feature.multiple}" {{if (feature.type=='divider')}} class="gray"{{/if}}>
+                <tr data-types="${feature.types.join(" ")}" data-feature="${feature.id}" data-sort="${feature.sort_json}" data-type="${feature.type}" data-selectable="${feature.selectable}" data-multiple="${feature.multiple}" data-status="${feature.status}" {{if (feature.type=='divider')}} class="gray"{{/if}}>
                     <td class="min-width"><i class="icon16 sort"></i></td>
                     <td>
+                        {{if feature.status != 'public'}}
+                            <div class="float-right" style="margin-top:8px;"><i class="icon16 ss visibility" title="[`Only visible in backend`]"></i></div>
+                        {{/if}}
                         <span class="js-feature-name">${feature.name}</span><br>
                         <span class="js-feature-code hint">${feature.code}</span>
                     </td>
@@ -169,6 +172,12 @@
                     <span class="js-feature-code hint">${feature.code}<a href="#/features/feature/code/edit/${feature.id}/" class="js-action" style="display: inline;"><i class="icon10 edit"></i></a></span>
                     {{/if}}
                     <input type="text" class="small" name="feature[${feature.id}][code]" value="${feature.code}" style="width:50px; display: none;">
+                    <br>
+                    <label>
+                        <input type="checkbox" name="feature[${feature.id}][status_private]" value="1"{{if feature.status != 'public'}} checked{{/if}}>
+                        [`Only visible in backend`]
+                    </label>
+
                     </td>
                     <td>
                         <input type="hidden" name="feature[${feature.id}][type]" value="${feature.type}">

@@ -213,6 +213,102 @@
         </div>
         </form>
     </div>
+
+    <div class="block double-padded">
+        <h2>[`Web push notifications`]</h2>
+        {if !$web_push->isBrowserSupported()}
+            <div class="block not-padded">
+                <p>
+                    <i class="icon16 exclamation"></i>
+                    [`Your browser doesn't support web push technology.`]
+                    <br>
+                    [`However, you can configure web push notifications so that users with supported browsers can receive them.`]
+                    <br>
+                    [`Check <a target="_blank" href="https://documentation.onesignal.com/docs/website-sdk-overview">web push documentation</a> for the list of supported browsers.`]
+                </p>
+            </div>
+        {/if}
+        <div class="fields form">
+            {$domain = $web_push->getDomain()}
+            {$manifest = $web_push->getManifest()}
+            {$is_active = $web_push->isActive()}
+            {$is_allowed = $web_push->isAllowed()}
+            <form id="s-checkout-web-push-form" method="post" action="?module=settingsCheckoutSave&action=webpush">
+                <div class="field">
+                    <div class="name">{$domain}</div>
+
+                    <div class="value s-ibutton-checkbox">
+
+                        {if !$is_allowed}
+                            [`This domain does not support push notifications. Ensure that an SSL certificate is installed for the domain name.`]
+                        {else}
+                            <ul class="menu-h">
+                                <li><span {if !$is_active} class="gray"{/if} id="s-toggle-web-push-disabled-label">[`Disabled`]</span></li>
+                                <li>
+                                    <input type="checkbox" id="s-toggle-web-push-active" name="web_push_settings[active]" value="1" {if $is_active}checked="checked"{/if}>
+                                </li>
+                                <li><span id="s-toggle-web-push-enabled-label" {if $is_active} class="gray"{/if}>[`Enabled`]</span></li>
+                            </ul>
+                        {/if}
+
+                    </div>
+
+                    {if $is_allowed}
+
+                        <div id="s-web-push-enabled-block" class="value s-web-push-settings" {if !$is_active}style="display: none"{/if}>
+                            <p class="small">{sprintf('[`User manual on setting up web push notifications: <a href="%s" target="_blank">%s</a>.`]','[`http://www.shop-script.com/help/13536/push-notifications/`]','[`http://www.shop-script.com/help/13536/push-notifications/`]')}</p>
+                            <div class="field">
+                                <div class="name">[`Short company name`]</div>
+                                <div class="value">
+                                    <input type="text" name="web_push_settings[manifest][short_name]" value="{$manifest.short_name|default:''}">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`Google project number`]</div>
+                                <div class="value">
+                                    <input type="text" name="web_push_settings[manifest][gcm_sender_id]" value="{$manifest.gcm_sender_id|default:''}">
+                                </div>
+                                <div class="value">
+                                    <span class="hint">[`Enter values obtained during signup on onesignal.com website`]</span>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`Safari Web ID`]</div>
+                                <div class="value">
+                                    <input type="text" name="web_push_settings[safari_web_id]" value="{$web_push->getSafariWebId()}">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`OneSignal App ID`]</div>
+                                <div class="value">
+                                    <input type="text" name="web_push_settings[app_id]" value="{$web_push->getAppId()}">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`REST API Key`]</div>
+                                <div class="value">
+                                    <input type="text" name="web_push_settings[rest_api_key]" value="{$web_push->getRestApiKey()}">
+                                </div>
+                            </div>
+                            <div class="field buttons">
+                                <div class="value">
+                                    <input type="submit" class="button green" value="[`Save`]">
+                                    <i class="icon16 loading" style="display: none"></i>
+                                    <i class="icon16 yes" style="display: none"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="s-web-push-disabled-block" class="value" {if $is_active}style="display: none"{/if}>
+                            <p class="hint">[`Enable web push notifications for your browser to get notified on new orders on your computer screen.`]</p>
+                        </div>
+
+                    {/if}
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="clear-both"></div>
 </div>
 
@@ -270,4 +366,43 @@
             }, 400);
         });
     });
+
+    // web push active trigger
+    (function () {
+
+        var save = function (animate) {
+            var $form = $('#s-checkout-web-push-form');
+            animate && $form.find('.buttons .loading').show();
+            $.post($form.attr('action'), $form.serialize(), function () {
+                if (animate) {
+                    $form.find('.buttons .loading').hide();
+                    $form.find('.buttons .yes').show();
+                    setTimeout(function () {
+                        $form.find('.buttons .yes').hide();
+                    }, 400);
+                }
+            });
+        };
+
+        $('#s-toggle-web-push-active').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
+            if (this.checked) {
+                $('#s-toggle-web-push-disabled-label').addClass('gray');
+                $('#s-toggle-web-push-enabled-label').removeClass('gray');
+                $('#s-web-push-disabled-block').hide();
+                $('#s-web-push-enabled-block').show();
+            } else {
+                $('#s-toggle-web-push-disabled-label').removeClass('gray');
+                $('#s-toggle-web-push-enabled-label').addClass('gray');
+                $('#s-web-push-enabled-block').hide();
+                $('#s-web-push-disabled-block').show();
+            }
+            save(false);
+        });
+
+        $('#s-checkout-web-push-form').submit(function () {
+            save(true);
+            return false;
+        });
+    })();
+
 </script>

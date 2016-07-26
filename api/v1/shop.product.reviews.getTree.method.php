@@ -1,6 +1,6 @@
 <?php
 
-class shopProductReviewsGetTreeMethod extends waAPIMethod
+class shopProductReviewsGetTreeMethod extends shopApiMethod
 {
     public function execute()
     {

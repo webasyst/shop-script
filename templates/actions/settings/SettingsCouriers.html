@@ -1,0 +1,333 @@
+{*
+ * Sidebar with list of couriers
+ *}
+<div class="sidebar left200px">
+    <div class="s-inner-sidebar">
+        <ul class="menu-v stack with-icons s-courier-list">
+            {foreach $couriers as $c}
+                <li{if !$c.enabled} class="s-expired"{/if}>
+                    <span class="count">{$c.orders_processed}</span>
+                    <a href="#/couriers/{$c.id}" class="gray" data-id="{$c.id}">
+                        {if $c.contact_id}
+                            <i class="icon16 userpic20" style="background-image: url({waContact::getPhotoUrl($c.contact_id, $c.photo, 40)})"></i>
+                        {else}
+                            <i class="icon16 ss courier"></i>
+                        {/if}
+                        {$c.name|escape}
+                    </a>
+                </li>
+            {/foreach}
+            <li class="top-padded">
+                <a href="#/couriers/new" class="small" data-id=""><i class="icon10 add"></i>[`New courier`]</a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+{*
+ * Main content with editor form
+ *}
+<div class="content left200px s-settings-form blank bordered-left">
+
+    {*
+     * One-time help block above the editor
+     *}
+    <div class="s-alert" style="border-left: 0;">
+        <a href="javascript:void(0)" class="s-alert-close">&times;</a>
+        [`Couriers are your teammates who are assigned to deliver orders to customers and to track and update order information on the go using <a href="http://www.shop-script.com/mobile/" target="_blank">Shop-Script mobile app</a>.<br><br> Unlike common backend users, couriers may not login to the main store backend and can only see orders they were assigned using the mobile app only. An order can be assigned to a courier upon the order SHIP action. <a href="https://www.shop-script.com/help/13421/shop-script-couriers/" target="_blank">Learn more about couriers</a>.`]
+    </div>
+
+    <div class="block double-padded">
+    <form action="?module=settings&action=couriers">
+        <div class="fields form">
+          <div class="field-group">
+            <input type="hidden" name="id" value="{$courier.id}">
+            <div class="field">
+                <div class="name">[`Courier name`]</div>
+                <div class="value">
+                    <a href="{$wa_backend_url}contacts/#/contact/{$courier.contact_id}"{if !$courier.contact_id} style="display:none;"{/if}>
+                        <img class="userpic" src="{$courier_contact_photo_url|escape}" width="32" height="32" style="vertical-align:top;margin-top:-4px">
+                    </a>
+                    <input type="hidden" name="courier[contact_id]" value="{$courier.contact_id}">
+                    <input type="text" name="courier[name]" id="courier-contacts-autocomplete" value="{$courier.name|escape}" class="bold large long">
+                    <br><span class="hint">[`Courier real or nick name. Linking couriers with real contacts or backend users is optional.`]</span>
+                </div>
+            </div>
+            <div class="field">
+                <div class="name">[`Note`]</div>
+                <div class="value">
+                    <textarea name="courier[note]" placeholder="[`Optional`]">{$courier.note|escape}</textarea>
+                    <br><span class="hint">[`Any kind of useful information about this courier, e.g. contact information, preferred delivery hours and locations.`]</span>
+                </div>
+            </div>
+            {if $courier.storefronts}
+                <div class="field">
+                    <div class="name">[`Storefronts`]</div>
+                    <div class="value no-shift"><label>
+                        <input type="radio" name="courier[all_storefronts]" value="1"{if $courier.all_storefronts} checked{/if}>
+                        [`All storefronts`]
+                    </label></div>
+                    <div class="value no-shift"><label>
+                        <input type="radio" name="courier[all_storefronts]" value="0"{if !$courier.all_storefronts} checked{/if}>
+                        [`Selected only`]
+                    </label></div>
+                    {foreach $courier.storefronts as $url => $enabled}
+                        <div class="value hide-when-all-storefronts" style="padding-left:1em;"><label>
+                            <input type="checkbox" name="storefronts[]" value="{$url|escape}"{if $enabled || $courier.all_storefronts} checked{/if}>
+                            {$url|escape}
+                        </label></div>
+                    {/foreach}
+                    <div class="value"><span class="hint">[`This courier assignment will be available for orders placed on selected storefronts only.`]</span></div>
+                </div>
+            {else}
+                <input type="hidden" name="courier[all_storefronts]" value="1">
+            {/if}
+          </div>
+          <div class="field-group">
+            <div class="field">
+                <div class="name">[`Status`]</div>
+                <div class="value no-shift s-ibutton-checkbox">
+                    <ul class="menu-h">
+                        <li><input type="checkbox" name="courier[enabled]" value="1" id="courier-enabled-checkbox" class="i-button-mini"{if $courier.enabled} checked{/if}></li>
+                        <li><label for="courier-enabled-checkbox">
+                            <span class="hidden status-on">[`Working`]</span>
+                            <span class="hidden status-off">[`Not working`]</span>
+                        </label></li>
+                    </ul>
+                </div>
+            </div>
+            {if $courier.api_last_use || $courier.id != 'new'}
+                <div class="field hide-when-disabled">
+                    <div class="name">[`Last seen`]</div>
+                    {if $courier.api_last_use}
+                        <div class="value no-shift">{$courier.api_last_use|wa_date:humandatetime}</div>
+                    {else}
+                        <div class="value no-shift">[`Never`]</div>
+                    {/if}
+                </div>
+            {/if}
+            {if $courier.id != 'new'}
+                <div class="field hide-when-disabled">
+                    <div class="name">
+                        [`Auth code`]
+                    </div>
+                    <div class="value hide-when-clicked no-shift">
+                        {$pin_is_valid = $courier.api_pin && strtotime($courier.api_pin_expire) > time()}
+                        <strong>{if $pin_is_valid}
+                            {sprintf("%02d", $courier.id)}-{$courier.api_pin|escape}
+                            <i class="icon16 {if $courier.api_last_use}yes{else}clock{/if}"></i>
+                        {elseif $courier.api_pin_expire}
+                            {if $courier.api_last_use}
+                                <i class="icon16 yes"></i>
+                            {else}
+                                <span style="color: #a00;">[`Expired`]</span>
+                            {/if}
+                        {else}
+                            [`Not set`]
+                        {/if}</strong>
+                        <a href="javascript:void(0)" id="regenerate-pin-link" class="small inline-link" style="margin-left:1em;"><b><i>[`Re-generate the code`]</i></b></a>
+                        {if $pin_is_valid && !$courier.api_last_use}
+                            <br>
+                            <span class="hint">[`Expires:`] <strong>{$courier.api_pin_expire|wa_date:humandatetime}</strong></span>
+                        {/if}
+                    </div>
+                    <div class="hidden value show-when-clicked">
+                        <input type="hidden" name="regenerate_pin" value="1" disabled>
+                        <em>[`New auth code will be generated after you save changes.`]</em>
+                    </div>
+                    <div class="value">
+                        <span class="small">
+                            {if $pin_is_valid && !$courier.api_last_use}
+                                [`Auth code must be entered by the courier in the mobile app to authorize it with your online store. Once authorized with the code, the mobile app may then use the connection indefinitely. In case the code was not entered, it will automatically expire in 24 hours.`]
+                            {/if}
+                        </span>
+                    </div>
+                </div>
+            {/if}
+          </div>
+          <div class="field-group">
+            <div class="field">
+                <div class="value">
+                    {if $courier.id != 'new'}
+                        <div class="float-right block half-padded">
+                            <ul class="menu-h">
+                                <li><a href="?action=orders#/orders/search/params.courier_id={$courier.id}/"><i class="icon16 ss orders-all"></i>[`View all courier orders`]</a></li>
+                                <li><a href="javascript:void(0)" id="delete-courier-link"><i class="icon16 delete"></i>[`Delete`]</a></li>
+                            </ul>
+                        </div>
+                    {/if}
+                    <input type="submit" class="button green submit" value="[`Save`]">
+                    <span class="s-yes" style="display: none"><i class="icon16 yes" style="margin-top: 0.5em;"></i> [`Saved`]</span>
+                </div>
+            </div>
+          </div>
+        </div>
+
+    </form>
+    </div>
+
+</div>
+
+<script>$(function() { "use strict";
+
+    document.title = "[`Couriers`]";
+    var post_saved = {$saved|json_encode};
+    var post_errors = {$errors|json_encode};
+    var delete_confirm_msg = "[`Courier record will be permanently deleted without the ability to restore. Delete?`]";
+    $.settings.forceHash("#/couriers/{$courier.id}");
+
+    var $wrapper = $('#s-settings-content');
+    var $sidebar = $wrapper.find('.sidebar');
+    var $content = $wrapper.find('.content');
+    var $form = $content.find('form');
+    var $submit_button = $form.find(':submit:first');
+
+    // Highlight items in both sidebars
+    $sidebar.find('a[href="'+location.hash+'"]').parent().addClass('selected');
+
+    // Form submit via XHR
+    $form.submit(function() {
+        $submit_button.parent().append('<i class="icon16 loading"></i>');
+        $.post($form.attr('action'), $form.serialize(), function(r) {
+            $wrapper.html(r);
+        });
+        return false;
+    });
+
+    // Validation errors
+    if (post_errors) {
+        $.each(post_errors, function(field_id, error_msg) {
+            var $field = $form.find('[name="'+field_id+'"]').addClass('error');
+            if (!$field.length) {
+                $field = $submit_button;
+            }
+            $field.parent().append($('<em class="errormsg"></em>').text(error_msg));
+        });
+    } else if (post_saved) {
+        (function() {
+            var $saved_msg = $form.find('.s-yes').show();
+            setTimeout(function() {
+                $saved_msg.fadeOut();
+            }, 500);
+        })();
+    }
+
+    // iButton
+    $form.find(".i-button-mini").change(function() {
+        var $div_value = $(this).closest('.value');
+        var $label_off = $div_value.find('.status-off');
+        var $label_on = $div_value.find('.status-on');
+        var $fields_hide_when_inactive = $form.find('.hide-when-disabled');
+        if (this.checked) {
+            $fields_hide_when_inactive.show();
+            $label_off.hide();
+            $label_on.show();
+        } else {
+            $fields_hide_when_inactive.hide();
+            $label_off.show();
+            $label_on.hide();
+        }
+    }).change().iButton({
+        classContainer: 'ibutton-container mini',
+        labelOff : "",
+        labelOn : ""
+    });
+
+    // Contacts autocomplete
+    (function() {
+        var $text_input = $('#courier-contacts-autocomplete');
+        var $hidden_input = $text_input.siblings('input:hidden');
+        var $img = $text_input.closest('.value').find('img');
+        var $img_a = $img.parent();
+        $text_input.autocomplete({
+            source: '?action=autocomplete&type=contact',
+            minLength: 3,
+            delay: 300,
+            select: function (event, ui) {
+                $hidden_input.val(ui.item.id);
+                $text_input.val(ui.item.name);
+                $img[0].src = ui.item.photo_url;
+                var hew_href = $img_a.attr('href').replace(/\/[^\/]+\/?$/, '/'+ui.item.id+'/');
+                $img_a.attr('href', hew_href).show();
+                return false;
+            }
+        }).change(function() {
+            if ($text_input.val() == '') {
+                $hidden_input.val('');
+                $text_input.val('');
+                $img[0].src = '';
+                $img_a.hide();
+            }
+        });
+    })();
+
+    // Link to regenerate pin
+    $('#regenerate-pin-link').click(function() {
+        var $field = $(this).closest('.field');
+        $field.find('.hide-when-clicked').hide();
+        $field.find('.show-when-clicked').show();
+        $field.find('[name="regenerate_pin"]').prop('disabled', false).change();
+    });
+
+    // Storefronts toggle shows/hides the checklist
+    $form.on('change', '[name="courier[all_storefronts]"]', function() {
+        var $checklist = $(this).closest('.field').find('.hide-when-all-storefronts');
+        if (this.value == '1') {
+            $checklist.hide();
+        } else {
+            $checklist.show();
+        }
+    }).find('[name="courier[all_storefronts]"]:checked').change();
+
+    // Yellow 'Save' button when user modifies something
+    (function() {
+        if (post_errors) {
+            $submit_button.removeClass('green').addClass('yellow');
+            return;
+        }
+        var timeout = null;
+        var initial_form_data = $form.serialize();
+        $form.on('change keyup', checkAndApply);
+
+        function checkAndApply() {
+            if (timeout) {
+                return;
+            }
+            timeout = window.setTimeout(function() {
+                timeout = null;
+                if (initial_form_data != $form.serialize()) {
+                    $submit_button.removeClass('green').addClass('yellow');
+                    $form.off('change keyup', checkAndApply);
+                }
+            }, 300);
+        }
+    })();
+
+    // Button to delete the courier
+    $('#delete-courier-link').click(function() {
+        if (!confirm(delete_confirm_msg)) {
+            return false;
+        }
+        var courier_id = $form.find('[name="id"]').val();
+        $(this).find('.icon16').attr('class', 'icon16 loading');
+        $.post('?module=settings&action=couriersdelete', { id: courier_id }, function() {
+            $.wa.setHash('#/couriers/');
+        });
+    });
+
+    // one-time help block
+    (function() { "use strict";
+        var $alert_block = $wrapper.find('.s-alert:first');
+        if ($.storage.get('shop/couriers_alert_hidden')) {
+            $alert_block.hide();
+        } else {
+            $alert_block.show();
+            $alert_block.find('.s-alert-close').click(function() {
+                $alert_block.hide();
+                $.storage.set('shop/couriers_alert_hidden', 1);
+                return false;
+            });
+        }
+    })();
+
+});</script>

@@ -144,7 +144,6 @@ class shopCurrencyModel extends waModel
             }
 
             $this->convertPrices($code, $rate, $convert_to, $rate_to);
-            $convert_to = $this->escape($convert_to);
             $this->exec("UPDATE `shop_product` SET currency = s:0 WHERE currency = s:1", $convert_to, $code);
             $this->exec("UPDATE `shop_service` SET currency = s:0 WHERE currency = s:1", $convert_to, $code);
 
@@ -160,7 +159,7 @@ class shopCurrencyModel extends waModel
          */
         $params = array(
             'code'       => $code,
-            'convert_to' => $code,
+            'convert_to' => $convert_to,
         );
         wa()->event('currency_delete', $params);
         $this->deleteCache();

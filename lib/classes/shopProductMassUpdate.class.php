@@ -44,7 +44,9 @@ class shopProductMassUpdate
         list($skus, $sku_stocks, $products) = self::sanitize($raw_skus, $raw_products, $stocks);
         list($sku_product_ids, $old_product_data) = self::getProductData($skus, $products);
         list($skus, $products) = self::prepareInputs($skus, $products, $sku_product_ids, $old_product_data, self::getTypeIdAccess($old_product_data));
+        $old_product_data = array_intersect_key($old_product_data, $products);
         $sku_stocks = array_intersect_key($sku_stocks, $skus);
+        unset($sku_product_ids);
 
         // Remember SKUs data before any changes are made
         $old_sku_data = self::getSkuData($old_product_data);
@@ -85,8 +87,10 @@ class shopProductMassUpdate
         // This compromise makes this new class more friendly for old style plugins.
         if (count($products) == 1) {
             $product = reset($products);
-            $product = new shopProduct($product['id']);
-            $product->save();
+            if (!empty($product['id'])) {
+                $product = new shopProduct($product['id']);
+                $product->save();
+            }
         }
     }
 
@@ -557,6 +561,9 @@ class shopProductMassUpdate
             // Update product prices according to main SKU price
             if (isset($sku['primary_price']) && $product['sku_id'] == $sku['id']) {
                 $products[$product_id]['price'] = $sku['primary_price'];
+            }
+            if (isset($sku['compare_price']) && $product['sku_id'] == $sku['id']) {
+                $products[$product_id]['compare_price'] = shop_currency($sku['compare_price'], $product['currency'], $default_currency, false);
             }
         }
 

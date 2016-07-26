@@ -1045,6 +1045,7 @@ if (typeof($) != 'undefined') {
                     'types': [],
                     'selectable': 0,
                     'multiple': 0,
+                    'status': 'public',
                     'values': [],
                     'values_template': this.features_options.value_templates['varchar'] || ''
                 };
@@ -1117,6 +1118,7 @@ if (typeof($) != 'undefined') {
                     'types': this.featuresHelper.featureTypes($feature),
                     'selectable': $feature.data('selectable'),
                     'multiple': $feature.data('multiple'),
+                    'status': $feature.data('status'),
                     'values': [],
                     'values_template': this.features_options.value_templates[type] || ''
                 };

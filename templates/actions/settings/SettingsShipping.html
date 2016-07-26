@@ -24,13 +24,13 @@
 
                         </li>
                         {/foreach}
-                        {if !empty($installer)}
                         <li class="bordered-top" style="padding-top: 10px; padding-bottom: 10px; margin-top: 7px; padding-left: 8px;">
-                            <a href="#/shipping/plugins/" style="text-align: center;">[`Browse shipping plugins...`]</a>
-                            <br>
+                            {if !empty($installer)}
+                                <a href="#/shipping/plugins/" style="text-align: center;">[`Browse shipping plugins...`]</a>
+                                <br>
+                            {/if}
                             <span class="hint align-center">[`Multiple instances of every shipping option with custom settings can be created.`]</span>
                         </li>
-                        {/if}
                     </ul>
                 </li>
             </ul>
@@ -77,6 +77,12 @@
             </tbody>
         </table>
 
+        {if $instances}
+            <p style="margin-top:20px;" class="hint">
+                {sprintf_wp("Rounding of fractional shipping costs can be set up in %scurrency settings%s.", '<a href="#/currencies/">', '</a>')}
+            </p>
+        {/if}
+
     <div id="s-settings-shipping-setup" class="fields form"></div>
 
     </div>
@@ -85,9 +91,9 @@
 
 
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/shipping.js?{$wa->version()}"></script>
-<script type="text/javascript">
-document.title = '{"[`Shipping`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
-if(typeof($)!='undefined') {
-$.settings.shippingInit();
-}
-</script>
+<script type="text/javascript">(function() { "use strict";
+    document.title = "[`Shipping`] — {$wa->accountName(false)|escape:javascript}";
+    if (typeof(window.$) != 'undefined') {
+        $.settings.shippingInit();
+    }
+}());</script>

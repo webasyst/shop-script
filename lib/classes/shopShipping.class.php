@@ -116,7 +116,7 @@ class shopShipping extends waAppShipping
     {
         $str = str_pad($order_id, 4, '0', STR_PAD_LEFT);
         $path = 'orders/'.substr($str, -2).'/'.substr($str, -4, 2).'/'.$order_id.'/shipping/'.$path;
-        return wa('shop')->getDataPath($path, false, 'shop');
+        return wa('shop')->getDataPath($path, false, 'shop', false);
     }
 
     public static function getList()

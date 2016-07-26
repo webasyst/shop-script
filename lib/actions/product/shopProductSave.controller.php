@@ -67,7 +67,7 @@ class shopProductSaveController extends waJsonController
         }
 
         # verify sku_type before save
-        if ($data['type_id']) {
+        if (!empty($data['type_id'])) {
             $features_model = new shopFeatureModel();
             if ($features_model->isTypeMultipleSelectable($data['type_id'])) {
                 if ($data['sku_type'] == shopProductModel::SKU_TYPE_SELECTABLE) {

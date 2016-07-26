@@ -155,14 +155,36 @@
 
         </table>
 
-        <!-- BEGIN ORDERS -->
-        <div style="margin-top: 30px;">
-            {$order_list_html|default:''}
+        <!-- BEGIN DETAILS BLOCK -->
+
+        {$order_list_html = $order_list_html|default:''}
+        {$order_items_list_html = $order_items_list_html|default:''}
+
+        <div id="s-details-item-list-container" {if !$order_list_html && !$order_items_list_html}style="display: none;"{/if}>
+            <ul class="menu-h s-details-item-list-tabs">
+                <li class="s-details-item selected" data-tab="orders">
+                    <a href="javascript:void(0)" class="s-details-item-link inline-link" data-tab="orders"><b><i>[`Orders`]</i></b></a>
+                </li>
+                <li class="s-details-item" data-tab="order-items">
+                    <a href="javascript:void(0)" class="s-details-item-link inline-link" data-tab="order-items"><b><i>[`Ordered products`]</i></b></a>
+                </li>
+            </ul>
+
+            <div class="block not-padded">
+                <div class="s-details-items-list-tab-content" data-tab="orders">
+                    {$order_list_html}
+                </div>
+                <div class="s-details-items-list-tab-content" data-tab="order-items" style="display: none;">
+                    {$order_items_list_html}
+                </div>
+            </div>
+
         </div>
-        <!-- END ORDERS -->
+
+        <!-- END DETAILS BLOCK -->
 
         <p id="load-more-rows">
-            <a href="javascript:void" class="inline-link"><b>[`Load more...`]</i></a>
+            <a href="javascript:void" class="inline-link"><b>[`Load more...`]</b></a>
         </p>
 
         <div class="clear-both"></div>
@@ -454,5 +476,19 @@
         var hash = 'sales/' + params;
         hash !== $.reports.hash && $.wa.setHash(hash);
     });
+
+    // details tab blocks
+    (function (container) {
+        container.find('.s-details-item-link').click(function () {
+            var $link = $(this);
+            var tab = $link.data('tab');
+            var $tabs = $('.s-details-item');
+            var $tab_blocks = $('.s-details-items-list-tab-content', container);
+
+            $tabs.removeClass('selected').filter('[data-tab="' + tab + '"]').addClass('selected');
+            $tab_blocks.hide().filter('[data-tab="' + tab + '"]').show();
+        });
+    })($('#s-details-item-list-container'));
+
 
 })();</script>

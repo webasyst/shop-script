@@ -4,9 +4,24 @@
         <tr class="header white">
             <th colspan=2>&nbsp;</th>
             {foreach $stocks as $stock}
-                <th>{$stock.name|escape}</th>
+                <th>{strip}
+                    {$sort_key = 'stock_count_'|cat:$stock.id}
+                    <a href="#/stocks/stock_count_{$stock.id}_{if $sort == $sort_key && $order == 'asc'}desc{else}asc{/if}">
+                        {$stock.name|escape}
+                        {if $sort == $sort_key}
+                            <i class="icon16 {if $order == 'desc'}darr{else}uarr{/if}"></i>
+                        {/if}
+                    </a>
+                {/strip}</th>
             {/foreach}
-            <th><a href="#/stocks/{if $order == 'desc'}asc{else}desc{/if}/" class="s-sort-handler bold">[`All stocks`] <i class="icon16 {if $order == 'desc'}darr{else}uarr{/if}"></i></a></th>
+            <th>{strip}
+                <a href="#/stocks/{if $sort === 'count' && $order == 'asc'}desc{else}asc{/if}/" class="s-sort-handler bold">
+                    [`All stocks`]
+                    {if $sort === 'count'}
+                        <i class="icon16 {if $order == 'desc'}darr{else}uarr{/if}"></i>
+                    {/if}
+                </a>
+            {/strip}</th>
         </tr>
     </table>
 
@@ -35,7 +50,7 @@
             {% var product = data[i], skus = product.skus, stocks = product.stocks; %}
             {% var sku_count = skus.length; %}
             <tr>
-                {% var hash = "#/product/"+product.id+"/edit/"; %}
+                {% var hash = "#/product/"+product.id; %}
                 <td class="s-product min-width">
                     <a href="{%#hash%}">
                         {% if (product.url_crop_small) { %}
@@ -46,7 +61,9 @@
                     </a>
                 </td>
 
-                <td class="s-product"><span>{%=product.name%}</span></td>
+                <td class="s-product">
+                    <a href="{%#hash%}">{%=product.name%}</a>
+                </td>
 
                 <!-- detailed by stocks -->
                 {% for (var k = 0, l = stocks.length; k < l; k += 1) { %}

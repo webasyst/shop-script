@@ -1,6 +1,6 @@
 <?php
 
-class shopSetGetListMethod extends waAPIMethod
+class shopSetGetListMethod extends shopApiMethod
 {
     protected $method = 'GET';
     public function execute()

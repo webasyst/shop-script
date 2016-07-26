@@ -1,6 +1,6 @@
 <?php
 
-class shopProductSearchMethod extends waAPIMethod
+class shopProductSearchMethod extends shopApiMethod
 {
     protected $method = 'GET';
 
@@ -9,6 +9,7 @@ class shopProductSearchMethod extends waAPIMethod
         $hash = $this->get('hash');
         $filters = waRequest::get('filters', null, 'array');
         $offset = waRequest::get('offset', 0, 'int');
+        $escape = !!waRequest::get('escape', true);
         if ($offset < 0) {
             throw new waAPIException('invalid_param', 'Param offset must be greater than or equal to zero');
         }
@@ -24,7 +25,7 @@ class shopProductSearchMethod extends waAPIMethod
         if ($filters) {
             $collection->filters($filters);
         }
-        $products = $collection->getProducts(self::getColelctionFields(), $offset, $limit);
+        $products = $collection->getProducts(self::getColelctionFields(), $offset, $limit, $escape);
 
         $this->response['count'] = $collection->count();
         $this->response['offset'] = $offset;

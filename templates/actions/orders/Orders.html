@@ -109,8 +109,8 @@
                         <input type="checkbox" checked="true" data-id="{%#printform_iterator.key()%}" value="{%#printform.url%}">
                         <span {% if (!printform.all) { %}style="opacity: 0.5;"{% } %}>
                             {%=printform.name%}
-                            &mdash;
                             {% if (printform.owner_name) { %}
+                                —
                                 {%=printform.owner_name%}
                             {% } %}
                         </span>
@@ -156,7 +156,8 @@
         title_suffix: '{' — '|cat:{$wa->accountName(false)}|escape:'javascript'}',
         state_names: {json_encode($state_names)},
         counters: {json_encode($counters)},
-        $selectionMenu: $("#s-orders-selection-menu")
+        $selectionMenu: $("#s-orders-selection-menu"),
+        sort: {$sort|json_encode}
     });
 })(jQuery);
 </script>

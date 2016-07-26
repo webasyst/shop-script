@@ -128,4 +128,14 @@ class shopSettingsCheckoutSaveActions extends waJsonActions
             $asm->del('shop', 'checkout_antispam');
         }
     }
+
+    public function webpushAction()
+    {
+        $web_push = new shopWebPushNotifications();
+        $settings = $this->getRequest()->post('web_push_settings');
+        if (empty($settings['manifest']['name'])) {
+            $settings['manifest']['name'] = $this->getConfig()->getGeneralSettings('name');
+        }
+        $web_push->saveSettings($settings);
+    }
 }

@@ -2,6 +2,10 @@
     <div class="block double-padded s-message-success bordered-bottom">
         <i class="icon16 yes"></i>[`Settings updated`]
     </div>
+{elseif (!empty($error))}
+    <div class="block double-padded bordered-bottomr">
+        <i class="icon16 no"></i>{$error|escape}
+    </div>
 {/if}
 <div class="block double-padded">
     
@@ -81,6 +85,7 @@
     </div>
                     
     <script>
+        if(typeof($) !=='undefined') {
             $(function () {
                 wa_url = '{$wa_url}';
                 waEditorAceInit({
@@ -90,6 +95,7 @@
                 });
                 wa_editor.clearSelection();
             });
+        }
         </script>
 
 {elseif ($plugins_count > 0)}

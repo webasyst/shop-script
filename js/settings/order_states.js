@@ -203,6 +203,9 @@ $.extend($.settings || {}, {
         // Initialize drag-and-drop of states in sidebar
         orderStatesSortableInit();
 
+        // Initialize sortable of available actions
+        orderActionsSortableInit();
+
         // Form submit handler
         var $form = $('#s-save-order-state');
         var formSerialize = function () {
@@ -289,6 +292,31 @@ $.extend($.settings || {}, {
             }
         }); // end of form submit handler
 
+        var changeListener = function (handler) {
+            $('.s-settings-form')
+                .on('change', '[name="action[]"]', handler)
+                .on('change', '.s-action-icon', handler)
+                .on('change', '[name^="new_action["]', handler)
+                .on('change', '[name^="new_action_name["]', handler)
+                .on('change', '[name^="edit_action_name["]', handler)
+                .on('change', '[name^="edit_action_border_color["]', handler)
+                .on('change', '[name^="new_action_border_color["]', handler)
+                .on('click', ':radio[name^="edit_action_link["]', handler)
+                .on('click', ':radio[name^="new_action_link["]', handler)
+            ;
+
+            $.shop.changeListener($('.s-settings-form'), '[name^="edit_action_border_color["]', handler);
+            $.shop.changeListener($('.s-settings-form'), '[name^="new_action_border_color["]', handler);
+            $.shop.changeListener($('.s-settings-form'), '[name^="edit_action_name["]', handler);
+            $.shop.changeListener($('.s-settings-form'), '[name^="new_action_name["]', handler);
+
+            $('.s-order-allowed-actions').bind('change', handler);
+        };
+
+        changeListener(function () {
+            $('#s-settings-order-states-submit').removeClass('green').addClass('yellow');
+        });
+        
         // init buttons preview
         (function () {
 
@@ -323,22 +351,10 @@ $.extend($.settings || {}, {
                 }
             };
 
-            $('.s-settings-form')
-                .on('change', '[name="action[]"]', updatePreview)
-                .on('change', '.s-action-icon', updatePreview)
-                .on('change', '[name^="new_action["]', updatePreview)
-                .on('change', '[name^="new_action_name["]', updatePreview)
-                .on('change', '[name^="edit_action_name["]', updatePreview)
-                .on('change', '[name^="edit_action_border_color["]', updatePreview)
-                .on('change', '[name^="new_action_border_color["]', updatePreview)
-                .on('click', ':radio[name^="edit_action_link["]', updatePreviewRadio)
-                .on('click', ':radio[name^="new_action_link["]', updatePreviewRadio)
-            ;
+            changeListener(function () {
+                ($(this).is(':radio') ? updatePreviewRadio : updatePreview).call(this);
+            });
 
-            $.shop.changeListener($('.s-settings-form'), '[name^="edit_action_border_color["]', updatePreview);
-            $.shop.changeListener($('.s-settings-form'), '[name^="new_action_border_color["]', updatePreview);
-            $.shop.changeListener($('.s-settings-form'), '[name^="edit_action_name["]', updatePreview);
-            $.shop.changeListener($('.s-settings-form'), '[name^="new_action_name["]', updatePreview);
         })();
 
         $(document).trigger('order_states_init');
@@ -411,6 +427,20 @@ $.extend($.settings || {}, {
                             }
                         );
                     }
+                }
+            });
+        }
+
+        function orderActionsSortableInit() {
+            var $block = $('.s-order-allowed-actions');
+            $block.sortable({
+                distance: 5,
+                helper: 'clone',
+                items: '.s-order-action',
+                opacity: 0.75,
+                tolerance: 'pointer',
+                update: function (event, ui) {
+                    $block.trigger('change');
                 }
             });
         }

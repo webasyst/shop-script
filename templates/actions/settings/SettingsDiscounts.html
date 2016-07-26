@@ -10,7 +10,6 @@
         </ul>
 
         <div class="hr"></div>
-
         <div class="block small">
             <p>[`If more then one rule is applicable for the customer order, how the total discount should be calculated?`]</p>
             <p>
@@ -20,6 +19,7 @@
             </p>
             <input type="button" id="combiner-save-button" value="[`Save`]" style="display:none">
         </div>
+
 
         <div class="hr"></div>
         <div class="block small">
@@ -32,6 +32,14 @@
             <p class="gray">[`Depending on your store setup, different levels of discount detalization may be useful.`]</p>
             <input type="button" id="discount-desc-save-button" value="[`Save`]" style="display:none">
         </div>
+
+        <div class="hr"></div>
+        <div class="block small">
+            <p class="gray">
+                {sprintf_wp("Rounding of fractional discount values can be set up in %scurrency settings%s.", '<a href="#/currencies/">', '</a>')}
+            </p>
+        </div>
+
     </div>
 </div>
 
@@ -41,6 +49,8 @@
 {foreach $types as $t}{ifempty($t.html)}{/foreach}
 
 <script>$(function() { "use strict";
+
+    document.title = '{"[`Discounts`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 
     var types_ul = $('#discount-types');
     var discounts_content = $('#s-discounts-content');
@@ -108,6 +118,7 @@
         });
     })();
 
+    // Discount description radios
     (function() {
         var radios = $('input:radio[name="discount_description"]');
         var button = $('#discount-desc-save-button');
@@ -123,5 +134,4 @@
         });
     })();
 
-    document.title = '{"[`Discounts`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 });</script>

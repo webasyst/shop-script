@@ -196,6 +196,10 @@ class shopBackendAutocompleteController extends waController
 
     public function ordersIdAutocomplete($q)
     {
+        if (!wa()->getUser()->getRights('shop', 'orders')) {
+            return array();
+        }
+
         $limit = 5;
 
         // first, assume $q is encoded $order_id, so decode
@@ -246,6 +250,10 @@ class shopBackendAutocompleteController extends waController
 
     public function ordersAutocomplete($q)
     {
+        if (!wa()->getUser()->getRights('shop', 'orders')) {
+            return array();
+        }
+
         // search by:
         // 1. order_id,
         // 2. email, phone, firstname, lastname, name
@@ -347,13 +355,13 @@ class shopBackendAutocompleteController extends waController
         $sqls = array();
 
         // Name starts with requested string
-        $sqls[] = "SELECT c.id, c.name, c.firstname, c.middlename, c.lastname
+        $sqls[] = "SELECT c.id, c.name, c.firstname, c.middlename, c.lastname, c.photo
                    FROM wa_contact AS c
                    WHERE c.name LIKE '".$m->escape($q, 'like')."%'
                    LIMIT {LIMIT}";
 
         // Email starts with requested string
-        $sqls[] = "SELECT c.id, c.name, e.email, c.firstname, c.middlename, c.lastname
+        $sqls[] = "SELECT c.id, c.name, e.email, c.firstname, c.middlename, c.lastname, c.photo
                    FROM wa_contact AS c
                        JOIN wa_contact_emails AS e
                            ON e.contact_id=c.id
@@ -363,7 +371,7 @@ class shopBackendAutocompleteController extends waController
         // Phone contains requested string
         if (preg_match('~^[wp0-9\-\+\#\*\(\)\. ]+$~', $q)) {
             $dq = preg_replace('/[^\d]+/', '', $q);
-            $sqls[] = "SELECT c.id, c.name, d.value as phone, c.firstname, c.middlename, c.lastname
+            $sqls[] = "SELECT c.id, c.name, d.value as phone, c.firstname, c.middlename, c.lastname, c.photo
                        FROM wa_contact AS c
                            JOIN wa_contact_data AS d
                                ON d.contact_id=c.id AND d.field='phone'
@@ -372,13 +380,13 @@ class shopBackendAutocompleteController extends waController
         }
 
         // Name contains requested string
-        $sqls[] = "SELECT c.id, c.name, c.firstname, c.middlename, c.lastname
+        $sqls[] = "SELECT c.id, c.name, c.firstname, c.middlename, c.lastname, c.photo
                    FROM wa_contact AS c
                    WHERE c.name LIKE '_%".$m->escape($q, 'like')."%'
                    LIMIT {LIMIT}";
 
         // Email contains requested string
-        $sqls[] = "SELECT c.id, c.name, e.email, c.firstname, c.middlename, c.lastname
+        $sqls[] = "SELECT c.id, c.name, e.email, c.firstname, c.middlename, c.lastname, c.photo
                    FROM wa_contact AS c
                        JOIN wa_contact_emails AS e
                            ON e.contact_id=c.id
@@ -406,6 +414,7 @@ class shopBackendAutocompleteController extends waController
                         'id'    => $c['id'],
                         'value' => $c['id'],
                         'name'  => $c['name'],
+                        'photo_url' => waContact::getPhotoUrl($c['id'], $c['photo'], 96),
                         'label' => implode(' ', array_filter(array($name, $email, $phone))),
                     );
                     if (count($result) >= $limit) {
@@ -516,6 +525,9 @@ SQL;
 
     public function customersAutocomplete($q)
     {
+        if (!wa()->getUser()->getRights('shop', 'customers')) {
+            return array();
+        }
         $result = array();
         $hashes = array();
 

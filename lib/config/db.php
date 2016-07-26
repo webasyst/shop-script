@@ -32,6 +32,30 @@ return array(
             'contact_id' => 'contact_id',
         ),
     ),
+    'shop_api_courier' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'name' => array('varchar', 255, 'null' => 0),
+        'enabled' => array('int', 1, 'null' => 0, 'default' => '1'),
+        'contact_id' => array('int', 11),
+        'create_datetime' => array('datetime', 'null' => 0),
+        'orders_processed' => array('int', 11, 'null' => 0, 'default' => '0'),
+        'note' => array('text'),
+        'api_token' => array('varchar', 32),
+        'api_pin' => array('varchar', 32),
+        'api_pin_expire' => array('datetime'),
+        'api_last_use' => array('datetime'),
+        'all_storefronts' => array('int', 1, 'null' => 0, 'default' => '1'),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+        ),
+    ),
+    'shop_api_courier_storefronts' => array(
+        'courier_id' => array('int', 11, 'null' => 0),
+        'storefront' => array('varchar', 255, 'null' => 0),
+        ':keys' => array(
+            'courier' => 'courier_id',
+        ),
+    ),
     'shop_cart_items' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
         'code' => array('varchar', 32),
@@ -720,6 +744,7 @@ return array(
         'contact_id' => array('int', 11, 'null' => 0),
         'client_id' => array('varchar', 64, 'null' => 0),
         'shop_url' => array('varchar', 255, 'null' => 0),
+        'type' => array('varchar', 255, 'null' => 0, 'default' => ''),
         ':keys' => array(
             'client' => array('client_id', 'unique' => 1),
         ),

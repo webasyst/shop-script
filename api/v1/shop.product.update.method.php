@@ -1,6 +1,6 @@
 <?php
 
-class shopProductUpdateMethod extends waAPIMethod
+class shopProductUpdateMethod extends shopApiMethod
 {
     protected $method = 'POST';
 

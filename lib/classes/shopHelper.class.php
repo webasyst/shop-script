@@ -877,7 +877,10 @@ SQL;
         $storefronts = array();
         foreach (wa()->getRouting()->getByApp('shop') as $domain => $domain_routes) {
             foreach ($domain_routes as $route) {
-                $url = rtrim($domain.'/'.$route['url'], '/*').'/';
+                $url = rtrim($domain.'/'.$route['url'], '/*');
+                if (strpos($url, '/') !== false) {
+                    $url .= '/';
+                }
                 if ($verbose) {
                     $storefronts[] = array(
                         'domain' => $domain,
@@ -933,4 +936,22 @@ SQL;
         }
         return $domain;
     }
+
+    public static function isProductUrlInUse($product)
+    {
+        $col = new shopProductsCollection("search/url={$product['url']}&id!={$product['id']}");
+        $count = $col->count();
+        if ($count <= 0) {
+            return '';
+        }
+        $found_products = $col->getProducts('id,name', 0, 1);
+        $found_product = reset($found_products);
+        $template = _w('The URL <strong>:url</strong> is already in use by another product (<a href="?action=products#/product/:another_product_id/" target="_blank" class="bold">:another_product_name</a>). You may still save this product with the same URL, but the storefront will display only one (any) product by this URL.');
+        return str_replace(
+            array(':url', ':another_product_id', ':another_product_name'),
+            array($product['url'], $found_product['id'], htmlspecialchars($found_product['name'])),
+            $template
+        );
+    }
+
 }

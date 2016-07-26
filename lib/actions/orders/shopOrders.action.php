@@ -2,6 +2,18 @@
 
 class shopOrdersAction extends shopOrderListAction
 {
+
+    public function __construct($params = null)
+    {
+        parent::__construct($params);
+        $sort = $this->getSort();
+        $order_by = array($sort[0] => $sort[1]);
+        if ($sort[0] !== 'create_datetime') {
+            $order_by['create_datetime'] = 'desc';
+        }
+        $this->collection->orderBy($order_by);
+    }
+
     public function execute()
     {
         $config = $this->getConfig();
@@ -68,7 +80,8 @@ class shopOrdersAction extends shopOrderListAction
             'view' => $view,
             'timeout' => $config->getOption('orders_update_list'),
             'actions' => $actions,
-            'counters' => $counters
+            'counters' => $counters,
+            'sort' => $this->getSort()
         ));
     }
 
@@ -90,5 +103,31 @@ class shopOrdersAction extends shopOrderListAction
             return current($orders);
         }
         return null;
+    }
+
+    public function getSort()
+    {
+        $sort = (array) wa()->getRequest()->request('sort');
+        $sort_field = (string) ifset($sort[0]);
+        $sort_order = (string) ifset($sort[1]);
+
+        $csm = new waContactSettingsModel();
+
+        if (!$sort_field) {
+            $sort = $csm->getOne(wa()->getUser()->getId(), 'shop', 'order_list_sort');
+            $sort = explode('/', $sort, 2);
+            $sort_field = (string) ifset($sort[0]);
+            $sort_order = (string) ifset($sort[1]);
+        }
+
+        if (!in_array($sort_field, array('create_datetime', 'updated', 'paid_date'))) {
+            $sort_field = 'create_datetime';
+            $sort_order = 'desc';
+        }
+        $sort_order = strtolower($sort_order) === 'desc' ? 'desc' : 'asc';
+
+        $csm->set(wa()->getUser()->getId(), 'shop', 'order_list_sort', "{$sort_field}/{$sort_order}");
+
+        return array($sort_field, $sort_order);
     }
 }

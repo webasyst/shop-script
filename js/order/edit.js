@@ -351,7 +351,12 @@ $.order_edit = {
         });
 
         if (this.form && this.form.length) {
-            this.form.unbind('sumbit').bind('submit', function() {
+
+            var orderSaveSubmit = function () {
+                var form = $(this);
+                if (orderSaveSubmit.xhr) {
+                    return false;
+                }
                 $.order_edit.showValidateErrors();
 
                 // submit optimization
@@ -362,15 +367,28 @@ $.order_edit = {
                 });
 
                 if (!$.order_edit.container.find('.error').length) {
+
                     $('.s-order-items-edit td.save i.loading').css('display', 'inline-block');
+                    form.find('[type=submit]').attr('disabled', true);
+
                     if ($.order_edit.id) {
-                        $.order_edit.editSubmit();
+                        orderSaveSubmit.xhr = $.order_edit.editSubmit();
                     } else {
-                        $.order_edit.addSubmit();
+                        orderSaveSubmit.xhr = $.order_edit.addSubmit();
                     }
+
+                    orderSaveSubmit.xhr.always(
+                        function () {
+                            orderSaveSubmit.xhr = null;
+                            form.find('[type=submit]').attr('disabled', false);
+                            $('.s-order-items-edit td.save i.loading').css('display', 'none');
+                        }
+                    )
                 }
                 return false;
-            });
+            };
+
+            this.form.unbind('sumbit').bind('submit', orderSaveSubmit);
         }
 
         this.initDiscountControl();
@@ -607,35 +625,40 @@ $.order_edit = {
 
     editSubmit : function() {
         var form = this.form;
-        $.shop.jsonPost(form.attr('action'), form.serialize(), function(r) {
-            $.order_edit.container.find('.back').click();
-        }, function(r) {
-            $.shop.trace('editSubmit', r);
-            $('.s-order-items-edit td.save i.loading').hide();
-            if (r && r.errors && !$.isEmptyObject(r.errors)) {
-                $.order_edit.showValidateErrors(r.errors);
-                $('.s-orders-services input:disabled', this.form).attr('disabled', false);
-                return false;
+        return $.shop.jsonPost(
+            form.attr('action'),
+            form.serialize(),
+            function(r) {
+                $.order_edit.container.find('.back').click();
+            }, function(r) {
+                $.shop.trace('editSubmit', r);
+                if (r && r.errors && !$.isEmptyObject(r.errors)) {
+                    $.order_edit.showValidateErrors(r.errors);
+                    $('.s-orders-services input:disabled', this.form).attr('disabled', false);
+                }
             }
-        });
+        );
     },
 
     addSubmit : function() {
         var form = this.form;
         $.shop.trace('addSubmit', $(form));
-        $.shop.jsonPost(form.attr('action'), form.serialize(), function(r) {
-            if ($.order_edit.slide(false, true)) {
-                location.href = '#/orders/state_id=new&view=split&id=' + r.data.order.id + '/';
+        return $.shop.jsonPost(
+            form.attr('action'),
+            form.serialize(),
+            function(r) {
+                if ($.order_edit.slide(false, true)) {
+                    location.href = '#/orders/state_id=new&view=split&id=' + r.data.order.id + '/';
+                }
+            },
+            function(r) {
+                $.shop.trace('addSubmit', r);
+                if (r && r.errors && !$.isEmptyObject(r.errors)) {
+                    $.order_edit.showValidateErrors(r.errors);
+                    $('.s-orders-services input:disabled', this.form).attr('disabled', false);
+                }
             }
-        }, function(r) {
-            $.shop.trace('addSubmit', r);
-            $('.s-order-items-edit td.save i.loading').hide();
-            if (r && r.errors && !$.isEmptyObject(r.errors)) {
-                $.order_edit.showValidateErrors(r.errors);
-                $('.s-orders-services input:disabled', this.form).attr('disabled', false);
-                return false;
-            }
-        });
+        );
     },
 
     formatFloat: function(f) {

@@ -55,12 +55,19 @@
         <a href="?action=settings#/orderStates/{$state_id}/edit_action={$action_id}/" class="gray"><i class="icon16 settings"></i>[`Edit template`]</a>
     </div>
 
+    {if !empty($plugins_html)}
+        {foreach $plugins_html as $plugin_id => $html}
+            <!-- {$plugin_id} -->
+            {$html}
+        {/foreach}
+    {/if}
+
     <input class="button green" type="submit" value="[`Send`]"> [`or`] <a class="cancel inline-link" href="#"><b><i>[`cancel`]</i></b></a>
 </form>
 
 <script type="text/javascript">
     // cancel link
-    $('a.cancel').click(function() {
+    $('#wf-message-form > a.cancel').click(function() {
         var el = $(this).closest('.workflow-content');
         el.empty().hide();
         el.prev().show();

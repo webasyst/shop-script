@@ -1,6 +1,6 @@
 <?php
 $m = new waModel();
-$m->exec("DROP TABLE IF EXISTS `shop_stock_rules`");
+//$m->exec("DROP TABLE IF EXISTS `shop_stock_rules`");
 $m->exec("
     CREATE TABLE IF NOT EXISTS `shop_stock_rules` (
         `id` int(11) NOT NULL AUTO_INCREMENT,

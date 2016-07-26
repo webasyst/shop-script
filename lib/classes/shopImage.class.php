@@ -269,19 +269,15 @@ class shopImage
     public static function getThumbsPath($image, $size = null)
     {
         $path = shopProduct::getFolder($image['product_id'])."/{$image['product_id']}/";
-        if (is_numeric($image)) {
-            return wa()->getDataPath($path, true, 'shop').'images/'.(int) $image.'/';
+        if (!$size) {
+            return wa()->getDataPath($path, true, 'shop', false)."images/{$image['id']}/";
         } else {
-            if (!$size) {
-                return wa()->getDataPath($path, true, 'shop')."images/{$image['id']}/";
+            if (strlen($image['filename'])) {
+                $n = $image['filename'];
             } else {
-                if (strlen($image['filename'])) {
-                    $n = $image['filename'];
-                } else {
-                    $n = $image['id'];
-                }
-                return wa()->getDataPath($path, true, 'shop')."images/{$image['id']}/{$n}.{$size}.{$image['ext']}";
+                $n = $image['id'];
             }
+            return wa()->getDataPath($path, true, 'shop', false)."images/{$image['id']}/{$n}.{$size}.{$image['ext']}";
         }
     }
 
@@ -308,7 +304,7 @@ class shopImage
         if (waSystemConfig::systemOption('mod_rewrite')) {
             return wa()->getDataUrl($path, true, 'shop', $absolute);
         } else {
-            if (file_exists(wa()->getDataPath($path, true, 'shop'))) {
+            if (file_exists(wa()->getDataPath($path, true, 'shop', false))) {
                 return wa()->getDataUrl($path, true, 'shop', $absolute);
             } else {
                 $path = str_replace('products/', 'products/thumb.php/', $path);

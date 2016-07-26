@@ -252,6 +252,30 @@ class shopProduct implements ArrayAccess
         return ifset($info['sign_html'], $info['sign']);
     }
 
+    public function getSkus()
+    {
+        $data = $this->getStorage('skus')->getData($this);
+        if ($this->is_frontend) {
+            shopRounding::roundSkus($data, array($this->data));
+        }
+        return $data;
+    }
+
+    public function getFeatures($status = null)
+    {
+        switch($status) {
+            case 'public':
+                $public_only = true;
+                break;
+            case 'all':
+                $public_only = false;
+                break;
+            default:
+                $public_only = $this->is_frontend;
+        }
+        return $this->getStorage('features')->getData($this, $public_only);
+    }
+
     /**
      * Saves product data to database.
      *
@@ -323,6 +347,14 @@ class shopProduct implements ArrayAccess
                 if (!isset($product['currency'])) {
                     $product['currency'] = wa('shop')->getConfig()->getCurrency();
                 }
+                if (!isset($product['sku_count'])) {
+                    if (isset($this->data['skus'])) {
+                        $product['sku_count'] = count($this->data['skus']);
+                    } else {
+                        $product['sku_count'] = 0;
+                    }
+                }
+
                 if ($id = $this->model->insert($product)) {
                     $this->data = $this->model->getById($id) + $this->data;
 
@@ -425,11 +457,8 @@ class shopProduct implements ArrayAccess
         if (method_exists($this, $method)) {
             $this->data[$name] = $this->$method();
             return $this->data[$name];
-        } elseif ($storage = $this->getStorage($name)) {
+        } elseif ( ( $storage = $this->getStorage($name))) {
             $this->data[$name] = $storage->getData($this);
-            if ($name == 'skus' && $this->is_frontend) {
-                shopRounding::roundSkus($this->data[$name], array($this->data));
-            }
             return $this->data[$name];
         }
         return null;
@@ -562,7 +591,7 @@ class shopProduct implements ArrayAccess
     public static function getPath($product_id, $file = null, $public = false)
     {
         $path = self::getFolder($product_id)."/$product_id/".($file ? ltrim($file, '/') : '');
-        return wa()->getDataPath($path, $public, 'shop');
+        return wa()->getDataPath($path, $public, 'shop', false);
     }
 
     /**

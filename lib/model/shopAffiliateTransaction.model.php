@@ -69,9 +69,9 @@ class shopAffiliateTransactionModel extends waModel
                 } catch (Exception $e) {}
 
                 if ($amount > 0) {
-                    $text = sprintf_wp('Affiliate balance of %1$s was increased by %2$s', $contact_name, $amount);
+                    $text = sprintf_wp('Affiliate balance of %1$s is increased by amount %2$s', $contact_name, $amount);
                 } else {
-                    $text = sprintf_wp('Affiliate balance of %1$s was decreased by %2$s', $contact_name, -$amount);
+                    $text = sprintf_wp('Affiliate balance of %1$s is decreased by amount %2$s', $contact_name, -$amount);
                 }
 
                 if ($comment) {

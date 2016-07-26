@@ -16,6 +16,9 @@ class shopRepairActions extends waActions
         $callback = create_function('$n', 'return preg_match("@^(\w+)Action$@",$n,$m)?($m[1]!="default"?$m[1]:false):false;');
         $actions = array_filter($methods, $callback);
         $actions = array_map($callback, $actions);
+        $response = $this->getResponse();
+        $response->addHeader('Content-Type', 'text/plain; charset=utf-8');
+        $response->sendHeaders();
         print "Available repair actions:\n\t";
         print implode("\n\t", $actions);
     }

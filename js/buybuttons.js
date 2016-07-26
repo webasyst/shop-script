@@ -26,6 +26,10 @@
         $wrapper.setAttribute('id', 1);
 
         var url = $wrapper.getAttribute('data-storefront');
+        if ($wrapper.getAttribute('data-url')) {
+            url = $wrapper.getAttribute('data-url');
+            $wrapper.removeAttribute('data-url');
+        }
         if (!url) {
             return;
         }
@@ -49,7 +53,14 @@
         var iframe = document.createElement('iframe');
 
         iframe.setAttribute('id', id + '-iframe');
-        iframe.src = url + '?' + params.join('&') + '&html_id=' + id + '&iframe_width=' + width;
+
+        // glue url with params, maybe ? or &
+        var glue = url.indexOf('?') ? '&' : '?';
+
+        // sanitize right side of url
+        url = url.replace(/[\?&]*$/, '');
+
+        iframe.src = url + glue + params.join('&') + '&html_id=' + id + '&iframe_width=' + width;
         parentNode.replaceChild(iframe, $wrapper);
 
         iframe.setAttribute('style', 'width: ' + width + 'px; border: 0;');

@@ -1,6 +1,6 @@
 <?php
 
-class shopFeatureDeleteMethod extends waAPIMethod
+class shopFeatureDeleteMethod extends shopApiMethod
 {
     protected $method = 'POST';
 

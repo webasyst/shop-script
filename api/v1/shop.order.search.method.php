@@ -1,8 +1,9 @@
 <?php
 
-class shopOrderSearchMethod extends waAPIMethod
+class shopOrderSearchMethod extends shopApiMethod
 {
     protected $method = 'GET';
+    protected $courier_allowed = true;
 
     public function execute()
     {
@@ -21,8 +22,11 @@ class shopOrderSearchMethod extends waAPIMethod
         }
         $this->response['offset'] = $offset;
         $this->response['limit'] = $limit;
-        if (wa()->getUser()->getRights('shop', 'orders')) {
-            $collection = new shopOrdersCollection($hash);
+
+        if ($this->courier || wa()->getUser()->getRights('shop', 'orders')) {
+            $collection = new shopOrdersCollection($hash, !$this->courier ? array() : array(
+                'courier_id' => $this->courier['id'],
+            ));
             $this->response['count'] = $collection->count();
             $this->response['orders'] = array_values($collection->getOrders(self::getColelctionFields(), $offset, $limit));
             if ($this->response['orders']) {

@@ -10,69 +10,34 @@
         </div>
         <h1>[`Currencies`]</h1>
         <div class="fields form">
-              <form method="POST" action="?module=settings&action=currenciesSave">
-              <div class="field-group">
-                <div class="field">
-                    <div class="name">
-                        [`Primary currency`]
-                    </div>
-                    <div class="value no-shift">
-                        <h2>{$system_currencies[$primary].title} <span class="hint">{$primary}</span></h2>
-                    </div>
-                    <div class="value">
-                        <label>
-                            <input type="radio" name="use_product_currency" value="0" {if !$use_product_currency}checked{/if}> [`I will input all prices in the primary currency`]
-                        </label>
-                    </div>
-                    <div class="value">
-                        <label>
-                            <input type="radio" name="use_product_currency" value="1" {if $use_product_currency}checked{/if}> [`I will input prices in different currencies depending on product`]
-                        </label>
-                    </div>
-                </div>
-                <div class="field">
-                    <div class="value" style="margin-top: 10px;">
-                        [`When converting prices into primary currency:`]
-                        <select name="primary_rounding">
-                            {foreach $rounding_options as $o_value => $o_label}
-                                <option value="{$o_value|escape}"{if ifempty($currencies[$primary].rounding) == $o_value} selected{/if}>{$o_label|escape}</option>
-                            {/foreach}
-                        </select>
-                        <input type="hidden" name="primary_round_up_only" value="">
-                        <label><input type="checkbox" name="primary_round_up_only" value="1"{if !empty($currencies[$primary].round_up_only)} checked{/if}> [`Round fractions up only`]</label>
-                    </div>
-                </div>
-
-                <div class="field">
-                    <div class="value no-shift submit" style="display:none;">
-                        {$wa->csrf()}
-                        <input type="submit" class="button green" value="[`Save`]">
-                    </div>
-                </div>
-
-              </div>
-              </form>
 
               <div class="field-group">
                 <div class="field">
                     <div class="name">
-                        [`Other currencies`]
+                        [`Currencies`]
                     </div>
                     <div class="value no-shift">
                         <table class="zebra s-settings-currencies">
                             {foreach $currencies as $currency}
-                            {if $currency.code != $primary}
                                 <tr data-code="{$currency.code}" class="s-settings-currency">
                                     <td class="min-width">
                                         <i class="icon16 sort"></i>
                                         <input type="hidden" name="currency[{$currency.code}]" value="{$currency.code}">
                                     </td>
                                     <td class="nowrap"><strong>{$currency.title}</strong> <span class="hint">{$currency.sign}</span></td>
-                                    <td class="s-rate {if $currency.code != $primary}editable{/if}">
-                                        1 {$currency.code} = <span id="s-rate-{$currency.code}">{$currency.rate}</span>
-                                        <input type="text" name="rate[{$currency.code}]" value="{(float)$currency.rate}" id="s-rate-{$currency.code}-input" style="display:none;" class="numerical short">
-                                        {$primary}
+                                    <td class="s-rate editable{if $currency.code == $primary} primary{/if}">
+                                        {if $currency.code == $primary}
+                                            <span class="gray italic">[`Primary currency`]</span>
+                                        {else}
+                                            1 {$currency.code} = <span id="s-rate-{$currency.code}">{$currency.rate}</span>
+                                            <input type="text" name="rate[{$currency.code}]" value="{(float)$currency.rate}" id="s-rate-{$currency.code}-input" style="display:none;" class="numerical short">
+                                            {$primary}
+                                        {/if}
 
+                                        <div class="rounding-readonly float-right" style="display:none;">
+                                            <span class="rounding-value"></span>
+                                            <span class="rounding-up-only-enabled">[`(up only)`]</span>
+                                        </div>
                                         <div class="rounding" style="display: none">
                                             <select name="rounding[{$currency.code}]">
                                                 {foreach $rounding_options as $o_value => $o_label}
@@ -86,11 +51,12 @@
                                         </td>
                                     <td class="s-actions">
                                         <a href="javascript:void(0);"><i class="icon16 settings"></i></a>
-                                        <a href="javascript:void(0);"><i class="icon16 delete"></i></a>
+                                        {if $currency.code != $primary}
+                                            <a href="javascript:void(0);"><i class="icon16 delete"></i></a>
+                                        {/if}
                                         <input type="button" class="save" value="[`Save`]">
                                     </td>
                                 </tr>
-                            {/if}
                             {/foreach}
                             {capture "template-new-currency"}{literal}
                             <tr data-code="{%#o.code%}" class="s-settings-currency new" style="display: none;">
@@ -139,6 +105,63 @@
                     </div>
                 </div>
               </div>
+
+              <form method="POST" action="?module=settings&action=currenciesSave">
+              <div class="field-group">
+                <div class="field">
+                    <div class="name">
+                        [`Rounding`]
+                    </div>
+                    <div class="value no-shift"><label>
+                        <input type="checkbox" checked disabled>
+                        [`For product prices`]
+                        <br><span class="hint">
+                            [`Rounding is always applied when product price is converted to storefront currency, if rounding is enabled for that currency.`]
+                        </span>
+                    </label></div>
+                    <div class="value no-shift"><label>
+                        <input type="checkbox" name="round_discounts" value="1"{if !empty($round_discounts)} checked{/if}>
+                        [`For total discount amount`]
+                        <br><span class="hint">
+                            [`If checked, total discount amount of new orders will be rounded according to order currency settings.`]
+                        </span>
+                    </label></div>
+                    <div class="value no-shift"><label>
+                        <input type="checkbox" name="round_shipping" value="1"{if !empty($round_shipping)} checked{/if}>
+                        [`For shipping cost`]
+                        <br><span class="hint">
+                            [`If checked, shipping cost of new orders will be rounded according to order currency settings.`]
+                        </span>
+                    </label></div>
+                </div>
+              </div>
+              <div class="field-group">
+                <div class="field">
+                    <div class="name">
+                        [`Product prices`]
+                    </div>
+                    <div class="value no-shift">
+                        <label>
+                            <input type="radio" name="use_product_currency" value="0" {if !$use_product_currency}checked{/if}> [`I will input all prices in the primary currency`]
+                        </label>
+                    </div>
+                    <div class="value no-shift">
+                        <label>
+                            <input type="radio" name="use_product_currency" value="1" {if $use_product_currency}checked{/if}> [`I will input prices in different currencies depending on product`]
+                        </label>
+                    </div>
+                </div>
+              </div>
+              <div class="field-group">
+                <div class="field">
+                    <div class="value no-shift submit">
+                        {$wa->csrf()}
+                        <input type="submit" class="button green" value="[`Save`]">
+                    </div>
+                </div>
+
+              </div>
+              </form>
         </div>
         <div class="clear-both"></div>
     </div>
@@ -148,17 +171,17 @@
 
 {$convert_text = "[`Convert product prices (%d) to the new primary currency (%s) according to the current exchange rate (%s)`]"}
 {$convert_text = $convert_text|replace:"%d":$product_count}
-<div class="dialog width600px {if $product_count > 0}height200px{else}height150px{/if}" id="s-settings-change-primary-currency-dialog">
+<div class="dialog width600px {if $product_count > 0}height250px{else}height200px{/if}" id="s-settings-change-primary-currency-dialog">
     <div class="dialog-background"></div>
     <form method="post" action="?module=settings&action=currencyChange">
     <div class="dialog-window">
         <div class="dialog-content">
             <div class="dialog-content-indent">
                 <h1>[`Change primary currency`] <span>({$primary})</span></h1>
-                <div class="field-group">
+                <div class="fields form">
                     <div class="field">
                         <div class="name">[`New primary currency`]</div>
-                        <div class="value">
+                        <div class="value no-shift">
                             <select name="code" data-primary="{$primary}">
                                 {foreach $currencies as $currency}
                                     {if $currency.code != $primary}
@@ -171,12 +194,12 @@
                     {if $product_count > 0}
                     <div class="field">
                         <div class="name">[`Convert prices`]</div>
-                        <div class="value">
+                        <div class="value no-shift">
                             <label><input type="radio" name="convert" value="1" checked="checked">
                                 <span class="s-convert-text">{$convert_text}</span>
                             </label>
                         </div>
-                        <div class="value">
+                        <div class="value no-shift">
                             <label><input type="radio" name="convert" value="0"> [`Don't convert, leave all product prices as is`]</label>
                         </div>
                     </div>

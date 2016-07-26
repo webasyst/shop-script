@@ -2,6 +2,22 @@
 
 class shopReportsOrderListAction extends shopOrderListAction
 {
+    private static $cache = array(
+        'orders' => array()
+    );
+
+    private $cache_key;
+
+    public function __construct($params = null)
+    {
+        parent::__construct($params);
+        $this->cache_key = md5(json_encode(array(
+            'hash' => $this->getHash(),
+            'offset' => $this->getOffset(),
+            'limit' => $this->getCount()
+        )));
+    }
+
     public function execute()
     {
         $offset = $this->getOffset();
@@ -25,6 +41,14 @@ class shopReportsOrderListAction extends shopOrderListAction
             'timerange' => $this->getTimerange(),
             'filter' => $this->getFilter()
         ));
+    }
+
+    public function getOrders($offset, $limit)
+    {
+        if (!array_key_exists($this->cache_key, self::$cache['orders'])) {
+            self::$cache['orders'][$this->cache_key] = parent::getOrders($offset, $limit);
+        }
+        return self::$cache['orders'][$this->cache_key];
     }
 
     public function getOffset()

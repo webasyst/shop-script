@@ -941,8 +941,20 @@ editClick:(function ($) {
             } else {
                 $.product.disableSkus(true, false);
             }
-        },
 
+            //copy prices if target are empty
+            var fields = ['compare_price','purchase_price'];
+            var $target,$source;
+            for(var i=0;i<fields.length;i++){
+                $target = $features.find(':input[name="product['+fields[i]+'_selectable]"]:first');
+                if ($target.length && !parseInt($target.val())) {
+                    $source = $(':input[name^="skus"][name$="[' + fields[i] + ']"]:first');
+                    if($source.length) {
+                        $target.val($source.val());
+                    }
+                }
+            }
+        },
 
         onSkuTypeChange: function (sku_type) {
             var $features = $('#s-product-feature-superposition-field-group');
@@ -950,16 +962,21 @@ editClick:(function ($) {
 
             // selectable features case
             if (sku_type == '1') {
+
                 var product_type = $(this.options.form_selector + ' :input[name="product[type_id]"]').val();
                 if ($features.data('type') != product_type) {
                     var data = {
                         base_price_selectable: $features.find(':input[name="product[base_price_selectable]"]').val(),
                         currency: $features.find('select.s-product-currency').val()
                     };
+                    if (!parseInt(data.base_price_selectable)) {
+                        data.base_price_selectable = $(':input[name^="skus"][name$="[price]"]:first').val();
+                    }
                     $.product.skuTypeFeaturesSelectableLoad(product_type, data);
                 } else {
                     $.product.onSkuTypeEnabled();
                 }
+
                 // flat sku case
             } else {
                 $features.hide();
@@ -1155,8 +1172,16 @@ editClick:(function ($) {
             $form.on('change.product, keyup.product', 'div.s-product-form:not(.ajax) :input', function (e) {
                 $.product.helper.onChange($(this).parents('div.s-product-form'));
             });
-            $form.on('change.product, keyup.product, keypress.product', ':input[name="product\[name\]"]', function (e) {
+            $form.on('change.product, keyup.product, keypress.product', ':input[name="product[name]"]', function (e) {
                 $.product.helper.onNameChange($(this), false, $.product.options.update_delay || 500);
+            });
+            $.shop.changeListener($form, ':input[name="product[url]"]', function () {
+                var $elem = $(this);
+                $.getJSON('?module=product&action=checkUrlInUse', { id: $.product.path.id,  url: $elem.val() || '' },
+                    function (r) {
+                        $.product.informAboutUrlInUse(r.status === 'ok' && r.data.url_in_use);
+                    }
+                );
             });
 
             var product_tags = $('#product-tags');
@@ -1206,6 +1231,14 @@ editClick:(function ($) {
             }).change();
 
             $.product.featureSelectableInit();
+        },
+
+        informAboutUrlInUse: function (url_in_use) {
+            if (url_in_use) {
+                $('#s-product-url-in-use-block').show().find('.s-text').html(url_in_use);
+            } else {
+                $('#s-product-url-in-use-block').hide();
+            }
         },
 
         editFocus: function () {
@@ -1565,6 +1598,7 @@ editClick:(function ($) {
 
                 }
             },
+
             onChange: function (container) {
                 var id = this.getContainerId(container);
                 var self = this;
@@ -1583,22 +1617,21 @@ editClick:(function ($) {
                 if (this.data.url_helper.timer) {
                     clearTimeout(this.data.url_helper.timer);
                 }
-                var data = {
-                    'str': $(element).val()
-                };
+                var data = { 'name': $(element).val() };
                 $.shop.trace('$.product.urlHelper ', data);
                 if (data.url != this.data.url_helper.name) {
                     var self = this;
                     this.data.url_helper.url = data.url;
-                    $.ajax({
-                        'url': '?action=transliterate',
-                        'dataType': 'html',
-                        'data': data
-                    }).done(function (response) {
-                        if ((response = $.parseJSON(response)) && (response.status == "ok")) {
-                            self.data.url_helper.url = response.data;
-                            target.val(response.data);
+                    $.getJSON('?module=product&action=suggestUrl', data, function (r) {
+                        if (r.status === 'ok') {
+
+                            // save current url, for track is it was changed
+                            self.data.url_helper.url = r.data.url;
+                            target.val(r.data.url);
                             target.parent().find('.js-url-helper').hide();
+
+                            // inform about url in use by show message or hide it
+                            $.product.informAboutUrlInUse(r.data.in_use);
                         }
                     });
                 } else {

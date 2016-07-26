@@ -166,6 +166,14 @@
             this.skipDispatch = n;
         },
 
+        // Change location hash without triggering dispatch
+        forceHash: function(hash) {
+            if (location.hash != hash) {
+                this.skipDispatch++;
+                $.wa.setHash(hash);
+            }
+        },
+
         /** Implements #hash-based navigation. Called every time location.hash changes. */
         dispatch: function (hash) {
             if (this.skipDispatch > 0) {
@@ -384,6 +392,7 @@
                 }, 250);
 
                 showOrdersViewToggle();
+                showOrdersSortMenu();
 
 
                 $('.level2').show();
@@ -399,6 +408,19 @@
                         $ordersViewToggle.css("visibility", "visible");
                     } else {
                         $ordersViewToggle.css("visibility", "hidden");
+                    }
+                }
+            }
+
+            function showOrdersSortMenu() {
+                var $ordersSortMenu = $("#s-orders-sort"),
+                    is_orders_page = $("#s-order, #s-orders").length;
+
+                if ($ordersSortMenu.length) {
+                    if (is_orders_page) {
+                        $ordersSortMenu.css("visibility", "visible");
+                    } else {
+                        $ordersSortMenu.css("visibility", "hidden");
                     }
                 }
             }

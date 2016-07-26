@@ -131,11 +131,7 @@
                     waDesignLoad();
                 });
             }
-        },
-
-        settingsAction: function () {
-            this.setActive('s-link-settings');
-            $("#s-storefronts-content").load('?module=storefronts&action=settings');
         }
+
     }
 })(jQuery);

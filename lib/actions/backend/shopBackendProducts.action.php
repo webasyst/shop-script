@@ -17,7 +17,7 @@ class shopBackendProductsAction extends waViewAction
         $collapse_types = wa()->getUser()->getSettings('shop', 'collapse_types');
         if (empty($collapse_types)) {
             $type_model = new shopTypeModel();
-            $this->view->assign('types', $type_model->getTypes());
+            $this->view->assign('types', $type_model->getAll('id'));
         } else {
             $this->view->assign('types', false);
         }

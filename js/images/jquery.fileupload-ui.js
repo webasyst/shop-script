@@ -453,8 +453,9 @@
             },
 
             paste: function(e) {
-                if (!$(e.srcElement).is(':input')) {
-                    return false;    
+                var target = e.srcElement || (e.originalEvent && e.originalEvent.target);
+                if (!$(target).is(':input')) {
+                    return false;
                 }
                 //($(this).data('blueimp-fileupload') || $(this).data('fileupload'))._clear();
             },

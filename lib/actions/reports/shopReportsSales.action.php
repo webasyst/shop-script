@@ -193,19 +193,19 @@ class shopReportsSalesAction extends waViewAction
 
         // orders block
         if (isset($filter['name'])) {
-            $this->view->assign('order_list_html',
-                $this->getOrderListHtml(
-                    array(
-                        'report_type' => $type_id,
-                        'filter' => $filter,
-                        'sales_channel' => $sales_channel,
-                        'timerange' => array(
-                            'start' => $start_date,
-                            'end' => $end_date
-                        )
-                    )
+
+            $list_params = array(
+                'report_type' => $type_id,
+                'filter' => $filter,
+                'sales_channel' => $sales_channel,
+                'timerange' => array(
+                    'start' => $start_date,
+                    'end' => $end_date
                 )
             );
+
+            $this->view->assign('order_list_html', $this->getOrderListHtml($list_params));
+            $this->view->assign('order_items_list_html', $this->getOrderItemListHtml($list_params));
         }
     }
 
@@ -565,6 +565,17 @@ class shopReportsSalesAction extends waViewAction
         $vars = $this->view->getVars();
         $this->view->clearAllAssign();
         $order_list_action = new shopReportsOrderListAction($params);
+        $html = $order_list_action->display();
+        $this->view->clearAllAssign();
+        $this->view->assign($vars);
+        return $html;
+    }
+
+    public function getOrderItemListHtml($params)
+    {
+        $vars = $this->view->getVars();
+        $this->view->clearAllAssign();
+        $order_list_action = new shopReportsOrderItemListAction($params);
         $html = $order_list_action->display();
         $this->view->clearAllAssign();
         $this->view->assign($vars);

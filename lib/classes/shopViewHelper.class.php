@@ -156,7 +156,7 @@ class shopViewHelper extends waAppViewHelper
      * @param array $products
      * @return array
      */
-    public function features(&$products)
+    public function features(&$products, $public_only = true)
     {
         if (!$products) {
             return array();
@@ -196,6 +196,10 @@ class shopViewHelper extends waAppViewHelper
                 continue;
             }
             $f = $features[$row['feature_id']];
+            if ($public_only && $f['status'] != 'public') {
+                unset($features[$row['feature_id']]);
+                continue;
+            }
             $type = preg_replace('/\..*$/', '', $f['type']);
             if ($type != shopFeatureModel::TYPE_BOOLEAN && $type != shopFeatureModel::TYPE_DIVIDER) {
                 $type_values[$type][$row['feature_value_id']] = $row['feature_value_id'];
@@ -266,7 +270,9 @@ class shopViewHelper extends waAppViewHelper
         // return features (key code)
         $result = array();
         foreach ($features as $f) {
-            $result[$f['code']] = $f;
+            if (!$public_only || $f['status'] == 'public') {
+                $result[$f['code']] = $f;
+            }
         }
         return $result;
     }
@@ -359,7 +365,7 @@ class shopViewHelper extends waAppViewHelper
 
     public function productImgHtml($product, $size, $attributes = array())
     {
-        if (!$product['image_id']) {
+        if (empty($product['image_id'])) {
             if (!empty($attributes['default'])) {
                 return '<img src="'.$attributes['default'].'">';
             }
@@ -376,7 +382,7 @@ class shopViewHelper extends waAppViewHelper
         return $this->imgHtml(array(
             'id'         => $product['image_id'],
             'product_id' => $product['id'],
-            'filename'   => $product['image_filename'],
+            'filename'   => isset($product['image_filename']) ? $product['image_filename'] : null,
             'ext'        => $product['ext']
         ), $size, $attributes);
     }

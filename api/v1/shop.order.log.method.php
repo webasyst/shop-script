@@ -1,6 +1,6 @@
 <?php
 
-class shopOrderLogMethod extends waAPIMethod
+class shopOrderLogMethod extends shopApiMethod
 {
     public function execute()
     {

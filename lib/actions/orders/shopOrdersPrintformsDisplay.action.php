@@ -19,9 +19,7 @@ class shopOrdersPrintformsDisplayAction extends waViewAction
         }
 
         $forms = $this->getForms();
-        $this->view->assign(array(
-            'printforms' => $this->getPrintforms($order_ids, $forms)
-        ));
+        $this->view->assign('printforms', $this->getPrintforms($order_ids, $forms));
     }
 
     public function getPrintforms($order_ids, $forms)
@@ -39,25 +37,37 @@ class shopOrdersPrintformsDisplayAction extends waViewAction
             foreach ($order_printforms as $form_id => $plugin) {
                 if (isset($forms_map[$form_id])) {
                     if (strpos($form_id, '.')) {
-                        $url_template = "?module=order&action=printform&form_id={$form_id}&order_id=:order_id";
+                        $url = array(
+                            'module'   => 'order',
+                            'action'   => 'printform',
+                            'form_id'  => $form_id,
+                            'order_id' => $order_id,
+                            'mass_print' => '1',
+                        );
                     } else {
-                        $url_template = "?plugin={$form_id}&module=printform&action=display&order_id=:order_id";
+                        $url = array(
+                            'plugin'   => $form_id,
+                            'module'   => 'printform',
+                            'action'   => 'display',
+                            'order_id' => $order_id,
+                            'mass_print' => '1',
+                        );
+
                     }
-                    $url = str_replace(':order_id', $order_id, $url_template);
-                    $printforms[] = $url;
+                    $printforms[] = '?'.http_build_query($url);
                 }
             }
         }
-        
+
         return $printforms;
     }
-    
+
     public function getHash()
     {
         $order_ids = waRequest::request('order_id', null, waRequest::TYPE_ARRAY_INT);
         if ($order_ids !== null) {
             if ($order_ids) {
-                return 'id/'.implode(',',$order_ids);
+                return 'id/'.implode(',', $order_ids);
             } else {
                 return null;
             }
@@ -90,7 +100,6 @@ class shopOrdersPrintformsDisplayAction extends waViewAction
 
     public function getForms()
     {
-        return (array) $this->getRequest()->request('form');
+        return (array)$this->getRequest()->request('form');
     }
-
 }

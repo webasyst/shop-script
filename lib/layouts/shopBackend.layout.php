@@ -28,6 +28,7 @@ class shopBackendLayout extends waLayout
             'new_orders_count' => $order_model->getStateCounters('new'),
             'tutorial_progress' => $tutorial_progress,
             'tutorial_visible' => $tutorial_visible,
+            'is_web_push_on' => $this->isWebPushOn()
         ));
     }
 
@@ -103,5 +104,10 @@ class shopBackendLayout extends waLayout
             return 100;
         }
     }
-}
 
+    protected function isWebPushOn()
+    {
+        $web_push = new shopWebPushNotifications();
+        return $web_push->isOn();
+    }
+}

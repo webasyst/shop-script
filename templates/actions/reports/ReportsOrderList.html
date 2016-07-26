@@ -6,7 +6,6 @@
             {include file='../orders/include.template_order_list_table.html' params_str='' inline}
         </script>
 
-        <h3>[`Orders`]</h3>
         <table class="zebra single-lined padded s-reports-order-list">
             <tbody></tbody>
         </table>
@@ -54,14 +53,11 @@
                             timerange: {$timerange|json_encode}
                         };
 
-                        $(window).lazyLoad('stop'); // stop previous lazy-load implementation
-
                         if (offset < total_count) {
-                            $(window).lazyLoad({
-                                container: container,
+                            container.lazyLoad({
                                 state: 'wake',
                                 load: function() {
-                                    $(window).lazyLoad('sleep');
+                                    container.lazyLoad('sleep');
                                     $('.lazyloading-link', container).hide();
                                     $('.lazyloading-progress', container).show();
 
@@ -80,14 +76,14 @@
                                             offset += list.length;
                                             table.append(list);
                                             if (offset >= total_count) {
-                                                $(window).lazyLoad('stop');
+                                                container.lazyLoad('stop');
                                                 $('.lazyloading-progress', container).hide();
                                             } else {
-                                                $(window).lazyLoad('wake');
+                                                container.lazyLoad('wake');
                                                 $('.lazyloading-link', container).show();
                                             }
                                         } else {
-                                            $(window).lazyLoad('stop');
+                                            container.lazyLoad('stop');
                                             $('.lazyloading-progress', container).hide();
                                         }
 
@@ -103,7 +99,7 @@
                                 }
                             });
                             container.off('click', '.lazyloading-link').on('click', '.lazyloading-link', function() {
-                                $(window).lazyLoad('force');
+                                container.lazyLoad('force');
                                 return false;
                             });
                         }

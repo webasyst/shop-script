@@ -51,6 +51,13 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                     }
                     // if user has been created
                     if ($contact['password'] && empty($contact_id)) {
+
+                        if (!class_exists('waLogModel')) {
+                            wa('webasyst');
+                        }
+                        $log_model = new waLogModel();
+                        $log_model->add('signup', wa()->getEnv(), $contact->getId(), $contact->getId());
+
                         $signup_action = new shopSignupAction();
                         $signup_action->send($contact);
 
@@ -212,6 +219,9 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             ));
         }
 
+        if (!class_exists('waLogModel')) {
+            wa('webasyst');
+        }
         $log_model = new waLogModel();
         $log_model->add('order_create', $order_id, null, $order['contact_id']);
 
@@ -256,19 +266,29 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                 if (!$item['stock_id']) {
                     // Determine real stock_id from virtual stock
                     $sku_stock = $product_stocks_model->getCounts($item['sku_id']);
-                    foreach ($virtualstock['substocks'] as $substock_id) {
-                        if (!isset($sku_stock[$substock_id]) || $sku_stock[$substock_id] > 0) {
-                            $item['stock_id'] = $substock_id;
-                            break;
-                        }
-                    }
-                    if (!$item['stock_id']) {
-                        $item['stock_id'] = reset($virtualstock['substocks']);
-                    }
+                    $item['stock_id'] = self::getItemSubstockId($item['quantity'], $sku_stock, $virtualstock['substocks']);
                 }
             }
         }
         unset($item);
+    }
+
+    public static function getItemSubstockId($ordered_quantity, $sku_stock, $substocks)
+    {
+        //wa_dump($ordered_quantity, $sku_stock, $substocks);
+        $candidates = array();
+        foreach ($substocks as $substock_id) {
+            if (!isset($sku_stock[$substock_id]) || $sku_stock[$substock_id] >= $ordered_quantity) {
+                return $substock_id;
+            } else if ($sku_stock[$substock_id] > 0) {
+                $candidates[] = $substock_id;
+            }
+        }
+        if ($candidates) {
+            return reset($candidates);
+        } else {
+            return reset($substocks);
+        }
     }
 
     // Determine virtual stock and/or stock applicable for the order from order params and routing params

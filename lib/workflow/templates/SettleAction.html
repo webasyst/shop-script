@@ -45,6 +45,13 @@
     </ul>
     <br>
 
+    {if !empty($plugins_html)}
+        {foreach $plugins_html as $plugin_id => $html}
+            <!-- {$plugin_id} -->
+            {$html}
+        {/foreach}
+    {/if}
+
     <div class="js-settle-form-actions">
         <input type="submit" class="button yellow" value="[`Merge orders`]" data-confirm="{'[`This will replace selected order %id% details with the amount (%amount%) and status (%state%) of this unsettled order. Are you sure?`]'|replace:'%state%':"%state% → {$order.state->getName()|default:$order.state_id|default:'error'}"|replace:'%amount%':"%amount% → {$order.total_str|default:'unknown'|strip_tags}"|escape}"
         > [`or`] <a href="#" class="inline">[`mark this order as settled`]</a>

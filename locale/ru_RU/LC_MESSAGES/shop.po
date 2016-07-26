@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 1.8.7\n"
+"X-Generator: Poedit 1.8.7.1\n"
 "Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
@@ -5364,8 +5364,7 @@ msgstr "Все доступные способы оплаты"
 
 # msgid "Shipping options"
 # msgstr "Способы доставки"
-#: /wa-apps/shop/lib/config/site.php:87
-#: /wa-apps/shop/lib/config/site.php:91
+#: /wa-apps/shop/lib/config/site.php:87 /wa-apps/shop/lib/config/site.php:91
 msgid "All available shipping options"
 msgstr "Все доступные способы доставки"
 
@@ -6416,8 +6415,7 @@ msgstr "Новый профиль"
 msgid "Perform action to all selected orders?"
 msgstr "Выполнить действие со всеми выбранными заказами?"
 
-#: /wa-apps/shop/js/product/list.js:407
-#: /wa-apps/shop/js/product/list.js:568
+#: /wa-apps/shop/js/product/list.js:407 /wa-apps/shop/js/product/list.js:568
 msgid "Drag products here"
 msgstr "Перетащите товары сюда"
 
@@ -6520,8 +6518,7 @@ msgstr "Автоматически перемещать вниз списка в
 msgid "When enabled, out-of-stock products will be automatically dropped to the bottom of every product list on this storefront, e.g. in product search results, category product filtering, and more."
 msgstr "Товары, которых нет на складе, будут автоматически перемещены вниз всех списков товаров на витрине интернет-магазина: в результатах поиска, в списках товаров внутри категорий, в результатах фильтрации товаров и т. д."
 
-#: /wa-apps/shop/lib/config/site.php:177
-#: /wa-apps/shop/lib/config/site.php:181
+#: /wa-apps/shop/lib/config/site.php:177 /wa-apps/shop/lib/config/site.php:181
 #: /wa-apps/shop/lib/config/site.php:182
 msgid "Setting <em>$available_only = true</em> will automatically exclude all out-of-stock products from the return"
 msgstr "Настройка <em>$available_only = true</em> автоматически исключит из результата все товары, которых нет на складе."
@@ -7269,8 +7266,7 @@ msgstr "Купить"
 #: /wa-apps/shop/themes/facebook/home.html:9
 #: /wa-apps/shop/themes/nifty/home.html:9
 #: /wa-apps/shop/themes/pinboard/home.html:9
-#: /wa-apps/shop/themes/sidebar/home.html:9
-#: /wa-apps/shop/themes/vk/home.html:9
+#: /wa-apps/shop/themes/sidebar/home.html:9 /wa-apps/shop/themes/vk/home.html:9
 msgid "Start by <a href=\"%s\">creating a product</a> in your store backend."
 msgstr "Начните с <a href=\"%s\">создания товара</a> в бекенде интернет-магазина."
 
@@ -7440,6 +7436,9 @@ msgstr "При переводе цен в основную валюту:"
 
 msgid "Round fractions up only"
 msgstr "Округлять только вверх"
+
+msgid "(up only)"
+msgstr "(только вверх)"
 
 msgid "Round to nearest 100"
 msgstr "Округлять до 100"
@@ -9215,8 +9214,7 @@ msgstr "Главная страница"
 msgid "Social sharing Title (og:title)"
 msgstr "Заголовок (og:title)"
 
-#: /wa-apps/shop/lib/config/site.php:41
-#: /wa-apps/shop/lib/config/site.php:58
+#: /wa-apps/shop/lib/config/site.php:41 /wa-apps/shop/lib/config/site.php:58
 msgid "For detailed information on Open Graph parameters and examples please refer to <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
 msgstr "Подробная информация о возможных вариантах значений параметров Open Graph опубликована на сайте протокола <a href=\"http://ogp.me\" target=\"_blank\">ogp.me</a>"
 
@@ -9987,3 +9985,244 @@ msgstr "страна или регион"
 msgid "By shipping location"
 msgstr "По адресу доставки"
 
+#: /wa-apps/shop/templates/actions/backend/BackendProducts.html:115
+msgid "No categories available."
+msgstr "Список категорий пуст."
+
+#: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateMove.controller.php:87
+msgid "State hasn't any available action"
+msgstr "У статуса нет доступных действий"
+
+#: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateMove.controller.php:96
+#: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateMove.controller.php:104
+msgid "Action isn't available"
+msgstr "Действие недоступно"
+
+#: /wa-apps/shop/templates/actions/backend/BackendOrders.html:91
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:3
+msgid "Couriers"
+msgstr "Курьеры"
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:10
+msgid "Couriers are your teammates who are assigned to deliver orders to customers and to track and update order information on the go using <a href=\"http://www.shop-script.com/mobile/\" target=\"_blank\">Shop-Script mobile app</a>.<br><br> Unlike common backend users, couriers may not login to the main store backend and can only see orders they were assigned using the mobile app only. An order can be assigned to a courier upon the order SHIP action. <a href=\"https://www.shop-script.com/help/13421/shop-script-couriers/\" target=\"_blank\">Learn more about couriers</a>."
+msgstr "Курьеры &mdash; это ваши сотрудники, ответственные за доставку заказов клиентам, а также за отслеживание и обновление статусов заказов с помощью <a href=\"http://www.shop-script.ru/mobile/\" target=\"_blank\">мобильного приложения Shop-Script</a>.<br><br> В отличие от обычных пользователей бекенда, курьеры не могут входить в основную часть управления магазином, а могут лишь просматривать с помощью мобильного приложения те заказы, за доставку которых они отвечают. Заказ может быть назначен на курьера при выполнении действия ОТПРАВЛЕН. <a href=\"https://www.shop-script.ru/help/13420/shop-script-couriers/\" target=\"_blank\">Подробнее о курьерах</a>."
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:20
+msgid "New courier"
+msgstr "Новый курьер"
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:48
+msgid "Courier name"
+msgstr "Имя курьера"
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:55
+msgid "Courier real or nick name. Linking couriers with real contacts or backend users is optional."
+msgstr "Настоящее имя или псевдоним курьера. Связывать курьеров с существующими контактами необязательно."
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:62
+msgid "Any kind of useful information about this courier, e.g. contact information, preferred delivery hours and locations."
+msgstr "Любая полезная информация о курьере, например, контактная информация, предпочтительное время и районы доставки."
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:82
+msgid "This courier assignment will be available for orders placed on selected storefronts only."
+msgstr "Выбор этого курьера будет доступен только для заказов, оформленных через выбранные здесь витрины."
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:95
+msgid "Working"
+msgstr "Работает"
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:96
+msgid "Not working"
+msgstr "Не работает"
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:103
+msgid "Last seen"
+msgstr "Последний вход"
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:107
+msgid "Never"
+msgstr "Не было"
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:114
+msgid "Auth code"
+msgstr "Код авторизации"
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:123
+msgid "Not set"
+msgstr "Отсутствует"
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:125
+msgid "Re-generate the code"
+msgstr "Обновить код"
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:128
+msgid "Expires:"
+msgstr "Истекает:"
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:133
+msgid "New auth code will be generated after you save changes."
+msgstr "Новый код авторизации будет сформирован после сохранения изменений."
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:138
+msgid "Auth code must be entered by the courier in the mobile app to authorize it with your online store. Once authorized with the code, the mobile app may then use the connection indefinitely. In case the code was not entered, it will automatically expire in 24 hours."
+msgstr "Курьер должен ввести код авторизации в мобильном приложении для подключения к вашему интернет-магазину. Авторизация с помощью кода необходима только один раз и более не потребуется. Если код не будет введен в течение 24 часов, его действие будет автоматически прекращено."
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:151
+msgid "View all courier orders"
+msgstr "Все заказы курьера"
+
+#: /wa-apps/shop/templates/actions/couriers/Couriers.html:172
+msgid "Courier record will be permanently deleted without the ability to restore. Delete?"
+msgstr "Курьер будет полностью удален без возможности восстановления. Удалить?"
+
+#: /wa-apps/shop/templates/actions/product/ProductFeatures.html:39
+#: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:129
+#: /wa-apps/shop/templates/actions/settings/SettingsFeatures.html:178
+#: /wa-apps/shop/templates/actions/settings/SettingsFeaturesFeatureList.html:17
+msgid "Only visible in backend"
+msgstr "Видна только в бекенде"
+
+#: /wa-apps/shop/templates/actions/product/ProductImages.html:82
+msgid "This will remove video from the product page. Are you sure?"
+msgstr "Видео товара будет удалено. Продолжить?"
+
+#: /wa-apps/shop/templates/actions/product/ProductImages.html:83
+msgid "Unlink video"
+msgstr "Удалить видео"
+
+#: /wa-apps/shop/templates/actions/reports/ReportsSales.html:166
+msgid "Ordered products"
+msgstr "Заказанные товары"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsDiscounts.html:43
+#: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:93
+msgid "Don’t round"
+msgstr "Не округлять"
+
+#: /wa-apps/shop/templates/layouts/Backend.html:259
+msgid "Date created"
+msgstr "Дата создания"
+
+#: /wa-apps/shop/templates/layouts/Backend.html:262
+msgid "Date updated"
+msgstr "Дата обновления"
+
+#: /wa-apps/shop/templates/layouts/Backend.html:265
+msgid "Date paid"
+msgstr "Дата оплаты"
+
+msgid "Product prices"
+msgstr "Ввод цен товаров"
+
+#: /wa-apps/shop/lib/classes/shopHelper.class.php:949
+msgid "The URL <strong>:url</strong> is already in use by another product (<a href=\"?action=products#/product/:another_product_id/\" target=\"_blank\" class=\"bold\">:another_product_name</a>). You may still save this product with the same URL, but the storefront will display only one (any) product by this URL."
+msgstr "URL <strong>:url</strong> уже используется для другого товара (<a href=\"?action=products#/product/:another_product_id/\" target=\"_blank\" class=\"bold\">:another_product_name</a>). Вы можете сохранить этот товар с тем же самым URL, но на витрине по этому адресу будет виден только один (любой) из этих товаров."
+
+#: /wa-apps/shop/templates/actions/backend/BackendOrders.html:122
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:218
+msgid "Web push notifications"
+msgstr "Push-уведомления"
+
+#: /wa-apps/shop/templates/actions/backend/BackendOrders.html:376
+#: /wa-apps/shop/lib/classes/shopWebPushNotifications.class.php:138
+msgid "Shop orders"
+msgstr "Заказы магазина"
+
+#: /wa-apps/shop/templates/actions/backend/BackendOrders.html:379
+msgid "Thank you for subscribing!"
+msgstr "Спасибо за подписку на push-уведомления!"
+
+#: /wa-apps/shop/templates/actions/order/Order.html:143
+msgid "deleted"
+msgstr "удален"
+
+#: /wa-apps/shop/templates/actions/reports/ReportsOrderItemList.html:30
+msgid "Show more"
+msgstr "Показать еще"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:223
+msgid "Your browser doesn't support web push technology."
+msgstr "Ваш браузер не поддерживает push-уведомления."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:225
+msgid "However, you can configure web push notifications so that users with supported browsers can receive them."
+msgstr "Однако вы можете настроить их для других пользователей с поддерживаемыми браузерами."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:243
+msgid "This domain does not support push notifications. Ensure that an SSL certificate is installed for the domain name."
+msgstr "Этот домен не поддерживает push-уведомления. Для доменного имени должен быть установлен SSL-сертификат."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:279
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:284
+msgid "Google project number"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:288
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:293
+msgid "Safari Web ID"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:297
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:302
+msgid "OneSignal App ID"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:306
+#: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:311
+msgid "REST API Key"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:107
+msgid "Rounding"
+msgstr "Округление"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:111
+msgid "For product prices"
+msgstr "Для цен товаров"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:113
+msgid "Rounding is always applied when product price is converted to storefront currency, if rounding is enabled for that currency."
+msgstr "Округление всегда применяется при конвертации цены товара в валюту витрины, если для этой валюты настроено округление."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:118
+msgid "For total discount amount"
+msgstr "Для итогового размера скидки"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:120
+msgid "If checked, total discount amount of new orders will be rounded according to order currency settings."
+msgstr "Включите, чтобы итоговый размер скидки в новых заказах округлялся в соответствии с настройками валюты заказа."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:125
+msgid "For shipping cost"
+msgstr "Для стоимости доставки"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsCurrencies.html:127
+msgid "If checked, shipping cost of new orders will be rounded according to order currency settings."
+msgstr "Включите, чтобы стоимость доставки в новых заказах округлялась в соответствии с настройками валюты заказа."
+
+msgid "Rounding of fractional shipping costs can be set up in %scurrency settings%s."
+msgstr "Округление дробных значений стоимости доставки можно настроить в разделе «%sВалюты%s»."
+
+msgid "Rounding of fractional discount values can be set up in %scurrency settings%s."
+msgstr "Округление дробных значений скидок можно настроить в разделе «%sВалюты%s»."
+
+msgid "To enable web push notifications, configure them in “Settings → <a href=\"?action=settings#/checkout/\">Checkout</a>” screen."
+msgstr "Чтобы включить push-уведомления, настройте их в разделе «Настройки → <a href=\"?action=settings#/checkout/\">Оформление заказа</a>»."
+
+msgid "Enable web push notifications for your browser to get notified on new orders on your computer screen."
+msgstr "Включите push-уведомления для своего браузера, чтобы видеть сообщения о поступлении новых заказов на экране компьютера."
+
+msgid "User manual on setting up web push notifications: <a href=\"%s\" target=\"_blank\">%s</a>."
+msgstr "Инструкция по настройке push-уведомлений: <a href=\"%s\" target=\"_blank\">%s</a>."
+
+msgid "http://www.shop-script.com/help/13536/push-notifications/"
+msgstr "http://www.shop-script.ru/help/13535/push-notifications/"
+
+msgid "Short company name"
+msgstr "Краткое название компании"
+
+msgid "Enter values obtained during signup on onesignal.com website"
+msgstr "Введите значения, полученные при регистрации на сайте onesignal.com"
+
+msgid "Check <a target=\"_blank\" href=\"https://documentation.onesignal.com/docs/website-sdk-overview\">web push documentation</a> for the list of supported browsers."
+msgstr "Список поддерживаемых браузеров доступен на <a target=\"_blank\" href=\"https://documentation.onesignal.com/docs/website-sdk-overview\">странице документации</a>."

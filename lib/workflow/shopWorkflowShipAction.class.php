@@ -11,17 +11,29 @@ class shopWorkflowShipAction extends shopWorkflowAction
 
     public function execute($params = null)
     {
-        if ($tracking = waRequest::post('tracking_number')) {
+        $text = array();
+        $params = array();
+
+        if ( ( $tracking = waRequest::post('tracking_number', '', 'string'))) {
+            $text[] = _w('Tracking number').': '.htmlspecialchars($tracking);
+            $params['tracking_number'] = $tracking;
+        }
+        if ( ( $courier_id = waRequest::post('courier_id', null, 'int'))) {
+            $courier_model = new shopApiCourierModel();
+            $courier = $courier_model->getById($courier_id);
+            if ($courier) {
+                $text[] = _w('Courier').': '.htmlspecialchars(ifempty($courier['name'], '('.$courier_id.')'));
+                $params['courier_id'] = $courier_id;
+            }
+        }
+
+        if ($text || $params) {
             return array(
-                'text' => 'Tracking Number: '.$tracking,
-                'params' => array(
-                    'tracking_number' => $tracking
-                ),
+                'text' => join("\n", $text),
+                'params' => $params,
                 'update' => array(
-                    'params' => array(
-                        'tracking_number' => $tracking
-                    )
-                )
+                    'params' => $params,
+                ),
             );
         } else {
             return true;
@@ -47,7 +59,7 @@ class shopWorkflowShipAction extends shopWorkflowAction
         $update_on_create   = $app_settings_model->get('shop', 'update_stock_count_on_create_order');
 
         if (!$update_on_create && $state_id == 'new') {
-            
+
             // for logging changes in stocks
             shopProductStocksLogModel::setContext(
                 shopProductStocksLogModel::TYPE_ORDER,
@@ -56,14 +68,40 @@ class shopWorkflowShipAction extends shopWorkflowAction
                     'order_id' => $order_id
                 )
             );
-            
+
             // jump through 'processing' state - reduce
             $order_model = new shopOrderModel();
             $order_model->reduceProductsFromStocks($order_id);
-            
+
             shopProductStocksLogModel::clearContext();
-            
+
         }
         return $data;
+    }
+
+    public function getHTML($order_id)
+    {
+        $order_params_model = new shopOrderParamsModel();
+        $params = $order_params_model->get($order_id);
+        $storefront = ifset($params['storefront'], '');
+        if ($storefront) {
+            $storefront = rtrim($storefront, '/*');
+            if (false !== strpos($storefront, '/')) {
+                $storefront .= '/';
+            }
+        }
+
+        $courier_model = new shopApiCourierModel();
+        $all_couriers = $couriers = $courier_model->getEnabled();
+        if ($storefront) {
+            $couriers = $courier_model->getByStorefront($storefront, $couriers);
+        }
+
+        $this->getView()->assign(array(
+            'other_couriers_exist' => count($all_couriers) > count($couriers),
+            'storefront' => $storefront,
+            'couriers' => $couriers,
+        ));
+        return parent::getHTML($order_id);
     }
 }

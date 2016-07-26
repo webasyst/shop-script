@@ -13,7 +13,14 @@ class shopSettingsFeaturesFeatureSaveController extends waJsonController
             $type_features_model = new shopTypeFeaturesModel();
             foreach ($features as $feature_id => & $feature) {
 
+                if (!empty($feature['status_private'])) {
+                    $feature['status'] = 'private';
+                } else {
+                    $feature['status'] = 'public';
+                }
+                unset($feature['status_private']);
                 $feature['id'] = $model->save($feature, $feature_id);
+
                 if ($feature['selectable']) {
                     if (($feature_id < 0) && is_array($feature['values']) && (count($feature['values']) == 1)) {
                         $value = reset($feature['values']);

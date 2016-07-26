@@ -15,12 +15,21 @@ class shopStocksBalanceAction extends waViewAction
         $offset = waRequest::get('offset', 0, waRequest::TYPE_INT);
         $total_count = waRequest::get('total_count', 0, waRequest::TYPE_INT);
         $order = waRequest::get('order') == 'desc' ? 'desc' : 'asc';
+        $sort = (string) waRequest::get('sort');
+        if (!$sort) {
+            $sort = 'count';
+        }
 
         if (!$total_count) {
             $total_count = $this->product_model->countProductStocks($this->options);
         }
-
-        $data = $this->getProductStocks($offset, $this->getConfig()->getOption('products_per_page'), $order);
+        
+        $data = $this->getProductStocks(array(
+            'offset' => $offset,
+            'limit' => $this->getConfig()->getOption('products_per_page'),
+            'order' => $order,
+            'sort' => $sort
+        ));
         $count = count($data);
         if ($offset === 0) {
             $stock_model = new shopStockModel();
@@ -29,7 +38,8 @@ class shopStocksBalanceAction extends waViewAction
                 'total_count' => $total_count,
                 'count' => $count,
                 'stocks' => $stock_model->getAll(),
-                'order' => $order
+                'order' => $order,
+                'sort' => $sort
             ));
         } else {
             $this->product_model = new shopProductModel();
@@ -47,12 +57,35 @@ class shopStocksBalanceAction extends waViewAction
         }
     }
 
-    public function getProductStocks($offset, $count, $order_by)
+    /**
+     * @param $options or $offset, $count, $order_by
+     * @return array
+     */
+    public function getProductStocks($options)
     {
+        if (is_array($options)) {
+            $offset = ifset($options['offset']);
+            $limit = ifset($options['limit']);
+            $order = ifset($options['order']);
+            $sort = ifset($options['sort']);
+        } else {
+            $args = func_get_args();
+            $offset = ifset($args[0]);
+            $limit = ifset($args[1]);
+            $order = ifset($args[2]);
+            $sort = '';
+        }
+
+        $offset = (int) $offset;
+        $limit = (int) $limit;
+        $order = strtolower((string) $order) === 'desc' ? 'desc' : 'asc';
+
+        //$offset, $count, $order_by
         $options = $this->options;
         $options['offset'] = $offset;
-        $options['limit'] = $count;
-        $options['order'] = $order_by;
+        $options['limit'] = $limit;
+        $options['order'] = $order;
+        $options['sort'] = $sort;
         $data = $this->product_model->getProductStocks($options);
 
         foreach ($data as &$product) {

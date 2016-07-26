@@ -81,13 +81,37 @@ HTML;
 
     public function getHTML($order_id)
     {
-        if (!$this->getOption('html')) {
+        $action_id = $this->getId();
+        $data = array();
+        $data['order_id'] = $order_id;
+        $data['action_id'] = $this->getId();
+        /**
+         * @event order_action_form.callback
+         * @event order_action_form.pay
+         * @event order_action_form.ship
+         * @event order_action_form.process
+         * @event order_action_form.delete
+         * @event order_action_form.restore
+         * @event order_action_form.complete
+         * @event order_action_form.comment
+         *
+         * @param array [string]mixed $data
+         * @param array [string]int $data['order_id']
+         * @param array [string]int $data['action_id']
+         *
+         * @return array[string]string $return[%plugin_id%] html output
+         */
+        $html = wa('shop')->event('order_action_form.'.$action_id, $data);
+
+        if (empty($html) && !$this->getOption('html')) {
             return null;
         }
         $this->getView()->assign(array(
-            'order_id'  => $order_id,
-            'action_id' => $this->getId()
+            'order_id'     => $order_id,
+            'action_id'    => $action_id,
+            'plugins_html' => $html,
         ));
+
         return $this->display();
     }
 
@@ -126,6 +150,12 @@ HTML;
             $data['after_state_id'] = $order['state_id'];
         }
 
+        if (wa()->getEnv() == 'api' && waRequest::param('api_courier')) {
+            $courier = waRequest::param('api_courier');
+            $data['contact_id'] = ifempty($courier['contact_id'], 0);
+            $data['params']['actor_courier_name'] = $courier['name'];
+            $data['params']['actor_courier_id'] = $courier['id'];
+        }
         $order_log_model = new shopOrderLogModel();
         $data['id'] = $order_log_model->add($data);
 
@@ -194,7 +224,12 @@ HTML;
      */
     protected function getTemplateBasename($template = '')
     {
-        return substr(get_class($this), 12).($template ? '_'.$template : '').$this->getView()->getPostfix();
+        $name = substr(get_class($this), 12).($template ? '_'.$template : '').$this->getView()->getPostfix();
+        $template_path = $this->getTemplateDir().$name;
+        if (!$this->getView()->templateExists($template_path)) {
+            $name = 'Action'.$this->getView()->getPostfix();
+        }
+        return $name;
     }
 
     /**

@@ -157,10 +157,11 @@ class shopProductsDeleteListController extends waJsonController
         $category_model = $this->getModel('category');
         $set_model  = $this->getModel('set');
         $type_model = $this->getModel('type');
+
         return array(
-            'category' => $category_model->getAll('id'),
-            'set'  => $set_model->getAll('id'),
-            'type' => $type_model->getAll('id'),
+            'category' => $category_model->select('id, count')->fetchAll('id'),
+            'set'  => $set_model->select('id, count')->fetchAll('id'),
+            'type' => $type_model->select('id, count')->fetchAll('id'),
             'all'  => array(
                 'count' => $product_model->countAll()
             )

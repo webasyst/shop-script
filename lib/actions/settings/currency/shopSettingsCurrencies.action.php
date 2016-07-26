@@ -24,6 +24,8 @@ class shopSettingsCurrenciesAction extends waViewAction
             'system_currencies' => $system_currencies,
             'rest_system_currencies' => array_diff_key($system_currencies, $currencies),
             'rounding_options' => wa('shop')->getConfig()->getRoundingOptions(),
+            'round_discounts' => wa('shop')->getSetting('round_discounts', 0),
+            'round_shipping' => wa('shop')->getSetting('round_shipping', 0),
             'product_count' => $this->getProductCount($primary)
         ));
     }

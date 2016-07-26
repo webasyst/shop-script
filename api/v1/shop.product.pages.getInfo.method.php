@@ -1,6 +1,6 @@
 <?php
 
-class shopProductPagesGetInfoMethod extends waAPIMethod
+class shopProductPagesGetInfoMethod extends shopApiMethod
 {
     public function execute()
     {

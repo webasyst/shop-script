@@ -70,6 +70,7 @@ class shopCheckoutShipping extends shopCheckout
 
         $dimension = shopDimension::getInstance()->getDimension('weight');
         $currencies = $config->getCurrencies();
+        $current_currency =$config->getCurrency(false);
         foreach ($methods as $method_id => $m) {
             $plugin = shopShipping::getPlugin($m['plugin'], $m['id']);
             $plugin_info = $plugin->info($m['plugin']);
@@ -94,7 +95,12 @@ class shopCheckoutShipping extends shopCheckout
                 if ($m['external']) {
                     $m['rates'] = array();
                 } else {
-                    $m['rates'] = $plugin->getRates($shipping_items, $shipping_address, array('total_price' => $total));
+                    if (isset($currencies[$m['currency']]) && ($m['currency'] != $current_currency)) {
+                        $_total = shop_currency($total, $current_currency, $m['currency'], false);
+                    } else {
+                        $_total = $total;
+                    }
+                    $m['rates'] = $plugin->getRates($shipping_items, $shipping_address, array('total_price' => $_total));
                 }
             } else {
                 $m['rates'] = false;
@@ -111,8 +117,17 @@ class shopCheckoutShipping extends shopCheckout
                     if (is_array($r['rate'])) {
                         $r['rate'] = max($r['rate']);
                     }
+
+                    // Apply rounding. This converts all rates to current frontend currency.
+                    if ($r['rate'] && wa()->getSetting('round_shipping')) {
+                        $r['rate'] = shopRounding::roundCurrency(shop_currency($r['rate'], $m['currency'], $current_currency, false), $current_currency);
+                        $r['currency'] = $current_currency;
+                    }
                 }
                 unset($r);
+                if (wa()->getSetting('round_shipping')) {
+                    $m['currency'] = $current_currency;
+                }
                 if ($m['rates']) {
                     if (!empty($selected_shipping['rate_id']) && isset($m['rates'][$selected_shipping['rate_id']])) {
                         $rate = $m['rates'][$selected_shipping['rate_id']];
@@ -416,6 +431,10 @@ class shopCheckoutShipping extends shopCheckout
             }
             if ($currency != $current_currency) {
                 $result['rate'] = shop_currency($result['rate'], $currency, $current_currency, false);
+            }
+            // rounding
+            if ($result['rate'] && wa()->getSetting('round_shipping')) {
+                $result['rate'] = shopRounding::roundCurrency($result['rate'], $current_currency);
             }
         }
         $result['plugin'] = $plugin->getId();

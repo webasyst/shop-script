@@ -7,12 +7,16 @@ class shopSettingsShippingAction extends waViewAction
         if (!$this->getUser()->getRights('shop', 'settings')) {
             throw new waRightsException(_w('Access denied'));
         }
-        $model = new shopPluginModel();
-        $this->view->assign('instances', $model->listPlugins(shopPluginModel::TYPE_SHIPPING, array('all' => true, )));
-        $this->view->assign('plugins', shopShipping::getList());
-        $feature_model = new shopFeatureModel();
-        $this->view->assign('no_weight', $feature_model->getByCode('weight') ? false : true);
-        $this->view->assign('installer', $this->getUser()->getRights('installer', 'backend'));
-    }
 
+        $model = new shopPluginModel();
+        $instances = $model->listPlugins(shopPluginModel::TYPE_SHIPPING, array('all' => true));
+        $feature_model = new shopFeatureModel();
+
+        $this->view->assign(array(
+            'instances' => $instances,
+            'plugins' => shopShipping::getList(),
+            'no_weight' => !$feature_model->getByCode('weight'),
+            'installer' => $this->getUser()->getRights('installer', 'backend'),
+        ));
+    }
 }

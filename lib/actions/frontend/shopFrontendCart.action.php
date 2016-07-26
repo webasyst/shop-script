@@ -292,6 +292,9 @@ class shopFrontendCartAction extends shopFrontendAction
         if (!empty($data['coupon_code']) && !empty($order['params']['coupon_discount'])) {
             $this->view->assign('coupon_discount', $order['params']['coupon_discount']);
         }
+        if (!empty($data['coupon_code']) && isset($order['shipping']) && $order['shipping'] === 0) {
+            $this->view->assign('coupon_free_shipping', true);
+        }
         if (shopAffiliate::isEnabled()) {
             $affiliate_bonus = $affiliate_discount = 0;
             if ($this->getUser()->isAuth()) {

@@ -92,6 +92,13 @@ $.extend($.settings = $.settings || {}, {
         this.dispatch(window.location.hash, true);
     },
 
+    /** Change location hash without triggering dispatch */
+    forceHash: function(hash) {
+        if (location.hash != hash) {
+            this.skipDispatch++;
+            $.wa.setHash(hash);
+        }
+    },
 
     // if this is > 0 then this.dispatch() decrements it and ignores a call
     skipDispatch: 0,
@@ -333,6 +340,11 @@ $.extend($.settings = $.settings || {}, {
         $('#s-settings-content').load('?module=settings&action=followups&id=' + id, function () {
             self.settingsAction(self.path.section, tail);
         });
+        return true;
+    },
+
+    couriersPreLoad: function(id) {
+        $('#s-settings-content').load('?module=settings&action=couriers&id='+(id||''));
         return true;
     },
 

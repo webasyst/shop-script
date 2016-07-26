@@ -104,12 +104,12 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         return $this->exec($sql);
     }
 
-    public function getData(shopProduct $product)
+    public function getData(shopProduct $product, $public_only = false)
     {
-        return $this->getValues($product->getId(), null, $product->type_id, $product->sku_type);
+        return $this->getValues($product->getId(), null, $product->type_id, $product->sku_type, $public_only);
     }
 
-    public function getValues($product_id, $sku_id = null, $type_id = null, $sku_type = 0)
+    public function getValues($product_id, $sku_id = null, $type_id = null, $sku_type = 0, $public_only = false)
     {
         $result = array();
         $features = array();
@@ -120,11 +120,17 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         // even if divider is not saved for particular product in shop_product_features.
         //
         if ($type_id) {
+            $status_sql = '';
+            if ($public_only) {
+                $status_sql = "AND f.status='public'";
+            }
+
             $sql = "SELECT f.id AS feature_id, f.code, f.type, f.multiple, tf.sort
                     FROM shop_feature AS f
                         JOIN shop_type_features AS tf
                             ON tf.feature_id = IFNULL(f.parent_id,f.id)
                     WHERE tf.type_id=i:type_id
+                        {$status_sql}
                     ORDER BY tf.sort";
             $data = $this->query($sql, array(
                 'type_id' => $type_id,
@@ -180,6 +186,11 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             }
         }
 
+        $status_sql = '';
+        if ($public_only) {
+            $status_sql = "AND f.status='public'";
+        }
+
         if ($order_by) {
             $order_by = 'ORDER BY '.join(', ', $order_by);
         } else {
@@ -193,6 +204,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                     {$tf_join}
                 WHERE pf.product_id = i:id
                     AND {$sku_where}
+                    {$status_sql}
                 {$order_by}";
         $data = $this->query($sql, array(
             'id'      => $product_id,

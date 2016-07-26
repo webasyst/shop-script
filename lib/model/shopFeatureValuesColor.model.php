@@ -68,7 +68,7 @@ class shopFeatureValuesColorModel extends shopFeatureValuesModel
             }
 
         } else {
-            $value = trim($value);
+            $value = trim(strip_tags($value));
             if (preg_match('@^#?(([0-9A-F]{3})|([0-9A-F]{6}))$@ui', $value, $matches)) {
                 if ($matches[2]) {
                     $value = sscanf(strtoupper($matches[2]), '%03X');
