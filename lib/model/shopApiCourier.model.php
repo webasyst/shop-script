@@ -85,7 +85,8 @@ class shopApiCourierModel extends waModel
         $sql = "SELECT value, count(*)
                 FROM shop_order_params
                 WHERE name='courier_id'
-                    AND value IN (?)";
+                    AND value IN (?)
+                GROUP BY value";
         $counts = $this->query($sql, array(array_keys($couriers)))->fetchAll('value', true);
         foreach($couriers as &$c) {
             $c['count'] = ifset($counts[$c['id']], 0);

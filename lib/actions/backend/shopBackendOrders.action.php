@@ -87,6 +87,7 @@ class shopBackendOrdersAction extends waViewAction
 
         // Real storefront counts (including deleted storefronts) and sales channels
         $backend_count = 0;
+        $channel_names = array();
         foreach($order_model->getSalesChannelCounters() as $channel_id => $cnt) {
             @list($type, $s) = explode(':', $channel_id, 2);
             if ($type == 'storefront') {
@@ -103,12 +104,23 @@ class shopBackendOrdersAction extends waViewAction
             } elseif ($type == 'backend') {
                 $backend_count = $cnt;
             } else {
+                $channel_names[$channel_id] = $channel_id;
                 $result[$channel_id] = array(
                     'url' => '#/orders/sales_channel='.urlencode($channel_id),
                     'name' => $channel_id,
                     'count' => $cnt,
                     'storefront' => '',
                 );
+            }
+        }
+
+        if ($channel_names) {
+            wa('shop')->event('backend_reports_channels', $channel_names);
+            $channel_names['buy_button:'] = _w('Buy button');
+            foreach($channel_names as $channel_id => $name) {
+                if (!empty($result[$channel_id])) {
+                    $result[$channel_id]['name'] = $name;
+                }
             }
         }
 

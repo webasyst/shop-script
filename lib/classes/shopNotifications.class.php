@@ -410,7 +410,7 @@ class shopNotifications
             return;
         }
 
-        $web_push = new shopWebPushNotifications();
+        $web_push = new shopWebPushNotifications(shopWebPushNotifications::SERVER_SEND_DOMAIN);
         $web_push->send($data);
 
         $host_client_ids = array();
@@ -451,7 +451,7 @@ class shopNotifications
                         waLog::log('Unable to send PUSH notifications: '.wa_dump_helper($result));
                     }
                 }
-            } catch (waException $ex) {
+            } catch (Exception $ex) {
                 $result = $ex->getMessage();
                 waLog::log('Unable to send PUSH notifications: '.$result);
             }

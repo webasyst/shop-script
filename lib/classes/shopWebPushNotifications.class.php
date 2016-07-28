@@ -10,16 +10,35 @@ class shopWebPushNotifications
     protected $root_url;
     protected $supported_browser = '';
 
-    public function __construct()
+    const CURRENT_DOMAIN = 0;
+    const SERVER_SEND_DOMAIN = 1;
+
+    protected $options;
+
+    public function __construct($domain = self::CURRENT_DOMAIN, $options = array())
     {
-        $this->domain = wa()->getConfig()->getDomain();
+        $this->options = $options;
+
+        if ($domain === self::CURRENT_DOMAIN) {
+            $this->domain = wa()->getConfig()->getDomain();
+        } else if ($domain === self::SERVER_SEND_DOMAIN) {
+            $this->domain = wa()->getConfig()->getDomain();
+            foreach ($this->getRawDomainSettings() as $d => $s) {
+                if (!empty($s['active']) && !empty($s['app_id']) && !empty($s['rest_api_key'])) {
+                    $this->domain = $d;
+                    break;
+                }
+            }
+        } else {
+            $this->domain = $domain;
+        }
         $this->is_https = wa()->getRequest()->isHttps();
         $this->user_agent = wa()->getRequest()->getUserAgent();
         $this->root_url = wa()->getRootUrl();
+        $this->push_clients_model = new shopPushClientModel();
 
         $settings = $this->getDomainsSettings();
         $this->settings = $settings[$this->domain];
-        $this->push_clients_model = new shopPushClientModel();
     }
 
     public function getSettings()
@@ -34,14 +53,18 @@ class shopWebPushNotifications
         $root_path = wa()->getConfig()->getRootPath();
 
         $domain_settings = $this->getDomainsSettings();
+
+        foreach ($domain_settings as $d => &$s) {
+            $s['active'] = false;
+        }
+        unset($s);
+
         $domain_settings[$this->domain] = $settings;
 
         $asm = new waAppSettingsModel();
         $asm->set('shop', 'web_push_domains', json_encode($domain_settings));
 
-        $delete_files = false;
-
-        if (!empty($domain_settings[$this->domain]['active'])) {
+        if ($this->canSendServerRequest()) {
 
             $manifest = array_merge(array(
                 'name' => '',
@@ -51,23 +74,18 @@ class shopWebPushNotifications
                 'gcm_sender_id' => ''
             ), ifset($domain_settings[$this->domain]['manifest'], array()));
 
-            if (!empty($manifest['gcm_sender_id'])) {
-                file_put_contents($root_path . '/manifest.json', json_encode($manifest));
-                file_put_contents($root_path . '/OneSignalSDKUpdaterWorker.js', "importScripts('https://cdn.onesignal.com/sdks/OneSignalSDK.js');");
-                file_put_contents($root_path . '/OneSignalSDKWorker.js', "importScripts('https://cdn.onesignal.com/sdks/OneSignalSDK.js');");
-            } else {
-                $delete_files = true;
-            }
-        } else {
-            $delete_files = true;
-        }
+            file_put_contents($root_path . '/manifest.json', json_encode($manifest));
+            file_put_contents($root_path . '/OneSignalSDKUpdaterWorker.js', "importScripts('https://cdn.onesignal.com/sdks/OneSignalSDK.js');");
+            file_put_contents($root_path . '/OneSignalSDKWorker.js', "importScripts('https://cdn.onesignal.com/sdks/OneSignalSDK.js');");
 
-        if ($delete_files) {
+        } else {
             waFiles::delete($root_path . '/manifest.json');
             waFiles::delete($root_path . '/OneSignalSDKUpdaterWorker.js');
             waFiles::delete($root_path . '/OneSignalSDKWorker.js');
         }
-        
+
+        $settings = $this->getDomainsSettings();
+        $this->settings = $settings[$this->domain];
     }
 
     public function isAllowed()
@@ -122,6 +140,10 @@ class shopWebPushNotifications
 
     public function send($data)
     {
+        if (!$this->canSendServerRequest()) {
+            return false;
+        }
+
         $backend_url = wa()->getConfig()->getBackendUrl();
         $url = "https://{$this->domain}/{$backend_url}/shop?action=orders";
         $request_data = array(
@@ -153,7 +175,7 @@ class shopWebPushNotifications
                 waLog::log('Unable to send PUSH notifications: '.wa_dump_helper($result), 'shop/webpush.log');
                 $success = false;
             }
-        } catch (waException $ex) {
+        } catch (Exception $ex) {
             $result = $ex->getMessage();
             waLog::log('Unable to send PUSH notifications: '.$result, 'shop/webpush.log');
             $success = false;
@@ -217,11 +239,6 @@ class shopWebPushNotifications
         return $this->supported_browser === 'firefox';
     }
 
-    public function isSupportedBrowserIsChromeOrFirefox()
-    {
-        return $this->supported_browser === 'chrome' || $this->supported_browser === 'firefox';
-    }
-
     public function isSupportedBrowserIsSafari()
     {
         return $this->supported_browser === 'safari';
@@ -232,13 +249,13 @@ class shopWebPushNotifications
         if (!$this->getAppId() || !$this->getRestApiKey()) {
             return false;
         }
-        if ($this->isSupportedBrowserIsChromeOrFirefox()) {
+        if ($this->isSupportedBrowserIsChrome()) {
             return !!$this->getGoogleProjectNumber();
         }
         if ($this->isSupportedBrowserIsSafari()) {
             return !!$this->getSafariWebId();
         }
-        return false;
+        return $this->isSupportedBrowserIsFirefox();
     }
 
     public function getGoogleProjectNumber()
@@ -246,7 +263,12 @@ class shopWebPushNotifications
         return $this->settings['manifest']['gcm_sender_id'];
     }
 
-    protected function getDomainsSettings()
+    public function canSendServerRequest()
+    {
+        return $this->isActive() && $this->getAppId() && $this->getRestApiKey();
+    }
+
+    protected function getRawDomainSettings()
     {
         // extract domains settings
         $asm = new waAppSettingsModel();
@@ -254,6 +276,12 @@ class shopWebPushNotifications
         if (!is_array($web_push_domains)) {
             $web_push_domains = array();
         }
+        return $web_push_domains;
+    }
+
+    protected function getDomainsSettings()
+    {
+        $web_push_domains = $this->getRawDomainSettings();
 
         // full fill current domain settings
         $web_push_domains[$this->domain] = ifset($web_push_domains[$this->domain], array());
@@ -271,9 +299,6 @@ class shopWebPushNotifications
         if (($this->root_url === '/' || strlen($this->root_url) <= 0) && $this->is_https) {
             $web_push_domains[$this->domain]['allowed'] = true;
         }
-
-        // check activity by checking manifest
-        $web_push_domains[$this->domain]['active'] = false;
 
         // check browser support
         $user_agent = strtolower($this->user_agent);
@@ -296,18 +321,14 @@ class shopWebPushNotifications
         }
         $web_push_domains[$this->domain]['browser_supported'] = $browser_supported;
 
-        $manifest = array();
+        // check activity by checking manifest
+        $web_push_domains[$this->domain]['active'] = false;
         $root_path = wa()->getConfig()->getRootPath();
-        if (file_exists($root_path .  '/manifest.json')) {
-            $manifest = file_get_contents($root_path . '/manifest.json');
-            $manifest = json_decode($manifest, true);
-            if (!is_array($manifest)) {
-                $manifest = array();
-            }
-        }
-
-        if (!empty($manifest['gcm_sender_id']) && $manifest['gcm_sender_id'] === $web_push_domains[$this->domain]['manifest']['gcm_sender_id']) {
+        if (file_exists($root_path . '/OneSignalSDKUpdaterWorker.js') && file_exists($root_path . '/OneSignalSDKWorker.js')) {
             $web_push_domains[$this->domain]['active'] = true;
+        }
+        if (!$web_push_domains[$this->domain]['active'] && file_exists($root_path . '/manifest.json')) {
+            waFiles::delete($root_path . '/manifest.json');
         }
 
         return $web_push_domains;
