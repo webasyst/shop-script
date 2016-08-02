@@ -165,7 +165,13 @@ class shopFrontendBuybuttonsAction extends waViewAction
 
     private function featuresSelectableWorkup($product)
     {
-        $features_selectable = $product->features_selectable;
+        if (!$this->isPreview()) {
+            $features_selectable = $product->features_selectable;
+        } else {
+            // in preview we call controller directly not using storefront and routing
+            $fsm = new shopProductFeaturesSelectableModel();
+            $features_selectable = $fsm->getDataByProduct($product, array('env' => 'frontend'));
+        }
 
         $product_features_model = new shopProductFeaturesModel();
         $sku_features = $product_features_model->getSkuFeatures($product->id);
@@ -223,5 +229,10 @@ class shopFrontendBuybuttonsAction extends waViewAction
     {
         return $product->status && $sku['available'] &&
             ($this->getConfig()->getGeneralSettings('ignore_stock_count') || $sku['count'] === null || $sku['count'] > 0);
+    }
+
+    public function isPreview()
+    {
+        return wa()->getRequest()->request('preview');
     }
 }

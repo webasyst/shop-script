@@ -18,6 +18,7 @@ class shopSettingsCurrencyChangeRateController extends waJsonController
         $rounding = waRequest::post('rounding', array(), 'array');
         $rates = waRequest::post('rate', array(), 'array');
 
+        $clear_cache = false;
         $currency_model = new shopCurrencyModel();
         foreach($currency as $code) {
             $update = array();
@@ -29,13 +30,17 @@ class shopSettingsCurrencyChangeRateController extends waJsonController
             }
             if ($update) {
                 $currency_model->updateById($code, $update);
+                $clear_cache = true;
             }
-
 
             $rate = (float) str_replace(',', '.', ifset($rates[$code]));
             if ($rate >= 0) {
                 $currency_model->changeRate($code, $rate);
             }
+        }
+
+        if ($clear_cache) {
+            $currency_model->deleteCache();
         }
 
         $this->response = $currency_model->getById($currency);

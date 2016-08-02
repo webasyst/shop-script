@@ -68,6 +68,7 @@ class shopBackendWelcomeAction extends waViewAction
                             $model->set('shop', 'currency', $code);
                         }
                     }
+                    $currency_model->deleteCache();
 
                 }
 

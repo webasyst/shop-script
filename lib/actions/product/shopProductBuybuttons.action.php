@@ -18,7 +18,7 @@ class shopProductBuybuttonsAction extends waViewAction
             'app_static_url' => wa()->getAppStaticUrl('shop', true),
             'app_storefront' => wa()->getRouteUrl("shop/frontend/buybuttons", array(), true),
             'preview_controller' => wa()->getConfig()->getRootUrl() . wa()->getConfig()->getBackendUrl() .
-                '/shop/?module=frontend&action=buybuttons'
+                '/shop/?module=frontend&action=buybuttons&preview=1'
         ));
     }
 

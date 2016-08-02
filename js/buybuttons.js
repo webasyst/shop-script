@@ -55,7 +55,7 @@
         iframe.setAttribute('id', id + '-iframe');
 
         // glue url with params, maybe ? or &
-        var glue = url.indexOf('?') ? '&' : '?';
+        var glue = url.indexOf('?') !== -1 ? '&' : '?';
 
         // sanitize right side of url
         url = url.replace(/[\?&]*$/, '');

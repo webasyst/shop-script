@@ -19,8 +19,8 @@ class shopFrontendProductAction extends shopFrontendAction
         $breadcrumbs = array();
         $root_category_id = null;
         $product_categories = $product['categories'];
-        if ($product['category_id'] && isset($product_categories[$category['id']])) {
-            $category = $product_categories[$category['id']];
+        if ($product['category_id'] && isset($product_categories[$product['category_id']])) {
+            $category = $product_categories[$product['category_id']];
         } else {
             $product['category_id'] = null;
         }
