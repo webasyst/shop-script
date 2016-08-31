@@ -25,5 +25,4 @@ class shopSetAddMethod extends shopApiMethod
             throw new waAPIException('server_error', 500);
         }
     }
-
 }

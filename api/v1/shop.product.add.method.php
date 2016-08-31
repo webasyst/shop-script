@@ -33,7 +33,4 @@ class shopProductAddMethod extends shopProductUpdateMethod
             throw new waAPIException('server_error', implode(",\n", $errors), 500);
         }
     }
-
-
-
 }

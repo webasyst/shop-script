@@ -19,7 +19,7 @@ class shopCategoryGetTreeMethod extends shopApiMethod
             $l = count($stack);
 
             // Check if we're dealing with different levels
-            while($l > 0 && $stack[$l - 1]['depth'] >= $c['depth']) {
+            while ($l > 0 && $stack[$l - 1]['depth'] >= $c['depth']) {
                 array_pop($stack);
                 $l--;
             }

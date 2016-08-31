@@ -34,7 +34,7 @@ class shopDashboardCustomersMethod extends shopApiMethod
 
         $new_customers = 0;
         $graph_data = array();
-        foreach($rows as $row) {
+        foreach ($rows as $row) {
             $new_customers += $row['customers'];
             $date = str_replace('-', '', $row['date']);
             $graph_data[$date] = array(

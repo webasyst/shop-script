@@ -73,4 +73,3 @@ class shopDashboardSalesTotalMethod extends shopApiMethod
         return $totals;
     }
 }
-
