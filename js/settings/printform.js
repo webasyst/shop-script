@@ -202,6 +202,9 @@ if (typeof($) != 'undefined') {
         },
         printformSave: function ($form) {
             var $content = $('#s-printform-content');
+            $form.find(".plugins-settings-form-status").remove();
+            $form.find(".loading-wrapper").show();
+
             if ($form.find(':input[type="file"]').length) {
                 $("#plugins-settings-iframe").one('load', function () {
                     try {

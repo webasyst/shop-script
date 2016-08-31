@@ -84,7 +84,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         }
         $i = 0;
         foreach ($features as $f => $v) {
-            $sql .= " AND t".$i.".feature_id = ".(int)$f." AND t".$i.".feature_value_id ";
+            $sql .= " AND t".$i.".feature_id = ".(int)$f." AND t".$i.".sku_id IS NOT NULL AND t".$i.".feature_value_id ";
             if (is_array($v)) {
                 $sql .= 'IN ('.implode(',', array_map('intval', $v)).')';
             } else {

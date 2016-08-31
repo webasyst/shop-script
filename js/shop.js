@@ -585,6 +585,17 @@
             new ElasticMenu(options);
         },
 
+        alertError: function(error_msg, log_msg) {
+            $('#s-error-dialog').waDialog({
+                onLoad: function () {
+                    $(this).find('.f-text').html(error_msg);
+                }
+            });
+            if (log_msg) {
+                this.logError(log_msg);
+            }
+        },
+
         helper: {
             /**
              * @param {String} params

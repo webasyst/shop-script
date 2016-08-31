@@ -94,8 +94,11 @@
                     <li>
                         <i class="icon16 sort"></i>
                         <label><input type="checkbox" name="filter[]" value="{$feature.id}"
-                                            {if !empty($feature.checked) || ($feature.id == 'price' && !$settings.allow_filter)}checked="checked"{/if}>
-                                {$feature.name|escape}
+                            {if !empty($feature.checked) || ($feature.id == 'price' && !$settings.allow_filter)}checked="checked"{/if}>
+                            {$feature.name|escape}
+                            {if !empty($feature.code)}
+                                <span class="hint">{$feature.code}</span>
+                            {/if}
                         </label>
                     </li>
                 {/foreach}
@@ -292,7 +295,7 @@
                                 <input id="s-condition-feature-{$f.code}" type="checkbox" name="condition[feature][]" value="{$f.code}" {if isset($settings.conditions.feature[$f.code])}checked{/if}>
                             </td>
                             <td>
-                                <label for="s-condition-feature-{$f.code}">{$f.name|escape}</label>
+                                <label for="s-condition-feature-{$f.code}">{$f.name|escape}</label> <span class="hint">{$f.code}</span>
                             </td>
                             <td colspan="2">
                                 <div style="max-width: 600px; overflow: hidden;">

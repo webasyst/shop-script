@@ -242,9 +242,9 @@ ul.s-order-actions li .button i.icon16.ss { opacity: 0.25; }
 ul.s-order-actions li .button:hover i.icon16.ss { opacity: 0.5; }
 ul.s-order-actions li i.icon16.loading { margin-top: 7px; margin-left: 3px; }
 
-ul.menu-v.s-orders-sort.dropdown { margin: 0 5px; }
+ul.menu-v.s-orders-sort.dropdown { margin: 0 5px; position: relative; z-index: 1; }
 ul.menu-v.s-orders-sort.dropdown a { display: inline-block; padding-left: 8px; font-size: 0.9em; }
-ul.menu-v.s-orders-sort.dropdown li ul { left: -125%; width: 110%; padding: 0 5px; overflow: hidden; top: -6px; }
+ul.menu-v.s-orders-sort.dropdown li ul { left: auto; right: 100%; width: 110%; padding: 0 5px; overflow: hidden; top: -6px; }
 ul.menu-v.s-orders-sort.dropdown li ul li { margin-right: -5px; margin-bottom: 0; }
 ul.menu-v.s-orders-sort.dropdown i.s-sort-order { margin: 2px; padding: 0; display: inline-block; }
 

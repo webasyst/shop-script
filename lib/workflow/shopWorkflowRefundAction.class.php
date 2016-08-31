@@ -36,7 +36,9 @@ class shopWorkflowRefundAction extends shopWorkflowAction
                 )
             );
 
+            // refund, so return
             $order_model->returnProductsToStocks($order_id);
+
             shopAffiliate::refundDiscount($order);
             shopAffiliate::cancelBonus($order);
             $order_model->recalculateProductsTotalSales($order_id);

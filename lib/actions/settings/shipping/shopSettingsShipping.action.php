@@ -9,12 +9,19 @@ class shopSettingsShippingAction extends waViewAction
         }
 
         $model = new shopPluginModel();
-        $instances = $model->listPlugins(shopPluginModel::TYPE_SHIPPING, array('all' => true));
         $feature_model = new shopFeatureModel();
+
+        $plugins = shopShipping::getList();
+
+        $instances = $model->listPlugins(shopPluginModel::TYPE_SHIPPING, array('all' => true));
+        foreach ($instances as &$instance) {
+            $instance['installed'] = isset($plugins[$instance['plugin']]);
+            unset($instance);
+        }
 
         $this->view->assign(array(
             'instances' => $instances,
-            'plugins' => shopShipping::getList(),
+            'plugins'   => $plugins,
             'no_weight' => !$feature_model->getByCode('weight'),
             'installer' => $this->getUser()->getRights('installer', 'backend'),
         ));

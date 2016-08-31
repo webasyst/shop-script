@@ -25,7 +25,7 @@ class shopProductSearchMethod extends shopApiMethod
         if ($filters) {
             $collection->filters($filters);
         }
-        $products = $collection->getProducts(self::getColelctionFields(), $offset, $limit, $escape);
+        $products = $collection->getProducts(self::getCollectionFields(), $offset, $limit, $escape);
 
         $this->response['count'] = $collection->count();
         $this->response['offset'] = $offset;
@@ -45,12 +45,12 @@ class shopProductSearchMethod extends shopApiMethod
         unset($p);
     }
 
-    protected static function getColelctionFields()
+    protected static function getCollectionFields()
     {
         $fields = array('*' => 1);
         $additional_fields = waRequest::request('fields', '', 'string');
         if ($additional_fields) {
-            foreach(explode(',', $additional_fields) as $f) {
+            foreach (explode(',', $additional_fields) as $f) {
                 $fields[$f] = 1;
             }
         }

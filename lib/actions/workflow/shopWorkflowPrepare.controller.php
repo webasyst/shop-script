@@ -19,7 +19,21 @@ class shopWorkflowPrepareController extends waController
         $workflow = new shopWorkflow();
         // @todo: check action availablity in state
         $action = $workflow->getActionById($action_id);
-        if ($html = $action->getHTML($order_id)) {
+
+        try {
+            $html = $action->getHTML($order_id);
+        } catch (SmartyCompilerException $e) {
+            $msg = 'Syntax Error in template "c819a6f6e20c401f73bc5bf68f3e0857f76eec24" on line 1 "{foreach {$order.items}}{/foreach}" missing "item" attribute';
+            preg_match('/^Syntax Error in template ".*?" on line ([\d+]) "(.*?)" (.*?)$/i', $msg, $m);
+            if ($m) {
+                str_replace($m[0], '', $msg);
+                $msg = sprintf(_w("Syntax Error in template for action \"%s\" in line %s \"%s\". Reason: %s. "), $action->getName(), $m[1], $m[2], $m[3]);
+            }
+            $msg .= sprintf(_w("You can edit template <a href=\"?action=settings#/orderStates/\">order states settings</a>"));
+            die("<script>$.shop.alertError('{$msg}');</script>");
+        }
+
+        if ($html) {
             // display html
             echo $html;
         } else {

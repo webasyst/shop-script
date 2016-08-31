@@ -8,6 +8,7 @@ class shopWorkflowState extends waWorkflowState
     protected $style_html;
     protected $frontend_style_html;
     protected $available_actions = array();
+    public $original = false;
 
     /**
      * @param string $id id as stored in database
@@ -35,7 +36,7 @@ class shopWorkflowState extends waWorkflowState
 
         // add internal actions related to merging unsettled orders
         if (!empty($params['unsettled'])) {
-            if ( ( $action = $this->workflow->getActionById('settle'))) {
+            if (($action = $this->workflow->getActionById('settle'))) {
                 $actions[$action->getId()] = $action;
             }
         }
@@ -45,7 +46,7 @@ class shopWorkflowState extends waWorkflowState
             if ($a instanceof shopWorkflowAction) {
                 if (!$a->isAvailable($params)) {
                     unset($actions[$a_id]);
-                } else if ($name_only) {
+                } elseif ($name_only) {
                     $actions[$a_id] = $a->getName();
                 }
             }

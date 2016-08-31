@@ -509,8 +509,8 @@ SQL;
     public function returnProductsToStocks($order_id)
     {
         $order_params_model = new shopOrderParamsModel();
-        $reduced = $order_params_model->getOne($order_id, 'reduced');
-        if (!$reduced && $reduced !== null) {
+        $reduced = $order_params_model->isReduced($order_id);
+        if (!$reduced) {
             return;
         }
         $items_model = new shopOrderItemsModel();
@@ -523,13 +523,15 @@ SQL;
             $sku_stock[$item['sku_id']][$item['stock_id']] += $item['quantity'];
         }
         $items_model->updateStockCount($sku_stock);
-        $order_params_model->setOne($order_id, 'reduced', 0);
+        $order_params_model->unsetReduced($order_id);
+        $order_params_model->incReturnTimes($order_id);
+
     }
 
     public function reduceProductsFromStocks($order_id)
     {
         $order_params_model = new shopOrderParamsModel();
-        $reduced = $order_params_model->getOne($order_id, 'reduced');
+        $reduced = $order_params_model->isReduced($order_id);
         if ($reduced) {
             return;
         }
@@ -543,7 +545,8 @@ SQL;
             $sku_stock[$item['sku_id']][$item['stock_id']] -= $item['quantity'];
         }
         $items_model->updateStockCount($sku_stock);
-        $order_params_model->setOne($order_id, 'reduced', 1);
+        $order_params_model->setReduced($order_id);
+        $order_params_model->incReduceTimes($order_id);
     }
 
     /**

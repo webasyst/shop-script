@@ -35,13 +35,14 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
                         'order_id' => $order_id
                     )
                 );
-                
-                if ($update_on_create) {
-                    $order_model->returnProductsToStocks($order_id);
-                } elseif (!$update_on_create && $data['before_state_id'] != 'new') {
+
+                // was reducing in past?
+                $order_params_model = new shopOrderParamsModel();
+                $reduced = $order_params_model->getOne($order_id, 'reduced');
+                if ($reduced) {
                     $order_model->returnProductsToStocks($order_id);
                 }
-                
+
                 shopProductStocksLogModel::clearContext();
                 
             }

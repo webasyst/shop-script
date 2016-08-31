@@ -3,6 +3,7 @@
 class shopWorkflowAction extends waWorkflowAction
 {
 
+    public $original = false;
     protected $state_id;
 
     /**

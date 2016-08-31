@@ -355,9 +355,13 @@ class shopProductReviewsModel extends waNestedSetModel
                     'rating_count' => $product['rating_count'] + 1
             );
         } else {
+
+            $rating_count = $product['rating_count'] - 1;
+            $rating = $rating_count > 0 ? ($product['rating'] * $product['rating_count'] - $rate) / $rating_count : 0;
+
             $update = array(
-                    'rating' => ($product['rating']*$product['rating_count'] - $rate)/($product['rating_count'] - 1),
-                    'rating_count' => $product['rating_count'] - 1
+                    'rating' => $rating ,
+                    'rating_count' => $rating_count
             );
         }
         $product_model->updateById($product_id, $update);

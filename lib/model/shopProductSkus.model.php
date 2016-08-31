@@ -424,7 +424,7 @@ SQL;
         $sku_count = false;
 
         // if stocking for this sku
-        if (isset($data['stock']) && is_array($data['stock'])) {
+        if (!empty($data['stock']) && is_array($data['stock'])) {
             if ($multi_stock === null) {
                 $stock_model = new shopStockModel();
                 $stocks = $stock_model->getAll($stock_model->getTableId());

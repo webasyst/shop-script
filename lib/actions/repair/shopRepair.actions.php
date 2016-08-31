@@ -10,15 +10,21 @@ class shopRepairActions extends waActions
         }
     }
 
+    protected function preExecute()
+    {
+        $response = $this->getResponse();
+        $response->addHeader('Content-Type', 'text/plain; charset=utf-8');
+        $response->sendHeaders();
+        wa()->getStorage()->close();
+        parent::preExecute();
+    }
+
     public function defaultAction()
     {
         $methods = array_diff(get_class_methods(get_class($this)), get_class_methods(get_parent_class($this)));
         $callback = create_function('$n', 'return preg_match("@^(\w+)Action$@",$n,$m)?($m[1]!="default"?$m[1]:false):false;');
         $actions = array_filter($methods, $callback);
         $actions = array_map($callback, $actions);
-        $response = $this->getResponse();
-        $response->addHeader('Content-Type', 'text/plain; charset=utf-8');
-        $response->sendHeaders();
         print "Available repair actions:\n\t";
         print implode("\n\t", $actions);
     }
@@ -250,5 +256,78 @@ SQL;
         if (!$repaired) {
             print "nothing to repair";
         }
+    }
+
+    public function emptyPathAction()
+    {
+        $paths = array();
+        $wa = wa();
+
+        if (waRequest::request('all')) {
+            $apps = array_keys(wa()->getApps(true));
+        } else {
+            $apps = array('shop');
+        }
+
+        foreach ($apps as $app_id) {
+            $paths[] = $wa->getDataPath(null, true, $app_id, false);
+            $paths[] = $wa->getDataPath(null, false, $app_id, false);
+        }
+
+        foreach ($paths as $path) {
+            $count = 0;
+            $path = preg_replace('@[\\/]+@', DIRECTORY_SEPARATOR, $path);
+            print sprintf("Checking %s directory...\n", $path);
+            if (file_exists($path)) {
+                $this->removeEmptyPaths($path, $count);
+                if ($count) {
+                    print sprintf("OK\tDeleted %d directories\n\n", $count);
+                } else {
+                    print "OK\tThere no empty directories\n\n";
+                }
+            } else {
+                print "OK\tDirectory not exists\n\n";
+            }
+            flush();
+        }
+    }
+
+    private function removeEmptyPaths($path, &$counter, $base_path = null)
+    {
+        static $time = 0;
+        if ($base_path === null) {
+            $base_path = $path;
+        }
+        $empty = true;
+        $files = waFiles::listdir($path);
+        foreach ($files as $file) {
+            $file_path = $path.DIRECTORY_SEPARATOR.$file;
+            if (is_dir($file_path)) {
+                if (!$this->removeEmptyPaths($file_path, $counter, $base_path)) {
+                    $empty = false;
+                }
+            } else {
+                $empty = false;
+            }
+        }
+        if ($empty) {
+            ++$counter;
+            if (waRequest::request('check')) {
+                $result = '';
+            } else {
+                $result = @rmdir($path) ? 'OK' : 'NO';
+            }
+
+            print sprintf("\t%5d\t%s\t%s\n", $counter, $result, substr($path.DIRECTORY_SEPARATOR, strlen($base_path)));
+            if ($counter % 100 == 0) {
+                $time = time();
+                flush();
+            }
+        }
+        if ((time() - $time) > 5) {
+            $time = time();
+            flush();
+        }
+        return $empty;
     }
 }

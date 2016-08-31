@@ -196,8 +196,7 @@ action=''
                         <input type="hidden" name="feature[${feature.id}][selectable]" value="${feature.selectable}">
                         <input type="hidden"  name="feature[${feature.id}][multiple]" value="${feature.multiple}">
 
-
-                        <div style="white-space: nowrap;max-height: 500px;overflow-y: auto;overflow-x: hidden;">
+                        <div style="white-space: nowrap; overflow-y: auto;overflow-x: hidden; max-height: 500px;">
                             <ul class="menu-v compact with-icons small s-feature-values js-feature-values" data-values_template="${feature.values_template}">
                                 {{each(id, feature_value) feature.values}}
 {/literal}

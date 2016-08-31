@@ -7,9 +7,20 @@ class shopSettingsPaymentAction extends waViewAction
         if (!$this->getUser()->getRights('shop', 'settings')) {
             throw new waRightsException(_w('Access denied'));
         }
+
+        $plugins = shopPayment::getList();
+
         $model = new shopPluginModel();
-        $this->view->assign('instances', $model->listPlugins(shopPluginModel::TYPE_PAYMENT, array('all' => true, )));
-        $this->view->assign('plugins', shopPayment::getList());
-        $this->view->assign('installer', $this->getUser()->getRights('installer', 'backend'));
+        $instances = $model->listPlugins(shopPluginModel::TYPE_PAYMENT, array('all' => true,));
+        foreach ($instances as &$instance) {
+            $instance['installed'] = isset($plugins[$instance['plugin']]);
+            unset($instance);
+        }
+
+        $this->view->assign(array(
+            'instances' => $instances,
+            'plugins'   => $plugins,
+            'installer' => $this->getUser()->getRights('installer', 'backend'),
+        ));
     }
 }

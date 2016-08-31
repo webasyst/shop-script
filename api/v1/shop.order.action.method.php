@@ -22,8 +22,8 @@ class shopOrderActionMethod extends shopApiMethod
         // Check courier access rights
         if ($this->courier) {
             $order_params_model = new shopOrderParamsModel();
-            $params = $order_params_model->get($order_id);
-            if (ifset($params['courier_id']) != $this->courier['id']) {
+            $courier_id = $order_params_model->getOne($order_id, 'courier_id');
+            if (empty($courier_id) || ($courier_id != $this->courier['id'])) {
                 throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
             }
         }

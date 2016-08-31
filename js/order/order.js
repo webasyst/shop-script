@@ -241,7 +241,7 @@
                 wrapper_margin_top = ( parseInt( $wrapper.css("margin-top") ) || 0 ),
                 set_force = true;
 
-            // DINAMIC VARS
+            // DYNAMIC VARS
             var is_top_set = false,
                 is_fixed_to_bottom = false,
                 is_fixed_to_top = false,
@@ -354,6 +354,11 @@
                         unsetResizeWatcher();
                     }
                 } else {
+
+                    // wait while loading new content and increase height
+                    if ( wrapper_height <= block_height ) {
+                        return false;
+                    }
 
                     var is_display_longer_block = ( display_height > block_height + wrapper_margin_top ),
                         is_above_block = (scroll_top <= block_top),

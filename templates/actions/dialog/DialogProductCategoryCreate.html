@@ -192,7 +192,7 @@
                             <input id="s-c-condition-feature-{$f.code}" type="checkbox" name="condition[feature][]" value="{$f.code}">
                         </td>
                         <td>
-                            <label for="s-c-condition-feature-{$f.code}">{$f.name|escape}</label>
+                            <label for="s-c-condition-feature-{$f.code}">{$f.name|escape}</label> <span class="hint">{$f.code}</span>
                         </td>
                         <td>
                             <select name="feature_values[{$f.code}]" class="s-feature_value" data-feature-id="{$f.code}">

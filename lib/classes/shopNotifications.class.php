@@ -84,6 +84,8 @@ class shopNotifications
                 $source = $storefront.'/*';
             }
 
+            $storefront = rtrim($storefront, '/');
+
             foreach (wa()->getRouting()->getByApp('shop') as $domain => $routes) {
                 foreach ($routes as $r) {
                     if (!isset($r['url'])) {
@@ -105,21 +107,27 @@ class shopNotifications
         foreach ($data['order']['items'] as $i) {
             $product_ids[$i['product_id']] = 1;
         }
-        if ($storefront_domain) {
-            $d = 'http://'.$storefront_domain;
-        } else {
-            $d = rtrim(wa()->getRootUrl(true), '/');
-        }
-        $collection = new shopProductsCollection('id/'.join(',', array_keys($product_ids)));
+
+        $root_url = rtrim(wa()->getRootUrl(true), '/');
+        $root_url_len = strlen($root_url);
+
+        $d = $storefront_domain ? 'http://'.$storefront_domain : $root_url;
+
+        $collection = new shopProductsCollection(
+            'id/'.join(',', array_keys($product_ids)),
+            array('absolute_image_url' => true)
+        );
         $products = $collection->getProducts('*,image');
         foreach ($products as &$p) {
             $p['frontend_url'] = wa()->getRouteUrl('shop/frontend/product', array(
                 'product_url' => $p['url'],
             ), true, $storefront_domain, $storefront_route['url']);
             if (!empty($p['image'])) {
-                $p['image']['thumb_url'] = $d.$p['image']['thumb_url'];
-                $p['image']['big_url'] = $d.$p['image']['big_url'];
-                $p['image']['crop_url'] = $d.$p['image']['crop_url'];
+                if ($d !== $root_url) {
+                    foreach (array('thumb_url', 'big_url', 'crop_url') as $url_type) {
+                        $p['image'][$url_type] = $d . substr($p['image'][$url_type], $root_url_len);
+                    }
+                }
             }
         }
         unset($p);

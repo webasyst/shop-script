@@ -211,13 +211,20 @@ class shopWorkflowMessageAction extends shopWorkflowAction
 
         $contact = new waContact($order['contact_id']);
 
+        /**
+         * @var shopConfig $config ;
+         */
+        $config = wa('shop')->getConfig();
+        $general = $config->getGeneralSettings();
+        $from_name = $general['name'];
+
         $transport = waRequest::post('transport');
         $from = waRequest::post('sender', $this->getConfig()->getGeneralSettings('email'), 'string');
         $text = waRequest::post('text');
         $success = false;
         if ($transport == 'email') {
             $message = new waMailMessage(sprintf(_w('Order %s'), shopHelper::encodeOrderId($order_id)), nl2br(htmlspecialchars($text, ENT_QUOTES, 'utf-8')));
-            $message->setFrom($from);
+            $message->setFrom($from, $from_name);
             $email = $contact->get('email', 'default');
             $message->setTo(array(
                  $email => $contact->getName()

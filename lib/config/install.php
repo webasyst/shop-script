@@ -19,6 +19,7 @@ if ($currency_model->countAll() == 0) {
         'rate' => 1.000,
         'sort' => 1,
     ), 2);
+    $currency_model->deleteCache();
 
     $model->set('shop', 'currency', 'USD');
     $model->set('shop', 'use_product_currency', 'true');
@@ -60,4 +61,3 @@ if (wa()->getEnv() == 'backend' && !wa()->getApp()) {
     // redirect to welcome
     header("Location: ".wa()->getConfig()->getBackendUrl(true).'shop/?action=welcome');
 }
-

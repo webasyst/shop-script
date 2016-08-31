@@ -160,7 +160,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <h6 class="heading">[`Originals`]</h6>
                 <div class="field-group">
                     <div class="field">
@@ -178,7 +178,20 @@
                 <div class="field-group">
                     <div class="field">
                         <div class="value submit">
-                            <input type="submit" name="save" class="button green" value="[`Save`]">
+                            <input type="submit" name="save" class="button green" value="[`Save`]" style="margin-right: 8px;">
+                            {if isset($saved) && $saved}
+                                <span id="s-save-notice"><i class="icon16 yes" style="vertical-align: middle;"></i> [`Settings updated`]</span>
+                                <script>
+                                ( function($) {
+                                    var $block = $("#s-save-notice");
+                                    setTimeout( function() {
+                                        if ( $.contains(document, $block[0])) {
+                                            $block.remove();
+                                        }
+                                    }, 2000);
+                                })(jQuery);
+                                </script>
+                            {/if}
                         </div>
                         <div class="value no-shift" id="submit-message" style="display:none;">
                             <p class="small"><em class="highlighted">[`Updated settings will be applied only to newly created thumbnails. To apply updated settings to all existing product thumbnails, start thumbnail re-generation process.`]</em></p>
@@ -215,25 +228,25 @@
                 <h1>[`Re-generate product image thumbnails`]</h1>
                 <p>[`This will start the process of deleting all existing product thumbnails and re-generating them from fullsize versions according to latest thumbnail generation settings such as sharpening and JPEG compression quality. Depending on the number of products, re-generation may take some time to complete and may free some disk space on your server.`]</p>
                 <p class="small"><i class="icon10 exclamation"></i> <em>[`While thumbnails are re-generated, your storefront visitors should see no difference in your storefront functioning, and there should be no broken images, because new thumbnails are created by Webasyst automatically upon user request. However, since creating new thumbnails consume server resources, your server may experience above-average load while new thumbnails are created. The overload depends on the number of requests on thumbnails generation, i.e. on your storefront traffic. It is recommended to perform thumbnail re-generation when your storefront traffic is at its lowest.`]</em></p>
-                
+
                 <h5 class="heading">[`Optional settings`]</h5>
-                
+
                 <br>
-                
+
                 <div>
                     <label><input type="checkbox" name="create_thumbnails" value="1"> [`Automatically create thumbnails of predefined custom sizes`]</label>
                     <br>
                     <span class="hint">[`Enable this in case you are sure about the list of your custom thumbnail sizes, or if custom-sized on-fly thumbnail generation is disabled; otherwise it is safe to have this option turned off.`]</span>
                 </div>
-                
+
                 <br>
-                
+
                 <div>
                     <label><input type="checkbox" name="restore_originals" value="1"> [`Restore product fullsize images from originally uploaded versions (backups)`]</label>
                     <br>
                     <span class="hint">[`Enable this to flush all source fullsize images and re-generate them from backups. All plugin customizations to source images will be re-applied. Source images without backups will be skipped.`]</span>
                 </div>
-                
+
                 <div id="s-regenerate-progressbar" style="display:none; margin-top: 20px;">
 
                     <div class="progressbar blue float-left" style="display: none; width: 70%;">

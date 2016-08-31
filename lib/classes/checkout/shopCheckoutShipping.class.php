@@ -72,125 +72,129 @@ class shopCheckoutShipping extends shopCheckout
         $currencies = $config->getCurrencies();
         $current_currency =$config->getCurrency(false);
         foreach ($methods as $method_id => $m) {
-            $plugin = shopShipping::getPlugin($m['plugin'], $m['id']);
-            $plugin_info = $plugin->info($m['plugin']);
-            $m['icon'] = $plugin_info['icon'];
-            $m['img'] = $plugin_info['img'];
-            $m['currency'] = $plugin->allowedCurrency();
-            $weight_unit = $plugin->allowedWeightUnit();
-            if ($weight_unit != $dimension['base_unit']) {
-                $shipping_items = array();
-                foreach ($items as $item_id => $item) {
-                    if ($item['weight']) {
-                        $item['weight'] = $item['weight'] / $dimension['units'][$weight_unit]['multiplier'];
+            try {
+                $plugin = shopShipping::getPlugin($m['plugin'], $m['id']);
+                $plugin_info = $plugin->info($m['plugin']);
+                $m['icon'] = $plugin_info['icon'];
+                $m['img'] = $plugin_info['img'];
+                $m['currency'] = $plugin->allowedCurrency();
+                $weight_unit = $plugin->allowedWeightUnit();
+                if ($weight_unit != $dimension['base_unit']) {
+                    $shipping_items = array();
+                    foreach ($items as $item_id => $item) {
+                        if ($item['weight']) {
+                            $item['weight'] = $item['weight'] / $dimension['units'][$weight_unit]['multiplier'];
+                        }
+                        $shipping_items[$item_id] = $item;
                     }
-                    $shipping_items[$item_id] = $item;
-                }
-            } else {
-                $shipping_items = $items;
-            }
-            $m['external'] = ($selected_shipping && $selected_shipping['id'] == $m['id']) ? 0 :$plugin->getProperties('external');
-
-            if ($plugin->isAllowedAddress($shipping_address)) {
-                if ($m['external']) {
-                    $m['rates'] = array();
                 } else {
-                    if (isset($currencies[$m['currency']]) && ($m['currency'] != $current_currency)) {
-                        $_total = shop_currency($total, $current_currency, $m['currency'], false);
+                    $shipping_items = $items;
+                }
+                $m['external'] = ($selected_shipping && $selected_shipping['id'] == $m['id']) ? 0 : $plugin->getProperties('external');
+
+                if ($plugin->isAllowedAddress($shipping_address)) {
+                    if ($m['external']) {
+                        $m['rates'] = array();
                     } else {
-                        $_total = $total;
-                    }
-                    $m['rates'] = $plugin->getRates($shipping_items, $shipping_address, array('total_price' => $_total));
-                }
-            } else {
-                $m['rates'] = false;
-            }
-
-            if (is_array($m['rates'])) {
-                if (!isset($currencies[$m['currency']])) {
-                    $m['rate'] = 0;
-                    $m['error'] = sprintf(_w('Shipping rate was not calculated because required currency %s is not defined in your store settings.'), $m['currency']);
-                    $methods[$method_id] = $m;
-                    continue;
-                }
-                foreach ($m['rates'] as &$r) {
-                    if (is_array($r['rate'])) {
-                        $r['rate'] = max($r['rate']);
-                    }
-
-                    // Apply rounding. This converts all rates to current frontend currency.
-                    if ($r['rate'] && wa()->getSetting('round_shipping')) {
-                        $r['rate'] = shopRounding::roundCurrency(shop_currency($r['rate'], $m['currency'], $current_currency, false), $current_currency);
-                        $r['currency'] = $current_currency;
-                    }
-                }
-                unset($r);
-                if (wa()->getSetting('round_shipping')) {
-                    $m['currency'] = $current_currency;
-                }
-                if ($m['rates']) {
-                    if (!empty($selected_shipping['rate_id']) && isset($m['rates'][$selected_shipping['rate_id']])) {
-                        $rate = $m['rates'][$selected_shipping['rate_id']];
-                    } else {
-                        $rate = reset($m['rates']);
-                    }
-                    $m['rate'] = $rate['rate'];
-                    $m['est_delivery'] = isset($rate['est_delivery']) ? $rate['est_delivery'] : '';
-                    if (!empty($rate['comment'])) {
-                        $m['comment'] = $rate['comment'];
+                        if (isset($currencies[$m['currency']]) && ($m['currency'] != $current_currency)) {
+                            $_total = shop_currency($total, $current_currency, $m['currency'], false);
+                        } else {
+                            $_total = $total;
+                        }
+                        $m['rates'] = $plugin->getRates($shipping_items, $shipping_address, array('total_price' => $_total));
                     }
                 } else {
-                    $m['rates'] = array();
-                    $m['rate'] = null;
+                    $m['rates'] = false;
                 }
-            } elseif (is_string($m['rates'])) {
-                if ($address) {
-                    $m['error'] = $m['rates'];
-                } else {
-                    $m['rates'] = array();
-                    $m['rate'] = null;
-                }
-            } else {
-                unset($methods[$method_id]);
-                continue;
-            }
 
-            // When free shipping coupon is used, display all rates as 0
-            $checkout_data = wa('shop')->getStorage()->read('shop/checkout');
-            if (!empty($checkout_data['coupon_code'])) {
-                empty($cm) && ($cm = new shopCouponModel());
-                $coupon = $cm->getByField('code', $checkout_data['coupon_code']);
-                if ($coupon && $coupon['type'] == '$FS') {
-                    $m['rate'] = 0;
+                if (is_array($m['rates'])) {
+                    if (!isset($currencies[$m['currency']])) {
+                        $m['rate'] = 0;
+                        $m['error'] = sprintf(_w('Shipping rate was not calculated because required currency %s is not defined in your store settings.'), $m['currency']);
+                        $methods[$method_id] = $m;
+                        continue;
+                    }
                     foreach ($m['rates'] as &$r) {
-                        $r['rate'] = 0;
+                        if (is_array($r['rate'])) {
+                            $r['rate'] = max($r['rate']);
+                        }
+
+                        // Apply rounding. This converts all rates to current frontend currency.
+                        if ($r['rate'] && wa()->getSetting('round_shipping')) {
+                            $r['rate'] = shopRounding::roundCurrency(shop_currency($r['rate'], $m['currency'], $current_currency, false), $current_currency);
+                            $r['currency'] = $current_currency;
+                        }
                     }
                     unset($r);
+                    if (wa()->getSetting('round_shipping')) {
+                        $m['currency'] = $current_currency;
+                    }
+                    if ($m['rates']) {
+                        if (!empty($selected_shipping['rate_id']) && isset($m['rates'][$selected_shipping['rate_id']])) {
+                            $rate = $m['rates'][$selected_shipping['rate_id']];
+                        } else {
+                            $rate = reset($m['rates']);
+                        }
+                        $m['rate'] = $rate['rate'];
+                        $m['est_delivery'] = isset($rate['est_delivery']) ? $rate['est_delivery'] : '';
+                        if (!empty($rate['comment'])) {
+                            $m['comment'] = $rate['comment'];
+                        }
+                    } else {
+                        $m['rates'] = array();
+                        $m['rate'] = null;
+                    }
+                } elseif (is_string($m['rates'])) {
+                    if ($address) {
+                        $m['error'] = $m['rates'];
+                    } else {
+                        $m['rates'] = array();
+                        $m['rate'] = null;
+                    }
+                } else {
+                    unset($methods[$method_id]);
+                    continue;
                 }
-            }
 
-            $custom_fields = $this->getCustomFields($m['id'], $plugin);
-            $custom_html = '';
-            foreach ($custom_fields as $c) {
-                $custom_html .= '<div class="wa-field">'.$c.'</div>';
-            }
-            if ($custom_html) {
-                $m['custom_html'] = $custom_html;
-            }
-
-            $f = $this->getAddressForm($m['id'], $plugin, $settings, $address, $address_form);
-            if ($f) {
-                $m['form'] = $f;
-                $m['form']->setValue($this->getContact());
-                // Make sure there are no more than one address of each type in the form
-                foreach (array('address.shipping') as $fld) {
-                    if (isset($m['form']->values[$fld]) && count($m['form']->values[$fld]) > 1) {
-                        $m['form']->values[$fld] = array(reset($m['form']->values[$fld]));
+                // When free shipping coupon is used, display all rates as 0
+                $checkout_data = wa('shop')->getStorage()->read('shop/checkout');
+                if (!empty($checkout_data['coupon_code'])) {
+                    empty($cm) && ($cm = new shopCouponModel());
+                    $coupon = $cm->getByField('code', $checkout_data['coupon_code']);
+                    if ($coupon && $coupon['type'] == '$FS') {
+                        $m['rate'] = 0;
+                        foreach ($m['rates'] as &$r) {
+                            $r['rate'] = 0;
+                        }
+                        unset($r);
                     }
                 }
-            }
 
-            $methods[$method_id] = $m;
+                $custom_fields = $this->getCustomFields($m['id'], $plugin);
+                $custom_html = '';
+                foreach ($custom_fields as $c) {
+                    $custom_html .= '<div class="wa-field">'.$c.'</div>';
+                }
+                if ($custom_html) {
+                    $m['custom_html'] = $custom_html;
+                }
+
+                $f = $this->getAddressForm($m['id'], $plugin, $settings, $address, $address_form);
+                if ($f) {
+                    $m['form'] = $f;
+                    $m['form']->setValue($this->getContact());
+                    // Make sure there are no more than one address of each type in the form
+                    foreach (array('address.shipping') as $fld) {
+                        if (isset($m['form']->values[$fld]) && count($m['form']->values[$fld]) > 1) {
+                            $m['form']->values[$fld] = array(reset($m['form']->values[$fld]));
+                        }
+                    }
+                }
+
+                $methods[$method_id] = $m;
+            } catch (waException $ex) {
+                waLog::log($ex->getMessage(), 'shop/checkout.error.log');
+            }
         }
 
         $view = wa()->getView();

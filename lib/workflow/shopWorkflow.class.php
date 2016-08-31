@@ -84,7 +84,7 @@ class shopWorkflow extends waWorkflow
      * @param mixed $id key from getAvailableStates()/getAvailableActions()
      * @param $data
      * @throws waException
-     * @return waWorkflowEntity
+     * @return shopWorkflowAction|shopWorkflowState
      */
     protected function createEntity($id, $data)
     {
@@ -99,6 +99,9 @@ class shopWorkflow extends waWorkflow
             $data['options'] = array();
         }
         $entity = new $class_name($id, $this, $data);
+        /**
+         * @var shopWorkflowAction|shopWorkflowState $entity
+         */
         $entity->original = ifset($data['original'], false);
         return $entity;
     }

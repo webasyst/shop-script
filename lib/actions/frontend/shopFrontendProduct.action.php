@@ -324,7 +324,7 @@ class shopFrontendProductAction extends shopFrontendAction
             unset($url_params['category_url']);
         }
 
-        $root_url = ltrim(wa()->getRootUrl(), '/');
+        $root_url = ltrim(wa()->getRootUrl(false, true), '/');
         $canonical_url = ltrim(wa()->getRouteUrl('/frontend/product', $url_params), '/');
         $canonical_url = ltrim(substr($canonical_url, strlen($root_url)), '/');
         $actual_url = explode('?', wa()->getConfig()->getRequestUrl(), 2);

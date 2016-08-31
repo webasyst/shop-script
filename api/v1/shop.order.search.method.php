@@ -28,7 +28,7 @@ class shopOrderSearchMethod extends shopApiMethod
                 'courier_id' => $this->courier['id'],
             ));
             $this->response['count'] = $collection->count();
-            $this->response['orders'] = array_values($collection->getOrders(self::getColelctionFields(), $offset, $limit));
+            $this->response['orders'] = array_values($collection->getOrders(self::getCollectionFields(), $offset, $limit));
             if ($this->response['orders']) {
                 foreach ($this->response['orders'] as &$o) {
                     foreach (array('auth_code', 'auth_pin') as $k) {
@@ -45,12 +45,12 @@ class shopOrderSearchMethod extends shopApiMethod
         }
     }
 
-    protected static function getColelctionFields()
+    protected static function getCollectionFields()
     {
         $fields = array_fill_keys(array('*', 'items', 'params'), 1);
         $additional_fields = waRequest::request('fields', '', 'string');
         if ($additional_fields) {
-            foreach(explode(',', $additional_fields) as $f) {
+            foreach (explode(',', $additional_fields) as $f) {
                 $fields[$f] = 1;
             }
         }

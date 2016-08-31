@@ -42,17 +42,33 @@
             <tr data-id="{$id}">
                 <td class="min-width"><i class="icon16 sort"></i></td>
                 <td class="min-width">
-                    {if !empty($plugin.logo)}
-                        <img src="{$plugin.logo}" class="s-payment-shipping-logo">
-                    {elseif !empty($plugin.img)}
-                        <img src="{$plugin.img}" class="s-payment-shipping-logo">
+                    {if empty($plugin.installed)}
+                        <i class="icon16 exclamation"></i>
+                    {else}
+                        {if !empty($plugin.logo)}
+                            <img src="{$plugin.logo}" class="s-payment-shipping-logo">
+                        {elseif !empty($plugin.img)}
+                            <img src="{$plugin.img}" class="s-payment-shipping-logo">
+                        {/if}
                     {/if}
                 </td>
                 <td>
                     <h3 class="large{if empty($plugin.status)} gray{/if}">
-                       {$plugin.name|escape}
-                       {if empty($plugin.status)}([`disabled`]){/if}
+                        {$plugin.name|escape}
+                        {if empty($plugin.status)}([`disabled`]){/if}
+                        {if empty($plugin.installed)}
+                            <span class="red">[`deleted`]</span>
+                        {/if}
                     </h3>
+                    {if empty($plugin.installed)}
+                        <span><i class="icon16 info"></i>
+                            {if $installer}
+                                {"#/shipping/plugins/"|string_format:'[`You can remove settings or install the <a href="%s" class="inline">plugin</a>.`]'}
+                            {else}
+                                [`You can remove settings or install the plugin`]
+                            {/if}
+                        </span>
+                    {/if}
                     <p class="hint">{strip_tags($plugin.description)}</p>
                 </td>
                 <td>

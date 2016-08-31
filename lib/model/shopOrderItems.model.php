@@ -453,13 +453,10 @@ class shopOrderItemsModel extends waModel
             $this->deleteById(array_keys($old_items));
         }
 
-
-        // Update stock count, but take into account 'update_stock_count_on_create_order'-setting and order state
-        $order_model = new shopOrderModel();
-        $order = $order_model->getById($order_id);
-        $app_settings_model = new waAppSettingsModel();
-        $update_on_create = $app_settings_model->get('shop', 'update_stock_count_on_create_order');
-        if ($order['state_id'] != 'new' || $update_on_create) {
+        // was reducing in past?
+        $order_params_model = new shopOrderParamsModel();
+        $reduced = $order_params_model->getOne($order_id, 'reduced');
+        if ($reduced) {
             $this->updateStockCount($sku_stock);
         }
     }
@@ -549,17 +546,11 @@ class shopOrderItemsModel extends waModel
         $this->exec($sql);
 
         // correct product counters
-        $sql = "
-            UPDATE `shop_product` p JOIN (
-                SELECT p.id, SUM(sk.count) AS count FROM `shop_product` p
-                JOIN `shop_product_skus` sk ON p.id = sk.product_id
-                WHERE p.id IN(".implode(',', array_unique($product_ids)).") AND sk.available = 1
-                GROUP BY p.id
-                ORDER BY p.id
-            ) r ON p.id = r.id
-            SET p.count = r.count
-            WHERE p.count IS NOT NULL";
-        $this->exec($sql);
+        $product_ids = array_unique($product_ids);
+        $pm = new shopProductModel();
+        foreach ($product_ids as $product_id) {
+            $pm->correct($product_id);
+        }
     }
 
     public function getCurrency()

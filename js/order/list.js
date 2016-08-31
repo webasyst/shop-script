@@ -436,6 +436,13 @@
                 if (change_hash) {
 
                     var hash = window.location.hash || '';
+
+                    hash = hash.replace(/(^[^#]*#\/*|\/$)/g, ''); /* fix syntax highlight*/
+
+                    if (!hash.split('/')[1]) {
+                        hash = '#/orders/state_id=new|processing|paid'
+                    }
+
                     // clear hash, delete substring like sort[0]=foo and sort[1]=bar
                     hash = hash.replace(/(&*sort\[[01]\]=.*?[&\/]|&*sort\[[01]\]=.*?$)/g, '');
 
@@ -814,10 +821,10 @@
                             if (name == 'common_counters') {
                                 item = $('#s-' + id + '-orders .count');
                             } else {
-                                if (name !== 'storefront_counters') {
-                                    item = sidebar.find('li[data-'+name.replace('_counters', '')+'-id='+id+'] .count');
-                                } else {
+                                if (name === 'storefront_counters') {
                                     item = sidebar.find('li[data-'+name.replace('_counters', '')+'="'+id+'"] .count');
+                                } else {
+                                    item = sidebar.find('li[data-'+name.replace('_counters', '')+'-id='+id+'] .count');
                                 }
                             }
                             var prev_cnt = parseInt(item.text(), 10) || 0;

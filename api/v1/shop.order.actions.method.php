@@ -7,7 +7,7 @@ class shopOrderActionsMethod extends shopApiMethod
 
     public function execute()
     {
-        $order_id = @(int) $this->get('id', true);
+        $order_id = @(int)$this->get('id', true);
 
         $order_model = new shopOrderModel();
         $order = $order_model->getById($order_id);
@@ -22,36 +22,41 @@ class shopOrderActionsMethod extends shopApiMethod
         // Check courier access rights
         if ($this->courier) {
             $order_params_model = new shopOrderParamsModel();
-            $params = $order_params_model->get($order_id);
-            if (ifset($params['courier_id']) != $this->courier['id']) {
+            $courier_id = $order_params_model->getOne($order_id, 'courier_id');
+            if (empty($courier_id) || ($courier_id != $this->courier['id'])) {
                 throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
             }
         }
 
         $workflow = new shopWorkflow();
         $actions = $workflow->getStateById($order['state_id'])->getActions($order);
-        $this->response = self::formatActions($actions);
+        $this->response = self::formatActions($actions, $order_id);
     }
 
-    protected static function formatActions($actions)
+    /**
+     * @param shopWorkflowAction[] $actions
+     * @param int $order_id
+     * @return array
+     */
+    protected static function formatActions($actions, $order_id)
     {
         $result = array();
-        foreach($actions as $id => $a) {
+        foreach ($actions as $id => $a) {
             $type = 'button';
             if ($a->getOption('top') || $a->getOption('position') == 'top') {
                 $type = 'link_top';
             } elseif ($a->getOption('position') == 'bottom') {
                 $type = 'link_bottom';
-            } elseif ($a->getOption('head') && $a->getHTML($id)) {
+            } elseif ($a->getOption('head') && $a->getHTML($order_id)) {
                 $type = 'link_head';
             }
 
             $result[] = array(
-                'id' => $id,
-                'type' => $type,
-                'is_custom' => !$a->original,
-                'name' => $a->getName(),
-                'data_required' => $id == 'edit' || !!$a->getHtml($id),
+                'id'            => $id,
+                'type'          => $type,
+                'is_custom'     => !$a->original,
+                'name'          => $a->getName(),
+                'data_required' => $id == 'edit' || !!$a->getHTML($order_id),
             );
         }
         return $result;

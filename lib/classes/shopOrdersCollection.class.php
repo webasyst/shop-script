@@ -723,7 +723,6 @@ class shopOrdersCollection
         if (!$order || !$order_id) {
             return false;
         }
-        $create_datetime = $model->escape($order['create_datetime']);
 
         // Prepare beforehand to make sure calling getSQL() won't modify $this->where.
         $this->prepare();
@@ -736,10 +735,10 @@ class shopOrdersCollection
         }
         array_pop($this->where);
 
-        // than calculate offset
-        $this->where[] = "(o.create_datetime > '{$create_datetime}' OR (o.create_datetime = '{$create_datetime}' AND o.id < '{$order_id}'))";
-        $sql = "SELECT COUNT(o.id) offset ".$this->getSQL();
-        $offset = $model->query($sql)->fetchField();
+        // than calculate offset. Not in effective way, but in easy and accurate way
+        $sql = "SELECT o.id ".$this->getSQL() . ' LIMIT 0, 500';
+        $list = $model->query($sql)->fetchAll(null, true);
+        $offset = (int) array_search($order['id'], $list);
         array_pop($this->where);
 
         return $offset;

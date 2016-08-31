@@ -132,7 +132,7 @@
         <div class="fields form">
             <div class="field">
                 <div class="name">[`Required fields validation`]</div>
-                <div class="value s-ibutton-checkbox">
+                <div class="value s-ibutton-checkbox no-shift">
                     <ul class="menu-h">
                         <li><span {if empty($disable_backend_customer_form_validation)} class="gray"{/if} id="s-toggle-backend-validation-disabled-label">[`Disabled`]</span></li>
                         <li>
@@ -162,7 +162,7 @@
         <div class="fields form">
             <div class="field">
                 <div class="name">[`Checkout anti-spam filter`]</div>
-                <div class="value s-ibutton-checkbox">
+                <div class="value s-ibutton-checkbox no-shift">
                     <ul class="menu-h">
                         <li><span {if !empty($enable_checkout_antispam_filters)} class="gray"{/if} id="s-toggle-checkout-antispam-disabled-label">[`Disabled`]</span></li>
                         <li>
@@ -174,7 +174,7 @@
                 <div class="value description antispam-enabled"{if empty($enable_checkout_antispam_filters)} style="display:none"{/if}>
                     <!-- enabled -->
                     <p class="small">[`Checkout anti-spam filtering is seamless for real customers and will automatically reject spammy orders placed by robots.`]</p>
-                    
+
                     <div class="fields form width100px">
                         <div class="field">
                             <div class="name">[`Alerts on rejected checkout attempts`]</div>
@@ -237,10 +237,10 @@
                 <div class="field">
                     <div class="name">{$domain}</div>
 
-                    <div class="value s-ibutton-checkbox">
+                    <div class="value s-ibutton-checkbox no-shift">
 
                         {if !$is_allowed}
-                            [`This domain does not support push notifications. Ensure that an SSL certificate is installed for the domain name.`]
+                            <i class="icon10 exclamation"></i> [`This domain does not support push notifications. Ensure that an SSL certificate is installed for the domain name.`]
                         {else}
                             <ul class="menu-h">
                                 <li><span {if !$is_active} class="gray"{/if} id="s-toggle-web-push-disabled-label">[`Disabled`]</span></li>
@@ -257,6 +257,7 @@
 
                         <div id="s-web-push-enabled-block" class="value s-web-push-settings" {if !$is_active}style="display: none"{/if}>
                             <p class="small">{sprintf('[`User manual on setting up web push notifications: <a href="%s" target="_blank">%s</a>.`]','[`http://www.shop-script.com/help/13536/push-notifications/`]','[`http://www.shop-script.com/help/13536/push-notifications/`]')}</p>
+                            <div class="fields form">
                             <div class="field">
                                 <div class="name">[`Short company name`]</div>
                                 <div class="value">
@@ -296,6 +297,7 @@
                                     <i class="icon16 loading" style="display: none"></i>
                                     <i class="icon16 yes" style="display: none"></i>
                                 </div>
+                            </div>
                             </div>
                         </div>
 

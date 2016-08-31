@@ -35,7 +35,6 @@ class shopWorkflowRestoreAction extends shopWorkflowAction
             $log_model->add('order_restore', $order_id);
 
             $order_model = new shopOrderModel();
-            $app_settings_model = new waAppSettingsModel();
 
             if ($this->state_id != 'refunded') {
 
@@ -47,14 +46,15 @@ class shopWorkflowRestoreAction extends shopWorkflowAction
                         'order_id' => $order_id
                     )
                 );
-                
-                $update_on_create = $app_settings_model->get('shop', 'update_stock_count_on_create_order');
-                if ($update_on_create) {
-                    $order_model->reduceProductsFromStocks($order_id);
-                } elseif (!$update_on_create && $this->state_id != 'new') {
+
+                // Check was reducing in past?
+                // If yes, it means that order has been deleted (and stock returned)
+                // and so it's needed to reduce again
+                $order_params_model = new shopOrderParamsModel();
+                if ($order_params_model->getReduceTimes($order_id) > 0) {
                     $order_model->reduceProductsFromStocks($order_id);
                 }
-                
+
                 shopProductStocksLogModel::clearContext();
                 
             }

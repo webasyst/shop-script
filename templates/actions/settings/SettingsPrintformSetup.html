@@ -8,10 +8,10 @@
     </div>
 {/if}
 <div class="block double-padded">
-    
+
     <div class="block half-padded float-right">
-        <a href="#" style="position: relative; z-index: 99; {if !$is_template_changed}display:none;{/if}" 
-                 class="s-plugin-template-reset no-underline" 
+        <a href="#" style="position: relative; z-index: 99; {if !$is_template_changed}display:none;{/if}"
+                 class="s-plugin-template-reset no-underline"
            ><i class="icon16 delete"></i>[`Revert to original`]</a>
         <div class="plugins-settings-template-reset-confirm" style="display:none;">[`This will drop all customizations made to the print form template, and revert it to the original version. Are you sure?`]</div>
     </div>
@@ -41,9 +41,21 @@
                         <div class="field">
                             <div class="value submit">
                                 <input type="submit" class="button green" value="[`Save`]">
-                                <span class="plugins-settings-form-status" style="display:none">
-                                    <i style="vertical-align:middle" class="icon16 yes"></i>[`Saved`]
+                                <span class="loading-wrapper" style="display:none">
+                                    <i style="vertical-align:middle" class="icon16 loading"></i>
                                 </span>
+                                {if !empty($saved)}
+                                    <span class="plugins-settings-form-status">
+                                        <i style="vertical-align:middle" class="icon16 yes"></i>[`Saved`]
+                                    </span>
+                                    <script>
+                                        ( function($) {
+                                            setTimeout( function() {
+                                                $("#plugins-settings-form .plugins-settings-form-status").remove();
+                                            }, 2000);
+                                        })(jQuery);
+                                    </script>
+                                {/if}
                             </div>
                         </div>
 
@@ -69,7 +81,7 @@
 
             <!-- save button bar -->
             <div class="s-settings-editor-bottom-fixed-panel">
-                <div class="block">    
+                <div class="block">
                     <input type="button" class="button green s-plugin-template-save" value="[`Save`]" id="s-plugin-template-save">
                     <em class="hint">Ctrl + S</em>
                     <span class="s-plugins-settings-form-status-process" style="display: none;">
@@ -83,7 +95,7 @@
 
         </div>
     </div>
-                    
+
     <script>
         if(typeof($) !=='undefined') {
             $(function () {

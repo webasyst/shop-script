@@ -20,8 +20,12 @@
 .button.red .ui-btn-text { color: red; }
 .workflow-content { margin: 10px 0 20px 0; }
 .workflow-content textarea { width: 100%; height: 100px; font-size: 1.2em; }
-.workflow-content input { font-size: 1.2em; width: 90%; }
+.workflow-content input[type="text"],
+.workflow-content input[type="button"],
+.workflow-content input[type="submit"] { font-size: 1.2em; width: 90%; }
 .workflow-content a.inline-link b i { font-style: normal; }
+.workflow-content .block.message-edit-template { display: none; }
+.workflow-content i.icon16.email { display: none; }
 
 /** 
  * Copied from wa-1.0.css 

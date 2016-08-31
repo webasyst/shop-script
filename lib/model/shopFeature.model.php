@@ -105,9 +105,11 @@ class shopFeatureModel extends waModel
     public function getUniqueCode($code, $id = null)
     {
         if ($code = preg_replace('/[^a-zA-Z0-9_]+/', '_', trim(waLocale::transliterate($code)))) {
-            if ($code == '_') {
-                $code = 'f_';
+
+            if (!self::isCodeAllowed($code)) {
+                $code = ($code === '_' ? 'f' : 'f_') . $code;
             }
+
             $sql = <<<SQL
             SELECT `id`, LOWER(`code`) AS `code`
             FROM `{$this->table}`
@@ -132,6 +134,42 @@ SQL;
         }
         return $unique_code;
     }
+
+    /**
+     * Is string allowed for use as code for feature
+     * @param $code
+     * @return bool
+     */
+    public static function isCodeAllowed($code)
+    {
+        // check for prefixes
+        $forbidden_prefixes = array(
+            'utm_'
+        );
+        foreach ($forbidden_prefixes as $prefix) {
+            if (strpos($code, $prefix) === 0) {
+                return false;
+            }
+        }
+
+        // check for whole words
+        $forbidden = array('_', 'tag', 'sort', 'order', 'page');
+        $db_path = wa()->getAppPath('lib/config/db.php', 'shop');
+        if (file_exists($db_path)) {
+            $db = include($db_path);
+            foreach (array('shop_product', 'shop_category') as $tbl) {
+                $forbidden += array_keys($db[$tbl]);
+            }
+        }
+        $forbidden = array_fill_keys(array_unique($forbidden), true);
+        if (isset($forbidden[$code])) {
+            return false;
+        }
+
+        return true;
+
+    }
+
 
     public function getByCode($code)
     {

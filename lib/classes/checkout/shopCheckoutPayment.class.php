@@ -29,24 +29,29 @@ class shopCheckoutPayment extends shopCheckout
                 unset($methods[$key]);
                 continue;
             }
-            $plugin = shopPayment::getPlugin($m['plugin'], $m['id']);
-            $plugin_info = $plugin->info($m['plugin']);
-            $methods[$key]['icon'] = $plugin_info['icon'];
-            $custom_fields = $this->getCustomFields($method_id, $plugin);
-            $custom_html = '';
-            foreach ($custom_fields as $c) {
-                $custom_html .= '<div class="wa-field">'.$c.'</div>';
-            }
-            $methods[$key]['custom_html'] = $custom_html;
-            $allowed_currencies = $plugin->allowedCurrency();
-            if ($allowed_currencies !== true) {
-                $allowed_currencies = (array) $allowed_currencies;
-                if (!array_intersect($allowed_currencies, array_keys($currencies))) {
-                    $methods[$key]['error'] = sprintf(_w('Payment procedure cannot be processed because required currency %s is not defined in your store settings.'), implode(', ', $allowed_currencies));
+            try {
+                $plugin = shopPayment::getPlugin($m['plugin'], $m['id']);
+                $plugin_info = $plugin->info($m['plugin']);
+                $methods[$key]['icon'] = $plugin_info['icon'];
+                $custom_fields = $this->getCustomFields($method_id, $plugin);
+                $custom_html = '';
+                foreach ($custom_fields as $c) {
+                    $custom_html .= '<div class="wa-field">'.$c.'</div>';
                 }
-            }
-            if (!$selected && empty($methods[$key]['error'])) {
-                $selected = $method_id;
+                $methods[$key]['custom_html'] = $custom_html;
+                $allowed_currencies = $plugin->allowedCurrency();
+                if ($allowed_currencies !== true) {
+                    $allowed_currencies = (array)$allowed_currencies;
+                    if (!array_intersect($allowed_currencies, array_keys($currencies))) {
+                        $methods[$key]['error'] = sprintf(_w('Payment procedure cannot be processed because required currency %s is not defined in your store settings.'),
+                            implode(', ', $allowed_currencies));
+                    }
+                }
+                if (!$selected && empty($methods[$key]['error'])) {
+                    $selected = $method_id;
+                }
+            } catch (waException $ex) {
+                waLog::log($ex->getMessage(), 'shop/checkout.error.log');
             }
         }
 

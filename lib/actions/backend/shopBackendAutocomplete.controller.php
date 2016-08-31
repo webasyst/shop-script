@@ -137,7 +137,7 @@ class shopBackendAutocompleteController extends waController
         }
 
         // try find with LIKE %query%
-        if (!$products) {
+        if ($count < $limit) {
             $products = $product_model
                 ->select($fields)
                 ->where("name LIKE '%$q%'")

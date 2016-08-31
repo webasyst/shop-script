@@ -65,6 +65,12 @@
                 <div class="field">
                     <div class="value submit">
                         <input type="submit" value="[`Save`]" class="button green">
+                        <span class="loading-wrapper" style="display: none;">
+                            <i style="vertical-align:middle" class="icon16 loading"></i>
+                        </span>
+                        <span class="success-wrapper" style="display: none;">
+                            <i style="vertical-align:middle" class="icon16 yes"></i>[`Saved`]
+                        </span>
                     </div>
                 </div>
             </div>
@@ -93,11 +99,11 @@
     });
 
     form.submit(function() {
-    
-    
+        form.find(".loading-wrapper").show();
+        form.find(".success-wrapper").hide();
         form.find('.error').removeClass('error');
         form.find('.errormsg').remove();
-        
+
         form.find('.rate-row:not(.template) input').each(function() {
             var item = $(this), name = item.attr('name'), val = 0;
             if (name && name.indexOf('discount') !== -1) {
@@ -115,11 +121,16 @@
                 }
             }
         });
-        
+
         if (!form.find('.error').length) {
             form.find(':submit').attr('disabled', true);
             $.post(form.attr('action'), form.serialize(), function(r) {
                 $('#s-discounts-content').html(r);
+                var $success = $('#s-discounts-content').find(".success-wrapper");
+                $success.show();
+                setTimeout( function() {
+                    $success.hide();
+                }, 2000);
             });
         }
         return false;

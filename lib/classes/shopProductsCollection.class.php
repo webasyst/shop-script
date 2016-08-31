@@ -1509,6 +1509,8 @@ class shopProductsCollection
                         $sizes[$size] = $config->getImageSize($size);
                     }
 
+                    $absolute_image_url = !empty($this->options['absolute_image_url']);
+
                     foreach ($products as &$p) {
                         if ($p['image_id']) {
                             $tmp = array(
@@ -1518,7 +1520,7 @@ class shopProductsCollection
                                 'ext'        => $p['ext']
                             );
                             foreach ($sizes as $size_id => $size) {
-                                $p['image'][$size_id.'_url'] = shopImage::getUrl($tmp, $size, ifset($this->options['absolute'], false));
+                                $p['image'][$size_id.'_url'] = shopImage::getUrl($tmp, $size, ifset($this->options['absolute'], $absolute_image_url));
                             }
                         } else {
                             foreach ($sizes as $size_id => $size) {
