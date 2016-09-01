@@ -2909,7 +2909,7 @@ msgstr "Вт"
 
 #: /wa-apps/shop/lib/config/data/dimension.php:112
 msgid "KW"
-msgstr "КВт"
+msgstr "кВт"
 
 #: /wa-apps/shop/lib/config/data/dimension.php:116
 msgid "MW"

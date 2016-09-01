@@ -739,7 +739,6 @@ class shopOrdersCollection
         $sql = "SELECT o.id ".$this->getSQL() . ' LIMIT 0, 500';
         $list = $model->query($sql)->fetchAll(null, true);
         $offset = (int) array_search($order['id'], $list);
-        array_pop($this->where);
 
         return $offset;
 

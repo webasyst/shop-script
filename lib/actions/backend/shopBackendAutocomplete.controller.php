@@ -137,12 +137,15 @@ class shopBackendAutocompleteController extends waController
         }
 
         // try find with LIKE %query%
-        if ($count < $limit) {
-            $products = $product_model
+        if (count($products) < $limit) {
+            $data = $product_model
                 ->select($fields)
                 ->where("name LIKE '%$q%'")
                 ->limit($limit)
                 ->fetchAll();
+
+            // not array_merge, because it makes first reset numeric keys and then make merge
+            $products = $products + $data;
         }
         $config = wa('shop')->getConfig();
         /**
