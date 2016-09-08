@@ -549,10 +549,7 @@ JS;
                 }
             }
         } elseif (preg_match('@^/?page/([^/]+(/[^/]+)*)/?$@', $url, $matches)) {
-            $page = $this->pageModel()->getByField('url', $matches[1]);
-            if (!$page) {
-                $page = $this->pageModel()->getByField('url', $matches[1].'/');
-            }
+            $page = $this->pageModel()->select('*')->where('url IN(s:urls)', array('urls' => array($matches[1], $matches[1].'/')))->fetch();
             if ($p = $demo ? array('url' => '%page_url%') : $page) {
                 $redirect = $this->getPageUrl($p, $demo);
             }
