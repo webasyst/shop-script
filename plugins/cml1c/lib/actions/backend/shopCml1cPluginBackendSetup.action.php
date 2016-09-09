@@ -1,4 +1,5 @@
 <?php
+
 class shopCml1cPluginBackendSetupAction extends waViewAction
 {
     /**

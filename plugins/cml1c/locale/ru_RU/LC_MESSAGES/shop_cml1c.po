@@ -1,0 +1,199 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: shop/plugins/cml1c\n"
+"POT-Creation-Date: 2016-09-06 13:13+0000\n"
+"PO-Revision-Date: \n"
+"Last-Translator: shop/plugins/cml1c\n"
+"Language-Team: shop/plugins/cml1c\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)"
+">=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: .\n"
+"X-Generator: Poedit 1.5.5\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1836
+msgid "imported %d product image"
+msgid_plural "imported %d product images"
+msgstr[0] "импортировано %d изображение продукта"
+msgstr[1] "импортировано %d изображения продукта"
+msgstr[2] "импортировано %d изображений продукта"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1835
+msgid "imported %d category"
+msgid_plural "imported %d categories"
+msgstr[0] "импортировано %d категория"
+msgstr[1] "импортировано %d категории"
+msgstr[2] "импортировано %d категорий"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1840
+msgid "imported %d product"
+msgid_plural "imported %d products"
+msgstr[0] "импортирован %d продукт"
+msgstr[1] "импортировано %d продукта"
+msgstr[2] "импортировано %d продуктов"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1844
+msgid "imported %d sku"
+msgid_plural "imported %d skus"
+msgstr[0] "импортирован %d артикул"
+msgstr[1] "импортировано %d артикула"
+msgstr[2] "импортировано %d артикулов"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1846
+msgid "imported %d offer"
+msgid_plural "imported %d offers"
+msgstr[0] "импортировано %d предложение"
+msgstr[1] "импортировано %d предложения"
+msgstr[2] "импортировано %d предложений"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1852
+msgid "updated %d order"
+msgid_plural "updated %d orders"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1858
+msgid "updated %d product image"
+msgid_plural "updated %d product images"
+msgstr[0] "обновлено %d изображение продукта"
+msgstr[1] "обновлено %d изображения продуктов"
+msgstr[2] "обновлено %d изображений продуктов"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1860
+msgid "updated %d category"
+msgid_plural "updated %d categories"
+msgstr[0] "обновлена %d категория"
+msgstr[1] "обновлено %d категории"
+msgstr[2] "обновлено %d категорий"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1865
+msgid "updated %d product"
+msgid_plural "updated %d products"
+msgstr[0] "обновлен %d продукт"
+msgstr[1] "обновлено %d продукта"
+msgstr[2] "обновлено %d продуктов"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1870
+msgid "updated %d sku"
+msgid_plural "updated %d skus"
+msgstr[0] "обновлен %d артикул"
+msgstr[1] "обновлено %d артикула"
+msgstr[2] "обновлено %d артикулов"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1874
+msgid "updated %d offer"
+msgid_plural "updated %d offers"
+msgstr[0] "обновлено %d предложение"
+msgstr[1] "обновлено %d предложения"
+msgstr[2] "обновлено %d предложений"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1881
+msgid "analyzed %d product"
+msgid_plural "analyzed %d products"
+msgstr[0] "проанализирован %d продукт"
+msgstr[1] "проанализировано %d продукта"
+msgstr[2] "проанализировано %d продуктов"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1886
+msgid "analyzed %d sku"
+msgid_plural "analyzed %d skus"
+msgstr[0] "проанализирован %d артикул"
+msgstr[1] "проанализировано %d артикула"
+msgstr[2] "проанализировано %d артикулов"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1890
+msgid "analyzed %d offer"
+msgid_plural "analyzed %d offers"
+msgstr[0] "проанализировано %d предложение"
+msgstr[1] "проанализировано %d предложения"
+msgstr[2] "проанализировано %d предложений"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1894
+msgid "analyzed %d feature"
+msgid_plural "analyzed %d features"
+msgstr[0] "проанализирована %d характеристика"
+msgstr[1] "проанализировано %d характеристики"
+msgstr[2] "проанализировано %d характеристик"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1898
+msgid "analyzed %d stock"
+msgid_plural "analyzed %d stocks"
+msgstr[0] "проанализирован %d склад"
+msgstr[1] "проанализировано %d склада"
+msgstr[2] "проанализировано %d складов"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1902
+msgid "skipped %d order"
+msgid_plural "skipped %d orders"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1907
+msgid "skipped %d product image"
+msgid_plural "skipped %d product images"
+msgstr[0] "пропущено %d изображение товара"
+msgstr[1] "пропущено %d изображения товаров"
+msgstr[2] "пропущено %d изображений товаров"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1911
+msgid "skipped %d category"
+msgid_plural "skipped %d categories"
+msgstr[0] "пропущена %d категория"
+msgstr[1] "пропущено %d категории"
+msgstr[2] "пропущено %d категорий"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1914
+msgid "skipped %d product"
+msgid_plural "skipped %d products"
+msgstr[0] "пропущен %d продукт"
+msgstr[1] "пропущено %d продукта"
+msgstr[2] "пропущено %d продуктов"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1916
+msgid "skipped %d sku"
+msgid_plural "skipped %d skus"
+msgstr[0] "пропущен %d артикул"
+msgstr[1] "пропущено %d артикула"
+msgstr[2] "пропущено %d артикулов"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1917
+msgid "skipped %d offer"
+msgid_plural "skipped %d offers"
+msgstr[0] "пропущено %d предложение"
+msgstr[1] "пропущено %d предложения"
+msgstr[2] "пропущено %d предложений"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1827
+msgid "%d order"
+msgid_plural "%d orders"
+msgstr[0] "%d заказ"
+msgstr[1] "%d заказа"
+msgstr[2] "%d заказов"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1828
+msgid "%d product"
+msgid_plural "%d products"
+msgstr[0] "%d продукт"
+msgstr[1] "%d продукта"
+msgstr[2] "%d продуктов"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1830
+msgid "%d offer"
+msgid_plural "%d offers"
+msgstr[0] "%d предложение"
+msgstr[1] "%d предложения"
+msgstr[2] "%d предложений"
+
+#: /wa-apps/shop/plugins/cml1c/lib/actions/backend/shopCml1cPluginBackendRun.controller.php:1831
+msgid "%d category"
+msgid_plural "%d categories"
+msgstr[0] "%d категория"
+msgstr[1] "%d категории"
+msgstr[2] "%d категорий"

@@ -2,7 +2,7 @@
  * {literal}
  *
  * @names cml1c_*
- * @property {key:value} cml1c_options
+ * @property {'key':'value'} cml1c_options
  * @method cml1cInit
  * @method cml1cAction
  * @method cml1cBlur
@@ -34,7 +34,7 @@ $.extend($.importexport.plugins, {
         },
 
         onInit: function () {
-            $.shop.trace('$.importexport.cml1c','Init');
+            $.shop.trace('$.importexport.cml1c', 'Init');
             this.dom.container = $('#s-cml1c-form');
 
             this.dom.exportform = $("#s-plugin-cml1c-export");
@@ -65,31 +65,49 @@ $.extend($.importexport.plugins, {
                 var self = $(this);
                 var enabled = self.is(':checked');
                 if (!enabled
-                    && !confirm('При отключении автоматического обмена текущий адрес скрипта синхронизации более не будет работать (после повторного включения будет создан новый адрес). Вы уверены?')) {
+                    && !confirm('При отключении автоматического обмена текущий адрес скрипта синхронизации более не будет работать (после повторного включения будет создан новый адрес). Вы уверены?')
+                ) {
                     self.attr('checked', true);
                     button.iButton('toggle', true);
                     return false;
                 }
                 var $value = self.parents('.value');
                 var $field = self.closest('.field').siblings();
+                $.shop.trace('$field', $field);
                 $value.find('span.gray').removeClass('gray');
-                if (enabled = self.is(':checked')) {
-                    $value.find('span.s-cml1c-disable').addClass('gray');
-                    $field.show(200);
-                } else {
-                    $field.hide(200);
-                    $value.find('span.s-cml1c-enable').addClass('gray');
-                }
+                enabled = self.is(':checked');
                 button.iButton('repaint');
                 $.post('?plugin=cml1c&action=save', {
                     enabled: enabled ? '1' : '0'
                 }, function (data) {
-                    if (enabled && data && (data.status == 'ok')) {
-                        $field.find(":input:first").val(data.data.url);
+                    if (data && (data.status == 'ok')) {
+                        if (enabled) {
+                            $value.find('span.s-cml1c-disable').addClass('gray');
+                            $field.show(200);
+                            if (data.data.url) {
+                                $field.find(":input:first").val(data.data.url);
+
+                                $field.find('.cml1c-url').show();
+                                $field.find('.js-cml1c-settlement').hide();
+                            } else {
+                                $field.find(":input:first").val('');
+
+                                $field.find('.js-cml1c-settlement').show();
+                                $field.find('.cml1c-url').hide();
+                            }
+                        } else {
+                            $value.find('span.s-cml1c-disable').addClass('gray');
+                            $field.hide(200);
+                        }
                     }
                 }, 'json');
                 return true;
             });
+
+            var self = this;
+            this.dom.importform.find(':checkbox[name="configure"]').change(function () {
+                self.configureHandler(this);
+            }).change();
         },
 
         tabAction: function (tab) {
@@ -107,7 +125,7 @@ $.extend($.importexport.plugins, {
         action: function () {
             this.tabAction(this.options.tab);
         },
-        blur: function(){
+        blur: function () {
 
         },
         hashAction: function (hash) {
@@ -124,28 +142,58 @@ $.extend($.importexport.plugins, {
             }
             window.location.hash = '/csv:product:export/';
         },
-        uploadRepeat: function () {
+        showRepeat: function (configure) {
             var $form = this.dom.importform;
-            $form.attr('action', $form.attr('action').replace(/\baction=run\b/, 'action=upload'));
-            $form.find('div.js-cml1c-zip:first, div.js-progressbar-container, div.plugin-cml1c-report, #s-plugin-cml1c-import-upload-status').hide();
-            $form.find('div.plugin-cml1c-submit .errormsg').text('');
-            $form.find(':input').attr('disabled', null);
-            $form.find(':input:not(:submit):not([name^="_"])').val('');
-            $form.find('div.plugin-cml1c-submit,:submit, :input[type="file"]').show();
-            $form.find('div.js-cml1c-zip:first li.js-cml1c-template:not(:first)').remove();
-            $form.find('div.js-cml1c-zip:first :input').attr('disabled', true);
+            var $submit = $form.find(':submit');
+            if (configure) {
+                $form.find('div.plugin-cml1c-submit').show();
+                $form.find('div.js-progressbar-container').hide();
+
+                $form.find('div.plugin-cml1c-report').show();
+                $form.find('div.plugin-cml1c-report > .js-cml1c-repeat').hide();
+                $form.find('div.plugin-cml1c-submit .js-cml1c-repeat, :submit').show();
+
+                $submit.attr('disabled', null).val($submit.data('save'));
+                $form.find(':input').attr('disabled', null);
+            } else {
+                $form.find('div.plugin-cml1c-report > .js-cml1c-repeat').show();
+                $form.find('div.plugin-cml1c-submit .js-cml1c-repeat, :submit').hide();
+            }
+
+            $form.find('input[name="configure"]').attr('checked', null).attr('disabled', true);
             return false;
         },
 
+        uploadRepeat: function () {
+            var $form = this.dom.importform;
+            $form.attr('action', $form.attr('action').replace(/\baction=run\b/, 'action=upload'));
+            $form.find('div.js-cml1c-zip:first, div.js-progressbar-container, div.plugin-cml1c-report, #s-plugin-cml1c-import-upload-status, div.plugin-cml1c-submit .js-cml1c-repeat').hide();
+            $form.find('div.plugin-cml1c-submit .errormsg').text('');
+            $form.find(':input').attr('disabled', null);
+            $form.find('input[name="configure"]').attr('checked', true).trigger('change');
+            $form.find(':input:not(:submit):not([name^="_"]):not([type="checkbox"])').val('');
+            $form.find('div.plugin-cml1c-submit,:submit, :input[type="file"]').show();
+            $form.find('div.js-cml1c-zip:first li.js-cml1c-template:not(:first)').remove();
+            $form.find('div.js-cml1c-zip:first :input').attr('disabled', true);
+            $form.find('#plugin-cml1c-report-import .value:not(.js-cml1c-repeat)').html('');
+            return false;
+        },
+
+        configureHandler: function (checkbox) {
+            var $form = this.dom.importform;
+            var $submit = $form.find(':submit');
+            $submit.val(checkbox.checked ? $submit.data('configure') : $submit.data('import'));
+        },
+
         submitHandler: function (form) {
+            var $form = $(form);
             try {
-                var $form = $(form);
                 $.shop.trace('cml1c.submitHandler', $form);
                 $form.find(':input:visible, :submit').attr('disabled', false).show();
                 this.data.direction = $form.find(':input[name="direction"]').val();
                 this.handler(form);
             } catch (e) {
-                $('#s-csvproduct-transport-group').find(':input').attr('disabled', false);
+                $form.find(':input:visible, :submit').attr('disabled', false).show();
                 $.shop.error('Exception: ' + e.message, e);
             }
             return false;
@@ -260,10 +308,11 @@ $.extend($.importexport.plugins, {
             self.form = $(element);
             var data = self.form.serialize();
             self.form.find('.errormsg').text('');
-            self.form.find(':input').attr('disabled', true);
+            self.form.find(':input').attr('disabled', true);//:not([type="hidden"])
             self.form.find(':submit').hide();
             self.form.find('.progressbar .progressbar-inner').css('width', '0%');
             self.form.find('.progressbar').show();
+            self.form.find('.js-cml1c-repeat').hide();
             var url = $(element).attr('action');
             $.ajax({
                 url: url,
@@ -294,10 +343,11 @@ $.extend($.importexport.plugins, {
                                 return !((xhr.status > 400) || (xhr.status == 0));
                             };
                             self.progressHandler(url, response.processId, response);
-                        }, 3000));
+                        }, 1000));
+
                         self.ajax_pull[response.processId].push(setTimeout(function () {
                             self.progressHandler(url, response.processId);
-                        }, 2000));
+                        }, 4000));
                     }
                 },
                 error: function () {
@@ -313,102 +363,235 @@ $.extend($.importexport.plugins, {
         progressHandler: function (url, processId, response) {
             // display progress
             // if not completed do next iteration
-            var self = this;
 
-            if (response && response.ready) {
-                $.wa.errorHandler = null;
-                var timer;
-                while (timer = self.ajax_pull[processId].pop()) {
-                    if (timer) {
-                        clearTimeout(timer);
-                    }
-                }
-
-                self.form.find('.progressbar .progressbar-inner').css({
-                    'width': '100%'
-                });
-                $.shop.trace('cleanup', response.processId);
-                if (response.file) {
-                    var $link = self.form.find('.plugin-cml1c-report .value a:first');
-                    $link.attr('href', ('' + $link.attr('href')).replace(/&file=.*$/, '') + '&file=' + response.file);
-                }
-
-                $.ajax({
-                    url: url,
-                    data: {
-                        'processId': response.processId,
-                        'direction': self.data.direction,
-                        'cleanup': 1
-                    },
-                    dataType: 'json',
-                    type: 'post',
-                    success: function (response) {
-                        // show statistic
-                        $.shop.trace('report', response);
-                        self.form.find('.plugin-cml1c-submit').hide();
-                        self.form.find('.progressbar').hide();
-                        self.form.find('.plugin-cml1c-report').show();
-                        if (response && response.report) {
-                            self.form.find('.plugin-cml1c-report .value:first').html(response.report);
+            if (this.progress) {
+                var self = this;
+                if (response && response.ready) {
+                    $.wa.errorHandler = null;
+                    self.progress = false;
+                    var timer;
+                    while (timer = self.ajax_pull[processId].pop()) {
+                        if (timer) {
+                            clearTimeout(timer);
                         }
                     }
-                });
 
-            } else if (response && response.error) {
-
-                self.form.find(':input:visible').attr('disabled', false);
-                self.form.find(':submit').show();
-                self.form.find('.js-progressbar-container').hide();
-                self.form.find('.shop-ajax-status-loading').remove();
-                self.form.find('.progressbar').hide();
-                self.form.find('.errormsg').text(response.error);
-
-            } else {
-                var $description;
-                if (response && (typeof(response.progress) != 'undefined')) {
-                    var $bar = self.form.find('.progressbar .progressbar-inner');
-                    var progress = parseFloat((''+response.progress).replace(/,/, '.'));
-                    $bar.animate({
-                        'width': progress + '%'
+                    self.form.find('.progressbar .progressbar-inner').css({
+                        'width': '100%'
                     });
-                    self.debug.memory = Math.max(0.0, self.debug.memory, parseFloat(response.memory) || 0);
-                    self.debug.memory_avg = Math.max(0.0, self.debug.memory_avg, parseFloat(response.memory_avg) || 0);
+                    $.shop.trace('cleanup', response.processId);
+                    if (response.file) {
+                        var $link = self.form.find('.plugin-cml1c-report .value a:first');
+                        $link.attr('href', ('' + $link.attr('href')).replace(/&file=.*$/, '') + '&file=' + response.file);
+                    }
 
-                    var title = 'Memory usage: ' + self.debug.memory_avg + '/' + self.debug.memory + 'MB';
-
-                    var message = response.progress + ' ' + (1 + parseInt(response.stage_num)) + '/' + response.stage_count + ' ' + response.stage_name;
-
-                    $bar.parents('.progressbar').attr('title', message);
-                    $description = self.form.find('.progressbar-description');
-                    $description.text(message);
-                    $description.attr('title', title);
-                }
-                if (response && (typeof(response.warning) != 'undefined')) {
-                    $description = self.form.find('.progressbar-description');
-                    $description.append('<i class="icon16 exclamation"></i><p>' + response.warning + '</p>');
-                }
-
-                var ajax_url = url;
-                var id = processId;
-
-                self.ajax_pull[id].push(setTimeout(function () {
                     $.ajax({
-                        url: ajax_url,
+                        url: url,
                         data: {
-                            'processId': id,
-                            'direction': self.data.direction
+                            'processId': response.processId,
+                            'direction': self.data.direction,
+                            'cleanup': 1
                         },
                         dataType: 'json',
                         type: 'post',
                         success: function (response) {
-                            self.progressHandler(url, response ? response.processId || id : id, response);
-                        },
-                        error: function () {
-                            self.progressHandler(url, id, null);
+                            // show statistic
+                            $.shop.trace('report', response);
+                            self.form.find('.plugin-cml1c-submit').hide();
+                            self.form.find('.progressbar').hide();
+                            self.form.find('.plugin-cml1c-report').show();
+                            if (response) {
+                                if (response.report) {
+                                    var $report = self.form.find('.plugin-cml1c-report .value:first');
+                                    if (!response.report_id || ($report.data('report-id') != response.report_id)) {
+                                        if (response.report_id) {
+                                            $report.data('report-id', response.report_id);
+                                        }
+                                        $report.html(response.report);
+                                    }
+                                }
+
+                                self.showRepeat(response.configure);
+                            }
                         }
                     });
-                }, 1000));
+
+                } else if (response && response.error) {
+
+                    self.form.find(':input:visible').attr('disabled', false);
+                    self.form.find(':submit').show();
+                    self.form.find('.js-progressbar-container').hide();
+                    self.form.find('.shop-ajax-status-loading').remove();
+                    self.form.find('.progressbar').hide();
+                    self.form.find('.errormsg').text(response.error);
+
+                } else {
+                    var $description;
+                    if (response && (typeof(response.progress) != 'undefined')) {
+                        var $bar = self.form.find('.progressbar .progressbar-inner');
+                        var progress = parseFloat(('' + response.progress).replace(/,/, '.'));
+                        $bar.animate({
+                            'width': progress + '%'
+                        });
+                        self.debug.memory = Math.max(0.0, self.debug.memory, parseFloat(response.memory) || 0);
+                        self.debug.memory_avg = Math.max(0.0, self.debug.memory_avg, parseFloat(response.memory_avg) || 0);
+
+                        var title = 'Memory usage: ' + self.debug.memory_avg + '/' + self.debug.memory + 'MB';
+
+                        var message = response.progress + ' ' + (1 + parseInt(response.stage_num)) + '/' + response.stage_count + ' ' + response.stage_name;
+
+                        $bar.parents('.progressbar').attr('title', message);
+                        $description = self.form.find('.progressbar-description');
+                        $description.text(message);
+                        $description.attr('title', title);
+                    }
+                    if (response && (typeof(response.warning) != 'undefined')) {
+                        $description = self.form.find('.progressbar-description');
+                        $description.append('<i class="icon16 exclamation"></i><p>' + response.warning + '</p>');
+                    }
+
+                    var ajax_url = url;
+                    var id = processId;
+
+                    self.ajax_pull[id].push(setTimeout(function () {
+                        $.ajax({
+                            url: ajax_url,
+                            data: {
+                                'processId': id,
+                                'direction': self.data.direction
+                            },
+                            dataType: 'json',
+                            type: 'post',
+                            success: function (response) {
+                                self.progressHandler(url, response ? response.processId || id : id, response);
+                            },
+                            error: function () {
+                                self.progressHandler(url, id, null);
+                            }
+                        });
+                    }, 1000));
+                }
             }
+        },
+        initMapControlRow: function (name) {
+            var self = this;
+            var $scope = this.dom.importform.find(':input[name^="' + name + '"]');
+            var $features = $scope.filter(':input[name$="\[f\]"]:first');
+            var $dimension = $scope.filter(':input[name$="\[dimension\]"]:first');
+            var autocomplete = false;
+            var $cancel;
+            if ($features.length) {
+
+                var $td = $features.parent('td');
+                $cancel = $td.find('a.js-autocomplete-cml1c-cancel:first');
+
+
+                $features.unbind('change.migrate').bind('change.migrate', function () {
+                    var type = 'none';
+                    $.shop.trace('initMapControlRow', [this.value]);
+                    if (this.value == 'f:%s') {
+                        $features.hide();
+                        if (!autocomplete) {
+                            $.shop.trace('autocomplete', $td.find(':input.js-autocomplete-cml1c:first'));
+                            $td.find(':input.js-autocomplete-cml1c:first').autocomplete({
+                                source: '?action=autocomplete&type=feature&options[single]=1',
+                                minLength: 2,
+                                delay: 300,
+                                select: function (event, ui) {
+                                    self.helpers.addFeature(event, ui, $features);
+                                }/*,
+                                 focus: function (event, ui) {
+                                 self.helpers.addFeature(event, ui, $features);
+                                 }*/
+                            });
+                            autocomplete = true;
+                        }
+                        $cancel.show();
+                        $td.find('.ui-autocomplete-input:hidden').val('').show().focus();
+                        $dimension.hide();
+                    } else {
+                        $td.find('.ui-autocomplete-input:visible').hide();
+                        $cancel.hide();
+                        $features.show();
+                        $dimension.show();
+                        type = self.helpers.getFeatureType($features);
+                        self.helpers.filterDimensionType($dimension, type);
+                    }
+
+                }).trigger('change');
+                $cancel.click(function () {
+                    $features.trigger('change');
+                    return false;
+                });
+
+            } else {
+                $.shop.error('bad selector', ':input[name^="' + name + '"]');
+            }
+        },
+        helpers: {
+            getFeatureType: function ($input) {
+                var type = $input.val().match(/(dimension\.)+([^:]+)/);
+                var selected_option = $input.find('option:selected:first');
+                if (type && type[2]) {
+                    type = type[2]
+                } else if (selected_option.length
+                    && (type = ('' + selected_option.prop('class')).match(/\bjs-type-dimension\.([\w]+)\b/))
+                    && type[1]
+                ) {
+                    type = type[1];
+                } else {
+                    type = 'none';
+                }
+                return type;
+            },
+            filterDimensionType: function ($dimension, type) {
+                var selected = false;
+                $dimension.find('option').each(function (index, element) {
+                    var option = $(element);
+                    var disabled = (option.hasClass('js-type-null') || option.hasClass('js-type-' + type)) ? null : true;
+
+                    option.attr('disabled', disabled);
+                    if (disabled) {
+                        option.hide();
+                    } else {
+                        option.show();
+                        if (!selected) {
+                            if (element.defaultSelected) {
+                                selected = true;
+                            }
+                            if (selected || (!selected && option.hasClass('js-base-type'))) {
+                                $dimension.val(element.value);
+                            }
+                        }
+                    }
+                });
+                if (!selected) {
+                    $dimension.val('');
+                }
+            },
+            addFeature: function (event, ui, $features) {
+                /**
+                 * @this {HTMLInputElement}
+                 */
+                $.shop.trace('autocomplete', ui.item);
+
+                var value = ui.item.value;
+
+                if (!$features.find('option[value="f:' + value + '"]:first').length) {
+                    var $option = $('<option/>');
+                    $option.text(ui.item.name);
+                    $option.attr('value', value);
+                    $option.attr('title', value);
+                    if (ui.item.type) {
+                        $option.attr('class', 'js-type-' + ui.item.type);
+                    }
+                    $features.find('option[value="f:%s"]:first').after($option);
+                }
+
+                $features.val(value).change();
+                return false;
+            }
+
         }
     }
 });

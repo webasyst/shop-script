@@ -1,6 +1,6 @@
 <div class="block double-padded" style="padding-bottom: 10px;">
     <h1>1С: Управление торговлей</h1>
-    <p>Обмен данными с «1С: Управление торговлей» через файлы формата <a href="http://v8.1c.ru/edi/edi_stnd/90/">CommerceML</a>. Документация по настройке интеграции: <a href="http://www.webasyst.ru/help/25/shop-script-5-cml1c/" target="_blank">http://www.webasyst.ru/help/25/shop-script-5-cml1c/</a><i class="icon16 new-window"></i></p>
+    <p>Обмен данными с «1С: Управление торговлей» через файлы формата <a href="http://v8.1c.ru/edi/edi_stnd/90/92.htm">CommerceML</a>. Документация по настройке интеграции: <a href="https://www.webasyst.ru/help/25/shop-script-5-cml1c/" target="_blank">https://www.webasyst.ru/help/25/shop-script-5-cml1c/</a><i class="icon16 new-window"></i></p>
 </div>
 <div id="s-cml1c-form">
     <ul class="tabs" style="padding-left: 10px;">
@@ -23,11 +23,27 @@
                         </ul>
                     </div>
                 </div>
+                {if !empty($stocks) && (count($stocks)>1)}
+                <div class="field">
+                    <div class="name">Склад</div>
+                    <div class="value">
+                        <select>
+                            {foreach $stocks as $stock_id=>$stock}
+                                <option value="{$stock_id}">{$stock.name|escape}</option>
+                            {/foreach}
+                        </select>
+                        <p class="hint">Укажите склад, в который будут записываться данные об остатках</p>
+                    </div>
+                </div>
+                {/if}
                 <div class="field"{if empty($enabled)} style="display: none;"{/if}>
                     <div class="name"><label for="cml1c-url">Скрипт синхронизации</label></div>
-                    <div class="value">
+                    <div class="value js-cml1c-settlement" {if !empty($url)} style="display: none;"{/if}>
+                        <p><i class="icon16 exclamation"></i> Для включения автоматического обмена данными настройте витрину интернет-магазина в приложении «<a href="{$wa_backend_url}site/#/routing/">Сайт</a>».</p>
+                    </div>
+                    <div class="value js-cml1c-url" {if empty($url)} style="display: none;"{/if}>
                         <i class="icon16 lock-bw" style="margin-top: 0.2em;"></i>
-                        <input id="cml1c-url" type="text" class="bold" value="{$url|escape}" style="width: 500px;" readonly="readonly">
+                        <input id="cml1c-url" type="text" class="bold" data-url="{$url|escape}" value="{$url|escape}" style="width: 500px;" readonly="readonly">
                         <br><br>
                         <p class="small">Сохраните этот адрес в настройках 1С в диалоге «Настройки обмена с WEB-сайтом» &rarr; «Адрес сайта».<br/> Поля «Имя пользователя» и «Пароль» оставьте пустыми или укажите любой логин и пароль, так как эти данные уже закодированы в адресе скрипта синхронизации.</p>
                         <p class="small">Чтобы изменить адрес скрипта синхронизации, выключите и снова включите автоматический обмен с 1С.</p>
@@ -100,34 +116,56 @@
                         <div class="field">
                             <div class="name">Файл CommerceML</div>
                             <div class="value no-shift">
-                            {$wa->csrf()}
-                            <input type="file" name="files">
+                                {$wa->csrf()}
+                                <input type="file" name="files">
                                 <input type="hidden" name="filename" value="">
                                 <input type="hidden" name="zipfile" value="">
-                            <span id="s-plugin-cml1c-import-upload-status" style="display:none">
+                                <span id="s-plugin-cml1c-import-upload-status" style="display:none">
                                 <i style="vertical-align:middle" class="icon16 loading"></i>
                                 <span></span>
                             </span>
-                            <br><br>
-                            <p class="small">Импорт из файла CommerceML поддерживает только импорт информации о товарах (добавление новых товаров, обновление цен и характеристик). Импорт заказов из файла CommerceML не поддерживается.</p>
+                                <br><br>
+                                <p class="small">Импорт заказов из файла CommerceML не поддерживается.</p>
                             </div>
                         </div>
                         <div class="field js-cml1c-zip" style="display: none;">
                             <div class="name">Файл</div>
                             <div class="value">
                                 <ul class="menu-v with-icons">
-                                <li class="js-cml1c-template"><label><i class="icon16 zip"></i><input type="radio" name="filename" value="" disabled="disabled"><span></span></label></li>
+                                    <li class="js-cml1c-template"><label><i class="icon16 zip"></i><input type="radio" name="filename" value="" disabled="disabled"><span></span></label></li>
                                 </ul>
                             </div>
                         </div>
+                        <div class="field">
+                            <div class="name">Конфигурация</div>
+                            <div class="value no-shift">
+                                <label>
+                                    <input type="checkbox" name="configure" value="1" checked="checked">
+                                    Настроить синхронизацию характеристик, свойств, реквизитов и остатков товаров
+                                </label>
+                                <br>
+                                <span class="hint">Настройки синхронизации данных в файле CommerceML с данными Shop-Script.
+Данные настройки будут использоваться для всех последующих автоматических и ручных обменов через CommerceML. Сменить настройки можно будет после очередного анализа файла CommerceML.</span>
+                            </div>
+                        </div>
+
                     </div>
 
+                    <div class="field-group plugin-cml1c-report" id="plugin-cml1c-report-import" style="display: none;">
+                        <div class="field">
+                            <div class="value"></div>
+                        </div>
+                        <div class="field js-cml1c-repeat">
+                            <div class="value"><a href="#/cml1c/upload/repeat/" class="js-action"><i class="icon16 update"></i>Импортировать еще файлы</a></div>
+                        </div>
+                    </div>
 
                     <div class="field-group plugin-cml1c-submit">
                         <div class="field">
                             <div class="value submit">
                                 <input type="hidden" name="direction" value="import">
-                                <input type="submit" class="button green" value="Импортировать">
+                                <input type="submit" class="button green" data-import="Импортировать" data-save="Сохранить и импортировать" data-configure="Анализировать" value="Импортировать">
+                                <span class="js-cml1c-repeat" style="display: none;">или <a href="#/cml1c/upload/repeat/" class="js-action">выбрать другой файл</a></span>
                                 <div class="js-progressbar-container" style="display:none;">
                                     <div class="progressbar blue float-left" style="display: none; width: 70%;">
                                         <div class="progressbar-outer">
@@ -145,14 +183,6 @@
                                 </div><br><br>
                                 <em class="errormsg"></em>
                             </div>
-                        </div>
-                    </div>
-
-
-                    <div class="field-group plugin-cml1c-report" id="plugin-cml1c-report-import" style="display: none;">
-                        <div class="field">
-                            <div class="value"></div>
-                            <div class="value"><a href="#cml1c/upload/repeat/" class="js-action"><i class="icon16 update"></i>Импортировать еще файлы</a></div>
                         </div>
                     </div>
                 </div>

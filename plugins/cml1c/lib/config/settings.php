@@ -3,8 +3,8 @@ return array(
     'hint'                      => array(
         'description'  => '</span><span>
 <strong style="position: relative; top: -8px;">Обмен данными с 1С производится в разделе «<a href="?action=importexport#/cml1c/">Импорт/экспорт &rarr; 1С</a>»</strong><br/>
-<span class="hint">При обмене будут применены настройки, определенные ниже.<br/>
-<strong>ВАЖНО: Характеристики товаров не экспортируются из Shop-Script в 1С, характеристики товаров можно только импортировать в Shop-Script из 1С.</strong></span><br><br>',
+<span class="hint">При обмене будут применены настройки, определенные ниже.<br><br>  
+<strong>Для настройки синхронизации данных по складам, характеристикам, свойствам и реквизитам товаров необходимо проанализировать файл CommerceML на странице ручного обмена.</strong><br><br>',
         'title'        => 'Обмен данными',
         'control_type' => waHtmlControl::HIDDEN,
     ),
@@ -38,10 +38,10 @@ return array(
 Идентификатор используется только для экспорта цен товаров из Shop-Script, для правильного импорта цен укажите Тип закупочной цены из 1С (поле выше).<br/><br/><br/>',
         'control_type' => waHtmlControl::INPUT,
     ),
-    'export_product_name' => array(
+    'export_product_name'       => array(
         'value'        => 'name',
         'title'        => 'Формат экспорта наименований артикулов (модификаций)',
-        'description' => '',
+        'description'  => '',
         'control_type' => waHtmlControl::SELECT,
         'options'      => array(
             'name'     => 'Только наименование товара',
@@ -63,18 +63,96 @@ return array(
         'value'        => 'all',
         'title'        => 'Выгрузка заказов',
         'description'  => 'Выберите, какие заказы нужно экспортировать при автоматическом обмене.<br/>
-Если выбран вариант «Новые и измененные», то экспортироваться будут только заказы, созданные или измененные не более чем за 1 час до завершения последнего обмена данными с 1С либо позднее.<br/><br/><br/>',
+Если выбран вариант «Новые и измененные», то экспортироваться будут только заказы, созданные или измененные не более чем за 1 час до завершения последнего обмена данными с 1С либо позднее.',
         'control_type' => waHtmlControl::RADIOGROUP,
         'options'      => array(
             'all'     => 'Все',
             'changed' => 'Новые и измененные',
         ),
     ),
+    'contact_phone'             => array(
+        'value'            => 'phone',
+        'title'            => 'Телефон клиента',
+        'description'      => 'Выберите поле контакта в Shop-Script, соответствующее телефону клиента в CommerceML (тип контакта «ТелефонРабочий»).',
+        'control_type'     => waHtmlControl::SELECT,
+        'options_callback' => array('shopCml1cPlugin', 'controlCustomerFields'),
+    ),
+    'contact_email'             => array(
+        'value'            => 'email',
+        'title'            => 'Email клиента',
+        'description'      => 'Выберите поле контакта в Shop-Script, соответствующее email-адресу клиента в CommerceML (тип контакта «Почта»).',
+        'control_type'     => waHtmlControl::SELECT,
+        'options_callback' => array('shopCml1cPlugin', 'controlCustomerFields'),
+    ),
+    'contact_company'           => array(
+        'value'            => '',
+        'title'            => 'Наименование компании клиента',
+        'description'      => 'Выберите поле контакта в Shop-Script, соответствующее элементу CommerceML <Наименование> и <ОфициальноеНаименование> (наименование юридического лица).<br/> 
+<strong>По заполненности данного поля будет выбран формат экспортируемых данных соответствующий физическому или юридическому лицу</strong> (для физического лица при оформлении заказа данное поле должно быть не заполнено).',
+        'control_type'     => waHtmlControl::SELECT,
+        'options_callback' => array('shopCml1cPlugin', 'controlCustomerFields'),
+    ),
+    'contact_inn'               => array(
+        'value'            => '',
+        'title'            => 'ИНН клиента',
+        'description'      => 'Выберите поле контакта в Shop-Script, соответствующее элементу CommerceML <ИНН>.',
+        'control_type'     => waHtmlControl::SELECT,
+        'options_callback' => array('shopCml1cPlugin', 'controlCustomerFields'),
+    ),
+    'contact_kpp'               => array(
+        'value'            => '',
+        'title'            => 'КПП клиента',
+        'description'      => 'Выберите поле контакта в Shop-Script, соответствующее элементу CommerceML <КПП>.',
+        'control_type'     => waHtmlControl::SELECT,
+        'options_callback' => array('shopCml1cPlugin', 'controlCustomerFields'),
+    ),
+    'contact_okpo'              => array(
+        'value'            => '',
+        'title'            => 'ОКПО клиента',
+        'description'      => 'Выберите поле контакта в Shop-Script, соответствующее элементу CommerceML <ОКПО>.',
+        'control_type'     => waHtmlControl::SELECT,
+        'options_callback' => array('shopCml1cPlugin', 'controlCustomerFields'),
+    ),
+    'contact_bank_bik'          => array(
+        'value'            => '',
+        'title'            => 'БИК клиента',
+        'description'      => 'Выберите поле контакта в Shop-Script, соответствующее элементу CommerceML <БИК>.',
+        'control_type'     => waHtmlControl::SELECT,
+        'options_callback' => array('shopCml1cPlugin', 'controlCustomerFields'),
+    ),
+    'contact_bank_name'         => array(
+        'value'            => '',
+        'title'            => 'Наименование банка клиента',
+        'description'      => 'Выберите поле контакта в Shop-Script, соответствующее элементу наименование банка клиента в CommerceML (элеиент <Наименование> блока <Банк>).',
+        'control_type'     => waHtmlControl::SELECT,
+        'options_callback' => array('shopCml1cPlugin', 'controlCustomerFields'),
+    ),
+    'contact_bank_account'      => array(
+        'value'            => '',
+        'title'            => 'Расчетный счет клиента',
+        'description'      => 'Выберите поле контакта в Shop-Script, соответствующее элементу CommerceML <НомерСчета>.',
+        'control_type'     => waHtmlControl::SELECT,
+        'options_callback' => array('shopCml1cPlugin', 'controlCustomerFields'),
+    ),
+    'contact_bank_cor_account'  => array(
+        'value'            => '',
+        'title'            => 'Корреспондентский счет клиента',
+        'description'      => 'Выберите поле контакта в Shop-Script, соответствующее элементу CommerceML <СчетКорреспондентский>.',
+        'control_type'     => waHtmlControl::SELECT,
+        'options_callback' => array('shopCml1cPlugin', 'controlCustomerFields'),
+    ),
+    'contact_fields'            => array(
+        'value'            => array(),
+        'title'            => 'Дополнительные параметры заказа',
+        'description'      => 'Настройки экспорта дополнительных параметров заказа в блоке CommerceML <ЗначенияРеквизитов>.<br/><br/><br/>',
+        'control_type'     => 'ContactFieldsControl',
+        'options_callback' => array('shopCml1cPlugin', 'controlCustomerFields'),
+    ),
     'update_product_fields'     => array(
         'value'            => array(),
         'title'            => 'Обновлять при импорте свойства товаров',
-        'description'      => 'При синхронизации значений выбранных свойств товаров в Shop-Script будут полностью перезаписаны значениями из 1С для уже <b>существующих</b> товаров.<br/>
-Характеристики артикулов (модификаций) будут импортированы только если они заданы в Shop-Script как характеристики типа checkbox.',
+        'description'      => 'При синхронизации значений выбранных свойств товаров в Shop-Script будут полностью перезаписаны значениями из 1С для уже <b>существующих</b> товарова, а по новым товарам будут импортированы <b>все</b> данные из 1С. <br/>
+<b>Характеристики артикулов (модификаций) будут импортированы только если они заданы в Shop-Script как характеристики типа checkbox.</b>',
         'control_type'     => waHtmlControl::GROUPBOX,
         'options_callback' => array('shopCml1cPlugin', 'controlProductFields'),
         'group'            => 'Товары',
@@ -91,6 +169,21 @@ return array(
             'sync'   => 'Добавлять в новые и удалять из устаревших',
         ),
         'group'        => 'Товары',
+    ),
+    'update_options'            => array(),
+    'update_category_fields'    => array(
+        'value'        => array(
+            'description' => true,
+            'name'        => true,
+        ),
+        'title'        => 'Обновлять свойства категорий при импорте',
+        'description'  => 'При синхронизации значения выбранных свойств категорий в Shop-Script будут полностью перезаписаны информацией из 1С для <b>существующих</b> категорий.',
+        'control_type' => waHtmlControl::GROUPBOX,
+        'options'      => array(
+            'description' => 'Описание категории',
+            'name'        => 'Название категории',
+            'parent_id'   => 'Родительскую категорию',
+        ),
     ),
     'update_product_types'      => array(
         'value'        => 'skip',
@@ -115,22 +208,7 @@ return array(
         'options_callback' => array('shopCml1cPlugin', 'controlType'),
         'group'            => 'Товары',
     ),
-    'update_options'            => array(),
-    'update_category_fields'    => array(
-        'value'        => array(
-            'description' => true,
-            'name'        => true,
-        ),
-        'title'        => 'Обновлять свойства категорий при импорте',
-        'description'  => 'При синхронизации значения выбранных свойств категорий в Shop-Script будут полностью перезаписаны информацией из 1С для <b>существующих</b> категорий.',
-        'control_type' => waHtmlControl::GROUPBOX,
-        'options'      => array(
-            'description' => 'Описание',
-            'name'        => 'Название',
-            'parent_id'   => 'Родительскую категорию',
-        ),
-    ),
-    'product_hide'            => array(
+    'product_hide'              => array(
         'value'        => false,
         'title'        => 'Скрывать новые товары при импорте',
         'description'  => 'У всех новых импортированных товаров из 1С будет проставлен статус - Скрыт с сайта.<br/>
@@ -158,8 +236,6 @@ if((typeof($.ui.autocomplete) != 'undefined') && (typeof($.ui.autocomplete) != '
         source: '?action=autocomplete&type=feature&options[single]=1',
         minLength: 2,
         delay: 300
-        //select: function(){ },
-        //focus: function(){ }
     });
 }
 </script>
@@ -176,20 +252,6 @@ HTML
         'control_type'     => waHtmlControl::SELECT,
         'group'            => 'Товары',
         'options_callback' => array('shopCml1cPlugin', 'controlWeightUnits'),
-    ),
-    'contact_phone'             => array(
-        'value'            => 'phone',
-        'title'            => 'Телефон',
-        'description'      => 'Укажите поле контакта, экспортируемого из Shop-Script в 1С как номер телефона клиента.',
-        'control_type'     => waHtmlControl::SELECT,
-        'options_callback' => array('shopCml1cPlugin', 'controlCustomerFields'),
-    ),
-    'contact_email'             => array(
-        'value'            => 'email',
-        'title'            => 'Email',
-        'description'      => 'Выберите свойство контакта, соответствующее email-адресу клиента в Shop-Script.',
-        'control_type'     => waHtmlControl::SELECT,
-        'options_callback' => array('shopCml1cPlugin', 'controlCustomerFields'),
     ),
     'currency'                  => array(
         'value'            => 'RUB',
@@ -209,9 +271,26 @@ HTML
     ),
     'stock'                     => array(
         'value'            => 0,
-        'title'            => 'Склад',
-        'description'      => 'Выберите склад Shop-Script для синхронизации остатков с 1С<br/><br/><br/>',
+        'title'            => 'Общие остатки в CommerceML',
+        'description'      => 'Выберите одни склад Shop-Script для переноса в него общих остатков из CommerceML (элемент <Количество>) или оставьте импорт в общие остатки товаров Shop-Script.<br>
+<strong>Импорт остатков по конкретным складам (элемент CommerceML «КоличествоНаСкладе») возможен только после анализа файла CommerceML на странице ручного обмена.</strong>
+',
         'control_type'     => waHtmlControl::SELECT,
         'options_callback' => array('shopCml1cPlugin', 'controlStock'),
+    ),
+    'stock_setup'          => array(
+        'value'        => true,
+        'title'        => 'Создавать новые артикулы с нулевыми остатками',
+        'description'  => 'Если опция не активна, то новые артикулы будут созданы с бесконечным остатком на складах Shop-Script, которые не были связаны со складами в файле CommerceML.<br>
+Связь складов производится в настройках после анализа файла CommerceML на странице ручного обмена.',
+        'control_type' => waHtmlControl::CHECKBOX,
+    ),
+    'stock_complement'          => array(
+        'value'        => false,
+        'title'        => 'Обнулять остатки в несинхронизированных складах',
+        'description'  => 'Будут обнулёны остатки по товарам на складах Shop-Script, которые не были связаны со складами в файле CommerceML.<br>
+Если опция не активна, то при импорте не будут изменены текущие остатки по товарам на складах Shop-Script, которые не были связаны со складами в файле CommerceML.<br>
+Связь складов производится в настройках после анализа файла CommerceML на странице ручного обмена.<br><br>',
+        'control_type' => waHtmlControl::CHECKBOX,
     ),
 );

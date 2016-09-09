@@ -220,7 +220,7 @@ class shopCml1cPluginFrontendController extends waController
             $message = sprintf('%d Files uploaded (%s, ...)', $count, implode(', ', $files));
         } else {
             $message = sprintf('File %s uploaded', basename($files));
-            if (preg_match('/\.zip/', $files)) {
+            if (preg_match('/\.zip/i', $files)) {
                 $this->getStorage()->set('filename', $files);
             }
         }
