@@ -2156,7 +2156,8 @@ SQL;
     {
         if (func_num_args() > 1) {
             $args = func_get_args();
-            $message = call_user_func_array('sprintf', $args);
+            $format = array_shift($args);
+            $message = vsprintf($format, $args);
         } elseif (is_array($message)) {
             $message = var_export($message, true);
         }

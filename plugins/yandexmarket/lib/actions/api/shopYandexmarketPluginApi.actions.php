@@ -266,13 +266,14 @@ class shopYandexmarketPluginApiActions extends waActions
 
 
                 $order['items'][] = array(
-                    'name'       => ifset($item['name'], $item['raw_data']['offerName']),
-                    'currency'   => $raw_order->currency,
-                    'type'       => 'product',
-                    'sku_id'     => $item['sku_id'],
-                    'product_id' => $item['product_id'],
-                    'price'      => $item['price'],
-                    'quantity'   => $item['count'],
+                    'name'           => ifset($item['name'], $item['raw_data']['offerName']),
+                    'currency'       => $raw_order->currency,
+                    'type'           => 'product',
+                    'sku_id'         => $item['sku_id'],
+                    'product_id'     => $item['product_id'],
+                    'price'          => $item['price'],
+                    'purchase_price' => $item['purchase_price'],
+                    'quantity'       => $item['count'],
                 );
             }
         }

@@ -54,14 +54,17 @@ HTML
     ),
 
     'api_oauth_token' => array(
-        'value'       => '',
-        'placeholder' => '',
-        'title'       => 'Авторизационный токен',
-        'description' => <<<HTML
+        'value'        => '',
+        'placeholder'  => '',
+        'title'        => 'Авторизационный токен',
+        'description'  => <<<HTML
 Укажите <i>авторизационный токен</i> приложения, имеющего доступ к «Яндекс.Маркету».<br/>
 Используется для отображения статистики и обновления статусов заказов.<br/>
 <p>Для получения токена перейдите по
-        <a data-href="https://oauth.yandex.ru/authorize?response_type=token&client_id=%api_client_id%" href="https://oauth.yandex.ru/authorize?response_type=token&client_id=%api_client_id%" target="_blank">ссылке</a>, подтвердите права и введите токен в это поле.</p>
+        <a data-href="https://oauth.yandex.ru/authorize?response_type=token&client_id=%api_client_id%" 
+        href="https://oauth.yandex.ru/authorize?response_type=token&client_id=%api_client_id%" target="_blank">
+        ссылке
+        </a>, подтвердите права и введите токен в это поле.</p>
 <script type="text/javascript">
 (function () {
     "use strict";
@@ -90,18 +93,27 @@ HTML
         'control_type' => waHtmlControl::HIDDEN,
         'description'  => '<h4>Действия с заказами</h4>',
     ),
+
     'order_action_ship' => array(
         'value'            => array('ship' => true,),
-        'title'            => 'Доставка заказа',
-        'description'      => 'Выберите действия, подтверждаюшие доставку заказа',
+        'title'            => 'Готовность заказа',
+        'description'      => 'Выберите действия, подтверждаюшие готовность заказа к доставке',
         'control_type'     => waHtmlControl::GROUPBOX,
         'options_callback' => array('shopYandexmarketPlugin', 'getShipActions'),
+    ),
+
+    'order_action_pickup' => array(
+        'value'            => array(),
+        'title'            => 'Доставка заказа',
+        'description'      => 'Выберите действия, подтверждаюшие доставку заказа в пункт выдачи',
+        'control_type'     => waHtmlControl::GROUPBOX,
+        'options_callback' => array('shopYandexmarketPlugin', 'getActions'),
     ),
 
     'order_action_complete' => array(
         'value'            => array('complete' => true,),
         'title'            => 'Выполнение заказа',
-        'description'      => 'Выберите действия, подтверждаюшие завершение обработки заказа',
+        'description'      => 'Выберите действия, подтверждаюшие вручение заказа покупателю',
         'control_type'     => waHtmlControl::GROUPBOX,
         'options_callback' => array('shopYandexmarketPlugin', 'getCompleteActions'),
     ),

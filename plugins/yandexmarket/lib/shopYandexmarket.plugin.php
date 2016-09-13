@@ -243,7 +243,10 @@ HTML;
             'value'               => !empty($params['yandexmarket_group_skus']),
             'title'               => 'Яндекс.Маркет',
             'description'         => <<<HTML
-При экспорте в Яндекс.Маркет группировать все артикулы товаров <span class="hint">Настройка учитывается только для случая экспорта каждого артикула товара как отдельной товарной позиции на Яндекс.Маркете (настраивается в профиле экспорта)</span>
+При экспорте в Яндекс.Маркет группировать все артикулы товаров 
+<span class="hint">
+Настройка учитывается только для случая экспорта каждого артикула товара как отдельной товарной позиции на Яндекс.Маркете (настраивается в профиле экспорта)
+</span>
 HTML
             ,
             'title_wrapper'       => '%s',
@@ -884,6 +887,7 @@ HTML;
      * @param string [string] $data[after_state_id]  ID статуса после выполнения действия
      * @param int [string] $data[id]              ID записи в логе истории заказа
      * @param string $event_name
+     * @link https://tech.yandex.ru/market/partner/doc/dg/reference/put-campaigns-id-orders-id-status-docpage/
      */
     public function orderActionHandler($data, $event_name = null)
     {
@@ -897,7 +901,7 @@ HTML;
                 foreach ($available_actions as $available_action) {
                     $settings = $this->getSettings('order_action_'.$available_action);
                     $matched_actions = array_keys(array_filter($settings));
-                    $matched = in_array( $data['action_id'], $matched_actions);
+                    $matched = in_array($data['action_id'], $matched_actions);
                     if ($matched) {
                         $action = $available_action;
                         break;
@@ -918,43 +922,68 @@ HTML;
             $method = 'campaigns/%d/orders/%d/status';
             $method = sprintf($method, $params['yandexmarket.campaign_id']['value'], $params['yandexmarket.id']['value']);
 
-            switch ($action) {
-                case 'ship':
-                    $order = array(
-                        'status' => 'DELIVERY',
-                    );
-                    $this->apiRequest($method, array(), compact('order'));
-                    break;
-                case 'complete':
-                    $order = array(
-                        'status' => 'DELIVERED',
-                    );
-                    $this->apiRequest($method, array(), compact('order'));
-                    break;
-                case 'delete':
-                    if (wa()->getEnv() == 'backend') {
-                        $post = waRequest::post('plugins');
-                        $substatus = 'USER_CHANGED_MIND';
-                        if (!empty($post['yandexmarket']['substatus'])) {
-                            $substatus = $post['yandexmarket']['substatus'];
-                            $available = self::getCancelSubstatus();
-                            if (!isset($available[$substatus])) {
-                                $substatus = 'USER_CHANGED_MIND';
-                            }
-                        }
+            $result = null;
+            try {
+                switch ($action) {
+                    case 'ship':
                         $order = array(
-                            'status'    => 'CANCELLED',
-                            'substatus' => $substatus,
+                            'status' => 'DELIVERY',
                         );
-                        $this->apiRequest($method, array(), compact('order'));
-                    }
-                    break;
-            }
-        }
+                        $result = $this->apiRequest($method, array(), compact('order'));
+                        break;
+                    case 'complete':
+                        $order = array(
+                            'status' => 'DELIVERED',
+                        );
+                        $result = $this->apiRequest($method, array(), compact('order'));
+                        break;
+                    case 'pickup':
+                        $order = array(
+                            'status' => 'PICKUP',
+                        );
+                        $result = $this->apiRequest($method, array(), compact('order'));
+                        break;
+                    case 'delete':
+                        if (wa()->getEnv() == 'backend') {
+                            $post = waRequest::post('plugins');
+                            $substatus = 'USER_CHANGED_MIND';
+                            if (!empty($post['yandexmarket']['substatus'])) {
+                                $substatus = $post['yandexmarket']['substatus'];
+                                $available = self::getCancelSubstatus();
+                                if (!isset($available[$substatus])) {
+                                    $substatus = 'USER_CHANGED_MIND';
+                                }
+                            }
+                            $order = array(
+                                'status'    => 'CANCELLED',
+                                'substatus' => $substatus,
+                            );
+                            $result = $this->apiRequest($method, array(), compact('order'));
+                        }
+                        break;
+                }
+                if ($result) {
+                    if ($result['order']) {
+                        $o = $result['order'];
+                        $template = 'Статус заказа в Яндекс.Маркет был обновлен на %s %s';
+                        $comment = sprintf($template, self::describeStatus($o['status']), self::describeSubStatus(ifset($o['sub_status'])));
 
+                        $message = sprintf('Order %s(%s) updated at Yandex.Maket: %s', $data['order_id'], $result['id'], $comment);
+                        waLog::log($message, 'shop/plugins/yandexmarket/api.order.status.log');
+                    }
+
+                }
+            } catch (waException $ex) {
+                //TODO: retry request for code 500/503
+                $message = sprintf("Error with code during API request for order %s:\n%s", $ex->getCode(), $data['order_id'], $ex->getMessage());
+                waLog::log($message, 'shop/plugins/yandexmarket/api.order.status.error.log');
+                throw $ex;
+            }
+            //TODO add comment at order log
+        }
     }
 
-    private static function getActions($default_id = null)
+    public static function getActions($default_id = null)
     {
         static $actions = null;
         if ($actions === null) {
@@ -1005,6 +1034,37 @@ HTML;
             'USER_REFUSED_QUALITY'  => 'покупателя не устраивает качество товара',
             'SHOP_FAILED'           => 'магазин не может выполнить заказ',
         );
+    }
+
+    public static function describeSubStatus($sub_status)
+    {
+        $description = array(
+            'RESERVATION_EXPIRED'   => 'покупатель не завершил оформление зарезервированного заказа вовремя',
+            'USER_NOT_PAID'         => 'покупатель не оплатил заказ (для типа оплаты PREPAID)',
+            'USER_UNREACHABLE'      => 'не удалось связаться с покупателем',
+            'USER_CHANGED_MIND'     => 'покупатель отменил заказ по собственным причинам',
+            'USER_REFUSED_DELIVERY' => 'покупателя не устраивают условия доставки',
+            'USER_REFUSED_PRODUCT'  => 'покупателю не подошел товар',
+            'SHOP_FAILED'           => 'магазин не может выполнить заказ',
+            'USER_REFUSED_QUALITY'  => 'покупателя не устраивает качество товара',
+            'REPLACING_ORDER'       => 'покупатель изменяет состав заказа',
+            'PROCESSING_EXPIRED'    => 'магазин не обработал заказ вовремя',
+        );
+        return ifset($description[$sub_status], $sub_status);
+    }
+
+    public static function describeStatus($status)
+    {
+        $description = array(
+            'CANCELLED'  => 'заказ отменен',
+            'DELIVERED'  => 'заказ получен покупателем',
+            'DELIVERY'   => 'заказ передан в доставку',
+            'PICKUP'     => 'заказ доставлен в пункт самовывоза',
+            'PROCESSING' => 'заказ находится в обработке',
+            'RESERVED'   => 'заказ в резерве (ожидается подтверждение от пользователя)',
+            'UNPAID'     => 'заказ оформлен, но еще не оплачен (если выбрана плата при оформлении)',
+        );
+        return ifset($description[$status], $status);
     }
 
     public function orderDeleteFormHandler($data, $event_name = null)

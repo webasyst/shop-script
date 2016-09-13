@@ -66,19 +66,7 @@ class shopYandexmarketPluginOrder extends waOrder
                 }
 
                 if (ifset($data['status']) == self::STATUS_CANCELLED) {
-                    $cancel_description = array(
-                        'RESERVATION_EXPIRED'   => 'покупатель не завершил оформление зарезервированного заказа вовремя',
-                        'USER_NOT_PAID'         => 'покупатель не оплатил заказ (для типа оплаты PREPAID)',
-                        'USER_UNREACHABLE'      => 'не удалось связаться с покупателем',
-                        'USER_CHANGED_MIND'     => 'покупатель отменил заказ по собственным причинам',
-                        'USER_REFUSED_DELIVERY' => 'покупателя не устраивают условия доставки',
-                        'USER_REFUSED_PRODUCT'  => 'покупателю не подошел товар',
-                        'SHOP_FAILED'           => 'магазин не может выполнить заказ',
-                        'USER_REFUSED_QUALITY'  => 'покупателя не устраивает качество товара',
-                        'REPLACING_ORDER'       => 'покупатель изменяет состав заказа',
-                        'PROCESSING_EXPIRED'    => 'магазин не обработал заказ вовремя',
-                    );
-                    $data['sub_status_description'] = ifset($cancel_description[$data['sub_status']]);
+                    $data['sub_status_description'] = shopYandexmarketPlugin::describeSubStatus($data['sub_status']);
                 }
 
                 if (isset($json['fake'])) {
@@ -188,16 +176,20 @@ class shopYandexmarketPluginOrder extends waOrder
                 'name'            => ifset($product['name'], $item['offerName']),
                 'count'           => 0,
                 'price'           => false,
+                'purchase_price'  => false,
                 'profile_id'      => ifset($profile_map[$item['feedId']]),
+                'currency'        => $product['currency'],
                 'raw_data'        => $item,
             );
-
         }
 
         $skus_model = new shopProductSkusModel();
-        $skus = $skus_model->select('id,count,sku,primary_price')->where('id IN (i:sku_ids)', compact('sku_ids'))->fetchAll('id');
+        $skus = $skus_model->select('id,count,price,sku,purchase_price')->where('id IN (i:sku_ids)', compact('sku_ids'))->fetchAll('id');
+
+        $currency_model = new shopCurrencyModel();
 
         foreach ($data['items'] as &$item) {
+
             if (isset($skus[$item['sku_id']])) {
                 $sku = $skus[$item['sku_id']];
                 $item['count'] = ($sku['count'] === null) ? 9999 : $sku['count'];
@@ -208,12 +200,24 @@ class shopYandexmarketPluginOrder extends waOrder
                     $item['count'] = min($item['count'], $item['raw_data']['count']);
                 }
 
-
-                $item['price'] = ifset($sku['primary_price'], false);
+                $item['price'] = ifset($sku['price'], false);
+                $item['purchase_price'] = ifset($sku['purchase_price']);
                 if ($item['price']) {
-                    $product = ifset($product_ids[$item['product_id']]);
-                    $item['price'] = shop_currency($item['price'], $product['currency'], $data['currency'], false);
+                    if (!empty($data['currency']) && ($item['currency'] != $data['currency'])) {
+                        $item['price'] = $currency_model->convert($item['price'], $item['currency'], $data['currency']);
+
+                        if (class_exists('shopRounding')) {
+                            $item['price'] = shopRounding::roundCurrency($item['price'], $data['currency']);
+                        }
+
+                        if ($item['purchase_price']) {
+                            $item['purchase_price'] = $currency_model->convert($item['purchase_price'], $item['currency'], $data['currency']);
+                        }
+                        $item['currency'] = $data['currency'];
+                    }
+                    $item['price'] = round($item['price'], 2);
                 }
+
             }
 
             unset($item);
