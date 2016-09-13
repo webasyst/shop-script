@@ -177,6 +177,7 @@ class shopYandexmarketPluginBackendSetupAction extends waViewAction
             'sku'         => _w('SKU code'),
             'file_name'   => _w('Attachment'),
             'count'       => _w('In stock'),
+            'type_id'     => _w('Product type'),
         );
 
         $stock_model = new shopStockModel();
