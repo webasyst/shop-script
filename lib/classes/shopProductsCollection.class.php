@@ -133,6 +133,9 @@ class shopProductsCollection
                 if (method_exists($this, $method)) {
                     $this->$method(isset($this->hash[1]) ? $this->hash[1] : '', $auto_title);
                 } else {
+                    
+                    $this->prepared = true;
+                    
                     $params = array(
                         'collection' => $this,
                         'auto_title' => $auto_title,
@@ -157,9 +160,6 @@ class shopProductsCollection
                 }
             }
 
-            if ($this->prepared) {
-                return;
-            }
             $this->prepared = true;
         }
     }
