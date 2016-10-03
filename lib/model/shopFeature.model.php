@@ -12,6 +12,8 @@ class shopFeatureModel extends waModel
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_DIVIDER = 'divider';
     const TYPE_COLOR = 'color';
+    // Тип наследования характеристики
+    const TYPE_PARENT = 'parent';
 
     private static $instances = array();
 
@@ -86,6 +88,14 @@ class shopFeatureModel extends waModel
                 $feature['type'] = $default['type'];
             } elseif ($feature['type'] == self::TYPE_DIMENSION.'.'.self::TYPE_DOUBLE) {
                 $feature['type'] = self::TYPE_DOUBLE;
+            }  elseif ( preg_match('/'.self::TYPE_PARENT.'\.(.*)$/',  $feature['type'],$matches)) {
+
+                $parent_id = $matches[1];
+                $parent_feature = $this->getById($parent_id);
+                $feature['type'] = self::TYPE_PARENT;
+                $feature['parent_id'] = $parent_id;
+                $feature['multiple'] = $parent_feature['multiple'];
+                $feature['selectable'] = $parent_feature['selectable'];
             }
             $id = $this->insert($feature);
             if ($id && preg_match('/^(\d)d\.(.+)$/', $feature['type'], $matches)) {
@@ -182,7 +192,17 @@ SQL;
         return $this->getByField('code', $code);
     }
 
+    public static function getParentFeature($feature) {
+        $feature_model = new shopFeatureModel();
+        if(is_array($feature) && isset($feature['parent_id'])) {
 
+        }  elseif(is_array($feature) && isset($feature['id'])) {
+            $feature =  $feature_model->getById($feature['id']);
+        } else {
+            $feature =  $feature_model->getById($feature);
+        }
+        return $feature_model->getById($feature['parent_id']);
+    }
     public function getByType($type_id, $key = null, $fill_values = false)
     {
         if (!in_array($type_id, array(false, null), true)) {
@@ -190,14 +210,14 @@ SQL;
         SELECT f.*
         FROM `{$this->table}` `f`
         JOIN `shop_type_features` `t` ON (`t`.`feature_id`=`f`.`id`)
-        WHERE `t`.`type_id` = i:type_id AND `f`.`parent_id` IS NULL
+        WHERE `t`.`type_id` = i:type_id AND (`f`.`parent_id` IS NULL || type='parent')
         ORDER BY `t`.`sort`";
         } else {
             $sql = "
         SELECT f.*
         FROM `{$this->table}` `f`
         LEFT JOIN `shop_type_features` `t` ON (`t`.`feature_id`=`f`.`id`)
-        WHERE `t`.`type_id` IS NULL  AND `f`.`parent_id` IS NULL";
+        WHERE `t`.`type_id` IS NULL  AND (`f`.`parent_id` IS NULL || type='parent')";
         }
 
         $features = $this->query($sql, array('type_id' => $type_id))->fetchAll($key);
@@ -256,13 +276,13 @@ SQL;
     public function getFeatures($field, $value = null, $key = 'id', $fill_values = false)
     {
         if ($field === true) {
-            $where = '`parent_id` IS NULL';
+            $where = '(`parent_id` IS NULL ||  type="parent")';
             if ($value) {
                 $where .= ' AND `count`>0';
             }
             $features = $this->select('*')->where($where)->fetchAll($key);
         } elseif ($field == 'name') {
-            $where = '`parent_id` IS NULL';
+            $where = '`parent_id` IS NULL || type="parent"';
             if ($value) {
                 $value = (array)$value;
                 foreach ($value as &$name) {
@@ -274,7 +294,7 @@ SQL;
             }
             $features = $this->select('*')->where($where)->fetchAll($key);
         } elseif ($field == 'lname') {
-            $where = '`parent_id` IS NULL';
+            $where = '`parent_id` IS NULL || type="parent"';
             $params = array();
             if ($value) {
                 $value = (array)$value;
@@ -330,6 +350,16 @@ SQL;
                 }
             }
         }
+        foreach ($features as $k=>&$v) {
+            if($v['type']=='parent') {
+                $parent_feature = $this->getById($v['parent_id']);
+               // $v['type'] = $parent_feature['type'];
+                $v['multiple'] =  $parent_feature['multiple'];
+                $v['selectable'] =  $parent_feature['selectable'];
+
+            }
+        }
+        unset($v);
         return $features;
     }
 
@@ -362,6 +392,9 @@ SQL;
     public function setValues($feature, $values, $delete_obsolete = true, $force = false)
     {
         $model = self::getValuesModel($feature['type']);
+        if($feature['type']=='parent') {
+            return array();
+        }
         if ($delete_obsolete) {
             $current_values = $model->getByField('feature_id', $feature['id'], 'id');
             $obsolete_values = array_diff(array_keys($current_values), array_keys($values));
@@ -734,6 +767,31 @@ SQL;
                 'selectable' => false,
                 'available'  => 2,
             );
+            /////////////////////////////////////Тип наследования /////////////////////////////////////////
+            $features_types = array();
+            $feature_model = new shopFeatureModel();
+            $features = $feature_model->getFeatures(true);
+            foreach ($features as $k=>$v){
+                if($v['type']!=self::TYPE_PARENT || $v['type'] !=self::TYPE_DIVIDER) {
+                    $features_types[] = array(
+                        'name'      => $v['name'].' ('.$v['type'].')',
+                        'type'      => 'parent.'.$v['id'],
+                        'available' => 1,
+                    );
+                }
+
+            }
+            $types[] = array(
+                'name'       => _w('Выбор из установленных характеристик'),
+                'group'      => _w('Other'),
+                'type'       => 'parent',
+                'multiple'   => false,
+                'selectable' => false,
+                'available'  => 1,
+                'subtype'    => self::extendSubtypes($features_types, self::TYPE_PARENT),
+            );
+
+
         }
         return $types;
     }

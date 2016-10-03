@@ -141,6 +141,14 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                     'code'     => $row['code'],
                     'multiple' => $row['multiple'],
                 );
+                if($row['type']==shopFeatureModel::TYPE_PARENT) {
+                    $parent_feature = shopFeatureModel::getParentFeature($row['feature_id']);
+                    $features[$row['feature_id']] = array(
+                        'type'     => $parent_feature['type'],
+                        'code'     => $row['code'],
+                        'multiple' => $parent_feature['multiple'],
+                    );
+                }
 
                 if (preg_match('/^(.+)\.[0-2]$/', $row['code'], $matches)) {
                     $code = $matches[1];
@@ -224,6 +232,15 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 'code'     => $row['code'],
                 'multiple' => $row['multiple'],
             );
+           /* if($row['type']==shopFeatureModel::TYPE_PARENT) {
+                $parent_feature = shopFeatureModel::getParentFeature($row['feature_id']);
+                $features[$row['feature_id']] = array(
+                    'type'     => $parent_feature['type'],
+                    'code'     => $row['code'],
+                    'multiple' => $parent_feature['multiple'],
+                );
+            }*/
+
             if (preg_match('/^(.+)\.[0-2]$/', $row['code'], $matches)) {
                 $code = $matches[1];
             } else {
@@ -233,6 +250,11 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             unset($codes_to_remove[$code]);
 
             $type = preg_replace('/\..*$/', '', $row['type']);
+            /*if($row['type']== shopFeatureModel::TYPE_PARENT) {
+                $type = preg_replace('/\..*$/', '', $parent_feature['type']);
+            } else {
+                $type = preg_replace('/\..*$/', '', $row['type']);
+            }*/
             if ($type == shopFeatureModel::TYPE_BOOLEAN) {
                 /**
                  * @var shopFeatureValuesBooleanModel $model
@@ -247,7 +269,33 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
                 $model = shopFeatureModel::getValuesModel($type);
                 $values = $model->getValues('id', $row['feature_value_id']);
                 $result[$row['code']] = reset($values);
-            } else {
+            } elseif ($type == shopFeatureModel::TYPE_PARENT) {
+
+                $parent_feature = shopFeatureModel::getParentFeature($row['feature_id']);
+                $parent_type = preg_replace('/\..*$/', '', $parent_feature['type']);
+
+                if ($parent_type  == shopFeatureModel::TYPE_BOOLEAN) {
+                    $model = shopFeatureModel::getValuesModel($parent_type );
+                    $values = $model->getValues('id', $row['feature_value_id']);
+                    $result[$row['code']] = reset($values);
+                } elseif ($parent_type  == shopFeatureModel::TYPE_DIVIDER) {
+                    $model = shopFeatureModel::getValuesModel($parent_type );
+                    $values = $model->getValues('id', $row['feature_value_id']);
+                    $result[$row['code']] = reset($values);
+                } else {
+                    $model = shopFeatureModel::getValuesModel($parent_type );
+                    $values_temp = $model->getValues('id', $row['feature_value_id']);
+                    foreach($values_temp as $feature_id => $val) {
+                       $values[$row['feature_id']] = $val;
+                    }
+                    if ($sku_id) {
+                        $storages[$type][$row['feature_id']] = $values;
+                    } else {
+                        $storages[$type][] = $values;
+                    }
+                }
+
+            }  else {
                 if ($sku_id) {
                     $storages[$type][$row['feature_id']] = $row['feature_value_id'];
                 } else {
@@ -259,8 +307,21 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
         // Fetch actual values from shop_feature_values_* tables
         foreach ($storages as $type => $value_ids) {
-            $model = shopFeatureModel::getValuesModel($type);
-            $feature_values = $model->getValues('id', $value_ids);
+            if($type == 'parent') {
+                $feature_values = array();
+                foreach($value_ids as $v) {
+                    foreach($v as $feature_id => $values) {
+                        if(isset(  $feature_values[$feature_id])) {
+                            $feature_values[$feature_id] = $feature_values[$feature_id]+$values;
+                        } else {
+                            $feature_values[$feature_id] = $values;
+                        }
+                    }
+                }
+            } else {
+                $model = shopFeatureModel::getValuesModel($type);
+                $feature_values = $model->getValues('id', $value_ids);
+            }
             foreach ($feature_values as $feature_id => $values) {
                 if (isset($features[$feature_id])) {
                     $f = $features[$feature_id];

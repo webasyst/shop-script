@@ -60,6 +60,12 @@ class shopSettingsFeaturesFeatureSaveController extends waJsonController
                 } else {
                     $feature['sort_json'] = json_encode($copy[$feature_id]['sort']);
                 }
+                if($feature['type']=='parent') {
+                   $parent_feature = shopFeatureModel::getParentFeature($feature);
+                    $feature['type'] = $parent_feature['type'];
+                    $feature['selectable'] = 0;
+                    $feature['multiple'] = 0;
+                }
             }
             unset($feature);
         }
