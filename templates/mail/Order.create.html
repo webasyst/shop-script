@@ -34,7 +34,7 @@
                         <table width="500" border="0" align="center" cellpadding="0" cellspacing="0" style="width: 100% !important;">
                             <tr>
                                 <td>
-                                    <font style="font-weight: bold; font-size: 20px; margin: 0 12px 0 0;"><b>{$order.id}</b></font>
+                                    <font style="font-weight: bold; font-size: 20px; margin: 0 12px 0 0;"><b>[`Order`] {$order.id} </b></font>
                                     <font style="color: #888">{$order.create_datetime|wa_date:'humandate'}</font>
                                 </td>
                                 <td style="text-align: right;">
@@ -63,7 +63,7 @@
                                         font-family:Helvetica,Arial,sans-serif;
                                         margin: 20px 0 0;
                                         text-align:center;
-                                        ">%17%</p>
+                                        ">{sprintf("[`Thank you for shopping at %s!`]", $wa->shop->settings("name"))}</p>
                                     <p align="center" style="margin: 20px 0;">
                                         <a href="{$order_url}" style="
                                         text-decoration:none;
@@ -88,7 +88,7 @@
                                             text-align:center;
                                             text-transform: uppercase;
                                             ">
-                                            %16%: <b>{$order.params.auth_pin}</b>
+                                            [`PIN`]: <b>{$order.params.auth_pin}</b>
                                         </p>
                                     {/if}
                                 </td>
@@ -135,7 +135,7 @@
                                                 {if $_is_service}+&nbsp;{/if}{$item.name|escape}
                                                 {if !empty($item.sku_code)} <font style="color: #aaaaaa; font-size: 0.8em;">{$item.sku_code|escape}</font>{/if}
                                             {/if}
-                                            {if !empty($item.download_link)}<a href="{$item.download_link}"><strong>%3%</strong></a>{/if}
+                                            {if !empty($item.download_link)}<a href="{$item.download_link}"><strong>[`Download`]</strong></a>{/if}
                                         </p>
                                     </td>
                                     <td style="padding: 8px 4px 8px 4px; white-space: nowrap; text-align: right; {$_border_style}">
@@ -156,24 +156,24 @@
                     <td style="padding: 20px 0; border-bottom: 1px solid {$_border_color}">
                         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse; text-align: right;">
                             <tr>
-                                <td style="padding: 8px 0;">%4%</td>
+                                <td style="padding: 8px 0;">[`Subtotal`]</td>
                                 <td style="white-space: nowrap; width: 20%; padding: 8px 0 8px 8px;">{wa_currency($subtotal, $order.currency)}</td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px 0;">%5%</td>
+                                <td style="padding: 8px 0;">[`Discount`]</td>
                                 <td style="white-space: nowrap; padding: 8px 0 8px 8px;">{wa_currency($order.discount, $order.currency)}</td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px 0;">%6%</td>
+                                <td style="padding: 8px 0;">[`Shipping`]</td>
                                 <td style="white-space: nowrap; padding: 8px 0 8px 8px;">{wa_currency($order.shipping, $order.currency)}</td>
                             </tr>
                             <tr>
-                                <td style="padding: 8px 0;">%7%</td>
+                                <td style="padding: 8px 0;">[`Tax`]</td>
                                 <td style="white-space: nowrap; padding: 8px 0 8px 8px;">{wa_currency($order.tax, $order.currency)}</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px 0;">
-                                    <h3 style="font-size:18px;margin:0;">%2%</h3>
+                                    <h3 style="font-size:18px;margin:0;">[`Total`]</h3>
                                 </td>
                                 <td style="white-space: nowrap; padding: 8px 0 8px 8px;">
                                     <h3 style="font-size:18px;margin:0;">{wa_currency($order.total, $order.currency)}</h3>
@@ -208,7 +208,7 @@
                         <td style="border: 0;">
                         </td>
                         <td style="border: 0; padding: 16px 0 0;">
-                            <h3>%14%</h3>
+                            <h3>[`Comment to the order`]</h3>
                             <p style="margin: 10px 0 0;">
                                 <pre>{$order.comment|escape}</pre>
                             </p>
@@ -223,9 +223,9 @@
                     <td style="border: 0; padding: 16px 0;">
                         <b>
                             {if !empty($order.params.shipping_name)}
-                                <font style="color: #aaa;">%11%&nbsp;—</font>&nbsp;{$order.params.shipping_name}
+                                <font style="color: #aaa;">[`Ship to`]&nbsp;—</font>&nbsp;{$order.params.shipping_name}
                             {else}
-                                <font style="color: #aaa;">%11%</font>
+                                <font style="color: #aaa;">[`Ship to`]</font>
                             {/if}
                         </b>
                         <p style="margin: 10px 0 0;">
@@ -241,9 +241,9 @@
                     <td style="border: 0; padding: 16px 0;">
                         <b>
                             {if !empty($order.params.payment_name)}
-                                <font style="color: #aaa;">%12%&nbsp;—</font>&nbsp;{$order.params.payment_name}
+                                <font style="color: #aaa;">[`Bill to`]&nbsp;—</font>&nbsp;{$order.params.payment_name}
                             {else}
-                                <font style="color: #aaa;">%12%</font>
+                                <font style="color: #aaa;">[`Bill to`]</font>
                             {/if}
                         </b>
                         <p style="margin: 10px 0 0;">{$customer.name|escape}<br>{$billing_address}</p>
@@ -274,7 +274,7 @@
                                     [`Registered customers apply for affiliate bonuses and discounts on future orders.`]
 &nbsp;<a href="{$signup_url}" target="_blank">[`Create permanent user account`]</a>
                                 {else}
-                                    {sprintf('[`When this order is paid, your affiliate bonus will be increased to %s.`]', round($customer.affiliate_bonus + $add_affiliate_bonus, 2))}
+                                    {sprintf("[`When this order is paid, your affiliate bonus will be increased to %s.`]", round($customer.affiliate_bonus + $add_affiliate_bonus, 2))}
                                 {/if}
                                 </p>
 

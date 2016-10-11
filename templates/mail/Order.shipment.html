@@ -34,7 +34,7 @@ border-collapse:collapse
                         <table width="500" border="0" align="center" cellpadding="0" cellspacing="0" style="width: 100% !important;">
                             <tr>
                                 <td>
-                                    <font style="font-weight: bold; font-size: 20px; margin: 0 12px 0 0;"><b>{$order.id}</b></font>
+                                    <font style="font-weight: bold; font-size: 20px; margin: 0 12px 0 0;"><b>[`Order`] {$order.id} </b></font>
                                     <font style="color: #888">{$order.create_datetime|wa_date:'humandate'}</font>
                                 </td>
                                 <td style="text-align: right;">
@@ -63,7 +63,7 @@ border-collapse:collapse
                                 font-family:Helvetica,Arial,sans-serif;
                                 margin: 20px 0 0;
                                 text-align:center;
-                                ">%17%</p>
+                                ">{sprintf("[`Thank you for shopping at %s!`]", $wa->shop->settings("name"))}</p>
                                     <p align="center" style="margin: 20px 0;">
                                         <a href="{$order_url}" style="
                                             text-decoration:none;
@@ -88,7 +88,7 @@ border-collapse:collapse
                                     text-align:center;
                                     text-transform: uppercase;
                                     ">
-                                            %16%: <b>{$order.params.auth_pin}</b>
+                                            [`PIN`]: <b>{$order.params.auth_pin}</b>
                                         </p>
                                     {/if}
                                 </td>
@@ -102,10 +102,10 @@ border-collapse:collapse
                 <tr>
                     <td bgcolor="{$_bonus_background}"></td>
                     <td bgcolor="{$_bonus_background}" style="padding: 12px 0 12px 0;">
-                        <p>%1%</p>
-                        <p>%2%</p>
+                        <p>{sprintf("[`Hi %s`]", $customer.name|escape)}</p>
+                        <p>{sprintf("[`Your order %s has been shipped!`]", $order.id)}</p>
                         {if !empty($action_data.params.tracking_number)}
-                            <p>%3%</p>
+                            <p>{sprintf("[`The shipment tracking number is <strong>%s</strong>`]", $action_data.params.tracking_number|escape)}</p>
                         {/if}
                         {if !empty($action_data.params.tracking_number) && !empty($shipping_plugin)}
                             {$tracking = $shipping_plugin->tracking($action_data.params.tracking_number)}
@@ -121,7 +121,7 @@ border-collapse:collapse
                 <tr>
                     <td></td>
                     <td style="padding: 24px 0 36px 0;">
-                        <h3 style="margin: 0;">%contact_info%</h3>
+                        <h3 style="margin: 0;">[`Contact info`]</h3>
                         {if strlen($wa->shop->settings("email"))}
                             <p style="margin: 10px 0 0;">
                                 [`Email`]: <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a>
