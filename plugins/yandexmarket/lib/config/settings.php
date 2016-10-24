@@ -17,31 +17,6 @@ return array(
         'control_type' => waHtmlControl::CHECKBOX,
     ),
 
-    'title1' => array(
-        'control_type' => waHtmlControl::HIDDEN,
-        'description'  => '<h4>Заказ на Маркете</h4>',
-    ),
-
-    'market_token' => array(
-        'value'        => '',
-        'placeholder'  => 'B3000001C136C238',
-        'title'        => 'Авторизационный токен',
-        'description'  => 'Укажите <i>авторизационный токен</i>, сгенерированный на странице «Настройки API заказа» в кабинете «Яндекс.Маркета».',
-        'control_type' => waHtmlControl::INPUT,
-    ),
-    'contact_id'   => array(
-        'value'        => '',
-        'placeholder'  => '123',
-        'title'        => 'ID контакта',
-        'description'  => 'Укажите <i>id</i> контакта, от имени которого будут проводиться действия программы «Заказ на Маркете».',
-        'control_type' => waHtmlControl::INPUT,
-    ),
-
-    'title2' => array(
-        'control_type' => waHtmlControl::HIDDEN,
-        'description'  => '<h4>OAuth-приложение</h4>',
-    ),
-
     'api_client_id' => array(
         'value'        => '00e02a11a94943e58a1e191266335567',
         'title'        => 'ID приложения',
@@ -51,6 +26,7 @@ return array(
 HTML
         ,
         'control_type' => waHtmlControl::INPUT,
+        'class'        => 'long',
     ),
 
     'api_oauth_token' => array(
@@ -61,10 +37,9 @@ HTML
 Укажите <i>авторизационный токен</i> приложения, имеющего доступ к «Яндекс.Маркету».<br/>
 Используется для отображения статистики и обновления статусов заказов.<br/>
 <p>Для получения токена перейдите по
-        <a data-href="https://oauth.yandex.ru/authorize?response_type=token&client_id=%api_client_id%" 
+        <a data-href="https://oauth.yandex.ru/authorize?response_type=token&client_id=%api_client_id%"
         href="https://oauth.yandex.ru/authorize?response_type=token&client_id=%api_client_id%" target="_blank">
-        ссылке
-        </a>, подтвердите права и введите токен в это поле.</p>
+        ссылке</a>, подтвердите права и введите токен в это поле.</p>
 <script type="text/javascript">
 (function () {
     "use strict";
@@ -85,13 +60,25 @@ HTML
 HTML
         ,
         'control_type' => waHtmlControl::INPUT,
+        'class'        => 'long',
         'autocomplete' => 'off',
     ),
 
-
-    'title3' => array(
-        'control_type' => waHtmlControl::HIDDEN,
-        'description'  => '<h4>Действия с заказами</h4>',
+    'market_token' => array(
+        'value'       => '',
+        'placeholder' => 'B3000001C136C238',
+        'title'       => 'Авторизационный токен',
+        'description' => 'Укажите <i>авторизационный токен</i>, сгенерированный на странице «Настройки API заказа» в кабинете «Яндекс.Маркета».',
+        // 'control_type' => waHtmlControl::HIDDEN,
+        'class'       => 'long',
+    ),
+    'contact_id'   => array(
+        'value'        => '1',
+        'placeholder'  => '1',
+        'title'        => 'ID контакта',
+        'description'  => 'Укажите <i>ID</i> контакта, от имени которого будут проводиться действия программы «Заказ на Маркете».<br>
+            Например, ID контакта вашего пользователя в Вебасисте.',
+        //'control_type' => waHtmlControl::INPUT,
     ),
 
     'order_action_ship' => array(

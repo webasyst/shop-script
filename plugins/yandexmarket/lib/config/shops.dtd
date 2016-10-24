@@ -57,6 +57,7 @@
     group_id CDATA #IMPLIED
     type (vendor.model | book | audiobook | artist.title | tour | ticket | event-ticket) #IMPLIED
     available (true | false) #IMPLIED
+    fee CDATA #IMPLIED
     bid CDATA #IMPLIED
     cbid CDATA #IMPLIED>
 

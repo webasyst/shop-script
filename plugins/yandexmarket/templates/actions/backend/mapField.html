@@ -5,7 +5,7 @@
     {$param=false}
 {/if}
 <div class="field">
-    <div class="name"{if !empty($info.required)} title="Обязательно поле"{/if}>
+    <div class="name"{if !empty($info.required)} title="Обязательное поле"{/if}>
         {*<label for="s-plugin-yandexmarket-map-{$field}-source">*}
             {$info.name|escape}{if !empty($info.required)} <span style="color:red;">*</span>{/if}
         {*</label>*}
@@ -95,7 +95,7 @@
         {* Field source user value *}
         <input type="text" name="map[{$type_id}][{$field}][text]" class="js-value-custom" placeholder="Пользовательское значение"{if strpos(ifset($info['source']),'text:')!==0} value="" style="display: none;"{else} value="{$info['source']|regex_replace:'@^text:@':''|escape}"{/if}>
         <a href="{$js_base_href|default:'#'}/source/select/{$type_id}/{$field}/" class="js-action" style="display: none;"><i class="icon16 close"></i></a>
-        {if empty($info.virtual)}
+
             &nbsp;&rarr;
             {if $param}
 
@@ -104,14 +104,19 @@
                 {if !empty($info.attribute)}
                     &lt;{$info.field|regex_replace:'/\..*$/':''} <b>{$field|regex_replace:'/\..*$/':''}</b>="..." &gt;
                 {else}
+                    {if empty($info.virtual)}
                     &lt;{$field|regex_replace:'/\..*$/':''}&gt;
+
                     {if !empty($info.path)}
                         &nbsp;или&nbsp;&rarr;
                     &lt;{$info.path|regex_replace:'/\//':'><'|escape}&gt;
                     {/if}
+                    {elseif !empty($info.path)}
+                        &lt;{$info.path|regex_replace:'/\//':'><'|escape}&gt;
+                    {/if}
                 {/if}
             {/if}
-        {/if}
+
 
         {if !empty($info.description)}
         <br>

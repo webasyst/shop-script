@@ -1,0 +1,15 @@
+<div class="block double-padded s-banner-error">
+    <h4><i class="icon16 exclamation"></i>При обращении к API Яндекс.Маркета произошла ошибка.</h4>
+    {$error|escape}
+    {if !empty($error_code)}
+        <br/>
+        <span class="hint">
+            {if $error_code==403}
+                Ошибка авторизации, проверьте корректность настроек
+                <a href="?action=plugins#/yandexmarket/main/" class="inline-link">API плагина</a>
+            {elseif $error_code==420}
+                Превышены лимиты на обращения через API
+            {/if}
+        </span>
+    {/if}
+</div>
