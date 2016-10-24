@@ -20,7 +20,7 @@ class shopReportsproductsActions extends waViewActions
             $request_options['sales_channel'] = $sales_channel;
             $model_options['sales_channel'] = $sales_channel;
         }
-        if ($order_by != 'sales') {
+        if (!in_array($order_by, array('sales', 'quantity'))) {
             $order_by = 'profit';
         }
         if ($order_by) {
