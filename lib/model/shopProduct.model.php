@@ -657,9 +657,10 @@ class shopProductModel extends waModel
     {
         $paid_date_sql = shopOrderModel::getDateSql('o.paid_date', $start_date, $end_date);
 
-        if ($order !== 'sales') {
+        if (!in_array($order, array('sales', 'quantity'))) {
             $order = 'profit';
         }
+        
         $limit = (int)$limit;
         $limit = ifempty($limit, 10);
 
@@ -686,6 +687,7 @@ class shopProductModel extends waModel
         // !!! With 15k orders this query takes ~3 seconds
         $sql = "SELECT
                     p.*,
+                    SUM(oi.quantity) AS quantity,
                     SUM({$sales_subtotal} - {$discount}) AS sales,
                     SUM({$sales_subtotal} - {$discount} - {$purchase}) AS profit,
                     SUM({$sales_subtotal}) AS sales_subtotal,
