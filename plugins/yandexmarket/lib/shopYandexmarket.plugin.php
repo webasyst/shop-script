@@ -620,7 +620,7 @@ HTML;
          */
         $config = wa('shop')->getConfig();
         $app_info = $config->getInfo();
-        return version_compare($app_info['version'], '7.1.0', '>=');
+        return version_compare($app_info['version'], '7.1.1.60', '>=');
     }
 
     private function updateApiLimits($method, $headers)
@@ -1099,6 +1099,7 @@ HTML;
     }
 
     /**
+     * @throws waException
      * @param mixed [string] $data
      * @param int [string] $data[order_id]        Номер заказа
      * @param string [string] $data[action_id]       ID действия

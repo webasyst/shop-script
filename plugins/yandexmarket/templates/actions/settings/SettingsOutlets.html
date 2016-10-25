@@ -1,25 +1,31 @@
 {$settings_url='#/yandexmarket/'}
 
-<h1>Кампания №{$campaign_id|escape} — cправочник точек продаж</h1>
-
 {if !empty($error)}
-    {include file="../../includes/api.error.html"}
+
+    {include file="../../includes/api.error.html"
+        message='Для отображения списка точек продаж настройте <a href="?action=plugins#/yandexmarket/api/">авторизацию партнерского API</a> и проверьте настройки кампании в
+личном кабинете «Яндекс.Маркета».'}
+
 {else}
+
+<h1>Кампания №{$campaign_id|escape} — cправочник точек продаж</h1>
 <div class="block double-padded">
     <ul class="menu-v" style="max-height: 600px; overflow-y: auto; overflow-x: hidden;">
         {foreach $outlets as $outlet}
             <li class="hint"{* title="{"`$outlet.type` `$outlet.id`"|escape}"*}>
-                {if !empty($outlet.statusIcon)}
-                    <i class="icon10 {$outlet.statusIcon}" title="{$outlet.statusName|escape}"></i>
-                {/if}
 
                 {if !empty($outlet.type)}
                     <i class="icon16 {$outlet.typeIcon}"></i>
                 {/if}
                 <strong>{$outlet.name|escape}</strong> (тип <tt>{$outlet.type|escape}</tt> — «{$outlet.typeName|escape}»)
+                
+                {if !empty($outlet.statusIcon)}
+                    &nbsp;&nbsp;&nbsp;&nbsp;<i class="icon10 {$outlet.statusIcon}" title="{$outlet.statusName|escape}"></i> {$outlet.statusName|escape}
+                {/if}
 
                 {if !empty($outlet.visibility)}
-                    <i class="icon10 {$outlet.visibilityIcon}" title="{$outlet.visibilityName|escape}"></i>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<i class="icon10 {$outlet.visibilityIcon}" title="{$outlet.visibilityName|escape}"></i>
+                    {$outlet.visibilityName|escape}
                 {/if}
             </li>
         {/foreach}
@@ -28,13 +34,12 @@
     {/if}
 
     <p class="hint"><i class="icon10 info"></i>Точки продаж настраиваются в личном кабинете в «Яндекс.Маркете».</p>
-
-    {*<textarea cols="200" rows="50" class="not-implemented">{$outlets|default:'-'|var_export:true|escape}</textarea>*}
     
     {if count($outlets) > 5}
         <h1 class="js-bread-crumbs"><a href="{$settings_url}" class="back">&larr; Кампании на Маркете</a></h1>
     {/if}
 
 </div>
+
 {/if}
 <div class="clear"></div>

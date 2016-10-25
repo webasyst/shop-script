@@ -5,8 +5,13 @@
 </ul>
 </div>
     {if !empty($error)}
-        {include file="../../includes/api.error.html"}
+    
+        {include file="../../includes/api.error.html"
+            message="Для отображения списка кампаний настройте <a href='?action=plugins#/yandexmarket/api/'>авторизацию партнерского API</a> и проверьте настройки кампаний в
+личном кабинете «Яндекс.Маркета»."}
+
     {else}
+    
     <table class="zebra"  id="s-settings-plugin-yandexmarket">
         <thead>
         <tr>

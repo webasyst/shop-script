@@ -136,7 +136,7 @@
                             {if ifempty($campaign.shipping_methods[$method_id]['type'],'DELIVERY')=='DELIVERY'} selected="selected"{/if}
                     >Курьерская доставка
                     </option>
-                    <option value="PICKUP"
+{*                    <option value="PICKUP"
                             title="PICKUP"
                             {if ifset($campaign.shipping_methods[$method_id]['type'])=='PICKUP'}
                             selected="selected"
@@ -144,6 +144,7 @@
                             disabled="disabled"
                     >Самовывоз (пункты выдачи заказов)
                     </option>
+*}
                     <option value="POST"
                             title="POST"
                             {if ifset($campaign.shipping_methods[$method_id]['type'])=='POST'}

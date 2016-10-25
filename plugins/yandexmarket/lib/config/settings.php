@@ -43,10 +43,10 @@ HTML
 <script type="text/javascript">
 (function () {
     "use strict";
-    var input = $('input[name$="\[api_client_id\]"');
+    var input = $('input[name$="\[api_client_id\]"]');
     if(input.length){
         input.bind('change',function(){
-            var href = $('input[name$="\[api_oauth_token\]"').parent().find('a:first');
+            var href = $('input[name$="\[api_oauth_token\]"]').parent().find('a:first');
             if(this.value!=''){
                 href.attr('href', href.data('href').replace(/%api_client_id%/, this.value));
                 href.parents('p').show();
@@ -83,7 +83,7 @@ HTML
 
     'order_action_ship' => array(
         'value'            => array('ship' => true,),
-        'title'            => 'Готовность заказа',
+        'title'            => 'Заказ готов к доставке',
         'description'      => 'Выберите действия, подтверждаюшие готовность заказа к доставке',
         'control_type'     => waHtmlControl::GROUPBOX,
         'options_callback' => array('shopYandexmarketPlugin', 'getShipActions'),
@@ -91,7 +91,7 @@ HTML
 
     'order_action_pickup' => array(
         'value'            => array(),
-        'title'            => 'Доставка заказа',
+        'title'            => 'Заказ доставлен в пункт выдачи',
         'description'      => 'Выберите действия, подтверждаюшие доставку заказа в пункт выдачи',
         'control_type'     => waHtmlControl::GROUPBOX,
         'options_callback' => array('shopYandexmarketPlugin', 'getActions'),
@@ -99,15 +99,15 @@ HTML
 
     'order_action_complete' => array(
         'value'            => array('complete' => true,),
-        'title'            => 'Выполнение заказа',
-        'description'      => 'Выберите действия, подтверждаюшие вручение заказа покупателю',
+        'title'            => 'Заказ выполнен',
+        'description'      => 'Выберите действия, подтверждаюшие выдачу заказа покупателю',
         'control_type'     => waHtmlControl::GROUPBOX,
         'options_callback' => array('shopYandexmarketPlugin', 'getCompleteActions'),
     ),
 
     'order_action_delete' => array(
         'value'            => array('delete' => true,),
-        'title'            => 'Удаление заказа',
+        'title'            => 'Заказ удален',
         'description'      => 'Выберите действия, подтверждаюшие отмену или удаление заказа',
         'control_type'     => waHtmlControl::GROUPBOX,
         'options_callback' => array('shopYandexmarketPlugin', 'getDeleteActions'),

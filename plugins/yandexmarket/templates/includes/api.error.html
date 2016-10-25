@@ -1,15 +1,15 @@
-<div class="block double-padded s-banner-error">
-    <h4><i class="icon16 exclamation"></i>При обращении к API Яндекс.Маркета произошла ошибка.</h4>
-    {$error|escape}
-    {if !empty($error_code)}
-        <br/>
-        <span class="hint">
-            {if $error_code==403}
-                Ошибка авторизации, проверьте корректность настроек
-                <a href="?action=plugins#/yandexmarket/main/" class="inline-link">API плагина</a>
-            {elseif $error_code==420}
-                Превышены лимиты на обращения через API
-            {/if}
-        </span>
+<h4><span class="highlighted">{$message|default:'При обращении к API «Яндекс.Маркета» произошла ошибка.'}</span></h4>
+<p class="hint">
+    {if $hint|default:''}
+        {$hint}<br/>
     {/if}
-</div>
+    При открытии этой страницы возникли следующие ошибки:<br/>
+    <i class="icon16 exclamation" style="vertical-align: middle;"></i><strong>{$error|escape}</strong>
+    {if !empty($error_code)}
+        {if $error_code == 403}
+            Ошибка авторизации: проверьте правильность настроек <a href="#/yandexmarket/api/">партнерского API</a>.
+        {elseif $error_code == 420}
+            Превышены лимиты на обращения через API.
+        {/if}
+    {/if}
+</p>

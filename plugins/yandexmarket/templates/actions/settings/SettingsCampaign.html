@@ -3,41 +3,38 @@
 <h1 class="js-bread-crumbs">{$campaign_id|string_format:'Настройки кампании №%s (Заказ на Маркете)'|escape}</h1>
 
 {if empty($cpa_available)}
-
-    <div class="block double-padded s-banner-error">
-        <i class="icon16 no"></i>
-        Для полноценной корректной работы API оформления заказов требуется версия Shop-Script 7.0 или выше.
-        <br/>
-        <span class="hint">Обработка заказов возможна вручную в партнерском интерфейсе «Яндекс.Маркета» или автоматически через <a href="?action=plugins#/yandexmarket/api/">API</a>.</span>
-    </div>
+    
+    {include file="../../includes/api.error.html"
+        message='Для полноценной корректной работы API оформления заказов требуется версия Shop-Script 7.1.1.60 или выше.'
+        hint='Обработка заказов возможна вручную в партнерском интерфейсе «Яндекс.Маркета» или автоматически через <a href="?action=plugins#/yandexmarket/api/">API</a>.'}
 
 {elseif empty($api_available)}
 
-    <div class="block double-padded s-banner-error">
-        <i class="icon16 no"></i>
-        Для приема заказов через API заполните секции «OAuth-приложение» и «Заказ на Маркете» в <a href="?action=plugins#/yandexmarket/main/">основных настройках плагина</a>.
-        <br/>
-        <span class="hint">Обработка заказов возможна вручную в партнерском интерфейсе «Яндекс.Маркета» или автоматически через <a href="?action=plugins#/yandexmarket/api/">API</a>.</span>
-    </div>
+    {include file="../../includes/api.error.html"
+        message='Для приема заказов через API заполните секции «OAuth-приложение» и «Заказ на Маркете» в
+<a href="?action=plugins#/yandexmarket/main/">основных настройках плагина</a>.'
+        hint='Обработка заказов возможна вручную в партнерском интерфейсе «Яндекс.Маркета» или автоматически через <a href="?action=plugins#/yandexmarket/api/">API</a>.'}
 
 {elseif !empty($error)}
 
-    {include file="../../includes/api.error.html"}
-    
+    {include file="../../includes/api.error.html"
+        message='Для отображения настроек кампании настройте <a href="?action=plugins#/yandexmarket/api/">авторизацию партнерского API</a>
+и проверьте настройки кампании в личном кабинете «Яндекс.Маркета».'}
+
 {else}
 
     <div class="block double-padded" id="s-yandexmarket-form">
         <form id="s-plugin-yandexmarket-campaign-form" method="post" action="?plugin=yandexmarket&module=settings&action=campaignSave">
             <input type="hidden" name="campaign_id" value="{$campaign_id}">
             <div class="fields form">
-            
-            
-            
-                
+
+
+
+
                 <div class="field-group block">
-                
+
                     <h2 class="gray">1. API «Заказ на Маркете»</h2>
-                    
+
                     <div class="field">
                         <div class="name">Авторизационный токен</div>
                         <div class="value">
@@ -47,7 +44,7 @@
                             <span class="hint">Укажите <i>авторизационный токен</i>, сгенерированный на странице «Настройки API заказа» в кабинете «Яндекс.Маркета».</span>
                         </div>
                     </div>
-                    
+
                     <div class="field">
                         <div class="name">URL API</div>
                         <div class="value">
@@ -58,13 +55,13 @@
                     </div>
 
                 </div>
-                
-                
 
 
-                
+
+
+
                 <div class="field-group block top-padded">
-                
+
                     <h2 class="gray">2. Параметры магазина</h2>
 
                     <div class="field">
@@ -125,17 +122,17 @@
                         <div class="value"><label><input type="checkbox" name="campaign[over_sell]"{if !empty($campaign.over_sell)} checked="checked"{/if}> Разрешить оформление
                             заказов с товарами, которых нет на складе</label></div>
                     </div>
-                    
+
                 </div>
-                
-                
 
 
-                
+
+
+
                 <div class="field-group block top-padded">
-                
+
                     <h2 class="gray">3. Оплата</h2>
-                    
+
                     <div class="field">
                         <div class="name">Предоплата на «Маркете» подключена</div>
                         <div class="value no-shift">
@@ -197,25 +194,28 @@
                             <span class="errormsg"><i class="icon16 exclamation"></i>Выберите хотя бы один способ оплаты для способов доставки в секции «Условия доставки и оплаты».</span>
                         </div>
                     </div>
-                    
+
                 </div>
 
 
                 <div class="field-group block top-padded">
-                
+
                     <h2 class="gray">4. Общие параметры доставки</h2>
-                    
+
                     <div class="field">
                         <div class="name">
-                            Самовывоз
+                            Точки продаж
                         </div>
                         <div class="value no-shift">
                             <label><input name="campaign[pickup]" id="s-plugin-yandexmarket-campaign-pickup" type="checkbox"
                                value="1"{if !empty($campaign.pickup)} checked="checked"{/if}>
-                            <span class="hint">Возможность предварительно заказать товар и забрать его в точке продаж</span></label>
+                            Показывать покупателю при оформлении заказа на Маркете пункты самовывоза из справочника точек продаж «Яндекс.Маркета»
+<span class="hint">(типы «пункт выдачи заказов» и «торговый зал, совмещенный с пунктом выдачи заказов»)</span></label>
                             <br/>
-                            <span class="hint"><i class="icon10 exclamation"></i>Используются пункты выдачи из списка
-                                <a href="{$settings_url}outlets/{$campaign_id}/" target="_blank">точек продаж</a><i class="icon16 new-window"></i>.</span>
+                            <span class="hint"><i class="icon10 exclamation"></i>Точки продаж настраиваются в кабинете на сайте «Яндекс.Маркета».
+                                <a href="{$settings_url}outlets/{$campaign_id}/" target="_blank">Текущий список точек продаж</a><i class="icon16 new-window"></i>.
+                                <br/>Покупатель на Маркете увидит пункты самовывоза при оформлении заказа, только если они включены и прошли модерацию в кабинете
+                                    «Яндекс.Маркета».</span>
                         </div>
                     </div>
 
@@ -231,7 +231,7 @@
                             </label>
                         </div>
                     </div>
-                    
+
                     <div class="field">
                         <div class="name">
                             Время приема заказа
@@ -264,7 +264,8 @@
                             </div>
                         {/foreach}
                         <div class="value">
-                            <span class="hint">Время оформления заказа (только часы), до наступления которого действуют указанные сроки и условия доставки.
+                            <span class="hint">Время оформления заказа (только часы), до наступления которого действуют указанные сроки и условия доставки и для точек продаж
+справочника «Яндекс.Маркета», и для всех видов доставки Shop-Script.
                                 <br/><i class="icon10 exclamation"></i>Настройки должны соответствовать настройкам в кабинете «Яндекс.Маркета», чтобы не возникло ошибок по качеству.</span>
                         </div>
                     </div>
@@ -340,20 +341,24 @@
                                 Доставка включена в стоимость товара</label>
                         </div>
                     </div>
-                    
+
                 </div>
 
 
 
 
                 <div class="field-group block top-padded js-delivery">
-                
+
                     <h2 class="gray">5. Условия доставки и оплаты</h2>
-                    
+
                     <div class="field">
                         <div class="name"></div>
                         <div class="value no-shift">
                             <span class="hint">
+                                <i class="icon16 exclamation"></i>Точки самовывоза необходимо настроить в кабинете на сайте «Яндекс.Маркета»! Не рекомендуется настраивать
+в кампании передачу в «Яндекс.Маркет» способов доставки с помощью плагинов «Самовывоз» и «Пункты выдачи заказов» — они не будут показаны покупателю на Маркете в типе доставки
+«Самовывоз», и они не связаны со справочником точек продаж «Яндекс.Маркета».
+                                <br/><br/>
                                 Сроки доставки указываются в рабочих днях (значение или интервал с разницей не более 3 дней).
                                 <br/>
                                 Если товар изготавливается на заказ и срок доставки не может быть указан точно, используйте в атрибуте <tt>days</tt> значение
@@ -375,7 +380,7 @@
                                 </div>
                             </div>
                         {/if}
-                        
+
                         {foreach $shipping_methods as $method_id => $method}
                             {include file="../../includes/shipping_method.html"}
                         {foreachelse}
@@ -388,9 +393,9 @@
 
                     </div>
                 </div>
-                
+
                 <div class="clear"></div>
-                
+
                 <div class="field-group">
                     <div class="field">
                         <div class="value">
@@ -435,17 +440,30 @@
             return show;
         };
 
-        var checkPayments = function($method,event) {
+        var checkPayments = function ($method, event) {
             var valid = false;
             if (payment.yandex) {
                 valid = true;
             } else {
-                valid = (payment.cash && $method.find(':input[type="checkbox"][name$="\\[cash\\]"]').attr('checked'))
-                        || (payment.card && $method.find(':input[type="checkbox"][name$="\\[card\\]"]').attr('checked'));
+                var $cash = $method.find(':input[type="checkbox"][name$="\\[cash\\]"]');
+                var $card = $method.find(':input[type="checkbox"][name$="\\[card\\]"]');
+                valid = (payment.cash && (!$cash.length || $cash.attr('checked')))
+                || (payment.card && (!$card.length || $card.attr('checked')));
             }
             toggle($method.find('.js-validate-payment'), event, !valid);
             $.shop.trace('checkPayments', [payment, valid, $method]);
         };
+
+
+        $form.find('input[name$="\\[before\\]"], input[name$="\\[order_before\\]"]').bind('change, keyup',function(){
+            var value = this.value.replace(/\D+/,'');
+            this.value = (value=='')?value:Math.max(1,Math.min(24,parseInt(value)));
+        });
+
+        $form.find('input[name$="\\[estimate_over_sell\\]"], input[name$="\\[estimate\\]"], input[name$="\\[estimate_ext\\]"]').bind('change, keyup', function () {
+            var value = this.value.replace(/^.*?(\d+)(-\d*)?.*?$/, '$1$2');
+            this.value = value;
+        });
 
         /**
          * delivery settings control

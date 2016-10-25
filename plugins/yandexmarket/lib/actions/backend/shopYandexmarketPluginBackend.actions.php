@@ -142,10 +142,6 @@ class shopYandexmarketPluginBackendActions extends waViewActions
 
             $profile['config']['home_region_id'] = waRequest::get('region_id', 0, waRequest::TYPE_INT);
         }
-        /**
-         * @var shopConfig $config ;
-         */
-        $config = wa('shop')->getConfig();
 
         $api_available = $this->plugin()->checkApi();
         $this->view->assign('api_available', $api_available);

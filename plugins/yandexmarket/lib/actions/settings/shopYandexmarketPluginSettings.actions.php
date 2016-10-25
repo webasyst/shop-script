@@ -126,7 +126,12 @@ class shopYandexmarketPluginSettingsActions extends waViewActions
                         'no_external' => true,
                         'currency'    => $primary_currency,
                     );
-                    $shipping_methods = shopHelper::getShippingMethods($address['data'], $items, $shipping_params);
+                    if (empty($campaign['local_delivery_only']) || true) {
+                        $address = null;
+                    } else {
+                        $address = $address['data'];
+                    }
+                    $shipping_methods = shopHelper::getShippingMethods($address, $items, $shipping_params);
                     $shipping_methods = array_filter($shipping_methods, create_function('$m', 'return empty($m["external"]);'));
 
 
