@@ -174,7 +174,7 @@
                                                 {if $payment_method.id ==ifset($campaign.payment.CARD_ON_DELIVERY) } selected{/if}
                                                 >{$payment_method.name|default:$payment_method.plugin|escape}</option>
                                         {/foreach}
-                                        <option value="manual">Другой мобильный терминал</option>
+                                        <option value="manual"{if (ifset($campaign.payment.CARD_ON_DELIVERY)=='manual')} selected{/if}>Другой мобильный терминал</option>
                                     </select> Оплата банковской картой при получении заказа
                                 </label>
                                 <br/>
