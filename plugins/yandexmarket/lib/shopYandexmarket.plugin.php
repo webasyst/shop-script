@@ -493,7 +493,7 @@ HTML;
             if (isset($available_currencies[$default])) {
                 $currencies['auto'] = array(
                     'value' => 'auto',
-                    'title' => $default.' - Основная валюта магазина.',
+                    'title' => $default.' — основная валюта магазина',
                     'rate'  => 0,
 
                 );
@@ -501,7 +501,7 @@ HTML;
 
             $currencies['front'] = array(
                 'value' => 'front',
-                'title' => 'Использовать валюту витрины.',
+                'title' => 'Использовать валюту витрины',
                 'rate'  => 0,
 
             );
@@ -509,7 +509,7 @@ HTML;
             foreach ($available_currencies as $currency) {
                 $currencies[$currency['code']] = array(
                     'value' => $currency['code'],
-                    'title' => $currency['code'].' - '.$currency['title'],
+                    'title' => $currency['code'].' — '.$currency['title'],
                     'rate'  => $currency['rate'],
 
                 );

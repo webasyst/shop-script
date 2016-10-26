@@ -200,7 +200,13 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 }
 
                 if (isset($offer['available.raw']['raw'])) {
-                    $item['quantity'] = min($offer['available.raw']['raw'], $item['raw_data']['count']);
+                    if (in_array($offer['available.raw']['raw'], array('true', true, null, ''), true)) {
+                        $item['quantity'] = $item['raw_data']['count'];
+                    } elseif (in_array($offer['available.raw']['raw'], array('false', false, '0'), true)) {
+                        $item['quantity'] = 0;
+                    } else {
+                        $item['quantity'] = max(0,min(intval($offer['available.raw']['raw']), $item['raw_data']['count']));
+                    }
                 } else {
                     if ($offer['available'] !== 'true') {
                         $item['quantity'] = 0;
@@ -1968,17 +1974,22 @@ SQL;
                 }
                 $count = false;
                 //XXX CPA bloody hack = used complex value
-                if (is_array($value)) {
-                    $value = $value['value'];
+                if (is_array($value) && isset($value['raw'])) {
+                    $value = $value['raw'];
                 } elseif (is_int($value) || (is_string($value) && preg_match('@^\d+$@', $value))) {
                     $count = intval($value);
-                } elseif ($value === null) {
+                } elseif (in_array($value, array(null, 'true', ''), true)) {
                     $count = 9999;// 100500;
                 } else {
                     $count = 0;
                 }
                 if ($count === false) {
-                    $value = ((($value <= 0) || ($value === 'false') || empty($value)) && ($value !== null) && ($value !== 'true')) ? 'false' : 'true';
+                    $value = (
+                        (($value <= 0) || ($value === 'false') || empty($value))
+                        && ($value !== '')
+                        && ($value !== null)
+                        && ($value !== 'true')
+                    ) ? 'false' : 'true';
                 } else {
                     $value = array(
                         'raw'   => $count,

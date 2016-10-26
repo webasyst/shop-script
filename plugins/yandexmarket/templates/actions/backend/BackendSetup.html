@@ -441,7 +441,7 @@
             {if $api_available}
                 <div class="value no-shift">
                     <input type="hidden" name="home_region_id" value="{$profile.config.home_region_id|default:''|escape}">
-                    {if false && !empty($address)}
+                    {if !empty($address)}
                         <span class="js-home-region-name">{$address.value|trim:' ,'}</span> <a href="#/yandexmarket:{$profile.id|escape}/region/edit/" class="inline-link js-edit-region js-action"><b><i>Изменить</i></b></a>
                     {else}
                         <span class="js-home-region-name"><i class="icon16 exclamation"></i>

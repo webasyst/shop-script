@@ -4,17 +4,27 @@ return array(
         'value'            => '',
         'title'            => 'Основная валюта',
         'description'      => 'Основная валюта товарных предложений.<br/>
- Все цены, указанные в валюте, отличной от RUB, UAH, BYR, BYN, KZT, USD и EUR, будут сконвертированы в цены в основной валюте.',
+ Цены в валюте, отличной от основной, могут быть сконвертированы в основную валюту в зависимости от значения настройки «Конвертация цен в основную валюту».<br/><br/>',
         'control_type'     => waHtmlControl::SELECT,
         'options_callback' => array('shopYandexmarketPlugin', 'settingsPrimaryCurrencies'),
     ),
 
     'convert_currency' => array(
-        'value'        => false,
-        'title'        => 'Конвертировать цены',
-        'description'  => 'Конвертировать все цены в основную валюту.<br/>
- Полезно при использовании правил округления для основной валюты.',
-        'control_type' => waHtmlControl::CHECKBOX,
+        'value'        => '',
+        'title'        => 'Конвертация цен в основную валюту',
+        'description'  => 'При конвертации цен будут использоваться правила округления, указанные для основной валюты в разделе
+«<a href="?action=settings#/currencies/" target="_blank">Настройки → Валюты</a>»<i class="icon16 new-window"></i>.<br/>
+<i class="icon16 exclamation"></i>К ценам, указанным в <em>основной валюте</em>, правила округления не применяются.',
+        'control_type' => waHtmlControl::RADIOGROUP,
+        'options'=>array(
+            array(
+                'value'=>'',
+                'title'=>'Только цены в валюте, отличной от RUB, UAH, BYR, BYN, KZT, USD и EUR, будут сконвертированы в основную валюту.'
+            ), array(
+                'value'=>'1',
+                'title'=>'Цены в любой валюте, отличной от основной, будут сконвертированы в основную валюту.'
+            ),
+        )
     ),
 
     'api_client_id' => array(
