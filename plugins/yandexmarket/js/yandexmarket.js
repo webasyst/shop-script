@@ -308,8 +308,7 @@ $.extend($.importexport.plugins, {
             this.initForm();
         },
 
-        regionEdit: function (el, a, b, c) {
-            $.shop.trace('regionEdit', [el, a, b, c]);
+        regionEdit: function () {
             this.$form.find('div.js-edit-region').slideDown();
             this.$form.find('div.js-edit-region:first').html('<i class="icon16 loading"></i>').load('?plugin=yandexmarket&action=region');
             $(el).hide();

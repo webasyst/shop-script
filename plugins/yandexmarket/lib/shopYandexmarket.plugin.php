@@ -172,7 +172,7 @@ class shopYandexmarketPlugin extends shopPlugin
         $icon = shopHelper::getIcon($this->getPluginStaticUrl().'img/yandexmarket.png');
 
         $html = <<<HTML
- <li data-action="export" data-plugin="yandexmarket" title="Экспорт выбранных товаров в Яндекс.Маркет">
+ <li data-action="export" data-plugin="yandexmarket" title="Экспорт выбранных товаров в «Яндекс.Маркет»">
     <a href="#">{$icon}Яндекс.Маркет</a>
  </li>
 HTML;
@@ -189,19 +189,45 @@ HTML;
      */
     public function backendOrderEvent($order)
     {
-        if (!empty($order['params']['yandexmarket.id']) && !empty($order['params']['shipping_est_delivery'])) {
+        if (!empty($order['params']['yandexmarket.id'])) {
+            $error = null;
+            if (!empty($order['params']['yandexmarket.status'])) {
+                try {
+                    $data = json_decode($order['params']['yandexmarket.status'], true);
+                    $this->changeOrderState($order['id'], $order['params'], $data);
+                    $model = new shopOrderParamsModel();
+                    $model->deleteByField(array('id' => $order['id'], 'name' => 'yandexmarket.status'));
+                } catch (waException $ex) {
+                    $code = $ex->getCode();
+                    $message = sprintf("Возникла ошибка с кодом %s при выполнении API-запроса для заказа %s:\n%s", $code, $order['id'], $ex->getMessage());
+                    waLog::log($message, 'shop/plugins/yandexmarket/api.order.status.error.log');
+                    $message = htmlentities($ex->getMessage(), ENT_NOQUOTES, 'utf-8');
+                    $error = <<<HTML
+<br/>
+<i class="icon16 exclamation"></i>
+При обновлении статуса заказа №{$order['params']['yandexmarket.id']} на «Яндекс.Маркет» произошла ошибка <b>$code</b>: {$message}
+HTML;
+                }
+            }
 
-            //yandexmarket.outlet_id
-            $template = <<<HTML
-<div class="block not-padded">
+            if (!empty($order['params']['shipping_est_delivery'])) {
+                $template = <<<HTML
 Дата доставки, указанная в заказе: <b>%s</b>
+HTML;
+                $shipping = sprintf($template, htmlentities($order['params']['shipping_est_delivery'], ENT_NOQUOTES, 'utf-8'));
+            }
 
-
+            if (!empty($error) || !empty($shipping)) {
+                $info_section = <<<HTML
+<div class="block not-padded">
+{$error}
+{$shipping}
 </div>
 HTML;
+                return compact('info_section');
+            }
 
-            $info_section = sprintf($template, htmlentities($order['params']['shipping_est_delivery'], ENT_NOQUOTES, 'utf-8'));
-            return compact('info_section');
+
         }
         return null;
     }
@@ -533,7 +559,7 @@ HTML;
     public function apiRequest($method, $params = array(), $data = array())
     {
         if (!class_exists('waNet')) {
-            throw new waException('class waNet required. Please update Webasyst framework');
+            throw new waException('Отсутствует PHP-класс waNet. Обновите фреймворк Webasyst.');
         }
 
         //TODO check api limits before run request
@@ -545,7 +571,7 @@ HTML;
         $type = 'GET';
 
         if (count(array_filter($query, 'strlen')) < 2) {
-            throw new waException('Empty plugin api settings');
+            throw new waException('Не указаны настройки API.');
         }
         //TODO detect by $method request type
 
@@ -721,7 +747,7 @@ HTML;
                     'CPA_API_NEED_INFO' => 'предоставлено недостаточно информации для участия в программе',
                     'CPA_QUALITY_OTHER' => 'программа отключена за прочие проблемы качества',
                     'CPA_CONTRACT'      => 'отсутствует договор об участии в программе либо истек срок его действия',
-                    'CPA_CPC'           => 'программа отключена в связи с тем, что соответствующая кампания выключена (размещение магазина на Яндекс.Маркете приостановлено)',
+                    'CPA_CPC'           => 'программа отключена в связи с тем, что соответствующая кампания выключена (размещение магазина на «Яндекс.Маркете» приостановлено)',
                     'CPA_FEED'          => 'в прайс-листе отсутствуют товарные предложения, участвующие в программе',
                     'CPA_PARTNER'       => 'программа отключена по инициативе пользователя',
                 ),
@@ -1136,70 +1162,76 @@ HTML;
                 'name'     => array('yandexmarket.id', 'yandexmarket.campaign_id'),
             );
             $params = $params_model->getByField($search, 'name');
-        }
 
-        if ($params && (count($params) == 2)) {
-            $method = 'campaigns/%d/orders/%d/status';
-            $method = sprintf($method, $params['yandexmarket.campaign_id']['value'], $params['yandexmarket.id']['value']);
 
-            $result = null;
-            try {
-                switch ($action) {
-                    case 'ship':
-                        $order = array(
-                            'status' => 'DELIVERY',
-                        );
-                        $result = $this->apiRequest($method, array(), compact('order'));
-                        break;
-                    case 'complete':
-                        $order = array(
-                            'status' => 'DELIVERED',
-                        );
-                        $result = $this->apiRequest($method, array(), compact('order'));
-                        break;
-                    case 'pickup':
-                        $order = array(
-                            'status' => 'PICKUP',
-                        );
-                        $result = $this->apiRequest($method, array(), compact('order'));
-                        break;
-                    case 'delete':
-                        if (wa()->getEnv() == 'backend') {
-                            $post = waRequest::post('plugins');
-                            $substatus = 'USER_CHANGED_MIND';
-                            if (!empty($post['yandexmarket']['substatus'])) {
-                                $substatus = $post['yandexmarket']['substatus'];
-                                $available = self::getCancelSubstatus();
-                                if (!isset($available[$substatus])) {
-                                    $substatus = 'USER_CHANGED_MIND';
-                                }
-                            }
+            if ($params && (count($params) == 2)) {
+                $result = null;
+                try {
+                    switch ($action) {
+                        case 'ship':
                             $order = array(
-                                'status'    => 'CANCELLED',
-                                'substatus' => $substatus,
+                                'status' => 'DELIVERY',
                             );
-                            $result = $this->apiRequest($method, array(), compact('order'));
-                        }
-                        break;
-                }
-                if ($result) {
-                    if ($result['order']) {
-                        $o = $result['order'];
-                        $template = 'Статус заказа в Яндекс.Маркет был обновлен на %s %s';
-                        $comment = sprintf($template, self::describeStatus($o['status']), self::describeSubStatus(ifset($o['sub_status'])));
+                            break;
+                        case 'complete':
+                            $order = array(
+                                'status' => 'DELIVERED',
+                            );
+                            break;
+                        case 'pickup':
+                            $order = array(
+                                'status' => 'PICKUP',
+                            );
+                            break;
+                        case 'delete':
+                            if (wa()->getEnv() == 'backend') {
+                                $post = waRequest::post('plugins');
+                                $substatus = 'USER_CHANGED_MIND';
+                                if (!empty($post['yandexmarket']['substatus'])) {
+                                    $substatus = $post['yandexmarket']['substatus'];
+                                    $available = self::getCancelSubstatus();
+                                    if (!isset($available[$substatus])) {
+                                        $substatus = 'USER_CHANGED_MIND';
+                                    }
+                                }
+                                $order = array(
+                                    'status'    => 'CANCELLED',
+                                    'substatus' => $substatus,
+                                );
 
-                        $message = sprintf('Order %s(%s) updated at Yandex.Market: %s', $data['order_id'], $result['id'], $comment);
-                        waLog::log($message, 'shop/plugins/yandexmarket/api.order.status.log');
+                            }
+                            break;
                     }
-
+                    if (!empty($order)) {
+                        $this->changeOrderState($data['order_id'], $params, $order);
+                    }
+                } catch (waException $ex) {
+                    if (!empty($order)) {
+                        $params_model->set($data['order_id'], array('yandexmarket.status' => json_encode($order)), false);
+                    }
+                    $message = sprintf("Возникла ошибка с кодом %s при выполнении API-запроса для заказа %s:\n%s", $ex->getCode(), $data['order_id'], $ex->getMessage());
+                    waLog::log($message, 'shop/plugins/yandexmarket/api.order.status.error.log');
+                    throw $ex;
                 }
-            } catch (waException $ex) {
-                //TODO: retry request for code 500/503
-                $message = sprintf("Error with code during API request for order %s:\n%s", $ex->getCode(), $data['order_id'], $ex->getMessage());
-                waLog::log($message, 'shop/plugins/yandexmarket/api.order.status.error.log');
-                throw $ex;
             }
-            //TODO add comment at order log
+        }
+    }
+
+    private function changeOrderState($order_id, $params, $order)
+    {
+        $method = 'campaigns/%d/orders/%d/status';
+        $method = sprintf($method, $params['yandexmarket.campaign_id']['value'], $params['yandexmarket.id']['value']);
+        $result = $this->apiRequest($method, array(), compact('order'));
+        if ($result) {
+            if ($result['order']) {
+                $o = $result['order'];
+                $template = 'Статус заказа в «Яндекс.Маркете» был обновлен на %s %s';
+                $comment = sprintf($template, self::describeStatus($o['status']), self::describeSubStatus(ifset($o['sub_status'])));
+
+                $message = sprintf('Заказ %s(%s) обновлен в «Яндекс.Маркете»: %s', $order_id, $o['id'], $comment);
+                waLog::log($message, 'shop/plugins/yandexmarket/api.order.status.log');
+            }
+
         }
     }
 

@@ -171,7 +171,7 @@
             <div class="name">
                 Оплата наличными
             </div>
-            <div class="value">
+            <div class="value no-shift">
                 <label>
                     <input type="checkbox"
                            name="campaign[shipping_methods][{$method_id}][cash]"
@@ -188,7 +188,7 @@
 
         <div class="field js-payment-card">
             <div class="name">Оплата банковской картой курьеру</div>
-            <div class="value">
+            <div class="value no-shift">
                 <label>
                     <input type="checkbox"
                            name="campaign[shipping_methods][{$method_id}][card]"
@@ -197,9 +197,25 @@
                            checked="checked"
                            {/if}
                     >
-                    <span class="hint">Включите, если вы используете мобильный терминал «Яндекс.Деньги» или «ИОН» для приема оплаты курьером.</span>
+                    <span class="hint">Включите, если вы используете мобильный терминал «Яндекс.Деньги» или иной для приема оплаты курьером.</span>
                 </label>
             </div>
         </div>
+        {if $method_id != 'dummy'}
+        <div class="field js-payment-yandex">
+            <div class="name">Запретить предоплату</div>
+            <div class="value no-shift">
+                <label>
+                    <input type="checkbox"
+                           name="campaign[shipping_methods][{$method_id}][!yandex]"
+                           value="1"
+                            {if !empty($campaign.shipping_methods[$method_id]['!yandex'])}
+                                checked="checked"
+                            {/if}
+                    > <span class="hint">Не принимать предоплату на «Яндекс.Маркете»</span>
+                </label>
+            </div>
+        </div>
+        {/if}
     </div>
 </div>

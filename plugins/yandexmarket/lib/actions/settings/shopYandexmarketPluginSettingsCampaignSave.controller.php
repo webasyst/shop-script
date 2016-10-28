@@ -37,6 +37,10 @@ class shopYandexmarketPluginSettingsCampaignSaveController extends waJsonControl
                     $shipping_methods[$id]['card'] = true;
                 }
 
+                if (!empty($campaign['payment']['YANDEX']) && !empty($shipping_params['!yandex']) && (ifset($shipping_params['type']) == 'POST')) {
+                    $shipping_methods[$id]['!yandex'] = true;
+                }
+
                 if (!empty($shipping_params['cal'])) {
                     $shipping_methods[$id]['cal'] = true;
                 }

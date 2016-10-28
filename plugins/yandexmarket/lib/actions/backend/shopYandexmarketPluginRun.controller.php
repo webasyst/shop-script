@@ -164,6 +164,8 @@ class shopYandexmarketPluginRunController extends waLongActionController
 
                 $sku = $skus[$item['sku_id']];
 
+                $converted = false;
+
                 if (!empty($currency) && ($item['currency'] != $currency)) {
                     if ($sku['purchase_price']) {
                         $sku['purchase_price'] = $currency_model->convert($sku['purchase_price'], $item['currency'], $currency);
@@ -172,6 +174,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
                         $sku['price'] = $currency_model->convert($sku['price'], $item['currency'], $currency);
 
                     }
+                    $converted = true;
                 }
 
                 if (count($product['sku_count']) == 1) {
@@ -188,7 +191,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 $item['purchase_price'] = ifset($sku['purchase_price']);
                 $item['price'] = ifset($offer['price'], false);
 
-                if (class_exists('shopRounding')) {
+                if (class_exists('shopRounding') && $converted) {
                     $item['price'] = shopRounding::roundCurrency($item['price'], $currency);
                 }
                 $item['price'] = round($item['price']);
@@ -1931,9 +1934,9 @@ SQL;
                     if (!in_array($data['currency'], $this->data['currency'])) {
                         #value in default currency
                         if ($this->data['default_currency'] != $this->data['primary_currency']) {
-                            $_currency_converted = true;
                             $value = $currency_model->convert($value, $this->data['default_currency'], $this->data['primary_currency']);
                         }
+                        $_currency_converted = true;
                         $data['currency'] = $this->data['primary_currency'];
                     } elseif ($this->data['default_currency'] != $data['currency']) {
                         $_currency_converted = true;

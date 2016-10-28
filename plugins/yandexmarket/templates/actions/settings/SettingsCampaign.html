@@ -3,7 +3,7 @@
 <h1 class="js-bread-crumbs">{$campaign_id|string_format:'Настройки кампании №%s (Заказ на Маркете)'|escape}</h1>
 
 {if empty($cpa_available)}
-    
+
     {include file="../../includes/api.error.html"
         message='Для полноценной корректной работы API оформления заказов требуется версия Shop-Script 7.1.1.60 или выше.'
         hint='Обработка заказов возможна вручную в партнерском интерфейсе «Яндекс.Маркета» или автоматически через <a href="?action=plugins#/yandexmarket/api/">API</a>.'}
@@ -119,7 +119,7 @@
 
                     <div class="field">
                         <div class="name">Товары на заказ</div>
-                        <div class="value"><label><input type="checkbox" name="campaign[over_sell]"{if !empty($campaign.over_sell)} checked="checked"{/if}> Разрешить оформление
+                        <div class="value no-shift"><label><input type="checkbox" name="campaign[over_sell]"{if !empty($campaign.over_sell)} checked="checked"{/if}> Разрешить оформление
                             заказов с товарами, которых нет на складе</label></div>
                     </div>
 
@@ -442,16 +442,24 @@
 
         var checkPayments = function ($method, event) {
             var valid = false;
-            if (payment.yandex) {
+            var type = $method.find(':input[name$="\\[type\\]"]').val();
+            if (payment.yandex && (type != 'POST')) {
                 valid = true;
             } else {
                 var $cash = $method.find(':input[type="checkbox"][name$="\\[cash\\]"]');
                 var $card = $method.find(':input[type="checkbox"][name$="\\[card\\]"]');
-                valid = (payment.cash && (!$cash.length || $cash.attr('checked')))
-                || (payment.card && (!$card.length || $card.attr('checked')));
+                var $yandex = $method.find(':input[type="checkbox"][name$="\\[!yandex\\]"]');
+
+
+                valid = (
+                        (payment.cash && (!$cash.length || $cash.attr('checked')))
+                        ||
+                        (payment.card && (!$card.length || $card.attr('checked')))
+                        ||
+                        (payment.yandex && (!$yandex.length || (type != 'POST') || !$yandex.attr('checked')))
+                );
             }
             toggle($method.find('.js-validate-payment'), event, !valid);
-            $.shop.trace('checkPayments', [payment, valid, $method]);
         };
 
 
@@ -461,8 +469,7 @@
         });
 
         $form.find('input[name$="\\[estimate_over_sell\\]"], input[name$="\\[estimate\\]"], input[name$="\\[estimate_ext\\]"]').bind('change, keyup', function () {
-            var value = this.value.replace(/^.*?(\d+)(-\d*)?.*?$/, '$1$2');
-            this.value = value;
+            this.value = this.value.replace(/^.*?(\d+)(-\d*)?.*?$/, '$1$2');
         });
 
         /**
@@ -517,15 +524,21 @@
             /**
              * @this HTMLInputElement
              */
-            var checked = this.checked;
-            toggle($(this).parents('div.js-shipping-method').find('>div.value:not(:first)'), event, checked);
+            toggle($(this).parents('div.js-shipping-method').find('>div.value:not(:first)'), event, this.checked);
         }).change();
 
         $form.find(':input[name="campaign\\[payment\\]\\[YANDEX\\]"]:first').change(function (event) {
             payment['yandex'] = this.checked;
+
             checkPayments($(this).parents('div.field-group:first'), event);
             $form.find('div.js-shipping-method').each(function () {
-                checkPayments($(this), event);
+                /**
+                 * @this HTMLInputElement
+                 */
+
+                var $scope = $(this);
+                $scope.find(':input[name$=\\[type\\]]').trigger('change');
+                checkPayments($scope, event);
             });
         }).change();
 
@@ -553,11 +566,23 @@
         /**
          * delivery method payment control
          */
-        $form.find('div.js-shipping-method :input[type="checkbox"][name$="\\[cash\\]"], div.js-shipping-method :input[type="checkbox"][name$="\\[cash\\]"]').change(function (event) {
+        $form.find('div.js-shipping-method :input[type="checkbox"][name$="\\[cash\\]"], div.js-shipping-method :input[type="checkbox"][name$="\\[card\\]"], div.js-shipping-method :input[type="checkbox"][name$="\\[!yandex\\]"]').change(function (event) {
             /**
              * @this HTMLInputElement
              */
-            var $scope= $(this).parents('div.js-shipping-method');
+            var $scope = $(this).parents('div.js-shipping-method');
+            checkPayments($scope, event);
+        }).change();
+
+        /**
+         * delivery method type control
+         */
+        $form.find('div.js-shipping-method :input[name$="\\[type\\]"]').change(function (event) {
+            /**
+             * @this HTMLInputElement
+             */
+            var $scope = $(this).parents('div.js-shipping-method');
+            toggle($scope.find('div.js-payment-yandex'), event, payment.yandex && (this.value == 'POST'));
             checkPayments($scope, event);
         }).change();
 

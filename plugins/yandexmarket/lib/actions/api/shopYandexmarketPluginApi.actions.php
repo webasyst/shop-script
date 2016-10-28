@@ -691,13 +691,14 @@ class shopYandexmarketPluginApiActions extends waActions
                             $rates = $this->getPluginRates($order, $items, $shipping_info);
 
                             $debug['rates'][$shipping_id] = $rates;
+                            $defaults = ifset($profile_shipping_methods[$shipping_id], array());
 
                             //XXX CPA объединять сервисы доставки как точки продаж или как различные способы доставки
                             if ($rates && is_array($rates)) {
                                 foreach ($rates as $rate_id => $rate) {
                                     if ($rate['rate'] !== null) {
                                         $rate_id = ifset($rate['id'], $rate_id);
-                                        $defaults = ifset($profile_shipping_methods[$shipping_id.'.'.$rate_id], array());
+                                        $defaults = ifset($profile_shipping_methods[$shipping_id.'.'.$rate_id], array()) + $defaults;
 
                                         #delivery price
                                         if (!empty($this->campaign['deliveryIncluded'])) {
@@ -724,10 +725,9 @@ class shopYandexmarketPluginApiActions extends waActions
                                             );
 
                                             if (($carriers[$id]['type'] == 'POST')
-                                                && empty($this->campaign['payment']['YANDEX'])
-                                                && false
+                                                && ($this->campaign['payment']['YANDEX'])
+                                                && !in_array('YANDEX', $payment_methods)
                                             ) {
-                                                //TODO manage PREPAID via YANDEX
                                                 $carriers[$id]['paymentAllow'] = false;
                                             }
                                         } else {
@@ -902,9 +902,7 @@ class shopYandexmarketPluginApiActions extends waActions
             $payment_methods[] = 'CARD_ON_DELIVERY';
         }
 
-        if (true
-            || !empty($this->campaign['payment']['YANDEX'])
-        ) {
+        if (!empty($this->campaign['payment']['YANDEX']) && (empty($defaults['!yandex']) || (ifset($defaults['type']) != 'POST'))) {
             $payment_methods[] = 'YANDEX';
         }
 
