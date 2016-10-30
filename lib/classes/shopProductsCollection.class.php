@@ -56,6 +56,12 @@ class shopProductsCollection
             $this->options['round_prices'] = $this->is_frontend;
         }
         $this->setHash($hash);
+
+        /**
+         * @event products_collection.filter
+         * @param shopProductsCollection $this
+         */
+        wa()->event('products_collection.filter', $this);
     }
 
     /**
