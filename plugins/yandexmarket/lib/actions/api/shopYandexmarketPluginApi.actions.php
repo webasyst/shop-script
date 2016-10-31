@@ -529,12 +529,13 @@ class shopYandexmarketPluginApiActions extends waActions
     /**
      * @param array $defaults
      * @param shopYandexmarketPluginOrder $order
+     * @param bool $custom_priority
      * @return array
      */
-    protected function formatDeliveryDates($defaults, $order = null)
+    protected function formatDeliveryDates($defaults, $order = null, $custom_priority = false)
     {
         if ($order->over_sell) {
-            $interval = array_map('intval', preg_split('@\D+@', ifempty($this->campaign['estimate_over_sell'], '32'), 2));
+            $interval = shopYandexmarketPlugin::getDays(ifempty($this->campaign['estimate_over_sell'], '32'));
         } else {
             if (!empty($order->shipping_address['is_home_region'])) {
                 $interval = ifset($defaults['estimate'], '32');
@@ -544,7 +545,7 @@ class shopYandexmarketPluginApiActions extends waActions
             if ($interval === '') {
                 $interval = array(32);
             } elseif (!is_array($interval)) {
-                $interval = array_map('intval', preg_split('@\D+@', trim($interval), 2));
+                $interval = shopYandexmarketPlugin::getDays($interval);
             }
         }
 
@@ -553,10 +554,18 @@ class shopYandexmarketPluginApiActions extends waActions
 
         if ($order) {
             if ($order->delivery_from !== null) {
-                $from = max($order->delivery_from, $from);
+                if ($custom_priority) {
+                    $from = min($order->delivery_from, $from);
+                } else {
+                    $from = max($order->delivery_from, $from);
+                }
             }
             if ($order->delivery_before) {
-                $to = max($order->delivery_before, $to);
+                if ($custom_priority) {
+                    $to = min($order->delivery_before, $to);
+                } else {
+                    $to = max($order->delivery_before, $to);
+                }
             }
         }
 
@@ -675,7 +684,7 @@ class shopYandexmarketPluginApiActions extends waActions
                             'type'           => ifempty($defaults['type'], 'DELIVERY'),
                             'serviceName'    => ifempty($defaults['name'], 'Курьер'),
                             'price'          => $price,
-                            'dates'          => $this->formatDeliveryDates($defaults, $order),
+                            'dates'          => $this->formatDeliveryDates($defaults, $order, true),
                             'paymentMethods' => $payment_methods,
                         );
                     } else {

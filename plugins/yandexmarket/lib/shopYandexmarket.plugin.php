@@ -991,9 +991,9 @@ HTML;
      */
     public function getOutlets($campaign_id, $flush = false)
     {
-        $cache = wa()->getCache();
         $key = sprintf('outlets/%s', $campaign_id);
-        $outlets = $cache ? $cache->get($key, 'yandexmarket') : null;
+        $cache = new waVarExportCache($key, 3600, 'shop/plugins/yandexmarket');
+        $outlets = $cache ? $cache->get() : null;
         if ($outlets == null) {
             $params = array(
                 'page'     => 0,
@@ -1009,7 +1009,7 @@ HTML;
                 }
             } while (!empty($data['outlets']) && ifset($pager['pageSize']) == $params['pageSize']);
             if ($cache && ($outlets !== null)) {
-                $cache->set($key, $outlets, 3600, 'yandexmarket');
+                $cache->set($outlets);
             }
         }
 
@@ -1079,14 +1079,14 @@ HTML;
      */
     public function getCampaignRegion($campaign_id, $flush = false)
     {
-        $cache = wa()->getCache();
         $key = sprintf('region/%s', $campaign_id);
+        $cache = new waVarExportCache($key, 3600, 'shop/plugins/yandexmarket');
         $region = $cache ? $cache->get($key, 'yandexmarket') : null;
-        if ($region == null) {
+        if ($flush || ($region == null)) {
             $data = $this->apiRequest(sprintf('campaigns/%d/region', $campaign_id));
             $region = ifset($data['region'], null);
             if ($cache && ($region !== null)) {
-                $cache->set($key, $region, 3600, 'yandexmarket');
+                $cache->set($region);
             }
         }
         return $region;
@@ -1101,15 +1101,15 @@ HTML;
      */
     public function getRegion($region_id, $flush = false)
     {
-        $cache = wa()->getCache();
         $key = sprintf('regions/%s', $region_id);
-        $region = $cache ? $cache->get($key, 'yandexmarket') : null;
-        if ($region == null) {
+        $cache = new waVarExportCache($key, 3600, 'shop/plugins/yandexmarket');
+        $region = $cache ? $cache->get() : null;
+        if ($flush || ($region == null)) {
             $data = $this->apiRequest(sprintf('regions/%d', $region_id));
             $regions = ifset($data['regions'], null);
             $region = reset($regions);
             if ($cache && ($region !== null)) {
-                $cache->set($key, $region, 3600, 'yandexmarket');
+                $cache->set($region);
             }
         }
         return $region;
@@ -1317,6 +1317,11 @@ HTML;
             'UNPAID'     => 'заказ оформлен, но еще не оплачен (если выбрана плата при оформлении)',
         );
         return ifset($description[$status], $status);
+    }
+
+    public static function getDays($string)
+    {
+        return array_map('intval', array_filter(preg_split('@\D+@', trim($string), 2), 'strlen'));
     }
 
     public function orderDeleteFormHandler($data, $event_name = null)

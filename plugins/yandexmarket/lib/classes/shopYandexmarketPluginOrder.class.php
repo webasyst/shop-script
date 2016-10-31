@@ -180,11 +180,11 @@ class shopYandexmarketPluginOrder extends waOrder
         foreach ($data['items'] as $item) {
             if (isset($item['shipping'])) {
                 if (isset($item['shipping']['days']) && ($item['shipping']['days'] !== '')) {
-                    $days = array_map('intval', preg_split('@\D+@', $item['shipping']['days'], 2));
+                    $days = shopYandexmarketPlugin::getDays($item['shipping']['days']);
+
                     if ($days) {
-                        asort($days);
-                        $data['delivery_from'][] = reset($days);
-                        $data['delivery_before'][] = end($days);
+                        $data['delivery_from'][] = min($days);
+                        $data['delivery_before'][] = max($days);
                     }
                 }
                 if (isset($item['shipping']['cost']) && ($item['shipping']['cost'] !== '')) {

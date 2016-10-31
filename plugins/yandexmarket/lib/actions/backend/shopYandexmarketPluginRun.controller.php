@@ -593,7 +593,7 @@ XML;
             'adult'               => true,
         );
 
-        $days = array_map('intval', preg_split('@\D+@', ifset($profile_config['shop']['local_delivery_estimate']), 2));
+        $days = shopYandexmarketPlugin::getDays(ifset($profile_config['shop']['local_delivery_estimate']));
 
         if (count($days) == 2) {
             sort($days);
@@ -2270,20 +2270,20 @@ SQL;
                 break;
             case 'local_delivery_days':
                 if (!in_array($value, array('', false, null), true)) {
-                    $value = array_map('intval', preg_split('@\D+@', $value, 2));
+                    $value = shopYandexmarketPlugin::getDays($value);
                     if (count($value) == 2) {
                         sort($value);
                         $value = implode('-', $value);
 
                     } else {
-                        $value = max(1, $value);
+                        $value = max(0, $value);
                     }
                 } else {
                     $value = null;
                 }
                 break;
             case 'days':
-                $value = max(1, intval($value));
+                $value = max(0, intval($value));
                 break;
             case 'dataTour':
                 /**

@@ -83,12 +83,12 @@ HTML
         'class'       => 'long',
     ),
     'contact_id'   => array(
-        'value'        => '1',
+        'value'        => null,
         'placeholder'  => '1',
         'title'        => 'ID контакта',
         'description'  => 'Укажите <i>ID</i> контакта, от имени которого будут проводиться действия программы «Заказ на Маркете».<br>
             Например, ID контакта вашего пользователя в Вебасисте.',
-        //'control_type' => waHtmlControl::INPUT,
+        'control_type' => waHtmlControl::HIDDEN,
     ),
 
     'order_action_ship' => array(

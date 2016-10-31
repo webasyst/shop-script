@@ -209,8 +209,15 @@ class shopYandexmarketPluginBackendActions extends waViewActions
                     'page'     => 1,
                     'pageSize' => 100,
                 );
-                $response = $this->plugin()->apiRequest(sprintf('/regions/%d/children', $region_id), $params);
-                $region = $response['regions'];
+
+                $key = sprintf('/regions/%d/children', $region_id);
+                $cache = new waVarExportCache($key, 7200, 'shop/plugins/yandexmarket');
+                $region = $cache->get();
+                if ($region == null) {
+                    $response = $this->plugin()->apiRequest($key, $params);
+                    $region = $response['regions'];
+                    $cache->set($region);
+                }
                 $region['formatted'] = shopYandexmarketPluginOrder::parseAddress($region, null, true);
                 $children = array();
                 if (!empty($region['children'])) {
