@@ -555,14 +555,14 @@ class shopYandexmarketPluginApiActions extends waActions
         if ($order) {
             if ($order->delivery_from !== null) {
                 if ($custom_priority) {
-                    $from = min($order->delivery_from, $from);
+                    $from = $order->delivery_from;
                 } else {
                     $from = max($order->delivery_from, $from);
                 }
             }
             if ($order->delivery_before) {
                 if ($custom_priority) {
-                    $to = min($order->delivery_before, $to);
+                    $to = $order->delivery_before;
                 } else {
                     $to = max($order->delivery_before, $to);
                 }

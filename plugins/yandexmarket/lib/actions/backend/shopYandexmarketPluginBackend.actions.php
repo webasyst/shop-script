@@ -26,9 +26,6 @@ class shopYandexmarketPluginBackendActions extends waViewActions
         $routing = wa()->getRouting();
         $settlements = array();
 
-        $profile_helper = new shopImportexportHelper($this->plugin_id);
-        $this->view->assign('profiles', $profile_helper->getList());
-
         $profile = $this->getProfile();
         $current_domain = &$profile['config']['domain'];
 

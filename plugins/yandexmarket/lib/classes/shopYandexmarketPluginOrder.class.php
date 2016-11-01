@@ -351,7 +351,7 @@ class shopYandexmarketPluginOrder extends waOrder
             'REPUBLIC_AREA'               => '',// — район субъекта федерации;
             'SUBJECT_FEDERATION'          => array('name' => 'region_name', 'id' => 'region_id'),
             'SUBJECT_FEDERATION_DISTRICT' => array('name' => 'district_name', 'id' => 'district_id'),
-            'CITY'                        => 'city',//город
+            'CITY'                        => array('name' => 'city', 'id' => 'city_id'),//город
             'VILLAGE'                     => 'city',//поселок или село
             'CITY_DISTRICT'               => 'street',//район города
             'SUBWAY_STATION'              => 'subway',
@@ -449,7 +449,16 @@ class shopYandexmarketPluginOrder extends waOrder
                 } else {
                     //$address['region'] = $address['region'];
                 }
+                if (!empty($address['city_id'])) {
+                    if (isset($regions[$address['city_id']])) {
+                        $address['region_id'] = $address['city_id'];
+                        $address['region'] = $regions[$address['region_id']];
+                    }
+                }
             }
+        }
+        if (isset($address['city_id'])) {
+            unset($address['city_id']);
         }
 
         foreach ($address as $field => $item) {

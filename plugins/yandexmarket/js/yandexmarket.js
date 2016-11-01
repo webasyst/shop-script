@@ -317,6 +317,8 @@ $.extend($.importexport.plugins, {
         regionApply: function () {
             var region_id = this.$form.find(':input.js-home-region-id:first').val();
 
+            var profile_id = this.$form.find(':input[name="profile\[id\]"]:first').val();
+
             var region = this.$form.find('span.js-home-region-name:last').html();
             this.$form.find('span.js-home-region-name:first').html(region);
             $.shop.trace('region_id', [region_id, region]);
@@ -326,7 +328,7 @@ $.extend($.importexport.plugins, {
             this.$form.find('div.js-edit-region').slideUp();
             this.$form.find('div.js-edit-region:first').html('');
             var self = this;
-            this.$form.find('div.field-group.js-delivery-options:first').html('<i class="icon16 loading"></i>').load('?plugin=yandexmarket&action=shipping&region_id=' + region_id, function () {
+            this.$form.find('div.field-group.js-delivery-options:first').html('<i class="icon16 loading"></i>').load('?plugin=yandexmarket&action=shipping&profile=' + profile_id + '&region_id=' + region_id, function () {
                 self.reloadShipping();
             });
         },
