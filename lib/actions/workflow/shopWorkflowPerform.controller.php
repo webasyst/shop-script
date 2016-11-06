@@ -2,7 +2,7 @@
 
 /**
  * Performs workflow actions that can be performed by backend users.
- * Called by forms returned by helpdeskWorkflowPrepareController.
+ * Called by forms returned by shopWorkflowPrepareController.
  */
 class shopWorkflowPerformController extends waJsonController
 {
