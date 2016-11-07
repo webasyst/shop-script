@@ -208,7 +208,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
                     } elseif (in_array($offer['available.raw']['raw'], array('false', false, '0'), true)) {
                         $item['quantity'] = 0;
                     } else {
-                        $item['quantity'] = max(0,min(intval($offer['available.raw']['raw']), $item['raw_data']['count']));
+                        $item['quantity'] = max(0, min(intval($offer['available.raw']['raw']), $item['raw_data']['count']));
                     }
                 } else {
                     if ($offer['available'] !== 'true') {
@@ -599,7 +599,7 @@ XML;
             sort($days);
             $days = implode('-', $days);
 
-        } elseif (count($days) == 2) {
+        } elseif (count($days) == 1) {
             $days = max(0, $days);
 
         } else {

@@ -148,7 +148,7 @@ class shopYandexmarketPluginOrder extends waOrder
                                 $data['payment_name'] = 'Наличными';
                                 break;
                             case 'CARD_ON_DELIVERY':
-                                $data['payment_name'] = 'Яндекс.Деньги мобильный терминал';
+                                $data['payment_name'] = 'мобильный терминал «Яндекс.Деньги»';
                                 if (!empty($profile['payment']['CARD_ON_DELIVERY'])) {
                                     if ($payment_plugin = shopPayment::getPluginInfo($profile['payment']['CARD_ON_DELIVERY'])) {
                                         $data['payment_id'] = $payment_plugin['id'];
