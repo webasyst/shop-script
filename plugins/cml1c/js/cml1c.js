@@ -115,9 +115,14 @@ $.extend($.importexport.plugins, {
                 this.options.tab = tab;
                 var $form = $('#s-cml1c-form');
                 $form.find('ul.tabs li.selected').removeClass('selected');
-                $form.find('ul.tabs a[href$="\/' + tab + '\/"]').parent().addClass('selected');
-                $form.find('.tab-content > div:visible').hide();
-                $form.find('.tab-content > div#s-cml1c-' + tab).show();
+                var $tab = $form.find('ul.tabs a[href$="\/' + tab + '\/"]');
+                if ($tab.hasClass('js-invalidated')) {
+                    $.importexport.dispatch(undefined, true);
+                } else {
+                    $tab.parent().addClass('selected');
+                    $form.find('.tab-content > div:visible').hide();
+                    $form.find('.tab-content > div#s-cml1c-' + tab).show();
+                }
 
             }
         },
@@ -154,13 +159,16 @@ $.extend($.importexport.plugins, {
                 $form.find('div.plugin-cml1c-submit .js-cml1c-repeat, :submit').show();
 
                 $submit.attr('disabled', null).val($submit.data('save'));
-                $form.find(':input').attr('disabled', null);
+                $form.find(':input:not([type="radio"][name="filename"])').attr('disabled', null);
+                $form.find(':input[name="filename"][type="hidden"]').attr('disabled', null);
             } else {
                 $form.find('div.plugin-cml1c-report > .js-cml1c-repeat').show();
                 $form.find('div.plugin-cml1c-submit .js-cml1c-repeat, :submit').hide();
             }
 
-            $form.find('input[name="configure"]').attr('checked', null).attr('disabled', true);
+            var $configure = $form.find('input[name="configure"]');
+            $configure.attr('checked', null).attr('disabled', true);
+            $configure.parents('div.field').slideUp();
             return false;
         },
 
@@ -170,12 +178,18 @@ $.extend($.importexport.plugins, {
             $form.find('div.js-cml1c-zip:first, div.js-progressbar-container, div.plugin-cml1c-report, #s-plugin-cml1c-import-upload-status, div.plugin-cml1c-submit .js-cml1c-repeat').hide();
             $form.find('div.plugin-cml1c-submit .errormsg').text('');
             $form.find(':input').attr('disabled', null);
-            $form.find('input[name="configure"]').attr('checked', true).trigger('change');
+            var $configure = $form.find('input[name="configure"]');
+            $configure.parents('div.field').slideDown();
+            $configure.attr('checked', true).trigger('change');
             $form.find(':input:not(:submit):not([name^="_"]):not([type="checkbox"])').val('');
             $form.find('div.plugin-cml1c-submit,:submit, :input[type="file"]').show();
+
             $form.find('div.js-cml1c-zip:first li.js-cml1c-template:not(:first)').remove();
             $form.find('div.js-cml1c-zip:first :input').attr('disabled', true);
             $form.find('#plugin-cml1c-report-import .value:not(.js-cml1c-repeat)').html('');
+
+            $form.find(':input[name="filename"][type="hidden"]').val('').attr('disabled',null);
+            $form.find(':input[name="zipfile"]').val('').attr('disabled',null);
             return false;
         },
 
@@ -183,6 +197,12 @@ $.extend($.importexport.plugins, {
             var $form = this.dom.importform;
             var $submit = $form.find(':submit');
             $submit.val(checkbox.checked ? $submit.data('configure') : $submit.data('import'));
+            var $expert = $form.find(':input[name="expert"]').parents('div.value');
+            if (checkbox.checked) {
+                $expert.slideDown();
+            } else {
+                $expert.slideUp();
+            }
         },
 
         submitHandler: function (form) {
@@ -199,13 +219,37 @@ $.extend($.importexport.plugins, {
             return false;
         },
 
+        mapReset: function ($el) {
+            $el.after('<i class="icon16 loading"></i>');
+            $el.hide();
+
+            $.ajax({
+                url: '?plugin=cml1c&action=remap',
+                data: {
+                    "map": 'reset'
+                },
+                dataType: 'json',
+                type: 'post',
+                success: function (response) {
+                    $.importexport.dispatch(undefined, true);
+                },
+                error: function () {
+                    $el.show();
+                    $el.after('<i class="icon16 no"></i>');
+                    $el.parent().find('i.icon16.loading').remove();
+                }
+            });
+
+            return false;
+        },
+
         uploadHandler: function (form) {
 
             var result = true;
             var self = this;
             var $form = $(form);
             var $status = $('#s-plugin-cml1c-import-upload-status');
-            var $filename = $form.find(':input[name="filename"]');
+            var $filename = $form.find(':input[name="filename"][type="hidden"]');
             var $zipfile = $form.find(':input[name="zipfile"]');
             if (!$filename.val()) {
                 $status.find('i.icon16').removeClass('yes no').addClass('loading');
@@ -249,15 +293,22 @@ $.extend($.importexport.plugins, {
                                     $.shop.trace('$item', $item);
                                     for (var i = 0; i < response.files.length; i++) {
                                         $item.attr('title', response.files[i]['size']);
-                                        $item.find(':input').val(response.files[i]['name']);
+                                        $item.find(':input').val(response.files[i]['name']).attr('checked', i == 0 ? true : null);
                                         $item.find('span').text(response.files[i]['name']);
+
                                         $item.clone().appendTo($container);
                                         $.shop.trace('list', $item)
                                     }
+                                    $container.find('li.js-cml1c-template:not(:first) input').change(function () {
+                                        if(this.checked) {
+                                            $form.find(':input[name="filename"][type="hidden"]').val(this.value);
+                                        }
+                                    }).change();
+
                                     $item.find(':input').attr('disabled', true);
                                     $item.hide();
                                     $container.find(':input:not(:disabled):first').attr('checked', true);
-                                    $form.find('div.js-cml1c-zip:first').show();
+                                    $form.find('div.js-cml1c-zip:first').hide().toggle("highlight");
                                     if (response.files.length > 1) {
                                         submit = false;
                                         $form.find(':submit').attr('disabled', null);
@@ -303,6 +354,8 @@ $.extend($.importexport.plugins, {
         },
 
         handler: function (element) {
+            $('#s-cml1c-form ul.tabs a[href$="\/map\/"]').addClass('js-invalidated');
+
             var self = this;
             self.progress = true;
             self.form = $(element);
@@ -314,6 +367,8 @@ $.extend($.importexport.plugins, {
             self.form.find('.progressbar').show();
             self.form.find('.js-cml1c-repeat').hide();
             var url = $(element).attr('action');
+
+
             $.ajax({
                 url: url,
                 data: data,
@@ -478,6 +533,12 @@ $.extend($.importexport.plugins, {
             var $scope = this.dom.importform.find(':input[name^="' + name + '"]');
             var $features = $scope.filter(':input[name$="\[f\]"]:first');
             var $dimension = $scope.filter(':input[name$="\[dimension\]"]:first');
+            var $other = $scope.filter(':not(:input[name$="\[target\]"])');
+            $other.change(function (event) {
+                if (event.originalEvent) {
+                    $(this).parents('tr').find(':input[name$="\[target\]"]').attr('checked', true);
+                }
+            });
             var autocomplete = false;
             var $cancel;
             if ($features.length) {
@@ -575,13 +636,13 @@ $.extend($.importexport.plugins, {
                  */
                 $.shop.trace('autocomplete', ui.item);
 
-                var value = ui.item.value;
+                var value = 'f:' + ui.item.value;
 
-                if (!$features.find('option[value="f:' + value + '"]:first').length) {
+                if (!$features.find('option[value="' + value + '"]:first').length) {
                     var $option = $('<option/>');
                     $option.text(ui.item.name);
                     $option.attr('value', value);
-                    $option.attr('title', value);
+                    $option.attr('title', ui.item.value);
                     if (ui.item.type) {
                         $option.attr('class', 'js-type-' + ui.item.type);
                     }

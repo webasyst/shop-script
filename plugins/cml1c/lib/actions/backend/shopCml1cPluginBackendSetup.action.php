@@ -26,5 +26,9 @@ class shopCml1cPluginBackendSetupAction extends waViewAction
         $this->view->assign('enabled', $this->plugin()->getSettings('enabled'));
         $this->view->assign('export_timestamp', $this->plugin()->exportTime());
         $this->view->assign('url', $this->plugin()->getCallbackUrl());
+
+        $runner = new shopCml1cPluginBackendRunController();
+        $this->view->assign('map', $runner->mapSetting());
+        $this->view->assign('expert', $this->plugin()->getSettings('expert'));
     }
 }

@@ -13,6 +13,30 @@ class shopCml1cPlugin extends shopPlugin
         return parent::getControls($params);
     }
 
+    public function getConfigParam($param = null)
+    {
+        static $config = null;
+        if (is_null($config)) {
+            $app_config = wa('shop');
+            $files = array(
+                $app_config->getAppPath('plugins/cml1c', 'shop').'/lib/config/config.php', // defaults
+                $app_config->getConfigPath('shop/plugins/cml1c').'/config.php', // custom
+            );
+            $config = array();
+            foreach ($files as $file_path) {
+                if (file_exists($file_path)) {
+                    $config = include($file_path);
+                    if ($config && is_array($config)) {
+                        foreach ($config as $name => $value) {
+                            $config[$name] = $value;
+                        }
+                    }
+                }
+            }
+        }
+        return ($param === null) ? $config : (isset($config[$param]) ? $config[$param] : null);
+    }
+
     public function getCallbackUrl($absolute = true)
     {
         $routing = wa()->getRouting();
@@ -308,12 +332,12 @@ HTML;
         if (!empty($params['auto_title'])) {
             switch (ifset($hash[1])) {
                 case 'no':
-                    $collection->addTitle('Продукты без идентификатора CML');
+                    $collection->addTitle('Товары без идентификатора CML');
                     break;
                 case 'recent':
                     break;
                 default:
-                    $collection->addTitle('Продукты с идентификатором CML');
+                    $collection->addTitle('Товары с идентификатором CML');
                     break;
             }
 
@@ -575,7 +599,7 @@ HTML;
                 'description' => '',
             ),
             array(
-                'value'       => 'tax',
+                'value'       => 'tax_id',
                 'title'       => _w('Tax type'),
                 'description' => '',
             ),
