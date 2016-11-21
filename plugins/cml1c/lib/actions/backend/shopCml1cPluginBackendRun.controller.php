@@ -122,6 +122,21 @@ class shopCml1cPluginBackendRunController extends waLongActionController
      */
     private static $plugin = null;
 
+    public function execute()
+    {
+        try {
+            parent::execute();
+        } catch (waException $ex) {
+            if (wa()->getEnv() == 'backend') {
+                if ($ex->getCode() == '302') {
+                    echo json_encode(array('warning' => $ex->getMessage()));
+                } else {
+                    echo json_encode(array('error' => $ex->getMessage()));
+                }
+            }
+        }
+    }
+
     /**
      *
      * @return shopCml1cPlugin
@@ -173,6 +188,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             $this->data['types'] = array_keys($type_model->getTypes());
             $this->data['map'] = array();
             $this->data['error'] = null;
+            $this->data['last_error'] = null;
             switch ($this->data['direction']) {
                 case 'export':
                     $this->initExport();
@@ -980,6 +996,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             }
         } catch (Exception $ex) {
             $this->stepException($method_name, $ex);
+            sleep(5);
         }
         $this->data['memory'] = memory_get_peak_usage();
         $this->data['memory_avg'] = memory_get_usage();
@@ -994,39 +1011,57 @@ class shopCml1cPluginBackendRunController extends waLongActionController
      */
     protected function stepException($method_name, Exception $ex)
     {
-        $error = &$this->data['error'];
-        $message = $this->data['direction'].'@'.$this->data['stage'];
-        $message .= (empty($error) ? ' first' : ' repeat');
-        $message .= ':'.$ex->getMessage()."\n".$ex->getTraceAsString();
+        $repeated = false;
+        $break = false;
 
-        $this->error($message);
-        $iteration = isset($this->data['current'][$this->data['stage']]) ? $this->data['current'][$this->data['stage']] : null;
+        $error = &$this->data['last_error'];
+        $stage = isset($this->data['stage']) ? $this->data['stage'] : null;
+        $iteration = ($stage && isset($this->data['current'][$stage])) ? $this->data['current'][$this->data['stage']] : null;
+
+        $template = "Error during %s %s process: %s";
+
         if (!empty($error)) {
             if (($error['stage'] == $method_name)
                 && ($error['iteration'] == $iteration)
                 && ($error['code'] == $ex->getCode())
                 && ($error['message'] == $ex->getMessage())
             ) {
-                if (++$error['counter'] > 5) {
-                    $this->error($this->data['direction'].'@'.$this->data['stage'].': BREAK ON '.$ex->getMessage());
-                    throw $ex;
+                $repeated = true;
+                $n = intval(++$error['counter']);
+                if ($n > 5) {
+                    $break = true;
+                    $template = "The %s %s process is interrupted due to repeated mistakes: %s";
+
+                } else {
+                    $template = "Repeated ({$n}) the error during %s %s process: %s";
                 }
             } else {
                 $error = null;
             }
         }
+
+        $message = sprintf($template, $this->data['direction'], $this->data['stage'], $ex->getMessage());
+        if (!$repeated) {
+            $root = wa()->getConfig()->getPath('root');
+            $trace = $ex->getTraceAsString();
+            $message .= "\nTRACE:\n".str_replace($root, '', $trace);
+        }
+        $this->error($message);
+
         if (empty($error)) {
-            $error = array(
+            $this->data['last_error'] = array(
                 'stage'     => $method_name,
                 'iteration' => $iteration,
                 'code'      => $ex->getCode(),
                 'message'   => $ex->getMessage(),
-                'counter'   => 0,
-
+                'counter'   => 1,
             );
         }
         unset($error);
-        sleep(5);
+
+        if ($break) {
+            throw $ex;
+        }
     }
 
     protected function getStepMethod()
@@ -1751,7 +1786,7 @@ HTML;
             }
         }
 
-        if (count($source_stocks) > 1) {
+        if (count($source_stocks) > 0) {
 
             $params['options'] = array(
                 -1 => array(
@@ -3339,7 +3374,7 @@ SQL;
             }
             return $value;
         } else {
-            $value = $element->{$field};
+            $value = @$element->{$field};
             switch ($type) {
                 case 'xml':
                     break;
@@ -3374,7 +3409,7 @@ SQL;
      */
     private static function attribute(&$element, $attribute)
     {
-        $value = (string)$element[$attribute];
+        $value = (string)@$element[$attribute];
         $value = preg_replace_callback('/\\\\u([0-9a-f]{4})/i', array(__CLASS__, 'replaceUnicodeEscapeSequence'), $value);
         $value = preg_replace_callback('/\\\\u([0-9a-f]{4})/i', array(__CLASS__, 'htmlDereference'), $value);
         return $value;
@@ -4152,181 +4187,181 @@ SQL;
         $uuid = explode('#', self::field($element, 'Ид'));
         $product = $this->findProduct($uuid);
         if ($product->getId()) {
-
-            $skus = $product->skus;
-            $skus[-1] = array(
-                'id_1c'     => end($uuid),
-                'sku'       => self::field($element, 'Артикул'),
-                'name'      => self::field($element, 'Наименование'),
-                'available' => 1,
-                'stock'     => array(),
-            );
-
-            $sku = &$skus[-1];
-
-            if (mb_strtolower(self::attribute($element, 'Статус')) == 'удален') {
-                $sku['available'] = false;
-            }
-
-            #get offer prices
-            $prices = array(
-                'price' => null,
-            );
-
-            foreach ($this->xpath($element, '//Цены/Цена') as $p) {
-                $value = self::field($p, 'ЦенаЗаЕдиницу', 'doubleval');
-                if ($k = self::field($p, 'Коэффициент', 'doubleval')) {
-                    $value = $value / $k;
-                }
-                if ($currency = self::field($p, 'Валюта')) {
-                    $currency = $this->findCurrency($currency);
-                }
-
-                $price_id = self::field($p, 'ИдТипаЦены');
-
-                if ($price_info = ifset(self::$price_map[$price_id])) {
-                    foreach ($price_info['type'] as $price_type) {
-                        $prices[$price_type] = array(
-                            'value'    => $value,
-                            'currency' => ifempty($currency, ifempty($price_info['currency'])),
-                        );
-                        if (!empty($this->data['update_product_fields']['tax_id'])) {
-                            if (($price_type == 'price') && !empty($price_info['tax_id'])) {
-                                $product->tax_id = $price_info['tax_id'];
-                            }
-                        }
-                    }
-
-                } elseif (empty($prices['price']) && empty(self::$price_map)) {
-                    $prices['price'] = array(
-                        'value' => $value,
-                    );
-                    if (!empty($currency)) {
-                        $prices['price']['currency'] = $currency;
-                    }
-                }
-            }
-
-
-            #setup primary currency
-            if (!empty($prices['price']['currency'])
-                && ($prices['price']['currency'] != $product->currency)
-                && ($this->data['use_product_currency'])
-            ) {
-                $product->currency = $prices['price']['currency'];
-            }
-
-            #convert and setup prices
-            foreach ($prices as $type => $price) {
-                if (!empty($price['currency']) && ($price['currency'] != $product->currency)) {
-                    $sku[$type] = $this->convertPrice($price['value'], $price['currency'], $product->currency);
-                } else {
-                    $sku[$type] = $price['value'];
-                }
-            }
-
-            #read features
-            $features = array();
-            $params = array();
-            $xpath = '//ХарактеристикиТовара/ХарактеристикаТовара';
-            foreach ($this->xpath($element, $xpath) as $property) {
-                $name = self::field($property, 'Наименование');
-                switch ($name) {
-                    case "Модель":
-                        if ($sku_code = self::field($property, 'Значение')) {
-                            $sku['sku'] = $sku_code;
-                        }
-                        break;
-                    default:
-                        $value = self::field($property, 'Значение');
-                        $this->applyMapping($product, $features, $params, $name, $value, null, $xpath);
-                        break;
-                }
-            }
-
-            if (!empty($features)) {
-                $sku['features'] = $features;
-            }
-
-            if (empty($sku['sku']) && $product->sku_id && isset($skus[$product->sku_id])) {
-                $sku['sku'] = $skus[$product->sku_id]['sku'];
-            }
-
-            # import stock counts
-            $stock = false;
-            if (isset($this->data['stock_map']) && !empty($this->data['stock_map'])) {
-                $xpaths = array(
-                    '//Склад',
-                    '//ОстаткиПоСкладу', //*
-                    '//КоличествоНаСкладе', //**КоличествоНаСкладах/КоличествоНаСкладе
+            try {
+                $skus = $product->skus;
+                $skus[-1] = array(
+                    'id_1c'     => end($uuid),
+                    'sku'       => self::field($element, 'Артикул'),
+                    'name'      => self::field($element, 'Наименование'),
+                    'available' => 1,
+                    'stock'     => array(),
                 );
-                foreach ($xpaths as $xpath) {
-                    foreach ($this->xpath($element, $xpath) as $s) {
-                        $stock_uuid = self::attribute($s, 'ИдСклада');
-                        $_in_fields = false;
-                        if (empty($stock_uuid)) {
-                            $stock_uuid = self::field($s, 'ИдСклада');
-                            if ($stock_uuid) {
-                                $_in_fields = true;
-                            }
-                        }
-                        if ($stock_uuid && isset($this->data['stock_map'][$stock_uuid])) {
-                            $stock_id = $this->data['stock_map'][$stock_uuid];
-                            if (is_array($stock_id)) {
-                                $stock_id = $stock_id['stock_id'];
-                            }
-                            if ($stock_id >= 0) {
-                                if ($_in_fields) {
-                                    $sku['stock'][$stock_id] = intval(self::field($s, 'Количество'));
-                                } else {
-                                    $sku['stock'][$stock_id] = intval(self::attribute($s, 'КоличествоНаСкладе'));
+
+                $sku = &$skus[-1];
+
+                if (mb_strtolower(self::attribute($element, 'Статус')) == 'удален') {
+                    $sku['available'] = false;
+                }
+
+                #get offer prices
+                $prices = array(
+                    'price' => null,
+                );
+
+                foreach ($this->xpath($element, '//Цены/Цена') as $p) {
+                    $value = self::field($p, 'ЦенаЗаЕдиницу', 'doubleval');
+                    if ($k = self::field($p, 'Коэффициент', 'doubleval')) {
+                        $value = $value / $k;
+                    }
+                    if ($currency = self::field($p, 'Валюта')) {
+                        $currency = $this->findCurrency($currency);
+                    }
+
+                    $price_id = self::field($p, 'ИдТипаЦены');
+
+                    if ($price_info = ifset(self::$price_map[$price_id])) {
+                        foreach ($price_info['type'] as $price_type) {
+                            $prices[$price_type] = array(
+                                'value'    => $value,
+                                'currency' => ifempty($currency, ifempty($price_info['currency'])),
+                            );
+                            if (!empty($this->data['update_product_fields']['tax_id'])) {
+                                if (($price_type == 'price') && !empty($price_info['tax_id'])) {
+                                    $product->tax_id = $price_info['tax_id'];
                                 }
                             }
-                            $stock = true;
                         }
-                    }
-                }
-            }
 
-            if (!count($sku['stock']) && !$stock) {
-                $sku['stock'][$this->data['stock_id']] = self::field($element, 'Количество', 'intval');
-            } elseif (!empty($this->data['stock_complement'])) {
-                $sku['stock'] += array_fill_keys($this->data['stock_complement'], 0);
-            }
-
-            unset($sku);
-
-            #find & merge data
-            $this->mergeSkus($skus);
-
-            $delete_sku = false;
-            if (count($uuid) > 1 && (end($uuid) != reset($uuid))) {
-                $count_sku = 0;
-                $dummy_id = false;
-                foreach ($skus as $id => $sku) {
-                    if ($sku['id_1c'] != $product['id_1c']) {
-                        ++$count_sku;
-                        if ($dummy_id) {
-                            break;
-                        }
-                    } elseif (($sku['count'] === null) && (!$sku['price'])) {
-                        $dummy_id = $id;
-                        if ($count_sku) {
-                            break;
+                    } elseif (empty($prices['price']) && empty(self::$price_map)) {
+                        $prices['price'] = array(
+                            'value' => $value,
+                        );
+                        if (!empty($currency)) {
+                            $prices['price']['currency'] = $currency;
                         }
                     }
                 }
 
-                if ($count_sku && ($dummy_id !== false)) {
-                    $delete_sku = $skus[$dummy_id]['id'];
-                    unset($skus[$dummy_id]);
-                }
-            }
 
-            $this->fixSkuBasePriceSelectable($product, $skus);
-            $product->skus = $skus;
-            shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_IMPORT, 'Обмен через CommerceML');
-            try {
+                #setup primary currency
+                if (!empty($prices['price']['currency'])
+                    && ($prices['price']['currency'] != $product->currency)
+                    && ($this->data['use_product_currency'])
+                ) {
+                    $product->currency = $prices['price']['currency'];
+                }
+
+                #convert and setup prices
+                foreach ($prices as $type => $price) {
+                    if (!empty($price['currency']) && ($price['currency'] != $product->currency)) {
+                        $sku[$type] = $this->convertPrice($price['value'], $price['currency'], $product->currency);
+                    } else {
+                        $sku[$type] = $price['value'];
+                    }
+                }
+
+                #read features
+                $features = array();
+                $params = array();
+                $xpath = '//ХарактеристикиТовара/ХарактеристикаТовара';
+                foreach ($this->xpath($element, $xpath) as $property) {
+                    $name = self::field($property, 'Наименование');
+                    switch ($name) {
+                        case "Модель":
+                            if ($sku_code = self::field($property, 'Значение')) {
+                                $sku['sku'] = $sku_code;
+                            }
+                            break;
+                        default:
+                            $value = self::field($property, 'Значение');
+                            $this->applyMapping($product, $features, $params, $name, $value, null, $xpath);
+                            break;
+                    }
+                }
+
+                if (!empty($features)) {
+                    $sku['features'] = $features;
+                }
+
+                if (empty($sku['sku']) && $product->sku_id && isset($skus[$product->sku_id])) {
+                    $sku['sku'] = $skus[$product->sku_id]['sku'];
+                }
+
+                # import stock counts
+                $stock = false;
+                if (isset($this->data['stock_map']) && !empty($this->data['stock_map'])) {
+                    $xpaths = array(
+                        '//Склад',
+                        '//ОстаткиПоСкладу', //*
+                        '//КоличествоНаСкладе', //**КоличествоНаСкладах/КоличествоНаСкладе
+                    );
+                    foreach ($xpaths as $xpath) {
+                        foreach ($this->xpath($element, $xpath) as $s) {
+                            $stock_uuid = self::attribute($s, 'ИдСклада');
+                            $_in_fields = false;
+                            if (empty($stock_uuid)) {
+                                $stock_uuid = self::field($s, 'ИдСклада');
+                                if ($stock_uuid) {
+                                    $_in_fields = true;
+                                }
+                            }
+                            if ($stock_uuid && isset($this->data['stock_map'][$stock_uuid])) {
+                                $stock_id = $this->data['stock_map'][$stock_uuid];
+                                if (is_array($stock_id)) {
+                                    $stock_id = $stock_id['stock_id'];
+                                }
+                                if ($stock_id >= 0) {
+                                    if ($_in_fields) {
+                                        $sku['stock'][$stock_id] = intval(self::field($s, 'Количество'));
+                                    } else {
+                                        $sku['stock'][$stock_id] = intval(self::attribute($s, 'КоличествоНаСкладе'));
+                                    }
+                                }
+                                $stock = true;
+                            }
+                        }
+                    }
+                }
+
+                if (!count($sku['stock']) && !$stock) {
+                    $sku['stock'][$this->data['stock_id']] = self::field($element, 'Количество', 'intval');
+                } elseif (!empty($this->data['stock_complement'])) {
+                    $sku['stock'] += array_fill_keys($this->data['stock_complement'], 0);
+                }
+
+                unset($sku);
+
+                #find & merge data
+                $this->mergeSkus($skus);
+
+                $delete_sku = false;
+                if (count($uuid) > 1 && (end($uuid) != reset($uuid))) {
+                    $count_sku = 0;
+                    $dummy_id = false;
+                    foreach ($skus as $id => $sku) {
+                        if ($sku['id_1c'] != $product['id_1c']) {
+                            ++$count_sku;
+                            if ($dummy_id) {
+                                break;
+                            }
+                        } elseif (($sku['count'] === null) && (!$sku['price'])) {
+                            $dummy_id = $id;
+                            if ($count_sku) {
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($count_sku && ($dummy_id !== false)) {
+                        $delete_sku = $skus[$dummy_id]['id'];
+                        unset($skus[$dummy_id]);
+                    }
+                }
+
+                $this->fixSkuBasePriceSelectable($product, $skus);
+                $product->skus = $skus;
+                shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_IMPORT, 'Обмен через CommerceML');
+
                 $product->save();
 
                 if ($delete_sku) {
@@ -4337,6 +4372,7 @@ SQL;
             } catch (waException $ex) {
                 ++$processed[self::STAGE_OFFER]['skip'];
                 $this->error(sprintf('Error during import product with Ид %s:%s', implode('#', $uuid), $ex->getMessage()));
+                $this->stepException(__METHOD__, $ex);
             }
             shopProductStocksLogModel::clearContext();
         } else {
@@ -5010,7 +5046,8 @@ SQL;
                 ++$count[self::STAGE_IMAGE];
             }
         } catch (waException $ex) {
-            $this->error(sprintf('Error during import product with Ид %s:%s', implode('#', $uuid), $ex->getMessage()));
+            $this->error(sprintf('Error during import product with Ид "%s": %s', implode('#', $uuid), $ex->getMessage()));
+            $this->stepException(__METHOD__, $ex);
             $target = 'skip';
         }
         ++$processed[$subject][$target];
