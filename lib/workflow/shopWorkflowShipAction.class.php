@@ -14,11 +14,11 @@ class shopWorkflowShipAction extends shopWorkflowAction
         $text = array();
         $params = array();
 
-        if ( ( $tracking = waRequest::post('tracking_number', '', 'string'))) {
+        if ( ( $tracking = waRequest::post('tracking_number', waRequest::param('tracking_number', '', waRequest::TYPE_STRING), 'string'))) {
             $text[] = _w('Tracking number').': '.htmlspecialchars($tracking);
             $params['tracking_number'] = $tracking;
         }
-        if ( ( $courier_id = waRequest::post('courier_id', null, 'int'))) {
+        if ( ( $courier_id = waRequest::post('courier_id', waRequest::param('courier_id', null, waRequest::TYPE_INT), 'int'))) {
             $courier_model = new shopApiCourierModel();
             $courier = $courier_model->getById($courier_id);
             if ($courier) {
