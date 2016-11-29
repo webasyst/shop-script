@@ -103,7 +103,8 @@ class shopFrontendCategoryAction extends shopFrontendAction
             foreach ($path as $row) {
                 $breadcrumbs[] = array(
                     'url' => wa()->getRouteUrl('/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $row['url'] : $row['full_url'])),
-                    'name' => $row['name']
+                    'name' => $row['name'],
+                    'category_id' => $row['id']
                 );
             }
             if ($breadcrumbs) {
