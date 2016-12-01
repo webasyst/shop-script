@@ -784,7 +784,7 @@ class shopYandexmarketPluginApiActions extends waActions
             # PICKUP delivery options
             foreach ($outlets as $outlet) {
                 if (true
-                    && (ifset($outlet['status']) == 'MODERATED')
+                    && (ifset($outlet['status']) != 'FAILED')
                     && (ifset($outlet['visibility']) != 'HIDDEN ')
                     && in_array(ifset($outlet['type']), array('MIXED', 'DEPOT'), true)
                 ) {
