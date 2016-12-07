@@ -140,6 +140,9 @@ class shopCheckoutShipping extends shopCheckout
                         if (!empty($rate['comment'])) {
                             $m['comment'] = $rate['comment'];
                         }
+                        if (isset($rate['custom_data'])) {
+                            $m['custom_data'] = $rate['custom_data'];
+                        }
                     } else {
                         $m['rates'] = array();
                         $m['rate'] = null;
