@@ -698,6 +698,11 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
             if ($features_map_changed) {
                 $this->pluginSettings('features_map', $features_map);
+                foreach ($features_map as $namespace => $targets) {
+                    foreach ($targets as $name => $target) {
+                        $this->data['features_map'][$namespace][$name]['target'] = $target;
+                    }
+                }
             }
         }
         if (!empty($this->data['expert'])) {
@@ -754,7 +759,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         $stock_map_changed = false;
         if ($stocks) {
             foreach ($stocks as $uuid => $stock_id) {
-                if (($uuid) && ($uuid != 'default') && ($stock_id != 0) && (ifset($stock_map[$uuid]) != $stock_id)) {
+                if (($uuid) && ($uuid != 'default') && (ifset($stock_map[$uuid]) != $stock_id)) {
                     $stock_map[$uuid] = $stock_id;
                     $stock_map_changed = true;
                 }
@@ -764,7 +769,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             $exists_stocks = $stock_model->getAll('id');
 
             foreach ($stock_map as $uuid => $stock_id) {
-                if (($stock_id != -1) && !isset($exists_stocks[$stock_id])) {
+                if (!in_array($stock_id, array(-1, 0)) && !isset($exists_stocks[$stock_id])) {
                     if (isset($this->data['stock_map'][$uuid])) {
                         unset($this->data['stock_map'][$uuid]);
                     }
@@ -1771,6 +1776,11 @@ HTML;
 
         if (empty($this->data['overview'])) {
             $source_stocks = $this->data['stock_map'];
+            foreach ($source_stocks as $uuid => $stock) {
+                if (empty($stock['met'])) {
+                    unset($source_stocks[$uuid]);
+                }
+            }
         } else {
             $source_stocks = array();
             $stock_map = $this->pluginSettings('stock_map');
@@ -1812,7 +1822,7 @@ HTML;
             }
 
             $exist = false;
-            $title = 'Остатки товаров по складам - блок <Склады>';
+            $title = 'Остатки товаров по складам — блок <Склады>';
             $title = htmlentities($title, ENT_QUOTES, waHtmlControl::$default_charset);
             $html .= <<<HTML
 <thead>
@@ -2393,10 +2403,10 @@ HTML;
 
         $w = &$this->writer;
         if (!$current_stage[self::STAGE_PRODUCT]) {
-            $this->data['map'][self::STAGE_PRODUCT] = shopCml1cPlugin::makeUuid();
+            $this->data['map']['catalogue_id'] = shopCml1cPlugin::makeUuid();
 
             $w->startElement('Каталог');
-            $w->writeElement('Ид', $this->data['map'][self::STAGE_PRODUCT]);
+            $w->writeElement('Ид', $this->data['map']['catalogue_id']);
             $w->writeElement('ИдКлассификатора', $this->data['map'][self::STAGE_OFFER]);
             $w->writeElement('Наименование', "Каталог товаров от ".date("Y-m-d H:i"));
             $this->writeOwner();
@@ -2451,7 +2461,7 @@ HTML;
 
             $w->writeElement('Ид', self::UUID_OFFER."#");
             $w->writeElement('Наименование', 'Пакет предложений');
-            $w->writeElement('ИдКаталога', $this->data['map'][self::STAGE_PRODUCT]);
+            $w->writeElement('ИдКаталога', $this->data['map']['catalogue_id']);
             $w->writeElement('ИдКлассификатора', $this->data['map'][self::STAGE_OFFER]);
 
             $this->writeOwner();
@@ -2725,12 +2735,21 @@ HTML;
             $w->startElement('Контрагенты');
 
             $w->startElement('Контрагент');
-            $w->writeElement('Ид', $order['contact_id']);
+            $guid = null;
             $c = null;
             if ($c_id = ifset($order['contact']['id'])) {
                 $c = new waContact($c_id);
+                $cml1c_field = $this->plugin()->getConfigParam('contact_guid');
+                if ($cml1c_field) {
+                    $guid = $c->get($cml1c_field);
+                }
             }
 
+            if (empty($guid)) {
+                $guid = $order['contact_id'];
+            }
+
+            $w->writeElement('Ид', $guid);
 
             $company_field = $this->pluginSettings('contact_company');
 
@@ -3006,7 +3025,7 @@ HTML;
             $fields[] = '`p`.`sku_id`';
             $fields = implode(",\n", $fields);
             $sql = <<<SQL
-SELECT 
+SELECT
   `s`.`id`,
   CONCAT(`p`.`id_1c`,"#",`s`.`id_1c`) `cml1c`,
   {$fields}
@@ -4045,10 +4064,17 @@ SQL;
         if (!isset($this->data['stock_map'][$id])) {
             $this->data['stock_map'][$id] = array();
         }
+
         $this->data['stock_map'][$id] += array(
             'stock_id' => -1,
-            'name'     => self::field($element, 'Наименование'),
+            'met'      => 1,
         );
+        $name = self::field($element, 'Наименование');
+        if (empty($this->data['stock_map'][$id]['name'])) {
+            $this->data['stock_map'][$id]['name'] = $this->guid2name($id, ifempty($name));
+        } elseif (!empty($name)) {
+            $this->data['stock_map'][$id]['name'] = $this->guid2name($id, ifempty($name));
+        }
         ++$processed[self::STAGE_STOCK]['analyze'];
         ++$current_stage[self::STAGE_STOCK];
         return true;
@@ -4184,7 +4210,8 @@ SQL;
         }
 
         $element = $this->element();
-        $uuid = explode('#', self::field($element, 'Ид'));
+        $uuid = array_filter(explode('#', self::field($element, 'Ид')), 'strlen');
+
         $product = $this->findProduct($uuid);
         if ($product->getId()) {
             try {
@@ -4738,7 +4765,7 @@ SQL;
          * xpath = /КоммерческаяИнформация/Каталог/Товары/Товар
          */
         $element = $this->element();
-        $uuid = explode('#', self::field($element, 'Ид'));
+        $uuid = array_filter(explode('#', self::field($element, 'Ид')), 'strlen');
 
         $subject = ((count($uuid) < 2) || (reset($uuid) == end($uuid))) ? self::STAGE_PRODUCT : self::STAGE_SKU;
 
@@ -4930,6 +4957,7 @@ SQL;
         }
         $sku_features = array();
         if ($features) {
+            //XXX Debug it!
             foreach ($this->getFeatureRelation(array_keys($features)) as $code) {
                 $sku_features[$code] = $features[$code];
                 unset($features[$code]);
