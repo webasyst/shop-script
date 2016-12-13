@@ -473,7 +473,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                         list($node, self::$read_method) = self::$node_name_map[$stage];
                         if (self::$read_method == 'next') {
                             $map = array_flip(self::$node_map);
-                            $path = ifset($map[$stage], '/').'/'.$node;
+                            $path = ifset($map[$stage], '/').'/'.implode('|', (array)$node);
                         } else {
                             $path = null;
                         }
@@ -488,7 +488,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
                             if ($this->read($method_, $path)) {
                                 if ($this->reader->nodeType == XMLReader::ELEMENT) {
-                                    if ($this->reader->name == $node) {
+                                    if (in_array($this->reader->name, (array)$node)) {
                                         ++$this->data['count'][$stage];
                                     }
                                 }
@@ -844,7 +844,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             case 'next':
                 if ($node) {
                     $base = explode('/', $node);
-                    $name = array_pop($base);
+                    $name = explode('|', array_pop($base));
                     $depth = count($base);
                     $base = implode('/', $base);
 
@@ -853,7 +853,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                         $path = implode('/', array_slice($this->path, 0, $depth));
                     } while ($result
                         && ($path == $base)
-                        && (($this->reader->nodeType != XMLReader::ELEMENT) || ($this->reader->name != $name))
+                        && (($this->reader->nodeType != XMLReader::ELEMENT) || (!in_array($this->reader->name, $name)))
                     );
                 } else {
                     $result = $this->reader->next();
@@ -884,7 +884,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
     private static $node_name_map = array(
         self::STAGE_CATEGORY => array('Группа', 'read'),
-        self::STAGE_FEATURE  => array('Свойство', 'next'),
+        self::STAGE_FEATURE  => array(array('Свойство', 'СвойствоНоменклатуры'), 'next'),
         self::STAGE_PRODUCT  => array('Товар', 'next'),
         self::STAGE_PRICE    => array('ТипЦены', 'next'),
         self::STAGE_STOCK    => array('Склад', 'next'),
@@ -3489,7 +3489,7 @@ SQL;
                         list($node, self::$read_method) = self::$node_name_map[$stage];
                         if (self::$read_method == 'next') {
                             $map = array_flip(self::$node_map);
-                            $path = ifset($map[$stage], '/').'/'.$node;
+                            $path = ifset($map[$stage], '/').'/'.implode('|', (array)$node);
                         } else {
                             $path = null;
                         }
@@ -3504,7 +3504,7 @@ SQL;
 
                             if ($this->read($method_, $path)) {
                                 if ($this->reader->nodeType == XMLReader::ELEMENT) {
-                                    if ($this->reader->name == $node) {
+                                    if (in_array($this->reader->name, (array)$node)) {
                                         ++self::$read_offset[$stage];
                                         if ($current_stage[$stage] < self::$read_offset[$stage]) {
                                             $result = $this->$method_name($current_stage, $count, $processed);
@@ -3682,9 +3682,11 @@ SQL;
     private function stepImportFeature(&$current_stage, &$count, &$processed)
     {
         $element = $this->element();
+        $id = self::field($element, 'Ид');
+        $name = self::field($element, 'Наименование');
         $data = array(
-            'id_1c'      => self::field($element, 'Ид'),
-            'name'       => self::field($element, 'Наименование'),
+            'id_1c'      => $id,
+            'name'       => $name,
             'values'     => array(),
             'type'       => null,
             'multiple'   => false,
@@ -3762,6 +3764,11 @@ SQL;
             'selectable' => false,
             'code'       => null,
         );
+        if ($multiple = self::field($element, 'Множественное')) {
+            if (in_array($multiple, array('true', true, 1, '1',), true)) {
+                $data['multiple'] = true;
+            }
+        }
         $types = $this->xpath($element, '//ТипЗначений');
         $type = reset($types);
         $t = self::field($type, 'Тип');
