@@ -122,16 +122,6 @@ $.extend($.importexport.plugins, {
             });
 
             /**
-             * delivery settings control
-             */
-            this.$form.find(':input[name$="\\[delivery\\]"]').change(function (event) {
-                /**
-                 * @this HTMLSelectElement
-                 */
-                self.helpers.toggle(self.$form.find('div.js-delivery-options, div.js-delivery-included'), event, this.value != 'false');
-            }).change();
-
-            /**
              * delivery price control
              */
             this.$form.find(':input[name$="\\[deliveryIncluded\\]"]').change(function (event) {
@@ -139,6 +129,17 @@ $.extend($.importexport.plugins, {
                  * @this HTMLInputElement
                  */
                 self.helpers.toggle(self.$form.find('div.js-delivery-included'), event, !this.checked);
+            }).change();
+
+            /**
+             * delivery settings control
+             */
+            this.$form.find(':input[name$="\\[delivery\\]"]').change(function (event) {
+                /**
+                 * @this HTMLSelectElement
+                 */
+                self.helpers.toggle(self.$form.find('div.js-delivery-options, div.js-delivery-included'), event, this.value != 'false');
+                self.$form.find(':input[name$="\\[deliveryIncluded\\]"]').change();
             }).change();
 
             this.$form.find('div.js-shipping-method :input[type="checkbox"][name$="\\[enabled\\]"]').change(function (event) {

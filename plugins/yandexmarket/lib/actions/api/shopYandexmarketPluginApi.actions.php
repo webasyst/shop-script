@@ -297,11 +297,19 @@ class shopYandexmarketPluginApiActions extends waActions
                         }
                     }
 
-                    $ord = new shopOrderModel();
-                    $ord->updateById($raw_order->id, $order);
+                    $order_model = new shopOrderModel();
+                    $order_model->updateById($raw_order->id, $order);
 
-                    $customer = new shopCustomerModel();
-                    $customer->updateFromNewOrder($raw_order->contact_id, $raw_order->id);
+                    if ($raw_order->contact_id) {
+                        $customer_model = new shopCustomerModel();
+                        $customer_data = array(
+                            'number_of_orders' => $order_model->countByField('contact_id', $raw_order->contact_id),
+                            'last_order_id'    => $order_model->select('MAX(id)')->where('contact_id = ?', $raw_order->contact_id)->fetchField(),
+                            'total_spent'      => $order_model->getTotalSalesByContact($raw_order->contact_id),
+                        );
+
+                        $customer_model->updateById($raw_order->contact_id, $customer_data);
+                    }
 
                     $params = $raw_order->id;
 
