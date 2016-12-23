@@ -1151,7 +1151,7 @@ class shopProductsCollection
             }
         }
 
-        $where = $this->where;
+        $where = array_filter(array_map('trim', $this->where), 'strlen');
 
         if ($where) {
             $sql .= " WHERE ".implode(" AND ", $where);
@@ -1865,7 +1865,10 @@ class shopProductsCollection
      */
     public function addWhere($condition)
     {
-        $this->where[] = $condition;
+        $condition = trim($condition);
+        if (strlen($condition)) {
+            $this->where[] = $condition;
+        }
         return $this;
     }
 
