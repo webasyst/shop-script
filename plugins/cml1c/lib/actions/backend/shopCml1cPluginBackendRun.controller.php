@@ -856,7 +856,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                         && (($this->reader->nodeType != XMLReader::ELEMENT) || (!in_array($this->reader->name, $name)))
                     );
                 } else {
-                    $result = $this->reader->next();
+                    $result = @$this->reader->next();
                 }
                 break;
             case 'read':
@@ -865,6 +865,11 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 break;
         }
         $this->path();
+        if (!$result) {
+            if ($error = $this->getXmlError(LIBXML_ERR_ERROR)) {
+                throw new waException($error);
+            }
+        }
         return $result;
     }
 
@@ -1541,7 +1546,10 @@ HTML;
             } else {
                 $target_params_ = $target_params;
                 $target_params_['disabled'] = 'disabled';
-                $target_params_['description'] .= 'Необходимо сохранить хотя бы один пример параметра в настройках товара';
+                $target_params_['description'] .= 'У товаров в вашем интернет-магазине нет ни одного дополнительного параметра. '
+                    .'Для того чтобы выбрать дополнительный параметр для импорта данных, сначала сохраните такой параметр в свойствах хотя бы одного товара на вкладке '
+                    .'«Описание и SEO» в поле «Дополнительные параметры», например:<br>'
+                    .'<tt>myparam=1</tt>';
                 $control .= waHtmlControl::getControl($target_control, 'target', $target_params_);
             }
             if (count($targets) > 1) {
@@ -1567,7 +1575,10 @@ HTML;
             } else {
                 $target_params_ = $target_params;
                 $target_params_['disabled'] = 'disabled';
-                $target_params_['description'] .= 'Необходимо сохранить хотя бы один пример параметра в настройках товара';
+                $target_params_['description'] .= 'У товаров в вашем интернет-магазине нет ни одного дополнительного параметра. '
+                    .'Для того чтобы выбрать дополнительный параметр для импорта данных, сначала сохраните такой параметр в свойствах хотя бы одного товара на вкладке '
+                    .'«Описание и SEO» в поле «Дополнительные параметры», например:<br>'
+                    .'<tt>myparam=1</tt>';
                 $control .= waHtmlControl::getControl($target_control, 'target', $target_params_);
             }
             if (count($targets) > 1) {
@@ -2378,15 +2389,35 @@ HTML;
         }
     }
 
-    protected function getXmlError()
+    protected function getXmlError($level = LIBXML_ERR_NONE)
     {
+
         $messages = array();
         $errors = libxml_get_errors();
         /**
          * @var LibXMLError[] $errors
          */
         foreach ($errors as $error) {
-            $messages[] = sprintf('#%d@%d:%d %s', $error->level, $error->line, $error->column, $error->message);
+            if ($error->level >= $level) {
+
+                switch ($error->level) {
+                    case LIBXML_ERR_FATAL:
+                        $_level = 'LIBXML_ERR_FATAL';
+                        break;
+                    case LIBXML_ERR_ERROR:
+                        $_level = 'LIBXML_ERR_ERROR';
+                        break;
+                    case LIBXML_ERR_WARNING:
+                        $_level = 'LIBXML_ERR_WARNING';
+                        break;
+                    case LIBXML_ERR_NONE:
+                        $_level = 'LIBXML_ERR_NONE';
+                        break;
+                    default:
+                        $_level = $error->level;
+                }
+                $messages[] = sprintf('%s at line %d row %d: %s', $_level, $error->line, $error->column, $error->message);
+            }
         }
         libxml_clear_errors();
         return implode("\n", $messages);
@@ -2693,8 +2724,10 @@ HTML;
             }
 
 
-            list($order['contact']['lastname'], $order['contact']['firstname']) = explode(' ', ifempty($order['contact']['name'], '-').' %', 2);
-            $order['contact']['firstname'] = preg_replace('/\s*%$/', '', $order['contact']['firstname']);
+            if (empty($order['contact']['lastname']) && empty($order['contact']['firstname'])) {
+                list($order['contact']['lastname'], $order['contact']['firstname']) = explode(' ', ifempty($order['contact']['name'], '-').' %', 2);
+                $order['contact']['firstname'] = preg_replace('/\s*%$/', '', $order['contact']['firstname']);
+            }
 
             $w = &$this->writer;
 
@@ -2762,7 +2795,6 @@ HTML;
                 $w->writeElement('Фамилия', $order['contact']['lastname']);
                 $w->writeElement('Имя', $order['contact']['firstname']);
 
-
                 $this->writeAddress($shipping_address_array, $shipping_address, 'АдресРегистрации');
 
             } else {
@@ -2775,28 +2807,33 @@ HTML;
                     $this->writeAddress($shipping_address_array, $shipping_address, 'ЮридическийАдрес');
                 }
 
-                $value = $this->getContactField($this->pluginSettings('contact_inn'), $order['contact'], $c);
-                if ($value !== null) {
-                    $w->writeElement('ИНН', $value);
-                }
-
-                $value = $this->getContactField($this->pluginSettings('contact_kpp'), $order['contact'], $c);
-                if ($value !== null) {
-                    $w->writeElement('КПП', $value);
-                }
-
-                $value = $this->getContactField($this->pluginSettings('contact_okpo'), $order['contact'], $c);
-                if ($value !== null) {
-                    $w->writeElement('ОКПО', $value);
-                }
-
-                $bank = array(
-                    'НомерСчета' => $this->getContactField($this->pluginSettings('contact_bank_account'), $order['contact'], $c),
-
-                    'СчетКорреспондентский' => $this->getContactField($this->pluginSettings('contact_bank_cor_account'), $order['contact'], $c),
-                    'Наименование'          => $this->getContactField($this->pluginSettings('contact_bank_name'), $order['contact'], $c),
-                    'БИК'                   => $this->getContactField($this->pluginSettings('contact_bank_bik'), $order['contact'], $c),
+                $contact_map = array(
+                    'ИНН'  => 'contact_inn',
+                    'КПП'  => 'contact_kpp',
+                    'ОКПО' => 'contact_okpo',
                 );
+                foreach ($contact_map as $target => $source) {
+                    if ($field = $this->pluginSettings('contact_inn')) {
+                        $value = $this->getContactField($field, $order['contact'], $c);
+                        if ($value !== null) {
+                            $w->writeElement($target, $value);
+                        }
+                        unset($value);
+                    }
+                }
+
+                $bank_map = array(
+                    'НомерСчета'            => 'contact_bank_account',
+                    'СчетКорреспондентский' => 'contact_bank_cor_account',
+                    'Наименование'          => 'contact_bank_name',
+                    'БИК'                   => 'contact_bank_bik'
+                );
+                $bank = array();
+                foreach ($bank_map as $target => $source) {
+                    if ($field = $this->pluginSettings($source)) {
+                        $bank[$target] = $this->getContactField($field, $order['contact'], $c);
+                    }
+                }
 
                 $bank = array_filter($bank);
                 if (count($bank) && !empty($bank['НомерСчета'])) {
@@ -2825,27 +2862,40 @@ HTML;
             $this->writeAddress($shipping_address_array, $shipping_address, 'Адрес', 'Адрес доставки');
 
             if ($c) {
-                $w->startElement('Контакты');
+                $contacts = array();
+
                 if ($field = $this->pluginSettings('contact_email')) {
                     if ($value = $c->get($field, 'default')) {
-                        $w->startElement('Контакт');
-                        $w->writeElement('Тип', 'Почта');
-                        $w->writeElement('Значение', $value);
-                        $w->endElement(/*Контакт*/);
+                        $contacts[] = array(
+                            'Тип'      => 'Почта',
+                            'Значение' => $value,
+                        );
                     }
                 }
 
                 if ($field = $this->pluginSettings('contact_phone')) {
                     if ($value = $c->get($field, 'default')) {
-                        $w->startElement('Контакт');
-                        $w->writeElement('Тип', 'ТелефонРабочий');
-                        $w->writeElement('Представление', $value);
-                        $w->writeElement('Значение', $value);
-                        $w->endElement(/*Контакт*/);
+                        $contacts[] = array(
+                            'Тип'           => 'ТелефонРабочий',
+                            'Представление' => $value,
+                            'Значение'      => $value,
+                        );
                     }
                 }
 
-                $w->endElement(/*Контакты*/);
+                if ($contacts) {
+                    $w->startElement('Контакты');
+                    foreach ($contacts as $contact) {
+                        $w->startElement('Контакт');
+                        foreach ($contact as $field => $value) {
+                            $w->writeElement($field, $value);
+                        }
+                        $w->endElement(/*Контакт*/);
+                    }
+                    $w->endElement(/*Контакты*/);
+                }
+
+
             }
             $w->endElement(/*Контрагент*/);
 
@@ -3055,7 +3105,10 @@ SQL;
                     }
 
                     #make sku uuid
-                    if ($product['sku_id'] == $map[$product['sku_id']]['sku_id']) {
+                    if (
+                        isset($map[$product['sku_id']]['sku_id'])
+                        && ($product['sku_id'] == $map[$product['sku_id']]['sku_id'])
+                    ) {
                         $sku_model = $this->getModel('productSkus');
                         /**
                          * @var shopProductSkusModel $sku_model
@@ -3324,21 +3377,25 @@ SQL;
 
     private function writeAddress($address, $full_address, $name = 'Адрес', $type = '')
     {
-        $this->writer->startElement($name);
-        if ($type) {
-            $this->writer->writeElement('Вид', $type);
-        }
-        $this->writer->writeElement('Представление', $full_address);
-
-        foreach ($address as $type => $field) {
-            if (!empty($field)) {
-                $this->writer->startElement('АдресноеПоле');
-                $this->writer->writeElement('Тип', $type);
-                $this->writer->writeElement('Значение', $field);
-                $this->writer->endElement(/*АдресноеПоле*/);
+        if (!empty($address) || !empty($full_address)) {
+            $this->writer->startElement($name);
+            if ($type) {
+                $this->writer->writeElement('Вид', $type);
             }
+            if (!empty($full_address)) {
+                $this->writer->writeElement('Представление', $full_address);
+            }
+
+            foreach ($address as $type => $field) {
+                if (!empty($field)) {
+                    $this->writer->startElement('АдресноеПоле');
+                    $this->writer->writeElement('Тип', $type);
+                    $this->writer->writeElement('Значение', $field);
+                    $this->writer->endElement(/*АдресноеПоле*/);
+                }
+            }
+            $this->writer->endElement(/*$name*/);
         }
-        $this->writer->endElement(/*$name*/);
     }
 
     /**
@@ -4308,7 +4365,7 @@ SQL;
                             break;
                         default:
                             $value = self::field($property, 'Значение');
-                            $this->applyMapping($product, $features, $params, $name, $value, null, $xpath);
+                            $this->applyMapping($product, $update_fields, $features, $params, $name, $value, null, $xpath);
                             break;
                     }
                 }
@@ -4538,88 +4595,90 @@ SQL;
         /**
          * xpath = /КоммерческаяИнформация/Каталог/Товары/Товар
          */
-        $element = $this->element();
-        $xpath = '//ХарактеристикиТовара/ХарактеристикаТовара';
-        foreach ($this->xpath($element, $xpath) as $property) {
-            $feature_name = self::field($property, 'Наименование');
-            $code = $this->findFeature($feature_name);
-            $data = array(
-                'code' => $code,
-                'name' => $feature_name,
-            );
-            $this->addFeatureMap($xpath, $feature_name, $data);
-        }
+        if ($element = $this->element()) {
+            $xpath = '//ХарактеристикиТовара/ХарактеристикаТовара';
+            foreach ($this->xpath($element, $xpath) as $property) {
+                $feature_name = self::field($property, 'Наименование');
+                $code = $this->findFeature($feature_name);
+                $data = array(
+                    'code' => $code,
+                    'name' => $feature_name,
+                );
+                $this->addFeatureMap($xpath, $feature_name, $data);
+            }
 
-        $xpath = '//ЗначенияСвойств/ЗначенияСвойства';
-        foreach ($this->xpath($element, $xpath) as $property) {
-            //Ид по Ид получать код фичи из карты или наименование
-            //Значение | ИдЗначения - undocumented feature?
-            $id = self::field($property, 'Ид');
-            $feature = ifset($this->data['map'][self::STAGE_FEATURE][$id]);
-            $feature_name = mb_strtolower($feature['name'], 'utf-8');
+            $xpath = '//ЗначенияСвойств/ЗначенияСвойства';
+            foreach ($this->xpath($element, $xpath) as $property) {
+                //Ид по Ид получать код фичи из карты или наименование
+                //Значение | ИдЗначения - undocumented feature?
+                $id = self::field($property, 'Ид');
+                $feature = ifset($this->data['map'][self::STAGE_FEATURE][$id]);
+                $feature_name = mb_strtolower($feature['name'], 'utf-8');
 
-            switch ($feature_name) {
-                case 'вид номенклатуры':
-                case 'вид товара':
-                    if (!$expert) {
+                switch ($feature_name) {
+                    case 'вид номенклатуры':
+                    case 'вид товара':
+                        if (!$expert) {
+                            break;
+                        }
+                    //no-break
+                    default:
+                        if ($feature['name']) {
+                            $code = $this->findFeature($feature['name'], $feature);
+
+                            $data = array(
+                                'code' => $code,
+                                'name' => $feature['name'],
+                            );
+
+                            $this->addFeatureMap($xpath, $feature['name'], $data);
+
+                        }
                         break;
-                    }
-                //no-break
-                default:
-                    if ($feature['name']) {
-                        $code = $this->findFeature($feature['name'], $feature);
+                }
+            }
+            /**
+             * xpath = ЗначенияРеквизитов/ЗначениеРеквизита Наименование/  = Значение/
+             */
+
+            $xpath = '//ЗначениеРеквизита';
+            foreach ($this->xpath($element, $xpath) as $property) {
+                $property_name = self::field($property, 'Наименование');
+                switch ($property_name) {
+                    case "Вес": //fixed feature
+                    case 'ВидНоменклатуры': // Товар/услуга или тип товаров
+                    case 'ОписаниеФайла':
+                    case 'ТипНоменклатуры':
+                        break;
+                    case "Полное наименование":
+                    case "ПолноеНаименование":
+                    case "НаименованиеПолное":
+
+                    case 'ОписаниеВФорматеHTML':
+                    case '___':
+                        //fields to ignore
+                        if (!$expert) {
+                            break;
+                        }
+                    //no break
+                    default:
+                        $code = $this->findFeature($property_name);
 
                         $data = array(
                             'code' => $code,
-                            'name' => $feature['name'],
+                            'name' => $property_name,
                         );
 
-                        $this->addFeatureMap($xpath, $feature['name'], $data);
-
-                    }
-                    break;
-            }
-        }
-        /**
-         * xpath = ЗначенияРеквизитов/ЗначениеРеквизита Наименование/  = Значение/
-         */
-
-        $xpath = '//ЗначениеРеквизита';
-        foreach ($this->xpath($element, $xpath) as $property) {
-            $property_name = self::field($property, 'Наименование');
-            switch ($property_name) {
-                case "Вес": //fixed feature
-                case 'ВидНоменклатуры': // Товар/услуга или тип товаров
-                case 'ОписаниеФайла':
-                case 'ТипНоменклатуры':
-                    break;
-                case "Полное наименование":
-                case "ПолноеНаименование":
-                case "НаименованиеПолное":
-
-                case 'ОписаниеВФорматеHTML':
-                case '___':
-                    //fields to ignore
-                    if (!$expert) {
+                        $this->addFeatureMap($xpath, $property_name, $data);
                         break;
-                    }
-                //no break
-                default:
-                    $code = $this->findFeature($property_name);
-
-                    $data = array(
-                        'code' => $code,
-                        'name' => $property_name,
-                    );
-
-                    $this->addFeatureMap($xpath, $property_name, $data);
-                    break;
+                }
             }
-        }
 
+
+            ++$processed[self::STAGE_PRODUCT]['analyze'];
+            unset($element);
+        }
         ++$current_stage[self::STAGE_PRODUCT];
-        ++$processed[self::STAGE_PRODUCT]['analyze'];
-        unset($element);
         return true;
     }
 
@@ -4645,7 +4704,7 @@ SQL;
         }
     }
 
-    private function applyMapping(&$product, &$features, &$params, $name, $value, $data, $xpath)
+    private function applyMapping(&$product, &$update_fields, &$features, &$params, $name, $value, $data, $xpath)
     {
 
         $result = false;
@@ -4694,7 +4753,7 @@ SQL;
                 }
             }
 
-            if (preg_match('@^(f|p|s):([^:]+)(:(.+))?$@', $target, $matches)) {
+            if (preg_match('@^(f|p|s|m):([^:]+)(:(.+))?$@', $target, $matches)) {
                 $field = $matches[1];
                 $code = $matches[2];
                 $dimension = ifset($matches[4]);
@@ -4706,6 +4765,7 @@ SQL;
             if ($dimension && !preg_match('@\d\s+\w+@', $value)) {
                 $value = doubleval($value).' '.$dimension;
             }
+
             if ($code) {
                 switch ($field) {
                     case 's':
@@ -4715,30 +4775,24 @@ SQL;
                     case 'm':
                         switch ($code) {
                             case 'type_name':
-                                if (!empty($this->data['update_product_fields']['tax_id'])) {
-                                    $value = $this->findType($value, $product);
-                                    if ($value) {
-                                        $product['type_id'] = $value;
-                                    }
+                                $value = $this->findType($value, $product);
+                                if ($value) {
+                                    $update_fields['type_id'] = $value;
                                 }
                                 break;
                             case 'tax_name':
-                                if (!empty($this->data['update_product_fields']['tax_id'])) {
-                                    $value = $this->findTax(array('name' => $value));
-                                    if ($value) {
-                                        $product['tax_id'] = $value;
-                                    }
+                                $value = $this->findTax(array('name' => $value));
+                                if ($value) {
+                                    $update_fields['tax_id'] = $value;
                                 }
                                 break;
                             case 'name':
+                            case 'summary':
+                            case 'description':
+                                $update_fields[$code] = $value;
+                                break;
                             case 'sku':
                             case 'sku_name':
-                            case 'description':
-                            case 'summary':
-                                if (!empty($this->data['update_product_fields'][$code])) {
-                                    $product[$code] = $value;
-                                }
-                                break;
                             default:
                                 $product[$code] = $value;
                                 break;
@@ -4760,6 +4814,28 @@ SQL;
         return $result;
     }
 
+    private function isRemapped($field)
+    {
+        if (!isset($this->data['remapped_main_fields'])) {
+            $this->data['remapped_main_fields'] = array();
+
+            foreach ($this->data['features_map'] as $namespaces) {
+                foreach ($namespaces as $data) {
+                    if (!empty($data['target'])) {
+                        $target = $data['target'];
+                        if (preg_match('@^(f|p|s|m):([^:]+)(:(.+))?$@', $target, $matches)) {
+                            if ($matches[1] == 'm') {
+                                $this->data['remapped_main_fields'][$matches[2]] = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return !empty($this->data['remapped_main_fields'][$field]);
+    }
+
     /**
      * @param $current_stage
      * @param $count
@@ -4778,6 +4854,7 @@ SQL;
 
         $product = $this->findProduct($uuid);
 
+
         $product['id_1c'] = reset($uuid);
 
         if (!isset($this->data['map'][self::STAGE_PRODUCT])) {
@@ -4792,44 +4869,33 @@ SQL;
             'type_id'     => null,
         );
 
+        if (!$this->isRemapped('summary')) {
+            $update_fields['summary'] = self::field($element, 'Описание');
+            if ($this->pluginSettings('description_is_html')) {
+                $update_fields['summary'] = htmlspecialchars($update_fields['summary'], ENT_NOQUOTES, 'utf-8');
+            }
+            if (!$this->isRemapped('description')) {
+                $update_fields['description'] = nl2br($update_fields['summary']);
+            }
+        }
+
+        $taxes = array();
+        foreach ($this->xpath($element, '//СтавкиНалогов/СтавкаНалога') as $tax) {
+            $taxes[] = $this->findTax(
+                array(
+                    'name' => self::field($tax, 'Наименование'),
+                    'rate' => self::field($tax, 'Ставка', 'doubleval'),
+                )
+            );
+        }
+        if (($tax = reset($taxes)) && !empty($tax['id']) && !$this->isRemapped('tax_name')) {
+            $update_fields['tax_id'] = $tax['id'];
+        }
+
         #fill product features data
 
         $features = array();
         $params = array();
-        $xpath = '//ХарактеристикиТовара/ХарактеристикаТовара';
-        foreach ($this->xpath($element, $xpath) as $property) {
-            //Ид
-            $feature_name = self::field($property, 'Наименование');
-            $value = self::field($property, 'Значение');
-            if (!$this->applyMapping($product, $features, $params, $feature_name, $value, null, $xpath)) {
-                $this->error(sprintf('Feature %s not found', $feature_name));
-            }
-        }
-
-        if (true) {
-            $xpath = '//ЗначенияСвойств/ЗначенияСвойства';
-            foreach ($this->xpath($element, $xpath) as $property) {
-                //Ид по Ид получать код фичи из карты или наименование
-                //Значение | ИдЗначения - undocumented feature?
-                $id = self::field($property, 'Ид');
-                $feature = ifset($this->data['map'][self::STAGE_FEATURE][$id]);
-                $value = self::field($property, array('Значение', 'ИдЗначения'));
-
-
-                switch (mb_strtolower($feature['name'], 'utf-8')) {
-                    case 'вид номенклатуры':
-                    case 'вид товара':
-                        //значение из справочника "номенклатурные группы"
-                        $update_fields['type_id'] = $this->findType($value, $product);
-                        break;
-                    default:
-                        if ($feature['name']) {
-                            $this->applyMapping($product, $features, $params, $feature['name'], $value, $feature, $xpath);
-                        }
-                        break;
-                }
-            }
-        }
 
         /**
          *
@@ -4865,12 +4931,6 @@ SQL;
             }
             $product->categories = $categories;
         }
-
-        $update_fields['summary'] = self::field($element, 'Описание');
-        $update_fields['description'] = nl2br($update_fields['summary']);
-        if ($this->pluginSettings('description_is_html')) {
-            $update_fields['summary'] = htmlspecialchars($update_fields['summary'], ENT_NOQUOTES, 'utf-8');
-        }
         $image_descriptions = array();
 
         /**
@@ -4896,21 +4956,21 @@ SQL;
                 case "Полное наименование":
                 case "ПолноеНаименование":
                 case "НаименованиеПолное":
-                    if (empty($this->data['expert'])) {
+                    if (!$this->isRemapped('summary')) {
                         if ($value = self::field($property, 'Значение')) {
                             $update_fields['summary'] = $value;
                         }
                         break;
                     }
                 case 'ОписаниеВФорматеHTML':
-                    if (empty($this->data['expert'])) {
+                    if (!$this->isRemapped('description')) {
                         if ($value = self::field($property, 'Значение')) {
                             $update_fields['description'] = $value;
                         }
                         break;
                     }
                 case 'ВидНоменклатуры': // Товар/услуга или тип товаров
-                    if (empty($this->data['expert'])) {
+                    if (!$this->isRemapped('type_name')) {
                         $value = self::field($property, 'Значение');
                         if (!in_array($value, array('Товар', 'Услуга'))) {
                             $update_fields['type_id'] = $this->findType($value, $product);
@@ -4927,23 +4987,10 @@ SQL;
 
                     if (!empty($this->data['expert'])) {
                         $value = self::field($property, 'Значение');
-                        $this->applyMapping($product, $features, $params, $property_name, $value, null, $xpath);
+                        $this->applyMapping($product, $update_fields, $features, $params, $property_name, $value, null, $xpath);
                     }
                     break;
             }
-        }
-
-        $taxes = array();
-        foreach ($this->xpath($element, '//СтавкиНалогов/СтавкаНалога') as $tax) {
-            $taxes[] = $this->findTax(
-                array(
-                    'name' => self::field($tax, 'Наименование'),
-                    'rate' => self::field($tax, 'Ставка', 'doubleval'),
-                )
-            );
-        }
-        if (($tax = reset($taxes)) && !empty($tax['id'])) {
-            $update_fields['tax_id'] = $tax['id'];
         }
 
         if ($code = $this->pluginSettings('base_unit')) {
@@ -4962,6 +5009,43 @@ SQL;
                 }
             }
         }
+
+        $xpath = '//ХарактеристикиТовара/ХарактеристикаТовара';
+        foreach ($this->xpath($element, $xpath) as $property) {
+            //Ид
+            $feature_name = self::field($property, 'Наименование');
+            $value = self::field($property, 'Значение');
+            if (!$this->applyMapping($product, $update_fields, $features, $params, $feature_name, $value, null, $xpath)) {
+                $this->error(sprintf('Feature %s not found', $feature_name));
+            }
+        }
+
+        if (true) {
+            $xpath = '//ЗначенияСвойств/ЗначенияСвойства';
+            foreach ($this->xpath($element, $xpath) as $property) {
+                //Ид по Ид получать код фичи из карты или наименование
+                //Значение | ИдЗначения - undocumented feature?
+                $id = self::field($property, 'Ид');
+                $feature = ifset($this->data['map'][self::STAGE_FEATURE][$id]);
+                $value = self::field($property, array('Значение', 'ИдЗначения'));
+
+
+                switch (mb_strtolower($feature['name'], 'utf-8')) {
+                    case 'вид номенклатуры':
+                    case 'вид товара':
+                        //значение из справочника "номенклатурные группы"
+                        $update_fields['type_id'] = $this->findType($value, $product);
+                        break;
+                    default:
+                        if ($feature['name']) {
+                            $this->applyMapping($product, $update_fields, $features, $params, $feature['name'], $value, $feature, $xpath);
+                        }
+                        break;
+                }
+            }
+        }
+
+
         $sku_features = array();
         if ($features) {
             //XXX Debug it!
@@ -5542,9 +5626,9 @@ SQL;
     private function getContactField($field, $contact, $c = null)
     {
         $value = null;
-        if (($field !== null) && isset($contact[$field]) && (trim($contact[$field]) !== '')) {
+        if (($field !== null) && is_array($contact) && isset($contact[$field]) && (trim($contact[$field]) !== '')) {
             $value = trim($contact[$field]);
-        } else {
+        } elseif ($c) {
             $value = $c->get($field);
         }
         return $value;
