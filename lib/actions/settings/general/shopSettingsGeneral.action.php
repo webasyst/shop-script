@@ -140,6 +140,8 @@ class shopSettingsGeneralAction extends waViewAction
             'name'         => waRequest::post('name', '', waRequest::TYPE_STRING_TRIM),
             'email'        => waRequest::post('email', '', waRequest::TYPE_STRING_TRIM),
             'phone'        => waRequest::post('phone', '', waRequest::TYPE_STRING_TRIM),
+            'skype'        => waRequest::post('skype', '', waRequest::TYPE_STRING_TRIM),
+            'icq'          => waRequest::post('icq', '', waRequest::TYPE_STRING_TRIM),
             'country'      => waRequest::post('country', '', waRequest::TYPE_STRING_TRIM),
             'order_format' => waRequest::post('order_format', '', waRequest::TYPE_STRING_TRIM),
             'use_gravatar' => waRequest::post('use_gravatar', '', waRequest::TYPE_INT),
