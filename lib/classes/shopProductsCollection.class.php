@@ -658,6 +658,33 @@ class shopProductsCollection
                         $this->group_by = 'p.id';
                     }
                     break;
+                case 'same':
+                    if(!$product->features[$row['feature']]) {
+                        // Если нет фичи, не можем подобрать связанные продукты.
+                        $this->where[] = '0';
+                        break;
+                    }
+
+
+                    if ($model->fieldExists($row['feature'])) {
+                        $this->where[] = 'p.'.$row['feature']." = '".$model->escape($product->features[$row['feature']])."'";
+                    } else {
+
+                        $feature_join_index++;
+                        $this->joins[] = array(
+                            'table' => 'shop_product_features',
+                            'alias' => 'pf'.$feature_join_index
+                        );
+                        $this->joins[] = array(
+                            'table' => 'shop_feature_values_varchar',
+                            'alias' => 'fvv'.$feature_join_index,
+                            'on'    => 'pf'.$feature_join_index.'.feature_value_id = fvv'.$feature_join_index.'.id'
+                        );
+                        $this->where[] = 'fvv'.$feature_join_index.".value = '".$model->escape($product->features[$row['feature']])."'";
+                        $this->where[] = 'fvv'.$feature_join_index.".feature_id = ".(int) $row['feature_id'];
+                        $this->group_by = 'p.id';
+                    }
+                    break;
                 case 'any':
                 case 'all':
                     if ($model->fieldExists($row['feature'])) {
