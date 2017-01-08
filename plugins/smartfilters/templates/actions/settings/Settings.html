@@ -1,0 +1,87 @@
+<style type="text/css">
+    #wa .CodeMirror{
+        border: 1px solid #eee;
+    }
+    .CodeMirror-scroll {
+        height: auto;
+        overflow-y: hidden;
+        overflow-x: auto;
+    }
+</style>
+
+<div class="block double-padded">
+    <h1>Smart Filters</h1>
+    <p>Для автоматического отображения фильтра во всех категориях настройте используемую тему (<a href="#" class="inline-link" onclick="if($('#tutorial').hasClass('opened')) $('#tutorial').removeClass('opened').fadeOut(); else $('#tutorial').addClass('opened').fadeIn();">инструкция</a>) и включите плагин.</p>
+    <div id="tutorial" class="block double-padded" style="border: 1px solid #ccc;display: none;margin-bottom: 20px">
+        <p>Для установки плагина оберните <code class="bold italic">{ldelim}$content{rdelim}</code> в <code class="bold italic">&lt;div <span class="red">id="smartfiltercontent"</span>&gt;...&lt;/div&gt;</code> в файле <code class="bold italic">content.html</code> используемой темы.</p>
+        <p>Пример для темы <span class="bold">CUSTOM</span>:<br><br>
+            <img src="{$wa_url}wa-apps/shop/plugins/smartfilters/img/example.png">
+        </p>
+    </div>
+    <p class="gray"><i class="icon16 exclamation"></i> Обратите внимание, данный плагин не замещает стандартные фильтры. Если Вы включили плагин вместе с фильтрами в категории, будут показаны оба блока.</p>
+    <p class="gray"><i class="icon16 exclamation"></i> Для автоматической отправки данных формы необходимо подключить библиотеку jQuery.</p>
+    <form id="sf-settings" method="post" action="?plugin=smartfilters&action=save">
+    <div class="field">
+        <div class="name">Включить фильтрацию</div>
+        <div class="value no-shift">
+            <select name="enabled">
+                <option value="0">нет</option>
+                <option value="1"{if $enabled} selected{/if}>да</option>
+            </select>
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">Шаблон фильтра<br><span class="hint">HTML + Smarty</span></div>
+        <div class="value no-shift">
+            <div id="s-editor-core-wrapper">
+                <textarea id="sf-template" class="body" name="template">{$template}</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="field">
+        <div class="name"></div>
+        <div class="value no-shift">
+            <input id="wa-design-button" type="submit" class="button green" value="Сохранить">
+            <span id="wa-editor-status-ok" style="margin-left: 20px;display: none">
+                <i style="vertical-align:middle" class="icon16 yes"></i> <span class="green bold"></span>
+            </span>
+            <span id="wa-editor-status-fail" style="margin-left: 20px;display: none">
+                <i style="vertical-align:middle" class="icon16 no"></i> <span class="red bold"></span>
+            </span>
+        </div>
+    </div>
+</form>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        var c = CodeMirror.fromTextArea(document.getElementById('sf-template'), {
+            mode: "text/html",
+            tabMode: "indent",
+            height: "dynamic",
+            lineWrapping: true
+        });
+        $("#sf-template").change(function() {
+            c.setValue($(this).val())
+        });
+        $("#sf-settings").submit(function () {
+            var f = $(this);
+            $.post(f.attr('action'), f.serialize(), function (response) {
+                if(response.status == 'ok') {
+                    $('#wa-design-button').removeClass('red').addClass('green');
+                    $("#wa-editor-status-fail").hide()
+                    $("#wa-editor-status-ok span").html(response.data.message);
+                    $("#wa-editor-status-ok").fadeIn('slow', function () {
+                        $(this).fadeOut(1000);
+                    });
+                } else {
+                    $('#wa-design-button').removeClass('green').addClass('red');
+                    $("#wa-editor-status-ok").hide();
+                    $("#wa-editor-status-fail span").html(response.errors.join(', '));
+                    $("#wa-editor-status-fail").fadeIn('slow');
+                }
+            }, "json")
+            return false;
+        });
+    });
+</script>

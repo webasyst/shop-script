@@ -1,0 +1,58 @@
+<style type="text/css">
+.smartfilter_disabled {
+    color:#888;
+}
+.smartfilter_loader {
+    width:100%;
+    height:200px;
+    background:url({$wa_url}wa-apps/shop/plugins/smartfilters/img/loader.gif) 50% 50% no-repeat;
+}
+</style>
+
+{if !empty($smartfilters)}
+<div class="filters" id="smartfilter">
+    <form method="get" action="?">
+        {foreach $smartfilters as $fid => $filter}
+        <p>
+            {if $fid == 'price'}
+            {$c = $wa->shop->currency(true)}
+            <b>[`Price`]</b><br>
+            [`from`] <input type="text" name="price_min" {if $wa->get('price_min')}value="{(int)$wa->get('price_min')}"{/if} placeholder="0">
+            [`to`] <input type="text" name="price_max" {if $wa->get('price_max')}value="{(int)$wa->get('price_max')}"{/if} placeholder="∞"> {$c.sign}
+            {else}
+            <b>{$filter.name|escape}</b><br>
+            {foreach $filter.values as $v_id => $v}
+            <label{if $filter.disabled[$v_id]} class="smartfilter_disabled"{/if}>
+                <input type="checkbox" name="{$filter.code}[]" {if in_array($v_id, (array)$wa->get($filter.code, array()))}checked{/if} value="{$v_id}"{if $filter.disabled[$v_id]} disabled{/if}> {$v}
+            </label><br>
+            {/foreach}
+            {/if}
+        </p>
+        {/foreach}
+        <input type="submit" value="Показать">
+    </form>
+</div>
+
+
+<script type="text/javascript">
+    $(function(){
+        var filter_change_timeoutId;
+        $("#smartfilter input").change(function() {
+            if(filter_change_timeoutId) clearTimeout(filter_change_timeoutId);
+            filter_change_timeoutId = setTimeout('$("#smartfilter form").submit();', 500)
+        });
+
+        $("#smartfilter form").submit(function () {
+            $('#product-list').html('<div class="smartfilter_loader"></div>');
+            var f = $(this);
+
+            $.get(f.attr('action'), f.serialize(), function (response) {
+                $('#smartfiltercontent').html(response);
+            })
+            return false;
+        });
+
+        $('#smartfilter input[type="submit"]').hide();
+    });
+</script>
+{/if}
