@@ -119,9 +119,11 @@ class shopCheckoutShipping extends shopCheckout
                             $r['rate'] = max($r['rate']);
                         }
 
+                        $r['currency'] = ifset($r['currency'], $m['currency']);
+
                         // Apply rounding. This converts all rates to current frontend currency.
-                        if ($r['rate'] && wa()->getSetting('round_shipping')) {
-                            $r['rate'] = shopRounding::roundCurrency(shop_currency($r['rate'], $m['currency'], $current_currency, false), $current_currency);
+                        if ($r['rate'] && (wa()->getSetting('round_shipping') || ($r['currency'] !== $current_currency))) {
+                            $r['rate'] = shopRounding::roundCurrency(shop_currency($r['rate'], $r['currency'], $current_currency, false), $current_currency);
                             $r['currency'] = $current_currency;
                         }
                     }
@@ -433,8 +435,8 @@ class shopCheckoutShipping extends shopCheckout
             if (is_array($result['rate'])) {
                 $result['rate'] = max($result['rate']);
             }
-            if ($currency != $current_currency) {
-                $result['rate'] = shop_currency($result['rate'], $currency, $current_currency, false);
+            if ($result['currency'] != $current_currency) {
+                $result['rate'] = shop_currency($result['rate'], $result['currency'], $current_currency, false);
             }
             // rounding
             if ($result['rate'] && wa()->getSetting('round_shipping')) {
