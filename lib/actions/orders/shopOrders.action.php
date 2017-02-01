@@ -16,7 +16,7 @@ class shopOrdersAction extends shopOrderListAction
         $workflow = new shopWorkflow();
         $actions = array();
         foreach ($workflow->getAvailableActions() as $action_id => $action) {
-            if (!isset($forbidden[$action_id]) && empty($action['internal'])) {
+            if (!isset($forbidden[$action_id]) && empty($action['internal']) && ifset($action['bulk'], true)) {
                 $actions[$action_id] = array(
                     'name' => ifset($action['name'], ''),
                     'style' => ifset($action['options']['style'])
