@@ -14,7 +14,7 @@ class shopSettingsSaveStockController extends waJsonController
         $stocks_order = waRequest::post('stocks_order');
         if ($stocks_order) {
             $sort = $iadd = $ivadd = 0;
-            foreach(explode(',', $stocks_order) as $id) {
+            foreach (explode(',', $stocks_order) as $id) {
                 if ($id && $id{0} == 'v') {
                     $id = substr($id, 1);
                     if ($id) {
@@ -22,7 +22,7 @@ class shopSettingsSaveStockController extends waJsonController
                             $virtualstocks_edit[$id] = array();
                         }
                         $virtualstocks_edit[$id]['sort'] = $sort;
-                    } else if (isset($virtualstocks_add[$ivadd])) {
+                    } elseif (isset($virtualstocks_add[$ivadd])) {
                         $virtualstocks_add[$ivadd]['sort'] = $sort;
                         $ivadd++;
                     }
@@ -32,7 +32,7 @@ class shopSettingsSaveStockController extends waJsonController
                             $stocks_edit[$id] = array();
                         }
                         $stocks_edit[$id]['sort'] = $sort;
-                    } else if (isset($stocks_add[$iadd])) {
+                    } elseif (isset($stocks_add[$iadd])) {
                         $stocks_add[$iadd]['sort'] = $sort;
                         $iadd++;
                     }

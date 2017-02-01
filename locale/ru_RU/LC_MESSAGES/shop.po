@@ -1922,7 +1922,7 @@ msgstr "Изменить тип товара"
 
 #: /wa-apps/shop/templates/actions/dialog/DialogTypes.html:8
 msgid "Changing product type may affect products' publication status and access settings."
-msgstr "Изменение типа товара может изменить статус публикакции и права доступа к этому товару."
+msgstr "Изменение типа товара может изменить статус публикации и права доступа к этому товару."
 
 #: /wa-apps/shop/templates/actions/backend/BackendProducts.html:151
 msgid "You have no product types in your online store. Create one in the store settings."
@@ -4848,7 +4848,7 @@ msgstr "Сохраните информацию о товаре, чтобы пр
 
 #: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:89
 msgid "A link to download attached file will be sent to customer in the order notification email. The link will be functional only when the order is paid."
-msgstr "Ссылка на загрузка файла будет отправлена покупателю в уведомлении о заказе и будет работать только в случае, если заказ был оплачен."
+msgstr "Ссылка на загрузку файла будет отправлена покупателю в уведомлении о заказе и будет работать только в случае, если заказ был оплачен."
 
 #: /wa-apps/shop/templates/actions/product/ProductSkuSettings.html:90
 msgid "Optional file description"
@@ -5274,7 +5274,7 @@ msgstr "Список параметров заказа может быть ра�
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:220
 msgid "An array containing information about the customer according to the Contacts app setup and your storefront’s checkout contact info form"
-msgstr "Массив данных покупателя в соответствии с настройками приложения Контакты и формы заполнения контактных данных при оформлении заказа"
+msgstr "Массив данных покупателя в соответствии с настройками приложения «Контакты» и формы заполнения контактных данных при оформлении заказа"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:228
 msgid "Customer full name"
@@ -5298,7 +5298,7 @@ msgstr "Номер телефона покупателя"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:268
 msgid "The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step"
-msgstr "Список доступных полей контакта определяется в бекенде магазина: Настройки &rarr; Оформление заказа &rarr; Контактная информация."
+msgstr "Список доступных полей контакта определяется в бекенде магазина: «Настройки &rarr; Оформление заказа &rarr; Контактная информация»."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:278
 msgid "Shipping address as string"
@@ -5637,7 +5637,7 @@ msgstr "В зависимости от выбранного значения п�
 
 #: /wa-apps/shop/lib/actions/settings/order_states/shopSettingsOrderStateDelete.controller.php:15
 msgid "Cannot delete order status while there are active orders in this status"
-msgstr "Невозможно удалить статус, т. к. есть заказы, находящиеся в этом стастусе."
+msgstr "Невозможно удалить статус, т. к. есть заказы, находящиеся в этом статусе."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:90
 msgid "If you want your customers to be prompted to read and agree to your company’s terms of service, refund and privacy policies or any other legal information during the checkout, enter the text to the field above. A checkbox to agree and a link to read this legal information will be shown on the Confirmation checkout step."
@@ -8639,7 +8639,7 @@ msgstr "Промо-карточки — это эффективный и оче�
 
 #: /wa-apps/shop/templates/actions/settings/SettingsCheckout.html:104
 msgid "Automated assignment of guest orders to existing customers will not work on following sites: <strong>%s</strong>. Due to privacy considerations, auto order assignment requires enabling “Confirm email on signup” option in <em>Site app > select your domain > Personal > Auth & Sign up settings</em>."
-msgstr "Автоматическое прикрепление заказов к существующим покупателям не будет работать на следующих сайтах: <strong>%s</strong>. Из соображений конфиденциальности функциональность автоматического прикрепления заказов будет работать только если для сайта включена настройка «Подтверждение email-адреса после регистрации» в приложении «Сайт» в разделе <em>Личный кабинет > Настройки авторизации</em>."
+msgstr "Автоматическое прикрепление заказов к существующим покупателям не будет работать на следующих сайтах: <strong>%s</strong>. Из соображений конфиденциальности функциональность автоматического прикрепления заказов будет работать, только если для сайта включена настройка «Подтверждение email-адреса после регистрации» в приложении «Сайт» в разделе <em>Личный кабинет > Настройки авторизации</em>."
 
 #: /wa-apps/shop/themes/default/home.html:228
 msgid "Latest blog updates"
@@ -10226,3 +10226,168 @@ msgstr "Введите значения, полученные при регис�
 
 msgid "Check <a target=\"_blank\" href=\"https://documentation.onesignal.com/docs/website-sdk-overview\">web push documentation</a> for the list of supported browsers."
 msgstr "Список поддерживаемых браузеров доступен на <a target=\"_blank\" href=\"https://documentation.onesignal.com/docs/website-sdk-overview\">странице документации</a>."
+
+msgid "Don't notify customer on this order editing"
+msgstr "Не отправлять уведомление покупателю об этом изменении заказа"
+
+msgid "hours after the order was set to state"
+msgstr "часов после перевода заказа в статус"
+
+msgid "Array of courier data"
+msgstr "Массив данных курьера"
+
+msgid "Array of data of a courier contact stored in Contacts app, if courier is linked to an existing contact"
+msgstr "Массив данных контакта курьера из приложения «Контакты», если курьер связан с существующим контактом"
+
+msgid "Courier contact's default email address"
+msgstr "Email-адрес контакта курьера"
+
+msgid "Courier contact's default phone number"
+msgstr "Номер телефона контакта курьера"
+
+#: /wa-apps/shop/templates/actions/orders/Orders.html:6
+msgid "<a href=\"https://www.shop-script.com/mobile/\">Mobile app</a> will help you to conveniently track sales, process orders, and manage products right on your iOS or Android-powered smartphone."
+msgstr "<a href=\"https://www.shop-script.ru/mobile/\">Мобильное приложение</a> позволит вам удобно следить за продажами, обрабатывать заказы и управлять товарами прямо на вашем смартфоне на базе iOS или Android."
+
+#: /wa-apps/shop/templates/actions/orders/Orders.html:11
+msgid "https://itunes.apple.com/us/app/shop-script/id1108957302?mt=8"
+msgstr "https://itunes.apple.com/ru/app/shop-script/id1108957302?mt=8"
+
+#: /wa-apps/shop/templates/actions/orders/Orders.html:12
+msgid "badge-appstore-en.png"
+msgstr "badge-appstore-ru.png"
+
+#: /wa-apps/shop/templates/actions/orders/Orders.html:14
+msgid "https://play.google.com/store/apps/details?id=com.shop_script"
+msgstr "https://play.google.com/store/apps/details?id=com.shop_script"
+
+#: /wa-apps/shop/templates/actions/orders/Orders.html:15
+msgid "badge-google-play-en.png"
+msgstr "badge-google-play-ru.png"
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPayment.html:66
+#: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:70
+msgid "You can remove settings or install the <a href=\"%s\" class=\"inline\">plugin</a>."
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/settings/SettingsPayment.html:68
+#: /wa-apps/shop/templates/actions/settings/SettingsShipping.html:72
+msgid "You can remove settings or install the plugin"
+msgstr ""
+
+#: /wa-apps/shop/templates/layouts/Backend.html:328
+msgid "An error occurred"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/csv/shopCsvProductupload.controller.php:42
+msgid "Primary SKU"
+msgstr "Основной артикул"
+
+#: /wa-apps/shop/lib/actions/settings/stock/shopSettingsStockDelete.controller.php:27
+msgid "Unknown destination stock"
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/workflow/shopWorkflowPrepare.controller.php:30
+msgid "Syntax Error in template for action \"%s\" in line %s \"%s\". Reason: %s."
+msgstr ""
+
+#: /wa-apps/shop/lib/actions/workflow/shopWorkflowPrepare.controller.php:32
+msgid "You can edit template <a href=\"?action=settings#/orderStates/\">order states settings</a>"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/my.order.php:53
+#: /wa-apps/shop/lib/config/site.php:375
+msgid "An array of action-dependent parameters, e.g. $action_data.params.tracking_number for Ship’s action tracking number"
+msgstr ""
+
+#: /wa-apps/shop/lib/config/site.php:248
+msgid "Current order status"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/RefundAction.html:5
+msgid "Attention: money will be returned to customer via payment gate"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/RefundAction.html:8
+msgid "Refund reason"
+msgstr ""
+
+#: /wa-apps/shop/lib/workflow/templates/RefundAction.html:8
+msgid "Customer decline order"
+msgstr ""
+
+#: /wa-apps/shop/templates/actions/backend/BackendOrders.html:17
+msgid "Get instant updates on your mobile device"
+msgstr "Все заказы — в вашем телефоне"
+
+#: /wa-apps/shop/templates/actions/csv/CsvProductsetup.export.html:115
+msgid "Export default SKU choice value"
+msgstr "Экспортировать значение выбора артикула по умолчанию"
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:130
+msgid "Order placed by a customer or created by an administrator in backend."
+msgstr "Оформление заказа на витрине или создание заказа администратором в бекенде магазина."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:140
+msgid "Execution of “Process” action in backend."
+msgstr "Выполнение действия «В обработку» в бекенде магазина."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:156
+msgid "Execution of “Sent” action in backend."
+msgstr "Выполнение действия «Отправлен» в бекенде магазина."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:166
+msgid "Execution of “Delete” action in backend."
+msgstr "Выполнение действия «Удалить» в бекенде магазина."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:173
+msgid "Execution of “Refund” action in backend."
+msgstr "Выполнение действия «Возврат» в бекенде магазина."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:174
+msgid "Saving of changes made in an edited order in backend."
+msgstr "Сохранение изменений в заказе после его редактирования в бекенде магазина."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:175
+msgid "Execution of “Restore” action in backend."
+msgstr "Выполнение действия «Восстановить» в бекенде магазина."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:176
+msgid "Execution of “Mark as Completed” action in backend."
+msgstr "Выполнение действия «Выполнить» в бекенде магазина."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:177
+msgid "Sending of a message to a customer by an administrator in backend."
+msgstr "Отправка сообщения клиенту администратором из бекенда магазина."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:178
+msgid "Adding of a comment to an order by an administrator in backend."
+msgstr "Добавление комментария к заказу администратором в бекенде магазина."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:181
+msgid "Merging of an order without an ID, which was paid via a mobile terminal, with another order in backend."
+msgstr "Объединение оплаченного через мобильный терминал заказа без номера с другим заказом администратором в бекенде."
+
+#: /wa-apps/shop/templates/actions/reports/ReportsCustomers.html:140
+msgid "The total of orders placed by customers who initially came to your online store from %s website. Whether those customers came again from other websites to place their subsequent orders is not taken into account."
+msgstr "Сумма заказов, оформленных покупателями, которые впервые перешли на витрину магазина с сайта %s. Переходы этих покупателей на витрину магазина с других сайтов для оформления последующих заказов не учитываются."
+
+#: /wa-apps/shop/templates/actions/reports/sales_report_rows.html:16
+msgid "The total of orders placed by customers upon coming from %s website. The initial traffic sources of the customers who placed these orders are not taken into account."
+msgstr "Сумма заказов, оформленных после перехода на витрину магазина с сайта %s. Первоначальный источник перехода на витрину покупателей, оформивших такие заказы, не учитывается."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:189
+msgid "Registration of an automatic callback from a payment gateway; e.g., to update the order status. Depending on the callback result, additionally action “Paid” may be called afterwards."
+msgstr "Получение автоматического запроса от платежной системы (например, для обновления статуса заказа). В зависимости от результата запроса дополнительно к нему может быть выполнено действие «Оплачен»."
+
+#: /wa-apps/shop/lib/actions/settings/notifications/shopSettingsNotificationsAdd.action.php:191
+msgid "Execution of “Paid” action manually in backend or automatically by a callback from a payment gateway."
+msgstr "Выполнение действия «Оплачен» в бекенде магазина либо в результате автоматического запроса (callback) платежной системы."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:175
+msgid "Select an online map engine in Installer app‘s “<a href=\"%s\">Settings</a>” screen."
+msgstr "Выберите тип онлайн-карт в разделе «<a href=\"%s\">Настройки</a>» приложения «Инсталлер»."
+
+#: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:177
+msgid "To select an online map engine, you need access to Installer app‘s “Settings” screen."
+msgstr "Для выбора типа онлайн-карт необходим доступ к разделу «Настройки» приложения «Инсталлер»."

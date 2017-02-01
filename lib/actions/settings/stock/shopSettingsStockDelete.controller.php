@@ -24,7 +24,7 @@ class shopSettingsStockDeleteController extends waJsonController
         if (waRequest::post('delete_stock') == '1') {
             $dst_stock = waRequest::post('dst_stock', null, waRequest::TYPE_INT);
             if (!$dst_stock) {
-                $this->errors[] = _w("Unknow destination stock");
+                $this->errors[] = _w("Unknown destination stock");
                 return;
             }
         }

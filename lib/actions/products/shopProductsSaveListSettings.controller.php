@@ -302,7 +302,7 @@ class shopProductsSaveListSettingsController extends waJsonController
         $params = array();
         if (!empty($data['params'])) {
             foreach (explode("\n", $data['params']) as $param_str) {
-                $param = explode('=', $param_str);
+                $param = explode('=', $param_str, 2);
                 if (count($param) > 1) {
                     $params[$param[0]] = trim($param[1]);
                 }

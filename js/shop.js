@@ -148,12 +148,18 @@
             }
         },
 
-        jsonPost: function(url, data, success, error) {
+        jsonPost: function(url, data, success, error, always) {
             if (typeof data === 'function') {
                 success = data;
                 error = success;
+                always = error;
+                data = {};
             }
-            var xhr = $.post(url, data, function(r) {
+            var xhr = $.post(url, data, 'json');
+            if (always) {
+                xhr.always(always);
+            }
+            xhr.success(function(r) {
                 if (r.status != 'ok') {
                     if (typeof error === 'function') {
                         if (error(r) !== false) {
@@ -167,7 +173,7 @@
                 if (typeof success === 'function') {
                     success(r);
                 }
-            }, 'json');
+            });
             if (typeof error === 'function') {
                 xhr.error(function(r) {
                     if (error(r) !== false) {
@@ -249,7 +255,7 @@
          * @param function|string delegate_context
          * @returns jQuery object el
          */
-        changeListener: function(el, handler, delegate_context) {
+        changeListener: function(el, handler, delegate_context, ns) {
 
             if (typeof delegate_context === 'function' && typeof handler === 'string') {
                 var swap = delegate_context;
@@ -259,7 +265,7 @@
 
             var timeout = 450;
             var timer_id = null;
-            var ns = 'change_listener';
+            ns = ns || 'change_listener';
             var keydown_handler = function() {
                 var item = this;
                 if (timer_id) {

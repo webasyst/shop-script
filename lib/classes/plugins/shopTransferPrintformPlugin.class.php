@@ -20,8 +20,6 @@ abstract class shopTransferPrintformPlugin extends shopPlugin implements shopPri
         );
     }
 
-
-
     /**
      * @return string
      */
@@ -71,7 +69,7 @@ abstract class shopTransferPrintformPlugin extends shopPlugin implements shopPri
     {
         if (is_numeric($data)) {
             $transfer = $this->getTransfer((int) $data);
-        } else if (is_array($data)) {
+        } elseif (is_array($data)) {
             $transfer = $data;
         } else {
             $transfer = $this->getTransfer(0);
@@ -109,7 +107,6 @@ abstract class shopTransferPrintformPlugin extends shopPlugin implements shopPri
         $data = array(
             'transfer' => $transfer,
             'settings' => $this->getSettings(),
-            'transfer' => $transfer,
             'skus' => $skus,
             'products' => $products,
             'from_stock' => $from_stock,

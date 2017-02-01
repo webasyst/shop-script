@@ -353,6 +353,7 @@ $.order_edit = {
         if (this.form && this.form.length) {
 
             var orderSaveSubmit = function () {
+
                 var form = $(this);
                 if (orderSaveSubmit.xhr) {
                     return false;
@@ -371,19 +372,17 @@ $.order_edit = {
                     $('.s-order-items-edit td.save i.loading').css('display', 'inline-block');
                     form.find('[type=submit]').attr('disabled', true);
 
+                    var onAlwaysSubmit = function () {
+                        orderSaveSubmit.xhr = null;
+                        form.find('[type=submit]').attr('disabled', false);
+                        $('.s-orders-services input:disabled', form).attr('disabled', false);
+                        $('.s-order-items-edit td.save i.loading').css('display', 'none');
+                    };
                     if ($.order_edit.id) {
-                        orderSaveSubmit.xhr = $.order_edit.editSubmit();
+                        orderSaveSubmit.xhr = $.order_edit.editSubmit(onAlwaysSubmit);
                     } else {
-                        orderSaveSubmit.xhr = $.order_edit.addSubmit();
+                        orderSaveSubmit.xhr = $.order_edit.addSubmit(onAlwaysSubmit);
                     }
-
-                    orderSaveSubmit.xhr.always(
-                        function () {
-                            orderSaveSubmit.xhr = null;
-                            form.find('[type=submit]').attr('disabled', false);
-                            $('.s-order-items-edit td.save i.loading').css('display', 'none');
-                        }
-                    )
                 }
                 return false;
             };
@@ -623,24 +622,25 @@ $.order_edit = {
         $("#total").text($.order_edit.formatFloat(Math.round(total * 100) / 100));
     },
 
-    editSubmit : function() {
+    editSubmit : function(always) {
         var form = this.form;
         return $.shop.jsonPost(
             form.attr('action'),
             form.serialize(),
             function(r) {
                 $.order_edit.container.find('.back').click();
-            }, function(r) {
+            },
+            function(r) {
                 $.shop.trace('editSubmit', r);
                 if (r && r.errors && !$.isEmptyObject(r.errors)) {
                     $.order_edit.showValidateErrors(r.errors);
-                    $('.s-orders-services input:disabled', this.form).attr('disabled', false);
                 }
-            }
+            },
+            always
         );
     },
 
-    addSubmit : function() {
+    addSubmit : function(always) {
         var form = this.form;
         $.shop.trace('addSubmit', $(form));
         return $.shop.jsonPost(
@@ -655,9 +655,9 @@ $.order_edit = {
                 $.shop.trace('addSubmit', r);
                 if (r && r.errors && !$.isEmptyObject(r.errors)) {
                     $.order_edit.showValidateErrors(r.errors);
-                    $('.s-orders-services input:disabled', this.form).attr('disabled', false);
                 }
-            }
+            },
+            always
         );
     },
 

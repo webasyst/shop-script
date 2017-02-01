@@ -493,11 +493,13 @@
 
             if (!this.product_id) {
 
-                var addNewOption = function() {
-                    var row = container.find('.s-services-variant:last').clone();
+                var addNewOption = function () {
+                    var original = container.find('.s-services-variant:last');
+                    var row = original.clone();
+
                     row.find('input[name=name\\[\\]]').val('');
                     row.find('input[name=variant\\[\\]]').val(0);
-                    row.find('.s-services-type-of-price input[type=radio]').each(function() {
+                    row.find('.s-services-type-of-price input[type=radio]').each(function () {
                         var item = $(this);
                         var index = item.attr('name').replace('type_of_price_', '');
                         item.attr('name', 'type_of_price_' + (index + 1));
@@ -505,6 +507,8 @@
                     var input = row.find('input[name=default]');
                     input.attr('checked', false);
                     input.val((parseInt(input.val()) || 0) + 1);
+                    var currency = original.find('select.s-service-currency').val();
+                    row.find('select.s-service-currency').val(currency);
                     $(this).parents('tr:first').before(row);
                 };
 

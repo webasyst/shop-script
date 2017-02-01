@@ -173,14 +173,8 @@ HTML;
 
         $settings = $config->getCheckoutSettings();
         $form_fields = ifset($settings['contactinfo']['fields'], array());
-
-
-        $map_adapter = $config->getGeneralSettings('map');
-        if (!$map_adapter) {
-            $map_adapter = 'google';
-        }
         try {
-            $map = wa()->getMap($map_adapter)->getHTML(shopHelper::getShippingAddressText($params), array(
+            $map = wa()->getMap()->getHTML(shopHelper::getShippingAddressText($params), array(
                 'width'  => '200px',
                 'height' => '200px',
                 'zoom'   => 13,
@@ -254,6 +248,11 @@ HTML;
             $courier = $courier_model->getById($params['courier_id']);
         }
 
+        if (!empty($order['params']['storefront'])) {
+            $idna = new waIdna();
+            $order['params']['storefront_decoded'] = $idna->decode($order['params']['storefront']);
+        }
+
         $this->view->assign(array(
             'customer'             => $customer,
             'customer_contact'     => $customer_contact,
@@ -307,7 +306,7 @@ HTML;
             return _w('Backend');
         } elseif ($params['sales_channel'] == 'buy_button:') {
             return _w('Buy button');
-        } else if (substr($params['sales_channel'], 0, 11) == 'storefront:') {
+        } elseif (substr($params['sales_channel'], 0, 11) == 'storefront:') {
             return _w('Storefront');
         } else {
             $result = array(

@@ -259,15 +259,18 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
 
         // Fetch actual values from shop_feature_values_* tables
         foreach ($storages as $type => $value_ids) {
-            $model = shopFeatureModel::getValuesModel($type);
-            $feature_values = $model->getValues('id', $value_ids);
-            foreach ($feature_values as $feature_id => $values) {
-                if (isset($features[$feature_id])) {
-                    $f = $features[$feature_id];
-                    $result[$f['code']] = ($sku_id || empty($f['multiple'])) ? reset($values) : $values;
-                } else {
-                    //obsolete feature value
+            if ($model = shopFeatureModel::getValuesModel($type)) {
+                $feature_values = $model->getValues('id', $value_ids);
+                foreach ($feature_values as $feature_id => $values) {
+                    if (isset($features[$feature_id])) {
+                        $f = $features[$feature_id];
+                        $result[$f['code']] = ($sku_id || empty($f['multiple'])) ? reset($values) : $values;
+                    } else {
+                        //obsolete feature value
+                    }
                 }
+            } else {
+                waLog::log(sprintf('Feature model for type %s not found', $type), 'shop/features.error.log');
             }
         }
 
@@ -304,7 +307,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
          */
         foreach ($codes as $code) {
             if (isset($product->features_selectable[$code])) {
-                $data[$code]=array();
+                $data[$code] = array();
             }
         }
 

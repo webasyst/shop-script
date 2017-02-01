@@ -736,12 +736,24 @@ class shopOrdersCollection
         array_pop($this->where);
 
         // than calculate offset. Not in effective way, but in easy and accurate way
-        $sql = "SELECT o.id ".$this->getSQL() . ' LIMIT 0, 500';
-        $list = $model->query($sql)->fetchAll(null, true);
-        $offset = (int) array_search($order['id'], $list);
+        $order_offset = false;
+        $total_count = $this->count();
+        $limit = 500;
+        $number_of_tries = floor($total_count / $limit) + 1;
+        for ($try = 0; $try < $number_of_tries; $try += 1) {
+            $offset = $try * $limit;
+            $sql = "SELECT o.id ".$this->getSQL() . " LIMIT {$offset}, {$limit}";
+            $list = $model->query($sql)->fetchAll(null, true);
+            $order_offset = array_search($order['id'], $list);
+            if ($order_offset !== false) {
+                $order_offset += $offset;
+                break;
+            }
+        }
 
-        return $offset;
 
+
+        return (int) $order_offset;
     }
 
     protected function searchPrepare($query, $auto_title = true)
@@ -978,7 +990,7 @@ class shopOrdersCollection
             }
             switch ($field) {
                 case 'updated':
-                    $this->order_by = "IFNULL(update_datetime, create_datetime) {$order}";
+                    $this->order_by = "IFNULL(o.update_datetime, o.create_datetime) {$order}";
                     break;
                 case 'amount':
                     if ($param !== null) {

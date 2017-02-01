@@ -39,6 +39,7 @@ class shopCsvProductuploadController extends shopUploadController
                 'skus:-1:compare_price'  => _w('Compare at price'),
                 'skus:-1:purchase_price' => _w('Purchase price'),
                 'skus:-1:stock:0'        => _w('In stock'),
+                'skus:-1:_primary'        => _w('Primary SKU'),
             ),
             'sku_custom_fields'     => array(),
         );
@@ -80,7 +81,7 @@ class shopCsvProductuploadController extends shopUploadController
             );
 
             $white_list = array(
-                'id_1c' => 'Идентификатор 1C',
+                'id_1c' => 'Идентификатор 1С',
             );
 
             //XXX add callback for custom fields

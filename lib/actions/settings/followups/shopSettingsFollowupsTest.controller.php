@@ -24,12 +24,12 @@ class shopSettingsFollowupsTestController extends waJsonController
             $this->errors = _w('Order not found');
             return;
         }
-        $ords = array(
+        $orders = array(
             $o['id'] => $o
         );
-        shopHelper::workupOrders($ords, false);
-        $o = $ords[$o['id']];
-        unset($ords);
+        shopHelper::workupOrders($orders, false);
+        $o = $orders[$o['id']];
+        unset($orders);
 
         $opm = new shopOrderParamsModel();
         $o['params'] = $opm->get($order_id);

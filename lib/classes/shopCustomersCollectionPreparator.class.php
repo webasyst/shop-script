@@ -77,6 +77,7 @@ class shopCustomersCollectionPreparator
 
     protected  function addHaving($condition)
     {
+        $this->collection->setGroupBy('c.id');
         return $this->collection->addHaving($condition);
     }
 

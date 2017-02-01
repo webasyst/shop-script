@@ -120,19 +120,12 @@ class shopConfig extends waAppConfig
             foreach ($result as $plugin_id => $routing_rules) {
                 if ($routing_rules) {
                     $plugin = str_replace('-plugin', '', $plugin_id);
-                    /*
-                     if ($url_type == 0) {
-                     $routing_rules = $routing_rules[0];
-                     } else {
-                     $routing_rules = $routing_rules[1];
-                     }
-                     */
                     foreach ($routing_rules as $url => & $route) {
                         if (!is_array($route)) {
                             list($route_ar['module'], $route_ar['action']) = explode('/', $route);
                             $route = $route_ar;
                         }
-                        if (!array_key_exists('plugin', $route)) {
+                        if ($plugin !== $plugin_id && !array_key_exists('plugin', $route)) {
                             $route['plugin'] = $plugin;
                         }
                         $all_plugins_routes[$url] = $route;

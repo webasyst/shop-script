@@ -7,9 +7,6 @@ class shopPushnotificationEnableMethod extends shopApiMethod
     public function execute()
     {
         $this->response = 'ok';
-        if ($this->courier) {
-            return;
-        }
 
         $client_id = waRequest::post('client_id', '', 'string');
         if (!strlen($client_id)) {
@@ -31,6 +28,8 @@ class shopPushnotificationEnableMethod extends shopApiMethod
 
         $push_client_model->insert(array(
             'contact_id' => wa()->getUser()->getId(),
+            'create_datetime' => date('Y-m-d H:i:s'),
+            'api_token' => waRequest::request('access_token', '', 'string'),
             'client_id' => $client_id,
             'shop_url' => $shop_url,
         ), 1);

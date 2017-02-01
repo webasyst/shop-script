@@ -135,7 +135,11 @@
             </thead>
             <tbody>
                 {foreach $table_data as $row}{strip}
-                    <tr class="{if $row.is_campaign}s-tr-campaign{else}s-tr-source{/if}">
+                    <tr class="{if $row.is_campaign}s-tr-campaign{else}s-tr-source{/if}"
+                        {if !empty($row.name)}
+                            title="{$row.name|string_format:'[`The total of orders placed by customers who initially came to your online store from %s website. Whether those customers came again from other websites to place their subsequent orders is not taken into account.`]'|escape}"
+                        {/if}
+                    >
                         {$cac = $row.cost*999}
                         {$arpu = 0}
                         {$ampu = 0}

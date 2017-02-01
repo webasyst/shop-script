@@ -25,7 +25,10 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
         // Ignore hidden subfields of an address. Pretend they don't even exist.
         $subfields = array();
         $fields_unsorted['address'] = clone $fields_unsorted['address'];
-        foreach($fields_unsorted['address']->getFields() as $sf) {
+        foreach ($fields_unsorted['address']->getFields() as $sf) {
+            /**
+             * @var waContactField $sf
+             */
             if (!$sf instanceof waContactHiddenField) {
                 $subfields[$sf->getId()] = $sf;
             }
@@ -42,7 +45,7 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
         // Clone contact field objects and load shop config parameters into them
         $fields = array();
         $config_fields = ifempty($config['fields'], array());
-        foreach($config_fields as $fld_id => $opts) {
+        foreach ($config_fields as $fld_id => $opts) {
 
             // Skip hidden fields (they are shown as 'disabled')
             if (!empty($opts['hidden'])) {
@@ -60,12 +63,16 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
             $fields[$fld_id] = clone $fields_unsorted[$real_fld_id];
 
             // Load shop config parameters into cloned field
-            foreach($opts as $k => $v) {
+            foreach ($opts as $k => $v) {
 
                 // Clone subfields of a composite field
                 if ($fields[$fld_id] instanceof waContactCompositeField && $k == 'fields') {
                     $cloned_subfields = array();
-                    foreach($fields[$fld_id]->getFields() as $sf) {
+                    foreach ($fields[$fld_id]->getFields() as $sf) {
+
+                        /**
+                         * @var waContactField $sf
+                         */
                         $sf = clone $sf;
                         $cloned_subfields[$sf->getId()] = $sf;
                         if (is_array($v)) {
@@ -85,7 +92,7 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
         }
 
         // Add to $fields everything that were not specified in shop config
-        foreach($fields_unsorted as $fld_id => $f) {
+        foreach ($fields_unsorted as $fld_id => $f) {
             if (empty($fields[$fld_id])) {
                 $fields[$fld_id] = clone $f;
                 $fields[$fld_id]->setParameter('_disabled', true);
@@ -94,46 +101,55 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
 
         // Address fields are shown separately
         $address = $fields['address'];
+        /**
+         * @var waContactCompositeField $address
+         */
         $billing_address = $fields['address.billing'];
         $shipping_address = $fields['address.shipping'];
+        /**
+         * @var waContactCompositeField $shipping_address
+         */
         unset($fields['address.billing'], $fields['address.shipping'], $fields['address']);
         $shipbill_address = array();
         $shipbill_address['ship'] = array(
-            'short_id' => 'ship',
-            'id' => 'address.shipping',
-            'name' => _w('Shipping address prompt'),
-            'f' => $shipping_address,
-            'subfields' => array(),
+            'short_id'             => 'ship',
+            'id'                   => 'address.shipping',
+            'name'                 => _w('Shipping address prompt'),
+            'f'                    => $shipping_address,
+            'subfields'            => array(),
             'show_custom_settings' => false,
         );
         $shipbill_address['bill'] = array(
-            'short_id' => 'bill',
-            'id' => 'address.billing',
-            'name' => _w('Billing address prompt'),
-            'f' => $billing_address,
-            'subfields' => array(),
+            'short_id'             => 'bill',
+            'id'                   => 'address.billing',
+            'name'                 => _w('Billing address prompt'),
+            'f'                    => $billing_address,
+            'subfields'            => array(),
             'show_custom_settings' => false,
         );
         $address_subfields = $address->getFields();
-        foreach($address_subfields as $sf) {
+        foreach ($address_subfields as $sf) {
             $sfa = array(
-                'id' => $sf->getId(),
-                'name' => $sf->getName(),
+                'id'      => $sf->getId(),
+                'name'    => $sf->getName(),
                 'enabled' => false,
-                'f' => $sf,
+                'f'       => $sf,
             );
             $shipbill_address['ship']['subfields'][$sf->getId()] = $sfa;
             $shipbill_address['bill']['subfields'][$sf->getId()] = $sfa;
         }
 
-        foreach($shipping_address->getFields() as $sf) {
+        foreach ($shipping_address->getFields() as $sf) {
+            /**
+             * @var waContactField $sf
+             */
             if ($sf->getParameter('_disabled')) {
                 $shipbill_address['ship']['show_custom_settings'] = true;
             } else {
                 $shipbill_address['ship']['subfields'][$sf->getId()]['enabled'] = true;
             }
         }
-        foreach($billing_address->getFields() as $sf) {
+        foreach ($billing_address->getFields() as $sf) {
             if ($sf->getParameter('_disabled')) {
                 if (!empty($address_subfields[$sf->getId()]) && !$address_subfields[$sf->getId()]->getParameter('_disabled')) {
                     $shipbill_address['bill']['show_custom_settings'] = true;
@@ -148,4 +164,3 @@ class shopSettingsCheckoutContactFormAction extends waViewAction
         $this->view->assign('shipbill_address', $shipbill_address);
     }
 }
-

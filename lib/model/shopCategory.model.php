@@ -725,7 +725,7 @@ class shopCategoryModel extends waNestedSetModel
 
     public static function getDefaultMetaTitle($category)
     {
-        return htmlspecialchars(ifempty($category['name'], ''));
+        return strip_tags(ifempty($category['name']));
     }
 
     public static function getDefaultMetaKeywords($category)
@@ -735,5 +735,4 @@ class shopCategoryModel extends waNestedSetModel
             wa()->accountName()
         ));
     }
-
 }

@@ -35,7 +35,7 @@ class shopSettingsFollowupsAction extends waViewAction
                 $empty_row = $fm->getEmptyRow();
                 $followup = array_intersect_key($followup, $empty_row) + $empty_row;
                 unset($followup['id']);
-                $followup['delay'] = ((float) str_replace(',', '.', ifset($followup['delay'], '3'))) * 24 * 3600;
+                $followup['delay'] = ((float) str_replace(',', '.', ifset($followup['delay'], '3'))) * 3600;
                 if (empty($followup['name'])) {
                     $followup['name'] = _w('<no name>');
                 }
@@ -99,7 +99,21 @@ class shopSettingsFollowupsAction extends waViewAction
         } else {
             // Orders used as sample data for testing
             $om = new shopOrderModel();
-            $test_orders = $om->where("paid_date IS NOT NULL AND state_id <> 'deleted'")->order('id DESC')->limit(10)->fetchAll('id');
+
+            $olm = new shopOrderLogModel();
+
+            $where = 'after_state_id=s:state_id AND after_state_id != before_state_id';
+
+            $order_ids = $olm
+                ->select('DISTINCT order_id, datetime')
+                ->where($where, $followup)
+                ->order('datetime DESC')
+                ->limit(10)
+                ->fetchAll('order_id');
+
+
+            $test_orders = $om->getById(array_keys($order_ids));
+
             shopHelper::workupOrders($test_orders);
             $im = new shopOrderItemsModel();
             foreach ($im->getByField('order_id', array_keys($test_orders), true) as $i) {
@@ -111,6 +125,9 @@ class shopSettingsFollowupsAction extends waViewAction
             }
         }
 
+        $workflow = new shopWorkflow();
+        $states = $workflow->getAllStates();
+
         $this->view->assign('followup', $followup);
         $this->view->assign('followups', $followups);
         $this->view->assign('test_orders', $test_orders);
@@ -121,6 +138,7 @@ class shopSettingsFollowupsAction extends waViewAction
         $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
         $this->view->assign('transports', $transports);
         $this->view->assign('sms_from', $this->getSmsFrom());
+        $this->view->assign('states', $states);
     }
 
     public function getTransports()

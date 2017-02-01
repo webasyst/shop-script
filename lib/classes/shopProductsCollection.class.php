@@ -251,12 +251,15 @@ class shopProductsCollection
             $this->where[] = 'p.count <= 0';
         }
 
+        $price_filter = array();
+
         if (isset($data['price_min']) && $data['price_min'] !== '') {
             $this->where[] = 'p.max_price >= '.$this->toFloat(shop_currency($data['price_min'], true, $config->getCurrency(true), false));
+            $price_filter['price_min'] = ' >= '.$this->toFloat(shop_currency($data['price_min'], true, $config->getCurrency(true), false));
         }
         if (isset($data['price_max']) && $data['price_max'] !== '') {
             $this->where[] = 'p.min_price <= '.$this->toFloat(shop_currency($data['price_max'], true, $config->getCurrency(true), false));
-            unset($data['price_max']);
+            $price_filter['price_max'] = ' <='.$this->toFloat(shop_currency($data['price_max'], true, $config->getCurrency(true), false));
         }
         unset(
             $data['in_stock_only'],
@@ -328,6 +331,12 @@ class shopProductsCollection
                         $this->addJoin('shop_product_features', $on, $where);
                     }
                     $this->group_by = 'p.id';
+                    if (!empty($skus_alias) && !empty($price_filter)) {
+                        // #53.4890
+                        foreach ($price_filter as $price_filter_item) {
+                            $this->addWhere('('.$skus_alias.'.price '.$price_filter_item.')');
+                        }
+                    }
                 } else {
                     $this->where[] = '0';
                 }
@@ -480,6 +489,9 @@ class shopProductsCollection
             if (!waRequest::get('sort') && !empty($set['rule'])) {
                 $this->order_by = $set['rule'];
             }
+            if (!empty($set['rule']) && ($set['rule'] == 'compare_price DESC')) {
+                $this->where[] = 'compare_price > price';
+            }
         }
     }
 
@@ -530,16 +542,13 @@ class shopProductsCollection
     protected function tagPrepare($id, $auto_title = true)
     {
         $tag_model = new shopTagModel();
-        $tag = false;
-        if (is_numeric($id)) {
+        $tag = $tag_model->getByName($id);
+        if ($tag) {
+            $id = $tag['id'];
+        } elseif (is_numeric($id)) {
             $tag = $tag_model->getById($id);
         }
-        if (!$tag) {
-            $tag = $tag_model->getByName($id);
-            if ($tag) {
-                $id = $tag['id'];
-            }
-        }
+
         if ($tag) {
             $this->addJoin('shop_product_tags', null, ':table.tag_id = '.(int)$id);
             if ($auto_title) {

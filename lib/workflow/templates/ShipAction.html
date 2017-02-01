@@ -1,17 +1,18 @@
 <form id="wf-ship-form" action="?module=workflow&action=perform" method="post">
     <input type="hidden" name="id" value="{$order_id}">
     <input type="hidden" name="action_id" value="{$action_id}">
-    [`Tracking number`]: <input name="tracking_number" placeholder="[`Optional`]">
+    [`Tracking number`]: <input name="tracking_number" placeholder="[`Optional`]" value="{$tracking_number|default:''|escape}">
 
     {if $couriers}
         <br><br>
-        [`Courier`]:
+        <label>[`Courier`]:
         <select name="courier_id">
             <option></option>
             {foreach $couriers as $c}
                 <option value="{$c.id|escape}">{$c.name|escape}</option>
             {/foreach}
         </select>
+        </label>
         {if $other_couriers_exist && $storefront}
             <span class="hint">{sprintf_wp('Only couriers for storefront %s are shown.', "<strong>{$storefront}</strong>")}</span>
         {/if}
@@ -38,27 +39,37 @@
 </form>
 
 <script type="text/javascript">
-    {if $couriers}
-        (function() { "use strict";
-            $('#wf-ship-form select[name="courier_id"]').change(function() {
-                var courier_id = $(this).val();
-                $('#wf-ship-form').find('[data-courier-id]').hide().filter('[data-courier-id="'+courier_id+'"]').show();
-            });
-        }());
-    {/if}
+    (function () {
+        "use strict";
+        var context = $('#wf-ship-form');
+        {if $couriers}
+        context.find('select[name="courier_id"]').change(function () {
+            var courier_id = $(this).val();
+            context.find('[data-courier-id]').hide().filter('[data-courier-id="' + courier_id + '"]').show();
+        });
+        {/if}
 
-    // cancel link
-    $('#wf-ship-form > a.cancel').click(function() {
-        $('#workflow-content').empty().hide();
-        $('.workflow-actions').show();
-        return false;
-    });
+        // cancel link
+        context.find('> a.cancel').click(function () {
+            $('#workflow-content').empty().hide();
+            $('.workflow-actions').show();
+            return false;
+        });
 
-    $("#wf-ship-form").submit(function () {
-        var f = $(this);
-        $.post(f.attr('action'), f.serialize(), function () {
-            $.order.reload();
-        }, "json");
-        return false;
-    });
+        context.submit(function () {
+            var f = $(this);
+            f.find(':submit').attr('disabled', true);
+            $.post(f.attr('action'), f.serialize(), function () {
+                $.order.reload();
+            }, "json");
+            return false;
+        });
+
+        //scroll to input and focus
+        $('html, body').animate({
+            scrollTop: 0
+        }, 500, function () {
+            context.find('> input[name="tracking_number"]').focus();
+        });
+    }());
 </script>

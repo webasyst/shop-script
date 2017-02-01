@@ -42,7 +42,7 @@ class shopOrderListAction extends waViewAction
     public function getOrders($offset, $limit)
     {
         if ($this->orders === null) {
-            $this->orders = $this->collection->getOrders("*,items,contact,params", $offset, $limit);
+            $this->orders = $this->collection->getOrders("*,products,contact,params", $offset, $limit);
             self::extendContacts($this->orders);
             shopHelper::workupOrders($this->orders);
         }

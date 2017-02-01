@@ -154,6 +154,7 @@ class shopViewHelper extends waAppViewHelper
 
     /**
      * @param array $products
+     * @param bool $public_only
      * @return array
      */
     public function features(&$products, $public_only = true)
@@ -250,9 +251,10 @@ class shopViewHelper extends waAppViewHelper
                         } else {
                             if (is_array($value_ids)) {
                                 $p['features'][$f['code']] = array();
-                                foreach ($value_ids as $v_id) {
-                                    if (isset($type_values[$type][$feature_id][$v_id])) {
-                                        $p['features'][$f['code']][$v_id] = $type_values[$type][$feature_id][$v_id];
+                                //keep feature values order
+                                foreach ($type_values[$type][$feature_id] as $v_id => $v_value) {
+                                    if (in_array($v_id, $value_ids)) {
+                                        $p['features'][$f['code']][$v_id] = $v_value;
                                     }
                                 }
                             } elseif (isset($type_values[$type][$feature_id][$value_ids])) {
@@ -379,11 +381,19 @@ class shopViewHelper extends waAppViewHelper
             }
         }
 
+        if (!isset($product['image_description'])) {
+            $p = $this->wa->getView()->getVars('product');
+            if ($p && ($p['id'] == $product['id'])) {
+                $product['image_description'] = $p['images'][$product['image_id']]['description'];
+            }
+        }
+
         return $this->imgHtml(array(
-            'id'         => $product['image_id'],
-            'product_id' => $product['id'],
-            'filename'   => isset($product['image_filename']) ? $product['image_filename'] : null,
-            'ext'        => $product['ext']
+            'id'          => $product['image_id'],
+            'product_id'  => $product['id'],
+            'filename'    => isset($product['image_filename']) ? $product['image_filename'] : null,
+            'ext'         => $product['ext'],
+            'description' => !empty($product['image_description']) ? $product['image_description'] :(isset($product['name'])?$product['name']:null),
         ), $size, $attributes);
     }
 
@@ -420,6 +430,7 @@ class shopViewHelper extends waAppViewHelper
             $p = $this->wa->getView()->getVars('product');
             if ($p && ($p['id'] == $product['id'])) {
                 $product['image_filename'] = $p['images'][$product['image_id']]['filename'];
+                $product['image_description'] = $p['images'][$product['image_id']]['description'];
             }
         }
         return $this->imgUrl(array(

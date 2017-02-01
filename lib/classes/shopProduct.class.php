@@ -165,7 +165,14 @@ class shopProduct implements ArrayAccess
             if (empty($sizes)) {
                 $sizes = 'crop';
             }
-            return $images_model->getImages($this->getId(), $sizes, 'id', $absolute);
+            $images = $images_model->getImages($this->getId(), $sizes, 'id', $absolute);
+            foreach ($images as &$image) {
+                if ($image['description'] == '') {
+                    $image['description'] = $this->name;
+                }
+                unset($image);
+            }
+            return $images;
         } else {
             return array();
         }

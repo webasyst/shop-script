@@ -47,6 +47,7 @@ class shopWorkflowEditAction extends shopWorkflowAction
         foreach ($data['items'] as &$item) {
             $item['currency'] = $order['currency'];
             $item['price'] = $this->price($item['price']);
+            //XXX check, that services && products not deleted
             if ($item['service_id']) {
                 $item['service'] = $services[$item['service_id']];
             } else {

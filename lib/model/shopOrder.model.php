@@ -2,7 +2,7 @@
 
 /**
  * Note: all prices in this table (total, tax, shipping, discount)
- * are stored in shop_order.curency, not the default shop currency.
+ * are stored in shop_order.currency, not the default shop currency.
  * shop_order.rate contains the currency rate valid at the time of the order.
  */
 class shopOrderModel extends waModel
@@ -96,11 +96,11 @@ class shopOrderModel extends waModel
 
         if ($item_fields) {
             $order_id = null;
-            foreach ($this->query("
+            $sql = "
                 SELECT $item_fields, id, order_id FROM `shop_order_items`
                 WHERE order_id IN ('".implode("','", array_keys($data))."')
-                ORDER BY order_id"
-            ) as $item) {
+                ORDER BY order_id";
+            foreach ($this->query($sql) as $item) {
                 if ($order_id != $item['order_id']) {
                     $order_id = $item['order_id'];
                     unset($item['order_id']);
@@ -487,6 +487,7 @@ SQL;
 
         if ($id) {
             $items_model = new shopOrderItemsModel();
+
             $items_model->update($data['items'], $id);
             unset($data['items']);
             $diff = array_diff_assoc($data, $this->getById($id));
@@ -513,19 +514,15 @@ SQL;
         if (!$reduced) {
             return;
         }
+
         $items_model = new shopOrderItemsModel();
         $items = $items_model->select('*')->where("type='product' AND order_id = ".(int)$order_id)->fetchAll();
-        $sku_stock = array();
-        foreach ($items as $item) {
-            if (!isset($sku_stock[$item['sku_id']][$item['stock_id']])) {
-                $sku_stock[$item['sku_id']][$item['stock_id']] = 0;
-            }
-            $sku_stock[$item['sku_id']][$item['stock_id']] += $item['quantity'];
-        }
-        $items_model->updateStockCount($sku_stock);
+
+        $items_stocks = $items_model->correctItemsStocks($items, $order_id, true);
+
+        $items_model->updateStockCount($items_stocks);
         $order_params_model->unsetReduced($order_id);
         $order_params_model->incReturnTimes($order_id);
-
     }
 
     public function reduceProductsFromStocks($order_id)
@@ -535,16 +532,13 @@ SQL;
         if ($reduced) {
             return;
         }
+
         $items_model = new shopOrderItemsModel();
         $items = $items_model->select('*')->where("type='product' AND order_id = ".(int)$order_id)->fetchAll();
-        $sku_stock = array();
-        foreach ($items as $item) {
-            if (!isset($sku_stock[$item['sku_id']][$item['stock_id']])) {
-                $sku_stock[$item['sku_id']][$item['stock_id']] = 0;
-            }
-            $sku_stock[$item['sku_id']][$item['stock_id']] -= $item['quantity'];
-        }
-        $items_model->updateStockCount($sku_stock);
+
+        $items_stocks = $items_model->correctItemsStocks($items, $order_id);
+
+        $items_model->updateStockCount($items_stocks);
         $order_params_model->setReduced($order_id);
         $order_params_model->incReduceTimes($order_id);
     }

@@ -29,16 +29,15 @@ class shopFrontendTagAction extends shopFrontendAction
     public function doesTagExist($id)
     {
         $tag_model = new shopTagModel();
-        $tag = false;
-        if (is_numeric($id)) {
+
+        $tag = $tag_model->getByName($id);
+
+        if (is_numeric($id) && !$tag) {
             $tag = $tag_model->getById($id);
         }
-        if (!$tag) {
-            $tag = $tag_model->getByName($id);
-        }
+
         if (!$tag) {
             return false;
         }
     }
-
 }

@@ -168,18 +168,16 @@
                         </label>
                     </div>
                 </div>
-                {if !empty($map_adapters) && count($map_adapters) > 1}
                 <div class="field">
                     <div class="name">[`Maps`]</div>
-                    {foreach $map_adapters as $a}
                     <div class="value no-shift">
-                        <label>
-                            <input type="radio" name="map" {if ifset($map, 'google') == $a->getId()}checked{/if} value="{$a->getId()}"> {$a->getName()}
-                        </label>
+                        {if !empty($installer)}
+                        {$wa_backend_url|cat:'installer/?module=settings'|string_format:'[`Select an online map engine in Installer app‘s “<a href="%s">Settings</a>” screen.`]'}
+                        {else}
+                        [`To select an online map engine, you need access to Installer app‘s “Settings” screen.`]
+                        {/if}
                     </div>
-                    {/foreach}
                 </div>
-                {/if}
             </div>
             <div class="field-group">
                 <div class="field">
@@ -280,6 +278,16 @@
         }
     });
     $('.s-captcha input:radio:checked').change();
+
+    $(':input[name="map"]').change(function(){
+        var scope = $(this).parents('div.field');
+        scope.find('div.js-map-adapter-settings').hide();
+        if(this.checked) {
+            scope.find('div.js-map-adapter-settings[data-adapter-id="' + this.value + '"]').show();
+        }
+    });
+    $(':input[name="map"]:checked').change();
+
 
     $('#setting-require-auth input').change(function () {
        if ($(this).is(':checked')) {

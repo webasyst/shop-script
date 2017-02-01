@@ -194,6 +194,20 @@ class shopNotifications
 
         shopHelper::workupOrders($data['order'], true);
 
+        $data['courier'] = null;
+        if (!empty($data['order']['params']['courier_id'])) {
+            $courier_model = new shopApiCourierModel();
+            $data['courier'] = $courier_model->getById($data['order']['params']['courier_id']);
+            foreach ($data['courier'] as $field => $value) {
+                if (strpos($field, 'api_') === 0) {
+                    unset($data['courier'][$field]);
+                }
+            }
+            if (!empty($data['courier']['contact_id'])) {
+                $data['courier']['contact'] = new waContact($data['courier']['contact_id']);
+            }
+        }
+
         // empty defaults, to avoid notices
         $empties = self::getDataEmpties();
         $data = self::arrayMergeRecursive($data, $empties);
@@ -414,22 +428,57 @@ class shopNotifications
 
     protected static function sendPushNotifications($event, $data)
     {
-        if ($event != 'order.create') {
-            return;
-        }
-
-        $web_push = new shopWebPushNotifications(shopWebPushNotifications::SERVER_SEND_DOMAIN);
-        $web_push->send($data);
-
-        $host_client_ids = array();
         $push_client_model = new shopPushClientModel();
-        foreach ($push_client_model->getAllMobileClients() as $row) {
-            $host_client_ids[$row['shop_url']][$row['client_id']] = $row['client_id'];
+
+        // Figure out recipients.
+        // Users are notified about new orders.
+        // Couriers are notified about orders assighed to them.
+        $host_client_ids = array();
+        if ($event == 'order.create') {
+
+            // Send web push notifications. This only applies to users.
+            $web_push = new shopWebPushNotifications(shopWebPushNotifications::SERVER_SEND_DOMAIN);
+            $web_push->send($data);
+
+            // Fetch all users to send mobile push notifications to
+            foreach ($push_client_model->getAllMobileClients() as $push_client) {
+                $host_client_ids[$push_client['shop_url']][$push_client['client_id']] = $push_client['client_id'];
+            }
+
+        } else {
+
+            // Did this order just have a new courier assigned?
+            if (!empty($data['courier']['enabled']) && $data['courier']['id'] != ifset($data['order']['params']['notified_courier_id'])) {
+                // Remember we've sent the notification
+                $params_model = new shopOrderParamsModel();
+                $params_model->setOne($data['order']['id'], 'notified_courier_id', $data['courier']['id']);
+
+                $courier_model = new shopApiCourierModel();
+                $courier = $courier_model->getById($data['courier']['id']);
+
+                // Get this courier's client id to send notification to
+                $push_client = $push_client_model->getByField('api_token', $courier['api_token'], false);
+                if ($push_client) {
+                    // Make sure courier's API token is still valid
+                    $api_token_model = new waApiTokensModel();
+                    $api_token = $api_token_model->getById($courier['api_token']);
+                    if ($api_token && (!$api_token['expires'] || strtotime($api_token['expires']) > time())) {
+                        // Add to recipients
+                        $host_client_ids[$push_client['shop_url']][$push_client['client_id']] = $push_client['client_id'];
+                    } else {
+                        // Forget the client if their API token is invalid
+                        $push_client_model->deleteById('api_token', $push_client['client_id']);
+                    }
+                }
+            }
+
         }
+
         if (!$host_client_ids) {
             return;
         }
 
+        // Send to recipients, grouped by domain name they registered to
         $results = array();
         foreach ($host_client_ids as $shop_url => $client_ids) {
             $request_data = array(

@@ -90,10 +90,10 @@ class shopSettingsGeneralAction extends waViewAction
                 }
             }
         }
-        
+
         $cm = new waCountryModel();
         $this->view->assign('countries', $cm->all());
-        $this->view->assign($this->getConfig()->getGeneralSettings());
+        $this->view->assign($settings = $this->getConfig()->getGeneralSettings());
         $workhours = wa()->getSetting('workhours', null);
         if ($workhours) {
             $workhours = json_decode($workhours, true);
@@ -103,14 +103,14 @@ class shopSettingsGeneralAction extends waViewAction
         }
         $this->view->assign('workhours', $workhours);
 
-        $this->view->assign('map_adapters', wa()->getMapAdapters());
-        
         $sms_adapters = $this->getSMSAdapters();
         $this->view->assign('sms_adapters', $sms_adapters);
-        
+
         $this->view->assign('saved', waRequest::post());
 
         $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
+
+        $this->view->assign('installer', $this->getUser()->getRights('installer', 'backend'));
 
         $this->view->assign('lazy_loading', isset($lazy_loading) ? $lazy_loading : $this->getConfig()->getOption('lazy_loading'));
 
@@ -127,7 +127,7 @@ class shopSettingsGeneralAction extends waViewAction
                     $captcha_options = array();
                 }
                 $this->view->assign(array(
-                    'captcha' => $captcha,
+                    'captcha'         => $captcha,
                     'captcha_options' => $captcha_options
                 ));
             }
@@ -137,16 +137,16 @@ class shopSettingsGeneralAction extends waViewAction
     public function getData()
     {
         $data = array(
-            'name'         => waRequest::post('name', '', waRequest::TYPE_STRING_TRIM),
-            'email'        => waRequest::post('email', '', waRequest::TYPE_STRING_TRIM),
-            'phone'        => waRequest::post('phone', '', waRequest::TYPE_STRING_TRIM),
-            'country'      => waRequest::post('country', '', waRequest::TYPE_STRING_TRIM),
-            'order_format' => waRequest::post('order_format', '', waRequest::TYPE_STRING_TRIM),
-            'use_gravatar' => waRequest::post('use_gravatar', '', waRequest::TYPE_INT),
-            'gravatar_default' => waRequest::post('gravatar_default', '', waRequest::TYPE_STRING_TRIM),
-            'require_captcha'  => waRequest::post('require_captcha', 0, waRequest::TYPE_INT),
+            'name'                  => waRequest::post('name', '', waRequest::TYPE_STRING_TRIM),
+            'email'                 => waRequest::post('email', '', waRequest::TYPE_STRING_TRIM),
+            'phone'                 => waRequest::post('phone', '', waRequest::TYPE_STRING_TRIM),
+            'country'               => waRequest::post('country', '', waRequest::TYPE_STRING_TRIM),
+            'order_format'          => waRequest::post('order_format', '', waRequest::TYPE_STRING_TRIM),
+            'use_gravatar'          => waRequest::post('use_gravatar', '', waRequest::TYPE_INT),
+            'gravatar_default'      => waRequest::post('gravatar_default', '', waRequest::TYPE_STRING_TRIM),
+            'require_captcha'       => waRequest::post('require_captcha', 0, waRequest::TYPE_INT),
             'require_authorization' => waRequest::post('require_authorization', 0, waRequest::TYPE_INT),
-            'lazy_loading' => waRequest::post('lazy_loading', 0, waRequest::TYPE_INT)
+            'lazy_loading'          => waRequest::post('lazy_loading', 0, waRequest::TYPE_INT)
         );
         if (waRequest::post('map')) {
             $data['map'] = waRequest::post('map', '', waRequest::TYPE_STRING_TRIM);
@@ -164,7 +164,7 @@ class shopSettingsGeneralAction extends waViewAction
         }
         return $data;
     }
-    
+
     protected function getSMSAdapters()
     {
         $path = $this->getConfig()->getPath('plugins').'/sms/';
@@ -203,7 +203,7 @@ class shopSettingsGeneralAction extends waViewAction
             }
         }
         $result = array_values($result);
-        
+
         foreach ($adapters as $a) {
             /**
              * @var waSMSAdapter $a

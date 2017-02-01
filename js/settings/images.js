@@ -145,8 +145,8 @@ if (typeof($) != 'undefined') {
                 dialog.waDialog({
                     onLoad: function () {
                         var d = $(this);
-                        $('#s-regenerate-progressbar').hide();
-                        $("#s-regenerate-report").hide();
+                        d.find('#s-regenerate-progressbar').hide();
+                        d.find("#s-regenerate-report").hide();
                         d.find('.dialog-buttons').show();
                         dialog.find('input[name=create_thumbnails]').prop('disabled', disabled);
                     },
@@ -160,11 +160,11 @@ if (typeof($) != 'undefined') {
 
                         var form = $(this);
 
-                        $('#s-regenerate-progressbar').show();
+                        form.find('#s-regenerate-progressbar').show();
                         form.find('.progressbar .progressbar-inner').css('width', '0%');
                         form.find('.progressbar-description').text('0.000%');
                         form.find('.progressbar').show();
-                        $("#s-regenerate-report").hide();
+                        form.find("#s-regenerate-report").hide();
 
                         var create_thumbnails = create_thumbnails_input.prop('checked') || '';
                         var restore_originals = restore_originals_input.prop('checked') || '';
@@ -176,8 +176,8 @@ if (typeof($) != 'undefined') {
                                 // show statistic
                                 create_thumbnails_input.prop('disabled', false);
                                 restore_originals_input.prop('disabled', false);
-                                $('#s-regenerate-progressbar').hide();
-                                var $report = $("#s-regenerate-report");
+                                form.find('#s-regenerate-progressbar').hide();
+                                var $report = form.find("#s-regenerate-report");
                                 $report.show();
                                 if (r.report) {
                                     $report.html(r.report);
@@ -250,8 +250,9 @@ if (typeof($) != 'undefined') {
                             clearTimeout(timer_id);
                             timer_id = pull.pop();
                         }
-                        $('#s-regenerate-progressbar').hide();
-                        $("#s-regenerate-report").hide();
+                        var form = $(this);
+                        form.find('#s-regenerate-progressbar').hide();
+                        form.find("#s-regenerate-report").hide();
                     }
                 });
                 return false;

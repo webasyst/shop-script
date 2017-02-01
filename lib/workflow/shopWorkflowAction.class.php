@@ -180,13 +180,21 @@ HTML;
             $order_params_model->set($order['id'], $update['params'], false);
         }
         $order['params'] = $order_params_model->get($order_id);
+
         // send notifications
-        shopNotifications::send('order.'.$this->getId(), array(
-            'order'       => $order,
-            'customer'    => new waContact($order['contact_id']),
-            'status'      => $this->getWorkflow()->getStateById($data['after_state_id'])->getName(),
-            'action_data' => $data
-        ));
+        $silent = false;
+        if ((wa()->getEnv() == 'backend') && (waRequest::post('notifications') == 'silent')) {
+            $silent = true;
+        }
+
+        if (!$silent) {
+            shopNotifications::send('order.'.$this->getId(), array(
+                'order'       => $order,
+                'customer'    => new waContact($order['contact_id']),
+                'status'      => $this->getWorkflow()->getStateById($data['after_state_id'])->getName(),
+                'action_data' => $data
+            ));
+        }
 
         // Clear sales report cache if anything happens to a paid order
         if (!empty($order['paid_date'])) {

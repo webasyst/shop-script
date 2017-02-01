@@ -1,6 +1,7 @@
 <?php
 
-interface shopPrintformInterface {
+interface shopPrintformInterface
+{
 
     /**
      * @return string
@@ -40,5 +41,4 @@ interface shopPrintformInterface {
      * @return mixed
      */
     public function preparePrintform($data, waView $view);
-    
 }

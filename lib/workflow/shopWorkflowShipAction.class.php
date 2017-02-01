@@ -14,11 +14,11 @@ class shopWorkflowShipAction extends shopWorkflowAction
         $text = array();
         $params = array();
 
-        if ( ( $tracking = waRequest::post('tracking_number', '', 'string'))) {
+        if (($tracking = waRequest::post('tracking_number', '', 'string'))) {
             $text[] = _w('Tracking number').': '.htmlspecialchars($tracking);
             $params['tracking_number'] = $tracking;
         }
-        if ( ( $courier_id = waRequest::post('courier_id', null, 'int'))) {
+        if (($courier_id = waRequest::post('courier_id', null, 'int'))) {
             $courier_model = new shopApiCourierModel();
             $courier = $courier_model->getById($courier_id);
             if ($courier) {
@@ -29,7 +29,7 @@ class shopWorkflowShipAction extends shopWorkflowAction
 
         if ($text || $params) {
             return array(
-                'text' => join("\n", $text),
+                'text'   => join("\n", $text),
                 'params' => $params,
                 'update' => array(
                     'params' => $params,
@@ -59,7 +59,7 @@ class shopWorkflowShipAction extends shopWorkflowAction
             'Order %s was shipped',
             array('order_id' => $order_id)
         );
-        
+
         $order_model = new shopOrderModel();
         $order_model->reduceProductsFromStocks($order_id);
 
@@ -88,8 +88,9 @@ class shopWorkflowShipAction extends shopWorkflowAction
 
         $this->getView()->assign(array(
             'other_couriers_exist' => count($all_couriers) > count($couriers),
-            'storefront' => $storefront,
-            'couriers' => $couriers,
+            'storefront'           => $storefront,
+            'couriers'             => $couriers,
+            'tracking_number'      => ifset($params['tracking_number']),
         ));
         return parent::getHTML($order_id);
     }

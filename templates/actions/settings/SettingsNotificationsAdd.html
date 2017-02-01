@@ -22,6 +22,14 @@
     <!-- basic notification info -->
     <div class="field-group">
         <div class="field">
+            <div class="value" id="n-description">
+                <!-- description placeholder -->
+            </div>
+        </div>
+    </div>
+    <div class="field-group">
+
+        <div class="field">
             <div class="name">[`Notification name`]</div>
             <div class="value">
                 <input id="n-name" name="data[name]" type="text" class="bold" value="">
@@ -29,6 +37,7 @@
                 <span class="hint">[`This name is for your convenience only. It will never be shown to customers.`]</span>
             </div>
         </div>
+
         <div class="field">
             <div class="name">[`Transport`]</div>
             {foreach $transports as $t_id => $t}
@@ -90,14 +99,17 @@
     $(function () {
         var notification_templates = [];
         {foreach $templates as $event => $t}
-        notification_templates['{$event}'] = [{json_encode($t.subject)}, {json_encode($t.body)}, {json_encode($t.sms)}];
+        notification_templates['{$event}'] = [{json_encode($t.subject)}, {json_encode($t.body)}, {json_encode($t.sms)}, {json_encode($t.description)}];
         {/foreach}
         $("#n-events").change(function () {
             var e = $(this).val();
             if (e) {
                 $("#notifications-settings-content").show();
+
                 var t = notification_templates[e] || notification_templates['order'];
                 $("#email-content .subject").val(t[0]);
+
+                $("#n-description").text(t[3] || '');
 
                 var email_body = $('#n-email-body');
                 email_body.val(t[1]).change();

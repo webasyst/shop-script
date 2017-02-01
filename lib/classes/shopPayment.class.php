@@ -525,6 +525,12 @@ class shopPayment extends waAppPayment
             # set routing params for request (domain & etc)
             $model = new shopOrderParamsModel();
             $order_domain = $model->getOne($transaction_data['order_id'], 'storefront');
+            $params = array(
+                'code' => waRequest::param('code'),
+            );
+            if (empty($params['code'])) {
+                unset($params['code']);
+            }
             if ($order_domain) {
                 $order_domain = preg_replace('@^(https?://)?(www\.)?@', '', rtrim($order_domain, '/'));
                 $routing = wa()->getRouting();
@@ -535,7 +541,7 @@ class shopPayment extends waAppPayment
                         $settlement = preg_replace('@^(https?://)?(www\.)?@', '', rtrim($settlement, '/*'));
                         if ($settlement == $order_domain) {
                             $routing->setRoute($route, $domain);
-                            waRequest::setParam($route);
+                            waRequest::setParam($route + $params);
                             break 2;
                         }
                     }
@@ -564,6 +570,8 @@ class shopPayment extends waAppPayment
                 $url = wa()->getRouteUrl('shop/frontend/checkout', array('step' => 'success'), true);
                 if (!empty($transaction_data['order_id'])) {
                     $url .= '?order_id='.$transaction_data['order_id'];
+                } elseif ($order_id = wa()->getStorage()->get('shop/order_id')) {
+                    $url .= '?order_id='.$order_id;
                 }
                 break;
             case self::URL_FAIL:
@@ -574,7 +582,7 @@ class shopPayment extends waAppPayment
                 }
                 break;
             default:
-                $url = wa()->getRouteUrl('shop/frontend', true);
+                $url = wa()->getRouteUrl('shop/frontend', array(), true);
                 break;
         }
         return $url;

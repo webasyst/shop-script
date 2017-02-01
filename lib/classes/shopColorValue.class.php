@@ -186,7 +186,7 @@ HTML;
 
     public function __toString()
     {
-        return (wa()->getEnv() == 'frontend') ? $this->html : $this->value;
+        return (string)((wa()->getEnv() == 'frontend') ? $this->html : $this->value);
     }
 
     /**

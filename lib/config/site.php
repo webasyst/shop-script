@@ -1,14 +1,13 @@
 <?php
 
-wa('shop');
-$type_model = new shopTypeModel();
-$types = $type_model->select('id,name')->fetchAll('id', true);
-
 $currencies = wa('shop')->getConfig()->getCurrencies();
 foreach ($currencies as &$c) {
     $c = $c['title'];
 }
 unset($c);
+
+$type_model = new shopTypeModel();
+$types = $type_model->select('id,name')->fetchAll('id', true);
 
 $payment_items = $shipping_items = array();
 foreach (shopHelper::getPaymentMethods() as $p) {
@@ -20,7 +19,7 @@ foreach (shopHelper::getShippingMethods() as $s) {
 
 $stock_model = new shopStockModel();
 $public_stocks = $stocks = array();
-foreach(shopHelper::getStocks() as $stock_id => $s) {
+foreach (shopHelper::getStocks() as $stock_id => $s) {
     $stocks[$stock_id] = $s['name'];
     if ($s['public']) {
         $public_stocks[$stock_id] = $s['name'];
@@ -233,6 +232,57 @@ return array(
                 '...' => _w('Available vars are listed in the cheat sheet for product.html template')
             )
         ),
+        'my.order.html'=>array(
+            '$order'                                        => _w('An array containing information about the order'),
+            '$order.id'                                     => _w('Order ID'),
+            '$order.currency'                               => _w('Order currency (ISO 3 code)'),
+            '$order.items'                                  => _w('An array containing information about ordered items'),
+            '$order.items[].price'                          => _w('Item price'),
+            '$order.items[].quantity'                       => _w('Ordered item quantity'),
+            '$order.items[].download_link'                  => _w('Item download link (SKU attachment)'),
+            '$order.discount'                               => _w('Order discount amount (in order currency)'),
+            '$order.tax'                                    => _w('Order tax amount (in order currency)'),
+            '$order.shipping'                               => _w('Order shipping cost (amount in order currency)'),
+            '$order.total'                                  => _w('Order total (amount in order currency)'),
+            '$order.comment'                                => _w('Customer’s comment to the order'),
+            '$order.state'                                  => _w('Current order status'),
+            /** ORDER_URL **/
+            '$order_url'                                    => _w('An URL to access order page in customer personal account in storefront'),
+            /** ORDER.PARAMS **/
+            '$order.params'                                 => _w('An array of other (custom) order parameter values'),
+            '$order.params.shipping_name'                   => _w('Order selected shipping option name'),
+            '$order.params.shipping_description'            => _w('Order selected shipping option description'),
+            '$order.params.payment_name'                    => _w('Order selected payment option name'),
+            '$order.params.payment_description'             => _w('Order selected payment option description'),
+            '$order.params.auth_pin'                        => _w('A 4-digit PIN to access order info page (for customers without permanent account only)'),
+            '$order.params.storefront'                      => _w('Domain and path to Shop-Script storefront where the order was placed'),
+            '$order.params.ip'                              => _w('Customer’s IP address for the moment of order creation'),
+            '$order.params.user_agent'                      => _w('Customer’s User Agent string for the moment of order creation'),
+            '$order.params.<br>shipping_est_delivery'       => _w('A string indicating approximate timeframe of the order delivery (if defined)'),
+            '$order.params.tracking_number'                 => _w('Order shipment tracking number (if defined)'),
+            '$order.params. …'                              => _w('The list of order params may vary depending on your workflow and plugin setup'),
+            /** CUSTOMER **/
+            '$customer'                                     => _w('An array containing information about the customer according to the Contacts app setup and your storefront’s checkout contact info form'),
+            '$customer.name'                                => _w('Customer full name'),
+            '$customer.first_name'                          => _w('Customer first name'),
+            '$customer.last_name'                           => _w('Customer last name'),
+            '$customer.email'                               => _w('Customer email'),
+            '$customer.phone'                               => _w('Customer phone'),
+            '$customer. …'                                  => _w('The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step'),
+            /** ADDRESSES **/
+            '$shipping_address'                             => _w('Shipping address as string'),
+            '$billing_address'                              => _w('Billing address as string'),
+            /** COURIER **/
+            '$courier'                                      => _w('Array of courier data'),
+            '$courier.name'                                 => _w('Courier name'),
+            '$courier.note'                                 => _w('Note'),
+            '$courier.contact'                              => _w('Array of data of a courier contact stored in Contacts app, if courier is linked to an existing contact'),
+            '$courier.contact->get(\'email\', \'default\')' => _w('Courier contact\'s default email address'),
+            '$courier.contact->get(\'phone\', \'default\')' => _w("Courier contact's default phone number"),
+            /** OTHER **/
+            '$signup_url'                                   => _w('Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href="?action=settings#/checkout/">Guest checkout setting</a> is not enabled.'),
+
+        ),
         '$wa' => array(
             '$wa->shop->badgeHtml(<em>$product.code</em>)' => _w('Displays badge of the specified product (<em>$product</em> object)'),
             '$wa->shop->cart()' => _w('Returns current cart object'),
@@ -270,8 +320,120 @@ return array(
             '$wa->shop->settings("<em>option_id</em>")' => _w('Returns store’s general setting option by <em>option_id</em>, e.g. "name", "email", "country"'),
             '$wa->shop->themePath("<em>theme_id</em>")' => _ws('Returns path to theme folder by <em>theme_id</em>'),
         ),
+
+        'notifications'=>array(
+            '$order'                                        => _w('An array containing information about the order'),
+            '$order.id'                                     => _w('Order ID'),
+            '$order.currency'                               => _w('Order currency (ISO 3 code)'),
+            '$order.items'                                  => _w('An array containing information about ordered items'),
+            '$order.items[].price'                          => _w('Item price'),
+            '$order.items[].quantity'                       => _w('Ordered item quantity'),
+            '$order.items[].download_link'                  => _w('Item download link (SKU attachment)'),
+            '$order.discount'                               => _w('Order discount amount (in order currency)'),
+            '$order.tax'                                    => _w('Order tax amount (in order currency)'),
+            '$order.shipping'                               => _w('Order shipping cost (amount in order currency)'),
+            '$order.total'                                  => _w('Order total (amount in order currency)'),
+            '$order.comment'                                => _w('Customer’s comment to the order'),
+            /** STATUS **/
+            '$status'                                       => _w('Current order status name'),
+            /** ORDER_URL **/
+            '$order_url'                                    => _w('An URL to access order page in customer personal account in storefront'),
+            /** ORDER.PARAMS **/
+            '$order.params'                                 => _w('An array of other (custom) order parameter values'),
+            '$order.params.shipping_name'                   => _w('Order selected shipping option name'),
+            '$order.params.shipping_description'            => _w('Order selected shipping option description'),
+            '$order.params.payment_name'                    => _w('Order selected payment option name'),
+            '$order.params.payment_description'             => _w('Order selected payment option description'),
+            '$order.params.auth_pin'                        => _w('A 4-digit PIN to access order info page (for customers without permanent account only)'),
+            '$order.params.storefront'                      => _w('Domain and path to Shop-Script storefront where the order was placed'),
+            '$order.params.ip'                              => _w('Customer’s IP address for the moment of order creation'),
+            '$order.params.user_agent'                      => _w('Customer’s User Agent string for the moment of order creation'),
+            '$order.params.<br>shipping_est_delivery'       => _w('A string indicating approximate timeframe of the order delivery (if defined)'),
+            '$order.params.tracking_number'                 => _w('Order shipment tracking number (if defined)'),
+            '$order.params. …'                              => _w('The list of order params may vary depending on your workflow and plugin setup'),
+            /** CUSTOMER **/
+            '$customer'                                     => _w('An array containing information about the customer according to the Contacts app setup and your storefront’s checkout contact info form'),
+            '$customer.name'                                => _w('Customer full name'),
+            '$customer.first_name'                          => _w('Customer first name'),
+            '$customer.last_name'                           => _w('Customer last name'),
+            '$customer.email'                               => _w('Customer email'),
+            '$customer.phone'                               => _w('Customer phone'),
+            '$customer. …'                                  => _w('The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step'),
+            /** ADDRESSES **/
+            '$shipping_address'                             => _w('Shipping address as string'),
+            '$billing_address'                              => _w('Billing address as string'),
+            /** COURIER **/
+            '$courier'                                      => _w('Array of courier data'),
+            '$courier.name'                                 => _w('Courier name'),
+            '$courier.note'                                 => _w('Note'),
+            '$courier.contact'                              => _w('Array of data of a courier contact stored in Contacts app, if courier is linked to an existing contact'),
+            '$courier.contact->get(\'email\', \'default\')' => _w('Courier contact\'s default email address'),
+            '$courier.contact->get(\'phone\', \'default\')' => _w("Courier contact's default phone number"),
+            /** ACTION DATA **/
+            '$action_data'                                  => _w('An array containing information about performed order action (action-dependent)'),
+            '$action_data.text'                             => _w('Performed action text comment (action-dependent)'),
+            '$action_data.params'                           => _w('An array of action-dependent parameters, e.g. $action_data.params.tracking_number for Ship’s action tracking number'),
+            /** OTHER **/
+            '$signup_url'                                   => _w('Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href="?action=settings#/checkout/">Guest checkout setting</a> is not enabled.'),
+            /** AFILIATE **/
+            '$is_affiliate_enabled'                         => _w('Indicates if <a href="?action=settings#/affiliate/">Loyalty program</a> is enabled in store settings.'),
+            '$add_affiliate_bonus'                          => _w('Amount of affiliate bonus that will be credited to customer account when order is paid.'),
+        ),
+        'followups'=>array(
+            '$order'                                        => _w('An array containing information about the order'),
+            '$order.id'                                     => _w('Order ID'),
+            '$order.currency'                               => _w('Order currency (ISO 3 code)'),
+            '$order.items'                                  => _w('An array containing information about ordered items'),
+            '$order.items[].price'                          => _w('Item price'),
+            '$order.items[].quantity'                       => _w('Ordered item quantity'),
+            '$order.items[].download_link'                  => _w('Item download link (SKU attachment)'),
+            '$order.discount'                               => _w('Order discount amount (in order currency)'),
+            '$order.tax'                                    => _w('Order tax amount (in order currency)'),
+            '$order.shipping'                               => _w('Order shipping cost (amount in order currency)'),
+            '$order.total'                                  => _w('Order total (amount in order currency)'),
+            '$order.comment'                                => _w('Customer’s comment to the order'),
+            /** STATUS **/
+            '$status'                                       => _w('Current order status name'),
+            /** ORDER_URL **/
+            '$order_url'                                    => _w('An URL to access order page in customer personal account in storefront'),
+            /** ORDER.PARAMS **/
+            '$order.params'                                 => _w('An array of other (custom) order parameter values'),
+            '$order.params.shipping_name'                   => _w('Order selected shipping option name'),
+            '$order.params.shipping_description'            => _w('Order selected shipping option description'),
+            '$order.params.payment_name'                    => _w('Order selected payment option name'),
+            '$order.params.payment_description'             => _w('Order selected payment option description'),
+            '$order.params.auth_pin'                        => _w('A 4-digit PIN to access order info page (for customers without permanent account only)'),
+            '$order.params.storefront'                      => _w('Domain and path to Shop-Script storefront where the order was placed'),
+            '$order.params.ip'                              => _w('Customer’s IP address for the moment of order creation'),
+            '$order.params.user_agent'                      => _w('Customer’s User Agent string for the moment of order creation'),
+            '$order.params.<br>shipping_est_delivery'       => _w('A string indicating approximate timeframe of the order delivery (if defined)'),
+            '$order.params.tracking_number'                 => _w('Order shipment tracking number (if defined)'),
+            '$order.params. …'                              => _w('The list of order params may vary depending on your workflow and plugin setup'),
+            /** CUSTOMER **/
+            '$customer'                                     => _w('An array containing information about the customer according to the Contacts app setup and your storefront’s checkout contact info form'),
+            '$customer.name'                                => _w('Customer full name'),
+            '$customer.firstname'                           => _w('Customer first name'),
+            '$customer.lastname'                            => _w('Customer last name'),
+            '$customer->get(\'email\', \'default\')'        => _w('Customer email'),
+            '$customer->get(\'phone\', \'default\')'        => _w('Customer phone'),
+            '$customer. …'                                  => _w('The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step'),
+            /** ADDRESSES **/
+            '$shipping_address'                             => _w('Shipping address as string'),
+            '$billing_address'                              => _w('Billing address as string'),
+            /** COURIER **/
+            '$courier'                                      => _w('Array of courier data'),
+            '$courier.name'                                 => _w('Courier name'),
+            '$courier.note'                                 => _w('Note'),
+            '$courier.contact'                              => _w('Array of data of a courier contact stored in Contacts app, if courier is linked to an existing contact'),
+            '$courier.contact->get(\'email\', \'default\')' => _w('Courier contact\'s default email address'),
+            '$courier.contact->get(\'phone\', \'default\')' => _w("Courier contact's default phone number"),
+            /** OTHER **/
+            '$signup_url'                                   => _w('Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href="?action=settings#/checkout/">Guest checkout setting</a> is not enabled.'),
+        ),
     ),
+
     'blocks' => array(
 
     ),
+
 );

@@ -320,6 +320,7 @@ return array(
         'source' => array('varchar', 64),
         'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         'transport' => array('enum', "'email','sms'", 'null' => 0, 'default' => 'email'),
+        'state_id' => array('varchar', 32, 'default' => 'paid'),
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
@@ -411,12 +412,13 @@ return array(
         'contact_id' => array('int', 11),
         'action_id' => array('varchar', 32, 'null' => 0),
         'datetime' => array('datetime', 'null' => 0),
-        'before_state_id' => array('varchar', 16, 'null' => 0),
-        'after_state_id' => array('varchar', 16, 'null' => 0),
+        'before_state_id' => array('varchar', 32, 'null' => 0),
+        'after_state_id' => array('varchar', 32, 'null' => 0),
         'text' => array('text'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'order_id' => 'order_id',
+            'datetime' => 'datetime',
         ),
     ),
     'shop_order_log_params' => array(
@@ -745,6 +747,8 @@ return array(
         'client_id' => array('varchar', 64, 'null' => 0),
         'shop_url' => array('varchar', 255, 'null' => 0),
         'type' => array('varchar', 255, 'null' => 0, 'default' => ''),
+        'api_token' => array('varchar', 32),
+        'create_datetime' => array('datetime'),
         ':keys' => array(
             'client' => array('client_id', 'unique' => 1),
         ),

@@ -11,7 +11,11 @@
         {/if}{/foreach}
     {/strip}
     {$chart_num = min($row@index, $max_n_graphs)}
-    <tr data-chart-num="{$chart_num}">
+    <tr data-chart-num="{$chart_num}"
+            {if !empty($row.name) && ($type_id eq 'sources')}
+                title="{$row.name|string_format:'[`The total of orders placed by customers upon coming from %s website. The initial traffic sources of the customers who placed these orders are not taken into account.`]'|escape}"
+            {/if}
+    >
         <td class="column-name">{strip}
             {if !empty($details_graph_data)}
                 <span class="s-chart-color" data-color-id="{$chart_num}"></span>

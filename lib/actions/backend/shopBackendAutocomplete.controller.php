@@ -63,7 +63,7 @@ class shopBackendAutocompleteController extends waController
                         'value'                  => $item['value'],
                         'label'                  => $item['label'],
                         'amount'                 => wa_currency($item['total'], $item['currency']),
-                        'state'                 => ifset($item['state']['name'], $item['state_id']),
+                        'state'                  => ifset($item['state']['name'], $item['state_id']),
                         'autocomplete_item_type' => 'order',
                     );
 
@@ -142,7 +142,7 @@ class shopBackendAutocompleteController extends waController
                 ->select($fields)
                 ->where("name LIKE '%$q%'")
                 ->limit($limit)
-                ->fetchAll();
+                ->fetchAll('id');
 
             // not array_merge, because it makes first reset numeric keys and then make merge
             $products = $products + $data;
@@ -414,11 +414,11 @@ class shopBackendAutocompleteController extends waController
                     $phone && $phone = '<i class="icon16 phone"></i>'.$phone;
                     $email && $email = '<i class="icon16 email"></i>'.$email;
                     $result[$c['id']] = array(
-                        'id'    => $c['id'],
-                        'value' => $c['id'],
-                        'name'  => $c['name'],
+                        'id'        => $c['id'],
+                        'value'     => $c['id'],
+                        'name'      => $c['name'],
                         'photo_url' => waContact::getPhotoUrl($c['id'], $c['photo'], 96),
-                        'label' => implode(' ', array_filter(array($name, $email, $phone))),
+                        'label'     => implode(' ', array_filter(array($name, $email, $phone))),
                     );
                     if (count($result) >= $limit) {
                         break 2;
@@ -468,11 +468,13 @@ SQL;
                 'count' => _w('%d value', '%d values', $f['count']),
             );
 
+
             $result[] = array(
                 'id'    => $f['id'],
                 'value' => $code,
                 'name'  => $f['name'],
-                'label' => implode('; ', array_filter($label)),
+                'label' => sprintf('<span title="%s; %s">%s <span class="hint">%s</span>', $label['type'], $label['count'], $label['name'], $code),
+                'type'  => $f['type'],
             );
         }
 
@@ -573,13 +575,13 @@ SQL;
             }
         }
 
-        if ($used_hash['address']) {
+        if (!empty($used_hash['address'])) {
             $address_field = waContactFields::get('address');
         }
-        if ($used_hash['phone']) {
+        if (!empty($used_hash['phone'])) {
             $phone_field = waContactFields::get('phone');
         }
-        if ($used_hash['email|name']) {
+        if (!empty($used_hash['email|name'])) {
             $email_field = waContactFields::get('email');
         }
 

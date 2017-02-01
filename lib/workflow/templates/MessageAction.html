@@ -76,6 +76,7 @@
 
     $("#wf-message-form").submit(function () {
         var f = $(this);
+        f.find(':submit').attr('disabled', true);
         $.post(f.attr('action'), f.serialize(), function () {
             $.order.reload();
         }, "json");

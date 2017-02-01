@@ -95,6 +95,9 @@ class shopStockModel extends waModel
             }
         }
 
+        $order_items_model = new shopOrderItemsModel();
+        $order_items_model->deleteStock($stock_id, $dst_stock);
+
         return $this->deleteById($stock_id);
     }
     
