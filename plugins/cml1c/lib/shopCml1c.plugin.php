@@ -354,18 +354,23 @@ HTML;
                 'value' => '',
                 'title' => '—',
             );
-            if (true) {
+            if (false) {
                 $form = shopHelper::getCustomerForm();
                 foreach ($form->fields() as $field) {
                     if ($field instanceof waContactCompositeField) {
                         foreach ($field->getFields() as $sub_field) {
-                            $options[] = array(
-                                'group' => $field->getName(),
-                                'value' => $field->getId().':'.$sub_field->getId(),
-                                'title' => $sub_field->getName(),
-                            );
+                            if (!($sub_field instanceof waContactHiddenField)) {
+                                /**
+                                 * @var waContactField $sub_field
+                                 */
+                                $options[] = array(
+                                    'group' => $field->getName(),
+                                    'value' => $field->getId().':'.$sub_field->getId(),
+                                    'title' => $sub_field->getName(),
+                                );
+                            }
                         }
-                    } else {
+                    } elseif (!($field instanceof waContactHiddenField)) {
                         $options[] = array(
                             'value' => $field->getId(),
                             'title' => $field->getName(),
@@ -503,8 +508,6 @@ HTML;
 </tbody>
 </table>
 HTML;
-
-
         return $control;
 
     }
@@ -625,5 +628,32 @@ HTML;
     {
         //14ed8b20-55bd-11d9-848a-00112f43529a
         return preg_match('@^[0-9a-f]{8}\-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$@', $string);
+    }
+
+    public function productHandler($product)
+    {
+        if (!empty($product['id_1c'])) {
+            $info_section = sprintf('<span class="hint" >1С GUID: %s</span>', $product['id_1c']);
+        }
+        return compact('info_section', 'title_suffix');
+    }
+
+    /**
+     * @param $event_params
+     * @param shopProduct $event_params ['product']
+     * @param array $event_params ['sku']
+     */
+    public function skuHandler($event_params)
+    {
+        if (!empty($event_params['sku']['id_1c'])) {
+            $template = <<<HTML
+<div class="field">
+<div class="name">1С GUID</div>
+<div class="value">%s#%s</div>
+</div>
+HTML;
+
+            return sprintf($template, $event_params['product']['id_1c'], $event_params['sku']['id_1c']);
+        }
     }
 }
