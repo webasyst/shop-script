@@ -306,7 +306,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
 
         if ($filters) {
             foreach ($filters as $field => $filter) {
-                if (isset($filters[$field]['values']) && (count($filters[$field]['values']) < 2)) {
+                if (isset($filters[$field]['values']) && (!count($filters[$field]['values']))) {
                     unset($filters[$field]);
                 }
             }
@@ -441,12 +441,6 @@ class shopFrontendCategoryAction extends shopFrontendAction
                 $product_skus[$row['product_id']][] = $row;
             }
 
-            foreach ($products as $product_id => $product) {
-                if (!isset($product_skus[$product_id])) {
-                    unset($products[$product_id]);
-                }
-            }
-
             $default_currency = $this->getConfig()->getCurrency(true);
             if ($product_skus) {
                 foreach ($product_skus as $product_id => $skus) {
@@ -478,9 +472,10 @@ class shopFrontendCategoryAction extends shopFrontendAction
                     }
                     if ($k === null) {
                         //no one matched!
-                        unset($products[$product_id]);
+                        //unset($products[$product_id]);
                         $k = 0;
-                    } else {
+                    }
+                    if ($k !== null) {
                         $sku = $skus[$k];
 
                         if (($products[$product_id]['sku_id'] != $sku['id'])) {
