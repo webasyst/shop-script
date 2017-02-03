@@ -104,8 +104,10 @@ class shopNotifications
 
         // Products info
         $product_ids = array();
+        $sku_ids = array();
         foreach ($data['order']['items'] as $i) {
             $product_ids[$i['product_id']] = 1;
+            $sku_ids[$i['sku_id']] = $i['sku_id'];
         }
 
         $root_url = rtrim(wa()->getRootUrl(true), '/');
@@ -125,12 +127,53 @@ class shopNotifications
             if (!empty($p['image'])) {
                 if ($d !== $root_url) {
                     foreach (array('thumb_url', 'big_url', 'crop_url') as $url_type) {
-                        $p['image'][$url_type] = $d . substr($p['image'][$url_type], $root_url_len);
+                        $p['image'][$url_type] = $d.substr($p['image'][$url_type], $root_url_len);
                     }
                 }
             }
         }
         unset($p);
+
+        $config = wa()->getConfig();
+        /**
+         * @var shopConfig $config
+         */
+
+        //Get actual SKU's images
+        $sizes = array();
+        foreach (array('thumb', 'crop', 'big') as $size) {
+            $sizes[$size] = $config->getImageSize($size);
+        }
+
+        $absolute_image_url = true;
+
+        $product_skus_model = new shopProductSkusModel();
+        $sql = <<<SQL
+SELECT
+  s.id       sku_id,
+  s.product_id,
+  s.image_id id,
+  i.ext,
+  i.filename
+FROM shop_product_skus s
+  JOIN shop_product_images i ON i.id = s.image_id
+WHERE
+  s.image_id IS NOT NULL
+  AND s.id IN (i:sku_ids)
+SQL;
+
+        $skus = $product_skus_model->query($sql, compact('sku_ids'))->fetchAll('sku_id');
+
+        foreach ($skus as &$sku) {
+            foreach ($sizes as $size_id => $size) {
+                $sku['image'][$size_id.'_url'] = shopImage::getUrl($sku, $size, $absolute_image_url);
+                if ($d !== $root_url) {
+                    $sku['image'][$size_id.'_url'] = $d.substr($sku['image'][$size_id.'_url'], $root_url_len);
+                }
+
+            }
+            unset($sku);
+        }
 
         // URLs and products for order items
         foreach ($data['order']['items'] as &$i) {
@@ -143,11 +186,16 @@ class shopNotifications
             }
             if (!empty($products[$i['product_id']])) {
                 $i['product'] = $products[$i['product_id']];
+                if (!empty($skus[$i['sku_id']]['image'])) {
+                    $i['product']['image'] = $skus[$i['sku_id']]['image'];
+                }
             } else {
                 $i['product'] = array();
             }
         }
+
         unset($i);
+
 
         // Shipping info
         if (!empty($data['order']['params']['shipping_id'])) {

@@ -650,6 +650,11 @@
                     wnd.ymaps = undefined;
                 }
 
+                var $wrapper = $body.find(".s-split-order-block");
+                var $blocks = $wrapper.find(".s-order-comment, .s-order-readable");
+                $body.find("#s-split-order-wrapper").removeAttr("style");
+                $blocks.insertAfter($wrapper);
+
                 var html = '<html><head>' + $head.html() + '</head><body class="s-printable">' + $body.html()
                 + '<i class="icon16 loading" style="top: 20px; left: 20px; position: relative;display: none;"></i>' + '</body></html>';
 
@@ -663,6 +668,7 @@
                     $w.find('div:hidden:first').show();
                     $w.find('i.icon16.loading:last').hide();
                 }, 1000);
+
                 wnd.document.open();
                 wnd.document.write(html);
                 wnd.document.close();

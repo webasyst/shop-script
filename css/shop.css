@@ -217,7 +217,7 @@ td.s-empty-order-note { border-top: 1px solid #ddd; border-bottom: 1px solid #dd
 #s-orders ul.menu-h.s-with-selected a { padding: 0 0 6px; color: #03c; }
 #s-orders ul.menu-h.s-with-selected ul.menu-v a { padding: 5px; }
 #s-orders table.zebra .s-select-all { margin-top: 5px; }
-#workflow-content { margin: 10px 250px 20px 0; }
+#workflow-content { margin: 10px 0 20px 0; }
 #workflow-content form,
 .workflow-content form { background: #eee; padding: 20px; margin-bottom: 10px; }
 #workflow-content form#wf-message-form { background: #eef3ff; border: 1px dashed #cde; }
@@ -313,6 +313,9 @@ ul.s-courier-list li.s-expired a { color: #aaa; }
 .s-printable .s-order h1 .hint.s-print-only { display: inline !important; }
 .s-printable .s-order .s-printable-print-button { display: block; }
 .s-printable .s-order .s-order-comment { background: #fff; border: 1px dashed #aaa; margin: 20px 0; }
+.s-printable .workflow-actions,
+.s-printable .workflow-content { display: none !important; }
+
 @media print {
     .s-printable .s-order .s-printable-print-button { display: none; }
     .s-printable .s-order a { text-decoration: none; color: #000; font-weight: bold; }
