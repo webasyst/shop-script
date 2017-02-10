@@ -642,6 +642,7 @@ HTML;
      * @param $event_params
      * @param shopProduct $event_params ['product']
      * @param array $event_params ['sku']
+     * @return string|null
      */
     public function skuHandler($event_params)
     {
@@ -652,7 +653,6 @@ HTML;
 <div class="value">%s#%s</div>
 </div>
 HTML;
-
             return sprintf($template, $event_params['product']['id_1c'], $event_params['sku']['id_1c']);
         }
     }
