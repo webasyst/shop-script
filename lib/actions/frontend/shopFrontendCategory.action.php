@@ -140,7 +140,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
             if ($features) {
                 $features = $feature_model->getValues($features);
             }
-            $category_value_ids = $collection->getFeatureValueIds();
+            $category_value_ids = $collection->getFeatureValueIds(false);
 
 
             foreach ($filter_ids as $fid) {

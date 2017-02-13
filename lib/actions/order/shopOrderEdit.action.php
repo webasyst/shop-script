@@ -8,7 +8,8 @@ class shopOrderEditAction extends waViewAction
      */
     private $order_model;
 
-    public function __construct($params = null) {
+    public function __construct($params = null)
+    {
         $this->order_model = new shopOrderModel();
         return parent::__construct($params);
     }
@@ -21,8 +22,7 @@ class shopOrderEditAction extends waViewAction
         $order = array();
         $shipping_address = array();
 
-        // Existing order?
-        if ($order_id) {
+        if ($order_id) { #Existing order
             $order = $this->getOrder($order_id);
             $currency = $order['currency'];
             if ($order['contact_id']) {
@@ -45,10 +45,12 @@ class shopOrderEditAction extends waViewAction
             } else {
                 $has_contacts_rights = shopHelper::getContactRights();
             }
-        }
-        // New order?
-        else {
-            $currency = $this->getConfig()->getCurrency();
+        } else { #NEW ORDER
+            $config = $this->getConfig();
+            /**
+             * @var shopConfig $config
+             */
+            $currency = $config->getCurrency();
             $has_contacts_rights = shopHelper::getContactRights();
             $form = shopHelper::getCustomerForm();
         }
@@ -70,19 +72,19 @@ class shopOrderEditAction extends waViewAction
         $this->view->assign('backend_order_edit', wa()->event('backend_order_edit', $order));
 
         $this->view->assign(array(
-            'form'     => $form,
-            'order_storefront' => $this->getOrderStorefront($order),
-            'order'    => $order,
-            'stocks'   => $stocks,
-            'currency' => $currency,
-            'count_new' => $count_new,
-            'taxes_count' => $taxes_count,
-            'shipping_address' => $shipping_address,
-            'has_contacts_rights' => $has_contacts_rights,
+            'form'                         => $form,
+            'order_storefront'             => $this->getOrderStorefront($order),
+            'order'                        => $order,
+            'stocks'                       => $stocks,
+            'currency'                     => $currency,
+            'count_new'                    => $count_new,
+            'taxes_count'                  => $taxes_count,
+            'shipping_address'             => $shipping_address,
+            'has_contacts_rights'          => $has_contacts_rights,
             'customer_validation_disabled' => wa()->getSetting('disable_backend_customer_form_validation'),
-            'shipping_methods' => $this->getShipMethods($shipping_address, $order),
-            'ignore_stock_count' => wa()->getSetting('ignore_stock_count'),
-            'storefronts' => shopHelper::getStorefronts(),
+            'shipping_methods'             => $this->getShipMethods($shipping_address, $order),
+            'ignore_stock_count'           => wa()->getSetting('ignore_stock_count'),
+            'storefronts'                  => shopHelper::getStorefronts(),
         ));
     }
 
@@ -104,9 +106,9 @@ class shopOrderEditAction extends waViewAction
             $order_total = 0;
         }
         return shopHelper::getShippingMethods($shipping_address, $order_items, array(
-            'currency' => $order_currency,
-            'total_price' => $order_total,
-            'no_external' => true,
+            'currency'           => $order_currency,
+            'total_price'        => $order_total,
+            'no_external'        => true,
             'allow_external_for' => $allow_external_for,
         ));
     }
@@ -174,7 +176,11 @@ class shopOrderEditAction extends waViewAction
     private function getCropSize()
     {
         if ($this->crop_size === null) {
-            $this->crop_size = $this->getConfig()->getImageSize('crop_small');
+            $config = $this->getConfig();
+            /**
+             * @var shopConfig $config
+             */
+            $this->crop_size = $config->getImageSize('crop_small');
         }
         return $this->crop_size;
     }
@@ -185,15 +191,13 @@ class shopOrderEditAction extends waViewAction
         if (empty($item['image_id'])) {
             $item['url_crop_small'] = null;
         } else {
-            $item['url_crop_small'] = shopImage::getUrl(
-                array(
-                    'id' => $item['image_id'],
-                    'filename' => $item['image_filename'],
-                    'product_id' => $item['id'],
-                    'ext' => $item['ext']
-                ),
-                $size
+            $image = array(
+                'id'         => $item['image_id'],
+                'filename'   => $item['image_filename'],
+                'product_id' => $item['id'],
+                'ext'        => $item['ext']
             );
+            $item['url_crop_small'] = shopImage::getUrl($image, $size);
         }
 
         // aggregated stocks count icon for product
@@ -203,18 +207,19 @@ class shopOrderEditAction extends waViewAction
 
         foreach ($item['skus'] as &$sku) {
             if (empty($sku['fake'])) {
-                // detaled stocks count icon for sku
+                // detailed stocks count icon for sku
                 if (empty($sku_stocks[$sku['id']])) {
                     $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);
                 } else {
                     $icons = array();
                     $counts_htmls = array();
                     foreach ($sku_stocks[$sku['id']] as $stock_id => $stock) {
-                        $icon  = &$icons[$stock_id];
-                        $icon  = shopHelper::getStockCountIcon($stock['count'], $stock_id, true);
-                        $count_html = &$counts_htmls[$stock_id];
-                        $count_html = _w('%d left', '%d left', $stock['count']);
-                        unset($icon, $count_html);
+                        $icons[$stock_id] = shopHelper::getStockCountIcon($stock['count'], $stock_id, true);
+                        if ($stock['count'] === null) {
+                            $counts_htmls[$stock_id] = sprintf(str_replace('%d', '%s', _w('%d left')), '∞');
+                        } else {
+                            $counts_htmls[$stock_id] = _w('%d left', '%d left', $stock['count']);
+                        }
                     }
                     $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], null, true);
                     $sku['icons'] = $icons;
@@ -227,11 +232,10 @@ class shopOrderEditAction extends waViewAction
 
     public function getOrderStorefront($order)
     {
-        $storefront = rtrim((string) ifset($order['params']['storefront'], ''), '/*');
+        $storefront = rtrim((string)ifset($order['params']['storefront'], ''), '/*');
         if (strpos($storefront, '/') !== false) {
             $storefront .= '/';
         }
         return $storefront;
     }
 }
-

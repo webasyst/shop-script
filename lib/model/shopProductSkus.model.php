@@ -641,6 +641,8 @@ SQL;
 
             if (empty($sku['available'])) {
                 $sku['available'] = 0;
+            } elseif ($sku['available'] > 1) {
+                $sku['available'] = 1;
             }
 
             if (isset($sku['price'])) {

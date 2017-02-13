@@ -385,7 +385,7 @@ class shopProductStocksModel extends waModel
         if (!$sku_ids) {
             return array();
         }
-        $sku_ids = (array) $sku_ids;
+        $sku_ids = array_map('intval', (array)$sku_ids);
 
         $stock_model = new shopStockModel();
         $stocks = $stock_model->select('id, name, NULL as count')->order('sort')->fetchAll('id', true);

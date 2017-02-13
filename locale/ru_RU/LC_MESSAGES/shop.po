@@ -10298,7 +10298,7 @@ msgstr ""
 #: /wa-apps/shop/lib/config/my.order.php:53
 #: /wa-apps/shop/lib/config/site.php:375
 msgid "An array of action-dependent parameters, e.g. $action_data.params.tracking_number for Ship’s action tracking number"
-msgstr ""
+msgstr "Массив параметров действия с заказом, например, $action_data.params.tracking_number — номер отправления для действия «Отправлен»"
 
 #: /wa-apps/shop/lib/config/site.php:248
 msgid "Current order status"

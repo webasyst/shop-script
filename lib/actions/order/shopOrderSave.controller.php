@@ -122,10 +122,10 @@ class shopOrderSaveController extends waJsonController
             if (!empty($discount_description)) {
                 $data['shipping'] = $this->cast($data['shipping']);
                 $data = array(
-                    'total' => $data['total'] + $this->cast($data['discount']) - $data['shipping'],
-                    'discount' => 0,
-                    'params' => ifempty($data['params'], array()) + $params,
-                ) + $data;
+                        'total'    => $data['total'] + $this->cast($data['discount']) - $data['shipping'],
+                        'discount' => 0,
+                        'params'   => ifempty($data['params'], array()) + $params,
+                    ) + $data;
 
                 // Add keys from shop_order not present in $data
                 $o = array_diff_key($this->getModel()->getOrder($id), $data);
@@ -143,7 +143,7 @@ class shopOrderSaveController extends waJsonController
                 $data = array_diff_key($data, $o);
             }
 
-            $previous_discount = (float) $this->getModel()->select('discount')->where('id=?', $id)->fetchField();
+            $previous_discount = (float)$this->getModel()->select('discount')->where('id=?', $id)->fetchField();
         } else {
             if (!$id && !empty($data['discount']) && !empty($discount_description)) {
                 $tmp = $data;
@@ -197,26 +197,28 @@ class shopOrderSaveController extends waJsonController
 
         // Load nice and clean order data from DB
         $this->response['order'] = $order = $this->workupOrder($this->getModel()->getOrder($id));
-        $order['discount'] = (float) $order['discount'];
+        $order['discount'] = (float)$order['discount'];
 
         // Save discount description to order log
         if ($previous_discount != $order['discount']) {
             if (empty($discount_description)) {
                 if ($just_created) {
-                    $discount_description = sprintf_wp('Discount specified manually during order creation: %s', shop_currency($order['discount'], $order['currency'], $order['currency']));
+                    $discount_description = sprintf_wp('Discount specified manually during order creation: %s',
+                        shop_currency($order['discount'], $order['currency'], $order['currency']));
                 } else {
-                    $discount_description = sprintf_wp('Discount modified manually via backend editor: %s', shop_currency($order['discount'], $order['currency'], $order['currency']));
+                    $discount_description = sprintf_wp('Discount modified manually via backend editor: %s',
+                        shop_currency($order['discount'], $order['currency'], $order['currency']));
                 }
             }
 
             $order_log_model = new shopOrderLogModel();
             $order_log_model->add(array(
-                'order_id' => $id,
-                'contact_id' => wa()->getUser()->getId(),
+                'order_id'        => $id,
+                'contact_id'      => wa()->getUser()->getId(),
                 'before_state_id' => $order['state_id'],
-                'after_state_id' => $order['state_id'],
-                'text' => $discount_description,
-                'action_id' => '',
+                'after_state_id'  => $order['state_id'],
+                'text'            => $discount_description,
+                'action_id'       => '',
             ));
         }
     }
@@ -299,8 +301,8 @@ class shopOrderSaveController extends waJsonController
     }
 
     /**
-     * @param mixed[string] $data
-     * @param waContact $data['contact']
+     * @param mixed [string] $data
+     * @param waContact $data ['contact']
      * @param $id
      */
     private function getParams(&$data, $id)
@@ -561,9 +563,9 @@ class shopOrderSaveController extends waJsonController
 
     private function validateEditDataStocks()
     {
-        $skus   = $this->post('sku', array(), 'edit');
+        $skus = $this->post('sku', array(), 'edit');
         $stocks = $this->post('stock', array(), 'edit');
-        $items  = $this->post('item', array(), 'edit');
+        $items = $this->post('item', array(), 'edit');
 
         $sku_ids = array();
         foreach ($items as $index => $item_id) {
@@ -600,19 +602,19 @@ class shopOrderSaveController extends waJsonController
             return array();
         }
 
-        $items      = $this->post('item', array(), 'edit');
-        $products   = $this->post('product', array(), 'edit');
-        $skus       = $this->post('sku', array(), 'edit');
-        $services   = $this->post('service', array(), 'edit');
-        $variants   = $this->post('variant', array(), 'edit');
-        $names      = $this->post('name', array(), 'edit');
-        $prices     = $this->post('price', array(), 'edit');
+        $items = $this->post('item', array(), 'edit');
+        $products = $this->post('product', array(), 'edit');
+        $skus = $this->post('sku', array(), 'edit');
+        $services = $this->post('service', array(), 'edit');
+        $variants = $this->post('variant', array(), 'edit');
+        $names = $this->post('name', array(), 'edit');
+        $prices = $this->post('price', array(), 'edit');
         $quantities = $this->post('quantity', array(), 'edit');
-        $stocks     = $this->post('stock', array(), 'edit');
+        $stocks = $this->post('stock', array(), 'edit');
 
 
         $product_ids = array();
-        $sku_ids     = array();
+        $sku_ids = array();
         $service_ids = array();
         $variant_ids = array();
 
@@ -626,15 +628,15 @@ class shopOrderSaveController extends waJsonController
 
             $quantity = $quantities[$item_id];
             $data['items'][] = array(
-                'id' => $item_id,
-                'product_id' => $products[$item_id],
-                'sku_id' => $skus[$item_id],
-                'type' => 'product',
-                'service_id' => null,
+                'id'                 => $item_id,
+                'product_id'         => $products[$item_id],
+                'sku_id'             => $skus[$item_id],
+                'type'               => 'product',
+                'service_id'         => null,
                 'service_variant_id' => null,
-                'price' => $prices[$item_id],
-                'quantity' => $quantities[$item_id],
-                'stock_id' => !empty($stocks[$item_id]) ? $stocks[$item_id] : null,
+                'price'              => $prices[$item_id],
+                'quantity'           => $quantities[$item_id],
+                'stock_id'           => !empty($stocks[$item_id]) ? $stocks[$item_id] : null,
             );
 
             if (!empty($services[$index])) {
@@ -643,12 +645,12 @@ class shopOrderSaveController extends waJsonController
                         $service_ids[] = $service_id;
                         $p_item = &$data['items'][];
                         $p_item = array(
-                            'product_id' => $products[$item_id],
-                            'sku_id' => $skus[$item_id],
-                            'type' => 'service',
-                            'service_id' => $service_id,
-                            'price' => $prices[$group][$k],
-                            'quantity' => $quantity,
+                            'product_id'         => $products[$item_id],
+                            'sku_id'             => $skus[$item_id],
+                            'type'               => 'service',
+                            'service_id'         => $service_id,
+                            'price'              => $prices[$group][$k],
+                            'quantity'           => $quantity,
                             'service_variant_id' => null
                         );
                         if ($group == 'item') {        // it's item for update: $k is ID of item
@@ -671,7 +673,7 @@ class shopOrderSaveController extends waJsonController
         $order_currency = $this->getModel()->select('currency')->where('id=?', $order_id)->fetchField();
         if ($product_ids) {
             $products = $this->getFields($product_ids, 'product', 'name,tax_id, currency');
-            $skus     = $this->getFields($sku_ids, 'product_skus', 'name, sku, purchase_price');
+            $skus = $this->getFields($sku_ids, 'product_skus', 'name, sku, purchase_price');
             $services = $this->getFields($service_ids, 'service', 'name,tax_id');
             $variants = $this->getFields($variant_ids, 'service_variants');
             foreach ($data['items'] as &$item) {
@@ -754,28 +756,28 @@ class shopOrderSaveController extends waJsonController
         }
         return array(
             'currency' => $currency,
-            'rate' => $rate,
-            'items' => $this->getItems($currency),
+            'rate'     => $rate,
+            'items'    => $this->getItems($currency),
         );
     }
 
     private function getItems($order_currency)
     {
         $data = array();
-        $products   = $this->post('product', array(), 'add');
+        $products = $this->post('product', array(), 'add');
         if (!$products) {
             return $data;
         }
 
-        $skus       = $this->post('sku', array(), 'add');
-        $prices     = $this->post('price', array(), 'add');
+        $skus = $this->post('sku', array(), 'add');
+        $prices = $this->post('price', array(), 'add');
         $quantities = $this->post('quantity', array(), 'add');
-        $services   = $this->post('service', array(), 'add');
-        $variants   = $this->post('variant', array(), 'add');
-        $stocks     = $this->post('stock', array(), 'add');
+        $services = $this->post('service', array(), 'add');
+        $variants = $this->post('variant', array(), 'add');
+        $stocks = $this->post('stock', array(), 'add');
 
         $product_ids = array();
-        $sku_ids     = array();
+        $sku_ids = array();
         $service_ids = array();
         $variant_ids = array();
 
@@ -786,31 +788,31 @@ class shopOrderSaveController extends waJsonController
             $sku_ids[] = (int)$sku_id;
             $quantity = $quantities[$index]['product'];
             $data[] = array(
-                'name' => '',
-                'product_id' => $product_id,
-                'sku_id' => $sku_id,
-                'type' => 'product',
-                'service_id' => null,
-                'price' => $prices[$index]['product'],
-                'currency' => '',
-                'quantity' => $quantity,
+                'name'               => '',
+                'product_id'         => $product_id,
+                'sku_id'             => $sku_id,
+                'type'               => 'product',
+                'service_id'         => null,
+                'price'              => $prices[$index]['product'],
+                'currency'           => '',
+                'quantity'           => $quantity,
                 'service_variant_id' => null,
-                'stock_id' => !empty($stocks[$index]['product']) ? $stocks[$index]['product'] : null
+                'stock_id'           => !empty($stocks[$index]['product']) ? $stocks[$index]['product'] : null
             );
             if (!empty($services[$index])) {
                 foreach ($services[$index] as $service_id) {
                     $service_ids[] = (int)$service_id;
                     $item = array(
-                        'name' => '',
-                        'product_id' => $product_id,
-                        'sku_id' => $skus[$index],
-                        'type' => 'service',
-                        'service_id' => $service_id,
-                        'price' => $prices[$index]['service'][$service_id],
-                        'currency' => '',
-                        'quantity' => $quantity,
+                        'name'               => '',
+                        'product_id'         => $product_id,
+                        'sku_id'             => $skus[$index],
+                        'type'               => 'service',
+                        'service_id'         => $service_id,
+                        'price'              => $prices[$index]['service'][$service_id],
+                        'currency'           => '',
+                        'quantity'           => $quantity,
                         'service_variant_id' => null,
-                        'stock_id' => null
+                        'stock_id'           => null
                     );
                     if (!empty($variants[$index][$service_id])) {
                         $variant_ids[] = (int)$variants[$index][$service_id];
@@ -855,7 +857,7 @@ class shopOrderSaveController extends waJsonController
     {
         $total = 0;
         foreach ($data['items'] as $item) {
-            $total += $this->cast($item['price'])*(int)$item['quantity'];
+            $total += $this->cast($item['price']) * (int)$item['quantity'];
         }
         if ($total == 0) {
             return $total;
@@ -878,28 +880,7 @@ class shopOrderSaveController extends waJsonController
 
     public function getSkuStocks($sku_ids)
     {
-        if (!$sku_ids) {
-            return array();
-        }
-        $sku_stocks = $this->getModel('product_stocks')->
-            select('*')->
-            where("sku_id IN (".implode(',', $sku_ids).")")->
-            order('sku_id')->
-            fetchAll();
-
-        $data = array();
-        foreach ($sku_ids as $sku_id) {
-            $data[$sku_id] = array();
-        }
-
-        $sku_id = null;
-        foreach ($sku_stocks as $item) {
-            if ($item['sku_id'] != $sku_id) {
-                $sku_id = $item['sku_id'];
-            }
-            $data[$sku_id][$item['stock_id']] = $item;
-        }
-        return $data;
+        return $this->getModel('product_stocks')->getBySkuId($sku_ids);
     }
 
     public function getFields(array $ids, $model_name, $fields = 'name')
@@ -921,7 +902,7 @@ class shopOrderSaveController extends waJsonController
 
     /**
      * @param string $name
-     * @return shopOrderModel
+     * @return shopOrderModel|shopProductStocksModel
      */
     public function getModel($name = 'order')
     {

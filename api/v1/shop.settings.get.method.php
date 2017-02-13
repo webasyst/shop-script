@@ -17,6 +17,7 @@ class shopSettingsGetMethod extends shopApiMethod
             'currencies'       => $config->getCurrencies(),
             'address_fields'   => self::getAddressSubfieldsOrder(),
             'order_states'     => self::getOrderStates(),
+            'server_time'      => date('Y-m-d H:i:s'),
         );
     }
 

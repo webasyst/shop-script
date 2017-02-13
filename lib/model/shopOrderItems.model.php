@@ -391,20 +391,19 @@ SQL;
 
         #get actual stock data
         if ($sku_ids) {
-            $sql = <<<SQL
-SELECT sku_id, stock_id, count  
-FROM shop_product_stocks
-WHERE sku_id IN (i:sku_ids)
-ORDER BY count DESC
-SQL;
-            $stocks = $this->query($sql, compact('sku_ids'))->fetchAll();
-            foreach ($stocks as $sku) {
-                if (!isset($items_stocks[$sku['sku_id']])) {
-                    $items_stocks[$sku['sku_id']] = array();
-                }
 
-                $items_stocks[$sku['sku_id']][$sku['stock_id']] = (($sku['count'] === null) || ($sku['count'] > 0));
+            $m = new shopProductStocksModel();
+            $stocks = $m->getBySkuId($sku_ids);
+
+            foreach ($stocks as $sku_id => $item_stocks) {
+                if (!isset($items_stocks[$sku_id])) {
+                    $items_stocks[$sku_id] = array();
+                }
+                foreach ($item_stocks as $stock_id => $stock) {
+                    $items_stocks[$sku_id][$stock_id] = (($stock['count'] === null) || ($stock['count'] > 0));
+                }
             }
+
             foreach ($items_stocks as &$item_stocks) {
                 asort($item_stocks);
                 unset($item_stocks);
