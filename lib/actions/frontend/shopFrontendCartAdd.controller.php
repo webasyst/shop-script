@@ -162,6 +162,7 @@ class shopFrontendCartAddController extends waJsonController
                 $this->response['item_id'] = $item_id;
                 $this->response['total'] = $this->currencyFormat($this->cart->total());
                 $this->response['discount'] = $this->currencyFormat($discount);
+                $this->response['discount_numeric'] = $discount;
                 $this->response['discount_coupon'] = $this->currencyFormat(ifset($order['params']['coupon_discount'], 0), true);
                 $this->response['count'] = $this->cart->count();
                 if (waRequest::get("items")) {
@@ -266,6 +267,7 @@ class shopFrontendCartAddController extends waJsonController
         $this->response['total'] = $this->currencyFormat($total);
         $this->response['count'] = $this->cart->count();
         $this->response['discount'] = $this->currencyFormat($discount);
+        $this->response['discount_numeric'] = $discount;
         $this->response['discount_coupon'] = $this->currencyFormat(ifset($order['params']['coupon_discount'], 0), true);
 
         $item_total = $this->cart->getItemTotal($data['parent_id']);
