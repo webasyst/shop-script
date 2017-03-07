@@ -38,6 +38,7 @@ class shopWorkflowAction extends waWorkflowAction
         );
     }
 
+    /** @param $attrs string */
     public function getButton()
     {
         $name = htmlspecialchars($this->getName(), ENT_QUOTES, 'utf-8');

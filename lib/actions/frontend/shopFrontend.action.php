@@ -79,11 +79,22 @@ class shopFrontendAction extends waViewAction
         $this->getResponse()->setMeta('keywords', waRequest::param('meta_keywords'));
         $this->getResponse()->setMeta('description', waRequest::param('meta_description'));
 
+
         // Open Graph
-        foreach (array('title', 'image', 'video', 'description', 'type') as $k) {
+        $og_url = null;
+        foreach (array('title', 'image', 'video', 'description', 'type', 'url') as $k) {
             if (waRequest::param('og_'.$k)) {
+                if (($k == 'url') && strlen(waRequest::param('og_'.$k))) {
+                    $og_url = false;
+                } elseif ($og_url === null) {
+                    $og_url = true;
+                }
                 $this->getResponse()->setOGMeta('og:'.$k, waRequest::param('og_'.$k));
             }
+        }
+        if ($og_url) {
+            $og_url = wa()->getConfig()->getHostUrl().wa()->getConfig()->getRequestUrl(false, true);
+            $this->getResponse()->setOGMeta('og:url', $og_url);
         }
 
         /**

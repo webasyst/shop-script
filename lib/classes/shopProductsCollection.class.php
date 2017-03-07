@@ -351,7 +351,7 @@ SQL;
                     if (!empty($skus_alias) && !empty($price_filter)) {
                         // #53.4890
                         foreach ($price_filter as $price_filter_item) {
-                            $this->addWhere("({$skus_alias}.price {$price_filter_item})");
+                            $this->addWhere("({$skus_alias}.primary_price {$price_filter_item})");
                         }
                     }
                 } else {

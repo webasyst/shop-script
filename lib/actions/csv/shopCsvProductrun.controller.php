@@ -262,6 +262,8 @@ class shopCsvProductrunController extends waLongActionController
             //array: features
         }
 
+        $this->data['previous_type'] = null;
+
         $this->data['count'] = array(
             self::STAGE_FILE     => $this->reader ? $this->reader->size() : null,
             self::STAGE_CATEGORY => null,
@@ -817,9 +819,11 @@ class shopCsvProductrunController extends waLongActionController
                     $method_name = 'stepImport'.ucfirst($type);
                     if (method_exists($this, $method_name)) {
                         $result = $this->{$method_name}($current);
+                        $this->data['previous_type'] = $type;
                     } else {
                         $this->error(sprintf("Unsupported import data type %s", $type));
                     }
+
                     if (false) {
                         //TODO write
                         //$row = $this->reader->getTableRow();
@@ -1274,7 +1278,10 @@ class shopCsvProductrunController extends waLongActionController
             $product_exists = $this->emulate() ? ($product->__hash == $current_id) : $id;
 
             if ($id && isset($data['skus'][-1])) {
-                if ($this->emulate() ? ($product->__hash == $current_id) : ($id == $current_id)) {
+                if (in_array($this->data['previous_type'], array(self::STAGE_PRODUCT, self::STAGE_SKU, null), true)
+                    &&
+                    ($this->emulate() ? ($product->__hash == $current_id) : ($id == $current_id))
+                ) {
                     $sku_only = true;
                 }
 
@@ -1332,7 +1339,11 @@ class shopCsvProductrunController extends waLongActionController
                     unset($data['skus']);
                 }
             } elseif (isset($data['skus'][-1])) {
-                if ($this->emulate() && ($product->__hash == $current_id)) {
+                if (in_array($this->data['previous_type'], array(self::STAGE_PRODUCT, self::STAGE_SKU, null), true)
+                    &&
+                    $this->emulate()
+                    && ($product->__hash == $current_id)
+                ) {
                     $sku_only = true;
                     $item_sku_id = true;
                 } else {

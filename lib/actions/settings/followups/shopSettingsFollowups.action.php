@@ -131,8 +131,8 @@ class shopSettingsFollowupsAction extends waViewAction
         $this->view->assign('followup', $followup);
         $this->view->assign('followups', $followups);
         $this->view->assign('test_orders', $test_orders);
-        $this->view->assign('last_cron', wa()->getSetting('last_followup_cli'));
-        $this->view->assign('cron_ok', wa()->getSetting('last_followup_cli') + 3600*36 > time());
+        $this->view->assign('last_cron', (int)wa()->getSetting('last_followup_cli'));
+        $this->view->assign('cron_ok', ((int)wa()->getSetting('last_followup_cli') + 3600*36) > time());
         $this->view->assign('cron_command', 'php '.wa()->getConfig()->getRootPath().'/cli.php shop followup');
         $this->view->assign('default_email_from', $this->getConfig()->getGeneralSettings('email'));
         $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));

@@ -82,11 +82,15 @@ class shopApiCourierModel extends waModel
         if (!$couriers) {
             return;
         }
-        $sql = "SELECT value, count(*)
-                FROM shop_order_params
-                WHERE name='courier_id'
-                    AND value IN (?)
-                GROUP BY value";
+
+        $sql = "SELECT op.value, count(*)
+                FROM shop_order_params AS op
+                    JOIN shop_order AS o
+                        ON o.id=op.order_id
+                WHERE op.name='courier_id'
+                    AND op.value IN (?)
+                    AND o.state_id NOT IN ('completed', 'refunded', 'deleted')
+                GROUP BY op.value";
         $counts = $this->query($sql, array(array_keys($couriers)))->fetchAll('value', true);
         foreach($couriers as &$c) {
             $c['count'] = ifset($counts[$c['id']], 0);

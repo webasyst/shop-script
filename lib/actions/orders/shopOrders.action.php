@@ -58,11 +58,6 @@ class shopOrdersAction extends shopOrderListAction
             );
         }
 
-        // courier filter
-        if (preg_match('/search\/params\.courier_id=([\d+])/', $this->hash, $m)) {
-            $counters['courier_counters'][$m[1]] = $this->getTotalCount();
-        }
-
         $this->assign(array(
             'orders' => array_values($orders),
             'total_count' => $this->getTotalCount(),

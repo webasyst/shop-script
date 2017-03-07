@@ -222,10 +222,12 @@ class shopFrontendCategoryAction extends shopFrontendAction
                             $type = reset($condition);
                             switch ($type) {
                                 case '>=':
+                                    $min = shop_currency(doubleval(end($condition)), null, null, false);
+
                                     if (empty($filter_data['price_min'])) {
-                                        $filter_data['price_min'] = doubleval(end($condition));
+                                        $filter_data['price_min'] = $min;
                                     } else {
-                                        $filter_data['price_min'] = max(end($condition), $filter_data['price_min']);
+                                        $filter_data['price_min'] = max($min, $filter_data['price_min']);
                                     }
 
                                     if (empty($category_filters['price'])) {
@@ -237,15 +239,17 @@ class shopFrontendCategoryAction extends shopFrontendAction
                                             );
                                         }
                                     } else {
-                                        $filters['price']['min'] = max(end($condition), $filters['price']['min']);
+                                        $filters['price']['min'] = max($filter_data['price_min'], $filters['price']['min']);
                                     }
                                     break;
                                 case '<=':
+                                    $max = shop_currency(doubleval(end($condition)), null, null, false);
                                     if (empty($filter_data['price_max'])) {
-                                        $filter_data['price_max'] = doubleval(end($condition));
+                                        $filter_data['price_max'] = $max;
                                     } else {
-                                        $filter_data['price_max'] = min(end($condition), $filter_data['price_max']);
+                                        $filter_data['price_max'] = min($max, $filter_data['price_max']);
                                     }
+
                                     if (empty($category_filters['price'])) {
                                         $range = $collection->getPriceRange();
                                         if ($range['min'] != $range['max']) {
@@ -255,7 +259,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
                                             );
                                         }
                                     } else {
-                                        $filters['price']['max'] = min(end($condition), $filters['price']['max']);
+                                        $filters['price']['max'] = min($filter_data['price_max'], $filters['price']['max']);
                                     }
                                     break;
 
@@ -442,6 +446,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
             }
 
             $default_currency = $this->getConfig()->getCurrency(true);
+            $strict = true;
             if ($product_skus) {
                 foreach ($product_skus as $product_id => $skus) {
                     $currency = $products[$product_id]['currency'];
@@ -472,8 +477,11 @@ class shopFrontendCategoryAction extends shopFrontendAction
                     }
                     if ($k === null) {
                         //no one matched!
-                        //unset($products[$product_id]);
-                        $k = 0;
+                        if ($strict) {
+                            unset($products[$product_id]);
+                        } else {
+                            $k = 0;
+                        }
                     }
                     if ($k !== null) {
                         $sku = $skus[$k];

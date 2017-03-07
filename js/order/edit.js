@@ -791,7 +791,12 @@ $.order_edit = {
                     var tr = $('.s-order-item[data-index='+index+']');
                     var errors = validate_errors.order.items[index];
                     for (var name in errors) {
-                        tr.find('.s-error-item-' + name).text(errors[name]);
+                        var message = tr.find('.s-error-item-' + name);
+                        if (message.length) {
+                            message.text(errors[name]);
+                        } else {
+                            common_errors.push(errors[name]);
+                        }
                     }
                     delete validate_errors.order.items[index];
                 }

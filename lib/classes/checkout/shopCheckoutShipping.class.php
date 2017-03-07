@@ -305,6 +305,7 @@ class shopCheckoutShipping extends shopCheckout
             foreach ($address['fields'] as $k => $v) {
                 if (empty($contact_address[$k])) {
                     $address_form = true;
+                    break;
                 }
             }
         }
@@ -608,8 +609,9 @@ class shopCheckoutShipping extends shopCheckout
         $params = array();
         $params['namespace'] = 'shipping_'.$id;
         $params['title_wrapper'] = '%s';
-        $params['description_wrapper'] = '<br><span class="hint">%s</span>';
-        $params['control_wrapper'] = '<div class="wa-name">%s</div><div class="wa-value">%s %s</div>';
+        $params['description_wrapper'] = '<span class="hint">%s</span>';
+        $params['control_wrapper'] = '<div class="wa-name">%s</div><div class="wa-value"><p><span>%3$s %2$s</span></p></div>';
+        $params['control_separator']='</span><span>';
 
         $selected_shipping = $this->getSessionData('shipping');
         $selected = $selected_shipping ? ($id == $selected_shipping['id']) : false;

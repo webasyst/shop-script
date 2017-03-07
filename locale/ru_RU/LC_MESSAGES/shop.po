@@ -1091,7 +1091,7 @@ msgstr "Максимальный размер эскиза"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:100
 msgid "Limits the maximum thumbnail size that can be created on demand. Must be no less than 970 px."
-msgstr "Ограничение максимальных размеров эскиза изображения, формируемого по требованию (в пикселях). Минимальное значение  — 970."
+msgstr "Ограничение максимальных размеров эскиза изображения, формируемого по требованию (в пикселях). Ограничение максимального размера не может быть меньше 970."
 
 #: /wa-apps/shop/templates/actions/settings/SettingsImages.html:107
 msgid "Sharpen"
@@ -3437,6 +3437,12 @@ msgstr "от"
 msgid "to"
 msgstr "до"
 
+msgid "from "
+msgstr "с"
+
+msgid "to "
+msgstr "по"
+
 #: /wa-apps/shop/themes/default/category.html:32
 msgid "Filter products"
 msgstr "Показать"
@@ -4104,8 +4110,8 @@ msgid "Send after"
 msgstr "Отправлять через"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:69
-msgid "Send follow-up after recurrent orders too"
-msgstr "Отправлять даже если это повторный заказ клиента"
+msgid "Send for customer‘s first paid order only"
+msgstr "Отправлять только для первого оплаченного заказа покупателя"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsFollowups.html:83
 msgid "HTML + Smarty"
@@ -10391,3 +10397,87 @@ msgstr "Выберите тип онлайн-карт в разделе «<a hre
 #: /wa-apps/shop/templates/actions/settings/SettingsGeneral.html:177
 msgid "To select an online map engine, you need access to Installer app‘s “Settings” screen."
 msgstr "Для выбора типа онлайн-карт необходим доступ к разделу «Настройки» приложения «Инсталлер»."
+
+msgid "Only couriers for storefront %s are shown."
+msgstr "Показаны только курьеры, настроенные для витрины %s."
+
+msgid "Set up couriers for storefront %s to be able assign orders to them."
+msgstr "Настройте курьеров для витрины %s, чтобы назначить на них заказ."
+
+msgid "None"
+msgstr "Нет"
+
+msgid "End time is earlier than start time. Are you sure?"
+msgstr "Время начала позже времени окончания периода. Вы уверены?"
+
+msgid "Use"
+msgstr "Использовать"
+
+msgid "apply"
+msgstr "применить"
+
+msgid "Shipping date"
+msgstr "Дата доставки"
+
+msgid "Shipping time"
+msgstr "Время доставки"
+
+msgid "Time created"
+msgstr "Время создания"
+
+msgid "Time updated"
+msgstr "Время обновления"
+
+msgid "Time paid"
+msgstr "Время оплаты"
+
+msgid "Preferred shipping time:"
+msgstr "Желаемое время доставки:"
+
+msgid "Edit shipping details"
+msgstr "Изменить параметры доставки"
+
+msgid "Shipping details changed"
+msgstr "Изменены параметры доставки"
+
+msgid "Shipping date, for example: February 16, 2017"
+msgstr "Дата доставки, например: 16 февраля 2017"
+
+msgid "Shipping date, for example: February 16"
+msgstr "Дата доставки, например: 16 февраля"
+
+msgid "Shipping date, for example: 02/16/2017"
+msgstr "Дата доставки, например: 16.02.2017"
+
+msgid "Start of shipping time interval"
+msgstr "Начало интервала времени доставки"
+
+msgid "End of shipping time interval"
+msgstr "Конец интервала времени доставки"
+
+msgid "Shipping date and time, for example: February 16, 10:00 - 20:30"
+msgstr "Дата и время доставки, например: 16 февраля, 10:00 - 20:30"
+
+msgid "Relative URL of ordered product‘s main image with specified size."
+msgstr "Относительный URL основного изображения заказанного товара с указанием размера."
+
+msgid "<code>$item</code> must be an item of <code>$order.items</code> array."
+msgstr "<code>$item</code> должно содержать элемент массива <code>$order.items</code>."
+
+msgid "<code>$size</code> must contain one of size values described in the <a href=\"https://www.shop-script.com/help/43/image-thumbnails-in-shop-script-5-storefront/\" target=\"_blank\">documentation</a>; e.g., \"200\" or \"200x0\", etc. Default image size, if not specified, is \"750x0\"."
+msgstr "<code>$size</code> должно содержать одно из значений размера, описанных в  <a href=\"https://www.shop-script.ru/help/5/shop-script-5-image-thumbnails/\" target=\"_blank\">документации</a>, например, \"200\" или \"200x0\" и т.&nbsp;п. Стандартное значение, если оно не указано — \"750x0\"."
+
+msgid "To obtain an absolute image URL, use <code>{$wa-&gt;domainUrl()}</code>."
+msgstr "Чтобы получить абсолютный URL изображения, используйте <code>{$wa-&gt;domainUrl()}</code>."
+
+msgid "Example:"
+msgstr "Пример:"
+
+msgid "Send only if order status has not been changed from the one selected above"
+msgstr "Отправлять, только если статус заказа, выбранный выше, не изменился"
+
+msgid "Social sharing URL (og:url)"
+msgstr "Ссылка для соцсетей (og:url)"
+
+msgid "If at least one og: value above is not empty, then you may keep this field empty for og:url meta tag to contain this storefront‘s URL by default. Or type a custom og:url value manually, if necessary."
+msgstr "Если хотя бы одно из значений метатегов og: выше заполнено, то это поле можно оставить пустым — в метатег og:url по умолчанию подставится URL витрины. Или вручную отредактируйте значение og:url, если необходимо."

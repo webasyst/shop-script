@@ -223,6 +223,9 @@ td.s-empty-order-note { border-top: 1px solid #ddd; border-bottom: 1px solid #dd
 #workflow-content form#wf-message-form { background: #eef3ff; border: 1px dashed #cde; }
 #workflow-content form#wf-message-form textarea { min-height: 100px; }
 #workflow-content form#wf-ship-form { background: #eef7ff; border: 1px dashed #cde; }
+#wf-ship-form .shipping-date-fields input { width: 100px; }
+#wf-ship-form .shipping-time-from-fields input,
+#wf-ship-form .shipping-time-to-fields input { width: 50px; }
 
 ul.s-orders li { width: 282px; padding: 10px !important; }
 ul.s-orders li a { color: #555; line-height: 1em; }
@@ -262,7 +265,7 @@ ul.menu-v.s-orders-sort.dropdown i.s-sort-order { margin: 2px; padding: 0; displ
 .s-order-comment { margin: 20px -20px; background: #f7f7d7; font-size: 1.3em; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) inset; border-top: 1px solid rgba(0,0,0,0.15); border-bottom: 1px solid rgba(0,0,0,0.1); white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; }
 .s-order-comment-edit textarea { display: block; width: 100%; min-height: 100px; margin: 5px 0 15px; font-size: 1.2em; }
 
-.s-order-address { padding-left: 20px; }
+.s-order-address, .s-order-customer-delivery-date, .s-order-shipping-custom-fields { padding-left: 20px; }
 .s-order-address img.overhanging { margin-left: -20px; }
 .s-order-address span {color: #aaa}
 

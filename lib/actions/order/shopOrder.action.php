@@ -253,6 +253,9 @@ HTML;
             $order['params']['storefront_decoded'] = $idna->decode($order['params']['storefront']);
         }
 
+        list($customer_delivery_date, $customer_delivery_time) = shopHelper::getOrderCustomerDeliveryTime($params);
+        list($shipping_date, $shipping_time_start, $shipping_time_end) = shopHelper::getOrderShippingInterval($params);
+
         $this->view->assign(array(
             'customer'             => $customer,
             'customer_contact'     => $customer_contact,
@@ -276,6 +279,12 @@ HTML;
             'billing_address'      => $billing_address,
             'shipping_address'     => $shipping_address,
             'shipping_id'          => ifset($params['shipping_id'], '').'.'.ifset($params['shipping_rate_id'], ''),
+            'shipping_date'        => $shipping_date,
+            'shipping_time_start'  => $shipping_time_start,
+            'shipping_time_end'    => $shipping_time_end,
+            'customer_delivery_date' => $customer_delivery_date,
+            'customer_delivery_time' => $customer_delivery_time,
+            'customer_delivery_date_str' => ifset($params['shipping_params_desired_delivery.date_str']),
             'offset'               => $this->getModel()->getOffset($order['id'], $this->getParams(), true),
             'courier'              => $courier,
         ));
