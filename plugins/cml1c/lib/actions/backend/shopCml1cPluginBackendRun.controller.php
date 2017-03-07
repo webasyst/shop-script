@@ -28,6 +28,8 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         //Импорт каталога (import.xml)
         "КоммерческаяИнформация/Классификатор/Группы"         => self::STAGE_CATEGORY,
         "КоммерческаяИнформация/Классификатор/Свойства"       => self::STAGE_FEATURE,
+        "КоммерческаяИнформация/Классификатор/ТипыЦен"        => self::STAGE_PRICE,
+        "КоммерческаяИнформация/Классификатор/Склады"         => self::STAGE_STOCK,
         "КоммерческаяИнформация/Каталог/Товары"               => self::STAGE_PRODUCT,
         //Импорт предложений (offers.xml)
         "КоммерческаяИнформация/ПакетПредложений/ТипыЦен"     => self::STAGE_PRICE,
@@ -315,12 +317,19 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         switch (waRequest::param('module', 'backend')) {
             case 'frontend':
                 $name = $this->processId.'.xml';
+                if (!empty($export['virtual_product'])) {
+                    $this->data['virtual'] = true;
+                }
                 break;
             case 'backend':
             default:
                 $name = array();
                 if (!empty($export['order'])) {
                     $name[] = 'orders';
+                }
+                if (!empty($export['virtual_product'])) {
+                    $this->data['virtual'] = true;
+                    $name[] = 'virtual_orders';
                 }
                 if (!empty($export['product'])) {
                     $name[] = 'offers';
@@ -348,6 +357,9 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             $w->writePi('xml-stylesheet', 'type="text/xsl" href="'.$url.'xml/sale.xsl"');
         }
         $w->startElement('КоммерческаяИнформация');
+        if (!empty($this->data['virtual_product'])) {
+            $w->writeAttribute('СинхронизацияТоваров', 'true');
+        }
         $w->writeAttribute('ВерсияСхемы', $this->data['version']);
         $w->writeAttribute('ДатаФормирования', date("Y-m-d\\TH:i:s"));
         $w->writeComment('Shop-Script: '.wa()->getVersion('shop'));
@@ -363,32 +375,37 @@ class shopCml1cPluginBackendRunController extends waLongActionController
          */
 
         $count = array();
-        if (!empty($export['order'])) {
-            $this->data['orders_time'] = !empty($export['new_order']) ? $this->plugin()->exportTime() : 0;
-            $where = array();
-            $params = array();
-            if (!empty($this->data['orders_time'])) {
-                $this->plugin();
-                $time_gap = max(0, $this->plugin()->getConfigParam('time_gap'));
-                $this->data['orders_time'] = $this->data['orders_time'] - $time_gap;
-                $params['orders_time'] = date("Y-m-d H:i:s", $this->data['orders_time']);
-                $where[] = '(IFNULL(`update_datetime`,`create_datetime`) > s:orders_time)';
-            }
-            if (!empty($this->data['order_state'])) {
-                $where[] = '(`state_id` IN (s:order_state))';
-                $params['order_state'] = $this->data['order_state'];
-            }
-
-            if ($where) {
-                $count[self::STAGE_ORDER] = $model->select('COUNT(*)')->where(implode(' AND ', $where), $params)->fetchField();
-            } else {
-                $count[self::STAGE_ORDER] = $model->countAll();
-            }
-        }
-        if (!empty($export['product'])) {
-            $count[self::STAGE_CATEGORY] = $this->getCategoryModel()->countByField('type', shopCategoryModel::TYPE_STATIC);
+        if (!empty($export['virtual_product'])) {
+            $this->data['virtual_product'] = true;
             $count[self::STAGE_PRODUCT] = $this->getCollection()->count();
-            $count[self::STAGE_OFFER] = $count[self::STAGE_PRODUCT];
+        } else {
+            if (!empty($export['order'])) {
+                $this->data['orders_time'] = !empty($export['new_order']) ? $this->plugin()->exportTime() : 0;
+                $where = array();
+                $params = array();
+                if (!empty($this->data['orders_time'])) {
+                    $this->plugin();
+                    $time_gap = max(0, $this->plugin()->getSettings('time_gap'));
+                    $this->data['orders_time'] = $this->data['orders_time'] - $time_gap;
+                    $params['orders_time'] = date("Y-m-d H:i:s", $this->data['orders_time']);
+                    $where[] = '(IFNULL(`update_datetime`,`create_datetime`) > s:orders_time)';
+                }
+                if (!empty($this->data['order_state'])) {
+                    $where[] = '(`state_id` IN (s:order_state))';
+                    $params['order_state'] = $this->data['order_state'];
+                }
+
+                if ($where) {
+                    $count[self::STAGE_ORDER] = $model->select('COUNT(*)')->where(implode(' AND ', $where), $params)->fetchField();
+                } else {
+                    $count[self::STAGE_ORDER] = $model->countAll();
+                }
+            }
+            if (!empty($export['product'])) {
+                $count[self::STAGE_CATEGORY] = $this->getCategoryModel()->countByField('type', shopCategoryModel::TYPE_STATIC);
+                $count[self::STAGE_PRODUCT] = $this->getCollection()->count();
+                $count[self::STAGE_OFFER] = $count[self::STAGE_PRODUCT];
+            }
         }
         $this->data['count'] = $count;
     }
@@ -1080,10 +1097,12 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
     protected function getStepMethod()
     {
+        $virtual = !empty($this->data['virtual']) ? 'Virtual' : '';
         $methods = array(
             'step'.ucfirst($this->data['direction']),
-            'step'.ucfirst($this->data['direction']).ucfirst($this->data['stage']),
+            'step'.ucfirst($this->data['direction']).$virtual.ucfirst($this->data['stage']),
         );
+
         $method_name = null;
         foreach ($methods as $method) {
             if (method_exists($this, $method)) {
@@ -1250,6 +1269,9 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 $memory = $this->data['memory'] / 1048576;
                 $report .= ' '.sprintf('(Потребление памяти, максимум: %0.3f МБ)', $memory);
             }
+        }
+        if ($this->processId) {
+            $report .= sprintf(' ID процесса обмена: "%s"', $this->processId);
         }
         waLog::log($report, 'shop/plugins/cml1c/report.log');
         return $report;
@@ -1788,10 +1810,13 @@ HTML;
 
         if (empty($this->data['overview'])) {
             $source_stocks = $this->data['stock_map'];
-            foreach ($source_stocks as $uuid => $stock) {
+            foreach ($source_stocks as $uuid => &$stock) {
                 if (empty($stock['met'])) {
                     unset($source_stocks[$uuid]);
+                } elseif (empty($stock['name'])) {
+                    $stock['name'] = $this->guid2name($uuid);
                 }
+                unset($stock);
             }
         } else {
             $source_stocks = array();
@@ -2538,6 +2563,83 @@ HTML;
         return ($current_stage[self::STAGE_OFFER] < $count[self::STAGE_OFFER]);
     }
 
+
+    private function stepExportVirtualProduct(&$current_stage, &$count, &$processed)
+    {
+        static $products;
+        $chunk = self::$chunk_map[self::STAGE_PRODUCT];
+        if (!$products) {
+            $products = $this->getProducts($current_stage[self::STAGE_PRODUCT], $chunk * 4);
+        }
+        $w = &$this->writer;
+
+
+        while (($chunk-- > 0) && ($product = reset($products))) {
+            $exported = false;
+
+            $w->startElement('Документ');
+            //Идентификатор документа уникальный в рамках файла обмена
+            $w->writeElement('Ид', '');
+            //Номер документа
+            $w->writeElement('Номер', '');
+            //Дата документа
+            $w->writeElement('Дата', '');
+            //Вид хозяйственной операции
+            $w->writeElement('ХозОперация', 'Заказ товара');
+            $w->writeElement('Роль', 'Покупатель');
+
+            $w->writeElement('Валюта', $this->currency());
+            $w->writeElement('Курс', '1');
+            $w->writeElement('Сумма', '0');
+            $w->writeElement('Время', '00:00');
+
+            $w->startElement('Товары');
+
+
+            if (empty($product['id_1c'])) {
+                $product['id_1c'] = $this->plugin()->makeProductUUID($product['id']);
+            }
+
+            $shop_product = new shopProduct($product);
+
+            $items = $shop_product->skus;
+
+            $export_features = $this->pluginSettings('export_product_features');
+            if ($export_features) {
+                $features_model = new shopProductFeaturesModel();
+
+                foreach ($items as &$item) {
+                    $item['features'] = $features_model->getValues($product['id'], $item['id']);
+
+                }
+                unset($item);
+
+            }
+
+            foreach ($items as $item) {
+                if (empty($item['id_1c'])) {
+                    $item['id_1c'] = $this->plugin()->makeSkuUUID($item['id']);
+                }
+                $this->writeVirtualOrderItem($shop_product, $item);
+                $exported = true;
+            }
+
+            $w->endElement(/*'Товары'*/);
+            $w->endElement(/*'Документ'*/);
+
+            array_shift($products);
+            ++$current_stage[self::STAGE_PRODUCT];
+            if ($exported) {
+                ++$processed[self::STAGE_PRODUCT];
+            }
+        }
+        if ($current_stage[self::STAGE_PRODUCT] == $count[self::STAGE_PRODUCT]) {
+            $w->endElement(/*Предложения*/);
+            $w->endElement(/*ПакетПредложений*/);
+        }
+        return ($current_stage[self::STAGE_PRODUCT] < $count[self::STAGE_PRODUCT]);
+    }
+
     private function stepExportCategory(&$current_stage, &$count, &$processed)
     {
         static $categories;
@@ -2980,7 +3082,8 @@ HTML;
             $w->startElement('Товары');
             $products = $this->findOrderItems($items);
             foreach ($products as $product) {
-                $this->writeOrderItem($product, $discount_rate, $product['tax_id'] ? ifempty($taxes[$product['tax_id']]) : null, $order['rate']);
+                //TODO fix tax calculation per order item
+                $this->writeOrderItem($product, $discount_rate, false && $product['tax_id'] ? ifempty($taxes[$product['tax_id']]) : null, $order['rate']);
             }
 
             //XXX Услуги
@@ -3068,15 +3171,6 @@ HTML;
             $fields = array();
             if ($this->plugin()->getSettings('export_product_name') == 'name') {
                 $fields[] = '`p`.`name`';
-            }
-            $export_description = $this->pluginSettings('export_product_description');
-            switch ($export_description) {
-                case 'summary':
-                    $fields[] = '`p`.`summary` description';
-                    break;
-                case 'description':
-                    $fields[] = '`p`.`description`';
-                    break;
             }
 
             $sku_model = $this->getModel('productSkus');
@@ -3219,9 +3313,7 @@ SQL;
         $product['name'] = preg_replace('@^(.+) \(\1\)$@', '$1', $product['name']);
 
         $this->writer->writeElement('Наименование', $product['name']);
-        if (!empty($product['description'])) {
-            $this->writer->writeElement('Описание', $product['description']);
-        }
+
         $this->writeUnit();
 
 
@@ -3254,10 +3346,15 @@ SQL;
 
                 $features += $model->select('code, name')->where('code IN (?)', array($new))->fetchAll('code', true);
             }
-
-            if (false) {
+            $export_features = $this->pluginSettings('export_product_features');
+            if ($export_features === 'properties') {
                 foreach ($product['features'] as $code => $feature) {
-                    $properties[ifset($features[$code], $code)] = (string)$feature;
+                    if ($feature instanceof shopColorValue) {
+                        $value = $feature->value;
+                    } else {
+                        $value = (string)$feature;
+                    }
+                    $properties[ifset($features[$code], $code)] = $value;
                 }
             } else {
                 $this->writer->startElement('ХарактеристикиТовара');
@@ -3266,7 +3363,12 @@ SQL;
                     $this->writer->startElement('ХарактеристикаТовара');
                     //$this->writer->writeElement('Ид', '');
                     $this->writer->writeElement('Наименование', ifset($features[$code], $code));
-                    $this->writer->writeElement('Значение', (string)$feature);
+                    if ($feature instanceof shopColorValue) {
+                        $value = $feature->value;
+                    } else {
+                        $value = (string)$feature;
+                    }
+                    $this->writer->writeElement('Значение', $value);
                     $this->writer->endElement(/*ХарактеристикаТовара*/);
                 }
                 $this->writer->endElement(/*ХарактеристикиТовара*/);
@@ -3278,6 +3380,87 @@ SQL;
         $this->writer->writeElement('ЦенаЗаЕдиницу', $this->price($product['price']));
         $this->writer->writeElement('Количество', $product['quantity']);
         $this->writer->writeElement('Сумма', $this->price($product['total']));
+        if ($tax) {
+            $this->writeTaxes(array($tax));
+        }
+
+        $this->writer->endElement(/*Товар*/);
+    }
+
+
+    /**
+     * @param mixed [string] $product
+     * @param string [string] $product['sku_id']
+     * @param string [string] $product['id_1c']
+     * @param string [string] $product['name']
+     * @param int [string] $product['quantity']
+     * @param double [string] $product['price']
+     * @param double [string] $product['tax']
+     * @param bool [string] $product['tax_included']
+     * @param $sku
+     * @param $tax
+     */
+    private function writeVirtualOrderItem($product, $sku, $tax = null)
+    {
+        #prepare
+        static $features = array();
+
+        $product['total'] = 0;
+
+        #add element
+        $this->writer->startElement('Товар');
+        $id = ifset($product['id_1c'], '-');
+        if (!empty($sku['id_1c']) && (strcmp($sku['id_1c'], $id) != 0)) {
+            $id .= '#'.$sku['id_1c'];
+        }
+        $this->writer->writeElement('Ид', $id);
+        if (!empty($sku['sku'])) {
+            $this->writer->writeElement('Артикул', $sku['sku']);
+        }
+
+        $this->writeName($product, $sku);
+
+        $this->writeUnit();
+
+        $properties = array(
+            'ВидНоменклатуры' => 'Товар',
+            'ТипНоменклатуры' => 'Товар',
+        );
+
+        if (!empty($sku['features'])) {
+
+            if ($new = array_diff(array_keys($sku['features']), array_keys($features))) {
+                $model = $this->getModel('feature');
+                /**
+                 * @var shopFeatureModel $model
+                 */
+
+                $features += $model->select('code, name')->where('code IN (?)', array($new))->fetchAll('code', true);
+            }
+
+            $this->writer->startElement('ХарактеристикиТовара');
+            foreach ($sku['features'] as $code => $feature) {
+                $this->writer->startElement('ХарактеристикаТовара');
+                $this->writer->writeElement('Наименование', ifset($features[$code], $code));
+                if ($feature instanceof shopColorValue) {
+                    $value = $feature->value;
+                } else {
+                    $value = (string)$feature;
+                }
+                $this->writer->writeElement('Значение', $value);
+                $this->writer->endElement(/*ХарактеристикаТовара*/);
+            }
+            $this->writer->endElement(/*ХарактеристикиТовара*/);
+        }
+
+        $this->writeProperties($properties);
+
+        if ($product['currency'] != $this->defaultPluginCurrency()) {
+            $sku['price'] = $this->convertPrice($sku['price'], $product['currency'], $this->defaultPluginCurrency());
+        }
+        $this->writer->writeElement('ЦенаЗаЕдиницу', $this->price($sku['price']));
+        $this->writer->writeElement('Количество', 0);
+        $this->writer->writeElement('Сумма', $this->price(0));
         if ($tax) {
             $this->writeTaxes(array($tax));
         }
@@ -3502,7 +3685,17 @@ SQL;
      */
     private static function attribute(&$element, $attribute)
     {
-        $value = (string)@$element[$attribute];
+        if (is_array($attribute)) {
+            foreach ($attribute as $_attribute) {
+                $value = (string)@$element[$_attribute];
+                if ($value !== '') {
+                    break;
+                }
+            }
+        } else {
+            $value = (string)@$element[$attribute];
+        }
+
         $value = preg_replace_callback('/\\\\u([0-9a-f]{4})/i', array(__CLASS__, 'replaceUnicodeEscapeSequence'), $value);
         $value = preg_replace_callback('/\\\\u([0-9a-f]{4})/i', array(__CLASS__, 'htmlDereference'), $value);
         return $value;
@@ -4055,17 +4248,18 @@ SQL;
                 ($update_type_id == 'sync')//обновлять для всех товаров
             )
         ) {
-            $name = mb_strtolower($name, 'utf-8');
-            if (!isset($types[$name])) {
+            $key = mb_strtolower($name, 'utf-8');
+
+            if (!isset($types[$key])) {
                 $model = $this->getModel('type');
                 /**
                  * @var shopTypeModel $model
                  */
 
                 if ($type_row = $model->getByName($name)) {
-                    $types[$name] = intval($type_row['id']);
+                    $types[$key] = intval($type_row['id']);
                 } elseif (in_array($update_type_id, array('update', 'sync'), true)) {
-                    $types[$name] = intval(
+                    $types[$key] = intval(
                         $model->insert(
                             array(
                                 'name' => $name,
@@ -4076,8 +4270,8 @@ SQL;
                 }
             }
 
-            if (isset($types[$name])) {
-                $type_id = $types[$name];
+            if (isset($types[$key])) {
+                $type_id = $types[$key];
             }
         }
         return $type_id;
@@ -4099,6 +4293,36 @@ SQL;
     }
 
     /**
+     * @param SimpleXMLElement $p
+     * @return array()
+     */
+    private function getCurrencyInfo(&$p)
+    {
+        if (self::$price_map === null) {
+            $this->initPriceMap();
+        }
+
+        $id = self::field($p, 'ИдТипаЦены');
+
+        $price_info = ifset(self::$price_map[$id], false);
+        if ($price_info === false) {
+            $currency = array(
+                'id'       => $id,
+                'currency' => $this->findCurrency(self::field($p, 'Валюта')),
+            );
+
+            $currency['name'] = $this->guid2name($currency['id'], ifempty($currency['name']));
+            $currency['key'] = mb_strtolower($currency['name'], 'utf-8');
+            $this->data['map'][self::STAGE_PRICE][$currency['key']] = $currency;
+
+            $this->initPriceMap();
+            $price_info = ifset(self::$price_map[$id], array());
+        }
+
+        return $price_info;
+    }
+
+    /**
      * @param SimpleXMLElement $element
      * @return array
      */
@@ -4109,6 +4333,8 @@ SQL;
             'currency' => $this->findCurrency(self::field($element, 'Валюта')),
             'name'     => self::field($element, 'Наименование'),
         );
+
+        $this->guid2name($currency['id'], $currency['name']);
 
         $currency['key'] = mb_strtolower($currency['name'], 'utf-8');
 
@@ -4141,7 +4367,7 @@ SQL;
     private function stepImportStockConfigure(&$current_stage, &$count, &$processed)
     {
         $element = $this->element();
-        $id = self::field($element, 'Ид');
+        $id = self::field($element, array('ИдСклада', 'Ид'));
         if (!isset($this->data['stock_map'][$id])) {
             $this->data['stock_map'][$id] = array();
         }
@@ -4254,7 +4480,9 @@ SQL;
 
     private function initPriceMap()
     {
-        self::$price_map = array();
+        if (self::$price_map === null) {
+            self::$price_map = array();
+        }
         $map = $this->data['map'][self::STAGE_PRICE];
         foreach (array('price', 'purchase_price', 'compare_price') as $type) {
             if (!empty($this->data[$type.'_type'])) {
@@ -4263,7 +4491,9 @@ SQL;
                     $map_ = $map[$price_name];
                     if (isset(self::$price_map[$map_['id']])) {
                         self::$price_map[$map_['id']]['name'][] = $price_name;
+                        self::$price_map[$map_['id']]['name'] = array_unique(self::$price_map[$map_['id']]['name']);
                         self::$price_map[$map_['id']]['type'][] = $type;
+                        self::$price_map[$map_['id']]['type'] = array_unique(self::$price_map[$map_['id']]['type']);
                     } else {
                         self::$price_map[$map_['id']] = array(
                             'type'     => array($type),
@@ -4286,10 +4516,6 @@ SQL;
      */
     private function stepImportOffer(&$current_stage, &$count, &$processed)
     {
-        if (self::$price_map === null) {
-            $this->initPriceMap();
-        }
-
         $element = $this->element();
         $uuid = array_filter(explode('#', self::field($element, 'Ид')), 'strlen');
 
@@ -4309,6 +4535,8 @@ SQL;
 
                 if (mb_strtolower(self::attribute($element, 'Статус')) == 'удален') {
                     $sku['available'] = false;
+                } elseif (mb_strtolower(self::field($element, 'Статус')) == 'удален') {
+                    $sku['available'] = false;
                 }
 
                 #get offer prices
@@ -4325,9 +4553,10 @@ SQL;
                         $currency = $this->findCurrency($currency);
                     }
 
-                    $price_id = self::field($p, 'ИдТипаЦены');
 
-                    if ($price_info = ifset(self::$price_map[$price_id])) {
+                    $price_info = $this->getCurrencyInfo($p);
+
+                    if ($price_info) {
                         foreach ($price_info['type'] as $price_type) {
                             $prices[$price_type] = array(
                                 'value'    => $value,
@@ -4391,6 +4620,10 @@ SQL;
                     $sku['features'] = $features;
                 }
 
+                if ($this->pluginSettings('import_sku_name_rule') == 'features') {
+                    $sku['name'] = empty($features) ? '' : implode(', ', $features);
+                }
+
                 if (empty($sku['sku']) && $product->sku_id && isset($skus[$product->sku_id])) {
                     $sku['sku'] = $skus[$product->sku_id]['sku'];
                 }
@@ -4406,10 +4639,10 @@ SQL;
                     );
                     foreach ($xpaths as $xpath) {
                         foreach ($this->xpath($element, $xpath) as $s) {
-                            $stock_uuid = self::attribute($s, 'ИдСклада');
+                            $stock_uuid = self::attribute($s, array('ИдСклада', 'Ид'));
                             $_in_fields = false;
                             if (empty($stock_uuid)) {
-                                $stock_uuid = self::field($s, 'ИдСклада');
+                                $stock_uuid = self::field($s, array('ИдСклада', 'Ид'));
                                 if ($stock_uuid) {
                                     $_in_fields = true;
                                 }
@@ -4505,72 +4738,40 @@ SQL;
     {
         $element = $this->element();
 
-        foreach ($this->xpath($element, '//ОстаткиПоСкладу') as $s) {
-            $stock_uuid = self::field($s, 'ИдСклада');
-            if ($stock_uuid && !isset($this->data['stock_map'][$stock_uuid])) {
-                $this->data['stock_map'][$stock_uuid] = array(
-                    'stock_id' => -1,
-                    'name'     => $stock_uuid,
-                );
-            }
-        }
+        $xpaths = array(
+            '//Склад',
+            '//ОстаткиПоСкладу', //
+            '//ОстатокПоСкладу', // ОстаткиПоСкладам/ОстатокПоСкладу
+            '//КоличествоНаСкладе', //**КоличествоНаСкладах/КоличествоНаСкладе
+        );
+        foreach ($xpaths as $xpath) {
 
-        foreach ($this->xpath($element, '//ОстатокПоСкладу') as $s) {
-            $stock_uuid = self::field($s, 'ИдСклада');
-            if ($stock_uuid && !isset($this->data['stock_map'][$stock_uuid])) {
-                $this->data['stock_map'][$stock_uuid] = array(
-                    'stock_id' => -1,
-                    'name'     => $stock_uuid,
-                );
-            }
-        }
-        foreach ($this->xpath($element, '//Склад') as $s) {
-            $stock_uuid = self::field($s, 'ИдСклада');
-            if ($stock_uuid && !isset($this->data['stock_map'][$stock_uuid])) {
-                $this->data['stock_map'][$stock_uuid] = array(
-                    'stock_id' => -1,
-                    'name'     => $stock_uuid,
-                );
-            }
-        }
-        foreach ($this->xpath($element, '//КоличествоНаСкладе') as $s) {
-            $stock_uuid = self::field($s, 'ИдСклада');
-            if ($stock_uuid && !isset($this->data['stock_map'][$stock_uuid])) {
-                $this->data['stock_map'][$stock_uuid] = array(
-                    'stock_id' => -1,
-                    'name'     => $stock_uuid,
-                );
-            }
-        }
-
-        if (false) {
-            //TODO price map settings
-            foreach ($this->xpath($element, '//Цены/Цена') as $p) {
-                $value = self::field($p, 'ЦенаЗаЕдиницу', 'doubleval');
-                if ($k = self::field($p, 'Коэффициент', 'doubleval')) {
-                    $value = $value / $k;
+            foreach ($this->xpath($element, $xpath) as $s) {
+                $stock_uuid = self::field($s, array('ИдСклада', 'Ид'));
+                if (empty($stock_uuid)) {
+                    $stock_uuid = self::attribute($s, array('ИдСклада', 'Ид'));
                 }
-                if ($currency = self::field($p, 'Валюта')) {
-                    $currency = $this->findCurrency($currency);
-                }
-
-                $price_id = self::field($p, 'ИдТипаЦены');
-
-                if ($price_info = ifset(self::$price_map[$price_id])) {
-                    $prices[$price_info['type']] = array(
-                        'value'    => $value,
-                        'currency' => ifempty($currency, ifempty($price_info['currency'])),
-                    );
-
-                } elseif (empty($prices['price'])) {
-                    $prices['price'] = array(
-                        'value' => $value,
-                    );
-                    if (!empty($currency)) {
-                        $prices['price']['currency'] = $currency;
+                if ($stock_uuid) {
+                    if (!isset($this->data['stock_map'][$stock_uuid])) {
+                        $this->data['stock_map'][$stock_uuid] = array();
                     }
+                    $this->data['stock_map'][$stock_uuid] += array(
+                        'stock_id' => -1,
+                        'met'      => 1,
+                    );
                 }
             }
+        }
+
+        foreach ($this->xpath($element, '//Цены/Цена') as $p) {
+            $currency = array(
+                'id'       => self::field($p, 'ИдТипаЦены'),
+                'currency' => $this->findCurrency(self::field($p, 'Валюта')),
+            );
+
+            $currency['name'] = $this->guid2name($currency['id'], ifempty($currency['name']));
+            $currency['key'] = mb_strtolower($currency['name'], 'utf-8');
+            $this->data['map'][self::STAGE_PRICE][$currency['key']] = $currency;
         }
 
         #read features
@@ -4805,7 +5006,7 @@ SQL;
                             case 'type_name':
                                 $value = $this->findType($value, $product);
                                 if ($value) {
-                                    $update_fields['type_id'] = $value;
+                                    $product->type_id = $value;
                                 }
                                 break;
                             case 'tax_name':
@@ -4998,7 +5199,9 @@ SQL;
                     break;
                 case "Вес":
                     if ($value = self::field($property, 'Значение', 'doubleval')) {
-                        $features['weight'] = $value.' '.$this->pluginSettings('weight_unit');
+                        if (!in_array($value, array('', null)) && !empty($this->data['update_product_fields']['weight'])) {
+                            $features['weight'] = trim($value.' '.$this->pluginSettings('weight_unit'));
+                        }
                     }
                     break;
                 case "Полное наименование":
@@ -5021,7 +5224,10 @@ SQL;
                     if (!$this->isRemapped('type_name', $xpath, $property_name)) {
                         $value = self::field($property, 'Значение');
                         if (!in_array($value, array('Товар', 'Услуга'))) {
-                            $update_fields['type_id'] = $this->findType($value, $product);
+                            $value = $this->findType($value, $product);
+                            if ($value) {
+                                $product->type_id = $value;
+                            }
                         }
                         break;
                     }
@@ -5082,7 +5288,10 @@ SQL;
                     case 'вид номенклатуры':
                     case 'вид товара':
                         //значение из справочника "номенклатурные группы"
-                        $update_fields['type_id'] = $this->findType($value, $product);
+                        $value = $this->findType($value, $product);
+                        if ($value) {
+                            $product->type_id = $value;
+                        }
                         break;
                     default:
                         if ($feature['name']) {
@@ -5122,7 +5331,16 @@ SQL;
         if (!$product->getId()) {
             # update name/summary/description only for new items
             $product->status = ($this->pluginSettings('product_hide')) ? 0 : 1;
+
+            $deleted = false;
+
             if (mb_strtolower(self::attribute($element, 'Статус')) == 'удален') {
+
+                $deleted = true;
+            } elseif (mb_strtolower(self::field($element, 'Статус')) == 'удален') {
+                $deleted = true;
+            }
+            if ($deleted) {
                 if ($subject == self::STAGE_PRODUCT) {
                     $product->status = 0;
                 } else {
@@ -5132,7 +5350,7 @@ SQL;
 
             $target = 'new';
             $product->name = $update_fields['name'];
-            $product->url = shopHelper::transliterate($product->name);
+
 
             foreach ($update_fields as $field => $value) {
                 if (!in_array($value, array('', null))) {
@@ -5152,14 +5370,30 @@ SQL;
             if ($params) {
                 $product->params = $params;
             }
+
+            if (!$product->url) {
+                if (!$this->pluginSettings('create_unique_product_url')) {
+                    $product->url = shopHelper::transliterate($product->name);
+                } else {
+                    $product->url = shopHelper::genUniqueUrl($product->name, $this->getModel('product'));
+                }
+            }
+
         } else {
+            $deleted = false;
             if (mb_strtolower(self::attribute($element, 'Статус')) == 'удален') {
+                $deleted = true;
+            } elseif (mb_strtolower(self::field($element, 'Статус')) == 'удален') {
+                $deleted = true;
+            }
+            if ($deleted) {
                 if ($subject == self::STAGE_PRODUCT) {
                     $product->status = 0;
                 } else {
                     $skus[-1]['available'] = false;
                 }
             }
+
             foreach ($update_fields as $field => $value) {
                 if (!in_array($value, array('', null)) && !empty($this->data['update_product_fields'][$field])) {
                     $product->{$field} = $value;
@@ -5586,7 +5820,6 @@ SQL;
 
     private function writeName($product, $sku)
     {
-
         switch ($this->data['export_product_name']) {
             case 'brackets':
                 if (strlen($sku['name']) && ($sku['name'] != $product['name'])) {
@@ -5723,28 +5956,48 @@ SQL;
      */
     private function currency($currency = null)
     {
-        static $default_currency;
-        static $plugin_currency;
-        static $replace;
+        static $replace = null;
+
         if (empty($currency)) {
-            if (!$default_currency) {
-                /**
-                 * @var shopConfig $config
-                 */
-                $config = $this->getConfig();
-                $default_currency = $config->getCurrency();
+            $currency = $this->defaultPluginCurrency();
+        }
+
+        if ($currency == $this->defaultPluginCurrency()) {
+            if ($replace === null) {
+                $replace = $this->pluginSettings('currency_map');
             }
-            $currency = $default_currency;
-        }
-        if (empty($plugin_currency)) {
-            $plugin_currency = $this->pluginSettings('currency');
-            $replace = $this->pluginSettings('currency_map');
-        }
-        if ($replace && ($plugin_currency == $currency)) {
-            $currency = $replace;
+            if ($replace) {
+                $currency = $replace;
+            }
         }
 
         return $currency;
+    }
+
+    private function defaultCurrency()
+    {
+        static $default_currency;
+        if (!$default_currency) {
+            /**
+             * @var shopConfig $config
+             */
+            $config = $this->getConfig();
+            $default_currency = $config->getCurrency();
+        }
+        return $default_currency;
+    }
+
+    private function defaultPluginCurrency()
+    {
+        static $plugin_currency;
+
+        if (empty($plugin_currency)) {
+            $plugin_currency = $this->pluginSettings('currency');
+            if (empty($plugin_currency)) {
+                $plugin_currency = $this->defaultCurrency();
+            }
+        }
+        return $plugin_currency;
     }
 
     private function findCurrency($currency)
@@ -5803,7 +6056,7 @@ SQL;
      */
     private function fixSkuBasePriceSelectable(&$p, &$skus)
     {
-        if (true || ($p->type == shopProductModel::SKU_TYPE_SELECTABLE)) {
+        if (true || ($p->sku_type == shopProductModel::SKU_TYPE_SELECTABLE)) {
             $changed = false;
             if (isset($p->skus[$p->sku_id]) && isset($skus[$p->sku_id])) {
                 $exists_sku = $p->skus[$p->sku_id];

@@ -9,6 +9,7 @@ class shopCml1cPluginBackendRemapController extends waJsonController
             $s = $p->getSettings();
             $s['features_map'] = array();
             $s['stock_map'] = array();
+            $s['expert'] = false;
             $p->saveSettings($s);
         }
     }
