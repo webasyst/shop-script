@@ -313,6 +313,7 @@ return array(
         'name' => array('varchar', 255, 'null' => 0),
         'delay' => array('int', 10, 'unsigned' => 1, 'null' => 0),
         'first_order_only' => array('tinyint', 3, 'unsigned' => 1, 'null' => 0, 'default' => '1'),
+        'same_state_id' => array('tinyint', 4, 'default' => '0'),
         'subject' => array('text', 'null' => 0),
         'body' => array('text', 'null' => 0),
         'last_cron_time' => array('datetime', 'null' => 0),
@@ -971,5 +972,5 @@ return array(
         'sort' => array('int', 11, 'null' => 0),
         ':keys' => array(
         ),
-    )
+    ),
 );

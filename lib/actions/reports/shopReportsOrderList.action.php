@@ -110,7 +110,7 @@ class shopReportsOrderListAction extends shopOrderListAction
             }
             if (!empty($timerange['end'])) {
                 $shift = 24*3600 - 1;
-                $end = date('Y-m-d', strtotime('+' . $shift . ' second', $timerange['end']));
+                $end = date('Y-m-d', strtotime('+' . $shift . ' second', strtotime($timerange['end'])));
                 $paid_date_hash .= '&paid_date<=' . $end;
             }
             $hash .= $paid_date_hash ? $paid_date_hash : '&paid_date!=NULL';

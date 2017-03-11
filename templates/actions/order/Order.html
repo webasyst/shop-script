@@ -120,21 +120,57 @@
                                 {$shipping_address}
                             </p>
                             {if !empty($custom_fields)}
-                                <p>
+                                <p class="s-order-shipping-custom-fields">
                                     {foreach $custom_fields as $f}
                                         {$f.title}: {$f.value}<br>
                                     {/foreach}
                                 </p>
                             {/if}
+                            {if $customer_delivery_date || $customer_delivery_date_str}
+                                <p class="s-order-customer-delivery-date{if !empty($shipping_date)} grey{/if}">
+                                    [`Preferred shipping time:`]
+                                    {if $customer_delivery_date}
+                                        <span class="customer-delivery-date">{wa_date('date', $customer_delivery_date, waDateTime::getDefaultTimezone())|escape}</span>
+                                    {elseif $customer_delivery_date_str}
+                                        <span>{$customer_delivery_date_str|escape}</span>
+                                    {/if}
+                                    {if $customer_delivery_time}
+                                        {if $customer_delivery_date}
+                                            &nbsp;
+                                        {/if}
+                                        <span class="customer-delivery-time-from">{$customer_delivery_time.from_hours|escape}:{$customer_delivery_time.from_minutes|escape}</span>
+                                        -
+                                        <span class="customer-delivery-time-to">{$customer_delivery_time.to_hours|escape}:{$customer_delivery_time.to_minutes|escape}</span>
+                                    {/if}
+                                </p>
+                            {/if}
+
                             {if !empty($courier)}
                                 <!-- Courier -->
                                 <h3>
                                     <span class="gray">[`Courier`] —</span> <a href="#/orders/search/params.courier_id={$courier.id}/" class="bold highlighted">{$courier.name|escape}</a>
-                                    {*
-                                        <a href="javascript:void(0)"  class="wf-action hint" data-action-id="ship" data-container="#workflow-content"><i class="icon10 edit"></i></a>
-                                    *}
                                 </h3>
                             {/if}
+
+                            {strip}
+                                {$edit_shipping_details_available = false}
+                                {if !empty($order.state)}
+                                    {$available_actions = $order.state->getActions()}
+                                    {$edit_shipping_details_available = !empty($available_actions.editshippingdetails)}
+                                {/if}
+                                {if $edit_shipping_details_available || !empty($shipping_date)}
+                                    <p style="padding-left: 20px;">
+                                        {if !empty($shipping_date)}
+                                            [`Shipping time`]: {wa_date('date', $shipping_date, waDateTime::getDefaultTimezone())|escape} {$shipping_time_start|escape} - {$shipping_time_end|escape}
+                                            {if !empty($order.state)}<br>{/if}
+                                        {/if}
+                                        {if $edit_shipping_details_available}
+                                            <a href="javascript:void(0)" class="wf-action hint" data-action-id="editshippingdetails" data-container="#workflow-content">[`Edit shipping details`]</a>
+                                        {/if}
+                                    </p>
+                                {/if}
+                            {/strip}
+
                             <!-- shipping plugin output -->
                             {if !empty($params.tracking_number)}
                                 <h3>

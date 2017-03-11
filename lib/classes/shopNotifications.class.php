@@ -66,6 +66,21 @@ class shopNotifications
 
     protected static function prepareData(&$data)
     {
+        if (!is_array($data['order'])) {
+            $order_model = new shopOrderModel();
+            $data['order'] = $order_model->getById($data['order']);
+        }
+
+        if (empty($data['status'])) {
+            $workflow = new shopWorkflow();
+            $status = $workflow->getStateById($data['order']['state_id']);
+            if ($status) {
+                $data['status'] = $status->getName();
+            } else {
+                $data['status'] = $data['order']['state_id'];
+            }
+        }
+
         $params_model = new shopOrderParamsModel();
         $data['order']['params'] = $params_model->get($data['order']['id'], true);
 
@@ -134,7 +149,7 @@ class shopNotifications
         }
         unset($p);
 
-        $config = wa()->getConfig();
+        $config = wa('shop')->getConfig();
         /**
          * @var shopConfig $config
          */
@@ -196,7 +211,6 @@ SQL;
 
         unset($i);
 
-
         // Shipping info
         if (!empty($data['order']['params']['shipping_id'])) {
             try {
@@ -205,7 +219,14 @@ SQL;
             }
         }
 
+        // Shipping date and time
+        $data['shipping_interval'] = null;
+        list($data['shipping_date'], $data['shipping_time_start'], $data['shipping_time_end']) = shopHelper::getOrderShippingInterval($data['order']['params']);
+        if ($data['shipping_date']) {
+            $data['shipping_interval'] = wa_date('shortdate', $data['shipping_date']).', '.$data['shipping_time_start'].' - '.$data['shipping_time_end'];
+        }
 
+        // Signup url
         if (isset($data['order']['params']['signup_url'])) {
             $data['signup_url'] = $data['order']['params']['signup_url'];
             unset($data['order']['params']['signup_url']);
@@ -259,6 +280,8 @@ SQL;
         // empty defaults, to avoid notices
         $empties = self::getDataEmpties();
         $data = self::arrayMergeRecursive($data, $empties);
+
+        return $data;
     }
 
     private static function getDataEmpties()

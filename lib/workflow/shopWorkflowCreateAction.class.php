@@ -96,7 +96,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         // Save contact
         $contact = $this->getContact($data);
 
-        // Calculate subtotal, taking currency convertion into account
+        // Calculate subtotal, taking currency conversion into account
         $subtotal = 0;
         foreach ($data['items'] as &$item) {
             if ($currency != $item['currency']) {
@@ -231,7 +231,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         );
     }
 
-    // Fill stock_id for order items when irder is created in frontend.
+    // Fill stock_id for order items when order is created in frontend.
     protected static function fillItemsStockIds(&$items, $virtualstock, $stock)
     {
         if (!$virtualstock && !$stock) {
@@ -280,7 +280,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         foreach ($substocks as $substock_id) {
             if (!isset($sku_stock[$substock_id]) || $sku_stock[$substock_id] >= $ordered_quantity) {
                 return $substock_id;
-            } else if ($sku_stock[$substock_id] > 0) {
+            } elseif ($sku_stock[$substock_id] > 0) {
                 $candidates[] = $substock_id;
             }
         }
@@ -294,10 +294,12 @@ class shopWorkflowCreateAction extends shopWorkflowAction
     // Determine virtual stock and/or stock applicable for the order from order params and routing params
     protected static function determineOrderStocks($data)
     {
-        $stock_id = $virtualstock_id = null;
         if (!empty($data['params']['virtualstock_id']) && wa_is_int($data['params']['virtualstock_id'])) {
             $virtualstock_id = $data['params']['virtualstock_id'];
+        } else {
+            $virtualstock_id = null;
         }
+
         if (!empty($data['params']['stock_id'])) {
             $stock_id = $data['params']['stock_id'];
         } else {

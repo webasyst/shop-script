@@ -63,6 +63,11 @@ return array(
             'type' => 'input',
             'description' => _w('E.g. <b>website</b>.').' '._w('For detailed information on Open Graph parameters and examples please refer to <a href="http://ogp.me" target="_blank">ogp.me</a>')
         ),
+        'og_url' => array(
+            'name' => _w('Social sharing URL (og:url)'),
+            'type' => 'input',
+            'description' => _w('If at least one og: value above is not empty, then you may keep this field empty for og:url meta tag to contain this storefront‘s URL by default. Or type a custom og:url value manually, if necessary.'),
+        ),
         _w('Products'),
         'url_type' => array(
             'name' => _w('URLs'),
@@ -329,6 +334,12 @@ return array(
             '$order.items[].price'                          => _w('Item price'),
             '$order.items[].quantity'                       => _w('Ordered item quantity'),
             '$order.items[].download_link'                  => _w('Item download link (SKU attachment)'),
+            '$wa->shop->productImgUrl($item, $size)'        => _w('Relative URL of ordered product‘s main image with specified size.').'<br>'.
+                                                                   _w('<code>$item</code> must be an item of <code>$order.items</code> array.').'<br>'.
+                                                                   _w('<code>$size</code> must contain one of size values described in the <a href="https://www.shop-script.com/help/43/image-thumbnails-in-shop-script-5-storefront/" target="_blank">documentation</a>; e.g., "200" or "200x0", etc. Default image size, if not specified, is "750x0".').'<br>'.
+                                                                   _w('To obtain an absolute image URL, use <code>{$wa-&gt;domainUrl()}</code>.').'<br>'.
+                                                                   _w('Example:').'<br>'.
+                                                                   '<code>{$base_url = $wa-&gt;domainUrl()}<br>{foreach $order.items as $item}<br>&nbsp;&nbsp;&nbsp;&nbsp;{$img_url = $wa-&gt;shop-&gt;productImgUrl($item, "200x0")}<br>&nbsp;&nbsp;&nbsp;&nbsp;{if $img_url}<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;img src="{$base_url}{$img_url}"&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;{/if}<br>{/foreach}</code>',
             '$order.discount'                               => _w('Order discount amount (in order currency)'),
             '$order.tax'                                    => _w('Order tax amount (in order currency)'),
             '$order.shipping'                               => _w('Order shipping cost (amount in order currency)'),
@@ -362,6 +373,13 @@ return array(
             /** ADDRESSES **/
             '$shipping_address'                             => _w('Shipping address as string'),
             '$billing_address'                              => _w('Billing address as string'),
+            /** SHIPPING INTERVAL */
+            '$shipping_date|wa_date:humandate'              => _w('Shipping date, for example: February 16, 2017'),
+            '$shipping_date|wa_date:shortdate'              => _w('Shipping date, for example: February 16'),
+            '$shipping_date|wa_date:date'                   => _w('Shipping date, for example: 02/16/2017'),
+            '$shipping_time_start'                          => _w('Start of shipping time interval'),
+            '$shipping_time_end'                            => _w('End of shipping time interval'),
+            '$shipping_interval'                            => _w('Shipping date and time, for example: February 16, 10:00 - 20:30'),
             /** COURIER **/
             '$courier'                                      => _w('Array of courier data'),
             '$courier.name'                                 => _w('Courier name'),
@@ -387,6 +405,12 @@ return array(
             '$order.items[].price'                          => _w('Item price'),
             '$order.items[].quantity'                       => _w('Ordered item quantity'),
             '$order.items[].download_link'                  => _w('Item download link (SKU attachment)'),
+            '$wa->shop->productImgUrl($item, $size)'        => _w('Relative URL of ordered product‘s main image with specified size.').'<br>'.
+                                                                   _w('<code>$item</code> must be an item of <code>$order.items</code> array.').'<br>'.
+                                                                   _w('<code>$size</code> must contain one of size values described in the <a href="https://www.shop-script.com/help/43/image-thumbnails-in-shop-script-5-storefront/" target="_blank">documentation</a>; e.g., "200" or "200x0", etc. Default image size, if not specified, is "750x0".').'<br>'.
+                                                                   _w('To obtain an absolute image URL, use <code>{$wa-&gt;domainUrl()}</code>.').'<br>'.
+                                                                   _w('Example:').'<br>'.
+                                                                   '<code>{$base_url = $wa-&gt;domainUrl()}<br>{foreach $order.items as $item}<br>&nbsp;&nbsp;&nbsp;&nbsp;{$img_url = $wa-&gt;shop-&gt;productImgUrl($item, "200x0")}<br>&nbsp;&nbsp;&nbsp;&nbsp;{if $img_url}<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;img src="{$base_url}{$img_url}"&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp;{/if}<br>{/foreach}</code>',
             '$order.discount'                               => _w('Order discount amount (in order currency)'),
             '$order.tax'                                    => _w('Order tax amount (in order currency)'),
             '$order.shipping'                               => _w('Order shipping cost (amount in order currency)'),

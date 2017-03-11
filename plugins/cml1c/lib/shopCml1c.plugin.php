@@ -612,6 +612,11 @@ HTML;
                 'description' => '',
             ),
             array(
+                'value'       => 'weight',
+                'title'       => _w('Weight'),
+                'description' => '',
+            ),
+            array(
                 'value'       => 'params',
                 'title'       => _w('Custom parameters'),
                 'description' => '',

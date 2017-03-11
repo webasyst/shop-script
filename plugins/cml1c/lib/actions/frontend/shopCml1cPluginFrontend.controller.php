@@ -229,34 +229,40 @@ class shopCml1cPluginFrontendController extends waController
 
     private function importCatalog($filename)
     {
+        $sync = waRequest::param('sync');
         $s = $this->getStorage();
-
-        #init required POST fields
-        $_POST['processId'] = $s->get('processId'.$filename);
-        $_POST['direction'] = 'import';
-        $_POST['filename'] = $filename;
-        $_POST['zipfile'] = $s->get('filename');
-
-        if (empty($_POST['processId'])) {
-            ob_start();
-            $this->runner()->run();
-            $s->set('processId'.$filename, $this->runner()->processId);
-            $out = ob_get_clean();
-            $this->response('progress', $out);
+        if (!empty($sync)) {
+            $this->response('success', 'Имитация обмена. Фактического обмена данными не произошло', 'Imitation completed. There no data exchange');
         } else {
-            ob_start();
-            $s->close();
-            $this->runner()->run();
-            $out = ob_get_clean();
-            if (strpos($out, 'success') === 0) {
-                $_POST['cleanup'] = true;
+
+
+            #init required POST fields
+            $_POST['processId'] = $s->get('processId'.$filename);
+            $_POST['direction'] = 'import';
+            $_POST['filename'] = $filename;
+            $_POST['zipfile'] = $s->get('filename');
+
+            if (empty($_POST['processId'])) {
                 ob_start();
-                $this->sleep();
                 $this->runner()->run();
-                $this->runner()->exchangeReport();
+                $s->set('processId'.$filename, $this->runner()->processId);
                 $out = ob_get_clean();
+                $this->response('progress', $out);
+            } else {
+                ob_start();
+                $s->close();
+                $this->runner()->run();
+                $out = ob_get_clean();
+                if (strpos($out, 'success') === 0) {
+                    $_POST['cleanup'] = true;
+                    ob_start();
+                    $this->sleep();
+                    $this->runner()->run();
+                    $this->runner()->exchangeReport();
+                    $out = ob_get_clean();
+                }
+                $this->response($out);
             }
-            $this->response($out);
         }
     }
 
@@ -293,17 +299,24 @@ class shopCml1cPluginFrontendController extends waController
     private function exportSale()
     {
         $_POST['direction'] = 'export';
-        $_POST['export'] = array(
-            'order' => true,
-        );
+        $sync = waRequest::param('sync');
+        if (!empty($sync)) {
+            $_POST['export'] = array(
+                'virtual_product' => true,
+            );
+        } else {
+            $_POST['export'] = array(
+                'order' => true,
+            );
 
 
-        switch ($this->plugin()->getSettings('export_orders')) {
-            case 'all':
-                break;
-            case 'changed':
-                $_POST['export']['new_order'] = true;
-                break;
+            switch ($this->plugin()->getSettings('export_orders')) {
+                case 'all':
+                    break;
+                case 'changed':
+                    $_POST['export']['new_order'] = true;
+                    break;
+            }
         }
 
         $limit = 100;
@@ -324,7 +337,7 @@ class shopCml1cPluginFrontendController extends waController
         if ($ready) {
             $this->runner()->exchangeReport();
 
-             $this->runner()->sendFile();
+            $this->runner()->sendFile();
             //
             ob_start();
             #cleanup code & store exchange report

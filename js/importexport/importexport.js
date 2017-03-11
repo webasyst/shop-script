@@ -94,7 +94,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                 return true;
             };
             var self = this;
-            this.$profile.on('click', 'a.js-action', function () {
+            this.$profile.off('click.importexport').on('click.importexport', 'a.js-action', function () {
                 return self.click($(this));
             });
             var hash = window.location.hash;
@@ -150,7 +150,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
     /**
      * Dispatch location hash changes
      *
-     * @param {String=} hash
+     * @param {(undefined|String)=} hash
      * @param {Boolean=false} load Force reload if need
      */
     dispatch: function (hash, load) {
@@ -244,7 +244,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
             var name = args.shift();
             //TODO determine scope for plugins
             var matches;
-            scope = this;
+            var scope = this;
             if (matches = name.match(/^(\w+(:\w+)?)(:\d+)?$/)) {
                 if (this.plugins[matches[1]]) {
                     scope = this.plugins[matches[1]];
@@ -261,7 +261,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                     scope[method.name].apply(scope, method.params);
                 }
             } else {
-                $.shop.error('Not found js handler for link', [method, args, $el])
+                $.shop.error('Not found js handler for link', [method, args, $el, scope])
             }
         } catch (e) {
             $.shop.error('Exception ' + e.message, e);
@@ -419,7 +419,7 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
         var self = this;
 
         this.products.init(this.$content.find('form'));
-        this.$content.on('click', 'a.js-action', function () {
+        this.$content.off('click.importexport').on('click.importexport', 'a.js-action', function () {
             try {
                 return self.click($(this));
             } catch (e) {

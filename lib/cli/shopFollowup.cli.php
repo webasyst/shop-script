@@ -58,9 +58,17 @@ class shopFollowupCli extends waCliController
                             continue;
                         }
 
-                        // Check that this is the first order of this customer
+                        if (!empty($f['same_state_id']) && ($o['state_id'] != $f['state_id'])) {
+                            if (waSystemConfig::isDebug()) {
+                                waLog::log("Skipping follow-up #{$f['id']} for order #{$o['id']}: not the same state_id.");
+                            }
+                            continue;
+                        }
+
+                        // Check that this is the first paid order of this customer
                         if ($f['first_order_only']) {
-                            $first_order_id = $om->select('MIN(id)')->where('contact_id=? AND paid_date IS NOT NULL', $o['contact_id'])->fetchField();
+                            $first_paid_date = $om->select('MIN(paid_date)')->where('contact_id=? AND paid_date IS NOT NULL', $o['contact_id'])->fetchField();
+                            $first_order_id = $om->select('MIN(id)')->where('contact_id=? AND paid_date=?', $o['contact_id'], $first_paid_date)->fetchField();
                             if ($first_order_id != $o['id']) {
                                 if (waSystemConfig::isDebug()) {
                                     waLog::log("Skipping follow-up #{$f['id']} for order #{$o['id']}: not the first order of a customer.");

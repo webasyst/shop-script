@@ -29,7 +29,47 @@ class shopRepairActions extends waActions
         print implode("\n\t", $actions);
     }
 
-    public function productcountsAction()
+    public function productStocksAction()
+    {
+        print "Checking obsolete records at \n";
+        $model = new shopProductStocksModel();
+        $sql = <<<SQL
+SELECT DISTINCT
+  c.stock_id,
+  COUNT(c.sku_id) cnt
+FROM shop_product_stocks c LEFT JOIN shop_stock s ON s.id = c.stock_id
+WHERE s.id IS NULL
+GROUP BY c.stock_id
+SQL;
+        $stocks = $model->query($sql)->fetchAll('stock_id', true);
+        if ($stocks) {
+            foreach ($stocks as $stock_id => $sku_count) {
+                print sprintf("%d obsolete records found at deleted stock with id %d\n", $sku_count, $stock_id);
+            }
+
+            $model->deleteByField('stock_id', array_keys($stocks));
+        }
+
+        $sql = <<<SQL
+SELECT DISTINCT
+  c.sku_id,
+  COUNT(c.sku_id) cnt
+FROM shop_product_stocks c LEFT JOIN shop_product_skus s ON s.id = c.sku_id
+WHERE s.id IS NULL
+GROUP BY c.sku_id
+SQL;
+        $stocks = $model->query($sql)->fetchAll('sku_id', true);
+        if ($stocks) {
+            foreach ($stocks as $sku_id => $sku_count) {
+                print sprintf("%d obsolete records found at deleted SKU with id %d\n", $sku_count, $sku_id);
+            }
+            $model->deleteByField('sku_id', array_keys($stocks));
+        }
+
+        print "Ok";
+    }
+
+    public function productCountsAction()
     {
         $model = new shopProductModel();
         $model->correctCount();

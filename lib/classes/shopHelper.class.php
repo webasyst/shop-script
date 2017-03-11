@@ -365,6 +365,20 @@ class shopHelper
                 } else {
                     $order['payment_name'] = '<span class="hint">'._w('not specified').'</span>';
                 }
+
+                // Order delivery interval
+                list($date, $time_from, $time_to) = shopHelper::getOrderShippingInterval($order['params']);
+                if ($date) {
+                    $order['shipping_interval'] = wa_date('date', $date).' '.$time_from.'-'.$time_to;
+                }
+
+                if (array_key_exists('courier', $order)) {
+                    if ($order['courier']) {
+                        $order['courier_name'] = $order['courier']['name'];
+                    } else {
+                        $order['courier_name'] = '';
+                    }
+                }
             }
         }
 
@@ -372,6 +386,40 @@ class shopHelper
             $orders = $orders[0];
             return $orders;
         }
+    }
+
+    /**
+     * Returns shipping date set for an order and saved in its params.
+     * @example list($shipping_date, $shipping_time_start, $shipping_time_end) = shopHelper::getOrderShippingInterval($order_params);
+     */
+    public static function getOrderShippingInterval($order_params)
+    {
+        $shipping_date = null;
+        $shipping_time_end = null;
+        $shipping_time_start = null;
+        if (!empty($order_params['shipping_start_datetime']) && !empty($order_params['shipping_end_datetime'])) {
+            @list($shipping_date, $shipping_time_start) = explode(' ', $order_params['shipping_start_datetime'], 2);
+            @list($_, $shipping_time_end) = explode(' ', $order_params['shipping_end_datetime'], 2);
+            $shipping_time_start = preg_replace('~(\d\d:\d\d):\d\d~', '$1', $shipping_time_start);
+            $shipping_time_end = preg_replace('~(\d\d:\d\d):\d\d~', '$1', $shipping_time_end);
+        }
+        return array($shipping_date, $shipping_time_start, $shipping_time_end);
+    }
+
+    public static function getOrderCustomerDeliveryTime($order_params)
+    {
+        $customer_delivery_date = null;
+        if (!empty($order_params['shipping_params_desired_delivery.date']) && preg_match('~^\d{4}-\d{2}-\d{2}$~', $order_params['shipping_params_desired_delivery.date'])) {
+            $customer_delivery_date = $order_params['shipping_params_desired_delivery.date'];
+        }
+
+        $customer_delivery_time = null;
+        if (!empty($order_params['shipping_params_desired_delivery.interval']) && preg_match('~^\d\d:\d\d-\d\d:\d\d$~', $order_params['shipping_params_desired_delivery.interval'])) {
+            list($from_hours, $from_minutes, $to_hours, $to_minutes) = preg_split('~:|-~', $order_params['shipping_params_desired_delivery.interval']);
+            $customer_delivery_time = compact('from_hours', 'from_minutes', 'to_hours', 'to_minutes');
+        }
+
+        return array($customer_delivery_date, $customer_delivery_time);
     }
 
     /**
