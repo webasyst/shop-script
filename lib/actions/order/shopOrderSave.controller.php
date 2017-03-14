@@ -406,8 +406,8 @@ class shopOrderSaveController extends waJsonController
             return array();
         }
         $data['comment'] = waRequest::post('comment', null, waRequest::TYPE_STRING_TRIM);
-        $data['shipping'] = waRequest::post('shipping', 0);
-        $data['discount'] = waRequest::post('discount', 0);
+        $data['shipping'] = $this->cast(waRequest::post('shipping', 0));
+        $data['discount'] = $this->cast(waRequest::post('discount', 0));
         $data['tax'] = 0;
         $data['total'] = $this->calcTotal($data);
         $data['params']['storefront'] = waRequest::post('storefront', null, waRequest::TYPE_STRING_TRIM);

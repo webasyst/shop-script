@@ -5232,7 +5232,7 @@ msgstr "Комментарий покупателя к заказу"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:119
 msgid "Current order status name"
-msgstr "Текущее название статуса"
+msgstr "Текущее название статуса заказа"
 
 #: /wa-apps/shop/templates/actions/settings/SettingsNotificationsHelp.html:128
 msgid "An URL to access order page in customer personal account in storefront"
@@ -10465,7 +10465,7 @@ msgid "<code>$item</code> must be an item of <code>$order.items</code> array."
 msgstr "<code>$item</code> должно содержать элемент массива <code>$order.items</code>."
 
 msgid "<code>$size</code> must contain one of size values described in the <a href=\"https://www.shop-script.com/help/43/image-thumbnails-in-shop-script-5-storefront/\" target=\"_blank\">documentation</a>; e.g., \"200\" or \"200x0\", etc. Default image size, if not specified, is \"750x0\"."
-msgstr "<code>$size</code> должно содержать одно из значений размера, описанных в  <a href=\"https://www.shop-script.ru/help/5/shop-script-5-image-thumbnails/\" target=\"_blank\">документации</a>, например, \"200\" или \"200x0\" и т.&nbsp;п. Стандартное значение, если оно не указано — \"750x0\"."
+msgstr "<code>$size</code> должно содержать одно из значений размера, описанных в  <a href=\"https://www.shop-script.ru/help/5/shop-script-5-image-thumbnails/\" target=\"_blank\">документации</a>, например, \"200\" или \"200x0\" и т.&nbsp;п. Стандартное значение, если размер не указан — \"750x0\"."
 
 msgid "To obtain an absolute image URL, use <code>{$wa-&gt;domainUrl()}</code>."
 msgstr "Чтобы получить абсолютный URL изображения, используйте <code>{$wa-&gt;domainUrl()}</code>."
@@ -10481,3 +10481,36 @@ msgstr "Ссылка для соцсетей (og:url)"
 
 msgid "If at least one og: value above is not empty, then you may keep this field empty for og:url meta tag to contain this storefront‘s URL by default. Or type a custom og:url value manually, if necessary."
 msgstr "Если хотя бы одно из значений метатегов og: выше заполнено, то это поле можно оставить пустым — в метатег og:url по умолчанию подставится URL витрины. Или вручную отредактируйте значение og:url, если необходимо."
+
+msgid "Amount of customer‘s bonuses accumulated with the “Loyalty program” enabled in store settings"
+msgstr "Количество бонусов, накопленных покупателем в рамках «Бонусной программы», включенной в настройках магазина"
+
+msgid "Adding of a comment to an order in backend."
+msgstr "Добавление комментария к заказу в бекенде."
+
+msgid "A comment was added to your order %s"
+msgstr "К вашему заказу %s добавлен комментарий"
+
+msgid "Administrator has added a comment to your order %s:<br><strong>%s</strong>"
+msgstr "Администратор добавил комментарий к вашему заказу %s:<br><strong>%s</strong>"
+
+msgid "Administrator has changed the shipping details of your order %s as follows:<br><strong>%s</strong>"
+msgstr "Администратор изменил параметры доставки для вашего заказа %s следующим образом:<br><strong>%s</strong>"
+
+msgid "Editing of order shipping details in backend."
+msgstr "Изменение параметров доставки заказа в бекенде."
+
+msgid "Shipping details of your order %s have been changed"
+msgstr "Параметры доставки вашего заказа %s изменились"
+
+msgid "Administrator has settled your unsettled order %s by merging it with order %s."
+msgstr "Администратор обработал ваш подвешенный заказ %s и объединил его с заказом %s."
+
+msgid "Administrator has settled your unsettled order %s."
+msgstr "Администратор обработал ваш подвешенный заказ %s"
+
+msgid "Your order %s has been settled"
+msgstr "Ваш подвешенный заказ %s обработан"
+
+msgid "Administrator has merged your order %s with an unsettled order."
+msgstr "Администратор объединил ваш заказ %s с другим, подвешенным заказом."

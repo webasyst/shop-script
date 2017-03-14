@@ -370,6 +370,7 @@ return array(
             '$customer.email'                               => _w('Customer email'),
             '$customer.phone'                               => _w('Customer phone'),
             '$customer. …'                                  => _w('The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step'),
+            '$customer.affiliate_bonus'                     => _w('Amount of customer‘s bonuses accumulated with the “Loyalty program” enabled in store settings'),
             /** ADDRESSES **/
             '$shipping_address'                             => _w('Shipping address as string'),
             '$billing_address'                              => _w('Billing address as string'),
@@ -441,6 +442,7 @@ return array(
             '$customer->get(\'email\', \'default\')'        => _w('Customer email'),
             '$customer->get(\'phone\', \'default\')'        => _w('Customer phone'),
             '$customer. …'                                  => _w('The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step'),
+            '$customer.affiliate_bonus'                     => _w('Amount of customer‘s bonuses accumulated with the “Loyalty program” enabled in store settings'),
             /** ADDRESSES **/
             '$shipping_address'                             => _w('Shipping address as string'),
             '$billing_address'                              => _w('Billing address as string'),

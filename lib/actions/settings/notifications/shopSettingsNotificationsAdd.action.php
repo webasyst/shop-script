@@ -114,6 +114,57 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
         return $template;
     }
 
+    protected static function getOrderCommentTemplate()
+    {
+        $template = self::getMailTemplate('Order.comment.html');
+        $locales = array(
+            "%1%"            => sprintf(_w('Hi %s'), '{$customer.name|escape}'),
+            "%contact_info%" => _w('Contact info'),
+            "%16%"           => _w('PIN'),
+            "%17%"           => sprintf(_w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}')
+        );
+
+        foreach ($locales as $index => $locale) {
+            $template = str_replace($index, $locale, $template);
+        }
+
+        return $template;
+    }
+
+    protected static function getOrderEditShippingDetailsTemplate()
+    {
+        $template = self::getMailTemplate('Order.editshippingdetails.html');
+        $locales = array(
+            "%1%"            => sprintf(_w('Hi %s'), '{$customer.name|escape}'),
+            "%contact_info%" => _w('Contact info'),
+            "%16%"           => _w('PIN'),
+            "%17%"           => sprintf(_w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}')
+        );
+
+        foreach ($locales as $index => $locale) {
+            $template = str_replace($index, $locale, $template);
+        }
+
+        return $template;
+    }
+
+    protected static function getOrderSettleTemplate()
+    {
+        $template = self::getMailTemplate('Order.settle.html');
+        $locales = array(
+            "%1%"            => sprintf(_w('Hi %s'), '{$customer.name|escape}'),
+            "%contact_info%" => _w('Contact info'),
+            "%16%"           => _w('PIN'),
+            "%17%"           => sprintf(_w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}')
+        );
+
+        foreach ($locales as $index => $locale) {
+            $template = str_replace($index, $locale, $template);
+        }
+
+        return $template;
+    }
+
     protected static function getMailTemplate($file)
     {
         $template = file_get_contents(wa('shop')->getAppPath('templates/mail/'.$file));
@@ -180,14 +231,39 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
         );
 
 
+        /* order COMMENTING email notification template */
+        $result['order.comment'] = array(
+            'description' => _w('Adding of a comment to an order in backend.'),
+            'subject'     => sprintf(_w('A comment was added to your order %s'), '{$order.id}'),
+            'body'        => self::getOrderCommentTemplate(),
+            'sms'         => sprintf(_w('A comment was added to your order %s'), '{$order.id}'),
+        );
+
+
+        /* editing order SHIPPING DETAILS email notification template */
+        $result['order.editshippingdetails'] = array(
+            'description' => _w('Editing of order shipping details in backend.'),
+            'subject'     => sprintf(_w('Shipping details of your order %s have been changed'), '{$order.id}'),
+            'body'        => self::getOrderEditShippingDetailsTemplate(),
+            'sms'         => sprintf(_w('Shipping details of your order %s have been changed'), '{$order.id}'),
+        );
+
+
+        /* order SETTLING email notification template */
+        $result['order.settle'] = array(
+            'description' => _w('Merging of an order without an ID, which was paid via a mobile terminal, with another order in backend.'),
+            'subject'     => sprintf(_w('Your order %s has been settled'), '{$order.id}'),
+            'body'        => self::getOrderSettleTemplate(),
+            'sms'         => sprintf(_w('Your order %s has been settled'), '{$order.id}'),
+        );
+
+
         $result['order.refund']['description'] = _w('Execution of “Refund” action in backend.');
         $result['order.edit']['description'] = _w('Saving of changes made in an edited order in backend.');
         $result['order.restore']['description'] = _w('Execution of “Restore” action in backend.');
         $result['order.complete']['description'] = _w('Execution of “Mark as Completed” action in backend.');
         $result['order.message']['description'] = _w('Sending of a message to a customer by an administrator in backend.');
-        $result['order.comment']['description'] = _w('Adding of a comment to an order by an administrator in backend.');
         $result['order.callback']['description'] = _w('Registration of an automatic callback from a payment gateway; e.g., to update the order status. Depending on the callback result, additionally action “Paid” may be called afterwards.');
-        $result['order.settle']['description'] = _w('Merging of an order without an ID, which was paid via a mobile terminal, with another order in backend.');
         $result['order.pay']['description'] = _w('Execution of “Paid” action manually in backend or automatically by a callback from a payment gateway.');
 
 

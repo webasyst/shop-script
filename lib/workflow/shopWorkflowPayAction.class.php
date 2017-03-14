@@ -108,13 +108,10 @@ class shopWorkflowPayAction extends shopWorkflowAction
             $order_model->recalculateProductsTotalSales($order_id);
         }
 
-        $log_model = new shopOrderLogModel();
-        $state_id = $log_model->getPreviousState($order_id);
-
         $app_settings_model = new waAppSettingsModel();
         $update_on_create = $app_settings_model->get('shop', 'update_stock_count_on_create_order');
 
-        if (!$update_on_create && $state_id == 'new') {
+        if (!$update_on_create) {
 
             // for logging changes in stocks
             shopProductStocksLogModel::setContext(

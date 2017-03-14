@@ -17,12 +17,14 @@ return array(
     'pages'       => true,
     'mobile'      => true,
     'my_account'  => true,
-    'version'     => '7.2.4',
+    'version'     => '7.2.5',
     'critical'    => '7.0.0',
     'vendor'      => 'webasyst',
-    'csrf'        => true,
-    'payment_plugins' => true,
-    'shipping_plugins' => true,
+    'csrf'             => true,
+    'payment_plugins'  => true,
+    'shipping_plugins' => array(
+        'desired_date' => true,
+    ),
     'sms_plugins' => true,
     'license'     => 'commercial',
 );

@@ -274,25 +274,35 @@ class shopCheckoutShipping extends shopCheckout
                     $address = $config_address;
                     $address['fields'] = $fields;
                 }
+            } else {
+
             }
         } else {
+            $union = false;
             if (isset($config_address['fields'])) {
                 $fields = $config_address['fields'];
                 if ($address_fields) {
+
                     foreach ($fields as $f_id => $f) {
                         if (isset($address_fields[$f_id])) {
-                            foreach ($address_fields[$f_id] as $k => $v) {
-                                $fields[$f_id][$k] = $v;
+                            if (is_array($address_fields[$f_id])) {
+                                foreach ($address_fields[$f_id] as $k => $v) {
+                                    $fields[$f_id][$k] = $v;
+                                }
+                            } elseif ($address_fields[$f_id] === false) {
+                                unset($fields[$f_id]);
+                                unset($address_fields[$f_id]);
                             }
-                        } else {
+                        } elseif (!$union) {
                             unset($fields[$f_id]);
                         }
                     }
                     foreach ($address_fields as $f_id => $f) {
                         if (!isset($fields[$f_id])) {
-                            $fields[$f_id] = $f;
+                            $fields[$f_id] = $f === false ? array() : $f;
                         }
                     }
+
                 }
                 $address_fields = $fields;
             }
@@ -309,8 +319,10 @@ class shopCheckoutShipping extends shopCheckout
                 }
             }
         }
+
         if ($address_form) {
             if (!empty($config['shipping']['prompt_type'])) {
+                #show only cost type fields
                 if (!empty($address['fields'])) {
                     foreach ($address['fields'] as $k => $v) {
                         if (empty($v['cost'])) {
@@ -333,11 +345,24 @@ class shopCheckoutShipping extends shopCheckout
                     }
                 }
             }
+
+            #attempt to sort address fields
+            if (!empty($address['fields']) && !empty($config_address['fields'])) {
+                $sort = array_flip(array_keys($config_address['fields']));
+                $code = ' $map = '.var_export($sort, true).';';
+                $code .= ' return ifset($map[$a],0)-ifset($map[$b],0);';
+
+                $compare = create_function('$a, $b', $code);
+                uksort($address['fields'], $compare);
+            }
+
             return waContactForm::loadConfig(array('address.shipping' => $address), array('namespace' => 'customer_'.$method_id));
         } else {
             return null;
         }
     }
+
+
 
     public function getItems($weight_unit = null)
     {

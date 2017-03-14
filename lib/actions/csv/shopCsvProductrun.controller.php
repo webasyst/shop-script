@@ -1372,8 +1372,11 @@ class shopCsvProductrunController extends waLongActionController
                 }
             }
 
-            if (!empty($data['skus'][-1]['_primary']) && !in_array($item_sku_id, array(true, false, 0), true)) {
+            if (!in_array($item_sku_id, array(true, false, 0), true) && !empty($data['skus'][$item_sku_id]['_primary'])) {
                 $product->sku_id = $item_sku_id;
+                if (isset($data['sku_id'])) {
+                    unset($data['sku_id']);
+                }
             }
 
             shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_IMPORT);

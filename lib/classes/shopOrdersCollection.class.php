@@ -1032,6 +1032,9 @@ class shopOrdersCollection
                 list($field, $param) = explode(':', $field, 2);
             }
             switch ($field) {
+                case 'shipping_datetime':
+                    $this->order_by = "(o.shipping_datetime IS NOT NULL) DESC, o.shipping_datetime {$order}";
+                    break;
                 case 'updated':
                     $this->order_by = "IFNULL(o.update_datetime, o.create_datetime) {$order}";
                     break;
