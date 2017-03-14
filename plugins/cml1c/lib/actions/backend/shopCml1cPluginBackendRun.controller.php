@@ -4654,7 +4654,7 @@ SQL;
                                 }
                                 if ($stock_id >= 0) {
                                     if ($_in_fields) {
-                                        $sku['stock'][$stock_id] = intval(self::field($s, array('Количество', 'Остаток')));
+                                        $sku['stock'][$stock_id] = intval(self::field($s, array('Количество', 'Остаток', 'КоличествоНаСкладе', 'ОстаточекПоСкладику')));
                                     } else {
                                         $sku['stock'][$stock_id] = intval(self::attribute($s, 'КоличествоНаСкладе'));
                                     }

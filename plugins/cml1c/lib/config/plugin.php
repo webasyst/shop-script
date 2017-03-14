@@ -5,7 +5,7 @@ return array(
     'description'  => 'Обмен данными с «1С: Управление торговлей» (CommerceML)',
     'img'          => 'img/1c.png',
     'vendor'       => 'webasyst',
-    'version'      => '2.3.3',
+    'version'      => '2.3.4',
     'importexport' => true,
     'frontend'     => true,
     'handlers'     => array(
