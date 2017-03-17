@@ -4590,10 +4590,12 @@ SQL;
 
                 #convert and setup prices
                 foreach ($prices as $type => $price) {
-                    if (!empty($price['currency']) && ($price['currency'] != $product->currency)) {
-                        $sku[$type] = $this->convertPrice($price['value'], $price['currency'], $product->currency);
-                    } else {
-                        $sku[$type] = $price['value'];
+                    if (is_array($price) && isset($price['value'])) {
+                        if (!empty($price['currency']) && ($price['currency'] != $product->currency)) {
+                            $sku[$type] = $this->convertPrice($price['value'], $price['currency'], $product->currency);
+                        } else {
+                            $sku[$type] = $price['value'];
+                        }
                     }
                 }
 
@@ -5150,11 +5152,6 @@ SQL;
          *
          * Extend product categories
          */
-        #init category map alias
-        if (!isset($this->data['map'][self::STAGE_CATEGORY])) {
-            $this->data['map'][self::STAGE_CATEGORY] = array();
-        }
-        $map = $this->data['map'][self::STAGE_CATEGORY];
 
         switch ($this->pluginSettings('update_product_categories')) {
             case 'skip':#Импорт категорий будет пропущен
@@ -5173,8 +5170,26 @@ SQL;
 
         }
         if (is_array($categories)) {
+            #init category map alias
+            if (!isset($this->data['map'][self::STAGE_CATEGORY])) {
+                $this->data['map'][self::STAGE_CATEGORY] = array();
+            }
+
+            $map = &$this->data['map'][self::STAGE_CATEGORY];
+
             foreach ($this->xpath($element, '//Группы/Ид') as $category) {
-                if ($category = ifset($map[(string)$category])) {
+                $category = (string)$category;
+                if (!isset($map[$category])) {
+                    $category_row = $this->getModel('category')->getByField('id_1c', $category);
+                    if ($category_row) {
+                        $map[$category] = array(
+                            'id' => $category_row['id'],
+                        );
+                    } else {
+                        $map[$category] = false;
+                    }
+                }
+                if ($category = ifset($map[$category])) {
                     $categories[] = intval($category['id']);
                 }
             }
