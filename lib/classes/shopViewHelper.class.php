@@ -698,10 +698,10 @@ class shopViewHelper extends waAppViewHelper
             return '';
         }
 
-        if (substr($url_or_class, 0, 7) == 'http://') {
-            return '<i class="icon16" style="background-image:url('.htmlspecialchars($url_or_class).')"></i>';
+        if ((bool)preg_match('/^(https?:)?\/\//', $url_or_class)) {
+            return '<i class="icon16" style="background-image:url(' . htmlspecialchars($url_or_class) . ')"></i>';
         } else {
-            return '<i class="icon16 '.htmlspecialchars($url_or_class).'"></i>';
+            return '<i class="icon16 ' . htmlspecialchars($url_or_class) . '"></i>';
         }
     }
 
