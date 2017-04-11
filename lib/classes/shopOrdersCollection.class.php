@@ -531,7 +531,7 @@ class shopOrdersCollection
                 $data[$row['order_id']]['items'][] = $row;
             }
         }
-        if (isset($postprocess_fields['products'])) {
+        if (isset($postprocess_fields['items']) && isset($postprocess_fields['products'])) {
             $product_ids = array();
             foreach ($data as $o) {
                 if (!empty($o['items'])) {
@@ -574,6 +574,36 @@ class shopOrdersCollection
                 }
             }
             unset($o, $it);
+        }
+        if (isset($postprocess_fields['items']) && isset($postprocess_fields['skus'])) {
+            unset($default_values['skus']);
+
+            // Collect sku ids
+            $sku_ids = array();
+            foreach ($data as $o) {
+                if (!empty($o['items'])) {
+                    foreach ($o['items'] as $it) {
+                        if (!empty($it['sku_id'])) {
+                            $sku_ids[$it['sku_id']] = $it['sku_id'];
+                        }
+                    }
+                }
+            }
+
+            // Fetch sku data
+            if ($sku_ids) {
+                $product_skus_model = new shopProductSkusModel();
+                $skus = $product_skus_model->getById($sku_ids);
+
+                foreach ($data as &$o) {
+                    if (!empty($o['items'])) {
+                        foreach ($o['items'] as &$it) {
+                            $it['sku'] = ifset($skus[$it['sku_id']]);
+                        }
+                    }
+                }
+                unset($o, $it);
+            }
         }
 
         if (isset($postprocess_fields['params'])) {
@@ -645,7 +675,7 @@ class shopOrdersCollection
             unset($o);
         }
 
-        if (isset($postprocess_fields['subtotal'])) {
+        if (isset($postprocess_fields['items']) && isset($postprocess_fields['subtotal'])) {
             foreach ($data as &$o) {
                 $subtotal = 0;
                 if (!empty($o['items'])) {

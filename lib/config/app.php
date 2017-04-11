@@ -17,7 +17,7 @@ return array(
     'pages'       => true,
     'mobile'      => true,
     'my_account'  => true,
-    'version'     => '7.2.5',
+    'version'     => '7.2.7',
     'critical'    => '7.0.0',
     'vendor'      => 'webasyst',
     'csrf'             => true,

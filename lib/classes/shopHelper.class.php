@@ -374,7 +374,7 @@ class shopHelper
 
                 if (array_key_exists('courier', $order)) {
                     if ($order['courier']) {
-                        $order['courier_name'] = $order['courier']['name'];
+                        $order['courier_name'] = htmlspecialchars($order['courier']['name']);
                     } else {
                         $order['courier_name'] = '';
                     }
