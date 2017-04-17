@@ -747,7 +747,7 @@
                     var value = 'f:' + ui.item.value;
 
                     if (!$features.find('option[value="' + value + '"]:first').length) {
-                        var $option = $('<option/>');
+                        var $option = $('<option></option>');
                         $option.text(ui.item.name);
                         $option.attr('value', value);
                         $option.attr('title', ui.item.value);

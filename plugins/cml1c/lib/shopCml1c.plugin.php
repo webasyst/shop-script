@@ -157,18 +157,21 @@ class shopCml1cPlugin extends shopPlugin
         waLog::log($message, 'shop/plugins/'.$this->id.'.log');
     }
 
-    public static function makeUuid()
+    public static function makeUuid($id = null)
     {
-
-        $fp = @fopen('/dev/urandom', 'rb');
-        if ($fp !== false) {
-            $pr_bits = @fread($fp, 16);
-            @fclose($fp);
+        if ($id) {
+            $pr_bits = md5($id, true);
         } else {
-            // If /dev/urandom isn't available (eg: in non-unix systems), use mt_rand().
-            $pr_bits = "";
-            for ($cnt = 0; $cnt < 16; $cnt++) {
-                $pr_bits .= chr(mt_rand(0, 255));
+            $fp = @fopen('/dev/urandom', 'rb');
+            if ($fp !== false) {
+                $pr_bits = @fread($fp, 16);
+                @fclose($fp);
+            } else {
+                // If /dev/urandom isn't available (eg: in non-unix systems), use mt_rand().
+                $pr_bits = "";
+                for ($cnt = 0; $cnt < 16; $cnt++) {
+                    $pr_bits .= chr(mt_rand(0, 255));
+                }
             }
         }
         $time_low = bin2hex(substr($pr_bits, 0, 4));
@@ -660,5 +663,6 @@ HTML;
 HTML;
             return sprintf($template, $event_params['product']['id_1c'], $event_params['sku']['id_1c']);
         }
+        return null;
     }
 }
