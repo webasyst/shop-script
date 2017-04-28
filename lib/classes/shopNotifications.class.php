@@ -161,9 +161,10 @@ class shopNotifications
         }
 
         $absolute_image_url = true;
-
-        $product_skus_model = new shopProductSkusModel();
-        $sql = <<<SQL
+        $skus = array();
+        if ($sku_ids) {
+            $product_skus_model = new shopProductSkusModel();
+            $sql = <<<SQL
 SELECT
   s.id       sku_id,
   s.product_id,
@@ -177,17 +178,18 @@ WHERE
   AND s.id IN (i:sku_ids)
 SQL;
 
-        $skus = $product_skus_model->query($sql, compact('sku_ids'))->fetchAll('sku_id');
+            $skus = $product_skus_model->query($sql, compact('sku_ids'))->fetchAll('sku_id');
 
-        foreach ($skus as &$sku) {
-            foreach ($sizes as $size_id => $size) {
-                $sku['image'][$size_id.'_url'] = shopImage::getUrl($sku, $size, $absolute_image_url);
-                if ($d !== $root_url) {
-                    $sku['image'][$size_id.'_url'] = $d.substr($sku['image'][$size_id.'_url'], $root_url_len);
+            foreach ($skus as &$sku) {
+                foreach ($sizes as $size_id => $size) {
+                    $sku['image'][$size_id.'_url'] = shopImage::getUrl($sku, $size, $absolute_image_url);
+                    if ($d !== $root_url) {
+                        $sku['image'][$size_id.'_url'] = $d.substr($sku['image'][$size_id.'_url'], $root_url_len);
+                    }
+
                 }
-
+                unset($sku);
             }
-            unset($sku);
         }
 
         // URLs and products for order items
@@ -201,7 +203,7 @@ SQL;
             }
             if (!empty($products[$i['product_id']])) {
                 $i['product'] = $products[$i['product_id']];
-                if (!empty($skus[$i['sku_id']]['image'])) {
+                if (isset($skus[$i['sku_id']]) && !empty($skus[$i['sku_id']]['image'])) {
                     $i['product']['image'] = $skus[$i['sku_id']]['image'];
                 }
             } else {
@@ -223,7 +225,7 @@ SQL;
         $data['shipping_interval'] = null;
         list($data['shipping_date'], $data['shipping_time_start'], $data['shipping_time_end']) = shopHelper::getOrderShippingInterval($data['order']['params']);
         if ($data['shipping_date']) {
-            $data['shipping_interval'] = wa_date('shortdate', $data['shipping_date']).', '.$data['shipping_time_start'].' - '.$data['shipping_time_end'];
+            $data['shipping_interval'] = wa_date('shortdate', $data['shipping_date']).', '.$data['shipping_time_start'].'–'.$data['shipping_time_end'];
         }
 
         // Signup url

@@ -24,7 +24,7 @@
         </div>
 
         <div class="field">
-            <div class="name">[`Sender`]</div>
+            <div class="name"><label for="{if !empty($contact_email)}transport-email{elseif !empty($sms_from) && !empty($contact_phone)}transport-sms{/if}">[`Sender`]</label></div>
             <div class="value no-shift">
                 {if !empty($contact_email)}
                 <select id="transport-email" name="sender"{if $transport != 'email'} style="display:none" disabled{/if}>

@@ -360,6 +360,30 @@ class shopOrderSaveController extends waJsonController
                 $data['params']['shipping_'.$k] = null;
             }
         }
+
+        //change shipping plugin
+        if ($id) {
+            $opm = new shopOrderParamsModel();
+            $old_params = $opm->get($id);
+            $old_shipping_id = ifset($old_params['shipping_id']);
+            if ($old_shipping_id && ($old_shipping_id != $shipping_id)) {
+                $workflow = new shopWorkflow();
+                $action = new shopWorkflowAction(null, $workflow);
+                $action->setPackageState(waShipping::STATE_CANCELED, $id, array('log' => true));
+
+                $names = array();
+                foreach ($old_params as $_name => $_value) {
+                    if (strpos($_name, 'shipping_data_') === 0) {
+                        $names[] = $_name;
+                    }
+                }
+                if ($names) {
+                    //delete obsolete shipping_data_*
+                    $opm->deleteByField(array('order_id' => $id, 'name' => $names));
+                }
+            }
+        }
+
         // payment
         if ($payment_id = waRequest::post('payment_id')) {
             $data['params']['payment_id'] = $payment_id;

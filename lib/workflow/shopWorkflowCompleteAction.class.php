@@ -4,12 +4,10 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
 {
     public function execute($order_id = null)
     {
-        $order_model = new shopOrderModel();
-        $order = $order_model->getById($order_id);
+        $order = $this->order_model->getById($order_id);
 
         // update orders counter of a courier this order is assigned to
-        $order_params_model = new shopOrderParamsModel();
-        $params = $order_params_model->get($order_id);
+        $params = $this->order_params_model->get($order_id);
         $courier_id = ifset($params['courier_id'], '');
         if ($courier_id) {
             $courier_model = new shopApiCourierModel();
@@ -33,7 +31,7 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
                     'paid_date'    => date('Y-m-d', $time),
                 )
             );
-            if (!$order_model->where("contact_id = ? AND paid_date IS NOT NULL", $order['contact_id'])->limit(1)->fetch()) {
+            if (!$this->order_model->where("contact_id = ? AND paid_date IS NOT NULL", $order['contact_id'])->limit(1)->fetch()) {
                 $result['update']['is_first'] = 1;
             }
             return $result;
@@ -44,22 +42,14 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
     {
         $data = parent::postExecute($order_id, $result);
 
-        $log_model = new waLogModel();
-        $log_model->add('order_complete', $order_id);
+        $this->waLog('order_complete', $order_id);
 
-        $order_model = new shopOrderModel();
-        if (is_array($order_id)) {
-            $order = $order_id;
-            $order_id = $order['id'];
-        } else {
-            $order = $order_model->getById($order_id);
-        }
+        $order = $this->getOrder($order_id);
 
         shopCustomer::recalculateTotalSpent($order['contact_id']);
         if ($order !== null) {
 
-            $log_model = new shopOrderLogModel();
-            $state_id = $log_model->getPreviousState($order_id);
+            $state_id = $this->order_log_model->getPreviousState($order_id);
 
             $app_settings_model = new waAppSettingsModel();
             $update_on_create = $app_settings_model->get('shop', 'update_stock_count_on_create_order');
@@ -76,13 +66,12 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
                     )
                 );
 
-                $order_model = new shopOrderModel();
-                $order_model->reduceProductsFromStocks($order_id);
+                $this->order_model->reduceProductsFromStocks($order_id);
 
                 shopProductStocksLogModel::clearContext();
             }
 
-            $order_model->recalculateProductsTotalSales($order_id);
+            $this->order_model->recalculateProductsTotalSales($order_id);
         }
         return $data;
     }

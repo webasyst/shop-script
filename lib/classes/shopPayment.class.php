@@ -245,8 +245,6 @@ class shopPayment extends waAppPayment
      * @param waPayment|string|string[] $payment_plugin
      * @return waOrder
      * @throws waException
-     *
-     * @todo: $payment_plugin param
      */
     public static function getOrderData($order, $payment_plugin = null)
     {
@@ -425,6 +423,9 @@ class shopPayment extends waAppPayment
                     $info = self::pluginModel()->getByField($suggest);
                     $this->merchant_id = (int)$info['id'];
                 } elseif ($count && is_callable($merchant_key)) {
+                    /**
+                     * @var callable $merchant_key
+                     */
                     $matched = self::pluginModel()->getByField($suggest, true);
                     $info = null;
                     foreach ($matched as $_info) {
@@ -472,7 +473,6 @@ class shopPayment extends waAppPayment
 
     public function refund()
     {
-
         $result = null;
         if (false) {
             if (empty($params['payment_id'])) {
@@ -514,7 +514,6 @@ class shopPayment extends waAppPayment
 
     public function paymentForm()
     {
-        //TODO
         $success_back_url = wa()->getRouteUrl('shop/checkout/success', true);
         return compact('success_back_url');
     }

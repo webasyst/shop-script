@@ -28,6 +28,7 @@ class shopWorkflowState extends waWorkflowState
 
     /**
      * @param array $params array with order data
+     * @param bool $name_only
      * @return array
      */
     public function getActions($params = null, $name_only = false)

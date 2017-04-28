@@ -2,9 +2,27 @@
 
 class shopWorkflowAction extends waWorkflowAction
 {
-
     public $original = false;
     protected $state_id;
+    /**
+     * @var shopOrderModel
+     */
+    protected $order_model;
+
+    /**
+     * @var shopOrderParamsModel
+     */
+    protected $order_params_model;
+
+    /**
+     * @var shopOrderLogModel
+     */
+    protected $order_log_model;
+
+    /**
+     * @var shopOrderItemsModel
+     */
+    protected $order_items_model;
 
     /**
      * @param string $id id as stored in database
@@ -13,7 +31,13 @@ class shopWorkflowAction extends waWorkflowAction
      */
     public function __construct($id, waWorkflow $workflow, $options = array())
     {
-        parent::__construct($id, $workflow, $options['options']);
+        parent::__construct($id, $workflow, isset($options['options']) ? $options['options'] : array());
+
+        $this->order_model = new shopOrderModel();
+        $this->order_params_model = new shopOrderParamsModel();
+        $this->order_log_model = new shopOrderLogModel();
+        $this->order_items_model = new shopOrderItemsModel();
+
         if (isset($options['name'])) {
             $this->name = waLocale::fromArray($options['name']);
         }
@@ -38,7 +62,10 @@ class shopWorkflowAction extends waWorkflowAction
         );
     }
 
-    /** @param $attrs string */
+    /**
+     * @return string
+     * @param string[] $attrs
+     */
     public function getButton()
     {
         $name = htmlspecialchars($this->getName(), ENT_QUOTES, 'utf-8');
@@ -123,7 +150,7 @@ HTML;
      * @param mixed $params implementation-specific parameter passed to $this->run()
      * @return mixed null if this action failed; any data to pass to $this->postExecute() if completed successfully.
      */
-    public function execute($oder_id = null)
+    public function execute($params = null)
     {
         return true;
     }
@@ -133,13 +160,8 @@ HTML;
         if (!$result) {
             return null;
         }
-        $order_model = new shopOrderModel();
-        if (is_array($order_id)) {
-            $order = $order_id;
-            $order_id = $order['id'];
-        } else {
-            $order = $order_model->getById($order_id);
-        }
+
+        $order = $this->getOrder($order_id);
 
         $data = is_array($result) ? $result : array();
         $data['order_id'] = $order_id;
@@ -158,8 +180,8 @@ HTML;
             $data['params']['actor_courier_name'] = $courier['name'];
             $data['params']['actor_courier_id'] = $courier['id'];
         }
-        $order_log_model = new shopOrderLogModel();
-        $data['id'] = $order_log_model->add($data);
+
+        $data['id'] = $this->order_log_model->add($data);
 
         $update = isset($result['update']) ? $result['update'] : array();
 
@@ -173,14 +195,13 @@ HTML;
         if ($this->state_id) {
             $update['state_id'] = $this->state_id;
         }
-        $order_model->updateById($order['id'], $update);
+        $this->order_model->updateById($order['id'], $update);
         $order = $update + $order;
 
-        $order_params_model = new shopOrderParamsModel();
         if (isset($update['params'])) {
-            $order_params_model->set($order['id'], $update['params'], false);
+            $this->order_params_model->set($order['id'], $update['params'], false);
         }
-        $order['params'] = $order_params_model->get($order_id);
+        $order['params'] = $this->order_params_model->get($order_id);
 
         // send notifications
         $silent = false;
@@ -258,7 +279,221 @@ HTML;
         static $config;
         if (empty($config)) {
             $config = wa('shop')->getConfig();
+            /**
+             * @var shopConfig $config
+             */
         }
         return $config;
+    }
+
+    /**
+     * @param $order_id
+     * @return null|waPayment|waIPaymentRefund
+     * @throws waException
+     */
+    protected function getPaymentPlugin($order_id)
+    {
+        $plugin = null;
+        $payment_id = $this->order_params_model->getOne($order_id, 'payment_id');
+        if ($payment_id) {
+            try {
+                $plugin = shopPayment::getPlugin(null, $payment_id);
+            } catch (waException $ex) {
+                //log it
+            }
+        }
+        return $plugin;
+    }
+
+    /**
+     * @param int|array $order
+     * @return null|waShipping
+     * @throws waException
+     */
+    protected function getShippingPlugin($order)
+    {
+        $plugin = null;
+        if (is_array($order)) {
+            if (isset($order['params'])) {
+                $shipping_id = ifset($order['params']['shipping_id']);
+            } else {
+                $order_id = $order['id'];
+            }
+        } else {
+            $order_id = $order;
+        }
+        if (!empty($order_id) && empty($shipping_id)) {
+            $shipping_id = $this->order_params_model->getOne($order_id, 'shipping_id');
+        }
+        if (!empty($shipping_id)) {
+            try {
+                $plugin = shopShipping::getPlugin(null, $shipping_id);
+            } catch (waException $ex) {
+                //TODO log it
+            }
+        }
+        return $plugin;
+    }
+
+    protected function getOrder(&$order_id, $extend = false)
+    {
+        if (is_array($order_id)) {
+            $order = $order_id;
+            $order_id = $order['id'];
+
+            if ($extend) {
+                $order += $this->order_model->getById($order_id);
+            }
+        } else {
+            $order = $this->order_model->getById($order_id);
+        }
+        return $order;
+    }
+
+    protected function waLog($action, $order_id, $subject_contact_id = null, $contact_id = null)
+    {
+        if (!class_exists('waLogModel')) {
+            wa('webasyst');
+        }
+        $log_model = new waLogModel();
+        return $log_model->add($action, $order_id, $subject_contact_id, $contact_id);
+    }
+
+    /**
+     * @param string $state
+     * @param array $order_id
+     * @param array $params
+     * @return array
+     */
+    public function setPackageState($state, $order_id, $params = array())
+    {
+        $order = $this->getOrder($order_id, true);
+
+        if ($order && ($shipping_plugin = $this->getShippingPlugin($order))) {
+
+            $order['items'] = $this->order_items_model->getItems($order['id']);
+            $order['params'] = $this->order_params_model->get($order['id']);
+
+            $wa_order = shopShipping::getOrderData($order, $shipping_plugin);
+            if (method_exists($shipping_plugin, 'setPackageState')) {
+                try {
+
+                    $data = $shipping_plugin->setPackageState($wa_order, $state, $params);
+                    if ($data !== null) {
+                        if (is_array($data)) {
+                            switch ($state) {
+                                case waShipping::STATE_CANCELED:
+                                    $icon = '<i class="icon16 trash"></i> ';
+                                    $template = _w("Order shipping via <strong>%s</strong> service was canceled.");
+                                    break;
+                                case waShipping::STATE_DRAFT:
+                                    $icon = '<i class="icon16 cheatsheet"></i> ';
+                                    $template = _w("Order is being prepared for shipping via <strong>%s</strong> service.");
+                                    break;
+                                case waShipping::STATE_READY:
+                                    $icon = '<i class="icon16 agreement"></i> ';
+                                    $template = _w("Order is ready for shipping via <strong>%s</strong> service.");
+                                    break;
+                                default:
+                                    $icon = '<i class="icon16 export"></i> ';
+                                    $template = _w("Order details were sent to shipping service <strong>%s</strong>.");
+                                    break;
+                            }
+
+                            $text = $icon.' '.sprintf($template, $wa_order->shipping_name);
+
+                            if (isset($data['view_data'])) {
+                                $text .= '<br/>'.$data['view_data'];
+                                unset($data['view_data']);
+                            }
+
+                            $order_params = array();
+                            foreach ($data as $key => $value) {
+                                if ($key === 'tracking_number') {
+                                    $order_params['tracking_number'] = $value;
+                                }
+                                $order_params['shipping_data_'.$key] = $value;
+                            }
+                            if ($state == waShipping::STATE_READY) {
+                                $order_params['shipping_ready'] = 1;
+                            }
+                            if ($order_params) {
+                                $this->order_params_model->set($order['id'], $order_params, false);
+                            }
+                        } else {
+                            if ($data === false) {
+
+                            } else {
+                                $text = '<i class="icon16 no"></i> ';
+                                $template = _w("An error has occurred during the interaction with shipping service <strong>%s</strong>.");
+
+                                $text .= sprintf($template, $wa_order->shipping_name);
+                                $text .= "\n";
+                                $text .= $data;
+                            }
+                        }
+
+
+                    }
+                } catch (Exception $ex) {
+                    waLog::log($ex->getMessage(), 'shop/workflow.log');
+                }
+            }
+        }
+        $result = compact('text');
+
+        if (!empty($params['log']) && $result) {
+            $result['order_id'] = $order_id;
+            $result['action_id'] = $this->getId();
+
+            $result['before_state_id'] = $order['state_id'];
+
+            $result['after_state_id'] = $order['state_id'];
+
+            if (wa()->getEnv() == 'api' && waRequest::param('api_courier')) {
+                $courier = waRequest::param('api_courier');
+                $result['contact_id'] = ifempty($courier['contact_id'], 0);
+                $result['params']['actor_courier_name'] = $courier['name'];
+                $result['params']['actor_courier_id'] = $courier['id'];
+            }
+
+            return $this->order_log_model->add($result);
+        }
+        return $result;
+    }
+
+    protected function getShippingFields($order_id, $state)
+    {
+        $controls = array();
+        if ($shipping_plugin = $this->getShippingPlugin($order_id)) {
+            $order = $this->getOrder($order_id, true);
+
+            $order['items'] = $this->order_items_model->getItems($order['id']);
+            $order['params'] = $this->order_params_model->get($order['id']);
+
+            $params = array();
+            $params['namespace'] = 'shipping_data';
+            $params['title_wrapper'] = '%s';
+            $params['description_wrapper'] = '<br/><span class="hint">%s</span>';
+            $params['control_wrapper'] = <<<HTML
+<div class="field">
+    <div class="name">%s</div>
+    <div class="value">%s %s</div>
+</div>
+HTML;
+            $params['control_separator'] = '</div><div class="value">';
+
+            $wa_order = shopShipping::getOrderData($order, $shipping_plugin);
+            if ($shipping_fields = $shipping_plugin->getStateFields($state, $wa_order)) {
+                foreach ($shipping_fields as $name => $control) {
+                    if (!empty($order['params']['shipping_data_'.$name])) {
+                        $control['value'] = $order['params']['shipping_data_'.$name];
+                    }
+                    $control = array_merge($control, $params);
+                    $controls[$name] = waHtmlControl::getControl($control['control_type'], $name, $control);
+                }
+            }
+        }
+        return $controls;
     }
 }

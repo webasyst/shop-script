@@ -10,6 +10,7 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
         $this->view->assign('default_email_from', $this->getConfig()->getGeneralSettings('email'));
         $this->view->assign('sms_from', $this->getSmsFrom());
         $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
+        $this->view->assign('backend_notification_add', wa()->event('backend_notification_add'));
     }
 
     protected static function getOrderCreateTemplate()

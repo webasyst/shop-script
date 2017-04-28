@@ -498,3 +498,7 @@
     {/if}
 })();
 </script>
+
+{foreach $backend_followup_edit as $plugin_id => $_}
+<div class="hidden followup-plugin-wrapper {$plugin_id}">{$_}</div>
+{/foreach}
