@@ -76,6 +76,11 @@ class shopDiscounts
                 );
             }
         }
+        
+        foreach ($discounts as &$d) {
+            $d['total_discount'] = 0;
+        }
+        unset($d);
 
         $discount = 0.0;
         $discount_type = waSystem::getSetting('discounts_combine', null, 'shop');
@@ -83,21 +88,24 @@ class shopDiscounts
         foreach ($order['items'] as $item_id => $item) {
             $item_discount = 0;
             $item_discount_description = '';
-            foreach ($discounts as $d) {
+            foreach ($discounts as &$d) {
                 if (isset($d['items'][$item_id])) {
                     $item_d = $d['items'][$item_id];
                     $tmp_d = $item_d['description'].': '.shop_currency($item_d['discount'], $currency, $currency);
                     if ($discount_type == 'sum') {
                         $item_discount += $item_d['discount'];
                         $item_discount_description .= '<li>'.$tmp_d.'</li>';
+                        $d['total_discount'] += $item_d['discount'];
                     } else {
                         if ($item_d['discount'] > $item_discount) {
                             $item_discount = $item_d['discount'];
+                            $d['total_discount'] += $item_d['discount'];
                             $item_discount_description = $tmp_d;
                         }
                     }
                 }
             }
+            unset($d);
             if ($item_discount) {
                 $item_discount = min(max(0, $item_discount), shop_currency($item['price'], $item['currency'], $currency, false) * $item['quantity']);
                 $order['items'][$item_id]['total_discount'] = $item_discount;
@@ -111,16 +119,20 @@ class shopDiscounts
                 $discount += $item_discount;
             }
         }
+        
         $order_discount = 0;
         $order_discount_description = '';
         foreach ($discounts as $d) {
             if (isset($d['discount'])) {
-                $d['description'] = $d['description'].': '.shop_currency($d['discount'], $currency, $currency);
+                $d['total_discount'] += $d['discount'];
+                if ($d['total_discount']) {
+                    $d['description'] = $d['description'].': '.shop_currency($d['total_discount'], $currency, $currency);
+                }
                 if ($discount_type == 'sum') {
-                    $order_discount += $d['discount'];
+                    $discount += $d['discount'];
                     $order_discount_description .= '<li>'.$d['description'].'</li>';
                 } else {
-                    if ($d['discount'] > $order_discount) {
+                    if ($d['discount'] >= $order_discount) {
                         $order_discount = $d['discount'];
                         $order_discount_description = $d['description'];
                     }
@@ -135,12 +147,12 @@ class shopDiscounts
                 $description = '';
             }
             if ($discount_type == 'sum') {
-                if ($order_discount) {
+                if ($order_discount_description) {
                     $description .= '<ul>'.$order_discount_description.'</ul><br>';
                 }
                 $description .= sprintf_wp('Shop is set up to use sum of all discounts: %s', shop_currency_html($discount, $currency, $currency));
             } else {
-                if ($order_discount) {
+                if ($order_discount_description) {
                     $description .= $order_discount_description.'<br>';
                 }
                 $description .= sprintf_wp('Shop is set up to use single largest of all discounts: %s', shop_currency_html($discount, $currency, $currency));
