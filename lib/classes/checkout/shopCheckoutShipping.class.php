@@ -68,7 +68,6 @@ class shopCheckoutShipping extends shopCheckout
             $selected_shipping = $this->getSessionData('shipping', array());
         }
 
-        $dimension = shopDimension::getInstance()->getDimension('weight');
         $currencies = $config->getCurrencies();
         $current_currency =$config->getCurrency(false);
         foreach ($methods as $method_id => $m) {
@@ -78,30 +77,20 @@ class shopCheckoutShipping extends shopCheckout
                 $m['icon'] = $plugin_info['icon'];
                 $m['img'] = $plugin_info['img'];
                 $m['currency'] = $plugin->allowedCurrency();
-                $weight_unit = $plugin->allowedWeightUnit();
-                if ($weight_unit != $dimension['base_unit']) {
-                    $shipping_items = array();
-                    foreach ($items as $item_id => $item) {
-                        if ($item['weight']) {
-                            $item['weight'] = $item['weight'] / $dimension['units'][$weight_unit]['multiplier'];
-                        }
-                        $shipping_items[$item_id] = $item;
-                    }
-                } else {
-                    $shipping_items = $items;
-                }
                 $m['external'] = ($selected_shipping && $selected_shipping['id'] == $m['id']) ? 0 : $plugin->getProperties('external');
 
                 if ($plugin->isAllowedAddress($shipping_address)) {
                     if ($m['external']) {
                         $m['rates'] = array();
                     } else {
-                        if (isset($currencies[$m['currency']]) && ($m['currency'] != $current_currency)) {
-                            $_total = shop_currency($total, $current_currency, $m['currency'], false);
-                        } else {
-                            $_total = $total;
-                        }
-                        $m['rates'] = $plugin->getRates($shipping_items, $shipping_address, array('total_price' => $_total));
+                        $options = array(
+                            'currency' => $m['currency'],
+                            'weight'   => $plugin->allowedWeightUnit(),
+                        );
+                        $total_price = shopHelper::workupValue($total, 'price', $options['currency']);
+
+                        $shipping_items = shopHelper::workupOrderItems($items, $options);
+                        $m['rates'] = $plugin->getRates($shipping_items, $shipping_address, array('total_price' => $total_price));
                     }
                 } else {
                     $m['rates'] = false;
@@ -403,8 +392,9 @@ class shopCheckoutShipping extends shopCheckout
             $items[] = array(
                 'name' => $item['name'],
                 'price' => $item['price'],
+                'currency' => $item['currency'],
                 'quantity' => $item['quantity'],
-                'weight' => $w
+                'weight' => $w,
             );
         }
         return $items;

@@ -69,6 +69,7 @@ class shopOrderTotalController extends waJsonController
         if ($order_id) {
             $order['id'] = $order_info['id'];
         }
+
         $this->response['discount_description'] = '';
         $this->response['discount'] = shopDiscounts::calculate($order, false, $this->response['discount_description']);
 
@@ -130,7 +131,7 @@ class shopOrderTotalController extends waJsonController
                 $i = array(
                     'purchase_price' => shop_currency($sku['purchase_price'], $product['currency'], $order_currency, false),
                     'sku_code' => $sku['sku'],
-                    'name' => $sku['name'],
+                    'name' => ifempty($sku['name'], ifempty($product['name'], $i['name'])),
                 ) + $i + array(
                     'product' => $product,
                 );
@@ -146,7 +147,7 @@ class shopOrderTotalController extends waJsonController
                     'service_id' => $s['id'],
                     'service_variant_id' => 0,
                     'purchase_price' => 0,
-                    'name' => '',
+                    'name' => 'service_id='.$i['service_id'],
                 ) + $i;
 
                 if (!empty($services[$s['id']]['variants'])) {
@@ -162,6 +163,7 @@ class shopOrderTotalController extends waJsonController
                 $items[] = $i;
             }
         }
+
         return $items;
     }
 

@@ -64,8 +64,7 @@ class shopWorkflowEditshippingdetailsAction extends shopWorkflowAction
 
     public function getHTML($order_id)
     {
-        $order_params_model = new shopOrderParamsModel();
-        $params = $order_params_model->get($order_id);
+        $params = $this->order_params_model->get($order_id);
         $storefront = ifset($params['storefront'], '');
         if ($storefront) {
             $storefront = rtrim($storefront, '/*');

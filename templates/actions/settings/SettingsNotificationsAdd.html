@@ -125,3 +125,6 @@
 </script>
 <div class="clear-left"></div>
 
+{foreach $backend_notification_add as $plugin_id => $_}
+<div class="hidden notification-plugin-wrapper add {$plugin_id}">{$_}</div>
+{/foreach}

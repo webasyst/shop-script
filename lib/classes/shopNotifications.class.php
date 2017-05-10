@@ -87,6 +87,20 @@ class shopNotifications
         $items_model = new shopOrderItemsModel();
         $data['order']['items'] = $items_model->getItems($data['order']['id']);
 
+        // last order_log entry
+        if (!isset($data['action_data'])) {
+            $order_log_model = new shopOrderLogModel();
+            $data['action_data'] = $order_log_model->where("order_id = ? AND action_id <> ''", $data['order']['id'])->order('id DESC')->limit(1)->fetchAssoc();
+            if ($data['action_data']) {
+                $data['action_data']['params'] = array();
+                $log_params_model = new shopOrderLogParamsModel();
+                $params = $log_params_model->getByField('log_id', $data['action_data']['id'], true);
+                foreach($params as $p) {
+                    $data['action_data']['params'][$p['name']] = $p['value'];
+                }
+            }
+        }
+
         // Routing params to generate full URLs to products
         $source = 'backend';
         $storefront_route = null;
@@ -161,9 +175,10 @@ class shopNotifications
         }
 
         $absolute_image_url = true;
-
-        $product_skus_model = new shopProductSkusModel();
-        $sql = <<<SQL
+        $skus = array();
+        if ($sku_ids) {
+            $product_skus_model = new shopProductSkusModel();
+            $sql = <<<SQL
 SELECT
   s.id       sku_id,
   s.product_id,
@@ -177,17 +192,18 @@ WHERE
   AND s.id IN (i:sku_ids)
 SQL;
 
-        $skus = $product_skus_model->query($sql, compact('sku_ids'))->fetchAll('sku_id');
+            $skus = $product_skus_model->query($sql, compact('sku_ids'))->fetchAll('sku_id');
 
-        foreach ($skus as &$sku) {
-            foreach ($sizes as $size_id => $size) {
-                $sku['image'][$size_id.'_url'] = shopImage::getUrl($sku, $size, $absolute_image_url);
-                if ($d !== $root_url) {
-                    $sku['image'][$size_id.'_url'] = $d.substr($sku['image'][$size_id.'_url'], $root_url_len);
+            foreach ($skus as &$sku) {
+                foreach ($sizes as $size_id => $size) {
+                    $sku['image'][$size_id.'_url'] = shopImage::getUrl($sku, $size, $absolute_image_url);
+                    if ($d !== $root_url) {
+                        $sku['image'][$size_id.'_url'] = $d.substr($sku['image'][$size_id.'_url'], $root_url_len);
+                    }
+
                 }
-
+                unset($sku);
             }
-            unset($sku);
         }
 
         // URLs and products for order items
@@ -201,7 +217,7 @@ SQL;
             }
             if (!empty($products[$i['product_id']])) {
                 $i['product'] = $products[$i['product_id']];
-                if (!empty($skus[$i['sku_id']]['image'])) {
+                if (isset($skus[$i['sku_id']]) && !empty($skus[$i['sku_id']]['image'])) {
                     $i['product']['image'] = $skus[$i['sku_id']]['image'];
                 }
             } else {
@@ -223,7 +239,7 @@ SQL;
         $data['shipping_interval'] = null;
         list($data['shipping_date'], $data['shipping_time_start'], $data['shipping_time_end']) = shopHelper::getOrderShippingInterval($data['order']['params']);
         if ($data['shipping_date']) {
-            $data['shipping_interval'] = wa_date('shortdate', $data['shipping_date']).', '.$data['shipping_time_start'].' - '.$data['shipping_time_end'];
+            $data['shipping_interval'] = wa_date('shortdate', $data['shipping_date']).', '.$data['shipping_time_start'].'–'.$data['shipping_time_end'];
         }
 
         // Signup url
@@ -549,18 +565,22 @@ SQL;
             return;
         }
 
+        $order = $data['order'];
+        $notification_text = _w('New order').' '.shopHelper::encodeOrderId($order['id']);
+        $notification_text .= ' - '.wa_currency($order['total'], $order['currency']);
+
         // Send to recipients, grouped by domain name they registered to
         $results = array();
         foreach ($host_client_ids as $shop_url => $client_ids) {
             $request_data = array(
                 'app_id'             => "0b854471-089a-4850-896b-86b33c5a0198",
                 'data'               => array(
-                    'order_id' => $data['order']['id'],
+                    'order_id' => $order['id'],
                     'shop_url' => $shop_url,
                 ),
                 'include_player_ids' => array_values($client_ids),
                 'contents'           => array(
-                    "en" => _w('New order').' '.shopHelper::encodeOrderId($data['order']['id']),
+                    "en" => $notification_text,
                 ),
 
                 'ios_badgeType'  => 'Increase',

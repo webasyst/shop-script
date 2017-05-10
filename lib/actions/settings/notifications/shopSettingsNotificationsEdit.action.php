@@ -34,5 +34,11 @@ class shopSettingsNotificationsEditAction extends shopSettingsNotificationsActio
         $this->view->assign('default_email_from', $this->getConfig()->getGeneralSettings('email'));
         $this->view->assign('sms_from', $this->getSmsFrom());
         $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
+
+        $event_params = array(
+            'notification' => $n,
+            'params' => $params,
+        );
+        $this->view->assign('backend_notification_edit', wa()->event('backend_notification_edit', $event_params));
     }
 }

@@ -71,7 +71,7 @@
             </div>
         </div>
     </div>
-            
+
     <div class="field-group">
         <div class="field">
             <div class="name">[`Order source`]</div>
@@ -101,3 +101,7 @@
 </form>
 
 <div class="clear-left"></div>
+
+{foreach $backend_notification_edit as $plugin_id => $_}
+<div class="hidden notification-plugin-wrapper edit {$plugin_id}">{$_}</div>
+{/foreach}

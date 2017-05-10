@@ -61,9 +61,8 @@ class shopWorkflowSettleAction extends shopWorkflowAction
             } else {
                 $order_id = $params;
             }
-            $order_model = new shopOrderModel();
             if ($order_id) {
-                $order = $order_model->getById($order_id);
+                $order = $this->order_model->getById($order_id);
             } else {
                 $order = null;
             }
@@ -75,8 +74,7 @@ class shopWorkflowSettleAction extends shopWorkflowAction
                 $data = parent::postExecute($order, $result);
 
                 if ($target_order_id) {
-                    $log_model = new waLogModel();
-                    $log_model->add('order_delete', $order_id);
+                    $this->waLog('order_delete', $order_id);
 
                     $text = sprintf(_w('Order was merged (settled) with %s'), $this->getOrderLink($order_id));
                     $text .= sprintf('(%s %s)', $order['total'], $order['currency']);
@@ -111,7 +109,7 @@ class shopWorkflowSettleAction extends shopWorkflowAction
 
                     if ($order && $order['paid_date']) {
                         // Empty paid_date and update stats so that deleted orders do not affect reports
-                        $order_model->updateById($order_id, array(
+                        $this->order_model->updateById($order_id, array(
                             'paid_date'    => null,
                             'paid_year'    => null,
                             'paid_month'   => null,

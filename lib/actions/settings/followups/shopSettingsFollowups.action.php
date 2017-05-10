@@ -10,6 +10,8 @@ class shopSettingsFollowupsAction extends waViewAction
         $id = waRequest::request('id');
         $fm = new shopFollowupModel();
 
+        $transports = $this->getTransports();
+
         // Save data when POST came
         if ($id && waRequest::post()) {
             if (waRequest::post('delete')) {
@@ -45,6 +47,16 @@ class shopSettingsFollowupsAction extends waViewAction
 
                 if ($followup['from'] === 'other') {
                     $followup['from'] = waRequest::post('from');
+                }
+
+                // In restricted mail mode it's only allowed to use notifications
+                // with default text. This is useful for demo and trial accounts.
+                if(wa('shop')->getConfig()->getOption('restricted_mail')) {
+                    if (isset($transports[$followup['transport']]['template'])) {
+                        $followup['body'] = $transports[$followup['transport']]['template'];
+                    } else {
+                        throw new waRightsException();
+                    }
                 }
 
                 if ($id && $id !== 'new') {
@@ -90,28 +102,23 @@ class shopSettingsFollowupsAction extends waViewAction
 
         $test_orders = array();
 
-        $transports = $this->getTransports();
-
         if (empty($followup)) {
             $followup = $fm->getEmptyRow();
             $followup['status'] = 1;
-            $followup['body'] = ifset($transports[$followup['transport']]['template'], '');
+            if (isset($transports[$followup['transport']]['template'])) {
+                $followup['body'] = $transports[$followup['transport']]['template'];
+            }
         } else {
             // Orders used as sample data for testing
-            $om = new shopOrderModel();
-
             $olm = new shopOrderLogModel();
-
-            $where = 'after_state_id=s:state_id AND after_state_id != before_state_id';
-
             $order_ids = $olm
                 ->select('DISTINCT order_id, datetime')
-                ->where($where, $followup)
+                ->where('after_state_id=s:state_id AND after_state_id != before_state_id', $followup)
                 ->order('datetime DESC')
                 ->limit(10)
                 ->fetchAll('order_id');
 
-
+            $om = new shopOrderModel();
             $test_orders = $om->getById(array_keys($order_ids));
 
             shopHelper::workupOrders($test_orders);
@@ -139,6 +146,8 @@ class shopSettingsFollowupsAction extends waViewAction
         $this->view->assign('transports', $transports);
         $this->view->assign('sms_from', $this->getSmsFrom());
         $this->view->assign('states', $states);
+
+        $this->view->assign('backend_followup_edit', wa()->event('backend_followup_edit', $followup));
     }
 
     public function getTransports()

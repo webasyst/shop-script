@@ -10514,3 +10514,21 @@ msgstr "Ваш подвешенный заказ %s обработан"
 
 msgid "Administrator has merged your order %s with an unsettled order."
 msgstr "Администратор объединил ваш заказ %s с другим, подвешенным заказом."
+
+msgid "Order shipping via <strong>%s</strong> service was canceled."
+msgstr "Доставка заказа через службу «<strong>%s</strong>» отменена."
+
+msgid "Order is being prepared for shipping via <strong>%s</strong> service."
+msgstr "Заказ готовится к отправке через службу «<strong>%s</strong>»."
+
+msgid "Order is ready for shipping via <strong>%s</strong> service."
+msgstr "Заказ готов к отправке через службу «<strong>%s</strong>»."
+
+msgid "Order details were sent to shipping service <strong>%s</strong>."
+msgstr "Информация о заказе передана службе доставки «<strong>%s</strong>»."
+
+msgid "An error has occurred during the interaction with shipping service <strong>%s</strong>."
+msgstr "Ошибка при взаимодействии со службой доставки «<strong>%s</strong>»."
+
+msgid "Courier shipping"
+msgstr "Доставка курьером"

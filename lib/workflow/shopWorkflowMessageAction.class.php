@@ -26,14 +26,11 @@ class shopWorkflowMessageAction extends shopWorkflowAction
 
     public function getOrderData($order_id)
     {
-        $order_model = new shopOrderModel();
-        $order = $order_model->getById($order_id);
+        $order = $this->order_model->getById($order_id);
 
-        $order_params_model = new shopOrderParamsModel();
-        $order['params'] = $order_params_model->get($order['id'], true);
+        $order['params'] = $this->order_params_model->get($order['id'], true);
 
-        $items_model = new shopOrderItemsModel();
-        $order['items'] = $items_model->getItems($order['id']);
+        $order['items'] = $this->order_items_model->getItems($order['id']);
 
         // Routing params to generate full URLs to products
         $source = 'backend';
@@ -202,8 +199,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
 
     public function execute($order_id = null)
     {
-        $order_model = new shopOrderModel();
-        $order = $order_model->getById($order_id);
+        $order = $this->order_model->getById($order_id);
 
         if (!$order) {
             return false;
@@ -239,8 +235,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
         }
 
         if ($success) {
-            $log_model = new waLogModel();
-            $log_model->add('order_message', $order_id);
+            $this->waLog('order_message', $order_id);
             return array(
                 'text' => $text,
             );

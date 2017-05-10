@@ -4,19 +4,31 @@
 <form id="wf-ship-form" action="?module=workflow&action=perform" method="post">
     <input type="hidden" name="id" value="{$order_id}">
     <input type="hidden" name="action_id" value="{$action_id}">
+    {* begin shipping plugin form*}
+    {if !empty($shipping_controls)}
+        <div class="form">
+    {foreach $shipping_controls as $control}
+
+        {$control}
+    {/foreach}
+        </div>
+    {/if}
+    {* end shipping plugin form *}
+
+
     [`Tracking number`]: <input name="tracking_number" placeholder="[`Optional`]" value="{$tracking_number|default:''|escape}">
 
     <br><br>
-    [`Shipping`]:
+    [`Courier shipping`]:
     <span class="shipping-date-fields">
         <input type="text" placeholder="[`Date`]">
         <input type="hidden" name="shipping_date" value="{$shipping_date|escape}">
     </span>
     <span class="shipping-time-from-fields">
-        [`from `] <input type="text" name="shipping_time_from" data-time-format="H:i" value="{$shipping_time_start|escape}">
+        <label>[`from `] <input type="text" name="shipping_time_from" data-time-format="H:i" value="{$shipping_time_start|escape}"></label>
     </span>
     <span class="shipping-time-to-fields">
-        [`to `] <input type="text" name="shipping_time_to" data-time-format="H:i" value="{$shipping_time_end|escape}">
+        <label>[`to `] <input type="text" name="shipping_time_to" data-time-format="H:i" value="{$shipping_time_end|escape}"></label>
     </span>
 
     {if $customer_delivery_date || $customer_delivery_date_str || $customer_delivery_time}
@@ -115,7 +127,7 @@
         }).datepicker('setDate', date).datepicker('widget').hide();
     }());
 
-    // Timepicker
+    // Time picker
     var $time_from_input = $form.find('.shipping-time-from-fields input').timepicker();
     var $time_to_input = $form.find('.shipping-time-to-fields input').timepicker();
 

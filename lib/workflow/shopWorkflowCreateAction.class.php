@@ -52,11 +52,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                     // if user has been created
                     if ($contact['password'] && empty($contact_id)) {
 
-                        if (!class_exists('waLogModel')) {
-                            wa('webasyst');
-                        }
-                        $log_model = new waLogModel();
-                        $log_model->add('signup', wa()->getEnv(), $contact->getId(), $contact->getId());
+                        $this->waLog('signup', wa()->getEnv(), $contact->getId(), $contact->getId());
 
                         $signup_action = new shopSignupAction();
                         $signup_action->send($contact);
@@ -164,23 +160,21 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         $contact->addToCategory('shop');
 
         // Save order
-        $order_model = new shopOrderModel();
-        $order_id = $order_model->insert($order);
+        $order_id = $this->order_model->insert($order);
 
         // Create record in shop_customer, or update existing record
         $scm = new shopCustomerModel();
         $scm->updateFromNewOrder($order['contact_id'], $order_id, ifset($data['params']['referer_host']));
 
         // save items
-        $items_model = new shopOrderItemsModel();
         $parent_id = null;
         foreach ($data['items'] as $item) {
             $item['order_id'] = $order_id;
             if ($item['type'] == 'product') {
-                $parent_id = $items_model->insert($item);
+                $parent_id = $this->order_items_model->insert($item);
             } elseif ($item['type'] == 'service') {
                 $item['parent_id'] = $parent_id;
-                $items_model->insert($item);
+                $this->order_items_model->insert($item);
             }
         }
 
@@ -188,6 +182,22 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         if (empty($data['params'])) {
             $data['params'] = array();
         }
+
+        if (!empty($data['params']['shipping_id'])) {
+            try {
+                if ($shipping_plugin = shopShipping::getPlugin(null, $data['params']['shipping_id'])) {
+                    $shipping_currency = $shipping_plugin->allowedCurrency();
+                    $data['params']['shipping_currency'] = $shipping_currency;
+                    if ($row = $rate_model->getById($shipping_currency)) {
+                        $data['params']['shipping_currency_rate'] = $row['rate'];
+                    }
+                }
+
+            } catch (waException $ex) {
+
+            }
+        }
+
         $data['params']['auth_code'] = self::generateAuthCode($order_id);
         $data['params']['auth_pin'] = self::generateAuthPin();
         if (empty($data['params']['sales_channel'])) {
@@ -203,13 +213,11 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         }
 
         // Save params
-        $params_model = new shopOrderParamsModel();
-        $params_model->set($order_id, $data['params']);
+        $this->order_params_model->set($order_id, $data['params']);
 
         // Write discounts description to order log
         if (!empty($data['discount_description']) && !empty($data['discount']) && empty($data['skip_description'])) {
-            $order_log_model = new shopOrderLogModel();
-            $order_log_model->add(array(
+            $this->order_log_model->add(array(
                 'order_id'        => $order_id,
                 'contact_id'      => $order['contact_id'],
                 'before_state_id' => $order['state_id'],
@@ -219,11 +227,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             ));
         }
 
-        if (!class_exists('waLogModel')) {
-            wa('webasyst');
-        }
-        $log_model = new waLogModel();
-        $log_model->add('order_create', $order_id, null, $order['contact_id']);
+        $this->waLog('order_create', $order_id, null, $order['contact_id']);
 
         return array(
             'order_id'   => $order_id,
@@ -342,16 +346,14 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         $data['before_state_id'] = '';
         $data['after_state_id'] = 'new';
 
-        $order_log_model = new shopOrderLogModel();
-        $order_log_model->add($data);
+        $this->order_log_model->add($data);
 
         /**
          * @event order_action.create
          */
         wa('shop')->event('order_action.create', $data);
 
-        $order_model = new shopOrderModel();
-        $order = $order_model->getOrder($order_id);
+        $order = $this->order_model->getOrder($order_id);
         $customer = new waContact($order['contact_id']);
         // send notifications
         shopNotifications::send('order.'.$this->getId(), array(
@@ -372,7 +374,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                     'order_id' => $order_id
                 )
             );
-            $order_model->reduceProductsFromStocks($order_id);
+            $this->order_model->reduceProductsFromStocks($order_id);
 
             shopProductStocksLogModel::clearContext();
         }
@@ -381,6 +383,8 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         if ($email) {
             $this->sendPrintforms($order, $email, $data);
         }
+
+        $this->setPackageState(waShipping::STATE_DRAFT, $order_id, array('log' => true));
 
         return $order_id;
     }
@@ -401,7 +405,6 @@ class shopWorkflowCreateAction extends shopWorkflowAction
     {
         return (string)mt_rand(1000, 9999);
     }
-
 
     /**
      * @param $order
@@ -456,8 +459,6 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         }
 
         if (!empty($queue)) {
-            $order_log_model = new shopOrderLogModel();
-
             $store_email = shopHelper::getStoreEmail(ifempty($order['params']['storefront']));
 
             $order_id_str = shopHelper::encodeOrderId($order['id']);
@@ -471,7 +472,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                     if ($message->send()) {
                         $log = sprintf(_w("Printform <strong>%s</strong> sent to customer."), $form['name']);
 
-                        $order_log_model->add(array(
+                        $this->order_log_model->add(array(
                             'order_id'        => $data['order_id'],
                             'contact_id'      => $order['contact_id'],
                             'action_id'       => '',
