@@ -414,9 +414,7 @@ HTML;
                                 }
                                 $order_params['shipping_data_'.$key] = $value;
                             }
-                            if ($state == waShipping::STATE_READY) {
-                                $order_params['shipping_ready'] = 1;
-                            }
+
                             if ($order_params) {
                                 $this->order_params_model->set($order['id'], $order_params, false);
                             }

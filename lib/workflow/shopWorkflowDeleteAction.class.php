@@ -9,13 +9,7 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
         if ($order['paid_year']) {
             shopAffiliate::cancelBonus($order);
         }
-        return array(
-            'update' => array(
-                'params' => array(
-                    'shipping_ready' => null,
-                ),
-            )
-        );
+        return true;
     }
 
     public function postExecute($order_id = null, $result = null)

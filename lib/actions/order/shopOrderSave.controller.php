@@ -113,51 +113,49 @@ class shopOrderSaveController extends waJsonController
         // Remember previous discount to only write discount description to order log
         // if something actually changed
         $previous_discount = 0.0;
+        if ($id) {
+            $previous_discount = (float)$this->getModel()->select('discount')->where('id=?', $id)->fetchField();
+        }
 
         // Unless discount for existing order is specified by hand, recalculate it again,
         // allowing plugins such as affiliation to modify its data if needed.
+        // (Non-empty description means that the discount were not specified by hand.)
         $discount_description = waRequest::request('discount_description', '', 'string');
-        if ($id && !empty($data['discount'])) {
-            // Non-empty description means that the discount were not specified by hand.
-            if (!empty($discount_description)) {
-                $data['shipping'] = $this->cast($data['shipping']);
-                $data = array(
-                        'total'    => $data['total'] + $this->cast($data['discount']) - $data['shipping'],
-                        'discount' => 0,
-                        'params'   => ifempty($data['params'], array()) + $params,
-                    ) + $data;
+        if (!empty($discount_description)) {
+            $data['shipping'] = $this->cast($data['shipping']);
+            $data = array(
+                'total'    => $data['total'] + $this->cast($data['discount']) - $data['shipping'],
+                'discount' => 0,
+                'params'   => ifempty($data['params'], array()) + $params,
+            ) + $data;
 
+            if ($id) {
                 // Add keys from shop_order not present in $data
-                $o = array_diff_key($this->getModel()->getOrder($id), $data);
-                $data += $o;
+                $o = $this->getModel()->getOrder($id);
+            } else {
+                $o = $this->getModel()->getEmptyRow();
+            }
+            $o = array_diff_key($o, $data);
+            $data += $o;
 
-                // Calculate discounts
-                $discount_description = null;
+            // Apply (or recalculate) discounts
+            $discount_description = null;
+            if ($id) {
                 $data['discount'] = shopDiscounts::reapply($data, $discount_description);
-                $data['total'] = $data['total'] - $data['discount'] + $data['shipping'];
-                if ($data['total'] <= 0) {
-                    $data['total'] = 0;
-                }
-
-                // Remove keys from shop_order previously not present in $data
-                $data = array_diff_key($data, $o);
+            } else {
+                $data['discount'] = shopDiscounts::apply($data, $discount_description);
             }
 
-            $previous_discount = (float)$this->getModel()->select('discount')->where('id=?', $id)->fetchField();
-        } else {
-            if (!$id && !empty($data['discount']) && !empty($discount_description)) {
-                $tmp = $data;
-                $tmp['total'] = $data['total'] + $this->cast($data['discount']) - $data['shipping'];
-                $tmp_discount = shopDiscounts::apply($tmp);
-                if ($tmp_discount == $data['discount']) {
-                    $tmp_total = $data['total'];
-                    $data = $tmp;
-                    $data['total'] = $tmp_total;
-                }
+            $data['total'] = $data['total'] - $data['discount'] + $data['shipping'];
+            if ($data['total'] <= 0) {
+                $data['total'] = 0;
             }
+
+            // Remove keys from shop_order previously not present in $data
+            $data = array_diff_key($data, $o);
         }
 
-        // check discounts
+        // Make sure sum of item discounts does not exceed total discount
         if (isset($data['discount'])) {
             $tmp_discount = 0;
             if ($id) {

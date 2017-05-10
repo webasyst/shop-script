@@ -13,13 +13,10 @@ class shopWorkflowEditAction extends shopWorkflowAction
 
     public function isAvailable($order)
     {
-        if (empty($order['params']['shipping_ready'])) {
-            if (is_array($order)) {
-                $this->order_item = $order;
-            }
-            return parent::isAvailable($order);
+        if (is_array($order)) {
+            $this->order_item = $order;
         }
-        return false;
+        return parent::isAvailable($order);
     }
 
     public function execute($data = null)
@@ -105,6 +102,22 @@ class shopWorkflowEditAction extends shopWorkflowAction
                 'order_id' => $data['id']
             )
         );
+
+        if (!empty($data['params']['shipping_id'])) {
+            try {
+                if ($shipping_plugin = shopShipping::getPlugin(null, $data['params']['shipping_id'])) {
+                    $shipping_currency = $shipping_plugin->allowedCurrency();
+                    $data['params']['shipping_currency'] = $shipping_currency;
+                    $rate_model = new shopCurrencyModel();
+                    if ($row = $rate_model->getById($shipping_currency)) {
+                        $data['params']['shipping_currency_rate'] = $row['rate'];
+                    }
+                }
+
+            } catch (waException $ex) {
+
+            }
+        }
 
         // update
         $this->order_model->update($data, $data['id']);

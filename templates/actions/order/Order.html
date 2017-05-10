@@ -414,11 +414,11 @@
                                             <strong>{if $row.action}{$row.action->getOption('log_record')|escape}{else}{$row.action_id}{/if}</strong>
 
                                             {if $row.text}
-                                                <p{if $row.action_id == 'message' || $row.action_id == 'comment' || $row.action_id == 'pay' || $row.action_id == 'ship'} class="s-order-timeline-message{if $row.action_id == 'message'} blue{elseif $row.action_id == 'ship'} yellow{/if}"{/if}>{$row.text|nl2br}</p>
+                                                <p{if $row.action_id == 'message' || $row.action_id == 'comment' || $row.action_id == 'pay' || $row.action_id == 'ship'} class="s-order-timeline-message{if $row.action_id == 'message'} blue{elseif $row.action_id == 'ship'} yellow{/if}"{/if}>{$row.text|regex_replace:'@\<br\s*/?\>\r?(\n)@':'$1'|nl2br}</p>
                                             {/if}
                                         {else}
                                             {if $row.text}
-                                                <p>{$row.text|nl2br}</p>
+                                                <p>{$row.text|regex_replace:'@\<br\s*/?\>\r?(\n)@':'$1'|nl2br}</p>
                                             {/if}
                                         {/if}
                                     </div>

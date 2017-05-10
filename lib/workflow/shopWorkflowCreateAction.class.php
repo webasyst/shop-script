@@ -182,6 +182,22 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         if (empty($data['params'])) {
             $data['params'] = array();
         }
+
+        if (!empty($data['params']['shipping_id'])) {
+            try {
+                if ($shipping_plugin = shopShipping::getPlugin(null, $data['params']['shipping_id'])) {
+                    $shipping_currency = $shipping_plugin->allowedCurrency();
+                    $data['params']['shipping_currency'] = $shipping_currency;
+                    if ($row = $rate_model->getById($shipping_currency)) {
+                        $data['params']['shipping_currency_rate'] = $row['rate'];
+                    }
+                }
+
+            } catch (waException $ex) {
+
+            }
+        }
+
         $data['params']['auth_code'] = self::generateAuthCode($order_id);
         $data['params']['auth_pin'] = self::generateAuthPin();
         if (empty($data['params']['sales_channel'])) {

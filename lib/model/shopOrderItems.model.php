@@ -530,7 +530,7 @@ SQL;
                     }
                     if (isset($diff['stock_id']) || isset($diff['sku_id'])) {
 
-                        if (isset($stocks[$old_item['stock_id']])) { #stock was not deleted
+                        if (($old_item['stock_id'] == null) || isset($stocks[$old_item['stock_id']])) { #stock was not deleted
                             $old_sku_id = $old_item['sku_id'];
 
                             if (!isset($sku_stock[$old_sku_id][$old_item['stock_id']])) {
@@ -566,10 +566,13 @@ SQL;
         }
         if ($old_items) {
             foreach ($old_items as $old_item) {
-                if (!isset($sku_stock[$old_item['sku_id']][$old_item['stock_id']])) {
-                    $sku_stock[$old_item['sku_id']][$old_item['stock_id']] = 0;
+                // check stock changes
+                if ($old_item['type'] == 'product') {
+                    if (!isset($sku_stock[$old_item['sku_id']][$old_item['stock_id']])) {
+                        $sku_stock[$old_item['sku_id']][$old_item['stock_id']] = 0;
+                    }
+                    $sku_stock[$old_item['sku_id']][$old_item['stock_id']] += $old_item['quantity'];
                 }
-                $sku_stock[$old_item['sku_id']][$old_item['stock_id']] += $old_item['quantity'];
             }
             $this->deleteById(array_keys($old_items));
         }

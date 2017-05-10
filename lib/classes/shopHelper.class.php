@@ -1099,6 +1099,13 @@ SQL;
                      */
                     $env[$name] = $config->getCurrency(false);
                     break;
+                case 'default_currency':
+                    $config = wa('shop')->getConfig();
+                    /**
+                     * @var shopConfig $config
+                     */
+                    $env[$name] = $config->getCurrency(true);
+                    break;
             }
         }
 
@@ -1171,6 +1178,7 @@ SQL;
     {
         $options += array(
             'weight'   => null,
+            'tax'      => null,
             'currency' => ifset($options['order_currency']),
         );
         $items = array();
@@ -1195,16 +1203,25 @@ SQL;
             }
         }
 
+        if ($options['tax'] && false) {
+            $params = array(
+                'shipping' => ifset($options['shipping_address'], array()),
+                'billing' => ifset($options['billing_address'], array()),
+            );
+            $raw_taxes = shopTaxes::apply($order_items, $params, $options['currency']);
+        }
+
         foreach ($order_items as $item) {
             $item['price'] = ifempty($item['price'], 0.0);
             if ($options['weight']) {
                 if (empty($item['weight'])) {
-                    if (!empty($item['sku_id']) && isset($values['skus'][$item['sku_id']])) {
-                        $item['weight'] = $values['skus'][$item['sku_id']];
-                    } elseif (!empty($item['product_id']) && isset($values[$item['product_id']])) {
-                        $item['weight'] = $values[$item['product_id']];
-                    } else {
-                        $item['weight'] = null;
+                    $item['weight'] = null;
+                    if (ifset($item['type']) == 'product') {
+                        if (!empty($item['sku_id']) && isset($values['skus'][$item['sku_id']])) {
+                            $item['weight'] = $values['skus'][$item['sku_id']];
+                        } elseif (!empty($item['product_id']) && isset($values[$item['product_id']])) {
+                            $item['weight'] = $values[$item['product_id']];
+                        }
                     }
                 }
 
@@ -1214,6 +1231,7 @@ SQL;
                 'id'             => ifset($item['id']),
                 'name'           => ifset($item['name']),
                 'sku'            => ifset($item['sku_code']),
+                'tax_rate'       => ifset($item['tax_percent']),
                 'description'    => '',
                 'price'          => shopHelper::workupValue($item['price'], 'price', $options['currency'], $options['order_currency']),
                 'quantity'       => ifset($item['quantity'], 0),
@@ -1221,9 +1239,12 @@ SQL;
                 'type'           => ifset($item['type'], 'product'),
                 'product_id'     => ifset($item['product_id']),
                 'weight'         => ifset($item['weight']),
-                'total_discount' => ifset($item['total_discount'], 0.0),
+                'weight_unit'    => $options['weight'],
+                'total_discount' => shopHelper::workupValue(ifset($item['total_discount'], 0.0), 'price', $options['currency'], $options['order_currency']),
                 'discount'       => $item['quantity'] ? ($item['total_discount'] / $item['quantity']) : 0.0,
             );
+
+
         }
         return array_values($items);
     }
@@ -1245,42 +1266,105 @@ SQL;
             'zip'       => '',
         );
 
+        $order += array(
+            'shipping' => 0.0,
+            'discount' => 0.0,
+            'tax'      => 0.0,
+            'params'=>array(),
+        );
+
+        $default_currency = self::getEnv('default_currency');
+
+        $options += array(
+            'currency' => ifset($order['currency'], $default_currency),
+        );
+
         $shipping_address = array_merge($empty_address, shopHelper::getOrderAddress($order['params'], 'shipping'));
         $billing_address = array_merge($empty_address, shopHelper::getOrderAddress($order['params'], 'billing'));
         if (!count(array_filter($billing_address, 'strlen'))) {
             $billing_address = $shipping_address;
         }
 
-        ifset($order['shipping'], 0.0);
-        ifset($order['discount'], 0.0);
-        ifset($order['tax'], 0.0);
-        if (!empty($options['currency']) && ($options['currency'] != $order['currency'])) {
-            $order['tax'] = shop_currency($order['tax'], $order['currency'], $options['currency'], false);
-            $order['shipping'] = shop_currency($order['shipping'], $order['currency'], $options['currency'], false);
-            $order['discount'] = shop_currency($order['discount'], $order['currency'], $options['currency'], false);
+        if (($options['currency'] != $order['currency']) && !empty($order['rate'])) {
+
+            $rate = $order['rate'];
+            $target_currency = $default_currency;
+
+            if (!empty($order['params']['shipping_currency_rate'])
+                &&
+                !empty($order['params']['shipping_currency'])
+                &&
+                ($order['params']['shipping_currency'] == $options['currency'])
+            ) {
+                $rate = $rate / $order['params']['shipping_currency_rate'];
+                $target_currency = $order['params']['shipping_currency'];
+            }
+
+            $order['tax'] = $order['tax'] * $rate;
+            $order['shipping'] = $order['shipping'] * $rate;
+            $order['discount'] = $order['discount'] * $rate;
+            $order['total'] = $order['total'] * $rate;
+
+            $order['currency'] = $target_currency;
+
+            foreach ($order['items'] as &$item) {
+                $item['price'] = $item['price'] * $rate;
+                if (isset($item['total_discount'])) {
+                    $item['total_discount'] = $item['total_discount'] * $rate;
+                }
+                //TODO check tax
+                unset($item);
+            }
         }
 
+        $item_options = array(
+            'order_currency'   => $order['currency'],
+            'shipping_address' => $shipping_address,
+            'billing_address'  => $billing_address,
+        );
+
         $order_data = array(
+            #common data
             'id_str'           => ifempty($order['id_str'], $order['id']),
             'id'               => $order['id'],
-            'contact_id'       => $order['contact_id'],
+
+            #dates
             'datetime'         => ifempty($order['create_datetime']),
-            'description'      => sprintf(_w('Payment for order %s'), ifempty($order['id_str'], $order['id'])),
             'update_datetime'  => ifempty($order['update_datetime']),
             'paid_datetime'    => empty($order['paid_date']) ? null : ($order['paid_date'].' 00:00:00'),
-            'total'            => ifempty($options['total'], $order['total']),
-            'currency'         => ifempty($options['currency'], $order['currency']),
-            'discount'         => $order['discount'],
-            'tax'              => $order['tax'],
+
+            #contact data
+            'contact_id'       => $order['contact_id'],
+
+            #finance data
+            'currency'         => $options['currency'],
+            'total'            => self::workupValue($order['total'], 'price', $options['currency'], $order['currency']),
+            'discount'         => self::workupValue($order['discount'], 'price', $options['currency'], $order['currency']),
+            'tax'              => self::workupValue($order['tax'], 'price', $options['currency'], $order['currency']),
+            'shipping'         => self::workupValue($order['shipping'], 'price', $options['currency'], $order['currency']),
+
+            #billing data
             'payment_name'     => ifset($order['params']['payment_name'], ''),
             'billing_address'  => $billing_address,
-            'shipping'         => $order['shipping'],
+
+            #shipping data
             'shipping_name'    => ifset($order['params']['shipping_name'], ''),
             'shipping_address' => $shipping_address,
-            'items'            => self::workupOrderItems($order['items'], $options),
+
+            #content data
+            'items'            => self::workupOrderItems($order['items'], $item_options + $options),
+
+            #describe it
             'comment'          => ifempty($order['comment'], ''),
-            'params'           => $order['params'],
+            'description'      => sprintf(_w('Payment for order %s'), ifempty($order['id_str'], $order['id'])),
+
+            #extra data
+            'params'           => ifempty($order['params'], array()),
         );
+
+        if (!empty($options['weight'])) {
+            $order_data['weight_unit'] = $options['weight'];
+        }
 
         return waOrder::factory($order_data);
     }

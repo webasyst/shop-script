@@ -41,7 +41,7 @@ class shopSettingsGeneralAction extends waViewAction
             }
             waUtils::varExportToFile($save, $path);
 
-            if ($captcha = waRequest::post('captcha')) {
+            if ( ( $captcha = waRequest::post('captcha', null, 'string_trim')) && preg_match('~^(wa|shop)\w*Captcha$~', $captcha)) {
                 $config_path = $this->getConfig()->getConfigPath('config.php');
                 if (file_exists($config_path)) {
                     $config = include($config_path);

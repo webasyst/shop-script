@@ -87,6 +87,20 @@ class shopNotifications
         $items_model = new shopOrderItemsModel();
         $data['order']['items'] = $items_model->getItems($data['order']['id']);
 
+        // last order_log entry
+        if (!isset($data['action_data'])) {
+            $order_log_model = new shopOrderLogModel();
+            $data['action_data'] = $order_log_model->where("order_id = ? AND action_id <> ''", $data['order']['id'])->order('id DESC')->limit(1)->fetchAssoc();
+            if ($data['action_data']) {
+                $data['action_data']['params'] = array();
+                $log_params_model = new shopOrderLogParamsModel();
+                $params = $log_params_model->getByField('log_id', $data['action_data']['id'], true);
+                foreach($params as $p) {
+                    $data['action_data']['params'][$p['name']] = $p['value'];
+                }
+            }
+        }
+
         // Routing params to generate full URLs to products
         $source = 'backend';
         $storefront_route = null;
@@ -551,18 +565,22 @@ SQL;
             return;
         }
 
+        $order = $data['order'];
+        $notification_text = _w('New order').' '.shopHelper::encodeOrderId($order['id']);
+        $notification_text .= ' - '.wa_currency($order['total'], $order['currency']);
+
         // Send to recipients, grouped by domain name they registered to
         $results = array();
         foreach ($host_client_ids as $shop_url => $client_ids) {
             $request_data = array(
                 'app_id'             => "0b854471-089a-4850-896b-86b33c5a0198",
                 'data'               => array(
-                    'order_id' => $data['order']['id'],
+                    'order_id' => $order['id'],
                     'shop_url' => $shop_url,
                 ),
                 'include_player_ids' => array_values($client_ids),
                 'contents'           => array(
-                    "en" => _w('New order').' '.shopHelper::encodeOrderId($data['order']['id']),
+                    "en" => $notification_text,
                 ),
 
                 'ios_badgeType'  => 'Increase',

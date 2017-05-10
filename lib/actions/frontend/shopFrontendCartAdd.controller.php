@@ -41,10 +41,10 @@ class shopFrontendCartAddController extends waJsonController
         // add sku
         $sku_model = new shopProductSkusModel();
         $product_model = new shopProductModel();
-        if (!isset($data['product_id'])) {
+        if (isset($data['sku_id'])) {
             $sku = $sku_model->getById($data['sku_id']);
             $product = $product_model->getById($sku['product_id']);
-        } else {
+        } else if (isset($data['product_id'])) {
             $product = $product_model->getById($data['product_id']);
             if (isset($data['sku_id'])) {
                 $sku = $sku_model->getById($data['sku_id']);
@@ -75,7 +75,7 @@ class shopFrontendCartAddController extends waJsonController
         if ($quantity < 0) {
             $quantity = 1;
         }
-        if ($product && $sku) {
+        if (!empty($product) && !empty($sku)) {
             // check quantity
             if (!wa()->getSetting('ignore_stock_count')) {
 

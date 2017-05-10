@@ -392,8 +392,9 @@ class shopCheckoutShipping extends shopCheckout
             $items[] = array(
                 'name' => $item['name'],
                 'price' => $item['price'],
+                'currency' => $item['currency'],
                 'quantity' => $item['quantity'],
-                'weight' => $w
+                'weight' => $w,
             );
         }
         return $items;
