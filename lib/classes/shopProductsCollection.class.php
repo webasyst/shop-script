@@ -996,7 +996,11 @@ SQL;
     {
         $model = $this->getModel();
         if ($fields == '*') {
-            return 'p.*'.($this->fields ? ",".implode(",", $this->fields) : '');
+            $fields = $this->fields ? $this->fields : array();
+            if (waRequest::param('drop_out_of_stock') == 1) {
+                $fields[] = '(p.count > 0 || p.count IS NULL) AS in_stock';
+            }
+            return 'p.*'.($fields ? ",".implode(",", $fields) : '');
         }
 
         $required_fields = array('id' => 'p'); // field => table, to be added later in any case
