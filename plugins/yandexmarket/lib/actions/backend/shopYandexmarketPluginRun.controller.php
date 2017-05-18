@@ -1845,7 +1845,7 @@ SQL;
                 }
                 break;
             case 'description':
-                $value = preg_replace('/<br\/?\s*>/', "\n", $value);
+                $value = preg_replace('/<br\s*\/?>/', "\n", $value);
                 $value = preg_replace("/[\r\n]+/", "\n", $value);
                 $value = strip_tags($value);
 
