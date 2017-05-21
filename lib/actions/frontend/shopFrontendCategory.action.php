@@ -328,12 +328,6 @@ class shopFrontendCategoryAction extends shopFrontendAction
             $content && wa()->getResponse()->setOGMeta('og:'.$property, $content);
         }
 
-        /**
-         * @event frontend_category
-         * @return array[string]string $return[%plugin_id%] html output for category
-         */
-        $this->view->assign('frontend_category', wa()->event('frontend_category', $category));
-
         // default title and meta
         if (!wa()->getResponse()->getTitle()) {
             wa()->getResponse()->setTitle(shopCategoryModel::getDefaultMetaTitle($category));
@@ -342,6 +336,12 @@ class shopFrontendCategoryAction extends shopFrontendAction
         if (!wa()->getResponse()->getMeta('keywords')) {
             wa()->getResponse()->setMeta('keywords', shopCategoryModel::getDefaultMetaKeywords($category));
         }
+        
+        /**
+         * @event frontend_category
+         * @return array[string]string $return[%plugin_id%] html output for category
+         */
+        $this->view->assign('frontend_category', wa()->event('frontend_category', $category));
 
         $this->setThemeTemplate('category.html');
     }
