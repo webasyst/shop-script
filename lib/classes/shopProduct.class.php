@@ -623,29 +623,28 @@ class shopProduct implements ArrayAccess
     public function upSelling($limit = 5, $available_only = false)
     {
         $upselling = $this->getData('upselling');
-        // upselling on (using similar setting for type)
         if ($upselling == 1 || $upselling === null) {
+            // upselling on (using similar setting for type)
             $type_upselling_model = new shopTypeUpsellingModel();
             $conditions = $type_upselling_model->getByField('type_id', $this->getData('type_id'), true);
-            if ($conditions) {
-                $collection = new shopProductsCollection('upselling/'.$this->getId(), array('product' => $this, 'conditions' => $conditions));
-                if ($available_only) {
-                    $collection->addWhere('(p.count > 0 OR p.count IS NULL)');
-                }
-                return $collection->getProducts('*', $limit);
-            } else {
+            if (!$conditions) {
                 return array();
             }
+            $collection = new shopProductsCollection('upselling/'.$this->getId(), array(
+                'conditions' => $conditions,
+                'product' => $this,
+            ));
         } elseif (!$upselling) {
             return array();
         } else {
             // upselling on (manually)
             $collection = new shopProductsCollection('related/upselling/'.$this->getId());
-            if ($available_only) {
-                $collection->addWhere('(p.count > 0 OR p.count IS NULL)');
-            }
-            return $collection->getProducts('*', $limit);
         }
+
+        if ($available_only) {
+            $collection->addWhere('(p.count > 0 OR p.count IS NULL)');
+        }
+        return $collection->getProducts('*', $limit);
     }
 
     /**

@@ -1292,6 +1292,8 @@ SQL;
 
             if (!empty($order['params']['shipping_currency_rate'])
                 &&
+                intval($order['params']['shipping_currency_rate'])
+                &&
                 !empty($order['params']['shipping_currency'])
                 &&
                 ($order['params']['shipping_currency'] == $options['currency'])

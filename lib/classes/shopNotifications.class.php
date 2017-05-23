@@ -27,6 +27,12 @@ class shopNotifications
         self::prepareData($data);
 
         if ($notifications) {
+            if (isset($data['storefront_route'])) {
+                $old_route = wa()->getRouting()->getRoute();
+                $old_domain = wa()->getRouting()->getDomain();
+                wa()->getRouting()->setRoute($data['storefront_route'], ifset($data['storefront_domain']));
+            }
+
             foreach ($notifications as $n) {
                 if (!$n['source'] || ($n['source'] == $data['source'])) {
                     $method = 'send'.ucfirst($n['transport']);
@@ -34,6 +40,10 @@ class shopNotifications
                         self::$method($n, $data);
                     }
                 }
+            }
+
+            if (isset($data['storefront_route'])) {
+                wa()->getRouting()->setRoute($old_route, $old_domain);
             }
         }
 
@@ -57,10 +67,20 @@ class shopNotifications
 
         $method = 'send'.ucfirst($n['transport']);
         if (method_exists('shopNotifications', $method)) {
+            if (isset($data['storefront_route'])) {
+                $old_route = wa()->getRouting()->getRoute();
+                $old_domain = wa()->getRouting()->getDomain();
+                wa()->getRouting()->setRoute($data['storefront_route'], ifset($data['storefront_domain']));
+            }
+
             if ($to !== null) {
                 $n['to'] = $to;
             }
             self::$method($n, $data);
+
+            if (isset($data['storefront_route'])) {
+                wa()->getRouting()->setRoute($old_route, $old_domain);
+            }
         }
     }
 
@@ -105,6 +125,7 @@ class shopNotifications
         $source = 'backend';
         $storefront_route = null;
         $storefront_domain = null;
+        $storefront_route_url = null;
         if (isset($data['order']['params']['storefront'])) {
             $storefront = $data['order']['params']['storefront'];
             if (substr($storefront, -1) === '/') {
@@ -123,6 +144,7 @@ class shopNotifications
                     $st = rtrim(rtrim($domain, '/').'/'.$r['url'], '/.*');
                     if ($st == $storefront) {
                         $storefront_route = $r;
+                        $storefront_route_url = $r['url'];
                         $storefront_domain = $domain;
                         break 2;
                     }
@@ -130,6 +152,8 @@ class shopNotifications
             }
         }
         $data['source'] = $source;
+        $data['storefront_route'] = $storefront_route;
+        $data['storefront_domain'] = $storefront_domain;
 
         // Products info
         $product_ids = array();
@@ -152,7 +176,7 @@ class shopNotifications
         foreach ($products as &$p) {
             $p['frontend_url'] = wa()->getRouteUrl('shop/frontend/product', array(
                 'product_url' => $p['url'],
-            ), true, $storefront_domain, $storefront_route['url']);
+            ), true, $storefront_domain, $storefront_route_url);
             if (!empty($p['image'])) {
                 if ($d !== $root_url) {
                     foreach (array('thumb_url', 'big_url', 'crop_url') as $url_type) {
@@ -213,7 +237,7 @@ SQL;
                     'id'   => $data['order']['id'],
                     'code' => $data['order']['params']['auth_code'],
                     'item' => $i['id'],
-                ), true, $storefront_domain, $storefront_route['url']);
+                ), true, $storefront_domain, $storefront_route_url);
             }
             if (!empty($products[$i['product_id']])) {
                 $i['product'] = $products[$i['product_id']];
@@ -275,7 +299,10 @@ SQL;
             $data['add_affiliate_bonus'] = shopAffiliate::calculateBonus($data['order']);
         }
 
-        $data['order_url'] = wa()->getRouteUrl('/frontend/myOrderByCode', array('id' => $data['order']['id'], 'code' => ifset($data['order']['params']['auth_code'])), true);
+        $data['order_url'] = wa()->getRouteUrl('/frontend/myOrderByCode', array(
+            'id' => $data['order']['id'],
+            'code' => ifset($data['order']['params']['auth_code'])
+        ), true, $storefront_domain, $storefront_route_url);
 
         shopHelper::workupOrders($data['order'], true);
 
