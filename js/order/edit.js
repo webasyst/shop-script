@@ -418,6 +418,7 @@ $.order_edit = {
         // When we get recalculated discount, update the fields accordingly
         $('#order-edit-form').on('order_total_updated', function(e, data) {
             if (!data.discount) {
+                $update_discount_button.hide();
                 return;
             }
 
