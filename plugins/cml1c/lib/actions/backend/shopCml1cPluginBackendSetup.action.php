@@ -11,6 +11,9 @@ class shopCml1cPluginBackendSetupAction extends waViewAction
         static $plugin;
         if (!$plugin) {
             $plugin = wa()->getPlugin('cml1c');
+            /**
+             * @var shopCml1cPlugin $plugin
+             */
         }
         return $plugin;
     }

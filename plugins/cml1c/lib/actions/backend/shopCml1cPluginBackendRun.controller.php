@@ -7,9 +7,6 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 {
     private $debug = false;
 
-    //Мой склад fix
-    private $_convert_order_price = false;
-
     const STAGE_ORDER = 'order';
     const STAGE_CATEGORY = 'category';
     const STAGE_FEATURE = 'feature';
@@ -35,6 +32,8 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         "КоммерческаяИнформация/ПакетПредложений/ТипыЦен"     => self::STAGE_PRICE,
         "КоммерческаяИнформация/ПакетПредложений/Склады"      => self::STAGE_STOCK,
         "КоммерческаяИнформация/ПакетПредложений/Предложения" => self::STAGE_OFFER,
+        // экспериментальная опция
+        "КоммерческаяИнформация/ИзмененияПакетаПредложений/Предложения"=> self::STAGE_OFFER,
         "КоммерческаяИнформация/ПакетПредложений/Свойства"    => self::STAGE_FEATURE,
         //Импорт заказов - поддержка не планируется
         "КоммерческаяИнформация/Документ-"                    => self::STAGE_ORDER,
@@ -245,6 +244,9 @@ class shopCml1cPluginBackendRunController extends waLongActionController
     private function getCollection()
     {
         if (!$this->collection) {
+            waRequest::setParam(array(
+                'module' => waRequest::param('module', 'backend'),
+            ));
             $hash = '';
             $options = array(
                 'frontend' => false,
@@ -364,7 +366,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             $w->writeAttribute('СинхронизацияТоваров', 'true');
         }
         $w->writeAttribute('ВерсияСхемы', $this->data['version']);
-        $w->writeAttribute('ДатаФормирования', date("Y-m-d\\TH:i:s"));
+        $w->writeAttribute('ДатаФормирования', date("Y-m-d\\TH:i:sO"));
         $w->writeComment('Shop-Script: '.wa()->getVersion('shop'));
         $w->writeComment('1С плагин: '.$this->plugin()->getVersion());
         $this->write();
@@ -765,9 +767,11 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         /**
          * @var shopStockModel $stock_model
          */
-        $this->data['stock_id'] = max(0, waRequest::get('stock', $this->pluginSettings('stock'), waRequest::TYPE_INT));
+        $this->data['stock_id'] = max(0, waRequest::get('stock', 0, waRequest::TYPE_INT));
+        if (!$this->data['stock_id']) {
+            $this->data['stock_id'] = max(0, intval($this->pluginSettings('stock')));
+        }
         if ($this->data['stock_id']) {
-
             if (!$stock_model->stockExists($this->data['stock_id'])) {
                 throw new waException('Выбранный склад не существует');
             }
@@ -986,15 +990,19 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                     $this->data['ready'] = true;
                     if (!empty($this->writer) && is_object($this->writer)) {
 
+                        $info = array();
                         if (!empty($this->data['timestamp'])) {
                             $interval = time() - $this->data['timestamp'];
                             $interval = sprintf('%02d ч %02d мин %02d с', floor($interval / 3600), floor($interval / 60) % 60, $interval % 60);
-                            $this->writer->writeComment(sprintf(' Время формирования: %s ', $interval));
-
+                            $info[] = sprintf('Время формирования: %s.', $interval);
                         }
 
                         if (!empty($this->data['memory'])) {
-                            $this->writer->writeComment(sprintf(' Использование памяти, максимум: %0.3f МБ ', $this->data['memory'] / 1048576));
+                            $info[] = sprintf('Использование памяти, максимум: %0.3f МБ.', $this->data['memory'] / 1048576);
+                        }
+
+                        if ($info) {
+                            $this->writer->writeComment(implode(' ', $info));
                         }
 
                         $this->writer->endElement(/*КоммерческаяИнформация*/);
@@ -1023,6 +1031,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
         $method_name = null;
         try {
             if ($method_name = $this->getStepMethod()) {
+                // var_dump($method_name,$this->data['current'], $this->data['count'], $this->data['processed_count']);
                 $result = $this->{$method_name}($this->data['current'], $this->data['count'], $this->data['processed_count']);
                 if ($this->data['direction'] == 'export') {
                     $this->write();
@@ -2114,7 +2123,7 @@ HTML;
                     $params = array(
                         'options'         => array(),
                         'control_wrapper' => '<tr><td>%1$s<span class="hint">%3$s</span></td><td>&rarr;</td><td>%2$s</td></tr>',
-                        'title_wrapper'   => '%s'
+                        'title_wrapper'   => '%s',
                     );
 
                     $params['control_separator'] = '</td></tr>
@@ -2207,19 +2216,19 @@ HTML;
                         0 => array(
                             self::STAGE_ORDER    => array(
                                 '%d order',
-                                '%d orders'
+                                '%d orders',
                             ),
                             self::STAGE_PRODUCT  => array(
                                 '%d product',
-                                '%d products'
+                                '%d products',
                             ),
                             self::STAGE_OFFER    => array(
                                 '%d offer',
-                                '%d offers'
+                                '%d offers',
                             ),
                             self::STAGE_CATEGORY => array(
                                 '%d category',
-                                '%d categories'
+                                '%d categories',
                             ),
                         ),
                     );
@@ -2231,101 +2240,101 @@ HTML;
                         'new'     => array(
                             self::STAGE_IMAGE    => array(
                                 'imported %d product image',
-                                'imported %d product images'
+                                'imported %d product images',
                             ),
                             self::STAGE_CATEGORY => array(
                                 'imported %d category',
-                                'imported %d categories'
+                                'imported %d categories',
                             ),
                             self::STAGE_PRODUCT  => array(
                                 'imported %d product',
-                                'imported %d products'
+                                'imported %d products',
                             ),
                             self::STAGE_SKU      => array(
                                 'imported %d sku',
-                                'imported %d skus'
+                                'imported %d skus',
                             ),
                             self::STAGE_OFFER    => array(
                                 'imported %d offer',
-                                'imported %d offers'
+                                'imported %d offers',
                             ),
                         ),
                         'update'  => array(
                             self::STAGE_ORDER    => array(
                                 'updated %d order',
-                                'updated %d orders'
+                                'updated %d orders',
                             ),
                             self::STAGE_IMAGE    => array(
                                 'updated %d product image',
-                                'updated %d product images'
+                                'updated %d product images',
                             ),
                             self::STAGE_CATEGORY => array(
                                 'updated %d category',
-                                'updated %d categories'
+                                'updated %d categories',
                             ),
                             self::STAGE_PRODUCT  => array(
                                 'updated %d product',
-                                'updated %d products'
+                                'updated %d products',
                             ),
                             self::STAGE_SKU      => array(
                                 'updated %d sku',
-                                'updated %d skus'
+                                'updated %d skus',
                             ),
                             self::STAGE_OFFER    => array(
                                 'updated %d offer',
-                                'updated %d offers'
+                                'updated %d offers',
                             ),
                         ),
                         'analyze' => array(
                             self::STAGE_PRODUCT => array(
                                 'analyzed %d product',
-                                'analyzed %d products'
+                                'analyzed %d products',
                             ),
                             self::STAGE_SKU     => array(
                                 'analyzed %d sku',
-                                'analyzed %d skus'
+                                'analyzed %d skus',
                             ),
                             self::STAGE_OFFER   => array(
                                 'analyzed %d offer',
-                                'analyzed %d offers'
+                                'analyzed %d offers',
                             ),
                             self::STAGE_FEATURE => array(
                                 'analyzed %d feature',
-                                'analyzed %d features'
+                                'analyzed %d features',
                             ),
                             self::STAGE_STOCK   => array(
                                 'analyzed %d stock',
-                                'analyzed %d stocks'
+                                'analyzed %d stocks',
                             ),
                             self::STAGE_PRICE   => array(
                                 'analyzed %d price',
-                                'analyzed %d prices'
+                                'analyzed %d prices',
                             ),
                         ),
                         'skip'    => array(
                             self::STAGE_ORDER    => array(
                                 'skipped %d order',
-                                'skipped %d orders'
+                                'skipped %d orders',
                             ),
                             self::STAGE_IMAGE    => array(
                                 'skipped %d product image',
-                                'skipped %d product images'
+                                'skipped %d product images',
                             ),
                             self::STAGE_CATEGORY => array(
                                 'skipped %d category',
-                                'skipped %d categories'
+                                'skipped %d categories',
                             ),
                             self::STAGE_PRODUCT  => array(
                                 'skipped %d product',
-                                'skipped %d products'
+                                'skipped %d products',
                             ),
                             self::STAGE_SKU      => array(
                                 'skipped %d sku',
-                                'skipped %d skus'
+                                'skipped %d skus',
                             ),
                             self::STAGE_OFFER    => array(
                                 'skipped %d offer',
-                                'skipped %d offers'
+                                'skipped %d offers',
                             ),
                         ),
                     );
@@ -2493,7 +2502,7 @@ HTML;
                          */
                         $sku_model->updateById($sku['id'], array('id_1c' => $product['id_1c']));
                     } else {
-                        $sku['id_1c'] = $this->plugin()->makeSkuUUID($sku['id']);
+                        $sku['id_1c'] = $this->plugin()->makeEntryUUID($sku['id'], 'sku');
                     }
                 }
                 $this->writeProduct($product, $sku);
@@ -2567,7 +2576,7 @@ HTML;
                          */
                         $sku_model->updateById($sku['id'], array('id_1c' => $product['id_1c']));
                     } else {
-                        $sku['id_1c'] = $this->plugin()->makeSkuUUID($sku['id']);
+                        $sku['id_1c'] = $this->plugin()->makeEntryUUID($sku['id'], 'sku');
                     }
                 }
                 $this->writeOffer($shop_product, $sku);
@@ -2619,14 +2628,19 @@ HTML;
 
             $w->startElement('Товары');
 
-
-            if (!strlen($product['id_1c'])) {
-                $product['id_1c'] = $this->plugin()->makeProductUUID($product['id']);
-            }
-
             $shop_product = new shopProduct($product);
+            $items = array();
+            foreach ($shop_product->skus as $sku) {
 
-            $items = $shop_product->skus;
+                $item = array(
+                    'product_id' => $shop_product->id,
+                    'sku_id'     => $sku['id'],
+                );
+                $item += $sku;
+                $items[] = $item;
+            }
+            $items = $this->findOrderItems($items);
+
 
             $export_features = $this->pluginSettings('export_product_features');
             if ($export_features) {
@@ -2634,16 +2648,12 @@ HTML;
 
                 foreach ($items as &$item) {
                     $item['features'] = $features_model->getValues($product['id'], $item['id']);
-
                 }
                 unset($item);
 
             }
 
             foreach ($items as $item) {
-                if (!strlen($item['id_1c'])) {
-                    $item['id_1c'] = $this->plugin()->makeSkuUUID($item['id']);
-                }
                 $this->writeVirtualOrderItem($shop_product, $item);
                 $exported = true;
             }
@@ -2671,11 +2681,13 @@ HTML;
         if (!$categories) {
 
             $categories = $this->getCategoryModel()->getFullTree('*', true);
-            if ($current_stage[self::STAGE_CATEGORY]) {
+            var_dump($current_stage);
+            if (!empty($current_stage[self::STAGE_CATEGORY])) {
                 $categories = array_slice($categories, $current_stage[self::STAGE_CATEGORY]);
             }
         }
-        if (!$current_stage[self::STAGE_CATEGORY]) {
+        if (empty($current_stage[self::STAGE_CATEGORY])) {
+            $current_stage[self::STAGE_CATEGORY] = 0;
             $this->data['map'][self::STAGE_OFFER] = shopCml1cPlugin::makeUuid();
 
             $w = &$this->writer;
@@ -2710,6 +2722,7 @@ HTML;
             ++$processed[self::STAGE_CATEGORY];
         }
 
+        var_dump($current_stage, $count);
         if ($current_stage[self::STAGE_CATEGORY] == $count[self::STAGE_CATEGORY]) {
             $level = 0;
             $this->writeCategory(null, $level);
@@ -2780,7 +2793,7 @@ HTML;
                 'state_id' => $this->data['order_state'],
             );
         }
-        $fields = "*,items.name,items.type,items.sku_id,items.sku_code,items.product_id,items.quantity,items.price,contact,params";
+        $fields = "*,items.name,items.type,items.sku_id,items.sku_code,items.product_id,items.quantity,items.price,items.service_id,items.service_variant_id,contact,params";
         return $model->getList($fields, $options);
     }
 
@@ -2788,7 +2801,6 @@ HTML;
     {
         static $orders;
         static $states;
-        static $region_model;
         static $rate;
 
         $chunk = self::$chunk_map[self::STAGE_ORDER];
@@ -2815,10 +2827,6 @@ HTML;
         );
 
         while (($chunk-- > 0) && ($order = reset($orders))) {
-
-            if (!isset($this->data['map'][self::STAGE_ORDER])) {
-                $this->data['map'][self::STAGE_ORDER] = array();
-            }
 
             $order['id_str'] = shopHelper::encodeOrderId($order['id']);
             $order['status_comment'] = ''; //TODO
@@ -2906,9 +2914,23 @@ HTML;
 
                 $this->writeAddress($shipping_address, 'АдресРегистрации');
 
+                $contact_map = array(
+                    'ИНН' => 'contact_inn',
+                );
+                foreach ($contact_map as $target => $source) {
+                    if ($field = $this->pluginSettings('contact_inn')) {
+                        $value = $this->getContactField($field, $order['contact'], $c);
+                        if ($value !== null) {
+                            $w->writeElement($target, $value);
+                        }
+                        unset($value);
+                    }
+                }
+
             } else {
                 $w->writeElement('Наименование', $order['contact'][$company_field]);
                 $w->writeElement('ОфициальноеНаименование', $order['contact'][$company_field]);
+                $w->writeElement('Роль', 'Покупатель');
 
                 if (!empty($billing_address)) {
                     $this->writeAddress($billing_address, 'ЮридическийАдрес');
@@ -2935,7 +2957,7 @@ HTML;
                     'НомерСчета'            => 'contact_bank_account',
                     'СчетКорреспондентский' => 'contact_bank_cor_account',
                     'Наименование'          => 'contact_bank_name',
-                    'БИК'                   => 'contact_bank_bik'
+                    'БИК'                   => 'contact_bank_bik',
                 );
                 $bank = array();
                 foreach ($bank_map as $target => $source) {
@@ -3089,10 +3111,12 @@ HTML;
             $products = $this->findOrderItems($items);
             foreach ($products as $product) {
                 //TODO fix tax calculation per order item
-                $this->writeOrderItem($product, $discount_rate, false && $product['tax_id'] ? ifempty($taxes[$product['tax_id']]) : null, $order['rate']);
+                if ($product['type'] == 'product') {
+                    $this->writeOrderItem($product, $discount_rate, false && $product['tax_id'] ? ifempty($taxes[$product['tax_id']]) : null, $order['rate']);
+                } else {
+                    $this->writeOrderService($product, $discount_rate, $order['rate']);
+                }
             }
-
-            //XXX Услуги
 
             if (!empty($order['shipping']) && $this->pluginSettings('export_delivery')) {
                 $this->writeOrderService(
@@ -3109,7 +3133,7 @@ HTML;
 
             $data = array(
                 'Способ оплаты'          => ifset($params['payment_name']),
-                'Статус заказа'          => $states[$order['state_id']]->getName(), //XXX
+                'Статус заказа'          => (isset($states[$order['state_id']])) ? $states[$order['state_id']]->getName() : $order['state_id'], //XXX
                 'Дата изменения статуса' => date("Y-m-dTH:i:s", strtotime(ifempty($order['update_datetime'], $order['create_datetime']))),
                 'Способ доставки'        => ifset($params['shipping_name']),
                 'Адрес доставки'         => $this->formatAddress($shipping_address),
@@ -3165,60 +3189,31 @@ HTML;
 
     private function findOrderItems($items)
     {
-
         $map = $this->getOrderItemMap($items);
 
-        foreach ($items as &$product) {
+        foreach ($items as &$item) {
+            switch (ifset($item['type'], 'product')) {
+                case 'product':
+                    $sku_id = (!isset($item['sku_id']) && isset($item['product_id'])) ? $item['id'] : $item['sku_id'];
+                    $item_map = isset($map['skus'][$sku_id]) ? $map['skus'][$sku_id] : array();
 
-            $sku_id = $product['sku_id'];
-
-            if (isset($map[$sku_id]['name'])) {
-                $product['name'] = $map[$sku_id]['name'];
-            }
-            if (isset($map[$sku_id]['description'])) {
-                $product['description'] = $map[$sku_id]['description'];
-            }
-
-            $uuid = array_map('trim', explode('#', ifset($map[$sku_id]['cml1c'], '')));
-
-            $count = count(array_filter($uuid, 'strlen'));
-
-            switch ($count) {
-                case 2:
-                    $product['id_1c'] = implode('#', array_unique($uuid));
-                    break;
-                case 1:
-                    if (!strlen(reset($uuid))) {
-                        //bad case
-                        $this->fixProductUUID($product);
-                    } else {
-                        $product['id_1c'] = reset($uuid);
-                        $this->fixSkuUUID($product);
+                    if (isset($item_map['name'])) {
+                        $item['name'] = $item_map['name'];
                     }
-                    break;
-                case 0:
-                    if (count($uuid) == 2) {
-                        if (!empty($sku_id) && !empty($product['product_id'])) {
-                            $this->fixProductUUID($product);
-                            $this->fixSkuUUID($product);
-                        } else {
-                            $this->error(sprintf('Missed GUID for order item with sku_id=%s', ifset($sku_id)));
-                        }
-
-                    } else {
-                        // it's deleted products
-                        $product_id = ifempty($product['product_id'], $product['name']);
-                        $uuid = array(
-                            shopCml1cPlugin::makeUuid($product_id),
-                            shopCml1cPlugin::makeUuid(ifempty($sku_id, $product_id)),
-                        );
-                        $product['id_1c'] = sprintf('%s#%s', reset($uuid), end($uuid));
-                        $product['_deleted_'] = true;
+                    if (isset($item_map['description'])) {
+                        $item['description'] = $item_map['description'];
                     }
-
+                    $uuid = array_map('trim', explode('#', ifset($item_map['cml1c'], '')));
+                    $this->fixOrderProductItem($item, $uuid);
+                    break;
+                case 'service':
+                    $variant_id = ifset($item['service_variant_id']);
+                    $item_map = isset($map['services'][$variant_id]) ? $map['services'][$variant_id] : '';
+                    $uuid = array_map('trim', explode('#', $item_map));
+                    $this->fixOrderServiceItem($item, $uuid);
                     break;
             }
-            unset($product);
+            unset($item);
         }
 
         $export_features = $this->pluginSettings('export_product_features');
@@ -3236,92 +3231,224 @@ HTML;
         return $items;
     }
 
-    private function getOrderItemMap($items)
+    private function fixOrderProductItem(&$product, $uuid)
+    {
+        $count = count(array_filter($uuid, 'strlen'));
+
+        $sku_id = $product['sku_id'];
+
+        switch ($count) {
+            case 2:
+                $product['id_1c'] = implode('#', array_unique($uuid));
+                break;
+            case 1:
+                if (!strlen(reset($uuid))) {
+                    //bad case
+                    $this->fixProductUUID($product);
+                } else {
+                    $product['id_1c'] = reset($uuid);
+                    $this->fixSkuUUID($product);
+                }
+                break;
+            case 0:
+                if (count($uuid) == 2) {
+                    if (!empty($sku_id) && !empty($product['product_id'])) {
+                        $this->fixProductUUID($product);
+                        //FIXME
+                        $this->fixSkuUUID($product);
+                    } else {
+                        $this->error(sprintf('Missed GUID for order item with sku_id=%s', ifset($sku_id)));
+                    }
+
+                } else {
+                    // it's deleted products
+                    $product_id = ifempty($product['product_id'], $product['name']);
+                    $uuid = array(
+                        shopCml1cPlugin::makeUuid($product_id),
+                        shopCml1cPlugin::makeUuid(ifempty($sku_id, $product_id)),
+                    );
+                    $product['id_1c'] = sprintf('%s#%s', reset($uuid), end($uuid));
+                    $product['_deleted_'] = true;
+                }
+
+                break;
+        }
+    }
+
+    private function fixOrderServiceItem(&$service, $uuid)
+    {
+        $count = count(array_filter($uuid, 'strlen'));
+        $variant_id = $service['service_variant_id'];
+        switch ($count) {
+            case 2:
+                $service['cml1c_id'] = implode('#', array_unique($uuid));
+                break;
+            case 1:
+                if (!strlen(reset($uuid))) {
+                    //bad case
+                    //TODO
+                } else {
+                    $service['cml1c_id'] = reset($uuid).'#';
+                    $this->fixServiceUUID($service);
+                }
+                break;
+            case 0:
+                if (count($uuid) == 2) {
+                    if (!empty($variant_id) && !empty($service['service_id'])) {
+                        $this->fixServiceUUID($service, 'service');
+                    } else {
+                        $this->error(sprintf('Missed GUID for order item with service_variant_id=%s', ifset($variant_id)));
+                    }
+                } else {
+                    // it's deleted service
+                    $service_id = ifempty($service['service_id'], $service['name']);
+                    $uuid = array(
+                        shopCml1cPlugin::makeUuid($service_id),
+                        shopCml1cPlugin::makeUuid(ifempty($variant_id, $service_id)),
+                    );
+                    $service['cml1c_id'] = sprintf('%s#%s', reset($uuid), end($uuid));
+                    $service['_deleted_'] = true;
+                }
+
+                break;
+        }
+    }
+
+    private function initOrderItemMap($type = null)
     {
         if (!isset($this->data['map'][self::STAGE_ORDER])) {
-            $this->data['map'][self::STAGE_ORDER] = array();
+            $this->data['map'][self::STAGE_ORDER] = array(
+                'skus'     => array(),
+                'services' => array(),
+            );
         }
-        $map =& $this->data['map'][self::STAGE_ORDER];
+    }
+
+    private function getOrderItemMap($items)
+    {
+        $this->initOrderItemMap();
+
+        $map = &$this->data['map'][self::STAGE_ORDER];
+
         $skus = array();
+        $services = array();
         foreach ($items as $product) {
-            if (!empty($product['sku_id']) && !isset($map[$product['sku_id']])) {
+            if (!empty($product['sku_id']) && !isset($map['skus'][$product['sku_id']])) {
                 $skus[] = $product['sku_id'];
             }
+            if (!empty($product['service_variant_id']) && !isset($map['services'][$product['service_variant_id']])) {
+                $services[] = $product['service_variant_id'];
+            }
         }
 
-        if ($skus = array_unique(array_map('intval', $skus))) {
-            $fields = array();
-            if ($this->plugin()->getSettings('export_product_name') == 'name') {
-                $fields[] = '`p`.`name`';
-            }
-
+        if ($services || $skus) {
             $sku_model = $this->getModel('productSkus');
-            /**
-             * @var shopProductSkusModel $sku_model
-             */
-            $fields[] = '`p`.`sku_id`';
-            $fields = implode(",\n", $fields);
-            $sql = <<<SQL
+            if ($skus = array_unique(array_map('intval', $skus))) {
+                $fields = array();
+                if ($this->plugin()->getSettings('export_product_name') == 'name') {
+                    $fields[] = '`p`.`name`';
+                }
+
+
+                $fields[] = '`p`.`sku_id`';
+                $fields = implode(",\n", $fields);
+                $sql = <<<SQL
 SELECT
   `s`.`id`,
-  CONCAT(`p`.`id_1c`,"#",`s`.`id_1c`) `cml1c`,
+  CONCAT(IFNULL(`p`.`id_1c`,''),"#",IFNULL(`s`.`id_1c`,'')) `cml1c`,
   {$fields}
 FROM `shop_product_skus` `s`
 LEFT JOIN `shop_product` `p` ON (`p`.`id` = `s`.`product_id`)
 WHERE `s`.`id` IN (i:skus)
 SQL;
 
-            $map += (array)$sku_model->query($sql, array('skus' => $skus))->fetchAll('id', true);
+                $map['skus'] += (array)$sku_model->query($sql, compact('skus'))->fetchAll('id', true);
+            }
+
+            if ($services = array_unique(array_map('intval', $services))) {
+                $sql = <<<SQL
+SELECT
+  `v`.`id`,
+  CONCAT(IFNULL(`s`.`cml1c_id`,''),"#",IFNULL(`v`.`cml1c_id`,'')) `cml1c`
+FROM `shop_service_variants` `v`
+LEFT JOIN `shop_service` `s` ON (`s`.`id` = `v`.`service_id`)
+WHERE `v`.`id` IN (i:services)
+SQL;
+
+                $map['services'] += (array)$sku_model->query($sql, compact('services'))->fetchAll('id', true);
+
+            }
         }
         return $map;
     }
 
-    private function fixSkuUUID(&$product)
+    private function fixSkuUUID(&$item)
     {
-        if (!isset($this->data['map'][self::STAGE_ORDER])) {
-            $this->data['map'][self::STAGE_ORDER] = array();
-        }
-        $map =& $this->data['map'][self::STAGE_ORDER];
+        $this->initOrderItemMap();
 
-        $sku_id = ifset($product['sku_id'], $product['id']);
+        $map = &$this->data['map'][self::STAGE_ORDER]['skus'];
+        $sku_id = ifset($item['sku_id'], $item['id']);
         if (!empty($map[$sku_id]['sku_id']) && ($sku_id != $map[$sku_id]['sku_id'])) {
-            $product['id_1c'] = rtrim($product['id_1c'], '#').'#'.$this->plugin()->makeSkuUUID($sku_id);
+            $item['id_1c'] = rtrim($item['id_1c'], '#').'#'.$this->plugin()->makeEntryUUID($sku_id, 'sku');
 
-            $map[$sku_id]['cml1c'] = $product['id_1c'];
-            $this->error(sprintf('Generate missed GUID for sku with sku_id=%d at product_id=%d', $sku_id, $product['product_id']));
+            $map[$sku_id]['cml1c'] = $item['id_1c'];
+            $this->error(sprintf('Generate missed GUID for sku with sku_id=%d at product_id=%d', $sku_id, $item['product_id']));
         } else {
             $sku_model = $this->getModel('productSkus');
             /**
              * @var shopProductSkusModel $sku_model
              */
-            $sku_model->updateById($sku_id, array('id_1c' => $product['id_1c']));
-            $this->error(sprintf('Update missed GUID for sku with sku_id=%d at product_id=%d', $sku_id, $product['product_id']));
-            $map[$sku_id]['cml1c'] = rtrim($map[$sku_id]['cml1c']).'#'.$product['id_1c'];
+            $sku_model->updateById($sku_id, array('id_1c' => $item['id_1c']));
+            $this->error(sprintf('Update missed GUID for sku with sku_id=%d at product_id=%d', $sku_id, $item['product_id']));
+            $map[$sku_id]['cml1c'] = rtrim($item['id_1c'], '#').'#'.$item['id_1c'];
+            $item['id_1c'] = $map[$sku_id]['cml1c'];
         }
         unset($map);
     }
 
     private function fixProductUUID(&$product)
     {
-        if (!isset($this->data['map'][self::STAGE_ORDER])) {
-            $this->data['map'][self::STAGE_ORDER] = array();
-        }
+        $this->initOrderItemMap();
 
-        $map =& $this->data['map'][self::STAGE_ORDER];
+        $map = &$this->data['map'][self::STAGE_ORDER]['skus'];
         if (isset($map['p'.$product['product_id']])) {
             $product['id_1c'] = $map['p'.$product['product_id']];
         } else {
-            $product['id_1c'] = $this->plugin()->makeProductUUID(ifset($product['product_id'], $product['id']));
+            $product['id_1c'] = $this->plugin()->makeEntryUUID(ifset($product['product_id'], $product['id']), 'product');
             $this->error(sprintf('Generate missed GUID for product with id=%d', $product['product_id']));
             $map['p'.$product['product_id']] = $product['id_1c'];
         }
-        $sku_id = $product['sku_id'];
-        if ($sku_id) {
+
+        if (!empty($product['sku_id'])) {
+            $sku_id = $product['sku_id'];
             if (!isset($map[$sku_id])) {
                 $map[$sku_id] = array();
             }
             $map[$sku_id]['cml1c'] = $product['id_1c'].'#';
         }
+        unset($map);
+    }
+
+    private function fixServiceUUID(&$service, $type = 'variant')
+    {
+        $this->initOrderItemMap();
+        $map = &$this->data['map'][self::STAGE_ORDER]['services'];
+        if ($type == 'service') {
+            $id = $service['service_id'];
+            $key = 's'.$service['service_id'];
+            if (!strlen(trim(ifset($map[$key]), '#'))) {
+                $map[$key] = $this->plugin()->makeEntryUUID($id, 'service');
+                $this->error(sprintf('Generate missed GUID for service with id=%d', $id));
+            }
+
+            $service['cml1c_id'] = $map[$key].'#';
+        }
+
+        $id = $service['service_variant_id'];
+        if (!strlen(preg_replace('@^[^#]+#@', '', ifset($map[$id], '#')))) {
+            $map[$id] = $service['cml1c_id'].$this->plugin()->makeEntryUUID($id, 'service_variant');
+        }
+        $service['cml1c_id'] = $map[$id];
         unset($map);
     }
 
@@ -3351,21 +3478,15 @@ SQL;
             $product['total'] += $product['tax'];
         }
 
-        if ($this->_convert_order_price) {
-            $product['price'] *= $rate;
-            $product['total'] *= $rate;
-        }
-
         #add element
         $this->writer->startElement('Товар');
         if (!empty($product['_deleted_'])) {
             $this->writer->writeAttribute('Статус', 'Удален');
         }
-        $this->writer->writeElement('Ид', ifset($product['id_1c'], '-'));
+        $this->writer->writeElement('Ид', self::getGuid($product, '-'));
         if (!empty($product['sku_code'])) {
             $this->writer->writeElement('Артикул', $product['sku_code']);
         }
-        //XXX ИдКаталога ?
 
         # fix name duplicates
         $product['name'] = preg_replace('@^(.+) \(\1\)$@', '$1', $product['name']);
@@ -3467,11 +3588,7 @@ SQL;
 
         #add element
         $this->writer->startElement('Товар');
-        $id = ifset($product['id_1c'], '-');
-        if (!empty($sku['id_1c']) && (strcmp($sku['id_1c'], $id) != 0)) {
-            $id .= '#'.$sku['id_1c'];
-        }
-        $this->writer->writeElement('Ид', $id);
+        $this->writer->writeElement('Ид', self::getGuid($sku));
         if (!empty($sku['sku'])) {
             $this->writer->writeElement('Артикул', $sku['sku']);
         }
@@ -3545,17 +3662,15 @@ SQL;
         }
 
         $service['total'] = ifset($service['quantity'], 1) * ($service['price'] - ifset($service['discount'], 0));
-        if (!empty($service['tax']) && !empty($service['tax_included'])) {
+        if (!empty($service['tax']) && empty($service['tax_included'])) {
             $service['total'] += $service['tax'];
         }
 
-        if ($this->_convert_order_price) {
-            $service['price'] *= $rate;
-            $service['total'] *= $rate;
-        }
-
         $this->writer->startElement('Товар');
-        $this->writer->writeElement('Ид', ifset($service['id_1c'], '-'));
+        if (!empty($service['_deleted_'])) {
+            $this->writer->writeAttribute('Статус', 'Удален');
+        }
+        $this->writer->writeElement('Ид', preg_replace('@^[^#]+#@', '', self::getGuid($service, '-')));
         $this->writer->writeElement('Наименование', $service['name']);
         if (!empty($service['sku'])) {
             $this->writer->writeElement('Артикул', $service['sku']);
@@ -3742,7 +3857,7 @@ SQL;
      *
      *
      * @param SimpleXMLElement $element
-     * @param string $field
+     * @param string|string[] $field
      * @param string $type
      *
      * @return mixed
@@ -3773,7 +3888,7 @@ SQL;
 
     /**
      * @param SimpleXMLElement $element
-     * @param string $attribute
+     * @param string|string[] $attribute
      * @param string $type
      * @return string
      */
@@ -4617,7 +4732,7 @@ SQL;
                             'type'     => array($type),
                             'currency' => $this->findCurrency($map_['currency']),
                             'name'     => array($price_name),
-                            'tax_id'   => $map_['tax_id']
+                            'tax_id'   => $map_['tax_id'],
                         );
                     }
                 }
@@ -6267,6 +6382,19 @@ SQL;
             }
         }
         return isset($this->guid2name_map[$guid]) ? $this->guid2name_map[$guid] : $guid;
+    }
+
+    private static function getGuid($data, $default = null)
+    {
+        if (!is_array($data)) {
+            return empty($data) ? $default : $data;
+        } elseif (isset($data['id_1c'])) {
+            return ifempty($data['id_1c'], $default);
+        } elseif (isset($data['cml1c_id'])) {
+            return ifempty($data['cml1c_id'], $default);
+        } else {
+            return $default;
+        }
     }
 
     public function __destruct()

@@ -164,7 +164,7 @@ return array(
     'contact_bank_name'            => array(
         'value'            => '',
         'title'            => 'Наименование банка клиента',
-        'description'      => 'Выберите поле контакта в Shop-Script, соответствующее элементу наименование банка клиента в CommerceML (элеиент <tt>&lt;Наименование&gt;</tt> блока
+        'description'      => 'Выберите поле контакта в Shop-Script, соответствующее элементу наименование банка клиента в CommerceML (элемент <tt>&lt;Наименование&gt;</tt> блока
 <tt>&lt;Банк&gt;</tt>).',
         'control_type'     => waHtmlControl::SELECT,
         'options_callback' => array('shopCml1cPlugin', 'controlCustomerFields'),

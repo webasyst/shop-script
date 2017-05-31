@@ -87,7 +87,7 @@ class shopCml1cPlugin extends shopPlugin
             $r = libxml_get_errors();
             libxml_clear_errors();
             $error = array(
-                sprintf("XSD validation errors %s\n", $schema)
+                sprintf("XSD validation errors %s\n", $schema),
             );
             /**
              * @var LibXMLError[] $r
@@ -416,30 +416,68 @@ HTML;
         return $options;
     }
 
-    public function makeProductUUID($id)
+    public function makeEntryUUID($id, $type = 'product', $parent_id = null)
     {
-        static $product_model;
-        if (!$product_model) {
-            $product_model = new shopProductModel();
+        /**
+         * @var waModel[] $models
+         */
+        static $models = array();
+        switch ($type) {
+            case 'product':
+                if (!isset($models[$type])) {
+                    $models[$type] = new shopProductModel();
+                }
+                $field = 'id_1c';
+                break;
+            case 'sku':
+                if (!isset($models[$type])) {
+                    $models[$type] = new shopProductSkusModel();
+                }
+                $field = 'id_1c';
+                break;
+            case 'service':
+                if (!isset($models[$type])) {
+                    $models[$type] = new shopServiceModel();
+                }
+                $field = 'cml1c_id';
+                break;
+            case 'service_variant':
+                if (!isset($models[$type])) {
+                    $models[$type] = new shopServiceVariantsModel();
+                }
+                $field = 'cml1c_id';
+                break;
+            default:
+                throw new waException('Invalid entry type');
+                break;
         }
+
         do {
             $uuid = shopCml1cPlugin::makeUuid();
-        } while ($product_model->getByField('id_1c', $uuid));
-        $product_model->updateById($id, array('id_1c' => $uuid));
+        } while ($models[$type]->getByField($field, $uuid));
+        $models[$type]->updateById($id, array($field => $uuid));
+
         return $uuid;
     }
 
+    /**
+     * @deprecated use shopCml1cPlugin::makeEntryUUID
+     * @param $id
+     * @return string
+     */
+    public function makeProductUUID($id)
+    {
+        return $this->makeEntryUUID($id, 'product');
+    }
+
+    /**
+     * @deprecated use shopCml1cPlugin::makeEntryUUID
+     * @param $id
+     * @return string
+     */
     public function makeSkuUUID($id)
     {
-        static $product_sku_model;
-        if (!$product_sku_model) {
-            $product_sku_model = new shopProductSkusModel();
-        }
-        do {
-            $uuid = shopCml1cPlugin::makeUuid();
-        } while ($product_sku_model->getByField('id_1c', $uuid));
-        $product_sku_model->updateById($id, array('id_1c' => $uuid));
-        return $uuid;
+        return $this->makeEntryUUID($id, 'sku');
     }
 
     public function settingContactFieldsControl($name, $params = array())
