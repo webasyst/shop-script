@@ -11,15 +11,13 @@
 {elseif empty($api_available)}
 
     {include file="../../includes/api.error.html"
-        message='Для приема заказов через API заполните секции «OAuth-приложение» и «Заказ на Маркете» в
-<a href="?action=plugins#/yandexmarket/main/">основных настройках плагина</a>.'
+        message='Для приема заказов через API заполните секции «OAuth-приложение» и «Заказ на Маркете» в <a href="?action=plugins#/yandexmarket/main/">основных настройках плагина</a>.'
         hint='Обработка заказов возможна вручную в партнерском интерфейсе «Яндекс.Маркета» или автоматически через <a href="?action=plugins#/yandexmarket/api/">API</a>.'}
 
 {elseif !empty($error)}
 
     {include file="../../includes/api.error.html"
-        message='Для отображения настроек кампании настройте <a href="?action=plugins#/yandexmarket/api/">авторизацию партнерского API</a>
-и проверьте настройки кампании в личном кабинете «Яндекс.Маркета».'}
+        message='Для отображения настроек кампании настройте <a href="?action=plugins#/yandexmarket/api/">авторизацию партнерского API</a> и проверьте настройки кампании в личном кабинете «Яндекс.Маркета».'}
 
 {else}
 
@@ -234,7 +232,7 @@
 
                     <div class="field">
                         <div class="name">
-                            Время приема заказа
+                            Дни и время приема и доставки заказов
                         </div>
                         <div class="value no-shift">
                             <label><input type="radio" name="campaign[order_before_mode]"
@@ -264,8 +262,8 @@
                             </div>
                         {/foreach}
                         <div class="value">
-                            <span class="hint">Время оформления заказа (только часы), до наступления которого действуют указанные сроки и условия доставки и для точек продаж
-справочника «Яндекс.Маркета», и для всех видов доставки Shop-Script.
+                            <span class="hint">Дни и время приема и доставки заказов. Указанные сроки и условия доставки действуют до наступления указанного времени только по указанным дням. Это правило относится и к точкам продаж
+справочника «Яндекс.Маркета», и ко всем видам доставки Shop-Script.
                                 <br/><i class="icon10 exclamation"></i>Настройки должны соответствовать настройкам в кабинете «Яндекс.Маркета», чтобы не возникло ошибок по качеству.</span>
                         </div>
                     </div>
@@ -443,7 +441,7 @@
         var checkPayments = function ($method, event) {
             var valid = false;
             var type = $method.find(':input[name$="\\[type\\]"]').val();
-            if (payment.yandex && (type != 'POST')) {
+            if (payment.yandex && (type !== 'POST')) {
                 valid = true;
             } else {
                 var $cash = $method.find(':input[type="checkbox"][name$="\\[cash\\]"]');
@@ -452,20 +450,20 @@
 
 
                 valid = (
-                        (payment.cash && (!$cash.length || $cash.attr('checked')))
-                        ||
-                        (payment.card && (!$card.length || $card.attr('checked')))
-                        ||
-                        (payment.yandex && (!$yandex.length || (type != 'POST') || !$yandex.attr('checked')))
+                    (payment.cash && (!$cash.length || $cash.attr('checked')))
+                    ||
+                    (payment.card && (!$card.length || $card.attr('checked')))
+                    ||
+                    (payment.yandex && (!$yandex.length || (type !== 'POST') || !$yandex.attr('checked')))
                 );
             }
             toggle($method.find('.js-validate-payment'), event, !valid);
         };
 
 
-        $form.find('input[name$="\\[before\\]"], input[name$="\\[order_before\\]"]').bind('change, keyup',function(){
-            var value = this.value.replace(/\D+/,'');
-            this.value = (value=='')?value:Math.max(1,Math.min(24,parseInt(value)));
+        $form.find('input[name$="\\[before\\]"], input[name$="\\[order_before\\]"]').bind('change, keyup', function () {
+            var value = this.value.replace(/\D+/, '');
+            this.value = (value === '') ? value : Math.max(1, Math.min(24, parseInt(value)));
         });
 
         $form.find('input[name$="\\[estimate_over_sell\\]"], input[name$="\\[estimate\\]"], input[name$="\\[estimate_ext\\]"]').bind('change, keyup', function () {
@@ -505,16 +503,26 @@
         /**
          * delivery mode control
          */
-        $form.find(':input[name="campaign\\[order_before_mode\\]"]').change(function (event) {
+        $form.find(':input[name$="\\[order_before_mode\\]"]').change(function (event) {
             /**
              * @this HTMLInputElement
              */
-            var checked = this.checked;
-            if (this.value == 'generic') {
-                checked = !checked;
+            var show_generic = false;
+            var show_options = false;
+            if (this.checked) {
+                switch (this.value) {
+                    case 'generic':
+                        show_generic = true;
+                        break;
+                    case'per-day':
+                        show_options = true;
+                        break;
+                }
             }
-            toggle($form.find('div.js-delivery-time-generic-options'), event, !checked);
-            toggle($form.find('div.js-delivery-time-options'), event, checked);
+
+            var $scope = $(this).parents('div.field:first');
+            toggle($scope.find('div.js-delivery-time-generic-options'), event, show_generic);
+            toggle($scope.find('div.js-delivery-time-options'), event, show_options);
         }).change();
 
         /**
@@ -555,8 +563,8 @@
             /**
              * @this HTMLInputElement
              */
-            payment['card'] = (this.value != '');
-            toggle($form.find('div.js-payment-card'), event, (this.value != ''));
+            payment['card'] = (this.value !== '');
+            toggle($form.find('div.js-payment-card'), event, (this.value !== ''));
             checkPayments($(this).parents('div.field-group:first'), event);
             $form.find('div.js-shipping-method').each(function () {
                 checkPayments($(this), event);
@@ -582,14 +590,14 @@
              * @this HTMLInputElement
              */
             var $scope = $(this).parents('div.js-shipping-method');
-            toggle($scope.find('div.js-payment-yandex'), event, payment.yandex && (this.value == 'POST'));
+            toggle($scope.find('div.js-payment-yandex'), event, payment.yandex && (this.value === 'POST'));
             checkPayments($scope, event);
         }).change();
 
         /**
          * delivery time control
          */
-        $form.find(':input[name^="campaign\\[order_before_per_day\\]"][name$="\\[workday\\]"]').change(function (event) {
+        $form.find(':input[name*="\\[order_before_per_day\\]"][name$="\\[workday\\]"]').change(function (event) {
             /**
              * @this HTMLInputElement
              */
@@ -651,7 +659,7 @@
                 iframe: true,
                 dataType: 'json',
                 success: function (data, textStatus, jqXHR) {
-                    if (data && (data.status == 'ok')) {
+                    if (data && (data.status === 'ok')) {
                         var message = '[s`Saved`]';
                         if (data.data && data.data.message) {
                             message = data.data.message;

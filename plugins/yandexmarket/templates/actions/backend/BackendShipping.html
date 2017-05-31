@@ -12,7 +12,8 @@
             <br/>
         </div>
         <label>
-            <input type="checkbox" name="shipping_methods[dummy]" value="1" checked="checked" disabled id="s-plugin-yandexmarket-shipping_methods_dummy"> Фиксированные сроки и стоимость доставки
+            <input type="hidden" name="shop[local_delivery_enabled]" value="skip">
+            <input type="checkbox" name="shop[local_delivery_enabled]" value="1" {if ifset($profile.config.shop.local_delivery_enabled) !== 'skip'} checked="checked"{/if} id="s-plugin-yandexmarket-shipping_methods_dummy"> Фиксированные сроки и стоимость доставки
         </label>
         <div class="field">
             <div class="name">
@@ -65,6 +66,15 @@
 
             </div>
             <div class="value bottom-padded">
+
+                <div class="field">
+                    <div class="name">
+                        Время приема заказа
+                    </div>
+                    <div class="value">
+                        <input type="text" name="shipping_methods[{$method_id}][order-before]" value="{$profile.config.shipping_methods[$method_id]['order-before']|default:''|escape}" placeholder="{$profile.config.shop.local_delivery_order_before|default:'24'|escape}" class="numerical short">&rarr;&lt;delivery-options&gt;&lt;option <b>order-before</b>="..." &gt;
+                    </div>
+                </div>
                 <div class="field">
                     <div class="name">
                         Сроки доставки

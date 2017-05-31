@@ -21,6 +21,25 @@ class shopYandexmarketPluginSettingsCampaignSaveController extends waJsonControl
                         $shipping_methods[$id]['estimate_ext'] = $shipping_params['estimate_ext'];
                     }
                 }
+                $shipping_methods[$id]['order_before_mode'] = ifset($shipping_params['order_before_mode']);
+                switch ($shipping_methods[$id]['order_before_mode']) {
+                    case 'generic':
+                        $shipping_methods[$id]['order_before'] = max(1, min(24, (int)ifset($shipping_params['order_before'], 24)));
+                        break;
+                    case 'per-day':
+                        $working_days = array();
+                        for ($day = 0; $day < 7; $day++) {
+                            $day_info = ifset($shipping_params['order_before_per_day'][$day], array());
+                            if (!empty($day_info['workday'])) {
+                                $working_days[$day] = max(1, min(24, (int)ifset($day_info['before'], 24)));
+                            }
+                        }
+                        $shipping_methods[$id]['order_before_per_day'] = $working_days;
+                        break;
+                    default:
+                        unset($shipping_methods[$id]['order_before_mode']);
+                        break;
+                }
 
                 if (isset($shipping_params['cost']) && ($shipping_params['cost'] != '')) {
                     $shipping_methods[$id]['cost'] = $shipping_params['cost'];

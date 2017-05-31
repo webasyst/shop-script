@@ -15,7 +15,7 @@
         <select name="map[{$type_id}][{$field}][source]" id="s-plugin-yandexmarket-map-{$field}-source">
             {$selected = false}
             <option value="skip:" class="gray"{if (ifset($info['source'])=="skip:")||empty($info['source'])}{$selected=true} selected="selected"{/if}>пропустить</option>
-                {if !empty($info.values) || !$param || (!empty($info.sources)&&in_array('custom',$info.sources))}
+                {if !empty($info.values) || (!$param && (empty($info.sources) || in_array('custom',$info.sources)))}
                     <optgroup label="Фиксированное значение">
                         {if !empty($info.values)}
                             {foreach $info.values as $value_id => $value}
@@ -24,7 +24,7 @@
                                         <option value="value:{$value_id|escape}:{$unit_value|escape}"{if (ifset($info['source'])=="value:`$value_id`:`$unit_value`")}{$selected = true}selected="selected"{/if}>{$unit_value|escape} {_ws($value_id)|escape}</option>
                                     {/foreach}
                                 {else}
-                                    <option value="value:{$value|escape}"{if (ifset($info['source'])=="value:`$value`")}{$selected = true}selected="selected"{/if}>{$value|escape}</option>
+                                    <option value="value:{$value_id|escape}"{if (ifset($info['source'])=="value:`$value`") || (ifset($info['source'])=="value:`$value_id`")}{$selected = true}selected="selected"{/if}>{$value|escape}</option>
                                 {/if}
                             {/foreach}
                         {/if}
@@ -62,6 +62,7 @@
                 </optgroup>
             {/if}
 
+            {if empty($info.sources)||in_array('feature',$info.sources)}
             <optgroup label="Характеристика">
                 {if !empty($features_autocomplete)}
                     <option value="feature:%s">Выбрать характеристику...</option>
@@ -71,6 +72,7 @@
                     <option value="feature:{$feature.code}" title="{$feature.code}"{if !$selected && ((ifset($info['source']) eq "feature:`$feature['code']`")||($feature.code eq $field))}{$selected = true} selected="selected"{/if}{if $param && !empty($feature.units)} data-unit="{$feature.units|escape:'js'}"{/if}>{$feature.name|escape}</option>
                 {/foreach}
             </optgroup>
+            {/if}
             {if !empty($info.plugins.shipping)}
                 <optgroup label="Плагины доставки">
                     {foreach $shipping as $method}
@@ -109,25 +111,30 @@
 
                     {if !empty($info.path)}
                         &nbsp;или&nbsp;&rarr;
-                    &lt;{$info.path|regex_replace:'/\//':'><'|escape}&gt;
+                    &lt;{$info.path|regex_replace:'/\//':'><'|escape|regex_replace:'/\[([^\]]+)\]/':'&nbsp;<b>$1</b>="..."'}&gt;
                     {/if}
                     {elseif !empty($info.path)}
-                        &lt;{$info.path|regex_replace:'/\//':'><'|escape}&gt;
+                        &lt;{$info.path|regex_replace:'/\//':'><'|escape|regex_replace:'/\[([^\]]+)\]/':'&nbsp;<b>$1</b>="..."'}&gt;
                     {/if}
                 {/if}
             {/if}
 
-
         {if !empty($info.description)}
-        <br>
-        <span class="hint">{$info.description|escape|nl2br}</span>
-
+            <br/>
+            <span class="hint">{$info.description|escape|nl2br}</span>
+    
+            {if !empty($info.available_options)}
+                {foreach $info.available_options as $_option=>$_option_description}
+                    <br/><label class="hint"><input type="checkbox" name="map[{$type_id}][{$field}][options][{$_option|escape}]" value="1"{if !empty($info.options[$_option])} checked="checked"{/if}>&nbsp;{$_option_description}</label>
+                {/foreach}
+            {/if}
         {/if}
         {if !empty($info.help)}
-            <br>
-            <span class="hint""><i class="icon10 info"></i>{$info.help|nl2br}</span>
+            <br/>
+            <span class="hint"><i class="icon10 info"></i>{$info.help|nl2br}</span>
 
         {/if}
+
     </div>
 </div>
 {/strip}

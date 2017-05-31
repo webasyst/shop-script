@@ -41,7 +41,7 @@
                   (name, place, hall?, hall_part?, date, is_premiere?, is_kids?) |
                   (name, vendor?, vendorCode?)
                  ),
-                 aliases?, additional*, description?, sales_notes?, promo?,
+                 aliases?, additional*, description?, sales_notes?,min-quantity?,step-quantity?, promo?,
                  manufacturer_warranty?,seller_warranty?, country_of_origin?, downloadable?, adult?,
                  age?,
                  barcode*,
@@ -49,6 +49,7 @@
                  expiry?,
                  weight?,
                  dimensions?,
+                 rec?,
                  param*,
                  related_offer*
                 )>
@@ -119,6 +120,8 @@
 <!ELEMENT country (#PCDATA)>
 <!ELEMENT description (#PCDATA)>
 <!ELEMENT sales_notes (#PCDATA)>
+<!ELEMENT min-quantity (#PCDATA)>
+<!ELEMENT step-quantity (#PCDATA)>
 <!ELEMENT promo (#PCDATA)>
 <!ELEMENT aliases (#PCDATA)>
 <!ELEMENT provider (#PCDATA)>
@@ -150,6 +153,7 @@
 <!ELEMENT dimensions (#PCDATA)>
 <!ELEMENT barcode (#PCDATA)>
 <!ELEMENT cpa (#PCDATA)>
+<!ELEMENT rec (#PCDATA)>
 <!ELEMENT param (#PCDATA)>
 <!ATTLIST param
     name CDATA #REQUIRED

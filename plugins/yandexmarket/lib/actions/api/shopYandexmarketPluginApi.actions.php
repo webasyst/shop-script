@@ -358,6 +358,9 @@ class shopYandexmarketPluginApiActions extends waActions
         static $plugin;
         if (empty($plugin)) {
             $plugin = wa('shop')->getPlugin('yandexmarket');
+            /**
+             * @var shopYandexmarketPlugin $plugin
+             */
         }
         return $plugin;
     }
@@ -487,10 +490,15 @@ class shopYandexmarketPluginApiActions extends waActions
         }
     }
 
-    private function getCalendarMap($to_days = 32)
+    private function getCalendarMap($to_days = 32, $order_before = null)
     {
-        static $map;
+        static $maps = array();
+        $key = md5(var_export($order_before, true));
         $to_days = max(32, $to_days);
+        if (!isset($maps[$key])) {
+            $maps[$key] = array();
+        }
+        $map = &$maps[$key];
         if (($map === null) || (count($map) <= $to_days)) {
             $map = array();
             $now = time();
@@ -503,10 +511,14 @@ class shopYandexmarketPluginApiActions extends waActions
                 $week_day = (int)waDateTime::date('N', $now, $timezone) - 1;
             }
 
-            if (ifset($this->campaign['order_before_mode']) == 'per-day') {
-                $working_days = ifempty($this->campaign['order_before_per_day'], array_fill(0, 7, 17));
+            if ($order_before === null) {
+                $order_before = $this->campaign;
+            }
+
+            if (ifset($order_before['order_before_mode']) == 'per-day') {
+                $working_days = ifempty($order_before['order_before_per_day'], array_fill(0, 7, 17));
             } else {
-                $working_days = array_fill(0, 7, min(24, max(1, ifset($this->campaign['order_before'], 24))));
+                $working_days = array_fill(0, 7, min(24, max(1, ifset($order_before['order_before'], 24))));
             }
 
 
@@ -557,6 +569,9 @@ class shopYandexmarketPluginApiActions extends waActions
             }
         }
 
+        if (!count($interval)) {
+            $interval = array(32);
+        }
         $from = min($interval);
         $to = max($interval);
 
@@ -576,8 +591,12 @@ class shopYandexmarketPluginApiActions extends waActions
                 }
             }
         }
+        $order_before = null;
+        if (!empty($defaults['order_before_mode'])) {
+            $order_before = $defaults;
+        }
 
-        $map = $this->getCalendarMap(max($from, $to));
+        $map = $this->getCalendarMap(max($from, $to), $order_before);
 
         if (!empty($defaults['cal'])) {
             $from += $map[0];
@@ -708,14 +727,14 @@ class shopYandexmarketPluginApiActions extends waActions
                             $rates = $this->getPluginRates($order, $items, $shipping_info);
 
                             $debug['rates'][$shipping_id] = $rates;
-                            $defaults = ifset($profile_shipping_methods[$shipping_id], array());
+                            $method_defaults = ifset($profile_shipping_methods[$shipping_id], array());
 
                             //XXX CPA объединять сервисы доставки как точки продаж или как различные способы доставки
                             if ($rates && is_array($rates)) {
                                 foreach ($rates as $rate_id => $rate) {
                                     if ($rate['rate'] !== null) {
                                         $rate_id = ifset($rate['id'], $rate_id);
-                                        $defaults = ifset($profile_shipping_methods[$shipping_id.'.'.$rate_id], array()) + $defaults;
+                                        $defaults = ifset($profile_shipping_methods[$shipping_id.'.'.$rate_id], array()) + $method_defaults;
 
                                         #delivery price
                                         if (!empty($this->campaign['deliveryIncluded'])) {
@@ -812,8 +831,8 @@ class shopYandexmarketPluginApiActions extends waActions
                                 $price = floatval($delivery_rule['cost']);
 
                                 $defaults['estimate'] = implode('-', array(
-                                    $delivery_rule['minDeliveryDays'],
-                                    $delivery_rule['maxDeliveryDays'],
+                                    ifset($delivery_rule['minDeliveryDays'], 32),
+                                    ifset($delivery_rule['maxDeliveryDays'], 32),
                                 ));
                             }
                         }

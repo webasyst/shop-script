@@ -3,6 +3,7 @@
 /**
  * Class shopYandexmarketPlugin
  * @see https://help.yandex.ru/partnermarket/yml/about-yml.xml
+ * @see https://tech.yandex.ru/market/partner/doc/dg/reference/all-methods-docpage/
  */
 class shopYandexmarketPlugin extends shopPlugin
 {
@@ -15,8 +16,8 @@ class shopYandexmarketPlugin extends shopPlugin
     {
         $app_config = wa('shop');
         $files = array(
-            $app_config->getAppPath('plugins/yandexmarket', 'shop').'/lib/config/map.php',
             $app_config->getConfigPath('shop/plugins/yandexmarket').'/map.php',
+            $app_config->getAppPath('plugins/yandexmarket', 'shop').'/lib/config/map.php',
         );
 
         $this->types = array();
@@ -28,7 +29,6 @@ class shopYandexmarketPlugin extends shopPlugin
                     /**
                      * @var $data array
                      */
-
                     $missed = array();
                     $sort = array_flip(array_keys($data['fields']));
                     foreach ($data['types'] as &$type) {
@@ -123,6 +123,14 @@ class shopYandexmarketPlugin extends shopPlugin
                                     }
                                     $map[$type]['fields'][$field]['source'] = $post_data['source'];
                                 }
+                                if (!empty($post_data['options']) && !empty($map[$type]['fields'][$field]['available_options'])) {
+                                    $available_options = array_keys($map[$type]['fields'][$field]['available_options']);
+                                    $post_options = array_intersect($available_options, array_keys(array_filter($post_data['options'])));
+                                    $map[$type]['fields'][$field]['options'] = array_fill_keys($post_options, true);
+                                    $map[$type]['fields'][$field]['source'] .= '@'.implode('@', $post_options);
+                                } elseif (isset($map[$type]['fields'][$field]['options'])) {
+                                    unset($map[$type]['fields'][$field]['options']);
+                                }
                             } else {
                                 $map[$type]['fields'][$field]['source'] = $post_data;
                             }
@@ -210,6 +218,7 @@ HTML;
                 }
             }
 
+            $shipping = null;
             if (!empty($order['params']['shipping_est_delivery'])) {
                 $template = <<<HTML
 Дата доставки, указанная для программы «Заказ на Маркете»: <b>%s</b>
@@ -700,83 +709,6 @@ HTML;
      */
     public function getCampaigns($options = array())
     {
-        $map = array(
-            'state'     => array(
-                'name'   => array(
-                    1 => 'включена',
-                    2 => 'выключена',
-                    3 => 'включается',
-                    4 => 'выключается',
-                ),
-                'icon'   => array(
-                    1 => 'yes',
-                    2 => 'no',
-                    3 => 'yes-bw',
-                    4 => 'no-bw',
-                ),
-                'reason' => array(
-                    5  => 'кампания проверяется',
-                    6  => 'требуется проверка кампании',
-                    7  => 'кампания выключена или выключается менеджером',
-                    9  => 'кампания выключена или выключается из-за финансовых проблем',
-                    11 => 'кампания выключена или выключается из-за ошибок в прайс-листе кампании',
-                    12 => 'кампания выключена или выключается пользователем',
-                    13 => 'кампания выключена или выключается за неприемлемое качество',
-                    15 => 'кампания выключена или выключается из-за обнаружения дублирующих витрин',
-                    16 => 'кампания выключена или выключается из-за прочих проблем качества',
-                    20 => 'кампания выключена или выключается по расписанию',
-                    21 => 'кампания выключена или выключается, так как сайт кампании временно недоступен',
-                    24 => 'кампания выключена или выключается за недостаток информации о магазине',
-                    25 => 'кампания выключена или выключается из-за неактуальности информации',
-                ),
-            ),
-            'state_cpa' => array(
-                'name'   => array(
-                    'ON'           => 'включена',
-                    'OFF'          => 'отключена',
-                    'SWITCHING_ON' => 'в процессе подключения',
-                ),
-                'icon'   => array(
-                    'ON'           => 'yes',
-                    'OFF'          => 'no',
-                    'SWITCHING_ON' => 'yes-bw',
-                ),
-                'reason' => array(
-                    'CPA_QUALITY_API'   => 'программа отключена из-за проблем обработки запросов через API',
-                    'CPA_QUALITY_AUTO'  => 'программа отключена автоматически за ошибки качества',
-                    'CPA_API_NEED_INFO' => 'предоставлено недостаточно информации для участия в программе',
-                    'CPA_QUALITY_OTHER' => 'программа отключена за прочие проблемы качества',
-                    'CPA_CONTRACT'      => 'отсутствует договор об участии в программе, либо истек срок его действия',
-                    'CPA_CPC'           => 'программа отключена в связи с тем, что соответствующая кампания выключена (размещение магазина на «Яндекс.Маркете» приостановлено)',
-                    'CPA_FEED'          => 'в прайс-листе отсутствуют товарные предложения, участвующие в программе',
-                    'CPA_PARTNER'       => 'программа отключена по инициативе пользователя',
-                ),
-            ),
-        );
-
-        $settlements = array();
-
-        $domain_routes = wa()->getRouting()->getByApp('shop');
-
-        foreach ($domain_routes as $domain => $routes) {
-            foreach ($routes as $route) {
-                $domain = preg_replace('@^www\.@', '', $domain);
-                $settlement = $domain.'/'.$route['url'];
-                $settlements[] = compact('domain', 'settlement');
-            }
-        }
-
-        $routes = wa()->getConfig()->getConfigFile('routing');
-        foreach ($routes as $domain => $alias) {
-            if (!is_array($alias) && isset($domain_routes[$alias])) {
-                foreach ($domain_routes[$alias] as $route) {
-                    $domain = preg_replace('@^www\.@', '', $domain);
-                    $settlement = $domain.'/'.$route['url'];
-                    $settlements[] = compact('alias', 'domain', 'settlement');
-                }
-            }
-        }
-
         $hash_pattern = '@/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})\.xml$@';
 
         $data = $this->apiRequest('campaigns');
@@ -789,31 +721,9 @@ HTML;
         }
 
         foreach (ifset($data['campaigns'], array()) as $campaign) {
-            #add settlement info
-            $campaign['settlements'] = array();
-            foreach ($settlements as $settlement) {
-                $settlement_domain = preg_replace('@^www\.@', '', preg_replace('@/.*$@', '', $settlement['domain']));
-                $campaign_domain = preg_replace('@^www\.@', '', $campaign['domain']);
-                $l = strlen($campaign_domain) + 1;
-                $settlement_parent_domain = substr($settlement_domain, -$l);
-                if (($settlement_domain == $campaign_domain)
-                    || ('.'.$campaign_domain == $settlement_parent_domain)
-                ) {
-                    $campaign['settlements'][] = $settlement['settlement'];
-                } elseif (!empty($settlement['alias'])) {
-                    $settlement_domain = preg_replace('@^www\.@', '', preg_replace('@/.*$@', '', $settlement['alias']));
-                    $campaign_domain = preg_replace('@^www\.@', '', $campaign['domain']);
-                    $l = strlen($campaign_domain) + 1;
-                    $settlement_parent_domain = substr($settlement_domain, -$l);
-                    if (($settlement_domain == $campaign_domain)
-                        || ('.'.$campaign_domain == $settlement_parent_domain)
-                    ) {
-                        $campaign['settlements'][] = $settlement['settlement'];
-                    }
-                }
-            }
-            if (!empty($campaign['settlements'])) {
+            self::workupCampaign($campaign);
 
+            if (!empty($campaign['settlements'])) {
                 #add feed info
                 $data = $this->apiRequest(sprintf('campaigns/%d/feeds', $campaign['id']));
                 $campaign['feeds'] = array();
@@ -884,24 +794,7 @@ HTML;
                 }
             }
 
-            #add verbal descriptions for state
-            $campaign['stateDescription'] = ifset($map['state']['name'][$campaign['state']], $campaign['state']);
-            $campaign['stateIcon'] = ifset($map['state']['icon'][$campaign['state']]);
-            if (!empty($campaign['stateReasons'])) {
-                foreach ($campaign['stateReasons'] as &$reason) {
-                    $reason = ifset($map['state']['reason'][$reason], $reason);
-                    unset($reason);
-                }
-            }
 
-            #add verbal descriptions for CPA state
-            $campaign['stateDescriptionCpa'] = ifset($map['state_cpa']['name'][$campaign['stateCpa']], $campaign['stateCpa']);
-            $campaign['stateIconCpa'] = ifset($map['state_cpa']['icon'][$campaign['stateCpa']]);
-            $campaign['stateReasonsCpa'] = ifempty($campaign['stateReasonsCpa'], array());
-            foreach ($campaign['stateReasonsCpa'] as &$reason) {
-                $reason = ifset($map['state_cpa']['reason'][$reason], $reason);
-                unset($reason);
-            }
 
             $campaigns[$campaign['id']] = $campaign;
             unset($campaign);
@@ -912,6 +805,149 @@ HTML;
         }
 
         return $campaigns;
+    }
+
+
+
+    private static function workupCampaign(&$campaign)
+    {
+
+        $map = array(
+            'state'     => array(
+                'name'   => array(
+                    1 => 'включена',
+                    2 => 'выключена',
+                    3 => 'включается',
+                    4 => 'выключается',
+                ),
+                'icon'   => array(
+                    1 => 'yes',
+                    2 => 'no',
+                    3 => 'yes-bw',
+                    4 => 'no-bw',
+                ),
+                'reason' => array(
+                    5  => 'кампания проверяется',
+                    6  => 'требуется проверка кампании',
+                    7  => 'кампания выключена или выключается менеджером',
+                    9  => 'кампания выключена или выключается из-за финансовых проблем',
+                    11 => 'кампания выключена или выключается из-за ошибок в прайс-листе кампании',
+                    12 => 'кампания выключена или выключается пользователем',
+                    13 => 'кампания выключена или выключается за неприемлемое качество',
+                    15 => 'кампания выключена или выключается из-за обнаружения дублирующих витрин',
+                    16 => 'кампания выключена или выключается из-за прочих проблем качества',
+                    20 => 'кампания выключена или выключается по расписанию',
+                    21 => 'кампания выключена или выключается, так как сайт кампании временно недоступен',
+                    24 => 'кампания выключена или выключается за недостаток информации о магазине',
+                    25 => 'кампания выключена или выключается из-за неактуальности информации',
+                ),
+            ),
+            'state_cpa' => array(
+                'name'   => array(
+                    'ON'           => 'включена',
+                    'OFF'          => 'отключена',
+                    'SWITCHING_ON' => 'в процессе подключения',
+                ),
+                'icon'   => array(
+                    'ON'           => 'yes',
+                    'OFF'          => 'no',
+                    'SWITCHING_ON' => 'yes-bw',
+                ),
+                'reason' => array(
+                    'CPA_QUALITY_API'   => 'программа отключена из-за проблем обработки запросов через API',
+                    'CPA_QUALITY_AUTO'  => 'программа отключена автоматически за ошибки качества',
+                    'CPA_API_NEED_INFO' => 'предоставлено недостаточно информации для участия в программе',
+                    'CPA_QUALITY_OTHER' => 'программа отключена за прочие проблемы качества',
+                    'CPA_CONTRACT'      => 'отсутствует договор об участии в программе, либо истек срок его действия',
+                    'CPA_CPC'           => 'программа отключена в связи с тем, что соответствующая кампания выключена (размещение магазина на «Яндекс.Маркете» приостановлено)',
+                    'CPA_FEED'          => 'в прайс-листе отсутствуют товарные предложения, участвующие в программе',
+                    'CPA_PARTNER'       => 'программа отключена по инициативе пользователя',
+                ),
+            ),
+        );
+
+
+        #add verbal descriptions for state
+        $campaign['stateDescription'] = ifset($map['state']['name'][$campaign['state']], $campaign['state']);
+        $campaign['stateIcon'] = ifset($map['state']['icon'][$campaign['state']]);
+        if (!empty($campaign['stateReasons'])) {
+            foreach ($campaign['stateReasons'] as &$reason) {
+                $reason = ifset($map['state']['reason'][$reason], $reason);
+                unset($reason);
+            }
+        }
+
+        #add verbal descriptions for CPA state
+        $campaign['stateDescriptionCpa'] = ifset($map['state_cpa']['name'][$campaign['stateCpa']], $campaign['stateCpa']);
+        $campaign['stateIconCpa'] = ifset($map['state_cpa']['icon'][$campaign['stateCpa']]);
+        $campaign['stateReasonsCpa'] = ifempty($campaign['stateReasonsCpa'], array());
+        foreach ($campaign['stateReasonsCpa'] as &$reason) {
+            $reason = ifset($map['state_cpa']['reason'][$reason], $reason);
+            unset($reason);
+        }
+
+        #add settlement info
+        $campaign['settlements'] =self::getMatchedSettlements($campaign['domain']);
+    }
+
+    private static function getSettlements()
+    {
+        static $settlements;
+        if ($settlements === null) {
+            $settlements = array();
+
+            $domain_routes = wa()->getRouting()->getByApp('shop');
+
+            foreach ($domain_routes as $domain => $routes) {
+                foreach ($routes as $route) {
+                    $domain = preg_replace('@^www\.@', '', $domain);
+                    $settlement = $domain.'/'.$route['url'];
+                    $settlements[] = compact('domain', 'settlement');
+                }
+            }
+
+            $routes = wa()->getConfig()->getConfigFile('routing');
+            foreach ($routes as $domain => $alias) {
+                if (!is_array($alias) && isset($domain_routes[$alias])) {
+                    foreach ($domain_routes[$alias] as $route) {
+                        $domain = preg_replace('@^www\.@', '', $domain);
+                        $settlement = $domain.'/'.$route['url'];
+                        $settlements[] = compact('alias', 'domain', 'settlement');
+                    }
+                }
+            }
+        }
+
+        return $settlements;
+    }
+
+    private static function getMatchedSettlements($expected_domain)
+    {
+        $settlements = self::getSettlements();
+        $matched = array();
+
+        foreach ($settlements as $settlement) {
+            $settlement_domain = preg_replace('@^www\.@', '', preg_replace('@/.*$@', '', $settlement['domain']));
+            $campaign_domain = preg_replace('@^www\.@', '', $expected_domain);
+            $l = strlen($campaign_domain) + 1;
+            $settlement_parent_domain = substr($settlement_domain, -$l);
+            if (($settlement_domain == $campaign_domain)
+                || ('.'.$campaign_domain == $settlement_parent_domain)
+            ) {
+                $matched[] = $settlement['settlement'];
+            } elseif (!empty($settlement['alias'])) {
+                $settlement_domain = preg_replace('@^www\.@', '', preg_replace('@/.*$@', '', $settlement['alias']));
+                $campaign_domain = preg_replace('@^www\.@', '', $expected_domain);
+                $l = strlen($campaign_domain) + 1;
+                $settlement_parent_domain = substr($settlement_domain, -$l);
+                if (($settlement_domain == $campaign_domain)
+                    || ('.'.$campaign_domain == $settlement_parent_domain)
+                ) {
+                    $matched[] = $settlement['settlement'];
+                }
+            }
+        }
+        return $matched;
     }
 
     /**
