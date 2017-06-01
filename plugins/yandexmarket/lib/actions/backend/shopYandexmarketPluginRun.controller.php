@@ -2605,7 +2605,11 @@ SQL;
             }
             $value = str_replace(',', '.', sprintf($format, (double)$value));
         } else {
-            $value = sprintf($format, $value);
+			if (is_array($value)) {
+				$value = vsprintf($format, $value);
+			} else {
+				$value = sprintf($format, $value);
+			}
         }
         return $value;
     }
