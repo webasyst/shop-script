@@ -313,6 +313,7 @@ class shopCartItemsModel extends waModel
                     if ($item['sku_name']) {
                         $item['name'] .= ' ('.$item['sku_name'].')';
                     }
+                    $item['filename'] = $sku['file_name'];
                     // Fix for purchase price when rounding is enabled
                     if (!empty($item['product']['unconverted_currency']) && $item['product']['currency'] != $item['product']['unconverted_currency']) {
                         $item['purchase_price'] = shop_currency($item['purchase_price'], $item['product']['unconverted_currency'], $item['product']['currency'], false);
