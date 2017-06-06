@@ -1410,6 +1410,13 @@ class shopCsvProductrunController extends waLongActionController
                             }
                         }
 
+						// Upload photos of articles in any case. Add sku_id to further link the photos to the sku's.
+						if (!empty($data['images'])) {
+							$this->data['map'][self::STAGE_IMAGE] = $data['images'];
+							$this->data['count'][self::STAGE_IMAGE] += count($data['images']);
+							// Не уверен в правильности такого запоминания $item_sku_id. При отладке пишет в массив 'images', а не 'sku_id'. Но работает.
+							$this->data['sku_id'][self::STAGE_IMAGE] = $item_sku_id;
+						}
 
                         $product->save($truncated_data);
 
@@ -1451,6 +1458,9 @@ class shopCsvProductrunController extends waLongActionController
          * @var shopProductImagesModel $model
          */
         static $model;
+		if($this->data['sku_id']) {
+			$sku_id = $this->data['sku_id']['image'];
+		}					 
         if (!is_array($this->data['map'][self::STAGE_IMAGE]) && $this->data['map'][self::STAGE_IMAGE]) {
             $this->data['map'][self::STAGE_IMAGE] = array($this->data['map'][self::STAGE_IMAGE]);
         }
@@ -1563,6 +1573,13 @@ class shopCsvProductrunController extends waLongActionController
                             $model->updateById($image_id, $data);
                         }
 
+						// If there is sku_id, then we need to bind it to the sku's. Do it.
+                        if ($sku_id) {
+							$sku['image_id'] = $image_id;
+							$sku_model = new shopProductSkusModel();
+							$sku_model->update($sku_id, $sku); 
+						}
+							
                         if (!$image_id) {
                             throw new waException("Database error");
                         }
