@@ -200,6 +200,9 @@ class shopYandexmarketPluginApiActions extends waActions
             //TODO subway
 
             $order['params']['yandexmarket.id'] = $raw_order->yandex_id;
+            if ($raw_order->outlet_id) {
+                $order['params']['yandexmarket.outlet_id'] = $raw_order->outlet_id;
+            }
             $order['params']['yandexmarket.campaign_id'] = $raw_order->campaign_id;
 
             if ($raw_order->id) {
@@ -219,14 +222,14 @@ class shopYandexmarketPluginApiActions extends waActions
                 'order' => array(
                     'accepted' => true,
                     'id'       => (string)$order_id,
-                )
+                ),
             );
         } else {
             $array = array(
                 'order' => array(
                     'accepted' => false,
-                    'reason'   => 'OUT_OF_DATE'
-                )
+                    'reason'   => 'OUT_OF_DATE',
+                ),
             );
         }
         $this->sendApiResponse($array);
@@ -430,7 +433,9 @@ class shopYandexmarketPluginApiActions extends waActions
 
 
         $campaign_model = new shopYandexmarketCampaignsModel();
+
         $this->campaign = $campaign_model->get($order->campaign_id);
+        $this->campaign['id'] = (int)$order->campaign_id;
 
         $this->checkAuth();
 
@@ -506,6 +511,25 @@ class shopYandexmarketPluginApiActions extends waActions
             $week_day = (int)date('N', $now) - 1;
             $timezone = ifset($this->campaign['timezone']);
             $offset = 0;
+
+            if (!isset($this->campaign['schedule']) || ((time() - strtotime($this->campaign['schedule']['period']['fromDate'])) > 3600 * 48)) {
+                $options = array(
+                    'settings'    => true,
+                    'campaign_id' => $this->campaign['id'],
+                );
+
+                $campaigns = $this->getPlugin()->getCampaigns($options);
+
+                $campaign = ifset($campaigns[$this->campaign['id']], array());
+                if (!empty($campaign['settings']['localRegion']['schedule'])) {
+                    $this->campaign['schedule'] = $campaign['settings']['localRegion']['delivery']['schedule'];
+                } else {
+                    $this->campaign['schedule'] = array();
+                }
+            }
+
+            $holidays = ifset($this->campaign['schedule']['totalHolidays'], array());
+
             if ($timezone) {
                 $time = (int)waDateTime::date('G', $now, $timezone);
                 $week_day = (int)waDateTime::date('N', $now, $timezone) - 1;
@@ -535,7 +559,15 @@ class shopYandexmarketPluginApiActions extends waActions
                 $offset_day = $offset;
                 while ($day <= $to_days) {
                     $current_week_day = ($offset_day + $week_day) % 7;
-                    if (!empty($working_days[$current_week_day])) {
+                    $current_date = strtotime(sprintf('+%d days', ($offset_day + $week_day)));
+
+                    if ($timezone) {
+                        $date = waDateTime::date('d-m-Y', $current_date, $timezone);
+                    } else {
+                        $date = date('d-m-Y', $current_date);
+                    }
+
+                    if (!in_array($date, $holidays) && !empty($working_days[$current_week_day])) {
                         $map[$day++] = $offset_day;
                     }
 
@@ -766,6 +798,23 @@ class shopYandexmarketPluginApiActions extends waActions
                                             ) {
                                                 $carriers[$id]['paymentAllow'] = false;
                                             }
+
+                                            if ($carriers[$id]['type'] == 'PICKUP') {
+                                                $this->campaign['pickup_map'];
+                                                $outlets = array();
+                                                foreach ($this->campaign['pickup_map'] as $outlet_id => $outlet_shipping_id) {
+                                                    if ($outlet_shipping_id == $shipping_id) {
+                                                        $outlets[] = array(
+                                                            'id' => $outlet_id,
+                                                        );
+                                                    }
+                                                }
+                                                if ($outlets) {
+                                                    $carriers[$id]['outlets'] = $outlets;
+                                                } else {
+                                                    $carriers[$id]['type'] = 'DELIVERY';
+                                                }
+                                            }
                                         } else {
                                             $debug['payment_methods'][] = $id;
                                         }
@@ -814,6 +863,7 @@ class shopYandexmarketPluginApiActions extends waActions
                     && (ifset($outlet['status']) != 'FAILED')
                     && (ifset($outlet['visibility']) != 'HIDDEN ')
                     && in_array(ifset($outlet['type']), array('MIXED', 'DEPOT'), true)
+                    && !isset($this->campaign['pickup_map'][$outlet['id']])
                 ) {
 
                     $price = 0;

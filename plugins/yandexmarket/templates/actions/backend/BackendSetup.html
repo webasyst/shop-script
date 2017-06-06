@@ -528,6 +528,12 @@
     <div class="field-group block top-padded">
         <h2 class="gray">6. Экспорт характеристик товаров</h2>
         <p class="hint">Базовое соответствие характеристик магазина параметрам товарных предложений «Яндекс.Маркета». Для отдельных групп товарных предложений «Яндекс.Маркета» можно ниже задать дополнительные правила соответствий.</p>
+        {if !empty($custom_map)}
+            <p class="hint">
+                <i class="icon16 exclamation"></i> Загружен пользовательский файл настроек полей экспорта <em>wa-config/apps/shop/plugins/yandexmarket/map.php</em>.<br>
+                Чтобы использовать оригинальный файл настроек, удалите пользовательский файл.
+            </p>
+        {/if}
         {$type_info = $type_map.simple}
         {$map=$type_info.fields}
         {$type_id='simple'}

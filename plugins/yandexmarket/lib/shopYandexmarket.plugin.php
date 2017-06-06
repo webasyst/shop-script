@@ -12,6 +12,13 @@ class shopYandexmarketPlugin extends shopPlugin
 
     private $api_url = 'https://api.partner.market.yandex.ru/v2/';
 
+    public function customMap()
+    {
+        $app_config = wa('shop');
+        $path = $app_config->getConfigPath('shop/plugins/yandexmarket').'/map.php';
+        return file_exists($path);
+    }
+
     private function initTypes()
     {
         $app_config = wa('shop');
@@ -202,7 +209,11 @@ HTML;
             if (!empty($order['params']['yandexmarket.status'])) {
                 try {
                     $data = json_decode($order['params']['yandexmarket.status'], true);
-                    $this->changeOrderState($order['id'], $order['params'], $data);
+                    $params = array(
+                       'yandexmarket.campaign_id'=>array('value'=>$order['params'][ 'yandexmarket.campaign_id']),
+                       'yandexmarket.id'=>array('value'=>$order['params']['yandexmarket.id']),
+                    );
+                    $this->changeOrderState($order['id'], $params, $data);
                     $model = new shopOrderParamsModel();
                     $model->deleteByField(array('id' => $order['id'], 'name' => 'yandexmarket.status'));
                 } catch (waException $ex) {
@@ -218,15 +229,25 @@ HTML;
                 }
             }
 
-            $shipping = null;
+            $shipping = array();
             if (!empty($order['params']['shipping_est_delivery'])) {
                 $template = <<<HTML
 Дата доставки, указанная для программы «Заказ на Маркете»: <b>%s</b>
 HTML;
-                $shipping = sprintf($template, htmlentities($order['params']['shipping_est_delivery'], ENT_NOQUOTES, 'utf-8'));
+                $shipping[] = sprintf($template, htmlentities($order['params']['shipping_est_delivery'], ENT_NOQUOTES, 'utf-8'));
+            }
+
+            if (!empty($order['params']['yandexmarket.outlet_id'])) {
+
+                //$order['params']['yandexmarket.campaign_id'];
+                $template = <<<HTML
+Выбранная точка продаж для программы «Заказ на Маркете»: <b>%s</b>
+HTML;
+                $shipping[] = sprintf($template, htmlentities($order['params']['yandexmarket.outlet_id'], ENT_NOQUOTES, 'utf-8'));
             }
 
             if (!empty($error) || !empty($shipping)) {
+                $shipping = implode('<br/>', $shipping);
                 $info_section = <<<HTML
 <div class="block not-padded">
 {$error}
@@ -711,7 +732,14 @@ HTML;
     {
         $hash_pattern = '@/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})\.xml$@';
 
-        $data = $this->apiRequest('campaigns');
+        if (!empty($options['campaign_id'])) {
+            $data = $this->apiRequest(sprintf('campaigns/%d', $options['campaign_id']));
+            if (!empty($data['campaign'])) {
+                $data['campaigns'] = array($data['campaign']);
+            }
+        } else {
+            $data = $this->apiRequest('campaigns');
+        }
         $campaigns = array();
 
         $feed_map = $this->getSettings('feed_map');
@@ -723,7 +751,7 @@ HTML;
         foreach (ifset($data['campaigns'], array()) as $campaign) {
             self::workupCampaign($campaign);
 
-            if (!empty($campaign['settlements'])) {
+            if (!empty($campaign['settlements']) && (!isset($options['feeds']) || !empty($options['feeds']))) {
                 #add feed info
                 $data = $this->apiRequest(sprintf('campaigns/%d/feeds', $campaign['id']));
                 $campaign['feeds'] = array();
@@ -755,42 +783,51 @@ HTML;
 
                 }
 
-                #add exported offers info
-                if (!empty($options['offers'])) {
-                    $data = $this->apiRequest(sprintf('campaigns/%d/offers', $campaign['id']));
-                    $campaign['offers_count'] = ifset($data['pager']['total'], '-');
-                }
+            }
+            #add exported offers info
+            if (!empty($options['offers'])) {
+                $data = $this->apiRequest(sprintf('campaigns/%d/offers', $campaign['id']));
+                $campaign['offers_count'] = ifset($data['pager']['total'], '-');
+            }
 
-                #add orders info
-                if (!empty($options['orders'])) {
-                    $params = array(
-                        'fromDate' => date('d-m-Y', strtotime('-30days')),
-                    );
-                    $data = $this->apiRequest(sprintf('campaigns/%d/orders', $campaign['id']), $params);
-                    $campaign['orders_count'] = ifset($data['pager']['total'], '-');
-                }
+            #add orders info
+            if (!empty($options['orders'])) {
+                $params = array(
+                    'fromDate' => date('d-m-Y', strtotime('-30days')),
+                );
+                $data = $this->apiRequest(sprintf('campaigns/%d/orders', $campaign['id']), $params);
+                $campaign['orders_count'] = ifset($data['pager']['total'], '-');
+            }
 
-                if (false) {
-                    $data = $this->apiRequest(sprintf('campaigns/%d/bids', $campaign['id']));
-                    foreach (ifset($data['offers']) as $offer) {
-                        if (isset($campaign['feeds'][$offer['id']])) {
+            if (false) {
+                $data = $this->apiRequest(sprintf('campaigns/%d/bids', $campaign['id']));
+                foreach (ifset($data['offers']) as $offer) {
+                    if (isset($campaign['feeds'][$offer['id']])) {
 
-                        }
                     }
                 }
+            }
 
-                #Balance info
-                if (!empty($options['balance'])) {
-                    $data = $this->apiRequest(sprintf('campaigns/%d/balance', $campaign['id']));
-                    $campaign['balance'] = ifset($data['balance'], array());
-                    if (isset($campaign['balance']['balance'])) {
-                        $campaign['balance']['balance_str'] = sprintf('%0.2f у.е.', $campaign['balance']['balance']);
-                    }
+            #Balance info
+            if (!empty($options['balance'])) {
+                $data = $this->apiRequest(sprintf('campaigns/%d/balance', $campaign['id']));
+                $campaign['balance'] = ifset($data['balance'], array());
+                if (isset($campaign['balance']['balance'])) {
+                    $campaign['balance']['balance_str'] = sprintf('%0.2f у.е.', $campaign['balance']['balance']);
                 }
+            }
 
-                #Outlets info
-                if (!empty($options['outlets'])) {
-                    $campaign['outlets'] = $this->getOutlets($campaign['id']);
+            #Outlets info
+            if (!empty($options['outlets'])) {
+                $campaign['outlets'] = $this->getOutlets($campaign['id']);
+            }
+
+            #Settings info
+            if (!empty($options['settings'])) {
+                $campaign += $this->apiRequest(sprintf('campaigns/%d/settings', $campaign['id']));
+                if (!empty($campaign['settings']['localRegion']['delivery']['schedule'])) {
+                    $model = new shopYandexmarketCampaignsModel();
+                    $model->set($campaign['id'], 'schedule', $campaign['settings']['localRegion']['delivery']['schedule']);
                 }
             }
 
@@ -1066,9 +1103,9 @@ HTML;
             ),
             'visibility' => array(
                 'name' => array(
-                    'HIDDEN'  => 'точка продаж выключена',
-                    'UNKNOWN' => 'состояние точки продаж неизвестно',
-                    'VISIBLE' => 'точка продаж включена',
+                    'HIDDEN'  => 'выключена',
+                    'UNKNOWN' => 'состояние неизвестно',
+                    'VISIBLE' => 'включена',
                 ),
                 'icon' => array(
                     'HIDDEN'  => 'status-red',

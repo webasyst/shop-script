@@ -77,8 +77,11 @@
                     <input type="text" placeholder="17" class="numerical short" size="2"
                            name="campaign[shipping_methods][{$method_id}][order_before_per_day][{$_day}][before]"
                            value="{$campaign.shipping_methods[$method_id]['order_before_per_day'][$_day]|default:$campaign.shipping_methods[$method_id]['order_before']|default:24|escape}"
-                    >&nbsp;<label>
+                    >&nbsp;<label{if !empty($_schedule.weeklyHolidays) && in_array($_day+1,$_schedule.weeklyHolidays)}
+                        class="grey"
+                            {/if}>
                         <input type="checkbox" name="campaign[shipping_methods][{$method_id}][order_before_per_day][{$_day}][workday]" value="1"
+
                                 {if !empty($campaign.shipping_methods[$method_id]['order_before_per_day'][$_day])} checked="checked"{/if}>&nbsp;{$_name|escape}
                     </label>
                 </div>
@@ -181,15 +184,16 @@
                             {if ifempty($campaign.shipping_methods[$method_id]['type'],'DELIVERY')=='DELIVERY'} selected="selected"{/if}
                     >Курьерская доставка
                     </option>
-{*                    <option value="PICKUP"
+                    <option value="PICKUP"
                             title="PICKUP"
-                            {if ifset($campaign.shipping_methods[$method_id]['type'])=='PICKUP'}
-                            selected="selected"
+                            {if empty($campaign.pickup_map) || !in_array($method_id,$campaign.pickup_map)}
+                                disabled="disabled"
+                            {elseif ifset($campaign.shipping_methods[$method_id]['type'])=='PICKUP'}
+                                selected="selected"
                             {/if}
-                            disabled="disabled"
                     >Самовывоз (пункты выдачи заказов)
                     </option>
-*}
+
                     <option value="POST"
                             title="POST"
                             {if ifset($campaign.shipping_methods[$method_id]['type'])=='POST'}

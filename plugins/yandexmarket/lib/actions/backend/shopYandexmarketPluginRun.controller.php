@@ -2116,6 +2116,27 @@ SQL;
                     );
                 }
                 break;
+            case 'booking':
+                if (!empty($sku_data) && isset($sku_data['available']) && empty($sku_data['available'])) {
+                    $value = 'false';
+                }
+                if (is_object($value)) {
+                    switch (get_class($value)) {
+                        case 'shopBooleanValue':
+                            /**
+                             * @var $value shopBooleanValue
+                             */
+                            $value = $value->value ? 'true' : null;
+                            break;
+                    }
+                }
+                $value = (
+                    (($value <= 0) || ($value === 'false') || empty($value))
+                    && ($value !== '')
+                    && ($value !== null)
+                    && ($value !== 'true')
+                ) ? null : 'true';
+                break;
             case 'store':
             case 'pickup':
             case 'delivery':
@@ -2260,6 +2281,9 @@ SQL;
 
                 } else {
                     $value = floatval($value);
+                }
+                if (empty($value)) {
+                    $value = null;
                 }
                 break;
             case 'dimensions':

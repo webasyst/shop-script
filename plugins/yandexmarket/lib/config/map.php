@@ -804,7 +804,8 @@ return array(
         'weight'                => array(
             'type'        => 'adjustable',
             'name'        => 'Вес товара',
-            'description' => 'В килограммах с учетом упаковки.',
+            'description' => 'Только число — в килограммах с учетом упаковки.
+Нулевой вес не будет экспортирован.',
             'format'      => '%0.4f',
             'source'      => 'feature:weight',
         ),

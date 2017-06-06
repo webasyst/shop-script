@@ -26,6 +26,8 @@ class shopYandexmarketPluginBackendActions extends waViewActions
         $routing = wa()->getRouting();
         $settlements = array();
 
+        $this->view->assign('custom_map', $this->plugin()->customMap());
+
         $profile = $this->getProfile();
         $current_domain = &$profile['config']['domain'];
 

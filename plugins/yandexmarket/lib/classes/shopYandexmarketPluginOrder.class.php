@@ -220,6 +220,9 @@ class shopYandexmarketPluginOrder extends waOrder
                                 $data['shipping_plugin'] = $shipping_plugin['plugin'];
                                 $data['shipping_name'] = $shipping_plugin['name'];
                             }
+                            if (!empty($delivery['outlet']['id'])) {
+                                $data['outlet_id'] = $delivery['outlet']['id'];
+                            }
                             break;
                     }
                 } else {

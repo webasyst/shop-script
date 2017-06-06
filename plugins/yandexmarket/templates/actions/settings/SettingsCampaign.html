@@ -1,5 +1,12 @@
+<style>
+    td.ui-datepicker-holiday span {
+        background-color: #FCC !important;
+    }
+    td a.ui-state-active {
+        background-color: white !important;
+    }
+</style>
 {$settings_url='#/yandexmarket/'}
-
 <h1 class="js-bread-crumbs">{$campaign_id|string_format:'Настройки кампании №%s (Заказ на Маркете)'|escape}</h1>
 
 {if empty($cpa_available)}
@@ -230,6 +237,22 @@
                         </div>
                     </div>
 
+                    {if !empty($campaign_settings.localRegion.delivery.schedule)}
+
+                    <div class="field">
+                        {$_schedule = $campaign_settings.localRegion.delivery.schedule}
+                        <div class="name">График работы</div>
+                        <div class="value"><div class="js-holidays" data-holidays="{$_schedule.totalHolidays|json_encode|escape}" data-from="{$_schedule.period.fromDate|escape}" data-to="{$_schedule.period.toDate|escape}"></div> </div>
+                        <div class="value hint">
+                            <i class="icon16 info"></i>Показаны данные для периода с {$_schedule.period.fromDate|wa_datetime:'humandate'} по {$_schedule.period.toDate|wa_datetime:'humandate'} из настроек графика работы в кабинете «Яндекс.Маркета».
+                        </div>
+                        <div class="value hint">
+                            <i class="icon16 exclamation"></i>Список выходных и рабочих дней редактируется в настройках кампании в личном кабинете «Яндекс.Маркета».
+                            Данные на этой странице обновляются раз в сутки.<br>
+                            После изменения графика работы в кабинете «Яндекс.Маркета» проверьте правильность отображения графика на этой странице. Если данные не обновились, очистите кеш в «<a href="{$wa_backend_url}installer/?module=settings">Инсталлере</a>».
+                        </div>
+                    </div>
+                    {/if}
                     <div class="field">
                         <div class="name">
                             Дни и время приема и доставки заказов
@@ -251,20 +274,28 @@
 
                         {$_week_days = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']}
                         {foreach $_week_days as $_day => $_name}
-                            <div class="value js-delivery-time-options">
+                            <div class="value js-delivery-time-options{if !empty($_schedule.weeklyHolidays) && in_array($_day+1,$_schedule.weeklyHolidays)} grey{/if}">
                                 <input type="text" placeholder="17" class="numerical short" size="2"
                                    name="campaign[order_before_per_day][{$_day}][before]"
                                    value="{$campaign.order_before_per_day[$_day]|default:$campaign.order_before|default:24|escape}"
                                 >&nbsp;<label>
                                     <input type="checkbox" name="campaign[order_before_per_day][{$_day}][workday]" value="1"
+
                                         {if !empty($campaign.order_before_per_day[$_day])} checked="checked"{/if}>&nbsp;{$_name|escape}
                                 </label>
                             </div>
                         {/foreach}
                         <div class="value">
-                            <span class="hint">Дни и время приема и доставки заказов. Указанные сроки и условия доставки действуют до наступления указанного времени только по указанным дням. Это правило относится и к точкам продаж
-справочника «Яндекс.Маркета», и ко всем видам доставки Shop-Script.
-                                <br/><i class="icon10 exclamation"></i>Настройки должны соответствовать настройкам в кабинете «Яндекс.Маркета», чтобы не возникло ошибок по качеству.</span>
+                            <span class="hint">
+                                Дни и время приема и доставки заказов. Серым цветом в списке дней недели отмечены еженедельные нерабочие дни.<br>
+                                Указанные сроки и условия доставки действуют до наступления указанного времени только в выбранные дни. Это правило относится и к точкам продаж
+                                справочника «Яндекс.Маркета», и ко всем видам доставки Shop-Script.<br>
+                                
+                                Время и день приема заказа игнорируются, если этот день в кабинете «Яндекс.Маркета» отмечен как <em>нерабочий</em>.
+                                Такой день можно не отключать на этой странице — ошибок по качеству не возникнет.<br>
+                                
+                                <i class="icon10 exclamation"></i>Другие настройки должны соответствовать настройкам в кабинете «Яндекс.Маркета», чтобы не возникло ошибок по качеству.
+                            </span>
                         </div>
                     </div>
 
@@ -403,6 +434,15 @@
                     </div>
                 </div>
                 {$wa->csrf()}
+{*
+                <div class="field-group">
+                    <div class="field">
+                        <div class="value">
+                            <pre>{$campaign_data|default:'-'|var_export:true|escape}</pre>
+                        </div>
+                    </div>
+                </div>
+*}
         </form>
     </div>
 {/if}
@@ -524,6 +564,29 @@
             toggle($scope.find('div.js-delivery-time-generic-options'), event, show_generic);
             toggle($scope.find('div.js-delivery-time-options'), event, show_options);
         }).change();
+
+
+        var $holidays = $form.find('div.js-holidays');
+
+        var holidays = $holidays.data('holidays');
+
+        $holidays.datepicker();
+        $holidays.datepicker("option", {
+            "dateFormat": 'dd-mm-yy',
+            'minDate': $holidays.data('from'),
+            'maxDate': $holidays.data('to'),
+            'numberOfMonths':2,
+                beforeShowDay: function (date) {
+                    if (holidays && holidays.length) {
+                        var string_date = $.datepicker.formatDate('dd-mm-yy', date);
+                        var holiday = holidays.indexOf(string_date) !== -1;
+                        return [!holiday, holiday ? 'ui-datepicker-holiday' : null];
+                    } else {
+                        return [true];
+                    }
+                }
+            });
+            $('.ui-datepicker').css('zIndex', 999999);
 
         /**
          * delivery method control
