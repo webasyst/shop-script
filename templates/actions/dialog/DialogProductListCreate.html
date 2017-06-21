@@ -17,6 +17,7 @@
                             </div>
                         </div>
                         {$smarty.capture.frontend_url}
+                        {if !empty($event_dialog)}{foreach $event_dialog as $plugin_id => $plugin_html}{$plugin_html}{/foreach}{/if}
                     </div>
                     {$smarty.capture.ext_fields}
                     <div class="field-group">

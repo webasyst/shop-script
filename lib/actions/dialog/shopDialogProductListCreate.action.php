@@ -39,6 +39,16 @@ class shopDialogProductListCreateAction extends waViewAction
             $settings['routes'] = $parent['routes'];
         }
 
+        $new_category = array();
+        if ($parent){
+            $new_category['parent_id']=$parent['id'];
+        }
+        /**
+         * @event backend_category_dialog
+         * @param array $category
+         * @return array[string][string] $return[%plugin_id%] html output for dialog
+         */
+        $this->view->assign('event_dialog', wa()->event('backend_category_dialog', $new_category));
 
         $this->view->assign(array(
             'parent' => $parent,
