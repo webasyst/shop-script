@@ -95,6 +95,38 @@
     </div>
 {/foreach}
 
+{*
+ * Personal data processing settings
+ *}
+    <div class="field" id="service-agreemebt-settings-wrapper">
+        <div class="name">[`Personal data processing`]</div>
+        <div class="value">
+            <label>
+                <input type="radio" name="config[service_agreement]" value=""{if empty($service_agreement.setting)} checked{/if}>
+                [`Do not require consent to personal data protection policy`]
+            </label>
+        </div>
+        <div class="value">
+            {$link_tag = sprintf('<a href="%s">', _w('---INSERT A LINK HERE!---'))}
+            <label data-default-text="{sprintf_wp('By submitting this form I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
+                <input type="radio" name="config[service_agreement]" value="notice"{if ifset($service_agreement.setting) == 'notice'} checked{/if}>
+                [`Show only notice and link to policy`]
+            </label>
+        </div>
+        <div class="value">
+            <label data-default-text="{sprintf_wp('I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
+                <input type="radio" name="config[service_agreement]" value="checkbox"{if ifset($service_agreement.setting) == 'checkbox'} checked{/if}>
+                [`Show mandatory checkbox, notice, and link`]
+            </label>
+        </div>
+        <div class="hidden value text-editor">
+            <input type="checkbox" style="vertical-align:top;margin:0px 2px 90px 2px;float:left;" checked disabled>
+            <textarea name="config[service_agreement_hint]">{$service_agreement.text|escape}</textarea>
+            <br>
+            <span class="hint"><a href="javascript:void(0)" class="inline-link generalte-example-link"><b><i>[`Restore original text`]</i></b></a></span>
+        </div>
+    </div>
+
 </div>{* #s-checkout-contact-form-wrapper *}
 
 <script>(function() { "use strict";
@@ -375,4 +407,44 @@
             }
         }).find('input:checkbox').each(f);
     })();
+
+    //
+    // Service agreement settings wrapper
+    //
+    (function() {
+        var $wrapper = $('#service-agreemebt-settings-wrapper');
+        var $checkbox = $wrapper.find(':checkbox');
+        var $textarea = $wrapper.find('textarea');
+        var previous_default_text = null;
+
+        $wrapper.on('change', ':radio', function() {
+            if (!$textarea.val() || previous_default_text == $textarea.val()) {
+                setDefaultText();
+            }
+
+            switch(this.value) {
+                case 'notice':
+                    $checkbox.hide().closest('.value').show();
+                    break;
+                case 'checkbox':
+                    $checkbox.show().closest('.value').show();
+                    break;
+                default:
+                    $checkbox.closest('.value').hide();
+                    break;
+            }
+        }).find(':radio:checked').change();
+
+        $wrapper.on('mousedown', '.generalte-example-link', function(e) {
+            setDefaultText();
+            $textarea.focus();
+            return false;
+        });
+
+        function setDefaultText() {
+            previous_default_text = $wrapper.find(':radio:checked').closest('label').data('default-text') || '';
+            $textarea.val(previous_default_text);
+        }
+    }());
+
 })();</script>

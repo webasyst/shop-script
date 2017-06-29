@@ -1203,16 +1203,14 @@ SQL;
             }
         }
 
-        if ($options['tax'] && false) {
-            $params = array(
-                'shipping' => ifset($options['shipping_address'], array()),
-                'billing' => ifset($options['billing_address'], array()),
-            );
-            $raw_taxes = shopTaxes::apply($order_items, $params, $options['currency']);
-        }
-
         foreach ($order_items as $item) {
+
             $item['price'] = ifempty($item['price'], 0.0);
+            $item['price'] = shopHelper::workupValue($item['price'], 'price', $options['currency'], $options['order_currency']);
+
+            $item['total_discount'] = ifempty($item['total_discount'], 0.0);
+            $item['total_discount'] = shopHelper::workupValue($item['total_discount'], 'price', $options['currency'], $options['order_currency']);
+
             if ($options['weight']) {
                 if (empty($item['weight'])) {
                     $item['weight'] = null;
@@ -1227,20 +1225,21 @@ SQL;
 
                 $item['weight'] = shopHelper::workupValue($item['weight'], 'weight', $options['weight']);
             }
+
             $items[] = array(
                 'id'             => ifset($item['id']),
                 'name'           => ifset($item['name']),
                 'sku'            => ifset($item['sku_code']),
                 'tax_rate'       => ifset($item['tax_percent']),
                 'description'    => '',
-                'price'          => shopHelper::workupValue($item['price'], 'price', $options['currency'], $options['order_currency']),
+                'price'          => $item['price'],
                 'quantity'       => ifset($item['quantity'], 0),
                 'total'          => $item['price'] * $item['quantity'],
                 'type'           => ifset($item['type'], 'product'),
                 'product_id'     => ifset($item['product_id']),
                 'weight'         => ifset($item['weight']),
                 'weight_unit'    => $options['weight'],
-                'total_discount' => shopHelper::workupValue(ifset($item['total_discount'], 0.0), 'price', $options['currency'], $options['order_currency']),
+                'total_discount' => $item['total_discount'],
                 'discount'       => $item['quantity'] ? ($item['total_discount'] / $item['quantity']) : 0.0,
             );
 
@@ -1314,7 +1313,6 @@ SQL;
                 if (isset($item['total_discount'])) {
                     $item['total_discount'] = $item['total_discount'] * $rate;
                 }
-                //TODO check tax
                 unset($item);
             }
         }

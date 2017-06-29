@@ -10485,6 +10485,15 @@ msgstr "Если хотя бы одно из значений метатегов
 msgid "Amount of customer‘s bonuses accumulated with the “Loyalty program” enabled in store settings"
 msgstr "Количество бонусов, накопленных покупателем в рамках «Бонусной программы», включенной в настройках магазина"
 
+msgid "Total amount of money spent by a customer calculated in default currency. To add formatted amount expressed in the order currency, use <code>{shop_currency($customer.total_spent, null, $order.currency)}</code>."
+msgstr "Общая сумма денег в основной валюте, потраченная покупателем. Добавить форматированную сумму с обозначением валюты заказа: <code>{shop_currency($customer.total_spent, null, $order.currency)}</code>."
+
+msgid "Number of orders placed by a customer."
+msgstr "Количество заказов, оформленных покупателем."
+
+msgid "ID of last order placed by a customer. To add formatted order ID, use <code>{shopHelper::encodeOrderId($customer.last_order_id)}</code>."
+msgstr "ID последнего заказа, оформленного покупателем. Добавить форматированный ID заказа: <code>{shopHelper::encodeOrderId($customer.last_order_id)}</code>."
+
 msgid "Adding of a comment to an order in backend."
 msgstr "Добавление комментария к заказу в бекенде."
 
@@ -10532,3 +10541,33 @@ msgstr "Ошибка при взаимодействии со службой д�
 
 msgid "Courier shipping"
 msgstr "Доставка курьером"
+
+msgid "Personal data processing"
+msgstr "Обработка персональных данных"
+
+msgid "---INSERT A LINK HERE!---"
+msgstr "---ВСТАВЬТЕ СЮДА ССЫЛКУ НА ДОКУМЕНТ!---"
+
+msgid "I agree to %spersonal data protection policy%s"
+msgstr "Я согласен с %sполитикой обработки персональных данных%s"
+
+msgid "By submitting this form I agree to %spersonal data protection policy%s"
+msgstr "Нажимая на кнопку подтверждения, я соглашаюсь с %sполитикой обработки персональных данных%s"
+
+msgid "Do not require consent to personal data protection policy"
+msgstr "Не требовать согласия с политикой обработки персональных данных"
+
+msgid "Show only notice and link to policy"
+msgstr "Показывать только подсказку со ссылкой на политику"
+
+msgid "Show mandatory checkbox, notice, and link"
+msgstr "Предлагать включить обязательный флажок с подсказкой и ссылкой"
+
+msgid "Restore original text"
+msgstr "Восстановить стандартный текст"
+
+msgid "Show notice"
+msgstr "Показывать уведомление"
+
+msgid "Please confirm your agreement"
+msgstr "Подтвердите согласие с условиями"

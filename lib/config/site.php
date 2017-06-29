@@ -371,6 +371,9 @@ return array(
             '$customer.phone'                               => _w('Customer phone'),
             '$customer. …'                                  => _w('The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step'),
             '$customer.affiliate_bonus'                     => _w('Amount of customer‘s bonuses accumulated with the “Loyalty program” enabled in store settings'),
+            '$customer.total_spent'                         => _w('Total amount of money spent by a customer calculated in default currency. To add formatted amount expressed in the order currency, use <code>{shop_currency($customer.total_spent, null, $order.currency)}</code>.'),
+            '$customer.number_of_orders'                    => _w('Number of orders placed by a customer.'),
+            '$customer.last_order_id'                       => _w('ID of last order placed by a customer. To add formatted order ID, use <code>{shopHelper::encodeOrderId($customer.last_order_id)}</code>.'),
             /** ADDRESSES **/
             '$shipping_address'                             => _w('Shipping address as string'),
             '$billing_address'                              => _w('Billing address as string'),
@@ -443,6 +446,9 @@ return array(
             '$customer->get(\'phone\', \'default\')'        => _w('Customer phone'),
             '$customer. …'                                  => _w('The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step'),
             '$customer.affiliate_bonus'                     => _w('Amount of customer‘s bonuses accumulated with the “Loyalty program” enabled in store settings'),
+            '$customer.total_spent'                         => _w('Total amount of money spent by a customer calculated in default currency. To add formatted amount expressed in the order currency, use <code>{shop_currency($customer.total_spent, null, $order.currency)}</code>.'),
+            '$customer.number_of_orders'                    => _w('Number of orders placed by a customer.'),
+            '$customer.last_order_id'                       => _w('ID of last order placed by a customer. To add formatted order ID, use <code>{shopHelper::encodeOrderId($customer.last_order_id)}</code>.'),
             /** ADDRESSES **/
             '$shipping_address'                             => _w('Shipping address as string'),
             '$billing_address'                              => _w('Billing address as string'),

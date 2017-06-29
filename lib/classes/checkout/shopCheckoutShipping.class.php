@@ -579,31 +579,23 @@ class shopCheckoutShipping extends shopCheckout
 
     public function getOptions($config)
     {
-        $html = '
-<div class="field">
-    <div class="name">
-        <p>'._w('Prompt for address').'</p>
-    </div>
-    <div class="value">
-        <p>'._w('During the “Shipping” checkout step, when customer selects a preferred shipping option but shipping address was not yet entered, instantly prompt customer to provide:').'</p>
-    </div>
-    <div class="value no-shift">
-        <label><input '.(empty($config['prompt_type']) ? 'checked' : '').' name="config[prompt_type]" type="radio" value="0"> '._w('All address fields required by the selected shipping option').'</label>
-        <p class="hint">'._w('Prompt for all address fields according to the selected shipping option implementation. If you use this option and have “Shipping” prior to “Contact info” in the checkout step order, it is advisable to hide (disable) shipping address form on the “Contact Info” checkout step to avoid asking for address twice.').'</p>
-    </div>
-    <div class="value no-shift">
-        <label><input '.(!empty($config['prompt_type']) ? 'checked' : '').' name="config[prompt_type]" type="radio" value="1"> '._w('Only fields required for shipping rate estimation').'</label>
-        <p class="hint">'._w('Prompt for fields required for shipping rate and delivery date estimation only (shipping option implementation declares the list of such fields). This is a suitable setup option if you have “Shipping” prior to “Contact info” in the checkout step order setup.').'</p>
-    </div>
-    <div class="value no-shift">
-        <p class="hint italic">'._w('This list of address fields is configured in the “Contact info” step settings.').'<br></p>
-    </div>
-</div>
-    ';
-
-        return $html;
+        $view = wa()->getView();
+        $view->assign(array(
+            'config' => $config,
+        ));
+        return $view->fetch(wa()->getAppPath('templates/actions/settings/SettingsCheckoutShipping.html', 'shop'));
     }
 
+    public function setOptions($config)
+    {
+        if (empty($config['service_agreement'])) {
+            unset($config['service_agreement_hint']);
+        } else if (isset($config['service_agreement_hint'])) {
+            $config['service_agreement_hint'] = trim($config['service_agreement_hint']);
+        }
+        unset($config['service_agreement']);
+        return $config;
+    }
 
     protected function getCustomFields($id, waShipping $plugin)
     {

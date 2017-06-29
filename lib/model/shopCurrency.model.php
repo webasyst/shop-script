@@ -99,6 +99,9 @@ class shopCurrencyModel extends waModel
         if ($from == $to) {
             return $price;
         }
+        if (!$price) {
+            return $price;
+        }
         $currencies = $this->getCurrencies(array($from, $to));
         if (!isset($currencies[$from])) {
             throw new waException("Unknown currency: $from");

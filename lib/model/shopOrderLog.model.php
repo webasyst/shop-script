@@ -10,6 +10,9 @@ class shopOrderLogModel extends waModel
         if (!isset($data['contact_id'])) {
             $data['contact_id'] = wa()->getUser()->getId();
         }
+        if (isset($data['id'])) {
+            unset($data['id']);
+        }
         $log_id = $this->insert($data);
         if (!empty($data['params'])) {
             $params_model = new shopOrderLogParamsModel();
@@ -18,9 +21,9 @@ class shopOrderLogModel extends waModel
             foreach ($data['params'] as $name => $value) {
                 $params[] = array(
                     'order_id' => $order_id,
-                    'log_id' => $log_id,
-                    'name' => $name,
-                    'value' => $value
+                    'log_id'   => $log_id,
+                    'name'     => $name,
+                    'value'    => $value,
                 );
             }
             $params_model->multipleInsert($params);
@@ -42,9 +45,9 @@ class shopOrderLogModel extends waModel
         $data = $this->query($sql, array('order_id' => $order_id))->fetchAll('id');
         foreach ($data as &$row) {
             $contact = array(
-                'firstname' => $row['contact_firstname'],
+                'firstname'  => $row['contact_firstname'],
                 'middlename' => $row['contact_middlename'],
-                'lastname' => $row['contact_lastname']
+                'lastname'   => $row['contact_lastname'],
             );
             $row['contact_name'] = waContactNameField::formatName($contact);
             $row['params'] = array();
@@ -53,7 +56,7 @@ class shopOrderLogModel extends waModel
 
         $log_params_model = new shopOrderLogParamsModel();
         $params = $log_params_model->getByField('order_id', $order_id, true);
-        foreach($params as $p) {
+        foreach ($params as $p) {
             if (!isset($data[$p['log_id']])) {
                 continue;
             }

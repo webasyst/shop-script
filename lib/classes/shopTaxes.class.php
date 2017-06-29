@@ -6,6 +6,7 @@ class shopTaxes
     /**
      * @param array $items order items to modify
      * @param array $params 'billing' => array(...), 'shipping' => array(...), 'discount_rate' => float
+     * @param string $currency
      * @return array : tax_id => array ( rate => float, included => bool, name => string )
      */
     public static function apply(&$items, $params, $currency = null)
@@ -14,7 +15,7 @@ class shopTaxes
         $discount_rate = ifset($params['discount_rate'], 0);
         $tax_ids = array();
         $parent_tax_id = null;
-        foreach($items as &$i) {
+        foreach ($items as &$i) {
             if ($i['type'] == 'product') {
                 $parent_tax_id = isset($i['product']['tax_id']) ?
                     $i['product']['tax_id'] :
@@ -29,7 +30,7 @@ class shopTaxes
                         $tax_ids[] = $i['tax_id'] = $parent_tax_id;
                     }
                 } else {
-                   $tax_ids[] = $i['tax_id'] = $i['service']['tax_id'];
+                    $tax_ids[] = $i['tax_id'] = $i['service']['tax_id'];
                 }
             } elseif (!empty($i['tax_id'])) {
                 $tax_ids[] = $i['tax_id'];
@@ -49,7 +50,7 @@ class shopTaxes
         $tm = new shopTaxModel();
         $trm = new shopTaxRegionsModel();
         $taxes = $tm->getById($tax_ids);
-        foreach($taxes as $t) {
+        foreach ($taxes as $t) {
             $result[$t['id']] = array(
                 'rate' => 0.0,
                 'included' => $t['included'],
@@ -71,14 +72,14 @@ class shopTaxes
             }
 
             $tzcm = new shopTaxZipCodesModel();
-            foreach($tzcm->getByZip($addresses[$addr_type]['zip'], $addr_type, $tax_ids) as $tax_id => $rate) {
+            foreach ($tzcm->getByZip($addresses[$addr_type]['zip'], $addr_type, $tax_ids) as $tax_id => $rate) {
                 $result[$tax_id]['rate'] = $rate;
                 $result[$tax_id]['name'] = $taxes[$tax_id]['name'];
             }
         }
 
         // Compute tax values for each item, and total tax
-        foreach($items as &$i) {
+        foreach ($items as &$i) {
             $tax_id = ifempty($i['tax_id']);
             $i['tax_percent'] = ifset($result[$tax_id]['rate'], 0.0);
             $i['tax_included'] = ifset($result[$tax_id]['included']);
@@ -94,7 +95,7 @@ class shopTaxes
 
             if ($i['tax_included']) {
                 $result[$tax_id]['sum_included'] += $i['tax'];
-            } elseif  ($i['tax']) {
+            } elseif ($i['tax']) {
                 $result[$tax_id]['sum'] += $i['tax'];
             }
         }
@@ -213,7 +214,7 @@ class shopTaxes
         $tzcm->deleteByField('tax_id', $tax['id']);
         if (!empty($tax_data['zip_codes']) && is_array($tax_data['zip_codes'])) {
             $rows = array();
-            foreach($tax_data['zip_codes'] as $code => $rate) {
+            foreach ($tax_data['zip_codes'] as $code => $rate) {
                 if (!$code) {
                     continue;
                 }
@@ -238,13 +239,13 @@ class shopTaxes
         $trm->deleteByField('tax_id', $tax['id']);
         if (!empty($tax_data['countries']) && is_array($tax_data['countries'])) {
             $region_rates = array();
-            foreach($tax_data['countries'] as $country_iso3 => $country_data) {
+            foreach ($tax_data['countries'] as $country_iso3 => $country_data) {
                 $country_global_rate = (float) str_replace(',', '.', ifempty($country_data['global_rate'], '0'));
 
                 $no_region_added = true;
                 $params_added = false;
                 if (!empty($country_data['regions']) && is_array($country_data['regions'])) {
-                    foreach($country_data['regions'] as $region_code => $region_data) {
+                    foreach ($country_data['regions'] as $region_code => $region_data) {
                         if (is_array($region_data)) {
                             $tax_value_modifier = ifempty($region_data['tax_value_modifier']);
                             $tax_value = (float) str_replace(',', '.', ifempty($region_data['tax_value'], '0'));

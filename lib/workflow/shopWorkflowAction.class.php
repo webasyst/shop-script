@@ -164,6 +164,9 @@ HTML;
         $order = $this->getOrder($order_id);
 
         $data = is_array($result) ? $result : array();
+        if (isset($data['id'])) {
+            unset($data['id']);
+        }
         $data['order_id'] = $order_id;
         $data['action_id'] = $this->getId();
 

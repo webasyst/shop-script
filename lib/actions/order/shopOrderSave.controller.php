@@ -694,9 +694,9 @@ class shopOrderSaveController extends waJsonController
 
         $order_currency = $this->getModel()->select('currency')->where('id=?', $order_id)->fetchField();
         if ($product_ids) {
-            $products = $this->getFields($product_ids, 'product', 'name,tax_id, currency');
+            $products = $this->getFields($product_ids, 'product', 'name, tax_id, currency');
             $skus = $this->getFields($sku_ids, 'product_skus', 'name, sku, purchase_price');
-            $services = $this->getFields($service_ids, 'service', 'name,tax_id');
+            $services = $this->getFields($service_ids, 'service', 'name, tax_id');
             $variants = $this->getFields($variant_ids, 'service_variants');
             foreach ($data['items'] as &$item) {
                 // items with id mean for updating (old items)
