@@ -192,6 +192,8 @@ ul.menu-h.product-internal.top-padded { margin-top: 2.5em; }
 .checkout ul.checkout-options li .wa-form { margin-top: 0px; margin-bottom: 30px; }
 .checkout ul.checkout-options li .wa-form label input[type="radio"] { position: static; }
 
+.checkout .wa-form .wa-field.wa-field-address .wa-field-address-zip input { min-width: 100px; width: 20%; }
+
 .checkout .checkout-result { padding: 80px 0 60px; background: #fff; text-align: center; }
 .checkout .checkout-result h1 { font-size: 4em; margin-bottom: 50px; }
 .checkout .checkout-result.error h1 { color: red; }

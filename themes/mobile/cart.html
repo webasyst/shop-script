@@ -122,7 +122,7 @@
                     {if shopDiscounts::isEnabled('coupons')}
                         <div {if !$coupon_code}style="display: none;"{/if} id="apply-coupon-code">
                             <div class="header-block">[`Coupon code`]</div>
-                            {if $coupon_code && empty($coupon_discount)}
+                            {if $coupon_code && empty($coupon_discount) && empty($coupon_free_shipping)}
                                 <div class="errormsg">[`Invalid coupon code`]</div>
                             {/if}
                             <div class="">

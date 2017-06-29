@@ -58,6 +58,23 @@
                 })();</script>
             {/if}
 
+            {if !empty($checkout_steps.contactinfo.service_agreement) && !empty($checkout_steps.contactinfo.service_agreement_hint)}
+                <div class="wa-field">
+                    <div class="wa-value">
+                        <label>
+                            {if $checkout_steps.contactinfo.service_agreement == 'checkbox'}
+                                <input type="hidden" name="service_agreement" value="">
+                                <input type="checkbox" name="service_agreement" value="1"{if $wa->post('service_agreement')} checked{/if}>
+                            {/if}
+                            {$checkout_steps.contactinfo.service_agreement_hint}
+                        </label>
+                        {if !empty($errors.service_agreement)}
+                            <em class="error">{$errors.service_agreement|escape}</em>
+                        {/if}
+                    </div>
+                </div>
+            {/if}
+
             <script type="text/javascript">
                 $(function () {
                     FB.getLoginStatus(function (response) {
@@ -87,7 +104,7 @@
                     <label><input type="checkbox" {if $wa->post('create_user')}checked{/if} id="create-user" name="create_user" value="1"> [`Create permanent user account`]</label>
                     {if shopAffiliate::isEnabled()}
                         <p class="hint">
-                            [`Registered customers apply for affiliate bonuses and discounts on future orders.`]                    
+                            [`Registered customers apply for affiliate bonuses and discounts on future orders.`]
                             {$add_affiliate_bonus = round(shopAffiliate::calculateBonus(['items' => $wa->shop->cart->items(), 'total' => $wa->shop->cart->total()]), 2)}
                             {if !empty($add_affiliate_bonus)}
                                 {sprintf("[`This order will add +%s points to your affiliate bonus.`]", $add_affiliate_bonus)}
@@ -152,7 +169,7 @@
             {/if}
         </div>
     </div>
-    
+
     <!-- plugin hook: 'frontend_checkout' -->
     {* @event frontend_checkout.%plugin_id% *}
     {foreach $frontend_checkout as $_}{$_}{/foreach}
@@ -160,5 +177,5 @@
     {if !empty($error)}
     <div class="checkout-result error">{$error}</div>
     {/if}
-        
+
 </div>
