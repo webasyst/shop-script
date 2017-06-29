@@ -58,6 +58,23 @@
                 })();</script>
             {/if}
 
+            {if !empty($checkout_steps.contactinfo.service_agreement) && !empty($checkout_steps.contactinfo.service_agreement_hint)}
+                <div class="wa-field">
+                    <div class="wa-value">
+                        <label>
+                            {if $checkout_steps.contactinfo.service_agreement == 'checkbox'}
+                                <input type="hidden" name="service_agreement" value="">
+                                <input type="checkbox" name="service_agreement" value="1"{if $wa->post('service_agreement')} checked{/if}>
+                            {/if}
+                            {$checkout_steps.contactinfo.service_agreement_hint}
+                        </label>
+                        {if !empty($errors.service_agreement)}
+                            <em class="error">{$errors.service_agreement|escape}</em>
+                        {/if}
+                    </div>
+                </div>
+            {/if}
+
             {if $wa->isAuthEnabled() && !$wa->user()->isAuth()}
             <div class="wa-field">
                 <div class="wa-value">

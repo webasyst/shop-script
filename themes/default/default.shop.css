@@ -470,6 +470,7 @@ input.error, textarea.error { border: 2px solid red; }
 .checkout .wa-form .wa-field .wa-name { padding-top: 0.3em; }
 .checkout .wa-form .wa-field.wa-field-email .wa-value input { min-width: 300px; }
 .checkout .wa-form .wa-field.wa-field-birthday .wa-value select { margin-right: 5px;  }
+.checkout .wa-form .wa-field.wa-field-address p { margin: 0; }
 .checkout .wa-form .wa-field.wa-field-address .wa-field-address-zip input { min-width: 100px; width: 20%; }
 
 
