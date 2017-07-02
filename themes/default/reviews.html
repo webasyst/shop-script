@@ -24,6 +24,7 @@
         
             {include file="product.cart.html" inline}
             
+            {if $theme_settings.compare_products}
             <!-- compare -->
             {$compare = $wa->shop->inComparison($product.id)}
             <div>
@@ -31,6 +32,7 @@
                 <a {if !$compare}style="display:none"{/if} class="compare-remove inline-link" data-product="{$product.id}" href="#"><b><i>[`Remove from comparison table`]</i></b></a>
                 <a id="compare-link" {if count($compare) lt 2}style="display:none"{/if} rel="nofollow" href="{$wa->getUrl('/frontend/compare/', ['id' => implode(',', $compare) ])}" class="bold">[`Compare`] <span class="count">{count($compare)}</span></a>
             </div>
+            {/if}
             
             <!-- plugin hook: 'frontend_product.cart' -->
             {* @event frontend_product.%plugin_id%.cart *}
