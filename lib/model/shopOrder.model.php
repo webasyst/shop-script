@@ -509,20 +509,23 @@ SQL;
 
     public function returnProductsToStocks($order_id)
     {
-        $order_params_model = new shopOrderParamsModel();
-        $reduced = $order_params_model->isReduced($order_id);
-        if (!$reduced) {
-            return;
+        $app_settings_model = new waAppSettingsModel();
+        if (!$app_settings_model->get('shop', 'disable_stock_count')) {
+            $order_params_model = new shopOrderParamsModel();
+            $reduced = $order_params_model->isReduced($order_id);
+            if (!$reduced) {
+                return;
+            }
+
+            $items_model = new shopOrderItemsModel();
+            $items = $items_model->select('*')->where("type='product' AND order_id = ".(int)$order_id)->fetchAll();
+
+            $items_stocks = $items_model->correctItemsStocks($items, $order_id, true);
+
+            $items_model->updateStockCount($items_stocks);
+            $order_params_model->unsetReduced($order_id);
+            $order_params_model->incReturnTimes($order_id);
         }
-
-        $items_model = new shopOrderItemsModel();
-        $items = $items_model->select('*')->where("type='product' AND order_id = ".(int)$order_id)->fetchAll();
-
-        $items_stocks = $items_model->correctItemsStocks($items, $order_id, true);
-
-        $items_model->updateStockCount($items_stocks);
-        $order_params_model->unsetReduced($order_id);
-        $order_params_model->incReturnTimes($order_id);
     }
 
     public function reduceProductsFromStocks($order_id)

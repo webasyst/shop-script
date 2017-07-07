@@ -9,8 +9,12 @@ class shopWorkflowProcessAction extends shopWorkflowAction
         if ($order_id != null) {
             $this->waLog('order_process', $order_id);
             $app_settings_model = new waAppSettingsModel();
-            if (!$app_settings_model->get('shop', 'update_stock_count_on_create_order') ||
-                $data['before_state_id'] == 'refunded') {
+            if (!$app_settings_model->get('shop', 'disable_stock_count')
+                && (
+                    !$app_settings_model->get('shop', 'update_stock_count_on_create_order') ||
+                    ($data['before_state_id'] == 'refunded')
+                )
+            ) {
                 // for logging changes in stocks
                 shopProductStocksLogModel::setContext(
                     shopProductStocksLogModel::TYPE_ORDER,

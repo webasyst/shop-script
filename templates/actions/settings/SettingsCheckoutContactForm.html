@@ -98,7 +98,7 @@
 {*
  * Personal data processing settings
  *}
-    <div class="field" id="service-agreemebt-settings-wrapper">
+    <div class="field" id="service-agreement-settings-wrapper">
         <div class="name">[`Personal data processing`]</div>
         <div class="value">
             <label>
@@ -107,7 +107,7 @@
             </label>
         </div>
         <div class="value">
-            {$link_tag = sprintf('<a href="%s">', _w('---INSERT A LINK HERE!---'))}
+            {$link_tag = sprintf('<a href="%s" target="_blank">', _w('---INSERT A LINK HERE!---'))}
             <label data-default-text="{sprintf_wp('By submitting this form I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
                 <input type="radio" name="config[service_agreement]" value="notice"{if ifset($service_agreement.setting) == 'notice'} checked{/if}>
                 [`Show only notice and link to policy`]
@@ -412,7 +412,7 @@
     // Service agreement settings wrapper
     //
     (function() {
-        var $wrapper = $('#service-agreemebt-settings-wrapper');
+        var $wrapper = $('#service-agreement-settings-wrapper');
         var $checkbox = $wrapper.find(':checkbox');
         var $textarea = $wrapper.find('textarea');
         var previous_default_text = null;

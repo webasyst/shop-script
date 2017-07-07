@@ -210,7 +210,9 @@ class shopConfig extends waAppConfig
                          'map'                   => 'google',
                          'gravatar_default'      => 'custom',
                          'require_captcha'       => 1, // is captcha is required for add reviews
-                         'require_authorization' => 0 // is authorization is required for add reviews
+                         'require_authorization' => 0, // is authorization is required for add reviews
+                         'review_service_agreement'      => '',
+                         'review_service_agreement_hint' => '',
                      ) as $k => $value) {
                 $settings[$k] = isset($all_settings[$k]) ? $all_settings[$k] : $value;
             }

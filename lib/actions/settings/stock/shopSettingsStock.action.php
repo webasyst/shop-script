@@ -10,8 +10,19 @@ class shopSettingsStockAction extends waViewAction
         list($plugins_html, $rule_condition_types) = $this->processEvent($stocks, $rules);
         $rule_groups = $stock_rules_model->prepareRuleGroups($rules);
 
+        $app_settings_model = new waAppSettingsModel();
+        if ($app_settings_model->get('shop', 'disable_stock_count')) {
+            $stock_counting_action = 'none';
+        } elseif ($app_settings_model->get('shop', 'update_stock_count_on_create_order')) {
+            $stock_counting_action = 'create';
+        } else {
+            $stock_counting_action = 'processing';
+        }
+
+
         $this->view->assign(array(
             'stocks'                 => $stocks,
+            'stock_counting_action'  => $stock_counting_action,
             'plugins_html'           => $plugins_html,
             'rule_condition_types'   => $rule_condition_types,
             'storefront_rule_groups' => self::getStorefrontRuleGroups($stocks),

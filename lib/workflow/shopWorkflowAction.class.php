@@ -247,6 +247,15 @@ HTML;
          * @param array [string]int $data['before_state_id']
          * @param array [string]int $data['after_state_id']
          * @param array [string]int $data['id'] Order log record id
+         * @param array [string]mixed $data['callback_transaction_data'] payment gateway callback formalized data for order_action.callback event
+         * @param array [string][string]string $data['callback_transaction_data']['plugin']
+         * @param array [string][string]mixed $data['callback_transaction_data']['merchant_id']
+         * @param array [string][string]string $data['callback_transaction_data']['date_time'] datetime in 'Y-m-d H:i:s' format
+         * @param array [string][string]string $data['callback_transaction_data']['update_datetime'] datetime in 'Y-m-d H:i:s' format
+         * @param array [string][string]mixed $data['callback_transaction_data']['order_id']
+         * @param array [string][string]string $data['callback_transaction_data']['type'] callback operation type waPayment::OPERATION_*
+         * @param array [string][string]string $data['callback_transaction_data']['state'] callback operation state waPayment::STATE_*
+         *
          */
         wa('shop')->event('order_action.'.$this->getId(), $data);
         return $data;

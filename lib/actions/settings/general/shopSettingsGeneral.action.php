@@ -146,7 +146,9 @@ class shopSettingsGeneralAction extends waViewAction
             'gravatar_default'      => waRequest::post('gravatar_default', '', waRequest::TYPE_STRING_TRIM),
             'require_captcha'       => waRequest::post('require_captcha', 0, waRequest::TYPE_INT),
             'require_authorization' => waRequest::post('require_authorization', 0, waRequest::TYPE_INT),
-            'lazy_loading'          => waRequest::post('lazy_loading', 0, waRequest::TYPE_INT)
+            'lazy_loading'          => waRequest::post('lazy_loading', 0, waRequest::TYPE_INT),
+            'review_service_agreement'      => waRequest::post('review_service_agreement', '', waRequest::TYPE_STRING),
+            'review_service_agreement_hint' => waRequest::post('review_service_agreement_hint', '', waRequest::TYPE_STRING),
         );
         if (waRequest::post('map')) {
             $data['map'] = waRequest::post('map', '', waRequest::TYPE_STRING_TRIM);

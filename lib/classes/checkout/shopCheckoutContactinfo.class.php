@@ -244,11 +244,14 @@ class shopCheckoutContactinfo extends shopCheckout
         }
 
         $agreed = waRequest::request('service_agreement');
-        if (!$agreed && null !== $agreed) {
-            wa()->getView()->assign('errors', array(
-                'service_agreement' => _w('Please confirm your agreement'),
-            ));
-            return false;
+        if ($agreed !== null) {
+            wa()->getStorage()->set('shop_checkout_contactinfo_agreement', !!$agreed);
+            if (!$agreed) {
+                wa()->getView()->assign('errors', array(
+                    'service_agreement' => _w('Please confirm your agreement'),
+                ));
+                return false;
+            }
         }
 
         return true;

@@ -599,6 +599,7 @@ class shopPayment extends waAppPayment
 
             if (empty($transaction_data['customer_id']) && !empty($order['contact_id'])) {
                 $result['customer_id'] = $order['contact_id'];
+                $transaction_data['customer_id'] = $order['contact_id'];
             }
             if (empty($result['error'])) {
                 $callback->run($transaction_data);

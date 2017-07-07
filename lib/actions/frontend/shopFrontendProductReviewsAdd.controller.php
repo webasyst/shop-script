@@ -35,8 +35,9 @@ class shopFrontendProductReviewsAddController extends waJsonController
         $product = $this->getProduct();
 
         $data = $this->getData($product['id']);
-        $errors = $this->model->validate($data);
-        $this->errors += $errors;
+        $this->errors += $this->model->validate($data);
+        $this->errors += $this->checkServiceAgreement();
+
         if ($this->errors) {
             return false;
         }
@@ -105,6 +106,23 @@ class shopFrontendProductReviewsAddController extends waJsonController
             'datetime' => date('Y-m-d H:i:s'),
             'status' => shopProductReviewsModel::STATUS_PUBLISHED
         ) + $this->getContactData();
+    }
+
+    protected function checkServiceAgreement()
+    {
+        $agreed = waRequest::request('service_agreement');
+        if ($agreed === null) {
+            return array();
+        }
+
+        wa()->getStorage()->set('shop_review_agreement', !!$agreed);
+        if ($agreed) {
+            return array();
+        } else {
+            return array(
+                'service_agreement' => _w('Please confirm your agreement'),
+            );
+        }
     }
 
     private function getContactData()

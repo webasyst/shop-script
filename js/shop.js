@@ -349,18 +349,18 @@
                 rm = true;
             }
             var val = input.val();
+            input.attr('value', '').val('');
 
             var html = p.html();
             html = html.replace(/value(\s*?=\s*?['"][\s\S]*?['"])*/, '');
             html = html.replace(/type\s*?=\s*?['"]text['"]/, '');
             html = html.replace('input', 'textarea');
-            html = html.replace(/(\/\s*?>|>)/, '>' + val  + '</textarea>');
-
+            html = $.trim(html).replace(/\/\s*>$/, '>') + '</textarea>';
             if (rm) {
                 p.remove();
             }
 
-            return $(html);
+            return $(html).val(val);
 
         },
 
@@ -373,16 +373,17 @@
                 rm = true;
             }
             var val = textarea.val();
+            textarea.html('').val('');
 
             var html = p.html();
-            html = html.replace('textarea', 'input type="text" value="' + val + '"');
+            html = html.replace('textarea', 'input type="text" value=""');
             html = html.replace('</textarea>', '');
 
             if (rm) {
                 p.remove();
             }
 
-            return $(html);
+            return $(html).val(val);
         },
 
         confirmLeave: function (options) {

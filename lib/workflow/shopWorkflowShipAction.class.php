@@ -15,16 +15,19 @@ class shopWorkflowShipAction extends shopWorkflowEditshippingdetailsAction
         $this->waLog('order_ship', $order_id);
 
 
-        // for logging changes in stocks
-        shopProductStocksLogModel::setContext(
-            shopProductStocksLogModel::TYPE_ORDER,
-            'Order %s was shipped',
-            array('order_id' => $order_id)
-        );
+        $app_settings_model = new waAppSettingsModel();
+        if (!$app_settings_model->get('shop', 'disable_stock_count')) {
+            // for logging changes in stocks
+            shopProductStocksLogModel::setContext(
+                shopProductStocksLogModel::TYPE_ORDER,
+                'Order %s was shipped',
+                array('order_id' => $order_id)
+            );
 
-        $this->order_model->reduceProductsFromStocks($order_id);
+            $this->order_model->reduceProductsFromStocks($order_id);
 
-        shopProductStocksLogModel::clearContext();
+            shopProductStocksLogModel::clearContext();
+        }
 
         $params = array(
             'shipping_data' => waRequest::post('shipping_data'),

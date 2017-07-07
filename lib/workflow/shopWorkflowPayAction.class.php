@@ -107,8 +107,9 @@ class shopWorkflowPayAction extends shopWorkflowAction
 
         $app_settings_model = new waAppSettingsModel();
         $update_on_create = $app_settings_model->get('shop', 'update_stock_count_on_create_order');
+        $disable_stock_count = $app_settings_model->get('shop', 'disable_stock_count');
 
-        if (!$update_on_create) {
+        if (!$disable_stock_count && !$update_on_create) {
 
             // for logging changes in stocks
             shopProductStocksLogModel::setContext(

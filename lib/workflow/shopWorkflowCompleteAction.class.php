@@ -54,7 +54,7 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
             $app_settings_model = new waAppSettingsModel();
             $update_on_create = $app_settings_model->get('shop', 'update_stock_count_on_create_order');
 
-            if (!$update_on_create && $state_id == 'new') {
+            if (!$app_settings_model->get('shop', 'disable_stock_count') && !$update_on_create && $state_id == 'new') {
                 // jump through 'processing' state - reduce
 
                 // for logging changes in stocks
