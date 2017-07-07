@@ -59,12 +59,12 @@
             {/if}
 
             {if !empty($checkout_steps.contactinfo.service_agreement) && !empty($checkout_steps.contactinfo.service_agreement_hint)}
-                <div class="wa-field">
+                <div class="wa-field service-agreement-wrapper">
                     <div class="wa-value">
                         <label>
                             {if $checkout_steps.contactinfo.service_agreement == 'checkbox'}
                                 <input type="hidden" name="service_agreement" value="">
-                                <input type="checkbox" name="service_agreement" value="1"{if $wa->post('service_agreement')} checked{/if}>
+                                <input type="checkbox" name="service_agreement" value="1"{if $wa->post('service_agreement') || $wa->storage('shop_checkout_contactinfo_agreement')} checked{/if}>
                             {/if}
                             {$checkout_steps.contactinfo.service_agreement_hint}
                         </label>

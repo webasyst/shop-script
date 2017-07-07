@@ -129,7 +129,7 @@ $(function() {
 
     function showErrors(form, errors) {
         for (var name in errors) {
-            $('[name='+name+']', form).after($('<em class="errormsg"></em>').text(errors[name])).addClass('error');
+            $('[name='+name+']', form).last().addClass('error').parent().append($('<em class="errormsg"></em>').text(errors[name]));
         }
     };
 

@@ -151,6 +151,15 @@
                         {if $request_captcha && empty($current_user_id)}
                             {$wa->captcha()}
                         {/if}
+                        {if empty($current_user_id) && !empty($review_service_agreement) && !empty($review_service_agreement_hint)}
+                            <label class="service-agreement-wrapper">
+                                {if $review_service_agreement == 'checkbox'}
+                                    <input type="hidden" name="service_agreement" value="">
+                                    <input type="checkbox" name="service_agreement" value="1"{if $wa->post('service_agreement') || $wa->storage('shop_review_agreement')} checked{/if}>
+                                {/if}
+                                {$review_service_agreement_hint}
+                            </label>
+                        {/if}
                         <input type="submit" class="save" value="[`Add review`]">
                         <span class="review-add-form-status ajax-status" style="display: none;">
                             <i class="ajax-statuloading icon16 loading"><!--icon --></i>

@@ -911,6 +911,10 @@
   text-transform: uppercase;
   font-size: 0.8em;
 }
+.wa-shop-wrapper .shop-review-wrapper .review-form .review-field.service-agreement-wrapper label {
+  text-transform: none;
+  font-size: inherit;
+}
 .wa-shop-wrapper .shop-review-wrapper .review-form .review-field:first-child {
   margin-top: 0;
 }

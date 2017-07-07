@@ -61,9 +61,9 @@
                 <div class="wa-form wa-address" {if $m.id != $shipping.id}style="display:none"{/if}>
                     {$m.form->html()}
                     {if !empty($checkout_steps.shipping.service_agreement_hint)}
-                        <div class="wa-field">
+                        <div class="wa-field service-agreement-wrapper">
                             <div class="wa-value">
-                                <p class="hint">{$checkout_steps.shipping.service_agreement_hint}</span>
+                                <p class="hint">{$checkout_steps.shipping.service_agreement_hint}</p>
                             </div>
                         </div>
                     {/if}
