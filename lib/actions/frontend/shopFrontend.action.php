@@ -54,9 +54,13 @@ class shopFrontendAction extends waViewAction
             $page = 1;
         }
         $offset = ($page - 1) * $limit;
+        $count = $collection->count();
+
+        if($count <= $offset) {
+            throw new waException('Page not found', 404);
+        }
 
         $products = $collection->getProducts('*', $offset, $limit);
-        $count = $collection->count();
 
         $pages_count = ceil((float)$count / $limit);
         $this->view->assign('pages_count', $pages_count);
