@@ -175,6 +175,21 @@
                                     <span class="hint">Если выбрано «Не передавать», то «Яндекс.Маркет» будет использовать тип системы налогообложения из настроек магазина в личном кабинете.</span>
                                 </div>
                             </div>
+
+                            <div class="field">
+                                <div class="name">Ставка НДС для товаров</div>
+                                <div class="value no-shift">
+                                    <label>
+                                        <select name="campaign[offer_tax]">
+                                            <option value="NO_VAT"{if ifset($campaign.offer_tax)=='NO_VAT'} selected="selected"{/if}>НДС не облагается</option>
+                                            <option value=""{if empty($campaign.offer_tax)} selected="selected"{/if}>Передавать ставки НДС по каждой позиции</option>
+                                        </select>
+                                    </label>
+                                    <br/>
+                                    <span class="hint">Если ваша организация работает по ОСН, выберите вариант «Передавать ставки НДС по каждой позиции».<br />
+Ставка НДС может быть равна 0%, 10% или 18%. В настройках налогов Shop-Script выберите, чтобы НДС был включен в цену товара.</span>
+                                </div>
+                            </div>
         
                             <div class="field">
                                 <div class="name">Ставка НДС для доставки</div>

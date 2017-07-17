@@ -645,9 +645,10 @@ class shopYandexmarketPluginApiActions extends waActions
 
     private function fixVat($vat)
     {
+        $fix = false;
         if (empty($this->campaign['payment']['YANDEX'])) {
             $vat = null;
-        } else {
+        } elseif ($fix) {
             switch ($vat) {
                 case 'NO_VAT':
                     break;
@@ -680,11 +681,12 @@ class shopYandexmarketPluginApiActions extends waActions
 
     private function workupCartItem($item)
     {
+        $vat = empty($this->campaign['offer_tax']) ? $item['vat'] : $this->campaign['offer_tax'];
         $_item = array(
             'feedId'   => $item['raw_data']['feedId'],
             'offerId'  => $item['raw_data']['offerId'],
             'price'    => floatval($item['price']),
-            'vat'      => $this->fixVat($item['vat']),
+            'vat'      => $this->fixVat($vat),
             'count'    => (int)$item['quantity'],
             'delivery' => $item['_delivery'],
         );
