@@ -9,7 +9,7 @@ class shopYandexmarketPluginSettingsCampaignSaveController extends waJsonControl
 
         $section = waRequest::post('section');
 
-        switch($section) {
+        switch ($section) {
             case 'outlets':
                 $campaign = array(
                     'pickup_map' => ifset($campaign['pickup_map'], array()),
@@ -92,6 +92,7 @@ class shopYandexmarketPluginSettingsCampaignSaveController extends waJsonControl
                 $campaign['shipping_methods'] = $shipping_methods;
                 $campaign += array(
                     'over_sell'           => false,
+                    'tax_system'          => null,
                     'pickup'              => false,
                     'delivery'            => false,
                     'local_delivery_only' => false,

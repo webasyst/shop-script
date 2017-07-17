@@ -224,7 +224,7 @@ HTML;
                     $error = <<<HTML
 <br/>
 <i class="icon16 exclamation"></i>
-При обновлении статуса заказа №{$order['params']['yandexmarket.id']} на «Яндекс.Маркет» произошла ошибка <b>$code</b>: {$message}
+При обновлении статуса заказа №{$order['params']['yandexmarket.id']} на «Яндекс.Маркет» произошла ошибка <b>{$code}</b>: {$message}
 HTML;
                 }
             }

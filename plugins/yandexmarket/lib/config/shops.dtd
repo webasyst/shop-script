@@ -31,7 +31,7 @@
     order-before CDATA #IMPLIED>
 
 <!ELEMENT offers (offer+)>
-<!ELEMENT offer (url?, buyurl?, price, oldprice?, wprice?, currencyId, xCategory?, categoryId+, market_category?,
+<!ELEMENT offer (url?, buyurl?, price, oldprice?, wprice?, currencyId, vat?, xCategory?, categoryId+, market_category?,
                  picture*, store?, pickup?, delivery?, deliveryIncluded?, ((local_delivery_cost?, orderingTime?)|(delivery-options?))?,
                  ((typePrefix?, vendor, vendorCode?, model, (provider, tarifplan?)?) |
                   (author?, name, publisher?, series?, year?, ISBN?, volume?, part?, language?, binding?, page_extent?, table_of_contents?) |
@@ -85,6 +85,7 @@
 <!ELEMENT oldprice (#PCDATA)>
 <!ELEMENT wprice (#PCDATA)>
 <!ELEMENT currencyId (#PCDATA)>
+<!ELEMENT vat (#PCDATA)>
 <!ELEMENT categoryId (#PCDATA)>
 <!ATTLIST categoryId
     type (Yandex | Torg | Own) "Own" >

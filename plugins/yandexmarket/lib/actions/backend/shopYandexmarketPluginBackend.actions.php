@@ -138,6 +138,7 @@ class shopYandexmarketPluginBackendActions extends waViewActions
             'file_name'   => _w('Attachment'),
             'count'       => _w('In stock'),
             'type_id'     => _w('Product type'),
+            'tax_id'     => _w('Tax rates'),
         );
 
         $stock_model = new shopStockModel();

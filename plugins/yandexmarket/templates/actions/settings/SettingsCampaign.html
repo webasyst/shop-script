@@ -145,14 +145,50 @@
                                 Я подключил прием предоплаты к своему магазину на «Яндекс.Маркете».</label>
                             <br/>
                             <span class="hint">{*<i class="icon16 yes-bw"></i>*}
-                                Доступность предоплаты настраивается в настройках личного кабинета на сайте «Яндекс.Маркета».</span>
+                                Доступность предоплаты включается в настройках личного кабинета «Яндекс.Маркета». Для этого магазин должен работать по модели CPA.</span>
+                            <br />
+                            <span class="hint">
+                                Для заказов, предоплаченных на «Яндекс.Маркете», этот сервис сам выдает чеки покупателям и отправляет данные по ним в ФНС. Магазину не нужно дублировать отправку чеков ни в налоговую инспекцию, ни покупателю.</span>
                             <br/>
-                            <span class="hint">Проведение платежей обеспечивают «Яндекс.Деньги». Типы предоплаты (банковской картой, Яндекс.Деньгами) предлагаются на странице
-                                оформления заказа, только если магазин подключен к приему предоплаты.</span>
+                            <span class="hint">
+                                Типы предоплаты (банковской картой, «Яндекс.Деньгами») предлагаются на странице оформления заказа, только если магазин подключен к приему предоплаты. </span>
                             <br/>
-                            <span class="hint">Как подключить прием предоплаты по заказам с «Маркета», описано в
+                            <span class="hint">Как подключить прием предоплаты для заказов с «Маркета», описано в
                                 <a href="https://yandex.ru/support/partnermarket/purchase/prepaid-orders.xml" target="_blank">документации<i class="icon16 new-window"></i></a>.
                                 </span>
+                            
+                            <div class="field">
+                                <div class="name">Система налогообложения магазина</div>
+                                <div class="value no-shift">
+                                    <label>
+                                    <select name="campaign[tax_system]">
+                                        <option value=""{if empty($campaign.tax_system)} selected="selected"{/if}>Не передавать</option>
+                                        <option value="OSN"{if ifset($campaign.tax_system)=='OSN'} selected="selected"{/if}>Общая СН</option>
+                                        <option value="USN"{if ifset($campaign.tax_system)=='USN'} selected="selected"{/if}>Упрощенная СН (доходы)</option>
+                                        <option value="USN_MINUS_COST"{if ifset($campaign.tax_system)=='USN_MINUS_COST'} selected="selected"{/if}>Упрощенная СН (доходы минус расходы)</option>
+                                        <option value="ENVD"{if ifset($campaign.tax_system)=='ENVD'} selected="selected"{/if}>Единый налог на вмененный доход</option>
+                                        <option value="ECHN"{if ifset($campaign.tax_system)=='ECHN'} selected="selected"{/if}>Единый сельскохозяйственный налог</option>
+                                        <option value="PSN"{if ifset($campaign.tax_system)=='PSN'} selected="selected"{/if}>Патентная СН</option>
+                                    </select>
+                                    </label>
+                                    <br/>
+                                    <span class="hint">Если выбрано «Не передавать», то «Яндекс.Маркет» будет использовать тип системы налогообложения из настроек магазина в личном кабинете.</span>
+                                </div>
+                            </div>
+        
+                            <div class="field">
+                                <div class="name">Ставка НДС для доставки</div>
+                                <div class="value no-shift">
+                                    <label>
+                                        <select name="campaign[shipping_tax]">
+                                            <option value="NO_VAT"{if ifset($campaign.shipping_tax)=='NO_VAT'} selected="selected"{/if}>НДС не облагается</option>
+                                            <option value="VAT_0"{if ifset($campaign.shipping_tax)=='VAT_0'} selected="selected"{/if}>НДС 0%</option>
+                                            <option value="VAT_10"{if ifset($campaign.shipping_tax)=='VAT_10'} selected="selected"{/if}>НДС 10%</option>
+                                            <option value="VAT_18"{if ifset($campaign.shipping_tax)=='VAT_18'} selected="selected"{/if}>НДС 18%</option>
+                                        </select>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -199,7 +235,6 @@
                             <span class="errormsg"><i class="icon16 exclamation"></i>Выберите хотя бы один способ оплаты для способов доставки в секции «Условия доставки и оплаты».</span>
                         </div>
                     </div>
-
                 </div>
 
 
@@ -328,7 +363,7 @@
                             </label>
                             <br/>
                             <span class="hint">Если этот параметр включен, то заказы через «Маркет» вне домашнего регионы приниматься не будут.
-                                Домашний регион настраивается в личном кабинете в «Яндекс.Маркете».</span>
+                                Домашний регион настраивается в личном кабинете «Яндекс.Маркета».</span>
                         </div>
                     </div>
 
@@ -600,7 +635,7 @@
 
         $form.find(':input[name="campaign\\[payment\\]\\[YANDEX\\]"]:first').change(function (event) {
             payment['yandex'] = this.checked;
-
+            var $this = $(this);
             checkPayments($(this).parents('div.field-group:first'), event);
             $form.find('div.js-shipping-method').each(function () {
                 /**
@@ -611,6 +646,8 @@
                 $scope.find(':input[name$=\\[type\\]]').trigger('change');
                 checkPayments($scope, event);
             });
+            toggle($this.parents('div.value:first').find('div.field'), event, this.checked);
+
         }).change();
 
         $form.find(':input[name="campaign\\[payment\\]\\[CASH_ON_DELIVERY\\]"]:first').change(function (event) {

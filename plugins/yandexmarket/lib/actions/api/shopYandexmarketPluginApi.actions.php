@@ -52,25 +52,20 @@ class shopYandexmarketPluginApiActions extends waActions
         foreach ($order->items as $item) {
             $item_pickup = (!isset($item['pickup']) || !empty($item['pickup'])) && !empty($this->campaign['pickup']);
             $item_shipping = (!isset($item['delivery']) || !empty($item['delivery'])) && !empty($this->campaign['delivery']);
-            $item_delivery = ($item_shipping || $item_pickup) && !empty($item['sku_id']);
-            $items[] = array(
-                'feedId'   => $item['raw_data']['feedId'],
-                'offerId'  => $item['raw_data']['offerId'],
-                'price'    => floatval($item['price']),
-                'count'    => (int)$item['quantity'],
-                'delivery' => $delivery && $item_delivery,
-            );
+            $item['_delivery'] = $delivery && ($item_shipping || $item_pickup) && !empty($item['sku_id']);
+
+            $items[] = $this->workupCartItem($item);
+
             if (isset($item['delivery']) && empty($item['delivery'])) {
                 $pickup_only = true;
             }
-            if ($delivery && $item_delivery) {
+            if ($item['_delivery']) {
                 $total += floatval($item['price']) * (int)$item['quantity'];
             }
             $order->total = $total;
             unset($item);
             unset($item_pickup);
             unset($item_shipping);
-            unset($item_delivery);
         }
 
         $carriers = array();
@@ -105,17 +100,22 @@ class shopYandexmarketPluginApiActions extends waActions
             //'SHOP_PREPAID' — предоплата напрямую магазину (только для Украины).
         }
 
-        $array = array(
-            'cart' => array(
-                'items'           => $items,
-                'deliveryOptions' => array_values($carriers),
-                'paymentMethods'  => array_values($payments),
-            ),
+        $cart = array(
+            'items'           => $items,
+            'deliveryOptions' => array_values($carriers),
+            'paymentMethods'  => array_values($payments),
         );
+
+        if (!empty($this->campaign['tax_system'])) {
+            $cart['taxSystem'] = $this->campaign['tax_system'];
+        }
+
+        $response = compact('cart');
+
         if (false) {
             waLog::log(var_export(compact('order', 'array'), true), 'shop/plugins/yandexmarket/api.cart.debug.log');
         }
-        $this->sendApiResponse($array);
+        $this->sendApiResponse($response);
     }
 
     public function orderAcceptAction()
@@ -126,7 +126,7 @@ class shopYandexmarketPluginApiActions extends waActions
 
             //XXX check over_sell
             $order = array(
-                'contact'  => $raw_order->contact_id,
+                'contact'  => $raw_order->contact,
                 'items'    => array(),
                 'currency' => $raw_order->currency,
                 'params'   => array(),
@@ -134,7 +134,6 @@ class shopYandexmarketPluginApiActions extends waActions
 
             foreach ($raw_order['items'] as $item) {
                 if ($item['quantity']) {
-
 
                     $order['items'][] = array(
                         'name'           => ifset($item['name'], $item['raw_data']['offerName']),
@@ -145,6 +144,7 @@ class shopYandexmarketPluginApiActions extends waActions
                         'price'          => $item['price'],
                         'purchase_price' => $item['purchase_price'],
                         'quantity'       => $item['quantity'],
+                        'tax_id'         => ifset($item['tax_id']),
                     );
                 }
             }
@@ -396,7 +396,6 @@ class shopYandexmarketPluginApiActions extends waActions
             case 'application/json':
                 $json = json_decode($raw, true);
 
-
                 if (!$json || !is_array($json)) {
                     throw new waException('Invalid data');
                 }
@@ -644,6 +643,58 @@ class shopYandexmarketPluginApiActions extends waActions
         );
     }
 
+    private function fixVat($vat)
+    {
+        if (empty($this->campaign['payment']['YANDEX'])) {
+            $vat = null;
+        } else {
+            switch ($vat) {
+                case 'NO_VAT':
+                    break;
+                default:
+                    switch (ifset($this->campaign['tax_system'], '')) {
+                        case 'OSN':
+                            break;
+                        case 'USN':
+                        case 'USN_MINUS_COST':
+                            $vat = 'NO_VAT';
+                            break;
+                        default:
+                            $vat = null;
+                            break;
+                    }
+                    break;
+            }
+        }
+        return $vat;
+    }
+
+    private function workupCarrier(&$carrier)
+    {
+        $vat = $this->fixVat(ifset($this->campaign['shipping_tax'], 'NO_VAT'));
+        if (!empty($vat)) {
+            $carrier['vat'] = $vat;
+        }
+        return $carrier;
+    }
+
+    private function workupCartItem($item)
+    {
+        $_item = array(
+            'feedId'   => $item['raw_data']['feedId'],
+            'offerId'  => $item['raw_data']['offerId'],
+            'price'    => floatval($item['price']),
+            'vat'      => $this->fixVat($item['vat']),
+            'count'    => (int)$item['quantity'],
+            'delivery' => $item['_delivery'],
+        );
+        if (empty($_item['vat'])) {
+            unset($_item['vat']);
+        }
+
+        return $_item;
+    }
+
     private function workupOrderItems($items)
     {
         $product_ids = array();
@@ -746,6 +797,7 @@ class shopYandexmarketPluginApiActions extends waActions
                             'dates'          => $this->formatDeliveryDates($defaults, $order, true),
                             'paymentMethods' => $payment_methods,
                         );
+                        $this->workupCarrier($carriers['dummy']);
                     } else {
                         $debug['rates'][$shipping_id] = 'Only for home region';
                     }
@@ -791,6 +843,8 @@ class shopYandexmarketPluginApiActions extends waActions
                                                 'dates'          => $this->formatDeliveryDates($defaults, $order),
                                                 'paymentMethods' => $payment_methods,
                                             );
+
+                                            $this->workupCarrier($carriers[$id]);
 
                                             if (($carriers[$id]['type'] == 'POST')
                                                 && ($this->campaign['payment']['YANDEX'])
@@ -908,6 +962,8 @@ class shopYandexmarketPluginApiActions extends waActions
                             ),
                         ),
                     );
+
+                    $this->workupCarrier($carriers[$id]);
                 }
             }
         }

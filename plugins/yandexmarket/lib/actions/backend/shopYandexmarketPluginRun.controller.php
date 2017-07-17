@@ -128,8 +128,10 @@ class shopYandexmarketPluginRunController extends waLongActionController
                 'quantity'        => 0,
                 'price'           => false,
                 'purchase_price'  => false,
+                'vat'             => false,
                 'profile_id'      => $profile_id,
                 'currency'        => ifset($product['currency'], $currency),
+                'tax_id'          => ifset($product['tax_id']),
                 'raw_data'        => $item,
             );
         }
@@ -175,6 +177,7 @@ class shopYandexmarketPluginRunController extends waLongActionController
 
                 $item['purchase_price'] = ifset($sku['purchase_price']);
                 $item['price'] = ifset($offer['price'], false);
+                $item['vat'] = ifset($offer['vat'], false);
 
                 if (class_exists('shopRounding') && $converted) {
                     $item['price'] = shopRounding::roundCurrency($item['price'], $currency);
@@ -361,8 +364,15 @@ class shopYandexmarketPluginRunController extends waLongActionController
             if (empty($profile_id)) {
                 $profile_id = waRequest::param('profile_id');
             }
-            if (!$profile_id || !($profile = $profiles->getConfig($profile_id))) {
-                throw new waException('Profile not found'.$profile_id, 404);
+
+            if (!$profile_id) {
+                throw new waException('Missed profile id', 404);
+            }
+
+            $profile = $profiles->getConfig($profile_id);
+
+            if (empty($profile['config'])) {
+                throw new waException(sprintf('Profile %d not found', $profile_id), 404);
             }
 
             $profile_config = $profile['config'];
@@ -389,6 +399,8 @@ class shopYandexmarketPluginRunController extends waLongActionController
             unset($offer_map);
         }
 
+        $taxes = false;
+
         $feature_model = new shopFeatureModel();
 
         $setup_fields = array('name', 'description', 'help', 'required', 'function', 'sort', 'type', 'values', 'params', 'test', 'available_options');
@@ -407,14 +419,24 @@ class shopYandexmarketPluginRunController extends waLongActionController
                         }
                     }
 
-                    if ((strpos($field, 'param.') === 0) && isset($info['source'])) {
-                        switch (preg_replace('@:.+$@', '', $info['source'])) {
-                            case 'feature':
-                                $feature_code = preg_replace('@^[^:]+:@', '', $info['source']);
-                                if ($feature = $feature_model->getByCode($feature_code)) {
-                                    $info['source_name'] = $feature['name'];
-                                }
-                                break;
+                    if (isset($info['source'])) {
+                        if (strpos($info['source'], ':')) {
+                            list($source, $value) = explode(':', $info['source'], 2);
+                            switch ($source) {
+                                case 'feature':
+                                    if (strpos($field, 'param.') === 0) {
+                                        $feature_code = $value;
+                                        if ($feature = $feature_model->getByCode($feature_code)) {
+                                            $info['source_name'] = $feature['name'];
+                                        }
+                                    }
+                                    break;
+                                case 'field':
+                                    if ($value == 'tax_id') {
+                                        $taxes = true;
+                                    }
+                                    break;
+                            }
                         }
                     }
                 }
@@ -429,7 +451,60 @@ class shopYandexmarketPluginRunController extends waLongActionController
         }
 
         $profile_config['profile_id'] = $profile_id;
+
+        if (!empty($taxes)) {
+            $this->initTaxes($profile_config);
+        }
+
         return $profile_config;
+    }
+
+    private function initTaxes($profile_config)
+    {
+        $region_id = ifset($profile_config['home_region_id']);
+        $address = array(
+            'country' => null,
+            'region'  => null,
+        );
+
+        if ($region_id) {
+            //TODO use home region data
+        }
+
+        $result = array();
+        $tm = new shopTaxModel();
+        $trm = new shopTaxRegionsModel();
+        $taxes = $tm->getAll();
+        foreach ($taxes as $t) {
+
+            $result[$t['id']] = array(
+                'rate'     => 0.0,
+                'included' => $t['included'],
+                'name'     => $t['name'],
+            );
+
+            // Check if there are rates based on country and region
+            $result[$t['id']]['rate'] = $trm->getByTaxAddress($t['id'], $address);
+        }
+
+        $tax_ids = array_keys($result);
+
+        // Rates by zip code override rates by region, when applicable
+        $main_country = wa()->getSetting('country', null, 'shop');
+        foreach (array('shipping', 'billing') as $addr_type) {
+            // ZIP-based rates are only applied to main shop country
+            if (empty($address['zip']) || (!empty($address['country']) && $address['country'] !== $main_country)) {
+                continue;
+            }
+
+            $tzcm = new shopTaxZipCodesModel();
+            foreach ($tzcm->getByZip($address['zip'], $addr_type, $tax_ids) as $tax_id => $rate) {
+                $result[$tax_id]['rate'] = $rate;
+                $result[$tax_id]['name'] = $taxes[$tax_id]['name'];
+            }
+        }
+
+        $this->data['taxes'] = $result;
     }
 
     private function getAvailableCurrencies()
@@ -687,7 +762,7 @@ XML;
                     }
                 }
             }
-            if ($delivery_options_exists) {
+            if ($delivery_options_exists && !empty($delivery_options)) {
                 $shop->appendChild($delivery_options);
             }
 
@@ -1602,7 +1677,23 @@ SQL;
                     //it's already remapped
                     $value = $product['count'];
                 } else {
-                    $value = isset($product[$param]) ? $product[$param] : null;
+                    switch ($param) {
+                        case 'tax_id':
+                            if (!empty($product[$param])) {
+                                if (isset($this->data['taxes'][$product[$param]])) {
+                                    $value = $this->data['taxes'][$product[$param]]['rate'];
+                                } else {
+                                    $value = 0;
+                                }
+                            } else {
+                                $value = -1;
+                            }
+
+                            break;
+                        default:
+                            $value = isset($product[$param]) ? $product[$param] : null;
+                            break;
+                    }
                 }
 
                 if (!empty($this->data['export']['sku'])) {
@@ -1973,7 +2064,7 @@ SQL;
                 }
                 break;
             case 'fee':
-                if (!in_array($value, array('', 0,0.0, '0', null), true)) {
+                if (!in_array($value, array('', 0, 0.0, '0', null), true)) {
                     $value = round(100 * min(100, max(0, floatval($value))));
                 } else {
                     $value = null;
@@ -2021,6 +2112,9 @@ SQL;
                 $value = ifempty($this->data['schema'], 'http://').ifempty($this->data['base_url'], 'localhost').$value;
                 break;
             case 'oldprice':
+                /**
+                 * @see https://yandex.ru/support/partnermarket/oldprice.html
+                 */
                 if (empty($value) || empty($this->data['export']['compare_price'])) {
                     $value = null;
                     break;
@@ -2155,6 +2249,25 @@ SQL;
                     $value = (empty($value) || ($value === 'false')) ? 'false' : 'true';
                 } else {
                     $value = null;
+                }
+                break;
+            case 'vat':
+                /**
+                 * @see https://yandex.ru/support/partnermarket/elements/vat.html
+                 */
+                switch ($value) {
+                    case 18:
+                        $value = 'VAT_18';
+                        break;
+                    case 10:
+                        $value = 'VAT_10';
+                        break;
+                    case 0:
+                        $value = 'VAT_0';
+                        break;
+                    default:
+                        $value = 'NO_VAT';
+                        break;
                 }
                 break;
             case 'picture':

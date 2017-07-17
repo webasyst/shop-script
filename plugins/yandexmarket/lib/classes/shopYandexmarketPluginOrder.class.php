@@ -289,9 +289,16 @@ class shopYandexmarketPluginOrder extends waOrder
                 $contact['create_datetime'] = date('Y-m-d H:i:s');
                 $contact['create_app_id'] = 'shop';
 
+
+                if (!empty($data['shipping_address'])) {
+                    $contact['address.shipping'] = array_filter($data['shipping_address']);
+                }
                 $errors = $contact->save();
+                $save_contact = false;
                 if ($contact_id) {
                     waLog::log("Contact {$contact_id} was updated: ".var_export($buyer, true), 'shop/plugins/yandexmarket/order.log');
+                } else {
+                    waLog::log("Contact was created: ".var_export($buyer, true), 'shop/plugins/yandexmarket/order.log');
                 }
                 if ($errors) {
                     waLog::log('Error occurs during save contact: '.var_export($errors, true), 'shop/plugins/yandexmarket/order.error.log');
@@ -302,10 +309,25 @@ class shopYandexmarketPluginOrder extends waOrder
             }
         } else {
             $contact_id = $plugin->getSettings('contact_id');
+            $contact_id = null;
         }
-        if (empty($contact) && $contact_id) {
+        if (empty($contact) /*&& $contact_id*/) {
             $contact = new waContact($contact_id);
+
+            if (!empty($data['shipping_address'])) {
+                $contact['address.shipping'] = array_filter($data['shipping_address']);
+            }
+            if ($save_contact) {
+                $errors = $contact->save();
+                if ($errors) {
+                    waLog::log('Error occurs during save contact: '.var_export($errors, true), 'shop/plugins/yandexmarket/order.error.log');
+                } else {
+                    $contact_id = $contact->getId();
+                    waLog::log("Contact {$contact_id} was created with address: ".var_export($data['shipping_address'], true), 'shop/plugins/yandexmarket/order.log');
+                }
+            }
         }
+
         $data['contact'] = $contact;
         $data['over_sell'] = false;
 
