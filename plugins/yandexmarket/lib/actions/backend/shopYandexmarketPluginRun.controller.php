@@ -1949,7 +1949,7 @@ SQL;
                 $html = !empty($info['options']['html']);
                 $value = preg_replace('@(<br\s*/?>)+@', $html ? '<br/>' : "\n", $value);
                 $value = preg_replace("@[\r\n]+@", "\n", $value);
-                $value = strip_tags($value, $html ? '<h3><p><ul><li><br/>' : null);
+                $value = strip_tags($value, $html ? '<h3><p><ul><li><br><br/>' : null);
 
                 $value = trim($value);
                 if (mb_strlen($value) > 3000) {
