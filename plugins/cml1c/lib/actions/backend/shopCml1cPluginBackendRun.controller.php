@@ -3483,7 +3483,8 @@ SQL;
         if (!empty($product['_deleted_'])) {
             $this->writer->writeAttribute('Статус', 'Удален');
         }
-        $this->writer->writeElement('Ид', self::getGuid($product, '-'));
+        $uuid = self::getGuid($product, '-');
+        $this->writer->writeElement('Ид', $this->formatGuid($uuid));
         if (!empty($product['sku_code'])) {
             $this->writer->writeElement('Артикул', $product['sku_code']);
         }
@@ -3588,7 +3589,8 @@ SQL;
 
         #add element
         $this->writer->startElement('Товар');
-        $this->writer->writeElement('Ид', self::getGuid($sku));
+
+        $this->writer->writeElement('Ид', $this->formatGuid(self::getGuid($sku)));
         if (!empty($sku['sku'])) {
             $this->writer->writeElement('Артикул', $sku['sku']);
         }
@@ -6050,15 +6052,17 @@ SQL;
 
     private function writeProduct($product, $sku)
     {
-        $uuid = ($product['id_1c'] != $sku['id_1c']) ? $product['id_1c'].'#'.$sku['id_1c'] : $sku['id_1c'];
         $group = false;
         if (!empty($product['category_id']) && isset($this->data['map'][self::STAGE_CATEGORY][$product['category_id']])) {
             $group = $this->data['map'][self::STAGE_CATEGORY][$product['category_id']];
 
         }
 
+        $uuid = $this->formatGuid($product['id_1c'], $sku['id_1c']);
+
         $w = &$this->writer;
         $w->startElement('Товар');
+
         $w->writeElement('Ид', $uuid);
         $w->writeElement('Артикул', $sku['sku']);
 
@@ -6110,11 +6114,7 @@ SQL;
     {
         $w = &$this->writer;
         $w->startElement('Предложение');
-        if ($product['id_1c'] != $sku['id_1c']) {
-            $uuid = $product['id_1c'].'#'.$sku['id_1c'];
-        } else {
-            $uuid = $sku['id_1c'];
-        }
+        $uuid = $this->formatGuid($product['id_1c'], $sku['id_1c']);
         $w->writeElement('Ид', $uuid);
 
         $this->writeName($product, $sku);
@@ -6382,6 +6382,22 @@ SQL;
             }
         }
         return isset($this->guid2name_map[$guid]) ? $this->guid2name_map[$guid] : $guid;
+    }
+
+    private function formatGuid($id, $extra_id = null)
+    {
+        if (strpos($id, '#')) {
+            list($id, $extra_id) = explode('#', $id, 2);
+        }
+        if (empty($extra_id)) {
+            $extra_id = $id;
+        }
+        if (true || ($id != $extra_id)) {
+            $uuid = $id.'#'.$extra_id;
+        } else {
+            $uuid = $id;
+        }
+        return $uuid;
     }
 
     private static function getGuid($data, $default = null)
