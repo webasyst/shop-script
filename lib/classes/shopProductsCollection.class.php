@@ -146,7 +146,7 @@ class shopProductsCollection
                      * @param array [string]boolean $params['add']
                      * @return bool null if ignored, true when something changed in the collection
                      */
-                    $processed = wa()->event('products_collection', $params);
+                    $processed = wa('shop')->event('products_collection', $params);
                     if (!$processed) {
                         throw new waException('Unknown collection hash type: '.htmlspecialchars($type));
                     }
