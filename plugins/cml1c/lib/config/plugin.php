@@ -2,13 +2,16 @@
 
 return array(
     'name'         => '1С (CommerceML)',
-    'description'  => 'Обмен данными с «1С: Управление торговлей» (CommerceML)',
+    'description'  => 'Обмен данными с системами товарного учета («1С», «МойСклад», «Бизнес.ру» и подобные).',
     'img'          => 'img/1c.png',
     'vendor'       => 'webasyst',
-    'version'      => '2.1.0',
+    'version'      => '2.4.2',
     'importexport' => true,
     'frontend'     => true,
-    'handlers'     => array(),
+    'handlers'     => array(
+        'backend_product'              => 'productHandler',
+        'backend_product_sku_settings' => 'skuHandler',
+    ),
     'locale'       => array(
         'ru_RU',
     ),

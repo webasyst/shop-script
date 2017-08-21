@@ -138,8 +138,9 @@ class shopHelper
             /** @var $config shopConfig */
             $result = array();
             $currency = isset($params['currency']) ? $params['currency'] : $config->getCurrency();
-            $params['allow_external_for'] = (array) ifempty($params['allow_external_for'], array());
+            $params['allow_external_for'] = (array)ifempty($params['allow_external_for'], array());
             $dimensions = shopDimension::getInstance();
+
             foreach ($methods as $m) {
                 if ($m['available']) {
                     $plugin = shopShipping::getPlugin($m['plugin'], $m['id']);
@@ -198,6 +199,7 @@ class shopHelper
                     } else {
                         $rates = $plugin->getRates($items, $address ? $address : array(), $total ? array('total_price' => $total) : array());
                     }
+
                     if (is_array($rates)) {
                         foreach ($rates as $rate_id => $info) {
                             if (is_array($info)) {
@@ -213,8 +215,8 @@ class shopHelper
                                     'currency' => $currency,
                                     'external' => !empty($plugin_info['external']),
                                 );
-                                foreach(array('est_delivery','comment') as $field) {
-                                    if(isset($info[$field]) && !is_null($info[$field])) {
+                                foreach (array('est_delivery', 'comment') as $field) {
+                                    if (isset($info[$field]) && !is_null($info[$field])) {
                                         $result[$m['id'].'.'.$rate_id][$field] = $info[$field];
                                     }
                                 }
@@ -232,6 +234,45 @@ class shopHelper
                             'currency' => $currency,
                             'external' => !empty($plugin_info['external']),
                         );
+                    }
+
+                    if (!empty($params['custom_html'])) {
+                        $order = new waOrder(
+                            array(
+                                'contact_id'       => null,
+                                'contact'          => null,
+                                'items'            => $items,
+                                'shipping_address' => $address,
+                            )
+                        );
+                        $custom_fields = $plugin->customFields($order);
+                        if ($custom_fields) {
+                            $params = array();
+                            $params['namespace'] = 'shipping_'.$m['id'];
+                            $params['title_wrapper'] = '%s';
+                            $params['description_wrapper'] = '<br><span class="hint">%s</span>';
+                            $params['control_wrapper'] = '<div class="name">%s</div><div class="value">%s %s</div>';
+
+                            $controls = array();
+                            foreach ($custom_fields as $name => $row) {
+                                $row = array_merge($row, $params);
+                                if (!empty($order_params['shipping_id']) && ($m['id'] == $order_params['shipping_id']) && isset($order_params['shipping_params_'.$name])) {
+                                    $row['value'] = $order_params['shipping_params_'.$name];
+                                }
+                                if (!empty($row['control_type'])) {
+                                    $controls[$name] = waHtmlControl::getControl($row['control_type'], $name, $row);
+                                }
+                            }
+                            if ($controls) {
+                                $custom_html = '';
+                                foreach ($controls as $c) {
+                                    $custom_html .= '<div class="field">'.$c.'</div>';
+                                }
+                                end($result);
+                                $key = key($result);
+                                $result[$key]['custom_html'] = $custom_html;
+                            }
+                        }
                     }
                 }
             }
@@ -365,6 +406,20 @@ class shopHelper
                 } else {
                     $order['payment_name'] = '<span class="hint">'._w('not specified').'</span>';
                 }
+
+                // Order delivery interval
+                list($date, $time_from, $time_to) = shopHelper::getOrderShippingInterval($order['params']);
+                if ($date) {
+                    $order['shipping_interval'] = wa_date('date', $date).' '.$time_from.'-'.$time_to;
+                }
+
+                if (array_key_exists('courier', $order)) {
+                    if ($order['courier']) {
+                        $order['courier_name'] = htmlspecialchars($order['courier']['name']);
+                    } else {
+                        $order['courier_name'] = '';
+                    }
+                }
             }
         }
 
@@ -372,6 +427,44 @@ class shopHelper
             $orders = $orders[0];
             return $orders;
         }
+    }
+
+    /**
+     * Returns shipping date set for an order and saved in its params.
+     * @example list($shipping_date, $shipping_time_start, $shipping_time_end) = shopHelper::getOrderShippingInterval($order_params);
+     */
+    public static function getOrderShippingInterval($order_params)
+    {
+        $shipping_date = null;
+        $shipping_time_end = null;
+        $shipping_time_start = null;
+        if (!empty($order_params['shipping_start_datetime']) && !empty($order_params['shipping_end_datetime'])) {
+            @list($shipping_date, $shipping_time_start) = explode(' ', $order_params['shipping_start_datetime'], 2);
+            @list($_, $shipping_time_end) = explode(' ', $order_params['shipping_end_datetime'], 2);
+            $shipping_time_start = preg_replace('~(\d\d:\d\d):\d\d~', '$1', $shipping_time_start);
+            $shipping_time_end = preg_replace('~(\d\d:\d\d):\d\d~', '$1', $shipping_time_end);
+        }
+        return array($shipping_date, $shipping_time_start, $shipping_time_end);
+    }
+
+    public static function getOrderCustomerDeliveryTime($order_params)
+    {
+        $customer_delivery_date = null;
+        if (!empty($order_params['shipping_params_desired_delivery.date'])) {
+            if (preg_match('~^\d{4}-\d{2}-\d{2}$~', $order_params['shipping_params_desired_delivery.date'])) {
+                $customer_delivery_date = $order_params['shipping_params_desired_delivery.date'];
+            }
+        }
+
+        $customer_delivery_time = null;
+        if (!empty($order_params['shipping_params_desired_delivery.interval'])) {
+            if (preg_match('~^\d\d:\d\d-\d\d:\d\d$~', $order_params['shipping_params_desired_delivery.interval'])) {
+                list($from_hours, $from_minutes, $to_hours, $to_minutes) = preg_split('~:|-~', $order_params['shipping_params_desired_delivery.interval']);
+                $customer_delivery_time = compact('from_hours', 'from_minutes', 'to_hours', 'to_minutes');
+            }
+        }
+
+        return array($customer_delivery_date, $customer_delivery_time);
     }
 
     /**
@@ -489,12 +582,12 @@ class shopHelper
 
             // Fetch list of substocks for virtual stocks
             if ($virtual_stocks) {
-                foreach($virtual_stocks as $id => $s) {
+                foreach ($virtual_stocks as $id => $s) {
                     $virtual_stocks[$id]['substocks'] = array();
                 }
                 $virtualstock_stocks_model = new shopVirtualstockStocksModel();
                 $rows = $virtualstock_stocks_model->where('virtualstock_id IN (?)', array_keys($virtual_stocks))->order('sort')->fetchAll();
-                foreach($rows as $row) {
+                foreach ($rows as $row) {
                     $virtual_stocks[$row['virtualstock_id']]['substocks'][] = $row['stock_id'];
                 }
             }
@@ -505,7 +598,7 @@ class shopHelper
 
             // Index resulting array by id
             $cache_all = array();
-            foreach($all_stocks as $s) {
+            foreach ($all_stocks as $s) {
                 if (isset($s['substocks'])) {
                     $cache_all['v'.$s['id']] = $s;
                 } else {
@@ -525,7 +618,7 @@ class shopHelper
         // Filter $cache_all to return what's requested
         if ($frontend_stocks && is_array($frontend_stocks)) {
             return array_intersect_key($cache_all, array_flip($frontend_stocks));
-        } else if ($frontend_stocks) {
+        } elseif ($frontend_stocks) {
             return array_filter($cache_all, wa_lambda('$a', 'return !empty($a["public"]);'));
         } else {
             return $cache_all;
@@ -539,10 +632,10 @@ class shopHelper
     public static function fillVirtulStock($sku_stock)
     {
         $result = array_map('intval', $sku_stock);
-        foreach(shopHelper::getStocks() as $virtualstock_id => $s) {
+        foreach (shopHelper::getStocks() as $virtualstock_id => $s) {
             if (isset($s['substocks'])) {
                 $result[$virtualstock_id] = 0;
-                foreach($s['substocks'] as $substock_id) {
+                foreach ($s['substocks'] as $substock_id) {
                     if (!isset($sku_stock[$substock_id])) {
                         $result[$virtualstock_id] = null;
                         break;
@@ -837,7 +930,6 @@ class shopHelper
     }
 
 
-
     /**
      * @param string $source storefront
      * @return string
@@ -884,8 +976,8 @@ SQL;
                 if ($verbose) {
                     $storefronts[] = array(
                         'domain' => $domain,
-                        'route' => $route,
-                        'url' => $url
+                        'route'  => $route,
+                        'url'    => $url
                     );
                 } else {
                     $storefronts[] = $url;
@@ -900,7 +992,7 @@ SQL;
         $signup_url = '';
         if (wa_is_int($customer)) {
             $customer = new shopCustomer($customer);
-        } else if (!($customer instanceof waContact)) {
+        } elseif (!($customer instanceof waContact)) {
             $customer = new shopCustomer(0);
         }
         $guest_checkout = wa('shop')->getConfig()->getGeneralSettings('guest_checkout');
@@ -908,11 +1000,11 @@ SQL;
             $order_domain = self::getDomainByStorefront($order_storefront);
             $auth = wa()->getAuthConfig();
             $auth_app = ifset($auth['app'], '');
-            $signup_url = wa()->getRouteUrl($auth_app . '/signup', array(), true, $order_domain);
+            $signup_url = wa()->getRouteUrl($auth_app.'/signup', array(), true, $order_domain);
 
             if ($signup_url && $auth_app === 'shop') {
-                $hash = md5(uniqid($order_storefront . $customer->getId(), true));
-                $hash = substr($hash, 0, 16) . $customer->getId() . substr($hash, 16);
+                $hash = md5(uniqid($order_storefront.$customer->getId(), true));
+                $hash = substr($hash, 0, 16).$customer->getId().substr($hash, 16);
                 if (substr($signup_url, 0, -1) === '?') {
                     $signup_url .= '&';
                 } else {
@@ -974,13 +1066,306 @@ SQL;
              * manually detect large ints in the JSON string and quote them (thus converting
              *them to strings) before decoding, hence the preg_replace() call.
              */
-            $max_int_length = strlen((string) PHP_INT_MAX) - 1;
-            $json_without_bigints = preg_replace('/:\s*(-?\d{'.$max_int_length.',})/', ': "$1"', $input);
+            $max_int_length = strlen((string)PHP_INT_MAX) - 1;
+            $json_without_bigints = preg_replace('/(:|,|\[|^)\s*(-?\d{'.$max_int_length.',})/', '$1"$2"', $input);
             $obj = json_decode($json_without_bigints, $assoc);
         }
         return $obj;
 
     }
 
+    private static function getEnv($name)
+    {
+        static $env = array();
+        if (!isset($env[$name])) {
+            switch ($name) {
+                case 'weight':
+                    $env[$name] = shopDimension::getInstance()->getDimension('weight');
+                    break;
+                case 'length':
+                    $env[$name] = shopDimension::getInstance()->getDimension('length');
+                    break;
+                case 'currencies':
+                    $config = wa('shop')->getConfig();
+                    /**
+                     * @var shopConfig $config
+                     */
+                    $env[$name] = $config->getCurrencies();
+                    break;
+                case 'currency':
+                    $config = wa('shop')->getConfig();
+                    /**
+                     * @var shopConfig $config
+                     */
+                    $env[$name] = $config->getCurrency(false);
+                    break;
+                case 'default_currency':
+                    $config = wa('shop')->getConfig();
+                    /**
+                     * @var shopConfig $config
+                     */
+                    $env[$name] = $config->getCurrency(true);
+                    break;
+            }
+        }
 
+        return $env[$name];
+    }
+
+    /**
+     * @param mixed $value
+     * @param string $type One of price, weight or length
+     * @param $target
+     * @param string $from
+     * @return mixed
+     * @throws waException
+     */
+    public static function workupValue($value, $type, $target, $from = null)
+    {
+        switch ($type) {
+            case 'price':
+                if ($value) {
+                    $currencies = self::getEnv('currencies');
+                    $currency = $target;
+                    if (isset($currencies[$currency])) {
+                        if ($from) {
+                            $current_currency = $from;
+                        } else {
+                            $current_currency = self::getEnv('currency');
+                        }
+
+                        if ($currency != $current_currency) {
+                            $value = shop_currency($value, $current_currency, $currency, false);
+                        }
+                    } else {
+                        throw new waException(sprintf('Unknown currency "%s"', $currency));
+                    }
+                }
+                break;
+            case 'weight':
+                if ($value) {
+                    $weight_unit = $target;
+                    if ($weight_unit) {
+                        $weight = self::getEnv('weight');
+                        if ($weight_unit != $weight['base_unit']) {
+                            if (isset($weight['units'][$weight_unit])) {
+                                $value = $value / $weight['units'][$weight_unit]['multiplier'];
+                            } else {
+                                throw new waException(sprintf('Invalid weight unit "%s"', $weight_unit));
+                            }
+                        }
+                    }
+                }
+                break;
+            case 'length':
+                if ($value) {
+                    $length_unit = $target;
+                    $length = self::getEnv('length');
+                    if ($length_unit != $length['base_unit']) {
+                        if (isset($length['units'][$length_unit])) {
+                            $value = $value / $length['units'][$length_unit]['multiplier'];
+                        } else {
+                            throw new waException(sprintf('Invalid length unit "%s"', $length_unit));
+                        }
+                    }
+                }
+                break;
+        }
+        return $value;
+    }
+
+    public static function workupOrderItems($order_items, $options)
+    {
+        $options += array(
+            'weight'   => null,
+            'tax'      => null,
+            'currency' => ifset($options['order_currency']),
+        );
+        $items = array();
+
+        $values = array();
+
+        if ($options['weight']) {
+            $product_ids = array();
+            foreach ($order_items as $i) {
+                if (!empty($i['product_id'])) {
+                    $product_ids[] = $i['product_id'];
+                }
+            }
+            $product_ids = array_unique($product_ids);
+            if ($product_ids) {
+                $feature_model = new shopFeatureModel();
+                $feature = $feature_model->getByCode('weight');
+                if ($feature) {
+                    $values_model = $feature_model->getValuesModel($feature['type']);
+                    $values = $values_model->getProductValues($product_ids, $feature['id']);
+                }
+            }
+        }
+
+        foreach ($order_items as $item) {
+
+            $item['price'] = ifempty($item['price'], 0.0);
+            $item['price'] = shopHelper::workupValue($item['price'], 'price', $options['currency'], $options['order_currency']);
+
+            $item['total_discount'] = ifempty($item['total_discount'], 0.0);
+            $item['total_discount'] = shopHelper::workupValue($item['total_discount'], 'price', $options['currency'], $options['order_currency']);
+
+            if ($options['weight']) {
+                if (empty($item['weight'])) {
+                    $item['weight'] = null;
+                    if (ifset($item['type']) == 'product') {
+                        if (!empty($item['sku_id']) && isset($values['skus'][$item['sku_id']])) {
+                            $item['weight'] = $values['skus'][$item['sku_id']];
+                        } elseif (!empty($item['product_id']) && isset($values[$item['product_id']])) {
+                            $item['weight'] = $values[$item['product_id']];
+                        }
+                    }
+                }
+
+                $item['weight'] = shopHelper::workupValue($item['weight'], 'weight', $options['weight']);
+            }
+
+            $items[] = array(
+                'id'             => ifset($item['id']),
+                'name'           => ifset($item['name']),
+                'sku'            => ifset($item['sku_code']),
+                'tax_rate'       => ifset($item['tax_percent']),
+                'description'    => '',
+                'price'          => $item['price'],
+                'quantity'       => ifset($item['quantity'], 0),
+                'total'          => $item['price'] * $item['quantity'],
+                'type'           => ifset($item['type'], 'product'),
+                'product_id'     => ifset($item['product_id']),
+                'weight'         => ifset($item['weight']),
+                'weight_unit'    => $options['weight'],
+                'total_discount' => $item['total_discount'],
+                'discount'       => $item['quantity'] ? ($item['total_discount'] / $item['quantity']) : 0.0,
+            );
+
+
+        }
+        return array_values($items);
+    }
+
+    /**
+     * @param mixed[] $order
+     * @param mixed [string] $options
+     * @return waOrder
+     */
+    public static function getWaOrder($order, $options = array())
+    {
+        $empty_address = array(
+            'firstname' => '',
+            'lastname'  => '',
+            'country'   => '',
+            'region'    => '',
+            'city'      => '',
+            'street'    => '',
+            'zip'       => '',
+        );
+
+        $order += array(
+            'shipping' => 0.0,
+            'discount' => 0.0,
+            'tax'      => 0.0,
+            'params'=>array(),
+        );
+
+        $default_currency = self::getEnv('default_currency');
+
+        $options += array(
+            'currency' => ifset($order['currency'], $default_currency),
+        );
+
+        $shipping_address = array_merge($empty_address, shopHelper::getOrderAddress($order['params'], 'shipping'));
+        $billing_address = array_merge($empty_address, shopHelper::getOrderAddress($order['params'], 'billing'));
+        if (!count(array_filter($billing_address, 'strlen'))) {
+            $billing_address = $shipping_address;
+        }
+
+        if (($options['currency'] != $order['currency']) && !empty($order['rate'])) {
+
+            $rate = $order['rate'];
+            $target_currency = $default_currency;
+
+            if (!empty($order['params']['shipping_currency_rate'])
+                &&
+                intval($order['params']['shipping_currency_rate'])
+                &&
+                !empty($order['params']['shipping_currency'])
+                &&
+                ($order['params']['shipping_currency'] == $options['currency'])
+            ) {
+                $rate = $rate / $order['params']['shipping_currency_rate'];
+                $target_currency = $order['params']['shipping_currency'];
+            }
+
+            $order['tax'] = $order['tax'] * $rate;
+            $order['shipping'] = $order['shipping'] * $rate;
+            $order['discount'] = $order['discount'] * $rate;
+            $order['total'] = $order['total'] * $rate;
+
+            $order['currency'] = $target_currency;
+
+            foreach ($order['items'] as &$item) {
+                $item['price'] = $item['price'] * $rate;
+                if (isset($item['total_discount'])) {
+                    $item['total_discount'] = $item['total_discount'] * $rate;
+                }
+                unset($item);
+            }
+        }
+
+        $item_options = array(
+            'order_currency'   => $order['currency'],
+            'shipping_address' => $shipping_address,
+            'billing_address'  => $billing_address,
+        );
+
+        $order_data = array(
+            #common data
+            'id_str'           => ifempty($order['id_str'], $order['id']),
+            'id'               => $order['id'],
+
+            #dates
+            'datetime'         => ifempty($order['create_datetime']),
+            'update_datetime'  => ifempty($order['update_datetime']),
+            'paid_datetime'    => empty($order['paid_date']) ? null : ($order['paid_date'].' 00:00:00'),
+
+            #contact data
+            'contact_id'       => $order['contact_id'],
+
+            #finance data
+            'currency'         => $options['currency'],
+            'total'            => self::workupValue($order['total'], 'price', $options['currency'], $order['currency']),
+            'discount'         => self::workupValue($order['discount'], 'price', $options['currency'], $order['currency']),
+            'tax'              => self::workupValue($order['tax'], 'price', $options['currency'], $order['currency']),
+            'shipping'         => self::workupValue($order['shipping'], 'price', $options['currency'], $order['currency']),
+
+            #billing data
+            'payment_name'     => ifset($order['params']['payment_name'], ''),
+            'billing_address'  => $billing_address,
+
+            #shipping data
+            'shipping_name'    => ifset($order['params']['shipping_name'], ''),
+            'shipping_address' => $shipping_address,
+
+            #content data
+            'items'            => self::workupOrderItems($order['items'], $item_options + $options),
+
+            #describe it
+            'comment'          => ifempty($order['comment'], ''),
+            'description'      => sprintf(_w('Payment for order %s'), ifempty($order['id_str'], $order['id'])),
+
+            #extra data
+            'params'           => ifempty($order['params'], array()),
+        );
+
+        if (!empty($options['weight'])) {
+            $order_data['weight_unit'] = $options['weight'];
+        }
+
+        return waOrder::factory($order_data);
+    }
 }

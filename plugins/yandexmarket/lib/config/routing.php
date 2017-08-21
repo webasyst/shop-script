@@ -27,4 +27,14 @@ return array(
         'module' => 'api',
         'action' => 'cart',
     ),
+    "yandexmarket/api"         => array(
+        'plugin' => 'yandexmarket',
+        'module' => 'api',
+        'action' => 'hello',
+    ),
+    "yandexmarket/api/"         => array(
+        'plugin' => 'yandexmarket',
+        'module' => 'api',
+        'action' => 'hello',
+    ),
 );

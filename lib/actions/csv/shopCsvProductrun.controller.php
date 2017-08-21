@@ -96,6 +96,7 @@ class shopCsvProductrunController extends waLongActionController
         $app_id = $this->getAppId();
         $url = $this->getConfig()->getRootUrl(true);
         $this->data['base_url'] = preg_replace('@(^https?://|/$)@', '', $url);
+        $this->data['scheme'] = waRequest::isHttps() ? 'https://' : 'http://';
         $domain_routes = $routing->getByApp($app_id);
         foreach ($domain_routes as $domain => $routes) {
             foreach ($routes as $route) {
@@ -261,6 +262,8 @@ class shopCsvProductrunController extends waLongActionController
             //array: features
         }
 
+        $this->data['previous_type'] = null;
+
         $this->data['count'] = array(
             self::STAGE_FILE     => $this->reader ? $this->reader->size() : null,
             self::STAGE_CATEGORY => null,
@@ -302,6 +305,7 @@ class shopCsvProductrunController extends waLongActionController
             # export links to product images
             'images'                 => !!waRequest::post('images'),
             'extra_categories'       => !!waRequest::post('extra_categories'),
+            'primary_sku'            => !!waRequest::post('primary_sku'),
             'include_sub_categories' => $this->params['include_sub_categories'] || !!waRequest::post('include_sub_categories'),
             # export extra fields (added by plugins and etc)
             'extra'                  => !!waRequest::post('extra'),
@@ -314,6 +318,9 @@ class shopCsvProductrunController extends waLongActionController
         );
 
         $map = shopCsvProductuploadController::getMapFields(true, $config['extra']);
+        if (empty($config['primary_sku'])) {
+            unset($map['skus:-1:_primary']);
+        }
 
         $this->data['composite_features'] = array();
         $features_model = new shopFeatureModel();
@@ -812,9 +819,11 @@ class shopCsvProductrunController extends waLongActionController
                     $method_name = 'stepImport'.ucfirst($type);
                     if (method_exists($this, $method_name)) {
                         $result = $this->{$method_name}($current);
+                        $this->data['previous_type'] = $type;
                     } else {
                         $this->error(sprintf("Unsupported import data type %s", $type));
                     }
+
                     if (false) {
                         //TODO write
                         //$row = $this->reader->getTableRow();
@@ -1269,7 +1278,10 @@ class shopCsvProductrunController extends waLongActionController
             $product_exists = $this->emulate() ? ($product->__hash == $current_id) : $id;
 
             if ($id && isset($data['skus'][-1])) {
-                if ($this->emulate() ? ($product->__hash == $current_id) : ($id == $current_id)) {
+                if (in_array($this->data['previous_type'], array(self::STAGE_PRODUCT, self::STAGE_SKU, null), true)
+                    &&
+                    ($this->emulate() ? ($product->__hash == $current_id) : ($id == $current_id))
+                ) {
                     $sku_only = true;
                 }
 
@@ -1327,7 +1339,11 @@ class shopCsvProductrunController extends waLongActionController
                     unset($data['skus']);
                 }
             } elseif (isset($data['skus'][-1])) {
-                if ($this->emulate() && ($product->__hash == $current_id)) {
+                if (in_array($this->data['previous_type'], array(self::STAGE_PRODUCT, self::STAGE_SKU, null), true)
+                    &&
+                    $this->emulate()
+                    && ($product->__hash == $current_id)
+                ) {
                     $sku_only = true;
                     $item_sku_id = true;
                 } else {
@@ -1353,6 +1369,13 @@ class shopCsvProductrunController extends waLongActionController
                     $target_sku = $this->emulate() ? 'found' : 'update';
                 } else {
                     //add
+                }
+            }
+
+            if (!in_array($item_sku_id, array(true, false, 0), true) && !empty($data['skus'][$item_sku_id]['_primary'])) {
+                $product->sku_id = $item_sku_id;
+                if (isset($data['sku_id'])) {
+                    unset($data['sku_id']);
                 }
             }
 
@@ -1386,7 +1409,10 @@ class shopCsvProductrunController extends waLongActionController
                                 }
                             }
                         }
+
+
                         $product->save($truncated_data);
+
                         $this->data['map'][self::STAGE_PRODUCT] = $product->getId();
                     } else {
                         $this->data['map'][self::STAGE_PRODUCT] = $product->__hash;
@@ -1493,6 +1519,7 @@ class shopCsvProductrunController extends waLongActionController
                             'original_filename' => $name,
                             'ext'               => pathinfo($file, PATHINFO_EXTENSION),
                         );
+                        //TODO update shop_product_skus.image_id
                         if ($exists = $model->getByField($search)) {
                             $data = array_merge($exists, $data);
                             $thumb_dir = shopImage::getThumbsPath($data);
@@ -2131,7 +2158,7 @@ class shopCsvProductrunController extends waLongActionController
                             $size = $config->getImageSize('big');
                         }
                         foreach ($product['images'] as & $image) {
-                            $image = 'http://'.ifempty($this->data['base_url'], 'localhost').shopImage::getUrl($image, $size);
+                            $image = ifempty($this->data['scheme'], 'http://').ifempty($this->data['base_url'], 'localhost').shopImage::getUrl($image, $size);
                         }
                         $product['images'] = array_values($product['images']);
                     }
@@ -2179,6 +2206,10 @@ class shopCsvProductrunController extends waLongActionController
                                 unset($product[$field]);
                             }
                         }
+                    }
+
+                    if (!empty($this->data['config']['primary_sku'])) {
+                        $sku['_primary'] = ($product['sku_id'] == $sku_id) ? '1' : '';
                     }
 
                     $sku['stock'][0] = $sku['count'];

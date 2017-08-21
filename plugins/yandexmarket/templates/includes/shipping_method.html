@@ -1,0 +1,270 @@
+<div class="field js-delivery-included js-shipping-method" style="margin-top: 3em;">
+    <div class="name" title="{$method.name|escape}" style="height: 16px; padding-top: 0;">
+        <label for="s-plugin-yandexmarket-shipping_methods_{$method_id}">
+            {if !empty($method.logo)}
+                <img src="{$method.logo}" class="s-payment-shipping-logo" style="float: right;">
+            {elseif !empty($method.img)}
+                <img src="{$method.img}" class="s-payment-shipping-logo" style="float: right;">
+            {else}
+                <span style="float: right;">{$method.name|escape}</span>
+            {/if}
+        </label>
+    </div>
+    <div class="value">
+        <label>
+            <input type="checkbox"
+                   name="campaign[shipping_methods][{$method_id}][enabled]" value="1"
+                   id="s-plugin-yandexmarket-shipping_methods_{$method_id}"
+                    {if !empty($method.external)} disabled="disabled"{/if}
+                    {if !empty($campaign.shipping_methods[$method_id])} checked="checked"{/if}
+            > {$method.name|escape}
+        </label>&nbsp;{if $method_id == 'dummy'}<span class="hint">Фиксированные сроки и стоимость доставки для домашнего региона</span>{else}
+        <a href="?action=settings#/shipping/plugin/setup/{$method_id}/" class="inline-link small hint">
+            настройки способа доставки <i class="icon10 settings"></i>
+            {if isset($method.rate)}
+                &nbsp;&nbsp;&nbsp;(<span class="gray"><strong>{wa_currency_html(round(max((array)$method.rate)),$primary_currency)}</strong> — стоимость доставки в пределах домашнего региона, рассчитанная плагином
+                    в качестве примера для заказа стоимостью 1 руб. и весом 1 кг.</span>)
+            {/if}
+            <br/><br/>
+            <span class="gray"><i class="icon10 exclamation"></i>Стоимость доставки рассчитывается плагином автоматически.</span>
+            <br/>
+            <br/>
+        </a>{/if}
+
+    </div>
+    <div class="value bottom-padded">
+
+        {if $method_id == 'dummy'}
+        <div class="field">
+            <div class="name">Название:</div>
+            <div class="value">
+                <input type="text" name="campaign[shipping_methods][{$method_id}][name]"
+                       value="{$campaign.shipping_methods[$method_id]['name']|default:'Курьер'|escape}" placeholder="Курьер">
+                <br/>
+                <span class="hint">Показывается при выборе этого способа доставки во время заказа на «Маркете».</span>
+            </div>
+        </div>
+        {/if}
+
+
+
+        <div class="field">
+            <div class="name">
+                Время приема и доставки заказов
+            </div>
+            <div class="value no-shift">
+                <label><input type="radio" name="campaign[shipping_methods][{$method_id}][order_before_mode]"
+                              value="0" {if empty($campaign.shipping_methods[$method_id]['order_before_mode'])} checked="checked"{/if}>&nbsp;Совпадают со временем работы магазина</label>
+            </div>
+            <div class="value">
+                <label><input type="radio" name="campaign[shipping_methods][{$method_id}][order_before_mode]"
+                              value="generic" {if ifset($campaign.shipping_methods[$method_id]['order_before_mode'])==='generic'} checked="checked"{/if}>&nbsp;Без учета дня недели</label>
+            </div>
+            <div class="value">
+                <label><input type="radio" name="campaign[shipping_methods][{$method_id}][order_before_mode]"
+                              value="per-day" {if ifset($campaign.shipping_methods[$method_id]['order_before_mode'])==='per-day'} checked="checked"{/if}>&nbsp;В соответствии с режимом работы</label>
+            </div>
+
+            <div class="value js-delivery-time-generic-options">
+                {$campaign.shipping_methods[$method_id]['order_before']=min(24,max(1,intval(ifset($campaign.shipping_methods[$method_id]['order_before'],24))))}
+                <input type="text" name="campaign[shipping_methods][{$method_id}][order_before]" value="{$campaign.shipping_methods[$method_id]['order_before']|escape}" placeholder="24"
+                       class="numerical short" id="s-plugin-yandexmarket-campaign-order_before">
+            </div>
+
+            {$_week_days = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']}
+            {foreach $_week_days as $_day => $_name}
+                <div class="value js-delivery-time-options">
+                    <input type="text" placeholder="17" class="numerical short" size="2"
+                           name="campaign[shipping_methods][{$method_id}][order_before_per_day][{$_day}][before]"
+                           value="{$campaign.shipping_methods[$method_id]['order_before_per_day'][$_day]|default:$campaign.shipping_methods[$method_id]['order_before']|default:24|escape}"
+                    >&nbsp;<label{if !empty($_schedule.weeklyHolidays) && in_array($_day+1,$_schedule.weeklyHolidays)}
+                        class="grey"
+                            {/if}>
+                        <input type="checkbox" name="campaign[shipping_methods][{$method_id}][order_before_per_day][{$_day}][workday]" value="1"
+
+                                {if !empty($campaign.shipping_methods[$method_id]['order_before_per_day'][$_day])} checked="checked"{/if}>&nbsp;{$_name|escape}
+                    </label>
+                </div>
+            {/foreach}
+            <div class="value">
+                    <span class="hint">Дни и время приема и доставки заказов. Указанные сроки и условия доставки действуют до наступления указанного времени только по указанным дням.<br>
+                    <strong>Если выбраны отдельные дни недели для доставки заказов, то эти дни должны точно соответствовать дням, выбранным в настройке «4. Общие параметры доставки → Дни и время приема и доставки заказов».</strong><br>
+                    <em>Время</em> для этого способа доставки может отличаться от указанного в настройке «4. Общие параметры доставки → Дни и время приема и доставки заказов».<br>
+                    <i class="icon10 exclamation"></i>Настройки должны соответствовать настройкам в кабинете «Яндекс.Маркета», чтобы не возникло ошибок по качеству.</span>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">
+                Сроки доставки
+                <br/>
+                <span class="hint js-delivery-not-home-">(в домашний регион)</span>
+            </div>
+            <div class="value">
+                <input type="text" name="campaign[shipping_methods][{$method_id}][estimate]"
+                   value="{$campaign.shipping_methods[$method_id]['estimate']|default:''|escape}" placeholder="2-4" class="numerical short">
+                {if isset($method.est_delivery)}
+                    <br/>
+                    <span class="hint"><b>{$method.est_delivery|escape}</b> — приблизительный срок доставки, рассчитанный плагином для домашнего региона на случай запроса доставки от сегодняшнего дня.</span>
+                {/if}
+            </div>
+        </div>
+
+        {if $method_id != 'dummy'}
+        <div class="field">
+            <div class="js-delivery-not-home">
+                <div class="name">
+                    Сроки доставки
+                    <br/>
+                    <span class="hint">(в остальные регионы)</span>
+                </div>
+                <div class="value">
+                    <input type="text" name="campaign[shipping_methods][{$method_id}][estimate_ext]" value="{$campaign.shipping_methods[$method_id]['estimate_ext']|default:''|escape}" placeholder="2-4"
+                           class="numerical short">
+                    <span class="hint">Используется для заказов с доставкой в остальные регионы</span>
+                </div>
+            </div>
+            <div class="value">
+                <label>
+                    <input type="radio"
+                           name="campaign[shipping_methods][{$method_id}][cal]"
+                           value="0"
+                           {if empty($campaign.shipping_methods[$method_id]['cal'])}
+                           checked="checked"
+                           {/if}
+                    > рабочих дней <span class="hint">учитывается режим работы магазина из настройки «Время приема заказа»</span>
+                </label>
+                <br/>
+                <label>
+                    <input type="radio"
+                           name="campaign[shipping_methods][{$method_id}][cal]"
+                           value="1"
+                           {if !empty($campaign.shipping_methods[$method_id]['cal'])}
+                           checked="checked"
+                           {/if}
+                    > календарных дней <span class="hint">без учета режима работы магазина</span>
+                </label>
+                <br/>
+                <br/>
+            </div>
+        </div>
+        {/if}
+
+        {if $method_id == 'dummy'}
+        <div class="field js-delivery-options">
+            <div class="name">
+                Стоимость доставки
+                <br/>
+                <span class="hint js-delivery-not-home-">(в домашний регион) </span>
+            </div>
+
+            <div class="value">
+                <input type="text" name="campaign[shipping_methods][{$method_id}][cost]"
+                       value="{$campaign.shipping_methods[$method_id]['cost']|default:''|escape}"
+                       placeholder="{wa_currency(round($method.rate), $method.currency, '%0')|escape}"
+                       class="numerical short"
+                >
+                {if !empty($method.error)}
+                    <br/>
+                    <span class="error-message">{$method.error|escape}</span>
+                {/if}
+            </div>
+        </div>
+        {/if}
+
+        {if $method_id != 'dummy'}
+        <div class="field">
+            <div class="name">
+                Тип доставки
+            </div>
+            <div class="value">
+                <select name="campaign[shipping_methods][{$method_id}][type]">
+                    <option value="DELIVERY"
+                            title="DELIVERY"
+                            {if ifempty($campaign.shipping_methods[$method_id]['type'],'DELIVERY')=='DELIVERY'} selected="selected"{/if}
+                    >Курьерская доставка
+                    </option>
+                    <option value="PICKUP"
+                            title="PICKUP"
+                            {if empty($campaign.pickup_map) || !in_array($method_id,$campaign.pickup_map)}
+                                disabled="disabled"
+                            {elseif ifset($campaign.shipping_methods[$method_id]['type'])=='PICKUP'}
+                                selected="selected"
+                            {/if}
+                    >Самовывоз (пункты выдачи заказов)
+                    </option>
+
+                    <option value="POST"
+                            title="POST"
+                            {if ifset($campaign.shipping_methods[$method_id]['type'])=='POST'}
+                            selected="selected"
+                            {/if}
+                    >Доставка почтой или через грузоперевозчика
+                    </option>
+                </select>
+
+                <br/>
+                <span class="hint">Выберите, какому из доступных на «Маркете» типов доставки соответствует этот вид доставки, настроенный в интернет-магазине.</span>
+            </div>
+        </div>
+        {/if}
+
+
+        <div class="field js-validate-payment">
+            <div class="value">
+                <span class="errormsg"><i class="icon16 exclamation"></i>Выберите ниже хотя бы один способ оплаты для этого способа доставки.</span>
+            </div>
+        </div>
+
+        <div class="field js-payment-cash">
+            <div class="name">
+                Оплата наличными
+            </div>
+            <div class="value no-shift">
+                <label>
+                    <input type="checkbox"
+                           name="campaign[shipping_methods][{$method_id}][cash]"
+                           value="1"
+                           {if !empty($campaign.shipping_methods[$method_id]['cash'])}
+                               checked="checked"
+                           {/if}
+                    >
+                    <span class="hint">Включите, чтобы позволить покупателям выбрать способ оплаты «Наличными при получении». В противном случае у покупателей останется только
+                        возможность предоплаты на «Маркете» (банковской картой или Яндекс.Деньгами).</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="field js-payment-card">
+            <div class="name">Оплата банковской картой курьеру</div>
+            <div class="value no-shift">
+                <label>
+                    <input type="checkbox"
+                           name="campaign[shipping_methods][{$method_id}][card]"
+                           value="1"
+                           {if !empty($campaign.shipping_methods[$method_id]['card'])}
+                           checked="checked"
+                           {/if}
+                    >
+                    <span class="hint">Включите, если вы используете мобильный терминал «Яндекс.Деньги» или иной для приема оплаты курьером.</span>
+                </label>
+            </div>
+        </div>
+        {if $method_id != 'dummy'}
+        <div class="field js-payment-yandex">
+            <div class="name">Запретить предоплату</div>
+            <div class="value no-shift">
+                <label>
+                    <input type="checkbox"
+                           name="campaign[shipping_methods][{$method_id}][!yandex]"
+                           value="1"
+                            {if !empty($campaign.shipping_methods[$method_id]['!yandex'])}
+                                checked="checked"
+                            {/if}
+                    > <span class="hint">Не принимать предоплату на «Яндекс.Маркете»</span>
+                </label>
+            </div>
+        </div>
+        {/if}
+    </div>
+</div>

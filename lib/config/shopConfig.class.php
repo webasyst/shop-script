@@ -120,19 +120,12 @@ class shopConfig extends waAppConfig
             foreach ($result as $plugin_id => $routing_rules) {
                 if ($routing_rules) {
                     $plugin = str_replace('-plugin', '', $plugin_id);
-                    /*
-                     if ($url_type == 0) {
-                     $routing_rules = $routing_rules[0];
-                     } else {
-                     $routing_rules = $routing_rules[1];
-                     }
-                     */
                     foreach ($routing_rules as $url => & $route) {
                         if (!is_array($route)) {
                             list($route_ar['module'], $route_ar['action']) = explode('/', $route);
                             $route = $route_ar;
                         }
-                        if (!array_key_exists('plugin', $route)) {
+                        if ($plugin !== $plugin_id && !array_key_exists('plugin', $route)) {
                             $route['plugin'] = $plugin;
                         }
                         $all_plugins_routes[$url] = $route;
@@ -217,7 +210,9 @@ class shopConfig extends waAppConfig
                          'map'                   => 'google',
                          'gravatar_default'      => 'custom',
                          'require_captcha'       => 1, // is captcha is required for add reviews
-                         'require_authorization' => 0 // is authorization is required for add reviews
+                         'require_authorization' => 0, // is authorization is required for add reviews
+                         'review_service_agreement'      => '',
+                         'review_service_agreement_hint' => '',
                      ) as $k => $value) {
                 $settings[$k] = isset($all_settings[$k]) ? $all_settings[$k] : $value;
             }

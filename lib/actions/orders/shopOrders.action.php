@@ -11,18 +11,18 @@ class shopOrdersAction extends shopOrderListAction
 
         $orders = $this->getOrders(0, $this->getCount());
 
-        $action_ids = array_flip(array('process', 'pay', 'ship', 'complete', 'delete', 'restore'));
+        $forbidden = array_fill_keys(array('edit', 'message', 'comment'), true);
+
         $workflow = new shopWorkflow();
         $actions = array();
-        foreach ($workflow->getAllActions() as $action) {
-            if (isset($action_ids[$action->id])) {
-                $actions[$action->id] = array(
-                    'name' => $action->name,
-                    'style' => $action->getOption('style')
+        foreach ($workflow->getAvailableActions() as $action_id => $action) {
+            if (!isset($forbidden[$action_id]) && empty($action['internal'])) {
+                $actions[$action_id] = array(
+                    'name' => ifset($action['name'], ''),
+                    'style' => ifset($action['options']['style'])
                 );
             }
         }
-        
         $state_names = array();
         foreach ($workflow->getAvailableStates() as $state_id => $state) {
             $state_names[$state_id] = $state['name'];
@@ -56,11 +56,6 @@ class shopOrdersAction extends shopOrderListAction
             $counters['common_counters'] = array(
                 'all' => $this->model->countAll()
             );
-        }
-
-        // courier filter
-        if (preg_match('/search\/params\.courier_id=([\d+])/', $this->hash, $m)) {
-            $counters['courier_counters'][$m[1]] = $this->getTotalCount();
         }
 
         $this->assign(array(

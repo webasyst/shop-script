@@ -23,7 +23,7 @@
                 <li{if $hash.type neq 'category' && empty($hash.data.categories)} style="display: none;"{/if}>
                     <label class="black"><input type="radio" value="category" name="hash"{if $hash.type eq 'category'} checked="checked"{/if}>
                         <input type="hidden" value="{$hash.category_ids|default:''}" name="category_ids">
-                        <span data-text="[`Categories`]">[`Categories`]</span>
+                        <span data-text="{_wd('shop','Categories')|escape}">{_wd('shop','Categories')|escape}</span>
                         {*
                         <span data-text="{_wd('shop',"Selected categories (%d)")|escape}">
                             {if $hash.type eq 'category'}
@@ -48,6 +48,7 @@
                 {if !empty($hints.all)}<br/><span class="small">{$hints.all}</span>{/if}
             </div>
         </div>
+
         <div class="value js-hash-values js-hash-set" style="width: 400px;">
             <div class="bordered-left" style="padding-left: 20px;">
                 <ul class="menu-v with-icons">
@@ -81,11 +82,14 @@
                 {if !empty($hints.type)}<br/><span class="small">{$hints.type}</span>{/if}
             </div>
         </div>
+        {if $hash.type eq 'id'}
         <div class="value js-hash-values js-hash-id" style="width: 400px;">
             <div class="bordered-left" style="padding-left: 20px;">
+                <a href="?action=products#/products/hash={"id/`$hash.product_ids`"|escape:'url'}" target="_blank">{_wd('shop','%d product','%d products',$hash.count)|escape}<i class="icon16 new-window"></i></a>
                 {if !empty($hints.id)}<br/><span class="small">{$hints.id}</span>{/if}
             </div>
         </div>
+        {/if}
         {if !empty($hash.data.categories) || !empty($hints.category)}
         <div class="value js-hash-values js-hash-category" style="width: 400px;">
             <div class="bordered-left" style="padding-left: 20px;">

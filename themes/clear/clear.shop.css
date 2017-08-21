@@ -192,6 +192,8 @@ ul.menu-h.product-internal.top-padded { margin-top: 2.5em; }
 .checkout ul.checkout-options li .wa-form { margin-top: 0px; margin-bottom: 30px; }
 .checkout ul.checkout-options li .wa-form label input[type="radio"] { position: static; }
 
+.checkout .wa-form .wa-field.wa-field-address .wa-field-address-zip input { min-width: 100px; width: 20%; }
+
 .checkout .checkout-result { padding: 80px 0 60px; background: #fff; text-align: center; }
 .checkout .checkout-result h1 { font-size: 4em; margin-bottom: 50px; }
 .checkout .checkout-result.error h1 { color: red; }
@@ -252,6 +254,8 @@ ul.menu-h.product-internal.top-padded { margin-top: 2.5em; }
 .review-form ul.menu-h.auth-type li a img { float: left; margin-right: 3px; position: relative; top: 2px; }
 .review-form ul.menu-h.auth-type { padding-bottom: 20px; }
 .review-form label { width: 160px; display: block; clear: left; float: left; margin: 0 10px 0 0; color: #AAA; }
+.review-form .service-agreement-wrapper { width:100%; margin-bottom:14px; }
+.review-form .service-agreement-wrapper .errormsg { margin-left: 0px; }
 .reviews span.rate { line-height: 1.3em; display: block; margin: 0.5em 0; }
 .reviews span.rate a { text-decoration: none !important; }
 .reviews span.rate .icon10 { background-repeat: no-repeat; background-image: url(../../../../wa-content/img/icon10.png); height: 10px; width: 10px; display: inline-block; text-indent: -9999px; }

@@ -7,7 +7,9 @@
                     {if $item.type === 'product'}
                         <tr data-id="{$item.id}">
                             <td class="min-width valign-top">
-                                {if !empty($item.image_id)}
+                                {if !empty($item.product) && !empty($item.product.image_id)}
+                                    {$wa->shop->productImgHtml($item.product, '48x48')}
+                                {elseif !empty($item.image_id)}
                                     {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'image_filename' => $item.image_filename, 'ext' => $item.ext], '48x48')}
                                 {else}
                                     <img src="{$wa_app_static_url}img/image-dummy-small.png" class="not-found" style="width: 48px; height: 48px;">

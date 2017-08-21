@@ -101,6 +101,21 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         }
         $this->view->assign('tracking', $tracking);
 
+        $courier = array();
+        if (!empty($order['params']['courier_id'])) {
+            $courier_model = new shopApiCourierModel();
+            $courier = $courier_model->getById($order['params']['courier_id']);
+            foreach ($courier as $field => $value) {
+                if (strpos($field, 'api_') === 0) {
+                    unset($courier[$field]);
+                }
+            }
+            if (!empty($courier['contact_id'])) {
+                $courier['contact'] = new waContact($courier['contact_id']);
+            }
+        }
+        $this->view->assign('courier', $courier);
+
         /**
          * @event frontend_my_order
          * @return array[string]string $return[%plugin_id%] html output

@@ -72,6 +72,7 @@ class shopProductStocksModel extends waModel
      *
      * @param int $src_id
      * @param int $dst_id
+     * @return boolean
      */
     public function move($src_id, $dst_id)
     {
@@ -90,7 +91,7 @@ class shopProductStocksModel extends waModel
         }
 
         // and for that items which aren't in destination stock change stock_id to stock_id of source stock
-        // ( in other words turn source items to desctination items )
+        // ( in other words turn source items to destination items )
         $sql = "UPDATE `{$this->table}` src
                 LEFT JOIN `{$this->table}` dst ON dst.sku_id = src.sku_id AND dst.stock_id = $dst_id
                 SET src.stock_id = {$dst_id}
@@ -103,7 +104,8 @@ class shopProductStocksModel extends waModel
 
     /**
      * Insert to log info about moving
-     * @param int $stock_id
+     * @param int $src_id
+     * @param int $dst_id
      * @param int|null $chunk_size Insert items by chunks of this size. If null make insert at a time
      */
     private function logMove($src_id, $dst_id, $chunk_size = 100)
@@ -383,7 +385,7 @@ class shopProductStocksModel extends waModel
         if (!$sku_ids) {
             return array();
         }
-        $sku_ids = (array) $sku_ids;
+        $sku_ids = array_map('intval', (array)$sku_ids);
 
         $stock_model = new shopStockModel();
         $stocks = $stock_model->select('id, name, NULL as count')->order('sort')->fetchAll('id', true);

@@ -84,8 +84,8 @@ class shopFrontendProductAction extends shopFrontendAction
 
         // Public virtual stock counts for each SKU
         $skus = $product->skus;
-        foreach($skus as $sku_id => $sku) {
-            if(!empty($skus[$sku_id]['stock'])) {
+        foreach ($skus as $sku_id => $sku) {
+            if (!empty($skus[$sku_id]['stock'])) {
                 $skus[$sku_id]['stock'] = shopHelper::fillVirtulStock($skus[$sku_id]['stock']);
             }
         }
@@ -267,12 +267,12 @@ class shopFrontendProductAction extends shopFrontendAction
             wa()->getResponse()->setTitle($meta_fields['meta_title']);
             wa()->getResponse()->setMeta('keywords', $meta_fields['meta_keywords']);
             wa()->getResponse()->setMeta('description', $meta_fields['meta_description']);
-            foreach($meta_fields['og'] as $property => $content) {
-                $content && wa()->getResponse()->setOgMeta($property, $content);
+            foreach ($meta_fields['og'] as $property => $content) {
+                $content && wa()->getResponse()->setOGMeta($property, $content);
             }
             // yes, override previous og:video url
             if ($product['video_url']) {
-                wa()->getResponse()->setOgMeta('og:video', $product['video_url']);
+                wa()->getResponse()->setOGMeta('og:video', $product['video_url']);
             }
 
             $feature_codes = array_keys($product->features);
@@ -298,8 +298,8 @@ class shopFrontendProductAction extends shopFrontendAction
 
         $this->view->assign('stocks', shopHelper::getStocks(true));
 
-        // default title and metas
-        if (!$is_cart) {
+        // default title and meta fields
+        if (!$is_cart && !empty($meta_fields)) {
             if (!wa()->getResponse()->getTitle()) {
                 wa()->getResponse()->setTitle($meta_fields['meta_title']);
             }
@@ -349,7 +349,7 @@ class shopFrontendProductAction extends shopFrontendAction
         shopRounding::roundServices($services);
 
         // Convert service.price from default currency to service.currency
-        foreach($services as &$s) {
+        foreach ($services as &$s) {
             $s['price'] = shop_currency($s['price'], null, $s['currency'], false);
         }
         unset($s);
@@ -361,7 +361,7 @@ class shopFrontendProductAction extends shopFrontendAction
         foreach ($rows as $row) {
             if (!$row['price']) {
                 $row['price'] = $services[$row['service_id']]['price'];
-            } else if ($services[$row['service_id']]['variant_id'] == $row['id']) {
+            } elseif ($services[$row['service_id']]['variant_id'] == $row['id']) {
                 $services[$row['service_id']]['price'] = $row['price'];
             }
             $services[$row['service_id']]['variants'][$row['id']] = $row;
@@ -507,8 +507,10 @@ class shopFrontendProductAction extends shopFrontendAction
 
     protected function getTopReviews($product_id)
     {
-        return $this->reviews_model->getReviews($product_id,
-            0, wa()->getConfig()->getOption('reviews_per_page_product'),
+        return $this->reviews_model->getReviews(
+            $product_id,
+            0,
+            wa()->getConfig()->getOption('reviews_per_page_product'),
             'datetime DESC',
             array('escape' => true)
         );
@@ -541,7 +543,12 @@ class shopFrontendProductAction extends shopFrontendAction
         $res['meta_keywords'] = ifempty($res['meta_keywords'], shopProduct::getDefaultMetaKeywords($product));
         $res['meta_description'] = ifempty($res['meta_description'], shopProduct::getDefaultMetaDescription($product));
 
-        $image_url = $this->view->getHelper()->shop->imgUrl(array(
+        $shop = $this->view->getHelper();
+        /**
+         * @var shopViewHelper $shop
+         */
+
+        $image_url = $shop->shop->imgUrl(array(
             'id' => $product['image_id'],
             'product_id' => $product['id'],
             'filename' => $product['image_filename'],

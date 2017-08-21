@@ -2,6 +2,7 @@
 
 class shopSettingsGetMethod extends shopApiMethod
 {
+    protected $courier_allowed = true;
     public function execute()
     {
         $config = wa('shop')->getConfig();
@@ -14,8 +15,29 @@ class shopSettingsGetMethod extends shopApiMethod
             'default_currency' => $config->getCurrency(true),
             'settings'         => $config->getGeneralSettings(),
             'currencies'       => $config->getCurrencies(),
+            'address_fields'   => self::getAddressSubfieldsOrder(),
             'order_states'     => self::getOrderStates(),
+            'server_time'      => date('Y-m-d H:i:s'),
         );
+    }
+
+    protected static function getAddressSubfieldsOrder()
+    {
+        $f = waContactFields::get('address');
+        if (!$f || !$f instanceof waContactField) {
+            return array();
+        }
+        $subfields = $f->getParameter('fields');
+        if (!$subfields || !is_array($subfields)) {
+            return array();
+        }
+        $result = array();
+        foreach($subfields as $sf) {
+            if (!$sf instanceof waContactHiddenField) {
+                $result[] = $sf->getId();
+            }
+        }
+        return $result;
     }
 
     protected static function getOrderStates()

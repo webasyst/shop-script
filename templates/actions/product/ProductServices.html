@@ -115,8 +115,8 @@
     $.product_services.init({
         container: '.s-product-form.services',
         counter: '#s-product-edit-menu li.services span.hint',
-        service_id: {$service.id},
+        service_id: {$service.id|default:0},
         product_id: {$product.id},
-        count: {$count}
+        count: {$count|default:0}
     });
 </script>

@@ -40,7 +40,7 @@ class shopSettingsNotificationsTestController extends waJsonController
         if (!$customer) {
             $customer = $cm->getEmptyRow();
         }
-        
+
         $workflow = new shopWorkflow();
 
         // send notifications
@@ -49,7 +49,7 @@ class shopSettingsNotificationsTestController extends waJsonController
             'customer' => $contact,
             'status' => $workflow->getStateById($o['state_id'])->getName(),
         ), $to);
-        
+
     }
 }
 

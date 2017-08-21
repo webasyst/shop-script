@@ -30,7 +30,7 @@
     {/if}
     {if !empty($theme_settings.language_toggle)}
         <select id="language">
-            {foreach ['ru_RU' => "Русский", 'en_US' => "English"] as $language => $lang_name}
+            {foreach waLocale::getAll('name') as $language => $lang_name}
                 <option value="{$language}" {if $wa->locale() == $language} selected{/if}>{$lang_name|escape}</option>
             {/foreach}
         </select>

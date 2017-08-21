@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Cron job to send delayed follow-up emails to customers after successfull orders.
+ * Cron job to send delayed follow-up emails to customers after change orders' state.
  * Expected to run at least once an hour.
  */
 class shopFollowupCli extends waCliController
@@ -11,34 +11,43 @@ class shopFollowupCli extends waCliController
         $fm = new shopFollowupModel();
         $opm = new shopOrderParamsModel();
         $asm = new waAppSettingsModel();
-        $cm = new shopCustomerModel();
         $om = new shopOrderModel();
+        $olm = new shopOrderLogModel();
 
         $asm->set('shop', 'last_followup_cli', time());
 
-        $view = wa()->getView();
-        $empty_customer = $cm->getEmptyRow();
+        $where = array(
+            'datetime>= s:from',
+            'datetime < s:to',
+            'after_state_id=s:state_id',
+            'after_state_id != before_state_id',
+        );
+        $where = implode(' AND ', $where);
 
-        foreach($fm->getAllEnabled() as $f) {
+        foreach ($fm->getAllEnabled() as $f) {
+            $search_params = array(
+                'from'     => date('Y-m-d H:i:s', strtotime($f['last_cron_time']) - 24 * 3600),
+                'to'       => date('Y-m-d H:i:s', time() - $f['delay'] - 1 * 3600),
+                'state_id' => $f['state_id'],
+            );
 
-            $between_from = date('Y-m-d', strtotime($f['last_cron_time']) - 24*3600);
-            $between_to = date('Y-m-d 23:59:59', time() - $f['delay'] - 10*3600);
-            $orders = $om->where('paid_date >= ? AND paid_date < ?', $between_from, $between_to)->fetchAll('id');
-            if ($orders) {
+            $order_ids = $olm
+                ->select('DISTINCT order_id')
+                ->where($where, $search_params)
+                ->fetchAll('order_id');
+            if ($order_ids) {
+                $order_ids = array_keys($order_ids);
+            }
+
+            if ($order_ids) {
+                $orders = $om->getById($order_ids);
 
                 // Params for all orders with one query
-                $params = $opm->get(array_keys($orders));
+                $params = $opm->get($order_ids);
 
-                // Customer data for all orders with one query
-                $cids = array();
-                foreach($orders as $o) {
-                    $cids[] = $o['contact_id'];
-                }
-                $customers = $cm->getById($cids);
-
-                $sent_count = 0;                // emails sent counter
-                $sent_count_sms = 0;            // smses sent counter
-                foreach($orders as $o) {
+                $sent_count = 0;                // email sent counter
+                $sent_count_sms = 0;            // sms sent counter
+                foreach ($orders as $o) {
 
                     try {
                         // Is there a recipient in the first place?
@@ -49,9 +58,17 @@ class shopFollowupCli extends waCliController
                             continue;
                         }
 
-                        // Check that this is the first order of this customer
+                        if (!empty($f['same_state_id']) && ($o['state_id'] != $f['state_id'])) {
+                            if (waSystemConfig::isDebug()) {
+                                waLog::log("Skipping follow-up #{$f['id']} for order #{$o['id']}: not the same state_id.");
+                            }
+                            continue;
+                        }
+
+                        // Check that this is the first paid order of this customer
                         if ($f['first_order_only']) {
-                            $first_order_id = $om->select('MIN(id)')->where('contact_id=? AND paid_date IS NOT NULL', $o['contact_id'])->fetchField();
+                            $first_paid_date = $om->select('MIN(paid_date)')->where('contact_id=? AND paid_date IS NOT NULL', $o['contact_id'])->fetchField();
+                            $first_order_id = $om->select('MIN(id)')->where('contact_id=? AND paid_date=?', $o['contact_id'], $first_paid_date)->fetchField();
                             if ($first_order_id != $o['id']) {
                                 if (waSystemConfig::isDebug()) {
                                     waLog::log("Skipping follow-up #{$f['id']} for order #{$o['id']}: not the first order of a customer.");
@@ -68,6 +85,9 @@ class shopFollowupCli extends waCliController
                         }
 
                         if ($f['source'] && $f['source'] != $source) {
+                            if (waSystemConfig::isDebug()) {
+                                waLog::log("Skipping follow-up #{$f['id']} for order #{$o['id']}: mismatch order source.");
+                            }
                             continue;
                         }
 
@@ -79,21 +99,20 @@ class shopFollowupCli extends waCliController
                             continue;
                         }
 
-                        $ords = array($o['id'] => $o);
-                        shopHelper::workupOrders($ords, false);
-                        $o = $ords[$o['id']];
-                        unset($ords);
+                        $_orders = array($o['id'] => $o);
+                        shopHelper::workupOrders($_orders, false);
+                        $o = $_orders[$o['id']];
+                        unset($_orders);
 
                         // Recipient info
-                        //$customer = ifset($customers[$o['contact_id']], $empty_customer);
                         $contact = new shopCustomer($o['contact_id']);
 
                         if (self::sendFollowup($f, $o, $contact)) {
                             if ($f['transport'] === 'email') {
-                                $sent_count += 1;
+                                ++$sent_count;
                             }
                             if ($f['transport'] === 'sms') {
-                                $sent_count += 1;
+                                ++$sent_count_sms;
                             }
                         }
 
@@ -105,9 +124,9 @@ class shopFollowupCli extends waCliController
                 /**
                  * Notify plugins about sending followup
                  * @event followup_send
-                 * @param array[string]int $params['sent_count'] number of emails successfully sent
-                 * @param array[string]int $params['sent_count_sms'] number of SMSes successfully sent
-                 * @param array[string]int $params['id'] followup_id
+                 * @param array [string]int $params['sent_count'] number of emails successfully sent
+                 * @param array [string]int $params['sent_count_sms'] number of SMSes successfully sent
+                 * @param array [string]int $params['id'] followup_id
                  * @return void
                  */
                 $event_params = $f;
@@ -116,7 +135,7 @@ class shopFollowupCli extends waCliController
                 wa()->event('followup_send', $event_params);
             }
             $fm->updateById($f['id'], array(
-                'last_cron_time' => $between_to,
+                'last_cron_time' => date('Y-m-d H:i:s', strtotime($f['last_cron_time'])),
             ));
         }
     }
@@ -130,11 +149,15 @@ class shopFollowupCli extends waCliController
         }
     }
 
+    /**
+     * @param array $f followup
+     * @param array $o order
+     * @param waContact $contact
+     * @param string $to phone
+     * @return bool
+     */
     public static function sendSms($f, $o, $contact, $to = null)
     {
-        $olm = new shopOrderLogModel();
-        $opm = new shopOrderParamsModel();
-
         if ($to === null) {
             $phone = $contact->get('phone', 'default'); // this with throw exception if contact does not exist; that's ok
             if (!$phone) {
@@ -152,29 +175,21 @@ class shopFollowupCli extends waCliController
             return false;
         }
 
-        // Write to order log
-        $olm->add(array(
-            'order_id' => $o['id'],
-            'contact_id' => null,
-            'action_id' => '',
-            'text' => sprintf_wp("Follow-up <strong>%s</strong> sent to customer.", htmlspecialchars($f['name'])),
-            'before_state_id' => $o['state_id'],
-            'after_state_id' => $o['state_id'],
-        ));
-        // Write to order params
-        $opm->insert(array(
-            'order_id' => $o['id'],
-            'name' => 'followup_'.$f['id'],
-            'value' => date('Y-m-d H:i:s'),
-        ), 1);
+        self::writeToOrderLog($o, $f);
+
+        self::writeToOrderParams($o, $f);
         return true;
     }
 
+    /**
+     * @param $f
+     * @param $o
+     * @param waContact $contact
+     * @param mixed $to email
+     * @return bool
+     */
     public static function sendEmail($f, $o, $contact, $to = null)
     {
-        $olm = new shopOrderLogModel();
-        $opm = new shopOrderParamsModel();
-
         if ($to === null) {
             $email = $contact->get('email', 'default'); // this with throw exception if contact does not exist; that's ok
             if (!$email) {
@@ -191,24 +206,42 @@ class shopFollowupCli extends waCliController
             return false;
         }
 
-        // Write to order log
-        $olm->add(array(
-            'order_id' => $o['id'],
-            'contact_id' => null,
-            'action_id' => '',
-            'text' => sprintf_wp("Follow-up <strong>%s</strong> sent to customer.", htmlspecialchars($f['name'])),
-            'before_state_id' => $o['state_id'],
-            'after_state_id' => $o['state_id'],
-        ));
-        // Write to order params
-        $opm->insert(array(
-            'order_id' => $o['id'],
-            'name' => 'followup_'.$f['id'],
-            'value' => date('Y-m-d H:i:s'),
-        ), 1);
+        self::writeToOrderLog($o, $f);
+
+        self::writeToOrderParams($o, $f);
 
         return true;
+    }
 
+    private static function writeToOrderParams($order, $followup)
+    {
+        static $opm;
+        if (empty($opm)) {
+            $opm = new shopOrderParamsModel();
+        }
+        // Write to order params
+        $opm->insert(array(
+            'order_id' => $order['id'],
+            'name'     => 'followup_'.$followup['id'],
+            'value'    => date('Y-m-d H:i:s'),
+        ), 1);
+    }
+
+    private static function writeToOrderLog($order, $followup)
+    {
+        static $olm;
+        if (empty($olm)) {
+            $olm = new shopOrderLogModel();
+        }
+        $name = htmlspecialchars($followup['name'], ENT_QUOTES, 'utf-8');
+        $olm->add(array(
+            'order_id'        => $order['id'],
+            'contact_id'      => null,
+            'action_id'       => '',
+            'text'            => sprintf_wp("Follow-up <strong>%s</strong> sent to customer.", $name),
+            'before_state_id' => $order['state_id'],
+            'after_state_id'  => $order['state_id'],
+        ));
     }
 
     private static function getOrderUrl($o)
@@ -217,14 +250,14 @@ class shopFollowupCli extends waCliController
         if (!$storefront) {
             // not storefront - get first storefront
             $storefronts = shopHelper::getStorefronts();
-            $storefront = (string) reset($storefronts);
+            $storefront = (string)reset($storefronts);
         }
 
         $order_domain = shopHelper::getDomainByStorefront($storefront);
         $order_url = wa()->getRouteUrl('/frontend/myOrderByCode', array('id' => $o['id'], 'code' => $o['params']['auth_code']), true, $order_domain);
         return $order_url;
     }
-    
+
     public static function fetchBodyAndSubject($f, $o, $contact)
     {
         $view = wa()->getView();
@@ -234,8 +267,14 @@ class shopFollowupCli extends waCliController
         $o['items'] = $items_model->getItems($o['id']);
         foreach ($o['items'] as &$i) {
             if (!empty($i['file_name'])) {
-                $i['download_link'] = wa()->getRouteUrl('/frontend/myOrderDownload',
-                    array('id' => $o['id'], 'code' => $o['params']['auth_code'], 'item' => $i['id']), true
+                $i['download_link'] = wa()->getRouteUrl(
+                    '/frontend/myOrderDownload',
+                    array(
+                        'id'   => $o['id'],
+                        'code' => $o['params']['auth_code'],
+                        'item' => $i['id'],
+                    ),
+                    true
                 );
             }
         }
@@ -263,7 +302,7 @@ class shopFollowupCli extends waCliController
 
         return array(
             'subject' => $view->fetch('string:'.$f['subject']),
-            'body' => $view->fetch('string:'.$f['body'])
+            'body'    => $view->fetch('string:'.$f['body'])
         );
     }
 
@@ -275,7 +314,11 @@ class shopFollowupCli extends waCliController
         $fetched = self::fetchBodyAndSubject($f, $o, $contact);
         $subject = $fetched['subject'];
         $body = $fetched['body'];
-        $general = wa('shop')->getConfig()->getGeneralSettings();
+        $config = wa('shop')->getConfig();
+        /**
+         * @var shopConfig $config
+         */
+        $general = $config->getGeneralSettings();
         $from = $general['email'];
         if ($f['from']) {
             $from = $f['from'];
@@ -296,6 +339,4 @@ class shopFollowupCli extends waCliController
         $sms = new waSMS();
         return $sms->send($to, $body, isset($f['from']) ? $f['from'] : null);
     }
-
 }
-

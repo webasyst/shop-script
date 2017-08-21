@@ -6,6 +6,12 @@ class shopSettingsConfigSaveController extends waJsonController
     {
         $data = waRequest::post();
 
+        // Only certain fields are allowed
+        $data = array_intersect_key($data, array(
+            'discount_description' => 1,
+            'notification_name' => 1,
+        ));
+
         $config_path = $this->getConfig()->getConfigPath('config.php');
         if (file_exists($config_path)) {
             $config = include($config_path);

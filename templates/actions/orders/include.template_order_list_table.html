@@ -31,6 +31,10 @@
                 </div>
             </td>
             <td style="{%#order.style%}">
+                <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}"><span style="color:#888">{%#order.courier_name%} {%#order.shipping_interval%}</span></a>
+                </div>
+            </td>
+            <td style="{%#order.style%}">
                 <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">{%#order.payment_name%}</a></div>
             </td>
         </tr>

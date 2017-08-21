@@ -243,6 +243,17 @@ class shopCheckoutContactinfo extends shopCheckout
             $this->setSessionData('comment', $comment);
         }
 
+        $agreed = waRequest::request('service_agreement');
+        if ($agreed !== null) {
+            wa()->getStorage()->set('shop_checkout_contactinfo_agreement', !!$agreed);
+            if (!$agreed) {
+                wa()->getView()->assign('errors', array(
+                    'service_agreement' => _w('Please confirm your agreement'),
+                ));
+                return false;
+            }
+        }
+
         return true;
     }
 

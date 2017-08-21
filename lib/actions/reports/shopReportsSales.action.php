@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Sales report in Reports section, and all #/sales/type=??? links in sidebar.
  * Serves lazy-loading for table data there, too.
@@ -47,30 +48,30 @@ class shopReportsSalesAction extends waViewAction
 
         // Load data for table below main chart
         $table_data = $sales_model->getPeriod($type_id, $start_date, $end_date, $model_options + array(
-            'order' => $sort,
-            'start' => waRequest::request('start', 0, 'int'),
-            'filter' => $filter
-        ), $total_rows);
+                'order'  => $sort,
+                'start'  => waRequest::request('start', 0, 'int'),
+                'filter' => $filter
+            ), $total_rows);
         $more_rows_exist = $total_rows > count($table_data);
         $model_options['ensured'] = true;
 
         // Calculate lifetime ROI
         if ($roi_enabled) {
             $names = array();
-            foreach($table_data as $k => $v) {
+            foreach ($table_data as $k => $v) {
                 $names[$v['name']] = $k;
             }
 
             $lifetime_sales = array();
             $rows = $sales_model->getPeriod($type_id, $min_date, $max_date, array(
-                'limit' => 100500,
-                'filter' => array('name' => array_keys($names)),
-            ) + $model_options);
-            foreach($rows as $row) {
+                    'limit'  => 100500,
+                    'filter' => array('name' => array_keys($names)),
+                ) + $model_options);
+            foreach ($rows as $row) {
                 $lifetime_sales[$row['name']] = $row;
             }
 
-            foreach($table_data as &$row) {
+            foreach ($table_data as &$row) {
                 $row['lifetime_roi'] = round(ifset($lifetime_sales[$row['name']]['roi'], 0));
             }
             unset($row);
@@ -79,10 +80,10 @@ class shopReportsSalesAction extends waViewAction
         // Load data for A/B tests
         $abtest_variants = array();
         if ($abtest_id) {
-            $opts = array( 'abtest_id' => $abtest_id );
+            $opts = array('abtest_id' => $abtest_id);
             if ($more_rows_exist) {
                 $opts['filter'] = array('name' => array());
-                foreach($table_data as $row) {
+                foreach ($table_data as $row) {
                     $opts['filter']['name'][] = $row['name'];
                 }
             }
@@ -91,10 +92,10 @@ class shopReportsSalesAction extends waViewAction
             $abtest_variants = $abtest_variants_model->getByField('abtest_id', $abtest_id, 'id');
 
             // make a separate request for each abtest variant
-            foreach($abtest_variants as &$v) {
+            foreach ($abtest_variants as &$v) {
                 $opts['abtest_variant_id'] = $v['id'];
                 $v['data'] = array();
-                foreach($sales_model->getPeriod($type_id, $start_date, $end_date, $model_options + $opts) as $row) {
+                foreach ($sales_model->getPeriod($type_id, $start_date, $end_date, $model_options + $opts) as $row) {
                     $v['data'][$row['name']] = $row;
                 }
             }
@@ -109,9 +110,9 @@ class shopReportsSalesAction extends waViewAction
             $this->view->assign(array(
                 'more_rows_exist' => $more_rows_exist,
                 'abtest_variants' => $abtest_variants,
-                'roi_enabled' => $roi_enabled,
-                'table_data' => $table_data,
-                'def_cur' => $def_cur,
+                'roi_enabled'     => $roi_enabled,
+                'table_data'      => $table_data,
+                'def_cur'         => $def_cur,
             ));
             return;
         }
@@ -119,7 +120,7 @@ class shopReportsSalesAction extends waViewAction
         // Whole-period totals, all in default currency
         $totals = $sales_model->getTotals($type_id, $start_date, $end_date, $model_options);
         if ($abtest_variants) {
-            foreach($abtest_variants as &$v) {
+            foreach ($abtest_variants as &$v) {
                 $opts['abtest_variant_id'] = $v['id'];
                 $v['totals'] = $sales_model->getTotals($type_id, $start_date, $end_date, $model_options + $opts);
                 $v['totals']['cost_formatted'] = waCurrency::format('%{h}', $v['totals']['cost'], $def_cur);
@@ -143,64 +144,60 @@ class shopReportsSalesAction extends waViewAction
         $totals['avg_order_formatted'] = waCurrency::format('%{h}', $totals['avg_order'], $def_cur);
 
         // Data for main chart
-        $graph_data = self::getGraphData(
-            $sales_model->getPeriodByDate($type_id, $start_date, $end_date, $model_options +
-                array(
-                    'date_group' => $group_by,
-                    'filter' => $filter
-                )
-            )
+        $default_options = array(
+            'date_group' => $group_by,
+            'filter'     => $filter
         );
+        $graph_data = self::getGraphData($sales_model->getPeriodByDate($type_id, $start_date, $end_date, $model_options + $default_options));
 
         // details graphs
         $details_graph_data = array();
         if ($this->isDetails()) {
             $request_options['details'] = '1';
-            $details_graph_data = $this->getDetailsGraphData($table_data, $model_options +
-                array(
-                    'type_id' => $type_id,
-                    'start_date' => $start_date,
-                    'end_date' => $end_date,
-                    'date_group' => $group_by,
-                    'filter' => $filter
-                )
+            $default_options = array(
+                'type_id'    => $type_id,
+                'start_date' => $start_date,
+                'end_date'   => $end_date,
+                'date_group' => $group_by,
+                'filter'     => $filter
             );
+            $details_graph_data = $this->getDetailsGraphData($table_data, $model_options + $default_options);
         }
 
         // All abtests for the period for selector
         $abtests = $sales_model->getAvailableABtests($start_date, $end_date, $model_options);
 
         $this->view->assign(array(
-            'sales_channels' => self::getSalesChannels(),
-            'request_options' => $request_options,
-            'more_rows_exist' => $more_rows_exist,
-            'abtest_variants' => $abtest_variants,
-            'menu_types' => self::getMenuTypes(),
-            'roi_enabled' => $roi_enabled,
-            'graph_data' => $graph_data,
-            'table_data' => $table_data,
-            'group_by' => $group_by,
-            'abtests' => $abtests,
-            'def_cur' => $def_cur,
-            'totals' => $totals,
-            'filter' => $filter,
-            'filter_title' => $this->getFilterTitle($filter, $type_id),
-            'type_id' => $type_id,
-            'is_details' => $this->isDetails(),
+            'sales_channels'     => self::getSalesChannels(),
+            'request_options'    => $request_options,
+            'more_rows_exist'    => $more_rows_exist,
+            'abtest_variants'    => $abtest_variants,
+            'menu_types'         => self::getMenuTypes(),
+            'roi_enabled'        => $roi_enabled,
+            'graph_data'         => $graph_data,
+            'table_data'         => $table_data,
+            'group_by'           => $group_by,
+            'abtests'            => $abtests,
+            'def_cur'            => $def_cur,
+            'totals'             => $totals,
+            'filter'             => $filter,
+            'filter_title'       => $this->getFilterTitle($filter, $type_id),
+            'type_id'            => $type_id,
+            'is_details'         => $this->isDetails(),
             'details_graph_data' => $details_graph_data,
-            'max_n_graphs' => $this->max_n_graphs
+            'max_n_graphs'       => $this->max_n_graphs
         ));
 
         // orders block
         if (isset($filter['name'])) {
 
             $list_params = array(
-                'report_type' => $type_id,
-                'filter' => $filter,
+                'report_type'   => $type_id,
+                'filter'        => $filter,
                 'sales_channel' => $sales_channel,
-                'timerange' => array(
+                'timerange'     => array(
                     'start' => $start_date,
-                    'end' => $end_date
+                    'end'   => $end_date
                 )
             );
 
@@ -225,7 +222,7 @@ class shopReportsSalesAction extends waViewAction
     {
         $graph_row_numeric_fields = self::graphRowNumericFields();
         $graph_data = array();
-        foreach($sales_by_day as &$d) {
+        foreach ($sales_by_day as &$d) {
             $graph_row = array(
                 'date' => str_replace('-', '', $d['date'])
             );
@@ -268,12 +265,15 @@ class shopReportsSalesAction extends waViewAction
         $result = array();
         $m = new waModel();
         $sql = "SELECT DISTINCT value FROM shop_order_params WHERE name='sales_channel' ORDER BY value";
-        foreach(array_keys($m->query($sql)->fetchAll('value')) as $id) {
+        foreach (array_keys($m->query($sql)->fetchAll('value')) as $id) {
             $name = $id;
             @list($type, $data) = explode(':', $id, 2);
             if ($with_storefronts) {
                 if ($type == 'storefront') {
-                    $name = $data;
+                    if (!self::$idna) {
+                        self::$idna = new waIdna();
+                    }
+                    $name = self::$idna->decode($data);
                 }
                 $result[$id] = $name;
             }
@@ -282,7 +282,7 @@ class shopReportsSalesAction extends waViewAction
         /**
          * @event backend_reports_channels
          *
-         * Hook allows to set human-readable sales channel names for custom channes.
+         * Hook allows to set human-readable sales channel names for custom channels.
          *
          * Event $params is an array with keys being channel identifiers as specified
          * in `sales_channel` order param.
@@ -291,7 +291,7 @@ class shopReportsSalesAction extends waViewAction
          * to show in channel selector.
          *
          * @param array [string]string
-         * @return none
+         * @return null
          */
         wa('shop')->event('backend_reports_channels', $result);
 
@@ -321,7 +321,7 @@ class shopReportsSalesAction extends waViewAction
         if ($timeframe === 'all') {
             $start_date = null;
             $end_date = null;
-        } else if ($timeframe == 'custom') {
+        } elseif ($timeframe == 'custom') {
             $from = waRequest::request('from', 0, 'int');
             $start_date = $from ? date('Y-m-d', $from) : null;
 
@@ -334,7 +334,7 @@ class shopReportsSalesAction extends waViewAction
             if (!wa_is_int($timeframe)) {
                 $timeframe = 30;
             }
-            $start_date = date('Y-m-d', time() - $timeframe*24*3600);
+            $start_date = date('Y-m-d', time() - $timeframe * 24 * 3600);
             $end_date = null;
         }
 
@@ -351,44 +351,44 @@ class shopReportsSalesAction extends waViewAction
     public static function getMenuTypes()
     {
         return array(
-            'sources' => array(
-                'menu_name' => _w("All sources"),
+            'sources'        => array(
+                'menu_name'   => _w("All sources"),
                 'header_name' => _w("Sales by source"),
             ),
-            'social' => array(
-                'menu_name' => _w("Social"),
+            'social'         => array(
+                'menu_name'   => _w("Social"),
                 'header_name' => _w("Sales by social media"),
             ),
-            'countries' => array(
-                'menu_name' => _w("Countries & Regions"),
+            'countries'      => array(
+                'menu_name'   => _w("Countries & Regions"),
                 'header_name' => _w("Sales by country and region"),
             ),
-            'campaigns' => array(
-                'menu_name' => _w("Campaigns"),
+            'campaigns'      => array(
+                'menu_name'   => _w("Campaigns"),
                 'header_name' => _w("Sales by campaign"),
             ),
             'sales_channels' => array(
-                'menu_name' => _w("Sales channels"),
+                'menu_name'   => _w("Sales channels"),
                 'header_name' => _w("Sales by sales channel")
             ),
-            'storefronts' => array(
-                'menu_name' => _w("Storefronts"),
+            'storefronts'    => array(
+                'menu_name'   => _w("Storefronts"),
                 'header_name' => _w("Sales by storefront")
             ),
-            'shipping' => array(
-                'menu_name' => _w("Shipping"),
+            'shipping'       => array(
+                'menu_name'   => _w("Shipping"),
                 'header_name' => _w("Sales by shipping option"),
             ),
-            'payment' => array(
-                'menu_name' => _w("Payment"),
+            'payment'        => array(
+                'menu_name'   => _w("Payment"),
                 'header_name' => _w("Sales by payment method"),
             ),
-            'coupons' => array(
-                'menu_name' => _w("Coupons"),
+            'coupons'        => array(
+                'menu_name'   => _w("Coupons"),
                 'header_name' => _w("Sales by coupon"),
             ),
-            'landings' => array(
-                'menu_name' => _w("Landings"),
+            'landings'       => array(
+                'menu_name'   => _w("Landings"),
                 'header_name' => _w("Sales by landing page"),
             ),
         );
@@ -413,10 +413,18 @@ class shopReportsSalesAction extends waViewAction
         foreach (explode('_', $type_id) as $part) {
             $type_name[] = ucfirst($part);
         }
-        $method_name = __FUNCTION__ . 'ByType' . join('', $type_name);
+        $method_name = __FUNCTION__.'ByType'.join('', $type_name);
 
         if (method_exists($this, $method_name)) {
-            return call_user_func(array($this, $method_name), $name, $params);
+            /**
+             * @use self::formatTableRowNameByTypeCampaigns
+             * @use self::formatTableRowNameByTypeCountries
+             * @use self::formatTableRowNameByTypeCoupons
+             * @use self::formatTableRowNameByTypeSalesChannels
+             * @use self::formatTableRowNameByTypeSocial
+             * @use self::formatTableRowNameByTypeSources
+             */
+            return $this->{$method_name}($name, $params);
         }
         return $name;
     }
@@ -453,10 +461,10 @@ class shopReportsSalesAction extends waViewAction
                 $rs = $regions[$country];
                 if (!$region) {
                     $region = _w('region not specified');
-                } else if (!empty($rs[$region])) {
+                } elseif (!empty($rs[$region])) {
                     $region = $rs[$region]['name'];
                 }
-                $name = $c['name'] .' ('.$region.')';
+                $name = $c['name'].' ('.$region.')';
             }
         }
 
@@ -480,9 +488,25 @@ class shopReportsSalesAction extends waViewAction
         return $name;
     }
 
+    /**
+     * @var waIdna
+     */
+    private static $idna;
+
     protected function formatTableRowNameByTypeSources($name)
     {
-        return $name ? $name : _w('(direct)');
+        if ($name && !self::$idna) {
+            self::$idna = new waIdna();
+        }
+        return $name ? self::$idna->decode($name) : _w('(direct)');
+    }
+
+    protected function formatTableRowNameByTypeStorefronts($name)
+    {
+        if ($name && !self::$idna) {
+            self::$idna = new waIdna();
+        }
+        return $name ? self::$idna->decode($name) : _w('(not defined)');
     }
 
     protected function formatTableRowNameByTypeSocial($name)
@@ -498,20 +522,21 @@ class shopReportsSalesAction extends waViewAction
     {
         if ($name === 'buy_button:') {
             $name = _w('Buy button');
-        } else if ($name === 'backend:') {
+        } elseif ($name === 'backend:') {
             $name = _w('Backend');
-        } else if (!$name) {
+        } elseif (!$name) {
             $name = _w('(not defined)');
         }
         return $name;
     }
 
-    protected function prepareTableData($type_id, &$table_data) {
+    protected function prepareTableData($type_id, &$table_data)
+    {
 
         $params = array();
         if ($type_id === 'coupons') {
             $coupon_ids = array();
-            foreach($table_data as $i => $row) {
+            foreach ($table_data as $i => $row) {
                 if (!$row['name']) {
                     unset($table_data[$i]);
                 } else {
@@ -526,7 +551,7 @@ class shopReportsSalesAction extends waViewAction
             }
         }
 
-        foreach($table_data as $i => &$row) {
+        foreach ($table_data as $i => &$row) {
             $row['orig_name'] = $row['name'];
             $row['name'] = $this->formatTableRowName($type_id, $row['name'], $params);
             if ($row['name'] === null) {
@@ -542,7 +567,7 @@ class shopReportsSalesAction extends waViewAction
 
         if ($type_id == 'social') {
             $social_domains = wa('shop')->getConfig()->getOption('social_domains');
-            foreach($table_data as &$row) {
+            foreach ($table_data as &$row) {
                 if (!empty($social_domains[$row['orig_name']]['icon_class'])) {
                     $row['icon_class'] = $social_domains[$row['orig_name']]['icon_class'];
                 }
@@ -553,7 +578,7 @@ class shopReportsSalesAction extends waViewAction
 
     public function getFilter()
     {
-        $filter = (array) $this->getRequest()->request('filter');
+        $filter = (array)$this->getRequest()->request('filter');
         foreach ($filter as $field => $value) {
             $filter[$field] = urldecode($value);
         }
@@ -638,6 +663,4 @@ class shopReportsSalesAction extends waViewAction
 
         return array('data' => $graph_data, 'names' => $graph_names);
     }
-
 }
-

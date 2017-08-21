@@ -229,9 +229,15 @@ class shopSettingsOrderStateSaveController extends waJsonController
                 'name' => $name,
                 'options' => array()
             );
-            $state = trim($states[$k]);
-            if ($state && isset($available_states[$state])) {
-                $actions[$action_id]['state'] = $state;
+            if (isset($states[$k])) {
+                $state = trim($states[$k]);
+                if ($state) {
+                    if (isset($available_states[$state])) {
+                        $actions[$action_id]['state'] = $state;
+                    }
+                } else {
+                    $actions[$action_id]['state'] = '';
+                }
             }
             if (!empty($checked[$k])) {
                 $actions[$action_id]['checked'] = true;

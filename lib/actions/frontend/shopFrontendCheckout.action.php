@@ -284,7 +284,7 @@ class shopFrontendCheckoutAction extends waViewAction
 
         if ($this->getUser()->isAuth()) {
             $contact = $this->getUser();
-        } else if (!empty($checkout_data['contact']) && $checkout_data['contact'] instanceof waContact) {
+        } elseif (!empty($checkout_data['contact']) && $checkout_data['contact'] instanceof waContact) {
             $contact = $checkout_data['contact'];
         } else {
             $contact = new waContact();
@@ -347,11 +347,11 @@ class shopFrontendCheckoutAction extends waViewAction
 
         $routing_url = wa()->getRouting()->getRootUrl();
         $order['params']['storefront'] = wa()->getConfig()->getDomain().($routing_url ? '/'.$routing_url : '');
-        if(wa()->getStorage()->get('shop_order_buybutton')) {
+        if (wa()->getStorage()->get('shop_order_buybutton')) {
             $order['params']['sales_channel'] = 'buy_button:';
         }
 
-        if ( ( $ref = waRequest::cookie('referer'))) {
+        if (($ref = waRequest::cookie('referer'))) {
             $order['params']['referer'] = $ref;
             $ref_parts = @parse_url($ref);
             $order['params']['referer_host'] = $ref_parts['host'];
@@ -381,7 +381,7 @@ class shopFrontendCheckoutAction extends waViewAction
             }
         }
 
-        if ( ( $utm = waRequest::cookie('utm'))) {
+        if (($utm = waRequest::cookie('utm'))) {
             $utm = json_decode($utm, true);
             if ($utm && is_array($utm)) {
                 foreach ($utm as $k => $v) {
@@ -390,13 +390,19 @@ class shopFrontendCheckoutAction extends waViewAction
             }
         }
 
-        if ( ( $landing = waRequest::cookie('landing')) && ( $landing = @parse_url($landing))) {
+        if (($landing = waRequest::cookie('landing')) && ($landing = @parse_url($landing))) {
             if (!empty($landing['query'])) {
                 @parse_str($landing['query'], $arr);
-                if (!empty($arr['gclid']) && !empty($order['params']['referer_host']) && strpos($order['params']['referer_host'], 'google') !== false) {
+                if (!empty($arr['gclid'])
+                    && !empty($order['params']['referer_host'])
+                    && strpos($order['params']['referer_host'], 'google') !== false
+                ) {
                     $order['params']['referer_host'] .= ' (cpc)';
                     $order['params']['cpc'] = 1;
-                } else if (!empty($arr['_openstat']) && !empty($order['params']['referer_host']) && strpos($order['params']['referer_host'], 'yandex') !== false) {
+                } elseif (!empty($arr['_openstat'])
+                    && !empty($order['params']['referer_host'])
+                    && strpos($order['params']['referer_host'], 'yandex') !== false
+                ) {
                     $order['params']['referer_host'] .= ' (cpc)';
                     $order['params']['openstat'] = $arr['_openstat'];
                     $order['params']['cpc'] = 1;
@@ -408,7 +414,7 @@ class shopFrontendCheckoutAction extends waViewAction
 
         // A/B tests
         $abtest_variants_model = new shopAbtestVariantsModel();
-        foreach(waRequest::cookie() as $k => $v) {
+        foreach (waRequest::cookie() as $k => $v) {
             if (substr($k, 0, 5) == 'waabt') {
                 $variant_id = $v;
                 $abtest_id = substr($k, 5);
@@ -485,7 +491,7 @@ class shopFrontendCheckoutAction extends waViewAction
          * @param array[array] $params['order'] order data
          * @param array[array] $params['rules'] list of rules to modify.
          * @param array[array] $params['stocks'] same as shopHelper::getStocks()
-         * @return none
+         * @return null
          */
         $event_params = array(
             'order' => $order,
@@ -496,13 +502,13 @@ class shopFrontendCheckoutAction extends waViewAction
         wa('shop')->event('frontend_checkout_stock_rules', $event_params);
 
         $groups = $stock_rules_model->prepareRuleGroups($rules);
-        foreach($groups as $g) {
+        foreach ($groups as $g) {
             if (($g['stock_id'] && empty($stocks[$g['stock_id']])) || ($g['virtualstock_id'] && empty($stocks['v'.$g['virtualstock_id']]))) {
                 continue;
             }
 
             $all_fulfilled = true;
-            foreach($g['conditions'] as $rule) {
+            foreach ($g['conditions'] as $rule) {
                 if (!ifset($rule['fulfilled'], false)) {
                     $all_fulfilled = false;
                     break;
@@ -518,7 +524,7 @@ class shopFrontendCheckoutAction extends waViewAction
         $stock_id = waRequest::param('stock_id', null, 'string');
         if (empty($stocks[$stock_id])) {
             $stock_id = null;
-        } else if (isset($stocks[$stock_id]['substocks'])) {
+        } elseif (isset($stocks[$stock_id]['substocks'])) {
             $virtualstock_id = $stocks[$stock_id]['id'];
             $stock_id = null;
         }
@@ -539,12 +545,12 @@ class shopFrontendCheckoutAction extends waViewAction
             }
         }
 
-        foreach($params['rules'] as &$rule) {
+        foreach ($params['rules'] as &$rule) {
             if ($rule['rule_type'] == 'by_shipping') {
                 $rule['fulfilled'] = $shipping_type_id && $shipping_type_id == $rule['rule_data'];
-            } else if ($rule['rule_type'] == 'by_region') {
+            } elseif ($rule['rule_type'] == 'by_region') {
                 $rule['fulfilled'] = false;
-                foreach(explode(',', $rule['rule_data']) as $candidate) {
+                foreach (explode(',', $rule['rule_data']) as $candidate) {
                     if ($candidate === $shipping_country || $candidate === $shipping_region) {
                         $rule['fulfilled'] = true;
                         break;
@@ -567,5 +573,4 @@ class shopFrontendCheckoutAction extends waViewAction
         }
         return self::$steps[$step_id];
     }
-
 }

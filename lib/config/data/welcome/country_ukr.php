@@ -6,16 +6,16 @@ return array(
         'EUR' => 30,
         'RUB' => 0.4,
     ),
-    'taxes' => array(
-		array(
-			'name' => 'НДС',
-			'included' => false,
-			'address_type' => 'shipping',
-			'countries' => array(
-				'ukr' => array(
-				  'global_rate' => 20,
-				),
-			),
-		),
+    'taxes'    => array(
+        array(
+            'name'         => 'НДС',
+            'included'     => false,
+            'address_type' => 'shipping',
+            'countries'    => array(
+                'ukr' => array(
+                    'global_rate' => 20,
+                ),
+            ),
+        ),
     ),
 );

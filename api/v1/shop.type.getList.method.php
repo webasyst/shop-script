@@ -3,6 +3,7 @@
 class shopTypeGetListMethod extends shopApiMethod
 {
     protected $method = 'GET';
+    protected $courier_allowed = true;
 
     public function execute()
     {

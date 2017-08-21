@@ -29,7 +29,7 @@ $(function() {
         }
     });
 
-    content.off('click', '.review-reply, .write-review a').on('click', '.review-reply, .write-review a', function() { 
+    content.off('click', '.review-reply, .write-review a').on('click', '.review-reply, .write-review a', function() {
         var self = $(this);
         var item = self.parents('li:first');
         var parent_id = parseInt(item.attr('data-id'), 10) || 0;
@@ -106,7 +106,7 @@ $(function() {
                 var parent_id = parseInt(r.data.parent_id, 10) || 0;
                 var parent_item = parent_id ? form.parents('li:first') : content;
                 var ul = $('ul.reviews-branch:first', parent_item);
-                
+
                 if (parent_id) {
                     //reply to a review
                     ul.show().append(html);
@@ -116,13 +116,13 @@ $(function() {
                     ul.show().prepend(html);
                     ul.find('li:first .review').addClass('new');
                 }
-                
+
                 $('.reviews-count-text').text(r.data.review_count_str);
                 $('.reviews-count').text(r.data.count);
                 form.find('input[name=count]').val(r.data.count);
                 clear(form, true);
                 content.find('.write-review a').click();
-                
+
                 form_wrapper.hide();
                 if (typeof success === 'function') {
                     success(r);
@@ -138,7 +138,7 @@ $(function() {
 
     function showErrors(form, errors) {
         for (var name in errors) {
-            $('[name='+name+']', form).after($('<em class="errormsg"></em>').text(errors[name])).addClass('error');
+            $('[name='+name+']', form).last().addClass('error').parent().append($('<em class="errormsg"></em>').text(errors[name]));
         }
     };
 

@@ -29,7 +29,7 @@ class shopRounding
         return $result;
     }
 
-    public static function roundCurrency($amount, $currency_id)
+    public static function roundCurrency($amount, $currency_id, $force_round_up = false)
     {
         $config = wa('shop')->getConfig();
         /**
@@ -39,7 +39,7 @@ class shopRounding
         if (empty($curs[$currency_id]) || empty($curs[$currency_id]['rounding'])) {
             return (float)$amount;
         }
-        return self::round($amount, $curs[$currency_id]['rounding'], ifset($curs[$currency_id]['round_up_only']));
+        return self::round($amount, $curs[$currency_id]['rounding'], $force_round_up || ifset($curs[$currency_id]['round_up_only']));
     }
 
     public static function getRoundingVars($rounding)

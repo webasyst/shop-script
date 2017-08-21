@@ -1,0 +1,22 @@
+<h4><span class="highlighted">{$message|default:'При обращении к API «Яндекс.Маркета» произошла ошибка.'}</span></h4>
+
+<p class="hint">
+    {if $hint|default:''}
+        {$hint}
+        <br/>
+    {/if}
+    
+    {if $error}
+        При открытии этой страницы возникли следующие ошибки:<br/>
+        <i class="icon16 exclamation" style="vertical-align: middle;"></i><strong>{$error|escape}</strong>
+        <br/>
+    {/if}
+    
+    {if !empty($error_code)}
+        {if $error_code == 403}
+            Ошибка авторизации: проверьте правильность настроек <a href="#/yandexmarket/api/">партнерского API</a>.
+        {elseif $error_code == 420}
+            Превышены лимиты на обращения через API.
+        {/if}
+    {/if}
+</p>

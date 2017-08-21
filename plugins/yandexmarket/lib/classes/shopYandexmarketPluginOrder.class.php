@@ -8,9 +8,17 @@
  * @property-read string $sub_status
  * @property-read string $sub_status_description
  * @property-read int $shipping_id
+ * @property-read string $shipping_name
  * @property-read string $shipping_plugin
+ * @property-read string $shipping_rate_id
+ * @property-read string $shipping_est_delivery
  * @property-read int $outlet_id
  * @property-read int $yandex_id
+ * @property-read int $profile_id
+ * @property-read int $delivery_from
+ * @property-read int $delivery_before
+ * @property-read int $delivery_cost
+ * @property bool $over_sell
  *
  * @property array[][string]string  $items[]['raw_data']
  */
@@ -47,12 +55,60 @@ class shopYandexmarketPluginOrder extends waOrder
         );
 
         if (!empty($json['fake'])) {
-            $data['description'] = 'Тестовый заказ';
+            $data['description'] .= "Тестовый заказ\n";
+        }
+
+        if (!empty($json['isBooked'])) {
+            $data['description'] .= "Заказ оформлен в рамках программы «Забронировать на Маркете».\n";
+        }
+
+        if (!empty($json['notes'])) {
+            $data['description'] .= $json['notes'];
         }
 
         if ($data['currency'] == 'RUR') {
             $data['currency'] = 'RUB';
         }
+
+        $feeds = array();
+        foreach ($json['items'] as $item) {
+            /**
+             * @var array[string]mixed $item
+             * @var array[string]int $item[feedId]
+             * @var array[string]string $item['offerId']
+             * @var array[string]string $item['offerName']
+             * @var array[string]int $item['count']
+             * @var array[string]string $item['feedCategoryId']
+             */
+
+            $feeds[] = $item['feedId'];
+        }
+
+        $feeds = array_unique($feeds);
+        $profile = null;
+        $profile_map = array();
+        $profile_id = null;
+        if ($feeds) {
+            foreach ($feeds as $feed_id) {
+                list($path, $profile_id, $campaign_id) = $plugin->getInfoByFeed($feed_id);
+                if (!empty($data['campaign_id']) && ($data['campaign_id'] != $campaign_id)) {
+                    //WTF?
+                }
+                $data['campaign_id'] = $campaign_id;
+                $profile_map[$feed_id] = $profile_id;
+            }
+
+        }
+
+        if (empty($profile_id)) {
+            //Bad...
+            throw new waException('Profile not found');
+        } elseif (count($profile_map) > 1) {
+            throw new waException('Multiple feeds not supported');
+        }
+
+        $profile = null;
+        $data['items'] = shopYandexmarketPluginRunController::getCartItems($json['items'], $profile_id, $data['currency'], $profile);
 
         switch ($action) {
             case 'order':
@@ -92,7 +148,15 @@ class shopYandexmarketPluginOrder extends waOrder
                                 $data['payment_name'] = 'Наличными';
                                 break;
                             case 'CARD_ON_DELIVERY':
-                                $data['payment_name'] = 'Яндекс.Деньги мобильный терминал';
+                                $data['payment_name'] = 'мобильный терминал «Яндекс.Деньги»';
+                                if (!empty($profile['payment']['CARD_ON_DELIVERY'])) {
+                                    if ($payment_plugin = shopPayment::getPluginInfo($profile['payment']['CARD_ON_DELIVERY'])) {
+                                        $data['payment_id'] = $payment_plugin['id'];
+                                        $data['payment_plugin'] = $payment_plugin['plugin'];
+                                        $data['payment_name'] = $payment_plugin['name'];
+                                    }
+                                }
+
                                 break;
                             default:
                                 break;
@@ -110,123 +174,28 @@ class shopYandexmarketPluginOrder extends waOrder
                 break;
         }
 
-        $product_ids = array();
-        $feeds = array();
-        foreach ($json['items'] as $item) {
-            /**
-             * @var array[string]mixed $item
-             * @var array[string]int $item[feedId]
-             * @var array[string]string $item['offerId']
-             * @var array[string]string $item['offerName']
-             * @var array[string]int $item['count']
-             * @var array[string]string $item['feedCategoryId']
-             */
+        $data['delivery_from'] = array();
+        $data['delivery_before'] = array();
+        $data['delivery_cost'] = array();
+        foreach ($data['items'] as $item) {
+            if (isset($item['shipping'])) {
+                if (isset($item['shipping']['days']) && ($item['shipping']['days'] !== '')) {
+                    $days = shopYandexmarketPlugin::getDays($item['shipping']['days']);
 
-            $feeds[] = $item['feedId'];
-            $product_ids[] = intval(preg_replace('@\D.*$@', '', $item['offerId']));
-        }
-
-        $feeds = array_unique($feeds);
-        $profile = null;
-        $profile_map = array();
-        if ($feeds) {
-            foreach ($feeds as $feed_id) {
-                list($path, $profile_id, $campaign_id) = $plugin->getInfoByFeed($feed_id);
-                if (!empty($data['campaign_id']) && ($data['campaign_id'] != $campaign_id)) {
-                    //WTF?
-                }
-                $data['campaign_id'] = $campaign_id;
-                $profile_map[$feed_id] = $profile_id;
-            }
-        }
-
-        if ($product_ids) {
-            $product_ids = array_unique($product_ids);
-            $product_model = new shopProductModel();
-
-            $product_ids = $product_model->select('id,name,currency,sku_id')->where('id IN (i:product_ids)', compact('product_ids'))->fetchAll('id', true);
-        }
-
-        $sku_ids = array();
-
-        foreach ($json['items'] as $item) {
-
-            /**
-             * @var int $item ['feedId']
-             */
-            $id = preg_split('@\D+@', $item['offerId'], 2);
-            if (count($id) == 2) {
-                $product_id = reset($id);
-                $sku_id = end($id);
-                $product = ifset($product_ids[$product_id]);
-            } else {
-                $product_id = reset($id);
-                $product = ifset($product_ids[reset($id)]);
-                $sku_id = $product['sku_id'];
-            }
-
-            $sku_ids[] = $sku_id;
-
-            $data['items'][] = array(
-                'create_datetime' => date('Y-m-d H:i:s'),
-                'type'            => 'product',
-                'product_id'      => $product_id,
-                'sku_id'          => $sku_id,
-                'sku_code'        => '',
-                'name'            => ifset($product['name'], $item['offerName']),
-                'count'           => 0,
-                'price'           => false,
-                'purchase_price'  => false,
-                'profile_id'      => ifset($profile_map[$item['feedId']]),
-                'currency'        => $product['currency'],
-                'raw_data'        => $item,
-            );
-        }
-
-        $skus_model = new shopProductSkusModel();
-        $skus = $skus_model->select('id,count,price,sku,purchase_price')->where('id IN (i:sku_ids)', compact('sku_ids'))->fetchAll('id');
-
-        $currency_model = new shopCurrencyModel();
-
-        foreach ($data['items'] as &$item) {
-
-            if (isset($skus[$item['sku_id']])) {
-                $sku = $skus[$item['sku_id']];
-                $item['count'] = ($sku['count'] === null) ? 9999 : $sku['count'];
-                $item['sku_code'] = $sku['sku'];
-
-                if (true) {
-                    #@todo configure it
-                    $item['count'] = min($item['count'], $item['raw_data']['count']);
-                }
-
-                $item['price'] = ifset($sku['price'], false);
-                $item['purchase_price'] = ifset($sku['purchase_price']);
-                if ($item['price']) {
-                    if (!empty($data['currency']) && ($item['currency'] != $data['currency'])) {
-                        $item['price'] = $currency_model->convert($item['price'], $item['currency'], $data['currency']);
-
-                        if (class_exists('shopRounding')) {
-                            $item['price'] = shopRounding::roundCurrency($item['price'], $data['currency']);
-                        }
-
-                        if ($item['purchase_price']) {
-                            $item['purchase_price'] = $currency_model->convert($item['purchase_price'], $item['currency'], $data['currency']);
-                        }
-                        $item['currency'] = $data['currency'];
+                    if ($days) {
+                        $data['delivery_from'][] = min($days);
+                        $data['delivery_before'][] = max($days);
                     }
-                    $item['price'] = round($item['price'], 2);
                 }
-
+                if (isset($item['shipping']['cost']) && ($item['shipping']['cost'] !== '')) {
+                    $data['delivery_cost'][] = $item['shipping']['cost'];
+                }
             }
-
-            unset($item);
         }
 
-
-        if (!empty($json['notes'])) {
-            $data['description'] .= ($data['description'] ? "\n" : '').$json['notes'];
-        }
+        $data['delivery_from'] = $data['delivery_from'] ? max($data['delivery_from']) : null;
+        $data['delivery_before'] = $data['delivery_before'] ? max($data['delivery_before']) : null;
+        $data['delivery_cost'] = $data['delivery_cost'] ? max($data['delivery_cost']) : null;
 
         if (!empty($json['delivery'])) {
             $delivery = $json['delivery'];
@@ -239,13 +208,20 @@ class shopYandexmarketPluginOrder extends waOrder
                             $data['outlet_id'] = $id;
                             break;
                         case 'shipping':
-                            $data['shipping_id'] = $id;
+                            if (strpos($id, '.')) {
+                                list($data['shipping_id'], $data['shipping_rate_id']) = explode('.', $id);
+                            } else {
+                                $data['shipping_id'] = $id;
+                            }
                             $data['shipping_name'] = $delivery['serviceName'];
                             $plugin_model = new shopPluginModel();
-                            $plugin = $plugin_model->getPlugin($id, shopPluginModel::TYPE_SHIPPING);
-                            if ($plugin) {
-                                $data['shipping_plugin'] = $plugin['plugin'];
-                                $data['shipping_name'] = $plugin['name'];
+                            $shipping_plugin = $plugin_model->getPlugin($data['shipping_id'], shopPluginModel::TYPE_SHIPPING);
+                            if ($shipping_plugin) {
+                                $data['shipping_plugin'] = $shipping_plugin['plugin'];
+                                $data['shipping_name'] = $shipping_plugin['name'];
+                            }
+                            if (!empty($delivery['outlet']['id'])) {
+                                $data['outlet_id'] = $delivery['outlet']['id'];
                             }
                             break;
                     }
@@ -253,86 +229,20 @@ class shopYandexmarketPluginOrder extends waOrder
                     $data['shipping_name'] = $delivery['serviceName'];
                 }
                 $data['shipping'] = floatval($delivery['price']);
-            }
 
-            $address = array();
-
-            $formats = array(
-                'subway' => 'метро %s',
-                'house'  => 'дом %s',
-                'block'  => 'корпус %s',
-                'floor'  => 'этаж %s',
-            );
-
-            if (!empty($delivery['address'])) {
-                $address_map = array(
-                    'country',
-                    'city',
-                    'subway'   => 'street',
-                    'postcode' => 'zip',
-                    'street'   => 'street',
-                    'house'    => 'street',
-                    'block'    => 'street',
-                    'floor'    => 'street',
-                );
-
-                foreach ($address_map as $field => $target) {
-                    if (is_int($field)) {
-                        $field = $target;
-                    }
-
-                    if (isset($delivery['address'][$field])) {
-                        $address[$target][$field] = trim($delivery['address'][$field]);
-                        unset($delivery['address'][$field]);
-                    }
+                if (!empty($delivery['dates'])) {
+                    $data['shipping_est_delivery'] = implode('—', $delivery['dates']);
                 }
-
-            } else {
-
-                $region = ifset($delivery['region']);
-                $address_map = array(
-                    'REGION'                      => 'region',
-                    'COUNTRY'                     => array('name' => 'country_name', 'id' => 'country',),
-                    'COUNTRY_DISTRICT'            => array('name' => 'region_name', 'id' => 'region'),
-                    'SUBJECT_FEDERATION'          => array('name' => 'region_name', 'id' => 'region'),
-                    'SUBJECT_FEDERATION_DISTRICT' => array('name' => 'city', 'id' => 'zip'),
-                    'CITY'                        => 'city',
-                    'VILLAGE'                     => 'city',
-                    'CITY_DISTRICT'               => 'street',
-                    'SUBWAY_STATION'              => 'subway',
-                    'OTHER'                       => '',
-                );
-
-                while ($region !== null) {
-                    $field = ifset($address_map[$region['type']], false);
-                    if ($field) {
-                        if (is_array($field)) {
-                            foreach ($field as $property => $key) {
-                                $address[$key][] = trim($region[$property]);
-                            }
-                        } else {
-                            $address[$field][] = trim($region['name']);
-                        }
-                    }
-                    $region = ifset($region['parent']);
+            }
+            $home_region_id = null;
+            if (!empty($data['campaign_id'])) {
+                if ($home_region = $plugin->getCampaignRegion($data['campaign_id'])) {
+                    $home_region_id = ifset($home_region['id']);
                 }
             }
 
+            $address = self::parseAddress($delivery, $home_region_id);
 
-            foreach ($address as &$address_item) {
-                $address_item = array_filter($address_item, 'strlen');
-                if ($address_item) {
-                    foreach ($address_item as $type => &$address_item_element) {
-                        if (isset($formats[$type])) {
-                            $address_item_element = sprintf($formats[$type], $address_item_element);
-                        }
-                        unset($address_item_element);
-                    }
-                    $address_item = implode(' ', $address_item);
-                }
-                unset($address_item);
-            }
-            $address = array_filter($address, 'strlen');
             if (!empty($address)) {
                 $data['shipping_address'] = $address;
             }
@@ -379,12 +289,19 @@ class shopYandexmarketPluginOrder extends waOrder
                 $contact['create_datetime'] = date('Y-m-d H:i:s');
                 $contact['create_app_id'] = 'shop';
 
+
+                if (!empty($data['shipping_address'])) {
+                    $contact['address.shipping'] = array_filter($data['shipping_address']);
+                }
                 $errors = $contact->save();
+                $save_contact = false;
                 if ($contact_id) {
                     waLog::log("Contact {$contact_id} was updated: ".var_export($buyer, true), 'shop/plugins/yandexmarket/order.log');
+                } else {
+                    waLog::log("Contact was created: ".var_export($buyer, true), 'shop/plugins/yandexmarket/order.log');
                 }
                 if ($errors) {
-                    waLog::log('Error occurs during save contact: '.var_export($errors, true), 'shop/plugins/yandexmarket/error.log');
+                    waLog::log('Error occurs during save contact: '.var_export($errors, true), 'shop/plugins/yandexmarket/order.error.log');
                 } else {
                     $contact_id = $contact->getId();
                     waLog::log("Contact {$contact_id} was created: ".var_export($buyer, true), 'shop/plugins/yandexmarket/order.log');
@@ -392,11 +309,27 @@ class shopYandexmarketPluginOrder extends waOrder
             }
         } else {
             $contact_id = $plugin->getSettings('contact_id');
+            $contact_id = null;
         }
-        if (empty($contact) && $contact_id) {
+        if (empty($contact) /*&& $contact_id*/) {
             $contact = new waContact($contact_id);
+
+            if (!empty($data['shipping_address'])) {
+                $contact['address.shipping'] = array_filter($data['shipping_address']);
+            }
+            if ($save_contact) {
+                $errors = $contact->save();
+                if ($errors) {
+                    waLog::log('Error occurs during save contact: '.var_export($errors, true), 'shop/plugins/yandexmarket/order.error.log');
+                } else {
+                    $contact_id = $contact->getId();
+                    waLog::log("Contact {$contact_id} was created with address: ".var_export($data['shipping_address'], true), 'shop/plugins/yandexmarket/order.log');
+                }
+            }
         }
+
         $data['contact'] = $contact;
+        $data['over_sell'] = false;
 
         return new self($data);
     }
@@ -414,5 +347,181 @@ class shopYandexmarketPluginOrder extends waOrder
         );
 
         return new self($data);
+    }
+
+    public static function parseAddress($data, $home_region_id = null, $format = false)
+    {
+        $home = false;
+
+
+        $formats = array(
+            'subway'     => 'метро %s',
+            'house'      => 'дом %s',
+            'block'      => 'корпус %s',
+            'floor'      => 'этаж %s',
+            //update order
+            'entrance'   => 'подъезд %s',
+            'entryphone' => 'домофон %s',
+            'apartment'  => 'кв %s',
+        );
+
+
+        #region
+        $region = ifset($data['region'], $data);
+        $address_map = array(
+            'REGION'                      => 'region',
+            'COUNTRY'                     => array('name' => 'country_name', 'id' => 'country_id',),// страна
+            'COUNTRY_DISTRICT'            => array('name' => 'region_name', 'id' => 'region_id'),// федеральный округ — устарело
+            'REPUBLIC'                    => array('name' => 'region_name', 'id' => 'region_id'),// — субъект федерации;
+            'REPUBLIC_AREA'               => '',// — район субъекта федерации;
+            'SUBJECT_FEDERATION'          => array('name' => 'region_name', 'id' => 'region_id'),
+            'SUBJECT_FEDERATION_DISTRICT' => array('name' => 'district_name', 'id' => 'district_id'),
+            'CITY'                        => array('name' => 'city', 'id' => 'city_id'),//город
+            'VILLAGE'                     => 'city',//поселок или село
+            'CITY_DISTRICT'               => 'street',//район города
+            'SUBWAY_STATION'              => 'subway',
+            'OTHER'                       => '',
+        );
+        $region_address = array();
+        while ($region !== null) {
+            if ($home_region_id && ((int)ifset($region['id']) == (int)$home_region_id)) {
+                $home = true;
+            }
+
+            if ($field = ifset($address_map[$region['type']], false)) {
+                if (is_array($field)) {
+                    foreach ($field as $property => $target) {
+                        $region_address[$target][] = trim($region[$property]);
+                    }
+                } else {
+                    $region_address[$field][] = trim($region['name']);
+                }
+            }
+
+            $region = empty($region['parent']) ? null : $region['parent'];
+        }
+
+        foreach ($region_address as $field => &$address_item) {
+            $address_item = array_filter($address_item, 'strlen');
+            if ($address_item) {
+                foreach ($address_item as $type => &$address_item_element) {
+                    if (isset($formats[$type])) {
+                        $address_item_element = sprintf($formats[$type], $address_item_element);
+                    }
+                    unset($address_item_element);
+                }
+                $address_item = reset($address_item);
+
+            }
+            unset($address_item);
+        }
+
+        #address
+        $exact_address = array();
+
+        if (!empty($data['address'])) {
+            $address_map = array(
+                'country',
+                'city',
+                'subway'     => 'street',
+                'postcode'   => 'zip',
+                'street'     => 'street',
+                'house'      => 'street',
+                'block'      => 'street',
+                'floor'      => 'street',
+                //update order
+                'entrance'   => 'street',
+                'entryphone' => 'street',
+                'apartment'  => 'street',
+            );
+
+            foreach ($address_map as $field => $target) {
+                if (is_int($field)) {
+                    $field = $target;
+                }
+
+                if (isset($data['address'][$field])) {
+                    $address_item = trim(trim($data['address'][$field]));
+                    if (strlen($address_item)) {
+                        if (isset($formats[$field])) {
+                            $address_item = sprintf($formats[$field], $address_item);
+                        }
+                        $exact_address[$target][$field] = $address_item;
+                    }
+
+                    unset($data['address'][$field]);
+                    unset($address_item);
+                }
+            }
+
+            foreach ($exact_address as &$address_item) {
+                $address_item = implode(' ', $address_item);
+                unset($address_item);
+            }
+        }
+
+        $address = $region_address + $exact_address;
+
+        if (!empty($address['country_id'])) {
+            $map = include(dirname(dirname(__FILE__)).'/config/regions.php');
+            if (isset($map[$address['country_id']])) {
+                $country = $map[$address['country_id']];
+                $address['country'] = $country['iso'];
+                $regions = $country['regions'];
+                $regions = array_flip($regions);
+                if (!empty($address['region_id']) && isset($regions[$address['region_id']])) {
+                    $address['region'] = $regions[$address['region_id']];
+                } else {
+                    //$address['region'] = $address['region'];
+                }
+                if (!empty($address['city_id'])) {
+                    if (isset($regions[$address['city_id']])) {
+                        $address['region_id'] = $address['city_id'];
+                        $address['region'] = $regions[$address['region_id']];
+                    }
+                }
+            }
+        }
+        if (isset($address['city_id'])) {
+            unset($address['city_id']);
+        }
+
+        foreach ($address as $field => $item) {
+            if (preg_match('@_id$@', $field)) {
+                unset($address[$field]);
+            }
+        }
+
+        $address = array_filter($address, 'strlen');
+        $address['is_home_region'] = $home;
+        array_reverse($address, true);
+
+        if ($format) {
+            class_exists('waContactAddressField');
+            $formatter = new waContactAddressOneLineFormatter();
+            $data = $address;
+
+            foreach ($data as $field => $value) {
+                if (preg_match('@^(\w+)_name@', $field, $matches) && !isset($data[$matches[1]])) {
+                    $data[$matches[1]] = $value;
+                }
+                unset($value);
+            }
+            return $formatter->format(compact('data'));
+        } else {
+            return $address;
+        }
+    }
+
+    public function getProfileId()
+    {
+        $profile_id = null;
+        foreach ($this->items as $item) {
+            if (!empty($item['profile_id'])) {
+                $profile_id = $item['profile_id'];
+                break;
+            }
+        }
+        return $profile_id;
     }
 }

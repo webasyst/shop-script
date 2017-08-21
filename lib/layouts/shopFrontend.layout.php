@@ -28,7 +28,8 @@ class shopFrontendLayout extends waLayout
             }
         }
 
-        $this->view->assign('action', waRequest::param('action', 'default'));
+        $action = waRequest::param('action', 'default');
+        $this->view->assign('action', ifempty($action, 'default'));
         $this->setThemeTemplate('index.html');
 
         /**

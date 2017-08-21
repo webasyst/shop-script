@@ -1,4 +1,5 @@
 <?php
+
 class shopSettingsSaveStockRulesController extends waJsonController
 {
     public function execute()
@@ -13,7 +14,7 @@ class shopSettingsSaveStockRulesController extends waJsonController
         $stock_rules_model->deleteById(array_keys($deleted_rules));
 
         // create new and update existing rules
-        foreach($rules_data as $id => $rule) {
+        foreach ($rules_data as $id => $rule) {
             if ($id > 0) {
                 $stock_rules_model->updateById($id, $rule);
             } else {
@@ -29,7 +30,7 @@ class shopSettingsSaveStockRulesController extends waJsonController
         $i = 0;
         $rules_data = array();
         $stocks = shopHelper::getStocks();
-        foreach(waRequest::post('rules', array(), 'array') as $id => $rule) {
+        foreach (waRequest::post('rules', array(), 'array') as $id => $rule) {
             if (!is_array($rule) || empty($rule['rule_type']) || !is_string($rule['rule_type'])) {
                 continue;
             }
@@ -39,11 +40,11 @@ class shopSettingsSaveStockRulesController extends waJsonController
 
             list($virtualstock_id, $stock_id) = self::getStockIds($rule, $stocks);
             $rules_data[$id] = array(
-                'rule_type' => $rule['rule_type'],
-                'rule_data' => $rule['rule_data'],
+                'rule_type'       => $rule['rule_type'],
+                'rule_data'       => $rule['rule_data'],
                 'virtualstock_id' => $virtualstock_id,
-                'stock_id' => $stock_id,
-                'sort' => $i,
+                'stock_id'        => $stock_id,
+                'sort'            => $i,
             );
             $i++;
         }

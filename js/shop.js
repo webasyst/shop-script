@@ -148,12 +148,18 @@
             }
         },
 
-        jsonPost: function(url, data, success, error) {
+        jsonPost: function(url, data, success, error, always) {
             if (typeof data === 'function') {
                 success = data;
                 error = success;
+                always = error;
+                data = {};
             }
-            var xhr = $.post(url, data, function(r) {
+            var xhr = $.post(url, data, 'json');
+            if (always) {
+                xhr.always(always);
+            }
+            xhr.success(function(r) {
                 if (r.status != 'ok') {
                     if (typeof error === 'function') {
                         if (error(r) !== false) {
@@ -167,7 +173,7 @@
                 if (typeof success === 'function') {
                     success(r);
                 }
-            }, 'json');
+            });
             if (typeof error === 'function') {
                 xhr.error(function(r) {
                     if (error(r) !== false) {
@@ -249,7 +255,7 @@
          * @param function|string delegate_context
          * @returns jQuery object el
          */
-        changeListener: function(el, handler, delegate_context) {
+        changeListener: function(el, handler, delegate_context, ns) {
 
             if (typeof delegate_context === 'function' && typeof handler === 'string') {
                 var swap = delegate_context;
@@ -259,7 +265,7 @@
 
             var timeout = 450;
             var timer_id = null;
-            var ns = 'change_listener';
+            ns = ns || 'change_listener';
             var keydown_handler = function() {
                 var item = this;
                 if (timer_id) {
@@ -343,18 +349,18 @@
                 rm = true;
             }
             var val = input.val();
+            input.attr('value', '').val('');
 
             var html = p.html();
             html = html.replace(/value(\s*?=\s*?['"][\s\S]*?['"])*/, '');
             html = html.replace(/type\s*?=\s*?['"]text['"]/, '');
             html = html.replace('input', 'textarea');
-            html = html.replace(/(\/\s*?>|>)/, '>' + val  + '</textarea>');
-
+            html = $.trim(html).replace(/\/\s*>$/, '>') + '</textarea>';
             if (rm) {
                 p.remove();
             }
 
-            return $(html);
+            return $(html).val(val);
 
         },
 
@@ -367,16 +373,17 @@
                 rm = true;
             }
             var val = textarea.val();
+            textarea.html('').val('');
 
             var html = p.html();
-            html = html.replace('textarea', 'input type="text" value="' + val + '"');
+            html = html.replace('textarea', 'input type="text" value=""');
             html = html.replace('</textarea>', '');
 
             if (rm) {
                 p.remove();
             }
 
-            return $(html);
+            return $(html).val(val);
         },
 
         confirmLeave: function (options) {
@@ -644,6 +651,11 @@
                     wnd.ymaps = undefined;
                 }
 
+                var $wrapper = $body.find(".s-split-order-block");
+                var $blocks = $wrapper.find(".s-order-comment, .s-order-readable");
+                $body.find("#s-split-order-wrapper").removeAttr("style");
+                $blocks.insertAfter($wrapper);
+
                 var html = '<html><head>' + $head.html() + '</head><body class="s-printable">' + $body.html()
                 + '<i class="icon16 loading" style="top: 20px; left: 20px; position: relative;display: none;"></i>' + '</body></html>';
 
@@ -657,6 +669,7 @@
                     $w.find('div:hidden:first').show();
                     $w.find('i.icon16.loading:last').hide();
                 }, 1000);
+
                 wnd.document.open();
                 wnd.document.write(html);
                 wnd.document.close();

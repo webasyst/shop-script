@@ -46,7 +46,9 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
             'reply_allowed' => true,
             'auth_adapters' => $adapters = wa()->getAuthAdapters(),
             'request_captcha' => $config->getGeneralSettings('require_captcha'),
-            'require_authorization' => $config->getGeneralSettings('require_authorization')
+            'require_authorization' => $config->getGeneralSettings('require_authorization'),
+            'review_service_agreement' => $config->getGeneralSettings('review_service_agreement'),
+            'review_service_agreement_hint' => $config->getGeneralSettings('review_service_agreement_hint'),
         ));
 
         $storage = wa()->getStorage();

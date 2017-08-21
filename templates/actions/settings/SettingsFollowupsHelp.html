@@ -1,316 +1,50 @@
-<div class="hidden block s-cheatsheet" id="s-f-help-content">
-    <div class="fields">
+<div class="wa-dropdown">
+    <div class="wa-drop-link">
+        <a class="inline-link" id="wa-editor-help-link" href="#">
+            <i class="icon16 cheatsheet"></i><b><i>[s`Cheat sheet`]</i></b>
+            <i class="icon10 uarr no-overhanging"></i>
+        </a>
+        <div id="wa-editor-help" class="wa-dropdown-block"></div>
+        <script type="text/javascript">
+            (function () {
+                var $help = $("#wa-editor-help");
+                var onShow = function (e) {
+                    if ($(e.target).attr('id') == 'wa-editor-help' || $(e.target).parents('#wa-editor-help').length) {
+                        $(document).one('click', onShow);
+                    } else {
+                        $("#wa-editor-help").hide();
+                    }
+                };
 
-        <!-- ORDER -->
-        <div class="field">
-            <div class="name bold">
-                &#123;$order&#125;
-            </div>
-            <div class="value no-shift">
-                [`An array containing information about the order`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.id&#125;
-            </div>
-            <div class="value no-shift">
-                [`Order ID`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.currency&#125;
-            </div>
-            <div class="value no-shift">
-                [`Order currency (ISO 3 code)`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.items&#125;
-            </div>
-            <div class="value no-shift">
-                [`An array containing information about ordered items`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name" style="padding-left: 32px;">
-                &#123;$order.items[].price&#125;
-            </div>
-            <div class="value no-shift">
-                [`Item price`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name" style="padding-left: 32px;">
-                &#123;$order.items[].quantity&#125;
-            </div>
-            <div class="value no-shift">
-                [`Ordered item quantity`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name" style="padding-left: 32px;">
-                &#123;$order.items[].download_link&#125;
-            </div>
-            <div class="value no-shift">
-                [`Item download link (SKU attachment)`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.discount&#125;
-            </div>
-            <div class="value no-shift">
-                [`Order discount amount (in order currency)`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.tax&#125;
-            </div>
-            <div class="value no-shift">
-                [`Order tax amount (in order currency)`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.shipping&#125;
-            </div>
-            <div class="value no-shift">
-                [`Order shipping cost (amount in order currency)`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.total&#125;
-            </div>
-            <div class="value no-shift">
-                [`Order total (amount in order currency)`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.comment&#125;
-            </div>
-            <div class="value no-shift">
-                [`Customer’s comment to the order`]
-            </div>
-        </div>
+                $("#wa-editor-help-link").click(function () {
+                    if ($help.is(":visible")) {
+                        $help.hide();
+                        return false;
+                    }
+                    if ($help.data('loaded')) {
+                        $help.show();
+                        $(document).one('click', onShow);
+                    } else {
+                        $help.load('?module=pages&action=help', "app=shop&file=followups", function () {
+                            $help.data('loaded', true);
+                            $help.show();
+                            $help.find('ul>li.no-tab>p.bold').hide();
+                            $(document).one('click', onShow);
+                        });
+                    }
+                    return false;
+                });
 
-        <!-- STATUS -->
-        <div class="field">
-            <div class="name bold">
-                &#123;$status&#125;
-            </div>
-            <div class="value no-shift">
-                [`Current order status name`]
-            </div>
-        </div>
-        <!-- ORDER_URL -->
-        <div class="field">
-            <div class="name bold">
-                &#123;$order_url&#125;
-            </div>
-            <div class="value no-shift">
-                [`An URL to access order page in customer personal account in storefront`]
-            </div>
-        </div>
+                $("#wa-editor-help").on('click', "div.fields a.inline-link", function () {
+                    var el = $(this).find('i');
+                    if (el.children('b').length) {
+                        el = el.children('b');
+                    }
 
-        <!-- ORDER.PARAMS -->
-        <div class="field">
-            <div class="name bold">
-                &#123;$order.params&#125;
-            </div>
-            <div class="value no-shift">
-                [`An array of other (custom) order parameter values`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.params.shipping_name&#125;
-            </div>
-            <div class="value no-shift">
-                [`Order selected shipping option name`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.params.payment_name&#125;
-            </div>
-            <div class="value no-shift">
-                [`Order selected payment option name`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.params.auth_pin&#125;
-            </div>
-            <div class="value no-shift">
-                [`A 4-digit PIN to access order info page (for customers without permanent account only)`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.params.storefront&#125;
-            </div>
-            <div class="value no-shift">
-                [`Domain and path to Shop-Script storefront where the order was placed`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.params.ip&#125;
-            </div>
-            <div class="value no-shift">
-                [`Customer’s IP address for the moment of order creation`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.params.user_agent&#125;
-            </div>
-            <div class="value no-shift">
-                [`Customer’s User Agent string for the moment of order creation`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.params.<br>shipping_est_delivery&#125;
-            </div>
-            <div class="value no-shift">
-                [`A string indicating approximate timeframe of the order delivery (if defined)`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.params.tracking_number&#125;
-            </div>
-            <div class="value no-shift">
-                [`Order shipment tracking number (if defined)`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$order.params. … &#125;
-            </div>
-            <div class="value no-shift">
-                [`The list of order params may vary depending on your workflow and plugin setup`]
-            </div>
-        </div>
-
-        <!-- CUSTOMER -->
-        <div class="field">
-            <div class="name bold">
-                &#123;$customer&#125;
-            </div>
-            <div class="value no-shift">
-                [`An array containing information about the customer according to the Contacts app setup and your storefront’s checkout contact info form`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$customer.name&#125;
-            </div>
-            <div class="value no-shift">
-                [`Customer full name`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$customer.first_name&#125;
-            </div>
-            <div class="value no-shift">
-                [`Customer first name`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$customer.last_name&#125;
-            </div>
-            <div class="value no-shift">
-                [`Customer last name`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$customer.email&#125;
-            </div>
-            <div class="value no-shift">
-                [`Customer email`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$customer.phone&#125;
-            </div>
-            <div class="value no-shift">
-                [`Customer phone`]
-            </div>
-        </div>
-        <div class="field s-sub-field">
-            <div class="name">
-                &#123;$customer. … &#125;
-            </div>
-            <div class="value no-shift">
-                [`The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step`]
-            </div>
-        </div>
-
-        <!-- ADDRESSES -->
-        <div class="field">
-            <div class="name bold">
-                &#123;$shipping_address&#125;
-            </div>
-            <div class="value no-shift">
-                [`Shipping address as string`]
-            </div>
-        </div>
-        <div class="field">
-            <div class="name bold">
-                &#123;$billing_address&#125;
-            </div>
-            <div class="value no-shift">
-                [`Billing address as string`]
-            </div>
-        </div>
-
-        <!-- OTHER -->
-        <div class="field">
-            <div class="name bold">
-                &#123;$signup_url&#125;
-            </div>
-            <div class="value no-shift">
-                [`Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href="?action=settings#/checkout/">Guest checkout setting</a> is not enabled.`]
-            </div>
-        </div>
-
-        <div class="field">
-            <div class="name bold">
-                &#123;$is_affiliate_enabled&#125;
-            </div>
-            <div class="value no-shift">
-                [`Indicates if <a href="?action=settings#/affiliate/">Loyalty program</a> is enabled in store settings.`]
-            </div>
-        </div>
-
-        <div class="field">
-            <div class="name bold">
-                &#123;$add_affiliate_bonus&#125;
-            </div>
-            <div class="value no-shift">
-                [`Amount of affiliate bonus that will be credited to customer account when order is paid.`]
-            </div>
-        </div>
-
+                    wa_editor.insert(el.text());
+                    return false;
+                });
+            })();
+        </script>
     </div>
-    <div class="clear-both"></div>
 </div>
-
-<script type="text/javascript">
-    $("#s-f-help").click(function () {
-        $("#s-f-help-content").toggle(200);
-        return false;
-    });
-</script>

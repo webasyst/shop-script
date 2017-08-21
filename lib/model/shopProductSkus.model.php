@@ -535,10 +535,10 @@ SQL;
                     if (is_array($value)) {
                         if (!empty($value['id'])) {
                             $field['feature_value_id'] = $value['id'];
-                        } elseif (isset($value['value']) && !in_array($value['value'], $skip_values, true)) {
+                        } elseif (isset($value['value']) && !in_array($value['value'], $skip_values, true) && $model) {
                             $field['feature_value_id'] = $model->getId($feature['id'], ($code == 'weight') ? $value : $value['value'], $feature['type']);
                         }
-                    } elseif (!in_array($value, $skip_values, true)) {
+                    } elseif (!in_array($value, $skip_values, true) && $model) {
                         $field['feature_value_id'] = $model->getId($feature['id'], $value, $feature['type']);
                         $value = array(
                             'value' => $value,
@@ -641,6 +641,8 @@ SQL;
 
             if (empty($sku['available'])) {
                 $sku['available'] = 0;
+            } elseif ($sku['available'] > 1) {
+                $sku['available'] = 1;
             }
 
             if (isset($sku['price'])) {

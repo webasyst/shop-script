@@ -57,6 +57,25 @@
                     }
                 }
             });
+
+            $(function () {
+                $("#maincontent").on('click', '.s-alert-close', function () {
+                    var alerts = $.storage.get('shop/alerts');
+                    var $item = $(this).parent();
+                    if (!alerts) {
+                        alerts = [];
+                    }
+                    alerts.push($item.data('alert'));
+                    alerts = alerts.filter(function (elem, index, self) {
+                        return (elem != null) && (index == self.indexOf(elem));
+                    });
+                    $.storage.set('shop/alerts', alerts);
+                    $item.remove();
+                    return false;
+                });
+            });
+
+            this.checkAlerts();
         },
 
         onPageNotFound: function() {
@@ -397,6 +416,9 @@
 
                 $('.level2').show();
                 $('#s-sidebar').width(200).show();
+
+
+                self.checkAlerts();
             });
 
             function showOrdersViewToggle() {
@@ -424,6 +446,17 @@
                     }
                 }
             }
+        },
+
+
+        checkAlerts: function () {
+            var alerts = $.storage.get('shop/alerts');
+            $.shop.trace('checkAlerts',alerts);
+            $('.s-alert').each(function () {
+                if ($.inArray($(this).data('alert'), alerts) == -1) {
+                    $(this).show();
+                }
+            });
         }
     };
 })(jQuery);

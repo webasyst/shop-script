@@ -230,7 +230,7 @@ class shopProductAction extends waViewAction
 
         $sm = new shopSetModel();
         $sets = array();
-        foreach($sm->getAll() as $row) {
+        foreach ($sm->getAll() as $row) {
             if (!$row['type']) {
                 $sets[$row['id']] = $row;
             }
@@ -241,6 +241,8 @@ class shopProductAction extends waViewAction
         $this->view->assign('product_sets', $spm->getByProduct($product->id));
 
         $this->view->assign('category_name', $product->category_id && isset($product->categories[$product->category_id]) ? strip_tags($product->categories[$product->category_id]['name']) : null);
+
+        $this->view->assign('orders_default_view', $config->getOption('orders_default_view'));
 
     }
 

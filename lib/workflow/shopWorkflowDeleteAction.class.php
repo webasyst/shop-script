@@ -4,8 +4,7 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
 {
     public function execute($order_id = null)
     {
-        $om = new shopOrderModel();
-        $order = $om->getById($order_id);
+        $order = $this->order_model->getById($order_id);
         shopAffiliate::refundDiscount($order);
         if ($order['paid_year']) {
             shopAffiliate::cancelBonus($order);
@@ -18,15 +17,9 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
         $data = parent::postExecute($order_id, $result);
         if ($order_id != null) {
 
-            $log_model = new waLogModel();
-            $log_model->add('order_delete', $order_id);
-
-            $order_model = new shopOrderModel();
-            $app_settings_model = new waAppSettingsModel();
+            $this->waLog('order_delete', $order_id);
 
             if ($data['before_state_id'] != 'refunded') {
-                $update_on_create = $app_settings_model->get('shop', 'update_stock_count_on_create_order');
-                
                 // for logging changes in stocks
                 shopProductStocksLogModel::setContext(
                     shopProductStocksLogModel::TYPE_ORDER,
@@ -37,39 +30,52 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
                 );
 
                 // was reducing in past?
-                $order_params_model = new shopOrderParamsModel();
-                $reduced = $order_params_model->getOne($order_id, 'reduced');
+                $reduced = $this->order_params_model->getOne($order_id, 'reduced');
                 if ($reduced) {
-                    $order_model->returnProductsToStocks($order_id);
+                    $this->order_model->returnProductsToStocks($order_id);
                 }
 
                 shopProductStocksLogModel::clearContext();
-                
             }
 
-            $order = $order_model->getById($order_id);
+            $order = $this->order_model->getById($order_id);
             if ($order && $order['paid_date']) {
                 // Remember paid_date in log params for Restore action
-                $olpm = new shopOrderLogParamsModel();
-                $olpm->insert(array(
-                    'name' => 'paid_date',
-                    'value' => $order['paid_date'],
+                $order_log_params_model = new shopOrderLogParamsModel();
+                $order_log_params_model->insert(array(
+                    'name'     => 'paid_date',
+                    'value'    => $order['paid_date'],
                     'order_id' => $order_id,
-                    'log_id' => $data['id'],
+                    'log_id'   => $data['id'],
                 ));
 
                 // Empty paid_date and update stats so that deleted orders do not affect reports
-                $order_model->updateById($order_id, array(
-                    'paid_date' => null,
-                    'paid_year' => null,
-                    'paid_month' => null,
+                $this->order_model->updateById($order_id, array(
+                    'paid_date'    => null,
+                    'paid_year'    => null,
+                    'paid_month'   => null,
                     'paid_quarter' => null,
                 ));
-                $order_model->recalculateProductsTotalSales($order_id);
+                $this->order_model->recalculateProductsTotalSales($order_id);
                 shopCustomer::recalculateTotalSpent($order['contact_id']);
             }
+
+            $params = array(
+                'shipping_data' => waRequest::post('shipping_data'),
+                'log'           => true,
+            );
+            $this->setPackageState(waShipping::STATE_CANCELED, $order, $params);
         }
         return $data;
+    }
+
+    public function getHTML($order_id)
+    {
+        if ($controls = $this->getShippingFields($order_id, waShipping::STATE_CANCELED)) {
+            $this->getView()->assign('shipping_controls', $controls);
+            $this->setOption('html', true);
+        }
+        return parent::getHTML($order_id);
     }
 
     public function getButton()

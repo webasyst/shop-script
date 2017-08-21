@@ -6,24 +6,14 @@ class shopWorkflowRefundAction extends shopWorkflowAction
     {
         $data = parent::postExecute($order_id, $result);
 
-        $order_model = new shopOrderModel();
-        if (is_array($order_id)) {
-            $order = $order_id;
-            $order_id = $order['id'];
-        } else {
-            $order = $order_model->getById($order_id);
-        }
-
-        shopCustomer::recalculateTotalSpent($order['contact_id']);
+        $order = $this->getOrder($order_id);
 
         if ($order_id != null) {
-            $log_model = new waLogModel();
-            $log_model->add('order_refund', $order_id);
-            $order_model = new shopOrderModel();
-            $order_model->updateById($order_id, array(
-                'paid_date' => null,
-                'paid_year' => null,
-                'paid_month' => null,
+            $this->waLog('order_refund', $order_id);
+            $this->order_model->updateById($order_id, array(
+                'paid_date'    => null,
+                'paid_year'    => null,
+                'paid_month'   => null,
                 'paid_quarter' => null,
             ));
 
@@ -37,13 +27,30 @@ class shopWorkflowRefundAction extends shopWorkflowAction
             );
 
             // refund, so return
-            $order_model->returnProductsToStocks($order_id);
+            $this->order_model->returnProductsToStocks($order_id);
+            shopProductStocksLogModel::clearContext();
 
             shopAffiliate::refundDiscount($order);
             shopAffiliate::cancelBonus($order);
-            $order_model->recalculateProductsTotalSales($order_id);
+            $this->order_model->recalculateProductsTotalSales($order_id);
+            shopCustomer::recalculateTotalSpent($order['contact_id']);
+
+            $params = array(
+                'shipping_data' => waRequest::post('shipping_data'),
+                'log'           => true,
+            );
+            $this->setPackageState(waShipping::STATE_CANCELED, $order, $params);
         }
 
         return $data;
+    }
+
+    public function getHTML($order_id)
+    {
+        if ($controls = $this->getShippingFields($order_id, waShipping::STATE_CANCELED)) {
+            $this->getView()->assign('shipping_controls', $controls);
+            $this->setOption('html', true);
+        }
+        return parent::getHTML($order_id);
     }
 }

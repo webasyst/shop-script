@@ -162,11 +162,13 @@
                     [`Update stock`]
                 </div>
                 <div class="value">
-                    <select name="update_stock_count_on_create_order">
-                        <option value="1" {if  $wa->shop->settings('update_stock_count_on_create_order')}selected="true"{/if}>[`Order was placed`]</option>
-                        <option value="0" {if !$wa->shop->settings('update_stock_count_on_create_order')}selected="true"{/if}>[`Order was confirmed and accepted for processing`]</option>
+                    <select name="stock_counting_action">
+                        <option value="create" {if $stock_counting_action =='create'}selected="selected"{/if}>[`Order was placed`]</option>
+                        <option value="processing" {if $stock_counting_action =='processing'}selected="selected"{/if}>[`Order was confirmed and accepted for processing`]</option>
+                        <option value="none" {if $stock_counting_action =='none'}selected="selected"{/if}>[`Not updated by order actions`]</option>
                     </select>
-                    <p class="hint">[`Product stock levels will be updated (reduced) when this action is performed to the order.`]</p>
+                    <p class="hint">[`Product stock levels will be updated (reduced) when this action is performed to the order.`]<br>
+                    [`With option “Not updated by order actions”, products’ stock level is supposed to be updated only during data exchange with accounting software, which is used to manage product stock updates.`]</p>
                 </div>
             </div>
             <div class="field">
