@@ -845,7 +845,12 @@ class shopProduct implements ArrayAccess
                     continue;
                 }
                 $f = $features[$row['feature_id']];
-                $type = preg_replace('/\..*$/', '', $f['type']);
+                if($f['type'] == shopFeatureModel::TYPE_PARENT) {
+                    $parent_feature = shopFeatureModel::getParentFeature($f['id']);
+                    $type = preg_replace('/\..*$/', '', $parent_feature['type']);
+                } else {
+                    $type = preg_replace('/\..*$/', '', $f['type']);
+                }
                 $type_values[$type][] = $row['feature_value_id'];
             }
 
@@ -860,7 +865,12 @@ class shopProduct implements ArrayAccess
                     continue;
                 }
                 $f = $features[$row['feature_id']];
-                $type = preg_replace('/\..*$/', '', $f['type']);
+                if($f['type'] == shopFeatureModel::TYPE_PARENT) {
+                    $parent_feature = shopFeatureModel::getParentFeature($f['id']);
+                    $type = preg_replace('/\..*$/', '', $parent_feature['type']);
+                } else {
+                    $type = preg_replace('/\..*$/', '', $f['type']);
+                }
                 if (!$type_values[$type][$row['feature_id']][$row['feature_value_id']]) {
                     continue;
                 }

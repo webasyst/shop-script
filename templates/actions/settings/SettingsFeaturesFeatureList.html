@@ -22,7 +22,7 @@
         </td>
         <td>
             <span class="js-feature-type-name">{$feature.type_name|escape}</span>
-            {if $feature.selectable}
+            {if $feature.selectable && $feature.type!='parent'}
                 <div>
                     {if false}{* TODO load feature values via ajax *}
                     <ul class="menu-h with-icons">

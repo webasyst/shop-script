@@ -133,7 +133,7 @@
                     </td>
                     <td>
                         <span class="js-feature-type-name">${feature.type_name}</span>
-                        {{if feature.selectable}}
+                        {{if feature.selectable && $feature.type!='parent'}}
                         <div>
                         {{if feature.values.length}}
                             <ul class="menu-v compact with-icons small s-feature-values js-feature-values">
@@ -262,11 +262,13 @@ action=''
 <!-- {/literal}{/capture}{$smarty.capture["edit-feature-value-template-js"]}{literal}-->
 {{/if}}
                                 {{/each}}
+                               {{if feature.type!='parent'}}
                                 <li>
                                     <a href="#/features/feature/value/add/${feature.id}/" class="inline-link js-action">
                                         <i class="icon10 add"></i><b><i>[`Add feature value`]</i></b>
                                     </a>
                                 </li>
+                                {{/if}}
                             </ul>
                         </div>
 

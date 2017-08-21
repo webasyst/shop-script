@@ -236,7 +236,13 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
                     $id = $value['id'];
 
                     if (!isset($value['value'])) {
-                        $value['value'] = (string)$feature_model->getValuesModel($features[$code]['type'])->getFeatureValue($id);
+                        if($features[$code]['type'] == 'parent') {
+                            $parent_feature = shopFeatureModel::getParentFeature($feature_id);
+                            $type = $parent_feature['type'];
+                        } else {
+                            $type = $features[$code]['type'];
+                        }
+                        $value['value'] = (string)$feature_model->getValuesModel($type)->getFeatureValue($id);
                     }
 
                     $feature['values'][$id] = $value;
