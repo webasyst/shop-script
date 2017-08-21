@@ -136,6 +136,7 @@
             </option>
         {/foreach}
     </select>
+    <em class="errormsg s-error-item-stock_id"></em>
 {/function}
 
 {function name="product_item"}
@@ -365,7 +366,16 @@
                     </td>
                     <td></td>
                 </tr>
-
+                {if !empty($order.id)}
+                    <tr class="white">
+                        <td colspan="4" class="align-right">
+                            <br>
+                            <label>[`Don't notify customer on this order editing`]
+                            <input type="checkbox" name="notifications" value="silent" title="[`Don't notify customer on this order editing`]"></label>
+                            <br><br>
+                        </td>
+                    </tr>
+                {/if}
                 <tr class="white large">
                     <td colspan="3" class="align-right">
                         {if !empty($taxes_count)}

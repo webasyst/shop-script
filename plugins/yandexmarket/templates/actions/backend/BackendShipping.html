@@ -1,0 +1,118 @@
+<div class="field">
+    <div class="name">Виды доставки</div>
+    <div class="value">
+        <div>
+                    <span class="hint">
+                        <i class="icon16 exclamation"></i>Допускается включить не более 5 видов доставки!
+                        <br/><br/>Сроки доставки указываются в рабочих днях (значение или интервал с разницей не более 3 дней).
+                        <br/><br/>Если товар изготавливается на заказ и срок доставки не может быть указан точно, используйте в атрибуте <tt>days</tt> значение <em>32</em> или больше (либо оставьте значение пустым — в этом случае срок доставки будет считаться равным 32 или более дням). Для таких товаров на «Маркете» будет показана надпись «на заказ».
+                        <br/><br/>Укажите максимальную цену доставки для <em>домашнего</em> и <em>остальных</em> регионов, чтобы не возникло ошибок по качеству.
+                    </span>
+            <br/>
+            <br/>
+        </div>
+        <label>
+            <input type="hidden" name="shop[local_delivery_enabled]" value="skip">
+            <input type="checkbox" name="shop[local_delivery_enabled]" value="1" {if ifset($profile.config.shop.local_delivery_enabled) !== 'skip'} checked="checked"{/if} id="s-plugin-yandexmarket-shipping_methods_dummy"> Фиксированные сроки и стоимость доставки
+        </label>
+        <div class="field">
+            <div class="name">
+                Сроки доставки
+            </div>
+            <div class="value">
+                <input type="text" name="shop[local_delivery_estimate]" value="{ifset($profile.config.shop.local_delivery_estimate)|escape}" placeholder="2-4" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_estimate">&rarr;&lt;delivery-options&gt;&lt;option <b>days</b>="..." &gt;
+            </div>
+        </div>
+        <div class="field js-delivery-included">
+            <div class="name">
+                Стоимость доставки
+            </div>
+            <div class="value">
+                <input type="text" name="shop[local_delivery_cost]" value="{ifset($profile.config.shop.local_delivery_cost)|escape}" placeholder="0" class="numerical short" id="s-plugin-yandexmarket-shop-local_delivery_cost"> {$primary_currency|escape}&rarr;&lt;delivery-options&gt;&lt;option <b>cost</b>="..." &gt;
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{if empty($address)}
+    <div class="field">
+        <div class="value">
+            <i class="icon16 exclamation"></i> Для того чтобы использовать стоимость, рассчитанную <a href="?action=settings#/shipping/">плагинами доставки</a>:
+            <ol>
+                <li>Сохраните <em>ID приложения</em> и <em>Авторизационный токен</em> в настройках «<a href="?action=plugins#/yandexmarket/api/">Авторизация партнерского API</a>» плагина «Яндекс.Маркет».</li>
+                <li>Выберите домашний регион в поле «Общие параметры доставки → Домашний регион».</li>
+            </ol>
+        </div>
+    </div>
+{else}
+    {foreach $shipping_methods as $method_id => $method}
+        <div class="field js-shipping-method" style="margin-top: 3em;">
+            <div class="name" title="{$method.name|escape}" style="height: 16px; padding-top: 0;">
+                <label for="s-plugin-yandexmarket-shipping_methods_{$method_id}">
+                    {if !empty($method.logo)}
+                        <img src="{$method.logo}" class="s-payment-shipping-logo" style="float: right;">
+                    {elseif !empty($method.img)}
+                        <img src="{$method.img}" class="s-payment-shipping-logo" style="float: right;">
+                    {else}
+                        <span style="float: right;">{$method.name|escape}</span>
+                    {/if}
+                </label>
+            </div>
+            <div class="value">
+                <label>
+                    <input type="checkbox" name="shipping_methods[{$method_id}][enabled]" value="1" id="s-plugin-yandexmarket-shipping_methods_{$method_id}" {if !empty($method.external)} disabled="disabled"{/if} {if !empty($profile.config.shipping_methods[$method_id])} checked="checked"{/if}> {$method.name|escape}
+                </label>&nbsp;<a href="?action=settings#/shipping/plugin/setup/{$method_id}/" class="inline-link small hint">настройки способа доставки <i class="icon10 settings"></i></a>
+
+            </div>
+            <div class="value bottom-padded">
+
+                <div class="field">
+                    <div class="name">
+                        Время приема заказа
+                    </div>
+                    <div class="value">
+                        <input type="text" name="shipping_methods[{$method_id}][order-before]" value="{$profile.config.shipping_methods[$method_id]['order-before']|default:''|escape}" placeholder="{$profile.config.shop.local_delivery_order_before|default:'24'|escape}" class="numerical short">&rarr;&lt;delivery-options&gt;&lt;option <b>order-before</b>="..." &gt;
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        Сроки доставки
+                        <br/><span class="hint">(домашний регион)</span>
+                    </div>
+                    <div class="value">
+                        <input type="text" name="shipping_methods[{$method_id}][estimate]" value="{$profile.config.shipping_methods[$method_id]['estimate']|default:''|escape}" placeholder="2-4" class="numerical short">&rarr;&lt;delivery-options&gt;&lt;option <b>days</b>="..." &gt;
+                        {if isset($method.est_delivery)}
+                            <br/>
+                            <span class="hint"><b>{$method.est_delivery|escape}</b> — приблизительный срок доставки, рассчитанный плагином для домашнего региона на случай запроса доставки от сегодняшнего дня.</span>
+                        {/if}
+                    </div>
+                </div>
+
+                <div class="field js-delivery-included">
+                    <div class="name">
+                        Стоимость доставки
+                        <br/><span class="hint">(домашний регион)</span>
+                    </div>
+
+                    <div class="value">
+                        <input  type="text" name="shipping_methods[{$method_id}][cost]" value="{$profile.config.shipping_methods[$method_id]['cost']|default:''|escape}" placeholder="{wa_currency(round($method.rate), $method.currency, '%0')|escape}" class="numerical short"> &rarr; &lt;delivery-options&gt;&lt;option <b>cost</b>="" &gt;
+                        <br/>
+                        <span class="hint">По умолчанию (если поле не заполнено) используется стоимость, рассчитанная плагином для домашнего региона для заказа стоимостью 1 руб. и весом 1 кг.
+                        <br/>Замените ее на максимальную стоимость этого вида доставки, чтобы не возникло ошибок по качеству.</span>
+                        {if !empty($method.error)}
+                            <br/>
+                            <span class="error-message">{$method.error|escape}</span>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {foreachelse}
+        <div class="field">
+            <div class="value">
+                Не настроено ни одного способа доставки, позволяющего рассчитать стоимость доставки в домашнем регионе.
+            </div>
+        </div>
+    {/foreach}
+{/if}

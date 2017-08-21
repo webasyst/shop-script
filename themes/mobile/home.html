@@ -1,3 +1,5 @@
+{strip}
+
 {*
     get products from predefined product set 'promo' and 'bestsellers';
     feel free to replace these with any other product set IDs
@@ -5,6 +7,7 @@
 
 {$promos = $wa->shop->productSet('promo')}
 {$bestsellers = $wa->shop->productSet('bestsellers')}
+{$promocards = $wa->shop->promos()}
 
 {if (empty($promos) && empty($bestsellers))}
     <article class="wa-welcome">
@@ -13,10 +16,19 @@
         <p>{sprintf('[`Start by <a href="%s">creating a product</a> in your store backend.`]', $wa_backend_url|cat:'shop/?action=products#/welcome/')}</p>
     </article>
 {else}
-    {include file="home-slider.html" inline}
+
+    {$_show_promocards_slider = ( $theme_settings.homepage_bxslider_mode == "promos" )}
+    {$_show_products_slider = ( $theme_settings.homepage_bxslider_mode == "products" )}
+
+    {if $_show_promocards_slider && !empty($promocards)}
+        {include file="home-slider.html" _promocards=$promocards inline}
+    {elseif $_show_products_slider && !empty($bestsellers)}
+        {include file="home-slider.html" _products=$bestsellers inline}
+    {/if}
+
 {/if}
 
-{if $promocards = $wa->shop->promos()}
+{if $promocards}
     <!-- PROMOS -->
     <section class="promos-wrapper">
         <div class="promos-list">
@@ -24,7 +36,7 @@
             <div class="promo-item" id="s-promo-{$promo.id}">
                 <a href="{$promo.link|escape}" style="background-image: url('{$promo.image}');">
                     {if !empty($promo.title)}<h5 style="color: {$promo.color};">{$promo.title|escape}</h5>{/if}
-                    {if !empty($promo.body)}<p style="color: {$promo.color};">{$promo.body|escape}</p>{/if}
+                    {*{if !empty($promo.body)}<p style="color: {$promo.color};">{$promo.body|escape}</p>{/if}*}
                 </a>
             </div>
             {/foreach}
@@ -33,14 +45,14 @@
 {/if}
 
 {* @event frontend_nav.%plugin_id% *}
-{foreach $frontend_nav as $_}{$_}{/foreach}            
+{foreach $frontend_nav as $_}{$_}{/foreach}
 
 <!-- NAVIGATION -->
 {include file="layout-nav.html" inline}
 <!-- END NAVIGATION -->
 
 <!-- plugin hook: 'frontend_homepage' -->
-{* @event frontend_homepage.%plugin_id% *} 
+{* @event frontend_homepage.%plugin_id% *}
 {foreach $frontend_homepage as $_}{$_}{/foreach}
 
 <!-- PROMOS product list -->
@@ -55,3 +67,5 @@
 {else}
     <div>{sprintf('[`In your store backend, drag some products into <strong>%s</strong> product list (which is in the left sidebar of the Products screen), and these products will be automatically published here — right on your storefront homepage.`]','promo')}</div>
 {/if}
+
+{/strip}

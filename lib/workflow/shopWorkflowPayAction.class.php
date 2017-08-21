@@ -39,14 +39,12 @@ class shopWorkflowPayAction extends shopWorkflowAction
             $order_id = $params;
             $result['text'] = nl2br(htmlspecialchars(waRequest::post('text', ''), ENT_QUOTES, 'utf-8'));
         }
-        $order_model = new shopOrderModel();
-        $order = $order_model->getById($order_id);
+        $order = $this->order_model->getById($order_id);
 
-        $log_model = new waLogModel();
         if (wa()->getEnv() == 'backend') {
-            $log_model->add('order_pay', $order_id);
+            $this->waLog('order_pay', $order_id);
         } else {
-            $log_model->add('order_pay_callback', $order_id, $order['contact_id']);
+            $this->waLog('order_pay_callback', $order_id, $order['contact_id']);
         }
 
         if (!$order['paid_year']) {
@@ -62,7 +60,7 @@ class shopWorkflowPayAction extends shopWorkflowAction
                 'paid_month'   => date('n', $time),
                 'paid_date'    => date('Y-m-d', $time),
             ), $result['update']);
-            if (!$order_model->where("contact_id = ? AND paid_date IS NOT NULL", $order['contact_id'])->limit(1)->fetch()) {
+            if (!$this->order_model->where("contact_id = ? AND paid_date IS NOT NULL", $order['contact_id'])->limit(1)->fetch()) {
                 $result['update']['is_first'] = 1;
             }
         }
@@ -95,26 +93,23 @@ class shopWorkflowPayAction extends shopWorkflowAction
         }
         $data = parent::postExecute($order_id, $result);
 
-        $order_model = new shopOrderModel();
         if (is_array($order_id)) {
             $order = $order_id;
             $order_id = $order['id'];
         } else {
-            $order = $order_model->getById($order_id);
+            $order = $this->order_model->getById($order_id);
         }
 
-        shopCustomer::recalculateTotalSpent($order['contact_id']);
         if ($order !== null) {
-            $order_model->recalculateProductsTotalSales($order_id);
+            shopCustomer::recalculateTotalSpent($order['contact_id']);
+            $this->order_model->recalculateProductsTotalSales($order_id);
         }
-
-        $log_model = new shopOrderLogModel();
-        $state_id = $log_model->getPreviousState($order_id);
 
         $app_settings_model = new waAppSettingsModel();
         $update_on_create = $app_settings_model->get('shop', 'update_stock_count_on_create_order');
+        $disable_stock_count = $app_settings_model->get('shop', 'disable_stock_count');
 
-        if (!$update_on_create && $state_id == 'new') {
+        if (!$disable_stock_count && !$update_on_create) {
 
             // for logging changes in stocks
             shopProductStocksLogModel::setContext(
@@ -126,12 +121,11 @@ class shopWorkflowPayAction extends shopWorkflowAction
             );
 
             // jump through 'processing' state - reduce
-            $order_model = new shopOrderModel();
-            $order_model->reduceProductsFromStocks($order_id);
-
+            $this->order_model->reduceProductsFromStocks($order_id);
             shopProductStocksLogModel::clearContext();
-
         }
+
+        $this->setPackageState(waShipping::STATE_DRAFT, $order, array('log'=>true));
 
         return $data;
     }

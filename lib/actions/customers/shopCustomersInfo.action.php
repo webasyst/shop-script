@@ -27,10 +27,10 @@ class shopCustomersInfoAction extends waViewAction
         // Info above tabs
         $top = array();
         foreach (array('email', 'phone', 'im') as $f) {
-            if ( ( $v = $contact->get($f, 'top,html'))) {
+            if (($v = $contact->get($f, 'top,html'))) {
                 $top[] = array(
-                    'id' => $f,
-                    'name' => waContactFields::get($f)->getName(),
+                    'id'    => $f,
+                    'name'  => waContactFields::get($f)->getName(),
                     'value' => is_array($v) ? implode(', ', $v) : $v,
                 );
             }
@@ -39,7 +39,10 @@ class shopCustomersInfoAction extends waViewAction
         // Get photo
         $photo = $contact->get('photo');
         $config = $this->getConfig();
-        $use_gravatar     = $config->getGeneralSettings('use_gravatar');
+        /**
+         * @var shopConfig $config
+         */
+        $use_gravatar = $config->getGeneralSettings('use_gravatar');
         $gravatar_default = $config->getGeneralSettings('gravatar_default');
         if (!$photo && $use_gravatar) {
             $photo = shopHelper::getGravatar($contact->get('email', 'default'), 96, $gravatar_default);
@@ -58,9 +61,9 @@ class shopCustomersInfoAction extends waViewAction
         $total_paid_sum = 0;
         $total_paid_num = 0;
         $days_ago = null;
-        $primary_currency = wa()->getConfig()->getCurrency();
+        $primary_currency = $config->getCurrency();
 
-        foreach($orders as &$o) {
+        foreach ($orders as &$o) {
             if ($days_ago === null) {
                 //$days_ago =
                 $create_date = date('Y-m-d 00:00:00', strtotime($o['create_datetime']));
@@ -71,10 +74,14 @@ class shopCustomersInfoAction extends waViewAction
             $o['shipping_name'] = ifset($o['params']['shipping_name'], '');
             $o['payment_name'] = ifset($o['params']['payment_name'], '');
             if ($o['paid_date']) {
-                $total_paid_sum += shop_currency($o['total'], $o['currency'], $primary_currency, false);
+                $total_paid_sum += ($o['total'] * $o['rate']);
                 $total_paid_num += 1;
             }
             // !!! TODO: shipping and payment icons
+        }
+
+        if (abs($customer['total_spent'] - $total_paid_sum) > 1) {
+            $scm->recalcTotalSpent($id);
         }
 
         // Customer reviews
@@ -96,17 +103,11 @@ class shopCustomersInfoAction extends waViewAction
             ))->order('id DESC')->limit(1)->fetchField();
         }
 
-        $map_adapter = $config->getGeneralSettings('map');
-        if (!$map_adapter) {
-            $map_adapter = 'google';
-        }
-
-
         $shipping_address = $this->getAddressForMap($contact, 'shipping');
-        $shipping_map = $shipping_address ? $this->getMap($map_adapter, $shipping_address) : '';
+        $shipping_map = $shipping_address ? $this->getMap(null, $shipping_address) : '';
 
         $billing_address = $this->getAddressForMap($contact, 'billing');
-        $billing_map = $billing_address && $billing_address !== $shipping_address ? $this->getMap($map_adapter, $billing_address) : '';
+        $billing_map = $billing_address && $billing_address !== $shipping_address ? $this->getMap(null, $billing_address) : '';
 
         $this->view->assign('shipping_address', $shipping_address);
         $this->view->assign('shipping_map', $shipping_map);
@@ -114,7 +115,7 @@ class shopCustomersInfoAction extends waViewAction
         $this->view->assign('billing_map', $billing_map);
 
         $this->view->assign('top', $top);
-        $this->view->assign('orders',  $orders);
+        $this->view->assign('orders', $orders);
         $this->view->assign('reviews', $reviews);
         $this->view->assign('contact', $contact);
         $this->view->assign('customer', $customer);
@@ -122,7 +123,7 @@ class shopCustomersInfoAction extends waViewAction
         $this->view->assign('affiliate_history', $affiliate_history);
         $this->view->assign('contact_categories', $contact_categories);
         $this->view->assign('def_cur_tmpl', str_replace('0', '%s', waCurrency::format('%{h}', 0, $primary_currency)));
-        $this->view->assign('point_rate', str_replace(',', '.', (float) str_replace(',', '.', wa()->getSetting('affiliate_usage_rate'))));
+        $this->view->assign('point_rate', str_replace(',', '.', (float)str_replace(',', '.', wa()->getSetting('affiliate_usage_rate'))));
         $fields = waContactFields::getAll('person');
         if (isset($fields['name'])) {
             unset($fields['name']);
@@ -135,7 +136,7 @@ class shopCustomersInfoAction extends waViewAction
         $total_paid_str = $this->getTotalPaidStr($total_paid_sum, $total_paid_num);
         $this->view->assign('total_paid_str', $total_paid_str);
 
-        $this->view->assign('days_ago', (int) $days_ago);
+        $this->view->assign('days_ago', (int)$days_ago);
 
         /*
          * @event backend_customer
@@ -161,12 +162,17 @@ class shopCustomersInfoAction extends waViewAction
         return $all_categories;
     }
 
+    /**
+     * @param waContact $contact
+     * @param $ext
+     * @return string
+     */
     public function getAddressForMap($contact, $ext)
     {
         $address = array();
-        $addresses = $contact->get('address.' . $ext);
+        $addresses = $contact->get('address.'.$ext);
         if ($addresses) {
-            foreach ((array) $addresses as $adr) {
+            foreach ((array)$addresses as $adr) {
                 if (!empty($adr['data'])) {
                     $address = $adr['data'];
                     break;
@@ -202,9 +208,13 @@ class shopCustomersInfoAction extends waViewAction
         $map = '';
         try {
             $map = wa()->getMap($adapter)->getHTML($address, array(
-                'width' => '200px', 'height' => '200px', 'zoom' => 13, 'static' => true,
+                'width'  => '200px',
+                'height' => '200px',
+                'zoom'   => 13,
+                'static' => true,
             ));
-        } catch (waException $e) {}
+        } catch (waException $e) {
+        }
         return $map;
     }
 
@@ -214,6 +224,4 @@ class shopCustomersInfoAction extends waViewAction
         $str = $adapter->ngettext('<strong>%s</strong> on %d paid order', '<strong>%s</strong> on %d paid orders', $total_paid_num);
         return sprintf($str, shop_currency_html($total_paid_sum), $total_paid_num);
     }
-
 }
-

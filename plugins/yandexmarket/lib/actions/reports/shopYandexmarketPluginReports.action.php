@@ -12,7 +12,6 @@ class shopYandexmarketPluginReportsAction extends waViewAction
 
         $this->plugin = wa('shop')->getPlugin('yandexmarket');
 
-
         $storefront = waRequest::request('storefront', null, 'string');
 
 
@@ -35,7 +34,7 @@ class shopYandexmarketPluginReportsAction extends waViewAction
             $error_code = $ex->getCode();
         }
 
-        $this->view->assign(compact('def_cur', 'request_options', 'campaigns', 'limits', 'error', 'error_code', 'storefront', 'group_by', 'group_by_options'));
+        $this->view->assign(compact('def_cur', 'request_options', 'campaigns', 'limits', 'error', 'error_code', 'storefront', 'group_by', 'group_by_options', 'graph_data'));
 
     }
 

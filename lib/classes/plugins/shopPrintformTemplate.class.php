@@ -74,12 +74,11 @@ class shopPrintformTemplate
 
     public function setView(waView $view)
     {
-       $this->view = $view;
+        $this->view = $view;
     }
 
     public function display()
     {
         return $this->view->fetch($this->getPath());
     }
-
 }

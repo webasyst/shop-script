@@ -3,7 +3,7 @@
 class shopPaymentDummy extends waPayment implements waIPayment
 {
     /**
-     * @return waShipping
+     * @return waPayment
      */
     public static function getDummy()
     {

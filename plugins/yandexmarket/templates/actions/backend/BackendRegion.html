@@ -1,0 +1,35 @@
+{if !empty($region)}
+    {if !empty($region.formatted.value)}<span class="js-home-region-name">{$region.formatted.value|trim:' ,'}</span>{elseif !empty($region['children'])}Выберите страну{/if}
+    {if !empty($region.id)}
+        <input type="hidden" class="js-home-region-id" value="{$region.id|escape}">
+    {/if}
+    {if !empty($region['children'])}
+        &rarr;
+        <select class="js-edit-region-input">
+            <option value="">&nbsp;</option>
+            {if !empty($region.parent.id)}
+                <option value="{$region.parent.id}">&uarr;Назад</option>
+            {/if}
+            {foreach $region.children as $id=>$name}
+                <option value="{$id}">{$name|escape}</option>
+            {/foreach}
+
+        </select>
+        <script type="text/javascript">
+            if (typeof $ != 'undefined') {
+                $(':input.js-edit-region-input:first').change(function () {
+                    if (this.value != '') {
+                        var $this = $(this);
+                        $this.parent().append('<i class="icon16 loading"></i>');
+                        $this.parents('div.js-edit-region:first').load('?plugin=yandexmarket&action=region&region_id=' + this.value);
+                        $this.attr('disabled', true);
+                    }
+                });
+            }
+        </script>
+    {/if}
+{elseif $error}
+    <span class="errormsg">
+        {$error|escape}
+    </span>
+{/if}

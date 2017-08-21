@@ -1,0 +1,79 @@
+<div class="block" id="s-yandexmarket-plugin-settings">
+
+    <h1>Яндекс.Маркет (CPC, CPA)</h1>
+
+    <p>
+        <a href="https://www.shop-script.ru/help/11847/yandex-market-order/" target="_blank" class="inline"><i class="icon16 light-bulb" style="vertical-align: middle;"></i>Документация пользователя</a> <i class="icon16 new-window"></i>
+        <br/><br/>
+        Экспорт данных в «Яндекс.Маркет» выполняется в разделе «<a href="?action=importexport#/yandexmarket:/" class="bold nowrap">Импорт/экспорт → Яндекс.Маркет</a>».
+    </p>
+
+    <ul class="tabs">
+
+        <li class="selected"><a href="#/yandexmarket/" data-alias="campaigns">Кампании на Маркете</a></li>
+        <li class=""><a href="#/yandexmarket/main/">Общие настройки</a></li>
+        <li class=""><a href="#/yandexmarket/api/">Авторизация партнерского API</a></li>
+        {if !empty($cpa_available)}
+            <li class=""><a href="#/yandexmarket/workflow/">Действия с заказами</a></li>
+        {/if}
+    </ul>
+
+    <form class="tab-content" action="?module=plugins&id={$plugin_id}&action=save" method="post" id="plugins-settings-form" enctype="multipart/form-data"
+          target="plugins-settings-iframe">
+        <div class="tab-content fields form block double-padded" data-tab="_main_">
+            {foreach $settings_controls as $name => $control}
+                {if (strpos($name,'order_action_')===false) && (strpos($name,'api_')===false)}
+                    <div class="field">
+                        {$control}
+                    </div>
+                {/if}
+            {/foreach}
+
+        </div>
+
+        <div class="tab-content fields form block double-padded" data-tab="_api_" style="display:none;">
+            {foreach $settings_controls as $name => $control}
+                {if strpos($name,'api_')===0}
+                    <div class="field">
+                        {$control}
+                    </div>
+                {/if}
+            {/foreach}
+
+        </div>
+        <div class="tab-content fields form block double-padded" data-tab="_workflow_" style="display:none;">
+            <p class="hint">Для <strong>каждого</strong> действия с заказом на Маркете укажите все соответствующие им
+                <a href="?action=settings#/orderStates/" target="_blank">действия с заказами</a><i class="icon16 new-window"></i>, настроенные в Shop-Script.
+                <br/>Это необходимо для корректного обновления информации о заказах и предотвращения возникновения ошибок по качеству.</p>
+            
+            {foreach $settings_controls as $name => $control}
+                {if strpos($name,'order_action_')===0}
+                    <div class="field">
+                        {$control}
+                    </div>
+                {/if}
+            {/foreach}
+        </div>
+
+        <div class="tab-content fields form block double-padded" data-tab="_main_ _api_ _workflow_">
+            <div class="field">
+                <div class="value submit">
+                    <input type="submit" class="button green" value="[s`Save`]">
+                    <span id="plugins-settings-form-status" style="display:none"><!-- message placeholder --></span>
+                </div>
+            </div>
+        </div>
+        {$wa->csrf()}
+    </form>
+    <iframe style="display:none" name="plugins-settings-iframe" id="plugins-settings-iframe"></iframe>
+
+    <div class="tab-content fields form block double-padded" style="box-sizing: border-box;" data-tab="_campaigns_" data-url="?plugin=yandexmarket&module=settings&action=campaigns">
+        {include file="./SettingsCampaigns.html"}
+    </div>
+
+</div>
+<div class="clear-left"></div>
+<script type="text/javascript">
+    {include file="../../../js/plugin.js"}
+    $.plugin_yandexmarket.init();
+</script>

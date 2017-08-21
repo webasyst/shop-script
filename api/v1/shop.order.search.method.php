@@ -27,6 +27,9 @@ class shopOrderSearchMethod extends shopApiMethod
             $collection = new shopOrdersCollection($hash, !$this->courier ? array() : array(
                 'courier_id' => $this->courier['id'],
             ));
+
+            $collection->orderBy($this->getSort());
+
             $this->response['count'] = $collection->count();
             $this->response['orders'] = array_values($collection->getOrders(self::getCollectionFields(), $offset, $limit));
             if ($this->response['orders']) {
@@ -58,5 +61,28 @@ class shopOrderSearchMethod extends shopApiMethod
             unset($fields['contact']);
         }
         return join(',', array_keys($fields));
+    }
+
+    public function getSort()
+    {
+        $sort = waRequest::request('sort', null, 'string');
+        if (!$sort) {
+            $sort = 'create_datetime DESC';
+        }
+
+        $sort = explode(' ', $sort, 2);
+
+        $sort_order = (string) ifset($sort[1]);
+        if ($sort_order != 'DESC') {
+            $sort_order = 'ASC';
+        }
+
+        $m = new shopOrderModel();
+        $sort_field = (string) ifset($sort[0]);
+        if (!$m->fieldExists($sort_field) && !in_array($sort_field, array('updated', 'amount', 'state_id'))) {
+            $sort_field = 'create_datetime';
+        }
+
+        return array($sort_field => $sort_order);
     }
 }

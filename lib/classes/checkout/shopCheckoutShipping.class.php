@@ -68,7 +68,6 @@ class shopCheckoutShipping extends shopCheckout
             $selected_shipping = $this->getSessionData('shipping', array());
         }
 
-        $dimension = shopDimension::getInstance()->getDimension('weight');
         $currencies = $config->getCurrencies();
         $current_currency =$config->getCurrency(false);
         foreach ($methods as $method_id => $m) {
@@ -78,30 +77,20 @@ class shopCheckoutShipping extends shopCheckout
                 $m['icon'] = $plugin_info['icon'];
                 $m['img'] = $plugin_info['img'];
                 $m['currency'] = $plugin->allowedCurrency();
-                $weight_unit = $plugin->allowedWeightUnit();
-                if ($weight_unit != $dimension['base_unit']) {
-                    $shipping_items = array();
-                    foreach ($items as $item_id => $item) {
-                        if ($item['weight']) {
-                            $item['weight'] = $item['weight'] / $dimension['units'][$weight_unit]['multiplier'];
-                        }
-                        $shipping_items[$item_id] = $item;
-                    }
-                } else {
-                    $shipping_items = $items;
-                }
                 $m['external'] = ($selected_shipping && $selected_shipping['id'] == $m['id']) ? 0 : $plugin->getProperties('external');
 
                 if ($plugin->isAllowedAddress($shipping_address)) {
                     if ($m['external']) {
                         $m['rates'] = array();
                     } else {
-                        if (isset($currencies[$m['currency']]) && ($m['currency'] != $current_currency)) {
-                            $_total = shop_currency($total, $current_currency, $m['currency'], false);
-                        } else {
-                            $_total = $total;
-                        }
-                        $m['rates'] = $plugin->getRates($shipping_items, $shipping_address, array('total_price' => $_total));
+                        $options = array(
+                            'currency' => $m['currency'],
+                            'weight'   => $plugin->allowedWeightUnit(),
+                        );
+                        $total_price = shopHelper::workupValue($total, 'price', $options['currency']);
+
+                        $shipping_items = shopHelper::workupOrderItems($items, $options);
+                        $m['rates'] = $plugin->getRates($shipping_items, $shipping_address, array('total_price' => $total_price));
                     }
                 } else {
                     $m['rates'] = false;
@@ -274,25 +263,35 @@ class shopCheckoutShipping extends shopCheckout
                     $address = $config_address;
                     $address['fields'] = $fields;
                 }
+            } else {
+
             }
         } else {
+            $union = false;
             if (isset($config_address['fields'])) {
                 $fields = $config_address['fields'];
                 if ($address_fields) {
+
                     foreach ($fields as $f_id => $f) {
                         if (isset($address_fields[$f_id])) {
-                            foreach ($address_fields[$f_id] as $k => $v) {
-                                $fields[$f_id][$k] = $v;
+                            if (is_array($address_fields[$f_id])) {
+                                foreach ($address_fields[$f_id] as $k => $v) {
+                                    $fields[$f_id][$k] = $v;
+                                }
+                            } elseif ($address_fields[$f_id] === false) {
+                                unset($fields[$f_id]);
+                                unset($address_fields[$f_id]);
                             }
-                        } else {
+                        } elseif (!$union) {
                             unset($fields[$f_id]);
                         }
                     }
                     foreach ($address_fields as $f_id => $f) {
                         if (!isset($fields[$f_id])) {
-                            $fields[$f_id] = $f;
+                            $fields[$f_id] = $f === false ? array() : $f;
                         }
                     }
+
                 }
                 $address_fields = $fields;
             }
@@ -305,11 +304,14 @@ class shopCheckoutShipping extends shopCheckout
             foreach ($address['fields'] as $k => $v) {
                 if (empty($contact_address[$k])) {
                     $address_form = true;
+                    break;
                 }
             }
         }
+
         if ($address_form) {
             if (!empty($config['shipping']['prompt_type'])) {
+                #show only cost type fields
                 if (!empty($address['fields'])) {
                     foreach ($address['fields'] as $k => $v) {
                         if (empty($v['cost'])) {
@@ -332,11 +334,24 @@ class shopCheckoutShipping extends shopCheckout
                     }
                 }
             }
+
+            #attempt to sort address fields
+            if (!empty($address['fields']) && !empty($config_address['fields'])) {
+                $sort = array_flip(array_keys($config_address['fields']));
+                $code = ' $map = '.var_export($sort, true).';';
+                $code .= ' return ifset($map[$a],0)-ifset($map[$b],0);';
+
+                $compare = create_function('$a, $b', $code);
+                uksort($address['fields'], $compare);
+            }
+
             return waContactForm::loadConfig(array('address.shipping' => $address), array('namespace' => 'customer_'.$method_id));
         } else {
             return null;
         }
     }
+
+
 
     public function getItems($weight_unit = null)
     {
@@ -377,8 +392,9 @@ class shopCheckoutShipping extends shopCheckout
             $items[] = array(
                 'name' => $item['name'],
                 'price' => $item['price'],
+                'currency' => $item['currency'],
                 'quantity' => $item['quantity'],
-                'weight' => $w
+                'weight' => $w,
             );
         }
         return $items;
@@ -563,31 +579,23 @@ class shopCheckoutShipping extends shopCheckout
 
     public function getOptions($config)
     {
-        $html = '
-<div class="field">
-    <div class="name">
-        <p>'._w('Prompt for address').'</p>
-    </div>
-    <div class="value">
-        <p>'._w('During the “Shipping” checkout step, when customer selects a preferred shipping option but shipping address was not yet entered, instantly prompt customer to provide:').'</p>
-    </div>
-    <div class="value no-shift">
-        <label><input '.(empty($config['prompt_type']) ? 'checked' : '').' name="config[prompt_type]" type="radio" value="0"> '._w('All address fields required by the selected shipping option').'</label>
-        <p class="hint">'._w('Prompt for all address fields according to the selected shipping option implementation. If you use this option and have “Shipping” prior to “Contact info” in the checkout step order, it is advisable to hide (disable) shipping address form on the “Contact Info” checkout step to avoid asking for address twice.').'</p>
-    </div>
-    <div class="value no-shift">
-        <label><input '.(!empty($config['prompt_type']) ? 'checked' : '').' name="config[prompt_type]" type="radio" value="1"> '._w('Only fields required for shipping rate estimation').'</label>
-        <p class="hint">'._w('Prompt for fields required for shipping rate and delivery date estimation only (shipping option implementation declares the list of such fields). This is a suitable setup option if you have “Shipping” prior to “Contact info” in the checkout step order setup.').'</p>
-    </div>
-    <div class="value no-shift">
-        <p class="hint italic">'._w('This list of address fields is configured in the “Contact info” step settings.').'<br></p>
-    </div>
-</div>
-    ';
-
-        return $html;
+        $view = wa()->getView();
+        $view->assign(array(
+            'config' => $config,
+        ));
+        return $view->fetch(wa()->getAppPath('templates/actions/settings/SettingsCheckoutShipping.html', 'shop'));
     }
 
+    public function setOptions($config)
+    {
+        if (empty($config['service_agreement'])) {
+            unset($config['service_agreement_hint']);
+        } else if (isset($config['service_agreement_hint'])) {
+            $config['service_agreement_hint'] = trim($config['service_agreement_hint']);
+        }
+        unset($config['service_agreement']);
+        return $config;
+    }
 
     protected function getCustomFields($id, waShipping $plugin)
     {
@@ -608,8 +616,9 @@ class shopCheckoutShipping extends shopCheckout
         $params = array();
         $params['namespace'] = 'shipping_'.$id;
         $params['title_wrapper'] = '%s';
-        $params['description_wrapper'] = '<br><span class="hint">%s</span>';
-        $params['control_wrapper'] = '<div class="wa-name">%s</div><div class="wa-value">%s %s</div>';
+        $params['description_wrapper'] = '<span class="hint">%s</span>';
+        $params['control_wrapper'] = '<div class="wa-name">%s</div><div class="wa-value"><p><span>%3$s %2$s</span></p></div>';
+        $params['control_separator']='</span><span>';
 
         $selected_shipping = $this->getSessionData('shipping');
         $selected = $selected_shipping ? ($id == $selected_shipping['id']) : false;

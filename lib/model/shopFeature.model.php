@@ -15,6 +15,10 @@ class shopFeatureModel extends waModel
     // Тип наследования характеристики
     const TYPE_PARENT = 'parent';
 
+    const STATUS_PUBLIC = 'public';
+    const STATUS_HIDDEN = 'hidden';
+    const STATUS_PRIVATE = 'private';
+
     private static $instances = array();
 
     protected $table = 'shop_feature';
@@ -117,7 +121,7 @@ class shopFeatureModel extends waModel
         if ($code = preg_replace('/[^a-zA-Z0-9_]+/', '_', trim(waLocale::transliterate($code)))) {
 
             if (!self::isCodeAllowed($code)) {
-                $code = ($code === '_' ? 'f' : 'f_') . $code;
+                $code = ($code === '_' ? 'f' : 'f_').$code;
             }
 
             $sql = <<<SQL
@@ -500,9 +504,14 @@ SQL;
      */
     public function getValueId($feature, $value, $update = false)
     {
-        $id = self::getValuesModel($feature['type'])->getValueId($feature['id'], $value, $feature['type'], $update);
-        if ($update) {
-            $this->recount($feature);
+        $model = self::getValuesModel($feature['type']);
+        if ($model) {
+            $id = $model->getValueId($feature['id'], $value, $feature['type'], $update);
+            if ($update) {
+                $this->recount($feature);
+            }
+        } else {
+            $id = null;
         }
         return $id;
     }
@@ -757,7 +766,7 @@ SQL;
                 'available'  => 1,
                 'subtype'    => self::extendSubtypes($single_types, self::TYPE_DIMENSION),
             );
-            
+
             /* divider */
             $types[] = array(
                 'name'       => _w('Divider'),

@@ -13,6 +13,30 @@ class shopCml1cPlugin extends shopPlugin
         return parent::getControls($params);
     }
 
+    public function getConfigParam($param = null)
+    {
+        static $config = null;
+        if (is_null($config)) {
+            $app_config = wa('shop');
+            $files = array(
+                $app_config->getAppPath('plugins/cml1c', 'shop').'/lib/config/config.php', // defaults
+                $app_config->getConfigPath('shop/plugins/cml1c').'/config.php', // custom
+            );
+            $config = array();
+            foreach ($files as $file_path) {
+                if (file_exists($file_path)) {
+                    $config = include($file_path);
+                    if ($config && is_array($config)) {
+                        foreach ($config as $name => $value) {
+                            $config[$name] = $value;
+                        }
+                    }
+                }
+            }
+        }
+        return ($param === null) ? $config : (isset($config[$param]) ? $config[$param] : null);
+    }
+
     public function getCallbackUrl($absolute = true)
     {
         $routing = wa()->getRouting();
@@ -63,7 +87,7 @@ class shopCml1cPlugin extends shopPlugin
             $r = libxml_get_errors();
             libxml_clear_errors();
             $error = array(
-                sprintf("XSD validation errors %s\n", $schema)
+                sprintf("XSD validation errors %s\n", $schema),
             );
             /**
              * @var LibXMLError[] $r
@@ -133,18 +157,21 @@ class shopCml1cPlugin extends shopPlugin
         waLog::log($message, 'shop/plugins/'.$this->id.'.log');
     }
 
-    public static function makeUuid()
+    public static function makeUuid($id = null)
     {
-
-        $fp = @fopen('/dev/urandom', 'rb');
-        if ($fp !== false) {
-            $pr_bits = @fread($fp, 16);
-            @fclose($fp);
+        if ($id) {
+            $pr_bits = md5($id, true);
         } else {
-            // If /dev/urandom isn't available (eg: in non-unix systems), use mt_rand().
-            $pr_bits = "";
-            for ($cnt = 0; $cnt < 16; $cnt++) {
-                $pr_bits .= chr(mt_rand(0, 255));
+            $fp = @fopen('/dev/urandom', 'rb');
+            if ($fp !== false) {
+                $pr_bits = @fread($fp, 16);
+                @fclose($fp);
+            } else {
+                // If /dev/urandom isn't available (eg: in non-unix systems), use mt_rand().
+                $pr_bits = "";
+                for ($cnt = 0; $cnt < 16; $cnt++) {
+                    $pr_bits .= chr(mt_rand(0, 255));
+                }
             }
         }
         $time_low = bin2hex(substr($pr_bits, 0, 4));
@@ -308,12 +335,12 @@ HTML;
         if (!empty($params['auto_title'])) {
             switch (ifset($hash[1])) {
                 case 'no':
-                    $collection->addTitle('Продукты без идентификатора CML');
+                    $collection->addTitle('Товары без идентификатора CML');
                     break;
                 case 'recent':
                     break;
                 default:
-                    $collection->addTitle('Продукты с идентификатором CML');
+                    $collection->addTitle('Товары с идентификатором CML');
                     break;
             }
 
@@ -330,18 +357,23 @@ HTML;
                 'value' => '',
                 'title' => '—',
             );
-            if (true) {
+            if (false) {
                 $form = shopHelper::getCustomerForm();
                 foreach ($form->fields() as $field) {
                     if ($field instanceof waContactCompositeField) {
                         foreach ($field->getFields() as $sub_field) {
-                            $options[] = array(
-                                'group' => $field->getName(),
-                                'value' => $field->getId().':'.$sub_field->getId(),
-                                'title' => $sub_field->getName(),
-                            );
+                            if (!($sub_field instanceof waContactHiddenField)) {
+                                /**
+                                 * @var waContactField $sub_field
+                                 */
+                                $options[] = array(
+                                    'group' => $field->getName(),
+                                    'value' => $field->getId().':'.$sub_field->getId(),
+                                    'title' => $sub_field->getName(),
+                                );
+                            }
                         }
-                    } else {
+                    } elseif (!($field instanceof waContactHiddenField)) {
                         $options[] = array(
                             'value' => $field->getId(),
                             'title' => $field->getName(),
@@ -384,30 +416,68 @@ HTML;
         return $options;
     }
 
-    public function makeProductUUID($id)
+    public function makeEntryUUID($id, $type = 'product', $parent_id = null)
     {
-        static $product_model;
-        if (!$product_model) {
-            $product_model = new shopProductModel();
+        /**
+         * @var waModel[] $models
+         */
+        static $models = array();
+        switch ($type) {
+            case 'product':
+                if (!isset($models[$type])) {
+                    $models[$type] = new shopProductModel();
+                }
+                $field = 'id_1c';
+                break;
+            case 'sku':
+                if (!isset($models[$type])) {
+                    $models[$type] = new shopProductSkusModel();
+                }
+                $field = 'id_1c';
+                break;
+            case 'service':
+                if (!isset($models[$type])) {
+                    $models[$type] = new shopServiceModel();
+                }
+                $field = 'cml1c_id';
+                break;
+            case 'service_variant':
+                if (!isset($models[$type])) {
+                    $models[$type] = new shopServiceVariantsModel();
+                }
+                $field = 'cml1c_id';
+                break;
+            default:
+                throw new waException('Invalid entry type');
+                break;
         }
+
         do {
             $uuid = shopCml1cPlugin::makeUuid();
-        } while ($product_model->getByField('id_1c', $uuid));
-        $product_model->updateById($id, array('id_1c' => $uuid));
+        } while ($models[$type]->getByField($field, $uuid));
+        $models[$type]->updateById($id, array($field => $uuid));
+
         return $uuid;
     }
 
+    /**
+     * @deprecated use shopCml1cPlugin::makeEntryUUID
+     * @param $id
+     * @return string
+     */
+    public function makeProductUUID($id)
+    {
+        return $this->makeEntryUUID($id, 'product');
+    }
+
+    /**
+     * @deprecated use shopCml1cPlugin::makeEntryUUID
+     * @param $id
+     * @return string
+     */
     public function makeSkuUUID($id)
     {
-        static $product_sku_model;
-        if (!$product_sku_model) {
-            $product_sku_model = new shopProductSkusModel();
-        }
-        do {
-            $uuid = shopCml1cPlugin::makeUuid();
-        } while ($product_sku_model->getByField('id_1c', $uuid));
-        $product_sku_model->updateById($id, array('id_1c' => $uuid));
-        return $uuid;
+        return $this->makeEntryUUID($id, 'sku');
     }
 
     public function settingContactFieldsControl($name, $params = array())
@@ -479,8 +549,6 @@ HTML;
 </tbody>
 </table>
 HTML;
-
-
         return $control;
 
     }
@@ -575,13 +643,18 @@ HTML;
                 'description' => '',
             ),
             array(
-                'value'       => 'tax',
+                'value'       => 'tax_id',
                 'title'       => _w('Tax type'),
                 'description' => '',
             ),
             array(
                 'value'       => 'features',
                 'title'       => _w('Features'),
+                'description' => '',
+            ),
+            array(
+                'value'       => 'weight',
+                'title'       => _w('Weight'),
                 'description' => '',
             ),
             array(
@@ -601,5 +674,33 @@ HTML;
     {
         //14ed8b20-55bd-11d9-848a-00112f43529a
         return preg_match('@^[0-9a-f]{8}\-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$@', $string);
+    }
+
+    public function productHandler($product)
+    {
+        if (!empty($product['id_1c'])) {
+            $info_section = sprintf('<span class="hint" >1С GUID: %s</span>', $product['id_1c']);
+        }
+        return compact('info_section', 'title_suffix');
+    }
+
+    /**
+     * @param $event_params
+     * @param shopProduct $event_params ['product']
+     * @param array $event_params ['sku']
+     * @return string|null
+     */
+    public function skuHandler($event_params)
+    {
+        if (!empty($event_params['sku']['id_1c'])) {
+            $template = <<<HTML
+<div class="field">
+<div class="name">1С GUID</div>
+<div class="value">%s#%s</div>
+</div>
+HTML;
+            return sprintf($template, $event_params['product']['id_1c'], $event_params['sku']['id_1c']);
+        }
+        return null;
     }
 }

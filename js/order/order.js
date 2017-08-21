@@ -52,22 +52,26 @@
             $('.wf-action').click(function () {
                 var self = $(this);
                 if (!self.data('confirm') || confirm(self.data('confirm'))) {
-                    self.after('<i class="icon16 loading"></i>');
-                    $.post('?module=workflow&action=prepare', {
-                        action_id: self.attr('data-action-id'),
-                        id: $.order.id
-                    }, function (response) {
-                        var el;
-                        self.parent().find('.loading').remove();
-                        if (self.data('container')) {
-                            el = $(self.data('container'));
-                            el.prev('.workflow-actions').hide();
-                        } else {
-                            self.closest('.workflow-actions').hide();
-                            el = self.closest('.workflow-actions').next();
-                        }
-                        el.empty().html(response).show();
-                    });
+                    if (!self.data('running')) {
+                        self.data('running', true);
+                        self.after('<i class="icon16 loading"></i>');
+                        $.post('?module=workflow&action=prepare', {
+                            action_id: self.attr('data-action-id'),
+                            id: $.order.id
+                        }, function (response) {
+                            self.data('running', false);
+                            var el;
+                            self.parent().find('.loading').remove();
+                            if (self.data('container')) {
+                                el = $(self.data('container'));
+                                el.prev('.workflow-actions').hide();
+                            } else {
+                                self.closest('.workflow-actions').hide();
+                                el = self.closest('.workflow-actions').next();
+                            }
+                            el.empty().html(response).show();
+                        });
+                    }
                 }
                 return false;
             });

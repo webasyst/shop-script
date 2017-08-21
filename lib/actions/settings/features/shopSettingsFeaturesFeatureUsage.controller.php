@@ -7,7 +7,7 @@ class shopSettingsFeaturesFeatureUsageController extends waJsonController
         if ($id = max(0, waRequest::get('feature_id', 0, waRequest::TYPE_INT))) {
             $feature_model = new shopFeatureModel();
             if ($feature = $feature_model->getById($id)) {
-                $product_features_model = new shopProductFeaturesModel();;
+                $product_features_model = new shopProductFeaturesModel();
 
                 if ($feature['product_usage_count'] = $product_features_model->countProductsByFeature($id)) {
                     $this->response['notice'] = _w('You have <strong>%d product</strong> with this feature value specified. Deleting this feature will erase it’s value for all these products.', 'You have <strong>%d products</strong> with this feature value specified. Deleting this feature will erase it’s value for all these products.', $feature['product_usage_count']);

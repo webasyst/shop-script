@@ -3,12 +3,12 @@ return array(
     'currency' => array(
         'USD' => 1.0,
     ),
-    'taxes' => array(
+    'taxes'    => array(
         array(
-            'name' => 'Sales tax',
-            'included' => false,
+            'name'         => 'Sales tax',
+            'included'     => false,
             'address_type' => 'shipping',
-            'countries' => array(
+            'countries'    => array(
                 'usa' => array(
                     'regions' => array(
                         'AL' => 4,
@@ -61,12 +61,12 @@ return array(
                         'WY' => 4,
                     ),
                 ),
-                
+
                 // Use special codes instead of country ISO3 for country groups:
                 // '%AL' = All countries
                 // '%EU' = All european countries
                 // '%RW' = Rest of the world
-                
+
             ),
         ),
     ),

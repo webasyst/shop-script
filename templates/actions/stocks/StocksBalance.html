@@ -50,7 +50,7 @@
             {% var product = data[i], skus = product.skus, stocks = product.stocks; %}
             {% var sku_count = skus.length; %}
             <tr>
-                {% var hash = "#/product/"+product.id; %}
+                {% var hash = "#/product/"+product.id+"/"; %}
                 <td class="s-product min-width">
                     <a href="{%#hash%}">
                         {% if (product.url_crop_small) { %}
@@ -76,7 +76,7 @@
                                 {% if (stock_skus[j].num_of_stocks > 0) { %}
                                     <li id="s-item-{%#sku_id%}-{%#stock_id%}" class="item {% if (stock_skus[j].count === null) { %}infinity{% } %}">{%#stock_skus[j].icon%}
                                         {% if (sku_count > 1) { %}
-                                        <a href="{%#hash+'focus=stock&sku='+sku_id+'&stock='+stock_id%}">{%=stock_skus[j].name%}</a>
+                                        <a href="{%#hash+'edit/focus=stock&sku='+sku_id+'&stock='+stock_id%}">{%=stock_skus[j].name%}</a>
                                         {% } %}
                                         {% if (stock_skus[j].count !== null) { %}{%#stock_skus[j].count%}{% } else { %}∞{% } %}
                                     </li>
@@ -92,7 +92,7 @@
                     {% for (var k = 0, l = skus.length; k < l; k += 1) { %}
                         <li>{%#skus[k].icon%}
                             {% if (sku_count > 1) { %}
-                                <a href="{%#hash+'focus=price&sku='+skus[k].id%}">{%=skus[k].name%}</a>
+                                <a href="{%#hash+'edit/focus=price&sku='+skus[k].id%}">{%=skus[k].name%}</a>
                             {% } %}
                             <strong>{% if (skus[k].count !== null) { %}{%#skus[k].count%}{% } else { %}∞{% } %}</strong>
                         </li>
@@ -118,7 +118,7 @@
                 {% if (skus[k].num_of_stocks > 0) { %}
                     <li id="s-item-{%#sku_id%}-{%#o.stock.id%}" class="item {% if (skus[k].count === null) { %}infinity{% } %}">{%#skus[k].icon%}
                         {% if (sku_count > 1) { %}
-                            <a href="{%#hash+'focus=stock&sku='+sku_id+'&stock='+o.stock.id%}" class="small">{%=skus[k].name%}</a>
+                            <a href="{%#hash+'edit/focus=stock&sku='+sku_id+'&stock='+o.stock.id%}" class="small">{%=skus[k].name%}</a>
                         {% } %}
                         <strong>{% if (skus[k].count !== null) { %}{%#skus[k].count%}{% } else { %}∞{% } %}</strong>
                     </li>

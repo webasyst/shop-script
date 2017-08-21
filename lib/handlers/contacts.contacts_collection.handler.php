@@ -3,9 +3,10 @@
 class shopContactsContacts_collectionHandler extends waEventHandler
 {
     /**
-    * @param $params[string][collection] waContactsCollection
-    * @param $params[string][auto_title] boolean
-    */
+     * @param $params [string][collection] waContactsCollection
+     * @param $params [string][auto_title] boolean
+     * @return bool|void
+     */
     public function execute(&$params) {
         /**
         * @var waContactsCollection

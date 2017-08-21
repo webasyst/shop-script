@@ -1805,7 +1805,7 @@ editClick:(function ($) {
         multiSkus: function (count) {
             var table = $('#s-product-edit-forms .s-product-form.main table.s-product-skus:first');
             if (count > 1) {
-                table.find('thead tr').show();
+                table.find('thead tr th.s-sku-sort').show();
                 table.find('.s-name,.s-sku-sort').show('slow');
                 table.find('.delete').parent('a').show();
                 if (count == 2) {
@@ -1814,7 +1814,7 @@ editClick:(function ($) {
                     table.find('> tbody:first > tr:last .s-name :input').focus();
                 }
             } else {
-                table.find('thead tr').hide();
+                table.find('thead tr th.s-sku-sort').hide();
                 table.find('.s-name,.s-sku-sort').hide();
                 table.find('.delete').parent('a').hide();
             }

@@ -7,12 +7,12 @@
     {if $product.summary}
         <p>{$product.summary|truncate:512}</p>
     {/if}
-    
+
     {if $product.sku_type}
         <!-- SELECTABLE FEATURES selling mode -->
         {$default_sku_features = $product.sku_features}
         {$product_available = $product.status}
-        
+
         {if $theme_settings.selectable_features_control == 'inline'}
             <div class="options">
                 {foreach $features_selectable as $f}
@@ -31,7 +31,7 @@
                     </div>
 
                 {/foreach}
-            </div>        
+            </div>
         {else}
             <div class="options">
                 {foreach $features_selectable as $f}
@@ -44,7 +44,7 @@
                 {/foreach}
             </div>
         {/if}
-        
+
         <!-- list all SKUs for Schema.org markup -->
         {foreach $product.skus as $sku}
             <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
@@ -59,7 +59,7 @@
                 {/if}
             </div>
         {/foreach}
-        
+
     {else}
 
         <!-- FLAT SKU LIST selling mode -->
@@ -87,7 +87,7 @@
             </div>
 
         {else}
-    
+
             {* in case there is only one SKU, don't display the selector *}
             <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                 {$sku = $product.skus[$product.sku_id]}
@@ -107,7 +107,7 @@
                 <input name="sku_id" type="hidden" value="{$product.sku_id}">
                 {$product_available = $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
             </div>
-    
+
         {/if}
 
     {/if}
@@ -190,7 +190,7 @@
                 </div>
 
                 <div class="price-wrapper">
-                    {if $product.compare_price > 0}<span class="compare-at-price nowrap" data-compare-price="{shop_currency_html($product.compare_price, null, null, 0)}" > {shop_currency_html($product.compare_price)} </span>{/if}
+                    <span class="compare-at-price nowrap" data-compare-price="{shop_currency_html($product.compare_price, null, null, 0)}" style="{if !($product.compare_price > 0)}display: none;{/if}">{shop_currency_html($product.compare_price)}</span>
                     <span data-price="{shop_currency($product.price, null, null, 0)}" class="price nowrap">{shop_currency_html($product.price)}</span>
                 </div>
 
@@ -211,17 +211,20 @@
     </div>
 </form>
 
-<script type="text/javascript" src="{$wa_theme_url}product.js?v{$wa_theme_version}"></script>
-<script type="text/javascript">
-    $(function () {
-        new Product('#cart-form{if $wa->get('cart')}-dialog{/if}', {
-            currency: {json_encode($currency_info)}
-            {if count($product.skus) > 1 or $product.sku_type}
-            ,services: {json_encode($sku_services)}
-            {/if}
-            {if $product.sku_type}
-            ,features: {json_encode($sku_features_selectable)}
-            {/if}
+<script>
+( function($) {
+    var is_loaded = ( typeof Product == "function"),
+        js_href = "{$wa_theme_url}product.js?v{$wa_theme_version}";
+
+    (is_loaded) ? initProduct() : $.getScript(js_href, initProduct);
+
+    function initProduct() {
+        new Product({
+            $form: $("#cart-form{if $wa->get('cart')}-dialog{/if}"),
+            currency: {json_encode($currency_info)},
+            services: {if count($product.skus) > 1 or $product.sku_type}{json_encode($sku_services)}{else}false{/if},
+            features: {if $product.sku_type}{json_encode($sku_features_selectable)}{else}false{/if}
         });
-    });
+    }
+})(jQuery);
 </script>

@@ -10,6 +10,8 @@ class shopSettingsFollowupsAction extends waViewAction
         $id = waRequest::request('id');
         $fm = new shopFollowupModel();
 
+        $transports = $this->getTransports();
+
         // Save data when POST came
         if ($id && waRequest::post()) {
             if (waRequest::post('delete')) {
@@ -35,7 +37,7 @@ class shopSettingsFollowupsAction extends waViewAction
                 $empty_row = $fm->getEmptyRow();
                 $followup = array_intersect_key($followup, $empty_row) + $empty_row;
                 unset($followup['id']);
-                $followup['delay'] = ((float) str_replace(',', '.', ifset($followup['delay'], '3'))) * 24 * 3600;
+                $followup['delay'] = ((float) str_replace(',', '.', ifset($followup['delay'], '3'))) * 3600;
                 if (empty($followup['name'])) {
                     $followup['name'] = _w('<no name>');
                 }
@@ -45,6 +47,16 @@ class shopSettingsFollowupsAction extends waViewAction
 
                 if ($followup['from'] === 'other') {
                     $followup['from'] = waRequest::post('from');
+                }
+
+                // In restricted mail mode it's only allowed to use notifications
+                // with default text. This is useful for demo and trial accounts.
+                if(wa('shop')->getConfig()->getOption('restricted_mail')) {
+                    if (isset($transports[$followup['transport']]['template'])) {
+                        $followup['body'] = $transports[$followup['transport']]['template'];
+                    } else {
+                        throw new waRightsException();
+                    }
                 }
 
                 if ($id && $id !== 'new') {
@@ -90,16 +102,25 @@ class shopSettingsFollowupsAction extends waViewAction
 
         $test_orders = array();
 
-        $transports = $this->getTransports();
-
         if (empty($followup)) {
             $followup = $fm->getEmptyRow();
             $followup['status'] = 1;
-            $followup['body'] = ifset($transports[$followup['transport']]['template'], '');
+            if (isset($transports[$followup['transport']]['template'])) {
+                $followup['body'] = $transports[$followup['transport']]['template'];
+            }
         } else {
             // Orders used as sample data for testing
+            $olm = new shopOrderLogModel();
+            $order_ids = $olm
+                ->select('DISTINCT order_id, datetime')
+                ->where('after_state_id=s:state_id AND after_state_id != before_state_id', $followup)
+                ->order('datetime DESC')
+                ->limit(10)
+                ->fetchAll('order_id');
+
             $om = new shopOrderModel();
-            $test_orders = $om->where("paid_date IS NOT NULL AND state_id <> 'deleted'")->order('id DESC')->limit(10)->fetchAll('id');
+            $test_orders = $om->getById(array_keys($order_ids));
+
             shopHelper::workupOrders($test_orders);
             $im = new shopOrderItemsModel();
             foreach ($im->getByField('order_id', array_keys($test_orders), true) as $i) {
@@ -111,16 +132,22 @@ class shopSettingsFollowupsAction extends waViewAction
             }
         }
 
+        $workflow = new shopWorkflow();
+        $states = $workflow->getAllStates();
+
         $this->view->assign('followup', $followup);
         $this->view->assign('followups', $followups);
         $this->view->assign('test_orders', $test_orders);
-        $this->view->assign('last_cron', wa()->getSetting('last_followup_cli'));
-        $this->view->assign('cron_ok', wa()->getSetting('last_followup_cli') + 3600*36 > time());
+        $this->view->assign('last_cron', (int)wa()->getSetting('last_followup_cli'));
+        $this->view->assign('cron_ok', ((int)wa()->getSetting('last_followup_cli') + 3600*36) > time());
         $this->view->assign('cron_command', 'php '.wa()->getConfig()->getRootPath().'/cli.php shop followup');
         $this->view->assign('default_email_from', $this->getConfig()->getGeneralSettings('email'));
         $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
         $this->view->assign('transports', $transports);
         $this->view->assign('sms_from', $this->getSmsFrom());
+        $this->view->assign('states', $states);
+
+        $this->view->assign('backend_followup_edit', wa()->event('backend_followup_edit', $followup));
     }
 
     public function getTransports()

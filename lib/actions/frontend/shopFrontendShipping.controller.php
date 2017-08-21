@@ -90,6 +90,17 @@ class shopFrontendShippingController extends waJsonController
             if ($currency != $current_currency) {
                 $total = shop_currency($total, $current_currency, $currency, false);
             }
+
+            foreach ($items as &$item) {
+                if (!empty($item['currency'])) {
+                    if ($item['currency'] != $currency) {
+                        $item['price'] = shop_currency($item['price'], $item['currency'], $currency, false);
+                    }
+                    unset($item['currency']);
+                }
+            }
+            unset($item);
+
             $rates = $plugin->getRates($items, $address, array('total_price' => $total));
             if (is_array($rates)) {
                 $is_html = waRequest::request('html');
@@ -97,7 +108,7 @@ class shopFrontendShippingController extends waJsonController
                     $r['id'] = $r_id;
                     if (!isset($r['rate'])) {
                         $r['rate'] = null;
-                    } else if (is_array($r['rate'])) {
+                    } elseif (is_array($r['rate'])) {
                         if ($r['rate']) {
                             $r['rate'] = max($r['rate']);
                         } else {

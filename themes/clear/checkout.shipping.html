@@ -39,8 +39,8 @@
                     {if !empty($m.logo)}<img src="{$m.logo}" class="method-logo">{/if}
                     <input type="radio" name="shipping_id" value="{$m.id}" {if $m.external || !empty($m.error)}disabled{/if} {if $m.id == $shipping.id}checked{/if}>
                     {$m.name|escape}
-                </label> 
-                    
+                </label>
+
                 {if empty($m.error) && !empty($m.rates)}
                     {if count($m.rates) > 1}
                         <select class="shipping-rates" name="rate_id[{$m.id}]">
@@ -54,7 +54,18 @@
                 {/if}
             </h3>
             {if $m.description}<p>{$m.description}</p>{/if}
-            {if !empty($m.form)}<div class="wa-form wa-address" {if $m.id != $shipping.id}style="display:none"{/if}>{$m.form->html()}</div>{/if}
+            {if !empty($m.form)}
+                <div class="wa-form wa-address" {if $m.id != $shipping.id}style="display:none"{/if}>
+                    {$m.form->html()}
+                    {if !empty($checkout_steps.shipping.service_agreement_hint)}
+                        <div class="wa-field service-agreement-wrapper">
+                            <div class="wa-value">
+                                <p class="hint">{$checkout_steps.shipping.service_agreement_hint}</p>
+                            </div>
+                        </div>
+                    {/if}
+                </div>
+            {/if}
             {if !empty($m.custom_html)}
                 <div class="clear-both"></div>
                 <div class="wa-form" {if $m.id != $shipping.id}style="display:none"{/if}>{$m.custom_html}</div>

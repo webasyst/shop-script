@@ -14,7 +14,7 @@ class shopSettingsSaveStockController extends waJsonController
         $stocks_order = waRequest::post('stocks_order');
         if ($stocks_order) {
             $sort = $iadd = $ivadd = 0;
-            foreach(explode(',', $stocks_order) as $id) {
+            foreach (explode(',', $stocks_order) as $id) {
                 if ($id && $id{0} == 'v') {
                     $id = substr($id, 1);
                     if ($id) {
@@ -22,7 +22,7 @@ class shopSettingsSaveStockController extends waJsonController
                             $virtualstocks_edit[$id] = array();
                         }
                         $virtualstocks_edit[$id]['sort'] = $sort;
-                    } else if (isset($virtualstocks_add[$ivadd])) {
+                    } elseif (isset($virtualstocks_add[$ivadd])) {
                         $virtualstocks_add[$ivadd]['sort'] = $sort;
                         $ivadd++;
                     }
@@ -32,7 +32,7 @@ class shopSettingsSaveStockController extends waJsonController
                             $stocks_edit[$id] = array();
                         }
                         $stocks_edit[$id]['sort'] = $sort;
-                    } else if (isset($stocks_add[$iadd])) {
+                    } elseif (isset($stocks_add[$iadd])) {
                         $stocks_add[$iadd]['sort'] = $sort;
                         $iadd++;
                     }
@@ -87,10 +87,20 @@ class shopSettingsSaveStockController extends waJsonController
                 $app_settings_model->del($app_id, 'limit_main_stock');
             }
         }
-        if (waRequest::post('update_stock_count_on_create_order')) {
-            $app_settings_model->set($app_id, 'update_stock_count_on_create_order', 1);
-        } else {
-            $app_settings_model->set($app_id, 'update_stock_count_on_create_order', 0);
+
+        $stock_counting = waRequest::post('stock_counting_action');
+        switch ($stock_counting) {
+            case 'create':
+                $app_settings_model->set($app_id, 'update_stock_count_on_create_order', 1);
+                $app_settings_model->set($app_id, 'disable_stock_count', 0);
+                break;
+            case 'processing':
+                $app_settings_model->set($app_id, 'update_stock_count_on_create_order', 0);
+                $app_settings_model->set($app_id, 'disable_stock_count', 0);
+                break;
+            case 'none':
+                $app_settings_model->set($app_id, 'disable_stock_count', 1);
+                break;
         }
 
         // Assign all inventory to new stock, if specified

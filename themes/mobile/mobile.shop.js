@@ -1,128 +1,222 @@
-    // LAZY LOAD
-( function($) {
+// Shop :: Lazy Loading
+var LazyLoading = ( function($) {
 
-    var initialize = function() {
-        var $lazyPadding = $(".lazyloading-paging");
+    var onScroll;
 
-        if ($.fn.lazyLoad) {
+    LazyLoading = function(options) {
+        var that = this;
 
-            if (!$lazyPadding.length) {
-                return;
-            }
+        // VARS
+        that.list_name = options["names"]["list"];
+        that.items_name = options["names"]["items"];
+        that.pagind_name = options["names"]["paging"];
+        that.load_class = "is-loading";
 
-            var times = parseInt( $lazyPadding.data('times'), 10),
-                link_text = $lazyPadding.data('linkText') || 'Load more',
-                current = $lazyPadding.find('li.selected');
+        // DOM
+        that.$wrapper = ( options["$wrapper"] || false );
+        that.$list = that.$wrapper.find(that.list_name);
+        that.$window = $(window);
 
-            if (current.children('a').text() != '1') {
-                return;
-            }
+        // DYNAMIC VARS
+        that.$paging = that.$wrapper.find(that.pagind_name);
 
-            $lazyPadding.hide();
+        // INIT
+        that.initLazyLoading();
+    };
 
-            var win = $(window);
+    LazyLoading.prototype.initLazyLoading = function() {
+        var that = this;
 
-            // prevent previous launched lazy-loading
-            win.lazyLoad('stop');
+        that.addWatcher();
+    };
 
-            // check need to initialize lazy-loading
-            var next = current.next();
+    LazyLoading.prototype.addWatcher = function() {
+        var that = this;
 
-            if (next.length) {
-                win.lazyLoad({
-                    container: ".shop-list-wrapper",
-                    load: function () {
-                        win.lazyLoad('sleep');
+        onScroll = function() {
+            that.onScroll();
+        };
 
-                        $lazyPadding.hide();
+        that.$window.on("scroll", onScroll);
+    };
 
-                        // determine actual current and next item for getting actual url
-                        var current = $lazyPadding.find('li.selected');
-                        var next = current.next();
-                        var url = next.find('a').attr('href');
-                        if (!url) {
-                            win.lazyLoad('stop');
-                            return;
-                        }
+    LazyLoading.prototype.stopWatcher = function() {
+        var that = this;
 
-                        var product_list = $(".shop-list-wrapper");
-
-                        var loading = $lazyPadding.parent().find('.loading').parent();
-
-                        if (!loading.length) {
-                            var loading_str = $lazyPadding.data('loading-str') || 'Loading...';
-                            loading = $('<div><i class="icon16 loading"></i>'+loading_str+'</div>').insertBefore($lazyPadding);
-                        }
-
-                        loading.show();
-
-                        $.get(url, function (html) {
-                            var tmp = $('<div></div>').html(html);
-                            if ($.Retina) {
-                                tmp.find('.shop-list-wrapper img').retina();
-                            }
-                            product_list.append(tmp.find(".shop-list-wrapper").children());
-                            var tmp_paging = tmp.find('.lazyloading-paging').hide();
-                            $lazyPadding.replaceWith(tmp_paging);
-                            $lazyPadding = tmp_paging;
-
-                            times -= 1;
-
-                            // check need to stop lazy-loading
-                            var current = $lazyPadding.find('li.selected');
-                            var next = current.next();
-                            if (next.length) {
-                                if (!isNaN(times) && times <= 0) {
-                                    win.lazyLoad('sleep');
-                                    if (!$('.lazyloading-load-more').length) {
-                                        $('<a href="#" class="lazyloading-load-more">' + link_text + '</a>').insertAfter($lazyPadding)
-                                            .click(function () {
-                                                loading.show();
-                                                times = 1;      // one more time
-                                                win.lazyLoad('wake');
-                                                win.lazyLoad('force');
-                                                return false;
-                                            });
-                                    }
-                                } else {
-                                    win.lazyLoad('wake');
-                                }
-                            } else {
-                                win.lazyLoad('stop');
-                            }
-
-                            loading.hide();
-                            tmp.remove();
-                        });
-                    }
-                });
-            }
+        if (typeof onScroll == "function") {
+            that.$window.off("scroll", onScroll);
         }
     };
 
-    $(document).ready(function () {
-        initialize();
-    });
+    LazyLoading.prototype.onScroll = function() {
+        var that = this,
+            is_paging_exist = ( $.contains(document, that.$paging[0]) );
+
+        if (is_paging_exist) {
+
+            var $window = that.$window,
+                scroll_top = $window.scrollTop(),
+                display_height = $window.height(),
+                paging_top = that.$paging.offset().top;
+
+            // If we see paging, stop watcher and run load
+            if (scroll_top + display_height >= paging_top) {
+                that.stopWatcher();
+                that.loadNextPage();
+            }
+
+        } else {
+            that.stopWatcher();
+        }
+
+    };
+
+    LazyLoading.prototype.loadNextPage = function() {
+        var that = this,
+            next_page_url = getNextUrl(),
+            $paging = that.$paging;
+
+        function getNextUrl() {
+            var $nextPage = that.$paging.find(".selected").next(),
+                result = false;
+
+            if ($nextPage.length) {
+                result = $nextPage.find("a").attr("href");
+            }
+
+            return result;
+        }
+
+        function showLoad() {
+            var $loading = '<div class="s-loading-wrapper"><i class="icon16 loading"></i>&nbsp;' + $paging.data("loading-text") + '</div>';
+
+            $paging
+                .addClass(that.load_class)
+                .append($loading);
+        }
+
+        if (next_page_url) {
+
+            showLoad();
+
+            $.get(next_page_url, function(response) {
+                var $category = $(response),
+                    $newItems = $category.find(that.list_name + " " + that.items_name),
+                    $newPaging = $category.find(that.pagind_name);
+
+                that.$list.append($newItems);
+
+                $paging.after($newPaging);
+
+                $paging.remove();
+
+                that.$paging = $newPaging;
+
+                that.addWatcher();
+            });
+        }
+    };
+
+    return LazyLoading;
 
 })(jQuery);
 
-// SLIDER
-( function($) {
-    //SLIDERS
+// Shop :: AJAX Products Filtering
+var ProductsFilter = ( function($) {
 
-    $(document).ready( function() {
+    ProductsFilter = function(options) {
+        var that = this;
 
-    var $slider = $(".homepage-bxslider"),
-        slide_count = $slider.find("li").length;
+        // DOM
+        that.$wrapper = options["$wrapper"];
+        that.$form = that.$wrapper.find("form");
 
-        $slider.bxSlider( {
-            auto : slide_count > 1,
-            touchEnabled: true,
-            pause : 5000,
-            autoHover : true,
-            pager: slide_count > 1
+        // VARS
+
+        // DYNAMIC VARS
+        that.is_locked = false;
+
+        // INIT
+        that.initClass();
+    };
+
+    ProductsFilter.prototype.initClass = function() {
+        var that = this;
+        //
+        that.bindEvents();
+    };
+
+    ProductsFilter.prototype.bindEvents = function() {
+        var that = this;
+        //
+        that.$wrapper.on("click", ".show-filter-content-link", function() {
+            that.toggleFilter( $(this) );
+            return false;
         });
-    });
+        // On submit form
+        that.$form.on("submit", function(event) {
+            event.preventDefault();
+            if (!that.is_locked) {
+                that.onSubmit( $(this) );
+            }
+            return false;
+        });
+    };
+
+    ProductsFilter.prototype.toggleFilter = function( $link ) {
+        var that = this,
+            $wrapper = that.$wrapper,
+            activeClass = "is-shown";
+
+        // Change Link Text
+        if ($wrapper.hasClass(activeClass)) {
+            $link.text( $link.data("hide-text") )
+        } else {
+            $link.text( $link.data("show-text") )
+        }
+
+        // Toggle Content
+        $wrapper.toggleClass(activeClass);
+    };
+
+    ProductsFilter.prototype.onSubmit = function( $form ) {
+        var that = this,
+            href = $form.attr("action"),
+            data = $form.serialize(),
+            $category = $("#s-category-wrapper");
+
+        // Lock
+        that.is_locked = true;
+
+        // Animation
+        $category.addClass("is-loading");
+
+        $.get(href, data, function(html) {
+            that.changeHistory( href + "?" + data );
+
+            // Insert new html
+            if ($category.length) {
+                $category.replaceWith(html);
+            }
+            // Scroll to Top
+            $("html, body").animate({
+                scrollTop: 0
+            }, 200);
+            // Unclock
+            that.is_locked = false;
+        });
+    };
+
+    ProductsFilter.prototype.changeHistory = function(href) {
+        var that = this,
+            api_is_enabled = ( history && history.pushState && history.replaceState && history.state !== undefined );
+
+        if (api_is_enabled) {
+            history.pushState({}, '', href);
+        }
+    };
+
+    return ProductsFilter;
 
 })(jQuery);
 
@@ -178,125 +272,107 @@
 
 })(jQuery);
 
-// Catalog AJAX Filtering
-( function($) {
+// CountDown
+var CountDown = ( function($) {
 
-    var storage = {
-        href: ""
+    CountDown = function(options) {
+        var that = this;
+
+        // DOM
+        that.$wrapper = options["$wrapper"];
+
+        // VARS
+        that.start = options["start"];
+        that.end = options["end"];
+        that.format = "%days%:%hours%:%minutes%:%seconds%";
+
+        // DYNAMIC VARS
+        that.period = that.getPeriod();
+        that.time_period = null;
+        that.timer = 0;
+
+        // INIT
+        that.run();
     };
 
-    var bindEvents = function() {
+    CountDown.prototype.getPeriod = function() {
+        var that = this,
+            start_date = new Date( that.start ),
+            end_date = new Date( that.end );
 
-        $(".filter-content-wrapper form").submit( function() {
-            onSubmit( $(this) );
-            return false;
-        });
+        return (end_date > start_date) ? (end_date - start_date) : 0;
     };
 
-    var onSubmit = function( $form ) {
-        var request = getRequest( $form),
-            $list = $(".shop-list-wrapper"),
-            $no_list = $(".no-product-wrapper"),
-            $button = $form.find(".button-wrapper"),
-            $block;
+    CountDown.prototype.getData = function() {
+        var that = this,
+            period = that.period;
 
-        if ( $list.length ) {
-            $block = $list;
-        } else if ($no_list.length) {
-            $block = $no_list;
+        var second = 1000,
+            minute = second * 60,
+            hour = minute * 60,
+            day = hour * 24,
+            residue;
+
+        var days = Math.floor(period/day);
+        residue = ( period - days * day );
+
+        var hours = Math.floor(residue/hour);
+        residue = ( residue - hours * hour );
+
+        var minutes = Math.floor(residue/minute);
+        residue = ( residue - minutes * minute );
+
+        var seconds = Math.floor(residue/second);
+
+        return {
+            days: days,
+            hours: hours,
+            minutes: minutes,
+            seconds: seconds
         }
+    };
 
-        // Show refreshing icon over button
-        if (typeof toggleRefreshIcon === "function") {
-            toggleRefreshIcon($button, "show");
-        }
+    CountDown.prototype.getTime = function() {
+        var that = this,
+            data = that.getData(),
+            result = that.format;
 
-        request.done( function(content) {
-            var $content = $("<div />").html(content),
-                list = $content.find(".shop-list-wrapper"),
-                no_list = $content.find(".no-product-wrapper"),
-                block;
+        return result
+            .replace("%days%", (data.days < 10) ? "0" + data.days : data.days)
+            .replace("%hours%", (data.hours < 10) ? "0" + data.hours : data.hours)
+            .replace("%minutes%", (data.minutes < 10) ? "0" + data.minutes : data.minutes)
+            .replace("%seconds%", (data.seconds < 10) ? "0" + data.seconds : data.seconds);
+    };
 
-            if ( list.length ) {
-                block = list;
-            } else if (no_list.length) {
-                block = no_list;
+    CountDown.prototype.run = function() {
+        var that = this,
+            timer = 1000;
+
+        if (that.period > 0) {
+            var time = that.getTime();
+
+            that.$wrapper.html(time);
+
+            that.period -= timer;
+
+            if (that.period > 0) {
+                that.timer = setTimeout( function () {
+                    that.run();
+                }, timer);
             }
 
-            if ($block && block) {
-                $block.html(block);
-
-                if (!!(history.pushState && history.state !== undefined)) {
-                    window.history.pushState({}, '', storage.href);
-                }
-
-                $(window).lazyLoad && $(window).lazyLoad('reload');
-
-            }
-
-            // Show refreshing icon over button
-            if (typeof toggleRefreshIcon === "function") {
-                toggleRefreshIcon($button, "hide");
-            }
-
-            closeFilter();
-
-            scrollList();
-        });
-    };
-
-    var getRequest = function($form) {
-        var deferred = $.Deferred(),
-            fields = $form.serializeArray(),
-            params = [],
-            href;
-
-        // Sort Params
-        for (var i = 0; i < fields.length; i++) {
-            if (fields[i].value !== '') {
-                params.push(fields[i].name + '=' + fields[i].value);
-            }
-        }
-        href = '?' + params.join('&');
-
-        // Set href for PushState
-        storage.href = href;
-
-        // Request
-        $.get( href + '&_=_', function(request) {
-            deferred.resolve(request);
-        });
-
-        return deferred;
-    };
-
-    var closeFilter = function() {
-        var $wrapper = $(".catalog-filter-wrapper"),
-            activeClass = "is-shown";
-
-        // If active close
-        if ( $wrapper.hasClass(activeClass) ) {
-            $wrapper.find(".show-filter-content-link").trigger("click");
+        } else {
+            that.destroy();
         }
     };
 
-    var scrollList = function() {
-        var $filter = $(".catalog-filter-wrapper"),
-            $header = $(".header-wrapper"),
-            filter_top = parseInt( $filter.css("margin-top") ),
-            header_height = parseInt( $header.outerHeight() ),
-            scrollTop = 0;
+    CountDown.prototype.destroy = function() {
+        var that = this;
 
-        if ( $filter.length && $header.length ) {
-            scrollTop = $filter.offset().top - header_height - filter_top;
-            //
-            $(window).scrollTop(scrollTop);
-        }
+        that.$wrapper.remove();
     };
 
-    $(document).ready( function() {
-        bindEvents();
-    });
+    return CountDown;
 
 })(jQuery);
 

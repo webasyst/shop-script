@@ -187,7 +187,7 @@ class shopImportexportHelper
             case 'tag':
             case 'search':
                 $collection = new shopProductsCollection($info['type'].'/'.urldecode($tail));
-                $products = $collection->getProducts('id,name,url');
+                $products = $collection->getProducts('id,name,url', 0, 10000);
                 $info['type'] = 'id';
                 $hash = 'id/'.implode(',', array_keys($products));
                 break;

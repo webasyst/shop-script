@@ -313,6 +313,7 @@ return array(
         'name' => array('varchar', 255, 'null' => 0),
         'delay' => array('int', 10, 'unsigned' => 1, 'null' => 0),
         'first_order_only' => array('tinyint', 3, 'unsigned' => 1, 'null' => 0, 'default' => '1'),
+        'same_state_id' => array('tinyint', 4, 'default' => '0'),
         'subject' => array('text', 'null' => 0),
         'body' => array('text', 'null' => 0),
         'last_cron_time' => array('datetime', 'null' => 0),
@@ -320,6 +321,7 @@ return array(
         'source' => array('varchar', 64),
         'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         'transport' => array('enum', "'email','sms'", 'null' => 0, 'default' => 'email'),
+        'state_id' => array('varchar', 32, 'default' => 'paid'),
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
@@ -376,10 +378,12 @@ return array(
         'is_first' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
         'unsettled' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
         'comment' => array('text'),
+        'shipping_datetime'=> array('datetime'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'state_id' => 'state_id',
             'contact_id' => 'contact_id',
+            'shipping_datetime'=>'shipping_datetime',
         ),
     ),
     'shop_order_items' => array(
@@ -411,12 +415,13 @@ return array(
         'contact_id' => array('int', 11),
         'action_id' => array('varchar', 32, 'null' => 0),
         'datetime' => array('datetime', 'null' => 0),
-        'before_state_id' => array('varchar', 16, 'null' => 0),
-        'after_state_id' => array('varchar', 16, 'null' => 0),
+        'before_state_id' => array('varchar', 32, 'null' => 0),
+        'after_state_id' => array('varchar', 32, 'null' => 0),
         'text' => array('text'),
         ':keys' => array(
             'PRIMARY' => 'id',
             'order_id' => 'order_id',
+            'datetime' => 'datetime',
         ),
     ),
     'shop_order_log_params' => array(
@@ -502,8 +507,8 @@ return array(
         'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         'type_id' => array('int', 11),
         'image_id' => array('int', 11),
-        'image_filename' => array('varchar', 225, 'null' => 0, 'default' => ''),
-        'video_url' => array('varchar', 225),
+        'image_filename' => array('varchar', 255, 'null' => 0, 'default' => ''),
+        'video_url' => array('varchar', 255),
         'sku_id' => array('int', 11),
         'ext' => array('varchar', 10),
         'url' => array('varchar', 255),
@@ -562,7 +567,7 @@ return array(
         'width' => array('int', 5, 'null' => 0, 'default' => '0'),
         'height' => array('int', 5, 'null' => 0, 'default' => '0'),
         'size' => array('int', 11),
-        'filename' => array('varchar', 225, 'null' => 0, 'default' => ''),
+        'filename' => array('varchar', 255, 'null' => 0, 'default' => ''),
         'original_filename' => array('varchar', 255),
         'ext' => array('varchar', 10),
         'badge_type' => array('int', 4),
@@ -745,6 +750,8 @@ return array(
         'client_id' => array('varchar', 64, 'null' => 0),
         'shop_url' => array('varchar', 255, 'null' => 0),
         'type' => array('varchar', 255, 'null' => 0, 'default' => ''),
+        'api_token' => array('varchar', 32),
+        'create_datetime' => array('datetime'),
         ':keys' => array(
             'client' => array('client_id', 'unique' => 1),
         ),
@@ -967,5 +974,5 @@ return array(
         'sort' => array('int', 11, 'null' => 0),
         ':keys' => array(
         ),
-    )
+    ),
 );

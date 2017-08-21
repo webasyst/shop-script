@@ -99,6 +99,9 @@ class shopCurrencyModel extends waModel
         if ($from == $to) {
             return $price;
         }
+        if (!$price) {
+            return $price;
+        }
         $currencies = $this->getCurrencies(array($from, $to));
         if (!isset($currencies[$from])) {
             throw new waException("Unknown currency: $from");
@@ -220,6 +223,7 @@ class shopCurrencyModel extends waModel
             $this->exec("UPDATE `shop_customer`  SET total_spent = total_spent/$rate");
             $this->exec("UPDATE `shop_product` SET total_sales = total_sales/$rate");
             $this->exec("UPDATE `shop_order` SET rate = rate/$rate");
+            $this->exec("UPDATE `shop_order_params` SET value = value/$rate WHERE name='shipping_currency_rate'");
             $this->exec("UPDATE `shop_expense` SET amount = amount/$rate");
             $this->exec("DELETE FROM `shop_sales`");
             $this->updateById($old_code, array('sort' => $currencies[$new_code]));

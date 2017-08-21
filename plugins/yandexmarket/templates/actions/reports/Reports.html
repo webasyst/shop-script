@@ -61,19 +61,19 @@
         <table class="zebra">
             <thead>
             <tr>
-                <th>ID</th>
-                <th>Домен</th>
+                <th>ID/Домен</th>
                 <th>Прайс-листы</th>
                 <th>Состояние кампании</th>
-                <th>Программа «Заказ на Маркете»</th>
+                <th>Программа «Заказ на Маркете» <span class="hint">CPA</span></th>
                 <th>Точки выдачи заказов</th>
             </tr>
             </thead>
             <tbody>
             {foreach $campaigns as $campaign}
                 <tr{if empty($campaign.settlements)} class="grey"{/if}>
-                    <td>{$campaign.id|escape}</td>
                     <td>
+                        <a href="https://partner.market.yandex.ru/order.xml?id={$campaign.id|escape}" target="_blank" class="inline-link">{$campaign.id|escape}<i class="icon16 new-window"></i></a>
+                        <br/>
                         {$campaign.domain|escape}
                         {if !empty($campaign.settlements)}
                             {foreach $campaign.settlements as $settlement}
@@ -87,17 +87,21 @@
                             {foreach $campaign.feeds as $feed}
                                 {if empty($feed.profile_id)}
                                     <i class="icon16 exclamation"></i>
-                                    Профиль для прайс-листа {$feed.id} не найден {$feed.url|escape}. Проверьте настройки плагина или обновите URL прайс-листа.
+                                    Профиль для прайс-листа {$feed.id} не найден.
+                                    <br/>Проверьте настройки плагина или обновите URL прайс-листа.
+                                    <br/>Текущий URL: {$feed.url|escape}
                                 {else}
                                     <a href="?action=importexport#/yandexmarket:{$feed.profile_id}/" target="_blank" class="inline-link"
                                        title="{$feed.id}"><i class="icon16 export"></i>{$feed.profile_info.name|escape}{if !empty($feed.path_mtime)}
-                                        <span class="hint">{$feed.path_mtime|wa_datetime:'humandatetime'}</span>
+                                        <br/><span class="hint">{$feed.path_mtime|wa_datetime:'humandatetime'}</span>
                                         {/if}<i class="icon16 new-window"></i></a>
                                 {/if}
                                 {if !$feed@last}
                                     <br/>
                                 {/if}
                             {/foreach}
+                        {elseif !empty($campaign.settlements)}
+                            Для кампании не найдено ни одного прайс-листа. <a href="?action=importexport#/yandexmarket:/">Создайте</a> или укажите один из существующих профилей экспорта прайс-листа в настройках размещения.
                         {/if}
                     </td>
                     <td>
@@ -128,7 +132,7 @@
                         {$campaign.stateDescriptionCpa|escape}
 
                         {if isset($campaign.orders_count)}
-                            <span class="indicator" title="Количество заказов за последние 30 дней">{$campaign.orders_count}</span>
+                            <span class="indicator" title="Количество заказов за последние 30 дней"><a href="?action=orders#/orders/sales_channel=plugin_yandexmarket%3A">{$campaign.orders_count|default:'N/A'}</a></span>
                         {/if}
                         {if !empty($campaign.stateReasonsCpa)}
                             <ul class="menu-v with-icons">
@@ -140,12 +144,26 @@
                     </td>
                     <td>
                         {if !empty($campaign.outlets)}
-                            <ul class="menu-v with-icons">
+                            <ul class="menu-v" style="max-height: 600px; overflow-y: auto; overflow-x: hidden;">
                                 {foreach $campaign.outlets as $outlet}
-                                    <li class="hint" title="{"`$outlet.type` `$outlet.id`"|escape}"><i class="icon10 exclamation"></i>{$outlet.name|escape}</li>
+                                    <li class="hint" title="{"`$outlet.type` `$outlet.id`"|escape}">
+                                        {if !empty($outlet.statusIcon)}
+                                            <i class="icon10 {$outlet.statusIcon}" title="{$outlet.statusName|escape}"></i>
+                                        {/if}
+
+                                        {if !empty($outlet.type)}
+                                            <i class="icon16 {$outlet.typeIcon}" title="{$outlet.typeName|escape}"></i>
+                                        {/if}
+                                        {$outlet.name|escape}
+
+                                        {if !empty($outlet.visibility)}
+                                            <i class="icon10 {$outlet.visibilityIcon}" title="{$outlet.visibilityName|escape}"></i>
+                                        {/if}
+                                    </li>
                                 {/foreach}
                             </ul>
                         {/if}
+
                     </td>
                 </tr>
             {/foreach}

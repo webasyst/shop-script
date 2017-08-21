@@ -73,8 +73,8 @@
 
 <script>
     $(function() {
-        var view = $.storage.get('shop/orders/view') || '{$orders_default_view}';
-        if (view === 'table' || view === '"table"') {
+        var view = (localStorage && localStorage.getItem('shop/orders/view')) || '{$orders_default_view}';
+        if (view.match(/table/)) {
             $('#s-order-list .s-order-link').each(function() {
                 var el = $(this);
                 el.attr('href', '{$wa_app_url}?action=orders#/order/' + el.data('orderId') + '/state_id=' + el.data('stateId') + '/');

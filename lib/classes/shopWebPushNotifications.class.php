@@ -10,6 +10,13 @@ class shopWebPushNotifications
     protected $root_url;
     protected $supported_browser = '';
 
+    /**
+     * One signal Google project number
+     * @see official documentation
+     * @var string
+     */
+    private $gcm_sender_id = '482941778795';
+
     const CURRENT_DOMAIN = 0;
     const SERVER_SEND_DOMAIN = 1;
 
@@ -74,6 +81,10 @@ class shopWebPushNotifications
                 'gcm_sender_id' => ''
             ), ifset($domain_settings[$this->domain]['manifest'], array()));
 
+            if (empty($manifest['gcm_sender_id'])) {
+                $manifest['gcm_sender_id'] = $this->gcm_sender_id;
+            }
+
             file_put_contents($root_path . '/manifest.json', json_encode($manifest));
             file_put_contents($root_path . '/OneSignalSDKUpdaterWorker.js', "importScripts('https://cdn.onesignal.com/sdks/OneSignalSDK.js');");
             file_put_contents($root_path . '/OneSignalSDKWorker.js', "importScripts('https://cdn.onesignal.com/sdks/OneSignalSDK.js');");
@@ -112,7 +123,7 @@ class shopWebPushNotifications
     {
         return !$this->isOn();
     }
-    
+
     public function getAppId()
     {
         return !empty($this->settings['app_id']) ? $this->settings['app_id'] : '';
@@ -202,6 +213,7 @@ class shopWebPushNotifications
         $contact_id = $contact_id === null ? wa()->getUser()->getId() : $contact_id;
         $res = $this->push_clients_model->insert(
             array(
+                'create_datetime' => date('Y-m-d H:i:s'),
                 'contact_id' => $contact_id,
                 'client_id' => $client_id,
                 'type' => 'web'
@@ -260,6 +272,9 @@ class shopWebPushNotifications
 
     public function getGoogleProjectNumber()
     {
+        if (empty($this->settings['manifest']['gcm_sender_id'])) {
+            $this->settings['manifest']['gcm_sender_id'] = $this->gcm_sender_id;
+        }
         return $this->settings['manifest']['gcm_sender_id'];
     }
 
@@ -293,6 +308,10 @@ class shopWebPushNotifications
             'display' => 'standalone',
             'gcm_sender_id' => ''
         ), $web_push_domains[$this->domain]['manifest']);
+
+        if (empty($web_push_domains[$this->domain]['manifest']['gcm_sender_id'])) {
+            $web_push_domains[$this->domain]['manifest']['gcm_sender_id'] = $this->gcm_sender_id;
+        }
 
         // check allowance
         $web_push_domains[$this->domain]['allowed'] = false;

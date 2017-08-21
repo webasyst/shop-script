@@ -17,36 +17,19 @@ class shopYandexmarketPluginFrontendActions extends waActions
             if (!$profile) {
                 throw new waException('Profile not found', 404);
             }
-            $lifetime = ifset($profile['config']['lifetime'], 0);
+            $lifetime = max(0, ifset($profile['config']['lifetime'], 0));
+
             if ($lifetime && (!file_exists($path) || (time() - filemtime($path) > $lifetime))) {
                 waRequest::setParam('profile_id', $profile_id);
 
                 $runner = new shopYandexmarketPluginRunController();
-                $_POST['processId'] = null;
-
-                $moved = false;
-                $ready = false;
-                do {
-                    ob_start();
-                    if (empty($_POST['processId'])) {
-                        $_POST['processId'] = $runner->processId;
-                    } else {
-                        sleep(1);
-                    }
-                    if ($ready) {
-                        $_POST['cleanup'] = true;
-                        $moved = true;
-                    }
-                    $runner->execute();
-                    $out = ob_get_clean();
-                    $result = json_decode($out, true);
-                    $ready = !empty($result) && is_array($result) && ifempty($result['ready']);
-                } while (!$ready || !$moved);
-                //TODO check errors
+                $result = $runner->fastExecute($profile_id);
             }
-        }
 
-        waFiles::readFile($path, waRequest::get('download') ? 'yandexmarket.xml' : null);
+            waFiles::readFile($path, waRequest::get('download') ? 'yandexmarket.xml' : null);
+        } else {
+            throw new waException('File not found', 404);
+        }
     }
 
     public function dtdAction()

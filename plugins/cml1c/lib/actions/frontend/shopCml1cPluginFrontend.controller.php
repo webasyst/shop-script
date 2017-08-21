@@ -1,7 +1,12 @@
 <?php
 
+/**
+ * @see http://v8.1c.ru/edi/edi_stnd/131/
+ * Class shopCml1cPluginFrontendController
+ */
 class shopCml1cPluginFrontendController extends waController
 {
+    private $use_reflection = false;
 
     /**
      *
@@ -12,6 +17,9 @@ class shopCml1cPluginFrontendController extends waController
         static $plugin;
         if (!$plugin) {
             $plugin = wa()->getPlugin('cml1c');
+            /**
+             * @var shopCml1cPlugin $plugin
+             */
         }
         return $plugin;
     }
@@ -111,7 +119,7 @@ class shopCml1cPluginFrontendController extends waController
 
                         case 'success':
                             /* C. Подтверждение получения файла обмена с сайта*/
-                            /*@todo update timestamp for exchange*/
+                            $this->plugin()->exportTime(true);
                             $s = $this->getStorage();
                             $s->set('success', true);
                             if ($id = $s->get('processId')) {
@@ -122,7 +130,6 @@ class shopCml1cPluginFrontendController extends waController
                                 $this->runner()->run();
                                 ob_get_clean();
                                 $this->response('success', "OK");
-                                //TODO update export timestamp
                             } else {
                                 $this->response('success', 'already deleted');
                             }
@@ -170,15 +177,27 @@ class shopCml1cPluginFrontendController extends waController
                 }
             }
 
-            $size = ini_get('upload_max_filesize');
-            if (preg_match('/(\d+)\s*([KMG]?)/', $size, $matches)) {
-                $m = array(
-                    'K' => 1024,
-                    'M' => 1048576,
-                    'G' => 1073741824,
-                );
-                $size = intval($matches[1]) * ifset($m[$matches[2]], 1);
+            $sizes = array(
+                ini_get('upload_max_filesize'),
+                ini_get('memory_limit'),
+            );
+
+            foreach ($sizes as &$size) {
+
+                if (preg_match('/(\d+)\s*([KMG]?)/', $size, $matches)) {
+                    $m = array(
+                        'K' => 1024,
+                        'M' => 1048576,
+                        'G' => 1073741824,
+                    );
+                    $size = intval($matches[1]) * ifset($m[$matches[2]], 1);
+                }
+                unset($size);
             }
+
+            $sizes = array_filter($sizes);
+
+            $size = max(1024 * 1024, min($sizes));
 
             $this->response(sprintf("zip=%s", function_exists('zip_open') ? "yes" : "no"), sprintf("file_limit=%d", 0.8 * $size));
         }
@@ -187,26 +206,27 @@ class shopCml1cPluginFrontendController extends waController
     private function uploadFile()
     {
         if (isset($GLOBALS['HTTP_RAW_POST_DATA'])) {
-            $data = !empty($GLOBALS['HTTP_RAW_POST_DATA']) ? $GLOBALS['HTTP_RAW_POST_DATA'] : null;
+            if (!empty($GLOBALS['HTTP_RAW_POST_DATA'])) {
+                $filename = $this->plugin()->path(waRequest::get('filename', 'upload'));
+                waFiles::write($filename, $GLOBALS['HTTP_RAW_POST_DATA']);
+            } else {
+                throw new waException("Error while read POST file");
+            }
         } else {
-            $data = implode("", file('php://input'));
-        }
-
-        if ($data !== false) {
-            $filename = $this->plugin()->path(waRequest::get('filename', 'upload'));
-            if ($fp = fopen($filename, "ab")) {
-                $result = fwrite($fp, $data);
-                fclose($fp);
-                if ($result !== mb_strlen($data, 'latin1')) {
-                    throw new waException("Error while write file");
+            if ($sp = fopen('php://input', 'rb')) {
+                $filename = $this->plugin()->path(waRequest::get('filename', 'upload'));
+                if ($fp = fopen($filename, "ab")) {
+                    $result = stream_copy_to_stream($sp, $fp);
+                    //TODO: check upload file size
+                } else {
+                    throw new waException("Error while open file");
                 }
 
             } else {
-                throw new waException("Error while open file");
+                throw new waException("Error while read POST file");
             }
-        } else {
-            throw new waException("Error while read POST file");
         }
+
         return $filename;
     }
 
@@ -229,34 +249,40 @@ class shopCml1cPluginFrontendController extends waController
 
     private function importCatalog($filename)
     {
+        $sync = waRequest::param('sync');
         $s = $this->getStorage();
-
-        #init required POST fields
-        $_POST['processId'] = $s->get('processId'.$filename);
-        $_POST['direction'] = 'import';
-        $_POST['filename'] = $filename;
-        $_POST['zipfile'] = $s->get('filename');
-
-        if (empty($_POST['processId'])) {
-            ob_start();
-            $this->runner()->run();
-            $s->set('processId'.$filename, $this->runner()->processId);
-            $out = ob_get_clean();
-            $this->response('progress', $out);
+        if (!empty($sync)) {
+            $this->response('success', 'Имитация обмена. Фактического обмена данными не произошло', 'Imitation completed. There no data exchange');
         } else {
-            ob_start();
-            $s->close();
-            $this->runner()->run();
-            $out = ob_get_clean();
-            if (strpos($out, 'success') === 0) {
-                $_POST['cleanup'] = true;
+
+
+            #init required POST fields
+            $_POST['processId'] = $s->get('processId'.$filename);
+            $_POST['direction'] = 'import';
+            $_POST['filename'] = $filename;
+            $_POST['zipfile'] = $s->get('filename');
+
+            if (empty($_POST['processId'])) {
                 ob_start();
-                $this->sleep();
                 $this->runner()->run();
-                $this->runner()->exchangeReport();
+                $s->set('processId'.$filename, $this->runner()->processId);
                 $out = ob_get_clean();
+                $this->response('progress', $out);
+            } else {
+                ob_start();
+                $s->close();
+                $this->runner()->run();
+                $out = ob_get_clean();
+                if (strpos($out, 'success') === 0) {
+                    $_POST['cleanup'] = true;
+                    ob_start();
+                    $this->sleep();
+                    $this->runner()->run();
+                    $this->runner()->exchangeReport();
+                    $out = ob_get_clean();
+                }
+                $this->response($out);
             }
-            $this->response($out);
         }
     }
 
@@ -293,50 +319,139 @@ class shopCml1cPluginFrontendController extends waController
     private function exportSale()
     {
         $_POST['direction'] = 'export';
-        $_POST['export'] = array(
-            'order' => true,
-        );
+        $sync = waRequest::param('sync');
+        if (!empty($sync)) {
+            $_POST['export'] = array(
+                'virtual_product' => true,
+            );
+        } else {
+            $_POST['export'] = array(
+                'order' => true,
+            );
 
 
-        switch ($this->plugin()->getSettings('export_orders')) {
-            case 'all':
-                break;
-            case 'changed':
-                $_POST['export']['new_order'] = true;
-                break;
+            switch ($this->plugin()->getSettings('export_orders')) {
+                case 'all':
+                    break;
+                case 'changed':
+                    $_POST['export']['new_order'] = true;
+                    break;
+            }
         }
 
-        $limit = 100;
-        $trace = array();
-        do {
-            ob_start();
-            $this->runner()->run();
-            if (empty($_POST['processId'])) {
-                $_POST['processId'] = $this->runner()->processId;
-                $this->getStorage()->set('processId', $_POST['processId']);
-            }
+        $out = null;
+        $this->use_reflection = class_exists('ReflectionClass');
 
-            $out = ob_get_clean();
-            $ready = strpos(substr($out, 0, 8), 'success') === 0;
-            $this->sleep();
-        } while (--$limit && !$ready);
+        $ready = $this->step($out);
 
         if ($ready) {
             $this->runner()->exchangeReport();
 
-             $this->runner()->sendFile();
-            //
+            $this->runner()->sendFile();
+            $this->cleanup();
+        } else {
+            waLog::log(sprintf('Error while export sales (not enough iterations) %s', ifempty($out)), 'shop/plugins/cml1c.log');
+            $this->response('failure', "\n\n".$out);
+        }
+    }
+
+    /**
+     * @var ReflectionClass
+     */
+    private $reflection;
+
+    private function step(&$out)
+    {
+        if ($this->use_reflection) {
+            ob_start();
+            $controller = $this->runner();
+
+            $this->reflection = new ReflectionClass('shopCml1cPluginBackendRunController');
+            #set method public for test purpose
+            $init = $this->reflection->getMethod('init');
+            $init->setAccessible(true);
+            $step = $this->reflection->getMethod('step');
+            $step->setAccessible(true);
+            $restore = $this->reflection->getMethod('restore');
+            $restore->setAccessible(true);
+            $done = $this->reflection->getMethod('isDone');
+            $done->setAccessible(true);
+            $finish = $this->reflection->getMethod('finish');
+            $finish->setAccessible(true);
+
+            $init->invoke($controller);
+            if (empty($_POST['processId'])) {
+                $_POST['processId'] = $controller->processId;
+                $this->getStorage()->set('processId', $_POST['processId']);
+            }
+            $restore->invoke($controller);
+            $is_done = $done->invoke($controller);
+            while (!$is_done) {
+                $continue = $step->invoke($controller);
+                $is_done = $done->invoke($controller);
+            };
+
+            $restore->invoke($controller);
+            $out = ob_get_clean();
+            if ($out) {
+                waLog::log(sprintf('Error while export sales', $out, 'shop/plugins/cml1c.error.log'));
+            }
+            return $is_done;
+        } else {
+
+            $limit = 100;
+            do {
+                ob_start();
+                $this->runner()->run();
+                if (empty($_POST['processId'])) {
+                    $_POST['processId'] = $this->runner()->processId;
+                    $this->getStorage()->set('processId', $_POST['processId']);
+                }
+
+                $out = ob_get_clean();
+                $ready = strpos(substr($out, 0, 8), 'success') === 0;
+                $this->sleep();
+            } while (--$limit && !$ready);
+            return $ready;
+        }
+    }
+
+    private function cleanup()
+    {
+        $_POST['cleanup'] = true;
+        if ($this->use_reflection) {
+            $controller = $this->runner();
+
+            $done = $this->reflection->getMethod('isDone');
+            $done->setAccessible(true);
+
+            $step = $this->reflection->getMethod('step');
+            $step->setAccessible(true);
+
+
+            $is_done = $done->invoke($controller);
+
+            $continue = true;
+            while ($continue && !$is_done) {
+                $continue = $step->invoke($controller) || true;
+                $is_done = $done->invoke($controller);
+            }
+
+
+            $restore = $this->reflection->getMethod('restore');
+            $restore->setAccessible(true);
+
+            $restore->invoke($controller);
+        } else {
             ob_start();
             #cleanup code & store exchange report
             $this->sleep();
-            $_POST['cleanup'] = true;
             $this->runner(true)->run();
             ob_get_clean();
-        } else {
-            waLog::log(sprintf('Error while export sales (not enough iterations) %s', $out), 'shop/plugins/cml1c.log');
-            $this->response('failure', var_export($trace, true)."\n\n".$out);
         }
+
     }
+
 
     private function sleep($time = 2)
     {

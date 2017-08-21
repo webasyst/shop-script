@@ -566,7 +566,7 @@ class shopProductModel extends waModel
                 JOIN (
                     SELECT s.product_id id, SUM(IF(s.count < 0, 0, s.count)) count_of_skus
                     FROM shop_product_skus s
-                    WHERE s.available = 1
+                    WHERE s.available > 0
                     GROUP BY s.product_id
                 ) t ON p.id = t.id
             SET p.count = t.count_of_skus

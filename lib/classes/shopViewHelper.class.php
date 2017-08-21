@@ -56,7 +56,7 @@ class shopViewHelper extends waAppViewHelper
      */
     public function productSet($set_id, $offset = null, $limit = null, $options = array())
     {
-        if (!$offset && !$limit && !$options && ($cache = $this->wa->getCache())) {
+        if (!$offset && !$limit && !$options && ($cache = wa('shop')->getCache())) {
             $route = $this->getRoute();
             $cache_key = 'set_'.$set_id.'_'.str_replace('/', '_', waRouting::clearUrl($route['domain'].'/'.$route['url']));
             $products = $cache->get($cache_key, 'sets');
@@ -154,6 +154,7 @@ class shopViewHelper extends waAppViewHelper
 
     /**
      * @param array $products
+     * @param bool $public_only
      * @return array
      */
     public function features(&$products, $public_only = true)
@@ -250,9 +251,10 @@ class shopViewHelper extends waAppViewHelper
                         } else {
                             if (is_array($value_ids)) {
                                 $p['features'][$f['code']] = array();
-                                foreach ($value_ids as $v_id) {
-                                    if (isset($type_values[$type][$feature_id][$v_id])) {
-                                        $p['features'][$f['code']][$v_id] = $type_values[$type][$feature_id][$v_id];
+                                //keep feature values order
+                                foreach ($type_values[$type][$feature_id] as $v_id => $v_value) {
+                                    if (in_array($v_id, $value_ids)) {
+                                        $p['features'][$f['code']][$v_id] = $v_value;
                                     }
                                 }
                             } elseif (isset($type_values[$type][$feature_id][$value_ids])) {
@@ -309,14 +311,14 @@ class shopViewHelper extends waAppViewHelper
     public function primaryCurrency()
     {
         if (!$this->_currency) {
-            $this->_currency = $this->wa->getConfig()->getCurrency(true);
+            $this->_currency = wa('shop')->getConfig()->getCurrency(true);
         }
         return $this->_currency;
     }
 
     public function currency($full_info = false)
     {
-        $currency = $this->wa->getConfig()->getCurrency(false);
+        $currency = wa('shop')->getConfig()->getCurrency(false);
         if ($full_info) {
             return waCurrency::getInfo($currency);
         } else {
@@ -326,7 +328,7 @@ class shopViewHelper extends waAppViewHelper
 
     public function currencies()
     {
-        return $this->wa->getConfig()->getCurrencies();
+        return wa('shop')->getConfig()->getCurrencies();
     }
 
     public function productUrl($product, $key = '', $route_params = array())
@@ -337,7 +339,7 @@ class shopViewHelper extends waAppViewHelper
         } else {
             $route_params['category_url'] = '';
         }
-        return $this->wa->getRouteUrl('shop/frontend/product'.ucfirst($key), $route_params);
+        return wa()->getRouteUrl('shop/frontend/product'.ucfirst($key), $route_params);
     }
 
     public function badgeHtml($code)
@@ -372,18 +374,30 @@ class shopViewHelper extends waAppViewHelper
             return '';
         }
 
+        if (!empty($product['product_id'])) {
+            $product['id'] = $product['product_id'];
+        }
+
         if (!isset($product['image_filename'])) {
-            $p = $this->wa->getView()->getVars('product');
+            $p = wa('shop')->getView()->getVars('product');
             if ($p && ($p['id'] == $product['id'])) {
                 $product['image_filename'] = $p['images'][$product['image_id']]['filename'];
             }
         }
 
+        if (!isset($product['image_description'])) {
+            $p = wa('shop')->getView()->getVars('product');
+            if ($p && ($p['id'] == $product['id'])) {
+                $product['image_description'] = $p['images'][$product['image_id']]['description'];
+            }
+        }
+
         return $this->imgHtml(array(
-            'id'         => $product['image_id'],
-            'product_id' => $product['id'],
-            'filename'   => isset($product['image_filename']) ? $product['image_filename'] : null,
-            'ext'        => $product['ext']
+            'id'          => $product['image_id'],
+            'product_id'  => $product['id'],
+            'filename'    => isset($product['image_filename']) ? $product['image_filename'] : null,
+            'ext'         => $product['ext'],
+            'description' => !empty($product['image_description']) ? $product['image_description'] :(isset($product['name'])?$product['name']:null),
         ), $size, $attributes);
     }
 
@@ -416,10 +430,14 @@ class shopViewHelper extends waAppViewHelper
         if (empty($product['image_id'])) {
             return '';
         }
+        if (!empty($product['product_id'])) {
+            $product['id'] = $product['product_id'];
+        }
         if (!isset($product['image_filename'])) {
-            $p = $this->wa->getView()->getVars('product');
+            $p = wa('shop')->getView()->getVars('product');
             if ($p && ($p['id'] == $product['id'])) {
                 $product['image_filename'] = $p['images'][$product['image_id']]['filename'];
+                $product['image_description'] = $p['images'][$product['image_id']]['description'];
             }
         }
         return $this->imgUrl(array(
@@ -522,7 +540,7 @@ class shopViewHelper extends waAppViewHelper
             $category_params_model = new shopCategoryParamsModel();
             $category['params'] = $category_params_model->get($category['id']);
 
-            if ($this->wa->getConfig()->getOption('can_use_smarty') && $category['description']) {
+            if (wa('shop')->getConfig()->getOption('can_use_smarty') && $category['description']) {
                 $category['description'] = wa()->getView()->fetch('string:'.$category['description']);
             }
         }
@@ -531,7 +549,7 @@ class shopViewHelper extends waAppViewHelper
 
     public function categoryUrl($c)
     {
-        return $this->wa->getRouteUrl('shop/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url']));
+        return wa()->getRouteUrl('shop/frontend/category', array('category_url' => waRequest::param('url_type') == 1 ? $c['url'] : $c['full_url']));
     }
 
     protected function getRoute($domain = null, $route_url = null)
@@ -589,7 +607,7 @@ class shopViewHelper extends waAppViewHelper
             return array();
         }
         $cats = $category_model->getTree($id, $depth, false, $route['domain'].'/'.$route['url']);
-        $url = $this->wa->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'), false, $route['domain'], $route['url']);
+        $url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'), false, $route['domain'], $route['url']);
         $hidden = array();
         foreach ($cats as $c_id => $c) {
             if ($c['parent_id'] && $c['id'] != $id && !isset($cats[$c['parent_id']])) {
@@ -647,7 +665,7 @@ class shopViewHelper extends waAppViewHelper
 
     public function tags($limit = 50)
     {
-        if ($limit == 50 && ($cache = $this->wa->getCache())) {
+        if ($limit == 50 && ($cache = wa('shop')->getCache())) {
             $tags = $cache->get('tags');
             if ($tags !== null) {
                 return $tags;

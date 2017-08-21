@@ -11,13 +11,7 @@ class shopProductOrdersAction extends waViewAction
         $product_model = new shopProductModel();
         $product = $product_model->getById($id);
         if (!$product) {
-            throw new waException(_w("Unkown product"));
-        }
-
-        // order
-        $order = waRequest::get('order', null, waRequest::TYPE_STRING_TRIM);
-        if ($order != 'asc' && $order != 'desc') {
-            $order = 'desc';
+            throw new waException(_w("Unknown product"));
         }
 
         // chunk size
@@ -32,13 +26,17 @@ class shopProductOrdersAction extends waViewAction
         $orders = $orders_collection->getOrders('*,params', $offset, $count);
         $this->workupOrders($orders);
 
+        $default_view = $this->getConfig()->getOption('orders_default_view');
+        $view = waRequest::get('view', $default_view, waRequest::TYPE_STRING_TRIM);
+
         $this->view->assign(array(
-            'product_id' => $id,
-            'orders' => $orders,
-            'offset' => $offset,
-            'count' => count($orders),
-            'total_count' => $total_count,
-            'lazy' => waRequest::get('lazy', false)
+            'product_id'   => $id,
+            'orders'       => $orders,
+            'offset'       => $offset,
+            'count'        => count($orders),
+            'total_count'  => $total_count,
+            'lazy'         => waRequest::get('lazy', false),
+            'view' => $view,
         ));
 
     }
@@ -50,18 +48,18 @@ class shopProductOrdersAction extends waViewAction
             $contact_ids[] = $o['contact_id'];
         }
         $contact_ids = array_unique($contact_ids);
-        $col = new waContactsCollection('id/' . implode(',', $contact_ids ? $contact_ids : array(0)));
+        $col = new waContactsCollection('id/'.implode(',', $contact_ids ? $contact_ids : array(0)));
         $contacts = $col->getContacts('id,name,firstname,lastname,middlename');
         foreach ($orders as &$o) {
             $o['contact'] = ifset($contacts[$o['contact_id']], array(
-                'id' => $o['contact_id'],
+                'id'   => $o['contact_id'],
                 'name' => sprintf(_w('Contact deleted: %d'), $o['contact_id'])
             ));
             $o['contact']['name'] = waContactNameField::formatName($o['contact']);
         }
         unset($o);
         shopHelper::workupOrders($orders);
-        foreach($orders as &$o) {
+        foreach ($orders as &$o) {
             $o['total_formatted'] = waCurrency::format('%{h}', $o['total'], $o['currency']);
             $o['shipping_name'] = ifset($o['params']['shipping_name'], '');
             $o['payment_name'] = ifset($o['params']['payment_name'], '');
@@ -78,5 +76,4 @@ class shopProductOrdersAction extends waViewAction
         }
         return $total_count;
     }
-
 }

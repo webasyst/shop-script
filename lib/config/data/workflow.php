@@ -18,6 +18,7 @@ return array(
                 'complete',
                 'comment',
                 'edit',
+                'editshippingdetails',
                 'message',
                 'delete',
             ),
@@ -37,6 +38,7 @@ return array(
                 'complete',
                 'comment',
                 'edit',
+                'editshippingdetails',
                 'message',
                 'delete',
             ),
@@ -53,6 +55,7 @@ return array(
             ),
             'available_actions' => array(
                 'ship',
+                'editshippingdetails',
                 'complete',
                 'refund',
                 'comment',
@@ -69,6 +72,7 @@ return array(
                 ),
             ),
             'available_actions' => array(
+                'editshippingdetails',
                 'complete',
                 'comment',
                 'delete',
@@ -176,6 +180,15 @@ return array(
                 'position'   => 'top',
                 'icon'       => 'edit',
                 'log_record' => _w('Order was edited'),
+            ),
+        ),
+        'editshippingdetails'     => array(
+            'classname' => 'shopWorkflowEditshippingdetailsAction',
+            'name'      => _w('Edit shipping details'),
+            'options'   => array(
+                'position'   => 'top',
+                'icon'       => 'clock',
+                'log_record' => _w('Shipping details changed'),
             ),
         ),
         'delete'   => array(

@@ -1,4 +1,5 @@
 <?php
+
 class shopSettingsNotificationsEditAction extends shopSettingsNotificationsAction
 {
     public function execute()
@@ -17,10 +18,10 @@ class shopSettingsNotificationsEditAction extends shopSettingsNotificationsActio
         krsort($test_orders);
         shopHelper::workupOrders($test_orders);
         $im = new shopOrderItemsModel();
-        foreach($im->getByField('order_id', array_keys($test_orders), true) as $i) {
+        foreach ($im->getByField('order_id', array_keys($test_orders), true) as $i) {
             $test_orders[$i['order_id']]['items'][] = $i;
         }
-        foreach($test_orders as &$o) {
+        foreach ($test_orders as &$o) {
             $o['items'] = ifset($o['items'], array());
             $o['total_formatted'] = waCurrency::format('%{h}', $o['total'], $o['currency']);
         }
@@ -33,5 +34,11 @@ class shopSettingsNotificationsEditAction extends shopSettingsNotificationsActio
         $this->view->assign('default_email_from', $this->getConfig()->getGeneralSettings('email'));
         $this->view->assign('sms_from', $this->getSmsFrom());
         $this->view->assign('routes', wa()->getRouting()->getByApp('shop'));
+
+        $event_params = array(
+            'notification' => $n,
+            'params' => $params,
+        );
+        $this->view->assign('backend_notification_edit', wa()->event('backend_notification_edit', $event_params));
     }
 }

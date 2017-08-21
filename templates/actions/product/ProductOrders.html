@@ -4,48 +4,42 @@
     <table class="zebra double-padded s-product-orders single-lined" id="s-product-orders-list">
         {foreach $orders as $o}
             <tr>
+                <!--
+                {capture assign='a_params'}
+                {if $view eq 'table'}
+                href="?action=orders#/order/{$o.id}/state_id={$o.state_id}/"
+                {else}
+                href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
+                {/if}
+                style="{$o.style|escape}"
+                data-order-id="{$o.id}"
+                data-state-id="{$o.state_id}"
+                class="s-order-link"
+                {/capture}
+                -->
+
                 <td class="nowrap">
-                    <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                                      style="{$o.style|escape}"
-                                      data-order-id="{$o.id}"
-                                      data-state-id="{$o.state_id}"
-                                      class="s-order-link"
-                                >
+                    <a {$a_params}>
                         <i class="{$o.icon}"></i>{$wa->shop->orderId($o.id)}
                     </a>
                 </td>
                 <td>
                     <div>
-                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                                      style="{$o.style|escape}"
-                                      data-order-id="{$o.id}"
-                                      data-state-id="{$o.state_id}"
-                                      class="s-order-link"
-                                >{$o.create_datetime|wa_date:'humandate'}</a>
+                        <a {$a_params}>{$o.create_datetime|wa_date:'humandate'}</a>
                         <i class="shortener"></i>
                     </div>
                 </td>
                 <td>
                     <div>
-                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                                      style="{$o.style|escape}"
-                                      data-order-id="{$o.id}"
-                                      data-state-id="{$o.state_id}"
-                                      class="s-order-link"
-                                >{$o.contact.name|escape}</a>
+                        <a {$a_params}>{$o.contact.name|escape}</a>
                         <i class="shortener"></i>
                     </div>
                 </td>
                 <td>
                     <div>
-                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                                      style="{$o.style|escape}"
-                                      data-order-id="{$o.id}"
-                                      data-state-id="{$o.state_id}"
-                                      class="s-order-link"
-                                >
+                        <a {$a_params}>
                         {if $o.shipping_name}
-                            {$o.shipping_name}
+                            {$o.shipping_name|escape}
                         {else}
                             <span class="gray">[`Shipping option not specified`]</span>
                         {/if}
@@ -55,14 +49,9 @@
                 </td>
                 <td>
                     <div>
-                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                                      style="{$o.style|escape}"
-                                      data-order-id="{$o.id}"
-                                      data-state-id="{$o.state_id}"
-                                      class="s-order-link"
-                                >
+                        <a {$a_params}>
                             {if $o.payment_name}
-                                {$o.payment_name}
+                                {$o.payment_name|escape}
                             {else}
                                 <span class="gray">[`Payment option not specified`]</span>
                             {/if}
@@ -71,12 +60,7 @@
                     </div>
                 </td>
                 <td class="bold nowrap align-right">
-                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                                      style="{$o.style|escape}"
-                                      data-order-id="{$o.id}"
-                                      data-state-id="{$o.state_id}"
-                                      class="s-order-link"
-                                >{$o.total_formatted}</a>
+                        <a {$a_params}>{$o.total_formatted}</a>
                 </td>
             </tr>
         {/foreach}
@@ -93,7 +77,7 @@
 {/if}
 
 {if !$lazy}
-    <script>
+    <script type="text/javascript">
         $.product_orders.init({
             total_count: {$total_count},
             container: '#s-product-profile-tabs .s-tab-block[data-tab="recent-orders"]',

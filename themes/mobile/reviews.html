@@ -39,14 +39,14 @@
 
             {include file="review.html" inline reply_allowed=$reply_allowed single_view=true review=$review}
         {/foreach}
-        
+
         {section name="end-review" loop=$depth}
               <div class="reviews-branch"></div>
               </div>
             </div>
         {/section}
     {/function}
-    
+
     <section class="reviews">
         <div class="reviews-form-wrapper">
 
@@ -132,6 +132,18 @@
                         {if $request_captcha && empty($current_user_id)}
                             <div class="review-field review-submit">
                                 {$wa->captcha()}
+                            </div>
+                        {/if}
+
+                        {if empty($current_user_id) && !empty($review_service_agreement) && !empty($review_service_agreement_hint)}
+                            <div class="review-field service-agreement-wrapper">
+                                <label>
+                                    {if $review_service_agreement == 'checkbox'}
+                                        <input type="hidden" name="service_agreement" value="">
+                                        <input type="checkbox" name="service_agreement" value="1"{if $wa->post('service_agreement') || $wa->storage('shop_review_agreement')} checked{/if}>
+                                    {/if}
+                                    {$review_service_agreement_hint}
+                                </label>
                             </div>
                         {/if}
 
