@@ -56,7 +56,7 @@ class shopFrontendAction extends waViewAction
         $offset = ($page - 1) * $limit;
         $count = $collection->count();
 
-        if($count <= $offset) {
+        if(($page > 1) && ($count <= $offset)) {
             throw new waException('Page not found', 404);
         }
 
