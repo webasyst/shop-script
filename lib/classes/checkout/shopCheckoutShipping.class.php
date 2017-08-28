@@ -389,13 +389,9 @@ class shopCheckoutShipping extends shopCheckout
             if ($m !== null) {
                 $w = $w / $m;
             }
-            $items[] = array(
-                'name' => $item['name'],
-                'price' => $item['price'],
-                'currency' => $item['currency'],
-                'quantity' => $item['quantity'],
-                'weight' => $w,
-            );
+            
+            $item['weight'] = $w;
+            $items[] = $item;
         }
         return $items;
     }
