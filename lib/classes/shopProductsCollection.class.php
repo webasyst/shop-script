@@ -161,12 +161,6 @@ class shopProductsCollection
                 return;
             }
             $this->prepared = true;
-
-            /**
-             * @event products_collection.filter
-             * @param shopProductsCollection $this
-             */
-            wa()->event('products_collection.filter', $this);
         }
     }
 
@@ -1143,6 +1137,13 @@ class shopProductsCollection
     public function getSQL()
     {
         $this->prepare();
+        
+        /**
+         * @event products_collection.filter
+         * @param shopProductsCollection $this
+         */
+        wa()->event('products_collection.filter', $this);
+        
         $sql = "FROM shop_product p";
 
         if ($this->joins) {
